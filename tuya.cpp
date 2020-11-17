@@ -80,6 +80,8 @@ bool UseTuyaCluster(QString manufacturer)
     // https://docs.tuya.com/en/iot/device-development/module/zigbee-module/zigbeetyzs11module?id=K989rik5nkhez
     //_TZ3000 don't use tuya cluster
     //_TYZB01 don't use tuya cluster
+    //_TYZB02 don't use tuya cluster
+    //_TZ3400 don't use tuya cluster
     
     if (manufacturer.startsWith(QLatin1String("_TZE200_")) || // Tuya clutster visible
         manufacturer.startsWith(QLatin1String("Tuya_C_")) ||  // Used by fake device
@@ -114,7 +116,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
     {
         return;
     }
-    
+        
     if (zclFrame.commandId() == 0x00)
     {
         // 0x00 : Used to send command, so not used here
@@ -133,15 +135,21 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         QDataStream stream(zclFrame.payload());
         stream.setByteOrder(QDataStream::LittleEndian);
 
-        uint8_t status;
-        uint8_t transid;
-        int16_t dp;
-        uint8_t dp_type;
-        uint8_t dp_identifier;
-        uint8_t fn;
-        qint32 data = 0;
-        quint8 dummy;
+        // "dp" field describes the action/message of a command frame and was composed by a type and an identifier
+        // "transid" is just a "counter", a response will have the same transif than the command.
+        // "Status" and "fn" are always 0
+        // More explanations at top of file
+        
+        quint8 status;
+        quint8 transid;
+        quint16 dp;
+        quint8 fn;
         quint8 length = 0;
+        qint32 data = 0;
+        
+        quint8 dp_type;
+        quint8 dp_identifier;
+        quint8 dummy;
         
         stream >> status;
         stream >> transid;
@@ -154,28 +162,102 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         //security, it seem 4 is the maximum
         if (length > 4)
         {
-            DBG_Printf(DBG_INFO, "Tuya : data length excess, not managed yet\n");
-            length = 4;
+            DBG_Printf(DBG_INFO, "Tuya : Schedule command\n");
         }
-        
-        for (; length > 0; length--)
+        else
         {
-            stream >> dummy;
-            data = data << 8;
-            data = data + dummy;
+            for (; length > 0; length--)
+            {
+                stream >> dummy;
+                data = data << 8;
+                data = data + dummy;
+            }
         }
         
         //To be more precise
-        dp_identifier = (uint8_t) (dp & 0xFF);
-        dp_type = (uint8_t) ((dp >> 8) & 0xFF);
+        dp_identifier = (quint8) (dp & 0xFF);
+        dp_type = (quint8) ((dp >> 8) & 0xFF);
 
         DBG_Printf(DBG_INFO, "Tuya debug 4 : Address 0x%016llX Payload %s\n" , ind.srcAddress().ext(), qPrintable(zclFrame.payload().toHex()));
         DBG_Printf(DBG_INFO, "Tuya debug 5 : Status: %d Transid: %d Dp: %d (0x%02X,0x%02X) Fn: %d Data %ld\n", status , transid , dp , dp_type, dp_identifier, fn , data);
         
-        //Sensor and light use same cluster, so need to make a choice for device that have both
-        if ((sensorNode) && (lightNode))
+        if (length > 4) //schedule command
+        {
+            
+            // Monday = 64, Tuesday = 32, Wednesday = 16, Thursday = 8, Friday = 4, Saturday = 2, Sunday = 1
+            // If you want your schedule to run only on workdays, the value would be W124. (64+32+16+8+4 = 124)
+            // The API specifies 3 numbers, so a schedule that runs on Monday would be W064.
+            // Workday = W124
+            // Not working day = W003
+            // Saturday = W002
+            // Sunday = W001
+            // All days = W127
+            
+            QString transitions;
+            
+            length = length / 3;
+            
+            if (zclFrame.payload().size() < (( length * 3) + 6) )
+            {
+                DBG_Printf(DBG_INFO, "Tuya : Schedule data error\n");
+                return;
+            }
+            
+            quint8 hour;
+            quint8 minut;
+            quint8 heatSetpoint;
+            
+            quint8 part = 1;
+            QList<int> listday;
+            
+            if (dp == 0x0070) //work days (6)
+            {
+                listday << 124;
+            }
+            else if (dp == 0x00071) // holiday = Not working day (6)
+            {
+                listday << 003;
+            }
+            else if (dp == 0x0065) // Moe thermostat W124 (4) + W002 (4) + W001 (4)
+            {
+                part = length / 3;
+                listday << 124 << 2 << 1;
+            }
+            
+            for (; part > 0; part--)
+            {
+                for (; length > 0; length--)
+                {
+                    stream >> hour;
+                    stream >> minut;
+                    stream >> heatSetpoint;
+
+                    transitions += QString("T%1:%2|%3")
+                        .arg(hour, 2, 10, QChar('0'))
+                        .arg(minut, 2, 10, QChar('0'))
+                        .arg(heatSetpoint);
+                        
+                    if (part > 0 && listday.size() >= static_cast<int>(part))
+                    {
+                        updateThermostatSchedule(sensorNode, listday.at(part - 1), transitions);
+                    }
+                        
+                }
+            }
+            
+            return;
+        }
+        
+        // Sensor and light use same cluster, so need to make a choice for device that have both
+        // Some device have sensornode AND lightnode, so need to use the good one.
+        if (sensorNode && lightNode)
         {
             if (dp == 0x0215) // battery
+            {
+                lightNode = nullptr;
+            }
+        
+            if (sensorNode->type() == QLatin1String("ZHAThermostat"))
             {
                 lightNode = nullptr;
             }
@@ -185,6 +267,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         {
             //Window covering ?
             if ((lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq")) ||
+                (lightNode->manufacturer() == QLatin1String("_TZE200_xuzcvlku")) ||
+                (lightNode->manufacturer() == QLatin1String("_TZE200_wmcdj3aq")) ||
                 (lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3")) )
             {
                 
@@ -256,7 +340,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             }
                             
                             //Find model id if missing ( modelId().isEmpty ?) and complete it
-                            if (lightNode->modelId().isNull() || (lightNode->manufacturer() == QLatin1String("Unknown")))
+                            if (lightNode->modelId().isNull() || (lightNode->modelId() == QLatin1String("Unknown")) || (lightNode->manufacturer() == QLatin1String("Unknown")))
                             {
                                 DBG_Printf(DBG_INFO, "Tuya debug 10 : Updating model ID\n");
                                 if (!lightNode2->modelId().isNull())
@@ -296,12 +380,31 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             {
                 case 0x0068: // window open information
                 {
-                    uint8_t valve = (uint8_t) (dp & 0xFF);
-                    uint8_t temperature = (uint8_t) ((dp >> 8) & 0xFF);
-                    uint8_t minute = (uint8_t) ((dp >> 16) & 0xFF);
+                    quint8 valve = (quint8) (dp & 0xFF);
+                    quint8 temperature = (quint8) ((dp >> 8) & 0xFF);
+                    quint8 minute = (quint8) ((dp >> 16) & 0xFF);
                     
                     DBG_Printf(DBG_INFO, "Tuya debug 9 : windows open info: %d %d %d" ,valve , temperature, minute );
                     
+                }
+                break;
+                case 0x0101: // off / running for Moe
+                {
+                    QString mode;
+                    if      (data == 0) { mode = QLatin1String("off"); }
+                    else if (data == 1) { mode = QLatin1String("heat"); }
+                    else
+                    {
+                        return;
+                    }
+                    
+                    ResourceItem *item = sensorNode->item(RConfigMode);
+
+                    if (item && item->toString() != mode)
+                    {
+                        item->setValue(mode);
+                        enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                    }
                 }
                 break;
                 case 0x0107 : // Childlock status
@@ -335,36 +438,38 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     bool onoff = false;
                     if (data == 1) { onoff = true; }
                     
-                    ResourceItem *item = sensorNode->item(RStateOn);
+                    ResourceItem *item = sensorNode->item(RConfigSetValve);
 
                     if (item && item->toBool() != onoff)
                     {
                         item->setValue(onoff);
-                        Event e(RSensors, RStateOn, sensorNode->id(), item);
+                        Event e(RSensors, RConfigSetValve, sensorNode->id(), item);
                         enqueueEvent(e);
                     }
                 }
                 break;
-                case 0x016c: // manual / auto
+                case 0x0128 : // Childlock status for moe
                 {
-                    QString mode;
-                    if (data == 0) { mode = "heat"; } // was "manu"
-                    if (data == 1) { mode = "auto"; } // back to "auto"
-                    
-                    ResourceItem *item = sensorNode->item(RConfigMode);
+                    bool locked = (data == 0) ? false : true;
+                    ResourceItem *item = sensorNode->item(RConfigLocked);
 
-                    if (item && item->toString() != mode)
+                    if (item && item->toBool() != locked)
                     {
-                        item->setValue(mode);
-                        enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                        item->setValue(locked);
+                        Event e(RSensors, RConfigLocked, sensorNode->id(), item);
+                        enqueueEvent(e);
                     }
                 }
                 break;
-                case 0x0165: // off / on
+                case 0x0165: // off / on > [off = off, on = heat]
                 {
                     QString mode;
-                    if (data == 0) { mode = "off"; }
-                    if (data == 1) { mode = "manu"; }
+                    if      (data == 0) { mode = QLatin1String("off"); }
+                    else if (data == 1) { mode = QLatin1String("manu"); }
+                    else
+                    {
+                        return;
+                    }
                     
                     ResourceItem *item = sensorNode->item(RConfigMode);
 
@@ -390,6 +495,31 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     }
                 }
                 break;
+                case 0x016A: // Away mode
+                {
+                    //bool away = false;
+                    //if (data == 1) { away = true; }
+                }
+                break;
+                case 0x016c: // manual / auto
+                {
+                    QString mode;
+                    if      (data == 0) { mode = QLatin1String("heat"); } // was "manu"
+                    else if (data == 1) { mode = QLatin1String("auto"); } // back to "auto"
+                    else
+                    {
+                        return;
+                    }
+                    
+                    ResourceItem *item = sensorNode->item(RConfigMode);
+
+                    if (item && item->toString() != mode)
+                    {
+                        item->setValue(mode);
+                        enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                    }
+                }
+                break;
                 case 0x016E: // Low battery
                 {
                     bool bat = false;
@@ -407,7 +537,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 break;
                 case 0x0202: // Thermostat heatsetpoint
                 {
-                    qint16 temp = ((qint16)(data & 0xFFFF)) * 10;
+                    qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
                     ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
 
                     if (item && item->toNumber() != temp)
@@ -419,10 +549,9 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     }
                 }
                 break;
-                case 0x0203: // Thermostat temperature
-                case 0x0269: // siren temperature
+                case 0x0203: // Thermostat current temperature
                 {
-                    qint16 temp = ((qint16)(data & 0xFFFF)) * 10;
+                    qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
                     ResourceItem *item = sensorNode->item(RStateTemperature);
 
                     if (item && item->toNumber() != temp)
@@ -434,11 +563,29 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     }
                 }
                 break;
+                case 0x0210: // Thermostat heatsetpoint for moe
+                {
+                    qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 100;
+                    ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
+
+                    if (item && item->toNumber() != temp)
+                    {
+                        item->setValue(temp);
+                        Event e(RSensors, RConfigHeatSetpoint, sensorNode->id(), item);
+                        enqueueEvent(e);
+                    }
+                }
+                break;
                 case 0x0215: // battery
                 {
-                    quint8 bat = (qint8)(data & 0xFF);
+                    quint8 bat = (static_cast<qint8>(data & 0xFF));
                     if (bat > 100) { bat = 100; }
                     ResourceItem *item = sensorNode->item(RConfigBattery);
+                    
+                    if (!item && bat > 0) // valid value: create resource item
+                    {
+                        item = sensorNode->addItem(DataTypeUInt8, RConfigBattery);
+                    }
 
                     if (item && item->toNumber() != bat)
                     {
@@ -448,9 +595,22 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     }
                 }
                 break;
+                case 0x0218: // Thermostat current temperature for moe
+                {
+                    qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
+                    ResourceItem *item = sensorNode->item(RStateTemperature);
+
+                    if (item && item->toNumber() != temp)
+                    {
+                        item->setValue(temp);
+                        Event e(RSensors, RStateTemperature, sensorNode->id(), item);
+                        enqueueEvent(e);
+                    }
+                }
+                break;
                 case 0x022c : // temperature calibration (offset)
                 {
-                    qint16 temp = ((qint16)(data & 0xFFFF)) * 10;
+                    qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
                     ResourceItem *item = sensorNode->item(RConfigOffset);
 
                     if (item && item->toNumber() != temp)
@@ -466,7 +626,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     //Can be Temperature for some device
                     if (sensorNode->modelId() == QLatin1String("GbxAXL2"))
                     {
-                        qint16 temp = ((qint16)(data & 0xFFFF)) * 10;
+                        qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
                         ResourceItem *item = sensorNode->item(RStateTemperature);
 
                         if (item && item->toNumber() != temp)
@@ -484,7 +644,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     //can be setpoint for some device
                     if (sensorNode->modelId() == QLatin1String("GbxAXL2"))
                     {
-                        qint16 temp = ((qint16)(data & 0xFFFF)) * 10;
+                        qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
                         ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
 
                         if (item && item->toNumber() != temp)
@@ -497,22 +657,38 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     }
                 }
                 break;
+                case 0x0269: // siren temperature, Boost time
+                {
+                    if (sensorNode->modelId() == QLatin1String("0yu2xgi")) //siren
+                    {
+                        qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
+                        ResourceItem *item = sensorNode->item(RStateTemperature);
+
+                        if (item && item->toNumber() != temp)
+                        {
+                            item->setValue(temp);
+                            Event e(RSensors, RStateTemperature, sensorNode->id(), item);
+                            enqueueEvent(e);
+                        }
+                    }
+                }
+                break;
                 case 0x026A : // Siren Humidity
                 {
-                    qint16 RStateHumidity = ((qint16)(data & 0xFFFF)) * 10;
-                    ResourceItem *item = sensorNode->item(RStateTemperature);
+                    qint16 Hum = (static_cast<qint16>(data & 0xFFFF)) * 10;
+                    ResourceItem *item = sensorNode->item(RStateHumidity);
 
-                    if (item && item->toNumber() != RStateHumidity)
+                    if (item && item->toNumber() != Hum)
                     {
-                        item->setValue(RStateHumidity);
-                        Event e(RSensors, RStateTemperature, sensorNode->id(), item);
+                        item->setValue(Hum);
+                        Event e(RSensors, RStateHumidity, sensorNode->id(), item);
                         enqueueEvent(e);
                     }
                 }
                 break;
                 case 0x026D : // Valve position
                 {
-                    quint8 valve = (qint8)(data & 0xFF);
+                    quint8 valve = (static_cast<qint8>(data & 0xFF));
                     bool on = valve > 3;
                     
                     ResourceItem *item = sensorNode->item(RStateOn);
@@ -532,16 +708,40 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     }
                 }
                 break;
+                case 0x0402 : // preset for moe
+                case 0x0403 : // preset for moe
+                {
+                    QString preset;
+                    if (dp == 0x0402) { preset = QLatin1String("auto"); }
+                    else if (dp == 0x0403) { preset = QLatin1String("program"); }
+                    else
+                    {
+                        return;
+                    }
+                    
+                    ResourceItem *item = sensorNode->item(RConfigPreset);
+
+                    if (item && item->toString() != preset)
+                    {
+                        item->setValue(preset);
+                        enqueueEvent(Event(RSensors, RConfigPreset, sensorNode->id(), item));
+                    }
+                }
+                break;
                 case 0x0404 : // preset
                 {
                     QString preset;
-                    if (data == 0) { preset = "holiday"; }
-                    if (data == 1) { preset = "auto"; }
-                    if (data == 2) { preset = "manual"; }
-                    if (data == 3) { preset = "confort"; }
-                    if (data == 4) { preset = "eco"; }
-                    if (data == 5) { preset = "boost"; }
-                    if (data == 6) { preset = "complex"; }
+                    if (data == 0) { preset = QLatin1String("holiday"); }
+                    else if (data == 1) { preset = QLatin1String("auto"); }
+                    else if (data == 2) { preset = QLatin1String("manual"); }
+                    else if (data == 3) { preset = QLatin1String("confort"); }
+                    else if (data == 4) { preset = QLatin1String("eco"); }
+                    else if (data == 5) { preset = QLatin1String("boost"); }
+                    else if (data == 6) { preset = QLatin1String("complex"); }
+                    else
+                    {
+                        return;
+                    }
                     
                     ResourceItem *item = sensorNode->item(RConfigPreset);
 
@@ -555,9 +755,13 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 case 0x046a : // mode
                 {
                     QString mode;
-                    if (data == 0) { mode = "auto"; }
-                    if (data == 1) { mode = "heat"; }
-                    if (data == 2) { mode = "off"; }
+                    if (data == 0) { mode = QLatin1String("auto"); }
+                    else if (data == 1) { mode = QLatin1String("heat"); }
+                    else if (data == 2) { mode = QLatin1String("off"); }
+                    else
+                    {
+                        return;
+                    }
                     
                     ResourceItem *item = sensorNode->item(RConfigMode);
 
@@ -619,6 +823,52 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         }
     }
 
+}
+
+bool DeRestPluginPrivate::SendTuyaRequestThermostatSetWeeklySchedule(TaskItem &taskRef, quint8 weekdays , QString transitions , qint8 Dp_identifier )
+{
+    QByteArray data;
+    
+    QStringList list = transitions.split("T", QString::SkipEmptyParts);
+
+    quint8 hh;
+    quint8 mm;
+    quint8 heatSetpoint;
+    
+    if (Dp_identifier == 0x65)
+    {
+        //To finish
+    }
+    else
+    {
+        if (weekdays == 3)
+        {
+            Dp_identifier = 0x71;
+        }
+        if (list.size() != 6)
+        {
+            DBG_Printf(DBG_INFO, "Tuya : Schedule command error, need to have 6 values\n");
+        }
+    }
+    
+    for (const QString &entry : list)
+    {
+        QStringList attributes = entry.split("|");
+        if (attributes.size() != 2)
+        {
+            return false;
+        }
+        hh = attributes.at(0).mid(0, 2).toUInt();
+        mm = attributes.at(0).mid(3, 2).toUInt();
+        heatSetpoint = attributes.at(1).toInt();
+        
+        data.append(QByteArray::number(hh,16));
+        data.append(QByteArray::number(mm,16));
+        data.append(QByteArray::number(heatSetpoint,16));
+
+    }
+    
+    return SendTuyaRequest(taskRef, TaskThermostat , DP_TYPE_RAW , Dp_identifier , data );
 }
 
 //

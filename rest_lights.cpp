@@ -223,6 +223,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     QVariantMap state;
     const ResourceItem *ix = nullptr;
     const ResourceItem *iy = nullptr;
+    const ResourceItem *icc = nullptr;
 
     for (int i = 0; i < lightNode->itemCount(); i++)
     {
@@ -252,6 +253,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (item->descriptor().suffix == RConfigCtMin) { map["ctmin"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigCtMax) { map["ctmax"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigColorCapabilities) { map["colorcapabilities"] = item->toNumber(); }
+//        else if (item->descriptor().suffix == RConfigColorCapabilities) { icc = item; } // TODO enable again in beta v2.6.x
         else if (item->descriptor().suffix == RConfigPowerup) { map["powerup"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigPowerOnLevel) { map["poweronlevel"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigPowerOnCt) { map["poweronct"] = item->toNumber(); }
@@ -282,6 +284,17 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         xy.append(x);
         xy.append(y);
         state["xy"] = xy;
+    }
+    if (icc)
+    {
+        const int cc = icc->toNumber();
+        QStringList colorCapabilities;
+        // Keep sorted by string value
+        if (cc & 0x10) colorCapabilities.push_back(QLatin1String("ct"));
+        if (cc & 0x04) colorCapabilities.push_back(QLatin1String("effect"));
+        if (cc & 0x01 || cc & 0x02) colorCapabilities.push_back(QLatin1String("hs"));
+        if (cc & 0x08) colorCapabilities.push_back(QLatin1String("xy"));
+        map["colorcapabilities"] = colorCapabilities;
     }
 
     map["uniqueid"] = lightNode->uniqueId();
@@ -547,6 +560,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         //window covering
         if ((taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq")) ||
+            (taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_xuzcvlku")) ||
+            (taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_wmcdj3aq")) ||
             (taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3")) )
         {
             return setWindowCoveringState(req, rsp, taskRef, map);
@@ -851,10 +866,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, QString("/lights/%1/state").arg(id), QString("missing parameter to set light state")));
     }
-    
+
     // Check whether light is on.
     isOn = taskRef.lightNode->toBool(RStateOn);
-    
+
     // Special part for Profalux device
     // This device is a shutter but is used as a dimmable light, so need some hack
     if (taskRef.lightNode->modelId() == QLatin1String("PFLX Shutter"))
@@ -864,24 +879,24 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             targetBri = targetOn ? 0xFE : 0x00;
         }
-        
+
         // The constructor ask to use setvel instead of on/off
         hasBri = true;
         hasOn = false;
         isOn = true; // to force bri even state = off
-        
+
         //Check limit
         if (targetBri > 0xFE) { targetBri = 0xFE; }
         if (targetBri < 1 ) { targetBri = 0x01; }
-        
+
         //Check for stop
         if (hasBriInc)
         {
             hasStop = true;
         }
-        
+
     }
-    
+
     // Stop command, I think it's useless, but the command exist, and need it for profalux
     if (hasStop)
     {
@@ -889,10 +904,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         hasBriInc = false;
         hasBri = false;
         isOn = false;
-        
+
         TaskItem task;
         copyTaskReq(taskRef, task);
-        
+
         if (addTaskStopBrightness(task))
         {
             QVariantMap rspItem;
@@ -1518,8 +1533,10 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     {
         cluster = ANALOG_OUTPUT_CLUSTER_ID;
     }
-    
+
     if ((taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq")) ||
+        (taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_xuzcvlku")) ||
+        (taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_wmcdj3aq")) ||
         (taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3")) )
     {
         cluster = TUYA_CLUSTER_ID;
@@ -1578,7 +1595,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         {
             paramOk = true;
             hasCmd = true;
-            if (map[param].type() == QVariant::String && map[param].toString() == "stop" && cluster != ANALOG_OUTPUT_CLUSTER_ID)
+            if (map[param].type() == QVariant::String && map[param].toString() == "stop")
             {
                 valueOk = true;
                 hasStop = true;
@@ -1598,7 +1615,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         {
             paramOk = true;
             hasCmd = true;
-            if (map[param].type() == QVariant::String && map[param].toString() == "stop" && cluster != ANALOG_OUTPUT_CLUSTER_ID)
+            if (map[param].type() == QVariant::String && map[param].toString() == "stop")
             {
                 valueOk = true;
                 hasStop = true;
@@ -1614,7 +1631,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
                 }
             }
         }
-        else if (param == "bri_inc" && taskRef.lightNode->item(RStateBri) && cluster != ANALOG_OUTPUT_CLUSTER_ID)
+        else if (param == "bri_inc" && taskRef.lightNode->item(RStateBri))
         {
             paramOk = true;
             hasCmd = true;
@@ -1694,10 +1711,20 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         {
             targetLiftZigBee = 100 - targetLift;
         }
-        else if (taskRef.lightNode->modelId() == QLatin1String("Shutter switch with neutral"))
+        else if ((taskRef.lightNode->modelId() == QLatin1String("Shutter switch with neutral")) ||
+                 (taskRef.lightNode->modelId() == QLatin1String("Shutter SW with level control")) )
         {
             // Legrand invert bri and don't support other value than 0
-            targetLiftZigBee = targetLift == 0 ? 100 : 0;
+            bool bStatus = false;
+            uint nHex = taskRef.lightNode->swBuildId().toUInt(&bStatus,16);
+            if (bStatus && (nHex < 33))
+            {
+                targetLiftZigBee = targetLift == 0 ? 100 : 0;
+            }
+            else
+            {
+                targetLiftZigBee = targetLift == 100 ? 100 : 0;
+            }
         }
         else
         {
@@ -1708,7 +1735,8 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     //Some device don't support lift, but third app can use it
     if (hasLift)
     {
-        if (taskRef.lightNode->manufacturer() == QLatin1String("_TYZB01_dazsid15"))
+        if ((taskRef.lightNode->manufacturer() == QLatin1String("_TYZB01_dazsid15")) ||
+            (taskRef.lightNode->modelId() == QLatin1String("FB56+CUR17SB2.2")) )
         {
             hasLift = false;
             hasOpen = true;
@@ -1729,7 +1757,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         bool ok;
         TaskItem task;
         copyTaskReq(taskRef, task);
-        
+
         if (cluster == TUYA_CLUSTER_ID)
         {
             ok = SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_ENUM, 0x01 , QByteArray("\x01", 1) );
@@ -1759,8 +1787,8 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         bool ok;
         TaskItem task;
         copyTaskReq(taskRef, task);
-        
-        
+
+
         if (cluster == TUYA_CLUSTER_ID)
         {
             QByteArray lev = QByteArray("\x00\x00\x00", 3);
@@ -1824,6 +1852,18 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             rspItemState[QString("/lights/%1/state/lift").arg(id)] = targetLift;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
+            
+            
+            // I m using this code only for Legrand ATM but can be used for other device.
+            // Because the attribute reporting take realy long time to be done, can be 2 minutes
+            // Or it can be changed only after this time, so using an read attribute don't give usable value
+            // And can cause issue on some third app
+            if ((taskRef.lightNode->modelId() == QLatin1String("Shutter switch with neutral")) ||
+                 (taskRef.lightNode->modelId() == QLatin1String("Shutter SW with level control")) )
+            {
+                taskRef.lightNode->setValue(RStateLift, 50);
+                taskRef.lightNode->setValue(RStateBri, 127);
+            }
 
             // Rely on attribute reporting to update the light state.
         }
@@ -1837,7 +1877,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         bool ok;
         TaskItem task;
         copyTaskReq(taskRef, task);
-        
+
         if (cluster == TUYA_CLUSTER_ID)
         {
             if (targetOpen)
@@ -1848,7 +1888,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             {
                 ok = SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_ENUM, 0x01 , QByteArray("\x00", 1) );
             }
-            
+
         }
         else
         {
@@ -1862,6 +1902,17 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             rspItemState[QString("/lights/%1/state/open").arg(id)] = targetOpen;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
+            
+            // I m using this code only for Legrand ATM but can be used for other device.
+            // Because the attribute reporting take realy long time to be done, can be 2 minutes
+            // Or it can be changed only after this time, so using an read attribute don't give usable value
+            // And can cause issue on some third app
+            if ((taskRef.lightNode->modelId() == QLatin1String("Shutter switch with neutral")) ||
+                 (taskRef.lightNode->modelId() == QLatin1String("Shutter SW with level control")) )
+            {
+                taskRef.lightNode->setValue(RStateLift, 50);
+                taskRef.lightNode->setValue(RStateBri, 127);
+            }
 
             // Rely on attribute reporting to update the light state.
         }
@@ -1913,19 +1964,19 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
             bool ok = false;
             qint8 button = 0x01;
             QByteArray data;
-            
+
             targetOn = map["on"].toBool();
-            
+
             //Retreive Fake endpoint, and change button value
             uint8_t ep = taskRef.lightNode->haEndpoint().endpoint();
             if (ep == 0x02) { button = 0x02; }
             if (ep == 0x03) { button = 0x03; }
-            
+
             //Use only the first endpoint for command
             taskRef.req.setDstEndpoint(0x01);
-            
+
             DBG_Printf(DBG_INFO, "Tuya debug 10: EP: %d ID : %s\n",  ep , qPrintable(id));
-            
+
             if (targetOn)
             {
                 data = QByteArray("\x01",1);
@@ -1934,7 +1985,7 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
             {
                 data = QByteArray("\x00",1);
             }
-            
+
             ok = SendTuyaRequest(taskRef, TaskTuyaRequest , DP_TYPE_BOOL, button , data );
 
             if (ok)
@@ -1944,7 +1995,7 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
                 rspItemState[QString("/lights/%1/state/on").arg(id)] = targetOn;
                 rspItem["success"] = rspItemState;
                 rsp.list.append(rspItem);
-                
+
                 //Not needed ?
                 //taskRef.lightNode->setValue(RStateOn, targetOn);
             }
@@ -2062,7 +2113,7 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
         {
             task.options = 0x00; // Warning mode 0 (no warning), No strobe, Low sound
             task.duration = 0;
-            
+
             // Quickfix for clearing the alarm bit of Develco smoke, heat and water leak sensor
             if (taskRef.lightNode->modelId() == QLatin1String("SMSZB-120") ||
                 taskRef.lightNode->modelId() == QLatin1String("HESZB-120") ||
@@ -2112,7 +2163,7 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
         else if (alert == "select")
         {
             task.options = 0x17; // Warning mode 1 (burglar), Strobe, Very high sound
-            if (taskRef.lightNode->modelId() == QLatin1String("902010/24") ||
+            if (taskRef.lightNode->modelId().startsWith(QLatin1String("902010/24")) ||
                 taskRef.lightNode->modelId() == QLatin1String("902010/29"))
             {
                 task.options = 0x12;
@@ -2122,7 +2173,7 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
         else if (alert == "lselect")
         {
             task.options = 0x17; // Warning mode 1 (burglar), Strobe, Very high sound
-            if (taskRef.lightNode->modelId() == QLatin1String("902010/24") ||
+            if (taskRef.lightNode->modelId().startsWith(QLatin1String("902010/24")) ||
                 taskRef.lightNode->modelId() == QLatin1String("902010/29"))
             {
                 task.options = 0x12;
@@ -2344,6 +2395,55 @@ int DeRestPluginPrivate::setLightAttributes(const ApiRequest &req, ApiResponse &
         else
         {
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/reverse").arg(id), QString("invalid value, %1, for parameter reverse").arg(map["reverse"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
+    // Calibration command used for covering
+    if (map.contains("calibration"))
+    {
+
+        TaskItem taskRef;
+        taskRef.lightNode = getLightNodeForId(id);
+
+        if (!taskRef.lightNode || taskRef.lightNode->state() == LightNode::StateDeleted)
+        {
+            rsp.httpStatus = HttpStatusNotFound;
+            rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
+            return REQ_READY_SEND;
+        }
+
+        if (!taskRef.lightNode->isAvailable())
+        {
+            rsp.httpStatus = HttpStatusOk;
+            rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
+            return REQ_READY_SEND;
+        }
+
+        qint64 value = 0x00;
+        if (map["calibration"].toBool())
+        {
+            value = 0x01;
+        }
+        
+        deCONZ::ZclAttribute attr(0xf001, deCONZ::Zcl8BitEnum, "calibration", deCONZ::ZclReadWrite, true);
+        attr.setValue(value);
+
+        if (writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), WINDOW_COVERING_CLUSTER_ID, attr))
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/calibration").arg(id)] = map["calibration"];
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+            rsp.etag = lightNode->etag;
+
+            return REQ_READY_SEND;
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/calibration").arg(id), QString("invalid value, %1, for parameter calibration").arg(map["calibration"].toString())));
             rsp.httpStatus = HttpStatusBadRequest;
             return REQ_READY_SEND;
         }
