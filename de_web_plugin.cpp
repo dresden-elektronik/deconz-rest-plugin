@@ -362,6 +362,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "TS0042", silabs3MacPrefix }, // Tuya wireless switch
     { VENDOR_EMBER, "TS0043", silabs3MacPrefix }, // Tuya wireless switch
     { VENDOR_EMBER, "TS0043", silabs8MacPrefix }, // Tuya wireless switch
+    { VENDOR_EMBER, "TS0043", silabs7MacPrefix }, // Tuya wireless switch
     { VENDOR_EMBER, "TS0044", silabs9MacPrefix }, // Tuya wireless switch
     { VENDOR_NONE, "kud7u2l", silabs3MacPrefix }, // Tuya Smart TRV HY369 Thermostatic Radiator Valve
     { VENDOR_NONE, "GbxAXL2", silabs3MacPrefix }, // Another Tuya Smart TRV Thermostatic Radiator Valve
