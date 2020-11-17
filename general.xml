@@ -1892,6 +1892,12 @@ Note: It does not clear or delete previous weekly schedule programming configura
 			<attribute id="0x404E" name="Unknown" type="bmp8" access="rw" required="m" mfcode="0x1246"></attribute>
 		</attribute-set>
 
+		<!-- Stelpro manufacturer specific -->
+		<attribute-set id="0x4000" description="Stelpro specific" mfcode="0x1185">
+			<attribute id="0x4001" name="Outdoor temp" type="s16" access="rw" required="m" mfcode="0x1185"></attribute>
+			<attribute id="0x401C" name="System mode" type="enum8" access="rw" required="m"></attribute>
+		</attribute-set>
+
 		<command id="0x00" dir="recv" name="Setpoint Raise/Lower" required="m">
 			<description>This command increases (or decreases) the setpoint(s) by amount, in steps of 0.1°C.</description>
 			<payload>
