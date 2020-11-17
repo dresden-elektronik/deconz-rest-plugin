@@ -7,7 +7,8 @@ A list of supported Zigbee devices can be found on the [Supported Devices](https
 
 To communicate with Zigbee devices the [RaspBee](https://phoscon.de/raspbee?ref=gh) / [RaspBee&nbsp;II](https://phoscon.de/raspbee2?ref=gh) Zigbee shield for Raspberry Pi, or a [ConBee](https://phoscon.de/conbee?ref=gh) / [ConBee&nbsp;II](https://phoscon.de/conbee2?ref=gh) USB dongle is required.
 
-To learn more about the REST-API itself please visit the [REST-API Documentation](http://dresden-elektronik.github.io/deconz-rest-doc/) page.
+To learn more about the REST-API itself please visit the [REST-API Documentation](http://dresden-elektronik.github.io/deconz-rest-doc/) page.<br>
+The REST-API plugin is implemented in C++ using the [deCONZ C++ API Documentation](https://phoscon.de/deconz-cpp).
 
 For community based support with deCONZ or Phoscon, please visit the [deCONZ Discord server](https://discord.gg/QFhTxqN). 
 
@@ -30,7 +31,7 @@ Installation
 
 ##### Supported platforms
 * Raspbian Jessie, Stretch and Buster
-* Ubuntu Xenial and Bionic (AMD64)
+* Ubuntu Xenial, Bionic and Focal Fossa (AMD64)
 * Windows 7 and 10
 
 ### Install deCONZ
