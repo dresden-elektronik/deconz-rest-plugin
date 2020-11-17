@@ -93,7 +93,8 @@ void DeRestPluginPrivate::initConfig()
     gwIPAddress = "127.0.0.1";
     gwPort = (apsCtrl ? apsCtrl->getParameter(deCONZ::ParamHttpPort) : static_cast<quint16>(deCONZ::appArgumentNumeric("--http-port", 80)));
     gwNetMask = "255.0.0.0";
-    gwLANBridgeId = (deCONZ::appArgumentNumeric("--lan-bridgeid", 0) == 1);
+    gwHueMode = (deCONZ::appArgumentNumeric("--hue-mode", 0) == 1);
+    gwLANBridgeId = (deCONZ::appArgumentNumeric("--lan-bridgeid", 0) == 1) || gwHueMode;
     gwBridgeId = "0000000000000000";
     gwAllowLocal = (deCONZ::appArgumentNumeric("--allow-local", 1) == 1);
     gwConfig["websocketport"] = 443;
@@ -900,7 +901,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     QDateTime datetime = QDateTime::currentDateTimeUtc();
     QDateTime localtime = QDateTime::currentDateTime();
 
-    basicConfigToMap(map);
+    basicConfigToMap(req, map);
     map["ipaddress"] = gwIPAddress;
     map["netmask"] = gwNetMask;
 
@@ -988,12 +989,6 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     }
     else
     {
-        if (req.mode != ApiModeNormal)
-        {
-            map["swversion"] = QLatin1String("1940042020");
-            map["apiversion"] = QLatin1String("1.40.0");
-            map["modelid"] = QLatin1String("BSB002");
-        }
         devicetypes["bridge"] = false;
         devicetypes["lights"] = QVariantList();
         devicetypes["sensors"] = QVariantList();
@@ -1009,7 +1004,10 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         portalstate["outgoing"] = false;
         portalstate["communication"] = QLatin1String("disconnected");
         map["portalstate"] = portalstate;
+        internetservices["internet"] = QLatin1String("connected");
         internetservices["remoteaccess"] = QLatin1String("disconnected");
+        internetservices["time"] = QLatin1String("connected");
+        internetservices["swupdate"] = QLatin1String("connected");
         map["internetservices"] = internetservices;
         backup["status"] = QLatin1String("idle");
         backup["errorcode"] = 0;
@@ -1022,12 +1020,10 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     swupdate2["bridge"] = bridge;
     swupdate2["checkforupdate"] = false;
     swupdate2["state"] = gwSwUpdateState;
-    swupdate2["install"] = false;
     autoinstall["updatetime"] = "";
     autoinstall["on"] = false;
     swupdate2["autoinstall"] = autoinstall;
     swupdate2["lastchange"] = "";
-    swupdate2["lastinstall"] = "";
     map["swupdate2"] = swupdate2;
 
     map["fwversion"] = gwFirmwareVersion;
@@ -1079,19 +1075,30 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
 
 /*! Puts all parameters in a map for later JSON serialization.
  */
-void DeRestPluginPrivate::basicConfigToMap(QVariantMap &map)
+void DeRestPluginPrivate::basicConfigToMap(const ApiRequest &req, QVariantMap &map)
 {
     map["name"] = gwName;
-    map["datastoreversion"] = QLatin1String("93");
-    const QStringList versions = QString(GW_SW_VERSION).split('.');
-    const QString swversion = QString("%1.%2.%3").arg(versions[0].toInt()).arg(versions[1].toInt()).arg(versions[2].toInt());
-    map["swversion"] = swversion;
-    map["apiversion"] = QString(GW_API_VERSION);
+    map["modelid"] = QLatin1String("deCONZ");
+    if (req.mode == ApiModeNormal)
+    {
+        const QStringList versions = QString(GW_SW_VERSION).split('.');
+        const QString swversion = QString("%1.%2.%3").arg(versions[0].toInt()).arg(versions[1].toInt()).arg(versions[2].toInt());
+        map["swversion"] = swversion;
+        map["apiversion"] = QString(GW_API_VERSION);
+        // map["modelid"] = QLatin1String("deCONZ");
+        map["datastoreversion"] = QLatin1String("93");
+    } 
+    else
+    {
+        map["swversion"] = QLatin1String("1941132070");
+        map["apiversion"] = QLatin1String("1.41.0");
+        // map["modelid"] = QLatin1String("BSB002");
+        map["datastoreversion"] = QLatin1String("98");
+    }
     map["mac"] = gwMAC;
     map["bridgeid"] = gwBridgeId;
     map["factorynew"] = false;
     map["replacesbridgeid"] = QVariant();
-    map["modelid"] = QLatin1String("deCONZ");
     map["starterkitid"] = QLatin1String("");
 
     if (!apsCtrl->getParameter(deCONZ::ParamDeviceName).isEmpty())
@@ -1308,7 +1315,7 @@ int DeRestPluginPrivate::getBasicConfig(const ApiRequest &req, ApiResponse &rsp)
             return REQ_READY_SEND;
         }
     }
-    basicConfigToMap(rsp.map);
+    basicConfigToMap(req, rsp.map);
 
     // include devicename attribute in web based requests
     if (!apsCtrl->getParameter(deCONZ::ParamDeviceName).isEmpty() && req.hdr.hasKey("User-Agent"))

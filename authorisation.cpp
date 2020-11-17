@@ -194,8 +194,13 @@ void DeRestPluginPrivate::authorise(ApiRequest &req, ApiResponse &rsp)
             {
                 // supports deCONZ specifics
             }
+            // else if (!(i->useragent.isEmpty()) && i->useragent.startsWith(QLatin1String("Mozilla"))) // Phoscon
+            // {
+            //     req.mode = ApiModeNormal;
+            // }
             else if (i->devicetype.startsWith(QLatin1String("hue_")) ||
-                     i->devicetype.startsWith(QLatin1String("Hue ")))
+                     i->devicetype.startsWith(QLatin1String("Hue ")) ||
+                     gwHueMode)
             {
                 req.mode = ApiModeHue;
             }

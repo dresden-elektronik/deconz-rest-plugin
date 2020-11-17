@@ -1000,7 +1000,7 @@ public:
     int putHomebridgeUpdated(const ApiRequest &req, ApiResponse &rsp);
 
     void configToMap(const ApiRequest &req, QVariantMap &map);
-    void basicConfigToMap(QVariantMap &map);
+    void basicConfigToMap(const ApiRequest &req, QVariantMap &map);
 
     // REST API userparameter
     int handleUserparameterApi(const ApiRequest &req, ApiResponse &rsp);
@@ -1638,6 +1638,7 @@ public:
     QString gwHomebridgeUpdateVersion;
     bool gwHomebridgeUpdate;
     QString gwName;
+    bool gwHueMode;
     bool gwLANBridgeId;
     QString gwBridgeId;
     QString gwUuid;

@@ -17197,8 +17197,9 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
 
     QStringList path = hdrmod.path().split(QLatin1String("/"), QString::SkipEmptyParts);
     ApiRequest req(hdrmod, path, sock, content);
-    ApiResponse rsp;
+    req.mode = d->gwHueMode ? ApiModeHue : ApiModeNormal;
 
+    ApiResponse rsp;
     rsp.httpStatus = HttpStatusNotFound;
     rsp.contentType = HttpContentHtml;
 
