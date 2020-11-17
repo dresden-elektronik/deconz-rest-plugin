@@ -2578,6 +2578,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("Remote toggle switch") || //Legrand switch module
         sensor->modelId() == QLatin1String("Teleruptor") || //Legrand teleruptor
         sensor->modelId() == QLatin1String("Contactor") || //Legrand Contactor
+        // Adeo
+        sensor->modelId() == QLatin1String("LXEK-5") || // ADEO Lexman Télécommande (Leroy Merlin)
         // Philio
         sensor->modelId() == QLatin1String("PST03A-v2.2.5") || //Philio pst03-a
         // ORVIBO
@@ -3226,6 +3228,14 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     //     clusters.push_back(LEVEL_CLUSTER_ID);
     //     srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     // }
+    // ADEO Lexman Télécommande (Leroy Merlin)
+    else if (sensor->modelId().startsWith(QLatin1String("LXEK-5")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        clusters.push_back(COLOR_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
     // OSRAM 3 button remote
     else if (sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) )
     {
