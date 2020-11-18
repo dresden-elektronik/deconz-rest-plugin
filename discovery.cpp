@@ -182,6 +182,7 @@ void DeRestPluginPrivate::internetDiscoveryTimerFired()
     {
         return;
     }
+    gwUpdateCheck = true;
 
     int i = 0;
     const deCONZ::Node *node;
@@ -266,6 +267,7 @@ void DeRestPluginPrivate::internetDiscoveryFinishedRequest(QNetworkReply *reply)
     }
 
     reply->deleteLater();
+    gwUpdateCheck = false;
 }
 
 /*! Extracts the update channels version info about the deCONZ/WebApp.

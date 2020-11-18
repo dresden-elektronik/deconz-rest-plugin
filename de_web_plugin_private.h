@@ -1641,6 +1641,7 @@ public:
     bool gwLANBridgeId;
     QString gwBridgeId;
     QString gwUuid;
+    bool gwUpdateCheck;
     QString gwUpdateVersion;
     QString gwUpdateDate;
     QString gwSwUpdateState;
