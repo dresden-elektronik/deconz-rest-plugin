@@ -422,15 +422,51 @@ static const SupportedDevice supportedDevices[] = {
 
 int TaskItem::_taskCounter = 1; // static rolling taskcounter
 
+/*! Returns the largest supported API version.
+
+    There might be one, none or multiple versions listed in \p hdrValue:
+
+        Accept: nothing, relevant, here    --> ApiVersion_1
+        Accept: vnd.ddel.v1                --> ApiVersion_1_DDEL
+        Accept: vnd.ddel.v1,vnd.ddel.v1.1  --> ApiVersion_1_1_DDEL
+        Accept: vnd.ddel.v2                --> ApiVersion_2_DDEL
+        Accept: vnd.ddel.v1,vnd.ddel.v2    --> ApiVersion_2_DDEL
+ */
+static ApiVersion getAcceptHeaderApiVersion(const QString &hdrValue)
+{
+    ApiVersion result = { ApiVersion_1 };
+
+    static const struct {
+        ApiVersion version;
+        const char *str;
+    } versions[] = {
+        // ordered by largest version
+        {ApiVersion_2_DDEL,   "vnd.ddel.v2"},
+        {ApiVersion_1_1_DDEL, "vnd.ddel.v1.1"},
+        {ApiVersion_1_DDEL,   "vnd.ddel.v1"},
+        {ApiVersion_1, nullptr}
+    };
+
+    const auto ls = hdrValue.split(QLatin1Char(','), QString::SkipEmptyParts);
+
+    for (int i = 0; versions[i].str != nullptr; i++)
+    {
+        if (ls.contains(QLatin1String(versions[i].str)))
+        {
+            result = versions[i].version;
+            break;
+        }
+    }
+
+    return result;
+}
+
 ApiRequest::ApiRequest(const QHttpRequestHeader &h, const QStringList &p, QTcpSocket *s, const QString &c) :
     hdr(h), path(p), sock(s), content(c), version(ApiVersion_1), auth(ApiAuthNone), mode(ApiModeNormal)
 {
-    if (hdr.hasKey("Accept"))
+    if (hdr.hasKey(QLatin1String("Accept")) && hdr.value(QLatin1String("Accept")).contains(QLatin1String("vnd.ddel")))
     {
-        if (hdr.value("Accept").contains("vnd.ddel.v1"))
-        {
-            version = ApiVersion_1_DDEL;
-        }
+        version = getAcceptHeaderApiVersion(hdr.value(QLatin1String("Accept")));
     }
 }
 
