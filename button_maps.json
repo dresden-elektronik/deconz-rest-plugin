@@ -652,6 +652,7 @@
         },
         "sunricherCCTMap": {
             "vendor": "Sunricher",
+            "doc": "CCT remote",
             "modelids": [],
             "map": [
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
