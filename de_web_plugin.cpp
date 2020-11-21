@@ -2529,7 +2529,23 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
 
     ResourceItem *item = nullptr;
 
-    if (lightNode->modelId() == QLatin1String("LIGHTIFY A19 RGBW"))
+    if ((lightNode->manufacturerCode() == VENDOR_LEDVANCE) &&
+            (lightNode->modelId() == QLatin1String("BR30 RGBW")) ||
+            (lightNode->modelId() == QLatin1String("A19 RGBW")))
+    {
+        item = lightNode->item(RAttrType);
+        item->setValue(QVariant("Color temperature light"));
+        if (lightNode->item(RConfigColorCapabilities) != nullptr)
+        {
+            return; // already initialized
+        }
+        lightNode->addItem(DataTypeUInt16, RStateCt);
+        lightNode->addItem(DataTypeUInt16, RConfigCtMin)->setValue(142);
+        lightNode->addItem(DataTypeUInt16, RConfigCtMax)->setValue(666);
+        lightNode->addItem(DataTypeUInt16, RConfigColorCapabilities)->setValue(0x0001 | 0x0008 | 0x0010);
+        lightNode->addItem(DataTypeString, RStateColorMode)->setValue(QVariant("ct"));
+    }
+    else if (lightNode->modelId() == QLatin1String("LIGHTIFY A19 RGBW"))
     {
         if (lightNode->item(RConfigColorCapabilities) != nullptr)
         {
