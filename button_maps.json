@@ -226,6 +226,13 @@
             "vendor": "IKEA",
             "doc": "TRÅDFRI round 5 button remote",
             "modelids": ["TRADFRI remote control"],
+            "buttons": [
+                {"S_BUTTON_1": "Large middle button"},
+                {"S_BUTTON_2": "Top dimm up button"},
+                {"S_BUTTON_3": "Bottom dimm down button"},
+                {"S_BUTTON_4": "Left arrow button"},
+                {"S_BUTTON_5": "Right arrow button"}
+            ],
             "map": [
                 [3, "0x01", "ONOFF", "TOGGLE", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Toggle"],
                 [3, "0x01", "SCENES", "IKEA_STEP_CT", "2", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Setup 10s"],
