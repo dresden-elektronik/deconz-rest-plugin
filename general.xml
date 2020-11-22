@@ -345,6 +345,9 @@
 			<attribute id="0000" name="Name Support" type="bmp8" range="x0000000" access="r" required="m">
 				<value name="Name Support" value="7"></value>
 			</attribute>
+			<attribute id="0x0001" name="IKEA Scene" type="u32" access="rw" required="m" showas="hex" mfcode="0x117c">
+				
+			</attribute>
 			<command id="00" dir="recv" name="Add group" required="m" response="0x00">
 				<description>Add a group to the device.</description>
 				<payload>
@@ -548,28 +551,36 @@
 	<cluster id="0006" name="On/Off">
 		<description>Attributes and commands for switching devices between 'On' and 'Off' states.</description>
 		<server>
-						<attribute-set id="0x0000" description="OnOff state">
-							<attribute id="0000" name="OnOff" type="bool" access="r" default="0" required="m">
-									<value name="On" value="1"></value>
-									<value name="Off" value="0"></value>
-							</attribute>
-						</attribute-set>
-						<attribute-set id="0x4000" description="ZLL extensions">
-							<attribute id="0x4000" name="GlobalSceneControl" type="bool" access="r" default="0" required="o">
-							</attribute>
-							<attribute id="0x4001" name="OnTime" type="u16" access="r" default="0" required="o">
-							</attribute>
-							<attribute id="0x4002" name="OffWaitTime" type="u16" access="r" default="0" required="o">
-							</attribute>
-							<attribute id="0x4003" name="PowerOn OnOff" type="enum8" access="rw" default="0x01" required="o">
+        <attribute-set id="0x0000" description="OnOff state">
+            <attribute id="0000" name="OnOff" type="bool" access="r" default="0" required="m">
+                    <value name="On" value="1"></value>
+                    <value name="Off" value="0"></value>
+            </attribute>
+        </attribute-set>
+        <attribute-set id="0x4000" description="ZLL extensions">
+            <attribute id="0x4000" name="GlobalSceneControl" type="bool" access="r" default="0" required="o">
+            </attribute>
+            <attribute id="0x4001" name="OnTime" type="u16" access="r" default="0" required="o">
+            </attribute>
+            <attribute id="0x4002" name="OffWaitTime" type="u16" access="r" default="0" required="o">
+            </attribute>
+            <attribute id="0x4003" name="PowerOn OnOff" type="enum8" access="rw" default="0x01" required="o">
                 <value name="Off" value="0x00"></value>
                 <value name="On" value="0x01"></value>
                 <value name="Previous" value="0xff"></value>
-							</attribute>
-						</attribute-set>
-            <attribute-set id="0x8000" description="Xiaomi" mfcode="0x1037">
-              <attribute id="0x8000" name="Button Press" type="u8" access="r" required="o"/>
-            </attribute-set>
+				  	</attribute>
+				</attribute-set>
+        <attribute-set id="0x8000" description="Xiaomi" mfcode="0x1037">
+          <attribute id="0x8000" name="Button Press" type="u8" access="r" required="o"/>
+        </attribute-set>
+        <attribute-set id="0x8001" description="Tuya special">
+            <attribute id="0x8001" name="Light mode" type="enum8" default="0" required="m" access="r">
+                <value name="Mode 1" value="0"></value>
+                <value name="Mode 2" value="1"></value>
+                <value name="Mode 3" value="2"></value>
+            </attribute>
+        </attribute-set>
+
 			<command id="00" dir="recv" name="Off" required="m">
 				<description>On receipt of this command, a device shall enter its 'Off' state. This state is device dependent, but it is recommended that it is used for power off or similar functions.</description>
 			</command>
@@ -675,29 +686,32 @@
 	<cluster id="0x0008" name="Level Control">
 	<description>This cluster provides an interface for controlling a characteristic of a device that can be set to a level, for example the brightness of a light, the degree of closure of a door, or the power output of a heater.</description>
 		<server>
-			<attribute id = "0000" name="Current Level" type="u8" range="0x00,0xff" access="r" required="m" default="0x00">
+			<attribute id = "0x0000" name="Current Level" type="u8" range="0x00,0xff" access="r" required="m" default="0x00">
 				<description>The CurrentLevel attribute represents the current level of this device. meaning of 'level' is device dependent.</description>
 			</attribute>
-			<attribute id = "0001" name="Remaining Time" type="u16" range="0x0000,0xffff" access="r" required="o" default="0x0000">
+			<attribute id = "0x0001" name="Remaining Time" type="u16" range="0x0000,0xffff" access="r" required="o" default="0x0000">
 				<description>The RemainingTime attribute represents the time remaining until the current command is complete - it is specified in 1/10ths of a second.</description>
+			</attribute>
+			<attribute id = "0x0010" name="OnOff Transistion Time" type="u16" range="0x0000,0xffff" access="rw" required="o" default="0x0000">
+				<description>The OnOffTransitionTime attribute represents the time taken to move to or from the target level when On of Off commands are received by an On/Off cluster on the same endpoint. It is specified in 1/10ths of a second. The actual time taken should be as close to OnOffTransitionTime as the device is able.</description>
+			</attribute>
+			<attribute id = "0x0011" name="On Level" type="u8" range="0x01,0xff" access="rw" required="o" default="0xff">
+				<description>The OnLevel attribute determines the value that the CurrentLevel attribute is set to when the OnOff attribute of an On/Off cluster on the same endpoint is set to On. If the OnLevel attribute is not implemented, or is set to 0xff, it has no effect.</description>
+			</attribute>
+			<attribute id = "0x0012" name="On Transition Time" type="u16" range="0x0000,0xfffe" access="rw" required="o" default="0">
+				<description>The OnTransitionTime attribute represents the time taken to move the current level from the minimum level to the maximum level when an On command is received by an On/Off cluster on the same endpoint. It is specified in 10ths of a second. If this command is not implemented, or contains a value of 0xffff, the On/OffTransitionTime will be used instead.</description>
+			</attribute>
+			<attribute id = "0x0013" name="Off Transition Time" type="u16" range="0x0000,0xfffe" access="rw" required="o" default="0">
+				<description>The OffTransitionTime attribute represents the time taken to move the current level from the maximum level to the minimum level when an Off command is received by an On/Off cluster on the same endpoint. It is specified in 10ths of a second. If this command is not implemented, or contains a value of 0xffff, the On/OffTransitionTime will be used instead.</description>
+			</attribute>
+			<attribute id = "0x0014" name="Default Move Rate" type="u8" range="0x00,0xfe" access="rw" required="o">
+				<description>The DefaultMoveRate attribute determines the movement rate, in units per second, when a Move command is received with a Rate parameter of 0xFF.</description>
 			</attribute>
 			<attribute id = "0x000f" name="Unknown" type="bmp8" access="rw" required="o">
 				<description>IKEA specific.</description>
-			</attribute>
-			<attribute id = "0010" name="OnOff Transistion Time" type="u16" range="0x0000,0xffff" access="rw" required="o" default="0x0000">
-				<description>The OnOffTransitionTime attribute represents the time taken to move to or from the target level when On of Off commands are received by an On/Off cluster on the same endpoint. It is specified in 1/10ths of a second. The actual time taken should be as close to OnOffTransitionTime as the device is able.</description>
-			</attribute>
-			<attribute id = "0011" name="On Level" type="u8" range="0x00,0xfe" access="rw" required="o" default="0xfe">
-				<description>The OnLevel attribute determines the value that the CurrentLevel attribute is set to when the OnOff attribute of an On/Off cluster on the same endpoint is set to On. If the OnLevel attribute is not implemented, or is set to 0xff, it has no effect.</description>
-			</attribute>
-      <attribute id = "0012" name="On Transition Time" type="u16" range="0x0000,0xfffe" access="rw" required="o">
-			</attribute>
-      <attribute id = "0013" name="Off Transition Time" type="u16" range="0x0000,0xfffe" access="rw" required="o">
-			</attribute>
-      <attribute id = "0014" name="Default Move Rate" type="u8" range="0x00,0xfe" access="rw" required="o">
-      </attribute>
+			</attribute>			
 			<attribute id="0x4000" name="PowerOn Level" type="u8" access="rw" required="o">
-      </attribute>
+			</attribute>
 			<command id="0x00" dir="recv" name="Move to Level" required="m">
 				<description></description>
 				<payload>
@@ -1592,6 +1606,16 @@ by the Poll Control Cluster Client.</description>
           <attribute id="0x0018" name="Intermediate Setpoints – Lift" type="ostring" default="1,0x0000" access="rw" required="o"></attribute>
           <attribute id="0x0019" name="Intermediate Setpoints – Tilt" type="ostring" default="1,0x0000" access="rw" required="o"></attribute>
         </attribute-set>
+        <attribute-set id="0xf001" description="Tuya Window Covering Setting">
+			<attribute id="0xf001" name="Calibration" type="enum8" default="0" required="m" access="r">
+				<value name="Start" value="0"></value>
+				<value name="End" value="1"></value>
+			</attribute>
+			<attribute id="0xf002" name="Motor Reversal" type="enum8" default="0" required="m" access="r">
+				<value name="Off" value="0"></value>
+				<value name="On" value="1"></value>
+			</attribute>
+        </attribute-set>
         <command id="0x00" dir="recv" name="Up / Open" required="m"></command>
         <command id="0x01" dir="recv" name="Down / Close" required="m"></command>
         <command id="0x02" dir="recv" name="Stop" required="m"></command>
@@ -1725,21 +1749,59 @@ Note: It does not clear or delete previous weekly schedule programming configura
 						<value name="Fan 3rd Stage State On" value="6"></value>
 					</attribute>
 				</attribute-set>
-        <attribute-set id="0x0030" description="Thermostat Setpoint Change Tracking">
-          <attribute id="0x0030" name="Setpoint Change Source" type="enum8" access="r" required="o">
-            <value name="Manual" value="0"></value>
-            <value name="Schedule" value="1"></value>
-            <value name="Zigbee" value="2"></value>
-          </attribute>
-          <attribute id="0x0031" name="Setpoint Change Amount" type="s16" access="r" required="o" default="0x8000"/>
-          <attribute id="0x0032" name="Setpoint Change Timestamp" type="utc" access="r" required="o" default="0"/>
-        </attribute-set>
+				<attribute-set id="0x0030" description="Thermostat Setpoint Change Tracking">
+					<attribute id="0x0030" name="Setpoint Change Source" type="enum8" access="r" required="o">
+						<value name="Manual" value="0"></value>
+						<value name="Schedule" value="1"></value>
+						<value name="Zigbee" value="2"></value>
+					</attribute>
+					<attribute id="0x0031" name="Setpoint Change Amount" type="s16" access="r" required="o" default="0x8000"/>
+					<attribute id="0x0032" name="Setpoint Change Timestamp" type="utc" access="r" required="o" default="0"/>
+				</attribute-set>
 
-        <attribute-set id="0x0080" description="eCozy" mfcode="0x1014">
-          <attribute id="0x0080" name="Unknown" type="s16" access="r" required="o"/>
-          <attribute id="0x0081" name="Unknown" type="s16" access="r" required="o"/>
-          <attribute id="0x0082" name="Unknown (Heat Setpoint?)" type="s16" access="r" required="o"/>
-        </attribute-set>
+				<attribute-set id="0x0040" description="AC Information">
+					<attribute id="0x0040" name="AC Type" type="enum8" access="rw" required="o">
+						<value name="Cooling and Fixed Speed" value="1"></value>
+						<value name="Heat Pump and Fixed Speed" value="2"></value>
+						<value name="Cooling and Inverter" value="3"></value>
+						<value name="Heat Pump and Inverter" value="4"></value>
+					</attribute>
+					<attribute id="0x0041" name="AC Capacity" type="u16" access="rw" required="o" default="0x00"/>
+					<attribute id="0x0042" name="AC Refrigerant Type" type="enum8" access="rw" required="o" default="0x00">
+						<value name="R22" value="1"></value>
+						<value name="R410a" value="2"></value>
+						<value name="R407c" value="3"></value>
+					</attribute>
+					<attribute id="0x0043" name="AC Compressor Type" type="enum8" access="rw" required="o" default="0x00">
+						<value name="T1, Max working ambient 43 oC" value="1"></value>
+						<value name="T2, Max working ambient 35 oC" value="2"></value>
+						<value name="T3, Max working ambient 52 oC" value="3"></value>
+					</attribute>
+					<attribute id="0x0044" name="AC Error Code" type="bmp32" access="rw" required="o" default="0x00000000">
+						<value name="Compressor Failure or Refrigerant Leakage" value="0"></value>
+						<value name="Room Temperature Sensor Failure" value="1"></value>
+						<value name="Outdoor Temperature Sensor Failure" value="2"></value>
+						<value name="Indoor Coil Temperature Sensor Failure" value="3"></value>
+						<value name="Fan Failure" value="4"></value>
+					</attribute>
+					<attribute id="0x0045" name="AC Louver Position" type="enum8" access="rw" required="o" default="0x00">
+						<value name="Fully Closed" value="1"></value>
+						<value name="Fully Open" value="2"></value>
+						<value name="Quarter Open" value="3"></value>
+						<value name="Half Open" value="4"></value>
+						<value name="Three Quarters Open" value="5"></value>
+					</attribute>
+					<attribute id="0x0046" name="AC Coil Temperature" type="s16" access="r" required="o"/>
+					<attribute id="0x0047" name="AC Capacity Format" type="enum8" access="rw" required="o" default="0x00">
+						<value name="BTUh" value="0"></value>
+					</attribute>
+				</attribute-set>
+
+				<attribute-set id="0x0080" description="eCozy" mfcode="0x1014">
+					<attribute id="0x0080" name="Unknown" type="s16" access="r" required="o"/>
+					<attribute id="0x0081" name="Unknown" type="s16" access="r" required="o"/>
+					<attribute id="0x0082" name="Unknown (Heat Setpoint?)" type="s16" access="r" required="o"/>
+				</attribute-set>
 
 		<!-- ELKO specific -->
 		<attribute-set id="0x0400" description="ELKO specific" mfcode="0x1002">
@@ -1829,6 +1891,12 @@ Note: It does not clear or delete previous weekly schedule programming configura
 			</attribute>
 			<attribute id="0x404D" name="Unknown" type="bmp8" access="rw" required="m" mfcode="0x1246"></attribute>
 			<attribute id="0x404E" name="Unknown" type="bmp8" access="rw" required="m" mfcode="0x1246"></attribute>
+		</attribute-set>
+
+		<!-- Stelpro manufacturer specific -->
+		<attribute-set id="0x4000" description="Stelpro specific" mfcode="0x1185">
+			<attribute id="0x4001" name="Outdoor temp" type="s16" access="rw" required="m" mfcode="0x1185"></attribute>
+			<attribute id="0x401C" name="System mode" type="enum8" access="rw" required="m"></attribute>
 		</attribute-set>
 
 		<command id="0x00" dir="recv" name="Setpoint Raise/Lower" required="m">
@@ -3499,7 +3567,7 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 		</cluster>
 
 		<!-- Samjin -->
-    <cluster id="0xfc02" name="Samjin" mfcode="0x104e">
+    <cluster id="0xfc02" name="Samjin specific" mfcode="0x104e">
 			<description>Samjin manufacturer-specifc cluster for SmartThings multi sensor.</description>
 			<server>
         <attribute id="0x0000" name="Motion Threshold Multiplier" type="u8" mfcode="0x104e" default="0" access="rw" required="m"> </attribute>
@@ -3545,7 +3613,7 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 		</cluster>
 
 		<!-- OSRAM -->
-		<cluster id="0xfc0f" name="OSRAM" mfcode="0xbbaa">
+		<cluster id="0xfc0f" name="OSRAM specific" mfcode="0xbbaa">
 			<description>OSRAM manufacturer-specific cluster to set power-on defaults.</description>
 			<server>
 				<command id="0x01" dir="recv" name="Store Power-On Defaults" required="o">
@@ -3556,7 +3624,7 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 		</cluster>
 
 		<!-- LEDVANCE -->
-		<cluster id="0xfc01" name="LEDVANCE" mfcode="0x1189">
+		<cluster id="0xfc01" name="LEDVANCE specific" mfcode="0x1189">
 			<description>LEDVANCE manufacturer-specific cluster to set power-on defaults.</description>
 			<server>
 				<command id="0x01" dir="recv" name="Store Power-On Defaults" required="o">
@@ -3567,7 +3635,7 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 		</cluster>
 
 		<!-- IKEA -->
-		<cluster id="0xfc7c" name="IKEA" mfcode="0x117c">
+		<cluster id="0xfc7c" name="IKEA specific" mfcode="0x117c">
 			<description>IKEA control outlet cluster.</description>
 			<server>
 				<attribute id="0x0010" name="Unknown 1" type="u8" access="rw" required="m" showas="hex" mfcode="0x117c">
@@ -3582,7 +3650,7 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 		</cluster>
 
 		<!-- LUMI -->
-		<cluster id="0xfcc0" name="Lumi" mfcode="0x115f">
+		<cluster id="0xfcc0" name="Lumi specific" mfcode="0x115f">
 			<description>Lumi specific attributes.</description>
 			<server>
 				<attribute id="0x00f3" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
@@ -3610,7 +3678,7 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 		</cluster>
 
 		<!-- INNR -->
-		<cluster id="0xfc82" name="innr" mfcode="0x1166">
+		<cluster id="0xfc82" name="innr specific" mfcode="0x1166">
 			<description>innr specific attributes.</description>
 			<server>
 				<attribute id="0x0006" name="Unknown" type="cstring" mfcode="0x1166" access="rw" required="m"> </attribute>
@@ -3627,7 +3695,7 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 		</cluster>
 
 		<!-- IMMAX -->
-		<cluster id="0xfc82" name="Immax" mfcode="0x1037">
+		<cluster id="0xfc82" name="Immax specific" mfcode="0x1037">
 			<description>Immax specific attributes.</description>
 			<server>
 				<attribute id="0x0010" name="Turned on since" type="u32" mfcode="0x1037" access="r" required="m"> </attribute>
@@ -3640,7 +3708,85 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 			</client>
 		</cluster>
 
-        <!-- NIKO -->
+		<cluster id="0xfdee" name="AIR Measurement Config" mfcode="0x1155">
+			<description>BOSCH Thermotechnik indoor air quality configuration</description>
+			<server>
+			<attribute id="0x4001" name="Unknown" type="enum8" required="m" access="r" default="0">
+				<description></description>
+			</attribute>
+			<attribute id="0x4002" name="Unknown" type="lcstring" access="r" required="m">
+				<description></description>
+			</attribute>
+			<attribute id="0x4003" name="Unkown" type="ostring" required="m" access="r">
+				<description></description>
+			</attribute>
+			<attribute id="0x4004" name="Unknown" type="u8" required="m" access="r" default="0">
+				<description></description>
+			</attribute>
+			<attribute id="0x4005" name="Unknown" type="u8" required="m" access="r" default="0">
+				<description></description>
+			</attribute>
+			<attribute id="0x4006" name="Unknown" type="u32" required="m" access="r" default="0">
+				<description></description>
+			</attribute>
+		  </server>
+		  <client>
+		  </client>
+		</cluster>
+
+		<cluster id="0xfdef" name="AIR Measurement" mfcode="0x1155">
+			<description>BOSCH Thermotechnik indoor air quality</description>
+			<server>
+			<attribute id="0x4001" name="Air pressure" type="u16" required="m" access="r" default="0">
+				<description>Air pressure (mBar)</description>
+			</attribute>
+			<attribute id="0x4002" name="Temperature" type="s16" access="r" required="m">
+				<description>Temperature (°C)</description>
+			</attribute>
+			<attribute id="0x4003" name="Humidity" type="u8" required="m" access="r" default="0">
+				<description>Relative humidity (%)</description>
+			</attribute>
+			<attribute id="0x4004" name="Air quality" type="u16" required="m" access="r" default="0">
+				<description>Air quality VOC (ppm) </description>
+			</attribute>
+			<attribute id="0x4005" name="Brightness" type="u16" required="m" access="r" default="0">
+				<description>Ambient light brightness (lux)</description>
+			</attribute>
+			<attribute id="0x4006" name="Loudness" type="u8" required="m" access="r" default="0">
+				<description>Noise level (dB)</description>
+			</attribute>
+			<attribute id="0x4008" name="timestamp" type="u32" required="m" access="r" default="0">
+				<description>Relative timestamp since start(seconds)</description>
+			</attribute>
+			<attribute id="0x4009" name="Trigger" type="enum8" required="m" access="r" default="0">
+				<value name="by timer" value="0x00"></value>
+				<value name="by double tap" value="0x01"></value>
+				<description>Trigger of this measurement</description>
+			</attribute>
+			<attribute id="0x400B" name="ModeOfOperation" type="enum8" required="m" access="r" default="0">
+				<value name="normal, day mode" value="0x00"></value>
+				<value name="night, up side down" value="0x01"></value>
+				<description>Device orientation</description>
+			</attribute>
+		  </server>
+		  <client>
+		  </client>
+		</cluster>
+
+		<!-- DEVELCO -->
+		<cluster id="0xfc03" name="VOC Measurement" mfcode="0x1015">
+			<description>Develco specific attributes.</description>
+			<server>
+				<attribute id="0x0000" name="Measured value" type="u16" mfcode="0x1015" access="r" required="m"> </attribute>
+				<attribute id="0x0001" name="Min. measured value" type="u16" mfcode="0x1015" access="r" required="m"> </attribute>
+				<attribute id="0x0002" name="Max. measured value" type="u16" mfcode="0x1015" access="r" required="m"> </attribute>
+				<attribute id="0x0003" name="Resolution" type="u16" mfcode="0x1015" access="r" required="m"> </attribute>
+			</server>
+			<client>
+			</client>
+		</cluster>
+
+		<!-- NIKO -->
 		<cluster id="0xfc00" name="Niko specific" mfcode="0x125f">
 			<description>Niko specific attributes.</description>
 			<server>

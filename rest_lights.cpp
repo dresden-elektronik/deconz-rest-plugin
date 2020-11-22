@@ -252,7 +252,8 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (item->descriptor().suffix == RStateReachable) { state["reachable"] = item->toBool(); }
         else if (item->descriptor().suffix == RConfigCtMin) { map["ctmin"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigCtMax) { map["ctmax"] = item->toNumber(); }
-        else if (item->descriptor().suffix == RConfigColorCapabilities) { icc = item; }
+        else if (item->descriptor().suffix == RConfigColorCapabilities) { map["colorcapabilities"] = item->toNumber(); }
+//        else if (item->descriptor().suffix == RConfigColorCapabilities) { icc = item; } // TODO enable again in beta v2.6.x
         else if (item->descriptor().suffix == RConfigPowerup) { map["powerup"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigPowerOnLevel) { map["poweronlevel"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigPowerOnCt) { map["poweronct"] = item->toNumber(); }
@@ -559,6 +560,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         //window covering
         if ((taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq")) ||
+            (taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_xuzcvlku")) ||
+            (taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_wmcdj3aq")) ||
             (taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3")) )
         {
             return setWindowCoveringState(req, rsp, taskRef, map);
@@ -1555,6 +1558,8 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     }
 
     if ((taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq")) ||
+        (taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_xuzcvlku")) ||
+        (taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_wmcdj3aq")) ||
         (taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3")) )
     {
         cluster = TUYA_CLUSTER_ID;
@@ -1729,10 +1734,20 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         {
             targetLiftZigBee = 100 - targetLift;
         }
-        else if (taskRef.lightNode->modelId() == QLatin1String("Shutter switch with neutral"))
+        else if ((taskRef.lightNode->modelId() == QLatin1String("Shutter switch with neutral")) ||
+                 (taskRef.lightNode->modelId() == QLatin1String("Shutter SW with level control")) )
         {
             // Legrand invert bri and don't support other value than 0
-            targetLiftZigBee = targetLift == 0 ? 100 : 0;
+            bool bStatus = false;
+            uint nHex = taskRef.lightNode->swBuildId().toUInt(&bStatus,16);
+            if (bStatus && (nHex < 33))
+            {
+                targetLiftZigBee = targetLift == 0 ? 100 : 0;
+            }
+            else
+            {
+                targetLiftZigBee = targetLift == 100 ? 100 : 0;
+            }
         }
         else
         {
@@ -1743,7 +1758,8 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     //Some device don't support lift, but third app can use it
     if (hasLift)
     {
-        if (taskRef.lightNode->manufacturer() == QLatin1String("_TYZB01_dazsid15"))
+        if ((taskRef.lightNode->manufacturer() == QLatin1String("_TYZB01_dazsid15")) ||
+            (taskRef.lightNode->modelId() == QLatin1String("FB56+CUR17SB2.2")) )
         {
             hasLift = false;
             hasOpen = true;
@@ -1859,6 +1875,18 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             rspItemState[QString("/lights/%1/state/lift").arg(id)] = targetLift;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
+            
+            
+            // I m using this code only for Legrand ATM but can be used for other device.
+            // Because the attribute reporting take realy long time to be done, can be 2 minutes
+            // Or it can be changed only after this time, so using an read attribute don't give usable value
+            // And can cause issue on some third app
+            if ((taskRef.lightNode->modelId() == QLatin1String("Shutter switch with neutral")) ||
+                 (taskRef.lightNode->modelId() == QLatin1String("Shutter SW with level control")) )
+            {
+                taskRef.lightNode->setValue(RStateLift, 50);
+                taskRef.lightNode->setValue(RStateBri, 127);
+            }
 
             // Rely on attribute reporting to update the light state.
         }
@@ -1897,6 +1925,17 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             rspItemState[QString("/lights/%1/state/open").arg(id)] = targetOpen;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
+            
+            // I m using this code only for Legrand ATM but can be used for other device.
+            // Because the attribute reporting take realy long time to be done, can be 2 minutes
+            // Or it can be changed only after this time, so using an read attribute don't give usable value
+            // And can cause issue on some third app
+            if ((taskRef.lightNode->modelId() == QLatin1String("Shutter switch with neutral")) ||
+                 (taskRef.lightNode->modelId() == QLatin1String("Shutter SW with level control")) )
+            {
+                taskRef.lightNode->setValue(RStateLift, 50);
+                taskRef.lightNode->setValue(RStateBri, 127);
+            }
 
             // Rely on attribute reporting to update the light state.
         }
@@ -2147,7 +2186,7 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
         else if (alert == "select")
         {
             task.options = 0x17; // Warning mode 1 (burglar), Strobe, Very high sound
-            if (taskRef.lightNode->modelId() == QLatin1String("902010/24") ||
+            if (taskRef.lightNode->modelId().startsWith(QLatin1String("902010/24")) ||
                 taskRef.lightNode->modelId() == QLatin1String("902010/29"))
             {
                 task.options = 0x12;
@@ -2157,7 +2196,7 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
         else if (alert == "lselect")
         {
             task.options = 0x17; // Warning mode 1 (burglar), Strobe, Very high sound
-            if (taskRef.lightNode->modelId() == QLatin1String("902010/24") ||
+            if (taskRef.lightNode->modelId().startsWith(QLatin1String("902010/24")) ||
                 taskRef.lightNode->modelId() == QLatin1String("902010/29"))
             {
                 task.options = 0x12;
@@ -2379,6 +2418,55 @@ int DeRestPluginPrivate::setLightAttributes(const ApiRequest &req, ApiResponse &
         else
         {
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/reverse").arg(id), QString("invalid value, %1, for parameter reverse").arg(map["reverse"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
+    // Calibration command used for covering
+    if (map.contains("calibration"))
+    {
+
+        TaskItem taskRef;
+        taskRef.lightNode = getLightNodeForId(id);
+
+        if (!taskRef.lightNode || taskRef.lightNode->state() == LightNode::StateDeleted)
+        {
+            rsp.httpStatus = HttpStatusNotFound;
+            rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
+            return REQ_READY_SEND;
+        }
+
+        if (!taskRef.lightNode->isAvailable())
+        {
+            rsp.httpStatus = HttpStatusOk;
+            rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
+            return REQ_READY_SEND;
+        }
+
+        qint64 value = 0x00;
+        if (map["calibration"].toBool())
+        {
+            value = 0x01;
+        }
+        
+        deCONZ::ZclAttribute attr(0xf001, deCONZ::Zcl8BitEnum, "calibration", deCONZ::ZclReadWrite, true);
+        attr.setValue(value);
+
+        if (writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), WINDOW_COVERING_CLUSTER_ID, attr))
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/calibration").arg(id)] = map["calibration"];
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+            rsp.etag = lightNode->etag;
+
+            return REQ_READY_SEND;
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/calibration").arg(id), QString("invalid value, %1, for parameter calibration").arg(map["calibration"].toString())));
             rsp.httpStatus = HttpStatusBadRequest;
             return REQ_READY_SEND;
         }

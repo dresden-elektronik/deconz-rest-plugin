@@ -53,6 +53,8 @@ const char *RAttrGroupAddress = "attr/groupaddress";
 
 const char *RActionScene = "action/scene";
 
+const char *RStateAirQuality = "state/airquality";
+const char *RStateAirQualityPpb = "state/airqualityppb";
 const char *RStateAlarm = "state/alarm";
 const char *RStateAlert = "state/alert";
 const char *RStateAllOn = "state/all_on";
@@ -78,6 +80,7 @@ const char *RStateGesture = "state/gesture";
 const char *RStateHeating = "state/heating";
 const char *RStateHue = "state/hue";
 const char *RStateHumidity = "state/humidity";
+const char *RStateLastCheckin = "state/lastcheckin";
 const char *RStateLastSet = "state/lastset";
 const char *RStateLastUpdated = "state/lastupdated";
 const char *RStateLift = "state/lift";
@@ -131,9 +134,11 @@ const char *RConfigCtMin = "config/ctmin";
 const char *RConfigCtMax = "config/ctmax";
 const char *RConfigCheckin = "config/checkin";
 const char *RConfigConfigured = "config/configured";
+const char *RConfigCoolSetpoint = "config/coolsetpoint";
 const char *RConfigDelay = "config/delay";
 const char *RConfigDisplayFlipped = "config/displayflipped";
 const char *RConfigDuration = "config/duration";
+const char *RConfigFanMode = "config/fanmode";
 const char *RConfigGroup = "config/group";
 const char *RConfigHeatSetpoint = "config/heatsetpoint";
 const char *RConfigHostFlags = "config/hostflags";
@@ -148,6 +153,7 @@ const char *RConfigLocked = "config/locked";
 const char *RConfigLong = "config/long";
 const char *RConfigLevelMin = "config/levelmin";
 const char *RConfigMode = "config/mode";
+const char *RConfigSetValve = "config/setvalve";
 const char *RConfigMountingMode = "config/mountingmode";
 const char *RConfigOffset = "config/offset";
 const char *RConfigOn = "config/on";
@@ -163,6 +169,7 @@ const char *RConfigSensitivity = "config/sensitivity";
 const char *RConfigSensitivityMax = "config/sensitivitymax";
 const char *RConfigSunriseOffset = "config/sunriseoffset";
 const char *RConfigSunsetOffset = "config/sunsetoffset";
+const char *RConfigSwingMode = "config/swingmode";
 const char *RConfigTemperature = "config/temperature";
 const char *RConfigTemperatureMeasurement = "config/temperaturemeasurement";
 const char *RConfigTholdDark = "config/tholddark";
@@ -624,6 +631,8 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RAttrNwkAddress));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RAttrGroupAddress));
 
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateAirQuality));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateAirQualityPpb));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAlarm));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateAlert));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAllOn));
@@ -649,6 +658,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateHeating));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateHue));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateHumidity, 0, 10000));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RStateLastCheckin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RStateLastSet));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RStateLastUpdated));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateLift, 0, 100));
@@ -696,9 +706,11 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigCtMax));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RConfigCheckin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigConfigured));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigCoolSetpoint, 700, 3500));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigDelay));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigDisplayFlipped));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigDuration));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigFanMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigGroup));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigHeatSetpoint, 500, 3200));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RConfigHostFlags));
@@ -710,6 +722,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigLedIndication));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RConfigLocalTime));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigLocked));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigSetValve));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigLong));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigLevelMin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigMode));
@@ -728,6 +741,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigSensitivityMax));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt8, RConfigSunriseOffset, -120, 120));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt8, RConfigSunsetOffset, -120, 120));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigSwingMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigTemperature, -27315, 32767));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigTemperatureMeasurement));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigTholdDark, 0, 0xfffe));
@@ -951,7 +965,7 @@ const QString &ResourceItem::toString() const
             // default: local time in sec resolution
             QString format = QLatin1String("yyyy-MM-ddTHH:mm:ss");
 
-            if (m_rid->suffix == RStateLastUpdated)
+            if (m_rid->suffix == RStateLastUpdated || m_rid->suffix == RStateLastCheckin)
             {
                 // UTC in msec resolution
                 format = QLatin1String("yyyy-MM-ddTHH:mm:ss.zzz"); // TODO add Z
