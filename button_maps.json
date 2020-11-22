@@ -262,6 +262,11 @@
             "vendor": "OSRAM",
             "doc": "Lightify Switch Mini",
             "modelids": ["Lightify Switch Mini"],
+            "buttons": [
+                {"S_BUTTON_1": "Up button"},
+                {"S_BUTTON_2": "Down button"},
+                {"S_BUTTON_3": "Middle button"}
+            ],
             "map": [
                 [1, "0x01", "ONOFF", "ON", "0x00", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Up short press"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0x00", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Up long press"],
@@ -278,6 +283,12 @@
             "vendor": "OSRAM",
             "doc": "Lightify 4 button remote (1)",
             "modelids": ["Switch 4x EU-LIGHTIFY", "Switch 4x-LIGHTIFY"],
+            "buttons": [
+                {"S_BUTTON_1": "Top left button"},
+                {"S_BUTTON_2": "Top right button"},
+                {"S_BUTTON_3": "Bottom left button"},
+                {"S_BUTTON_4": "Bottom right button"}
+            ],
             "map": [
                 [1, "0x01", "ONOFF", "ON", "0x00", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "UL short press"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0x00", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "UL long press"],
@@ -297,6 +308,12 @@
             "vendor": "OSRAM",
             "doc": "Lightify 4 button remote (2)",
             "modelids": ["Switch-LIGHTIFY"],
+            "buttons": [
+                {"S_BUTTON_1": "Top left button"},
+                {"S_BUTTON_2": "Top right button"},
+                {"S_BUTTON_3": "Bottom left button"},
+                {"S_BUTTON_4": "Bottom right button"}
+            ],
             "map": [
                 [1, "0x01", "ONOFF", "ON", "0x00", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "UL short press"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0x00", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "UL long press"],
