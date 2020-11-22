@@ -340,6 +340,7 @@
 #define VENDOR_AURORA               0x121C // Used by Aurora Aone
 #define VENDOR_SUNRICHER            0x1224 // white label used by iCasa, Illuminize, Namron ...
 #define VENDOR_XAL                  0x122A
+#define VENDOR_ADUROLIGHT           0x122D
 #define VENDOR_THIRD_REALITY        0x1233
 #define VENDOR_DSR                  0x1234
 #define VENDOR_HANGZHOU_IMAGIC      0x123B
@@ -351,7 +352,6 @@
 #define VENDOR_OSRAM_STACK          0xBBAA
 #define VENDOR_C2DF                 0xC2DF
 #define VENDOR_PHILIO               0xFFA0
-#define VENDOR_ADUROLIGHT           0x122D
 
 #define ANNOUNCE_INTERVAL 45 // minutes default announce interval
 
