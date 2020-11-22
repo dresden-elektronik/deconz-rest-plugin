@@ -87,6 +87,11 @@ int DeRestPluginPrivate::handleSensorsApi(const ApiRequest &req, ApiResponse &rs
     {
         return changeSensorState(req, rsp);
     }
+    // POST, DELETE /api/<apikey>/sensors/<id>/config/schedule/Wbbb
+    else if ((req.path.size() == 7) && (req.hdr.method() == "POST" || req.hdr.method() == "DELETE") && (req.path[4] == "config") && (req.path[5] == "schedule"))
+    {
+        return changeThermostatSchedule(req, rsp);
+    }
 
     return REQ_NOT_HANDLED;
 }
@@ -1019,9 +1024,12 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     bool ok;
                     qint32 offset = (qint32)(round(map[pi.key()].toInt(&ok) / 10.0));
-                    if (ok && (sensor->modelId().startsWith(QLatin1String("kud7u2l")) || 
+                    if (ok && (sensor->modelId().startsWith(QLatin1String("kud7u2l")) ||
                                sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
-                               sensor->modelId().startsWith(QLatin1String("TS0601")) ) ) // Tuya Smart TRV HY369 Thermostatic Radiator Valve
+                               sensor->modelId().startsWith(QLatin1String("88teujp")) ||
+                               sensor->modelId().startsWith(QLatin1String("eaxp72v")) ||
+                               sensor->modelId().startsWith(QLatin1String("fvq6avy")) ||
+                              (sensor->manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ) ) // Tuya Smart TRV HY369 Thermostatic Radiator Valve
                     {
                         QByteArray data;
                         if (offset > 90) { offset = 90; }
@@ -1030,7 +1038,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         data.append((qint8)((offset >> 16) & 0xff));
                         data.append((qint8)((offset >> 8) & 0xff));
                         data.append((qint8)(offset & 0xff));
-                        if ( SendTuyaRequest(task, TaskThermostat , 0x022c , data ))
+                        if ( SendTuyaRequest(task, TaskThermostat , DP_TYPE_VALUE , 0x2c , data ))
                         {
                             updated = true;
                         }
@@ -1056,21 +1064,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             rsp.httpStatus = HttpStatusBadRequest;
                             return REQ_READY_SEND;
                         }
-                    }
-                }
-                if (rid.suffix == RConfigSchedule)
-                {
-                    QString sched = map[pi.key()].toString().simplified();
-                    if (addTaskThermostatSetAndGetSchedule(task, sched))
-                    {
-                        rspItemState[QString("set %1").arg(rid.suffix)] = offset;
-                        rspItem["success"] = rspItemState;
-                    }
-                    else
-                    {
-                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/%2").arg(id).arg(rid.suffix), QString("could not set attribute")));
-                        rsp.httpStatus = HttpStatusBadRequest;
-                        return REQ_READY_SEND;
                     }
                 }
                 if (rid.suffix == RConfigScheduleOn)
@@ -1116,7 +1109,15 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         hostFlags &= ~0x04; // clear `boost` flag
                         hostFlags |=  0x10; // set `disable off` flag
 
-                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, 0x4003, deCONZ::Zcl16BitInt, heatsetpoint))
+                        // Older models of the Eurotroninc Spirit updated the heat set point via the manufacturer custom attribute 0x4003.
+                        // For newer models it is not possible to write to this attribute.
+                        // Newer models must use the standard Occupied Heating Setpoint value (0x0012) using a default (or none) manufacturer.
+                        // See GitHub issue #1098
+                        bool success = sensor->swVersion().toInt() < 22190930 ?
+                            addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, 0x4003, deCONZ::Zcl16BitInt, heatsetpoint) :
+                            addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_NONE, 0x0012, deCONZ::Zcl16BitInt, heatsetpoint);
+
+                        if (success)
                         {
                             updated = true;
                         }
@@ -1131,7 +1132,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (sensor->modelId().startsWith(QLatin1String("TRV001")))
                     {
-                        if (addTaskThermostatCmd(task, VENDOR_DANFOSS, 0x40, heatsetpoint, nullptr, 0))
+                        if (addTaskThermostatCmd(task, VENDOR_DANFOSS, 0x40, heatsetpoint, 0))
                         {
                             updated = true;
                         }
@@ -1146,21 +1147,31 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (sensor->modelId().startsWith(QLatin1String("kud7u2l")) ||
                              sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
-                             sensor->modelId().startsWith(QLatin1String("TS0601")))  // Tuya Smart TRV HY369 Thermostatic Radiator Valve
+                             sensor->modelId().startsWith(QLatin1String("88teujp")) ||
+                             sensor->modelId().startsWith(QLatin1String("eaxp72v")) ||
+                             sensor->modelId().startsWith(QLatin1String("fvq6avy")) ||
+                            (sensor->manufacturer() == QLatin1String("_TZE200_aoclfnxz")) ||
+                            (sensor->manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )// Tuya Smart TRV HY369 Thermostatic Radiator Valve
                     {
                         heatsetpoint = heatsetpoint / 10;
                         QByteArray data = QByteArray("\x00\x00",2);
-                        data.append((qint8)((heatsetpoint >> 8) & 0xff));
-                        data.append((qint8)(heatsetpoint & 0xff));
-                        
-                        qint16 dp = 0x0202; // @Smanar what is dp?
-                        
+
+                        qint8 dp = 0x02;
+
                         if (sensor->modelId().startsWith(QLatin1String("GbxAXL2")))
                         {
-                            dp = 0x0267;
+                            dp = 0x67;
+                        }
+                        if (sensor->manufacturer() == QLatin1String("_TZE200_aoclfnxz"))
+                        {
+                            dp = 0x10;
+                            heatsetpoint = (int16_t)(heatsetpoint / 10);
                         }
                         
-                        if (SendTuyaRequest(task, TaskThermostat , dp, data))
+                        data.append(static_cast<qint8>((heatsetpoint >> 8) & 0xff));
+                        data.append(static_cast<qint8>(heatsetpoint & 0xff));
+                        
+                        if (SendTuyaRequest(task, TaskThermostat , DP_TYPE_VALUE , dp, data))
                         {
                             updated = true;
                         }
@@ -1178,6 +1189,32 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         attributeList.insert(0x0012, (quint32)heatsetpoint);
                     }
                 }
+                else if (rid.suffix == RConfigCoolSetpoint)
+                {
+                    if (map[pi.key()].type() == QVariant::Double)
+                    {
+                        qint16 coolsetpoint = map[pi.key()].toInt(&ok);
+
+                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, 0x0011, deCONZ::Zcl16BitInt, coolsetpoint))
+                        {
+                            updated = true;
+                        }
+                        else
+                        {
+                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                       QString("Could not set attribute")));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
+                        }
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
                 else if ((rid.suffix == RConfigMode) && !sensor->modelId().startsWith(QLatin1String("SPZB")))
                 {
                     // Legrand cable outlet
@@ -1193,7 +1230,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         else if (modeSet == "off") { mode = 0x05; }
                         else
                         {
-                            rspItemState[QString("error unknow mode for %1").arg(sensor->modelId())] = map[pi.key()];
+                            rspItemState[QString("error unknown mode for %1").arg(sensor->modelId())] = map[pi.key()];
                         }
 
                         if (mode < 10)
@@ -1206,7 +1243,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         rspItem["success"] = rspItemState;
                     }
                     else if ((sensor->modelId().startsWith(QLatin1String("kud7u2l"))) ||
-                             (sensor->modelId().startsWith(QLatin1String("TS0601")))) // Tuya Smart TRV HY369 Thermostatic Radiator Valve
+                             (sensor->modelId().startsWith(QLatin1String("eaxp72v"))) ||
+                             (sensor->modelId().startsWith(QLatin1String("88teujp"))) ||
+                             (sensor->modelId().startsWith(QLatin1String("fvq6avy"))) ||
+                             (sensor->manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ) // Tuya Smart TRV HY369 Thermostatic Radiator Valve
                     {
                         QByteArray data;
                         QString modeSet = map[pi.key()].toString();
@@ -1215,49 +1255,65 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         else if (modeSet == "off") { data = QByteArray("\x02", 1); }
                         else
                         {
-                            rspItemState[QString("error unknow mode for %1").arg(sensor->modelId())] = map[pi.key()];
+                            rspItemState[QString("error unknown mode for %1").arg(sensor->modelId())] = map[pi.key()];
                         }
                         if (data.length() > 0)
                         {
-                            if (SendTuyaRequest(task, TaskThermostat , 0x046a, data))
+                            if (SendTuyaRequest(task, TaskThermostat , DP_TYPE_ENUM, 0x6a, data))
                             {
                                 updated = true;
                             }
+                        }
+                    }
+                    else if (sensor->manufacturer() == QLatin1String("_TZE200_aoclfnxz"))
+                    {
+                        QByteArray data = QByteArray("\x00", 1);
+                        QString modeSet = map[pi.key()].toString();
+                        if (modeSet == "heat") { data = QByteArray("\x01", 1); }
+
+                        if (SendTuyaRequest(task, TaskThermostat , DP_TYPE_BOOL, 0x01, data))
+                        {
+                            updated = true;
                         }
                     }
                     else if (sensor->modelId().startsWith(QLatin1String("GbxAXL2")))
                     {
                         QString modeSet = map[pi.key()].toString();
                         bool ok = false;
-                        
+
                         if (modeSet == "auto")
                         {
-                            ok = SendTuyaRequest(task, TaskThermostat , 0x016c , QByteArray("\x01", 1)); // Set mode to auto
-                            ok = ok && (SendTuyaRequest(task, TaskThermostat , 0x0165 , QByteArray("\x01", 1))); // turn valve on
+                            ok = SendTuyaRequest(task, TaskThermostat , DP_TYPE_BOOL, 0x6c , QByteArray("\x01", 1)); // Set mode to auto
+                            ok = ok && (SendTuyaRequest(task, TaskThermostat , DP_TYPE_BOOL, 0x65 , QByteArray("\x01", 1))); // turn valve on
                         }
                         else if (modeSet == "heat")
                         {
-                            ok = SendTuyaRequest(task, TaskThermostat , 0x016c , QByteArray("\x00", 1)); // Set mode to manu
-                            ok = ok && (SendTuyaRequest(task, TaskThermostat , 0x0165 , QByteArray("\x01", 1))); // turn valve on
+                            ok = SendTuyaRequest(task, TaskThermostat , DP_TYPE_BOOL, 0x6c , QByteArray("\x00", 1)); // Set mode to manu
+                            ok = ok && (SendTuyaRequest(task, TaskThermostat , DP_TYPE_BOOL, 0x65 , QByteArray("\x01", 1))); // turn valve on
                         }
                         else if (modeSet == "off")
                         {
-                            ok = SendTuyaRequest(task, TaskThermostat , 0x0165 , QByteArray("\x00", 1)); // turn valve off
+                            ok = SendTuyaRequest(task, TaskThermostat , DP_TYPE_BOOL, 0x65 , QByteArray("\x00", 1)); // turn valve off
                         }
                         else
                         {
-                            rspItemState[QString("error unknow mode for %1").arg(sensor->modelId())] = map[pi.key()];
+                            rspItemState[QString("error unknown mode for %1").arg(sensor->modelId())] = map[pi.key()];
                         }
-                        
+
                         if ( ok )
                         {
                             updated = true;
                         }
                     }
-                    else if (sensor->modelId() == QLatin1String("SLR2") ||            // Hive
+                    else if (sensor->modelId().startsWith(QLatin1String("SLR2")) ||   // Hive
                              sensor->modelId() == QLatin1String("SLR1b") ||           // Hive
                              sensor->modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
-                             sensor->modelId().startsWith(QLatin1String("Zen-01")))   // Zen
+                             sensor->modelId().startsWith(QLatin1String("902010/32")) ||  // Bitron
+                             sensor->modelId().startsWith(QLatin1String("Zen-01")) || // Zen
+                             sensor->modelId().startsWith(QLatin1String("3157100")) ||// Centralite Pearl
+                             sensor->modelId().startsWith(QLatin1String("SORB")) ||   // Stelpro Orleans Fan
+                             sensor->modelId().startsWith(QLatin1String("AC201")) ||  // OWON
+                             sensor->modelId().startsWith(QLatin1String("Super TR"))) // ELKO
                     {
 
                         QString modeSet = map[pi.key()].toString();
@@ -1273,14 +1329,44 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         else if (modeSet == "sleep") { mode = 0x09; }
                         else
                         {
-                            rspItemState[QString("error unknow mode for %1").arg(sensor->modelId())] = map[pi.key()];
+                            rspItemState[QString("error unknown mode for %1").arg(sensor->modelId())] = map[pi.key()];
                         }
 
                         if (mode < 10)
                         {
-                            attributeList.insert(0x001C, (quint32)mode);
+                            if (sensor->modelId() == QLatin1String("Super TR")) // Set device on/off state through mode via device specific attribute
+                            {
+                                if (mode == 0x00)
+                                {
+                                    bool data = false;
+                                    if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0406, deCONZ::ZclBoolean, data))
+                                    {
+                                        updated = true;
+                                    }
+                                }
+                                else if (mode == 0x04)
+                                {
+                                    bool data = true;
+                                    if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0406, deCONZ::ZclBoolean, data))
+                                    {
+                                        updated = true;
+                                    }
+                                }
+                                else
+                                {
+                                    rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                           QString("Unsupported mode for device")));
+                                    rsp.httpStatus = HttpStatusBadRequest;
+                                    return REQ_READY_SEND;
+                                }
+                            }
+                            else
+                            {
+                                attributeList.insert(0x001C, (quint32)mode);
+                            }
+
                             //Idk for other device
-                            if ( (sensor->modelId() == QLatin1String("SLR2")) ||
+                            if ( (sensor->modelId().startsWith(QLatin1String("SLR2"))) ||
                                  (sensor->modelId() == QLatin1String("SLR1b")))
                             {
                                 //change automatically the Setpoint Hold
@@ -1355,7 +1441,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if ((rid.suffix == RConfigPreset) && (sensor->modelId().startsWith(QLatin1String("kud7u2l")) ||
                                                            sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
-                                                           sensor->modelId().startsWith(QLatin1String("TS0601"))))
+                                                           sensor->modelId().startsWith(QLatin1String("88teujp")) ||
+                                                           sensor->modelId().startsWith(QLatin1String("fvq6avy")) ||
+                                                           sensor->modelId().startsWith(QLatin1String("eaxp72v")) ||
+                                                          (sensor->manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ))
                 {
                     QByteArray data;
                     QString presetSet = map[pi.key()].toString();
@@ -1372,27 +1461,376 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     if (data.length() > 0 )
                     {
-                        if (SendTuyaRequest(task, TaskThermostat , 0x0404, data))
+                        if (SendTuyaRequest(task, TaskThermostat , DP_TYPE_ENUM, 0x04, data))
                         {
                             updated = true;
                         }
                     }
                 }
-                else if ((rid.suffix == RConfigLocked) && (sensor->modelId().startsWith(QLatin1String("kud7u2l")) ||
-                                                           sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
-                                                           sensor->modelId().startsWith(QLatin1String("TS0601"))))
+                else if ((rid.suffix == RConfigPreset) && (sensor->manufacturer() == QLatin1String("_TZE200_aoclfnxz")))
                 {
-                    QByteArray data = QByteArray("\x00", 1);
-                    if (map[pi.key()].toBool())
+                    QString presetSet = map[pi.key()].toString();
+                    if (presetSet == "auto")
                     {
-                        data = QByteArray("\x01", 1);
+                        SendTuyaRequest(task, TaskThermostat , DP_TYPE_ENUM, 0x02, QByteArray("\x01",1));
+                        SendTuyaRequest(task, TaskThermostat , DP_TYPE_ENUM, 0x03, QByteArray("\x00",1)); 
                     }
-
-                    if (SendTuyaRequest(task, TaskThermostat , 0x0107, data))
+                    else if (presetSet == "program")
                     {
-                        updated = true;
+                        SendTuyaRequest(task, TaskThermostat , DP_TYPE_ENUM, 0x02, QByteArray("\x00",1));
+                        SendTuyaRequest(task, TaskThermostat , DP_TYPE_ENUM, 0x03, QByteArray("\x01",1));
+                    }
+                    else
+                    {
+                        rspItemState[QString("error unknown preset for %1").arg(sensor->modelId())] = map[pi.key()];
                     }
                 }
+                else if (rid.suffix == RConfigLocked)
+                {
+                    if (map[pi.key()].type() == QVariant::Bool)
+                    {
+                        if (sensor->modelId().startsWith(QLatin1String("kud7u2l")) ||
+                            sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
+                            sensor->modelId().startsWith(QLatin1String("fvq6avy")) ||
+                            sensor->modelId().startsWith(QLatin1String("eaxp72v")) ||
+                            sensor->modelId().startsWith(QLatin1String("88teujp")) ||
+                           (sensor->manufacturer() == QLatin1String("_TZE200_aoclfnxz")) ||
+                           (sensor->manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )
+                        {
+                            QByteArray data = QByteArray("\x00", 1);
+                            if (map[pi.key()].toBool())
+                            {
+                                data = QByteArray("\x01", 1);
+                            }
+                            
+                            qint8 dp = 0x07;
+                            
+                            if (sensor->manufacturer() == QLatin1String("_TZE200_aoclfnxz"))
+                            {
+                                dp = 0x28;
+                            }
+                            
+
+                            if (SendTuyaRequest(task, TaskThermostat , DP_TYPE_BOOL, dp, data))
+                            {
+                                updated = true;
+                            }
+                        }
+                        else if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001") ||
+                                 sensor->modelId() == QLatin1String("SORB") || sensor->modelId() == QLatin1String("3157100"))
+                        {
+                            quint32 data = map[pi.key()].toUInt(&ok);
+
+                            if (addTaskThermostatUiConfigurationReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0001, deCONZ::Zcl8BitEnum, data))
+                            {
+                                updated = true;
+                            }
+                            else
+                            {
+                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                           QString("Could not set attribute")));
+                                rsp.httpStatus = HttpStatusBadRequest;
+                                return REQ_READY_SEND;
+                            }
+                        }
+                        else if (sensor->modelId() == QLatin1String("Super TR"))
+                        {
+                            bool data = map[pi.key()].toBool();
+
+                            if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0413, deCONZ::ZclBoolean, data))
+                            {
+                                updated = true;
+                            }
+                            else
+                            {
+                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                           QString("Could not set attribute")));
+                                rsp.httpStatus = HttpStatusBadRequest;
+                                return REQ_READY_SEND;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
+                else if (rid.suffix == RConfigDisplayFlipped)
+                {
+                    if (map[pi.key()].type() == QVariant::Bool)
+                    {
+                        if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001"))
+                        {
+                            quint32 data = map[pi.key()].toUInt(&ok);
+
+                            if (addTaskThermostatUiConfigurationReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x4000, deCONZ::Zcl8BitEnum, data, VENDOR_DANFOSS))
+                            {
+                                updated = true;
+                            }
+                            else
+                            {
+                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                           QString("Could not set attribute")));
+                                rsp.httpStatus = HttpStatusBadRequest;
+                                return REQ_READY_SEND;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
+                else if (rid.suffix == RConfigMountingMode)
+                {
+                    if (map[pi.key()].type() == QVariant::Bool)
+                    {
+                        if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001"))
+                        {
+                            quint32 data = map[pi.key()].toUInt(&ok);
+
+                            if (addTaskThermostatUiConfigurationReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x4013, deCONZ::Zcl8BitEnum, data, VENDOR_DANFOSS))
+                            {
+                                updated = true;
+                            }
+                            else
+                            {
+                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                           QString("Could not set attribute")));
+                                rsp.httpStatus = HttpStatusBadRequest;
+                                return REQ_READY_SEND;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
+                else if (rid.suffix == RConfigSetValve)
+                {
+                    if (map[pi.key()].type() == QVariant::Bool)
+                    {
+
+                        QByteArray data = QByteArray("\x00", 1);
+                        if (map[pi.key()].toBool())
+                        {
+                            data = QByteArray("\x01", 1);
+                        }
+
+                        if (SendTuyaRequest(task, TaskThermostat , DP_TYPE_BOOL, 0x14, data))
+                        {
+                            updated = true;
+                        }
+                        else
+                        {
+                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                       QString("Could not set attribute")));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
+                        }
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
+                else if (rid.suffix == RConfigTemperatureMeasurement)
+                {
+                    if (map[pi.key()].type() == QVariant::String && map[pi.key()].toString().size() <= 16)
+                    {
+                        if (sensor->modelId() == QLatin1String("Super TR"))
+                        {
+                            QString modeSet = map[pi.key()].toString();
+                            quint8 mode = 0;
+
+                            if (modeSet == "air sensor") { mode = 0x00; }
+                            else if (modeSet == "floor sensor") { mode = 0x01; }
+                            else if (modeSet == "floor protection") { mode = 0x03; }
+                            else
+                            {
+                                rspItemState[QString("error unknown temperature measurement mode for %1").arg(sensor->modelId())] = map[pi.key()];
+                            }
+
+                            if (mode < 4 && mode != 2)
+                            {
+                                if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0403, deCONZ::Zcl8BitEnum, mode))
+                                {
+                                    updated = true;
+                                }
+                                else
+                                {
+                                    rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                               QString("Could not set attribute")));
+                                    rsp.httpStatus = HttpStatusBadRequest;
+                                    return REQ_READY_SEND;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
+                else if ((rid.suffix == RConfigWindowOpen) && (sensor->modelId().startsWith(QLatin1String("kud7u2l")) ||
+                                                           sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
+                                                           sensor->modelId().startsWith(QLatin1String("fvq6avy")) ||
+                                                           sensor->modelId().startsWith(QLatin1String("88teujp")) ||
+                                                           sensor->modelId().startsWith(QLatin1String("eaxp72v")) ||
+                                                          (sensor->manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ) )
+                {
+                    // Config on / off
+                    if (map[pi.key()].type() == QVariant::Bool)
+                    {
+                        QByteArray data = QByteArray("\x00", 1);
+                        if (map[pi.key()].toBool())
+                        {
+                            data = QByteArray("\x01", 1);
+                        }
+
+                        if (SendTuyaRequest(task, TaskThermostat , DP_TYPE_BOOL, 0x12, data))
+                        {
+                            updated = true;
+                        }
+                    }
+                    // Set config value
+                    else if (map[pi.key()].type() == QVariant::List)
+                    {
+                        QVariantList setting = map[pi.key()].toList();
+                        if ((setting.size() == 3) && (setting[0].type() == QVariant::Bool) && (setting[1].type() == QVariant::Double) && (setting[2].type() == QVariant::Double))
+                        {
+                            QByteArray data = QByteArray("\x00",1);
+                            if (setting[0].toBool())
+                            {
+                                data = QByteArray("\x01", 1);
+                            }
+                            data.append(static_cast<qint8>(setting[1].toUInt()));
+                            data.append(static_cast<qint8>(setting[2].toUInt()));
+
+                            if (SendTuyaRequest(task, TaskThermostat , DP_TYPE_RAW, 0x68, data))
+                            {
+                                updated = true;
+                            }
+
+                        }
+                    }
+                    else
+                    {
+                        rspItemState[QString("Error : unknown Window open setting for %1").arg(sensor->modelId())] = map[pi.key()];
+                    }
+                }
+                else if (rid.suffix == RConfigFanMode)
+                {
+                    if (map[pi.key()].type() == QVariant::String && map[pi.key()].toString().size() <= 6)
+                    {
+                        if (sensor->modelId() == QLatin1String("AC201") || sensor->modelId() == QLatin1String("3157100") ||
+                            sensor->modelId() == QLatin1String("Zen-01"))
+                        {
+                            QString modeSet = map[pi.key()].toString();
+                            quint8 mode = 0;
+
+                            if (modeSet == "off") { mode = 0x00; }
+                            else if (modeSet == "low") { mode = 0x01; }
+                            else if (modeSet == "medium") { mode = 0x02; }
+                            else if (modeSet == "high") { mode = 0x03; }
+                            else if (modeSet == "on") { mode = 0x04; }
+                            else if (modeSet == "auto") { mode = 0x05; }
+                            else if (modeSet == "smart") { mode = 0x06; }
+                            else
+                            {
+                                rspItemState[QString("error unknown fan mode for %1").arg(sensor->modelId())] = map[pi.key()];
+                            }
+
+                            if (mode < 7)
+                            {
+                                if (addTaskFanControlReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, deCONZ::Zcl8BitEnum, mode))
+                                {
+                                    updated = true;
+                                }
+                                else
+                                {
+                                    rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                               QString("Could not set attribute")));
+                                    rsp.httpStatus = HttpStatusBadRequest;
+                                    return REQ_READY_SEND;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
+            }
+        }
+        else if (rid.suffix == RConfigSwingMode)
+        {
+            if (map[pi.key()].type() == QVariant::String && map[pi.key()].toString().size() <= 19)
+            {
+                if (sensor->modelId() == QLatin1String("AC201"))
+                {
+                    QString modeSet = map[pi.key()].toString();
+                    quint8 mode = 0;
+
+                    if (modeSet == "fully closed") { mode = 0x01; }
+                    else if (modeSet == "fully open") { mode = 0x02; }
+                    else if (modeSet == "quarter open") { mode = 0x03; }
+                    else if (modeSet == "half open") { mode = 0x04; }
+                    else if (modeSet == "three quarters open") { mode = 0x05; }
+                    else
+                    {
+                        rspItemState[QString("error unknown swing mode for %1").arg(sensor->modelId())] = map[pi.key()];
+                    }
+
+                    if (mode > 0 && mode < 6)
+                    {
+                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, 0x0045, deCONZ::Zcl8BitEnum, mode))
+                        {
+                            updated = true;
+                        }
+                        else
+                        {
+                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                    QString("Could not set attribute")));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
+                        }
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                QString("Could not set attribute")));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                           QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                rsp.httpStatus = HttpStatusBadRequest;
+                return REQ_READY_SEND;
             }
         }
 
@@ -1535,6 +1973,125 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
         sensor->setNeedSaveDatabase(true);
         queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
     }
+
+    processTasks();
+
+    return REQ_READY_SEND;
+}
+
+/*! POST, DELETE /api/<apikey>/sensors/<id>/config/schedule/Wbbb
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::changeThermostatSchedule(const ApiRequest &req, ApiResponse &rsp)
+{
+    rsp.httpStatus = HttpStatusOk;
+
+    // Get the /sensors/id resource.
+    QString id = req.path[3];
+    Sensor *sensor = id.length() < MIN_UNIQUEID_LENGTH ? getSensorNodeForId(id) : getSensorNodeForUniqueId(id);
+    if (!sensor || (sensor->deletedState() == Sensor::StateDeleted))
+    {
+        rsp.httpStatus = HttpStatusNotFound;
+        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/sensors/%1").arg(id), QString("resource, /sensors/%1, not available").arg(id)));
+        return REQ_READY_SEND;
+    }
+
+    // Check that it has config/schedule.
+    ResourceItem *item = sensor->item(RConfigSchedule);
+    if (!item)
+    {
+        rsp.httpStatus = HttpStatusNotFound;
+        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/sensors/%1/config/schedule").arg(id), QString("resource, /sensors/%1/config/schedule, not available").arg(id)));
+        return REQ_READY_SEND;
+    }
+
+    // Check valid weekday pattern
+    bool ok;
+    uint bbb = req.path[6].mid(1).toUInt(&ok);
+    if (req.path[6].left(1) != "W" || !ok || bbb < 1 || bbb > 127)
+    {
+        rsp.httpStatus = HttpStatusNotFound;
+        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/sensors/%1/config/schedule/%2").arg(id).arg(req.path[6]), QString("resource, /sensors/%1/config/schedule/%2, not available").arg(id).arg(req.path[6])));
+        return REQ_READY_SEND;
+    }
+    quint8 weekdays = bbb;
+
+    // Check body
+    QString transitions = QString("");
+    if (req.hdr.method() == "POST")
+    {
+        QVariant var = Json::parse(req.content, ok);
+        if (!ok)
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_JSON, QString("/sensors/%1/config/schedule/%2").arg(id).arg(req.path[6]), QString("body contains invalid JSON")));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+        QVariantList list = var.toList();
+        // QString transitions = QString("");
+        if (!serialiseThermostatTransitions(list, &transitions))
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_JSON, QString("/sensors/%1/config/schedule/%2").arg(id).arg(req.path[6]), QString("body contains invalid list of transitions")));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
+    if (req.sock)
+    {
+        userActivity();
+    }
+
+    bool ok2 = false;
+    // Queue task.
+    TaskItem task;
+    task.req.dstAddress() = sensor->address();
+    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+    task.req.setDstEndpoint(sensor->fingerPrint().endpoint);
+    task.req.setSrcEndpoint(getSrcEndpoint(sensor, task.req));
+    task.req.setDstAddressMode(deCONZ::ApsExtAddress);
+    
+    if ((sensor->modelId() == QLatin1String("kud7u2l")) ||
+        (sensor->modelId() == QLatin1String("eaxp72v")) ||
+        (sensor->modelId() == QLatin1String("88teujp")) ||
+        (sensor->modelId() == QLatin1String("fvq6avy")) ||
+        (sensor->modelId() == QLatin1String("GbxAXL2")) )
+    {
+        ok2 = SendTuyaRequestThermostatSetWeeklySchedule(task, weekdays , transitions , 0x70 );
+    }
+    else if (sensor->manufacturer() == QLatin1String("_TZE200_aoclfnxz"))
+    {
+        ok2 = SendTuyaRequestThermostatSetWeeklySchedule(task, weekdays , transitions , 0x65 );
+    }
+    else
+    {
+        ok2 = addTaskThermostatSetWeeklySchedule(task, weekdays, transitions);
+    }
+    
+    if (!ok2)
+    {
+        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/schedule/%2").arg(id).arg(req.path[6]), QString("could not set schedule")));
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
+    }
+
+    QVariantMap rspItem;
+    QVariantMap rspItemState;
+    if (req.hdr.method() == "POST")
+    {
+        QVariantList l;
+        deserialiseThermostatTransitions(transitions, &l);
+        rspItemState[QString("/config/schedule/W%1").arg(weekdays)] = l;
+        rspItem["success"] = rspItemState;
+    }
+    else
+    {
+        rspItem["success"] = QString("/sensors/%1/config/schedule/W%2 deleted.").arg(id).arg(weekdays);
+    }
+    rsp.list.append(rspItem);
+
+    updateThermostatSchedule(sensor, weekdays, transitions);
 
     processTasks();
 
@@ -2613,7 +3170,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                     if (item && item->toNumber() == (S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS))
                     {
                         item->setValue(S_BUTTON_1 + S_BUTTON_ACTION_HOLD);
-                        DBG_Printf(DBG_INFO, "button %d Hold\n", item->toNumber());
+                        DBG_Printf(DBG_INFO, "[INFO] - Button %u Hold %s\n", item->toNumber(), qPrintable(sensor->modelId()));
                         sensor->updateStateTimestamp();
                         Event e(RSensors, RStateButtonEvent, sensor->id(), item);
                         enqueueEvent(e);
@@ -2631,7 +3188,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                     {
                         btn &= ~0x03;
                         item->setValue(btn + S_BUTTON_ACTION_HOLD);
-                        DBG_Printf(DBG_INFO, "FoH switch button %d Hold\n", item->toNumber());
+                        DBG_Printf(DBG_INFO, "FoH switch button %d Hold %s\n", item->toNumber(), qPrintable(sensor->modelId()));
                         sensor->updateStateTimestamp();
                         Event e(RSensors, RStateButtonEvent, sensor->id(), item);
                         enqueueEvent(e);
@@ -2674,7 +3231,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
  */
 void DeRestPluginPrivate::checkInstaModelId(Sensor *sensor)
 {
-    if (sensor && checkMacVendor(sensor->address(), VENDOR_INSTA))
+    if (sensor && existDevicesWithVendorCodeForMacPrefix(sensor->address(), VENDOR_INSTA))
     {
         if (!sensor->modelId().endsWith(QLatin1String("_1")))
         {   // extract model identifier from mac address 6th byte
@@ -2704,7 +3261,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
     }
 
     if ((ind.srcAddress().hasExt() && ind.srcAddress().ext() == fastProbeAddr.ext()) ||
-        (ind.srcAddress().hasNwk() && ind.srcAddress().nwk() == fastProbeAddr.nwk()))
+        (fastProbeAddr.hasExt() && ind.srcAddress().hasNwk() && ind.srcAddress().nwk() == fastProbeAddr.nwk()))
     {
         DBG_Printf(DBG_INFO, "FP indication 0x%04X / 0x%04X (0x%016llX / 0x%04X)\n", ind.profileId(), ind.clusterId(), ind.srcAddress().ext(), ind.srcAddress().nwk());
         DBG_Printf(DBG_INFO, "                      ...     (0x%016llX / 0x%04X)\n", fastProbeAddr.ext(), fastProbeAddr.nwk());
@@ -2730,24 +3287,24 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
         // filter supported devices
 
         // Busch-Jaeger
-        if (checkMacVendor(ext, VENDOR_BUSCH_JAEGER))
+        if (existDevicesWithVendorCodeForMacPrefix(ext, VENDOR_BUSCH_JAEGER))
         {
         }
-        else if (checkMacVendor(ext, VENDOR_UBISYS))
+        else if (existDevicesWithVendorCodeForMacPrefix(ext, VENDOR_UBISYS))
         {
         }
-        else if (checkMacVendor(ext, VENDOR_BOSCH))
+        else if (existDevicesWithVendorCodeForMacPrefix(ext, VENDOR_BOSCH))
         { // macCapabilities == 0
         }
-        else if (checkMacVendor(ext, VENDOR_DEVELCO))
+        else if (existDevicesWithVendorCodeForMacPrefix(ext, VENDOR_DEVELCO))
         { // macCapabilities == 0
         }
         else if (macCapabilities & deCONZ::MacDeviceIsFFD)
         {
-            if (checkMacVendor(ext, VENDOR_LDS))
+            if (existDevicesWithVendorCodeForMacPrefix(ext, VENDOR_LDS))
             { //  Fix to allow Samsung SmartThings plug sensors to be created (7A-PL-Z-J3, modelId ZB-ONOFFPlug-D0005)
             }
-            else if (checkMacVendor(ext, VENDOR_JASCO))
+            else if (existDevicesWithVendorCodeForMacPrefix(ext, VENDOR_JASCO))
             { //  Fix to support GE mains powered switches
             }
             else
@@ -3005,7 +3562,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
     }
 
     // check for dresden elektronik devices
-    if (checkMacVendor(sc->address, VENDOR_DDEL))
+    if (existDevicesWithVendorCodeForMacPrefix(sc->address, VENDOR_DDEL))
     {
         if (sc->macCapabilities & deCONZ::MacDeviceIsFFD) // end-devices only
             return;
@@ -3305,7 +3862,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
             }
         }
     }
-    else if (checkMacVendor(sc->address, VENDOR_IKEA))
+    else if (existDevicesWithVendorCodeForMacPrefix(sc->address, VENDOR_IKEA))
     {
         if (sc->macCapabilities & deCONZ::MacDeviceIsFFD) // end-devices only
             return;

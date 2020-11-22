@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2020 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -95,6 +95,10 @@ void DeRestPluginPrivate::checkDbUserVersion()
         updated = upgradeDbToUserVersion6();
     }
     else if (userVersion == 6)
+    {
+        updated = upgradeDbToUserVersion7();
+    }
+    else if (userVersion == 7)
     {
         // latest version
     }
@@ -250,8 +254,7 @@ bool DeRestPluginPrivate::setDbUserVersion(int userVersion)
 
     DBG_Printf(DBG_INFO, "DB write sqlite user_version %d\n", userVersion);
 
-    QString sql;
-    sql = QString("PRAGMA user_version = %1").arg(userVersion);
+    const auto sql = QString("PRAGMA user_version = %1").arg(userVersion);
 
     errmsg = NULL;
     rc = sqlite3_exec(db, qPrintable(sql), NULL, NULL, &errmsg);
@@ -376,9 +379,6 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion2()
 /*! Upgrades database to user_version 6. */
 bool DeRestPluginPrivate::upgradeDbToUserVersion6()
 {
-    int rc;
-    char *errmsg;
-
     DBG_Printf(DBG_INFO, "DB upgrade to user_version 6\n");
 
     // create tables
@@ -410,22 +410,247 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion6()
 
     for (int i = 0; sql[i] != nullptr; i++)
     {
-        errmsg = nullptr;
-        rc = sqlite3_exec(db, sql[i], nullptr, nullptr, &errmsg);
+        char *errmsg = nullptr;
+        int rc = sqlite3_exec(db, sql[i], nullptr, nullptr, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            bool fatalError = true;
+            if (errmsg)
+            {
+                if (strstr(errmsg, "duplicate column name")) // harmless
+                {
+                    fatalError = false;
+                }
+                else
+                {
+                    DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sql[i], errmsg, rc);
+                }
+                sqlite3_free(errmsg);
+            }
+
+            if (fatalError)
+            {
+                return false;
+            }
+        }
+    }
+
+    return setDbUserVersion(6);
+}
+
+/*! Upgrades database to user_version 7. */
+bool DeRestPluginPrivate::upgradeDbToUserVersion7()
+{
+    DBG_Printf(DBG_INFO, "DB upgrade to user_version 7\n");
+
+    /*
+       The 'source_routes' table references 'devices' so that entries are
+       automatically deleted if the destination node is removed.
+       Inserting an entry with an existing uuid will automatically replace the old row.
+
+       The 'source_route_hops' table also references 'devices' so that
+       entries for a hop get deleted when the respective node is removed.
+       In this case the source route entry still exists but the source_routes.hops
+       count won't match the number of source_route_hops entries anymore.
+     */
+
+    // create tables
+    const char *sql[] = {
+        "CREATE TABLE IF NOT EXISTS source_routes ("
+        " uuid TEXT PRIMARY KEY ON CONFLICT REPLACE,"
+        " dest_device_id INTEGER REFERENCES devices(id) ON DELETE CASCADE,"
+        " route_order INTEGER NOT NULL,"
+        " hops INTEGER NOT NULL,"  // to track number of entries which should be in 'source_route_relays'
+        " timestamp INTEGER NOT NULL)",
+
+        "CREATE TABLE if NOT EXISTS source_route_hops ("
+        " source_route_uuid TEXT REFERENCES source_routes(uuid) ON DELETE CASCADE,"
+        " hop_device_id INTEGER REFERENCES devices(id) ON DELETE CASCADE,"
+        " hop INTEGER NOT NULL)",
+        nullptr
+    };
+
+    for (int i = 0; sql[i] != nullptr; i++)
+    {
+        char *errmsg = nullptr;
+        int rc = sqlite3_exec(db, sql[i], nullptr, nullptr, &errmsg);
 
         if (rc != SQLITE_OK)
         {
             if (errmsg)
             {
-                DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sql[i], errmsg, rc);
+                DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d), line: %d\n", sql[i], errmsg, rc, __LINE__);
                 sqlite3_free(errmsg);
             }
             return false;
         }
     }
 
-    return setDbUserVersion(6);
+    return setDbUserVersion(7);
 }
+
+#if DECONZ_LIB_VERSION >= 0x010E00
+/*! Stores a source route.
+    Any existing source route with the same uuid will be replaced automatically.
+ */
+void DeRestPluginPrivate::storeSourceRoute(const deCONZ::SourceRoute &sourceRoute)
+{
+    DBG_Assert(sourceRoute.hops().size() > 1);
+
+    if (sourceRoute.hops().size() <= 1)
+    {
+        return; // at least two hops (incl. destination)
+    }
+
+    openDb();
+    DBG_Assert(db);
+    if (!db)
+    {
+        return;
+    }
+
+    QString sql = QString("INSERT INTO source_routes (uuid,dest_device_id,route_order,hops,timestamp)"
+                          " SELECT '%1', (SELECT id FROM devices WHERE mac = '%2'), %3, %4, strftime('%s','now');")
+                          .arg(sourceRoute.uuid())
+                          .arg(generateUniqueId(sourceRoute.hops().back().ext(), 0, 0))
+                          .arg(sourceRoute.order())
+                          .arg(sourceRoute.hops().size());
+
+    for (size_t i = 0; i < sourceRoute.hops().size(); i++)
+    {
+        sql += QString("INSERT INTO source_route_hops (source_route_uuid, hop_device_id, hop)"
+                       " SELECT '%1', (SELECT id FROM devices WHERE mac = '%2'), %3;")
+                .arg(sourceRoute.uuid())
+                .arg(generateUniqueId(sourceRoute.hops().at(i).ext(), 0, 0))
+                .arg(i);
+    }
+
+    char *errmsg = nullptr;
+    int rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s, line: %d\n", qPrintable(sql), errmsg, __LINE__);
+            sqlite3_free(errmsg);
+        }
+    }
+
+    closeDb();
+}
+
+/*! Deletes the source route with \p uuid. */
+void DeRestPluginPrivate::deleteSourceRoute(const QString &uuid)
+{
+    DBG_Assert(!uuid.isEmpty());
+
+    openDb();
+    DBG_Assert(db);
+    if (!db)
+    {
+        return;
+    }
+
+    char *errmsg = nullptr;
+    const auto sql = QString("DELETE FROM source_routes WHERE uuid = '%1'").arg(uuid);
+    int rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s, line: %d\n", qPrintable(sql), errmsg, __LINE__);
+            sqlite3_free(errmsg);
+        }
+    }
+
+    closeDb();
+}
+
+/*! Restores and activates all source routes in core. */
+void DeRestPluginPrivate::restoreSourceRoutes()
+{
+    openDb();
+    DBG_Assert(db);
+    if (!db)
+    {
+        return;
+    }
+
+    const auto loadSourceRoutesCallback = [](void *user, int ncols, char **colval , char **) -> int
+    {
+        auto *sourceRoutes = static_cast<std::vector<deCONZ::SourceRoute>*>(user);
+        DBG_Assert(sourceRoutes);
+        DBG_Assert(ncols == 3);
+        // TODO verify number of hops in colval[2]
+        sourceRoutes->push_back(deCONZ::SourceRoute(colval[0], QString(colval[1]).toInt(), {}));
+        return 0;
+    };
+
+    char *errmsg = nullptr;
+    std::vector<deCONZ::SourceRoute> sourceRoutes;
+    const char *sql = "SELECT uuid, route_order, hops FROM source_routes";
+
+    int rc = sqlite3_exec(db, sql, loadSourceRoutesCallback, &sourceRoutes, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR, "sqlite3_exec %s, error: %s, line: %d\n", qPrintable(sql), errmsg, __LINE__);
+            sqlite3_free(errmsg);
+            errmsg = nullptr;
+        }
+    }
+
+    const auto loadHopsCallback = [](void *user, int ncols, char **colval , char **) -> int
+    {
+        auto *hops = static_cast<std::vector<deCONZ::Address>*>(user);
+        DBG_Assert(hops);
+        DBG_Assert(ncols == 2);
+
+        const auto mac = QString("0x%1").arg(colval[0]).remove(':');
+        // TODO make use of 'hop' in colval[1]
+
+        bool ok = false;
+        deCONZ::Address addr;
+        addr.setExt(static_cast<uint64_t>(mac.toULongLong(&ok, 16)));
+
+        if (ok)
+        {
+            hops->push_back(addr);
+        }
+
+        return 0;
+    };
+
+    for (auto &sr : sourceRoutes)
+    {
+        std::vector<deCONZ::Address> hops;
+        const auto sql = QString("SELECT mac, hop FROM source_route_hops INNER JOIN devices WHERE hop_device_id = devices.id AND source_route_uuid = '%1';").arg(sr.uuid());
+
+        rc = sqlite3_exec(db, qPrintable(sql), loadHopsCallback, &hops, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR, "sqlite3_exec %s, error: %s, line: %d\n", qPrintable(sql), errmsg, __LINE__);
+                sqlite3_free(errmsg);
+                errmsg = nullptr;
+            }
+        }
+        else if (apsCtrl && hops.size() > 1) // at least two items
+        {
+            apsCtrl->activateSourceRoute(deCONZ::SourceRoute(sr.uuid(), sr.order(), hops));
+        }
+    }
+
+    closeDb();
+}
+#endif // DECONZ_LIB_VERSION >= 0x010E00
 
 /*! Puts a new top level device entry in the db (mac address) or refreshes nwk address.
 */
@@ -926,18 +1151,6 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             }
         }
     }
-    else if (strcmp(colval[0], "permitjoin") == 0)
-    {
-        if (!val.isEmpty())
-        {
-            uint seconds = val.toUInt(&ok);
-            if (ok && (seconds <= 255))
-            {
-                d->setPermitJoinDuration(seconds);
-                d->gwConfig["permitjoin"] = (double)seconds;
-            }
-        }
-    }
     else if (strcmp(colval[0], "networkopenduration") == 0)
     {
         if (!val.isEmpty())
@@ -1303,6 +1516,15 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
           bool notifyAll = val == "true";
           d->gwConfig["websocketnotifyall"] = notifyAll;
           d->gwWebSocketNotifyAll = notifyAll;
+      }
+    }
+    else if (strcmp(colval[0], "disablePermitJoinAutoOff") == 0)
+    {
+      if (!val.isEmpty())
+      {
+          bool v = val == "true";
+          d->gwConfig["disablePermitJoinAutoOff"] = v;
+          d->gwdisablePermitJoinAutoOff = v;
       }
     }
     else if (strcmp(colval[0], "proxyaddress") == 0)
@@ -2343,6 +2565,45 @@ static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , ch
     return 0;
 }
 
+/*! Loads data (if available) for a LightNode from the database according to the adress
+ */
+QString DeRestPluginPrivate::loadDataForLightNodeFromDb(QString extAddress)
+{
+
+    DBG_Assert(db != nullptr);
+
+    if (!db || extAddress.isEmpty())
+    {
+        return NULL;
+    }
+
+    QString sql = QString("SELECT manufacturername FROM nodes WHERE mac LIKE '%1%' COLLATE NOCASE").arg(extAddress);
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+
+    const char * val = nullptr;
+    sqlite3_stmt *res = NULL;
+    int rc;
+
+    rc = sqlite3_prepare_v2(db, qPrintable(sql), -1, &res, nullptr);
+    if (rc == SQLITE_OK)
+    {
+		rc = sqlite3_step(res);
+	}
+
+    if (rc == SQLITE_ROW)
+    {
+        val = reinterpret_cast<const char*>(sqlite3_column_text(res, 0));
+        DBG_Printf(DBG_INFO, "DB %s: %s\n", qPrintable(sql), val);
+    }
+
+    if (res)
+    {
+        rc = sqlite3_finalize(res);
+    }
+
+    return QString(val);
+}
+
 /*! Loads data (if available) for a LightNode from the database.
  */
 void DeRestPluginPrivate::loadLightNodeFromDb(LightNode *lightNode)
@@ -2934,6 +3195,19 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeInt16, RConfigOffset);
             item->setValue(0);
         }
+        else if (sensor.type().endsWith(QLatin1String("AirQuality")))
+        {
+            if (sensor.fingerPrint().hasInCluster(BOSCH_AIR_QUALITY_CLUSTER_ID))
+            {
+                clusterId = clusterId ? clusterId : BOSCH_AIR_QUALITY_CLUSTER_ID;
+            }
+            else if (sensor.fingerPrint().hasInCluster(0xFC03))  // Develco air quality sensor
+            {
+                clusterId = clusterId ? clusterId : 0xFC03;
+            }
+            item = sensor.addItem(DataTypeString, RStateAirQuality);
+            item = sensor.addItem(DataTypeUInt16, RStateAirQualityPpb);
+        }
         else if (sensor.type().endsWith(QLatin1String("Spectral")))
         {
             if (sensor.fingerPrint().hasInCluster(VENDOR_CLUSTER_ID))
@@ -2946,6 +3220,17 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(0);
             item = sensor.addItem(DataTypeUInt16, RStateSpectralZ);
             item->setValue(0);
+        }
+        else if (sensor.type().endsWith(QLatin1String("Tuya")))
+        {
+            clusterId = clusterId ? clusterId : TUYA_CLUSTER_ID;
+
+            item = sensor.addItem(DataTypeInt16, RStateTemperature);
+            item->setValue(0);
+            item = sensor.addItem(DataTypeUInt16, RStateHumidity);
+            item->setValue(0);
+            item = sensor.addItem(DataTypeBool, RStateAlarm);
+            item->setValue(false);
         }
         else if (sensor.type().endsWith(QLatin1String("Humidity")))
         {
@@ -3017,6 +3302,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 if (sensor.modelId().startsWith(QLatin1String("tagv4"))) // SmartThings Arrival sensor
                 {
                     item->setValue(310);
+                }
+                else if (sensor.modelId().startsWith(QLatin1String("lumi.sensor_motion")))
+                {
+                    item->setValue(90);
                 }
                 else
                 {
@@ -3129,9 +3418,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     (sensor.modelId() != QLatin1String("TS0121")) &&
                     (!sensor.modelId().startsWith(QLatin1String("BQZ10-AU"))) &&
                     (!sensor.modelId().startsWith(QLatin1String("ROB_200"))) &&
+                    (!sensor.modelId().startsWith(QLatin1String("lumi.plug.ma"))) &&
                     (sensor.modelId() != QLatin1String("Plug-230V-ZB3.0")) &&
                     (sensor.modelId() != QLatin1String("lumi.switch.b1naus01")) &&
-                    (sensor.modelId() != QLatin1String("Connected socket outlet")))
+                    (sensor.modelId() != QLatin1String("Connected socket outlet")) &&
+                    (!sensor.modelId().startsWith(QLatin1String("SPW35Z"))))
                 {
                     item = sensor.addItem(DataTypeInt16, RStatePower);
                     item->setValue(0);
@@ -3220,34 +3511,69 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item = sensor.addItem(DataTypeInt16, RConfigOffset);
                 item->setValue(0);
                 sensor.addItem(DataTypeInt16, RConfigHeatSetpoint);    // Heating set point
-                sensor.addItem(DataTypeBool, RStateOn);           // Heating on/off
+                sensor.addItem(DataTypeBool, RStateOn);                // Heating on/off
 
-                if (sensor.modelId() == QLatin1String("SLR2") ||           // Hive 
+                if (sensor.modelId().startsWith(QLatin1String("SLR2")) ||   // Hive 
                     sensor.modelId() == QLatin1String("SLR1b") ||           // Hive 
-                    sensor.modelId().startsWith(QLatin1String("TH112")) || // Sinope
-                    sensor.modelId() == QLatin1String("GbxAXL2") ||        // Tuya
-                    sensor.modelId() == QLatin1String("kud7u2l") ||        // Tuya
-                    sensor.modelId() == QLatin1String("TS0601") ||        // Tuya
-                    sensor.modelId() == QLatin1String("Zen-01") )          // Zen
+                    sensor.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
+                    sensor.modelId() == QLatin1String("GbxAXL2") ||         // Tuya
+                    sensor.modelId() == QLatin1String("kud7u2l") ||         // Tuya
+                    sensor.modelId() == QLatin1String("902010/32") ||       // Bitron
+                   (sensor.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ||          // Tuya
+                   (sensor.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) ||          // Tuya
+                    sensor.modelId() == QLatin1String("Zen-01") )           // Zen
                 {
                     sensor.addItem(DataTypeString, RConfigMode);
                 }
+                
+                if (sensor.modelId() == QLatin1String("Super TR"))   // ELKO
+                {
+                    sensor.addItem(DataTypeString, RConfigTemperatureMeasurement);
+                    sensor.addItem(DataTypeInt16, RStateFloorTemperature);
+                    sensor.addItem(DataTypeBool, RStateHeating);
+                    sensor.addItem(DataTypeBool, RConfigLocked);
+                    sensor.addItem(DataTypeString, RConfigMode);
+                }
 
-                if (sensor.modelId() == QLatin1String("kud7u2l") || // tuya 
-                    sensor.modelId() == QLatin1String("GbxAXL2") || // tuya
-                    sensor.modelId() == QLatin1String("TS0601") ) //tuya
+                if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya
+                    sensor.modelId() == QLatin1String("GbxAXL2") || // Tuya
+                   (sensor.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
-                    sensor.addItem(DataTypeBool, RStateLowBattery);
+                    item = sensor.addItem(DataTypeBool, RStateLowBattery);
+                    item->setValue(false);
                 }
                 
-                if (sensor.modelId() == QLatin1String("kud7u2l") || // tuya 
-                    sensor.modelId() == QLatin1String("TS0601") ) //tuya
+                if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya
+                    sensor.modelId() == QLatin1String("eaxp72v") || // Tuya
+                    sensor.modelId() == QLatin1String("fvq6avy") || // Tuya
+                    sensor.modelId() == QLatin1String("88teujp") || // Tuya
+                   (sensor.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ||  // Tuya
+                   (sensor.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) )   // Tuya
                 {
                     sensor.addItem(DataTypeString, RConfigPreset);
                     sensor.addItem(DataTypeBool, RConfigLocked);
+                    sensor.addItem(DataTypeBool, RConfigSetValve);
                 }
                 
+                if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya
+                    sensor.modelId() == QLatin1String("fvq6avy") || // Tuya
+                    sensor.modelId() == QLatin1String("88teujp") || // Tuya
+                   (sensor.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ||  // Tuya
+                   (sensor.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) )   // Tuya
+                {
+                    sensor.addItem(DataTypeString, RConfigSchedule);
+                }
+                
+                if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya
+                    sensor.modelId() == QLatin1String("eaxp72v") || // Tuya
+                    sensor.modelId() == QLatin1String("88teujp") || // Tuya
+                    sensor.modelId() == QLatin1String("fvq6avy") || // Tuya
+                   (sensor.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
+                {
+                    sensor.addItem(DataTypeBool, RConfigWindowOpen);
+                }
+
                 if (sensor.modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
@@ -3265,19 +3591,53 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeUInt8, RConfigLastChangeSource);
                     sensor.addItem(DataTypeTime, RConfigLastChangeTime);
                 }
+                else if (sensor.modelId() == QLatin1String("SORB")) // Stelpro Orleans Fan
+                {
+                    sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);
+                    sensor.addItem(DataTypeUInt8, RStateValve);
+                    sensor.addItem(DataTypeBool, RConfigLocked);
+                    sensor.addItem(DataTypeString, RConfigMode);
+                }
                 else if (sensor.modelId() == QLatin1String("Zen-01"))
                 {
+                    sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);
+                    sensor.addItem(DataTypeString, RConfigMode);
+                    sensor.addItem(DataTypeString, RConfigFanMode);
                 }
-                else if ((sensor.modelId() == QLatin1String("eTRV0100")) ||
-                         (sensor.modelId() == QLatin1String("TRV001")) )
+                else if (sensor.modelId() == QLatin1String("3157100"))
+                {
+                    sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);
+                    sensor.addItem(DataTypeBool, RConfigLocked);
+                    sensor.addItem(DataTypeString, RConfigMode);
+                    sensor.addItem(DataTypeString, RConfigFanMode);
+                }
+                else if ((sensor.modelId() == QLatin1String("eTRV0100")) || // Danfoss Ally
+                         (sensor.modelId() == QLatin1String("TRV001")) )    // Hive TRV
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
                     sensor.addItem(DataTypeString, RStateWindowOpen);
+                    sensor.addItem(DataTypeBool, RStateMountingModeActive);
+                    sensor.addItem(DataTypeString, RStateErrorCode);
+                    sensor.addItem(DataTypeBool, RConfigDisplayFlipped);
+                    sensor.addItem(DataTypeBool, RConfigLocked);
+                    sensor.addItem(DataTypeBool, RConfigMountingMode);
+                    sensor.addItem(DataTypeString, RConfigSchedule);
+                    sensor.addItem(DataTypeBool, RConfigScheduleOn);
+                }
+                else if (sensor.modelId() == QLatin1String("AC201")) // OWON AC201 Thermostat
+                {
+                    sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);
+                    sensor.addItem(DataTypeString, RConfigMode);
+                    sensor.addItem(DataTypeString, RConfigFanMode);
+                    sensor.addItem(DataTypeString, RConfigSwingMode);
                 }
                 else
                 {
-                    sensor.addItem(DataTypeBool, RConfigScheduleOn);
-                    sensor.addItem(DataTypeString, RConfigSchedule);
+                    if (!sensor.modelId().isEmpty())
+                    {
+                        sensor.addItem(DataTypeBool, RConfigScheduleOn);
+                        sensor.addItem(DataTypeString, RConfigSchedule);
+                    }
                 }
             }
         }
@@ -3286,6 +3646,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
             {
                 clusterId = POWER_CONFIGURATION_CLUSTER_ID;
+            }
+            if (sensor.manufacturer() == QLatin1String("_TYST11_xu1rkty3"))
+            {
+                clusterId = TUYA_CLUSTER_ID;
             }
             item = sensor.addItem(DataTypeUInt8, RStateBattery);
             item->setValue(100);
@@ -3440,7 +3804,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item = sensor.addItem(DataTypeBool, RStateLowBattery);
                 // don't set value -> null until reported
             }
-            else if (sensor.modelId() == QLatin1String("lumi.sensor_natgas"))
+            else if (sensor.modelId() == QLatin1String("lumi.sensor_natgas") ||
+                     sensor.modelId() == QLatin1String("Bell"))
             {
                 // Don't expose battery resource item for this device
             }
@@ -3469,18 +3834,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (item && item->toBool())
             {
                 item->setValue(false); // reset at startup
-            }
-        }
-
-        if (sensor.modelId().startsWith(QLatin1String("lumi.sensor_motion")))
-        {
-            // reporting under motion varies between 60 - 90 seconds
-            ResourceItem *item = sensor.item(RConfigDuration);
-            DBG_Assert(item);
-            if (item && item->toNumber() < 90)
-            {
-                item->setValue(90);
-                sensor.setNeedSaveDatabase(true);
             }
         }
 
@@ -4141,7 +4494,6 @@ void DeRestPluginPrivate::saveDb()
     // dump config
     if (saveDatabaseItems & DB_CONFIG)
     {
-        gwConfig["permitjoin"] = (double)gwPermitJoinDuration;
         gwConfig["networkopenduration"] = (double)gwNetworkOpenDuration;
         gwConfig["timeformat"] = gwTimeFormat;
         gwConfig["timezone"] = gwTimezone;
@@ -4183,6 +4535,7 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["wifilastupdated"] = gwWifiLastUpdated;
         gwConfig["bridgeid"] = gwBridgeId;
         gwConfig["websocketnotifyall"] = gwWebSocketNotifyAll;
+        gwConfig["disablePermitJoinAutoOff"] = gwdisablePermitJoinAutoOff;
         gwConfig["proxyaddress"] = gwProxyAddress;
         gwConfig["proxyport"] = gwProxyPort;
         gwConfig["zclvaluemaxage"] = dbZclValueMaxAge;

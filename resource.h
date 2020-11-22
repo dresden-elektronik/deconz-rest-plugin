@@ -45,6 +45,7 @@ extern const char *RAttrManufacturerName;
 extern const char *RAttrModelId;
 extern const char *RAttrType;
 extern const char *RAttrClass;
+extern const char *RAttrId;
 extern const char *RAttrUniqueId;
 extern const char *RAttrSwVersion;
 extern const char *RAttrLastAnnounced;
@@ -52,6 +53,8 @@ extern const char *RAttrLastSeen;
 
 extern const char *RActionScene;
 
+extern const char *RStateAirQuality;
+extern const char *RStateAirQualityPpb;
 extern const char *RStateAlarm;
 extern const char *RStateAlert;
 extern const char *RStateAllOn;
@@ -68,12 +71,16 @@ extern const char *RStateCt;
 extern const char *RStateDark;
 extern const char *RStateDaylight;
 extern const char *RStateEffect;
+extern const char *RStateErrorCode;
 extern const char *RStateEventDuration;
 extern const char *RStateFire;
 extern const char *RStateFlag;
+extern const char *RStateFloorTemperature;
 extern const char *RStateGesture;
+extern const char *RStateHeating;
 extern const char *RStateHue;
 extern const char *RStateHumidity;
+extern const char *RStateLastCheckin; // Poll control check-in
 extern const char *RStateLastSet;
 extern const char *RStateLastUpdated;
 extern const char *RStateLift;
@@ -81,6 +88,7 @@ extern const char *RStateLightLevel;
 extern const char *RStateLowBattery;
 extern const char *RStateLocaltime;
 extern const char *RStateLux;
+extern const char *RStateMountingModeActive;
 extern const char *RStateOn;
 extern const char *RStateOpen;
 extern const char *RStateOrientationX;
@@ -118,10 +126,12 @@ extern const char *RConfigColorCapabilities;
 extern const char *RConfigCtMin;
 extern const char *RConfigCtMax;
 extern const char *RConfigConfigured;
+extern const char *RConfigCoolSetpoint;
 extern const char *RConfigDebug;
 extern const char *RConfigDelay;
 extern const char *RConfigDisplayFlipped;
 extern const char *RConfigDuration;
+extern const char *RConfigFanMode;
 extern const char *RConfigGroup;
 extern const char *RConfigHeatSetpoint;
 extern const char *RConfigHostFlags;
@@ -133,9 +143,11 @@ extern const char *RConfigLat;
 extern const char *RConfigLedIndication;
 extern const char *RConfigLocalTime;
 extern const char *RConfigLocked;
+extern const char *RConfigSetValve;
 extern const char *RConfigLong;
 extern const char *RConfigLevelMin;
 extern const char *RConfigMode;
+extern const char *RConfigMountingMode;
 extern const char *RConfigOffset;
 extern const char *RConfigOn;
 extern const char *RConfigPending;
@@ -150,12 +162,15 @@ extern const char *RConfigSensitivity;
 extern const char *RConfigSensitivityMax;
 extern const char *RConfigSunriseOffset;
 extern const char *RConfigSunsetOffset;
+extern const char *RConfigSwingMode;
 extern const char *RConfigTemperature;
+extern const char *RConfigTemperatureMeasurement;
 extern const char *RConfigTholdDark;
 extern const char *RConfigTholdOffset;
 extern const char *RConfigUrl;
 extern const char *RConfigUsertest;
 extern const char *RConfigWindowCoveringType;
+extern const char *RConfigWindowOpen;
 extern const char *RConfigUbisysJ1Mode;
 extern const char *RConfigUbisysJ1WindowCoveringType;
 extern const char *RConfigUbisysJ1ConfigurationAndStatus;
@@ -226,12 +241,16 @@ public:
     qint64 validMax;
 };
 
+extern const ResourceItemDescriptor rInvalidItemDescriptor;
+
 class ResourceItem
 {
 public:
     ResourceItem(const ResourceItem &other);
+    ResourceItem(ResourceItem &&other);
     ResourceItem(const ResourceItemDescriptor &rid);
     ResourceItem &operator=(const ResourceItem &other);
+    ResourceItem &operator=(ResourceItem &&other);
     ~ResourceItem();
     const QString &toString() const;
     qint64 toNumber() const;
@@ -257,7 +276,7 @@ private:
     qint64 m_num = 0;
     qint64 m_numPrev = 0;
     QString *m_str = nullptr;
-    ResourceItemDescriptor m_rid;
+    const ResourceItemDescriptor *m_rid = &rInvalidItemDescriptor;
     QDateTime m_lastSet;
     QDateTime m_lastChanged;
     std::vector<int> m_rulesInvolved; // the rules a resource item is trigger
@@ -267,9 +286,11 @@ class Resource
 {
 public:
     Resource(const char *prefix);
-    ~Resource();
+    ~Resource() = default;
     Resource(const Resource &other);
+    Resource(Resource &&other);
     Resource &operator=(const Resource &other);
+    Resource &operator=(Resource &&other);
     const char *prefix() const;
     ResourceItem *addItem(ApiDataType type, const char *suffix);
     void removeItem(const char *suffix);
@@ -287,7 +308,7 @@ public:
 
 private:
     Resource() = delete;
-    const char *m_prefix;
+    const char *m_prefix = nullptr;
     std::vector<ResourceItem> m_rItems;
 };
 

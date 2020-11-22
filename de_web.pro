@@ -6,13 +6,6 @@ TARGET = $$qtLibraryTarget($$TARGET)
 
 DEFINES += DECONZ_DLLSPEC=Q_DECL_IMPORT
 
-unix:contains(QMAKE_HOST.arch, armv6l) {
-    DEFINES += ARCH_ARM ARCH_ARMV6
-}
-unix:contains(QMAKE_HOST.arch, armv7l) {
-    DEFINES += ARCH_ARM ARCH_ARMV7
-}
-
 QMAKE_CXXFLAGS += -Wno-attributes \
                   -Wno-psabi \
                   -Wall
@@ -41,6 +34,11 @@ contains(QMAKE_SPEC_T,.*linux.*) {
     packagesExist(sqlite3) {
         DEFINES += HAS_SQLITE3
         PKGCONFIG += sqlite3
+    }
+
+    packagesExist(openssl) {
+        DEFINES += HAS_OPENSSL
+        PKGCONFIG += openssl
     }
 }
 
@@ -75,7 +73,7 @@ GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.05.80\\\"
+DEFINES += GW_SW_VERSION=\\\"2.06.00\\\"
 DEFINES += GW_SW_DATE=$$GIT_COMMIT_DATE
 DEFINES += GW_API_VERSION=\\\"1.16.0\\\"
 DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
@@ -84,8 +82,8 @@ DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
 # which shall be used in order to support all features for this software release (case sensitive)
 DEFINES += GW_AUTO_UPDATE_AVR_FW_VERSION=0x260b0500
 DEFINES += GW_AUTO_UPDATE_R21_FW_VERSION=0x26420700
-DEFINES += GW_MIN_AVR_FW_VERSION=0x26350500
-DEFINES += GW_MIN_R21_FW_VERSION=0x26580700
+DEFINES += GW_MIN_AVR_FW_VERSION=0x26390500
+DEFINES += GW_MIN_R21_FW_VERSION=0x26660700
 
 # Minimum version of the deRFusb23E0X firmware
 # which shall be used in order to support all features for this software release
@@ -103,11 +101,14 @@ HEADERS  = bindings.h \
            event.h \
            gateway.h \
            gateway_scanner.h \
+           green_power.h \
            group.h \
            group_info.h \
            json.h \
            light_node.h \
+           poll_control.h \
            poll_manager.h \
+           read_files.h \
            resource.h \
            resourcelinks.h \
            rest_devices.h \
@@ -115,9 +116,11 @@ HEADERS  = bindings.h \
            rule.h \
            scene.h \
            sensor.h \
+           tuya.h \
            websocket_server.h
 
-SOURCES  = authorisation.cpp \
+SOURCES  = air_quality.cpp \
+           authorisation.cpp \
            bindings.cpp \
            change_channel.cpp \
            connectivity.cpp \
@@ -125,22 +128,27 @@ SOURCES  = authorisation.cpp \
            database.cpp \
            daylight.cpp \
            device_setup.cpp \
+           diagnostics.cpp \
            discovery.cpp \
            de_web_plugin.cpp \
            de_web_widget.cpp \
            de_otau.cpp \
            event.cpp \
            event_queue.cpp \
+           fan_control.cpp \
            firmware_update.cpp \
            gateway.cpp \
            gateway_scanner.cpp \
+           green_power.cpp \
            group.cpp \
            group_info.cpp \
            gw_uuid.cpp \
            ias_zone.cpp \
            json.cpp \
            light_node.cpp \
+           poll_control.cpp \
            poll_manager.cpp \
+           read_files.cpp \
            resource.cpp \
            resourcelinks.cpp \
            rest_configuration.cpp \
@@ -158,6 +166,7 @@ SOURCES  = authorisation.cpp \
            rest_info.cpp \
            rest_capabilities.cpp \
            rule.cpp \
+           thermostat_ui_configuration.cpp \
            upnp.cpp \
            permitJoin.cpp \
            scene.cpp \

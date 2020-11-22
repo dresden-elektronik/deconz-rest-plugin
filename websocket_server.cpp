@@ -78,7 +78,7 @@ void WebSocketServer::onSocketDisconnected()
         DBG_Assert(sock);
         if (sock && clients[i] == sock)
         {
-            DBG_Printf(DBG_INFO, "Websocket disconnected %s:%u (state: %d) \n", qPrintable(sock->peerAddress().toString()), sock->peerPort(), sock->state());
+            DBG_Printf(DBG_INFO, "Websocket disconnected %s:%u, state: %d, close-code: %d, reason: %s\n", qPrintable(sock->peerAddress().toString()), sock->peerPort(), sock->state(), sock->closeCode(), qPrintable(sock->closeReason()));
             sock->deleteLater();
             clients[i] = clients.back();
             clients.pop_back();
@@ -98,8 +98,8 @@ void WebSocketServer::onSocketError(QAbstractSocket::SocketError err)
         DBG_Assert(sock);
         if (sock && clients[i] == sock)
         {
-            DBG_Printf(DBG_INFO, "Remove websocket %s:%u after error %s\n",
-                       qPrintable(sock->peerAddress().toString()), sock->peerPort(), qPrintable(sock->errorString()));
+            DBG_Printf(DBG_INFO, "Remove websocket %s:%u after error %s, close-code: %d, reason: %s\n",
+                       qPrintable(sock->peerAddress().toString()), sock->peerPort(), qPrintable(sock->errorString()), sock->closeCode(), qPrintable(sock->closeReason()));
             sock->deleteLater();
             clients[i] = clients.back();
             clients.pop_back();

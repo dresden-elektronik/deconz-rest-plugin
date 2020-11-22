@@ -275,14 +275,15 @@ void PollManager::pollTimerFired()
         pitem.items.clear(); // all done
     }
 
-    if (suffix == RStateOn)
+    if (suffix == RStateOn && lightNode)
     {
         item = r->item(RAttrModelId);
-        if (item->toString() == QLatin1String("TS0601"))
+
+        if (UseTuyaCluster(lightNode->manufacturer()))
         {
-            //This device haven't cluster 0006, and use Cluster specific
+            //Thoses devices haven't cluster 0006, and use Cluster specific
         }
-        else if (lightNode && lightNode->manufacturerCode() != VENDOR_XIAOMI) // reports
+        else if (lightNode->manufacturerCode() != VENDOR_XIAOMI) // reports
         {
             clusterId = ONOFF_CLUSTER_ID;
             attributes.push_back(0x0000); // onOff
@@ -403,17 +404,7 @@ void PollManager::pollTimerFired()
     {
         clusterId = METERING_CLUSTER_ID;
         attributes.push_back(0x0000); // Current Summation Delivered
-        item = r->item(RAttrModelId);
-        if (!item->toString().startsWith(QLatin1String("SP 120")) &&  // Attribute is not available
-            !item->toString().startsWith(QLatin1String("lumi.plug.ma")) &&
-            !item->toString().startsWith(QLatin1String("ZB-ONOFFPlug-D0005")) &&
-            !item->toString().startsWith(QLatin1String("TS0121")) &&
-            !item->toString().startsWith(QLatin1String("BQZ10-AU")) &&
-            !item->toString().startsWith(QLatin1String("ROB_200")) &&
-            item->toString() != QLatin1String("Plug-230V-ZB3.0"))
-        {
-            attributes.push_back(0x0400); // Instantaneous Demand
-        }
+        attributes.push_back(0x0400); // Instantaneous Demand
     }
     else if (suffix == RStatePower)
     {
@@ -421,12 +412,12 @@ void PollManager::pollTimerFired()
         clusterId = ELECTRICAL_MEASUREMENT_CLUSTER_ID;
         attributes.push_back(0x050b); // Active Power
         item = r->item(RAttrModelId);
-        if (!item->toString().startsWith(QLatin1String("Plug"))) //Osram plug
+        if (item && !item->toString().startsWith(QLatin1String("Plug"))) //Osram plug
         {
             NotOnlyPower = false;
         }
         item = r->item(RAttrManufacturerName);
-        if (!item->toString().startsWith(QLatin1String("Legrand")))  // All legrand Devices
+        if (item && !item->toString().startsWith(QLatin1String("Legrand")))  // All legrand Devices
         {
             NotOnlyPower = false;
         }
@@ -472,7 +463,11 @@ void PollManager::pollTimerFired()
             else
             {
                 if (item->toString().isEmpty() ||
+                    lightNode->manufacturerCode() == VENDOR_IKEA ||
+                    lightNode->manufacturerCode() == VENDOR_OSRAM ||
+                    lightNode->manufacturerCode() == VENDOR_OSRAM_STACK ||
                     lightNode->manufacturerCode() == VENDOR_XAL ||
+                    lightNode->manufacturerCode() == VENDOR_PHILIPS ||
                     lightNode->manufacturerCode() == VENDOR_DDEL)
                 {
                     attributes.push_back(0x4000); // sw build id
@@ -485,29 +480,6 @@ void PollManager::pollTimerFired()
     size_t fresh = 0;
     const int reportWaitTime = 360;
     const int reportWaitTimeXAL = 60 * 30;
-    for (quint16 attrId : attributes)
-    {
-        // force polling after node becomes reachable, since reporting might not be active
-//        if (dtReachable < reportWaitTime)
-//        {
-//            break;
-//        }
-
-        NodeValue &val = restNode->getZclValue(clusterId, attrId);
-
-        if (lightNode && lightNode->manufacturerCode() == VENDOR_IKEA && val.timestamp.isValid())
-        {
-            fresh++; // rely on reporting for ikea lights
-        }
-        else if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < reportWaitTime)
-        {
-            fresh++;
-        }
-        else if (lightNode && lightNode->manufacturerCode() == VENDOR_XAL && val.timestamp.isValid() && val.timestamp.secsTo(now) < reportWaitTimeXAL)
-        {
-            fresh++; // rely on reporting for XAL lights
-        }
-    }
 
     // check that cluster exists on endpoint
     if (clusterId != 0xffff)
@@ -516,11 +488,48 @@ void PollManager::pollTimerFired()
         deCONZ::SimpleDescriptor sd;
         if (restNode->node()->copySimpleDescriptor(pitem.endpoint, &sd) == 0)
         {
-            for (const auto &cl : sd.inClusters())
+            for (const auto &cl : sd.inClusters())  // Loop through clusters
             {
                 if (cl.id() == clusterId)
                 {
                     found = true;
+                    
+                    std::vector<quint16> check;
+
+                    for (const deCONZ::ZclAttribute &attr : cl.attributes())    // Loop through cluster attributes
+                    {
+                        for (quint16 attrId : attributes)   // Loop through poll candidates
+                        {
+                            // discard attributes which are not be available
+                            if (attrId == attr.id() && attr.isAvailable())
+                            {
+                                check.push_back(attr.id());     // Only use available attributes
+
+                                if (cl.id() == BASIC_CLUSTER_ID)
+                                {
+                                    continue; // don't rely on reporting
+                                }
+
+                                NodeValue &val = restNode->getZclValue(clusterId, attrId);
+
+                                if (lightNode && lightNode->manufacturerCode() == VENDOR_IKEA && val.timestamp.isValid())
+                                {
+                                    fresh++; // rely on reporting for ikea lights
+                                }
+                                else if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < reportWaitTime)
+                                {
+                                    fresh++;
+                                }
+                                else if (lightNode && lightNode->manufacturerCode() == VENDOR_XAL && val.timestamp.isValid() && val.timestamp.secsTo(now) < reportWaitTimeXAL)
+                                {
+                                    fresh++; // rely on reporting for XAL lights
+                                }
+
+                            }
+                        }
+                    }
+
+                    attributes = check;     // reassign filtered attributes
                     break;
                 }
             }
