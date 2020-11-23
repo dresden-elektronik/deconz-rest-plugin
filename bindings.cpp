@@ -1745,6 +1745,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq2.minInterval = 1;
         rq2.maxInterval = 300;
         if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") || // Heiman
+                       sensor->modelId() == QLatin1String("SMRZB-143") || // GS smart plug
                        sensor->modelId() == QLatin1String("SKHMP30-I1"))) // GS smart plug
         {
             rq2.reportableChange16bit = 100; // 1 V
@@ -1774,6 +1775,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                        sensor->modelId() == QLatin1String("DoubleSocket50AU") || // Aurora
                        sensor->modelId() == QLatin1String("SZ-ESW01-AU") ||      // Sercomm / Telstra smart plug
                        sensor->modelId() == QLatin1String("Connected socket outlet") || // Niko smart socket
+                       sensor->modelId() == QLatin1String("SMRZB-143") || // Develco smart cable
                        sensor->modelId() == QLatin1String("TS0121")))            // Tuya / Blitzwolf
         {
             rq3.reportableChange16bit = 100; // 0.1 A

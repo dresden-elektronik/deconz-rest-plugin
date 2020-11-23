@@ -8734,6 +8734,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("ROB_200")) ||  // ROBB Smarrt micro dimmer
                                         i->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
                                         i->modelId() == QLatin1String("Connected socket outlet") || // Niko smart socket
+                                        i->modelId() == QLatin1String("SMRZB-143") || // Develco smart cable
                                         i->modelId().startsWith(QLatin1String("S1")) || // Ubisys S1/S1-R
                                         i->modelId().startsWith(QLatin1String("S2")) || // Ubisys S2/S2-R
                                         i->modelId().startsWith(QLatin1String("J1")) || // Ubisys J1/J1-R
