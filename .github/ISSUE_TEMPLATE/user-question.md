@@ -48,6 +48,7 @@ assignees: ''
   Debug logs can help to investigate certain problems like device pairing and communication issues.
   Logging can be enabled on the command line as described in:
   https://github.com/dresden-elektronik/deconz-rest-plugin/wiki/deCONZ-debug-switches
+  Secondly, for versions above 2.05.87: In the deCONZ GUI: click Help > debug view. Output of APS,ZDP, ZCL and INFO can be handy. 
 -->
 
 ## Additional context
