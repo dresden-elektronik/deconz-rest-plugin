@@ -958,7 +958,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rspItemState[QString("/lights/%1/state/on").arg(id)] = true;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
-            
+
             taskRef.lightNode->setValue(RStateOn, targetOn);
         }
         else
@@ -1505,7 +1505,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rspItemState[QString("/lights/%1/state/on").arg(id)] = targetOn;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
-            
+
             taskRef.lightNode->setValue(RStateOn, targetOn);
         }
         else
