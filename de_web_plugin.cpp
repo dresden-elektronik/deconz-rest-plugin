@@ -947,6 +947,12 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
                     }
+                    else if ((ind.srcEndpoint() == 0x06 || ind.srcEndpoint() == 0x07) && sensorNode->modelId() == QLatin1String("lumi.ctrl_ln2.aq1"))
+                    {
+                        // TODO Button maps should express one ZHASwitch is related to multiple endpoints.
+                        //      Or search for one ZHASwitch resource inside sensors.
+                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x05);
+                    }
                     else
                     {
                         sensorNode = 0; // not supported
@@ -8404,8 +8410,20 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                             break;
                                     }
                                 }
+                                else if (i->modelId() == QLatin1String("lumi.ctrl_ln1.aq1"))
+                                {
+                                    // handeled by button map
+                                }
+                                else if (i->modelId() == QLatin1String("lumi.ctrl_ln2.aq1"))
+                                {
+                                    // handeled by button map
+                                }
                                 else if (i->modelId().startsWith(QLatin1String("lumi.ctrl_ln")))
                                 {
+                                    // TODO The following can likely be removed sine lumi.ctrl_ln1.aq1 and lumi.ctrl_ln2.aq1 are using button maps now.
+                                    //      are there any other lumi.ctrl_ln* devices?
+                                    //      The lumi.ctrl_ln1.aq2, lumi.ctrl_ln2.aq2 seem to be a typo, the Internet only knows .aq1 versions
+                                    //      and versions without .aq1? https://github.com/Koenkk/zigbee-herdsman-converters/blob/master/devices.js#L716.
                                     switch (event.endpoint())
                                     {
                                         case 0x05: buttonevent = S_BUTTON_1; break;
