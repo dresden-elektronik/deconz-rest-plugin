@@ -17141,8 +17141,7 @@ void DeRestPlugin::idleTimerFired()
                                 sensorNode->modelId().startsWith(QLatin1String("Super TR")) ||  // Elko
                                 sensorNode->modelId().startsWith(QLatin1String("AC201")) ||     // Owon
                                 sensorNode->modelId().startsWith(QLatin1String("SORB")) ||      // Stelpro Orleans
-                                sensorNode->modelId().startsWith(QLatin1String("3157100")) ||   // Centralite pearl
-                                sensorNode->modelId().startsWith(QLatin1String("902010/32")))   // Bitron
+                                sensorNode->modelId().startsWith(QLatin1String("3157100")))     // Centralite pearl
                             {
                                 // supports reporting, no need to read attributes
                             }
