@@ -4023,23 +4023,23 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     stream.setByteOrder(QDataStream::LittleEndian);
                     quint16 attrId;
                     quint8 dataType;
-                    quint8 pl3;
                     stream >> attrId;
                     stream >> dataType;
-                    stream >> pl3;
 
                     // Xiaomi
                     if (ind.clusterId() == ONOFF_CLUSTER_ID && sensor->manufacturer() == QLatin1String("LUMI"))
                     {
+                        quint8 value;
+                        stream >> value;
                         ok = false;
                         // payload: u16 attrId, u8 datatype, u8 data
-                        if (attrId == 0x0000 && dataType == 0x10 && // onoff attribute
-                            buttonMap.zclParam0 == pl3)
+                        if (attrId == 0x0000 && dataType == deCONZ::ZclBoolean && // onoff attribute
+                            buttonMap.zclParam0 == value)
                         {
                             ok = true;
                         }
-                        else if (attrId == 0x8000 && dataType == 0x20 && // custom attribute for multi press
-                            buttonMap.zclParam0 == pl3)
+                        else if (attrId == 0x8000 && dataType == deCONZ::Zcl8BitUint && // custom attribute for multi press
+                            buttonMap.zclParam0 == value)
                         {
                             ok = true;
                         }
@@ -4073,13 +4073,15 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         }
                     }
                     else if ((ind.clusterId() == DOOR_LOCK_CLUSTER_ID && sensor->manufacturer() == QLatin1String("LUMI")) ||
-                             (ind.clusterId() == MULTISTATE_INPUT_CLUSTER_ID && sensor->modelId().endsWith(QLatin1String("86opcn01")))) // Aqara Opple multistate cluster event handling
+                             ind.clusterId() == MULTISTATE_INPUT_CLUSTER_ID)
                     {
                         ok = false;
-                        if (attrId == 0x0055 && dataType == 0x21 && // Xiaomi non-standard attribute
-                            buttonMap.zclParam0 == pl3)
+                        if (attrId == MULTI_STATE_INPUT_PRESENT_VALUE_ATTRIBUTE_ID &&
+                            dataType == deCONZ::Zcl16BitUint)
                         {
-                            ok = true;
+                            quint16 value;
+                            stream >> value;
+                            ok = buttonMap.zclParam0 == value;
                         }
                     }
                 }
@@ -8350,7 +8352,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                     {
                         for (;ia != enda; ++ia)
                         {
-                            if (ia->id() == 0x0055) // present value
+                            if (ia->id() == MULTI_STATE_INPUT_PRESENT_VALUE_ATTRIBUTE_ID) // present value
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
