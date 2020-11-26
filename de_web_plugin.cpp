@@ -8365,6 +8365,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 ResourceItem *item = i->item(RStateButtonEvent);
                                 int rawValue = ia->numericValue().u16;
 
+                                DBG_Printf(DBG_INFO, "Multi state present value: 0x%04X (%u), %s\n", rawValue, rawValue, qPrintable(i->modelId()));
+
                                 if (i->modelId().startsWith(QLatin1String("lumi.sensor_cube")))
                                 {
                                     // Map Xiaomi Mi smart cube raw values to buttonevent values
