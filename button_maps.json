@@ -460,6 +460,18 @@
                 [1, "0x01", "ONOFF", "OFF_WITH_EFFECT", "0", "S_BUTTON_4", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"]
             ]
         },
+        "xiaomiSwitchAq3Map": {
+            "vendor": "Xiaomi",
+            "doc": "WXKG12LM remote",
+            "modelids": ["lumi.sensor_switch.aq3"],
+            "map": [
+                [1, "0x01", "MULTISTATE_INPUT", "0x0a", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
+                [1, "0x01", "MULTISTATE_INPUT", "0x0a", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x01", "MULTISTATE_INPUT", "0x0a", "16", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Hold"],
+                [1, "0x01", "MULTISTATE_INPUT", "0x0a", "17", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Long released"],
+                [1, "0x01", "MULTISTATE_INPUT", "0x0a", "18", "S_BUTTON_1", "S_BUTTON_ACTION_SHAKE", "Shake"]
+            ]
+        },
         "xiaomiSwitchAq2Map": {
             "vendor": "Xiaomi",
             "doc": "WXKG11LM remote",
