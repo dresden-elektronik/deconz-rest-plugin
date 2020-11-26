@@ -472,9 +472,20 @@
                 [1, "0x01", "MULTISTATE_INPUT", "0x0a", "18", "S_BUTTON_1", "S_BUTTON_ACTION_SHAKE", "Shake"]
             ]
         },
+        "xiaomiSwitchB1acn01Map": {
+            "vendor": "Xiaomi",
+            "doc": "WXKG11LM 2018 remote",
+            "modelids": ["lumi.remote.b1acn01"],
+            "map": [
+                [1, "0x01", "MULTISTATE_INPUT", "0x0a", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
+                [1, "0x01", "MULTISTATE_INPUT", "0x0a", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x01", "MULTISTATE_INPUT", "0x0a", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Hold"],
+                [1, "0x01", "MULTISTATE_INPUT", "0x0a", "255", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Long released"]
+            ]
+        },
         "xiaomiSwitchAq2Map": {
             "vendor": "Xiaomi",
-            "doc": "WXKG11LM remote",
+            "doc": "WXKG11LM 2016 remote",
             "modelids": ["lumi.sensor_switch.aq2"],
             "map": [
                 [1, "0x01", "ONOFF", "0x0a", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],

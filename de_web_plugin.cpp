@@ -8385,8 +8385,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     else if (rawValue & 0x0200)  { buttonevent = side * 1000 + side;              // double tap
                                                                    gesture = GESTURE_DOUBLE_TAP; }
                                 }
-                                else if (i->modelId() == QLatin1String("lumi.remote.b1acn01") ||
-                                         i->modelId() == QLatin1String("lumi.remote.b186acn01") ||
+                                else if (i->modelId() == QLatin1String("lumi.remote.b186acn01") ||
                                          i->modelId() == QLatin1String("lumi.remote.b186acn02") ||
                                          i->modelId() == QLatin1String("lumi.remote.b286acn01") ||
                                          i->modelId() == QLatin1String("lumi.remote.b286acn02"))
