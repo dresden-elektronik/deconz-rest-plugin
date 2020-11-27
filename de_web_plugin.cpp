@@ -8728,6 +8728,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     if (i->modelId() == QLatin1String("SP 120") ||            // innr
                                         i->modelId().startsWith(QLatin1String("outlet")) ||   // Samsung SmartThings IM6001-OTP/IM6001-OTP01
                                         i->modelId() == QLatin1String("DoubleSocket50AU") ||  // Aurora
+                                        i->modelId() == QLatin1String("SPLZB-131") ||         // Develco smart plug
                                         i->modelId() == QLatin1String("RICI01") ||            // LifeControl Smart Plug
                                         i->modelId().startsWith(QLatin1String("SZ-ESW01")) || // Sercomm / Telstra smart plug
                                         i->modelId() == QLatin1String("TS0121") ||            // Tuya smart plug
