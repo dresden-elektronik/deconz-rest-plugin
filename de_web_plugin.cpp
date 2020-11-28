@@ -274,7 +274,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_INNR, "SP 120", jennicMacPrefix}, // innr smart plug
     { VENDOR_JENNIC, "VMS_ADUROLIGHT", jennicMacPrefix }, // Trust motion sensor ZPIR-8000
     { VENDOR_JENNIC, "CSW_ADUROLIGHT", jennicMacPrefix }, // Trust contact sensor ZMST-808
-    { VENDOR_JENNIC, "ZYCT-202", jennicMacPrefix }, // Trust remote control ZYCT-202
+    { VENDOR_JENNIC, "ZYCT-202", jennicMacPrefix }, // Trust remote control ZYCT-202 (older model)
+    { VENDOR_ADUROLIGHT, "ZLL-NonColorController", jennicMacPrefix }, // Trust remote control ZYCT-202 (newer model)
     { VENDOR_INNR, "RC 110", jennicMacPrefix }, // innr remote RC 110
     { VENDOR_VISONIC, "MCT-340", emberMacPrefix }, // Visonic MCT-340 E temperature/motion
     { VENDOR_SUNRICHER, "ED-1001", silabs2MacPrefix }, // EcoDim wireless switches
@@ -373,6 +374,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "eaxp72v", ikea2MacPrefix }, // Tuya TRV Wesmartify Thermostat Essentials Premium
     { VENDOR_NONE, "88teujp", silabs8MacPrefix }, // SEA802-Zigbee
     { VENDOR_NONE, "fvq6avy", silabs7MacPrefix }, // Revolt NX-4911-675 Thermostat
+    { VENDOR_HEIMAN, "TY0202", silabs7MacPrefix }, // Lidl/Silvercrest Smart Motion Sensor
+    { VENDOR_HEIMAN, "TY0202", silabs3MacPrefix }, // Lidl/Silvercrest Smart Motion Sensor
     { VENDOR_AURORA, "DoubleSocket50AU", jennicMacPrefix }, // Aurora AOne Double Socket UK
     { VENDOR_COMPUTIME, "SP600", computimeMacPrefix }, // Salus smart plug
     { VENDOR_HANGZHOU_IMAGIC, "1116-S", energyMiMacPrefix }, // iris contact sensor v3
@@ -422,15 +425,51 @@ static const SupportedDevice supportedDevices[] = {
 
 int TaskItem::_taskCounter = 1; // static rolling taskcounter
 
+/*! Returns the largest supported API version.
+
+    There might be one, none or multiple versions listed in \p hdrValue:
+
+        Accept: nothing, relevant, here    --> ApiVersion_1
+        Accept: vnd.ddel.v1                --> ApiVersion_1_DDEL
+        Accept: vnd.ddel.v1,vnd.ddel.v1.1  --> ApiVersion_1_1_DDEL
+        Accept: vnd.ddel.v2                --> ApiVersion_2_DDEL
+        Accept: vnd.ddel.v1,vnd.ddel.v2    --> ApiVersion_2_DDEL
+ */
+static ApiVersion getAcceptHeaderApiVersion(const QString &hdrValue)
+{
+    ApiVersion result = { ApiVersion_1 };
+
+    static const struct {
+        ApiVersion version;
+        const char *str;
+    } versions[] = {
+        // ordered by largest version
+        {ApiVersion_2_DDEL,   "vnd.ddel.v2"},
+        {ApiVersion_1_1_DDEL, "vnd.ddel.v1.1"},
+        {ApiVersion_1_DDEL,   "vnd.ddel.v1"},
+        {ApiVersion_1, nullptr}
+    };
+
+    const auto ls = hdrValue.split(QLatin1Char(','), QString::SkipEmptyParts);
+
+    for (int i = 0; versions[i].str != nullptr; i++)
+    {
+        if (ls.contains(QLatin1String(versions[i].str)))
+        {
+            result = versions[i].version;
+            break;
+        }
+    }
+
+    return result;
+}
+
 ApiRequest::ApiRequest(const QHttpRequestHeader &h, const QStringList &p, QTcpSocket *s, const QString &c) :
     hdr(h), path(p), sock(s), content(c), version(ApiVersion_1), auth(ApiAuthNone), mode(ApiModeNormal)
 {
-    if (hdr.hasKey("Accept"))
+    if (hdr.hasKey(QLatin1String("Accept")) && hdr.value(QLatin1String("Accept")).contains(QLatin1String("vnd.ddel")))
     {
-        if (hdr.value("Accept").contains("vnd.ddel.v1"))
-        {
-            version = ApiVersion_1_DDEL;
-        }
+        version = getAcceptHeaderApiVersion(hdr.value(QLatin1String("Accept")));
     }
 }
 
@@ -1914,6 +1953,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             else if ((i->inClusters()[c].id() == TUYA_CLUSTER_ID) && (node->macCapabilities() & deCONZ::MacDeviceIsFFD) ) { hasServerOnOff = true; }
             // Danalock support. The cluster needs to be defined and whitelisted by setting hasServerOnOff
             else if (node->nodeDescriptor().manufacturerCode() == VENDOR_DANALOCK && i->inClusters()[c].id() == DOOR_LOCK_CLUSTER_ID) { hasServerOnOff = true; }
+            else if (node->nodeDescriptor().manufacturerCode() == VENDOR_SCHLAGE && i->inClusters()[c].id() == DOOR_LOCK_CLUSTER_ID) { hasServerOnOff = true; } //Schlage Connect Smart Deadbolt B3468
             else if (node->nodeDescriptor().manufacturerCode() == VENDOR_KWIKSET && i->inClusters()[c].id() == DOOR_LOCK_CLUSTER_ID) { hasServerOnOff = true; } //Kwikset 914 ZigBee smart lock
             else if (i->inClusters()[c].id() == BASIC_CLUSTER_ID)
             {
@@ -4592,7 +4632,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         int inClusterCount = i->inClusters().size();
         int outClusterCount = i->outClusters().size();
 
-        // check Trust remote control ZYCT-202
+        // check Trust remote control ZYCT-202 or ZLL-NonColorController
         if (node->simpleDescriptors().size() == 2 &&
             node->simpleDescriptors()[0].endpoint() == 0x01 &&
             node->simpleDescriptors()[0].profileId() == ZLL_PROFILE_ID &&
@@ -4789,7 +4829,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case COMMISSIONING_CLUSTER_ID:
                 {
-                    if (modelId == QLatin1String("ZYCT-202") && i->endpoint() != 0x01)
+                    if (modelId == QLatin1String("ZYCT-202" || modelId == QLatin1String("ZLL-NonColorController") && i->endpoint() != 0x01)
                     {
                         // ignore second endpoint
                     }
@@ -4895,6 +4935,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId == QLatin1String("4in1-Sensor-ZB3.0") ||         // Immax NEO ZB3.0 4 in 1 sensor E13-A21
                              modelId == QLatin1String("E13-A21") ||                   // Sengled E13-A21 PAR38 bulp with motion sensor
                              modelId == QLatin1String("TS0202") ||                    // Tuya generic motion sensor
+                             modelId == QLatin1String("TY0202") ||                    // Lidl/Silvercrest Smart Motion Sensor
                              modelId == QLatin1String("MS01") ||                      // Sonoff SNZB-03
                              modelId == QLatin1String("MSO1") ||                      // Sonoff SNZB-03
                              modelId == QLatin1String("ms01"))                        // Sonoff SNZB-03
@@ -5294,7 +5335,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 case SCENE_CLUSTER_ID:
                 case WINDOW_COVERING_CLUSTER_ID:
                 {
-                    if (modelId == QLatin1String("ZYCT-202"))
+                    if (modelId == QLatin1String("ZYCT-202") || modelId == QLatin1String("ZLL-NonColorController"))
                     {
                         fpSwitch.outClusters.push_back(ci->id());
                     }
@@ -6547,6 +6588,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             sensorNode.addItem(DataTypeInt16, RConfigTemperature);
             //sensorNode.addItem(DataTypeInt16, RConfigOffset);
+        }
+
+        if (sensorNode.modelId().endsWith(QLatin1String("86opcn01")))
+        {
+            // Aqara Opple switches need to be configured to send proper button events
+            // write basic cluster attribute 0x0009 value 1
+            item = sensorNode.addItem(DataTypeUInt8, RConfigPending);
+            item->setValue(item->toNumber() | R_PENDING_MODE);
         }
 
         if (sensorNode.modelId().startsWith(QLatin1String("lumi.vibration")))
@@ -11733,6 +11782,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     }
 
     RestNodeBase *restNodePending = nullptr;
+    QString modelId;
 
     for (LightNode &lightNode: nodes)
     {
@@ -11851,6 +11901,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         else
         {
             continue;
+        }
+
+        if (modelId.isEmpty())
+        {
+            modelId = sensor.modelId();
         }
 
         sensor.rx();
@@ -12086,6 +12141,21 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     if (!r)
     {
         return;
+    }
+
+    if (modelId.endsWith(QLatin1String("86opcn01")))
+    {
+        auto *item = r->item(RConfigPending);
+        if (item && (item->toNumber() & R_PENDING_MODE))
+        {
+            // Aqara Opple switches need to be configured to send proper button events
+            // send the magic word
+            DBG_Printf(DBG_INFO, "Write Aqara Opple switch 0x%016llX mode attribute 0x0009 = 1\n", ind.srcAddress().ext());
+            deCONZ::ZclAttribute attr(0x0009, deCONZ::Zcl8BitUint, QLatin1String("mode"), deCONZ::ZclReadWrite, false);
+            attr.setValue(static_cast<quint64>(1));
+            writeAttribute(restNodePending, 0x01, 0xFCC0, attr, VENDOR_XIAOMI);
+            item->setValue(item->toNumber() & ~R_PENDING_MODE);
+        }
     }
 
     if (dateCode.isEmpty() && restNodePending)
@@ -15640,7 +15710,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             apsReq.setProfileId(ZDP_PROFILE_ID);
             apsReq.setRadius(0);
             apsReq.setClusterId(ZDP_ACTIVE_ENDPOINTS_CLID);
-            //apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+            apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
 
             QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
             stream.setByteOrder(QDataStream::LittleEndian);
@@ -15690,7 +15760,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                     apsReq.setProfileId(ZDP_PROFILE_ID);
                     apsReq.setRadius(0);
                     apsReq.setClusterId(ZDP_SIMPLE_DESCRIPTOR_CLID);
-                    //apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+                    apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
 
                     QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
                     stream.setByteOrder(QDataStream::LittleEndian);
@@ -15896,7 +15966,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 skip = true; // Xiaomi Mija devices won't respond to ZCL read
                 DBG_Printf(DBG_INFO, "[4] Skipping additional attribute read - Model starts with 'lumi.'\n");
             }
-            else if ((checkMacAndVendor(node, VENDOR_JENNIC) ||  checkMacAndVendor(node, VENDOR_ADUROLIGHT))
+            else if ((checkMacAndVendor(node, VENDOR_JENNIC) || checkMacAndVendor(node, VENDOR_ADUROLIGHT))
                      && node->simpleDescriptors().size() == 2
                      && node->simpleDescriptors().front().deviceId() == DEV_ID_ZLL_NON_COLOR_CONTROLLER)
             {
@@ -16324,10 +16394,16 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         }
         else if (sensor->modelId().endsWith(QLatin1String("86opcn01")))  // Aqara Opple
         {
-             // send the magic word to the Aqara Opple switch
-             deCONZ::ZclAttribute attr(0x0009, deCONZ::Zcl8BitUint, "mode", deCONZ::ZclReadWrite, false);
-             attr.setValue((quint64) 1);
-             writeAttribute(sensor, sensor->fingerPrint().endpoint, 0xFCC0, attr, VENDOR_XIAOMI);
+            auto *item = sensor->item(RConfigPending);
+            if (item && item->toNumber() & R_PENDING_MODE)
+            {
+                DBG_Printf(DBG_INFO, "Write Aqara Opple switch 0x%016llX mode attribute 0x0009 = 1\n", sensor->address().ext());
+                // send the magic word to the Aqara Opple switch
+                deCONZ::ZclAttribute attr(0x0009, deCONZ::Zcl8BitUint, "mode", deCONZ::ZclReadWrite, false);
+                attr.setValue(static_cast<quint64>(1));
+                writeAttribute(sensor, sensor->fingerPrint().endpoint, 0xFCC0, attr, VENDOR_XIAOMI);
+                item->setValue(item->toNumber() & ~R_PENDING_MODE);
+            }
         }
 
         for (auto &s : sensors)
