@@ -65,6 +65,7 @@
         	"IKEA_STOP_CT": 9
         },
         "ONOFF": {
+            "ATTRIBUTE_REPORT": 10,
         	"OFF": 0,
         	"ON": 1,
         	"TOGGLE": 2,
@@ -99,7 +100,11 @@
         },
         "IAS_ACE": {
         	"ARM": 0,
-        	"EMERGENCY": 2
+        	"EMERGENCY": 2,
+            "STATUS_CHANGE": 0
+        },
+        "MULTISTATE_INPUT": {
+            "ATTRIBUTE_REPORT": 10
         }
 	},
 	"maps": {
@@ -465,8 +470,8 @@
             "doc": "QBKG11LM switch",
             "modelids": ["lumi.ctrl_ln1.aq1"],
             "map": [
-                [1, "0x05", "MULTISTATE_INPUT", "0x0a", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
-                [1, "0x05", "MULTISTATE_INPUT", "0x0a", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"]
+                [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
+                [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"]
             ]
         },
         "xiaomiSwitchCtrlLn2Aq1Map": {
@@ -479,11 +484,11 @@
                 {"S_BUTTON_3": "Both buttons"}
             ],
             "map": [
-                [1, "0x05", "MULTISTATE_INPUT", "0x0a", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
-                [1, "0x05", "MULTISTATE_INPUT", "0x0a", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
-                [1, "0x06", "MULTISTATE_INPUT", "0x0a", "1", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
-                [1, "0x06", "MULTISTATE_INPUT", "0x0a", "2", "S_BUTTON_2", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
-                [1, "0x07", "MULTISTATE_INPUT", "0x0a", "1", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"]
+                [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
+                [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x06", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
+                [1, "0x06", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_2", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x07", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"]
             ]
         },
         "xiaomiSwitchB186acn01Map": {
@@ -491,9 +496,9 @@
             "doc": "WXKG03LM 2018 remote",
             "modelids": ["lumi.remote.b186acn01"],
             "map": [
-                [1, "0x01", "MULTISTATE_INPUT", "0x0a", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
-                [1, "0x01", "MULTISTATE_INPUT", "0x0a", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
-                [1, "0x01", "MULTISTATE_INPUT", "0x0a", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Hold"]
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Hold"]
             ]
         },
         "xiaomiSwitchAq3Map": {
@@ -501,11 +506,11 @@
             "doc": "WXKG12LM remote",
             "modelids": ["lumi.sensor_switch.aq3"],
             "map": [
-                [1, "0x01", "MULTISTATE_INPUT", "0x0a", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
-                [1, "0x01", "MULTISTATE_INPUT", "0x0a", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
-                [1, "0x01", "MULTISTATE_INPUT", "0x0a", "16", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Hold"],
-                [1, "0x01", "MULTISTATE_INPUT", "0x0a", "17", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Long released"],
-                [1, "0x01", "MULTISTATE_INPUT", "0x0a", "18", "S_BUTTON_1", "S_BUTTON_ACTION_SHAKE", "Shake"]
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "16", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Hold"],
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "17", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Long released"],
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "18", "S_BUTTON_1", "S_BUTTON_ACTION_SHAKE", "Shake"]
             ]
         },
         "xiaomiSwitchB1acn01Map": {
@@ -513,10 +518,10 @@
             "doc": "WXKG11LM 2018 remote",
             "modelids": ["lumi.remote.b1acn01"],
             "map": [
-                [1, "0x01", "MULTISTATE_INPUT", "0x0a", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
-                [1, "0x01", "MULTISTATE_INPUT", "0x0a", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
-                [1, "0x01", "MULTISTATE_INPUT", "0x0a", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Hold"],
-                [1, "0x01", "MULTISTATE_INPUT", "0x0a", "255", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Long released"]
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Hold"],
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "255", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Long released"]
             ]
         },
         "xiaomiSwitchAq2Map": {
@@ -524,10 +529,10 @@
             "doc": "WXKG11LM 2016 remote",
             "modelids": ["lumi.sensor_switch.aq2"],
             "map": [
-                [1, "0x01", "ONOFF", "0x0a", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
-                [1, "0x01", "ONOFF", "0x0a", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
-                [1, "0x01", "ONOFF", "0x0a", "3", "S_BUTTON_1", "S_BUTTON_ACTION_TREBLE_PRESS", "Triple press"],
-                [1, "0x01", "ONOFF", "0x0a", "4", "S_BUTTON_1", "S_BUTTON_ACTION_QUADRUPLE_PRESS", "Quad press"]
+                [1, "0x01", "ONOFF", "ATTRIBUTE_REPORT", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
+                [1, "0x01", "ONOFF", "ATTRIBUTE_REPORT", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x01", "ONOFF", "ATTRIBUTE_REPORT", "3", "S_BUTTON_1", "S_BUTTON_ACTION_TREBLE_PRESS", "Triple press"],
+                [1, "0x01", "ONOFF", "ATTRIBUTE_REPORT", "4", "S_BUTTON_1", "S_BUTTON_ACTION_QUADRUPLE_PRESS", "Quad press"]
             ]
         },
         "xiaomiSwitchMap": {
@@ -535,13 +540,13 @@
             "doc": "WXKG01LM remote",
             "modelids": ["lumi.sensor_switch"],
             "map": [
-                [1, "0x01", "ONOFF", "0x0a", "0", "S_BUTTON_1", "S_BUTTON_ACTION_INITIAL_PRESS", "Normal press"],
-                [1, "0x01", "ONOFF", "0x0a", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal release"],
-                [1, "0x01", "ONOFF", "0x0a", "1", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Long release"],
-                [1, "0x01", "ONOFF", "0x0a", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
-                [1, "0x01", "ONOFF", "0x0a", "3", "S_BUTTON_1", "S_BUTTON_ACTION_TREBLE_PRESS", "Triple press"],
-                [1, "0x01", "ONOFF", "0x0a", "4", "S_BUTTON_1", "S_BUTTON_ACTION_QUADRUPLE_PRESS", "Quad press"],
-                [1, "0x01", "ONOFF", "0x0a", "0x80", "S_BUTTON_1", "S_BUTTON_ACTION_MANY_PRESS", "Many press"]
+                [1, "0x01", "ONOFF", "ATTRIBUTE_REPORT", "0", "S_BUTTON_1", "S_BUTTON_ACTION_INITIAL_PRESS", "Normal press"],
+                [1, "0x01", "ONOFF", "ATTRIBUTE_REPORT", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal release"],
+                [1, "0x01", "ONOFF", "ATTRIBUTE_REPORT", "1", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Long release"],
+                [1, "0x01", "ONOFF", "ATTRIBUTE_REPORT", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x01", "ONOFF", "ATTRIBUTE_REPORT", "3", "S_BUTTON_1", "S_BUTTON_ACTION_TREBLE_PRESS", "Triple press"],
+                [1, "0x01", "ONOFF", "ATTRIBUTE_REPORT", "4", "S_BUTTON_1", "S_BUTTON_ACTION_QUADRUPLE_PRESS", "Quad press"],
+                [1, "0x01", "ONOFF", "ATTRIBUTE_REPORT", "0x80", "S_BUTTON_1", "S_BUTTON_ACTION_MANY_PRESS", "Many press"]
             ]
         },
         "xiaomiVibrationMap": {
@@ -549,9 +554,9 @@
             "doc": "Vibration sensor (not implemented)",
             "modelids": ["lumi.vibration"],
             "map": [
-                [1, "0x01", "DOOR_LOCK", "0x0a", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHAKE", "Shake"],
-                [1, "0x01", "DOOR_LOCK", "0x0a", "2", "S_BUTTON_1", "S_BUTTON_ACTION_TILT", "Tilt"],
-                [1, "0x01", "DOOR_LOCK", "0x0a", "3", "S_BUTTON_1", "S_BUTTON_ACTION_DROP", "Drop"]
+                [1, "0x01", "DOOR_LOCK", "ATTRIBUTE_REPORT", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHAKE", "Shake"],
+                [1, "0x01", "DOOR_LOCK", "ATTRIBUTE_REPORT", "2", "S_BUTTON_1", "S_BUTTON_ACTION_TILT", "Tilt"],
+                [1, "0x01", "DOOR_LOCK", "ATTRIBUTE_REPORT", "3", "S_BUTTON_1", "S_BUTTON_ACTION_DROP", "Drop"]
             ]
         },
         "ubisysD1Map": {
@@ -770,9 +775,9 @@
             "doc": "Remote",
             "modelids": ["button"],
             "map": [
-                [1, "0x01", "IAS_ZONE", "0x00", "0x01", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Single press"],
-                [1, "0x01", "IAS_ZONE", "0x00", "0x02", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
-                [1, "0x01", "IAS_ZONE", "0x00", "0x03", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Hold"]
+                [1, "0x01", "IAS_ZONE", "STATUS_CHANGE", "0x01", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Single press"],
+                [1, "0x01", "IAS_ZONE", "STATUS_CHANGE", "0x02", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x01", "IAS_ZONE", "STATUS_CHANGE", "0x03", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Hold"]
             ]
         },
         "sunricherCCTMap": {
@@ -896,36 +901,36 @@
             "doc": "Aqara Opple switches",
             "modelids": ["lumi.remote.b286opcn01", "lumi.remote.b486opcn01", "lumi.remote.b686opcn01"],
             "map": [
-                [1, "0x01", "MULTISTATE_INPUT", "0x0a", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Off hold"],
-                [1, "0x01", "MULTISTATE_INPUT", "0x0a", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Off press"],
-                [1, "0x01", "MULTISTATE_INPUT", "0x0a", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Off double press"],
-                [1, "0x01", "MULTISTATE_INPUT", "0x0a", "3", "S_BUTTON_1", "S_BUTTON_ACTION_TREBLE_PRESS", "Off triple press"],
-                [1, "0x01", "MULTISTATE_INPUT", "0x0a", "0xFF", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Off long released"],
-                [1, "0x02", "MULTISTATE_INPUT", "0x0a", "0", "S_BUTTON_2", "S_BUTTON_ACTION_HOLD", "On hold"],
-                [1, "0x02", "MULTISTATE_INPUT", "0x0a", "1", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "On press"],
-                [1, "0x02", "MULTISTATE_INPUT", "0x0a", "2", "S_BUTTON_2", "S_BUTTON_ACTION_DOUBLE_PRESS", "On double press"],
-                [1, "0x02", "MULTISTATE_INPUT", "0x0a", "3", "S_BUTTON_2", "S_BUTTON_ACTION_TREBLE_PRESS", "On triple press"],
-                [1, "0x02", "MULTISTATE_INPUT", "0x0a", "0xFF", "S_BUTTON_2", "S_BUTTON_ACTION_LONG_RELEASED", "On long released"],
-                [1, "0x03", "MULTISTATE_INPUT", "0x0a", "0", "S_BUTTON_3", "S_BUTTON_ACTION_HOLD", "Dim down hold"],
-                [1, "0x03", "MULTISTATE_INPUT", "0x0a", "1", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Dim down press"],
-                [1, "0x03", "MULTISTATE_INPUT", "0x0a", "2", "S_BUTTON_3", "S_BUTTON_ACTION_DOUBLE_PRESS", "Dim down double press"],
-                [1, "0x03", "MULTISTATE_INPUT", "0x0a", "3", "S_BUTTON_3", "S_BUTTON_ACTION_TREBLE_PRESS", "Dim down triple press"],
-                [1, "0x03", "MULTISTATE_INPUT", "0x0a", "0xFF", "S_BUTTON_3", "S_BUTTON_ACTION_LONG_RELEASED", "Dim down long released"],
-                [1, "0x04", "MULTISTATE_INPUT", "0x0a", "0", "S_BUTTON_4", "S_BUTTON_ACTION_HOLD", "Dim up hold"],
-                [1, "0x04", "MULTISTATE_INPUT", "0x0a", "1", "S_BUTTON_4", "S_BUTTON_ACTION_SHORT_RELEASED", "Dim up press"],
-                [1, "0x04", "MULTISTATE_INPUT", "0x0a", "2", "S_BUTTON_4", "S_BUTTON_ACTION_DOUBLE_PRESS", "Dim up double press"],
-                [1, "0x04", "MULTISTATE_INPUT", "0x0a", "3", "S_BUTTON_4", "S_BUTTON_ACTION_TREBLE_PRESS", "Dim up triple press"],
-                [1, "0x04", "MULTISTATE_INPUT", "0x0a", "0xFF", "S_BUTTON_4", "S_BUTTON_ACTION_LONG_RELEASED", "Dim up long released"],
-                [1, "0x05", "MULTISTATE_INPUT", "0x0a", "0", "S_BUTTON_5", "S_BUTTON_ACTION_HOLD", "Color warm hold"],
-                [1, "0x05", "MULTISTATE_INPUT", "0x0a", "1", "S_BUTTON_5", "S_BUTTON_ACTION_SHORT_RELEASED", "Color warm press"],
-                [1, "0x05", "MULTISTATE_INPUT", "0x0a", "2", "S_BUTTON_5", "S_BUTTON_ACTION_DOUBLE_PRESS", "Color warm double press"],
-                [1, "0x05", "MULTISTATE_INPUT", "0x0a", "3", "S_BUTTON_5", "S_BUTTON_ACTION_TREBLE_PRESS", "Color warm triple press"],
-                [1, "0x05", "MULTISTATE_INPUT", "0x0a", "0xFF", "S_BUTTON_5", "S_BUTTON_ACTION_LONG_RELEASED", "Color warm long released"],
-                [1, "0x06", "MULTISTATE_INPUT", "0x0a", "0", "S_BUTTON_6", "S_BUTTON_ACTION_HOLD", "Color cold hold"],
-                [1, "0x06", "MULTISTATE_INPUT", "0x0a", "1", "S_BUTTON_6", "S_BUTTON_ACTION_SHORT_RELEASED", "Color cold press"],
-                [1, "0x06", "MULTISTATE_INPUT", "0x0a", "2", "S_BUTTON_6", "S_BUTTON_ACTION_DOUBLE_PRESS", "Color cold double press"],
-                [1, "0x06", "MULTISTATE_INPUT", "0x0a", "3", "S_BUTTON_6", "S_BUTTON_ACTION_TREBLE_PRESS", "Color cold triple press"],
-                [1, "0x06", "MULTISTATE_INPUT", "0x0a", "0xFF", "S_BUTTON_6", "S_BUTTON_ACTION_LONG_RELEASED", "Color cold long released"]
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Off hold"],
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Off press"],
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Off double press"],
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "3", "S_BUTTON_1", "S_BUTTON_ACTION_TREBLE_PRESS", "Off triple press"],
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0xFF", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Off long released"],
+                [1, "0x02", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0", "S_BUTTON_2", "S_BUTTON_ACTION_HOLD", "On hold"],
+                [1, "0x02", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "On press"],
+                [1, "0x02", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_2", "S_BUTTON_ACTION_DOUBLE_PRESS", "On double press"],
+                [1, "0x02", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "3", "S_BUTTON_2", "S_BUTTON_ACTION_TREBLE_PRESS", "On triple press"],
+                [1, "0x02", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0xFF", "S_BUTTON_2", "S_BUTTON_ACTION_LONG_RELEASED", "On long released"],
+                [1, "0x03", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0", "S_BUTTON_3", "S_BUTTON_ACTION_HOLD", "Dim down hold"],
+                [1, "0x03", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Dim down press"],
+                [1, "0x03", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_3", "S_BUTTON_ACTION_DOUBLE_PRESS", "Dim down double press"],
+                [1, "0x03", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "3", "S_BUTTON_3", "S_BUTTON_ACTION_TREBLE_PRESS", "Dim down triple press"],
+                [1, "0x03", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0xFF", "S_BUTTON_3", "S_BUTTON_ACTION_LONG_RELEASED", "Dim down long released"],
+                [1, "0x04", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0", "S_BUTTON_4", "S_BUTTON_ACTION_HOLD", "Dim up hold"],
+                [1, "0x04", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_4", "S_BUTTON_ACTION_SHORT_RELEASED", "Dim up press"],
+                [1, "0x04", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_4", "S_BUTTON_ACTION_DOUBLE_PRESS", "Dim up double press"],
+                [1, "0x04", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "3", "S_BUTTON_4", "S_BUTTON_ACTION_TREBLE_PRESS", "Dim up triple press"],
+                [1, "0x04", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0xFF", "S_BUTTON_4", "S_BUTTON_ACTION_LONG_RELEASED", "Dim up long released"],
+                [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0", "S_BUTTON_5", "S_BUTTON_ACTION_HOLD", "Color warm hold"],
+                [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_5", "S_BUTTON_ACTION_SHORT_RELEASED", "Color warm press"],
+                [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_5", "S_BUTTON_ACTION_DOUBLE_PRESS", "Color warm double press"],
+                [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "3", "S_BUTTON_5", "S_BUTTON_ACTION_TREBLE_PRESS", "Color warm triple press"],
+                [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0xFF", "S_BUTTON_5", "S_BUTTON_ACTION_LONG_RELEASED", "Color warm long released"],
+                [1, "0x06", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0", "S_BUTTON_6", "S_BUTTON_ACTION_HOLD", "Color cold hold"],
+                [1, "0x06", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_6", "S_BUTTON_ACTION_SHORT_RELEASED", "Color cold press"],
+                [1, "0x06", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_6", "S_BUTTON_ACTION_DOUBLE_PRESS", "Color cold double press"],
+                [1, "0x06", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "3", "S_BUTTON_6", "S_BUTTON_ACTION_TREBLE_PRESS", "Color cold triple press"],
+                [1, "0x06", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0xFF", "S_BUTTON_6", "S_BUTTON_ACTION_LONG_RELEASED", "Color cold long released"]
             ]
         },
         "legrandShutterSwitchRemote": {

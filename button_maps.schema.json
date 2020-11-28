@@ -1,0 +1,174 @@
+{
+  "$id": "https://github.com/dresden-elektronik/deconz-rest-plugin/button_maps.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Description of deCONZ button events",
+  "type": "object",
+  "properties": {
+    "buttons": {
+      "type": "object",
+      "patternProperties": {
+        "^S_BUTTON_[0-9]{1,2}": {
+          "type": "integer",
+          "minimum": 1000
+        }
+      },
+      "additionalProperties": false
+    },
+    "buttonActions": {
+      "type": "object",
+      "patternProperties": {
+        "^S_BUTTON_ACTION_": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 99
+        }
+      },
+      "additionalProperties": false
+    },
+    "clusters": {
+      "type": "object",
+      "patternProperties": {
+        "^[A-Z]+": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        }
+      },
+      "propertyNames": {
+        "$ref": "#/definitions/clusters"
+      },
+      "additionalProperties": false
+    },
+    "commands": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/definitions/clusters" },
+      "properties" : {
+        "SCENES": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/definitions/scene-commands" }
+        },
+        "ONOFF": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/definitions/onoff-commands" },
+          "patternProperties": {
+            "^[A-Z]+": {"type": "integer" }
+          }
+        }
+      }
+    },
+    "maps": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z]+": {
+          "$ref": "#/definitions/entry"
+        }
+      }
+    }
+  },
+  "required": [ "buttons", "buttonActions", "clusters", "commands", "maps" ],
+  "definitions": {
+    "clusters": {
+      "enum": [
+          "BASIC",
+          "SCENES",
+          "ONOFF",
+          "LEVEL_CONTROL",
+          "MULTISTATE_INPUT",
+          "DOOR_LOCK",
+          "WINDOW_COVERING",
+          "COLOR_CONTROL",
+          "IAS_ZONE",
+          "IAS_ACE"
+        ]
+    },
+    "basic-commands": {
+      "enum": [ "0x02" ]
+    },
+    "scene-commands": {
+      "enum": [ "ADD_SCENE", "VIEW_SCENE", "REMOVE_SCENE", "STORE_SCENE", "RECALL_SCENE", "IKEA_STEP_CT", "IKEA_MOVE_CT", "IKEA_STOP_CT" ]
+    },
+    "onoff-commands": {
+      "enum": [ "ATTRIBUTE_REPORT", "OFF", "ON", "TOGGLE", "OFF_WITH_EFFECT", "ON_WITH_TIMED_OFF" ]
+    },
+    "level-commands": {
+      "enum": [ "MOVE_TO_LEVEL", "MOVE", "STEP", "STOP", "MOVE_TO_LEVEL_WITH_ON_OFF", "MOVE_WITH_ON_OFF", "STEP_WITH_ON_OFF", "STOP_WITH_ON_OFF" ]
+    },
+    "color-commands": {
+      "enum": [ "MOVE_HUE", "MOVE_TO_SATURATION", "MOVE_TO_COLOR", "MOVE_TO_COLOR_TEMPERATURE", "STOP_MOVE_STEP", "MOVE_COLOR_TEMPERATURE", "STEP_COLOR_TEMPERATURE" ]
+    },
+    "window-covering-commands": {
+      "enum": [ "OPEN", "CLOSE", "STOP", "GOTO_LIFT_PCT", "GOTO_TILT_PCT" ]
+    },
+    "ias-commands": {
+      "enum": [ "ARM", "EMERGENCY", "STATUS_CHANGE" ]
+    },
+    "multistate-input-commands": {
+      "enum": [ "ATTRIBUTE_REPORT" ]
+    },
+    "entry": {
+      "type": "object",
+      "required": ["vendor", "modelids", "map"],
+      "properties": {
+        "map": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/button-event" },
+          "minItems": 1
+        },
+        "modelids": {
+          "type": "array"
+        }
+      }
+    },
+    "button-event" : {
+      "minItems": 8,
+      "maxItems": 8,
+      "items" : [
+        {
+          "type": "integer",
+          "enum": [ 1, 2, 3, 4 ],
+          "description": "Mode of operation."
+        },
+        {
+          "type": "string",
+          "pattern": "^0x[0-9a-fA-F]{2}",
+          "description": "Source endpoint of the received command."
+        },
+        {
+          "$ref": "#/definitions/clusters",
+          "description": "The cluster of the received command."
+        },
+        {
+          "anyOf": [
+            { "$ref": "#/definitions/basic-commands" },
+            { "$ref": "#/definitions/onoff-commands" },
+            { "$ref": "#/definitions/level-commands" },
+            { "$ref": "#/definitions/color-commands" },
+            { "$ref": "#/definitions/scene-commands" },
+            { "$ref": "#/definitions/window-covering-commands" },
+            { "$ref": "#/definitions/ias-commands" },
+            { "$ref": "#/definitions/multistate-input-commands" }
+          ],
+          "description": "The received cluster command."
+        },
+        {
+          "type": "string",
+          "description": "The related parameter."
+        },
+        {
+          "type": "string",
+          "pattern": "^S_BUTTON_[0-9]{1,2}|0",
+          "description": "The mapped button."
+        },
+        {
+          "type": "string",
+          "pattern": "^S_BUTTON_ACTION|0",
+          "description": "The mapped button action."
+        },
+        {
+          "type": "string",
+          "description": "A comment what this event does."
+        }
+      ]
+    }
+  }
+}
