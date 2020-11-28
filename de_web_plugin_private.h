@@ -876,8 +876,10 @@ public:
 
 enum ApiVersion
 {
-    ApiVersion_1,      //!< common version 1.0
-    ApiVersion_1_DDEL  //!< version 1.0, "Accept: application/vnd.ddel.v1"
+    ApiVersion_1,        //!< common version 1.0
+    ApiVersion_1_DDEL,   //!< version 1.0, "Accept: application/vnd.ddel.v1"
+    ApiVersion_1_1_DDEL, //!< version 1.1, "Accept: application/vnd.ddel.v1.1"
+    ApiVersion_2_DDEL,   //!< version 2.0, "Accept: application/vnd.ddel.v2"
 };
 
 enum ApiAuthorisation
