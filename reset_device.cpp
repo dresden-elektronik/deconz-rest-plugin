@@ -32,7 +32,7 @@ void DeRestPluginPrivate::initResetDeviceApi()
  */
 void DeRestPluginPrivate::checkResetState()
 {
-    if (!apsCtrl || !isInNetwork())
+    if (!apsCtrl || !isInNetwork() || searchSensorsState == SearchSensorsActive || searchLightsState == SearchLightsActive)
     {
         resetDeviceTimer->start(CHECK_RESET_DEVICES);
         return;
