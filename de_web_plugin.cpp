@@ -4818,7 +4818,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case COMMISSIONING_CLUSTER_ID:
                 {
-                    if (modelId == QLatin1String("ZYCT-202" || modelId == QLatin1String("ZLL-NonColorController") && i->endpoint() != 0x01)
+                    if ((modelId == QLatin1String("ZYCT-202") || modelId == QLatin1String("ZLL-NonColorController")) && i->endpoint() != 0x01)
                     {
                         // ignore second endpoint
                     }
