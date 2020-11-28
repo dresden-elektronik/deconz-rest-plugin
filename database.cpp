@@ -3770,6 +3770,13 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 //item = sensor.addItem(DataTypeInt16, RConfigOffset);
                 //item->setValue(0);
             }
+
+            if (sensor.modelId().endsWith(QLatin1String("86opcn01")))
+            {
+                // Aqara Opple switches need to be configured to send proper button events
+                item = sensor.addItem(DataTypeUInt8, RConfigPending);
+                item->setValue(item->toNumber() | R_PENDING_MODE);
+            }
         }
         else if (sensor.modelId().startsWith(QLatin1String("tagv4"))) // SmartThings Arrival sensor
         {
