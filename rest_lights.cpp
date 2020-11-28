@@ -967,8 +967,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rspItemState[QString("/lights/%1/state/on").arg(id)] = true;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
-
-            taskRef.lightNode->setValue(RStateOn, targetOn);
+            
+            if (!isDoorLockDevice) // Avoid reporting the new state before the lock report its state as locking/unlocking operations takes time and can also gets stuck.
+            {
+                taskRef.lightNode->setValue(RStateOn, targetOn);
+            }
         }
         else
         {
@@ -1514,8 +1517,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rspItemState[QString("/lights/%1/state/on").arg(id)] = targetOn;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
-
-            taskRef.lightNode->setValue(RStateOn, targetOn);
+	
+            if (!isDoorLockDevice) // Avoid reporting the new state before the lock report its state as locking/unlocking operations takes time and can also gets stuck.
+            {
+                taskRef.lightNode->setValue(RStateOn, targetOn);
+            }
         }
         else
         {
