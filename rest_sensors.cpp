@@ -2498,6 +2498,10 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
                 {
                     pending.append("usertest");
                 }
+                if (value & R_PENDING_MODE)
+                {
+                    pending.append(QLatin1String("mode"));
+                }
                 config[key] = pending;
             }
             else if (rid.suffix == RConfigLastChangeSource)

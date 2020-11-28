@@ -6578,6 +6578,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             //sensorNode.addItem(DataTypeInt16, RConfigOffset);
         }
 
+        if (sensorNode.modelId().endsWith(QLatin1String("86opcn01")))
+        {
+            // Aqara Opple switches need to be configured to send proper button events
+            // write basic cluster attribute 0x0009 value 1
+            item = sensorNode.addItem(DataTypeUInt8, RConfigPending);
+            item->setValue(item->toNumber() | R_PENDING_MODE);
+        }
+
         if (sensorNode.modelId().startsWith(QLatin1String("lumi.vibration")))
         {
             ResourceItem *item = nullptr;
@@ -11762,6 +11770,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     }
 
     RestNodeBase *restNodePending = nullptr;
+    QString modelId;
 
     for (LightNode &lightNode: nodes)
     {
@@ -11880,6 +11889,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         else
         {
             continue;
+        }
+
+        if (modelId.isEmpty())
+        {
+            modelId = sensor.modelId();
         }
 
         sensor.rx();
@@ -12115,6 +12129,21 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     if (!r)
     {
         return;
+    }
+
+    if (modelId.endsWith(QLatin1String("86opcn01")))
+    {
+        auto *item = r->item(RConfigPending);
+        if (item && (item->toNumber() & R_PENDING_MODE))
+        {
+            // Aqara Opple switches need to be configured to send proper button events
+            // send the magic word
+            DBG_Printf(DBG_INFO, "Write Aqara Opple switch 0x%016llX mode attribute 0x0009 = 1\n", ind.srcAddress().ext());
+            deCONZ::ZclAttribute attr(0x0009, deCONZ::Zcl8BitUint, QLatin1String("mode"), deCONZ::ZclReadWrite, false);
+            attr.setValue(static_cast<quint64>(1));
+            writeAttribute(restNodePending, 0x01, 0xFCC0, attr, VENDOR_XIAOMI);
+            item->setValue(item->toNumber() & ~R_PENDING_MODE);
+        }
     }
 
     if (dateCode.isEmpty() && restNodePending)
@@ -16353,10 +16382,16 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         }
         else if (sensor->modelId().endsWith(QLatin1String("86opcn01")))  // Aqara Opple
         {
-             // send the magic word to the Aqara Opple switch
-             deCONZ::ZclAttribute attr(0x0009, deCONZ::Zcl8BitUint, "mode", deCONZ::ZclReadWrite, false);
-             attr.setValue((quint64) 1);
-             writeAttribute(sensor, sensor->fingerPrint().endpoint, 0xFCC0, attr, VENDOR_XIAOMI);
+            auto *item = sensor->item(RConfigPending);
+            if (item && item->toNumber() & R_PENDING_MODE)
+            {
+                DBG_Printf(DBG_INFO, "Write Aqara Opple switch 0x%016llX mode attribute 0x0009 = 1\n", sensor->address().ext());
+                // send the magic word to the Aqara Opple switch
+                deCONZ::ZclAttribute attr(0x0009, deCONZ::Zcl8BitUint, "mode", deCONZ::ZclReadWrite, false);
+                attr.setValue(static_cast<quint64>(1));
+                writeAttribute(sensor, sensor->fingerPrint().endpoint, 0xFCC0, attr, VENDOR_XIAOMI);
+                item->setValue(item->toNumber() & ~R_PENDING_MODE);
+            }
         }
 
         for (auto &s : sensors)
