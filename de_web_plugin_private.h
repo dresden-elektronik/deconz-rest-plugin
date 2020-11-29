@@ -787,7 +787,35 @@ enum TaskType
     TaskDoorLock = 38,
     TaskDoorUnlock = 39,
     TaskSyncTime = 40,
-    TaskTuyaRequest = 41
+    TaskTuyaRequest = 41,
+    TaskXmas = 42
+};
+
+enum XmasMode
+{
+    ModeWhite = 0,
+    ModeColour = 1,
+    ModeEffect = 2
+};
+
+enum XmasEffect
+{
+    EffectSteady = 0x00,
+    EffectSnow = 0x01,
+    EffectRainbow = 0x02,
+    EffectSnake = 0x03,
+    EffectTinkle = 0x04,
+    EffectFireworks = 0x05,
+    EffectFlag = 0x06,
+    EffectWaves = 0x07,
+    EffectUpdown = 0x08,
+    EffectVintage = 0x09,
+    EffectFading = 0x0a,
+    EffectCollide = 0x0b,
+    EffectStrobe = 0x0c,
+    EffectSparkles = 0x0d,
+    EffectCarnaval = 0x0e,
+    EffectGlow = 0x0f
 };
 
 struct TaskItem
@@ -1454,6 +1482,15 @@ public:
     bool addTaskSyncTime(Sensor *sensor);
     bool addTaskThermostatUiConfigurationReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode=0);
     bool addTaskFanControlReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode=0);
+
+    // Merry Christmas!
+    bool isXmasManufacturerName(QString manufacturerName);
+    bool addTaskXmasOn(TaskItem &task, bool on);
+    bool addTaskXmasMode(TaskItem &task, XmasMode mode);
+    bool addTaskXmasWhite(TaskItem &task, quint8 bri);
+    bool addTaskXmasColour(TaskItem &task, quint16 hue, quint8 sat, quint8 bri);
+    bool addTaskXmasEffect(TaskItem &task, XmasEffect effect, quint8 speed, QList<QList<quint8>> &colours);
+    int setXmasState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
 
     void handleGroupClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleSceneClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
