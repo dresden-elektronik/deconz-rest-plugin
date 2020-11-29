@@ -7,7 +7,8 @@ A list of supported Zigbee devices can be found on the [Supported Devices](https
 
 To communicate with Zigbee devices the [RaspBee](https://phoscon.de/raspbee?ref=gh) / [RaspBee&nbsp;II](https://phoscon.de/raspbee2?ref=gh) Zigbee shield for Raspberry Pi, or a [ConBee](https://phoscon.de/conbee?ref=gh) / [ConBee&nbsp;II](https://phoscon.de/conbee2?ref=gh) USB dongle is required.
 
-To learn more about the REST-API itself please visit the [REST-API Documentation](http://dresden-elektronik.github.io/deconz-rest-doc/) page.
+To learn more about the REST-API itself please visit the [REST-API Documentation](http://dresden-elektronik.github.io/deconz-rest-doc/) page.<br>
+The REST-API plugin is implemented in C++ using the [deCONZ C++ API Documentation](https://phoscon.de/deconz-cpp).
 
 For community based support with deCONZ or Phoscon, please visit the [deCONZ Discord server](https://discord.gg/QFhTxqN). 
 
@@ -17,20 +18,20 @@ The Phoscon App is a browser based web application and supports lights, sensors 
 
 ### Release Schedule
 
-deCONZ is having a beta release at the 15th day of the month in which the beta of last month becomes stable. Pull requests done before the 10th of the month, are getting included in the next beta (if there are no issues ofcourse!).  Stable release would be around the 1st - 5th of the month after latest beta.  
+deCONZ is having a beta release at the 15th day of the month in which the beta of last month becomes stable. Pull requests done before the 10th of the month, are getting included in the next beta (if there are no issues of course!).  Stable release would be around the 1st - 5th of the month after latest beta.  
 
 Current Beta: **v2.6.0**  
 Current Stable: **v2.5.88**
 
 Next Beta: **v2.7.0** expected at the 15th of December.
-Next Stable: **v2.6.2** expected at 8th Decenmber.
+Next Stable: **v2.6.2** expected at the 8th of December.
 
 Installation
 ============
 
 ##### Supported platforms
 * Raspbian Jessie, Stretch and Buster
-* Ubuntu Xenial and Bionic (AMD64)
+* Ubuntu Xenial, Bionic and Focal Fossa (AMD64)
 * Windows 7 and 10
 
 ### Install deCONZ
