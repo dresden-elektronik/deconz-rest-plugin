@@ -4,11 +4,10 @@
  */
 
 #include "de_web_plugin_private.h"
-#include <QBuffer>
 
 #define TUYA_COMMAND_SET 0x00
 
-enum XmasAttribute
+enum XmasLightStripAttribute
 {
     AttrOn = 1,
     AttrMode = 2,
@@ -17,7 +16,7 @@ enum XmasAttribute
     AttrEffect = 6
 };
 
-enum XmasDataType
+enum XmasLightStripDataType
 {
     TypeBool = 1,
     TypeNumber = 2,
@@ -25,7 +24,7 @@ enum XmasDataType
     TypeEnum = 4
 };
 
-const QStringList RStateEffectValuesXmas({
+const QStringList RStateEffectValuesXmasLightStrip({
     "none",
     "steady", "snow", "rainbow", "snake",
     "tinkle", "fireworks", "flag", "waves",
@@ -35,7 +34,7 @@ const QStringList RStateEffectValuesXmas({
 
 static void initTask(TaskItem &task, quint8 seq)
 {
-    task.taskType = TaskXmas;
+    task.taskType = TaskXmasLightStrip;
 
     task.req.setClusterId(TUYA_CLUSTER_ID);
     task.req.setProfileId(HA_PROFILE_ID);
@@ -55,7 +54,7 @@ static void tlvOn(QDataStream &stream, bool on)
     stream << (quint8) (on ? 1 : 0);
 }
 
-static void tlvMode(QDataStream &stream, XmasMode mode)
+static void tlvMode(QDataStream &stream, XmasLightStripMode mode)
 {
     stream << (quint8) AttrMode;
     stream << (quint8) TypeEnum;
@@ -82,7 +81,7 @@ static void tlvColour(QDataStream &stream, quint16 hue, quint8 sat, quint8 bri)
     stream.writeRawData(s, strlen(s));
 }
 
-static void tlvEffect(QDataStream &stream, quint8 effect, quint8 speed, QList<QList<quint8>> &colours)
+static void tlvEffect(QDataStream &stream, XmasLightStripEffect effect, quint8 speed, QList<QList<quint8>> &colours)
 {
     char s[41];
     sprintf(s, "%02x%02x", effect, speed);
@@ -99,17 +98,18 @@ static void tlvEffect(QDataStream &stream, quint8 effect, quint8 speed, QList<QL
     stream.writeRawData(s, strlen(s));
 }
 
-/*! Check whether the manufacturerName is for the Smart LED lightstrip.
-    \param ind - the indication primitive
+/*! Check whether LightNode is the LIDL Melinera Smart LED lightstrip.
+    \param lightNode - the indication primitive
  */
-bool DeRestPluginPrivate::isXmasManufacturerName(QString manufacturerName)
+bool DeRestPluginPrivate::isXmasLightStrip(LightNode *lightNode)
 {
-    return manufacturerName == QLatin1String("_TZE200_s8gkrkxk");
+    return lightNode != nullptr &&
+           lightNode->manufacturer() == QLatin1String("_TZE200_s8gkrkxk");
 }
 
 QString XmasEffectName(quint8 effect)
 {
-    return RStateEffectValuesXmas[effect];
+    return RStateEffectValuesXmasLightStrip[effect];
 }
 
 /*! Switch the lightstrip on or off.
@@ -118,7 +118,7 @@ QString XmasEffectName(quint8 effect)
     \return true - on success
             false - on error
  */
-bool DeRestPluginPrivate::addTaskXmasOn(TaskItem &task, bool on)
+bool DeRestPluginPrivate::addTaskXmasLightStripOn(TaskItem &task, bool on)
 {
     const quint8 seq = zclSeq++;
     initTask(task, seq);
@@ -147,7 +147,7 @@ bool DeRestPluginPrivate::addTaskXmasOn(TaskItem &task, bool on)
     \return true - on success
             false - on error
  */
-bool DeRestPluginPrivate::addTaskXmasMode(TaskItem &task, XmasMode mode)
+bool DeRestPluginPrivate::addTaskXmasLightStripMode(TaskItem &task, XmasLightStripMode mode)
 {
     const quint8 seq = zclSeq++;
     initTask(task, seq);
@@ -176,7 +176,7 @@ bool DeRestPluginPrivate::addTaskXmasMode(TaskItem &task, XmasMode mode)
     \return true - on success
             false - on error
  */
-bool DeRestPluginPrivate::addTaskXmasWhite(TaskItem &task, quint8 bri)
+bool DeRestPluginPrivate::addTaskXmasLightStripWhite(TaskItem &task, quint8 bri)
 {
     const quint8 seq = zclSeq++;
     initTask(task, seq);
@@ -208,7 +208,7 @@ bool DeRestPluginPrivate::addTaskXmasWhite(TaskItem &task, quint8 bri)
     \param bri - the level, between 0 and 100
     \note The lightstrip uses HSL values to set the colour and brightness.
  */
-bool DeRestPluginPrivate::addTaskXmasColour(TaskItem &task, quint16 hue, quint8 sat, quint8 bri)
+bool DeRestPluginPrivate::addTaskXmasLightStripColour(TaskItem &task, quint16 hue, quint8 sat, quint8 bri)
 {
     const quint8 seq = zclSeq++;
     initTask(task, seq);
@@ -240,7 +240,7 @@ bool DeRestPluginPrivate::addTaskXmasColour(TaskItem &task, quint16 hue, quint8 
     \param colours - a list of 0 to 6 RGB colours.  Each colour is a list of 3 quint8 values.
     \note The lightstrip uses RGB values to set the effect colours.
  */
-bool DeRestPluginPrivate::addTaskXmasEffect(TaskItem &task, XmasEffect effect, quint8 speed, QList<QList<quint8>> &colours)
+bool DeRestPluginPrivate::addTaskXmasLightStripEffect(TaskItem &task, XmasLightStripEffect effect, quint8 speed, QList<QList<quint8>> &colours)
 {
     const quint8 seq = zclSeq++;
     initTask(task, seq);
@@ -284,7 +284,7 @@ static void copyTaskReq(TaskItem &a, TaskItem &b)
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::setXmasState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map)
+int DeRestPluginPrivate::setXmasLightStripState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map)
 {
     bool ok;
     QString id = req.path[3];
@@ -366,7 +366,7 @@ int DeRestPluginPrivate::setXmasState(const ApiRequest &req, ApiResponse &rsp, T
             hasCmd = true;
             if (map[param].type() == QVariant::String)
             {
-                effect = RStateEffectValuesXmas.indexOf(map[param].toString());
+                effect = RStateEffectValuesXmasLightStrip.indexOf(map[param].toString());
                 valueOk = effect >= 0;
             }
         }
@@ -508,21 +508,21 @@ int DeRestPluginPrivate::setXmasState(const ApiRequest &req, ApiResponse &rsp, T
         if (effect == R_EFFECT_NONE)
         {
             targetSat = taskRef.lightNode->toNumber(RStateSat);
-            ok = addTaskXmasMode(task, targetSat > 0 ? ModeColour : ModeWhite);
+            ok = addTaskXmasLightStripMode(task, targetSat > 0 ? ModeColour : ModeWhite);
         }
         else
         {
-            ok = addTaskXmasEffect(task, XmasEffect(effect - 1), effectSpeed, effectColours);
+            ok = addTaskXmasLightStripEffect(task, XmasLightStripEffect(effect - 1), effectSpeed, effectColours);
         }
         if (ok)
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/state/effect").arg(id)] = RStateEffectValuesXmas[effect];
+            rspItemState[QString("/lights/%1/state/effect").arg(id)] = RStateEffectValuesXmasLightStrip[effect];
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            taskRef.lightNode->setValue(RStateEffect, RStateEffectValuesXmas[effect]);
+            taskRef.lightNode->setValue(RStateEffect, RStateEffectValuesXmasLightStrip[effect]);
         }
         else
         {
@@ -565,14 +565,14 @@ int DeRestPluginPrivate::setXmasState(const ApiRequest &req, ApiResponse &rsp, T
         if (targetSat == 0)
         {
             quint8 bri = round(targetBri * 100.0 / 0xFF);
-            ok = addTaskXmasWhite(task, bri);
+            ok = addTaskXmasLightStripWhite(task, bri);
         }
         else
         {
             quint16 h = round(targetHue * 360.0 / 0xFFFF);
             quint8 s = round(targetSat * 100.0 / 0xFF);
             quint8 l = round(targetBri * 100.0 / 0xFF);
-            ok = addTaskXmasColour(task, h, s, l);
+            ok = addTaskXmasLightStripColour(task, h, s, l);
         }
         if (ok)
         {
@@ -606,7 +606,7 @@ int DeRestPluginPrivate::setXmasState(const ApiRequest &req, ApiResponse &rsp, T
 
                 taskRef.lightNode->setValue(RStateSat, targetSat);
             }
-            taskRef.lightNode->setValue(RStateEffect, RStateEffectValuesXmas[R_EFFECT_NONE]);
+            taskRef.lightNode->setValue(RStateEffect, RStateEffectValuesXmasLightStrip[R_EFFECT_NONE]);
         }
         else
         {

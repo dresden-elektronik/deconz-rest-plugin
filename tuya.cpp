@@ -121,9 +121,9 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
     {
         // 0x00 : Used to send command, so not used here
     }
-    else if (lightNode != nullptr && isXmasManufacturerName(lightNode->manufacturer()) &&
-            zclFrame.commandId() == 0x01 &&
-            !(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
+    else if (isXmasLightStrip(lightNode) &&
+             zclFrame.commandId() == 0x01 &&
+             !(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
     {
         sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
     }

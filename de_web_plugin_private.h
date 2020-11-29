@@ -788,17 +788,17 @@ enum TaskType
     TaskDoorUnlock = 39,
     TaskSyncTime = 40,
     TaskTuyaRequest = 41,
-    TaskXmas = 42
+    TaskXmasLightStrip = 42
 };
 
-enum XmasMode
+enum XmasLightStripMode
 {
     ModeWhite = 0,
     ModeColour = 1,
     ModeEffect = 2
 };
 
-enum XmasEffect
+enum XmasLightStripEffect
 {
     EffectSteady = 0x00,
     EffectSnow = 0x01,
@@ -1484,13 +1484,13 @@ public:
     bool addTaskFanControlReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode=0);
 
     // Merry Christmas!
-    bool isXmasManufacturerName(QString manufacturerName);
-    bool addTaskXmasOn(TaskItem &task, bool on);
-    bool addTaskXmasMode(TaskItem &task, XmasMode mode);
-    bool addTaskXmasWhite(TaskItem &task, quint8 bri);
-    bool addTaskXmasColour(TaskItem &task, quint16 hue, quint8 sat, quint8 bri);
-    bool addTaskXmasEffect(TaskItem &task, XmasEffect effect, quint8 speed, QList<QList<quint8>> &colours);
-    int setXmasState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
+    bool isXmasLightStrip(LightNode *lightNode);
+    bool addTaskXmasLightStripOn(TaskItem &task, bool on);
+    bool addTaskXmasLightStripMode(TaskItem &task, XmasLightStripMode mode);
+    bool addTaskXmasLightStripWhite(TaskItem &task, quint8 bri);
+    bool addTaskXmasLightStripColour(TaskItem &task, quint16 hue, quint8 sat, quint8 bri);
+    bool addTaskXmasLightStripEffect(TaskItem &task, XmasLightStripEffect effect, quint8 speed, QList<QList<quint8>> &colours);
+    int setXmasLightStripState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
 
     void handleGroupClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleSceneClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);

@@ -2627,7 +2627,7 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
         item = lightNode->item(RStateY);
         if (item) { item->setIsPublic(false); }
     }
-    else if (isXmasManufacturerName(lightNode->manufacturer()))
+    else if (isXmasLightStrip(lightNode))
     {
         lightNode->removeItem(RStateAlert);
         lightNode->removeItem(RStateX);
@@ -2914,7 +2914,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
 
             if (ic->id() == COLOR_CLUSTER_ID && (event.clusterId() == COLOR_CLUSTER_ID))
             {
-                if (isXmasManufacturerName(lightNode->manufacturer()))
+                if (isXmasLightStrip(lightNode))
                 {
                     continue;
                 }
@@ -3059,7 +3059,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
             }
             else if (ic->id() == LEVEL_CLUSTER_ID && (event.clusterId() == LEVEL_CLUSTER_ID))
             {
-                if (isXmasManufacturerName(lightNode->manufacturer()))
+                if (isXmasLightStrip(lightNode))
                 {
                     continue;
                 }

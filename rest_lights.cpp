@@ -565,9 +565,9 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         return setWarningDeviceState(req, rsp, taskRef, map);
     }
-    else if (isXmasManufacturerName(taskRef.lightNode->manufacturer()))
+    else if (isXmasLightStrip(taskRef.lightNode))
     {
-        return setXmasState(req, rsp, taskRef, map);
+        return setXmasLightStripState(req, rsp, taskRef, map);
     }
     else if (UseTuyaCluster(taskRef.lightNode->manufacturer()))
     {
