@@ -566,6 +566,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             return setWindowCoveringState(req, rsp, taskRef, map);
         }
+        // light, don't use tuya stuff (for the moment)
+        else if (taskRef.lightNode->item(RStateColorMode))
+        {
+        }
         //switch
         else
         {
