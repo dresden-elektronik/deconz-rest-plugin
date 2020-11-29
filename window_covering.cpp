@@ -180,6 +180,12 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
                         lift = 100 - lift;
                     }
                 }
+                // Reverse for some tuya covering
+                if (lightNode->manufacturer() == QLatin1String("_TZ3000_egq7y6pr"))
+                {
+                    lift = 100 - lift;
+                }
+
                 bool open = lift < 100;
 
                 if (lightNode->setValue(RStateLift, lift))
