@@ -2519,7 +2519,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("RC_V14")) ||
         sensor->modelId().startsWith(QLatin1String("RC-EM")) ||
         // lidl / SilverCrest
-        sensor->modelId()== QLatin1String("TY0230") ||
+        sensor->modelId()== QLatin1String("TY0203") ||
         // Konke
         sensor->modelId() == QLatin1String("3AFE140103020000") ||
         sensor->modelId() == QLatin1String("3AFE130104020015") ||
