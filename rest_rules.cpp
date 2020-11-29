@@ -441,7 +441,7 @@ int DeRestPluginPrivate::createRule(const ApiRequest &req, ApiResponse &rsp)
         {
             if (name.size() > MAX_RULE_NAME_LENGTH)
             {
-                rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, QString("/rules/name"), QString("invalid/missing parameters in body")));
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/rules/name"), QString("invalid/missing parameters in body")));
                 rsp.httpStatus = HttpStatusBadRequest;
                 return REQ_READY_SEND;
             }
