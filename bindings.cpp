@@ -605,8 +605,8 @@ bool DeRestPluginPrivate::sendBindRequest(BindingTask &bt)
             // Whitelist sensors which don't seem to have a valid node descriptor.
             // This is a workaround currently only required for Develco smoke sensor
             // and potentially Bosch motion sensor
-            if (s.modelId().startsWith(QLatin1String("SMSZB-120")) ||    // Develco smoke sensor
-                s.modelId().startsWith(QLatin1String("EMIZB-132")) ||    // Develco EMI Norwegian HAN
+            if (s.modelId().startsWith(QLatin1String("SMSZB-1")) ||      // Develco smoke sensor
+                s.modelId().startsWith(QLatin1String("EMIZB-1")) ||      // Develco EMI Norwegian HAN
                 s.modelId().startsWith(QLatin1String("ISW-ZPR1-WP13")))  // Bosch motion sensor
             {
             }
@@ -965,7 +965,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.dataType = deCONZ::Zcl16BitUint;
         rq.attributeId = 0x0000;         // measured value
 
-        if (sensor && (sensor->modelId().startsWith(QLatin1String("MOSZB-130")) ||          // Develco motion sensor
+        if (sensor && (sensor->modelId().startsWith(QLatin1String("MOSZB-1")) ||            // Develco motion sensor
                        sensor->modelId().startsWith(QLatin1String("MotionSensor51AU"))))    // Aurora (Develco) motion sensor
         {
             rq.minInterval = 0;
@@ -987,12 +987,12 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.dataType = deCONZ::Zcl16BitInt;
         rq.attributeId = 0x0000;       // measured value
 
-        if (sensor && (sensor->modelId().startsWith(QLatin1String("AQSZB-110")) ||       // Develco air quality sensor
-                       sensor->modelId().startsWith(QLatin1String("SMSZB-120")) ||       // Develco smoke sensor
-                       sensor->modelId().startsWith(QLatin1String("HESZB-120")) ||       // Develco heat sensor
-                       sensor->modelId().startsWith(QLatin1String("MOSZB-130")) ||       // Develco motion sensor
-                       sensor->modelId().startsWith(QLatin1String("WISZB-120")) ||       // Develco window sensor
-                       sensor->modelId().startsWith(QLatin1String("FLSZB-110")) ||       // Develco water leak sensor
+        if (sensor && (sensor->modelId().startsWith(QLatin1String("AQSZB-1")) ||         // Develco air quality sensor
+                       sensor->modelId().startsWith(QLatin1String("SMSZB-1")) ||         // Develco smoke sensor
+                       sensor->modelId().startsWith(QLatin1String("HESZB-1")) ||         // Develco heat sensor
+                       sensor->modelId().startsWith(QLatin1String("MOSZB-1")) ||         // Develco motion sensor
+                       sensor->modelId().startsWith(QLatin1String("WISZB-1")) ||         // Develco window sensor
+                       sensor->modelId().startsWith(QLatin1String("FLSZB-1")) ||         // Develco water leak sensor
                        sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||         // Wattle (Develco) magnetic sensor
                        sensor->modelId().startsWith(QLatin1String("MotionSensor51AU")))) // Aurora (Develco) motion sensor
         {
@@ -1593,13 +1593,13 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 21600;
             rq.reportableChange8bit = 0;
         }
-        else if (sensor && (sensor->modelId().startsWith(QLatin1String("AQSZB-110")) ||       // Develco air quality sensor
-                            sensor->modelId().startsWith(QLatin1String("SMSZB-120")) ||       // Develco smoke sensor
-                            sensor->modelId().startsWith(QLatin1String("HESZB-120")) ||       // Develco heat sensor
-                            sensor->modelId().startsWith(QLatin1String("MOSZB-130")) ||       // Develco motion sensor
-                            sensor->modelId().startsWith(QLatin1String("WISZB-120")) ||       // Develco window sensor
-                            sensor->modelId().startsWith(QLatin1String("FLSZB-110")) ||       // Develco water leak sensor
-                            sensor->modelId().startsWith(QLatin1String("SIRZB-110")) ||       // Develco siren
+        else if (sensor && (sensor->modelId().startsWith(QLatin1String("AQSZB-1")) ||         // Develco air quality sensor
+                            sensor->modelId().startsWith(QLatin1String("SMSZB-1")) ||         // Develco smoke sensor
+                            sensor->modelId().startsWith(QLatin1String("HESZB-1")) ||         // Develco heat sensor
+                            sensor->modelId().startsWith(QLatin1String("MOSZB-1")) ||         // Develco motion sensor
+                            sensor->modelId().startsWith(QLatin1String("WISZB-1")) ||         // Develco window sensor
+                            sensor->modelId().startsWith(QLatin1String("FLSZB-1")) ||         // Develco water leak sensor
+                            sensor->modelId().startsWith(QLatin1String("SIRZB-1")) ||         // Develco siren
                             sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||         // Wattle (Develco) magnetic sensor
                             sensor->modelId().startsWith(QLatin1String("MotionSensor51AU")))) // Aurora (Develco) motion sensor
         {
@@ -1746,7 +1746,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq2.maxInterval = 300;
         if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||       // Heiman
                        sensor->modelId() == QLatin1String("SKHMP30-I1") ||      // GS smart plug
-                       sensor->modelId() == QLatin1String("SPLZB-131")))        // Develco smart plug
+                       sensor->modelId().startsWith(QLatin1String("SPLZB-1")))) // Develco smart plug
         {
             rq2.reportableChange16bit = 100; // 1 V
         }
@@ -1773,17 +1773,17 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq3.maxInterval = 300;
         if (sensor && (sensor->modelId() == QLatin1String("SP 120") ||           // innr
                        sensor->modelId() == QLatin1String("DoubleSocket50AU") || // Aurora
-                       sensor->modelId() == QLatin1String("SPLZB-131") ||        // Develco smart plug
+                       sensor->modelId().startsWith(QLatin1String("SPLZB-1"))    // Develco smart plug
                        sensor->modelId() == QLatin1String("SZ-ESW01-AU") ||      // Sercomm / Telstra smart plug
                        sensor->modelId() == QLatin1String("Connected socket outlet") || // Niko smart socket
                        sensor->modelId() == QLatin1String("TS0121")))            // Tuya / Blitzwolf
         {
             rq3.reportableChange16bit = 100; // 0.1 A
         }
-        else if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||  // Heiman
-                            sensor->modelId() == QLatin1String("EMIZB-132") ||  // Develco
-                            sensor->modelId() == QLatin1String("SKHMP30-I1") || // GS smart plug
-                            sensor->modelId().startsWith(QLatin1String("SPW35Z")))) // RT-RK OBLO SPW35ZD0 smart plug
+        else if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||        // Heiman
+                            sensor->modelId().startsWith(QLatin1String("EMIZB-1"))    // Develco EMI
+                            sensor->modelId() == QLatin1String("SKHMP30-I1") ||       // GS smart plug
+                            sensor->modelId().startsWith(QLatin1String("SPW35Z"))))   // RT-RK OBLO SPW35ZD0 smart plug
         {
             rq3.reportableChange16bit = 10; // 0.1 A
         }
@@ -2421,8 +2421,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Whitelist sensors which don't seem to have a valid node descriptor.
         // This is a workaround currently only required for Develco smoke sensor
         // and potentially Bosch motion sensor
-        if (sensor->modelId().startsWith(QLatin1String("SMSZB-120")) ||   // Develco smoke sensor
-            sensor->modelId().startsWith(QLatin1String("EMIZB-132")) ||   // Develco EMI Norwegian HAN
+        if (sensor->modelId().startsWith(QLatin1String("SMSZB-1")) ||     // Develco smoke sensor
+            sensor->modelId().startsWith(QLatin1String("EMIZB-1")) ||     // Develco EMI Norwegian HAN
             sensor->modelId().startsWith(QLatin1String("ISW-ZPR1-WP13"))) // Bosch motion sensor
         {
         }
@@ -2545,17 +2545,17 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Bitron
         sensor->modelId().startsWith(QLatin1String("902010")) ||
         // Develco
-        sensor->modelId().startsWith(QLatin1String("AQSZB-110")) || // air quality sensor
-        sensor->modelId().startsWith(QLatin1String("SMSZB-120")) || // smoke sensor
-        sensor->modelId().startsWith(QLatin1String("HESZB-120")) || // heat sensor
-        sensor->modelId().startsWith(QLatin1String("WISZB-120")) || // window sensor
-        sensor->modelId().startsWith(QLatin1String("FLSZB-110")) || // water leak sensor
-        sensor->modelId().startsWith(QLatin1String("MOSZB-130")) || // motion sensor
+        sensor->modelId().startsWith(QLatin1String("AQSZB-1")) ||   // air quality sensor
+        sensor->modelId().startsWith(QLatin1String("SMSZB-1")) ||   // smoke sensor
+        sensor->modelId().startsWith(QLatin1String("HESZB-1")) ||   // heat sensor
+        sensor->modelId().startsWith(QLatin1String("WISZB-1")) ||   // window sensor
+        sensor->modelId().startsWith(QLatin1String("FLSZB-1")) ||   // water leak sensor
+        sensor->modelId().startsWith(QLatin1String("MOSZB-1")) ||   // motion sensor
         sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
-        sensor->modelId().startsWith(QLatin1String("EMIZB-132")) || // EMI Norwegian HAN
-        sensor->modelId().startsWith(QLatin1String("SMRZB-33")) ||  // Smart Relay DIN
-        sensor->modelId().startsWith(QLatin1String("SIRZB-110")) || // siren
-        sensor->modelId() == QLatin1String("SPLZB-131") ||          // smart plug
+        sensor->modelId().startsWith(QLatin1String("EMIZB-1")) ||   // EMI Norwegian HAN
+        sensor->modelId().startsWith(QLatin1String("SMRZB-3")) ||   // Smart Relay DIN
+        sensor->modelId().startsWith(QLatin1String("SIRZB-1")) ||   // siren
+        sensor->modelId().startsWith(QLatin1String("SPLZB-1")) ||   // smart plug
         sensor->modelId() == QLatin1String("MotionSensor51AU") ||   // Aurora (Develco) motion sensor
         // LG
         sensor->modelId() == QLatin1String("LG IP65 HMS") ||
