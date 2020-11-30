@@ -196,6 +196,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_PHILIPS, "SML00", philipsMacPrefix }, // Hue motion sensor
     { VENDOR_PHYSICAL, "tagv4", stMacPrefix}, // SmartThings Arrival sensor
     { VENDOR_PHYSICAL, "motionv4", stMacPrefix}, // SmartThings motion sensor
+    { VENDOR_PHYSICAL, "moisturev4", stMacPrefix}, // SmartThings water leak sensor
     { VENDOR_PHYSICAL, "multiv4", stMacPrefix}, // SmartThings multi sensor 2016
     { VENDOR_SAMJIN, "motion", samjinMacPrefix }, // Smarthings GP-U999SJVLBAA (Samjin) Motion Sensor
     { VENDOR_SAMJIN, "multi", samjinMacPrefix }, // Smarthings (Samjin) Multipurpose Sensor
@@ -363,6 +364,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "TS0042", silabs3MacPrefix }, // Tuya wireless switch
     { VENDOR_EMBER, "TS0043", silabs3MacPrefix }, // Tuya wireless switch
     { VENDOR_EMBER, "TS0043", silabs8MacPrefix }, // Tuya wireless switch
+    { VENDOR_EMBER, "TS0043", silabs7MacPrefix }, // Tuya wireless switch
     { VENDOR_EMBER, "TS0044", silabs9MacPrefix }, // Tuya wireless switch
     { VENDOR_NONE, "kud7u2l", silabs3MacPrefix }, // Tuya Smart TRV HY369 Thermostatic Radiator Valve
     { VENDOR_NONE, "GbxAXL2", silabs3MacPrefix }, // Another Tuya Smart TRV Thermostatic Radiator Valve
@@ -374,8 +376,9 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "eaxp72v", ikea2MacPrefix }, // Tuya TRV Wesmartify Thermostat Essentials Premium
     { VENDOR_NONE, "88teujp", silabs8MacPrefix }, // SEA802-Zigbee
     { VENDOR_NONE, "fvq6avy", silabs7MacPrefix }, // Revolt NX-4911-675 Thermostat
-    { VENDOR_HEIMAN, "TY0202", silabs7MacPrefix }, // Lidl/Silvercrest Smart Motion Sensor
+    { VENDOR_HEIMAN, "TY0203", silabs7MacPrefix }, // Lidl/Silvercrest Smart Window or Door Sensor
     { VENDOR_HEIMAN, "TY0202", silabs3MacPrefix }, // Lidl/Silvercrest Smart Motion Sensor
+    { VENDOR_HEIMAN, "TY0202", silabs7MacPrefix }, // Lidl/Silvercrest Smart Motion Sensor
     { VENDOR_AURORA, "DoubleSocket50AU", jennicMacPrefix }, // Aurora AOne Double Socket UK
     { VENDOR_COMPUTIME, "SP600", computimeMacPrefix }, // Salus smart plug
     { VENDOR_HANGZHOU_IMAGIC, "1116-S", energyMiMacPrefix }, // iris contact sensor v3
@@ -1875,6 +1878,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER && !node->simpleDescriptors().isEmpty())
     {
         const deCONZ::SimpleDescriptor *sd = &node->simpleDescriptors()[0];
+        bool hasColorCluster = false;
 
         if (sd && (sd->deviceId() == DEV_ID_SMART_PLUG) && (node->simpleDescriptors().size() < 2) &&
         (((node->address().ext() & 0xffffff0000000000ULL ) == silabs3MacPrefix) ||
@@ -1885,9 +1889,10 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             for (int c = 0; c < sd->inClusters().size(); c++)
             {
                 if (sd->inClusters()[c].id() == TUYA_CLUSTER_ID) { hasTuyaCluster = true; }
+                if (sd->inClusters()[c].id() == COLOR_CLUSTER_ID) { hasColorCluster = true; }
             }
 
-            if (hasTuyaCluster)
+            if  (hasTuyaCluster && !hasColorCluster)
             {
                 DBG_Printf(DBG_INFO, "Tuya : Creating 2 Fake Endpoints\n");
 
@@ -2137,7 +2142,9 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         {
             //Tuya black list
             //_TZE200_aoclfnxz is a thermostat
-            if (lightNode.manufacturer() == QLatin1String("_TZE200_aoclfnxz"))
+            //_TZE200_c88teujp same
+            if ((lightNode.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) ||
+                (lightNode.manufacturer() == QLatin1String("_TZE200_c88teujp")) )
             {
                 hasServerOnOff = false;
             }
@@ -2575,12 +2582,15 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
 
     ResourceItem *item = nullptr;
 
-    if ((lightNode->manufacturerCode() == VENDOR_LEDVANCE) &&
-            (lightNode->modelId() == QLatin1String("BR30 RGBW")) ||
-            (lightNode->modelId() == QLatin1String("A19 RGBW")))
+    if (lightNode->manufacturerCode() == VENDOR_LEDVANCE &&
+            (lightNode->modelId() == QLatin1String("BR30 RGBW") ||
+             lightNode->modelId() == QLatin1String("A19 RGBW")))
     {
         item = lightNode->item(RAttrType);
-        item->setValue(QVariant("Color temperature light"));
+        if (item)
+        {
+            item->setValue(QVariant("Color temperature light"));
+        }
         if (lightNode->item(RConfigColorCapabilities) != nullptr)
         {
             return; // already initialized
@@ -4793,7 +4803,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         }
                     }
                     else if ((node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER) &&
-                             (manufacturer == QLatin1String("_TZE200_aoclfnxz")) )
+                             ((manufacturer == QLatin1String("_TZE200_aoclfnxz")) ||
+                              (manufacturer == QLatin1String("_TZE200_c88teujp"))) )
                     {
                         fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
                     }
@@ -4933,6 +4944,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("3300")) ||             // Centralite contact sensor
                              modelId == QLatin1String("E1D-G73") ||                   // Sengled contact sensor
                              modelId == QLatin1String("DS01") ||                      // Sonoff SNZB-04
+                             modelId == QLatin1String("TY0203") ||                    // lidl / SilverCrest
                              modelId == QLatin1String("RH3001"))                      // Tuya/Blitzwolf BW-IS2 door/window sensor
                     {
                         fpOpenCloseSensor.inClusters.push_back(ci->id());
@@ -4978,6 +4990,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     else if (modelId.startsWith(QLatin1String("WATER_")) ||           // Heiman water sensor
                              modelId.startsWith(QLatin1String("Water")) ||            // Heiman water sensor (newer model)
                              modelId.startsWith(QLatin1String("lumi.sensor_wleak")) || // Xiaomi Aqara flood sensor
+                             modelId.startsWith(QLatin1String("moisturev4")) ||       // SmartThings water leak sensor
                              modelId.startsWith(QLatin1String("WL4200")) ||           // Sinope Water Leak detector
                              modelId.startsWith(QLatin1String("3315")) ||             // Centralite water sensor
                              modelId.startsWith(QLatin1String("FLSZB-110")) ||        // Develco Water Leak detector
@@ -5227,6 +5240,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         (manufacturer == QLatin1String("_TYST11_kfvq6avy")) ||
                         (manufacturer == QLatin1String("_TYST11_c88teujp")) ||
                         (manufacturer == QLatin1String("_TZE200_aoclfnxz")) ||
+                        (manufacturer == QLatin1String("_TZE200_c88teujp")) ||
                         (manufacturer == QLatin1String("_TZE200_ckud7u2l")) )
                     {
                         fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
@@ -6292,6 +6306,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.modelId() == QLatin1String("eaxp72v") || // Tuya
                 sensorNode.modelId() == QLatin1String("88teujp") || // Tuya
                 sensorNode.modelId() == QLatin1String("fvq6avy") || // Tuya
+               (sensorNode.manufacturer() == QLatin1String("_TZE200_c88teujp")) || 
                (sensorNode.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) || 
                (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
             {
@@ -6303,6 +6318,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
                 sensorNode.modelId() == QLatin1String("88teujp") || // Tuya
                 sensorNode.modelId() == QLatin1String("fvq6avy") || // Tuya
+               (sensorNode.manufacturer() == QLatin1String("_TZE200_c88teujp")) || 
                (sensorNode.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) || 
                (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
             {
@@ -6313,6 +6329,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.modelId() == QLatin1String("eaxp72v") || // Tuya
                 sensorNode.modelId() == QLatin1String("88teujp") || // Tuya
                 sensorNode.modelId() == QLatin1String("fvq6avy") || // Tuya
+               (sensorNode.manufacturer() == QLatin1String("_TZE200_c88teujp")) || 
                (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
             {
                 sensorNode.addItem(DataTypeBool, RConfigWindowOpen);
@@ -7343,6 +7360,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("45127")) || // Namron 1/2/4-ch remote controller
                                         i->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) || // RGBgenie remote control
                                         i->modelId().startsWith(QLatin1String("VOC_Sensor")) || // LifeControl Enviroment sensor
+                                        i->modelId().startsWith(QLatin1String("TY0203")) || // SilverCrest / lidl
                                         i->modelId().startsWith(QLatin1String("ZG2835"))) // SR-ZG2835 Zigbee Rotary Switch
                                     {
                                         bat = ia->numericValue().u8;
@@ -7406,6 +7424,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (i->modelId().startsWith(QLatin1String("tagv4")) ||   // SmartThings Arrival sensor
                                     i->modelId().startsWith(QLatin1String("motionv4")) ||// SmartThings motion sensor
+                                    i->modelId().startsWith(QLatin1String("moisturev4")) ||// SmartThings water leak sensor
                                     i->modelId().startsWith(QLatin1String("multiv4")) ||// SmartThings multi sensor 2016
                                     i->modelId().startsWith(QLatin1String("3305-S")) ||  // SmartThings 2014 motion sensor
                                     i->modelId() == QLatin1String("Remote switch") ||    // Legrand switch
