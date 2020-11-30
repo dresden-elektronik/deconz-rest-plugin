@@ -6304,15 +6304,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
 
-            if (sensorNode.modelId() == QLatin1String("Super TR"))   // ELKO
-            {
-                sensorNode.addItem(DataTypeString, RConfigTemperatureMeasurement);
-                sensorNode.addItem(DataTypeInt16, RStateFloorTemperature);
-                sensorNode.addItem(DataTypeBool, RStateHeating);
-                sensorNode.addItem(DataTypeBool, RConfigLocked);
-                sensorNode.addItem(DataTypeString, RConfigMode);
-            }
-
             if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
                 sensorNode.modelId() == QLatin1String("GbxAXL2") || // Tuya
                 (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
@@ -6360,6 +6351,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
                 sensorNode.addItem(DataTypeUInt32, RConfigHostFlags); // hidden
                 sensorNode.addItem(DataTypeBool, RConfigDisplayFlipped);
+                sensorNode.addItem(DataTypeBool, RConfigLocked);
+                sensorNode.addItem(DataTypeString, RConfigMode);
+            }
+            else if (sensorNode.modelId() == QLatin1String("Super TR"))   // ELKO
+            {
+                sensorNode.addItem(DataTypeString, RConfigTemperatureMeasurement);
+                sensorNode.addItem(DataTypeInt16, RStateFloorTemperature);
+                sensorNode.addItem(DataTypeBool, RStateHeating);
                 sensorNode.addItem(DataTypeBool, RConfigLocked);
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
