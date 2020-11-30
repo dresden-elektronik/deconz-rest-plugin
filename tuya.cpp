@@ -136,6 +136,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         stream.setByteOrder(QDataStream::LittleEndian);
 
         // "dp" field describes the action/message of a command frame and was composed by a type and an identifier
+        // Composed by a type (dp_type) and an identifier (dp_identifier), the identifier is device dependant.
         // "transid" is just a "counter", a response will have the same transif than the command.
         // "Status" and "fn" are always 0
         // More explanations at top of file

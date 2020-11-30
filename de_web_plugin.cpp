@@ -1872,6 +1872,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER && !node->simpleDescriptors().isEmpty())
     {
         const deCONZ::SimpleDescriptor *sd = &node->simpleDescriptors()[0];
+        bool hasColorCluster = false;
 
         if (sd && (sd->deviceId() == DEV_ID_SMART_PLUG) && (node->simpleDescriptors().size() < 2) &&
         (((node->address().ext() & 0xffffff0000000000ULL ) == silabs3MacPrefix) ||
@@ -1882,9 +1883,10 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             for (int c = 0; c < sd->inClusters().size(); c++)
             {
                 if (sd->inClusters()[c].id() == TUYA_CLUSTER_ID) { hasTuyaCluster = true; }
+                if (sd->inClusters()[c].id() == COLOR_CLUSTER_ID) { hasColorCluster = true; }
             }
 
-            if (hasTuyaCluster)
+            if  (hasTuyaCluster && !hasColorCluster)
             {
                 DBG_Printf(DBG_INFO, "Tuya : Creating 2 Fake Endpoints\n");
 
