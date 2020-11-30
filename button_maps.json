@@ -54,6 +54,9 @@
         "IAS_ACE": 1281
 	},
 	"commands": {
+        "DOOR_LOCK": {
+            "ATTRIBUTE_REPORT": 10
+        },
         "SCENES": {
         	"ADD_SCENE": 0,
         	"VIEW_SCENE": 1,
@@ -99,8 +102,11 @@
         	"STEP_COLOR_TEMPERATURE": 76
         },
         "IAS_ACE": {
-        	"ARM": 0,
-        	"EMERGENCY": 2,
+            "ARM": 0,
+            "EMERGENCY": 2,
+            "STATUS_CHANGE": 0
+        },
+        "IAS_ZONE": {
             "STATUS_CHANGE": 0
         },
         "MULTISTATE_INPUT": {
