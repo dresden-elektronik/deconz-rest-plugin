@@ -2569,12 +2569,15 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
 
     ResourceItem *item = nullptr;
 
-    if ((lightNode->manufacturerCode() == VENDOR_LEDVANCE) &&
-            (lightNode->modelId() == QLatin1String("BR30 RGBW")) ||
-            (lightNode->modelId() == QLatin1String("A19 RGBW")))
+    if (lightNode->manufacturerCode() == VENDOR_LEDVANCE &&
+            (lightNode->modelId() == QLatin1String("BR30 RGBW") ||
+             lightNode->modelId() == QLatin1String("A19 RGBW")))
     {
         item = lightNode->item(RAttrType);
-        item->setValue(QVariant("Color temperature light"));
+        if (item)
+        {
+            item->setValue(QVariant("Color temperature light"));
+        }
         if (lightNode->item(RConfigColorCapabilities) != nullptr)
         {
             return; // already initialized
