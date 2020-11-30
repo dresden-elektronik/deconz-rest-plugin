@@ -144,6 +144,7 @@ SOURCES  = air_quality.cpp \
            group_info.cpp \
            gw_uuid.cpp \
            ias_zone.cpp \
+           identify.cpp \
            json.cpp \
            light_node.cpp \
            poll_control.cpp \
