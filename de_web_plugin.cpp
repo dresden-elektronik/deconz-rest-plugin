@@ -304,16 +304,16 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_STELPRO, "ST218", xalMacPrefix }, // Stelpro Thermostat
     { VENDOR_STELPRO, "STZB402", xalMacPrefix }, // Stelpro baseboard thermostat
     { VENDOR_STELPRO, "SORB", xalMacPrefix }, // Stelpro Orleans Fan
-    { VENDOR_DEVELCO, "AQSZB-110", develcoMacPrefix }, // Develco air quality sensor
-    { VENDOR_DEVELCO, "SMSZB-120", develcoMacPrefix }, // Develco smoke sensor
-    { VENDOR_DEVELCO, "HESZB-120", develcoMacPrefix }, // Develco heat sensor
-    { VENDOR_DEVELCO, "SPLZB-131", develcoMacPrefix }, // Develco smart plug
-    { VENDOR_DEVELCO, "WISZB-120", develcoMacPrefix }, // Develco window sensor
-    { VENDOR_DEVELCO, "MOSZB-130", develcoMacPrefix }, // Develco motion sensor
-    { VENDOR_DEVELCO, "FLSZB-110", develcoMacPrefix }, // Develco water leak sensor
-    { VENDOR_DEVELCO, "EMIZB-132", develcoMacPrefix }, // Develco EMI Norwegian HAN
-    { VENDOR_DEVELCO, "SMRZB-33", develcoMacPrefix }, // Develco Smart Relay DIN
-    { VENDOR_DEVELCO, "SIRZB-110", develcoMacPrefix }, // Develco siren
+    { VENDOR_DEVELCO, "AQSZB-1", develcoMacPrefix }, // Develco air quality sensor
+    { VENDOR_DEVELCO, "SMSZB-1", develcoMacPrefix }, // Develco smoke sensor
+    { VENDOR_DEVELCO, "HESZB-1", develcoMacPrefix }, // Develco heat sensor
+    { VENDOR_DEVELCO, "SPLZB-1", develcoMacPrefix }, // Develco smart plug
+    { VENDOR_DEVELCO, "WISZB-1", develcoMacPrefix }, // Develco window sensor
+    { VENDOR_DEVELCO, "MOSZB-1", develcoMacPrefix }, // Develco motion sensor
+    { VENDOR_DEVELCO, "FLSZB-1", develcoMacPrefix }, // Develco water leak sensor
+    { VENDOR_DEVELCO, "EMIZB-1", develcoMacPrefix }, // Develco EMI Norwegian HAN
+    { VENDOR_DEVELCO, "SMRZB-3", develcoMacPrefix }, // Develco Smart Relay DIN
+    { VENDOR_DEVELCO, "SIRZB-1", develcoMacPrefix }, // Develco siren
     { VENDOR_DEVELCO, "ZHMS101", develcoMacPrefix }, // Wattle (Develco) magnetic sensor
     { VENDOR_DEVELCO, "MotionSensor51AU", develcoMacPrefix }, // Aurora (Develco) motion sensor
     { VENDOR_EMBER, "3AFE14010402000D", konkeMacPrefix }, // Konke Kit Pro-BS Motion Sensor
@@ -417,6 +417,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "MS01", tiMacPrefix }, // Sonoff SNZB-03
     { VENDOR_NONE, "MSO1", tiMacPrefix }, // Sonoff SNZB-03
     { VENDOR_NONE, "ms01", tiMacPrefix }, // Sonoff SNZB-03
+    { VENDOR_NONE, "66666", tiMacPrefix }, // Sonoff SNZB-03
     { VENDOR_NONE, "TH01", tiMacPrefix }, // Sonoff SNZB-02
     { VENDOR_NONE, "DS01", tiMacPrefix }, // Sonoff SNZB-04
     { VENDOR_DANFOSS, "eTRV0100", silabs2MacPrefix }, // Danfoss Ally thermostat
@@ -4927,7 +4928,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("Door")) ||             // Heiman door/window sensor (newer model)
                              modelId == QLatin1String("3AFE130104020015") ||          // Konke door/window sensor
                              modelId.startsWith(QLatin1String("902010/21")) ||        // Bitron door/window sensor
-                             modelId.startsWith(QLatin1String("WISZB-120")) ||        // Develco door/window sensor
+                             modelId.startsWith(QLatin1String("WISZB-1")) ||          // Develco door/window sensor
                              modelId.startsWith(QLatin1String("ZHMS101")) ||          // Wattle (Develco) door/window sensor
                              modelId.startsWith(QLatin1String("4655BC0")) ||          // Ecolink contact sensor
                              modelId.startsWith(QLatin1String("3300")) ||             // Centralite contact sensor
@@ -4946,13 +4947,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId == QLatin1String("ZB-MotionSensor-D0003") ||     // Linkind motion sensor
                              modelId.startsWith(QLatin1String("902010/22")) ||        // Bitron motion sensor
                              modelId.startsWith(QLatin1String("SN10ZW")) ||           // ORVIBO motion sensor
-                             modelId.startsWith(QLatin1String("MOSZB-130")) ||        // Develco motion sensor
+                             modelId.startsWith(QLatin1String("MOSZB-1")) ||          // Develco motion sensor
                              modelId.startsWith(QLatin1String("MotionSensor51AU")) || // Aurora (Develco) motion sensor
                              modelId.startsWith(QLatin1String("MOT003")) ||           // Hive motion sensor
                              modelId == QLatin1String("4in1-Sensor-ZB3.0") ||         // Immax NEO ZB3.0 4 in 1 sensor E13-A21
                              modelId == QLatin1String("E13-A21") ||                   // Sengled E13-A21 PAR38 bulp with motion sensor
                              modelId == QLatin1String("TS0202") ||                    // Tuya generic motion sensor
                              modelId == QLatin1String("TY0202") ||                    // Lidl/Silvercrest Smart Motion Sensor
+                             modelId == QLatin1String("66666") ||                     // Sonoff SNZB-03
                              modelId == QLatin1String("MS01") ||                      // Sonoff SNZB-03
                              modelId == QLatin1String("MSO1") ||                      // Sonoff SNZB-03
                              modelId == QLatin1String("ms01"))                        // Sonoff SNZB-03
@@ -4963,8 +4965,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("SMOK_")) ||            // Heiman fire sensor
                              modelId.startsWith(QLatin1String("Smoke")) ||            // Heiman fire sensor (newer model)
                              modelId.startsWith(QLatin1String("902010/24")) ||        // Bitron smoke detector
-                             modelId.startsWith(QLatin1String("SMSZB-120")) ||        // Develco smoke detector
-                             modelId.startsWith(QLatin1String("HESZB-120")) ||        // Develco heat detector
+                             modelId.startsWith(QLatin1String("SMSZB-1")) ||          // Develco smoke detector
+                             modelId.startsWith(QLatin1String("HESZB-1")) ||          // Develco heat detector
                              modelId.startsWith(QLatin1String("SF2")) ||              // ORVIBO (Heiman) smoke sensor
                              modelId.startsWith(QLatin1String("LH05121")) ||          // iHorn smoke detector
                              modelId.startsWith(QLatin1String("lumi.sensor_smoke")) || // Xiaomi Mi smoke sensor
@@ -4982,14 +4984,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("moisturev4")) ||       // SmartThings water leak sensor
                              modelId.startsWith(QLatin1String("WL4200")) ||           // Sinope Water Leak detector
                              modelId.startsWith(QLatin1String("3315")) ||             // Centralite water sensor
-                             modelId.startsWith(QLatin1String("FLSZB-110")) ||        // Develco Water Leak detector
+                             modelId.startsWith(QLatin1String("FLSZB-1")) ||          // Develco Water Leak detector
                              modelId.startsWith(QLatin1String("TS0207")))             // Tuya water leak sensor
                     {
                         fpWaterSensor.inClusters.push_back(ci->id());
                     }
                     else if (modelId == QLatin1String("WarningDevice") ||               // Heiman siren
                              modelId == QLatin1String("SZ-SRN12N") ||                   // Sercomm siren
-                             modelId == QLatin1String("SIRZB-110") ||                   // Develco siren
+                             modelId == QLatin1String("SIRZB-1") ||                     // Develco siren
                              modelId == QLatin1String("902010/29"))                     // Bitron outdoor siren
                     {
                         fpAlarmSensor.inClusters.push_back(ci->id());
@@ -7427,13 +7429,13 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId() == QLatin1String("Bell") ||             // Sage doorbell sensor
                                     i->modelId() == QLatin1String("ISW-ZPR1-WP13") ||    // Bosch motion sensor
                                     i->modelId().endsWith(QLatin1String("86opcn01")) ||  // Aqara Opple
-                                    i->modelId().startsWith(QLatin1String("AQSZB-110")) || // Develco air quality sensor
-                                    i->modelId().startsWith(QLatin1String("SMSZB-120")) || // Develco smoke sensor
-                                    i->modelId().startsWith(QLatin1String("HESZB-120")) || // Develco heat sensor
-                                    i->modelId().startsWith(QLatin1String("MOSZB-130")) || // Develco motion sensor
-                                    i->modelId().startsWith(QLatin1String("WISZB-120")) || // Develco window sensor
-                                    i->modelId().startsWith(QLatin1String("FLSZB-110")) || // Develco water leak sensor
-                                    i->modelId().startsWith(QLatin1String("SIRZB-110")) || // Develco siren
+                                    i->modelId().startsWith(QLatin1String("AQSZB-1")) ||   // Develco air quality sensor
+                                    i->modelId().startsWith(QLatin1String("SMSZB-1")) ||   // Develco smoke sensor
+                                    i->modelId().startsWith(QLatin1String("HESZB-1")) ||   // Develco heat sensor
+                                    i->modelId().startsWith(QLatin1String("MOSZB-1")) ||   // Develco motion sensor
+                                    i->modelId().startsWith(QLatin1String("WISZB-1")) ||   // Develco window sensor
+                                    i->modelId().startsWith(QLatin1String("FLSZB-1")) ||   // Develco water leak sensor
+                                    i->modelId().startsWith(QLatin1String("SIRZB-1")) ||   // Develco siren
                                     i->modelId().startsWith(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
                                     i->modelId().startsWith(QLatin1String("MotionSensor51AU")) || // Aurora (Develco) motion sensor
                                     i->modelId().startsWith(QLatin1String("RFDL-ZB-MS")) ||// Bosch motion sensor
@@ -8766,8 +8768,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item && voltage != 65535)
                                 {
                                     if (i->modelId() == QLatin1String("SmartPlug") ||         // Heiman
-                                        i->modelId() == QLatin1String("SPLZB-131") ||         // Develco smart plug
-                                        i->modelId().startsWith(QLatin1String("SMRZB-33")) || // Develco smart relay
+                                        i->modelId().startsWith(QLatin1String("SPLZB-1")) ||  // Develco smart plug
+                                        i->modelId().startsWith(QLatin1String("SMRZB-3")) ||  // Develco smart relay
                                         i->modelId().startsWith(QLatin1String("SKHMP30")))    // GS smart plug
                                     {
                                         //voltage += 50; voltage /= 100; // 0.01V -> V
@@ -8775,7 +8777,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     }
                                     else if (i->modelId() == QLatin1String("RICI01") ||           // LifeControl Smart Plug
                                              i->modelId().startsWith(QLatin1String("outlet")) ||  // Samsung SmartThings IM6001-OTP/IM6001-OTP01
-                                             i->modelId() == QLatin1String("EMIZB-13") ||         // Develco EMI
+                                             i->modelId().startsWith(QLatin1String("EMIZB-1")) || // Develco EMI
                                              i->modelId().startsWith(QLatin1String("ROB_200")) || // ROBB Smarrt micro dimmer
                                              i->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
                                              i->modelId() == QLatin1String("Connected socket outlet") || // Niko smart socket
@@ -8810,6 +8812,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     if (i->modelId() == QLatin1String("SP 120") ||            // innr
                                         i->modelId().startsWith(QLatin1String("outlet")) ||   // Samsung SmartThings IM6001-OTP/IM6001-OTP01
                                         i->modelId() == QLatin1String("DoubleSocket50AU") ||  // Aurora
+                                        i->modelId().startsWith(QLatin1String("SPLZB-1")) ||  // Develco smart plug
                                         i->modelId() == QLatin1String("RICI01") ||            // LifeControl Smart Plug
                                         i->modelId().startsWith(QLatin1String("SZ-ESW01")) || // Sercomm / Telstra smart plug
                                         i->modelId() == QLatin1String("TS0121") ||            // Tuya smart plug
@@ -8824,7 +8827,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         // already in mA
                                     }
                                     else if (i->modelId() == QLatin1String("SmartPlug") ||      // Heiman
-                                             i->modelId() == QLatin1String("EMIZB-132") ||      // Develco EMI Norwegian HAN
+                                             i->modelId().startsWith(QLatin1String("EMIZB-1")) || // Develco EMI
                                              i->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
                                              i->modelId().startsWith(QLatin1String("3200-S")) ||  // Samsung smart outlet
                                              i->modelId().startsWith(QLatin1String("SPW35Z")))    // RT-RK OBLO SPW35ZD0 smart plug
@@ -17250,8 +17253,7 @@ void DeRestPlugin::idleTimerFired()
                                 sensorNode->modelId().startsWith(QLatin1String("Super TR")) ||  // Elko
                                 sensorNode->modelId().startsWith(QLatin1String("AC201")) ||     // Owon
                                 sensorNode->modelId().startsWith(QLatin1String("SORB")) ||      // Stelpro Orleans
-                                sensorNode->modelId().startsWith(QLatin1String("3157100")) ||   // Centralite pearl
-                                sensorNode->modelId().startsWith(QLatin1String("902010/32")))   // Bitron
+                                sensorNode->modelId().startsWith(QLatin1String("3157100")))     // Centralite pearl
                             {
                                 // supports reporting, no need to read attributes
                             }
