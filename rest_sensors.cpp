@@ -1089,12 +1089,14 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         // For newer models it is not possible to write to this attribute.
                         // Newer models must use the standard Occupied Heating Setpoint value (0x0012) using a default (or none) manufacturer.
                         // See GitHub issue #1098
-                        bool success = sensor->swVersion().toInt() < 22190930 ?
-                            addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, 0x4003, deCONZ::Zcl16BitInt, heatsetpoint) :
-                            addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_NONE, 0x0012, deCONZ::Zcl16BitInt, heatsetpoint);
-
-                        if (success)
+                        // UPD 16-11-2020: Since there is no way to reckognize older and newer models correctly and a new firmware version is on its way this
+                        //                 'fix' is changed to a more robust but ugly implementation by simply sending both codes to the device. One of the commands
+                        //                 will be accepted while the other one will be refused. Let's hope this code can be removed in a future release.
+    
+                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, 0x4003, deCONZ::Zcl16BitInt, heatsetpoint) &&
+                            addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_NONE,   0x0012, deCONZ::Zcl16BitInt, heatsetpoint))
                         {
+                            // success depends on the correctness of the formulated request (static), not on outcome of the behaviour (dynamic)
                             updated = true;
                         }
                         else
