@@ -1167,6 +1167,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigCoolSetpoint)
                 {
+                    
+                    // Further Clarification on the type check required. Value should come in as integer by the client and expected as such by the API
+                    // Suspended for now in favor of functionality
+                    
                     //if (map[pi.key()].type() == QVariant::Double)
                     //{
                         qint16 coolsetpoint = map[pi.key()].toInt(&ok);
