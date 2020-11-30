@@ -2824,12 +2824,12 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                 val = sensor->getZclValue(*i, 0x0035); // battery alarm mask
             }
             else if (sensor->modelId() == QLatin1String("Motion Sensor-A") ||
-                     sensor->modelId() == QLatin1String("AQSZB-110") ||
-                     sensor->modelId() == QLatin1String("SMSZB-120") ||
-                     sensor->modelId() == QLatin1String("HESZB-120") ||
-                     sensor->modelId() == QLatin1String("WISZB-120") ||
-                     sensor->modelId() == QLatin1String("MOSZB-130") ||
-                     sensor->modelId() == QLatin1String("FLSZB-110") ||
+                     sensor->modelId().startsWith(QLatin1String("AQSZB-1")) ||
+                     sensor->modelId().startsWith(QLatin1String("SMSZB-1")) ||
+                     sensor->modelId().startsWith(QLatin1String("HESZB-1")) ||
+                     sensor->modelId().startsWith(QLatin1String("WISZB-1")) ||
+                     sensor->modelId().startsWith(QLatin1String("MOSZB-1")) ||
+                     sensor->modelId().startsWith(QLatin1String("FLSZB-1")) ||
                      sensor->modelId() == QLatin1String("MotionSensor51AU") ||
                      sensor->modelId() == QLatin1String("Zen-01") ||
                      sensor->modelId() == QLatin1String("ISW-ZPR1-WP13") ||
