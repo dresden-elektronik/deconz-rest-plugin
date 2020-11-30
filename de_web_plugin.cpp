@@ -905,6 +905,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             handleDiagnosticsClusterIndication(ind, zclFrame);
             break;
 
+        case IDENTIFY_CLUSTER_ID:
+            handleIdentifyClusterIndication(ind, zclFrame);
+        break;
+
         case 0xFC03:    // Develco specific -> VOC Management
         case BOSCH_AIR_QUALITY_CLUSTER_ID: // Bosch Air quality sensor
             handleAirQualityClusterIndication(ind, zclFrame);
@@ -7377,6 +7381,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) || // RGBgenie remote control
                                         i->modelId().startsWith(QLatin1String("VOC_Sensor")) || // LifeControl Enviroment sensor
                                         i->modelId().startsWith(QLatin1String("TY0203")) || // SilverCrest / lidl
+                                        i->modelId().startsWith(QLatin1String("TY0202")) || // SilverCrest / lidl
                                         i->modelId().startsWith(QLatin1String("ZG2835"))) // SR-ZG2835 Zigbee Rotary Switch
                                     {
                                         bat = ia->numericValue().u8;
