@@ -221,7 +221,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateCt));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateDark));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateDaylight));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateEffect));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateEffect));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateErrorCode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateEventDuration));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateFire));
@@ -531,10 +531,6 @@ const QString &ResourceItem::toString() const
             *m_str = dt.toString(format);
             return *m_str;
         }
-    }
-    else if (m_rid->suffix == RStateEffect)
-    {
-        return RStateEffectValuesMueller[m_num];
     }
 
     return rInvalidString;

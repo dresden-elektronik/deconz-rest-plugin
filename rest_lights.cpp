@@ -565,6 +565,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         return setWarningDeviceState(req, rsp, taskRef, map);
     }
+    else if (isXmasLightStrip(taskRef.lightNode))
+    {
+        return setXmasLightStripState(req, rsp, taskRef, map);
+    }
     else if (UseTuyaCluster(taskRef.lightNode->manufacturer()))
     {
         //window covering
@@ -971,7 +975,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rspItemState[QString("/lights/%1/state/on").arg(id)] = true;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
-            
+
             if (!isDoorLockDevice) // Avoid reporting the new state before the lock report its state as locking/unlocking operations takes time and can also gets stuck.
             {
                 taskRef.lightNode->setValue(RStateOn, targetOn);
@@ -1078,7 +1082,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            taskRef.lightNode->setValue(RStateEffect, effect);
+            taskRef.lightNode->setValue(RStateEffect, RStateEffectValues[effect]);
         }
         else
         {
@@ -1318,7 +1322,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            taskRef.lightNode->setValue(RStateEffect, effect);
+            taskRef.lightNode->setValue(RStateEffect, RStateEffectValues[effect]);
         }
         else
         {
@@ -1343,7 +1347,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            taskRef.lightNode->setValue(RStateEffect, effect);
+            taskRef.lightNode->setValue(RStateEffect, RStateEffectValuesMueller[effect]);
         }
         else
         {
@@ -1521,7 +1525,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rspItemState[QString("/lights/%1/state/on").arg(id)] = targetOn;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
-	
+
             if (!isDoorLockDevice) // Avoid reporting the new state before the lock report its state as locking/unlocking operations takes time and can also gets stuck.
             {
                 taskRef.lightNode->setValue(RStateOn, targetOn);
@@ -1871,8 +1875,8 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             rspItemState[QString("/lights/%1/state/lift").arg(id)] = targetLift;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
-            
-            
+
+
             // I m using this code only for Legrand ATM but can be used for other device.
             // Because the attribute reporting take realy long time to be done, can be 2 minutes
             // Or it can be changed only after this time, so using an read attribute don't give usable value
@@ -1921,7 +1925,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             rspItemState[QString("/lights/%1/state/open").arg(id)] = targetOpen;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
-            
+
             // I m using this code only for Legrand ATM but can be used for other device.
             // Because the attribute reporting take realy long time to be done, can be 2 minutes
             // Or it can be changed only after this time, so using an read attribute don't give usable value
@@ -2399,7 +2403,7 @@ int DeRestPluginPrivate::setLightAttributes(const ApiRequest &req, ApiResponse &
         {
             value = 0x01;
         }
-        
+
         deCONZ::ZclAttribute attr(0xf001, deCONZ::Zcl8BitEnum, "calibration", deCONZ::ZclReadWrite, true);
         attr.setValue(value);
 
@@ -2908,14 +2912,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     }
                     else if (item->lastSet().isValid() && (gwWebSocketNotifyAll || (item->lastChanged().isValid() && item->lastChanged() >= lightNode->lastStatePush)))
                     {
-                        if (rid.suffix == RStateEffect)
-                        {
-                            state[key] = RStateEffectValuesMueller[item->toNumber()];
-                        }
-                        else
-                        {
-                            state[key] = item->toVariant();
-                        }
+                        state[key] = item->toVariant();
                     }
                 }
             }

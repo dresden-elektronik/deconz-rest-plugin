@@ -2087,7 +2087,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 openDb();
                 manufacturer = loadDataForLightNodeFromDb(generateUniqueId(node->address().ext(),0,0));
                 closeDb();
-                
+
                 if (manufacturer.isEmpty())
                 {
                     // extract from sensor if possible
@@ -2660,6 +2660,12 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
         item = lightNode->item(RStateY);
         if (item) { item->setIsPublic(false); }
     }
+    else if (isXmasLightStrip(lightNode))
+    {
+        lightNode->removeItem(RStateAlert);
+        lightNode->removeItem(RStateX);
+        lightNode->removeItem(RStateY);
+    }
 }
 
 /*! Force polling if the node has updated simple descriptors in setup phase.
@@ -2941,6 +2947,10 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
 
             if (ic->id() == COLOR_CLUSTER_ID && (event.clusterId() == COLOR_CLUSTER_ID))
             {
+                if (isXmasLightStrip(lightNode))
+                {
+                    continue;
+                }
                 std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
                 std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
                 for (;ia != enda; ++ia)
@@ -3051,7 +3061,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     {
                         if (lightNode->toNumber(RStateEffect) <= 1)
                         {
-                            lightNode->setValue(RStateEffect, ia->numericValue().u8);
+                            lightNode->setValue(RStateEffect, RStateEffectValues[ia->numericValue().u8]);
                         }
                     }
                     else if (ia->id() == 0x4004) // color loop time
@@ -3082,6 +3092,10 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
             }
             else if (ic->id() == LEVEL_CLUSTER_ID && (event.clusterId() == LEVEL_CLUSTER_ID))
             {
+                if (isXmasLightStrip(lightNode))
+                {
+                    continue;
+                }
                 std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
                 std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
                 for (;ia != enda; ++ia)
@@ -3290,7 +3304,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         quint8 scene = ia->numericValue().u8;
                         if (scene >= 1 && scene <= 6)
                         {
-                            lightNode->setValue(RStateEffect, scene + 1);
+                            lightNode->setValue(RStateEffect, RStateEffectValuesMueller[scene + 1]);
                         }
                     }
                 }
@@ -6316,7 +6330,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.addItem(DataTypeBool, RConfigLocked);
                 sensorNode.addItem(DataTypeBool, RConfigSetValve);
             }
-            
+
             if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
                 sensorNode.modelId() == QLatin1String("88teujp") || // Tuya
                 sensorNode.modelId() == QLatin1String("fvq6avy") || // Tuya

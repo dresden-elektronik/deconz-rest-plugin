@@ -474,7 +474,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                         {
                             addItem(DataTypeUInt16, RStateX);
                             addItem(DataTypeUInt16, RStateY);
-                            addItem(DataTypeUInt8, RStateEffect);
+                            addItem(DataTypeString, RStateEffect);
                             addItem(DataTypeUInt16, RStateHue);
                             addItem(DataTypeUInt8, RStateSat);
                         }
