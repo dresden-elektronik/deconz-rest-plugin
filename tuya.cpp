@@ -13,7 +13,7 @@
 //***********************************************************************************
 
 // Value for dp_type
-// ------------------    
+// ------------------
 // 0x00 	DP_TYPE_RAW 	?
 // 0x01 	DP_TYPE_BOOL 	?
 // 0x02 	DP_TYPE_VALUE 	4 byte unsigned integer
@@ -57,7 +57,7 @@
 // -------------------------
 // 0x03     Presence detection (with 0x04)
 // 0x65     Water leak (with 0x01)
-        
+
 //******************************************************************************************
 
 
@@ -82,7 +82,7 @@ bool UseTuyaCluster(QString manufacturer)
     //_TYZB01 don't use tuya cluster
     //_TYZB02 don't use tuya cluster
     //_TZ3400 don't use tuya cluster
-    
+
     if (manufacturer.startsWith(QLatin1String("_TZE200_")) || // Tuya clutster visible
         manufacturer.startsWith(QLatin1String("Tuya_C_")) ||  // Used by fake device
         manufacturer.startsWith(QLatin1String("_TYST11_")) )  // Tuya cluster invisible
@@ -96,17 +96,17 @@ bool UseTuyaCluster(QString manufacturer)
 /*! Handle packets related to Tuya 0xEF00 cluster.
     \param ind the APS level data indication containing the ZCL packet
     \param zclFrame the actual ZCL frame which holds the scene cluster reponse
-    
+
     Taken from https://medium.com/@dzegarra/zigbee2mqtt-how-to-add-support-for-a-new-tuya-based-device-part-2-5492707e882d
  */
- 
+
 void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
-{    
+{
     if (zclFrame.isDefaultResponse())
     {
         return;
     }
-    
+
     bool update = false;
 
     LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
@@ -116,10 +116,16 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
     {
         return;
     }
-        
+
     if (zclFrame.commandId() == 0x00)
     {
         // 0x00 : Used to send command, so not used here
+    }
+    else if (isXmasLightStrip(lightNode) &&
+             zclFrame.commandId() == 0x01 &&
+             !(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
+    {
+        sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
     }
     else if ( (zclFrame.commandId() == 0x01) || (zclFrame.commandId() == 0x02) )
     {
@@ -131,7 +137,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             DBG_Printf(DBG_INFO, "Tuya : Payload too short");
             return;
         }
-        
+
         QDataStream stream(zclFrame.payload());
         stream.setByteOrder(QDataStream::LittleEndian);
 
@@ -140,18 +146,18 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         // "transid" is just a "counter", a response will have the same transif than the command.
         // "Status" and "fn" are always 0
         // More explanations at top of file
-        
+
         quint8 status;
         quint8 transid;
         quint16 dp;
         quint8 fn;
         quint8 length = 0;
         qint32 data = 0;
-        
+
         quint8 dp_type;
         quint8 dp_identifier;
         quint8 dummy;
-        
+
         stream >> status;
         stream >> transid;
         stream >> dp;
@@ -159,7 +165,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
 
         //Convertion octet string to decimal value
         stream >> length;
-        
+
         //security, it seem 4 is the maximum
         if (length > 4)
         {
@@ -174,17 +180,17 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 data = data + dummy;
             }
         }
-        
+
         //To be more precise
         dp_identifier = (quint8) (dp & 0xFF);
         dp_type = (quint8) ((dp >> 8) & 0xFF);
 
         DBG_Printf(DBG_INFO, "Tuya debug 4 : Address 0x%016llX Payload %s\n" , ind.srcAddress().ext(), qPrintable(zclFrame.payload().toHex()));
         DBG_Printf(DBG_INFO, "Tuya debug 5 : Status: %d Transid: %d Dp: %d (0x%02X,0x%02X) Fn: %d Data %ld\n", status , transid , dp , dp_type, dp_identifier, fn , data);
-        
+
         if (length > 4) //schedule command
         {
-            
+
             // Monday = 64, Tuesday = 32, Wednesday = 16, Thursday = 8, Friday = 4, Saturday = 2, Sunday = 1
             // If you want your schedule to run only on workdays, the value would be W124. (64+32+16+8+4 = 124)
             // The API specifies 3 numbers, so a schedule that runs on Monday would be W064.
@@ -193,24 +199,24 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             // Saturday = W002
             // Sunday = W001
             // All days = W127
-            
+
             QString transitions;
-            
+
             length = length / 3;
-            
+
             if (zclFrame.payload().size() < (( length * 3) + 6) )
             {
                 DBG_Printf(DBG_INFO, "Tuya : Schedule data error\n");
                 return;
             }
-            
+
             quint8 hour;
             quint8 minut;
             quint8 heatSetpoint;
-            
+
             quint8 part = 1;
             QList<int> listday;
-            
+
             if (dp == 0x0070) //work days (6)
             {
                 listday << 124;
@@ -224,7 +230,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 part = length / 3;
                 listday << 124 << 2 << 1;
             }
-            
+
             for (; part > 0; part--)
             {
                 for (; length > 0; length--)
@@ -237,18 +243,18 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         .arg(hour, 2, 10, QChar('0'))
                         .arg(minut, 2, 10, QChar('0'))
                         .arg(heatSetpoint);
-                        
+
                     if (part > 0 && listday.size() >= static_cast<int>(part))
                     {
                         updateThermostatSchedule(sensorNode, listday.at(part - 1), transitions);
                     }
-                        
+
                 }
             }
-            
+
             return;
         }
-        
+
         // Sensor and light use same cluster, so need to make a choice for device that have both
         // Some device have sensornode AND lightnode, so need to use the good one.
         if (sensorNode && lightNode)
@@ -257,7 +263,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             {
                 lightNode = nullptr;
             }
-        
+
             if (sensorNode->type() == QLatin1String("ZHAThermostat"))
             {
                 lightNode = nullptr;
@@ -272,7 +278,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 (lightNode->manufacturer() == QLatin1String("_TZE200_wmcdj3aq")) ||
                 (lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3")) )
             {
-                
+
                 switch (dp)
                 {
                     // 0x0407 > starting moving
@@ -294,25 +300,25 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
-                    case 0x0202: // going to position 
+                    case 0x0202: // going to position
                     case 0x0203: // position reached (more usefull I think)
                     {
                         quint8 lift = (quint8) data;
                         bool open = lift < 100;
                         lightNode->setValue(RStateLift, lift);
                         lightNode->setValue(RStateOpen, open);
-                        
+
                         quint8 level = lift * 254 / 100;
                         bool on = level > 0;
                         lightNode->setValue(RStateBri, level);
                         lightNode->setValue(RStateOn, on);
                     }
                     break;
-                    
+
                     //other
                     default:
                     break;
-                    
+
                 }
             }
             else
@@ -326,12 +332,12 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     {
 
                         bool onoff = (data == 0) ? false : true;
-                        
+
                         {
                             uint ep = 0x01;
                             if (dp == 0x0102) { ep = 0x02; }
                             if (dp == 0x0103) { ep = 0x03; }
-                        
+
                             LightNode *lightNode2 = lightNode;
                             lightNode = getLightNodeForAddress(ind.srcAddress(), ep);
 
@@ -339,7 +345,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             {
                                 return;
                             }
-                            
+
                             //Find model id if missing ( modelId().isEmpty ?) and complete it
                             if (lightNode->modelId().isNull() || (lightNode->modelId() == QLatin1String("Unknown")) || (lightNode->manufacturer() == QLatin1String("Unknown")))
                             {
@@ -353,7 +359,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                                     lightNode->setManufacturerName(lightNode2->manufacturer());
                                 }
                             }
-                            
+
                             ResourceItem *item = lightNode->item(RStateOn);
                             if (item && item->toBool() != onoff)
                             {
@@ -367,11 +373,11 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
-                    
+
                     //other
                     default:
                     break;
-                    
+
                 }
             }
         }
@@ -384,9 +390,9 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     quint8 valve = (quint8) (dp & 0xFF);
                     quint8 temperature = (quint8) ((dp >> 8) & 0xFF);
                     quint8 minute = (quint8) ((dp >> 16) & 0xFF);
-                    
+
                     DBG_Printf(DBG_INFO, "Tuya debug 9 : windows open info: %d %d %d" ,valve , temperature, minute );
-                    
+
                 }
                 break;
                 case 0x0101: // off / running for Moe
@@ -398,7 +404,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     {
                         return;
                     }
-                    
+
                     ResourceItem *item = sensorNode->item(RConfigMode);
 
                     if (item && item->toString() != mode)
@@ -434,11 +440,11 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     }
                 }
                 break;
-                case 0x0114: // Valve state on / off 
+                case 0x0114: // Valve state on / off
                 {
                     bool onoff = false;
                     if (data == 1) { onoff = true; }
-                    
+
                     ResourceItem *item = sensorNode->item(RConfigSetValve);
 
                     if (item && item->toBool() != onoff)
@@ -471,7 +477,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     {
                         return;
                     }
-                    
+
                     ResourceItem *item = sensorNode->item(RConfigMode);
 
                     if ((item && item->toString() != mode) && (data == 0) ) // Only change if off
@@ -485,7 +491,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 {
                     bool alarm = false;
                     if (data == 1) { alarm = true; }
-                    
+
                     ResourceItem *item = sensorNode->item(RStateAlarm);
 
                     if (item && item->toBool() != alarm)
@@ -511,7 +517,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     {
                         return;
                     }
-                    
+
                     ResourceItem *item = sensorNode->item(RConfigMode);
 
                     if (item && item->toString() != mode)
@@ -525,7 +531,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 {
                     bool bat = false;
                     if (data == 1) { bat = true; }
-                    
+
                     ResourceItem *item = sensorNode->item(RStateLowBattery);
 
                     if (item && item->toBool() != bat)
@@ -546,7 +552,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         item->setValue(temp);
                         Event e(RSensors, RConfigHeatSetpoint, sensorNode->id(), item);
                         enqueueEvent(e);
-                        
+
                     }
                 }
                 break;
@@ -582,7 +588,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     quint8 bat = (static_cast<qint8>(data & 0xFF));
                     if (bat > 100) { bat = 100; }
                     ResourceItem *item = sensorNode->item(RConfigBattery);
-                    
+
                     if (!item && bat > 0) // valid value: create resource item
                     {
                         item = sensorNode->addItem(DataTypeUInt8, RConfigBattery);
@@ -635,7 +641,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             item->setValue(temp);
                             Event e(RSensors, RStateTemperature, sensorNode->id(), item);
                             enqueueEvent(e);
-                            
+
                         }
                     }
                 }
@@ -653,7 +659,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             item->setValue(temp);
                             Event e(RSensors, RConfigHeatSetpoint, sensorNode->id(), item);
                             enqueueEvent(e);
-                            
+
                         }
                     }
                 }
@@ -691,7 +697,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 {
                     quint8 valve = (static_cast<qint8>(data & 0xFF));
                     bool on = valve > 3;
-                    
+
                     ResourceItem *item = sensorNode->item(RStateOn);
                     if (item)
                     {
@@ -719,7 +725,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     {
                         return;
                     }
-                    
+
                     ResourceItem *item = sensorNode->item(RConfigPreset);
 
                     if (item && item->toString() != preset)
@@ -743,7 +749,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     {
                         return;
                     }
-                    
+
                     ResourceItem *item = sensorNode->item(RConfigPreset);
 
                     if (item && item->toString() != preset)
@@ -763,7 +769,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     {
                         return;
                     }
-                    
+
                     ResourceItem *item = sensorNode->item(RConfigMode);
 
                     if (item && item->toString() != mode)
@@ -777,7 +783,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 {
                     bool bat = false;
                     if (data == 1) { bat = true; }
-                    
+
                     ResourceItem *item = sensorNode->item(RStateLowBattery);
 
                     if (item && item->toBool() != bat)
@@ -788,7 +794,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     }
                 }
                 break;
-                
+
                 default:
                 break;
             }
@@ -797,13 +803,13 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         {
             DBG_Printf(DBG_INFO, "Tuya debug 6 : No device found");
         }
-    
+
     }
     else
     {
         return;
     }
-    
+
     if (update)
     {
         if (lightNode)
@@ -829,13 +835,13 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
 bool DeRestPluginPrivate::SendTuyaRequestThermostatSetWeeklySchedule(TaskItem &taskRef, quint8 weekdays , QString transitions , qint8 Dp_identifier )
 {
     QByteArray data;
-    
+
     QStringList list = transitions.split("T", QString::SkipEmptyParts);
 
     quint8 hh;
     quint8 mm;
     quint8 heatSetpoint;
-    
+
     if (Dp_identifier == 0x65)
     {
         //To finish
@@ -851,7 +857,7 @@ bool DeRestPluginPrivate::SendTuyaRequestThermostatSetWeeklySchedule(TaskItem &t
             DBG_Printf(DBG_INFO, "Tuya : Schedule command error, need to have 6 values\n");
         }
     }
-    
+
     for (const QString &entry : list)
     {
         QStringList attributes = entry.split("|");
@@ -862,13 +868,13 @@ bool DeRestPluginPrivate::SendTuyaRequestThermostatSetWeeklySchedule(TaskItem &t
         hh = attributes.at(0).mid(0, 2).toUInt();
         mm = attributes.at(0).mid(3, 2).toUInt();
         heatSetpoint = attributes.at(1).toInt();
-        
+
         data.append(QByteArray::number(hh,16));
         data.append(QByteArray::number(mm,16));
         data.append(QByteArray::number(heatSetpoint,16));
 
     }
-    
+
     return SendTuyaRequest(taskRef, TaskThermostat , DP_TYPE_RAW , Dp_identifier , data );
 }
 
@@ -877,12 +883,12 @@ bool DeRestPluginPrivate::SendTuyaRequestThermostatSetWeeklySchedule(TaskItem &t
 //
 bool DeRestPluginPrivate::SendTuyaRequest(TaskItem &taskRef, TaskType taskType , qint8 Dp_type, qint8 Dp_identifier , QByteArray data )
 {
-    
+
     DBG_Printf(DBG_INFO, "Send Tuya Request: Dp_type: 0x%02X Dp_ identifier 0x%02X Data: %s\n", Dp_type, Dp_identifier , qPrintable(data.toHex()));
 
     TaskItem task;
     copyTaskReq(taskRef, task);
-    
+
     //Tuya task
     task.taskType = taskType;
 
@@ -897,7 +903,7 @@ bool DeRestPluginPrivate::SendTuyaRequest(TaskItem &taskRef, TaskType taskType ,
     // payload
     QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
     stream.setByteOrder(QDataStream::LittleEndian);
-    
+
     //Status always 0x00
     stream << (qint8) 0x00;
     //TransID , use 0

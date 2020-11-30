@@ -180,7 +180,8 @@ SOURCES  = air_quality.cpp \
            rest_userparameter.cpp \
            zcl_tasks.cpp \
            window_covering.cpp \
-           websocket_server.cpp
+           websocket_server.cpp \
+           xmas.cpp
 
 win32 {
 
