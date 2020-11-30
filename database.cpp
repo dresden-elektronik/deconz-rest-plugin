@@ -3624,8 +3624,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeBool, RConfigDisplayFlipped);
                     sensor.addItem(DataTypeBool, RConfigLocked);
                     sensor.addItem(DataTypeBool, RConfigMountingMode);
-                    sensor.addItem(DataTypeString, RConfigSchedule);
-                    sensor.addItem(DataTypeBool, RConfigScheduleOn);
                 }
                 else if (sensor.modelId() == QLatin1String("AC201")) // OWON AC201 Thermostat
                 {
