@@ -994,6 +994,12 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
                     }
+                    else if ((ind.srcEndpoint() == 0x06 || ind.srcEndpoint() == 0x07) && sensorNode->modelId() == QLatin1String("lumi.ctrl_ln2.aq1"))
+                    {
+                        // TODO Button maps should express one ZHASwitch is related to multiple endpoints.
+                        //      Or search for one ZHASwitch resource inside sensors.
+                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x05);
+                    }
                     else
                     {
                         sensorNode = 0; // not supported
@@ -4108,23 +4114,23 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     stream.setByteOrder(QDataStream::LittleEndian);
                     quint16 attrId;
                     quint8 dataType;
-                    quint8 pl3;
                     stream >> attrId;
                     stream >> dataType;
-                    stream >> pl3;
 
                     // Xiaomi
                     if (ind.clusterId() == ONOFF_CLUSTER_ID && sensor->manufacturer() == QLatin1String("LUMI"))
                     {
+                        quint8 value;
+                        stream >> value;
                         ok = false;
                         // payload: u16 attrId, u8 datatype, u8 data
-                        if (attrId == 0x0000 && dataType == 0x10 && // onoff attribute
-                            buttonMap.zclParam0 == pl3)
+                        if (attrId == 0x0000 && dataType == deCONZ::ZclBoolean && // onoff attribute
+                            buttonMap.zclParam0 == value)
                         {
                             ok = true;
                         }
-                        else if (attrId == 0x8000 && dataType == 0x20 && // custom attribute for multi press
-                            buttonMap.zclParam0 == pl3)
+                        else if (attrId == 0x8000 && dataType == deCONZ::Zcl8BitUint && // custom attribute for multi press
+                            buttonMap.zclParam0 == value)
                         {
                             ok = true;
                         }
@@ -4158,13 +4164,15 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         }
                     }
                     else if ((ind.clusterId() == DOOR_LOCK_CLUSTER_ID && sensor->manufacturer() == QLatin1String("LUMI")) ||
-                             (ind.clusterId() == MULTISTATE_INPUT_CLUSTER_ID && sensor->modelId().endsWith(QLatin1String("86opcn01")))) // Aqara Opple multistate cluster event handling
+                             ind.clusterId() == MULTISTATE_INPUT_CLUSTER_ID)
                     {
                         ok = false;
-                        if (attrId == 0x0055 && dataType == 0x21 && // Xiaomi non-standard attribute
-                            buttonMap.zclParam0 == pl3)
+                        if (attrId == MULTI_STATE_INPUT_PRESENT_VALUE_ATTRIBUTE_ID &&
+                            dataType == deCONZ::Zcl16BitUint)
                         {
-                            ok = true;
+                            quint16 value;
+                            stream >> value;
+                            ok = buttonMap.zclParam0 == value;
                         }
                     }
                 }
@@ -4589,8 +4597,11 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         return;
     }
 
-    DBG_Printf(DBG_INFO, "[INFO] - No button handler for: %s endpoint: 0x%02X cluster: %s command: %s payload[0]: 0%02X\n",
+    if (sensor->item(RStateButtonEvent))
+    {
+        DBG_Printf(DBG_INFO, "[INFO] - No button handler for: %s endpoint: 0x%02X cluster: %s command: %s payload[0]: 0%02X\n",
                qPrintable(sensor->modelId()), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), pl0);
+    }
 }
 
 /*! Adds a new sensor node to node cache.
@@ -8452,7 +8463,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                     {
                         for (;ia != enda; ++ia)
                         {
-                            if (ia->id() == 0x0055) // present value
+                            if (ia->id() == MULTI_STATE_INPUT_PRESENT_VALUE_ATTRIBUTE_ID) // present value
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
@@ -8464,6 +8475,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 qint32 gesture = -1; //
                                 ResourceItem *item = i->item(RStateButtonEvent);
                                 int rawValue = ia->numericValue().u16;
+
+                                DBG_Printf(DBG_INFO, "Multi state present value: 0x%04X (%u), %s\n", rawValue, rawValue, qPrintable(i->modelId()));
 
                                 if (i->modelId().startsWith(QLatin1String("lumi.sensor_cube")))
                                 {
@@ -8483,21 +8496,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     else if (rawValue & 0x0200)  { buttonevent = side * 1000 + side;              // double tap
                                                                    gesture = GESTURE_DOUBLE_TAP; }
                                 }
-                                else if (i->modelId() == QLatin1String("lumi.sensor_switch.aq3"))
-                                {
-                                    switch (rawValue)
-                                    {
-                                        case  1: buttonevent = S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED; break;
-                                        case  2: buttonevent = S_BUTTON_1 + S_BUTTON_ACTION_DOUBLE_PRESS;   break;
-                                        case 16: buttonevent = S_BUTTON_1 + S_BUTTON_ACTION_HOLD;           break;
-                                        case 17: buttonevent = S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED;  break;
-                                        case 18: buttonevent = S_BUTTON_1 + S_BUTTON_ACTION_SHAKE;          break;
-                                        default: break;
-                                    }
-                                }
-                                else if (i->modelId() == QLatin1String("lumi.remote.b1acn01") ||
-                                         i->modelId() == QLatin1String("lumi.remote.b186acn01") ||
-                                         i->modelId() == QLatin1String("lumi.remote.b186acn02") ||
+                                else if (i->modelId() == QLatin1String("lumi.remote.b186acn02") ||
                                          i->modelId() == QLatin1String("lumi.remote.b286acn01") ||
                                          i->modelId() == QLatin1String("lumi.remote.b286acn02"))
                                 {
@@ -8516,8 +8515,20 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                             break;
                                     }
                                 }
+                                else if (i->modelId() == QLatin1String("lumi.ctrl_ln1.aq1"))
+                                {
+                                    // handeled by button map
+                                }
+                                else if (i->modelId() == QLatin1String("lumi.ctrl_ln2.aq1"))
+                                {
+                                    // handeled by button map
+                                }
                                 else if (i->modelId().startsWith(QLatin1String("lumi.ctrl_ln")))
                                 {
+                                    // TODO The following can likely be removed sine lumi.ctrl_ln1.aq1 and lumi.ctrl_ln2.aq1 are using button maps now.
+                                    //      are there any other lumi.ctrl_ln* devices?
+                                    //      The lumi.ctrl_ln1.aq2, lumi.ctrl_ln2.aq2 seem to be a typo, the Internet only knows .aq1 versions
+                                    //      and versions without .aq1? https://github.com/Koenkk/zigbee-herdsman-converters/blob/master/devices.js#L716.
                                     switch (event.endpoint())
                                     {
                                         case 0x05: buttonevent = S_BUTTON_1; break;
