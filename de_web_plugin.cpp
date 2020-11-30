@@ -905,6 +905,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             handleDiagnosticsClusterIndication(ind, zclFrame);
             break;
 
+        case IDENTIFY_CLUSTER_ID:
+            handleIdentifyClusterIndication(ind, zclFrame);
+        break;
+
         case 0xFC03:    // Develco specific -> VOC Management
         case BOSCH_AIR_QUALITY_CLUSTER_ID: // Bosch Air quality sensor
             handleAirQualityClusterIndication(ind, zclFrame);
