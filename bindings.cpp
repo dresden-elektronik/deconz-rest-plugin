@@ -1773,7 +1773,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq3.maxInterval = 300;
         if (sensor && (sensor->modelId() == QLatin1String("SP 120") ||           // innr
                        sensor->modelId() == QLatin1String("DoubleSocket50AU") || // Aurora
-                       sensor->modelId().startsWith(QLatin1String("SPLZB-1"))    // Develco smart plug
+                       sensor->modelId().startsWith(QLatin1String("SPLZB-1")) || // Develco smart plug
                        sensor->modelId() == QLatin1String("SZ-ESW01-AU") ||      // Sercomm / Telstra smart plug
                        sensor->modelId() == QLatin1String("Connected socket outlet") || // Niko smart socket
                        sensor->modelId() == QLatin1String("TS0121")))            // Tuya / Blitzwolf
@@ -1781,7 +1781,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq3.reportableChange16bit = 100; // 0.1 A
         }
         else if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||        // Heiman
-                            sensor->modelId().startsWith(QLatin1String("EMIZB-1"))    // Develco EMI
+                            sensor->modelId().startsWith(QLatin1String("EMIZB-1")) || // Develco EMI
                             sensor->modelId() == QLatin1String("SKHMP30-I1") ||       // GS smart plug
                             sensor->modelId().startsWith(QLatin1String("SPW35Z"))))   // RT-RK OBLO SPW35ZD0 smart plug
         {
