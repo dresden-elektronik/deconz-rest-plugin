@@ -3651,8 +3651,13 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 		<!-- LUMI -->
 		<cluster id="0xfcc0" name="Lumi specific" mfcode="0x115f">
 			<description>Lumi specific attributes.
-Note - Aqara Opple switches have 2 modes of operation: Switch all devices (0), event based switching (1).</description>
+Note - Aqara Opple switches have 2 modes of operation (0x0009): Switch all devices (0), event based switching (1).</description>
 			<server>
+				<attribute id="0x0002" name="Power outages" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0003" name="Unknown" type="enum8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0006" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0007" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0008" name="Unknown (write only)" type="ostring" mfcode="0x115f" access="w" required="m"> </attribute>
 				<attribute id="0x0009" name="Opple switch mode" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x00f3" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x00f5" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"> </attribute>
