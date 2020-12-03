@@ -248,6 +248,13 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
         {
             item->setValue(item->toNumber() & ~R_PENDING_ENROLL_RESPONSE);
         }
+        return;
+    }
+    
+    // Allow clearing the alarm bit for Develco devices
+    if (!(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
+    {
+        sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
     }
 }
 

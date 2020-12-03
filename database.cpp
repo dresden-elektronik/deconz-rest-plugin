@@ -3548,6 +3548,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.modelId() == QLatin1String("eaxp72v") || // Tuya
                     sensor.modelId() == QLatin1String("fvq6avy") || // Tuya
                     sensor.modelId() == QLatin1String("88teujp") || // Tuya
+                   (sensor.manufacturer() == QLatin1String("_TZE200_c88teujp")) ||  // Tuya
                    (sensor.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ||  // Tuya
                    (sensor.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) )   // Tuya
                 {
@@ -3559,6 +3560,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya
                     sensor.modelId() == QLatin1String("fvq6avy") || // Tuya
                     sensor.modelId() == QLatin1String("88teujp") || // Tuya
+                   (sensor.manufacturer() == QLatin1String("_TZE200_c88teujp")) ||  // Tuya
                    (sensor.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ||  // Tuya
                    (sensor.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) )   // Tuya
                 {
@@ -3569,6 +3571,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.modelId() == QLatin1String("eaxp72v") || // Tuya
                     sensor.modelId() == QLatin1String("88teujp") || // Tuya
                     sensor.modelId() == QLatin1String("fvq6avy") || // Tuya
+                   (sensor.manufacturer() == QLatin1String("_TZE200_c88teujp")) ||  // Tuya
                    (sensor.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
                 {
                     sensor.addItem(DataTypeBool, RConfigWindowOpen);
@@ -3769,6 +3772,13 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item->setValue(0);
                 //item = sensor.addItem(DataTypeInt16, RConfigOffset);
                 //item->setValue(0);
+            }
+
+            if (sensor.modelId().endsWith(QLatin1String("86opcn01")))
+            {
+                // Aqara Opple switches need to be configured to send proper button events
+                item = sensor.addItem(DataTypeUInt8, RConfigPending);
+                item->setValue(item->toNumber() | R_PENDING_MODE);
             }
         }
         else if (sensor.modelId().startsWith(QLatin1String("tagv4"))) // SmartThings Arrival sensor
