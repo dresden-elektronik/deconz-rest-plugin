@@ -11706,7 +11706,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x0b && dataType == deCONZ::Zcl8BitUint)
         {
-            DBG_Printf(DBG_INFO, "\t0b unknown %d (0x%04X)\n", u8, u8);
+            DBG_Printf(DBG_INFO, "\t0b unknown %d (0x%02X)\n", u8, u8);
         }
         else if ((tag == 0x64 || structIndex == 0x01) && dataType == deCONZ::ZclBoolean) // lumi.ctrl_ln2 endpoint 01
         {
@@ -11720,7 +11720,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 lift = 100 - u8;
             }
             DBG_Printf(DBG_INFO, "\t64 lift %d (%d%%)\n", u8, lift);
-            DBG_Printf(DBG_INFO, "\t64 somke/gas density %d (%d%%)\n", u8);   // lumi.sensor_smoke/lumi.sensor_natgas
+            DBG_Printf(DBG_INFO, "\t64 somke/gas density %d (0x%02X)\n", u8, u8);   // lumi.sensor_smoke/lumi.sensor_natgas
         }
         else if (tag == 0x64 && dataType == deCONZ::Zcl16BitInt)
         {
@@ -11743,6 +11743,14 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             DBG_Printf(DBG_INFO, "\t65 humidity %u\n", u16); // Mi
             humidity = u16;
+        }
+        else if (tag == 0x65 && dataType == deCONZ::Zcl8BitUint)
+        {
+            DBG_Printf(DBG_INFO, "\t65 unknown %d (0x%02X)\n", u8, u8);
+        }
+        else if (tag == 0x66 && dataType == deCONZ::Zcl16BitUint)
+        {
+            DBG_Printf(DBG_INFO, "\t66 unknown %d (0x%04X)\n", u16, u16);
         }
         else if (tag == 0x66 && dataType == deCONZ::Zcl32BitInt) // lumi.weather
         {
