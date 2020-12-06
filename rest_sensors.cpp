@@ -1005,6 +1005,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                sensor->modelId().startsWith(QLatin1String("88teujp")) ||
                                sensor->modelId().startsWith(QLatin1String("eaxp72v")) ||
                                sensor->modelId().startsWith(QLatin1String("fvq6avy")) ||
+                              (sensor->manufacturer() == QLatin1String("_TZE200_c88teujp")) ||
                               (sensor->manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ) ) // Tuya Smart TRV HY369 Thermostatic Radiator Valve
                     {
                         QByteArray data;
@@ -1089,12 +1090,14 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         // For newer models it is not possible to write to this attribute.
                         // Newer models must use the standard Occupied Heating Setpoint value (0x0012) using a default (or none) manufacturer.
                         // See GitHub issue #1098
-                        bool success = sensor->swVersion().toInt() < 22190930 ?
-                            addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, 0x4003, deCONZ::Zcl16BitInt, heatsetpoint) :
-                            addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_NONE, 0x0012, deCONZ::Zcl16BitInt, heatsetpoint);
-
-                        if (success)
+                        // UPD 16-11-2020: Since there is no way to reckognize older and newer models correctly and a new firmware version is on its way this
+                        //                 'fix' is changed to a more robust but ugly implementation by simply sending both codes to the device. One of the commands
+                        //                 will be accepted while the other one will be refused. Let's hope this code can be removed in a future release.
+    
+                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, 0x4003, deCONZ::Zcl16BitInt, heatsetpoint) &&
+                            addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_NONE,   0x0012, deCONZ::Zcl16BitInt, heatsetpoint))
                         {
+                            // success depends on the correctness of the formulated request (static), not on outcome of the behaviour (dynamic)
                             updated = true;
                         }
                         else
@@ -1127,6 +1130,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                              sensor->modelId().startsWith(QLatin1String("eaxp72v")) ||
                              sensor->modelId().startsWith(QLatin1String("fvq6avy")) ||
                             (sensor->manufacturer() == QLatin1String("_TZE200_aoclfnxz")) ||
+                            (sensor->manufacturer() == QLatin1String("_TZE200_c88teujp")) ||
                             (sensor->manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )// Tuya Smart TRV HY369 Thermostatic Radiator Valve
                     {
                         heatsetpoint = heatsetpoint / 10;
@@ -1167,8 +1171,12 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigCoolSetpoint)
                 {
-                    if (map[pi.key()].type() == QVariant::Double)
-                    {
+                    
+                    // Further Clarification on the type check required. Value should come in as integer by the client and expected as such by the API
+                    // Suspended for now in favor of functionality
+                    
+                    //if (map[pi.key()].type() == QVariant::Double)
+                    //{
                         qint16 coolsetpoint = map[pi.key()].toInt(&ok);
 
                         if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, 0x0011, deCONZ::Zcl16BitInt, coolsetpoint))
@@ -1182,14 +1190,14 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             rsp.httpStatus = HttpStatusBadRequest;
                             return REQ_READY_SEND;
                         }
-                    }
+                    /*}
                     else
                     {
                         rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
                                                    QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
                         rsp.httpStatus = HttpStatusBadRequest;
                         return REQ_READY_SEND;
-                    }
+                    }*/
                 }
                 else if ((rid.suffix == RConfigMode) && !sensor->modelId().startsWith(QLatin1String("SPZB")))
                 {
@@ -1222,6 +1230,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                              (sensor->modelId().startsWith(QLatin1String("eaxp72v"))) ||
                              (sensor->modelId().startsWith(QLatin1String("88teujp"))) ||
                              (sensor->modelId().startsWith(QLatin1String("fvq6avy"))) ||
+                             (sensor->manufacturer() == QLatin1String("_TZE200_c88teujp")) ||
                              (sensor->manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ) // Tuya Smart TRV HY369 Thermostatic Radiator Valve
                     {
                         QByteArray data;
@@ -1420,6 +1429,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                                            sensor->modelId().startsWith(QLatin1String("88teujp")) ||
                                                            sensor->modelId().startsWith(QLatin1String("fvq6avy")) ||
                                                            sensor->modelId().startsWith(QLatin1String("eaxp72v")) ||
+                                                          (sensor->manufacturer() == QLatin1String("_TZE200_c88teujp")) ||
                                                           (sensor->manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ))
                 {
                     QByteArray data;
@@ -1470,6 +1480,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             sensor->modelId().startsWith(QLatin1String("fvq6avy")) ||
                             sensor->modelId().startsWith(QLatin1String("eaxp72v")) ||
                             sensor->modelId().startsWith(QLatin1String("88teujp")) ||
+                           (sensor->manufacturer() == QLatin1String("_TZE200_c88teujp")) ||
                            (sensor->manufacturer() == QLatin1String("_TZE200_aoclfnxz")) ||
                            (sensor->manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )
                         {
@@ -1669,6 +1680,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                                            sensor->modelId().startsWith(QLatin1String("fvq6avy")) ||
                                                            sensor->modelId().startsWith(QLatin1String("88teujp")) ||
                                                            sensor->modelId().startsWith(QLatin1String("eaxp72v")) ||
+                                                          (sensor->manufacturer() == QLatin1String("_TZE200_c88teujp")) ||
                                                           (sensor->manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ) )
                 {
                     // Config on / off
@@ -2032,6 +2044,7 @@ int DeRestPluginPrivate::changeThermostatSchedule(const ApiRequest &req, ApiResp
         (sensor->modelId() == QLatin1String("eaxp72v")) ||
         (sensor->modelId() == QLatin1String("88teujp")) ||
         (sensor->modelId() == QLatin1String("fvq6avy")) ||
+        (sensor->manufacturer() == QLatin1String("_TZE200_c88teujp")) ||
         (sensor->modelId() == QLatin1String("GbxAXL2")) )
     {
         ok2 = SendTuyaRequestThermostatSetWeeklySchedule(task, weekdays , transitions , 0x70 );
@@ -2497,6 +2510,10 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
                 if (value & R_PENDING_USERTEST)
                 {
                     pending.append("usertest");
+                }
+                if (value & R_PENDING_MODE)
+                {
+                    pending.append(QLatin1String("mode"));
                 }
                 config[key] = pending;
             }

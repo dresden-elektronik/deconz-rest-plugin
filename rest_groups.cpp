@@ -1887,7 +1887,7 @@ bool DeRestPluginPrivate::groupToMap(const ApiRequest &req, const Group *group, 
     map["state"] = state;
 
     // following attributes are only shown for Phoscon App
-    if (req.apiVersion() == ApiVersion_1_DDEL)
+    if (req.apiVersion() >= ApiVersion_1_DDEL)
     {
         QStringList multis;
         auto m = group->m_multiDeviceIds.begin();

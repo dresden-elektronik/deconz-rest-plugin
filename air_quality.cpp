@@ -91,7 +91,7 @@ void DeRestPluginPrivate::handleAirQualityClusterIndication(const deCONZ::ApsDat
             {
                 QString airquality = QLatin1String("none");
 
-                if (levelPpb > 0 && levelPpb <= 65)      { airquality = QLatin1String("excellent"); }
+                if (levelPpb <= 65)                      { airquality = QLatin1String("excellent"); }
                 if (levelPpb > 65 && levelPpb <= 220)    { airquality = QLatin1String("good"); }
                 if (levelPpb > 220 && levelPpb <= 660)   { airquality = QLatin1String("moderate"); }
                 if (levelPpb > 660 && levelPpb <= 2200)  { airquality = QLatin1String("poor"); }

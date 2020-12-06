@@ -73,7 +73,7 @@ GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.06.00\\\"
+DEFINES += GW_SW_VERSION=\\\"2.07.00\\\"
 DEFINES += GW_SW_DATE=$$GIT_COMMIT_DATE
 DEFINES += GW_API_VERSION=\\\"1.16.0\\\"
 DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
@@ -144,6 +144,7 @@ SOURCES  = air_quality.cpp \
            group_info.cpp \
            gw_uuid.cpp \
            ias_zone.cpp \
+           identify.cpp \
            json.cpp \
            light_node.cpp \
            poll_control.cpp \
@@ -180,7 +181,8 @@ SOURCES  = air_quality.cpp \
            rest_userparameter.cpp \
            zcl_tasks.cpp \
            window_covering.cpp \
-           websocket_server.cpp
+           websocket_server.cpp \
+           xmas.cpp
 
 win32 {
 

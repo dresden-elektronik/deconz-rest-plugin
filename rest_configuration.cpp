@@ -918,7 +918,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         }
     }
 
-    if (req.apiVersion() == ApiVersion_1_DDEL)
+    if (req.apiVersion() >= ApiVersion_1_DDEL)
     {
         map["permitjoin"] = static_cast<double>(gwPermitJoinDuration);
         map["permitjoinfull"] = static_cast<double>(gwPermitJoinResend);
