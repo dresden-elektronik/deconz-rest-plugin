@@ -1606,11 +1606,11 @@ by the Poll Control Cluster Client.</description>
           <attribute id="0x0019" name="Intermediate Setpoints – Tilt" type="ostring" default="1,0x0000" access="rw" required="o"></attribute>
         </attribute-set>
         <attribute-set id="0xf001" description="Tuya Window Covering Setting">
-			<attribute id="0xf001" name="Calibration" type="enum8" default="0" required="m" access="r">
+			<attribute id="0xf001" name="Calibration" type="enum8" default="0" required="m" access="rw">
 				<value name="Start" value="0"></value>
 				<value name="End" value="1"></value>
 			</attribute>
-			<attribute id="0xf002" name="Motor Reversal" type="enum8" default="0" required="m" access="r">
+			<attribute id="0xf002" name="Motor Reversal" type="enum8" default="0" required="m" access="rw">
 				<value name="Off" value="0"></value>
 				<value name="On" value="1"></value>
 			</attribute>
