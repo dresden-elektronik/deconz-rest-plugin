@@ -27,7 +27,7 @@ enum XmasLightStripDataType
 const QStringList RStateEffectValuesXmasLightStrip({
     "none",
     "steady", "snow", "rainbow", "snake",
-    "tinkle", "fireworks", "flag", "waves",
+    "twinkle", "fireworks", "flag", "waves",
     "updown", "vintage", "fading", "collide",
     "strobe", "sparkles", "carnival", "glow"
 });
@@ -251,7 +251,7 @@ bool DeRestPluginPrivate::addTaskXmasLightStripEffect(TaskItem &task, XmasLightS
     stream << (quint8) 0; // Status
     stream << (quint8) seq; // Transaction ID
 
-    tlvOn(stream, true);
+    // tlvOn(stream, true);
     tlvMode(stream, ModeEffect);
     tlvEffect(stream, effect, speed, colours);
 
@@ -295,6 +295,8 @@ int DeRestPluginPrivate::setXmasLightStripState(const ApiRequest &req, ApiRespon
     bool targetOn = false;
     bool hasBri = false;
     quint8 targetBri = 0;
+    bool hasBriInc = false;
+    qint16 targetBriInc = 0;
     bool hasHue = false;
     quint16 targetHue = 0;
     bool hasSat = false;
@@ -336,28 +338,49 @@ int DeRestPluginPrivate::setXmasLightStripState(const ApiRequest &req, ApiRespon
                 }
             }
         }
+        else if (param == "bri_inc"  && taskRef.lightNode->item(RStateBri))
+        {
+            paramOk = true;
+            hasCmd = true;
+            if (map[param].type() == QVariant::Double)
+            {
+                const int briInc = map[param].toInt(&ok);
+                if (ok && briInc >= -0xFF && briInc <= 0xFF)
+                {
+                    valueOk = true;
+                    hasBriInc = true;
+                    targetBriInc = briInc < -0xFE ? -0xFE : briInc > 0xFE ? 0xFE : briInc;
+                }
+            }
+        }
         else if (param == "hue" && taskRef.lightNode->item(RStateHue) && taskRef.lightNode->item(RStateSat))
         {
             paramOk = true;
             hasCmd = true;
-            const uint hue = map[param].toUInt(&ok);
-            if (ok && hue <= 0xFFFF)
+            if (map[param].type() == QVariant::Double)
             {
-                valueOk = true;
-                hasHue = true;
-                targetHue = hue; // Funny: max CurrentHue is 0xFE, max EnhancedCurrentHue is 0xFFFF
+                const uint hue = map[param].toUInt(&ok);
+                if (ok && hue <= 0xFFFF)
+                {
+                    valueOk = true;
+                    hasHue = true;
+                    targetHue = hue; // Funny: max CurrentHue is 0xFE, max EnhancedCurrentHue is 0xFFFF
+                }
             }
         }
         else if (param == "sat" && taskRef.lightNode->item(RStateHue) && taskRef.lightNode->item(RStateSat))
         {
             paramOk = true;
             hasCmd = true;
-            const uint sat = map[param].toUInt(&ok);
-            if (ok && sat <= 0xFF)
+            if (map[param].type() == QVariant::Double)
             {
-                valueOk = true;
-                hasSat = true;
-                targetSat = sat > 0xFE ? 0xFE : sat;
+                const uint sat = map[param].toUInt(&ok);
+                if (ok && sat <= 0xFF)
+                {
+                    valueOk = true;
+                    hasSat = true;
+                    targetSat = sat > 0xFE ? 0xFE : sat;
+                }
             }
         }
         else if (param == "effect" && taskRef.lightNode->item(RStateEffect))
@@ -373,11 +396,14 @@ int DeRestPluginPrivate::setXmasLightStripState(const ApiRequest &req, ApiRespon
         else if (param == "effectSpeed" && taskRef.lightNode->item(RStateEffect))
         {
             paramOk = true;
-            const uint speed = map[param].toUInt(&ok);
-            if (ok && speed <= 100)
+            if (map[param].type() == QVariant::Double)
             {
-                valueOk = true;
-                effectSpeed = speed < 1 ? 1 : speed;
+                const uint speed = map[param].toUInt(&ok);
+                if (ok && speed <= 100)
+                {
+                    valueOk = true;
+                    effectSpeed = speed < 1 ? 1 : speed;
+                }
             }
         }
         else if (param == "effectColours" && taskRef.lightNode->item(RStateEffect))
@@ -431,19 +457,6 @@ int DeRestPluginPrivate::setXmasLightStripState(const ApiRequest &req, ApiRespon
                 }
             }
         }
-        else if (param == "ontime")
-        {
-            paramOk = true;
-            if (map[param].type() == QVariant::Double)
-            {
-                const uint ot = map[param].toUInt(&ok);
-                if (ok && ot <= 0xFFFF)
-                {
-                    valueOk = true;
-                    taskRef.onTime = ot;
-                }
-            }
-        }
         if (!paramOk)
         {
             rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state").arg(id), QString("parameter, %1, not available").arg(param)));
@@ -479,12 +492,7 @@ int DeRestPluginPrivate::setXmasLightStripState(const ApiRequest &req, ApiRespon
         TaskItem task;
         copyTaskReq(taskRef, task);
 
-        const quint8 cmd = taskRef.onTime > 0
-                ? ONOFF_COMMAND_ON_WITH_TIMED_OFF
-                : ONOFF_COMMAND_ON;
-        ok = addTaskSetOnOff(task, cmd, taskRef.onTime, 0);
-
-        if (ok)
+        if (addTaskSetOnOff(task, ONOFF_COMMAND_ON, 0, 0))
         {
             isOn = true;
             QVariantMap rspItem;
@@ -505,6 +513,9 @@ int DeRestPluginPrivate::setXmasLightStripState(const ApiRequest &req, ApiRespon
         TaskItem task;
         copyTaskReq(taskRef, task);
 
+        if (!isOn) {
+            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, effect, is not modifiable. Device is set to off.")));
+        }
         if (effect == R_EFFECT_NONE)
         {
             targetSat = taskRef.lightNode->toNumber(RStateSat);
@@ -585,6 +596,9 @@ int DeRestPluginPrivate::setXmasLightStripState(const ApiRequest &req, ApiRespon
                 rsp.list.append(rspItem);
 
                 taskRef.lightNode->setValue(RStateBri, targetBri);
+
+                // Force update of LEVEL_CONTROL cluster attribute
+                ok = addTaskSetBrightness(task, targetBri, false);
             }
             if (hasHue)
             {
@@ -622,6 +636,35 @@ int DeRestPluginPrivate::setXmasLightStripState(const ApiRequest &req, ApiRespon
             {
                 rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/sat").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
             }
+        }
+    }
+    if (hasBriInc)
+    {
+        TaskItem task;
+        copyTaskReq(taskRef, task);
+        int bri = taskRef.lightNode->toNumber(RStateBri);
+
+        bri += targetBriInc;
+        targetBri = bri < 0 ? 0 : bri > 254 ? 254 : bri;
+
+        if (!isOn)
+        {
+            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, bri_inc, is not modifiable. Device is set to off.")));
+        }
+        else if (addTaskIncBrightness(task, targetBriInc))
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/bri").arg(id)] = targetBri;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+
+            taskRef.lightNode->setValue(RStateBri, targetBri);
+            taskRef.lightNode->setValue(RStateEffect, RStateEffectValuesXmasLightStrip[R_EFFECT_NONE]);
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/bri_inc").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
     }
 
