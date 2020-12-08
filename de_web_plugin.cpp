@@ -3205,7 +3205,26 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         continue;
                     }
 
-                    if (ia->id() == 0x0004) // Manufacturer name
+                    if (ia->id() == 0x0001 && lightNode->modelId() == QLatin1String("TS011F")) // Application version
+                    {
+                        // For Lidl plugs (TS011F) date code is empty, use this attribute instead.
+                        // _TZ3000_1obwwnmq    3x plug
+                        // _TZ3000_kdi2o9m6    1x plug
+                        const auto str = QString::number(static_cast<int>(ia->numericValue().u8));
+                        ResourceItem *item = lightNode->item(RAttrSwVersion);
+
+                        if (!str.isEmpty() && item)
+                        {
+                            if (item->toString() != str)
+                            {
+                                lightNode->setNeedSaveDatabase(true);
+                                queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
+                                updated = true;
+                            }
+                            item->setValue(str); // always needed to refresh set timestamp
+                        }
+                    }
+                    else if (ia->id() == 0x0004) // Manufacturer name
                     {
                         QString str = ia->toString().trimmed();
                         if (!str.isEmpty() && str != lightNode->manufacturer())
@@ -16978,7 +16997,9 @@ void DeRestPlugin::idleTimerFired()
                 }
 
                 // workaround for lights and smart plugs with multiple endpoints but only one basic cluster
-                if ((lightNode->manufacturerCode() == VENDOR_JENNIC || lightNode->manufacturerCode() == VENDOR_XIAOMI || // Xiaomi
+                if ((lightNode->manufacturerCode() == VENDOR_JENNIC || // mostly Xiaomi
+                     lightNode->manufacturerCode() == VENDOR_XIAOMI || // Xiaomi
+                     lightNode->manufacturerCode() == VENDOR_EMBER ||  // LIDL
                      (lightNode->address().ext() & macPrefixMask) == tiMacPrefix) // GLEDOPTO
                     && (lightNode->modelId().isEmpty() || lightNode->manufacturer().isEmpty() || lightNode->item(RAttrSwVersion)->toString().isEmpty()))
                 {
@@ -16996,7 +17017,7 @@ void DeRestPlugin::idleTimerFired()
                             d->queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
                         }
 
-                        if (lightNode->manufacturer().isEmpty() && !l.manufacturer().isEmpty())
+                        if ((lightNode->manufacturer().isEmpty() || lightNode->manufacturer() == QLatin1String("Unknown")) && lightNode->manufacturer() != l.manufacturer())
                         {
                             lightNode->setManufacturerName(l.manufacturer());
                             lightNode->setNeedSaveDatabase(true);

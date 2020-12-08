@@ -445,8 +445,15 @@ void PollManager::pollTimerFired()
         if (item && (item->toString().isEmpty() ||
              (item->lastSet().secsTo(now) > READ_SWBUILD_ID_INTERVAL))) // dynamic
         {
-
-            if (lightNode->manufacturerCode() == VENDOR_UBISYS ||
+            if (lightNode->manufacturerCode() == VENDOR_EMBER && lightNode->modelId() == QLatin1String("TS011F")) // LIDL plugs
+            {
+                if (item->toString().isEmpty())
+                {
+                    attributes.push_back(0x0001);  // application version
+                    clusterId = BASIC_CLUSTER_ID;
+                }
+            }
+            else if (lightNode->manufacturerCode() == VENDOR_UBISYS ||
                 lightNode->manufacturerCode() == VENDOR_EMBER ||
                 lightNode->manufacturerCode() == VENDOR_HEIMAN ||
                 lightNode->manufacturerCode() == VENDOR_XIAOMI ||
@@ -503,6 +510,11 @@ void PollManager::pollTimerFired()
                             // discard attributes which are not be available
                             if (attrId == attr.id() && attr.isAvailable())
                             {
+                                if (attr.dataType_t() == deCONZ::ZclCharacterString && attr.toString().isEmpty() && attr.lastRead() != static_cast<time_t>(-1))
+                                {
+                                    continue; // skip empty string attributes which are available, read only once
+                                }
+
                                 check.push_back(attr.id());     // Only use available attributes
 
                                 if (cl.id() == BASIC_CLUSTER_ID)
