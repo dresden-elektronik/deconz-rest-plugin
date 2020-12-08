@@ -786,6 +786,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
             btnMapClusterCommands = loadButtonMapCommadsJson(buttonMaps);
             buttonMapForModelId = loadButtonMapModelIdsJson(buttonMaps);
             buttonMapData = loadButtonMapsJson(buttonMaps, btnMapClusters, btnMapClusterCommands);
+            break; // only load once
         }
     }
 }

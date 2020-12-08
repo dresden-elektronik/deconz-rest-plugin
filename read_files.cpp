@@ -161,7 +161,7 @@ QMap<QString, QString> loadButtonMapModelIdsJson(const QJsonDocument &buttonMaps
 
                 if (buttonMapModelIds.size() == 0)
                 {
-                    DBG_Printf(DBG_INFO, "[ERROR] - Button map '%s' in JSON file has no assigned ModelIDs. Skip loading button map...\n", qPrintable(buttonMapName));
+                    DBG_Printf(DBG_INFO, "[WARNING] - Button map '%s' in JSON file has no assigned ModelIDs. Skip loading button map...\n", qPrintable(buttonMapName));
                     continue;   // Skip button map
                 }
 
