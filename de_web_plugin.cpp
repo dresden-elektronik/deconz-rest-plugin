@@ -2084,9 +2084,10 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         lightNode.address() = node->address();
         lightNode.setManufacturerCode(node->nodeDescriptor().manufacturerCode());
 
-
         // For Tuya, we realy need manufacture Name, but can't use it to compare because of fonction setManufacturerCode() that put "Heiman",
-        if (((!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == VENDOR_NONE) || (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER)) /*&& (node->simpleDescriptors().size() == 1)*/)
+        if (node->nodeDescriptor().isNull() || node->simpleDescriptors().empty())
+        { }
+        else if (node->nodeDescriptor().manufacturerCode() == VENDOR_NONE || (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER))
         {
             if (manufacturer.isEmpty())
             {
@@ -2111,12 +2112,11 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 				{
 					DBG_Printf(DBG_INFO, "Tuya debug 7 : Missing manufacture name, till missing in DB.\n");
 				}
-
-
             }
             if (!manufacturer.isEmpty())
             {
                 lightNode.setManufacturerName(manufacturer);
+                lightNode.setNeedSaveDatabase(true);
             }
         }
 
