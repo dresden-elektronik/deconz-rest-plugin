@@ -1979,6 +1979,7 @@ public:
     QString lastLightsScan;
 
     SearchSensorsState searchSensorsState;
+    size_t searchSensorGppPairCounter = 0;
     deCONZ::Address fastProbeAddr;
     std::vector<deCONZ::ApsDataIndication> fastProbeIndications;
     QVariantMap searchSensorsResult;

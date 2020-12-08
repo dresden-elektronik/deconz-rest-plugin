@@ -3051,6 +3051,7 @@ void DeRestPluginPrivate::startSearchSensors()
         searchSensorsResult.clear();
         lastSensorsScan = QDateTime::currentDateTimeUtc().toString(QLatin1String("yyyy-MM-ddTHH:mm:ss"));
         QTimer::singleShot(1000, this, SLOT(searchSensorsTimerFired()));
+        searchSensorGppPairCounter = 0;
         searchSensorsState = SearchSensorsActive;
     }
     else
