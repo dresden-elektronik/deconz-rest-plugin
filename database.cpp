@@ -3316,6 +3316,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     item->setValue(60); // presence should be reasonable for physical sensors
                 }
             }
+
+            if (sensor.modelId() == QLatin1String("TY0202"))
+            {
+                sensor.setManufacturer(QLatin1String("SILVERCREST"));
+            }
         }
         else if (sensor.type().endsWith(QLatin1String("Flag")))
         {
