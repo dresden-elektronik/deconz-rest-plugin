@@ -2569,19 +2569,19 @@ static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , ch
  */
 QString DeRestPluginPrivate::loadDataForLightNodeFromDb(QString extAddress)
 {
-
+    QString result;
     DBG_Assert(db != nullptr);
 
     if (!db || extAddress.isEmpty())
     {
-        return NULL;
+        return result;
     }
 
     QString sql = QString("SELECT manufacturername FROM nodes WHERE mac LIKE '%1%' COLLATE NOCASE").arg(extAddress);
     DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
 
     const char * val = nullptr;
-    sqlite3_stmt *res = NULL;
+    sqlite3_stmt *res = nullptr;
     int rc;
 
     rc = sqlite3_prepare_v2(db, qPrintable(sql), -1, &res, nullptr);
@@ -2593,7 +2593,11 @@ QString DeRestPluginPrivate::loadDataForLightNodeFromDb(QString extAddress)
     if (rc == SQLITE_ROW)
     {
         val = reinterpret_cast<const char*>(sqlite3_column_text(res, 0));
-        DBG_Printf(DBG_INFO, "DB %s: %s\n", qPrintable(sql), val);
+        if (val)
+        {
+            result = val;
+            DBG_Printf(DBG_INFO, "DB %s: %s\n", qPrintable(sql), qPrintable(val));
+        }
     }
 
     if (res)
@@ -2601,7 +2605,7 @@ QString DeRestPluginPrivate::loadDataForLightNodeFromDb(QString extAddress)
         rc = sqlite3_finalize(res);
     }
 
-    return QString(val);
+    return result;
 }
 
 /*! Loads data (if available) for a LightNode from the database.
