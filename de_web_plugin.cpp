@@ -6693,6 +6693,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("ELKO");
     }
+    else if ((modelId == QLatin1String("TY0202") || modelId == QLatin1String("TY0203")) && node->nodeDescriptor().manufacturerCode() == VENDOR_HEIMAN)
+    {
+        sensorNode.setManufacturer(QLatin1String("SILVERCREST"));
+    }
     else if ( //node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER ||
              node->nodeDescriptor().manufacturerCode() == VENDOR_HEIMAN)
     {
