@@ -761,9 +761,9 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     }
 
     const QStringList buttonMapLocations = {
+        deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation) + QLatin1String("/devices/button_maps.json")
 #ifdef Q_OS_LINUX
-        QLatin1String("/usr/share/deCONZ/devices/button_maps.json"), deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation) +
-        QLatin1String("/devices/button_maps.json")
+        , "/usr/share/deCONZ/devices/button_maps.json"
 #endif
 #ifdef Q_OS_WIN
         , qApp->applicationDirPath() + QLatin1String("/../devices/button_maps.json")
