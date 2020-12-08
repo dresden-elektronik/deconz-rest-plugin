@@ -3520,18 +3520,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.modelId() == QLatin1String("kud7u2l") ||         // Tuya
                     sensor.modelId() == QLatin1String("902010/32") ||       // Bitron
                    (sensor.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ||          // Tuya
-                   (sensor.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) ||          // Tuya
-                    sensor.modelId() == QLatin1String("Zen-01") )           // Zen
+                   (sensor.manufacturer() == QLatin1String("_TZE200_aoclfnxz")))            // Tuya
                 {
-                    sensor.addItem(DataTypeString, RConfigMode);
-                }
-                
-                if (sensor.modelId() == QLatin1String("Super TR"))   // ELKO
-                {
-                    sensor.addItem(DataTypeString, RConfigTemperatureMeasurement);
-                    sensor.addItem(DataTypeInt16, RStateFloorTemperature);
-                    sensor.addItem(DataTypeBool, RStateHeating);
-                    sensor.addItem(DataTypeBool, RConfigLocked);
                     sensor.addItem(DataTypeString, RConfigMode);
                 }
 
@@ -3585,6 +3575,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeBool, RConfigLocked);
                     sensor.addItem(DataTypeString, RConfigMode);
                 }
+                else if (sensor.modelId() == QLatin1String("Super TR"))   // ELKO
+                {
+                    sensor.addItem(DataTypeString, RConfigTemperatureMeasurement);
+                    sensor.addItem(DataTypeInt16, RStateFloorTemperature);
+                    sensor.addItem(DataTypeBool, RStateHeating);
+                    sensor.addItem(DataTypeBool, RConfigLocked);
+                    sensor.addItem(DataTypeString, RConfigMode);
+                }
                 else if (sensor.modelId() == QLatin1String("Thermostat")) // ecozy
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
@@ -3624,8 +3622,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeBool, RConfigDisplayFlipped);
                     sensor.addItem(DataTypeBool, RConfigLocked);
                     sensor.addItem(DataTypeBool, RConfigMountingMode);
-                    sensor.addItem(DataTypeString, RConfigSchedule);
-                    sensor.addItem(DataTypeBool, RConfigScheduleOn);
                 }
                 else if (sensor.modelId() == QLatin1String("AC201")) // OWON AC201 Thermostat
                 {

@@ -1171,12 +1171,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigCoolSetpoint)
                 {
-                    
-                    // Further Clarification on the type check required. Value should come in as integer by the client and expected as such by the API
-                    // Suspended for now in favor of functionality
-                    
-                    //if (map[pi.key()].type() == QVariant::Double)
-                    //{
+                    if (map[pi.key()].type() == QVariant::Double)
+                    {
                         qint16 coolsetpoint = map[pi.key()].toInt(&ok);
 
                         if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, 0x0011, deCONZ::Zcl16BitInt, coolsetpoint))
@@ -1190,14 +1186,14 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             rsp.httpStatus = HttpStatusBadRequest;
                             return REQ_READY_SEND;
                         }
-                    /*}
+                    }
                     else
                     {
                         rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
                                                    QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
                         rsp.httpStatus = HttpStatusBadRequest;
                         return REQ_READY_SEND;
-                    }*/
+                    }
                 }
                 else if ((rid.suffix == RConfigMode) && !sensor->modelId().startsWith(QLatin1String("SPZB")))
                 {
