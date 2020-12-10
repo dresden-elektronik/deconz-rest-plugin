@@ -186,11 +186,24 @@ SOURCES  = air_quality.cpp \
 
 win32 {
 
+    OPENSSL_PATH = E:/Qt/Tools/OpenSSL/Win_x86
+
+    exists($$OPENSSL_PATH) {
+        message(OpenSLL detected $$OPENSSL_PATH)
+
+        LIBS += -L$$OPENSSL_PATH/bin \
+             -llibcrypto-1_1 \
+             -llibssl-1_1
+        INCLUDEPATH += $$OPENSSL_PATH/include
+        DEFINES += HAS_OPENSSL
+    }
+
     LIBS += \
          -L../.. \
          -L$${PWD}/../../../lib/sqlite-dll-win32-x86-3240000 \
          -ldeCONZ1 \
          -lsqlite3
+
     INCLUDEPATH += $${PWD}/../../../lib/sqlite-amalgamation-3240000
     CONFIG += dll
 }
