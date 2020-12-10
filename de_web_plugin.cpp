@@ -6795,12 +6795,20 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             item = sensorNode.addItem(DataTypeBool, RStateLowBattery);
             item->setValue(false);
-            item = sensorNode.addItem(DataTypeBool, RStateTampered);
-            item->setValue(false);
-            item = sensorNode.addItem(DataTypeUInt8, RConfigPending);
-            item->setValue(item->toNumber() | R_PENDING_WRITE_CIE_ADDRESS | R_PENDING_ENROLL_RESPONSE);
-            writeIasCieAddress(&sensorNode);
+            if (modelId.startsWith(QLatin1String("SMSZB-1"))) // Develco smoke detector
+            {
+                item = sensorNode.addItem(DataTypeBool, RStateTest);
+                item->setValue(false);
+            }
+            else
+            {
+                item = sensorNode.addItem(DataTypeBool, RStateTampered);
+                item->setValue(false);
+            }
         }
+        item = sensorNode.addItem(DataTypeUInt8, RConfigPending);
+        item->setValue(item->toNumber() | R_PENDING_WRITE_CIE_ADDRESS | R_PENDING_ENROLL_RESPONSE);
+        writeIasCieAddress(&sensorNode);
     }
 
     QString uid = generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint, clusterId);
