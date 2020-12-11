@@ -3843,14 +3843,20 @@ Outdoor Temp to Display Timeout: set 30 for 'off' and 10800 for 'on'</descriptio
 
 		<!-- NIKO -->
 		<cluster id="0xfc00" name="Niko specific" mfcode="0x125f">
-			<description>Niko specific attributes.</description>
+			<description>Niko specific attributes.
+            
+LED color: 0 - off, 255 - white, 65280 - blue, 16711680 - red
+Child lock on: 0, Child lock off: 1
+LED on: 1, LED off: 0
+0x0300: Switches permission to write either to 0x0202 (1) or to 0x0302 (0)
+Writing 1 to 0x0202 and 0x0302 makes 0x0300 writable. Then writing 1 to 0x0300 sets 0x0300 bitmap from 0x11 to 0x12, but block all other writes to 0x03XX attributes.</description>
 			<server>
 				<attribute id="0x0000" name="Unknown" type="bmp8" mfcode="0x125f" access="rw" required="m"> </attribute>
-				<attribute id="0x0100" name="Unknown" type="u24" mfcode="0x125f" access="rw" required="m"> </attribute>
-				<attribute id="0x0101" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0100" name="LED color" type="u24" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0101" name="Child lock" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
 				<attribute id="0x0102" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
 				<attribute id="0x0103" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
-				<attribute id="0x0104" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0104" name="LED on/off" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
 				<attribute id="0x0200" name="Connected to power since" type="u32" mfcode="0x125f" access="r" required="m"> </attribute>
 				<attribute id="0x0201" name="Unknown" type="u48" mfcode="0x125f" access="rw" required="m"> </attribute>
 				<attribute id="0x0202" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
