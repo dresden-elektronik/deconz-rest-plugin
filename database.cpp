@@ -3552,6 +3552,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.modelId() == QLatin1String("eaxp72v") || // Tuya
                     sensor.modelId() == QLatin1String("fvq6avy") || // Tuya
                     sensor.modelId() == QLatin1String("88teujp") || // Tuya
+                    sensor.modelId() == QLatin1String("uhszj9s") || // Tuya
                    (sensor.manufacturer() == QLatin1String("_TZE200_c88teujp")) ||  // Tuya
                    (sensor.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ||  // Tuya
                    (sensor.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) )   // Tuya
@@ -3564,6 +3565,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya
                     sensor.modelId() == QLatin1String("fvq6avy") || // Tuya
                     sensor.modelId() == QLatin1String("88teujp") || // Tuya
+                    sensor.modelId() == QLatin1String("uhszj9s") || // Tuya
                    (sensor.manufacturer() == QLatin1String("_TZE200_c88teujp")) ||  // Tuya
                    (sensor.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ||  // Tuya
                    (sensor.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) )   // Tuya
@@ -3574,6 +3576,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya
                     sensor.modelId() == QLatin1String("eaxp72v") || // Tuya
                     sensor.modelId() == QLatin1String("88teujp") || // Tuya
+                    sensor.modelId() == QLatin1String("uhszj9s") || // Tuya
                     sensor.modelId() == QLatin1String("fvq6avy") || // Tuya
                    (sensor.manufacturer() == QLatin1String("_TZE200_c88teujp")) ||  // Tuya
                    (sensor.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
