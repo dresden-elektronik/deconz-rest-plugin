@@ -855,7 +855,7 @@
             <attribute id="0x0045" name="Min Present Value" type="float" required="o" access="rw"></attribute>
 			<attribute id="0x0051" name="Out of service" type="bool" required="m" access="rw" default="0"></attribute>
 			<attribute id="0x0055" name="Present value" type="float" required="m" access="rw" default="0"></attribute>
-            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0">
+            <attribute id="0x0067" name="Reliability" type="enum8" required="o" access="rw" default="0">
                 <value name="No fault detected" value="0"></value>
                 <value name="No sensor" value="1"></value>
                 <value name="Over range" value="2"></value>
@@ -890,7 +890,7 @@
             <attribute id="0x0045" name="Min Present Value" type="float" required="o" access="rw"></attribute>
             <attribute id="0x0051" name="Out of service" type="bool" required="m" access="rw" default="0"></attribute>
             <attribute id="0x0055" name="Present value" type="float" required="m" access="rw" default="0"></attribute>
-            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0">
+            <attribute id="0x0067" name="Reliability" type="enum8" required="o" access="rw" default="0">
                 <value name="No fault detected" value="0"></value>
                 <value name="No sensor" value="1"></value>
                 <value name="Over range" value="2"></value>
@@ -924,7 +924,7 @@
             <attribute id="0x001c" name="Description" type="cstring" required="o" access="rw"></attribute>
             <attribute id="0x0051" name="Out of service" type="bool" required="m" access="rw" default="0"></attribute>
             <attribute id="0x0055" name="Present value" type="float" required="m" access="rw" default="0"></attribute>
-            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0">
+            <attribute id="0x0067" name="Reliability" type="enum8" required="o" access="rw" default="0">
                 <value name="No fault detected" value="0"></value>
                 <value name="No sensor" value="1"></value>
                 <value name="Over range" value="2"></value>
@@ -962,7 +962,7 @@
                 <value name="Reverse" value="1"></value>
 			</attribute>
             <attribute id="0x0055" name="Present Value" type="bool" default="0" access="rw" required="m"></attribute>
-			<attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0">
+			<attribute id="0x0067" name="Reliability" type="enum8" required="o" access="rw" default="0">
                 <value name="No fault detected" value="0"></value>
                 <value name="No sensor" value="1"></value>
                 <value name="Over range" value="2"></value>
@@ -1000,7 +1000,7 @@
                 <value name="Reverse" value="1"></value>
             </attribute>
             <attribute id="0x0055" name="Present value" type="bool" required="m" access="rw"></attribute>
-            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0">
+            <attribute id="0x0067" name="Reliability" type="enum8" required="o" access="rw" default="0">
                 <value name="No fault detected" value="0"></value>
                 <value name="No sensor" value="1"></value>
                 <value name="Over range" value="2"></value>
@@ -1038,7 +1038,7 @@
             <attribute id="0x0043" name="Min On Time" type="u32" required="o" access="rw" default="0xffffffff"></attribute>
             <attribute id="0x0051" name="Out of service" type="bool" required="m" access="rw" default="0"></attribute>
             <attribute id="0x0055" name="Present value" type="bool" required="m" access="rw"></attribute>
-            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0">
+            <attribute id="0x0067" name="Reliability" type="enum8" required="o" access="rw" default="0">
                 <value name="No fault detected" value="0"></value>
                 <value name="No sensor" value="1"></value>
                 <value name="Over range" value="2"></value>
@@ -1070,7 +1070,7 @@
             <attribute id="0x004a" type="u16" name="Number of states" required="m" access="rw" default="0"></attribute>
 			<attribute id="0x0051" type="bool" name="Out of service" required="m" access="rw" default="0"></attribute>
 			<attribute id="0x0055" type="u16" name="Present value" required="m" access="rw" default="0"></attribute>
-            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0">
+            <attribute id="0x0067" name="Reliability" type="enum8" required="o" access="rw" default="0">
                 <value name="No fault detected" value="0"></value>
                 <value name="No sensor" value="1"></value>
                 <value name="Over range" value="2"></value>
@@ -1101,7 +1101,7 @@
             <attribute id="0x004a" type="u16" name="Number of states" required="m" access="rw" default="0"></attribute>
             <attribute id="0x0051" type="bool" name="Out of service" required="m" access="rw" default="0"></attribute>
             <attribute id="0x0055" type="u16" name="Present value" required="m" access="rw" default="0"></attribute>
-            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0">
+            <attribute id="0x0067" name="Reliability" type="enum8" required="o" access="rw" default="0">
                 <value name="No fault detected" value="0"></value>
                 <value name="No sensor" value="1"></value>
                 <value name="Over range" value="2"></value>
@@ -1133,7 +1133,7 @@
             <attribute id="0x004a" type="u16" name="Number of states" required="m" access="rw" default="0"></attribute>
             <attribute id="0x0051" type="bool" name="Out of service" required="m" access="rw" default="0"></attribute>
             <attribute id="0x0055" type="u16" name="Present value" required="m" access="rw" default="0"></attribute>
-            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0">
+            <attribute id="0x0067" name="Reliability" type="enum8" required="o" access="rw" default="0">
                 <value name="No fault detected" value="0"></value>
                 <value name="No sensor" value="1"></value>
                 <value name="Over range" value="2"></value>
