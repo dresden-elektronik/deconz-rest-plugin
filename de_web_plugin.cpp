@@ -786,6 +786,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
             btnMapClusterCommands = loadButtonMapCommadsJson(buttonMaps);
             buttonMapForModelId = loadButtonMapModelIdsJson(buttonMaps);
             buttonMapData = loadButtonMapsJson(buttonMaps, btnMapClusters, btnMapClusterCommands);
+            break; // only load once
         }
     }
 }
@@ -1406,7 +1407,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
     updateSensorEtag(sensor);
     sensor->updateStateTimestamp();
     item->setValue(btn);
-    DBG_Printf(DBG_INFO, "[INFO] - Button %u %s\n", item->toNumber(), qPrintable(sensor->modelId()));
+    DBG_Printf(DBG_ZGP, "ZGP button %u %s\n", item->toNumber(), qPrintable(sensor->modelId()));
     Event e(RSensors, RStateButtonEvent, sensor->id(), item);
     enqueueEvent(e);
     enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
@@ -1605,14 +1606,18 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
 
         Sensor *sensor = getSensorNodeForFingerPrint(ind.gpdSrcId(), fp, QLatin1String("ZGPSwitch"));
 
-        if (searchSensorsState == SearchSensorsActive && extOptions.bits.gpdKeyEncryption)
+#if DECONZ_LIB_VERSION >= 0x011000
+        if (searchSensorsState == SearchSensorsActive && extOptions.bits.gpdKeyEncryption && ind.gppShortAddress() != 0)
         {
-            const QDateTime now = QDateTime::currentDateTime();
-            if (!sensor || !sensor->lastRx().isValid() || sensor->lastRx().secsTo(now) > 5)
+            if (searchSensorGppPairCounter < GP_MAX_PROXY_PAIRINGS && ind.gppLqi() >= deCONZ::GppGpdLqiModerate)
             {
-                GP_SendPairing(ind.gpdSrcId(), 0xdd09, gpdDeviceId, gpdOutgoingCounter, gpdKey, apsCtrl, zclSeq++);
+                if (GP_SendPairing(ind.gpdSrcId(), GP_DEFAULT_PROXY_GROUP, gpdDeviceId, gpdOutgoingCounter, gpdKey, apsCtrl, zclSeq++, ind.gppShortAddress()))
+                {
+                    searchSensorGppPairCounter++;
+                }
             }
         }
+#endif
 
         if (!sensor || sensor->deletedState() == Sensor::StateDeleted)
         {
@@ -1707,7 +1712,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
 
     default:
     {
-        DBG_Printf(DBG_INFO, "GP unhandled command gpdsrcid %u: gpdcmdid: 0x%02X\n", ind.gpdSrcId(), ind.gpdCommandId());
+        DBG_Printf(DBG_ZGP, "ZGP unhandled command gpdsrcid %u: gpdcmdid: 0x%02X\n", ind.gpdSrcId(), ind.gpdCommandId());
     }
         break;
     }
@@ -2079,9 +2084,10 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         lightNode.address() = node->address();
         lightNode.setManufacturerCode(node->nodeDescriptor().manufacturerCode());
 
-
         // For Tuya, we realy need manufacture Name, but can't use it to compare because of fonction setManufacturerCode() that put "Heiman",
-        if (((!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == VENDOR_NONE) || (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER)) /*&& (node->simpleDescriptors().size() == 1)*/)
+        if (node->nodeDescriptor().isNull() || node->simpleDescriptors().empty())
+        { }
+        else if (node->nodeDescriptor().manufacturerCode() == VENDOR_NONE || (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER))
         {
             if (manufacturer.isEmpty())
             {
@@ -2106,12 +2112,11 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 				{
 					DBG_Printf(DBG_INFO, "Tuya debug 7 : Missing manufacture name, till missing in DB.\n");
 				}
-
-
             }
             if (!manufacturer.isEmpty())
             {
                 lightNode.setManufacturerName(manufacturer);
+                lightNode.setNeedSaveDatabase(true);
             }
         }
 
@@ -3063,7 +3068,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     }
                     else if (ia->id() == 0x4002) // color loop active
                     {
-                        if (lightNode->toNumber(RStateEffect) <= 1)
+                        if (RStateEffectValuesMueller.indexOf(lightNode->toString(RStateEffect), 0) <= 1)
                         {
                             lightNode->setValue(RStateEffect, RStateEffectValues[ia->numericValue().u8]);
                         }
@@ -3096,10 +3101,6 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
             }
             else if (ic->id() == LEVEL_CLUSTER_ID && (event.clusterId() == LEVEL_CLUSTER_ID))
             {
-                if (isXmasLightStrip(lightNode))
-                {
-                    continue;
-                }
                 std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
                 std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
                 for (;ia != enda; ++ia)
@@ -3204,7 +3205,26 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         continue;
                     }
 
-                    if (ia->id() == 0x0004) // Manufacturer name
+                    if (ia->id() == 0x0001 && lightNode->modelId() == QLatin1String("TS011F")) // Application version
+                    {
+                        // For Lidl plugs (TS011F) date code is empty, use this attribute instead.
+                        // _TZ3000_1obwwnmq    3x plug
+                        // _TZ3000_kdi2o9m6    1x plug
+                        const auto str = QString::number(static_cast<int>(ia->numericValue().u8));
+                        ResourceItem *item = lightNode->item(RAttrSwVersion);
+
+                        if (!str.isEmpty() && item)
+                        {
+                            if (item->toString() != str)
+                            {
+                                lightNode->setNeedSaveDatabase(true);
+                                queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
+                                updated = true;
+                            }
+                            item->setValue(str); // always needed to refresh set timestamp
+                        }
+                    }
+                    else if (ia->id() == 0x0004) // Manufacturer name
                     {
                         QString str = ia->toString().trimmed();
                         if (!str.isEmpty() && str != lightNode->manufacturer())
@@ -6304,15 +6324,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
 
-            if (sensorNode.modelId() == QLatin1String("Super TR"))   // ELKO
-            {
-                sensorNode.addItem(DataTypeString, RConfigTemperatureMeasurement);
-                sensorNode.addItem(DataTypeInt16, RStateFloorTemperature);
-                sensorNode.addItem(DataTypeBool, RStateHeating);
-                sensorNode.addItem(DataTypeBool, RConfigLocked);
-                sensorNode.addItem(DataTypeString, RConfigMode);
-            }
-
             if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
                 sensorNode.modelId() == QLatin1String("GbxAXL2") || // Tuya
                 (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
@@ -6326,8 +6337,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.modelId() == QLatin1String("eaxp72v") || // Tuya
                 sensorNode.modelId() == QLatin1String("88teujp") || // Tuya
                 sensorNode.modelId() == QLatin1String("fvq6avy") || // Tuya
-               (sensorNode.manufacturer() == QLatin1String("_TZE200_c88teujp")) || 
-               (sensorNode.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) || 
+               (sensorNode.manufacturer() == QLatin1String("_TZE200_c88teujp")) ||
+               (sensorNode.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) ||
                (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
             {
                 sensorNode.addItem(DataTypeString, RConfigPreset);
@@ -6338,8 +6349,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
                 sensorNode.modelId() == QLatin1String("88teujp") || // Tuya
                 sensorNode.modelId() == QLatin1String("fvq6avy") || // Tuya
-               (sensorNode.manufacturer() == QLatin1String("_TZE200_c88teujp")) || 
-               (sensorNode.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) || 
+               (sensorNode.manufacturer() == QLatin1String("_TZE200_c88teujp")) ||
+               (sensorNode.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) ||
                (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
             {
                 sensorNode.addItem(DataTypeString, RConfigSchedule);
@@ -6349,7 +6360,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.modelId() == QLatin1String("eaxp72v") || // Tuya
                 sensorNode.modelId() == QLatin1String("88teujp") || // Tuya
                 sensorNode.modelId() == QLatin1String("fvq6avy") || // Tuya
-               (sensorNode.manufacturer() == QLatin1String("_TZE200_c88teujp")) || 
+               (sensorNode.manufacturer() == QLatin1String("_TZE200_c88teujp")) ||
                (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
             {
                 sensorNode.addItem(DataTypeBool, RConfigWindowOpen);
@@ -6360,6 +6371,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
                 sensorNode.addItem(DataTypeUInt32, RConfigHostFlags); // hidden
                 sensorNode.addItem(DataTypeBool, RConfigDisplayFlipped);
+                sensorNode.addItem(DataTypeBool, RConfigLocked);
+                sensorNode.addItem(DataTypeString, RConfigMode);
+            }
+            else if (sensorNode.modelId() == QLatin1String("Super TR"))   // ELKO
+            {
+                sensorNode.addItem(DataTypeString, RConfigTemperatureMeasurement);
+                sensorNode.addItem(DataTypeInt16, RStateFloorTemperature);
+                sensorNode.addItem(DataTypeBool, RStateHeating);
                 sensorNode.addItem(DataTypeBool, RConfigLocked);
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
@@ -6673,6 +6692,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
              modelId.startsWith(QLatin1String("ElkoDimmer")))
     {
         sensorNode.setManufacturer("ELKO");
+    }
+    else if ((modelId == QLatin1String("TY0202") || modelId == QLatin1String("TY0203")) && node->nodeDescriptor().manufacturerCode() == VENDOR_HEIMAN)
+    {
+        sensorNode.setManufacturer(QLatin1String("SILVERCREST"));
     }
     else if ( //node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER ||
              node->nodeDescriptor().manufacturerCode() == VENDOR_HEIMAN)
@@ -7458,7 +7481,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId() == QLatin1String("Motion Sensor-A") ||  // Osram motion sensor
                                     i->modelId() == QLatin1String("Bell") ||             // Sage doorbell sensor
                                     i->modelId() == QLatin1String("ISW-ZPR1-WP13") ||    // Bosch motion sensor
-                                    i->modelId().endsWith(QLatin1String("86opcn01")) ||  // Aqara Opple
+                                    i->modelId() == QLatin1String("3AFE14010402000D") ||   // Konke motion sensor
+                                    i->modelId() == QLatin1String("3AFE28010402000D") ||   // Konke motion sensor v2
+                                    i->modelId().endsWith(QLatin1String("86opcn01")) ||    // Aqara Opple
                                     i->modelId().startsWith(QLatin1String("AQSZB-1")) ||   // Develco air quality sensor
                                     i->modelId().startsWith(QLatin1String("SMSZB-1")) ||   // Develco smoke sensor
                                     i->modelId().startsWith(QLatin1String("HESZB-1")) ||   // Develco heat sensor
@@ -11667,7 +11692,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x03 && dataType == deCONZ::Zcl8BitInt)
         {
-            DBG_Printf(DBG_INFO, "\t03 temperature %d °C\n", int(s8)); // Device temperature for lumi.plug.mmeu01
+            DBG_Printf(DBG_INFO, "\t03 Device temperature %d °C\n", int(s8)); // Device temperature for lumi.plug.mmeu01
             temperature = qint16(s8) * 100;
         }
         else if ((tag == 0x04 || structIndex == 0x03) && dataType == deCONZ::Zcl16BitUint)
@@ -11676,7 +11701,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x05 && dataType == deCONZ::Zcl16BitUint)
         {
-            DBG_Printf(DBG_INFO, "\t05 RSSI dB (?) %d (0x%04X)\n", u16, u16);
+            DBG_Printf(DBG_INFO, "\t05 RSSI dB (?) %d (0x%04X)\n", u16, u16); // Power outages for lumi.plug.mmeu01
         }
         else if ((tag == 0x06 || structIndex == 0x04) && dataType == deCONZ::Zcl40BitUint)
         {
@@ -11696,7 +11721,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x0a && dataType == deCONZ::Zcl16BitUint) // lumi.vibration.aq1
         {
-            DBG_Printf(DBG_INFO, "\t0a unknown %d (0x%04X)\n", u16, u16);
+            DBG_Printf(DBG_INFO, "\t0a Parent NWK %d (0x%04X)\n", u16, u16);
         }
         else if (tag == 0x0b && dataType == deCONZ::Zcl16BitUint)
         {
@@ -11705,7 +11730,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x0b && dataType == deCONZ::Zcl8BitUint)
         {
-            DBG_Printf(DBG_INFO, "\t0b unknown %d (0x%04X)\n", u8, u8);
+            DBG_Printf(DBG_INFO, "\t0b unknown %d (0x%02X)\n", u8, u8);
         }
         else if ((tag == 0x64 || structIndex == 0x01) && dataType == deCONZ::ZclBoolean) // lumi.ctrl_ln2 endpoint 01
         {
@@ -11719,7 +11744,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 lift = 100 - u8;
             }
             DBG_Printf(DBG_INFO, "\t64 lift %d (%d%%)\n", u8, lift);
-            DBG_Printf(DBG_INFO, "\t64 somke/gas density %d (%d%%)\n", u8);   // lumi.sensor_smoke/lumi.sensor_natgas
+            DBG_Printf(DBG_INFO, "\t64 somke/gas density %d (0x%02X)\n", u8, u8);   // lumi.sensor_smoke/lumi.sensor_natgas
         }
         else if (tag == 0x64 && dataType == deCONZ::Zcl16BitInt)
         {
@@ -11742,6 +11767,14 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             DBG_Printf(DBG_INFO, "\t65 humidity %u\n", u16); // Mi
             humidity = u16;
+        }
+        else if (tag == 0x65 && dataType == deCONZ::Zcl8BitUint)
+        {
+            DBG_Printf(DBG_INFO, "\t65 unknown %d (0x%02X)\n", u8, u8);
+        }
+        else if (tag == 0x66 && dataType == deCONZ::Zcl16BitUint)
+        {
+            DBG_Printf(DBG_INFO, "\t66 unknown %d (0x%04X)\n", u16, u16);
         }
         else if (tag == 0x66 && dataType == deCONZ::Zcl32BitInt) // lumi.weather
         {
@@ -16968,7 +17001,9 @@ void DeRestPlugin::idleTimerFired()
                 }
 
                 // workaround for lights and smart plugs with multiple endpoints but only one basic cluster
-                if ((lightNode->manufacturerCode() == VENDOR_JENNIC || lightNode->manufacturerCode() == VENDOR_XIAOMI || // Xiaomi
+                if ((lightNode->manufacturerCode() == VENDOR_JENNIC || // mostly Xiaomi
+                     lightNode->manufacturerCode() == VENDOR_XIAOMI || // Xiaomi
+                     lightNode->manufacturerCode() == VENDOR_EMBER ||  // LIDL
                      (lightNode->address().ext() & macPrefixMask) == tiMacPrefix) // GLEDOPTO
                     && (lightNode->modelId().isEmpty() || lightNode->manufacturer().isEmpty() || lightNode->item(RAttrSwVersion)->toString().isEmpty()))
                 {
@@ -16986,7 +17021,7 @@ void DeRestPlugin::idleTimerFired()
                             d->queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
                         }
 
-                        if (lightNode->manufacturer().isEmpty() && !l.manufacturer().isEmpty())
+                        if ((lightNode->manufacturer().isEmpty() || lightNode->manufacturer() == QLatin1String("Unknown")) && lightNode->manufacturer() != l.manufacturer())
                         {
                             lightNode->setManufacturerName(l.manufacturer());
                             lightNode->setNeedSaveDatabase(true);

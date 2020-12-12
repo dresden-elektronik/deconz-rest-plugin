@@ -1606,11 +1606,11 @@ by the Poll Control Cluster Client.</description>
           <attribute id="0x0019" name="Intermediate Setpoints – Tilt" type="ostring" default="1,0x0000" access="rw" required="o"></attribute>
         </attribute-set>
         <attribute-set id="0xf001" description="Tuya Window Covering Setting">
-			<attribute id="0xf001" name="Calibration" type="enum8" default="0" required="m" access="r">
+			<attribute id="0xf001" name="Calibration" type="enum8" default="0" required="m" access="rw">
 				<value name="Start" value="0"></value>
 				<value name="End" value="1"></value>
 			</attribute>
-			<attribute id="0xf002" name="Motor Reversal" type="enum8" default="0" required="m" access="r">
+			<attribute id="0xf002" name="Motor Reversal" type="enum8" default="0" required="m" access="rw">
 				<value name="Off" value="0"></value>
 				<value name="On" value="1"></value>
 			</attribute>
@@ -1890,6 +1890,18 @@ Note: It does not clear or delete previous weekly schedule programming configura
 			</attribute>
 			<attribute id="0x404D" name="Unknown" type="bmp8" access="rw" required="m" mfcode="0x1246"></attribute>
 			<attribute id="0x404E" name="Unknown" type="bmp8" access="rw" required="m" mfcode="0x1246"></attribute>
+		</attribute-set>
+
+		<!-- Sinope manufacturer specific -->
+		<attribute-set id="0x0400" description="Sinope specific" mfcode="0x119c">
+			<attribute id="0x0400" name="Occupancy" type="enum8" access="rw" required="m" mfcode="0x119c">
+				<value name="Unoccupied" value="0x00"></value>
+				<value name="Occupied" value="0x01"></value>
+			</attribute>
+			<attribute id="0x0402" name="Backlight" type="enum8" access="rw" required="m" mfcode="0x119c">
+				<value name="On demand" value="0x00"></value>
+				<value name="Sensing" value="0x01"></value>
+			</attribute>
 		</attribute-set>
 
 		<!-- Stelpro manufacturer specific -->
@@ -3651,8 +3663,13 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 		<!-- LUMI -->
 		<cluster id="0xfcc0" name="Lumi specific" mfcode="0x115f">
 			<description>Lumi specific attributes.
-Note - Aqara Opple switches have 2 modes of operation: Switch all devices (0), event based switching (1).</description>
+Note - Aqara Opple switches have 2 modes of operation (0x0009): Switch all devices (0), event based switching (1).</description>
 			<server>
+				<attribute id="0x0002" name="Power outages" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0003" name="Unknown" type="enum8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0006" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0007" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0008" name="Unknown (write only)" type="ostring" mfcode="0x115f" access="w" required="m"> </attribute>
 				<attribute id="0x0009" name="Opple switch mode" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x00f3" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x00f5" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"> </attribute>
@@ -3673,6 +3690,43 @@ Note - Aqara Opple switches have 2 modes of operation: Switch all devices (0), e
 				<attribute id="0x020b" name="Max. Load Exceeded at (W)" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0xf000" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0xfffd" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
+			</server>
+			<client>
+			</client>
+		</cluster>
+        
+		<!-- SINOPE -->
+		<cluster id="0xff01" name="Sinope specific" mfcode="0x119c">
+			<description>Sinope specific attributes.
+
+Outdoor Temp to Display Timeout: set 30 for 'off' and 10800 for 'on'</description>
+			<server>
+				<attribute id="0x0010" name="Outdoor Temp on Display" type="s16" mfcode="0x119c" access="rw" required="m"> </attribute>
+				<attribute id="0x0011" name="Outdoor Temp on Display Timeout" type="u16" mfcode="0x119c" access="rw" required="m"> </attribute>
+				<attribute id="0x0020" name="Current Time on Display" type="u32" mfcode="0x119c" access="rw" required="m"> </attribute>
+				<attribute id="0x0105" name="Floor Control Mode" type="enum8" mfcode="0x119c" access="rw" required="m">
+					<value name="Ambient" value="0x01"></value>
+					<value name="Floor" value="0x02"></value>
+				</attribute>
+				<attribute id="0x0108" name="Ambient Max Heat Setpoint Limit" type="s16" mfcode="0x119c" access="rw" required="m"> </attribute>
+				<attribute id="0x0109" name="Floor Min Heat Setpoint Limit" type="s16" mfcode="0x119c" access="rw" required="m"> </attribute>
+				<attribute id="0x0110" name="Floor Max Heat Setpoint Limit" type="s16" mfcode="0x119c" access="rw" required="m"> </attribute>
+				<attribute id="0x0111" name="Temperature Sensor" type="enum8" mfcode="0x119c" access="rw" required="m">
+					<value name="10k" value="0x00"></value>
+					<value name="12k" value="0x01"></value>
+				</attribute>
+				<attribute id="0x0112" name="Floor Limit Status" type="enum8" mfcode="0x119c" access="r" required="m">
+					<value name="Off" value="0x00"></value>
+					<value name="On" value="0x01"></value>
+				</attribute>
+				<attribute id="0x0114" name="Time Format on Display" type="enum8" mfcode="0x119c" access="rw" required="m">
+					<value name="24h" value="0x00"></value>
+					<value name="12h" value="0x01"></value>
+				</attribute>
+				<attribute id="0x0115" name="GFCi Status" type="enum8" mfcode="0x119c" access="r" required="m">
+					<value name="Off" value="0x00"></value>
+					<value name="On" value="0x01"></value>
+				</attribute>
 			</server>
 			<client>
 			</client>

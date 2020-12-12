@@ -178,7 +178,7 @@ bool DeRestPluginPrivate::checkPollControlClusterTask(Sensor *sensor)
     \return 0 if not found.
     \return >0 endpoint if found.
  */
-quint8 DECONZ_DLLSPEC PC_GetPollControlEndpoint(const deCONZ::Node *node)
+quint8 PC_GetPollControlEndpoint(const deCONZ::Node *node)
 {
     if (!node)
     {

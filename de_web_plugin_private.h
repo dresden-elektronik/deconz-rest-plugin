@@ -806,7 +806,7 @@ enum XmasLightStripEffect
     EffectSnow = 0x01,
     EffectRainbow = 0x02,
     EffectSnake = 0x03,
-    EffectTinkle = 0x04,
+    EffectTwinkle = 0x04,
     EffectFireworks = 0x05,
     EffectFlag = 0x06,
     EffectWaves = 0x07,
@@ -1979,6 +1979,7 @@ public:
     QString lastLightsScan;
 
     SearchSensorsState searchSensorsState;
+    size_t searchSensorGppPairCounter = 0;
     deCONZ::Address fastProbeAddr;
     std::vector<deCONZ::ApsDataIndication> fastProbeIndications;
     QVariantMap searchSensorsResult;
