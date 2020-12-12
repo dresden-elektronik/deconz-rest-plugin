@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2020 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -164,7 +164,7 @@ void DeRestPluginPrivate::permitJoinTimerFired()
 
             if (gwPermitJoinDuration > 0)
             {
-                // sendGPProxyCommissioningMode(); TODO enable when GP security is implemented
+                GP_SendProxyCommissioningMode(apsCtrl, zclSeq++);
             }
         }
         else
@@ -172,7 +172,6 @@ void DeRestPluginPrivate::permitJoinTimerFired()
             DBG_Printf(DBG_INFO, "send permit join failed\n");
         }
 
-        GP_SendProxyCommissioningMode(apsCtrl, zclSeq++);
     }
 }
 

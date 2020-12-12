@@ -26,6 +26,6 @@
    RConfigLongPoll     configuration of the long poll interval
  */
 
-quint8 DECONZ_DLLSPEC PC_GetPollControlEndpoint(const deCONZ::Node *node);
+quint8 PC_GetPollControlEndpoint(const deCONZ::Node *node);
 
 #endif // POLL_CONTROL_H
