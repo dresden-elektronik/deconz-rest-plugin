@@ -4832,6 +4832,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         // For some device the Tuya cluster is sometime Invisible, so force device detection
                         if ((modelId == QLatin1String("kud7u2l")) ||
                             (modelId == QLatin1String("eaxp72v")) ||
+                            (modelId == QLatin1String("TS0601")) ||
                             (modelId == QLatin1String("88teujp")) ||
                             (modelId == QLatin1String("fvq6avy")) ||
                             (modelId == QLatin1String("GbxAXL2")) )
