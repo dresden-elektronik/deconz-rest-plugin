@@ -331,6 +331,7 @@ static const SupportedDevice supportedDevices[] = {
     // Schlage support
     { VENDOR_SCHLAGE, "BE468", schlageMacPrefix}, // Schlage BE468 Smart Lock
     { VENDOR_HEIMAN, "SF21", emberMacPrefix }, // ORVIBO SF21 smoke sensor
+    { VENDOR_HEIMAN, "ST30 Temperature Sensor", jennicMacPrefix }, // Orvibo ST30 Temp/Humidity Sensor with diplay
     { VENDOR_LEGRAND, "Dimmer switch w/o neutral", legrandMacPrefix }, // Legrand Dimmer switch wired
     { VENDOR_LEGRAND, "Connected outlet", legrandMacPrefix }, // Legrand Plug
     { VENDOR_LEGRAND, "Shutter switch with neutral", legrandMacPrefix }, // Legrand Shutter switch
@@ -4784,6 +4785,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                                 {
                                     modelId = QLatin1String("SF21 smoke sensor");
                                 }
+                                else if (modelId == QLatin1String("898ca74409a740b28d5841661e72268d"))
+                                {
+                                    modelId = QLatin1String("ST30 Temperature Sensor");
+                                }
                                 //This device have model ID but not manufacture name
                                 if (modelId == QLatin1String("PST03A-v2.2.5"))
                                 {
@@ -8247,6 +8252,17 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                             else
                                             {
                                                 str = QLatin1String("SF21 smoke sensor");
+                                            }
+                                        }
+                                        else if (str == QLatin1String("898ca74409a740b28d5841661e72268d"))
+                                        {
+                                            if (i->modelId().startsWith(QLatin1String("ST30")))
+                                            {
+                                                continue; // skip if already replaced
+                                            }
+                                            else
+                                            {
+                                                str = QLatin1String("ST30 Temperature Sensor");
                                             }
                                         }
                                         i->setModelId(str);
