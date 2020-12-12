@@ -2139,9 +2139,11 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             // _TYST11_ckud7u2l is valve with 2 cluster
             // _TYST11_jeaxp72v same
             // _TYST11_kfvq6avy same
+            // _TZE200_kfvq6avy same
             // _TYST11_c88teujp same
             if ((lightNode.manufacturer() == QLatin1String("_TYST11_ckud7u2l")) ||
                 (lightNode.manufacturer() == QLatin1String("_TYST11_kfvq6avy")) ||
+                (lightNode.manufacturer() == QLatin1String("_TZE200_kfvq6avy")) ||
                 (lightNode.manufacturer() == QLatin1String("_TYST11_c88teujp")) ||
                 (lightNode.manufacturer() == QLatin1String("_TYST11_jeaxp72v")) )
             {
@@ -5278,6 +5280,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         (modelId == QLatin1String("GbxAXL2")) ||
                         (manufacturer == QLatin1String("_TYST11_jeaxp72v")) ||
                         (manufacturer == QLatin1String("_TYST11_kfvq6avy")) ||
+                        (manufacturer == QLatin1String("_TZE200_kfvq6avy")) ||
                         (manufacturer == QLatin1String("_TYST11_c88teujp")) ||
                         (manufacturer == QLatin1String("_TZE200_aoclfnxz")) ||
                         (manufacturer == QLatin1String("_TZE200_c88teujp")) ||
