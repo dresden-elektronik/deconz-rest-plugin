@@ -2256,6 +2256,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturer().startsWith(QLatin1String("ROBB smarrt")))
         {
         }
+        else if (lightNode->manufacturer().startsWith(QLatin1String("Feibit")))
+        {
+        }
         else if (lightNode->manufacturer() == QLatin1String("sengled"))
         {
         }
