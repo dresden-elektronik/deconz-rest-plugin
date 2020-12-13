@@ -252,8 +252,8 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (item->descriptor().suffix == RStateReachable) { state["reachable"] = item->toBool(); }
         else if (item->descriptor().suffix == RConfigCtMin) { map["ctmin"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigCtMax) { map["ctmax"] = item->toNumber(); }
-        else if (item->descriptor().suffix == RConfigColorCapabilities) { map["colorcapabilities"] = item->toNumber(); }
-//        else if (item->descriptor().suffix == RConfigColorCapabilities) { icc = item; } // TODO enable again in beta v2.6.x
+        else if (req.apiVersion() <= ApiVersion_1_DDEL && item->descriptor().suffix == RConfigColorCapabilities) { map["colorcapabilities"] = item->toNumber(); }
+        else if (req.apiVersion() >= ApiVersion_1_1_DDEL && item->descriptor().suffix == RConfigColorCapabilities) { icc = item; }
         else if (item->descriptor().suffix == RConfigPowerup) { map["powerup"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigPowerOnLevel) { map["poweronlevel"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigPowerOnCt) { map["poweronct"] = item->toNumber(); }
@@ -331,6 +331,15 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         QString etag = lightNode->etag;
         etag.remove('"'); // no quotes allowed in string
         map["etag"] = etag;
+
+        if (req.apiVersion() >= ApiVersion_2_DDEL)
+        {
+            QVariantMap links;
+            QVariantMap self;
+            self["href"] = QString("%1/%2").arg(req.hdr.url().path()).arg(lightNode->uniqueId());
+            links["self"] = self;
+            map["_links"] = links;
+        }
     }
 
     map["state"] = state;
@@ -556,6 +565,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         return setWarningDeviceState(req, rsp, taskRef, map);
     }
+    else if (isXmasLightStrip(taskRef.lightNode))
+    {
+        return setXmasLightStripState(req, rsp, taskRef, map);
+    }
     else if (UseTuyaCluster(taskRef.lightNode->manufacturer()))
     {
         //window covering
@@ -565,6 +578,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             (taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3")) )
         {
             return setWindowCoveringState(req, rsp, taskRef, map);
+        }
+        // light, don't use tuya stuff (for the moment)
+        else if (taskRef.lightNode->item(RStateColorMode))
+        {
         }
         //switch
         else
@@ -971,7 +988,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            taskRef.lightNode->setValue(RStateOn, targetOn);
+            if (!isDoorLockDevice) // Avoid reporting the new state before the lock report its state as locking/unlocking operations takes time and can also gets stuck.
+            {
+                taskRef.lightNode->setValue(RStateOn, targetOn);
+            }
         }
         else
         {
@@ -1074,7 +1094,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            taskRef.lightNode->setValue(RStateEffect, effect);
+            taskRef.lightNode->setValue(RStateEffect, RStateEffectValues[effect]);
         }
         else
         {
@@ -1314,7 +1334,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            taskRef.lightNode->setValue(RStateEffect, effect);
+            taskRef.lightNode->setValue(RStateEffect, RStateEffectValues[effect]);
         }
         else
         {
@@ -1339,7 +1359,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            taskRef.lightNode->setValue(RStateEffect, effect);
+            taskRef.lightNode->setValue(RStateEffect, RStateEffectValuesMueller[effect]);
         }
         else
         {
@@ -1523,7 +1543,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            taskRef.lightNode->setValue(RStateOn, targetOn);
+            if (!isDoorLockDevice) // Avoid reporting the new state before the lock report its state as locking/unlocking operations takes time and can also gets stuck.
+            {
+                taskRef.lightNode->setValue(RStateOn, targetOn);
+            }
         }
         else
         {
@@ -1729,8 +1752,9 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     // Some devices invert LiftPct.
     if (hasLift)
     {
-        if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain"))||
-            (taskRef.lightNode->modelId() == QLatin1String("Motor Controller")))
+        if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain")) ||
+           (taskRef.lightNode->manufacturer() == QLatin1String("_TZ3000_egq7y6pr")) ||
+           (taskRef.lightNode->modelId() == QLatin1String("Motor Controller")))
         {
             targetLiftZigBee = 100 - targetLift;
         }
@@ -1875,8 +1899,8 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             rspItemState[QString("/lights/%1/state/lift").arg(id)] = targetLift;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
-            
-            
+
+
             // I m using this code only for Legrand ATM but can be used for other device.
             // Because the attribute reporting take realy long time to be done, can be 2 minutes
             // Or it can be changed only after this time, so using an read attribute don't give usable value
@@ -1925,7 +1949,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             rspItemState[QString("/lights/%1/state/open").arg(id)] = targetOpen;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
-            
+
             // I m using this code only for Legrand ATM but can be used for other device.
             // Because the attribute reporting take realy long time to be done, can be 2 minutes
             // Or it can be changed only after this time, so using an read attribute don't give usable value
@@ -2136,52 +2160,6 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
         {
             task.options = 0x00; // Warning mode 0 (no warning), No strobe, Low sound
             task.duration = 0;
-
-            // Quickfix for clearing the alarm bit of Develco smoke, heat and water leak sensor
-            if (taskRef.lightNode->modelId() == QLatin1String("SMSZB-120") ||
-                taskRef.lightNode->modelId() == QLatin1String("HESZB-120") ||
-                taskRef.lightNode->modelId() == QLatin1String("FLSZB-110"))
-            {
-                deCONZ::ApsDataRequest apsReq;
-
-                // ZDP Header
-                apsReq.dstAddress() = taskRef.lightNode->node()->address();
-                apsReq.setDstAddressMode(deCONZ::ApsNwkAddress);
-                apsReq.setDstEndpoint(0x23);
-                apsReq.setSrcEndpoint(0x01);
-                apsReq.setProfileId(HA_PROFILE_ID);
-                apsReq.setRadius(0);
-                apsReq.setClusterId(IAS_ZONE_CLUSTER_ID);
-
-                deCONZ::ZclFrame outZclFrame;
-                outZclFrame.setSequenceNumber(zclSeq++);
-                outZclFrame.setCommandId(deCONZ::ZclDefaultResponseId);
-                outZclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-                                         deCONZ::ZclFCDirectionClientToServer |
-                                         deCONZ::ZclFCDisableDefaultResponse);
-
-                { // ZCL payload
-                    QDataStream stream(&outZclFrame.payload(), QIODevice::WriteOnly);
-                    stream.setByteOrder(QDataStream::LittleEndian);
-
-                    quint8 cmd = 0x00;      // Zone Status Change notification
-                    quint8 status = 0x00;   // Success
-
-                    stream << cmd;
-                    stream << status;
-                }
-
-                { // ZCL frame
-                    QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
-                    stream.setByteOrder(QDataStream::LittleEndian);
-                    outZclFrame.writeToStream(stream);
-                }
-
-                if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
-                {
-                    queryTime = queryTime.addSecs(1);
-                }
-            }
         }
         else if (alert == "select")
         {
@@ -2449,7 +2427,7 @@ int DeRestPluginPrivate::setLightAttributes(const ApiRequest &req, ApiResponse &
         {
             value = 0x01;
         }
-        
+
         deCONZ::ZclAttribute attr(0xf001, deCONZ::Zcl8BitEnum, "calibration", deCONZ::ZclReadWrite, true);
         attr.setValue(value);
 
@@ -2958,14 +2936,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     }
                     else if (item->lastSet().isValid() && (gwWebSocketNotifyAll || (item->lastChanged().isValid() && item->lastChanged() >= lightNode->lastStatePush)))
                     {
-                        if (rid.suffix == RStateEffect)
-                        {
-                            state[key] = RStateEffectValuesMueller[item->toNumber()];
-                        }
-                        else
-                        {
-                            state[key] = item->toVariant();
-                        }
+                        state[key] = item->toVariant();
                     }
                 }
             }

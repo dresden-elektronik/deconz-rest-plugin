@@ -239,6 +239,8 @@
 #define WINDOW_COVERING_COMMAND_GOTO_LIFT_PCT 0x05
 #define WINDOW_COVERING_COMMAND_GOTO_TILT_PCT 0x08
 
+#define MULTI_STATE_INPUT_PRESENT_VALUE_ATTRIBUTE_ID quint16(0x0055)
+
 
 // IAS Zone Types
 #define IAS_ZONE_TYPE_STANDARD_CIE            0x0000
@@ -341,6 +343,7 @@
 #define VENDOR_AURORA               0x121C // Used by Aurora Aone
 #define VENDOR_SUNRICHER            0x1224 // white label used by iCasa, Illuminize, Namron ...
 #define VENDOR_XAL                  0x122A
+#define VENDOR_ADUROLIGHT           0x122D
 #define VENDOR_THIRD_REALITY        0x1233
 #define VENDOR_DSR                  0x1234
 #define VENDOR_HANGZHOU_IMAGIC      0x123B
@@ -352,7 +355,6 @@
 #define VENDOR_OSRAM_STACK          0xBBAA
 #define VENDOR_C2DF                 0xC2DF
 #define VENDOR_PHILIO               0xFFA0
-#define VENDOR_ADUROLIGHT           0x122D
 
 #define ANNOUNCE_INTERVAL 45 // minutes default announce interval
 
@@ -793,7 +795,35 @@ enum TaskType
     TaskDoorLock = 38,
     TaskDoorUnlock = 39,
     TaskSyncTime = 40,
-    TaskTuyaRequest = 41
+    TaskTuyaRequest = 41,
+    TaskXmasLightStrip = 42
+};
+
+enum XmasLightStripMode
+{
+    ModeWhite = 0,
+    ModeColour = 1,
+    ModeEffect = 2
+};
+
+enum XmasLightStripEffect
+{
+    EffectSteady = 0x00,
+    EffectSnow = 0x01,
+    EffectRainbow = 0x02,
+    EffectSnake = 0x03,
+    EffectTwinkle = 0x04,
+    EffectFireworks = 0x05,
+    EffectFlag = 0x06,
+    EffectWaves = 0x07,
+    EffectUpdown = 0x08,
+    EffectVintage = 0x09,
+    EffectFading = 0x0a,
+    EffectCollide = 0x0b,
+    EffectStrobe = 0x0c,
+    EffectSparkles = 0x0d,
+    EffectCarnaval = 0x0e,
+    EffectGlow = 0x0f
 };
 
 struct TaskItem
@@ -882,8 +912,10 @@ public:
 
 enum ApiVersion
 {
-    ApiVersion_1,      //!< common version 1.0
-    ApiVersion_1_DDEL  //!< version 1.0, "Accept: application/vnd.ddel.v1"
+    ApiVersion_1,        //!< common version 1.0
+    ApiVersion_1_DDEL,   //!< version 1.0, "Accept: application/vnd.ddel.v1"
+    ApiVersion_1_1_DDEL, //!< version 1.1, "Accept: application/vnd.ddel.v1.1"
+    ApiVersion_2_DDEL,   //!< version 2.0, "Accept: application/vnd.ddel.v2"
 };
 
 enum ApiAuthorisation
@@ -1459,6 +1491,15 @@ public:
     bool addTaskThermostatUiConfigurationReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode=0);
     bool addTaskFanControlReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode=0);
 
+    // Merry Christmas!
+    bool isXmasLightStrip(LightNode *lightNode);
+    bool addTaskXmasLightStripOn(TaskItem &task, bool on);
+    bool addTaskXmasLightStripMode(TaskItem &task, XmasLightStripMode mode);
+    bool addTaskXmasLightStripWhite(TaskItem &task, quint8 bri);
+    bool addTaskXmasLightStripColour(TaskItem &task, quint16 hue, quint8 sat, quint8 bri);
+    bool addTaskXmasLightStripEffect(TaskItem &task, XmasLightStripEffect effect, quint8 speed, QList<QList<quint8>> &colours);
+    int setXmasLightStripState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
+
     void handleGroupClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleSceneClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleOnOffClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
@@ -1491,6 +1532,7 @@ public:
     void handleTimeClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleDiagnosticsClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleFanControlClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleIdentifyClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendTimeClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleBasicClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendBasicClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
@@ -1944,6 +1986,7 @@ public:
     QString lastLightsScan;
 
     SearchSensorsState searchSensorsState;
+    size_t searchSensorGppPairCounter = 0;
     deCONZ::Address fastProbeAddr;
     std::vector<deCONZ::ApsDataIndication> fastProbeIndications;
     QVariantMap searchSensorsResult;

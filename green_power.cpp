@@ -124,12 +124,12 @@ bool GP_SendProxyCommissioningMode(deCONZ::ApsController *apsCtrl, quint8 zclSeq
 
 /*! Send Pair command to GP proxy device.
  */
-bool GP_SendPairing(quint32 gpdSrcId, quint16 sinkGroupId, quint8 deviceId, quint32 frameCounter, const GpKey_t &key, deCONZ::ApsController *apsCtrl, quint8 zclSeqNo)
+bool GP_SendPairing(quint32 gpdSrcId, quint16 sinkGroupId, quint8 deviceId, quint32 frameCounter, const GpKey_t &key, deCONZ::ApsController *apsCtrl, quint8 zclSeqNo, quint16 gppShortAddress)
 {
     deCONZ::ApsDataRequest req;
 
     req.setDstAddressMode(deCONZ::ApsNwkAddress);
-    req.dstAddress().setNwk(deCONZ::BroadcastRouters);
+    req.dstAddress().setNwk(gppShortAddress);
     req.setProfileId(GP_PROFILE_ID);
     req.setClusterId(GREEN_POWER_CLUSTER_ID);
     req.setDstEndpoint(GREEN_POWER_ENDPOINT);
@@ -198,10 +198,10 @@ bool GP_SendPairing(quint32 gpdSrcId, quint16 sinkGroupId, quint8 deviceId, quin
     // broadcast
     if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
     {
-        DBG_Printf(DBG_INFO, "send GP pairing\n");
+        DBG_Printf(DBG_INFO, "send GP pairing to 0x%04X\n", gppShortAddress);
         return true;
     }
 
-    DBG_Printf(DBG_INFO, "send GP pairing\n");
+    DBG_Printf(DBG_INFO, "send GP pairing to 0x%04X failed\n", gppShortAddress);
     return false;
 }

@@ -918,7 +918,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         }
     }
 
-    if (req.apiVersion() == ApiVersion_1_DDEL)
+    if (req.apiVersion() >= ApiVersion_1_DDEL)
     {
         map["permitjoin"] = static_cast<double>(gwPermitJoinDuration);
         map["permitjoinfull"] = static_cast<double>(gwPermitJoinResend);
@@ -3675,9 +3675,12 @@ size_t DeRestPluginPrivate::calcDaylightOffsets(Sensor *daylightSensor, size_t i
         return iter;
     }
 
-    for (;iter < sensors.size(); iter++)
+    QElapsedTimer t; // don't block too long
+    t.start();
+    while (iter < sensors.size() && t.elapsed() < 3)
     {
         Sensor &s = sensors[iter];
+        iter++;
 
         if (s.type() != QLatin1String("CLIPDaylightOffset"))
         {
@@ -3705,11 +3708,16 @@ size_t DeRestPluginPrivate::calcDaylightOffsets(Sensor *daylightSensor, size_t i
         }
         else if (mode->toString() == QLatin1String("fix"))
         {
-            auto dt = QDateTime::fromString(localTime->toString(), QLatin1String("yyyy-MM-ddTHH:mm:ss"));
+            auto dt = QDateTime::fromMSecsSinceEpoch(localTime->toNumber());
+            const auto today = QDate::currentDate();
+            if (dt.date() != today)
+            {
+                dt.setDate(today);
+            }
             tref = dt.toMSecsSinceEpoch();
         }
 
-        if (tref != localTime->toNumber())
+        if (tref > 0 && tref != localTime->toNumber())
         {
             localTime->setValue(tref);
             s.updateStateTimestamp();
