@@ -3527,8 +3527,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.addItem(DataTypeInt16, RConfigHeatSetpoint);    // Heating set point
                 sensor.addItem(DataTypeBool, RStateOn);                // Heating on/off
 
-                if (sensor.modelId().startsWith(QLatin1String("SLR2")) ||   // Hive 
-                    sensor.modelId() == QLatin1String("SLR1b") ||           // Hive 
+                if (sensor.modelId().startsWith(QLatin1String("SLR2")) ||   // Hive
+                    sensor.modelId() == QLatin1String("SLR1b") ||           // Hive
                     sensor.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
                     sensor.modelId() == QLatin1String("GbxAXL2") ||         // Tuya
                     sensor.modelId() == QLatin1String("kud7u2l") ||         // Tuya
@@ -3547,7 +3547,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     item = sensor.addItem(DataTypeBool, RStateLowBattery);
                     item->setValue(false);
                 }
-                
+
                 if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya
                     sensor.modelId() == QLatin1String("eaxp72v") || // Tuya
                     sensor.modelId() == QLatin1String("fvq6avy") || // Tuya
@@ -3560,7 +3560,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeBool, RConfigLocked);
                     sensor.addItem(DataTypeBool, RConfigSetValve);
                 }
-                
+
                 if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya
                     sensor.modelId() == QLatin1String("fvq6avy") || // Tuya
                     sensor.modelId() == QLatin1String("88teujp") || // Tuya
@@ -3570,7 +3570,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 {
                     sensor.addItem(DataTypeString, RConfigSchedule);
                 }
-                
+
                 if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya
                     sensor.modelId() == QLatin1String("eaxp72v") || // Tuya
                     sensor.modelId() == QLatin1String("88teujp") || // Tuya
@@ -3799,8 +3799,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
         {
-          if (sensor.modelId() == QLatin1String("button") || sensor.modelId().startsWith(QLatin1String("multi")) || sensor.modelId() == QLatin1String("water") ||
-              sensor.modelId() == QLatin1String("Motion Sensor-A"))
+            if (sensor.modelId() == QLatin1String("button") || sensor.modelId().startsWith(QLatin1String("multi")) || sensor.modelId() == QLatin1String("water") ||
+                sensor.modelId() == QLatin1String("Motion Sensor-A"))
             {
                 // no support for some IAS Zone flags
             }
@@ -3808,11 +3808,19 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 item = sensor.addItem(DataTypeBool, RStateLowBattery);
                 item->setValue(false);
-                item = sensor.addItem(DataTypeBool, RStateTampered);
-                item->setValue(false);
-                item = sensor.addItem(DataTypeUInt8, RConfigPending);
-                item->setValue(0);
+                if (sensor.modelId().startsWith(QLatin1String("SMSZB-1"))) // Develco smoke detector
+                {
+                    item = sensor.addItem(DataTypeBool, RStateTest);
+                    item->setValue(false);
+                }
+                else
+                {
+                    item = sensor.addItem(DataTypeBool, RStateTampered);
+                    item->setValue(false);
+                }
             }
+            item = sensor.addItem(DataTypeUInt8, RConfigPending);
+            item->setValue(0);
         }
 
         if (sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
