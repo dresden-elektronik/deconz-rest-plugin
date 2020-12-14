@@ -855,7 +855,7 @@
             <attribute id="0x0045" name="Min Present Value" type="float" required="o" access="rw"></attribute>
 			<attribute id="0x0051" name="Out of service" type="bool" required="m" access="rw" default="0"></attribute>
 			<attribute id="0x0055" name="Present value" type="float" required="m" access="rw" default="0"></attribute>
-            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0">
+            <attribute id="0x0067" name="Reliability" type="enum8" required="o" access="rw" default="0">
                 <value name="No fault detected" value="0"></value>
                 <value name="No sensor" value="1"></value>
                 <value name="Over range" value="2"></value>
@@ -890,7 +890,7 @@
             <attribute id="0x0045" name="Min Present Value" type="float" required="o" access="rw"></attribute>
             <attribute id="0x0051" name="Out of service" type="bool" required="m" access="rw" default="0"></attribute>
             <attribute id="0x0055" name="Present value" type="float" required="m" access="rw" default="0"></attribute>
-            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0">
+            <attribute id="0x0067" name="Reliability" type="enum8" required="o" access="rw" default="0">
                 <value name="No fault detected" value="0"></value>
                 <value name="No sensor" value="1"></value>
                 <value name="Over range" value="2"></value>
@@ -924,7 +924,7 @@
             <attribute id="0x001c" name="Description" type="cstring" required="o" access="rw"></attribute>
             <attribute id="0x0051" name="Out of service" type="bool" required="m" access="rw" default="0"></attribute>
             <attribute id="0x0055" name="Present value" type="float" required="m" access="rw" default="0"></attribute>
-            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0">
+            <attribute id="0x0067" name="Reliability" type="enum8" required="o" access="rw" default="0">
                 <value name="No fault detected" value="0"></value>
                 <value name="No sensor" value="1"></value>
                 <value name="Over range" value="2"></value>
@@ -962,7 +962,7 @@
                 <value name="Reverse" value="1"></value>
 			</attribute>
             <attribute id="0x0055" name="Present Value" type="bool" default="0" access="rw" required="m"></attribute>
-			<attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0">
+			<attribute id="0x0067" name="Reliability" type="enum8" required="o" access="rw" default="0">
                 <value name="No fault detected" value="0"></value>
                 <value name="No sensor" value="1"></value>
                 <value name="Over range" value="2"></value>
@@ -1000,7 +1000,7 @@
                 <value name="Reverse" value="1"></value>
             </attribute>
             <attribute id="0x0055" name="Present value" type="bool" required="m" access="rw"></attribute>
-            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0">
+            <attribute id="0x0067" name="Reliability" type="enum8" required="o" access="rw" default="0">
                 <value name="No fault detected" value="0"></value>
                 <value name="No sensor" value="1"></value>
                 <value name="Over range" value="2"></value>
@@ -1038,7 +1038,7 @@
             <attribute id="0x0043" name="Min On Time" type="u32" required="o" access="rw" default="0xffffffff"></attribute>
             <attribute id="0x0051" name="Out of service" type="bool" required="m" access="rw" default="0"></attribute>
             <attribute id="0x0055" name="Present value" type="bool" required="m" access="rw"></attribute>
-            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0">
+            <attribute id="0x0067" name="Reliability" type="enum8" required="o" access="rw" default="0">
                 <value name="No fault detected" value="0"></value>
                 <value name="No sensor" value="1"></value>
                 <value name="Over range" value="2"></value>
@@ -1070,7 +1070,7 @@
             <attribute id="0x004a" type="u16" name="Number of states" required="m" access="rw" default="0"></attribute>
 			<attribute id="0x0051" type="bool" name="Out of service" required="m" access="rw" default="0"></attribute>
 			<attribute id="0x0055" type="u16" name="Present value" required="m" access="rw" default="0"></attribute>
-            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0">
+            <attribute id="0x0067" name="Reliability" type="enum8" required="o" access="rw" default="0">
                 <value name="No fault detected" value="0"></value>
                 <value name="No sensor" value="1"></value>
                 <value name="Over range" value="2"></value>
@@ -1101,7 +1101,7 @@
             <attribute id="0x004a" type="u16" name="Number of states" required="m" access="rw" default="0"></attribute>
             <attribute id="0x0051" type="bool" name="Out of service" required="m" access="rw" default="0"></attribute>
             <attribute id="0x0055" type="u16" name="Present value" required="m" access="rw" default="0"></attribute>
-            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0">
+            <attribute id="0x0067" name="Reliability" type="enum8" required="o" access="rw" default="0">
                 <value name="No fault detected" value="0"></value>
                 <value name="No sensor" value="1"></value>
                 <value name="Over range" value="2"></value>
@@ -1133,7 +1133,7 @@
             <attribute id="0x004a" type="u16" name="Number of states" required="m" access="rw" default="0"></attribute>
             <attribute id="0x0051" type="bool" name="Out of service" required="m" access="rw" default="0"></attribute>
             <attribute id="0x0055" type="u16" name="Present value" required="m" access="rw" default="0"></attribute>
-            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0">
+            <attribute id="0x0067" name="Reliability" type="enum8" required="o" access="rw" default="0">
                 <value name="No fault detected" value="0"></value>
                 <value name="No sensor" value="1"></value>
                 <value name="Over range" value="2"></value>
@@ -3663,10 +3663,12 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 		<!-- LUMI -->
 		<cluster id="0xfcc0" name="Lumi specific" mfcode="0x115f">
 			<description>Lumi specific attributes.
-Note - Aqara Opple switches have 2 modes of operation (0x0009): Switch all devices (0), event based switching (1).</description>
+            
+Note - Aqara Opple switches have 2 modes of operation (0x0009): Switch all devices (0), event based switching (1).
+Child lock off: 0 - false, 1 - true</description>
 			<server>
 				<attribute id="0x0002" name="Power outages" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
-				<attribute id="0x0003" name="Unknown" type="enum8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0003" name="Unknown" type="enum8" mfcode="0x115f" access="r" required="m"> </attribute>
 				<attribute id="0x0006" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0007" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0008" name="Unknown (write only)" type="ostring" mfcode="0x115f" access="w" required="m"> </attribute>
@@ -3678,11 +3680,11 @@ Note - Aqara Opple switches have 2 modes of operation (0x0009): Switch all devic
 				<attribute id="0x00fc" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x00fe" name="Serial Number" type="cstring" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x00ff" name="Unknown (write only)" type="ostring" mfcode="0x115f" access="w" required="m"> </attribute>
-				<attribute id="0x0100" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
-				<attribute id="0x0200" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0100" name="Unknown" type="u8" mfcode="0x115f" access="r" required="m"> </attribute>
+				<attribute id="0x0200" name="Child lock off" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0201" name="Restore Power on Outage" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0202" name="Auto-off after 20m below Threshold" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
-				<attribute id="0x0203" name="Device LED off" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0203" name="Device LED off (9pm-9am)" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0204" name="Min. Power Change for Report (W)" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0205" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0206" name="Power Threshold for Auto-off" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
@@ -3843,14 +3845,20 @@ Outdoor Temp to Display Timeout: set 30 for 'off' and 10800 for 'on'</descriptio
 
 		<!-- NIKO -->
 		<cluster id="0xfc00" name="Niko specific" mfcode="0x125f">
-			<description>Niko specific attributes.</description>
+			<description>Niko specific attributes.
+            
+LED color: 0 - off, 255 - white, 65280 - blue, 16711680 - red
+Child lock on: 0, Child lock off: 1
+LED on: 1, LED off: 0
+0x0300: Switches permission to write either to 0x0202 (1) or to 0x0302 (0)
+Writing 1 to 0x0202 and 0x0302 makes 0x0300 writable. Then writing 1 to 0x0300 sets 0x0300 bitmap from 0x11 to 0x12, but block all other writes to 0x03XX attributes.</description>
 			<server>
 				<attribute id="0x0000" name="Unknown" type="bmp8" mfcode="0x125f" access="rw" required="m"> </attribute>
-				<attribute id="0x0100" name="Unknown" type="u24" mfcode="0x125f" access="rw" required="m"> </attribute>
-				<attribute id="0x0101" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0100" name="LED color" type="u24" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0101" name="Child lock" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
 				<attribute id="0x0102" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
 				<attribute id="0x0103" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
-				<attribute id="0x0104" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0104" name="LED on/off" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
 				<attribute id="0x0200" name="Connected to power since" type="u32" mfcode="0x125f" access="r" required="m"> </attribute>
 				<attribute id="0x0201" name="Unknown" type="u48" mfcode="0x125f" access="rw" required="m"> </attribute>
 				<attribute id="0x0202" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
