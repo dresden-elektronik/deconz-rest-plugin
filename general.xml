@@ -3668,7 +3668,7 @@ Note - Aqara Opple switches have 2 modes of operation (0x0009): Switch all devic
 Child lock off: 0 - false, 1 - true</description>
 			<server>
 				<attribute id="0x0002" name="Power outages" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
-				<attribute id="0x0003" name="Unknown" type="enum8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0003" name="Unknown" type="enum8" mfcode="0x115f" access="r" required="m"> </attribute>
 				<attribute id="0x0006" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0007" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0008" name="Unknown (write only)" type="ostring" mfcode="0x115f" access="w" required="m"> </attribute>
@@ -3684,7 +3684,7 @@ Child lock off: 0 - false, 1 - true</description>
 				<attribute id="0x0200" name="Child lock off" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0201" name="Restore Power on Outage" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0202" name="Auto-off after 20m below Threshold" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
-				<attribute id="0x0203" name="Device LED off" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0203" name="Device LED off (9pm-9am)" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0204" name="Min. Power Change for Report (W)" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0205" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0206" name="Power Threshold for Auto-off" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
