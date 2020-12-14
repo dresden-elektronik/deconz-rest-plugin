@@ -359,13 +359,22 @@ void DeRestPluginPrivate::internetDiscoveryExtractVersionInfo(QNetworkReply *rep
 
             if (!version.isEmpty())
             {
-                if (gwUpdateVersion != version)
+                QStringList gwUpdateVersionList = gwUpdateVersion.split('.');
+                QStringList versionList = version.split('.');
+                if (gwUpdateVersionList.size() >= 3 && versionList.size() >= 3 &&
+                    (((gwUpdateVersionList[0].toInt() <  versionList[0].toInt())) ||
+                     ((gwUpdateVersionList[0].toInt() == versionList[0].toInt()) && (gwUpdateVersionList[1].toInt() <  versionList[1].toInt())) ||
+                     ((gwUpdateVersionList[0].toInt() == versionList[0].toInt()) && (gwUpdateVersionList[1].toInt() == versionList[1].toInt()) && (gwUpdateVersionList[2].toInt() < versionList[2].toInt()))))
                 {
                     DBG_Printf(DBG_INFO, "discovery found version %s for update channel %s\n", qPrintable(version), qPrintable(gwUpdateChannel));
                     gwUpdateVersion = version;
                     gwSwUpdateState = swUpdateState.readyToInstall;
-                    updateEtag(gwConfigEtag);
                 }
+                else
+                {
+                    gwSwUpdateState = swUpdateState.noUpdate;
+                }
+                updateEtag(gwConfigEtag);
             }
             else
             {
