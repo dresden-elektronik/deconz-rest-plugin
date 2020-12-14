@@ -33,7 +33,7 @@ void DEV_InitStateHandler(Device *device, const Event &event)
         DBG_Printf(DBG_INFO, "DEV Init event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
     }
 
-    if (event.what() == REventPoll || event.what() == REventAwake || event.what() == RConfigReachable  || event.what() == REventStateTimeout)
+    if (event.what() == REventPoll || event.what() == REventAwake || event.what() == RConfigReachable  || event.what() == REventStateTimeout || event.what() == RStateLastUpdated)
     {
         // lazy reference to deCONZ::Node
         if (!device->node())
