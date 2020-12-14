@@ -9,6 +9,7 @@
  */
 
 #include "sensor.h"
+#include "tuya.h"
 #include "json.h"
 
 /*! Returns a fingerprint as JSON string. */
@@ -544,26 +545,30 @@ const std::vector<Sensor::ButtonMap> Sensor::buttonMap(const QMap<QString, std::
 {
     if (m_buttonMap.empty())
     {
-        const QString &modelid = item(RAttrModelId)->toString();
-        const QString &manufacturer = item(RAttrManufacturerName)->toString();
+        QString modelid;
+
+        if (isTuyaManufacturerName(item(RAttrManufacturerName)->toString()))
+        {
+            // for Tuya devices use manufacturer name as modelid
+            modelid = item(RAttrManufacturerName)->toString();
+        }
+        else
+        {
+            modelid = item(RAttrModelId)->toString();
+        }
 
         for (auto i = buttonMapForModelId.constBegin(); i != buttonMapForModelId.constEnd(); ++i)
         {
-            if (modelid.startsWith(QString(i.key())))
+            if (i.key().isEmpty())
+            {
+                continue;
+            }
+
+            if (modelid == i.key())
             {
                 m_buttonMap = buttonMapData.value(i.value());
+                break;
             }
-        }
-        // Workaround for Tuya without usable modelid
-        if ((manufacturer == QLatin1String("_TZ3000_bi6lpsew")) ||  // can't use model id but manufacture name is device specific
-            (manufacturer == QLatin1String("_TZ3400_keyjhapk")) ||
-            (manufacturer == QLatin1String("_TYZB02_key8kk7r")) ||
-            (manufacturer == QLatin1String("_TZ3400_keyjqthh")) ||
-            (manufacturer == QLatin1String("_TZ3400_key8kk7r")) ||
-            (manufacturer == QLatin1String("_TZ3000_vp6clf9d")) ||
-            (manufacturer == QLatin1String("_TYZB02_keyjqthh")))
-        {
-            m_buttonMap = buttonMapData.value("Tuya3gangMap");
         }
     }
 

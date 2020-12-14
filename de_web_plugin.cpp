@@ -333,6 +333,7 @@ static const SupportedDevice supportedDevices[] = {
     // Schlage support
     { VENDOR_SCHLAGE, "BE468", schlageMacPrefix}, // Schlage BE468 Smart Lock
     { VENDOR_HEIMAN, "SF21", emberMacPrefix }, // ORVIBO SF21 smoke sensor
+    { VENDOR_HEIMAN, "358e4e3e03c644709905034dae81433e", emberMacPrefix }, // Orvibo Combustible Gas Sensor
     { VENDOR_LEGRAND, "Dimmer switch w/o neutral", legrandMacPrefix }, // Legrand Dimmer switch wired
     { VENDOR_LEGRAND, "Connected outlet", legrandMacPrefix }, // Legrand Plug
     { VENDOR_LEGRAND, "Shutter switch with neutral", legrandMacPrefix }, // Legrand Shutter switch
@@ -5179,19 +5180,20 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpPresenceSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelId.startsWith(QLatin1String("GAS")) ||              // Heiman gas sensor (old and newer model)
-                             modelId.startsWith(QLatin1String("SMOK_")) ||            // Heiman fire sensor
-                             modelId.startsWith(QLatin1String("Smoke")) ||            // Heiman fire sensor (newer model)
-                             modelId.startsWith(QLatin1String("902010/24")) ||        // Bitron smoke detector
-                             modelId.startsWith(QLatin1String("SMSZB-1")) ||          // Develco smoke detector
-                             modelId.startsWith(QLatin1String("HESZB-1")) ||          // Develco heat detector
-                             modelId.startsWith(QLatin1String("SF2")) ||              // ORVIBO (Heiman) smoke sensor
-                             modelId.startsWith(QLatin1String("LH05121")) ||          // iHorn smoke detector
-                             modelId.startsWith(QLatin1String("lumi.sensor_smoke")) || // Xiaomi Mi smoke sensor
-                             modelId.startsWith(QLatin1String("TS0204")) ||           // Tuya gas sensor
-                             modelId.startsWith(QLatin1String("TS0205")) ||           // Tuya smoke sensor
-                             modelId.startsWith(QLatin1String("FNB56-COS")) ||        // Feibit FNB56-COS06FB1.7 Carb. Mon. detector
-                             modelId.startsWith(QLatin1String("FNB56-GAS")))          // Feibit gas sensor
+                    else if (modelId.startsWith(QLatin1String("GAS")) ||                     // Heiman gas sensor (old and newer model)
+                             modelId.startsWith(QLatin1String("SMOK_")) ||                   // Heiman fire sensor
+                             modelId.startsWith(QLatin1String("Smoke")) ||                   // Heiman fire sensor (newer model)
+                             modelId.startsWith(QLatin1String("902010/24")) ||               // Bitron smoke detector
+                             modelId.startsWith(QLatin1String("SMSZB-1")) ||                 // Develco smoke detector
+                             modelId.startsWith(QLatin1String("HESZB-1")) ||                 // Develco heat detector
+                             modelId.startsWith(QLatin1String("SF2")) ||                     // ORVIBO (Heiman) smoke sensor
+                             modelId == QLatin1String("358e4e3e03c644709905034dae81433e") || // Orvibo Combustible Gas Sensor
+                             modelId.startsWith(QLatin1String("LH05121")) ||                 // iHorn smoke detector
+                             modelId.startsWith(QLatin1String("lumi.sensor_smoke")) ||       // Xiaomi Mi smoke sensor
+                             modelId.startsWith(QLatin1String("TS0204")) ||                  // Tuya gas sensor
+                             modelId.startsWith(QLatin1String("TS0205")) ||                  // Tuya smoke sensor
+                             modelId.startsWith(QLatin1String("FNB56-COS")) ||               // Feibit FNB56-COS06FB1.7 Carb. Mon. detector
+                             modelId.startsWith(QLatin1String("FNB56-GAS")))                 // Feibit gas sensor
                     {
                         // Gas sensor detects combustable gas, so fire is more appropriate than CO.
                         fpFireSensor.inClusters.push_back(ci->id());
@@ -6966,12 +6968,20 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             item = sensorNode.addItem(DataTypeBool, RStateLowBattery);
             item->setValue(false);
-            item = sensorNode.addItem(DataTypeBool, RStateTampered);
-            item->setValue(false);
-            item = sensorNode.addItem(DataTypeUInt8, RConfigPending);
-            item->setValue(item->toNumber() | R_PENDING_WRITE_CIE_ADDRESS | R_PENDING_ENROLL_RESPONSE);
-            writeIasCieAddress(&sensorNode);
+            if (modelId.startsWith(QLatin1String("SMSZB-1"))) // Develco smoke detector
+            {
+                item = sensorNode.addItem(DataTypeBool, RStateTest);
+                item->setValue(false);
+            }
+            else
+            {
+                item = sensorNode.addItem(DataTypeBool, RStateTampered);
+                item->setValue(false);
+            }
         }
+        item = sensorNode.addItem(DataTypeUInt8, RConfigPending);
+        item->setValue(item->toNumber() | R_PENDING_WRITE_CIE_ADDRESS | R_PENDING_ENROLL_RESPONSE);
+        writeIasCieAddress(&sensorNode);
     }
 
     QString uid = generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint, clusterId);
@@ -8217,6 +8227,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         button = (S_BUTTON_1 * event.endpoint()) + S_BUTTON_ACTION_SHORT_RELEASED;
                                     }
                                     else if (i->modelId() == QLatin1String("lumi.sensor_switch"))
+                                    { // handeled by button map
+                                    }
+                                    else if (i->modelId() == QLatin1String("lumi.sensor_switch.aq2"))
                                     { // handeled by button map
                                     }
                                     else if (i->modelId().startsWith(QLatin1String("lumi.ctrl_neutral")))

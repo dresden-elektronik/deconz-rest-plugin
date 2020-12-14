@@ -442,7 +442,8 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                         (manufacturerCode() == VENDOR_INNR && endpoint.deviceId() == DEV_ID_ZLL_ONOFF_PLUGIN_UNIT) || // innr SP120 smart plug
                         (manufacturerCode() == VENDOR_INNR && endpoint.deviceId() == DEV_ID_Z30_ONOFF_PLUGIN_UNIT) || // innr ZigBee 3.0 smart plugs (SP2xx)
                         (manufacturerCode() == VENDOR_3A_SMART_HOME && endpoint.deviceId() == DEV_ID_ZLL_ONOFF_LIGHT) || // 3A in-wall switch
-                        (manufacturerCode() == VENDOR_PHILIPS && endpoint.deviceId() == DEV_ID_HA_ONOFF_LIGHT && endpoint.profileId() == HA_PROFILE_ID)) // iCasa in-wall switch
+                        (manufacturerCode() == VENDOR_PHILIPS && endpoint.deviceId() == DEV_ID_HA_ONOFF_LIGHT && endpoint.profileId() == HA_PROFILE_ID) ||
+                        (manufacturerCode() == VENDOR_PHILIPS && endpoint.deviceId() == DEV_ID_Z30_ONOFF_PLUGIN_UNIT)) // Philips Hue plug
                     { } // skip state.bri not supported
                     else
                     {

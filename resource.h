@@ -124,6 +124,7 @@ extern const char *RStateSunrise;
 extern const char *RStateSunset;
 extern const char *RStateTampered;
 extern const char *RStateTemperature;
+extern const char *RStateTest;
 extern const char *RStateTilt;
 extern const char *RStateTiltAngle;
 extern const char *RStateUtc;
