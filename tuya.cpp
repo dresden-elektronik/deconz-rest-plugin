@@ -5,6 +5,7 @@
  *
  */
 
+#include <regex>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "tuya.h"
@@ -60,7 +61,21 @@
 
 //******************************************************************************************
 
+/*! Returns true if the \p manufacturer name referes to a Tuya device. */
+bool isTuyaManufacturerName(const QString &manufacturer)
+{
+    return manufacturer.startsWith(QLatin1String("_T")) && // quick check for performance
+           std::regex_match(qPrintable(manufacturer), std::regex("_T[A-Z][A-Z0-9]{4}_[a-z0-9]{8}"));
+}
 
+// Tests for Tuya manufacturer name
+/*
+ Q_ASSERT(isTuyaManufacturerName("_TZ3000_bi6lpsew"));
+ Q_ASSERT(isTuyaManufacturerName("_TYZB02_key8kk7r"));
+ Q_ASSERT(isTuyaManufacturerName("_TYST11_ckud7u2l"));
+ Q_ASSERT(isTuyaManufacturerName("_TYZB02_keyjqthh"));
+ Q_ASSERT(!isTuyaManufacturerName("lumi.sensor_switch.aq2"));
+*/
 
 /*! Helper to generate a new task with new task and req id based on a reference */
 static void copyTaskReq(TaskItem &a, TaskItem &b)
@@ -75,7 +90,7 @@ static void copyTaskReq(TaskItem &a, TaskItem &b)
     b.zclFrame.payload().clear();
 }
 
-bool UseTuyaCluster(QString manufacturer)
+bool UseTuyaCluster(const QString &manufacturer)
 {
     // https://docs.tuya.com/en/iot/device-development/module/zigbee-module/zigbeetyzs11module?id=K989rik5nkhez
     //_TZ3000 don't use tuya cluster
