@@ -631,7 +631,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 case 0x0266: // min temperature limit
                 {
                     //Can be Temperature for some device
-                    if (sensorNode->modelId() == QLatin1String("GbxAXL2"))
+                    if (sensorNode->modelId() == QLatin1String("GbxAXL2") ||
+                        sensorNode->modelId() == QLatin1String("uhszj9s") )
                     {
                         qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
                         ResourceItem *item = sensorNode->item(RStateTemperature);
@@ -649,7 +650,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 case 0x0267: // max temperature limit
                 {
                     //can be setpoint for some device
-                    if (sensorNode->modelId() == QLatin1String("GbxAXL2"))
+                    if (sensorNode->modelId() == QLatin1String("GbxAXL2") ||
+                        sensorNode->modelId() == QLatin1String("uhszj9s") )
                     {
                         qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
                         ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);

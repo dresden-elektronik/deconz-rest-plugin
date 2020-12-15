@@ -1140,7 +1140,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                         qint8 dp = 0x02;
 
-                        if (sensor->modelId().startsWith(QLatin1String("GbxAXL2")))
+                        if (sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
+                            sensor->modelId().startsWith(QLatin1String("uhszj9s")) )
                         {
                             dp = 0x67;
                         }
@@ -1227,7 +1228,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     else if ((sensor->modelId().startsWith(QLatin1String("kud7u2l"))) ||
                              (sensor->modelId().startsWith(QLatin1String("eaxp72v"))) ||
                              (sensor->modelId().startsWith(QLatin1String("88teujp"))) ||
-                             (sensor->modelId().startsWith(QLatin1String("uhszj9s"))) ||
                              (sensor->modelId().startsWith(QLatin1String("fvq6avy"))) ||
                              (sensor->manufacturer() == QLatin1String("_TZE200_c88teujp")) ||
                              (sensor->manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ) // Tuya Smart TRV HY369 Thermostatic Radiator Valve
@@ -1260,7 +1260,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             updated = true;
                         }
                     }
-                    else if (sensor->modelId().startsWith(QLatin1String("GbxAXL2")))
+                    else if (sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
+                             sensor->modelId().startsWith(QLatin1String("uhszj9s")) )
                     {
                         QString modeSet = map[pi.key()].toString();
                         bool ok = false;
