@@ -38,7 +38,7 @@ contains(QMAKE_SPEC_T,.*linux.*) {
 
     packagesExist(openssl) {
         DEFINES += HAS_OPENSSL
-        PKGCONFIG += openssl
+        #PKGCONFIG += openssl
     }
 }
 
