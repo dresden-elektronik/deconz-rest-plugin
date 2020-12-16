@@ -191,9 +191,9 @@ win32 {
     exists($$OPENSSL_PATH) {
         message(OpenSLL detected $$OPENSSL_PATH)
 
-        LIBS += -L$$OPENSSL_PATH/bin \
-             -llibcrypto-1_1 \
-             -llibssl-1_1
+        #LIBS += -L$$OPENSSL_PATH/bin \
+        #     -llibcrypto-1_1 \
+        #     -llibssl-1_1
         INCLUDEPATH += $$OPENSSL_PATH/include
         DEFINES += HAS_OPENSSL
     }

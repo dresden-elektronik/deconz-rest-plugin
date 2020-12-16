@@ -60,6 +60,7 @@ GpKey_t GP_DecryptSecurityKey(quint32 sourceID, const GpKey_t &securityKey)
     const auto _EVP_CIPHER_CTX_ctrl = reinterpret_cast<int (*)(EVP_CIPHER_CTX *ctx, int type, int arg, void *ptr)>(libSsl.resolve("EVP_CIPHER_CTX_ctrl"));
     const auto _EVP_EncryptUpdate = reinterpret_cast<int (*)(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl, const unsigned char *in, int inl)>(libCrypto.resolve("EVP_EncryptUpdate"));
     const auto _EVP_CIPHER_CTX_free = reinterpret_cast<void (*)(EVP_CIPHER_CTX *c)>(libSsl.resolve("EVP_CIPHER_CTX_free"));
+    const auto _EVP_aes_128_ccm  = reinterpret_cast<const EVP_CIPHER *(*)(void)>(libSsl.resolve("EVP_aes_128_ccm"));
 
     if (_OpenSSL_version_num)
     {
@@ -71,7 +72,8 @@ GpKey_t GP_DecryptSecurityKey(quint32 sourceID, const GpKey_t &securityKey)
             _EVP_EncryptInit_ex &&
             _EVP_CIPHER_CTX_ctrl &&
             _EVP_EncryptUpdate &&
-            _EVP_CIPHER_CTX_free)
+            _EVP_CIPHER_CTX_free &&
+            _EVP_aes_128_ccm)
     {
         DBG_Printf(DBG_INFO, "OpenSSl version 0x%08X loaded\n", openSslVersion);
     }
@@ -89,13 +91,13 @@ GpKey_t GP_DecryptSecurityKey(quint32 sourceID, const GpKey_t &securityKey)
     int outlen = 0;
 
     /* Set cipher type and mode */
-    _EVP_EncryptInit_ex(ctx, EVP_aes_128_ccm(), NULL, NULL, NULL);
+    _EVP_EncryptInit_ex(ctx, _EVP_aes_128_ccm(), nullptr, nullptr, nullptr);
 
     /* Set nonce length if default 96 bits is not appropriate */
-    _EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_IVLEN, sizeof(nonce), NULL);
+    _EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_IVLEN, sizeof(nonce), nullptr);
 
     /* Initialise key and IV */
-    _EVP_EncryptInit_ex(ctx, NULL, NULL, defaultTCLinkKey, nonce);
+    _EVP_EncryptInit_ex(ctx, nullptr, nullptr, defaultTCLinkKey, nonce);
 
     /* Encrypt plaintext: can only be called once */
     _EVP_EncryptUpdate(ctx, encryptBuf.data(), &outlen, securityKey.data(), static_cast<int>(securityKey.size()));
