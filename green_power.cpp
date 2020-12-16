@@ -43,8 +43,13 @@ GpKey_t GP_DecryptSecurityKey(quint32 sourceID, const GpKey_t &securityKey)
 
     nonce[12] = 0x05;
 
+#ifdef Q_OS_WIN
+    QLibrary libCrypto(QLatin1String("libcrypto-1_1.dll"));
+    QLibrary libSsl(QLatin1String("libssl-1_1.dll"));
+#else
     QLibrary libCrypto(QLatin1String("crypto"));
     QLibrary libSsl(QLatin1String("ssl"));
+#endif
 
     if (!libCrypto.load() || !libSsl.load())
     {
@@ -79,7 +84,7 @@ GpKey_t GP_DecryptSecurityKey(quint32 sourceID, const GpKey_t &securityKey)
     }
     else
     {
-        DBG_Printf(DBG_INFO, "OpenSSl library for ZGP encryption resolve symbols failed\n");
+        DBG_Printf(DBG_INFO, "OpenSSl library version 0x%08X for ZGP encryption resolve symbols failed\n", openSslVersion);
         return result;
     }
 
