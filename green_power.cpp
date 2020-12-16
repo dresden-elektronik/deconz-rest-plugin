@@ -55,12 +55,12 @@ GpKey_t GP_DecryptSecurityKey(quint32 sourceID, const GpKey_t &securityKey)
     unsigned long openSslVersion = 0;
 
     auto _OpenSSL_version_num = reinterpret_cast<unsigned long (*)(void)>(libCrypto.resolve("OpenSSL_version_num"));
-    const auto _EVP_CIPHER_CTX_new = reinterpret_cast<EVP_CIPHER_CTX*(*)(void)>(libSsl.resolve("EVP_CIPHER_CTX_new"));
-    const auto _EVP_EncryptInit_ex = reinterpret_cast<int (*)(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *cipher, ENGINE *impl, const unsigned char *key, const unsigned char *iv)>(libSsl.resolve("EVP_EncryptInit_ex"));
-    const auto _EVP_CIPHER_CTX_ctrl = reinterpret_cast<int (*)(EVP_CIPHER_CTX *ctx, int type, int arg, void *ptr)>(libSsl.resolve("EVP_CIPHER_CTX_ctrl"));
+    const auto _EVP_CIPHER_CTX_new = reinterpret_cast<EVP_CIPHER_CTX*(*)(void)>(libCrypto.resolve("EVP_CIPHER_CTX_new"));
+    const auto _EVP_EncryptInit_ex = reinterpret_cast<int (*)(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *cipher, ENGINE *impl, const unsigned char *key, const unsigned char *iv)>(libCrypto.resolve("EVP_EncryptInit_ex"));
+    const auto _EVP_CIPHER_CTX_ctrl = reinterpret_cast<int (*)(EVP_CIPHER_CTX *ctx, int type, int arg, void *ptr)>(libCrypto.resolve("EVP_CIPHER_CTX_ctrl"));
     const auto _EVP_EncryptUpdate = reinterpret_cast<int (*)(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl, const unsigned char *in, int inl)>(libCrypto.resolve("EVP_EncryptUpdate"));
-    const auto _EVP_CIPHER_CTX_free = reinterpret_cast<void (*)(EVP_CIPHER_CTX *c)>(libSsl.resolve("EVP_CIPHER_CTX_free"));
-    const auto _EVP_aes_128_ccm  = reinterpret_cast<const EVP_CIPHER *(*)(void)>(libSsl.resolve("EVP_aes_128_ccm"));
+    const auto _EVP_CIPHER_CTX_free = reinterpret_cast<void (*)(EVP_CIPHER_CTX *c)>(libCrypto.resolve("EVP_CIPHER_CTX_free"));
+    const auto _EVP_aes_128_ccm  = reinterpret_cast<const EVP_CIPHER *(*)(void)>(libCrypto.resolve("EVP_aes_128_ccm"));
 
     if (_OpenSSL_version_num)
     {
