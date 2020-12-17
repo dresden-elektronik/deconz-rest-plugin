@@ -2247,6 +2247,12 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturerCode() == VENDOR_NETVOX) // Netvox smart plug
         {
         }
+        else if (lightNode->manufacturer() == QLatin1String("ptvo.info"))
+        {
+        }
+        else if (lightNode->manufacturer() == QLatin1String("DIYRUZ"))
+        {
+        }
         else if (lightNode->manufacturer() == QLatin1String("Immax"))
         {
         }
