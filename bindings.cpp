@@ -1545,7 +1545,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.reportableChange8bit = 2;   // Vendor defaults
         }
         else if (sensor && (sensor->modelId().startsWith(QLatin1String("ED-1001")) || // EcoDim switches
-                            sensor->modelId().startsWith(QLatin1String("45127"))))    // Namron switches
+                            sensor->modelId().startsWith(QLatin1String("45127")) ||   // Namron switches
+                            sensor->modelId().startsWith(QLatin1String("FNB56-"))))   // Feibit devices
         {
             rq.minInterval = 3600;
             rq.maxInterval = 43200;
@@ -2683,7 +2684,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Plugwise
         sensor->modelId().startsWith(QLatin1String("160-01")) ||
         // Feibit
-        sensor->modelId().startsWith(QLatin1String("FNB56")) ||
+        sensor->modelId().startsWith(QLatin1String("FNB56-")) ||
         // Niko
         sensor->modelId() == QLatin1String("Connected socket outlet") ||
         // Sage
