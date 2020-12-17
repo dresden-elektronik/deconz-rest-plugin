@@ -3103,6 +3103,10 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
             }
             else if (ic->id() == LEVEL_CLUSTER_ID && (event.clusterId() == LEVEL_CLUSTER_ID))
             {
+                if (isXmasLightStrip(lightNode))
+                {
+                    continue;
+                }
                 std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
                 std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
                 for (;ia != enda; ++ia)
