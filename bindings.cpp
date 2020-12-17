@@ -1745,9 +1745,12 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq2.attributeId = 0x0505; // RMS Voltage
         rq2.minInterval = 1;
         rq2.maxInterval = 300;
+
         if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||       // Heiman
                        sensor->modelId() == QLatin1String("SKHMP30-I1") ||      // GS smart plug
                        sensor->modelId().startsWith(QLatin1String("SPLZB-1")))) // Develco smart plug
+                       sensor->modelId() == QLatin1String("SMRZB-143") || // GS smart plug
+                       sensor->modelId() == QLatin1String("SKHMP30-I1"))) // GS smart plug
         {
             rq2.reportableChange16bit = 100; // 1 V
         }
@@ -1777,6 +1780,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                        sensor->modelId().startsWith(QLatin1String("SPLZB-1")) || // Develco smart plug
                        sensor->modelId() == QLatin1String("SZ-ESW01-AU") ||      // Sercomm / Telstra smart plug
                        sensor->modelId() == QLatin1String("Connected socket outlet") || // Niko smart socket
+                       sensor->modelId() == QLatin1String("SMRZB-143") || // Develco smart cable
                        sensor->modelId() == QLatin1String("TS0121")))            // Tuya / Blitzwolf
         {
             rq3.reportableChange16bit = 100; // 0.1 A
@@ -2565,6 +2569,11 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("SMRZB-3")) ||   // Smart Relay DIN
         sensor->modelId().startsWith(QLatin1String("SIRZB-1")) ||   // siren
         sensor->modelId().startsWith(QLatin1String("SPLZB-1")) ||   // smart plug
+        sensor->modelId().startsWith(QLatin1String("EMIZB-132")) || // EMI Norwegian HAN
+        sensor->modelId().startsWith(QLatin1String("SMRZB-33")) ||  // Smart Relay DIN
+        sensor->modelId().startsWith(QLatin1String("SMRZB-143")) || // Smart Cable
+        sensor->modelId().startsWith(QLatin1String("SIRZB-110")) || // siren
+        sensor->modelId() == QLatin1String("SPLZB-131") ||          // smart plug
         sensor->modelId() == QLatin1String("MotionSensor51AU") ||   // Aurora (Develco) motion sensor
         // LG
         sensor->modelId() == QLatin1String("LG IP65 HMS") ||
