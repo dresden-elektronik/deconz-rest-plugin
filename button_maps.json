@@ -58,49 +58,49 @@
             "ATTRIBUTE_REPORT": 10
         },
         "SCENES": {
-          	"ADD_SCENE": 0,
-          	"VIEW_SCENE": 1,
-          	"REMOVE_SCENE": 2,
-          	"STORE_SCENE": 4,
-          	"RECALL_SCENE": 5,
-          	"IKEA_STEP_CT": 7,
-          	"IKEA_MOVE_CT": 8,
-          	"IKEA_STOP_CT": 9
+            "ADD_SCENE": 0,
+            "VIEW_SCENE": 1,
+            "REMOVE_SCENE": 2,
+            "STORE_SCENE": 4,
+            "RECALL_SCENE": 5,
+            "IKEA_STEP_CT": 7,
+            "IKEA_MOVE_CT": 8,
+            "IKEA_STOP_CT": 9
         },
         "ONOFF": {
             "ATTRIBUTE_REPORT": 10,
-          	"OFF": 0,
-          	"ON": 1,
-          	"TOGGLE": 2,
-          	"OFF_WITH_EFFECT": 64,
-          	"ON_WITH_TIMED_OFF": 66,
+            "OFF": 0,
+            "ON": 1,
+            "TOGGLE": 2,
+            "OFF_WITH_EFFECT": 64,
+            "ON_WITH_TIMED_OFF": 66,
             "LIDL": 253
         },
         "LEVEL_CONTROL": {
-          	"MOVE_TO_LEVEL": 0,
-          	"MOVE": 1,
-          	"STEP": 2,
-          	"STOP": 3,
-          	"MOVE_TO_LEVEL_WITH_ON_OFF": 4,
-          	"MOVE_WITH_ON_OFF": 5,
-          	"STEP_WITH_ON_OFF": 6,
-          	"STOP_WITH_ON_OFF": 7
+            "MOVE_TO_LEVEL": 0,
+            "MOVE": 1,
+            "STEP": 2,
+            "STOP": 3,
+            "MOVE_TO_LEVEL_WITH_ON_OFF": 4,
+            "MOVE_WITH_ON_OFF": 5,
+            "STEP_WITH_ON_OFF": 6,
+            "STOP_WITH_ON_OFF": 7
         },
         "WINDOW_COVERING": {
-          	"OPEN": 0,
-          	"CLOSE": 1,
-          	"STOP": 2,
-          	"GOTO_LIFT_PCT": 5,
-          	"GOTO_TILT_PCT": 8
+            "OPEN": 0,
+            "CLOSE": 1,
+            "STOP": 2,
+            "GOTO_LIFT_PCT": 5,
+            "GOTO_TILT_PCT": 8
         },
         "COLOR_CONTROL": {
-          	"MOVE_HUE": 1,
-          	"MOVE_TO_SATURATION": 3,
-          	"MOVE_TO_COLOR": 7,
-          	"MOVE_TO_COLOR_TEMPERATURE": 10,
-          	"STOP_MOVE_STEP": 71,
-          	"MOVE_COLOR_TEMPERATURE": 75,
-          	"STEP_COLOR_TEMPERATURE": 76
+            "MOVE_HUE": 1,
+            "MOVE_TO_SATURATION": 3,
+            "MOVE_TO_COLOR": 7,
+            "MOVE_TO_COLOR_TEMPERATURE": 10,
+            "STOP_MOVE_STEP": 71,
+            "MOVE_COLOR_TEMPERATURE": 75,
+            "STEP_COLOR_TEMPERATURE": 76
         },
         "IAS_ACE": {
             "ARM": 0,
