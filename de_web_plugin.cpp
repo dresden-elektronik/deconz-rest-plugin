@@ -425,6 +425,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_DANFOSS, "eTRV0100", silabs2MacPrefix }, // Danfoss Ally thermostat
     { VENDOR_LDS, "ZBT-CCTSwitch-D0001", silabs2MacPrefix }, // Leedarson remote control
     { VENDOR_KWIKSET, "SMARTCODE_CONVERT_GEN1", zenMacPrefix }, // Kwikset 914 ZigBee smart lock
+    { VENDOR_EMBER, "TS1001", silabs5MacPrefix }, // LIDL remote
+    { VENDOR_EMBER, "TS1001", silabs7MacPrefix }, // LIDL remote
 
     { 0, nullptr, 0 }
 };
@@ -3937,6 +3939,16 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 checkSensorGroup(sensor); // still default group, create unique group and binding
             }
         }
+    }
+    else if (sensor->modelId().startsWith(QLatin1String("TS1001")))
+    {
+        // Probably needed because deCONZ doesn't send Default Response to unicast command.
+        if (zclFrame.sequenceNumber() == sensor->previousSequenceNumber)
+        {
+            return;
+        }
+        sensor->previousSequenceNumber = zclFrame.sequenceNumber();
+        checkReporting = true;
     }
 
     if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() != 0)
@@ -16031,6 +16043,11 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             swBuildIdAvailable = false; // empty string
             dateCodeAvailable = false; // unsupported attribute
         }
+        else if (modelId.startsWith(QLatin1String("TS1001")))
+        {
+            swBuildIdAvailable = false; // unsupported attribute
+            dateCodeAvailable = false; // empty string
+        }
 
         // manufacturer, model id, sw build id
         if (!sensor || modelId.isEmpty() || manufacturer.isEmpty() || (swBuildId.isEmpty() && dateCode.isEmpty() && (dateCodeAvailable || swBuildIdAvailable)))
@@ -16514,6 +16531,49 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 writeAttribute(sensor, sensor->fingerPrint().endpoint, 0xFCC0, attr, VENDOR_XIAOMI);
                 item->setValue(item->toNumber() & ~R_PENDING_MODE);
             }
+        }
+        else if (sensor->modelId().startsWith(QLatin1String("TS1001"))) // LIDL
+        {
+            ResourceItem *item = sensor->item(RConfigGroup);
+            if (!item)
+            {
+                item = sensor->addItem(DataTypeString, RConfigGroup);
+                Group *group = addGroup();
+                QString gid = group->id();
+
+                DBG_Printf(DBG_INFO, "create group %s for sensor %s\n", qPrintable(gid), qPrintable(sensor->id()));
+                group->setName(sensor->name());
+                ResourceItem *item2 = group->addItem(DataTypeString, RAttrUniqueId);
+                DBG_Assert(item2);
+                if (item2)
+                {
+                    const QString uid = generateUniqueId(sensor->address().ext(), 0x01, 0);
+                    item2->setValue(uid);
+                }
+                if (group->addDeviceMembership(sensor->id()))
+                {
+                }
+
+                // Binding of client clusters doesn't work for endpoint 0x01.
+                // Need to add the group to the server Groups cluster instead.
+                TaskItem task;
+
+                // set destination parameters
+                task.req.dstAddress() = sensor->address();
+                task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+                task.req.setDstEndpoint(0x01);
+                task.req.setSrcEndpoint(getSrcEndpoint(sensor, task.req));
+                task.req.setDstAddressMode(deCONZ::ApsExtAddress);
+
+                addTaskAddToGroup(task, group->id().toInt());
+
+                item->setValue(gid);
+                sensor->setNeedSaveDatabase(true);
+                queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+                Event e(RSensors, RConfigGroup, sensor->id(), item);
+                enqueueEvent(e);
+            }
+            checkSensorBindingsForClientClusters(sensor);
         }
 
         for (auto &s : sensors)

@@ -1551,6 +1551,12 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 43200;
             rq.reportableChange8bit = 1;
         }
+        else if (sensor && sensor->modelId().startsWith(QLatin1String("TS1001"))) // LIDL
+        {
+            rq.minInterval = 7200;
+            rq.maxInterval = 7200;
+            rq.reportableChange8bit = 1;
+        }
         else if (sensor && (sensor->manufacturer().startsWith(QLatin1String("Climax")) ||
                             sensor->modelId().startsWith(QLatin1String("902010/23"))))
         {
@@ -2700,7 +2706,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("TH01") ||
         sensor->modelId() == QLatin1String("DS01") ||
         // Danfoss
-        sensor->modelId() == QLatin1String("eTRV0100")
+        sensor->modelId() == QLatin1String("eTRV0100") ||
+        // LIDL
+        sensor->modelId().startsWith("TS1001")
         )
     {
         deviceSupported = true;
