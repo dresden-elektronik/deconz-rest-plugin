@@ -132,8 +132,9 @@
 #define DEV_ID_HA_WINDOW_COVERING_DEVICE    0x0202 // Window Covering Device
 #define DEV_ID_HA_WINDOW_COVERING_CONTROLLER 0x0203 // Window Covering Controller
 
-// Danalock support
+// Door lock device
 #define DEV_ID_DOOR_LOCK                    0x000a // Door Lock
+#define DEV_ID_DOOR_LOCK_DEVICE             0x000b // Door Lock controller
 
 //
 #define DEV_ID_IAS_ZONE                     0x0402 // IAS Zone

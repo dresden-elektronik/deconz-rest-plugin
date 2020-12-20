@@ -2199,6 +2199,16 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                     }
                 }
                 break;
+                case DEV_ID_DOOR_LOCK_DEVICE: // ORVIBO Zigbee Dry Contact CM10ZW
+                {
+                    if (!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == VENDOR_NONE){
+                        if (hasServerOnOff)
+                        {
+                            lightNode.setHaEndpoint(*i);
+                        }
+                    }
+                }
+                break
 
                 case DEV_ID_FAN:
                 {
@@ -2521,6 +2531,11 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         else if (lightNode.modelId() == QLatin1String("545df2981b704114945f6df1c780515a"))
         {
             lightNode.setModelId(QLatin1String("T10W1ZW switch"));
+            lightNode.setNeedSaveDatabase(true);
+        }
+        else if (lightNode.modelId() == QLatin1String("82c1167c95ed756cdbd21d6817f72c593"))
+        {
+            lightNode.setModelId(QLatin1String("CM10ZW"));
             lightNode.setNeedSaveDatabase(true);
         }
 
@@ -3276,6 +3291,17 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                                 else
                                 {
                                     str = QLatin1String("T10W1ZW switch");
+                                }
+                            }
+                            else if (str == QLatin1String("82c1167c95ed756cdbd21d6817f72c593"))
+                            {
+                                if (lightNode->modelId().startsWith(QLatin1String("CM10ZW")))
+                                {
+                                    continue; // skip if already replaced
+                                }
+                                else
+                                {
+                                    str = QLatin1String("CM10ZW");
                                 }
                             }
 
