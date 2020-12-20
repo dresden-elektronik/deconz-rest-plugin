@@ -295,8 +295,6 @@ int DeRestPluginPrivate::setXmasLightStripState(const ApiRequest &req, ApiRespon
     bool targetOn = false;
     bool hasBri = false;
     quint8 targetBri = 0;
-    bool hasBriInc = false;
-    qint16 targetBriInc = 0;
     bool hasHue = false;
     quint16 targetHue = 0;
     bool hasSat = false;
@@ -335,21 +333,6 @@ int DeRestPluginPrivate::setXmasLightStripState(const ApiRequest &req, ApiRespon
                     valueOk = true;
                     hasBri = true;
                     targetBri = bri > 0xFE ? 0xFE : bri;
-                }
-            }
-        }
-        else if (param == "bri_inc"  && taskRef.lightNode->item(RStateBri))
-        {
-            paramOk = true;
-            hasCmd = true;
-            if (map[param].type() == QVariant::Double)
-            {
-                const int briInc = map[param].toInt(&ok);
-                if (ok && briInc >= -0xFF && briInc <= 0xFF)
-                {
-                    valueOk = true;
-                    hasBriInc = true;
-                    targetBriInc = briInc < -0xFE ? -0xFE : briInc > 0xFE ? 0xFE : briInc;
                 }
             }
         }
@@ -596,9 +579,6 @@ int DeRestPluginPrivate::setXmasLightStripState(const ApiRequest &req, ApiRespon
                 rsp.list.append(rspItem);
 
                 taskRef.lightNode->setValue(RStateBri, targetBri);
-
-                // Force update of LEVEL_CONTROL cluster attribute
-                ok = addTaskSetBrightness(task, targetBri, false);
             }
             if (hasHue)
             {
@@ -636,35 +616,6 @@ int DeRestPluginPrivate::setXmasLightStripState(const ApiRequest &req, ApiRespon
             {
                 rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/sat").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
             }
-        }
-    }
-    if (hasBriInc)
-    {
-        TaskItem task;
-        copyTaskReq(taskRef, task);
-        int bri = taskRef.lightNode->toNumber(RStateBri);
-
-        bri += targetBriInc;
-        targetBri = bri < 0 ? 0 : bri > 254 ? 254 : bri;
-
-        if (!isOn)
-        {
-            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, bri_inc, is not modifiable. Device is set to off.")));
-        }
-        else if (addTaskIncBrightness(task, targetBriInc))
-        {
-            QVariantMap rspItem;
-            QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/state/bri").arg(id)] = targetBri;
-            rspItem["success"] = rspItemState;
-            rsp.list.append(rspItem);
-
-            taskRef.lightNode->setValue(RStateBri, targetBri);
-            taskRef.lightNode->setValue(RStateEffect, RStateEffectValuesXmasLightStrip[R_EFFECT_NONE]);
-        }
-        else
-        {
-            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/bri_inc").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
     }
 

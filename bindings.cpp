@@ -2510,6 +2510,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("Switch-LIGHTIFY")) || // Osram 4 button remote
         // Keen Home
         sensor->modelId().startsWith(QLatin1String("SV01-")) ||
+        sensor->modelId().startsWith(QLatin1String("SV02-")) ||
         // Trust ZPIR-8000
         sensor->modelId().startsWith(QLatin1String("VMS_ADUROLIGHT")) ||
         // Trust ZMST-808
