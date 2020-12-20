@@ -1156,7 +1156,7 @@
         "lidlMap": {
             "vendor": "LIDL Livarno Lux",
             "doc": "LIDL / Livarno Lux Remote Control (_TYZB01_bngwdjsr)",
-            "modelids": ["Remote Control"],
+            "modelids": ["HG06323"],
             "map": [
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
                 [1, "0x01", "ONOFF", "LIDL", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On (0)"],

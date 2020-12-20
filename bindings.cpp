@@ -1551,7 +1551,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 43200;
             rq.reportableChange8bit = 1;
         }
-        else if (sensor && sensor->modelId() == QLatin1String("Remote Control")) // LIDL
+        else if (sensor && sensor->modelId() == QLatin1String("HG06323")) // LIDL
         {
             rq.minInterval = 7200;
             rq.maxInterval = 7200;
@@ -2708,7 +2708,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Danfoss
         sensor->modelId() == QLatin1String("eTRV0100") ||
         // LIDL
-        sensor->modelId() == QLatin1String("Remote Control")
+        sensor->modelId() == QLatin1String("HG06323")
         )
     {
         deviceSupported = true;

@@ -2526,6 +2526,26 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             lightNode.setModelId(QLatin1String("T10W1ZW switch"));
             lightNode.setNeedSaveDatabase(true);
         }
+        else if (lightNode.manufacturer() == QLatin1String("_TZ3000_dbou1ap4"))
+        {
+            lightNode.setManufacturerName(QLatin1String("LIDL Livarno Lux"));
+            lightNode.setModelId(QLatin1String("HG06106C")); // RGB Lamp
+        }
+        else if (lightNode.manufacturer() == QLatin1String("_TZ3000_el5kt5im"))
+        {
+            lightNode.setManufacturerName(QLatin1String("LIDL Livarno Lux"));
+            lightNode.setModelId(QLatin1String("HG06492A")); // LED bulb
+        }
+        else if (lightNode.manufacturer() == QLatin1String("_TZ3000_1obwwnmq"))
+        {
+            lightNode.setManufacturerName(QLatin1String("LIDL Silvercrest"));
+            lightNode.setModelId(QLatin1String("HG06338")); // Smart USB Extension Lead
+        }
+        // else if (lightNode.manufacturer() == QLatin1String("_TZE200_s8gkrkxk"))
+        // {
+        //     lightNode.setManufacturerName(QLatin1String("LIDL Livarno Lux"));
+        //     lightNode.setModelId(QLatin1String("Xmas light strip")); // No model ID
+        // }
 
         // add light node to default group
         GroupInfo *groupInfo = getGroupInfo(&lightNode, gwGroup0);
@@ -3235,20 +3255,22 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     else if (ia->id() == 0x0004) // Manufacturer name
                     {
                         QString str = ia->toString().trimmed();
+                        if (str == QString("欧瑞博"))
+                        {
+                            str = QLatin1String("ORVIBO");
+                        }
+                        else if (str == QLatin1String("_TZ3000_dbou1ap4") || // RGB lamp
+                              // str == QLatin1String("_TZE200_s8gkrkxk") || // Xmas light strip
+                                 str == QLatin1String("_TZ3000_el5kt5im")) // Led bulb
+                        {
+                            str = QLatin1String("LIDL Livarno Lux");
+                        }
+                        else if (str == QLatin1String("_TZ3000_1obwwnmq")) // Smart USB Extension Lead
+                        {
+                            str = QLatin1String("LIDL Silvercrest");
+                        }
                         if (!str.isEmpty() && str != lightNode->manufacturer())
                         {
-                            if (str == QString("欧瑞博"))
-                            {
-                                if (lightNode->manufacturer() == QLatin1String("ORVIBO"))
-                                {
-                                    continue; // skip if already 'translated'
-                                }
-                                else
-                                {
-                                    str = QLatin1String("ORVIBO");
-                                }
-                            }
-
                             lightNode->setManufacturerName(str);
                             lightNode->setNeedSaveDatabase(true);
                             queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
@@ -3260,32 +3282,34 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     {
                         QString str = ia->toString().trimmed();
                         ResourceItem *item = lightNode->item(RAttrModelId);
+
+                        if (str == QLatin1String("abb71ca5fe1846f185cfbda554046cce"))
+                        {
+                            str = QLatin1String("T10D1ZW dimmer");
+                        }
+                        else if (str == QLatin1String("545df2981b704114945f6df1c780515a"))
+                        {
+                            str = QLatin1String("T10W1ZW switch");
+                        }
+                        else if (str == QLatin1String("TS0505A") && lightNode->manufacturer() == QLatin1String("LIDL Livarno Lux"))
+                        {
+                            str = QLatin1String("HG06106C");
+                        }
+                        else if (str == QLatin1String("TS0502A") && lightNode->manufacturer() == QLatin1String("LIDL Livarno Lux"))
+                        {
+                            str = QLatin1String("HG06492A");
+                        }
+                        else if (str == QLatin1String("TS011F") && lightNode->manufacturer() == QLatin1String("LIDL Silvercrest"))
+                        {
+                            str = QLatin1String("HG06338");
+                        }
+                        // else if (str == QLatin1String("TS0601") && lightNode->manufacturer() == QLatin1String("LIDL Livarno Lux"))
+                        // {
+                        //     str = QLatin1String("Xmas light strip");
+                        // }
+
                         if (item && !str.isEmpty() && str != item->toString())
                         {
-
-                            if (str == QLatin1String("abb71ca5fe1846f185cfbda554046cce"))
-                            {
-                                if (lightNode->modelId().startsWith(QLatin1String("T10D1ZW")))
-                                {
-                                    continue; // skip if already replaced
-                                }
-                                else
-                                {
-                                    str = QLatin1String("T10D1ZW dimmer");
-                                }
-                            }
-                            else if (str == QLatin1String("545df2981b704114945f6df1c780515a"))
-                            {
-                                if (lightNode->modelId().startsWith(QLatin1String("T10W1ZW")))
-                                {
-                                    continue; // skip if already replaced
-                                }
-                                else
-                                {
-                                    str = QLatin1String("T10W1ZW switch");
-                                }
-                            }
-
                             lightNode->setModelId(str);
                             item->setValue(str);
                             lightNode->setNeedSaveDatabase(true);
@@ -3940,7 +3964,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             }
         }
     }
-    else if (sensor->modelId() == QLatin1String("Remote Control")) // LIDL
+    else if (sensor->modelId() == QLatin1String("HG06323")) // LIDL Remote Control
     {
         // Probably needed because deCONZ doesn't send Default Response to unicast command.
         if (zclFrame.sequenceNumber() == sensor->previousSequenceNumber)
@@ -6783,7 +6807,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (manufacturer == QLatin1String("_TYZB01_bngwdjsr"))
     {
         sensorNode.setManufacturer(QLatin1String("LIDL Livarno Lux"));
-        sensorNode.setModelId(QLatin1String("Remote Control"));
+        sensorNode.setModelId(QLatin1String("HG06323")); // LIDL Remote Control
     }
     else if (manufacturer.startsWith(QLatin1String("_TYZB01")))
     {
@@ -8261,11 +8285,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     str = QLatin1String("SF21 smoke sensor");
                                 }
-                                else if (str == QLatin1String("TS1001") &&
-                                         (i->manufacturer() == QLatin1String("LIDL Livarno Lux") ||
-                                          i->manufacturer() == QLatin1String("_TYZB01_bngwdjsr")))
+                                else if (str == QLatin1String("TS1001") && i->manufacturer() == QLatin1String("LIDL Livarno Lux"))
                                 {
-                                    str = QLatin1String("Remote Control");
+                                    str = QLatin1String("HG06323"); // LIDL Remote Control
                                 }
                                 if (!str.isEmpty())
                                 {
@@ -16037,7 +16059,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             swBuildIdAvailable = false; // empty string
             dateCodeAvailable = false; // unsupported attribute
         }
-        else if (modelId == QLatin1String("Remote Control")) // LIDL
+        else if (modelId == QLatin1String("HG06323")) // LIDL Remote Control
         {
             swBuildIdAvailable = false; // unsupported attribute
             dateCodeAvailable = false; // empty string
@@ -16526,7 +16548,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 item->setValue(item->toNumber() & ~R_PENDING_MODE);
             }
         }
-        else if (sensor->modelId() == QLatin1String("Remote Control")) // LIDL
+        else if (sensor->modelId() == QLatin1String("HG06323")) // LIDL Remote Control
         {
             ResourceItem *item = sensor->item(RConfigGroup);
             if (!item)
