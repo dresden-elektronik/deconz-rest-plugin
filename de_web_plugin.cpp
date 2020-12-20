@@ -425,8 +425,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_DANFOSS, "eTRV0100", silabs2MacPrefix }, // Danfoss Ally thermostat
     { VENDOR_LDS, "ZBT-CCTSwitch-D0001", silabs2MacPrefix }, // Leedarson remote control
     { VENDOR_KWIKSET, "SMARTCODE_CONVERT_GEN1", zenMacPrefix }, // Kwikset 914 ZigBee smart lock
-    { VENDOR_EMBER, "TS1001", silabs5MacPrefix }, // LIDL remote
-    { VENDOR_EMBER, "TS1001", silabs7MacPrefix }, // LIDL remote
+    { VENDOR_EMBER, "TS1001", silabs5MacPrefix }, // LIDL Remote Control
+    { VENDOR_EMBER, "TS1001", silabs7MacPrefix }, // LIDL Remote Control
 
     { 0, nullptr, 0 }
 };
@@ -3940,7 +3940,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             }
         }
     }
-    else if (sensor->modelId().startsWith(QLatin1String("TS1001")))
+    else if (sensor->modelId() == QLatin1String("Remote Control")) // LIDL
     {
         // Probably needed because deCONZ doesn't send Default Response to unicast command.
         if (zclFrame.sequenceNumber() == sensor->previousSequenceNumber)
@@ -6780,6 +6780,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("Develco Products A/S");
     }
+    else if (manufacturer == QLatin1String("_TYZB01_bngwdjsr"))
+    {
+        sensorNode.setManufacturer(QLatin1String("LIDL Livarno Lux"));
+        sensorNode.setModelId(QLatin1String("Remote Control"));
+    }
     else if (manufacturer.startsWith(QLatin1String("_TYZB01")))
     {
         sensorNode.setManufacturer("Tuya");
@@ -8244,43 +8249,28 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 }
 
                                 QString str = ia->toString().simplified();
+                                if (str == QLatin1String("895a2d80097f4ae2b2d40500d5e03dcc"))
+                                {
+                                    str = QLatin1String("SN10ZW motion sensor");
+                                }
+                                else if (str == QLatin1String("b5db59bfd81e4f1f95dc57fdbba17931"))
+                                {
+                                    str = QLatin1String("SF20 smoke sensor");
+                                }
+                                else if (str == QLatin1String("98293058552c49f38ad0748541ee96ba"))
+                                {
+                                    str = QLatin1String("SF21 smoke sensor");
+                                }
+                                else if (str == QLatin1String("TS1001") &&
+                                         (i->manufacturer() == QLatin1String("LIDL Livarno Lux") ||
+                                          i->manufacturer() == QLatin1String("_TYZB01_bngwdjsr")))
+                                {
+                                    str = QLatin1String("Remote Control");
+                                }
                                 if (!str.isEmpty())
                                 {
                                     if (i->modelId() != str)
                                     {
-                                        if (str == QLatin1String("895a2d80097f4ae2b2d40500d5e03dcc"))
-                                        {
-                                            if (i->modelId().startsWith(QLatin1String("SN10ZW")))
-                                            {
-                                                continue; // skip if already replaced
-                                            }
-                                            else
-                                            {
-                                                str = QLatin1String("SN10ZW motion sensor");
-                                            }
-                                        }
-                                        else if (str == QLatin1String("b5db59bfd81e4f1f95dc57fdbba17931"))
-                                        {
-                                            if (i->modelId().startsWith(QLatin1String("SF20")))
-                                            {
-                                                continue; // skip if already replaced
-                                            }
-                                            else
-                                            {
-                                                str = QLatin1String("SF20 smoke sensor");
-                                            }
-                                        }
-                                        else if (str == QLatin1String("98293058552c49f38ad0748541ee96ba"))
-                                        {
-                                            if (i->modelId().startsWith(QLatin1String("SF21")))
-                                            {
-                                                continue; // skip if already replaced
-                                            }
-                                            else
-                                            {
-                                                str = QLatin1String("SF21 smoke sensor");
-                                            }
-                                        }
                                         i->setModelId(str);
                                         i->setNeedSaveDatabase(true);
                                         checkInstaModelId(&*i);
@@ -8312,6 +8302,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (str.startsWith(QLatin1String("TUYATEC")))
                                 {
                                     str = QLatin1String("Tuyatec"); // normalize TUYATEC-xdqihhgb --> Tuyatec
+                                }
+                                else if (str == QLatin1String("_TYZB01_bngwdjsr"))
+                                {
+                                    str = QLatin1String("LIDL Livarno Lux");
                                 }
 
                                 if (i->modelId().startsWith(QLatin1String("TRADFRI")))
@@ -16043,7 +16037,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             swBuildIdAvailable = false; // empty string
             dateCodeAvailable = false; // unsupported attribute
         }
-        else if (modelId.startsWith(QLatin1String("TS1001")))
+        else if (modelId == QLatin1String("Remote Control")) // LIDL
         {
             swBuildIdAvailable = false; // unsupported attribute
             dateCodeAvailable = false; // empty string
@@ -16532,7 +16526,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 item->setValue(item->toNumber() & ~R_PENDING_MODE);
             }
         }
-        else if (sensor->modelId().startsWith(QLatin1String("TS1001"))) // LIDL
+        else if (sensor->modelId() == QLatin1String("Remote Control")) // LIDL
         {
             ResourceItem *item = sensor->item(RConfigGroup);
             if (!item)
