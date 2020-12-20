@@ -104,7 +104,8 @@ static void tlvEffect(QDataStream &stream, XmasLightStripEffect effect, quint8 s
 bool DeRestPluginPrivate::isXmasLightStrip(LightNode *lightNode)
 {
     return lightNode != nullptr &&
-           lightNode->manufacturer() == QLatin1String("_TZE200_s8gkrkxk");
+           (lightNode->modelId() == QLatin1String("HG06467") ||
+            lightNode->manufacturer() == QLatin1String("_TZE200_s8gkrkxk"));
 }
 
 QString XmasEffectName(quint8 effect)
