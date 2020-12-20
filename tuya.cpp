@@ -4,11 +4,33 @@
  * Implementation of Tuya cluster.
  *
  */
+#include <QTimeZone>
 
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "tuya.h"
 
+//Copied from ebaauwn code in timer.cpp
+const QDateTime epoch = QDateTime(QDate(2000, 1, 1), QTime(0, 0), Qt::UTC);
+static void getTime(quint32 *time, qint32 *tz, quint32 *dstStart, quint32 *dstEnd, qint32 *dstShift, quint32 *standardTime, quint32 *localTime)
+{
+    QDateTime now = QDateTime::currentDateTimeUtc();
+    QDateTime yearStart(QDate(QDate::currentDate().year(), 1, 1), QTime(0, 0), Qt::UTC);
+    QTimeZone timeZone(QTimeZone::systemTimeZoneId());
+
+    *time = *standardTime = *localTime = epoch.secsTo(now);
+    *tz = timeZone.offsetFromUtc(yearStart);
+    if (timeZone.hasTransitions())
+    {
+        QTimeZone::OffsetData dstStartOffsetData = timeZone.nextTransition(yearStart);
+        QTimeZone::OffsetData dstEndOffsetData = timeZone.nextTransition(dstStartOffsetData.atUtc);
+        *dstStart = epoch.secsTo(dstStartOffsetData.atUtc);
+        *dstEnd = epoch.secsTo(dstEndOffsetData.atUtc);
+        *dstShift = dstStartOffsetData.daylightTimeOffset;
+        *standardTime += *tz;
+        *localTime += *tz + ((*time >= *dstStart && *time <= *dstEnd) ? *dstShift : 0);
+    }
+}
 
 //***********************************************************************************
 
@@ -807,6 +829,51 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         }
 
     }
+    // Time sync command
+    //https://developer.tuya.com/en/docs/iot/device-development/embedded-software-development/mcu-development-access/zigbee-general-solution/tuya-zigbee-module-uart-communication-protocol
+    else if (zclFrame.commandId() == 0x24)
+    {
+        DBG_Printf(DBG_INFO, "Tuya debug 1 : Time sync Request" );
+        
+        QDataStream stream(zclFrame.payload());
+        stream.setByteOrder(QDataStream::LittleEndian);
+        
+        quint16 payloadSize;
+        
+        stream >> payloadSize; // Always 0 for device > gateway
+        //other data ore useless
+        if (payloadSize == 0)
+        {
+            
+            quint32 time_now = 0xFFFFFFFF;              // id 0x0000 Time
+            //qint8 time_status = 0x0D;                   // id 0x0001 TimeStatus Master|MasterZoneDst|Superseding
+            qint32 time_zone = 0xFFFFFFFF;              // id 0x0002 TimeZone
+            quint32 time_dst_start = 0xFFFFFFFF;        // id 0x0003 DstStart
+            quint32 time_dst_end = 0xFFFFFFFF;          // id 0x0004 DstEnd
+            qint32 time_dst_shift = 0xFFFFFFFF;         // id 0x0005 DstShift
+            quint32 time_std_time = 0xFFFFFFFF;         // id 0x0006 StandardTime
+            quint32 time_local_time = 0xFFFFFFFF;       // id 0x0007 LocalTime
+            //quint32 time_valid_until_time = 0xFFFFFFFF; // id 0x0009 ValidUntilTime
+
+            getTime(&time_now, &time_zone, &time_dst_start, &time_dst_end, &time_dst_shift, &time_std_time, &time_local_time);
+
+            QByteArray data;
+            // Add UTC time
+            data.append((qint8)((time_now >> 24) & 0xff));
+            data.append((qint8)((time_now >> 16) & 0xff));
+            data.append((qint8)((time_now >> 8) & 0xff));
+            data.append((qint8)(time_now & 0xff));
+            // Ad local time
+            data.append((qint8)((time_local_time >> 24) & 0xff));
+            data.append((qint8)((time_local_time >> 16) & 0xff));
+            data.append((qint8)((time_local_time >> 8) & 0xff));
+            data.append((qint8)(time_local_time & 0xff));
+
+            SendTuyaCommand( ind, 0x24, data );
+
+            return;
+        }
+    }
     else
     {
         return;
@@ -940,6 +1007,63 @@ bool DeRestPluginPrivate::SendTuyaRequest(TaskItem &taskRef, TaskType taskType ,
     }
     else
     {
+        return false;
+    }
+
+    processTasks();
+
+    return true;
+}
+
+bool DeRestPluginPrivate::SendTuyaCommand( const deCONZ::ApsDataIndication &ind, qint8 command, QByteArray data )
+{
+    DBG_Printf(DBG_INFO, "Send Tuya Command 0x%02X Data: %s\n", command , qPrintable(data.toHex()));
+
+    TaskItem task;
+    
+    //Tuya task
+    task.taskType = TaskTuyaRequest;
+    
+    task.req.dstAddress() = ind.srcAddress();
+    task.req.setDstAddressMode(deCONZ::ApsExtAddress);
+    task.req.setDstEndpoint(ind.srcEndpoint() );
+    task.req.setSrcEndpoint( endpoint() );
+    task.req.setDstEndpoint(ind.srcEndpoint() );
+    task.req.setClusterId(TUYA_CLUSTER_ID);
+    task.req.setProfileId(HA_PROFILE_ID);
+
+    task.zclFrame.payload().clear();
+    task.zclFrame.setSequenceNumber(zclSeq++);
+    task.zclFrame.setCommandId(command); // Command
+    task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                             deCONZ::ZclFCDirectionServerToClient |
+                             deCONZ::ZclFCDisableDefaultResponse);
+
+    // payload
+    QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+    stream.setByteOrder(QDataStream::LittleEndian);
+    
+    // Data
+    stream << (qint16) data.length(); // length always 8
+    for (int i = 0; i < data.length(); i++)
+    {
+        stream << (quint8) data[i];
+    }
+
+    { // ZCL frame
+        task.req.asdu().clear(); // cleanup old request data if there is any
+        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        task.zclFrame.writeToStream(stream);
+    }
+
+    if (addTask(task))
+    {
+        taskToLocalData(task);
+    }
+    else
+    {
+        DBG_Printf(DBG_INFO, "Tuya debug 7");
         return false;
     }
 
