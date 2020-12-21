@@ -2199,7 +2199,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                     }
                 }
                 break;
-                case DEV_ID_DOOR_LOCK_DEVICE: // ORVIBO Zigbee Dry Contact CM10ZW
+                case DEV_ID_DOOR_LOCK_UNIT: // ORVIBO Zigbee Dry Contact CM10ZW
                 {
                     if (!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == VENDOR_NONE)
                     {

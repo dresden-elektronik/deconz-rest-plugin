@@ -134,7 +134,7 @@
 
 // Door lock device
 #define DEV_ID_DOOR_LOCK                    0x000a // Door Lock
-#define DEV_ID_DOOR_LOCK_DEVICE             0x000b // Door Lock controller
+#define DEV_ID_DOOR_LOCK_UNIT               0x000b // Door Lock controller
 
 //
 #define DEV_ID_IAS_ZONE                     0x0402 // IAS Zone
