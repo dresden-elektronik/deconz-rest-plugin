@@ -315,6 +315,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_DEVELCO, "EMIZB-1", develcoMacPrefix }, // Develco EMI Norwegian HAN
     { VENDOR_DEVELCO, "SMRZB-3", develcoMacPrefix }, // Develco Smart Relay DIN
     { VENDOR_DEVELCO, "SIRZB-1", develcoMacPrefix }, // Develco siren
+    { VENDOR_DEVELCO, "HMSZB-1", develcoMacPrefix }, // Develco temp/hum sensor
     { VENDOR_DEVELCO, "ZHMS101", develcoMacPrefix }, // Wattle (Develco) magnetic sensor
     { VENDOR_DEVELCO, "MotionSensor51AU", develcoMacPrefix }, // Aurora (Develco) motion sensor
     { VENDOR_EMBER, "3AFE14010402000D", konkeMacPrefix }, // Konke Kit Pro-BS Motion Sensor
@@ -7508,6 +7509,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().startsWith(QLatin1String("WISZB-1")) ||   // Develco window sensor
                                     i->modelId().startsWith(QLatin1String("FLSZB-1")) ||   // Develco water leak sensor
                                     i->modelId().startsWith(QLatin1String("SIRZB-1")) ||   // Develco siren
+                                    i->modelId().startsWith(QLatin1String("HMSZB-1")) ||   // Develco temp/hum sensor
                                     i->modelId().startsWith(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
                                     i->modelId().startsWith(QLatin1String("MotionSensor51AU")) || // Aurora (Develco) motion sensor
                                     i->modelId().startsWith(QLatin1String("RFDL-ZB-MS")) ||// Bosch motion sensor
