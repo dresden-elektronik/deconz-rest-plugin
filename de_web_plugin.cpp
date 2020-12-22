@@ -407,6 +407,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SENGLED_OPTOELEC, "E1E-", zhejiangMacPrefix }, // Sengled Smart Light Switch
     { VENDOR_JENNIC, "Plug-230V-ZB3.0", silabs2MacPrefix }, // Immax NEO ZB3.0 smart plug
     { VENDOR_JENNIC, "4in1-Sensor-ZB3.0", emberMacPrefix }, // Immax NEO ZB3.0 4 in 1 sensor
+    { VENDOR_JENNIC, "Keyfob-ZB3.0", emberMacPrefix }, // Immax Keyfob
     { VENDOR_WAXMAN, "leakSMART Water Sensor V2", celMacPrefix }, // WAXMAN LeakSMART v2
     { VENDOR_PHILIO, "PST03A-v2.2.5", emberMacPrefix }, // Philio pst03-a
     { VENDOR_EMBERTEC, "BQZ10-AU", embertecMacPrefix }, // Embertec smart plug
@@ -5044,7 +5045,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     else if (modelId == QLatin1String("WarningDevice") ||               // Heiman siren
                              modelId == QLatin1String("SZ-SRN12N") ||                   // Sercomm siren
                              modelId == QLatin1String("SIRZB-1") ||                     // Develco siren
-                             modelId == QLatin1String("902010/29"))                     // Bitron outdoor siren
+                             modelId == QLatin1String("902010/29") ||                   // Bitron outdoor siren
+                             modelId == QLatin1String("Keyfob-ZB3.0"))                  // Immax Keyfob
                     {
                         fpAlarmSensor.inClusters.push_back(ci->id());
                     }
@@ -5462,7 +5464,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case IAS_ACE_CLUSTER_ID:
                 {
-                    if (modelId == QLatin1String("RC_V14") || modelId == QLatin1String("RC-EM"))
+                    if (modelId == QLatin1String("Keyfob-ZB3.0") || modelId == QLatin1String("RC_V14") || modelId == QLatin1String("RC-EM"))
                     {
                         fpSwitch.outClusters.push_back(ci->id());
                     }
@@ -6178,8 +6180,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = IAS_ZONE_CLUSTER_ID;
         }
-        item = sensorNode.addItem(DataTypeBool, RStateAlarm);
-        item->setValue(false);
+        if (modelId != QLatin1String("Keyfob-ZB3.0"))
+        {
+            item = sensorNode.addItem(DataTypeBool, RStateAlarm);
+            item->setValue(false);
+        }
 
         if (modelId == QLatin1String("0yu2xgi"))
         {
@@ -6805,8 +6810,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             }
             else
             {
-                item = sensorNode.addItem(DataTypeBool, RStateTampered);
-                item->setValue(false);
+                if (modelId != QLatin1String("Keyfob-ZB3.0"))
+                {
+                    item = sensorNode.addItem(DataTypeBool, RStateTampered);
+                    item->setValue(false);
+                }
             }
         }
         item = sensorNode.addItem(DataTypeUInt8, RConfigPending);

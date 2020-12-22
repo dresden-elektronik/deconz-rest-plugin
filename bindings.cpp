@@ -2659,6 +2659,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Immax
         sensor->modelId() == QLatin1String("Plug-230V-ZB3.0") ||
         sensor->modelId() == QLatin1String("4in1-Sensor-ZB3.0") ||
+        sensor->modelId() == QLatin1String("Keyfob-ZB3.0") ||
         // Sercomm
         sensor->modelId().startsWith(QLatin1String("SZ-")) ||
         sensor->modelId() == QLatin1String("Tripper") ||
@@ -2899,6 +2900,11 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                     val.maxInterval = static_cast<quint16>(item->toNumber());
                     val.maxInterval -= 5; // report before going presence: false
                 }
+            }
+            
+            if (sensor->manufacturer() == QLatin1String("Immax"))
+            {
+                checkIasEnrollmentStatus(sensor);
             }
         }
         else if (*i == VENDOR_CLUSTER_ID)
