@@ -1437,6 +1437,7 @@ public:
     void patchNodeDescriptor(const deCONZ::ApsDataIndication &ind);
     void writeIasCieAddress(Sensor*);
     void checkIasEnrollmentStatus(Sensor*);
+    void processIasZoneStatus(Sensor *sensor, quint16 zoneStatus, NodeValue::UpdateType updateType);
 
     void pushClientForClose(QTcpSocket *sock, int closeTimeout, const QHttpRequestHeader &hdr);
 

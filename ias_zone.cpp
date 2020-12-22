@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2020 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -32,9 +32,17 @@
 #define STATUS_TEST           0x0100
 #define STATUS_BATTERY_DEFECT 0x0200
 
+// Attributes
+#define IAS_ZONE_STATE        0x0000
+#define IAS_ZONE_TYPE         0x0001
+#define IAS_ZONE_STATUS       0x0002
+#define IAS_CIE_ADDRESS       0x0010
+#define IAS_ZONE_ID           0x0011
+
+
 /*! Handle packets related to the ZCL IAS Zone cluster.
-    \param ind the APS level data indication containing the ZCL packet
-    \param zclFrame the actual ZCL frame which holds the IAS zone server command
+    \param ind - The APS level data indication containing the ZCL packet
+    \param zclFrame - The actual ZCL frame which holds the IAS zone server command
  */
 void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
@@ -48,196 +56,223 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
         return;
     }
 
+    // during setup the IAS Zone type will be read
+    // start to proceed discovery here
+    if (searchSensorsState == SearchSensorsActive)
+    {
+        if (!fastProbeTimer->isActive())
+        {
+            fastProbeTimer->start(5);
+        }
+    }
+
+    Sensor *sensor = nullptr;
+
+    for (auto &s : sensors)
+    {
+        if (!(s.address().ext() == ind.srcAddress().ext() && s.fingerPrint().endpoint == ind.srcEndpoint() &&
+             (s.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID) || s.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID)) &&
+              s.deletedState() == Sensor::StateNormal))
+        {
+            continue;
+        }
+
+        // Do we require this???
+        if (s.type() != QLatin1String("ZHAAlarm") &&
+            s.type() != QLatin1String("ZHACarbonMonoxide") &&
+            s.type() != QLatin1String("ZHAFire") &&
+            s.type() != QLatin1String("ZHAOpenClose") &&
+            s.type() != QLatin1String("ZHAPresence") &&
+            s.type() != QLatin1String("ZHAVibration") &&
+            s.type() != QLatin1String("ZHAWater"))
+        {
+            continue;
+        }
+
+        sensor = &s;
+    }
+
+    if (!sensor)
+    {
+        DBG_Printf(DBG_INFO, "No IAS sensor found for 0x%016llX, endpoint: 0x%08X\n", ind.srcAddress().ext(), ind.srcEndpoint());
+        return;
+    }
+
+    bool isReadAttr = false;
+    bool isReporting = false;
+    bool isWriteResponse = false;
+    bool isClusterCmd = false;
     if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReadAttributesResponseId)
     {
-        // during setup the IAS Zone type will be read
-        // start to proceed discovery here
-        if (searchSensorsState == SearchSensorsActive)
-        {
-            if (!fastProbeTimer->isActive())
-            {
-                fastProbeTimer->start(5);
-            }
-        }
+        isReadAttr = true;
     }
-
-    quint16 attrId = 0;
-    quint16 zoneStatus = 0; // might be reported or received via CMD_STATUS_CHANGE_NOTIFICATION
-
     if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId)
     {
-        quint16 a;
-        quint8 dataType;
-
-        stream >> a;
-        stream >> dataType;
-
-        if (a == IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID && dataType == deCONZ::Zcl16BitBitMap)
-        {
-            attrId = a; // mark as reported
-            stream >> zoneStatus;
-        }
-
-        if (stream.status() == QDataStream::ReadPastEnd)
-        {
-            return; // sanity
-        }
+        isReporting = true;
     }
-
-    if ((zclFrame.commandId() == CMD_STATUS_CHANGE_NOTIFICATION && zclFrame.isClusterCommand()) || attrId == IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID)
+    if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclWriteAttributesResponseId)
     {
-
-        if (zclFrame.commandId() == CMD_STATUS_CHANGE_NOTIFICATION)
-        {
-            quint8 extendedStatus;
-            quint8 zoneId;
-            quint16 delay;
-            stream >> zoneStatus;
-            stream >> extendedStatus; // reserved, set to 0
-            stream >> zoneId;
-            stream >> delay;
-            DBG_Printf(DBG_ZCL, "IAS Zone Status Change, status: 0x%04X, zoneId: %u, delay: %u\n", zoneStatus, zoneId, delay);
-        }
-
-        Sensor *sensor = nullptr;
-
-        for (Sensor &s : sensors)
-        {
-            if (s.deletedState() != Sensor::StateNormal)
-            {
-                continue;
-            }
-
-            if (!s.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID) && !s.fingerPrint().hasInCluster(IAS_WD_CLUSTER_ID))
-            {
-                continue;
-            }
-
-            if (s.type() != QLatin1String("ZHAAlarm") &&
-                s.type() != QLatin1String("ZHACarbonMonoxide") &&
-                s.type() != QLatin1String("ZHAFire") &&
-                s.type() != QLatin1String("ZHAOpenClose") &&
-                s.type() != QLatin1String("ZHAPresence") &&
-                s.type() != QLatin1String("ZHAVibration") &&
-                s.type() != QLatin1String("ZHAWater"))
-            {
-                continue;
-            }
-
-            if ((ind.srcAddress().hasExt() && s.address().ext() == ind.srcAddress().ext()) ||
-                (ind.srcAddress().hasNwk() && s.address().nwk() == ind.srcAddress().nwk()))
-            {
-                sensor = &s;
-                break;
-            }
-        }
-
-        if (!sensor)
-        {
-            return;
-        }
-
-        const char *attr = nullptr;
-        if (sensor->type() == QLatin1String("ZHAAlarm"))
-        {
-            attr = RStateAlarm;
-        }
-        else if (sensor->type() == QLatin1String("ZHACarbonMonoxide"))
-        {
-            attr = RStateCarbonMonoxide;
-        }
-        else if (sensor->type() == QLatin1String("ZHAFire"))
-        {
-            attr = RStateFire;
-        }
-        else if (sensor->type() == QLatin1String("ZHAOpenClose"))
-        {
-            attr = RStateOpen;
-        }
-        else if (sensor->type() == QLatin1String("ZHAPresence"))
-        {
-            attr = RStatePresence;
-        }
-        else if (sensor->type() == QLatin1String("ZHAVibration"))
-        {
-            attr = RStateVibration;
-        }
-        else if (sensor->type() == QLatin1String("ZHAWater"))
-        {
-            attr = RStateWater;
-        }
-
-        ResourceItem *item = nullptr;
-        if (attr)
-        {
-            item = sensor->item(attr);
-        }
-
-        if (item)
-        {
-            sensor->rx();
-            sensor->incrementRxCounter();
-            bool alarm = (zoneStatus & (STATUS_ALARM1 | STATUS_ALARM2)) ? true : false;
-            item->setValue(alarm);
-            sensor->updateStateTimestamp();
-            sensor->setNeedSaveDatabase(true);
-            updateSensorEtag(sensor);
-            enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor->id(), item));
-            enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
-
-            ResourceItem *item2 = sensor->item(RStateLowBattery);
-            if (item2)
-            {
-                bool battery = (zoneStatus & STATUS_BATTERY) ? true : false;
-                item2->setValue(battery);
-                enqueueEvent(Event(RSensors, RStateLowBattery, sensor->id(), item2));
-            }
-
-            item2 = sensor->item(RStateTampered);
-            if (item2)
-            {
-                bool tamper = (zoneStatus & STATUS_TAMPER) ? true : false;
-                item2->setValue(tamper);
-                enqueueEvent(Event(RSensors, RStateTampered, sensor->id(), item2));
-            }
-
-            item2 = sensor->item(RStateTest);
-            if (item2)
-            {
-                bool test = (zoneStatus & STATUS_TEST) ? true : false;
-                item2->setValue(test);
-                enqueueEvent(Event(RSensors, RStateTest, sensor->id(), item2));
-            }
-
-            deCONZ::NumericUnion num = {0};
-            num.u16 = zoneStatus;
-            sensor->setZclValue(NodeValue::UpdateByZclReport, ind.srcEndpoint(), IAS_ZONE_CLUSTER_ID, IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID, num);
-
-            item2 = sensor->item(RConfigReachable);
-            if (item2 && !item2->toBool())
-            {
-                item2->setValue(true);
-                enqueueEvent(Event(RSensors, RConfigReachable, sensor->id(), item2));
-            }
-
-            if (alarm && item->descriptor().suffix == RStatePresence)
-            {   // prepare to automatically set presence to false
-                NodeValue &val = sensor->getZclValue(IAS_ZONE_CLUSTER_ID, IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID);
-
-                item2 = sensor->item(RConfigDuration);
-                if (val.maxInterval > 0)
-                {
-                    sensor->durationDue = item->lastSet().addSecs(val.maxInterval);
-                }
-                else if (item2 && item2->toNumber() > 0)
-                {
-                    sensor->durationDue = item->lastSet().addSecs(item2->toNumber());
-                }
-            }
-        }
-
+        isWriteResponse = true;
     }
-    else if (zclFrame.commandId() == CMD_ZONE_ENROLL_REQUEST && zclFrame.isClusterCommand())
+    if ((zclFrame.frameControl() & 0x09) == (deCONZ::ZclFCDirectionServerToClient | deCONZ::ZclFCClusterCommand))
+    {
+        isClusterCmd = true;
+        DBG_Printf(DBG_INFO, "IAS cluster specific command.\n");
+    }
+
+    // Read ZCL reporting and ZCL Read Attributes Response
+    if (isReadAttr || isReporting)
+    {
+        const NodeValue::UpdateType updateType = isReadAttr ? NodeValue::UpdateByZclRead : NodeValue::UpdateByZclReport;
+
+        bool configUpdated = false;
+        bool stateUpdated = false;
+
+        while (!stream.atEnd())
+        {
+            quint16 attrId;
+            quint8 attrTypeId;
+
+            stream >> attrId;
+            if (isReadAttr)
+            {
+                quint8 status;
+                stream >> status;  // Read Attribute Response status
+                if (status != deCONZ::ZclSuccessStatus)
+                {
+                    continue;
+                }
+            }
+            stream >> attrTypeId;
+
+            deCONZ::ZclAttribute attr(attrId, attrTypeId, QLatin1String(""), deCONZ::ZclRead, false);
+
+            if (!attr.readFromStream(stream))
+            {
+                continue;
+            }
+
+            ResourceItem *item = nullptr;
+            item = sensor->item(RConfigPending);
+
+            switch (attrId)
+            {
+                case IAS_ZONE_STATE: // IAS zone state
+                {
+                    quint8 iasZoneState = attr.numericValue().u8;
+
+                    if (item && iasZoneState == 1)
+                    {
+                        DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor already enrolled (read).\n", sensor->address().ext());
+                    }
+                    else if (item && iasZoneState == 0)
+                    {
+                        DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor NOT enrolled (read)...\n", sensor->address().ext());
+                    }
+
+                    sensor->setZclValue(updateType, ind.srcEndpoint(), IAS_ZONE_CLUSTER_ID, attrId, attr.numericValue());
+                    //sensor->setNeedSaveDatabase(true);
+                }
+                    break;
+                case IAS_ZONE_TYPE: // IAS zone type
+                {
+                    sensor->setZclValue(updateType, ind.srcEndpoint(), IAS_ZONE_CLUSTER_ID, attrId, attr.numericValue());
+                }
+                    break;
+                case IAS_ZONE_STATUS: // IAS zone status
+                {
+                    quint16 zoneStatus = attr.numericValue().u16;   // might be reported or received via CMD_STATUS_CHANGE_NOTIFICATION
+
+                    processIasZoneStatus(sensor, zoneStatus, updateType);
+                    stateUpdated = true;
+                }
+                    break;
+                case IAS_CIE_ADDRESS: // IAS CIE address
+                {
+                    quint64 iasCieAddress = attr.numericValue().u64;
+
+                    if (item && iasCieAddress != 0 && iasCieAddress != 0xFFFFFFFFFFFFFFFF)
+                    {
+                        DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX IAS CIE address already written (read).\n", sensor->address().ext());
+
+                        if ((item->toNumber() & R_PENDING_WRITE_CIE_ADDRESS))
+                        {
+                            DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Removing 'pending IAS CIE write' flag.\n", sensor->address().ext());
+                            item->setValue(item->toNumber() & ~R_PENDING_WRITE_CIE_ADDRESS);
+                        }
+                    }
+                    else if (item && iasCieAddress == 0)
+                    {
+                        DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX IAS CIE address NOT written (read).\n", sensor->address().ext());
+
+                        if (!(item->toNumber() & R_PENDING_WRITE_CIE_ADDRESS))
+                        {
+                            DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Adding 'pending IAS CIE write' flag since missing.\n", sensor->address().ext());
+                            item->setValue(item->toNumber() | R_PENDING_WRITE_CIE_ADDRESS);
+                        }
+                    }
+
+                    sensor->setZclValue(updateType, ind.srcEndpoint(), IAS_ZONE_CLUSTER_ID, attrId, attr.numericValue());
+                    //sensor->setNeedSaveDatabase(true);
+                }
+                    break;
+
+                default:
+                    break;
+
+            }
+        }
+
+        if (stateUpdated)
+        {
+            sensor->updateStateTimestamp();
+            enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
+        }
+
+        if (configUpdated || stateUpdated)
+        {
+            updateEtag(sensor->etag);
+            updateEtag(gwConfigEtag);
+            sensor->setNeedSaveDatabase(true);
+            queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+        }
+
+        // Sensor might be uninitialized ???
+        NodeValue val = sensor->getZclValue(IAS_ZONE_CLUSTER_ID, IAS_CIE_ADDRESS);
+        deCONZ::NumericUnion iasCieAddress = val.value;
+
+        if (iasCieAddress.u64 == 0 || iasCieAddress.u64 == 0xFFFFFFFFFFFFFFFF)
+        {
+            writeIasCieAddress(sensor);
+        }
+
+        checkIasEnrollmentStatus(sensor);
+    }
+
+    // Read ZCL Cluster Command Response
+    if (isClusterCmd && zclFrame.commandId() == CMD_STATUS_CHANGE_NOTIFICATION)
+    {
+        quint16 zoneStatus;
+        quint8 extendedStatus;
+        quint8 zoneId;
+        quint16 delay;
+        stream >> zoneStatus;
+        stream >> extendedStatus; // reserved, set to 0
+        stream >> zoneId;
+        stream >> delay;
+        DBG_Printf(DBG_INFO, "[IAS Zone] - 0x%016llX Status Change, status: 0x%04X, zoneId: %u, delay: %u\n", sensor->address().ext(), zoneStatus, zoneId, delay);
+
+        const NodeValue::UpdateType updateType = NodeValue::UpdateByZclReport;
+        processIasZoneStatus(sensor, zoneStatus, updateType);
+
+        sensor->updateStateTimestamp();
+        enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
+        updateEtag(sensor->etag);
+        updateEtag(gwConfigEtag);
+        sensor->setNeedSaveDatabase(true);
+        queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+    }
+    else if (isClusterCmd && zclFrame.commandId() == CMD_ZONE_ENROLL_REQUEST)
     {
         quint16 zoneType;
         quint16 manufacturer;
@@ -245,18 +280,36 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
         stream >> zoneType;
         stream >> manufacturer;
 
-        DBG_Printf(DBG_INFO_L2, "[IAS] Zone Enroll Request, zone type: 0x%04X, manufacturer: 0x%04X\n", zoneType, manufacturer);
-
         sendIasZoneEnrollResponse(ind, zclFrame);
 
-        Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
-        ResourceItem *item = sensor ? sensor->item(RConfigPending) : nullptr;
+        ResourceItem *item = nullptr;
+        item = sensor->item(RConfigPending);
 
-        if (sensor && item)
+        if (item)
         {
+            DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX Zone Enroll Request, zone type: 0x%04X, manufacturer: 0x%04X\n", sensor->address().ext(), zoneType, manufacturer);
+            DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Removing 'pending enroll response' flag.\n", sensor->address().ext());
             item->setValue(item->toNumber() & ~R_PENDING_ENROLL_RESPONSE);
         }
+        //sensor->setNeedSaveDatabase(true);
+        checkIasEnrollmentStatus(sensor);
         return;
+    }
+
+    // ZCL Write Attributes Response
+    if (isWriteResponse)
+    {
+        ResourceItem *item = nullptr;
+        item = sensor->item(RConfigPending);
+
+        if (item && (item->toNumber() & R_PENDING_WRITE_CIE_ADDRESS))
+        {
+            item->setValue(item->toNumber() & ~R_PENDING_WRITE_CIE_ADDRESS);
+            DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX Write of IAS CIE address successful.\n", sensor->address().ext());
+            DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Removing 'pending IAS CIE write' flag.\n", sensor->address().ext());
+        }
+
+        checkIasEnrollmentStatus(sensor);
     }
 
     // Allow clearing the alarm bit for Develco devices
@@ -266,9 +319,112 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
     }
 }
 
+/*! Processes the received IAS zone status value.
+    \param sensor - Sensor containing the IAS zone cluster
+    \param zoneStatus - IAS zone status value
+    \param updateType - Update type
+ */
+void DeRestPluginPrivate::processIasZoneStatus(Sensor *sensor, quint16 zoneStatus, NodeValue::UpdateType updateType)
+{
+    const char *attr = nullptr;
+    if (sensor->type() == QLatin1String("ZHAAlarm"))
+    {
+        attr = RStateAlarm;
+    }
+    else if (sensor->type() == QLatin1String("ZHACarbonMonoxide"))
+    {
+        attr = RStateCarbonMonoxide;
+    }
+    else if (sensor->type() == QLatin1String("ZHAFire"))
+    {
+        attr = RStateFire;
+    }
+    else if (sensor->type() == QLatin1String("ZHAOpenClose"))
+    {
+        attr = RStateOpen;
+    }
+    else if (sensor->type() == QLatin1String("ZHAPresence"))
+    {
+        attr = RStatePresence;
+    }
+    else if (sensor->type() == QLatin1String("ZHAVibration"))
+    {
+        attr = RStateVibration;
+    }
+    else if (sensor->type() == QLatin1String("ZHAWater"))
+    {
+        attr = RStateWater;
+    }
+
+    ResourceItem *item = nullptr;
+    if (attr)
+    {
+        item = sensor->item(attr);
+    }
+
+    if (item)
+    {
+        sensor->rx();
+        sensor->incrementRxCounter();
+        bool alarm = (zoneStatus & (STATUS_ALARM1 | STATUS_ALARM2)) ? true : false;
+        item->setValue(alarm);
+        enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor->id(), item));
+
+        ResourceItem *item2 = sensor->item(RStateLowBattery);
+        if (item2)
+        {
+            bool battery = (zoneStatus & STATUS_BATTERY) ? true : false;
+            item2->setValue(battery);
+            enqueueEvent(Event(RSensors, RStateLowBattery, sensor->id(), item2));
+        }
+
+        item2 = sensor->item(RStateTampered);
+        if (item2)
+        {
+            bool tamper = (zoneStatus & STATUS_TAMPER) ? true : false;
+            item2->setValue(tamper);
+            enqueueEvent(Event(RSensors, RStateTampered, sensor->id(), item2));
+        }
+
+        item2 = sensor->item(RStateTest);
+        if (item2)
+        {
+            bool test = (zoneStatus & STATUS_TEST) ? true : false;
+            item2->setValue(test);
+            enqueueEvent(Event(RSensors, RStateTest, sensor->id(), item2));
+        }
+
+        deCONZ::NumericUnion num = {0};
+        num.u16 = zoneStatus;
+        sensor->setZclValue(updateType, sensor->fingerPrint().endpoint, IAS_ZONE_CLUSTER_ID, IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID, num);
+
+        item2 = sensor->item(RConfigReachable);
+        if (item2 && !item2->toBool())
+        {
+            item2->setValue(true);
+            enqueueEvent(Event(RSensors, RConfigReachable, sensor->id(), item2));
+        }
+
+        if (alarm && item->descriptor().suffix == RStatePresence)
+        {   // prepare to automatically set presence to false
+            NodeValue &val = sensor->getZclValue(IAS_ZONE_CLUSTER_ID, IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID);
+
+            item2 = sensor->item(RConfigDuration);
+            if (val.maxInterval > 0)
+            {
+                sensor->durationDue = item->lastSet().addSecs(val.maxInterval);
+            }
+            else if (item2 && item2->toNumber() > 0)
+            {
+                sensor->durationDue = item->lastSet().addSecs(item2->toNumber());
+            }
+        }
+    }
+}
+
 /*! Sends IAS Zone enroll response to IAS Zone server.
-    \param ind the APS level data indication containing the ZCL packet
-    \param zclFrame the actual ZCL frame which holds the IAS Zone enroll request
+    \param ind - The APS level data indication containing the ZCL packet
+    \param zclFrame - The actual ZCL frame which holds the IAS Zone enroll request
  */
 void DeRestPluginPrivate::sendIasZoneEnrollResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
@@ -308,61 +464,91 @@ void DeRestPluginPrivate::sendIasZoneEnrollResponse(const deCONZ::ApsDataIndicat
 
     if (apsCtrl && apsCtrl->apsdeDataRequest(req) != deCONZ::Success)
     {
-        DBG_Printf(DBG_INFO_L2, "[IAS] Zone failed to send enroll reponse\n");
+        DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX Zone failed to send enroll reponse\n", ind.srcAddress().ext());
     }
 }
 
 /*! Check if a sensor is already enrolled
-    \param Sensor - sensor containing the IAS zone cluster
+    \param sensor - Sensor containing the IAS zone cluster
  */
 void DeRestPluginPrivate::checkIasEnrollmentStatus(Sensor *sensor)
 {
     if (sensor->fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
     {
-        NodeValue val = sensor->getZclValue(IAS_ZONE_CLUSTER_ID, 0x0000);
+
+        DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor ID: %s\n", sensor->address().ext(), qPrintable(sensor->uniqueId()));
+        DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor ID: %s\n", sensor->address().ext(), qPrintable(sensor->type()));
+
+        NodeValue val = sensor->getZclValue(IAS_ZONE_CLUSTER_ID, IAS_ZONE_STATE);
         deCONZ::NumericUnion iasZoneStatus = val.value;
+        DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor zone state timestamp: %s\n", sensor->address().ext(), qPrintable(val.timestamp.toString()));
+        DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor zone state value: %d\n", sensor->address().ext(), iasZoneStatus.u8);
+
+        NodeValue val1 = sensor->getZclValue(IAS_ZONE_CLUSTER_ID, IAS_CIE_ADDRESS);
+        deCONZ::NumericUnion iasCieAddress = val1.value;
+
+        DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor IAS CIE address timestamp: %s\n", sensor->address().ext(), qPrintable(val1.timestamp.toString()));
+        DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor IAS CIE address: 0x%016llX\n", sensor->address().ext(), iasCieAddress.u64);
 
         ResourceItem *item = nullptr;
         item = sensor->item(RConfigPending);
 
-        if (item && item->toNumber() == 0 && iasZoneStatus.u8 == 0)
+        if (item)
         {
-            DBG_Printf(DBG_INFO_L2, "[IAS] Sensor NOT enrolled\n");
-            item->setValue(item->toNumber() | R_PENDING_WRITE_CIE_ADDRESS | R_PENDING_ENROLL_RESPONSE);
-            std::vector<uint16_t> attributes;
-            attributes.push_back(0x0000); // IAS zone status
-            attributes.push_back(0x0010); // IAS CIE address
-            if (readAttributes(sensor, sensor->fingerPrint().endpoint, IAS_ZONE_CLUSTER_ID, attributes))
-            {
-                queryTime = queryTime.addSecs(1);
-            }
+            DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor config pending value: %d\n", sensor->address().ext(), item->toNumber());
         }
-        else if (item &&
-                (item->toNumber() & R_PENDING_WRITE_CIE_ADDRESS) &&
-                (item->toNumber() & R_PENDING_ENROLL_RESPONSE) &&
-                iasZoneStatus.u8 == 0)
+
+        if (iasZoneStatus.u8 == 1 && iasCieAddress.u64 != 0 && iasCieAddress.u64 != 0xFFFFFFFFFFFFFFFF)
         {
-            DBG_Printf(DBG_INFO_L2, "[IAS] Sensor enrollment pending\n");
-        }
-        else if (iasZoneStatus.u8 == 1)
-        {
-            DBG_Printf(DBG_INFO_L2, "[IAS] Sensor enrolled\n");
-        }
-        else if (item && item->toNumber() == (R_PENDING_WRITE_CIE_ADDRESS | R_PENDING_ENROLL_RESPONSE) && iasZoneStatus.u8 == 1)        // Sanity check
-        {
-            DBG_Printf(DBG_INFO_L2, "[IAS] Sensor reporting enrolled. Clearing config pending...\n");
+            DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX Sensor enrolled. Removing all pending flags.\n", sensor->address().ext());
             item->setValue(item->toNumber() & ~R_PENDING_WRITE_CIE_ADDRESS);
             item->setValue(item->toNumber() & ~R_PENDING_ENROLL_RESPONSE);
+            sensor->setNeedSaveDatabase(true);
+            return;
         }
-        else
+
+        if (item && item->toNumber() == 0 && iasZoneStatus.u8 == 0)
         {
-            DBG_Printf(DBG_INFO_L2, "[IAS] Enrolling...\n");
+            DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX Sensor NOT enrolled (check).\n", sensor->address().ext());
+
+            if ((iasCieAddress.u64 == 0 || iasCieAddress.u64 == 0xFFFFFFFFFFFFFFFF) && !(item->toNumber() & R_PENDING_WRITE_CIE_ADDRESS))
+            {
+                DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Adding 'pending IAS CIE write' flag since missing.\n", sensor->address().ext());
+                item->setValue(item->toNumber() | R_PENDING_WRITE_CIE_ADDRESS);
+            }
+            if (!(item->toNumber() & R_PENDING_ENROLL_RESPONSE))
+            {
+                DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Adding 'pending enroll response' flag since missing.\n", sensor->address().ext());
+                item->setValue(item->toNumber() | R_PENDING_ENROLL_RESPONSE);
+            }
+
+            DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Querying IAS zone state and CIE address (EP %d)...\n", sensor->address().ext(), sensor->fingerPrint().endpoint);
+            std::vector<uint16_t> attributes;
+            attributes.push_back(IAS_ZONE_STATE); // IAS zone state
+            attributes.push_back(IAS_CIE_ADDRESS); // IAS CIE address
+            if (readAttributes(sensor, sensor->fingerPrint().endpoint, IAS_ZONE_CLUSTER_ID, attributes))
+            {
+                DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX Attributes querried.\n", sensor->address().ext());
+                queryTime = queryTime.addSecs(1);
+            }
+            else
+            {
+                // Ensure failed attrubute reads are caught and tried again
+                DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX Attributes could NOT be querried.\n", sensor->address().ext());
+                item->setValue(item->toNumber() & ~R_PENDING_WRITE_CIE_ADDRESS);
+                item->setValue(item->toNumber() & ~R_PENDING_ENROLL_RESPONSE);
+            }
+            sensor->setNeedSaveDatabase(true);
+        }
+        else if (item && iasZoneStatus.u8 == 0 && ((item->toNumber() & R_PENDING_ENROLL_RESPONSE) || (item->toNumber() & R_PENDING_WRITE_CIE_ADDRESS)))
+        {
+            DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX Sensor enrollment pending...\n", sensor->address().ext());
         }
     }
 }
 
 /*! Write IAS CIE address attribute for a node.
-    \param Sensor - sensor containing the IAS zone cluster
+    \param sensor - Sensor containing the IAS zone cluster
  */
 void DeRestPluginPrivate::writeIasCieAddress(Sensor *sensor)
 {
@@ -373,15 +559,17 @@ void DeRestPluginPrivate::writeIasCieAddress(Sensor *sensor)
     {
         // write CIE address needed for some IAS Zone devices
         const quint64 iasCieAddress = apsCtrl->getParameter(deCONZ::ParamMacAddress);
-        deCONZ::ZclAttribute attr(0x0010, deCONZ::ZclIeeeAddress, QLatin1String("CIE address"), deCONZ::ZclReadWrite, false);
-        attr.setValue(iasCieAddress);
+        deCONZ::ZclAttribute attribute(IAS_CIE_ADDRESS, deCONZ::ZclIeeeAddress, QLatin1String("CIE address"), deCONZ::ZclReadWrite, false);
+        attribute.setValue(iasCieAddress);
 
-        DBG_Printf(DBG_INFO_L2, "[IAS] Write IAS CIE address for 0x%016llx\n", sensor->address().ext());
+        DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Write IAS CIE address.\n", sensor->address().ext());
 
-        if (writeAttribute(sensor, sensor->fingerPrint().endpoint, IAS_ZONE_CLUSTER_ID, attr, 0))
+        if (!writeAttribute(sensor, sensor->fingerPrint().endpoint, IAS_ZONE_CLUSTER_ID, attribute, 0))
         {
-            // mark done
+            // By removing all pending flags, a read of relevant attributes is triggered again, also resulting in a new write attempt
+            DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX Writing IAS CIE address failed.\n", sensor->address().ext());
             item->setValue(item->toNumber() & ~R_PENDING_WRITE_CIE_ADDRESS);
+            item->setValue(item->toNumber() & ~R_PENDING_ENROLL_RESPONSE);
         }
     }
 }

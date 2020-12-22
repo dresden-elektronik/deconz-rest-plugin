@@ -7270,7 +7270,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
             case DOOR_LOCK_CLUSTER_ID:
             case SAMJIN_CLUSTER_ID:
-            case IAS_ZONE_CLUSTER_ID:
             case TIME_CLUSTER_ID:
                 break;
 
@@ -9153,35 +9152,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             i->setNeedSaveDatabase(true);
                             enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                             updateSensorEtag(&*i);
-                        }
-                    }
-                    else if (event.clusterId() == IAS_ZONE_CLUSTER_ID)
-                    {
-                        for (;ia != enda; ++ia)
-                        {
-                            if (ia->id() == 0x0000) // IAS zone status
-                            {
-                                if (updateType != NodeValue::UpdateInvalid)
-                                {
-                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), 0x0000, ia->numericValue());
-                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
-                                }
-
-                                ResourceItem *item = i->item(RConfigPending);
-                                if (item && ia->numericValue().u8 == 1)
-                                {
-                                    DBG_Printf(DBG_INFO_L2, "[IAS] Sensor already enrolled\n");
-                                    item->setValue(item->toNumber() & ~R_PENDING_WRITE_CIE_ADDRESS);
-                                    item->setValue(item->toNumber() & ~R_PENDING_ENROLL_RESPONSE);
-                                }
-                                else
-                                {
-                                    DBG_Printf(DBG_INFO_L2, "[IAS] Sensor NOT enrolled\n");
-                                    writeIasCieAddress(&*i);
-                                }
-
-                                updateSensorEtag(&*i);
-                            }
                         }
                     }
                     else if (event.clusterId() == TIME_CLUSTER_ID)
