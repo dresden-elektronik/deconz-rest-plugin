@@ -1551,6 +1551,12 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 43200;
             rq.reportableChange8bit = 1;
         }
+        else if (sensor && sensor->modelId() == QLatin1String("HG06323")) // LIDL
+        {
+            rq.minInterval = 7200;
+            rq.maxInterval = 7200;
+            rq.reportableChange8bit = 1;
+        }
         else if (sensor && (sensor->manufacturer().startsWith(QLatin1String("Climax")) ||
                             sensor->modelId().startsWith(QLatin1String("902010/23"))))
         {
@@ -2700,7 +2706,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("TH01") ||
         sensor->modelId() == QLatin1String("DS01") ||
         // Danfoss
-        sensor->modelId() == QLatin1String("eTRV0100")
+        sensor->modelId() == QLatin1String("eTRV0100") ||
+        // LIDL
+        sensor->modelId() == QLatin1String("HG06323")
         )
     {
         deviceSupported = true;
@@ -3212,8 +3220,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
     // IKEA Trådfri on/off switch
+    // IKEA Trådfri shortcut button
     // Sonoff SNZB-01
     else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
+             sensor->modelId().startsWith(QLatin1String("TRADFRI SHORTCUT Button")) ||
              sensor->modelId().startsWith(QLatin1String("WB01")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
@@ -3550,6 +3560,7 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         sensor->modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
         sensor->modelId().startsWith(QLatin1String("Z3-1BRL")) || // Lutron Aurora FoH smart dimmer
         sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
+        sensor->modelId().startsWith(QLatin1String("TRADFRI SHORTCUT Button")) ||
         sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
         sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")) ||
         sensor->modelId().startsWith(QLatin1String("TRADFRI remote control")) ||
