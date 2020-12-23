@@ -1608,6 +1608,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                             sensor->modelId().startsWith(QLatin1String("WISZB-1")) ||         // Develco window sensor
                             sensor->modelId().startsWith(QLatin1String("FLSZB-1")) ||         // Develco water leak sensor
                             sensor->modelId().startsWith(QLatin1String("SIRZB-1")) ||         // Develco siren
+                            sensor->modelId().startsWith(QLatin1String("HMSZB-1")) ||         // Develco temp/hum sensor
                             sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||         // Wattle (Develco) magnetic sensor
                             sensor->modelId().startsWith(QLatin1String("MotionSensor51AU")))) // Aurora (Develco) motion sensor
         {
@@ -2578,6 +2579,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("SMRZB-3")) ||   // Smart Relay DIN
         sensor->modelId().startsWith(QLatin1String("SIRZB-1")) ||   // siren
         sensor->modelId().startsWith(QLatin1String("SPLZB-1")) ||   // smart plug
+        sensor->modelId().startsWith(QLatin1String("HMSZB-1")) ||   // temp/hum sensor
         sensor->modelId() == QLatin1String("MotionSensor51AU") ||   // Aurora (Develco) motion sensor
         // LG
         sensor->modelId() == QLatin1String("LG IP65 HMS") ||
@@ -2855,6 +2857,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId().startsWith(QLatin1String("WISZB-1")) ||
                      sensor->modelId().startsWith(QLatin1String("MOSZB-1")) ||
                      sensor->modelId().startsWith(QLatin1String("FLSZB-1")) ||
+                     sensor->modelId().startsWith(QLatin1String("HMSZB-1")) ||
                      sensor->modelId() == QLatin1String("MotionSensor51AU") ||
                      sensor->modelId() == QLatin1String("Zen-01") ||
                      sensor->modelId() == QLatin1String("ISW-ZPR1-WP13") ||
