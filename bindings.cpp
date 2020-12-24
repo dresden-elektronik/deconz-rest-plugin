@@ -1701,7 +1701,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") || // Heiman
                        sensor->modelId() == QLatin1String("902010/25") || // Bitron
                        sensor->modelId() == QLatin1String("SKHMP30-I1") || // GS smart plug
-                       sensor->modelId() == QLatin1String("SMRZB-1") || // Develco smart cable
                        sensor->modelId() == QLatin1String("160-01")))     // Plugwise smart plug
         {
             rq2.reportableChange24bit = 10; // 1 W
@@ -1748,6 +1747,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq2.maxInterval = 300;
         if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||       // Heiman
                        sensor->modelId() == QLatin1String("SKHMP30-I1") ||      // GS smart plug
+                       sensor->modelId() == QLatin1String("SMRZB-1") || // Develco smart cable
                        sensor->modelId().startsWith(QLatin1String("SPLZB-1")))) // Develco smart plug
         {
             rq2.reportableChange16bit = 100; // 1 V
