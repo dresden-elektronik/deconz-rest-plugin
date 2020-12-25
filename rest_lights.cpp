@@ -528,12 +528,12 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
     rsp.httpStatus = HttpStatusOk;
 
-    if (!taskRef.lightNode->isAvailable())
-    {
-        rsp.httpStatus = HttpStatusOk;
-        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
-        return REQ_READY_SEND;
-    }
+    // if (!taskRef.lightNode->isAvailable())
+    // {
+    //     rsp.httpStatus = HttpStatusOk;
+    //     rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not reachable").arg(id)));
+    //     return REQ_READY_SEND;
+    // }
 
     // set destination parameters
     taskRef.req.dstAddress() = taskRef.lightNode->address();
