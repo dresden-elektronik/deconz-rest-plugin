@@ -9466,6 +9466,31 @@ Sensor *DeRestPluginPrivate::getSensorNodeForAddress(const deCONZ::Address &addr
     return 0;
 }
 
+/*! Returns the Sensor for its given \p Address and \p Endpoint and \p cluster or 0 if not found.
+ */
+Sensor *DeRestPluginPrivate::getSensorNodeForAddressEndpointAndCluster(const deCONZ::Address &addr, quint8 ep, quint16 cluster)
+{
+    for (Sensor &sensor: sensors)
+    {
+        if (sensor.deletedState() != Sensor::StateNormal || !sensor.node() ||
+            sensor.fingerPrint().endpoint != ep || !sensor.fingerPrint().hasInCluster(cluster))
+        {
+            continue;
+        }
+        if (sensor.address().hasExt() && addr.hasExt() &&
+            sensor.address().ext() == addr.ext())
+        {
+            return &sensor;
+        }
+        if (sensor.address().hasNwk() && addr.hasNwk() &&
+            sensor.address().nwk() == addr.nwk())
+        {
+            return &sensor;
+        }
+    }
+    return nullptr;
+}
+
 /*! Returns the first Sensor for its given \p Address and \p Endpoint and \p Type or 0 if not found.
  */
 Sensor *DeRestPluginPrivate::getSensorNodeForAddressAndEndpoint(const deCONZ::Address &addr, quint8 ep, const QString &type)
