@@ -71,7 +71,7 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
     for (auto &s : sensors)
     {
         if (!(s.address().ext() == ind.srcAddress().ext() && s.fingerPrint().endpoint == ind.srcEndpoint() &&
-             (s.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID) || s.deletedState() == Sensor::StateNormal))
+             s.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID) && s.deletedState() == Sensor::StateNormal))
         {
             continue;
         }
