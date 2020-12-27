@@ -123,6 +123,7 @@ const char *RConfigCoolSetpoint = "config/coolsetpoint";
 const char *RConfigDelay = "config/delay";
 const char *RConfigDisplayFlipped = "config/displayflipped";
 const char *RConfigDuration = "config/duration";
+const char *RConfigEnrolled = "config/enrolled";
 const char *RConfigFanMode = "config/fanmode";
 const char *RConfigGroup = "config/group";
 const char *RConfigHeatSetpoint = "config/heatsetpoint";
@@ -284,6 +285,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigDelay));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigDisplayFlipped));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigDuration));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigEnrolled));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigFanMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigGroup));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigHeatSetpoint, 500, 3200));

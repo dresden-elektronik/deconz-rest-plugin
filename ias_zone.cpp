@@ -260,6 +260,8 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
         updateEtag(gwConfigEtag);
         sensor->setNeedSaveDatabase(true);
         queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+        
+        checkIasEnrollmentStatus(sensor);
     }
     else if (isClusterCmd && zclFrame.commandId() == CMD_ZONE_ENROLL_REQUEST)
     {

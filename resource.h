@@ -131,6 +131,7 @@ extern const char *RConfigCoolSetpoint;
 extern const char *RConfigDelay;
 extern const char *RConfigDisplayFlipped;
 extern const char *RConfigDuration;
+extern const char *RConfigEnrolled;
 extern const char *RConfigFanMode;
 extern const char *RConfigGroup;
 extern const char *RConfigHeatSetpoint;
