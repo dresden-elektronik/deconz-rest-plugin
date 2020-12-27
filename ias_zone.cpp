@@ -71,20 +71,7 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
     for (auto &s : sensors)
     {
         if (!(s.address().ext() == ind.srcAddress().ext() && s.fingerPrint().endpoint == ind.srcEndpoint() &&
-             (s.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID) || s.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID)) &&
-              s.deletedState() == Sensor::StateNormal))
-        {
-            continue;
-        }
-
-        // Do we require this???
-        if (s.type() != QLatin1String("ZHAAlarm") &&
-            s.type() != QLatin1String("ZHACarbonMonoxide") &&
-            s.type() != QLatin1String("ZHAFire") &&
-            s.type() != QLatin1String("ZHAOpenClose") &&
-            s.type() != QLatin1String("ZHAPresence") &&
-            s.type() != QLatin1String("ZHAVibration") &&
-            s.type() != QLatin1String("ZHAWater"))
+             (s.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID) || s.deletedState() == Sensor::StateNormal))
         {
             continue;
         }
@@ -94,7 +81,7 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
 
     if (!sensor)
     {
-        DBG_Printf(DBG_INFO, "No IAS sensor found for 0x%016llX, endpoint: 0x%08X\n", ind.srcAddress().ext(), ind.srcEndpoint());
+        DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX No IAS sensor found for endpoint: 0x%02X\n", ind.srcAddress().ext(), ind.srcEndpoint());
         return;
     }
 
@@ -117,7 +104,6 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
     if ((zclFrame.frameControl() & 0x09) == (deCONZ::ZclFCDirectionServerToClient | deCONZ::ZclFCClusterCommand))
     {
         isClusterCmd = true;
-        DBG_Printf(DBG_INFO, "IAS cluster specific command.\n");
     }
 
     // Read ZCL reporting and ZCL Read Attributes Response
@@ -174,11 +160,13 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
                     //sensor->setNeedSaveDatabase(true);
                 }
                     break;
+
                 case IAS_ZONE_TYPE: // IAS zone type
                 {
                     sensor->setZclValue(updateType, ind.srcEndpoint(), IAS_ZONE_CLUSTER_ID, attrId, attr.numericValue());
                 }
                     break;
+
                 case IAS_ZONE_STATUS: // IAS zone status
                 {
                     quint16 zoneStatus = attr.numericValue().u16;   // might be reported or received via CMD_STATUS_CHANGE_NOTIFICATION
@@ -187,6 +175,7 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
                     stateUpdated = true;
                 }
                     break;
+
                 case IAS_CIE_ADDRESS: // IAS CIE address
                 {
                     quint64 iasCieAddress = attr.numericValue().u64;
