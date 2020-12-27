@@ -5476,6 +5476,32 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 }
                     break;
 
+                case THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID:
+                case DIAGNOSTICS_CLUSTER_ID:
+                case FAN_CONTROL_CLUSTER_ID:
+                {
+                    fpThermostatSensor.inClusters.push_back(ci->id());
+                }
+                    break;
+
+                case 0xFCC0:    // Xiaomi specific
+                {
+                    if (modelId.startsWith(QLatin1String("lumi.")))
+                    {
+                        fpConsumptionSensor.inClusters.push_back(ci->id());
+                        fpHumiditySensor.inClusters.push_back(ci->id());
+                        fpLightSensor.inClusters.push_back(ci->id());
+                        fpOpenCloseSensor.inClusters.push_back(ci->id());
+                        fpPowerSensor.inClusters.push_back(ci->id());
+                        fpPresenceSensor.inClusters.push_back(ci->id());
+                        fpPressureSensor.inClusters.push_back(ci->id());
+                        fpSwitch.inClusters.push_back(ci->id());
+                        fpTemperatureSensor.inClusters.push_back(ci->id());
+                        fpThermostatSensor.inClusters.push_back(ci->id());
+                    }
+                }
+                    break;
+
                 default:
                     break;
                 }
