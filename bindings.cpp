@@ -2591,7 +2591,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         //LifeControl enviroment sensor
         sensor->modelId() == QLatin1String("VOC_Sensor") ||
         // EDP-WITHUS
-        sensor->modelId() == QLatin1String("ZM-SmartPlug-1.0.0") ||
+        sensor->modelId() == QLatin1String("ZB-SmartPlug-1.0.0") ||
         //Legrand
         sensor->modelId() == QLatin1String("Connected outlet") || //Legrand Plug
         sensor->modelId() == QLatin1String("Shutter switch with neutral") || //Legrand shutter switch
