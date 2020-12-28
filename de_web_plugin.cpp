@@ -9473,7 +9473,7 @@ Sensor *DeRestPluginPrivate::getSensorNodeForAddressEndpointAndCluster(const deC
     for (Sensor &sensor: sensors)
     {
         if (sensor.deletedState() != Sensor::StateNormal || !sensor.node() ||
-            sensor.fingerPrint().endpoint != ep || !sensor.fingerPrint().hasInCluster(cluster))
+            sensor.fingerPrint().endpoint != ep || !sensor.fingerPrint().hasInCluster(cluster) || !sensor.fingerPrint().hasOutCluster(cluster))
         {
             continue;
         }
