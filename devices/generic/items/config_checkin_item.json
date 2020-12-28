@@ -1,0 +1,9 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/checkin",
+	"datatype": "UInt32",
+	"access": "RW",
+	"public": true,
+	"range": [0, 4294967295],
+	"description": "Configures the check-in interval for the Poll Control cluster."
+}

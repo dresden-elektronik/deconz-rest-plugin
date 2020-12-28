@@ -1,0 +1,9 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/lift",
+	"datatype": "UInt8",
+	"access": "RW",
+	"public": true,
+	"range": [0, 254],
+	"description": "The lift state of a roller blind."
+}

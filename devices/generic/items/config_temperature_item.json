@@ -1,0 +1,9 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/temperature",
+	"datatype": "UInt8",
+	"access": "R",
+	"public": true,
+	"range": [0, 255],
+	"description": "The current device temperature in °C."
+}

@@ -1,0 +1,9 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/bri",
+	"datatype": "UInt8",
+	"access": "RW",
+	"public": true,
+	"range": [0, 254],
+	"description": "The current brightness."
+}

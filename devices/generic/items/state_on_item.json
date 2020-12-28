@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/on",
+	"datatype": "Bool",
+	"access": "RW",
+	"public": true,
+	"description": "True when device is on; false when off."
+}
