@@ -6815,8 +6815,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         }
         item = sensorNode.addItem(DataTypeUInt8, RConfigPending);
         item->setValue(item->toNumber() | R_PENDING_WRITE_CIE_ADDRESS | R_PENDING_ENROLL_RESPONSE);
-        item = sensorNode.addItem(DataTypeBool, RConfigEnrolled);
-        item->setValue(false);
+        sensorNode.addItem(DataTypeBool, RConfigEnrolled)->setValue(false);
     }
 
     QString uid = generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint, clusterId);
