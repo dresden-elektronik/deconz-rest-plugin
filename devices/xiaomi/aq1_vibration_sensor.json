@@ -1,6 +1,8 @@
 {
     "schema": "devcap1.schema.json",
-    "manufacturer": "$MF_LUMI",
+    "doc:path": "xiaomi/aq_vibration_sensor.md",
+    "doc:hdr": "Vibration sensor DJT11LM",
+    "manufacturername": "$MF_LUMI",
     "modelid": "lumi.vibration.aq1",
     "product": "DJT11LM",
     "awake": [
@@ -25,11 +27,17 @@
                 {
                     "name": "config/sensitivity",
                     "parse": ["parseGenericAttribute/4", 1, "0x0000", "0xff0d", "$old == 0 ? $raw : $old"],
-                    "write": ["writeGenericAttribute/6", 1, "0x0000", "0xff0d", "0x20", "0x11F5", "$raw"]
+                    "write": ["writeGenericAttribute/6", 1, "0x0000", "0xff0d", "0x20", "0x11F5", "$raw"],
+                    "values": [
+                        ["low", 21], ["medium", 11], ["high", 1]
+                    ]
                 },
                 {
                     "name": "config/sensitivitymax",
                     "default": 21
+                },
+                {
+                    "name": "state/orientation"
                 },
                 {
                     "name": "state/orientation_x",
@@ -57,6 +65,9 @@
                     "name": "state/vibrationstrength",
                     "parse": ["parseGenericAttribute/4", 1, "0x0101", "0x0505", "$raw >> 16"],
                     "default": 0
+                },
+                {
+                    "name": "state/lastupdated"
                 }
             ]
         }
