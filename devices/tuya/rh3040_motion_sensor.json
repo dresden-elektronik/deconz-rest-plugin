@@ -29,7 +29,30 @@
                 {
                     "name": "state/lastupdated"
                 }
-            ]
+            ],
+            "example": {
+                "config": {
+                    "battery": 75,
+                    "duration": 120,
+                    "on": true,
+                    "pending": [],
+                    "reachable": true
+                },
+                "ep": 1,
+                "etag": "6b7cdcf9b24e1644f3f871bdb8e228c9",
+                "lastseen": "2020-12-29T14:47Z",
+                "manufacturername": "Tuyatec",
+                "modelid": "RH3040",
+                "name": "Presence 68",
+                "state": {
+                    "lastupdated": "2020-12-29T14:47:19.022",
+                    "lowbattery": false,
+                    "presence": true,
+                    "tampered": false
+                },
+                "type": "ZHAPresence",
+                "uniqueid": "14:b4:57:ff:fe:15:66:fc-01-0500"
+            }
         }
-    ]
+    ],
 }
