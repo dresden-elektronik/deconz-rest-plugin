@@ -2718,12 +2718,14 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         }
 
         // Tanslate Tuya ManufacturerName
-        const lidlDevice *device = getLidlDevice(lightNode.manufacturer());
-        if (device != nullptr)
         {
-            lightNode.setManufacturerName(QLatin1String(device->manufacturername));
-            lightNode.setModelId(QLatin1String(device->modelid));
-            lightNode.setNeedSaveDatabase(true);
+            const lidlDevice *device = getLidlDevice(lightNode.manufacturer());
+            if (device != nullptr)
+            {
+                lightNode.setManufacturerName(QLatin1String(device->manufacturername));
+                lightNode.setModelId(QLatin1String(device->modelid));
+                lightNode.setNeedSaveDatabase(true);
+            }
         }
 
         // "translate" ORVIBO vendor name
@@ -3482,6 +3484,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             }
                             str = QLatin1String(device->manufacturername);
                         }
+
                         if (str == QString("欧瑞博"))
                         {
                             str = QLatin1String("ORVIBO");
@@ -3489,6 +3492,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
 
                         if (!str.isEmpty() && str != lightNode->manufacturer())
                         {
+                            auto *item = lightNode->item(RAttrManufacturerName);
                             lightNode->setManufacturerName(str);
                             lightNode->setNeedSaveDatabase(true);
                             queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
@@ -6743,11 +6747,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         }
     }
 
-    const lidlDevice *device = getLidlDevice(manufacturer);
-    if (device != nullptr)
+    const lidlDevice *lidlDevice = getLidlDevice(manufacturer);
+    if (lidlDevice != nullptr)
     {
-        sensorNode.setManufacturer(QLatin1String(device->manufacturername));
-        sensorNode.setModelId(QLatin1String(device->modelid));
+        sensorNode.setManufacturer(QLatin1String(lidlDevice->manufacturername));
+        sensorNode.setModelId(QLatin1String(lidlDevice->modelid));
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL)
     {
@@ -8515,6 +8519,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     if (i->modelId() != str)
                                     {
+                                        auto *item = i->item(RAttrModelId);
                                         i->setModelId(str);
                                         i->setNeedSaveDatabase(true);
                                         checkInstaModelId(&*i);
@@ -8576,6 +8581,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     if (i->manufacturer() != str)
                                     {
+                                        auto *item = i->item(RAttrManufacturerName);
                                         updateSensorEtag(&*i);
                                         i->setManufacturer(str);
                                         i->setNeedSaveDatabase(true);
