@@ -18,6 +18,9 @@
             "fingerprint": { "profile": "0x0104", "device": "0x000a", "endpoint": "0x01", "in": ["0x0101"] },
             "items": [
                 {
+                    "name": "attr/lastseen"
+                },
+                {
                     "name": "attr/manufacturername"
                 },
                 {
@@ -33,14 +36,16 @@
                     "name": "attr/type"
                 },
                 {
-                    "name": "attr/uniqueid",
-                    "example": "00:15:8d:00:02:af:95:f9-01-0101"
+                    "name": "attr/uniqueid"
                 },
                 {
                     "name": "config/on"
                 },
                 {
                     "name": "config/reachable"
+                },
+                {
+                    "name": "config/pending"
                 },
                 {
                     "name": "config/battery",
@@ -96,7 +101,34 @@
                 {
                     "name": "state/lastupdated"
                 }
-            ]
+            ],
+            "example": {
+                "config": {
+                    "battery": 95,
+                    "on": true,
+                    "pending": [],
+                    "reachable": true,
+                    "sensitivity": 1,
+                    "sensitivitymax": 21,
+                    "temperature": 2800
+                },
+                "lastseen": "2020-12-29T22:03Z",
+                "manufacturername": "LUMI",
+                "modelid": "lumi.vibration.aq1",
+                "name": "Vibration Sensor",
+                "state": {
+                    "lastupdated": "2020-12-29T22:02:50.534",
+                    "orientation": [
+                        81, 1, 9
+                    ],
+                    "tiltangle": 84,
+                    "vibration": false,
+                    "vibrationstrength": 11
+                },
+                "swversion": "20180130",
+                "type": "ZHAVibration",
+                "uniqueid": "00:15:8d:00:02:af:95:f9-01-0101"
+            }
         }
     ]
 }

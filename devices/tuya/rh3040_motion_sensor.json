@@ -1,10 +1,11 @@
 {
     "schema": "devcap1.schema.json",
-    "doc:path": "tuya/motion_sensor.md",
+    "doc:path": "tuya/rh3040_motion_sensor.md",
     "doc:hdr": "Motion sensor ESS-SI-PIR-6101",
     "manufacturername": "$MF_TUYA",
     "modelid": "RH3040",
     "product": "ESS-SI-PIR-6101",
+    "status": "Bronze",
     "supportsMgmtBind": true,
     "subdevices": [
         {
@@ -13,6 +14,28 @@
             "uuid": [ "$address.ext", "0x01", "0x0500"],
             "fingerprint": { "profile": "0x0104", "device": "0x0402", "endpoint": "0x01", "in": ["0x0001", "0x0500"] },
             "items": [
+                {
+                    "name": "attr/manufacturername"
+                },
+                {
+                    "name": "attr/modelid"
+                },
+                {
+                    "name": "attr/name"
+                },
+                {
+                    "name": "attr/swversion",
+                    "description": "Todo not shown in output?"
+                },
+                {
+                    "name": "attr/type"
+                },
+                {
+                    "name": "attr/uniqueid"
+                },
+                {
+                    "name": "attr/lastseen"
+                },
                 {
                     "name": "config/battery",
                     "parse": ["parseGenericAttribute/4", 1, "0x0001", "0x0021", "$raw"],
@@ -23,8 +46,23 @@
                     "default": 120
                 },
                 {
+                    "name": "config/on"
+                },
+                {
+                    "name": "config/pending"
+                },
+                {
+                    "name": "config/reachable"
+                },
+                {
                     "name": "state/presence",
                     "awake": true
+                },
+                {
+                    "name": "state/lowbattery"
+                },
+                {
+                    "name": "state/tampered"
                 },
                 {
                     "name": "state/lastupdated"
@@ -38,8 +76,6 @@
                     "pending": [],
                     "reachable": true
                 },
-                "ep": 1,
-                "etag": "6b7cdcf9b24e1644f3f871bdb8e228c9",
                 "lastseen": "2020-12-29T14:47Z",
                 "manufacturername": "Tuyatec",
                 "modelid": "RH3040",
@@ -54,5 +90,5 @@
                 "uniqueid": "14:b4:57:ff:fe:15:66:fc-01-0500"
             }
         }
-    ],
+    ]
 }
