@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "attr/uniqueid",
+	"datatype": "String",
+	"access": "R",
+	"public": true,
+	"description": "Unique identifier of the resource."
+}

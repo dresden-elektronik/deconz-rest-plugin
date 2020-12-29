@@ -13,6 +13,30 @@
             "uuid": ["$address.ext", "0x01"],
             "items": [
                 {
+                    "name": "attr/manufacturername"
+                },
+                {
+                    "name": "attr/modelid"
+                },
+                {
+                    "name": "attr/name"
+                },
+                {
+                    "name": "attr/swversion"
+                },
+                {
+                    "name": "attr/type"
+                },
+                {
+                    "name": "attr/uniqueid"
+                },
+                {
+                    "name": "attr/lastannounced"
+                },
+                {
+                    "name": "attr/lastseen"
+                },
+                {
                     "name": "state/lift",
                     "parse": ["parseGenericAttribute/4", 1, "0x0102", "0x0008", "$raw"]
                 },
@@ -21,17 +45,7 @@
                     "parse": ["parseGenericAttribute/4", 1, "0x0102", "0x0008", "$raw < 100"]
                 },
                 {
-                    "name": "state/bri",
-                    "parse": ["parseGenericAttribute/4", 1, "0x0102", "0x0008", "$raw * 254 / 100"],
-                    "deprecated": "2020-04-08"
-                },
-                {
-                    "name": "state/on",
-                    "parse": ["parseGenericAttribute/4", 1, "0x0102", "0x0008", "$raw < 100"],
-                    "deprecated": "2020-04-08"
-                },
-                {
-                    "name": "state/lastupdated"
+                    "name": "state/reachable"
                 },
                 {
                     "name": "config/checkin",
@@ -40,6 +54,18 @@
                     "parse": ["parseGenericAttribute/4", 1, "0x0020", "0x0000", "$raw"],
                     "read": ["readGenericAttribute/4", 1, "0x0020", "0x0000", "0x0000"],
                     "write": ["writeGenericAttribute/6", 1, "0x0020", "0x0000", "0x23", "0x0000", "$raw"]
+                },
+                {
+                    "name": "state/bri",
+                    "description": "The lift state in earlier versions, use <code class=\"api-attribute\">lift</code> instead.",
+                    "parse": ["parseGenericAttribute/4", 1, "0x0102", "0x0008", "$raw * 254 / 100"],
+                    "deprecated": "2020-04-08"
+                },
+                {
+                    "name": "state/on",
+                    "description": "The open state in earlier versions, use <code class=\"api-attribute\">open</code> instead.",
+                    "parse": ["parseGenericAttribute/4", 1, "0x0102", "0x0008", "$raw < 100"],
+                    "deprecated": "2020-04-08"
                 }
             ]
         },
@@ -50,8 +76,38 @@
             "fingerprint": { "profile": "0x0104", "device": "0x0402", "endpoint": "0x01", "in": ["0x0001", "0x0020", "0x0102"] },
             "items": [
                 {
+                    "name": "attr/manufacturername"
+                },
+                {
+                    "name": "attr/modelid"
+                },
+                {
+                    "name": "attr/name"
+                },
+                {
+                    "name": "attr/swversion"
+                },
+                {
+                    "name": "attr/type"
+                },
+                {
+                    "name": "attr/uniqueid"
+                },
+                {
+                    "name": "attr/lastseen"
+                },
+                {
+                    "name": "config/on"
+                },
+                {
+                    "name": "config/reachable"
+                },
+                {
                     "name": "state/battery",
                     "parse": ["parseGenericAttribute/4", 1, "0x0001", "0x0021", "$raw"]
+                },
+                {
+                    "name": "state/lastupdated"
                 }
             ]
         }

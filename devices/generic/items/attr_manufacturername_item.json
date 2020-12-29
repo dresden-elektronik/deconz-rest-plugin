@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "attr/manufacturername",
+	"datatype": "String",
+	"access": "R",
+	"public": true,
+	"description": "Manufacturer name of the device."
+}

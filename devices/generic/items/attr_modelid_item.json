@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "attr/modelid",
+	"datatype": "String",
+	"access": "R",
+	"public": true,
+	"description": "Model identifier of the device."
+}

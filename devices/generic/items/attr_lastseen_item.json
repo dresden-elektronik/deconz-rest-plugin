@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "attr/lastseen",
+	"datatype": "ISO 8601 timestamp",
+	"access": "R",
+	"public": true,
+	"description": "Timestamp of the last communication."
+}
