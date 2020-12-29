@@ -183,6 +183,11 @@ void DeRestPluginPrivate::internetDiscoveryTimerFired()
         return;
     }
 
+    if (gwSwUpdateState == swUpdateState.transferring || gwSwUpdateState == swUpdateState.installing)
+    {
+        return; // don't interfere with running operations
+    }
+
     int i = 0;
     const deCONZ::Node *node;
     deCONZ::ApsController *ctrl = deCONZ::ApsController::instance();
@@ -268,6 +273,38 @@ void DeRestPluginPrivate::internetDiscoveryFinishedRequest(QNetworkReply *reply)
     reply->deleteLater();
 }
 
+/*! Fills major.minor.patch versions as int in the array \p ls.
+    \returns true if \p version is a valid version string and \p ls could be filled.
+ */
+bool versionToIntList(const QString &version, std::array<int, 3> &ls)
+{
+    bool result = false;
+    const auto versionList = version.split('.');
+
+    if (versionList.size() >= 3)
+    {
+        for (size_t i = 0; i < ls.size(); i++)
+        {
+            ls[i] = versionList[i].toInt(&result);
+            if (!result)
+            {
+                break;
+            }
+        }
+    }
+
+    return result;
+}
+
+/*! Returns true if the \p remote version is newer than \p current version.
+ */
+bool remoteVersionIsNewer(const std::array<int, 3> &current, const std::array<int, 3> &remote)
+{
+    return current[0] <  remote[0] ||
+           (current[0] == remote[0] && current[1] <  remote[1]) ||
+           (current[0] == remote[0] && current[1] == remote[1] && current[2] < remote[2]);
+}
+
 /*! Extracts the update channels version info about the deCONZ/WebApp.
 
     \param reply which holds the version info in JSON format
@@ -350,22 +387,30 @@ void DeRestPluginPrivate::internetDiscoveryExtractVersionInfo(QNetworkReply *rep
 #ifdef ARCH_ARM
     if (map.contains("versions") && (map["versions"].type() == QVariant::Map))
     {
-        QString version;
-        QVariantMap versions = map["versions"].toMap();
+        const auto versions = map["versions"].toMap();
 
         if (versions.contains(gwUpdateChannel) && (versions[gwUpdateChannel].type() == QVariant::String))
         {
-            version = versions[gwUpdateChannel].toString();
+            const auto version = versions[gwUpdateChannel].toString();
 
             if (!version.isEmpty())
             {
-                if (gwUpdateVersion != version)
+                std::array<int, 3> current = { };
+                std::array<int, 3> remote = { };
+
+                if (versionToIntList(gwUpdateVersion, current) &&
+                    versionToIntList(version, remote) &&
+                    remoteVersionIsNewer(current, remote))
                 {
                     DBG_Printf(DBG_INFO, "discovery found version %s for update channel %s\n", qPrintable(version), qPrintable(gwUpdateChannel));
                     gwUpdateVersion = version;
                     gwSwUpdateState = swUpdateState.readyToInstall;
-                    updateEtag(gwConfigEtag);
                 }
+                else
+                {
+                    gwSwUpdateState = swUpdateState.noUpdate;
+                }
+                updateEtag(gwConfigEtag);
             }
             else
             {
