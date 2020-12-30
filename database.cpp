@@ -3613,6 +3613,12 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                     sensor.addItem(DataTypeString, RConfigMode);
                 }
+                else if (modelId.startsWith(QLatin1String("STZB402"))) // Stelpro baseboard thermostat
+                {
+                    sensor.addItem(DataTypeUInt8, RStateValve);
+                    sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
+                    sensor.addItem(DataTypeString, RConfigMode);
+                }
                 else if (sensor.modelId() == QLatin1String("Zen-01"))
                 {
                     sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);

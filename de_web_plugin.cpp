@@ -6513,6 +6513,12 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
+            else if (modelId.startsWith(QLatin1String("STZB402"))) // Stelpro baseboard thermostat
+            {
+                sensorNode.addItem(DataTypeUInt8, RStateValve);
+                sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
+                sensorNode.addItem(DataTypeString, RConfigMode);
+            }
             else if (modelId == QLatin1String("Zen-01"))
             {
                 sensorNode.addItem(DataTypeInt16, RConfigCoolSetpoint);

@@ -1151,6 +1151,30 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
         }
+        else if (sensor && sensor->modelId().startsWith(QLatin1String("STZB402"))) // Stelpro baseboard thermostat
+        {
+            rq.dataType = deCONZ::Zcl16BitInt;
+            rq.attributeId = 0x0000;         // Local Temperature
+            rq.minInterval = 1;
+            rq.maxInterval = 600;
+            rq.reportableChange16bit = 20;
+
+            ConfigureReportingRequest rq2;
+            rq2.dataType = deCONZ::Zcl16BitInt;
+            rq2.attributeId = 0x0012;        // Occupied heating setpoint
+            rq2.minInterval = 1;
+            rq2.maxInterval = 600;
+            rq2.reportableChange16bit = 50;
+
+            ConfigureReportingRequest rq3;
+            rq3.dataType = deCONZ::Zcl8BitEnum;
+            rq3.attributeId = 0x001C;        // Thermostat mode
+            rq3.minInterval = 1;
+            rq3.maxInterval = 600;
+            rq3.reportableChange8bit = 0xff;
+
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3});
+        }
         else if (sensor && sensor->modelId() == QLatin1String("Zen-01")) // Zen
         {
             rq.dataType = deCONZ::Zcl16BitInt;
@@ -1431,7 +1455,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                    sendConfigureReportingRequest(bt, {rq2});
         }
         else if (sensor && (sensor->modelId() == QLatin1String("SORB") ||               // Stelpro Orleans Fan
-                            sensor->modelId().startsWith(QLatin1String("3157100"))))    // Centralite pearl
+                            sensor->modelId().startsWith(QLatin1String("3157100")) ||   // Centralite pearl
+                            sensor->modelId().startsWith(QLatin1String("STZB402"))))    // Stelpro baseboard thermostat
         {
             rq.dataType = deCONZ::Zcl8BitEnum;
             rq.attributeId = 0x0001;       // Keypad Lockout
