@@ -511,9 +511,11 @@ static ApiVersion getAcceptHeaderApiVersion(const QString &hdrValue)
         const char *str;
     } versions[] = {
         // ordered by largest version
-        {ApiVersion_2_DDEL,   "vnd.ddel.v2"},
-        {ApiVersion_1_1_DDEL, "vnd.ddel.v1.1"},
-        {ApiVersion_1_DDEL,   "vnd.ddel.v1"},
+        {ApiVersion_2_DDEL,   "application/vnd.ddel.v2"},
+        {ApiVersion_1_1_DDEL, "application/vnd.ddel.v1.1"},
+        {ApiVersion_1_1_DDEL, "vnd.ddel.v1.1"}, // backward compatibility
+        {ApiVersion_1_DDEL,   "application/vnd.ddel.v1"},
+        {ApiVersion_1_DDEL,   "vnd.ddel.v1"},   // backward compatibility
         {ApiVersion_1, nullptr}
     };
 
