@@ -375,7 +375,7 @@
         "ikeaSoundControllerMap": {
             "vendor": "IKEA",
             "doc": "SYMFONISK remote",
-            "modelids": ["SYMFONISK"],
+            "modelids": ["SYMFONISK Sound Controller"],
             "buttons": [
                 {"S_BUTTON_1": "Button 1"},
                 {"S_BUTTON_2": "Rotate clockwise"},
