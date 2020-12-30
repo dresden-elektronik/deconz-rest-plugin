@@ -762,6 +762,15 @@
                 [1, "0x01", "ONOFF", "ON_WITH_TIMED_OFF", "0", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "On with timed off"]
             ]
         },
+        "adeoLXEK5": {
+            "modelids": ["LXEK-5"],
+            "map": [
+                [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
+                [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
+                [1, "0x01", "LEVEL_CONTROL", "MOVE", "0", "S_BUTTON_3", "S_BUTTON_ACTION_HOLD", "Dimm up"],
+                [1, "0x01", "LEVEL_CONTROL", "MOVE", "1", "S_BUTTON_4", "S_BUTTON_ACTION_HOLD", "Dimm down"]
+            ]
+        },
         "bitronRemoteMap": {
             "modelids": ["902010/23"],
             "map": [
