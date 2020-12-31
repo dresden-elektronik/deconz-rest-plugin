@@ -2704,6 +2704,7 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
 /*! PUT /api/<apikey>/groups/<group_id>/scenes/<scene_id>/recall
     PUT /api/<apikey>/groups/<group_id>/scenes/next/recall
     PUT /api/<apikey>/groups/<group_id>/scenes/prev/recall
+    PUT /api/<apikey>/groups/<group_id>/scenes/recent/recall
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
@@ -2740,7 +2741,7 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
     Scene *scene = 0;
     uint8_t sceneId = 0;
     ok = false;
-    if (sid == QLatin1String("next") || sid == QLatin1String("prev"))
+    if (sid == QLatin1String("next") || sid == QLatin1String("prev") || sid == QLatin1String("recent"))
     {
         ResourceItem *item = group->item(RActionScene);
         DBG_Assert(item != 0);
@@ -2778,6 +2779,10 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
             if (idx == -1) // not found
             {
                 idx = 0; // use first
+            }
+            else if (sid[0] == 'r') // recent
+            {
+                // no-op, idx already points to recent scene
             }
             else if (sid[0] == 'p') // prev
             {
