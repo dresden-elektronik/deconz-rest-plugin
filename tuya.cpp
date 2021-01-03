@@ -216,6 +216,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             // Monday = 64, Tuesday = 32, Wednesday = 16, Thursday = 8, Friday = 4, Saturday = 2, Sunday = 1
             // If you want your schedule to run only on workdays, the value would be W124. (64+32+16+8+4 = 124)
             // The API specifies 3 numbers, so a schedule that runs on Monday would be W064.
+            //
             // Workday = W124
             // Not working day = W003
             // Saturday = W002
@@ -223,8 +224,6 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             // All days = W127
 
             QString transitions;
-
-            length = length / 3;
 
             if (zclFrame.payload().size() < (( length * 3) + 6) )
             {
@@ -235,31 +234,80 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             quint8 hour;
             quint8 minut;
             quint8 heatSetpoint;
+            
+            quint16 minut16;
+            quint16 heatSetpoint16;
 
-            quint8 part = 1;
+            quint8 part = 0;
             QList<int> listday;
+            
+            switch (dp)
+            {
+                case 0x0070: //work days (6)
+                {
+                    part = 1;
+                    listday << 124;
+                    length = length / 3;
+                }
+                break;
+                case 0x0071: // holiday = Not working day (6)
+                {
+                    part = 1;
+                    listday << 003;
+                    length = length / 3;
+                }
+                break;
+                case 0x0065: // Moe thermostat W124 (4) + W002 (4) + W001 (4)
+                {
+                    part = length / 3;
+                    listday << 124 << 2 << 1;
+                    length = length / 3;
+                }
+                break;
+                // Daily schedule (mode 8)(minut 16)(temperature 16)(minut 16)(temperature 16)(minut 16)(temperature 16)(minut 16)(temperature 16)
+                case 0x007B: // Sunday
+                case 0x007C: // Monday
+                case 0x007D: // Thuesday
+                case 0x007E: // Wednesday
+                case 0x007F: // Thursday
+                case 0x0080: // Friday
+                case 0x0081: // Saturday
+                {
+                    int t[8] = {1,64,32,46,8,4,2};
+                    part = 1;
+                    listday << t[dp-123];
+                    
+                    length = (length - 1) / 2;
+                    
+                    quint8 mode;
+                    stream >> mode; // First octet is the mode
 
-            if (dp == 0x0070) //work days (6)
-            {
-                listday << 124;
+                }
+                default:
+                {
+                    DBG_Printf(DBG_INFO, "Tuya : Unknow Schedule mode\n");
+                }
+                break;
             }
-            else if (dp == 0x00071) // holiday = Not working day (6)
-            {
-                listday << 003;
-            }
-            else if (dp == 0x0065) // Moe thermostat W124 (4) + W002 (4) + W001 (4)
-            {
-                part = length / 3;
-                listday << 124 << 2 << 1;
-            }
-
+            
             for (; part > 0; part--)
             {
                 for (; length > 0; length--)
                 {
-                    stream >> hour;
-                    stream >> minut;
-                    stream >> heatSetpoint;
+                    if (dp >= 0x007B) && (dp <= 0x0081)
+                    {
+                        stream >> minut16;
+                        stream >> heatSetpoint16;
+                        hour = (quint8) ((minut16 / 60) & 0xff);
+                        minut = (quint8) ((minut16 - 60 * hour) & 0xff);
+                        heatSetpoint = (quint8) ((heatSetpoint16 / 10) & 0xff )
+                    }
+                    else
+                    {
+                        stream >> hour;
+                        stream >> minut;
+                        stream >> heatSetpoint;
+                    }
 
                     transitions += QString("T%1:%2|%3")
                         .arg(hour, 2, 10, QChar('0'))
