@@ -294,13 +294,13 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             {
                 for (; length > 0; length--)
                 {
-                    if (dp >= 0x007B) && (dp <= 0x0081)
+                    if (dp >= 0x007B && dp <= 0x0081)
                     {
                         stream >> minut16;
                         stream >> heatSetpoint16;
                         hour = (quint8) ((minut16 / 60) & 0xff);
                         minut = (quint8) ((minut16 - 60 * hour) & 0xff);
-                        heatSetpoint = (quint8) ((heatSetpoint16 / 10) & 0xff )
+                        heatSetpoint = (quint8) ((heatSetpoint16 / 10) & 0xff);
                     }
                     else
                     {
