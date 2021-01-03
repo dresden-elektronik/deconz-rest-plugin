@@ -10,28 +10,6 @@
 #include "de_web_plugin_private.h"
 #include "tuya.h"
 
-//Copied from ebaauwn code in timer.cpp
-const QDateTime epoch = QDateTime(QDate(2000, 1, 1), QTime(0, 0), Qt::UTC);
-static void getTime(quint32 *time, qint32 *tz, quint32 *dstStart, quint32 *dstEnd, qint32 *dstShift, quint32 *standardTime, quint32 *localTime)
-{
-    QDateTime now = QDateTime::currentDateTimeUtc();
-    QDateTime yearStart(QDate(QDate::currentDate().year(), 1, 1), QTime(0, 0), Qt::UTC);
-    QTimeZone timeZone(QTimeZone::systemTimeZoneId());
-
-    *time = *standardTime = *localTime = epoch.secsTo(now);
-    *tz = timeZone.offsetFromUtc(yearStart);
-    if (timeZone.hasTransitions())
-    {
-        QTimeZone::OffsetData dstStartOffsetData = timeZone.nextTransition(yearStart);
-        QTimeZone::OffsetData dstEndOffsetData = timeZone.nextTransition(dstStartOffsetData.atUtc);
-        *dstStart = epoch.secsTo(dstStartOffsetData.atUtc);
-        *dstEnd = epoch.secsTo(dstEndOffsetData.atUtc);
-        *dstShift = dstStartOffsetData.daylightTimeOffset;
-        *standardTime += *tz;
-        *localTime += *tz + ((*time >= *dstStart && *time <= *dstEnd) ? *dstShift : 0);
-    }
-}
-
 //***********************************************************************************
 
 // Value for dp_type
@@ -905,7 +883,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             quint32 time_local_time = 0xFFFFFFFF;       // id 0x0007 LocalTime
             //quint32 time_valid_until_time = 0xFFFFFFFF; // id 0x0009 ValidUntilTime
 
-            getTime(&time_now, &time_zone, &time_dst_start, &time_dst_end, &time_dst_shift, &time_std_time, &time_local_time);
+            DeRestPluginPrivate::getTime(&time_now, &time_zone, &time_dst_start, &time_dst_end, &time_dst_shift, &time_std_time, &time_local_time);
 
             QByteArray data;
             // Add UTC time

@@ -1201,6 +1201,9 @@ public:
     //reset Device
     void initResetDeviceApi();
 
+    //Time
+    void getTime(quint32 *time, qint32 *tz, quint32 *dstStart, quint32 *dstEnd, qint32 *dstShift, quint32 *standardTime, quint32 *localTime) const;
+
     //Timezone
     // std::string getTimezone();
     QVariantList getTimezones();
