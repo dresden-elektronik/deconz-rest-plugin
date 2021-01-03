@@ -1163,7 +1163,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         qint8 dp = 0x02;
 
                         if (sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
-                            sensor->manufacturer() == QLatin1String("_TYST11_zuhszj9s") )
+                            sensor->manufacturer() == QLatin1String("_TYST11_zuhszj9s") ||
+                            sensor->modelId().startsWith(QLatin1String("88teujp")) )
                         {
                             dp = 0x67;
                         }
@@ -1283,7 +1284,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
                     else if (sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
-                             sensor->manufacturer() == QLatin1String("_TYST11_zuhszj9s") )
+                             sensor->manufacturer() == QLatin1String("_TYST11_zuhszj9s") ||
+                             sensor->modelId().startsWith(QLatin1String("88teujp")) )
                     {
                         QString modeSet = map[pi.key()].toString();
                         bool ok = false;

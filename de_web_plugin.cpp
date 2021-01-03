@@ -6322,6 +6322,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
                 sensorNode.modelId() == QLatin1String("kud7u2l") ||         // Tuya
                 sensorNode.modelId() == QLatin1String("GbxAXL2") ||         // Tuya
+                sensorNode.modelId() == QLatin1String("88teujp") ||         // Tuya
                 sensorNode.modelId() == QLatin1String("902010/32") ||       // Bitron
                 sensorNode.modelId() == QLatin1String("uhszj9s") ||         // Tuya
                (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ||          // Tuya
@@ -6333,6 +6334,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
                 sensorNode.modelId() == QLatin1String("GbxAXL2") || // Tuya
                 sensorNode.modelId() == QLatin1String("zuhszj9s") || // Tuya
+                sensorNode.modelId() == QLatin1String("88teujp") || // Tuya
                 (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
