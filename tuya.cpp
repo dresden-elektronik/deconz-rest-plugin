@@ -143,13 +143,13 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
     {
         // 0x00 : Used to send command, so not used here
     }
-    else if (isXmasLightStrip(lightNode) &&
+    else if (//isXmasLightStrip(lightNode) &&
              zclFrame.commandId() == 0x01 &&
              !(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
     {
         sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
     }
-    else if ( (zclFrame.commandId() == 0x01) || (zclFrame.commandId() == 0x02) )
+    if ( (zclFrame.commandId() == 0x01) || (zclFrame.commandId() == 0x02) )
     {
         // 0x01 Used to inform of changes in its state.
         // 0x02 Send after receiving a 0x00 command.
