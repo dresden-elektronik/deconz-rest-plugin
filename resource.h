@@ -317,5 +317,9 @@ private:
 void initResourceDescriptors();
 const char *getResourcePrefix(const QString &str);
 bool getResourceItemDescriptor(const QString &str, ResourceItemDescriptor &descr);
+#define R_SetFlags(item, flags) R_SetFlags1(item, flags, #flags)
+bool R_SetFlags1(ResourceItem *item, qint64 flags, const char *strFlags);
+#define R_ClearFlags(item, flags) R_ClearFlags1(item, flags, #flags)
+bool R_ClearFlags1(ResourceItem *item, qint64 flags, const char *strFlags);
 
 #endif // RESOURCE_H

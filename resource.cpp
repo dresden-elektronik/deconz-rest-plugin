@@ -366,6 +366,51 @@ bool getResourceItemDescriptor(const QString &str, ResourceItemDescriptor &descr
     return false;
 }
 
+/*! Clears \p flags in \p item which must be a numeric value item.
+    The macro is used to print the flag defines as human readable.
+ */
+#define R_ClearFlags(item, flags) R_ClearFlags1(item, flags, #flags)
+bool R_ClearFlags1(ResourceItem *item, qint64 flags, const char *strFlags)
+{
+    DBG_Assert(item);
+
+    if (item)
+    {
+        const auto old = item->toNumber();
+        if ((old & flags) != 0)
+        {
+            DBG_Printf(DBG_INFO_L2, "[IAS Zone] - Clear %s flags %s (0x%016llX) in 0x%016llX  --> 0x%016llX\n",
+                       item->descriptor().suffix, strFlags, flags, item->toNumber(), old & ~flags);
+            item->setValue(item->toNumber() & ~flags);
+            return true;
+        }
+    }
+    return false;
+}
+
+/*! Sets \p flags in \p item which must be a numeric value item.
+    The macro is used to print the flag defines as human readable.
+ */
+#define R_SetFlags(item, flags) R_SetFlags1(item, flags, #flags)
+bool R_SetFlags1(ResourceItem *item, qint64 flags, const char *strFlags)
+{
+    DBG_Assert(item);
+
+    if (item)
+    {
+        const auto old = item->toNumber();
+        if ((old & flags) != flags)
+        {
+            DBG_Printf(DBG_INFO_L2, "[IAS Zone] - Set %s flags %s (0x%016llX) in 0x%016llX --> 0x%016llX\n",
+                       item->descriptor().suffix, strFlags, flags, item->toNumber(), old | flags);
+            item->setValue(item->toNumber() | flags);
+            return true;
+        }
+    }
+
+    return false;
+}
+
 /*! Copy constructor. */
 ResourceItem::ResourceItem(const ResourceItem &other)
 {
