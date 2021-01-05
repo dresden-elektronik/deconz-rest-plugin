@@ -470,13 +470,12 @@ void DeRestPluginPrivate::checkIasEnrollmentStatus(Sensor *sensor)
         DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor ID: %s\n", sensor->address().ext(), qPrintable(sensor->type()));
 
         NodeValue val = sensor->getZclValue(IAS_ZONE_CLUSTER_ID, IAS_ZONE_STATE);
-        deCONZ::NumericUnion iasZoneStatus = val.value;
+        deCONZ::NumericUnion iasZoneState = val.value;
         DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor zone state timestamp: %s\n", sensor->address().ext(), qPrintable(val.timestamp.toString()));
-        DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor zone state value: %d\n", sensor->address().ext(), iasZoneStatus.u8);
+        DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor zone state value: %d\n", sensor->address().ext(), iasZoneState.u8);
 
         NodeValue val1 = sensor->getZclValue(IAS_ZONE_CLUSTER_ID, IAS_CIE_ADDRESS);
         deCONZ::NumericUnion iasCieAddress = val1.value;
-
         DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor IAS CIE address timestamp: %s\n", sensor->address().ext(), qPrintable(val1.timestamp.toString()));
         DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor IAS CIE address: 0x%016llX\n", sensor->address().ext(), iasCieAddress.u64);
 
@@ -488,7 +487,7 @@ void DeRestPluginPrivate::checkIasEnrollmentStatus(Sensor *sensor)
             DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor config pending value: %d\n", sensor->address().ext(), item->toNumber());
         }
 
-        if (item && iasZoneStatus.u8 == 1 && iasCieAddress.u64 != 0 && iasCieAddress.u64 != 0xFFFFFFFFFFFFFFFF)
+        if (item && iasZoneState.u8 == 1 && iasCieAddress.u64 != 0 && iasCieAddress.u64 != 0xFFFFFFFFFFFFFFFF)
         {
             DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX Sensor enrolled. Removing all pending flags.\n", sensor->address().ext());
             R_ClearFlags(item, R_PENDING_WRITE_CIE_ADDRESS | R_PENDING_ENROLL_RESPONSE);
@@ -504,7 +503,7 @@ void DeRestPluginPrivate::checkIasEnrollmentStatus(Sensor *sensor)
             return;
         }
 
-        if (item && item->toNumber() == 0 && iasZoneStatus.u8 == 0)
+        if (item && item->toNumber() == 0 && iasZoneState.u8 == 0)
         {
             DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX Sensor NOT enrolled (check).\n", sensor->address().ext());
 
@@ -519,7 +518,7 @@ void DeRestPluginPrivate::checkIasEnrollmentStatus(Sensor *sensor)
                 R_SetFlags(item, R_PENDING_ENROLL_RESPONSE);
             }
 
-            DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Querying IAS zone state and CIE address (EP %d)...\n", sensor->address().ext(), sensor->fingerPrint().endpoint);
+            DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Querying IAS zone state and CIE address...\n", sensor->address().ext());
             std::vector<uint16_t> attributes;
             attributes.push_back(IAS_ZONE_STATE); // IAS zone state
             attributes.push_back(IAS_CIE_ADDRESS); // IAS CIE address
@@ -536,7 +535,7 @@ void DeRestPluginPrivate::checkIasEnrollmentStatus(Sensor *sensor)
             }
             sensor->setNeedSaveDatabase(true);
         }
-        else if (item && iasZoneStatus.u8 == 0 && ((item->toNumber() & R_PENDING_ENROLL_RESPONSE) || (item->toNumber() & R_PENDING_WRITE_CIE_ADDRESS)))
+        else if (item && iasZoneState.u8 == 0 && ((item->toNumber() & R_PENDING_ENROLL_RESPONSE) || (item->toNumber() & R_PENDING_WRITE_CIE_ADDRESS)))
         {
             DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX Sensor enrollment pending...\n", sensor->address().ext());
         }
