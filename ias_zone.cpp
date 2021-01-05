@@ -85,6 +85,9 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
         return;
     }
 
+    sensor->rx();
+    sensor->incrementRxCounter();
+
     bool isReadAttr = false;
     bool isReporting = false;
     bool isWriteResponse = false;
@@ -355,8 +358,6 @@ void DeRestPluginPrivate::processIasZoneStatus(Sensor *sensor, quint16 zoneStatu
 
     if (item)
     {
-        sensor->rx();
-        sensor->incrementRxCounter();
         bool alarm = (zoneStatus & (STATUS_ALARM1 | STATUS_ALARM2)) ? true : false;
         item->setValue(alarm);
         enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor->id(), item));
