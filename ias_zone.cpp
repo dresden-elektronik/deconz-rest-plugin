@@ -492,7 +492,7 @@ void DeRestPluginPrivate::checkIasEnrollmentStatus(Sensor *sensor)
             DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor config pending value: %d\n", sensor->address().ext(), item->toNumber());
         }
 
-        if (iasZoneStatus.u8 == 1 && iasCieAddress.u64 != 0 && iasCieAddress.u64 != 0xFFFFFFFFFFFFFFFF)
+        if (item && iasZoneStatus.u8 == 1 && iasCieAddress.u64 != 0 && iasCieAddress.u64 != 0xFFFFFFFFFFFFFFFF)
         {
             DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX Sensor enrolled. Removing all pending flags.\n", sensor->address().ext());
             item->setValue(item->toNumber() & ~R_PENDING_WRITE_CIE_ADDRESS);
