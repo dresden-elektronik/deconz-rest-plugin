@@ -257,6 +257,8 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
         const NodeValue::UpdateType updateType = NodeValue::UpdateByZclReport;
         processIasZoneStatus(sensor, zoneStatus, updateType);
 
+        R_ClearFlags(sensor->item(RConfigPending), R_PENDING_ENROLL_RESPONSE | R_PENDING_WRITE_CIE_ADDRESS);
+
         sensor->updateStateTimestamp();
         enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
         updateEtag(sensor->etag);
