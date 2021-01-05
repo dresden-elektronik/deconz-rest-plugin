@@ -1,0 +1,13 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/colormode",
+	"datatype": "String",
+	"access": "R",
+	"public": true,
+	"description": "The currently active color mode.",
+	"values": [
+		["\"hs\"", "hue and saturation"],
+		["\"xy\"", "CIE xy color space coordinates"],
+		["\"ct\"", "color temperature"]
+	]
+}

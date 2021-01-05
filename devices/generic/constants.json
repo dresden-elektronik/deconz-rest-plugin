@@ -8,6 +8,7 @@
         "$MF_TUYA": "Tuyatec"
     },
     "device-types": {
+        "$TYPE_COLOR_TEMPERATURE_LIGHT": "Color temperature light",
         "$TYPE_WINDOW_COVERING_DEVICE": "Window covering device",
         "$TYPE_TEMPERATURE_SENSOR": "ZHATemperature",
         "$TYPE_HUMIDITY_SENSOR": "ZHAHumidity",

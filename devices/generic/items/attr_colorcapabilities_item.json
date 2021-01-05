@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "attr/colorcapabilities",
+	"datatype": "UInt16",
+	"access": "R",
+	"public": true,
+	"description": "The supported color modes as bitmap."
+}
