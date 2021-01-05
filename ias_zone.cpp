@@ -39,15 +39,12 @@
 #define IAS_CIE_ADDRESS       0x0010
 #define IAS_ZONE_ID           0x0011
 
-
 /*! Handle packets related to the ZCL IAS Zone cluster.
     \param ind - The APS level data indication containing the ZCL packet
     \param zclFrame - The actual ZCL frame which holds the IAS zone server command
  */
 void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    Q_UNUSED(ind);
-
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
 
@@ -190,7 +187,7 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
                         if ((item->toNumber() & R_PENDING_WRITE_CIE_ADDRESS))
                         {
                             DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Removing 'pending IAS CIE write' flag.\n", sensor->address().ext());
-                            item->setValue(item->toNumber() & ~R_PENDING_WRITE_CIE_ADDRESS);
+                            R_ClearFlags(item, R_PENDING_WRITE_CIE_ADDRESS);
                         }
                     }
                     else if (item && iasCieAddress == 0)
@@ -200,7 +197,7 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
                         if (!(item->toNumber() & R_PENDING_WRITE_CIE_ADDRESS))
                         {
                             DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Adding 'pending IAS CIE write' flag since missing.\n", sensor->address().ext());
-                            item->setValue(item->toNumber() | R_PENDING_WRITE_CIE_ADDRESS);
+                            R_SetFlags(item, R_PENDING_WRITE_CIE_ADDRESS);
                         }
                     }
 
@@ -285,7 +282,7 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
         {
             DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX Zone Enroll Request, zone type: 0x%04X, manufacturer: 0x%04X\n", sensor->address().ext(), zoneType, manufacturer);
             DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Removing 'pending enroll response' flag.\n", sensor->address().ext());
-            item->setValue(item->toNumber() & ~R_PENDING_ENROLL_RESPONSE);
+            R_ClearFlags(item, R_PENDING_ENROLL_RESPONSE);
         }
         //sensor->setNeedSaveDatabase(true);
         checkIasEnrollmentStatus(sensor);
@@ -300,7 +297,7 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
 
         if (item && (item->toNumber() & R_PENDING_WRITE_CIE_ADDRESS))
         {
-            item->setValue(item->toNumber() & ~R_PENDING_WRITE_CIE_ADDRESS);
+            R_ClearFlags(item, R_PENDING_WRITE_CIE_ADDRESS);
             DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX Write of IAS CIE address successful.\n", sensor->address().ext());
             DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Removing 'pending IAS CIE write' flag.\n", sensor->address().ext());
         }
@@ -469,7 +466,6 @@ void DeRestPluginPrivate::checkIasEnrollmentStatus(Sensor *sensor)
 {
     if (sensor->fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
     {
-
         DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor ID: %s\n", sensor->address().ext(), qPrintable(sensor->uniqueId()));
         DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor ID: %s\n", sensor->address().ext(), qPrintable(sensor->type()));
 
@@ -495,8 +491,7 @@ void DeRestPluginPrivate::checkIasEnrollmentStatus(Sensor *sensor)
         if (item && iasZoneStatus.u8 == 1 && iasCieAddress.u64 != 0 && iasCieAddress.u64 != 0xFFFFFFFFFFFFFFFF)
         {
             DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX Sensor enrolled. Removing all pending flags.\n", sensor->address().ext());
-            item->setValue(item->toNumber() & ~R_PENDING_WRITE_CIE_ADDRESS);
-            item->setValue(item->toNumber() & ~R_PENDING_ENROLL_RESPONSE);
+            R_ClearFlags(item, R_PENDING_WRITE_CIE_ADDRESS | R_PENDING_ENROLL_RESPONSE);
             
             ResourceItem *item2 = nullptr;
             item2 = sensor->item(RConfigEnrolled);
@@ -516,12 +511,12 @@ void DeRestPluginPrivate::checkIasEnrollmentStatus(Sensor *sensor)
             if ((iasCieAddress.u64 == 0 || iasCieAddress.u64 == 0xFFFFFFFFFFFFFFFF) && !(item->toNumber() & R_PENDING_WRITE_CIE_ADDRESS))
             {
                 DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Adding 'pending IAS CIE write' flag since missing.\n", sensor->address().ext());
-                item->setValue(item->toNumber() | R_PENDING_WRITE_CIE_ADDRESS);
+                R_SetFlags(item, R_PENDING_WRITE_CIE_ADDRESS);
             }
             if (!(item->toNumber() & R_PENDING_ENROLL_RESPONSE))
             {
                 DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Adding 'pending enroll response' flag since missing.\n", sensor->address().ext());
-                item->setValue(item->toNumber() | R_PENDING_ENROLL_RESPONSE);
+                R_SetFlags(item, R_PENDING_ENROLL_RESPONSE);
             }
 
             DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Querying IAS zone state and CIE address (EP %d)...\n", sensor->address().ext(), sensor->fingerPrint().endpoint);
@@ -537,8 +532,7 @@ void DeRestPluginPrivate::checkIasEnrollmentStatus(Sensor *sensor)
             {
                 // Ensure failed attrubute reads are caught and tried again
                 DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX Attributes could NOT be querried.\n", sensor->address().ext());
-                item->setValue(item->toNumber() & ~R_PENDING_WRITE_CIE_ADDRESS);
-                item->setValue(item->toNumber() & ~R_PENDING_ENROLL_RESPONSE);
+                R_ClearFlags(item, R_PENDING_WRITE_CIE_ADDRESS | R_PENDING_ENROLL_RESPONSE);
             }
             sensor->setNeedSaveDatabase(true);
         }
@@ -570,8 +564,7 @@ void DeRestPluginPrivate::writeIasCieAddress(Sensor *sensor)
         {
             // By removing all pending flags, a read of relevant attributes is triggered again, also resulting in a new write attempt
             DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX Writing IAS CIE address failed.\n", sensor->address().ext());
-            item->setValue(item->toNumber() & ~R_PENDING_WRITE_CIE_ADDRESS);
-            item->setValue(item->toNumber() & ~R_PENDING_ENROLL_RESPONSE);
+            R_ClearFlags(item, R_PENDING_WRITE_CIE_ADDRESS | R_PENDING_ENROLL_RESPONSE);
         }
     }
 }
