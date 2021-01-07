@@ -3636,6 +3636,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeBool, RConfigDisplayFlipped);
                     sensor.addItem(DataTypeBool, RConfigLocked);
                     sensor.addItem(DataTypeBool, RConfigMountingMode);
+                    // Supported with Danfoss firmware version 1.08
+                    sensor.addItem(DataTypeBool, RConfigScheduleOn)->setValue(false);
+                    sensor.addItem(DataTypeString, RConfigSchedule);
                 }
                 else if (sensor.modelId() == QLatin1String("AC201")) // OWON AC201 Thermostat
                 {

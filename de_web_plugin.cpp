@@ -6512,6 +6512,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.addItem(DataTypeBool, RConfigDisplayFlipped);
                 sensorNode.addItem(DataTypeBool, RConfigLocked);
                 sensorNode.addItem(DataTypeBool, RConfigMountingMode);
+                // Supported with Danfoss firmware version 1.08
+                sensorNode.addItem(DataTypeBool, RConfigScheduleOn)->setValue(false);
+                sensorNode.addItem(DataTypeString, RConfigSchedule);
             }
             else if (modelId == QLatin1String("AC201")) // OWON AC201 Thermostat
             {
