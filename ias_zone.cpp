@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2021 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -8,11 +8,8 @@
  *
  */
 
-#include <QString>
-#include <QVariantMap>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
-#include "json.h"
 
 // server send
 #define CMD_STATUS_CHANGE_NOTIFICATION 0x00
@@ -38,6 +35,102 @@
 #define IAS_ZONE_STATUS       0x0002
 #define IAS_CIE_ADDRESS       0x0010
 #define IAS_ZONE_ID           0x0011
+
+/*
+    IAS Zone Enrollment is handled in a per device state machine.
+    The actual state is managed via RConfigEnrolled as state variable.
+    State timeouts are based on the ResourceItem::lastSet() timestamp.
+
+    A IAS device is enrolled if:
+
+      1. CIE address written
+      2. Zone state = 1
+      3. Both values are verified by read
+
+    The state machine ensures all tasks are done and recovers automatically
+    from any errors which might happen.
+
+    The state machine is described in following PlantUML diagram,
+    and can be displayed with online PlantUML viewer: http://www.plantuml.com/plantuml/uml
+*/
+
+/*
+
+@startuml
+hide empty description
+state Init
+state "Read Attributes" as Read
+state "Wait Read Response" as WaitRead
+state "Write CIE Address" as WriteCieAddr
+state "Wait Write Response" as WaitWriteCieAddr
+state ReadRsp <<choice>>
+state "Delay Enroll" as DelayEnroll
+state "Enroll" as Enroll
+state "Wait Enroll" as WaitEnroll
+
+
+
+[*] --> Init
+Init : Mark CIE Address and
+Init : Zone State unknown.
+
+Init --> Read
+Read : CIE Address
+Read : Zone State
+Read --> WaitRead :  Command Send
+Read --> Read
+
+WaitRead --> Init: 8 sec. Timeout\nError
+WaitRead --> ReadRsp : Read Attributes\nResponse
+
+ReadRsp --> WriteCieAddr : Invalid CIE Address
+ReadRsp --> DelayEnroll : Valid CIE Address\nZone State = 0
+ReadRsp --> Enrolled : Valid CIE Address\nZone State = 1
+
+DelayEnroll --> Enroll : After 5 sec. or\nReceiving\nEnroll Request
+Enroll --> WaitEnroll : Command Send
+Enroll --> Enroll
+WaitEnroll --> Read : After 2 sec.
+
+WriteCieAddr --> WaitWriteCieAddr : Command Send
+WriteCieAddr --> WriteCieAddr
+
+WaitWriteCieAddr --> Read : Write Attribute\nResponse
+WaitWriteCieAddr --> Init: 8 sec. Timeout\nError
+
+Enrolled --> [*]
+@enduml
+
+*/
+
+/*! Helper to set IAS device state and print debug information on state changes.
+ */
+#define IAS_SetState(sensor, item, state) IAS_SetState1(sensor, item, state, #state)
+static quint32 IAS_SetState1(const Sensor *sensor, ResourceItem *item, quint32 state, const char *strState)
+{
+    DBG_Assert(item);
+
+    if (item->toNumber() != state)
+    {
+        DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX set state: %s (%u)\n", sensor->address().ext(), strState, state);
+        item->setValue(state);
+    }
+
+    return state;
+}
+
+/*! Sanity function to ensure IAS state variable has a valid value.
+    A invalid value will be set to IAS_STATE_INIT.
+ */
+static void IAS_EnsureValidState(ResourceItem *itemIasState)
+{
+    DBG_Assert(itemIasState);
+    if (itemIasState && itemIasState->toNumber() >= IAS_STATE_MAX)
+    {
+        DBG_Printf(DBG_IAS, "[IAS ZONE] - invalid state: %u, set to IAS_STATE_INIT\n", itemIasState->toNumber());
+        itemIasState->setValue(IAS_STATE_INIT);
+    }
+}
 
 /*! Handle packets related to the ZCL IAS Zone cluster.
     \param ind - The APS level data indication containing the ZCL packet
@@ -67,8 +160,10 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
 
     for (auto &s : sensors)
     {
-        if (!(s.address().ext() == ind.srcAddress().ext() && s.fingerPrint().endpoint == ind.srcEndpoint() &&
-             s.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID) && s.deletedState() == Sensor::StateNormal))
+        if (!(s.address().ext() == ind.srcAddress().ext() &&
+              s.fingerPrint().endpoint == ind.srcEndpoint() &&
+              s.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID) &&
+              s.deletedState() == Sensor::StateNormal))
         {
             continue;
         }
@@ -78,12 +173,25 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
 
     if (!sensor)
     {
-        DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX No IAS sensor found for endpoint: 0x%02X\n", ind.srcAddress().ext(), ind.srcEndpoint());
+        DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX No IAS sensor found for endpoint: 0x%02X\n", ind.srcAddress().ext(), ind.srcEndpoint());
         return;
     }
 
-    sensor->rx();
+    sensor->rx(); // mark rx here so that Read Attributes will work early on
     sensor->incrementRxCounter();
+
+    ResourceItem *itemIasState = sensor->item(RConfigEnrolled);
+    ResourceItem *itemPending = sensor->item(RConfigPending);
+
+    DBG_Assert(itemIasState);
+    DBG_Assert(itemPending);
+
+    if (!itemIasState || !itemPending)
+    {
+        return; // all IAS devices should have this
+    }
+
+    IAS_EnsureValidState(itemIasState);
 
     bool isReadAttr = false;
     bool isReporting = false;
@@ -106,13 +214,18 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
         isClusterCmd = true;
     }
 
-    // Read ZCL reporting and ZCL Read Attributes Response
+    // Read ZCL Reporting and ZCL Read Attributes Response
     if (isReadAttr || isReporting)
     {
         const NodeValue::UpdateType updateType = isReadAttr ? NodeValue::UpdateByZclRead : NodeValue::UpdateByZclReport;
 
         bool configUpdated = false;
         bool stateUpdated = false;
+
+        if (isReadAttr)
+        {
+            DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Read attributes response:\n", sensor->address().ext());
+        }
 
         while (!stream.atEnd())
         {
@@ -126,6 +239,7 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
                 stream >> status;  // Read Attribute Response status
                 if (status != deCONZ::ZclSuccessStatus)
                 {
+                    DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Read attribute 0x%04X status: 0x%02X\n", sensor->address().ext(), attrId, status);
                     continue;
                 }
             }
@@ -138,77 +252,86 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
                 continue;
             }
 
-            ResourceItem *item = nullptr;
-            item = sensor->item(RConfigPending);
+            DBG_Assert(stream.status() == QDataStream::Ok);
 
             switch (attrId)
             {
-                case IAS_ZONE_STATE: // IAS zone state
+                case IAS_ZONE_STATE:
                 {
-                    quint8 iasZoneState = attr.numericValue().u8;
+                    const quint8 iasZoneState = attr.numericValue().u8;
 
-                    if (item && iasZoneState == 1)
+                    if (iasZoneState == 1)
                     {
-                        DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor already enrolled (read).\n", sensor->address().ext());
+                        DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX   -> IAS Zone State: enrolled.\n", sensor->address().ext());
+                        R_ClearFlags(itemPending, R_PENDING_ENROLL_RESPONSE);
                     }
-                    else if (item && iasZoneState == 0)
+                    else if (iasZoneState == 0)
                     {
-                        DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor NOT enrolled (read)...\n", sensor->address().ext());
+                        DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX   -> IAS Zone State: NOT enrolled.\n", sensor->address().ext());
+                        R_SetFlags(itemPending, R_PENDING_ENROLL_RESPONSE);
                     }
 
-                    sensor->setZclValue(updateType, ind.srcEndpoint(), IAS_ZONE_CLUSTER_ID, attrId, attr.numericValue());
-                    //sensor->setNeedSaveDatabase(true);
-                }
-                    break;
-
-                case IAS_ZONE_TYPE: // IAS zone type
-                {
                     sensor->setZclValue(updateType, ind.srcEndpoint(), IAS_ZONE_CLUSTER_ID, attrId, attr.numericValue());
                 }
                     break;
 
-                case IAS_ZONE_STATUS: // IAS zone status
+                case IAS_ZONE_TYPE:
                 {
-                    quint16 zoneStatus = attr.numericValue().u16;   // might be reported or received via CMD_STATUS_CHANGE_NOTIFICATION
+                    sensor->setZclValue(updateType, ind.srcEndpoint(), IAS_ZONE_CLUSTER_ID, attrId, attr.numericValue());
+                }
+                    break;
+
+                case IAS_ZONE_STATUS:
+                {
+                    const quint16 zoneStatus = attr.numericValue().u16;   // might be reported or received via CMD_STATUS_CHANGE_NOTIFICATION
 
                     processIasZoneStatus(sensor, zoneStatus, updateType);
                     stateUpdated = true;
                 }
                     break;
 
-                case IAS_CIE_ADDRESS: // IAS CIE address
+                case IAS_CIE_ADDRESS:
                 {
-                    quint64 iasCieAddress = attr.numericValue().u64;
+                    const quint64 iasCieAddress = attr.numericValue().u64;
 
-                    if (item && iasCieAddress != 0 && iasCieAddress != 0xFFFFFFFFFFFFFFFF)
+                    if (iasCieAddress != 0 && iasCieAddress != 0xFFFFFFFFFFFFFFFF)
                     {
-                        DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX IAS CIE address already written (read).\n", sensor->address().ext());
-
-                        if ((item->toNumber() & R_PENDING_WRITE_CIE_ADDRESS))
-                        {
-                            DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Removing 'pending IAS CIE write' flag.\n", sensor->address().ext());
-                            R_ClearFlags(item, R_PENDING_WRITE_CIE_ADDRESS);
-                        }
+                        DBG_Assert(iasCieAddress == apsCtrl->getParameter(deCONZ::ParamMacAddress));
+                        DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX   -> IAS CIE address = 0x%016llX: already written.\n", sensor->address().ext(), iasCieAddress);
+                        R_ClearFlags(itemPending, R_PENDING_WRITE_CIE_ADDRESS);
                     }
-                    else if (item && iasCieAddress == 0)
+                    else
                     {
-                        DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX IAS CIE address NOT written (read).\n", sensor->address().ext());
-
-                        if (!(item->toNumber() & R_PENDING_WRITE_CIE_ADDRESS))
-                        {
-                            DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Adding 'pending IAS CIE write' flag since missing.\n", sensor->address().ext());
-                            R_SetFlags(item, R_PENDING_WRITE_CIE_ADDRESS);
-                        }
+                        DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX   -> IAS CIE address = 0x%016llX: NOT written.\n", sensor->address().ext());
+                        R_SetFlags(itemPending, R_PENDING_WRITE_CIE_ADDRESS);
                     }
 
                     sensor->setZclValue(updateType, ind.srcEndpoint(), IAS_ZONE_CLUSTER_ID, attrId, attr.numericValue());
-                    //sensor->setNeedSaveDatabase(true);
                 }
                     break;
 
                 default:
                     break;
 
+            }
+        }
+
+        if (itemIasState->toNumber() == IAS_STATE_WAIT_READ)
+        {
+            // Read attributes response, decide next state.
+            if (R_HasFlags(itemPending, R_PENDING_WRITE_CIE_ADDRESS)) // 1. task to be setup
+            {
+                IAS_SetState(sensor, itemIasState, IAS_STATE_WRITE_CIE_ADDR);
+            }
+            else if (R_HasFlags(itemPending, R_PENDING_ENROLL_RESPONSE)) // 2. task to be setup
+            {
+                IAS_SetState(sensor, itemIasState, IAS_STATE_DELAY_ENROLL);
+            }
+            else
+            {
+                // Valid CIE Address and Zone State = 1 --> finished
+                IAS_SetState(sensor, itemIasState, IAS_STATE_ENROLLED);
+                sensor->setNeedSaveDatabase(true);
             }
         }
 
@@ -223,16 +346,7 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
             updateEtag(sensor->etag);
             updateEtag(gwConfigEtag);
             sensor->setNeedSaveDatabase(true);
-            queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
-        }
-
-        // Sensor might be uninitialized ???
-        NodeValue val = sensor->getZclValue(IAS_ZONE_CLUSTER_ID, IAS_CIE_ADDRESS);
-        deCONZ::NumericUnion iasCieAddress = val.value;
-
-        if (iasCieAddress.u64 == 0 || iasCieAddress.u64 == 0xFFFFFFFFFFFFFFFF)
-        {
-            writeIasCieAddress(sensor);
+            queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
         }
 
         checkIasEnrollmentStatus(sensor);
@@ -249,19 +363,17 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
         stream >> extendedStatus; // reserved, set to 0
         stream >> zoneId;
         stream >> delay;
-        DBG_Printf(DBG_INFO, "[IAS Zone] - 0x%016llX Status Change, status: 0x%04X, zoneId: %u, delay: %u\n", sensor->address().ext(), zoneStatus, zoneId, delay);
+        DBG_Assert(stream.status() == QDataStream::Ok);
+        DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Status Change, status: 0x%04X, zoneId: %u, delay: %u\n", sensor->address().ext(), zoneStatus, zoneId, delay);
 
-        const NodeValue::UpdateType updateType = NodeValue::UpdateByZclReport;
-        processIasZoneStatus(sensor, zoneStatus, updateType);
-
-        R_ClearFlags(sensor->item(RConfigPending), R_PENDING_ENROLL_RESPONSE | R_PENDING_WRITE_CIE_ADDRESS);
+        processIasZoneStatus(sensor, zoneStatus, NodeValue::UpdateByZclReport);
 
         sensor->updateStateTimestamp();
         enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
         updateEtag(sensor->etag);
         updateEtag(gwConfigEtag);
         sensor->setNeedSaveDatabase(true);
-        queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+        queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
         
         checkIasEnrollmentStatus(sensor);
     }
@@ -272,34 +384,34 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
 
         stream >> zoneType;
         stream >> manufacturer;
+        DBG_Assert(stream.status() == QDataStream::Ok);
 
-        sendIasZoneEnrollResponse(ind, zclFrame);
+        DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Zone Enroll Request, zone type: 0x%04X, manufacturer: 0x%04X\n", sensor->address().ext(), zoneType, manufacturer);
 
-        ResourceItem *item = nullptr;
-        item = sensor->item(RConfigPending);
-
-        if (item)
+        if (itemIasState->toNumber() == IAS_STATE_DELAY_ENROLL ||
+            itemIasState->toNumber() == IAS_STATE_ENROLL) // This state might still be active if previous send didn't work
         {
-            DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX Zone Enroll Request, zone type: 0x%04X, manufacturer: 0x%04X\n", sensor->address().ext(), zoneType, manufacturer);
-            DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Removing 'pending enroll response' flag.\n", sensor->address().ext());
-            R_ClearFlags(item, R_PENDING_ENROLL_RESPONSE);
+            // End waiting and send Enroll Response within state machine.
+            IAS_SetState(sensor, itemIasState, IAS_STATE_ENROLL);
+            checkIasEnrollmentStatus(sensor);
         }
-        //sensor->setNeedSaveDatabase(true);
-        checkIasEnrollmentStatus(sensor);
-        return;
+        else
+        {
+            // Send independend of state to don't interfere with state machine.
+            sendIasZoneEnrollResponse(ind, zclFrame);
+        }
+        return; // don't trigger ZCL Default Response
     }
 
     // ZCL Write Attributes Response
     if (isWriteResponse)
     {
-        ResourceItem *item = nullptr;
-        item = sensor->item(RConfigPending);
+        DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Write of IAS CIE address done.\n", sensor->address().ext());
 
-        if (item && (item->toNumber() & R_PENDING_WRITE_CIE_ADDRESS))
+        if (itemIasState->toNumber() == IAS_STATE_WAIT_WRITE_CIE_ADDR)
         {
-            R_ClearFlags(item, R_PENDING_WRITE_CIE_ADDRESS);
-            DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX Write of IAS CIE address successful.\n", sensor->address().ext());
-            DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Removing 'pending IAS CIE write' flag.\n", sensor->address().ext());
+            // read attributes again to see if it worked
+            IAS_SetState(sensor, itemIasState, IAS_STATE_READ);
         }
 
         checkIasEnrollmentStatus(sensor);
@@ -417,7 +529,58 @@ void DeRestPluginPrivate::processIasZoneStatus(Sensor *sensor, quint16 zoneStatu
     \param ind - The APS level data indication containing the ZCL packet
     \param zclFrame - The actual ZCL frame which holds the IAS Zone enroll request
  */
-void DeRestPluginPrivate::sendIasZoneEnrollResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+bool DeRestPluginPrivate::sendIasZoneEnrollResponse(Sensor *sensor)
+{
+    deCONZ::ApsDataRequest req;
+    deCONZ::ZclFrame outZclFrame;
+
+    req.setProfileId(sensor->fingerPrint().profileId);
+    req.setClusterId(IAS_ZONE_CLUSTER_ID); // todo check for other ias clusters
+    req.setDstAddressMode(deCONZ::ApsNwkAddress);
+    req.dstAddress() = sensor->address();
+    req.setDstEndpoint(sensor->fingerPrint().endpoint);
+    req.setSrcEndpoint(endpoint());
+
+    outZclFrame.setSequenceNumber(zclSeq++);
+    outZclFrame.setCommandId(CMD_ZONE_ENROLL_RESPONSE);
+
+    outZclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                             deCONZ::ZclFCDirectionClientToServer |
+                             deCONZ::ZclFCDisableDefaultResponse);
+
+    { // payload
+        QDataStream stream(&outZclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        quint8 code = 0x00; // success
+        quint8 zoneId = 100;
+
+        stream << code;
+        stream << zoneId;
+    }
+
+    { // ZCL frame
+        QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        outZclFrame.writeToStream(stream);
+    }
+
+    DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Send Zone Enroll Response, zcl.seq: %u\n", sensor->address().ext(), outZclFrame.sequenceNumber());
+
+    if (apsCtrl && apsCtrl->apsdeDataRequest(req) != deCONZ::Success)
+    {
+        DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Failed sending Zone Enroll Response\n", sensor->address().ext());
+        return false;
+    }
+
+    return true;
+}
+
+/*! Sends IAS Zone enroll response to IAS Zone server.
+    \param ind - The APS level data indication containing the ZCL packet
+    \param zclFrame - The actual ZCL frame which holds the IAS Zone enroll request
+ */
+bool DeRestPluginPrivate::sendIasZoneEnrollResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
     deCONZ::ApsDataRequest req;
     deCONZ::ZclFrame outZclFrame;
@@ -453,91 +616,149 @@ void DeRestPluginPrivate::sendIasZoneEnrollResponse(const deCONZ::ApsDataIndicat
         outZclFrame.writeToStream(stream);
     }
 
+    DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Send Zone Enroll Response, zcl.seq: %u\n", ind.srcAddress().ext(), zclFrame.sequenceNumber());
+
     if (apsCtrl && apsCtrl->apsdeDataRequest(req) != deCONZ::Success)
     {
-        DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX Zone failed to send enroll reponse\n", ind.srcAddress().ext());
+        DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Failed sending Zone Enroll Response\n", ind.srcAddress().ext());
+        return false;
     }
+
+    return true;
 }
 
-/*! Check if a sensor is already enrolled
+/*! Drives the IAS Zone Enrollment state machine.
+
+    This handler can be called at any time, e.g. after receiving a command or from a timer.
     \param sensor - Sensor containing the IAS zone cluster
  */
 void DeRestPluginPrivate::checkIasEnrollmentStatus(Sensor *sensor)
 {
+    ResourceItem *itemIasState = sensor->item(RConfigEnrolled); // holds per device IAS state variable
+    ResourceItem *itemPending = sensor->item(RConfigPending);
+
+    DBG_Assert(itemIasState);
+    DBG_Assert(itemPending);
+
+    if (!itemIasState || !itemPending)
+    {
+        return; // all IAS devices should have this
+    }
+
+    IAS_EnsureValidState(itemIasState);
+    quint32 iasState = itemIasState->toNumber();
+
+    if (iasState == IAS_STATE_ENROLLED)
+    {
+        DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Sensor is enrolled.\n", sensor->address().ext());
+        return; // already enrolled nothing todo
+    }
+
     if (sensor->fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
     {
-        DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor ID: %s\n", sensor->address().ext(), qPrintable(sensor->uniqueId()));
-        DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor ID: %s\n", sensor->address().ext(), qPrintable(sensor->type()));
+        const auto now = QDateTime::currentDateTime();
 
-        NodeValue val = sensor->getZclValue(IAS_ZONE_CLUSTER_ID, IAS_ZONE_STATE);
-        deCONZ::NumericUnion iasZoneState = val.value;
-        DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor zone state timestamp: %s\n", sensor->address().ext(), qPrintable(val.timestamp.toString()));
-        DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor zone state value: %d\n", sensor->address().ext(), iasZoneState.u8);
-
-        NodeValue val1 = sensor->getZclValue(IAS_ZONE_CLUSTER_ID, IAS_CIE_ADDRESS);
-        deCONZ::NumericUnion iasCieAddress = val1.value;
-        DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor IAS CIE address timestamp: %s\n", sensor->address().ext(), qPrintable(val1.timestamp.toString()));
-        DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor IAS CIE address: 0x%016llX\n", sensor->address().ext(), iasCieAddress.u64);
-
-        ResourceItem *item = nullptr;
-        item = sensor->item(RConfigPending);
-
-        if (item)
+        if (iasState != IAS_STATE_WAIT_READ) // don't print in WAIT_READ since it's too noisy
         {
-            DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Sensor config pending value: %d\n", sensor->address().ext(), item->toNumber());
+            DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Sensor ID: %s\n", sensor->address().ext(), qPrintable(sensor->uniqueId()));
+            DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Sensor type: %s\n", sensor->address().ext(), qPrintable(sensor->type()));
+
+            const NodeValue val = sensor->getZclValue(IAS_ZONE_CLUSTER_ID, IAS_ZONE_STATE);
+            DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Sensor zone state value: %d\n", sensor->address().ext(), val.value.u8);
+
+            const NodeValue val1 = sensor->getZclValue(IAS_ZONE_CLUSTER_ID, IAS_CIE_ADDRESS);
+            DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Sensor IAS CIE address: 0x%016llX\n", sensor->address().ext(), val1.value.u64);
+            DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Sensor config pending value: %d\n", sensor->address().ext(), itemPending->toNumber());
         }
 
-        if (item && iasZoneState.u8 == 1 && iasCieAddress.u64 != 0 && iasCieAddress.u64 != 0xFFFFFFFFFFFFFFFF)
+        if (iasState == IAS_STATE_INIT)
         {
-            DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX Sensor enrolled. Removing all pending flags.\n", sensor->address().ext());
-            R_ClearFlags(item, R_PENDING_WRITE_CIE_ADDRESS | R_PENDING_ENROLL_RESPONSE);
-            
-            ResourceItem *item2 = nullptr;
-            item2 = sensor->item(RConfigEnrolled);
-            if (item2 && item->toBool() != true)
+            // At the beginning we don't know device values of CIE address and Zone state.
+            // The device might already be enrolled, which will be verified by IAS_STATE_READ.
+            DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Sensor init enrollment.\n", sensor->address().ext());
+            R_SetFlags(itemPending, R_PENDING_ENROLL_RESPONSE | R_PENDING_WRITE_CIE_ADDRESS);
+            iasState = IAS_SetState(sensor, itemIasState, IAS_STATE_READ);
+        }
+        else if (iasState == IAS_STATE_DELAY_ENROLL)
+        {
+            // Some devices don't send an Enroll Request.
+            // Wait a few seconds, and if no Enroll Request is received move on to IAS_STATE_ENROLL
+            // to send an unsoliticed Enroll Response.
+            const auto dt = itemIasState->lastSet().secsTo(now);
+
+            if (dt > 5)
             {
-                item2->setValue(true);
+                DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX initiate unsoliticed enroll response after %d seconds delay.\n", sensor->address().ext(), dt);
+                iasState = IAS_SetState(sensor, itemIasState, IAS_STATE_ENROLL);
             }
-            
-            sensor->setNeedSaveDatabase(true);
+        }
+        else if (iasState == IAS_STATE_WAIT_ENROLL)
+        {
+            // After sending a Enroll Response, wait a few seconds and read the attributes again to verify.
+            const auto dt = itemIasState->lastSet().secsTo(now);
+
+            if (dt > 2)
+            {
+                // Read attributes again to verify if it worked.
+                iasState = IAS_SetState(sensor, itemIasState, IAS_STATE_READ);
+            }
+        }
+
+        if (!R_HasFlags(itemPending, R_PENDING_ENROLL_RESPONSE) && !R_HasFlags(itemPending, R_PENDING_WRITE_CIE_ADDRESS))
+        {
+            if (iasState != IAS_STATE_ENROLLED) // everything seems to be done, finish here
+            {
+                IAS_SetState(sensor, itemIasState, IAS_STATE_ENROLLED);
+                sensor->setNeedSaveDatabase(true);
+            }
             return;
         }
 
-        if (item && item->toNumber() == 0 && iasZoneState.u8 == 0)
+        if (iasState == IAS_STATE_READ)
         {
-            DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX Sensor NOT enrolled (check).\n", sensor->address().ext());
+            DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Read IAS zone state and CIE address...\n", sensor->address().ext());
 
-            if ((iasCieAddress.u64 == 0 || iasCieAddress.u64 == 0xFFFFFFFFFFFFFFFF) && !(item->toNumber() & R_PENDING_WRITE_CIE_ADDRESS))
+            if (readAttributes(sensor, sensor->fingerPrint().endpoint, IAS_ZONE_CLUSTER_ID, {IAS_ZONE_STATE, IAS_CIE_ADDRESS}))
             {
-                DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Adding 'pending IAS CIE write' flag since missing.\n", sensor->address().ext());
-                R_SetFlags(item, R_PENDING_WRITE_CIE_ADDRESS);
-            }
-            if (!(item->toNumber() & R_PENDING_ENROLL_RESPONSE))
-            {
-                DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Adding 'pending enroll response' flag since missing.\n", sensor->address().ext());
-                R_SetFlags(item, R_PENDING_ENROLL_RESPONSE);
-            }
-
-            DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Querying IAS zone state and CIE address...\n", sensor->address().ext());
-            std::vector<uint16_t> attributes;
-            attributes.push_back(IAS_ZONE_STATE); // IAS zone state
-            attributes.push_back(IAS_CIE_ADDRESS); // IAS CIE address
-            if (readAttributes(sensor, sensor->fingerPrint().endpoint, IAS_ZONE_CLUSTER_ID, attributes))
-            {
-                DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX Attributes querried.\n", sensor->address().ext());
                 queryTime = queryTime.addSecs(1);
+                IAS_SetState(sensor, itemIasState, IAS_STATE_WAIT_READ);
             }
             else
             {
-                // Ensure failed attrubute reads are caught and tried again
-                DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX Attributes could NOT be querried.\n", sensor->address().ext());
-                R_ClearFlags(item, R_PENDING_WRITE_CIE_ADDRESS | R_PENDING_ENROLL_RESPONSE);
+                // Remain in IAS_STATE_READ and try again in next invocation.
+                DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Failed to send read attributes.\n", sensor->address().ext());
             }
-            sensor->setNeedSaveDatabase(true);
         }
-        else if (item && iasZoneState.u8 == 0 && ((item->toNumber() & R_PENDING_ENROLL_RESPONSE) || (item->toNumber() & R_PENDING_WRITE_CIE_ADDRESS)))
+        else if (iasState == IAS_STATE_WRITE_CIE_ADDR)
         {
-            DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX Sensor enrollment pending...\n", sensor->address().ext());
+            if (writeIasCieAddress(sensor))
+            {
+                IAS_SetState(sensor, itemIasState, IAS_STATE_WAIT_WRITE_CIE_ADDR);
+            }
+            // On error remain in IAS_STATE_WRITE_CIE_ADDR and try again in next invocation.
+        }
+        else if (iasState == IAS_STATE_ENROLL)
+        {
+            if (sendIasZoneEnrollResponse(sensor))
+            {
+                IAS_SetState(sensor, itemIasState, IAS_STATE_WAIT_ENROLL);
+            }
+            // On error remain in IAS_STATE_ENROLL and try again in next invocation.
+        }
+        else if (iasState == IAS_STATE_WAIT_READ ||
+                 iasState == IAS_STATE_WAIT_WRITE_CIE_ADDR)
+        {
+            const auto dt = itemIasState->lastSet().secsTo(now);
+
+            if (dt > 8) // Wait up to 8 seconds, because next mac poll might take 7.x seconds until max transactions expires.
+            {
+                DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX timeout after %d seconds, state: %d, retry...\n", sensor->address().ext(), dt, iasState);
+                IAS_SetState(sensor, itemIasState, IAS_STATE_INIT);
+            }
+            else
+            {
+                DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Sensor enrollment pending... since %d seconds.\n", sensor->address().ext(), dt);
+            }
         }
     }
 }
@@ -545,25 +766,27 @@ void DeRestPluginPrivate::checkIasEnrollmentStatus(Sensor *sensor)
 /*! Write IAS CIE address attribute for a node.
     \param sensor - Sensor containing the IAS zone cluster
  */
-void DeRestPluginPrivate::writeIasCieAddress(Sensor *sensor)
+bool DeRestPluginPrivate::writeIasCieAddress(Sensor *sensor)
 {
     ResourceItem *item = nullptr;
     item = sensor->item(RConfigPending);
 
-    if (sensor->fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID) && item && (item->toNumber() & R_PENDING_WRITE_CIE_ADDRESS))
+    DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Send write IAS CIE address.\n", sensor->address().ext());
+
+    if (sensor->fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID) && item && R_HasFlags(item, R_PENDING_WRITE_CIE_ADDRESS))
     {
         // write CIE address needed for some IAS Zone devices
         const quint64 iasCieAddress = apsCtrl->getParameter(deCONZ::ParamMacAddress);
         deCONZ::ZclAttribute attribute(IAS_CIE_ADDRESS, deCONZ::ZclIeeeAddress, QLatin1String("CIE address"), deCONZ::ZclReadWrite, false);
         attribute.setValue(iasCieAddress);
 
-        DBG_Printf(DBG_INFO_L2, "[IAS ZONE] - 0x%016llX Write IAS CIE address.\n", sensor->address().ext());
-
-        if (!writeAttribute(sensor, sensor->fingerPrint().endpoint, IAS_ZONE_CLUSTER_ID, attribute, 0))
+        if (writeAttribute(sensor, sensor->fingerPrint().endpoint, IAS_ZONE_CLUSTER_ID, attribute, 0))
         {
-            // By removing all pending flags, a read of relevant attributes is triggered again, also resulting in a new write attempt
-            DBG_Printf(DBG_INFO, "[IAS ZONE] - 0x%016llX Writing IAS CIE address failed.\n", sensor->address().ext());
-            R_ClearFlags(item, R_PENDING_WRITE_CIE_ADDRESS | R_PENDING_ENROLL_RESPONSE);
+            return true;
         }
     }
+
+    DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Failed sending write IAS CIE address.\n", sensor->address().ext());
+
+    return false;
 }
