@@ -6520,6 +6520,12 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.addItem(DataTypeString, RConfigFanMode);
                 sensorNode.addItem(DataTypeString, RConfigSwingMode);
             }
+            else if (modelId == QLatin1String("TH1300ZB")) // sinope thermostat
+            {
+                sensorNode.addItem(DataTypeUInt8, RStateValve);
+                sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
+                sensorNode.addItem(DataTypeString, RConfigMode);
+            }
             else
             {
                 if (!modelId.isEmpty())
@@ -8996,11 +9002,12 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         // already in mA
                                     }
-                                    else if (i->modelId() == QLatin1String("SmartPlug") ||      // Heiman
+                                    else if (i->modelId() == QLatin1String("SmartPlug") ||        // Heiman
                                              i->modelId().startsWith(QLatin1String("EMIZB-1")) || // Develco EMI
                                              i->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
                                              i->modelId().startsWith(QLatin1String("3200-S")) ||  // Samsung smart outlet
-                                             i->modelId().startsWith(QLatin1String("SPW35Z")))    // RT-RK OBLO SPW35ZD0 smart plug
+                                             i->modelId().startsWith(QLatin1String("SPW35Z")) ||  // RT-RK OBLO SPW35ZD0 smart plug
+                                             i->modelId() == QLatin1String("TH1300ZB"))           // Sinope thermostat
                                     {
                                         current *= 10; // 0.01A -> mA
                                     }
@@ -9012,6 +9019,32 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     enqueueEvent(Event(RSensors, RStateCurrent, i->id(), item));
                                     updated = true;
                                 }
+                            }
+                            else if (ia->id() == 0x050f) // Apparent power
+                            {
+                                
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
+                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
+                                }
+
+                                quint16 power = ia->numericValue().u16;
+                                ResourceItem *item = i->item(RStatePower);
+
+                                if (item && power != -32768)
+                                {
+                                    if (i->modelId() == QLatin1String("TH1300ZB")) // Sinope thermostat
+                                    {
+                                        power = static_cast<quint16>(round((double)power / 1000.0)); // -> W
+                                    }
+                                    
+                                    item->setValue(power); // in W
+                                    enqueueEvent(Event(RSensors, RStatePower, i->id(), item));
+                                    updated = true;
+                                }
+                                
+                                
                             }
                         }
                         if (updated)
@@ -17477,6 +17510,7 @@ void DeRestPlugin::idleTimerFired()
                                 sensorNode->modelId().startsWith(QLatin1String("SLR1b")) ||     // Hive Active Heating Receiver 1 channel
                                 sensorNode->modelId().startsWith(QLatin1String("TRV001")) ||    // Hive TRV
                                 sensorNode->modelId().startsWith(QLatin1String("TH112")) ||     // Sinope devices
+                                sensorNode->modelId().startsWith(QLatin1String("TH1300ZB")) ||  // Sinope devices
                                 sensorNode->modelId().startsWith(QLatin1String("eTRV0100")) ||  // Danfoss Ally
                                 sensorNode->modelId().startsWith(QLatin1String("Zen-01")) ||    // Zen
                                 sensorNode->modelId().startsWith(QLatin1String("Super TR")) ||  // Elko

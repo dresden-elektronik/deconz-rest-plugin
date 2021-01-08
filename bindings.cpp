@@ -1395,6 +1395,37 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
         }
+        else if (sensor && sensor->modelId() == QLatin1String("TH1300ZB")) // Sinope thermostat
+        {
+            rq.dataType = deCONZ::Zcl16BitInt;
+            rq.attributeId = 0x0000;       // local temperature
+            rq.minInterval = 60;
+            rq.maxInterval = 3600;
+            rq.reportableChange16bit = 50;
+
+            ConfigureReportingRequest rq2;
+            rq2.dataType = deCONZ::Zcl8BitUint;
+            rq2.attributeId = 0x0008;        // Pi heating demand
+            rq2.minInterval = 60;
+            rq2.maxInterval = 43200;
+            rq2.reportableChange8bit = 1;
+
+            ConfigureReportingRequest rq3;
+            rq3.dataType = deCONZ::Zcl16BitInt;
+            rq3.attributeId = 0x0012;        // Occupied heating setpoint
+            rq3.minInterval = 1;
+            rq3.maxInterval = 43200;
+            rq3.reportableChange16bit = 1;
+
+            ConfigureReportingRequest rq3´4;
+            rq4.dataType = deCONZ::Zcl8BitEnum;
+            rq4.attributeId = 0x001C;        // Thermostat mode
+            rq4.minInterval = 1;
+            rq4.maxInterval = 600;
+            rq4.reportableChange8bit = 0xff;
+
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3});
+        }
         else
         {
             rq.dataType = deCONZ::Zcl16BitInt;
@@ -1431,6 +1462,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                    sendConfigureReportingRequest(bt, {rq2});
         }
         else if (sensor && (sensor->modelId() == QLatin1String("SORB") ||               // Stelpro Orleans Fan
+                            sensor->modelId() == QLatin1String("TH1300ZB") ||           // Sinope thermostat
                             sensor->modelId().startsWith(QLatin1String("3157100"))))    // Centralite pearl
         {
             rq.dataType = deCONZ::Zcl8BitEnum;
@@ -1785,20 +1817,33 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                        sensor->modelId().startsWith(QLatin1String("SPLZB-1")) || // Develco smart plug
                        sensor->modelId() == QLatin1String("SZ-ESW01-AU") ||      // Sercomm / Telstra smart plug
                        sensor->modelId() == QLatin1String("Connected socket outlet") || // Niko smart socket
-                       sensor->modelId() == QLatin1String("TS0121")))            // Tuya / Blitzwolf
+                       sensor->modelId() == QLatin1String("TS0121")))                   // Tuya / Blitzwolf
         {
             rq3.reportableChange16bit = 100; // 0.1 A
         }
         else if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||        // Heiman
                             sensor->modelId().startsWith(QLatin1String("EMIZB-1")) || // Develco EMI
                             sensor->modelId() == QLatin1String("SKHMP30-I1") ||       // GS smart plug
-                            sensor->modelId().startsWith(QLatin1String("SPW35Z"))))   // RT-RK OBLO SPW35ZD0 smart plug
+                            sensor->modelId().startsWith(QLatin1String("SPW35Z")) ||  // RT-RK OBLO SPW35ZD0 smart plug
+                            sensor->modelId() == QLatin1String("TH1300ZB")))          // Sinope thermostat
         {
             rq3.reportableChange16bit = 10; // 0.1 A
         }
         else
         {
             rq3.reportableChange16bit = 1; // 0.1 A
+        }
+        
+        if (sensor && sensor->modelId() == QLatin1String("TH1300ZB"))
+        {
+            ConfigureReportingRequest rq4;
+            rq4.dataType = deCONZ::Zcl16BitUint;
+            rq4.attributeId = 0x050f; // Apparent power
+            rq4.minInterval = 1;
+            rq4.maxInterval = 300;
+            rq4.reportableChange16bit = 100; // 0.1 W
+            
+            return sendConfigureReportingRequest(bt, {rq2, rq3, rq4});
         }
 
         return sendConfigureReportingRequest(bt, {rq, rq2, rq3});

@@ -1286,15 +1286,16 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             updated = true;
                         }
                     }
-                    else if (sensor->modelId().startsWith(QLatin1String("SLR2")) ||   // Hive
-                             sensor->modelId() == QLatin1String("SLR1b") ||           // Hive
-                             sensor->modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
-                             sensor->modelId().startsWith(QLatin1String("902010/32")) ||  // Bitron
-                             sensor->modelId().startsWith(QLatin1String("Zen-01")) || // Zen
-                             sensor->modelId().startsWith(QLatin1String("3157100")) ||// Centralite Pearl
-                             sensor->modelId().startsWith(QLatin1String("SORB")) ||   // Stelpro Orleans Fan
-                             sensor->modelId().startsWith(QLatin1String("AC201")) ||  // OWON
-                             sensor->modelId().startsWith(QLatin1String("Super TR"))) // ELKO
+                    else if (sensor->modelId().startsWith(QLatin1String("SLR2")) ||         // Hive
+                             sensor->modelId() == QLatin1String("SLR1b") ||                 // Hive
+                             sensor->modelId() == QLatin1String("TH1300ZB") ||              // Sinope
+                             sensor->modelId().startsWith(QLatin1String("TH112")) ||        // Sinope
+                             sensor->modelId().startsWith(QLatin1String("902010/32")) ||    // Bitron
+                             sensor->modelId().startsWith(QLatin1String("Zen-01")) ||       // Zen
+                             sensor->modelId().startsWith(QLatin1String("3157100")) ||      // Centralite Pearl
+                             sensor->modelId().startsWith(QLatin1String("SORB")) ||         // Stelpro Orleans Fan
+                             sensor->modelId().startsWith(QLatin1String("AC201")) ||        // OWON
+                             sensor->modelId().startsWith(QLatin1String("Super TR")))       // ELKO
                     {
 
                         QString modeSet = map[pi.key()].toString();
@@ -1500,7 +1501,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                         }
                         else if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001") ||
-                                 sensor->modelId() == QLatin1String("SORB") || sensor->modelId() == QLatin1String("3157100"))
+                                 sensor->modelId() == QLatin1String("SORB") || sensor->modelId() == QLatin1String("3157100") ||
+                                 sensor->modelId() == QLatin1String("TH1300ZB"))
                         {
                             quint32 data = map[pi.key()].toUInt(&ok);
 
