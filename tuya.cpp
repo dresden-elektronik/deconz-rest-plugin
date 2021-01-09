@@ -314,6 +314,11 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         lightNode->setValue(RStateOn, on);
                     }
                     break;
+                    case 0x0405: // rotation direction
+                    {
+                        DBG_Printf(DBG_INFO, "Tuya debug 3 : Covering motor direction %ld\n", data);
+                    }
+                    break;
 
                     //other
                     default:
