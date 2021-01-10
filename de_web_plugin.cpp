@@ -4624,7 +4624,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 if (ok && buttonMap.button != 0)
                 {
                     if (!buttonMap.name.isEmpty()) { cmd = buttonMap.name; }
-                    DBG_Printf(DBG_INFO, "[INFO] - Button %u - %s endpoint: 0x%02X cluster: %s command: %s payload[0]: 0%02X\n", buttonMap.button, sensor->modelId()), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), pl0);
+                    DBG_Printf(DBG_INFO, "[INFO] - Button %u - %s endpoint: 0x%02X cluster: %s command: %s payload[0]: 0%02X\n", buttonMap.button,
+                               qPrintable(sensor->modelId()), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), pl0);
                     ResourceItem *item = sensor->item(RStateButtonEvent);
                     if (item)
                     {
@@ -14677,6 +14678,10 @@ void DeRestPluginPrivate::handlePhilipsClusterIndication(const deCONZ::ApsDataIn
             {
                 button *= 1000;
                 button += event;
+                
+                DBG_Printf(DBG_INFO, "[INFO] - Button %u - %s endpoint: 0x%02X cluster: PHILIPS_SPECIFIC (0x%04X)\n", button,
+                           qPrintable(sensorNode->modelId()), ind.srcEndpoint(), ind.clusterId());
+                
                 ResourceItem *item = sensorNode->item(RStateButtonEvent);
                 if (item)
                 {
