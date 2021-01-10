@@ -8371,6 +8371,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     str = QLatin1String("SF21 smoke sensor");
                                 }
+                                else if (str == QLatin1String("898ca74409a740b28d5841661e72268d"))
+                                {
+                                    str = QLatin1String("ST30 Temperature Sensor");
+                                }
                                 if (!str.isEmpty())
                                 {
                                     if (i->modelId() != str)
