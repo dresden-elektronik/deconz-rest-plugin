@@ -201,6 +201,14 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
                 enqueueEvent(Event(RSensors, RStateTampered, sensor->id(), item2));
             }
 
+            item2 = sensor->item(RStateTest);
+            if (item2)
+            {
+                bool test = (zoneStatus & STATUS_TEST) ? true : false;
+                item2->setValue(test);
+                enqueueEvent(Event(RSensors, RStateTest, sensor->id(), item2));
+            }
+
             deCONZ::NumericUnion num = {0};
             num.u16 = zoneStatus;
             sensor->setZclValue(NodeValue::UpdateByZclReport, ind.srcEndpoint(), IAS_ZONE_CLUSTER_ID, IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID, num);
@@ -250,7 +258,7 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
         }
         return;
     }
-    
+
     // Allow clearing the alarm bit for Develco devices
     if (!(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
     {
@@ -313,10 +321,10 @@ void DeRestPluginPrivate::checkIasEnrollmentStatus(Sensor *sensor)
     {
         NodeValue val = sensor->getZclValue(IAS_ZONE_CLUSTER_ID, 0x0000);
         deCONZ::NumericUnion iasZoneStatus = val.value;
-        
+
         ResourceItem *item = nullptr;
         item = sensor->item(RConfigPending);
-        
+
         if (item && item->toNumber() == 0 && iasZoneStatus.u8 == 0)
         {
             DBG_Printf(DBG_INFO_L2, "[IAS] Sensor NOT enrolled\n");
@@ -360,14 +368,14 @@ void DeRestPluginPrivate::writeIasCieAddress(Sensor *sensor)
 {
     ResourceItem *item = nullptr;
     item = sensor->item(RConfigPending);
-    
+
     if (sensor->fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID) && item && (item->toNumber() & R_PENDING_WRITE_CIE_ADDRESS))
     {
         // write CIE address needed for some IAS Zone devices
         const quint64 iasCieAddress = apsCtrl->getParameter(deCONZ::ParamMacAddress);
         deCONZ::ZclAttribute attr(0x0010, deCONZ::ZclIeeeAddress, QLatin1String("CIE address"), deCONZ::ZclReadWrite, false);
         attr.setValue(iasCieAddress);
-        
+
         DBG_Printf(DBG_INFO_L2, "[IAS] Write IAS CIE address for 0x%016llx\n", sensor->address().ext());
 
         if (writeAttribute(sensor, sensor->fingerPrint().endpoint, IAS_ZONE_CLUSTER_ID, attr, 0))
