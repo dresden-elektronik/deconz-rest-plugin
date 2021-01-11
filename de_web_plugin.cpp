@@ -3466,8 +3466,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
 
     if (updated)
     {
-        updateEtag(lightNode->etag);
-        updateEtag(gwConfigEtag);
+        updateLightEtag(lightNode);
         lightNode->setNeedSaveDatabase(true);
         saveDatabaseItems |= DB_LIGHTS;
     }

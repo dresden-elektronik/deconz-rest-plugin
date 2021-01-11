@@ -140,8 +140,7 @@ void DeRestPluginPrivate::handleAirQualityClusterIndication(const deCONZ::ApsDat
 
         if (configUpdated || stateUpdated)
         {
-            updateEtag(sensor->etag);
-            updateEtag(gwConfigEtag);
+            updateSensorEtag(&*sensor);
             sensor->setNeedSaveDatabase(true);
             queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
         }

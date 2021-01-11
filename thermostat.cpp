@@ -292,8 +292,7 @@ void DeRestPluginPrivate::updateThermostatSchedule(Sensor *sensor, quint8 newWee
     }
     item->setValue(s);
     enqueueEvent(Event(RSensors, RConfigSchedule, sensor->id(), item));
-    updateEtag(sensor->etag);
-    updateEtag(gwConfigEtag);
+    updateSensorEtag(&*sensor);
     sensor->setNeedSaveDatabase(true);
     queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
 }
@@ -913,8 +912,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
         if (configUpdated || stateUpdated)
         {
-            updateEtag(sensor->etag);
-            updateEtag(gwConfigEtag);
+            updateSensorEtag(&*sensor);
             sensor->setNeedSaveDatabase(true);
             queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
         }
