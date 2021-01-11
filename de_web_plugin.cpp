@@ -1816,9 +1816,9 @@ void DeRestPluginPrivate::updateEtag(QString &etag)
 {
     QTime time = QTime::currentTime();
 #if QT_VERSION < 0x050000
-    etag = QString(QCryptographicHash::hash(time.toString().toAscii(), QCryptographicHash::Md5).toHex());
+    etag = QString(QCryptographicHash::hash(time.toString("hh:mm:ss.zzz").toAscii(), QCryptographicHash::Md5).toHex());
 #else
-    etag = QString(QCryptographicHash::hash(time.toString().toLatin1(), QCryptographicHash::Md5).toHex());
+    etag = QString(QCryptographicHash::hash(time.toString("hh:mm:ss.zzz").toLatin1(), QCryptographicHash::Md5).toHex());
 #endif
     // quotes are mandatory as described in w3 spec
     etag.prepend('"');
