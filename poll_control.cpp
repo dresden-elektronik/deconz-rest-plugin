@@ -113,6 +113,13 @@ bool DeRestPluginPrivate::checkPollControlClusterTask(Sensor *sensor)
         return false;
     }
 
+    if (sensor->node()->nodeDescriptor().manufacturerCode() == VENDOR_IKEA && (item->toNumber() & R_PENDING_SET_LONG_POLL_INTERVAL) != 0)
+    {
+        // for IKEA devices leave long poll interval at factory default settings
+        // TODO configure in DDF
+        item->setValue(item->toNumber() & ~(R_PENDING_SET_LONG_POLL_INTERVAL));
+    }
+
     if (item->toNumber() & R_PENDING_WRITE_POLL_CHECKIN_INTERVAL)
     {
         // write poll control checkin interval
