@@ -1417,14 +1417,14 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq3.maxInterval = 43200;
             rq3.reportableChange16bit = 1;
 
-            ConfigureReportingRequest rq3´4;
+            ConfigureReportingRequest rq4;
             rq4.dataType = deCONZ::Zcl8BitEnum;
             rq4.attributeId = 0x001C;        // Thermostat mode
             rq4.minInterval = 1;
             rq4.maxInterval = 600;
             rq4.reportableChange8bit = 0xff;
 
-            return sendConfigureReportingRequest(bt, {rq, rq2, rq3});
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
         }
         else
         {

@@ -9022,7 +9022,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             }
                             else if (ia->id() == 0x050f) // Apparent power
                             {
-                                
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
                                     i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
@@ -9038,13 +9037,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         power = static_cast<quint16>(round((double)power / 1000.0)); // -> W
                                     }
-                                    
                                     item->setValue(power); // in W
                                     enqueueEvent(Event(RSensors, RStatePower, i->id(), item));
                                     updated = true;
                                 }
-                                
-                                
                             }
                         }
                         if (updated)
