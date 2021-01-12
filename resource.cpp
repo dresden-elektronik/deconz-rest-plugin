@@ -285,7 +285,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigDelay));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigDisplayFlipped));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigDuration));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigEnrolled));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RConfigEnrolled));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigFanMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigGroup));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigHeatSetpoint, 500, 3200));
@@ -379,7 +379,7 @@ bool R_ClearFlags1(ResourceItem *item, qint64 flags, const char *strFlags)
         const auto old = item->toNumber();
         if ((old & flags) != 0)
         {
-            DBG_Printf(DBG_INFO_L2, "[IAS Zone] - Clear %s flags %s (0x%016llX) in 0x%016llX  --> 0x%016llX\n",
+            DBG_Printf(DBG_INFO_L2, "[INFO_L2] - Clear %s flags %s (0x%016llX) in 0x%016llX  --> 0x%016llX\n",
                        item->descriptor().suffix, strFlags, flags, item->toNumber(), old & ~flags);
             item->setValue(item->toNumber() & ~flags);
             return true;
@@ -401,11 +401,23 @@ bool R_SetFlags1(ResourceItem *item, qint64 flags, const char *strFlags)
         const auto old = item->toNumber();
         if ((old & flags) != flags)
         {
-            DBG_Printf(DBG_INFO_L2, "[IAS Zone] - Set %s flags %s (0x%016llX) in 0x%016llX --> 0x%016llX\n",
+            DBG_Printf(DBG_INFO_L2, "[INFO_L2] - Set %s flags %s (0x%016llX) in 0x%016llX --> 0x%016llX\n",
                        item->descriptor().suffix, strFlags, flags, item->toNumber(), old | flags);
             item->setValue(item->toNumber() | flags);
             return true;
         }
+    }
+
+    return false;
+}
+
+bool R_HasFlags(const ResourceItem *item, qint64 flags)
+{
+    DBG_Assert(item);
+
+    if (item)
+    {
+        return (item->toNumber() & flags) == flags;
     }
 
     return false;

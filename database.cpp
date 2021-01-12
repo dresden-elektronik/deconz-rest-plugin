@@ -3821,7 +3821,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             item = sensor.addItem(DataTypeUInt8, RConfigPending);
             item->setValue(0);
-            sensor.addItem(DataTypeBool, RConfigEnrolled)->setValue(false);
+            sensor.addItem(DataTypeUInt32, RConfigEnrolled)->setValue(IAS_STATE_INIT);
         }
 
         if (sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
@@ -3863,6 +3863,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (item && item->toBool())
             {
                 item->setValue(false); // reset at startup
+            }
+        }
+
+        {
+            ResourceItem *item = sensor.item(RConfigEnrolled);
+            if (item)
+            {
+                item->setValue(IAS_STATE_INIT); // reset at startup
             }
         }
 

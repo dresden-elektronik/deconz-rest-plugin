@@ -251,6 +251,22 @@
 #define IAS_ZONE_TYPE_VIBRATION_SENSOR        0x002d
 #define IAS_ZONE_TYPE_WARNING_DEVICE          0x0225
 
+// IAS Setup states
+#define IAS_STATE_INIT                 0
+#define IAS_STATE_ENROLLED             1 // finished
+#define IAS_STATE_READ                 2
+#define IAS_STATE_WAIT_READ            3
+#define IAS_STATE_WRITE_CIE_ADDR       4
+#define IAS_STATE_WAIT_WRITE_CIE_ADDR  5
+#define IAS_STATE_DELAY_ENROLL         6
+#define IAS_STATE_ENROLL               7
+#define IAS_STATE_WAIT_ENROLL          8
+#define IAS_STATE_MAX                  9 // invalid
+
+#ifndef DBG_IAS
+  #define DBG_IAS DBG_INFO  // DBG_IAS didn't exist before version v2.10.x
+#endif
+
 // read and write flags
 #define READ_MODEL_ID          (1 << 0)
 #define READ_SWBUILD_ID        (1 << 1)
@@ -1435,7 +1451,7 @@ public:
     bool flsNbMaintenance(LightNode *lightNode);
     bool pushState(QString json, QTcpSocket *sock);
     void patchNodeDescriptor(const deCONZ::ApsDataIndication &ind);
-    void writeIasCieAddress(Sensor*);
+    bool writeIasCieAddress(Sensor*);
     void checkIasEnrollmentStatus(Sensor*);
     void processIasZoneStatus(Sensor *sensor, quint16 zoneStatus, NodeValue::UpdateType updateType);
 
@@ -1500,7 +1516,8 @@ public:
     void handleOnOffClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleClusterIndicationGateways(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleIasZoneClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    void sendIasZoneEnrollResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    bool sendIasZoneEnrollResponse(Sensor *sensor);
+    bool sendIasZoneEnrollResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleIndicationSearchSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     bool SendTuyaRequest(TaskItem &task, TaskType taskType , qint8 Dp_type, qint8 Dp_identifier , QByteArray data );
     void handleCommissioningClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
