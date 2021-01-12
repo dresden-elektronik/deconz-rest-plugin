@@ -420,6 +420,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_UNIVERSAL2, "4655BC0", emberMacPrefix }, // Ecolink contact sensor
     { VENDOR_NONE, "ZM-SmartPlug-1.0.0", tiMacPrefix }, // edp re:dy plug
     { VENDOR_NONE, "WB01", tiMacPrefix }, // Sonoff SNZB-01
+    { VENDOR_NONE, "WB-01", tiMacPrefix }, // Sonoff SNZB-01
     { VENDOR_NONE, "MS01", tiMacPrefix }, // Sonoff SNZB-03
     { VENDOR_NONE, "MSO1", tiMacPrefix }, // Sonoff SNZB-03
     { VENDOR_NONE, "ms01", tiMacPrefix }, // Sonoff SNZB-03
