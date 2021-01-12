@@ -32,7 +32,7 @@ void DeRestPluginPrivate::handleApplianceAlertClusterIndication(const deCONZ::Ap
 
         if (!sensor)
         {
-            DBG_Printf(DBG_INFO, "No water leak sensor found for 0x%016llX, endpoint: 0x%08X\n", ind.srcAddress().ext(), ind.srcEndpoint());
+            DBG_Printf(DBG_INFO, "No water leak sensor found for 0x%016llX, endpoint: 0x%02X\n", ind.srcAddress().ext(), ind.srcEndpoint());
             return;
         }
 
