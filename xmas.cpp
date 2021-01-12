@@ -502,7 +502,10 @@ int DeRestPluginPrivate::setXmasLightStripState(const ApiRequest &req, ApiRespon
         }
         if (effect == R_EFFECT_NONE)
         {
-            targetSat = taskRef.lightNode->toNumber(RStateSat);
+            if (!hasSat)
+            {
+                targetSat = taskRef.lightNode->toNumber(RStateSat);
+            }
             ok = addTaskXmasLightStripMode(task, targetSat > 0 ? ModeColour : ModeWhite);
         }
         else
@@ -524,7 +527,8 @@ int DeRestPluginPrivate::setXmasLightStripState(const ApiRequest &req, ApiRespon
             rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/effect").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
     }
-    else if (hasBri || hasHue || hasSat)
+
+    if ((hasBri || hasHue || hasSat) && effect <= 0)
     {
         TaskItem task;
         copyTaskReq(taskRef, task);
