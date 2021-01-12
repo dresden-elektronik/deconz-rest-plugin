@@ -175,7 +175,7 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
                 {
                     bool bStatus = false;
                     uint nHex = lightNode->swBuildId().toUInt(&bStatus,16);
-                    if (bStatus && (nHex < 33))
+                    if (bStatus && (nHex < 28))
                     {
                         lift = 100 - lift;
                     }
