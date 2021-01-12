@@ -1078,9 +1078,9 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
 void DeRestPluginPrivate::basicConfigToMap(const ApiRequest &req, QVariantMap &map)
 {
     map["name"] = gwName;
-    map["modelid"] = QLatin1String("deCONZ");
     if (req.mode == ApiModeNormal)
     {
+        map["modelid"] = QLatin1String("deCONZ");
         const QStringList versions = QString(GW_SW_VERSION).split('.');
         const QString swversion = QString("%1.%2.%3").arg(versions[0].toInt()).arg(versions[1].toInt()).arg(versions[2].toInt());
         map["swversion"] = swversion;
@@ -1089,6 +1089,7 @@ void DeRestPluginPrivate::basicConfigToMap(const ApiRequest &req, QVariantMap &m
     } 
     else
     {
+        map["modelid"] = QLatin1String("BSB002");
         map["swversion"] = QLatin1String("1941132070");
         map["apiversion"] = QLatin1String("1.41.0");
         map["datastoreversion"] = QLatin1String("98");
