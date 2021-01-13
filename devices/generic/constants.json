@@ -6,13 +6,15 @@
         "$MF_LUMI": "LUMI",
         "$MF_PHILIPS": "Philips",
         "$MF_TUYA": "Tuyatec",
-        "$MF_SAMJIN": "Samjin"
+        "$MF_SAMJIN": "Samjin",
+        "$MF_XIAOMI": "XIAOMI"
     },
     "device-types": {
         "$TYPE_COLOR_TEMPERATURE_LIGHT": "Color temperature light",
         "$TYPE_WINDOW_COVERING_DEVICE": "Window covering device",
         "$TYPE_TEMPERATURE_SENSOR": "ZHATemperature",
         "$TYPE_HUMIDITY_SENSOR": "ZHAHumidity",
+        "$TYPE_LIGHT_LEVEL_SENSOR": "ZHALightLevel",
         "$TYPE_VIBRATION_SENSOR": "ZHAVibration",
         "$TYPE_PRESENCE_SENSOR": "ZHAPresence",
         "$TYPE_BATTERY_SENSOR": "ZHABattery",
