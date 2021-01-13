@@ -9031,7 +9031,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 quint16 power = ia->numericValue().u16;
                                 ResourceItem *item = i->item(RStatePower);
 
-                                if (item && power != -32768)
+                                if (item && power != 65535)
                                 {
                                     if (i->modelId() == QLatin1String("TH1300ZB")) // Sinope thermostat
                                     {
