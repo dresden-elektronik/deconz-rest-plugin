@@ -140,7 +140,6 @@ bool DeRestPluginPrivate::checkPollControlClusterTask(Sensor *sensor)
     if (item->toNumber() & R_PENDING_SET_LONG_POLL_INTERVAL)
     {
         deCONZ::ApsDataRequest apsReq;
-        deCONZ::ZclFrame zclFrame;
 
          // ZDP Header
          apsReq.dstAddress() = sensor->address();
@@ -153,7 +152,7 @@ bool DeRestPluginPrivate::checkPollControlClusterTask(Sensor *sensor)
          apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
 
          deCONZ::ZclFrame outZclFrame;
-         outZclFrame.setSequenceNumber(zclFrame.sequenceNumber());
+         outZclFrame.setSequenceNumber(static_cast<quint8>(QDateTime::currentMSecsSinceEpoch()));
          outZclFrame.setCommandId(0x02); // set long poll interval
          outZclFrame.setFrameControl(deCONZ::ZclFCClusterCommand | deCONZ::ZclFCDirectionClientToServer);
 
