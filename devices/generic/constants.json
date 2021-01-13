@@ -5,7 +5,8 @@
         "$MF_IKEA": "IKEA of Sweden",
         "$MF_LUMI": "LUMI",
         "$MF_PHILIPS": "Philips",
-        "$MF_TUYA": "Tuyatec"
+        "$MF_TUYA": "Tuyatec",
+        "$MF_SAMJIN": "Samjin"
     },
     "device-types": {
         "$TYPE_COLOR_TEMPERATURE_LIGHT": "Color temperature light",
@@ -14,6 +15,8 @@
         "$TYPE_HUMIDITY_SENSOR": "ZHAHumidity",
         "$TYPE_VIBRATION_SENSOR": "ZHAVibration",
         "$TYPE_PRESENCE_SENSOR": "ZHAPresence",
-        "$TYPE_BATTERY_SENSOR": "ZHABattery"
+        "$TYPE_BATTERY_SENSOR": "ZHABattery",
+        "$TYPE_SWITCH": "ZHASwitch",
+        "$TYPE_ZGP_SWITCH": "ZGPSwitch"
     }
 }

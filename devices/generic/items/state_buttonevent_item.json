@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/buttonevent",
+	"datatype": "UInt32",
+	"access": "R",
+	"public": true,
+	"description": "The last received button event."
+}
