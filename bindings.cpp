@@ -1617,6 +1617,13 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 43200;    // according to technical manual
             rq.reportableChange8bit = 0;
         }
+        else if (sensor && sensor->manufacturer() == QLatin1String("Samjin"))
+        {
+            // https://github.com/SmartThingsCommunity/SmartThingsPublic/blob/master/devicetypes/smartthings/smartsense-multi-sensor.src/smartsense-multi-sensor.groovy
+            rq.minInterval = 30;
+            rq.maxInterval = 21600;
+            rq.reportableChange8bit = 10;
+        }
         else
         {
             rq.minInterval = 300;
