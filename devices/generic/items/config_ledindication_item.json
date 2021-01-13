@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/ledindication",
+	"datatype": "Bool",
+	"access": "RW",
+	"public": true,
+	"description": "Activates the LED indicator."
+}
