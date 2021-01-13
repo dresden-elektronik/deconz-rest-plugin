@@ -2838,6 +2838,12 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             {
                 continue; // process only once
             }
+
+            if (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("multi") && sensor->type() != QLatin1String("ZHAPresence"))
+            {
+                continue; // process only once
+            }
+
             if (sensor->modelId() == QLatin1String("Remote switch") ||
                 sensor->modelId() == QLatin1String("Shutters central remote switch") ||
                 sensor->modelId() == QLatin1String("Double gangs remote switch") ||
