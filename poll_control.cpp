@@ -135,6 +135,8 @@ bool DeRestPluginPrivate::checkPollControlClusterTask(Sensor *sensor)
             item->setValue(item->toNumber() & ~R_PENDING_WRITE_POLL_CHECKIN_INTERVAL);
             return true;
         }
+
+        return false; // only send Set Long Poll Interval after writing this attribute
     }
 
     if (item->toNumber() & R_PENDING_SET_LONG_POLL_INTERVAL)
