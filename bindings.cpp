@@ -937,12 +937,12 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         {
             // Only configure periodic reports, as events are already sent though zone status change notification commands
             rq.minInterval = 300;
-            rq.maxInterval = 300;
+            rq.maxInterval = 3600;
         }
         else
         {
-            rq.minInterval = 1;
-            rq.maxInterval = 300;
+            rq.minInterval = 300;
+            rq.maxInterval = 3600;
 
             const ResourceItem *item = sensor ? sensor->item(RConfigDuration) : nullptr;
 
