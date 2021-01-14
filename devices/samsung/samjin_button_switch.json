@@ -5,7 +5,7 @@
     "manufacturername": "$MF_SAMJIN",
     "modelid": "button",
     "product": "IM6001-BTP01",
-    "status": "Bronze",
+    "status": "Silver",
     "md:known_issues": [ ],
     "subdevices": [
         {
@@ -39,23 +39,23 @@
                     "name": "attr/uniqueid"
                 },
                 {
-                    "name": "config/on"
+                    "name": "config/battery",
+                    "awake": true
                 },
                 {
-                    "name": "config/reachable"
+                    "name": "config/on"
                 },
                 {
                     "name": "config/pending"
                 },
                 {
-                    "name": "config/battery",
-                    "awake": true
-                },
-                {
-                    "name": "state/buttonevent"
+                    "name": "config/reachable"
                 },
                 {
                     "name": "state/lastupdated"
+                },
+                {
+                    "name": "state/buttonevent"
                 }
             ],
             "example": {
@@ -96,9 +96,6 @@
                     "name": "attr/modelid"
                 },
                 {
-                    "name": "attr/mode"
-                },
-                {
                     "name": "attr/name"
                 },
                 {
@@ -111,23 +108,23 @@
                     "name": "attr/uniqueid"
                 },
                 {
+                    "name": "config/battery",
+                    "awake": true
+                },
+                {
+                    "name": "config/offset"
+                },
+                {
                     "name": "config/on"
                 },
                 {
                     "name": "config/reachable"
                 },
                 {
-                    "name": "config/pending"
-                },
-                {
-                    "name": "config/battery",
-                    "awake": true
+                    "name": "state/lastupdated"
                 },
                 {
                     "name": "state/temperature"
-                },
-                {
-                    "name": "state/lastupdated"
                 }
             ],
             "example": {
