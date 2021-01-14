@@ -1944,7 +1944,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.attributeId = 0x0010; // active
             rq.minInterval = manufacturerCode == VENDOR_SAMJIN ? 0 : 10;
             rq.maxInterval = 3600;
-            rq.reportableChange8bit = 1;
+            rq.reportableChange8bit = 0xFF;
             rq.manufacturerCode = manufacturerCode;
 
             ConfigureReportingRequest rq1;
