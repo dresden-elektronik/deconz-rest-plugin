@@ -2901,11 +2901,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                     val.maxInterval -= 5; // report before going presence: false
                 }
             }
-            
-            if (sensor->manufacturer() == QLatin1String("Immax"))
-            {
-                checkIasEnrollmentStatus(sensor);
-            }
         }
         else if (*i == VENDOR_CLUSTER_ID)
         {
