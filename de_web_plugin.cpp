@@ -6444,8 +6444,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
-                item = sensorNode.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
-                item->setValue(false);
+                sensorNode.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
             }
 
             if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya

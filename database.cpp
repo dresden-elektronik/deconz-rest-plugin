@@ -3544,8 +3544,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                    (sensor.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
-                    item = sensor.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
-                    item->setValue(false);
+                    sensor.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
                 }
 
                 if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya
@@ -3613,7 +3612,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                     sensor.addItem(DataTypeString, RConfigMode);
                 }
-                else if (modelId.startsWith(QLatin1String("STZB402"))) // Stelpro baseboard thermostat
+                else if (sensor.modelId().startsWith(QLatin1String("STZB402"))) // Stelpro baseboard thermostat
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
                     sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
