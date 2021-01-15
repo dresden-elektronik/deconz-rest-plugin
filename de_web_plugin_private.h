@@ -1658,6 +1658,7 @@ public:
     QString gwWifiEth0;
     QString gwWifiWlan0;
     QVariantList gwWifiAvailable;
+    int gwLightLastSeenInterval; // Intervall to throttle lastseen updates
     enum WifiState {
         WifiStateInitMgmt,
         WifiStateIdle
