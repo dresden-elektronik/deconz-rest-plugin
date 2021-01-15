@@ -5045,12 +5045,12 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     else if (modelId == QLatin1String("WarningDevice") ||               // Heiman siren
                              modelId == QLatin1String("SZ-SRN12N") ||                   // Sercomm siren
                              modelId == QLatin1String("SIRZB-1") ||                     // Develco siren
-                             modelId == QLatin1String("902010/29") ||                   // Bitron outdoor siren
-                             modelId == QLatin1String("Keyfob-ZB3.0"))                  // Immax Keyfob
+                             modelId == QLatin1String("902010/29"))                     // Bitron outdoor siren
                     {
                         fpAlarmSensor.inClusters.push_back(ci->id());
                     }
-                    else if (manufacturer == QLatin1String("Samjin") && modelId == QLatin1String("button"))
+                    else if ((manufacturer == QLatin1String("Samjin") && modelId == QLatin1String("button")) ||
+                              modelId == QLatin1String("Keyfob-ZB3.0"))
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
@@ -6180,11 +6180,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = IAS_ZONE_CLUSTER_ID;
         }
-        if (modelId != QLatin1String("Keyfob-ZB3.0"))
-        {
-            item = sensorNode.addItem(DataTypeBool, RStateAlarm);
-            item->setValue(false);
-        }
+        item = sensorNode.addItem(DataTypeBool, RStateAlarm);
+        item->setValue(false);
 
         if (modelId == QLatin1String("0yu2xgi"))
         {
@@ -6799,6 +6796,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             // no support for some IAS flags
         }
+        else if (modelId == QLatin1String("Keyfob-ZB3.0"))
+        {
+            sensorNode.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
+        }
         else
         {
             item = sensorNode.addItem(DataTypeBool, RStateLowBattery);
@@ -6810,11 +6811,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             }
             else
             {
-                if (modelId != QLatin1String("Keyfob-ZB3.0"))
-                {
-                    item = sensorNode.addItem(DataTypeBool, RStateTampered);
-                    item->setValue(false);
-                }
+                item = sensorNode.addItem(DataTypeBool, RStateTampered);
+                item->setValue(false);
             }
         }
         item = sensorNode.addItem(DataTypeUInt8, RConfigPending);
