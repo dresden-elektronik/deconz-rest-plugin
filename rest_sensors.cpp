@@ -785,6 +785,43 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/sensors/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
                     }
                 }
+                else if (rid.suffix == RConfigLock)
+                {
+                    bool val = map[pi.key()].toBool();
+                    bool ok;
+                    
+                    item = sensor->item(RConfigLock);
+                    if (item)
+                    {
+                        
+                        if (val)
+                        {
+                            ok = addTaskDoorLockUnlock(task, 0x00 /*Lock*/);
+                        }
+                        else
+                        {
+                            ok = addTaskDoorLockUnlock(task, 0x01 /*UnLock*/);
+                        }
+                        if (ok)
+                        {
+                            if (item->setValue(val))
+                            {
+                                rspItemState[QString("/sensors/%1/config/lock").arg(id)] = map["lock"];
+                                rspItem["success"] = rspItemState;
+                                if (item->lastChanged() == item->lastSet())
+                                {
+                                    updated = true;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/lock").arg(id), QString("Command error, %1, for parameter, lock").arg(val.toString())));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
+                        }
+                    }
+                }
                 else if (item->setValue(val))
                 {
                     // TODO: Fix bug

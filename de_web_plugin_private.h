@@ -286,6 +286,7 @@
 #define VENDOR_VISONIC              0x1011
 #define VENDOR_ATMEL                0x1014
 #define VENDOR_DEVELCO              0x1015
+#define VENDOR_YALE                 0x101D
 #define VENDOR_MAXSTREAM            0x101E // Used by Digi
 #define VENDOR_VANTAGE              0x1021
 #define VENDOR_LEGRAND              0x1021 // wrong name?
@@ -351,6 +352,7 @@
 #define VENDOR_NIKO_NV              0x125F
 #define VENDOR_KONKE                0x1268
 #define VENDOR_SHYUGJ_TECHNOLOGY    0x126A
+#define VENDOR_DATEK                0x1337
 #define VENDOR_OSRAM_STACK          0xBBAA
 #define VENDOR_C2DF                 0xC2DF
 #define VENDOR_PHILIO               0xFFA0
