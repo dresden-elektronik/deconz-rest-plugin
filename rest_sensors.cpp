@@ -816,7 +816,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                         else
                         {
-                            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/lock").arg(id), QString("Command error, %1, for parameter, lock").arg(val.toString())));
+                            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/lock").arg(id), QString("Command error, %1, for parameter, lock").arg(map[pi.key()].toString())));
                             rsp.httpStatus = HttpStatusBadRequest;
                             return REQ_READY_SEND;
                         }
