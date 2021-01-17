@@ -1151,6 +1151,30 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
         }
+        else if (sensor && sensor->modelId().startsWith(QLatin1String("STZB402"))) // Stelpro baseboard thermostat
+        {
+            rq.dataType = deCONZ::Zcl16BitInt;
+            rq.attributeId = 0x0000;         // Local Temperature
+            rq.minInterval = 1;
+            rq.maxInterval = 600;
+            rq.reportableChange16bit = 20;
+
+            ConfigureReportingRequest rq2;
+            rq2.dataType = deCONZ::Zcl16BitInt;
+            rq2.attributeId = 0x0012;        // Occupied heating setpoint
+            rq2.minInterval = 1;
+            rq2.maxInterval = 600;
+            rq2.reportableChange16bit = 50;
+
+            ConfigureReportingRequest rq3;
+            rq3.dataType = deCONZ::Zcl8BitEnum;
+            rq3.attributeId = 0x001C;        // Thermostat mode
+            rq3.minInterval = 1;
+            rq3.maxInterval = 600;
+            rq3.reportableChange8bit = 0xff;
+
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3});
+        }
         else if (sensor && sensor->modelId() == QLatin1String("Zen-01")) // Zen
         {
             rq.dataType = deCONZ::Zcl16BitInt;
@@ -1463,7 +1487,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (sensor && (sensor->modelId() == QLatin1String("SORB") ||               // Stelpro Orleans Fan
                             sensor->modelId() == QLatin1String("TH1300ZB") ||           // Sinope thermostat
-                            sensor->modelId().startsWith(QLatin1String("3157100"))))    // Centralite pearl
+                            sensor->modelId().startsWith(QLatin1String("3157100")) ||   // Centralite pearl
+                            sensor->modelId().startsWith(QLatin1String("STZB402"))))    // Stelpro baseboard thermostat
         {
             rq.dataType = deCONZ::Zcl8BitEnum;
             rq.attributeId = 0x0001;       // Keypad Lockout
@@ -2631,12 +2656,13 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Sinope
         sensor->modelId().startsWith(QLatin1String("WL4200")) || // water leak sensor
         sensor->modelId().startsWith(QLatin1String("TH112")) || // thermostat
+        sensor->modelId().startsWith(QLatin1String("TH1300ZB")) || // thermostat
         //LifeControl smart plug
         sensor->modelId() == QLatin1String("RICI01") ||
         //LifeControl enviroment sensor
         sensor->modelId() == QLatin1String("VOC_Sensor") ||
         // EDP-WITHUS
-        sensor->modelId() == QLatin1String("ZM-SmartPlug-1.0.0") ||
+        sensor->modelId() == QLatin1String("ZB-SmartPlug-1.0.0") ||
         //Legrand
         sensor->modelId() == QLatin1String("Connected outlet") || //Legrand Plug
         sensor->modelId() == QLatin1String("Shutter switch with neutral") || //Legrand shutter switch
@@ -4139,12 +4165,12 @@ void DeRestPluginPrivate::bindingTimerFired()
                 {
                     if (i->restNode && !i->restNode->isAvailable())
                     {
-                        DBG_Printf(DBG_INFO_L2, "giveup binding srcAddr: %llX (not available)\n", i->binding.srcAddress);
+                        DBG_Printf(DBG_INFO_L2, "giveup binding srcAddr: 0x%016llX (not available)\n", i->binding.srcAddress);
                         i->state = BindingTask::StateFinished;
                     }
                     else
                     {
-                        DBG_Printf(DBG_INFO_L2, "binding/unbinding timeout srcAddr: %llX, retry\n", i->binding.srcAddress);
+                        DBG_Printf(DBG_INFO_L2, "binding/unbinding timeout srcAddr: 0x%016llX, retry\n", i->binding.srcAddress);
                         i->state = BindingTask::StateIdle;
                         i->timeout = BindingTask::Timeout;
                         if (i->restNode && i->restNode->node() && !i->restNode->node()->nodeDescriptor().receiverOnWhenIdle())
@@ -4155,7 +4181,7 @@ void DeRestPluginPrivate::bindingTimerFired()
                 }
                 else
                 {
-                    DBG_Printf(DBG_INFO_L2, "giveup binding srcAddr: %llX\n", i->binding.srcAddress);
+                    DBG_Printf(DBG_INFO_L2, "giveup binding srcAddr: 0x%016llX\n", i->binding.srcAddress);
                     i->state = BindingTask::StateFinished;
                 }
             }

@@ -418,7 +418,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NIKO_NV, "Connected socket outlet", konkeMacPrefix }, // Niko smart socket 170-33505
     { VENDOR_ATMEL, "Bell", dishMacPrefix }, // Sage doorbell sensor
     { VENDOR_UNIVERSAL2, "4655BC0", emberMacPrefix }, // Ecolink contact sensor
-    { VENDOR_NONE, "ZM-SmartPlug-1.0.0", tiMacPrefix }, // edp re:dy plug
+    { VENDOR_NONE, "ZB-SmartPlug-1.0.0", tiMacPrefix }, // edp re:dy plug
     { VENDOR_NONE, "WB01", tiMacPrefix }, // Sonoff SNZB-01
     { VENDOR_NONE, "WB-01", tiMacPrefix }, // Sonoff SNZB-01
     { VENDOR_NONE, "MS01", tiMacPrefix }, // Sonoff SNZB-03
@@ -1817,11 +1817,11 @@ QVariantMap DeRestPluginPrivate::errorToMap(int id, const QString &ressource, co
  */
 void DeRestPluginPrivate::updateEtag(QString &etag)
 {
-    QTime time = QTime::currentTime();
+    QDateTime time = QDateTime::currentDateTime();
 #if QT_VERSION < 0x050000
-    etag = QString(QCryptographicHash::hash(time.toString().toAscii(), QCryptographicHash::Md5).toHex());
+    etag = QString(QCryptographicHash::hash(time.toString("yyyy-MM-ddThh:mm:ss.zzz").toAscii(), QCryptographicHash::Md5).toHex());
 #else
-    etag = QString(QCryptographicHash::hash(time.toString().toLatin1(), QCryptographicHash::Md5).toHex());
+    etag = QString(QCryptographicHash::hash(time.toString("yyyy-MM-ddThh:mm:ss.zzz").toLatin1(), QCryptographicHash::Md5).toHex());
 #endif
     // quotes are mandatory as described in w3 spec
     etag.prepend('"');
@@ -3471,8 +3471,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
 
     if (updated)
     {
-        updateEtag(lightNode->etag);
-        updateEtag(gwConfigEtag);
+        updateLightEtag(lightNode);
         lightNode->setNeedSaveDatabase(true);
         saveDatabaseItems |= DB_LIGHTS;
     }
@@ -4629,7 +4628,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 if (ok && buttonMap.button != 0)
                 {
                     if (!buttonMap.name.isEmpty()) { cmd = buttonMap.name; }
-                    DBG_Printf(DBG_INFO, "[INFO] - Button %u %s %s\n", buttonMap.button, qPrintable(cmd), qPrintable(sensor->modelId()));
+                    DBG_Printf(DBG_INFO, "[INFO] - Button %u - %s endpoint: 0x%02X cluster: %s command: %s payload[0]: 0%02X\n", buttonMap.button,
+                               qPrintable(sensor->modelId()), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), pl0);
                     ResourceItem *item = sensor->item(RStateButtonEvent);
                     if (item)
                     {
@@ -5491,6 +5491,32 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpPressureSensor.inClusters.push_back(ci->id());
                         fpHumiditySensor.inClusters.push_back(RELATIVE_HUMIDITY_CLUSTER_ID);
                         fpHumiditySensor.inClusters.push_back(ci->id());
+                    }
+                }
+                    break;
+
+                case THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID:
+                case DIAGNOSTICS_CLUSTER_ID:
+                case FAN_CONTROL_CLUSTER_ID:
+                {
+                    fpThermostatSensor.inClusters.push_back(ci->id());
+                }
+                    break;
+
+                case 0xFCC0:    // Xiaomi specific
+                {
+                    if (modelId.startsWith(QLatin1String("lumi.")))
+                    {
+                        fpConsumptionSensor.inClusters.push_back(ci->id());
+                        fpHumiditySensor.inClusters.push_back(ci->id());
+                        fpLightSensor.inClusters.push_back(ci->id());
+                        fpOpenCloseSensor.inClusters.push_back(ci->id());
+                        fpPowerSensor.inClusters.push_back(ci->id());
+                        fpPresenceSensor.inClusters.push_back(ci->id());
+                        fpPressureSensor.inClusters.push_back(ci->id());
+                        fpSwitch.inClusters.push_back(ci->id());
+                        fpTemperatureSensor.inClusters.push_back(ci->id());
+                        fpThermostatSensor.inClusters.push_back(ci->id());
                     }
                 }
                     break;
@@ -6418,7 +6444,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             item = sensorNode.addItem(DataTypeInt16, RConfigOffset);
             item->setValue(0);
             sensorNode.addItem(DataTypeInt16, RConfigHeatSetpoint);    // Heating set point
-            sensorNode.addItem(DataTypeBool, RStateOn);           // Heating on/off
+            sensorNode.addItem(DataTypeBool, RStateOn)->setValue(false);           // Heating on/off
 
             if (sensorNode.modelId().startsWith(QLatin1String("SLR2")) ||   // Hive
                 sensorNode.modelId() == QLatin1String("SLR1b") ||           // Hive
@@ -6437,8 +6463,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
-                item = sensorNode.addItem(DataTypeBool, RStateLowBattery);
-                item->setValue(false);
+                sensorNode.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
             }
 
             if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
@@ -6450,8 +6475,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
             {
                 sensorNode.addItem(DataTypeString, RConfigPreset);
-                sensorNode.addItem(DataTypeBool, RConfigLocked);
-                sensorNode.addItem(DataTypeBool, RConfigSetValve);
+                sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
+                sensorNode.addItem(DataTypeBool, RConfigSetValve)->setValue(false);
             }
 
             if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
@@ -6471,30 +6496,30 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                (sensorNode.manufacturer() == QLatin1String("_TZE200_c88teujp")) ||
                (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
             {
-                sensorNode.addItem(DataTypeBool, RConfigWindowOpen);
+                sensorNode.addItem(DataTypeBool, RConfigWindowOpen)->setValue(false);
             }
 
             if (modelId.startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
                 sensorNode.addItem(DataTypeUInt32, RConfigHostFlags); // hidden
-                sensorNode.addItem(DataTypeBool, RConfigDisplayFlipped);
-                sensorNode.addItem(DataTypeBool, RConfigLocked);
+                sensorNode.addItem(DataTypeBool, RConfigDisplayFlipped)->setValue(false);
+                sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
             else if (sensorNode.modelId() == QLatin1String("Super TR"))   // ELKO
             {
                 sensorNode.addItem(DataTypeString, RConfigTemperatureMeasurement);
                 sensorNode.addItem(DataTypeInt16, RStateFloorTemperature);
-                sensorNode.addItem(DataTypeBool, RStateHeating);
-                sensorNode.addItem(DataTypeBool, RConfigLocked);
+                sensorNode.addItem(DataTypeBool, RStateHeating)->setValue(false);
+                sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
             else if (modelId == QLatin1String("Thermostat")) // ecozy
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
                 sensorNode.addItem(DataTypeString, RConfigSchedule);
-                sensorNode.addItem(DataTypeBool, RConfigScheduleOn);
+                sensorNode.addItem(DataTypeBool, RConfigScheduleOn)->setValue(false);
                 sensorNode.addItem(DataTypeInt16, RConfigLastChangeAmount);
                 sensorNode.addItem(DataTypeUInt8, RConfigLastChangeSource);
                 sensorNode.addItem(DataTypeTime, RConfigLastChangeTime);
@@ -6503,7 +6528,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             {
                 sensorNode.addItem(DataTypeInt16, RConfigCoolSetpoint);
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
-                sensorNode.addItem(DataTypeBool, RConfigLocked);
+                sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
+                sensorNode.addItem(DataTypeString, RConfigMode);
+            }
+            else if (modelId.startsWith(QLatin1String("STZB402"))) // Stelpro baseboard thermostat
+            {
+                sensorNode.addItem(DataTypeUInt8, RStateValve);
+                sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
             else if (modelId == QLatin1String("Zen-01"))
@@ -6515,7 +6546,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             else if (modelId == QLatin1String("3157100"))
             {
                 sensorNode.addItem(DataTypeInt16, RConfigCoolSetpoint);
-                sensorNode.addItem(DataTypeBool, RConfigLocked);
+                sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                 sensorNode.addItem(DataTypeString, RConfigMode);
                 sensorNode.addItem(DataTypeString, RConfigFanMode);
             }
@@ -6524,11 +6555,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
                 sensorNode.addItem(DataTypeString, RStateWindowOpen);
-                sensorNode.addItem(DataTypeBool, RStateMountingModeActive);
+                sensorNode.addItem(DataTypeBool, RStateMountingModeActive)->setValue(false);
                 sensorNode.addItem(DataTypeString, RStateErrorCode);
-                sensorNode.addItem(DataTypeBool, RConfigDisplayFlipped);
-                sensorNode.addItem(DataTypeBool, RConfigLocked);
-                sensorNode.addItem(DataTypeBool, RConfigMountingMode);
+                sensorNode.addItem(DataTypeBool, RConfigDisplayFlipped)->setValue(false);
+                sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
+                sensorNode.addItem(DataTypeBool, RConfigMountingMode)->setValue(false);
                 // Supported with Danfoss firmware version 1.08
                 sensorNode.addItem(DataTypeBool, RConfigScheduleOn)->setValue(false);
                 sensorNode.addItem(DataTypeString, RConfigSchedule);
@@ -6550,7 +6581,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             {
                 if (!modelId.isEmpty())
                 {
-                    sensorNode.addItem(DataTypeBool, RConfigScheduleOn);
+                    sensorNode.addItem(DataTypeBool, RConfigScheduleOn)->setValue(false);
                     sensorNode.addItem(DataTypeString, RConfigSchedule);
                 }
             }
@@ -14665,6 +14696,10 @@ void DeRestPluginPrivate::handlePhilipsClusterIndication(const deCONZ::ApsDataIn
             {
                 button *= 1000;
                 button += event;
+                
+                DBG_Printf(DBG_INFO, "[INFO] - Button %u - %s endpoint: 0x%02X cluster: PHILIPS_SPECIFIC (0x%04X)\n", button,
+                           qPrintable(sensorNode->modelId()), ind.srcEndpoint(), ind.clusterId());
+                
                 ResourceItem *item = sensorNode->item(RStateButtonEvent);
                 if (item)
                 {
