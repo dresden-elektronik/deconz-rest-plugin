@@ -3152,6 +3152,11 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             {
                 ret = queueBindingTask(bindingTask);
             }
+            
+            if (*i == IAS_ZONE_CLUSTER_ID)
+            {
+                checkIasEnrollmentStatus(sensor);
+            }
         }
             break;
 
