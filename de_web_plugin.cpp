@@ -4634,14 +4634,25 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     ResourceItem *item = sensor->item(RStateButtonEvent);
                     if (item)
                     {
-                        if (item->toNumber() == buttonMap.button && ind.dstAddressMode() == deCONZ::ApsGroupAddress)
+                        if (item->toNumber() == buttonMap.button)
                         {
                             QDateTime now = QDateTime::currentDateTime();
                             const auto dt = item->lastSet().msecsTo(now);
 
-                            if (dt > 0 && dt < 500)
+                            if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && dt > 0 && dt < 500)
                             {
-                                DBG_Printf(DBG_INFO, "[INFO] - Button %u %s, discard too fast event (dt = %d) %s\n", buttonMap.button, qPrintable(cmd), dt, qPrintable(sensor->modelId()));
+                                DBG_Printf(DBG_INFO, "[INFO] - Discard too fast event (dt = %d) %s\n", 
+                                    dt, qPrintable(sensor->modelId()));
+                                break;
+                            }
+
+                            // Workaround to ignore second button event from _TZ3000_* devices (gh-3611):
+                            if (ind.dstAddressMode() == deCONZ::ApsNwkAddress && dt > 0 && dt < 1500
+                             && sensor->manufacturer().startsWith(QLatin1String("_TZ3000_"))
+                            )
+                            {
+                                DBG_Printf(DBG_INFO, "[INFO] - Discard second %s event (dt = %d) %s\n", 
+                                    qPrintable(sensor->manufacturer()), dt, qPrintable(sensor->modelId()));
                                 break;
                             }
                         }
