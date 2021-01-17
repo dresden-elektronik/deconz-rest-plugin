@@ -4734,6 +4734,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         std::vector<Sensor>::iterator i = sensors.begin();
         std::vector<Sensor>::iterator end = sensors.end();
 
+        bool pollControlInitialized = false;
+
         for (; i != end; ++i)
         {
             if (i->address().ext() == node->address().ext())
@@ -4749,6 +4751,18 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     DBG_Printf(DBG_INFO, "SensorNode %s set node %s\n", qPrintable(i->id()), qPrintable(node->address().toStringExt()));
 
                     pushSensorInfoToCore(&*i);
+
+                    // If device has Poll Control cluster, configure it via the first Sensor.
+                    if (!pollControlInitialized && PC_GetPollControlEndpoint(node) > 0)
+                    {
+                        auto *itemPending = i->item(RConfigPending);
+                        if (itemPending)
+                        {
+                            DBG_Printf(DBG_INFO, "Init Poll Control for %s\n", qPrintable(node->address().toStringExt()));
+                            pollControlInitialized = true;
+                            itemPending->setValue(itemPending->toNumber() | R_PENDING_WRITE_POLL_CHECKIN_INTERVAL | R_PENDING_SET_LONG_POLL_INTERVAL);
+                        }
+                    }
                 }
 
                 auto *item = i->item(RStateBattery);
@@ -6843,7 +6857,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("Samjin");
 
-        if (fingerPrint.hasInCluster(IAS_ZONE_CLUSTER_ID)) // POLL_CONTROL_CLUSTER_ID
+        if (PC_GetPollControlEndpoint(node) > 0)
         {
             item = sensorNode.addItem(DataTypeUInt8, RConfigPending);
             item->setValue(item->toNumber() | R_PENDING_WRITE_POLL_CHECKIN_INTERVAL | R_PENDING_SET_LONG_POLL_INTERVAL);
