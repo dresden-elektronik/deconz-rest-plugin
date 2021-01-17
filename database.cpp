@@ -1561,6 +1561,15 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             d->dbZclValueMaxAge = maxAge;
         }
     }
+    else if (strcmp(colval[0], "lightlastseeninterval") == 0)
+    {
+        int lightLastSeen = val.toUInt(&ok);
+        if (!val.isEmpty() && ok)
+        {
+            d->gwConfig["lightlastseeninterval"] = lightLastSeen;
+            d->gwLightLastSeenInterval = lightLastSeen;
+        }
+    }
 
     return 0;
 }
@@ -4590,6 +4599,7 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["proxyaddress"] = gwProxyAddress;
         gwConfig["proxyport"] = gwProxyPort;
         gwConfig["zclvaluemaxage"] = dbZclValueMaxAge;
+        gwConfig["lightlastseeninterval"] = gwLightLastSeenInterval;
 
         QVariantMap::iterator i = gwConfig.begin();
         QVariantMap::iterator end = gwConfig.end();

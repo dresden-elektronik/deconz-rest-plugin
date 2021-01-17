@@ -338,7 +338,7 @@ void LightNode::rx()
 {
     RestNodeBase *b = static_cast<RestNodeBase *>(this);
     b->rx();
-    if (lastRx() >= item(RAttrLastSeen)->lastChanged().addSecs(60))
+    if (lastRx() >= item(RAttrLastSeen)->lastChanged().addSecs(plugin->gwLightLastSeenInterval))
     {
         setValue(RAttrLastSeen, lastRx().toUTC());
     }

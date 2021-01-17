@@ -601,6 +601,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     gwLinkButton = false;
     gwWebSocketNotifyAll = true;
     gwdisablePermitJoinAutoOff = false;
+    gwLightLastSeenInterval = 60;
 
     // preallocate memory to get consistent pointers
     nodes.reserve(300);
