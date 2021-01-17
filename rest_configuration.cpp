@@ -2176,7 +2176,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
     if (map.contains("lightlastseeninterval")) // optional
     {
         int lightLastSeen = map["lightlastseeninterval"].toInt(&ok);
-        if (!ok || lightLastSeen = 0 || lightLastSeen > 65535)
+        if (!ok || lightLastSeen <= 0 || lightLastSeen > 65535)
         {
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/lightlastseeninterval"), QString("invalid value, %1, for parameter, lightlastseeninterval").arg(map["lightlastseeninterval"].toString())));
             rsp.httpStatus = HttpStatusBadRequest;
