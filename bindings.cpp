@@ -1419,6 +1419,37 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
         }
+        else if (sensor && sensor->modelId() == QLatin1String("TH1300ZB")) // Sinope thermostat
+        {
+            rq.dataType = deCONZ::Zcl16BitInt;
+            rq.attributeId = 0x0000;       // local temperature
+            rq.minInterval = 60;
+            rq.maxInterval = 3600;
+            rq.reportableChange16bit = 50;
+
+            ConfigureReportingRequest rq2;
+            rq2.dataType = deCONZ::Zcl8BitUint;
+            rq2.attributeId = 0x0008;        // Pi heating demand
+            rq2.minInterval = 60;
+            rq2.maxInterval = 43200;
+            rq2.reportableChange8bit = 1;
+
+            ConfigureReportingRequest rq3;
+            rq3.dataType = deCONZ::Zcl16BitInt;
+            rq3.attributeId = 0x0012;        // Occupied heating setpoint
+            rq3.minInterval = 1;
+            rq3.maxInterval = 43200;
+            rq3.reportableChange16bit = 1;
+
+            ConfigureReportingRequest rq4;
+            rq4.dataType = deCONZ::Zcl8BitEnum;
+            rq4.attributeId = 0x001C;        // Thermostat mode
+            rq4.minInterval = 1;
+            rq4.maxInterval = 600;
+            rq4.reportableChange8bit = 0xff;
+
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
+        }
         else
         {
             rq.dataType = deCONZ::Zcl16BitInt;
@@ -1455,6 +1486,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                    sendConfigureReportingRequest(bt, {rq2});
         }
         else if (sensor && (sensor->modelId() == QLatin1String("SORB") ||               // Stelpro Orleans Fan
+                            sensor->modelId() == QLatin1String("TH1300ZB") ||           // Sinope thermostat
                             sensor->modelId().startsWith(QLatin1String("3157100")) ||   // Centralite pearl
                             sensor->modelId().startsWith(QLatin1String("STZB402"))))    // Stelpro baseboard thermostat
         {
@@ -1810,20 +1842,33 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                        sensor->modelId().startsWith(QLatin1String("SPLZB-1")) || // Develco smart plug
                        sensor->modelId() == QLatin1String("SZ-ESW01-AU") ||      // Sercomm / Telstra smart plug
                        sensor->modelId() == QLatin1String("Connected socket outlet") || // Niko smart socket
-                       sensor->modelId() == QLatin1String("TS0121")))            // Tuya / Blitzwolf
+                       sensor->modelId() == QLatin1String("TS0121")))                   // Tuya / Blitzwolf
         {
             rq3.reportableChange16bit = 100; // 0.1 A
         }
         else if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||        // Heiman
                             sensor->modelId().startsWith(QLatin1String("EMIZB-1")) || // Develco EMI
                             sensor->modelId() == QLatin1String("SKHMP30-I1") ||       // GS smart plug
-                            sensor->modelId().startsWith(QLatin1String("SPW35Z"))))   // RT-RK OBLO SPW35ZD0 smart plug
+                            sensor->modelId().startsWith(QLatin1String("SPW35Z")) ||  // RT-RK OBLO SPW35ZD0 smart plug
+                            sensor->modelId() == QLatin1String("TH1300ZB")))          // Sinope thermostat
         {
             rq3.reportableChange16bit = 10; // 0.1 A
         }
         else
         {
             rq3.reportableChange16bit = 1; // 0.1 A
+        }
+        
+        if (sensor && sensor->modelId() == QLatin1String("TH1300ZB"))
+        {
+            ConfigureReportingRequest rq4;
+            rq4.dataType = deCONZ::Zcl16BitUint;
+            rq4.attributeId = 0x050f; // Apparent power
+            rq4.minInterval = 1;
+            rq4.maxInterval = 300;
+            rq4.reportableChange16bit = 100; // 0.1 W
+            
+            return sendConfigureReportingRequest(bt, {rq2, rq3, rq4});
         }
 
         return sendConfigureReportingRequest(bt, {rq, rq2, rq3});
@@ -2736,6 +2781,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("AC201") ||
         // Sonoff
         sensor->modelId() == QLatin1String("WB01") ||
+        sensor->modelId() == QLatin1String("WB-01") ||
         sensor->modelId() == QLatin1String("MS01") ||
         sensor->modelId() == QLatin1String("MSO1") ||
         sensor->modelId() == QLatin1String("ms01") ||
@@ -3262,7 +3308,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     // Sonoff SNZB-01
     else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
              sensor->modelId().startsWith(QLatin1String("TRADFRI SHORTCUT Button")) ||
-             sensor->modelId().startsWith(QLatin1String("WB01")))
+             sensor->modelId().startsWith(QLatin1String("WB01")) ||
+             sensor->modelId().startsWith(QLatin1String("WB-01")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
@@ -3606,11 +3653,11 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         // sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
         sensor->modelId().startsWith(QLatin1String("902010/23")) || // bitron remote
         sensor->modelId().startsWith(QLatin1String("WB01")) || // Sonoff SNZB-01
+        sensor->modelId().startsWith(QLatin1String("WB-01")) || // Sonoff SNZB-01
         sensor->modelId().startsWith(QLatin1String("Bell")) || // Sage doorbell sensor
         sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001")) || //LDS Remote
         sensor->modelId().startsWith(QLatin1String("ZBT-DIMSwitch")) || // Linkind 1 key Remote Control / ZS23000178
         sensor->modelId().startsWith(QLatin1String("ElkoDimmer")) || // Elko dimmer
-        sensor->modelId().startsWith(QLatin1String("WB01")) || // Sonoff SNZB-01
         sensor->modelId().startsWith(QLatin1String("E1E-")) || // Sengled smart light switch
         sensor->modelId().startsWith(QLatin1String("ZG2835")) || // SR-ZG2835 Zigbee Rotary Switch
         sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5121"))) // RGBgenie ZB-5121 remote

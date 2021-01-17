@@ -3641,6 +3641,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeBool, RConfigDisplayFlipped)->setValue(false);
                     sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                     sensor.addItem(DataTypeBool, RConfigMountingMode)->setValue(false);
+                    // Supported with Danfoss firmware version 1.08
+                    sensor.addItem(DataTypeBool, RConfigScheduleOn)->setValue(false);
+                    sensor.addItem(DataTypeString, RConfigSchedule);
                 }
                 else if (sensor.modelId() == QLatin1String("AC201")) // OWON AC201 Thermostat
                 {
@@ -3648,6 +3651,12 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeString, RConfigMode);
                     sensor.addItem(DataTypeString, RConfigFanMode);
                     sensor.addItem(DataTypeString, RConfigSwingMode);
+                }
+                else if (sensor.modelId() == QLatin1String("TH1300ZB")) // sinope thermostat
+                {
+                    sensor.addItem(DataTypeUInt8, RStateValve);
+                    sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
+                    sensor.addItem(DataTypeString, RConfigMode);
                 }
                 else
                 {

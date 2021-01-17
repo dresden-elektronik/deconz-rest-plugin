@@ -1852,15 +1852,15 @@ Note: It does not clear or delete previous weekly schedule programming configura
 
 		<!-- Danfoss manufacturer specific -->
 		<attribute-set id="0x4000" description="Danfoss specific" mfcode="0x1246">
-			<attribute id="0x4000" name="eTRV Open Window Detection" type="enum8" default="0x00" access="r" required="m" mfcode="0x1246">
+			<attribute id="0x4000" name="eTRV Open Window Detection" type="enum8" default="0x00" access="r" required="o" mfcode="0x1246">
 				<value name="Quarantine" value="0x00"></value>
 				<value name="Closed" value="0x01"></value>
 				<value name="Hold" value="0x02"></value>
 				<value name="Open" value="0x03"></value>
 				<value name="Windows open from external, but detected closed" value="0x04"></value>
 			</attribute>
-			<attribute id="0x4003" name="External Open Window Detected" type="bool" default="0x00" access="rw" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x4010" name="Exercise day of week" type="enum8" default="0x04" access="rw" required="m" mfcode="0x1246">
+			<attribute id="0x4003" name="External Open Window Detected" type="bool" default="0x00" access="rw" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4010" name="Exercise day of week" type="enum8" default="0x04" access="rw" required="o" mfcode="0x1246">
 				<value name="Sunday" value="0x00"></value>
 				<value name="Monday" value="0x01"></value>
 				<value name="Tuesday" value="0x02"></value>
@@ -1870,26 +1870,36 @@ Note: It does not clear or delete previous weekly schedule programming configura
 				<value name="Saturday" value="0x06"></value>
 				<value name="Undefined" value="0x07"></value>
 			</attribute>
-			<attribute id="0x4011" name="Exercise trigger time" type="u16" default="660" access="rw" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x4012" name="Mounting mode active" type="bool" default="0x01" access="r" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x4013" name="Mounting mode control" type="bool" access="rw" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x4014" name="eTRV Orientation" type="bool" default="0x00" access="rw" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x4015" name="External Measured Room Sensor" type="s16" access="r" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x4016" name="Unknown" type="bool" access="rw" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x4020" name="Control algorithm scale factor" type="u8" default="1" access="rw" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x4030" name="Heat Available" type="bool" default="0x01" access="rw" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x4031" name="Heat Supply Request " type="bool" access="r" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x4032" name="Unknown" type="bool" access="rw" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x4040" name="Unknown" type="s16" access="rw" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x404A" name="Unknown" type="s16" access="r" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x404B" name="Unknown" type="s8" access="rw" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x404C" name="Calibration" type="enum8" default="0x00" access="rw" required="m" mfcode="0x1246">
+			<attribute id="0x4011" name="Exercise trigger time" type="u16" default="660" access="rw" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4012" name="Mounting mode active" type="bool" default="0x01" access="r" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4013" name="Mounting mode control" type="bool" access="rw" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4014" name="eTRV Orientation" type="bool" default="0x00" access="rw" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4015" name="External Measured Room Sensor" type="s16" access="r" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4016" name="Radiator Covered" type="bool" access="w" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4020" name="Control Algorithm Scale Factor" type="u8" default="1" access="rw" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4030" name="Heat Available" type="bool" default="0x00" access="rw" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4031" name="Heat Supply Request " type="bool" default="0x00" access="r" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4032" name="Load Balancing Enabled" type="bool" default="0x01" access="rw" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4040" name="Load Radiator Room Mean" type="s16" access="rw" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x404A" name="Load Estimate (Radiator)" type="s16" access="r" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x404B" name="Regulation SetPoint Offset" type="s8" default="0x00" access="rw" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x404C" name="Adaptation Run Control" type="enum8" default="0x00" access="rw" required="o" mfcode="0x1246">
 				<value name="Idle" value="0x00"></value>
-				<value name="Start" value="0x01"></value>
-				<value name="Stop" value="0x02"></value>
+				<value name="Initiate Adaptation Run" value="0x01"></value>
+				<value name="Cancel Adaptation Run" value="0x02"></value>
 			</attribute>
-			<attribute id="0x404D" name="Unknown" type="bmp8" access="rw" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x404E" name="Unknown" type="bmp8" access="rw" required="m" mfcode="0x1246"></attribute>
+			<attribute id="0x404D" name="Adaptation Run Status" type="bmp8" default="0x00" access="r" required="o" mfcode="0x1246">
+				<value name="Adaptation Run in Progress" value="0"></value>
+				<value name="OP Found" value="1"></value>
+				<value name="OP Lost" value="2"></value>
+			</attribute>
+			<attribute id="0x404E" name="Adaptation Run Settings" type="bmp8" default="0x00" access="rw" required="o" mfcode="0x1246">
+				<value name="Default" value="0"></value>
+				<value name="Automatic Adaptation Run Enabled" value="1"></value>
+			</attribute>
+			<attribute id="0x404F" name="Preheat Status" type="bool" default="0x00" access="r" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4050" name="Preheat Time" type="u32" access="r" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4051" name="Window Open Feature On" type="bool" default="0x01" access="rw" required="o" mfcode="0x1246"></attribute>
 		</attribute-set>
 
 		<!-- Sinope manufacturer specific -->
