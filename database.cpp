@@ -3644,6 +3644,12 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeString, RConfigFanMode);
                     sensor.addItem(DataTypeString, RConfigSwingMode);
                 }
+                else if (sensor.modelId() == QLatin1String("TH1300ZB")) // sinope thermostat
+                {
+                    sensor.addItem(DataTypeUInt8, RStateValve);
+                    sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
+                    sensor.addItem(DataTypeString, RConfigMode);
+                }
                 else
                 {
                     if (!sensor.modelId().isEmpty())
