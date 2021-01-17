@@ -2616,6 +2616,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
         sensor->modelId().startsWith(QLatin1String("RC_V14")) ||
         sensor->modelId().startsWith(QLatin1String("RC-EM")) ||
+        sensor->modelId().startsWith(QLatin1String("RC-EF-3.0")) ||
         // lidl / SilverCrest
         sensor->modelId()== QLatin1String("TY0203") ||  // Door sensor
         sensor->modelId() == QLatin1String("TY0202") || // Motion Sensor
@@ -3506,7 +3507,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     }
     // Heiman remote control
     else if (sensor->modelId().startsWith(QLatin1String("RC_V14")) ||
-             sensor->modelId().startsWith(QLatin1String("RC-EM")))
+             sensor->modelId().startsWith(QLatin1String("RC-EM")) ||
+             sensor->modelId().startsWith(QLatin1String("RC-EF-3.0")))
     {
         clusters.push_back(IAS_ACE_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
