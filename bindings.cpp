@@ -3505,7 +3505,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
     // Heiman remote control
-    else if (sensor->modelId().startsWith(QLatin1String("RC_V14")) ||
+    else if (sensor->modelId().startsWith(QLatin1String("TS0215")) ||
+             sensor->modelId().startsWith(QLatin1String("RC_V14")) ||
              sensor->modelId().startsWith(QLatin1String("RC-EM")))
     {
         clusters.push_back(IAS_ACE_CLUSTER_ID);
