@@ -937,12 +937,12 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         {
             // Only configure periodic reports, as events are already sent though zone status change notification commands
             rq.minInterval = 300;
-            rq.maxInterval = 300;
+            rq.maxInterval = 3600;
         }
         else
         {
-            rq.minInterval = 1;
-            rq.maxInterval = 300;
+            rq.minInterval = 300;
+            rq.maxInterval = 3600;
 
             const ResourceItem *item = sensor ? sensor->item(RConfigDuration) : nullptr;
 
@@ -1674,6 +1674,13 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 43200;    // according to technical manual
             rq.reportableChange8bit = 0;
         }
+        else if (sensor && sensor->manufacturer() == QLatin1String("Samjin"))
+        {
+            // https://github.com/SmartThingsCommunity/SmartThingsPublic/blob/master/devicetypes/smartthings/smartsense-multi-sensor.src/smartsense-multi-sensor.groovy
+            rq.minInterval = 30;
+            rq.maxInterval = 21600;
+            rq.reportableChange8bit = 10;
+        }
         else
         {
             rq.minInterval = 300;
@@ -2007,14 +2014,14 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.attributeId = 0x0010; // active
             rq.minInterval = manufacturerCode == VENDOR_SAMJIN ? 0 : 10;
             rq.maxInterval = 3600;
-            rq.reportableChange8bit = 1;
+            rq.reportableChange8bit = 0xFF;
             rq.manufacturerCode = manufacturerCode;
 
             ConfigureReportingRequest rq1;
             rq1.dataType = deCONZ::Zcl16BitInt;
             rq1.attributeId = 0x0012; // acceleration x
             rq1.minInterval = minInterval;
-            rq1.maxInterval = 300;
+            rq1.maxInterval = 3600;
             rq1.reportableChange16bit = 1;
             rq1.manufacturerCode = manufacturerCode;
 
@@ -2022,7 +2029,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq2.dataType = deCONZ::Zcl16BitInt;
             rq2.attributeId = 0x0013; // acceleration y
             rq2.minInterval = minInterval;
-            rq2.maxInterval = 300;
+            rq2.maxInterval = 3600;
             rq2.reportableChange16bit = 1;
             rq2.manufacturerCode = manufacturerCode;
 
@@ -2030,7 +2037,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq3.dataType = deCONZ::Zcl16BitInt;
             rq3.attributeId = 0x0014; // acceleration z
             rq3.minInterval = minInterval;
-            rq3.maxInterval = 300;
+            rq3.maxInterval = 3600;
             rq3.reportableChange16bit = 1;
             rq3.manufacturerCode = manufacturerCode;
 
@@ -2909,6 +2916,12 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             {
                 continue; // process only once
             }
+
+            if (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("multi") && sensor->type() != QLatin1String("ZHAOpenClose"))
+            {
+                continue; // process only once
+            }
+
             if (sensor->modelId() == QLatin1String("Remote switch") ||
                 sensor->modelId() == QLatin1String("Shutters central remote switch") ||
                 sensor->modelId() == QLatin1String("Double gangs remote switch") ||

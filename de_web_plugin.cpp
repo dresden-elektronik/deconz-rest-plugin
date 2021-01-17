@@ -12499,6 +12499,13 @@ void DeRestPluginPrivate::sendZclDefaultResponse(const deCONZ::ApsDataIndication
                              deCONZ::ZclFCDirectionClientToServer |
                              deCONZ::ZclFCDisableDefaultResponse);
 
+
+    if (zclFrame.manufacturerCode_t() != 0x0000_mfcode)
+    {
+        outZclFrame.setFrameControl(outZclFrame.frameControl() | deCONZ::ZclFCManufacturerSpecific);
+        outZclFrame.setManufacturerCode(zclFrame.manufacturerCode_t());
+    }
+
     { // ZCL payload
         QDataStream stream(&outZclFrame.payload(), QIODevice::WriteOnly);
         stream.setByteOrder(QDataStream::LittleEndian);

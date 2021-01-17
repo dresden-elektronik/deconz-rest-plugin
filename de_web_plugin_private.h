@@ -40,6 +40,9 @@
 #include "websocket_server.h"
 #include "tuya.h"
 
+// enable domain specific string literals
+using namespace deCONZ::literals;
+
 #if defined(Q_OS_LINUX) && !defined(Q_PROCESSOR_X86)
   // Workaround to detect ARM and AARCH64 in older Qt versions.
   #define ARCH_ARM
