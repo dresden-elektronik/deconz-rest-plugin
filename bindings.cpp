@@ -937,12 +937,12 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         {
             // Only configure periodic reports, as events are already sent though zone status change notification commands
             rq.minInterval = 300;
-            rq.maxInterval = 300;
+            rq.maxInterval = 3600;
         }
         else
         {
-            rq.minInterval = 1;
-            rq.maxInterval = 300;
+            rq.minInterval = 300;
+            rq.maxInterval = 3600;
 
             const ResourceItem *item = sensor ? sensor->item(RConfigDuration) : nullptr;
 
@@ -1150,6 +1150,30 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq4.reportableChange8bit = 0xff;
 
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
+        }
+        else if (sensor && sensor->modelId().startsWith(QLatin1String("STZB402"))) // Stelpro baseboard thermostat
+        {
+            rq.dataType = deCONZ::Zcl16BitInt;
+            rq.attributeId = 0x0000;         // Local Temperature
+            rq.minInterval = 1;
+            rq.maxInterval = 600;
+            rq.reportableChange16bit = 20;
+
+            ConfigureReportingRequest rq2;
+            rq2.dataType = deCONZ::Zcl16BitInt;
+            rq2.attributeId = 0x0012;        // Occupied heating setpoint
+            rq2.minInterval = 1;
+            rq2.maxInterval = 600;
+            rq2.reportableChange16bit = 50;
+
+            ConfigureReportingRequest rq3;
+            rq3.dataType = deCONZ::Zcl8BitEnum;
+            rq3.attributeId = 0x001C;        // Thermostat mode
+            rq3.minInterval = 1;
+            rq3.maxInterval = 600;
+            rq3.reportableChange8bit = 0xff;
+
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3});
         }
         else if (sensor && sensor->modelId() == QLatin1String("Zen-01")) // Zen
         {
@@ -1463,7 +1487,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (sensor && (sensor->modelId() == QLatin1String("SORB") ||               // Stelpro Orleans Fan
                             sensor->modelId() == QLatin1String("TH1300ZB") ||           // Sinope thermostat
-                            sensor->modelId().startsWith(QLatin1String("3157100"))))    // Centralite pearl
+                            sensor->modelId().startsWith(QLatin1String("3157100")) ||   // Centralite pearl
+                            sensor->modelId().startsWith(QLatin1String("STZB402"))))    // Stelpro baseboard thermostat
         {
             rq.dataType = deCONZ::Zcl8BitEnum;
             rq.attributeId = 0x0001;       // Keypad Lockout
@@ -1648,6 +1673,13 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.minInterval = 43200;    // according to technical manual
             rq.maxInterval = 43200;    // according to technical manual
             rq.reportableChange8bit = 0;
+        }
+        else if (sensor && sensor->manufacturer() == QLatin1String("Samjin"))
+        {
+            // https://github.com/SmartThingsCommunity/SmartThingsPublic/blob/master/devicetypes/smartthings/smartsense-multi-sensor.src/smartsense-multi-sensor.groovy
+            rq.minInterval = 30;
+            rq.maxInterval = 21600;
+            rq.reportableChange8bit = 10;
         }
         else
         {
@@ -1982,14 +2014,14 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.attributeId = 0x0010; // active
             rq.minInterval = manufacturerCode == VENDOR_SAMJIN ? 0 : 10;
             rq.maxInterval = 3600;
-            rq.reportableChange8bit = 1;
+            rq.reportableChange8bit = 0xFF;
             rq.manufacturerCode = manufacturerCode;
 
             ConfigureReportingRequest rq1;
             rq1.dataType = deCONZ::Zcl16BitInt;
             rq1.attributeId = 0x0012; // acceleration x
             rq1.minInterval = minInterval;
-            rq1.maxInterval = 300;
+            rq1.maxInterval = 3600;
             rq1.reportableChange16bit = 1;
             rq1.manufacturerCode = manufacturerCode;
 
@@ -1997,7 +2029,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq2.dataType = deCONZ::Zcl16BitInt;
             rq2.attributeId = 0x0013; // acceleration y
             rq2.minInterval = minInterval;
-            rq2.maxInterval = 300;
+            rq2.maxInterval = 3600;
             rq2.reportableChange16bit = 1;
             rq2.manufacturerCode = manufacturerCode;
 
@@ -2005,7 +2037,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq3.dataType = deCONZ::Zcl16BitInt;
             rq3.attributeId = 0x0014; // acceleration z
             rq3.minInterval = minInterval;
-            rq3.maxInterval = 300;
+            rq3.maxInterval = 3600;
             rq3.reportableChange16bit = 1;
             rq3.manufacturerCode = manufacturerCode;
 
@@ -2631,12 +2663,13 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Sinope
         sensor->modelId().startsWith(QLatin1String("WL4200")) || // water leak sensor
         sensor->modelId().startsWith(QLatin1String("TH112")) || // thermostat
+        sensor->modelId().startsWith(QLatin1String("TH1300ZB")) || // thermostat
         //LifeControl smart plug
         sensor->modelId() == QLatin1String("RICI01") ||
         //LifeControl enviroment sensor
         sensor->modelId() == QLatin1String("VOC_Sensor") ||
         // EDP-WITHUS
-        sensor->modelId() == QLatin1String("ZM-SmartPlug-1.0.0") ||
+        sensor->modelId() == QLatin1String("ZB-SmartPlug-1.0.0") ||
         //Legrand
         sensor->modelId() == QLatin1String("Connected outlet") || //Legrand Plug
         sensor->modelId() == QLatin1String("Shutter switch with neutral") || //Legrand shutter switch
@@ -2883,6 +2916,12 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             {
                 continue; // process only once
             }
+
+            if (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("multi") && sensor->type() != QLatin1String("ZHAOpenClose"))
+            {
+                continue; // process only once
+            }
+
             if (sensor->modelId() == QLatin1String("Remote switch") ||
                 sensor->modelId() == QLatin1String("Shutters central remote switch") ||
                 sensor->modelId() == QLatin1String("Double gangs remote switch") ||
@@ -3151,6 +3190,11 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             if (bnd.dstEndpoint > 0) // valid gateway endpoint?
             {
                 ret = queueBindingTask(bindingTask);
+            }
+            
+            if (*i == IAS_ZONE_CLUSTER_ID)
+            {
+                checkIasEnrollmentStatus(sensor);
             }
         }
             break;
@@ -4134,12 +4178,12 @@ void DeRestPluginPrivate::bindingTimerFired()
                 {
                     if (i->restNode && !i->restNode->isAvailable())
                     {
-                        DBG_Printf(DBG_INFO_L2, "giveup binding srcAddr: %llX (not available)\n", i->binding.srcAddress);
+                        DBG_Printf(DBG_INFO_L2, "giveup binding srcAddr: 0x%016llX (not available)\n", i->binding.srcAddress);
                         i->state = BindingTask::StateFinished;
                     }
                     else
                     {
-                        DBG_Printf(DBG_INFO_L2, "binding/unbinding timeout srcAddr: %llX, retry\n", i->binding.srcAddress);
+                        DBG_Printf(DBG_INFO_L2, "binding/unbinding timeout srcAddr: 0x%016llX, retry\n", i->binding.srcAddress);
                         i->state = BindingTask::StateIdle;
                         i->timeout = BindingTask::Timeout;
                         if (i->restNode && i->restNode->node() && !i->restNode->node()->nodeDescriptor().receiverOnWhenIdle())
@@ -4150,7 +4194,7 @@ void DeRestPluginPrivate::bindingTimerFired()
                 }
                 else
                 {
-                    DBG_Printf(DBG_INFO_L2, "giveup binding srcAddr: %llX\n", i->binding.srcAddress);
+                    DBG_Printf(DBG_INFO_L2, "giveup binding srcAddr: 0x%016llX\n", i->binding.srcAddress);
                     i->state = BindingTask::StateFinished;
                 }
             }

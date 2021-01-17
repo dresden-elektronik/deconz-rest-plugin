@@ -418,7 +418,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NIKO_NV, "Connected socket outlet", konkeMacPrefix }, // Niko smart socket 170-33505
     { VENDOR_ATMEL, "Bell", dishMacPrefix }, // Sage doorbell sensor
     { VENDOR_UNIVERSAL2, "4655BC0", emberMacPrefix }, // Ecolink contact sensor
-    { VENDOR_NONE, "ZM-SmartPlug-1.0.0", tiMacPrefix }, // edp re:dy plug
+    { VENDOR_NONE, "ZB-SmartPlug-1.0.0", tiMacPrefix }, // edp re:dy plug
     { VENDOR_NONE, "WB01", tiMacPrefix }, // Sonoff SNZB-01
     { VENDOR_NONE, "WB-01", tiMacPrefix }, // Sonoff SNZB-01
     { VENDOR_NONE, "MS01", tiMacPrefix }, // Sonoff SNZB-03
@@ -601,6 +601,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     gwLinkButton = false;
     gwWebSocketNotifyAll = true;
     gwdisablePermitJoinAutoOff = false;
+    gwLightLastSeenInterval = 60;
 
     // preallocate memory to get consistent pointers
     nodes.reserve(300);
@@ -1817,11 +1818,11 @@ QVariantMap DeRestPluginPrivate::errorToMap(int id, const QString &ressource, co
  */
 void DeRestPluginPrivate::updateEtag(QString &etag)
 {
-    QTime time = QTime::currentTime();
+    QDateTime time = QDateTime::currentDateTime();
 #if QT_VERSION < 0x050000
-    etag = QString(QCryptographicHash::hash(time.toString().toAscii(), QCryptographicHash::Md5).toHex());
+    etag = QString(QCryptographicHash::hash(time.toString("yyyy-MM-ddThh:mm:ss.zzz").toAscii(), QCryptographicHash::Md5).toHex());
 #else
-    etag = QString(QCryptographicHash::hash(time.toString().toLatin1(), QCryptographicHash::Md5).toHex());
+    etag = QString(QCryptographicHash::hash(time.toString("yyyy-MM-ddThh:mm:ss.zzz").toLatin1(), QCryptographicHash::Md5).toHex());
 #endif
     // quotes are mandatory as described in w3 spec
     etag.prepend('"');
@@ -1882,6 +1883,8 @@ void DeRestPluginPrivate::handleMacDataRequest(const deCONZ::NodeEvent &event)
             delayedFastEnddeviceProbe(&event);
             checkSensorBindingsForClientClusters(&s);
         }
+
+        checkIasEnrollmentStatus(&s);
 
         if (s.lastAttributeReportBind() < (idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT))
         {
@@ -3469,8 +3472,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
 
     if (updated)
     {
-        updateEtag(lightNode->etag);
-        updateEtag(gwConfigEtag);
+        updateLightEtag(lightNode);
         lightNode->setNeedSaveDatabase(true);
         saveDatabaseItems |= DB_LIGHTS;
     }
@@ -4627,7 +4629,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 if (ok && buttonMap.button != 0)
                 {
                     if (!buttonMap.name.isEmpty()) { cmd = buttonMap.name; }
-                    DBG_Printf(DBG_INFO, "[INFO] - Button %u %s %s\n", buttonMap.button, qPrintable(cmd), qPrintable(sensor->modelId()));
+                    DBG_Printf(DBG_INFO, "[INFO] - Button %u - %s endpoint: 0x%02X cluster: %s command: %s payload[0]: 0%02X\n", buttonMap.button,
+                               qPrintable(sensor->modelId()), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), pl0);
                     ResourceItem *item = sensor->item(RStateButtonEvent);
                     if (item)
                     {
@@ -4732,6 +4735,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         std::vector<Sensor>::iterator i = sensors.begin();
         std::vector<Sensor>::iterator end = sensors.end();
 
+        bool pollControlInitialized = false;
+
         for (; i != end; ++i)
         {
             if (i->address().ext() == node->address().ext())
@@ -4747,6 +4752,18 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     DBG_Printf(DBG_INFO, "SensorNode %s set node %s\n", qPrintable(i->id()), qPrintable(node->address().toStringExt()));
 
                     pushSensorInfoToCore(&*i);
+
+                    // If device has Poll Control cluster, configure it via the first Sensor.
+                    if (!pollControlInitialized && PC_GetPollControlEndpoint(node) > 0)
+                    {
+                        auto *itemPending = i->item(RConfigPending);
+                        if (itemPending)
+                        {
+                            DBG_Printf(DBG_INFO, "Init Poll Control for %s\n", qPrintable(node->address().toStringExt()));
+                            pollControlInitialized = true;
+                            itemPending->setValue(itemPending->toNumber() | R_PENDING_WRITE_POLL_CHECKIN_INTERVAL | R_PENDING_SET_LONG_POLL_INTERVAL);
+                        }
+                    }
                 }
 
                 auto *item = i->item(RStateBattery);
@@ -5475,6 +5492,32 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpPressureSensor.inClusters.push_back(ci->id());
                         fpHumiditySensor.inClusters.push_back(RELATIVE_HUMIDITY_CLUSTER_ID);
                         fpHumiditySensor.inClusters.push_back(ci->id());
+                    }
+                }
+                    break;
+
+                case THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID:
+                case DIAGNOSTICS_CLUSTER_ID:
+                case FAN_CONTROL_CLUSTER_ID:
+                {
+                    fpThermostatSensor.inClusters.push_back(ci->id());
+                }
+                    break;
+
+                case 0xFCC0:    // Xiaomi specific
+                {
+                    if (modelId.startsWith(QLatin1String("lumi.")))
+                    {
+                        fpConsumptionSensor.inClusters.push_back(ci->id());
+                        fpHumiditySensor.inClusters.push_back(ci->id());
+                        fpLightSensor.inClusters.push_back(ci->id());
+                        fpOpenCloseSensor.inClusters.push_back(ci->id());
+                        fpPowerSensor.inClusters.push_back(ci->id());
+                        fpPresenceSensor.inClusters.push_back(ci->id());
+                        fpPressureSensor.inClusters.push_back(ci->id());
+                        fpSwitch.inClusters.push_back(ci->id());
+                        fpTemperatureSensor.inClusters.push_back(ci->id());
+                        fpThermostatSensor.inClusters.push_back(ci->id());
                     }
                 }
                     break;
@@ -6402,7 +6445,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             item = sensorNode.addItem(DataTypeInt16, RConfigOffset);
             item->setValue(0);
             sensorNode.addItem(DataTypeInt16, RConfigHeatSetpoint);    // Heating set point
-            sensorNode.addItem(DataTypeBool, RStateOn);           // Heating on/off
+            sensorNode.addItem(DataTypeBool, RStateOn)->setValue(false);           // Heating on/off
 
             if (sensorNode.modelId().startsWith(QLatin1String("SLR2")) ||   // Hive
                 sensorNode.modelId() == QLatin1String("SLR1b") ||           // Hive
@@ -6421,8 +6464,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
-                item = sensorNode.addItem(DataTypeBool, RStateLowBattery);
-                item->setValue(false);
+                sensorNode.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
             }
 
             if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
@@ -6434,8 +6476,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
             {
                 sensorNode.addItem(DataTypeString, RConfigPreset);
-                sensorNode.addItem(DataTypeBool, RConfigLocked);
-                sensorNode.addItem(DataTypeBool, RConfigSetValve);
+                sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
+                sensorNode.addItem(DataTypeBool, RConfigSetValve)->setValue(false);
             }
 
             if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
@@ -6455,30 +6497,30 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                (sensorNode.manufacturer() == QLatin1String("_TZE200_c88teujp")) ||
                (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
             {
-                sensorNode.addItem(DataTypeBool, RConfigWindowOpen);
+                sensorNode.addItem(DataTypeBool, RConfigWindowOpen)->setValue(false);
             }
 
             if (modelId.startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
                 sensorNode.addItem(DataTypeUInt32, RConfigHostFlags); // hidden
-                sensorNode.addItem(DataTypeBool, RConfigDisplayFlipped);
-                sensorNode.addItem(DataTypeBool, RConfigLocked);
+                sensorNode.addItem(DataTypeBool, RConfigDisplayFlipped)->setValue(false);
+                sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
             else if (sensorNode.modelId() == QLatin1String("Super TR"))   // ELKO
             {
                 sensorNode.addItem(DataTypeString, RConfigTemperatureMeasurement);
                 sensorNode.addItem(DataTypeInt16, RStateFloorTemperature);
-                sensorNode.addItem(DataTypeBool, RStateHeating);
-                sensorNode.addItem(DataTypeBool, RConfigLocked);
+                sensorNode.addItem(DataTypeBool, RStateHeating)->setValue(false);
+                sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
             else if (modelId == QLatin1String("Thermostat")) // ecozy
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
                 sensorNode.addItem(DataTypeString, RConfigSchedule);
-                sensorNode.addItem(DataTypeBool, RConfigScheduleOn);
+                sensorNode.addItem(DataTypeBool, RConfigScheduleOn)->setValue(false);
                 sensorNode.addItem(DataTypeInt16, RConfigLastChangeAmount);
                 sensorNode.addItem(DataTypeUInt8, RConfigLastChangeSource);
                 sensorNode.addItem(DataTypeTime, RConfigLastChangeTime);
@@ -6487,7 +6529,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             {
                 sensorNode.addItem(DataTypeInt16, RConfigCoolSetpoint);
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
-                sensorNode.addItem(DataTypeBool, RConfigLocked);
+                sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
+                sensorNode.addItem(DataTypeString, RConfigMode);
+            }
+            else if (modelId.startsWith(QLatin1String("STZB402"))) // Stelpro baseboard thermostat
+            {
+                sensorNode.addItem(DataTypeUInt8, RStateValve);
+                sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
             else if (modelId == QLatin1String("Zen-01"))
@@ -6499,7 +6547,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             else if (modelId == QLatin1String("3157100"))
             {
                 sensorNode.addItem(DataTypeInt16, RConfigCoolSetpoint);
-                sensorNode.addItem(DataTypeBool, RConfigLocked);
+                sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                 sensorNode.addItem(DataTypeString, RConfigMode);
                 sensorNode.addItem(DataTypeString, RConfigFanMode);
             }
@@ -6508,11 +6556,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
                 sensorNode.addItem(DataTypeString, RStateWindowOpen);
-                sensorNode.addItem(DataTypeBool, RStateMountingModeActive);
+                sensorNode.addItem(DataTypeBool, RStateMountingModeActive)->setValue(false);
                 sensorNode.addItem(DataTypeString, RStateErrorCode);
-                sensorNode.addItem(DataTypeBool, RConfigDisplayFlipped);
-                sensorNode.addItem(DataTypeBool, RConfigLocked);
-                sensorNode.addItem(DataTypeBool, RConfigMountingMode);
+                sensorNode.addItem(DataTypeBool, RConfigDisplayFlipped)->setValue(false);
+                sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
+                sensorNode.addItem(DataTypeBool, RConfigMountingMode)->setValue(false);
                 // Supported with Danfoss firmware version 1.08
                 sensorNode.addItem(DataTypeBool, RConfigScheduleOn)->setValue(false);
                 sensorNode.addItem(DataTypeString, RConfigSchedule);
@@ -6534,7 +6582,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             {
                 if (!modelId.isEmpty())
                 {
-                    sensorNode.addItem(DataTypeBool, RConfigScheduleOn);
+                    sensorNode.addItem(DataTypeBool, RConfigScheduleOn)->setValue(false);
                     sensorNode.addItem(DataTypeString, RConfigSchedule);
                 }
             }
@@ -6841,7 +6889,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("Samjin");
 
-        if (fingerPrint.hasInCluster(IAS_ZONE_CLUSTER_ID)) // POLL_CONTROL_CLUSTER_ID
+        if (PC_GetPollControlEndpoint(node) > 0)
         {
             item = sensorNode.addItem(DataTypeUInt8, RConfigPending);
             item->setValue(item->toNumber() | R_PENDING_WRITE_POLL_CHECKIN_INTERVAL | R_PENDING_SET_LONG_POLL_INTERVAL);
@@ -6914,8 +6962,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             }
         }
         item = sensorNode.addItem(DataTypeUInt8, RConfigPending);
-        item->setValue(item->toNumber() | R_PENDING_WRITE_CIE_ADDRESS | R_PENDING_ENROLL_RESPONSE);
-        writeIasCieAddress(&sensorNode);
+        sensorNode.addItem(DataTypeUInt32, RConfigEnrolled)->setValue(IAS_STATE_INIT);
     }
 
     QString uid = generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint, clusterId);
@@ -7370,7 +7417,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
             case DOOR_LOCK_CLUSTER_ID:
             case SAMJIN_CLUSTER_ID:
-            case IAS_ZONE_CLUSTER_ID:
             case TIME_CLUSTER_ID:
                 break;
 
@@ -9281,35 +9327,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             i->setNeedSaveDatabase(true);
                             enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                             updateSensorEtag(&*i);
-                        }
-                    }
-                    else if (event.clusterId() == IAS_ZONE_CLUSTER_ID)
-                    {
-                        for (;ia != enda; ++ia)
-                        {
-                            if (ia->id() == 0x0000) // IAS zone status
-                            {
-                                if (updateType != NodeValue::UpdateInvalid)
-                                {
-                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), 0x0000, ia->numericValue());
-                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
-                                }
-
-                                ResourceItem *item = i->item(RConfigPending);
-                                if (item && ia->numericValue().u8 == 1)
-                                {
-                                    DBG_Printf(DBG_INFO_L2, "[IAS] Sensor already enrolled\n");
-                                    item->setValue(item->toNumber() & ~R_PENDING_WRITE_CIE_ADDRESS);
-                                    item->setValue(item->toNumber() & ~R_PENDING_ENROLL_RESPONSE);
-                                }
-                                else
-                                {
-                                    DBG_Printf(DBG_INFO_L2, "[IAS] Sensor NOT enrolled\n");
-                                    writeIasCieAddress(&*i);
-                                }
-
-                                updateSensorEtag(&*i);
-                            }
                         }
                     }
                     else if (event.clusterId() == TIME_CLUSTER_ID)
@@ -12483,6 +12500,13 @@ void DeRestPluginPrivate::sendZclDefaultResponse(const deCONZ::ApsDataIndication
                              deCONZ::ZclFCDirectionClientToServer |
                              deCONZ::ZclFCDisableDefaultResponse);
 
+
+    if (zclFrame.manufacturerCode_t() != 0x0000_mfcode)
+    {
+        outZclFrame.setFrameControl(outZclFrame.frameControl() | deCONZ::ZclFCManufacturerSpecific);
+        outZclFrame.setManufacturerCode(zclFrame.manufacturerCode_t());
+    }
+
     { // ZCL payload
         QDataStream stream(&outZclFrame.payload(), QIODevice::WriteOnly);
         stream.setByteOrder(QDataStream::LittleEndian);
@@ -14680,6 +14704,10 @@ void DeRestPluginPrivate::handlePhilipsClusterIndication(const deCONZ::ApsDataIn
             {
                 button *= 1000;
                 button += event;
+                
+                DBG_Printf(DBG_INFO, "[INFO] - Button %u - %s endpoint: 0x%02X cluster: PHILIPS_SPECIFIC (0x%04X)\n", button,
+                           qPrintable(sensorNode->modelId()), ind.srcEndpoint(), ind.clusterId());
+                
                 ResourceItem *item = sensorNode->item(RStateButtonEvent);
                 if (item)
                 {

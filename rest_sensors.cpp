@@ -2723,7 +2723,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
     if (strncmp(e.what(), "state/", 6) == 0)
     {
         ResourceItem *item = sensor->item(e.what());
-        if (item)
+        if (item && item->isPublic())
         {
             if (item->descriptor().suffix == RStatePresence && item->toBool())
             {
@@ -2781,7 +2781,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                     {
                         iy = item;
                     }
-                    else if (item->lastSet().isValid() && (gwWebSocketNotifyAll || rid.suffix == RStateButtonEvent || (item->lastChanged().isValid() && item->lastChanged() >= sensor->lastStatePush)))
+                    else if (item->isPublic() && item->lastSet().isValid() && (gwWebSocketNotifyAll || rid.suffix == RStateButtonEvent || (item->lastChanged().isValid() && item->lastChanged() >= sensor->lastStatePush)))
                     {
                         state[key] = item->toVariant();
                     }
@@ -2825,7 +2825,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
     else if (strncmp(e.what(), "config/", 7) == 0)
     {
         ResourceItem *item = sensor->item(e.what());
-        if (item)
+        if (item && item->isPublic())
         {
             if (sensor->lastConfigPush.isValid() &&
             item->lastSet() < sensor->lastConfigPush)
@@ -2871,7 +2871,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                     {
                         ilct = item;
                     }
-                    else if (item->lastSet().isValid() && (gwWebSocketNotifyAll || (item->lastChanged().isValid() && item->lastChanged() >= sensor->lastConfigPush)))
+                    else if (item->isPublic() && item->lastSet().isValid() && (gwWebSocketNotifyAll || (item->lastChanged().isValid() && item->lastChanged() >= sensor->lastConfigPush)))
                     {
                         if (rid.suffix == RConfigSchedule)
                         {
@@ -2911,7 +2911,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
     else if (strncmp(e.what(), "attr/", 5) == 0)
     {
         ResourceItem *item = sensor->item(e.what());
-        if (item)
+        if (item && item->isPublic())
         {
             QVariantMap map;
             map["t"] = QLatin1String("event");

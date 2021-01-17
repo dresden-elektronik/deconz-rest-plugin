@@ -1561,6 +1561,15 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             d->dbZclValueMaxAge = maxAge;
         }
     }
+    else if (strcmp(colval[0], "lightlastseeninterval") == 0)
+    {
+        int lightLastSeen = val.toUInt(&ok);
+        if (!val.isEmpty() && ok)
+        {
+            d->gwConfig["lightlastseeninterval"] = lightLastSeen;
+            d->gwLightLastSeenInterval = lightLastSeen;
+        }
+    }
 
     return 0;
 }
@@ -3525,7 +3534,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item = sensor.addItem(DataTypeInt16, RConfigOffset);
                 item->setValue(0);
                 sensor.addItem(DataTypeInt16, RConfigHeatSetpoint);    // Heating set point
-                sensor.addItem(DataTypeBool, RStateOn);                // Heating on/off
+                sensor.addItem(DataTypeBool, RStateOn)->setValue(false);                // Heating on/off
 
                 if (sensor.modelId().startsWith(QLatin1String("SLR2")) ||   // Hive
                     sensor.modelId() == QLatin1String("SLR1b") ||           // Hive
@@ -3544,8 +3553,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                    (sensor.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
-                    item = sensor.addItem(DataTypeBool, RStateLowBattery);
-                    item->setValue(false);
+                    sensor.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
                 }
 
                 if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya
@@ -3557,8 +3565,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                    (sensor.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) )   // Tuya
                 {
                     sensor.addItem(DataTypeString, RConfigPreset);
-                    sensor.addItem(DataTypeBool, RConfigLocked);
-                    sensor.addItem(DataTypeBool, RConfigSetValve);
+                    sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
+                    sensor.addItem(DataTypeBool, RConfigSetValve)->setValue(false);
                 }
 
                 if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya
@@ -3578,30 +3586,30 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                    (sensor.manufacturer() == QLatin1String("_TZE200_c88teujp")) ||  // Tuya
                    (sensor.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
                 {
-                    sensor.addItem(DataTypeBool, RConfigWindowOpen);
+                    sensor.addItem(DataTypeBool, RConfigWindowOpen)->setValue(false);
                 }
 
                 if (sensor.modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
                     sensor.addItem(DataTypeUInt32, RConfigHostFlags); // hidden
-                    sensor.addItem(DataTypeBool, RConfigDisplayFlipped);
-                    sensor.addItem(DataTypeBool, RConfigLocked);
+                    sensor.addItem(DataTypeBool, RConfigDisplayFlipped)->setValue(false);
+                    sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                     sensor.addItem(DataTypeString, RConfigMode);
                 }
                 else if (sensor.modelId() == QLatin1String("Super TR"))   // ELKO
                 {
                     sensor.addItem(DataTypeString, RConfigTemperatureMeasurement);
                     sensor.addItem(DataTypeInt16, RStateFloorTemperature);
-                    sensor.addItem(DataTypeBool, RStateHeating);
-                    sensor.addItem(DataTypeBool, RConfigLocked);
+                    sensor.addItem(DataTypeBool, RStateHeating)->setValue(false);
+                    sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                     sensor.addItem(DataTypeString, RConfigMode);
                 }
                 else if (sensor.modelId() == QLatin1String("Thermostat")) // ecozy
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
                     sensor.addItem(DataTypeString, RConfigSchedule);
-                    sensor.addItem(DataTypeBool, RConfigScheduleOn);
+                    sensor.addItem(DataTypeBool, RConfigScheduleOn)->setValue(false);
                     sensor.addItem(DataTypeInt16, RConfigLastChangeAmount);
                     sensor.addItem(DataTypeUInt8, RConfigLastChangeSource);
                     sensor.addItem(DataTypeTime, RConfigLastChangeTime);
@@ -3610,7 +3618,13 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 {
                     sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);
                     sensor.addItem(DataTypeUInt8, RStateValve);
-                    sensor.addItem(DataTypeBool, RConfigLocked);
+                    sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
+                    sensor.addItem(DataTypeString, RConfigMode);
+                }
+                else if (sensor.modelId().startsWith(QLatin1String("STZB402"))) // Stelpro baseboard thermostat
+                {
+                    sensor.addItem(DataTypeUInt8, RStateValve);
+                    sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                     sensor.addItem(DataTypeString, RConfigMode);
                 }
                 else if (sensor.modelId() == QLatin1String("Zen-01"))
@@ -3622,7 +3636,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 else if (sensor.modelId() == QLatin1String("3157100"))
                 {
                     sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);
-                    sensor.addItem(DataTypeBool, RConfigLocked);
+                    sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                     sensor.addItem(DataTypeString, RConfigMode);
                     sensor.addItem(DataTypeString, RConfigFanMode);
                 }
@@ -3631,11 +3645,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
                     sensor.addItem(DataTypeString, RStateWindowOpen);
-                    sensor.addItem(DataTypeBool, RStateMountingModeActive);
+                    sensor.addItem(DataTypeBool, RStateMountingModeActive)->setValue(false);
                     sensor.addItem(DataTypeString, RStateErrorCode);
-                    sensor.addItem(DataTypeBool, RConfigDisplayFlipped);
-                    sensor.addItem(DataTypeBool, RConfigLocked);
-                    sensor.addItem(DataTypeBool, RConfigMountingMode);
+                    sensor.addItem(DataTypeBool, RConfigDisplayFlipped)->setValue(false);
+                    sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
+                    sensor.addItem(DataTypeBool, RConfigMountingMode)->setValue(false);
                     // Supported with Danfoss firmware version 1.08
                     sensor.addItem(DataTypeBool, RConfigScheduleOn)->setValue(false);
                     sensor.addItem(DataTypeString, RConfigSchedule);
@@ -3657,7 +3671,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 {
                     if (!sensor.modelId().isEmpty())
                     {
-                        sensor.addItem(DataTypeBool, RConfigScheduleOn);
+                        sensor.addItem(DataTypeBool, RConfigScheduleOn)->setValue(false);
                         sensor.addItem(DataTypeString, RConfigSchedule);
                     }
                 }
@@ -3830,6 +3844,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             item = sensor.addItem(DataTypeUInt8, RConfigPending);
             item->setValue(0);
+            sensor.addItem(DataTypeUInt32, RConfigEnrolled)->setValue(IAS_STATE_INIT);
         }
 
         if (sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
@@ -3871,6 +3886,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (item && item->toBool())
             {
                 item->setValue(false); // reset at startup
+            }
+        }
+
+        {
+            ResourceItem *item = sensor.item(RConfigEnrolled);
+            if (item)
+            {
+                item->setValue(IAS_STATE_INIT); // reset at startup
             }
         }
 
@@ -4576,6 +4599,7 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["proxyaddress"] = gwProxyAddress;
         gwConfig["proxyport"] = gwProxyPort;
         gwConfig["zclvaluemaxage"] = dbZclValueMaxAge;
+        gwConfig["lightlastseeninterval"] = gwLightLastSeenInterval;
 
         QVariantMap::iterator i = gwConfig.begin();
         QVariantMap::iterator end = gwConfig.end();

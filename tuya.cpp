@@ -830,8 +830,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         if (lightNode)
         {
             // Update Node light
-            updateEtag(lightNode->etag);
-            updateEtag(gwConfigEtag);
+            updateLightEtag(&*lightNode);
             lightNode->setNeedSaveDatabase(true);
             saveDatabaseItems |= DB_LIGHTS;
         }
