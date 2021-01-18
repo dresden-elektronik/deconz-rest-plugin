@@ -4634,7 +4634,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     ResourceItem *item = sensor->item(RStateButtonEvent);
                     if (item)
                     {
-                        if (item->toNumber() == buttonMap.button)
+                        if (item->toNumber() == buttonMap.button && item->lastSet().isValid())
                         {
                             QDateTime now = QDateTime::currentDateTime();
                             const auto dt = item->lastSet().msecsTo(now);
@@ -4642,7 +4642,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                             if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && dt > 0 && dt < 500)
                             {
                                 DBG_Printf(DBG_INFO, "[INFO] - Discard too fast event (dt = %d) %s\n", 
-                                    dt, qPrintable(sensor->modelId()));
+                                    (int)dt, qPrintable(sensor->modelId()));
                                 break;
                             }
 
@@ -4652,7 +4652,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                             )
                             {
                                 DBG_Printf(DBG_INFO, "[INFO] - Discard second %s event (dt = %d) %s\n", 
-                                    qPrintable(sensor->manufacturer()), dt, qPrintable(sensor->modelId()));
+                                    qPrintable(sensor->manufacturer()), (int)dt, qPrintable(sensor->modelId()));
                                 break;
                             }
                         }
