@@ -2704,6 +2704,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         (sensor->node()->nodeDescriptor().manufacturerCode() == VENDOR_BOSCH2 && sensor->modelId() == QLatin1String("AIR")) ||
         // Salus
         sensor->modelId().contains(QLatin1String("SP600")) ||
+        sensor->modelId().contains(QLatin1String("SPE600")) ||
         // Zen
         sensor->modelId().contains(QLatin1String("Zen-01")) ||
         // eCozy
