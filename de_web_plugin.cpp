@@ -381,7 +381,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "eaxp72v", ikea2MacPrefix }, // Tuya TRV Wesmartify Thermostat Essentials Premium
     { VENDOR_NONE, "88teujp", silabs8MacPrefix }, // SEA802-Zigbee
     { VENDOR_NONE, "fvq6avy", silabs7MacPrefix }, // Revolt NX-4911-675 Thermostat
-    { VENDOR_NONE, "GMB-HAS-WD-B01", tiMacPrefix }, // GamaBit Ltd. Window/Door Sensor
+    { VENDOR_NONE, "GMB-HAS-DW-B01", tiMacPrefix }, // GamaBit Ltd. Window/Door Sensor
     { VENDOR_HEIMAN, "TY0203", silabs7MacPrefix }, // Lidl/Silvercrest Smart Window or Door Sensor
     { VENDOR_HEIMAN, "TY0202", silabs3MacPrefix }, // Lidl/Silvercrest Smart Motion Sensor
     { VENDOR_HEIMAN, "TY0202", silabs7MacPrefix }, // Lidl/Silvercrest Smart Motion Sensor
@@ -5091,7 +5091,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("3300")) ||             // Centralite contact sensor
                              modelId == QLatin1String("E1D-G73") ||                   // Sengled contact sensor
                              modelId == QLatin1String("DS01") ||                      // Sonoff SNZB-04
-                             modelId == QLatin1String("GMB-HAS-WD-B01") ||            // GamaBit Ltd. Window/Door Sensor
+                             modelId == QLatin1String("GMB-HAS-DW-B01") ||            // GamaBit Ltd. Window/Door Sensor
                              modelId == QLatin1String("TY0203") ||                    // lidl / SilverCrest
                              modelId == QLatin1String("RH3001"))                      // Tuya/Blitzwolf BW-IS2 door/window sensor
                     {
