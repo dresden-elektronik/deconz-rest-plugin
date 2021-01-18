@@ -291,7 +291,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             if ((lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq")) ||
                 (lightNode->manufacturer() == QLatin1String("_TZE200_xuzcvlku")) ||
                 (lightNode->manufacturer() == QLatin1String("_TZE200_wmcdj3aq")) ||
-                (lightNode->manufacturer() == QLatin1String("_TZE200_zah67ekd")) ||
+                (lightNode->manufacturer() == QLatin1String("_TZE200_zah67ekd")) || // MoesHouse / Livolo Roller Blinds
                 (lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3")) )
             {
 
