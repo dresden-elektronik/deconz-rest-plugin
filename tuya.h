@@ -27,6 +27,7 @@
 #define DP_TYPE_ENUM 0x04
 #define DP_TYPE_FAULT 0x05
 
-bool UseTuyaCluster(QString manufacturer);
+bool isTuyaManufacturerName(const QString &manufacturer);
+bool UseTuyaCluster(const QString &manufacturer);
 
 #endif // TUYA_H

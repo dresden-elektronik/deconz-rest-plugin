@@ -94,6 +94,7 @@ const char *RStateSunset = "state/sunset";
 const char *RStateUtc = "state/utc";
 const char *RStateTampered = "state/tampered";
 const char *RStateTemperature = "state/temperature";
+const char *RStateTest = "state/test";
 const char *RStateTilt = "state/tilt";
 const char *RStateTiltAngle = "state/tiltangle";
 const char *RStateValve = "state/valve";
@@ -122,6 +123,7 @@ const char *RConfigCoolSetpoint = "config/coolsetpoint";
 const char *RConfigDelay = "config/delay";
 const char *RConfigDisplayFlipped = "config/displayflipped";
 const char *RConfigDuration = "config/duration";
+const char *RConfigEnrolled = "config/enrolled";
 const char *RConfigFanMode = "config/fanmode";
 const char *RConfigGroup = "config/group";
 const char *RConfigHeatSetpoint = "config/heatsetpoint";
@@ -260,6 +262,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RStateSunset));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateTampered));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RStateTemperature, -27315, 32767));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateTest));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateTilt, 0, 100));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateTiltAngle));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RStateUtc));
@@ -282,6 +285,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigDelay));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigDisplayFlipped));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigDuration));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RConfigEnrolled));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigFanMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigGroup));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigHeatSetpoint, 500, 3200));
@@ -357,6 +361,63 @@ bool getResourceItemDescriptor(const QString &str, ResourceItemDescriptor &descr
             descr = *i;
             return true;
         }
+    }
+
+    return false;
+}
+
+/*! Clears \p flags in \p item which must be a numeric value item.
+    The macro is used to print the flag defines as human readable.
+ */
+#define R_ClearFlags(item, flags) R_ClearFlags1(item, flags, #flags)
+bool R_ClearFlags1(ResourceItem *item, qint64 flags, const char *strFlags)
+{
+    DBG_Assert(item);
+
+    if (item)
+    {
+        const auto old = item->toNumber();
+        if ((old & flags) != 0)
+        {
+            DBG_Printf(DBG_INFO_L2, "[INFO_L2] - Clear %s flags %s (0x%016llX) in 0x%016llX  --> 0x%016llX\n",
+                       item->descriptor().suffix, strFlags, flags, item->toNumber(), old & ~flags);
+            item->setValue(item->toNumber() & ~flags);
+            return true;
+        }
+    }
+    return false;
+}
+
+/*! Sets \p flags in \p item which must be a numeric value item.
+    The macro is used to print the flag defines as human readable.
+ */
+#define R_SetFlags(item, flags) R_SetFlags1(item, flags, #flags)
+bool R_SetFlags1(ResourceItem *item, qint64 flags, const char *strFlags)
+{
+    DBG_Assert(item);
+
+    if (item)
+    {
+        const auto old = item->toNumber();
+        if ((old & flags) != flags)
+        {
+            DBG_Printf(DBG_INFO_L2, "[INFO_L2] - Set %s flags %s (0x%016llX) in 0x%016llX --> 0x%016llX\n",
+                       item->descriptor().suffix, strFlags, flags, item->toNumber(), old | flags);
+            item->setValue(item->toNumber() | flags);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool R_HasFlags(const ResourceItem *item, qint64 flags)
+{
+    DBG_Assert(item);
+
+    if (item)
+    {
+        return (item->toNumber() & flags) == flags;
     }
 
     return false;

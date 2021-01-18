@@ -108,6 +108,7 @@ extern const char *RStateSunrise;
 extern const char *RStateSunset;
 extern const char *RStateTampered;
 extern const char *RStateTemperature;
+extern const char *RStateTest;
 extern const char *RStateTilt;
 extern const char *RStateTiltAngle;
 extern const char *RStateUtc;
@@ -130,6 +131,7 @@ extern const char *RConfigCoolSetpoint;
 extern const char *RConfigDelay;
 extern const char *RConfigDisplayFlipped;
 extern const char *RConfigDuration;
+extern const char *RConfigEnrolled;
 extern const char *RConfigFanMode;
 extern const char *RConfigGroup;
 extern const char *RConfigHeatSetpoint;
@@ -315,5 +317,10 @@ private:
 void initResourceDescriptors();
 const char *getResourcePrefix(const QString &str);
 bool getResourceItemDescriptor(const QString &str, ResourceItemDescriptor &descr);
+#define R_SetFlags(item, flags) R_SetFlags1(item, flags, #flags)
+bool R_SetFlags1(ResourceItem *item, qint64 flags, const char *strFlags);
+#define R_ClearFlags(item, flags) R_ClearFlags1(item, flags, #flags)
+bool R_ClearFlags1(ResourceItem *item, qint64 flags, const char *strFlags);
+bool R_HasFlags(const ResourceItem *item, qint64 flags);
 
 #endif // RESOURCE_H
