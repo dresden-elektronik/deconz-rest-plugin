@@ -2798,8 +2798,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Danfoss
         sensor->modelId() == QLatin1String("eTRV0100") ||
         // LIDL
-        sensor->modelId() == QLatin1String("HG06323")
-        // Eira
+        sensor->modelId() == QLatin1String("HG06323") ||
+        // Eria
         sensor->modelId() == QLatin1String("Adurolight_NCC")
         )
     {
