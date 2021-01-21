@@ -3831,6 +3831,21 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
     checkInstaModelId(sensor);
 
+    if (1) /* TODO: make it configurable */
+    {
+        /* Normally needed because deCONZ doesn't send response to unicast command. But to ensure in case it's not received by counterpart device,
+         * e. g. battery powered, too far, too long transmitter way in mesh, and device would repeat the command, we can simply ignore it 
+         * (especially if it gets configurable and set to true for some device) */
+        if (zclFrame.sequenceNumber() == sensor->previousSequenceNumber)
+        {
+            DBG_Printf(DBG_INFO, "[INFO] - Discard second event (seq-num = %d) %s\n", 
+                (int)sensor->previousSequenceNumber, qPrintable(sensor->modelId()));
+            return;
+        }
+        sensor->previousSequenceNumber = zclFrame.sequenceNumber();
+        checkReporting = true;
+    }
+
     // DE Lighting Switch: probe for mode changes
     if (sensor->modelId() == QLatin1String("Lighting Switch") && ind.dstAddressMode() == deCONZ::ApsGroupAddress)
     {
@@ -3939,15 +3954,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             }
         }
     }
-    else if (sensor->modelId().startsWith(QLatin1String("SYMFONISK")))
-    {
-        if (zclFrame.sequenceNumber() == sensor->previousSequenceNumber)
-        {
-            return;
-        }
-        sensor->previousSequenceNumber = zclFrame.sequenceNumber();
-        checkReporting = true;
-    }
     else if (sensor->modelId() == QLatin1String("Remote switch") || //legrand switch
              sensor->modelId() == QLatin1String("Double gangs remote switch") || //Legrand micro module
              sensor->modelId() == QLatin1String("Shutters central remote switch") || // legrand shutter switch
@@ -4013,16 +4019,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 checkSensorGroup(sensor); // still default group, create unique group and binding
             }
         }
-    }
-    else if (sensor->modelId() == QLatin1String("HG06323")) // LIDL Remote Control
-    {
-        // Probably needed because deCONZ doesn't send Default Response to unicast command.
-        if (zclFrame.sequenceNumber() == sensor->previousSequenceNumber)
-        {
-            return;
-        }
-        sensor->previousSequenceNumber = zclFrame.sequenceNumber();
-        checkReporting = true;
     }
 
     if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() != 0)
@@ -4634,25 +4630,15 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     ResourceItem *item = sensor->item(RStateButtonEvent);
                     if (item)
                     {
-                        if (item->toNumber() == buttonMap.button && item->lastSet().isValid())
+                        if (item->toNumber() == buttonMap.button && ind.dstAddressMode() == deCONZ::ApsGroupAddress)
                         {
                             QDateTime now = QDateTime::currentDateTime();
                             const auto dt = item->lastSet().msecsTo(now);
 
-                            if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && dt > 0 && dt < 500)
+                            if (dt > 0 && dt < 500)
                             {
                                 DBG_Printf(DBG_INFO, "[INFO] - Discard too fast event (dt = %d) %s\n", 
                                     (int)dt, qPrintable(sensor->modelId()));
-                                break;
-                            }
-
-                            // Workaround to ignore second button event from _TZ3000_* devices (gh-3611):
-                            if (ind.dstAddressMode() == deCONZ::ApsNwkAddress && dt > 0 && dt < 1500
-                             && sensor->manufacturer().startsWith(QLatin1String("_TZ3000_"))
-                            )
-                            {
-                                DBG_Printf(DBG_INFO, "[INFO] - Discard second %s event (dt = %d) %s\n", 
-                                    qPrintable(sensor->manufacturer()), (int)dt, qPrintable(sensor->modelId()));
                                 break;
                             }
                         }
