@@ -11620,6 +11620,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
         DBG_Printf(DBG_INFO_L2, "\tpayload: %s\n", qPrintable(zclFrame.payload().toHex()));
     }
 
+    DBG_Printf(DBG_INFO, "******* (a) ** send response %X ? %s (seq-num = %d)\n", (int)zclFrame.frameControl(), !(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse) ? "yes" : "no", (int)zclFrame.sequenceNumber());
     if (!(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
     {
         checkReporting = true;
@@ -14470,6 +14471,15 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(const deCONZ::ApsDataIndi
     if (zclFrame.isDefaultResponse())
     {
         return;
+    }
+
+    // test to send default response:
+    DBG_Printf(DBG_INFO, "******* (b) ** send response %X ? %s (seq-num = %d)\n", (int)zclFrame.frameControl(), !(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse) ? "yes" : "no", (int)zclFrame.sequenceNumber());
+    if ( !(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse) &&
+         (ind.clusterId() == ONOFF_CLUSTER_ID) &&
+         (!(ind.dstAddress().isNwkBroadcast())) )
+    {
+        sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
     }
 
     bool dark = true;
