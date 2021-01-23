@@ -3801,8 +3801,11 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         return;
     }
 
-    if (ind.clusterId() == OTAU_CLUSTER_ID)
-    {
+    switch (ind.clusterId()) {
+    case POWER_CONFIGURATION_CLUSTER_ID:
+    case TIME_CLUSTER_ID:
+    case OTAU_CLUSTER_ID:
+    case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
         return;
     }
 
@@ -11620,7 +11623,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
         DBG_Printf(DBG_INFO_L2, "\tpayload: %s\n", qPrintable(zclFrame.payload().toHex()));
     }
 
-    DBG_Printf(DBG_INFO, "******* (a) ** send response %X ? %s (seq-num = %d)\n", (int)zclFrame.frameControl(), !(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse) ? "yes" : "no", (int)zclFrame.sequenceNumber());
     if (!(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
     {
         checkReporting = true;
@@ -12479,7 +12481,9 @@ void DeRestPluginPrivate::queuePollNode(RestNodeBase *node)
 
 void DeRestPluginPrivate::sendZclDefaultResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, quint8 status)
 {
-   deCONZ::ApsDataRequest apsReq;
+    deCONZ::ApsDataRequest apsReq;
+
+    DBG_Printf(DBG_INFO, "Send zcl default response %u, seqno: %u\n", (unsigned)status, (unsigned)zclFrame.sequenceNumber());
 
     // ZDP Header
     apsReq.dstAddress() = ind.srcAddress();
@@ -14474,10 +14478,8 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(const deCONZ::ApsDataIndi
     }
 
     // test to send default response:
-    DBG_Printf(DBG_INFO, "******* (b) ** send response %X ? %s (seq-num = %d)\n", (int)zclFrame.frameControl(), !(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse) ? "yes" : "no", (int)zclFrame.sequenceNumber());
-    if ( !(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse) &&
-         (ind.clusterId() == ONOFF_CLUSTER_ID) &&
-         (!(ind.dstAddress().isNwkBroadcast())) )
+    if ( ((zclFrame.frameControl() & (deCONZ::ZclFCClusterCommand|deCONZ::ZclFCDisableDefaultResponse)) == deCONZ::ZclFCClusterCommand) &&
+         !(ind.dstAddress().isNwkBroadcast()) )
     {
         sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
     }
