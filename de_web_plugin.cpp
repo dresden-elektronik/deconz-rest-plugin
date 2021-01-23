@@ -2219,8 +2219,9 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             {
                 hasServerOnOff = false;
             }
-            //to test
-            if (lightNode.manufacturer() == QLatin1String("_TZE200_wmcdj3aq"))
+            //Covering
+            if ((lightNode.manufacturer() == QLatin1String("_TZE200_wmcdj3aq")) ||
+                (lightNode.manufacturer() == QLatin1String("_TZE200_xuzcvlku")) ) // Zemismart Chain Roller Shades Driver M515EGB (TS0601)
             {
                 hasServerOnOff = true;
             }
