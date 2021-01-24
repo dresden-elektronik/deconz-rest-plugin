@@ -369,7 +369,6 @@ bool getResourceItemDescriptor(const QString &str, ResourceItemDescriptor &descr
 /*! Clears \p flags in \p item which must be a numeric value item.
     The macro is used to print the flag defines as human readable.
  */
-#define R_ClearFlags(item, flags) R_ClearFlags1(item, flags, #flags)
 bool R_ClearFlags1(ResourceItem *item, qint64 flags, const char *strFlags)
 {
     DBG_Assert(item);
@@ -391,7 +390,6 @@ bool R_ClearFlags1(ResourceItem *item, qint64 flags, const char *strFlags)
 /*! Sets \p flags in \p item which must be a numeric value item.
     The macro is used to print the flag defines as human readable.
  */
-#define R_SetFlags(item, flags) R_SetFlags1(item, flags, #flags)
 bool R_SetFlags1(ResourceItem *item, qint64 flags, const char *strFlags)
 {
     DBG_Assert(item);
