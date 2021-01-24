@@ -5,5 +5,5 @@
 	"access": "R",
 	"public": true,
 	"range": [0, 100],
-	"description": "The current device battery level."
+	"description": "The current device battery level in range 0&ndash;100&nbsp;%."
 }
