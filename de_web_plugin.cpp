@@ -17055,7 +17055,8 @@ DeRestPlugin::DeRestPlugin(QObject *parent) :
     connect(m_readAttributesTimer, SIGNAL(timeout()),
             this, SLOT(checkZclAttributeTimerFired()));
 
-    m_idleTimer->start(1000);
+    m_idleTimer->start(IDLE_TIMER_INTERVAL);
+    d->idleTimer.start();
 }
 
 /*! The plugin deconstructor.
@@ -17074,6 +17075,15 @@ DeRestPlugin::~DeRestPlugin()
  */
 void DeRestPlugin::idleTimerFired()
 {
+    // Use extra QElapsedTimer since QTimer seems sometimes to
+    // fire in < 1 sec. intervals (after database write?).
+    if (d->idleTimer.elapsed() < (IDLE_TIMER_INTERVAL - 50)) // -50 : don't be too strict
+    {
+        DBG_Printf(DBG_INFO, "Skip idle timer callback, too early: elapsed %lld msec\n", d->idleTimer.elapsed());
+        return;
+    }
+    d->idleTimer.start();
+
     d->idleTotalCounter++;
     d->idleLastActivity++;
 
