@@ -430,6 +430,7 @@ ResourceItem::ResourceItem(const ResourceItem &other)
 /*! Move constructor. */
 ResourceItem::ResourceItem(ResourceItem &&other) :
     m_isPublic(other.m_isPublic),
+    m_flags(other.m_flags),
     m_num(other.m_num),
     m_numPrev(other.m_numPrev),
     m_str(nullptr),
@@ -457,6 +458,26 @@ ResourceItem::~ResourceItem()
     }
 }
 
+/*! Returns true when a value has been set but not pushed upstream. */
+bool ResourceItem::needPushSet() const
+{
+    return (m_flags & FlagNeedPushSet) > 0;
+}
+
+/*! Returns true when a value has been set and is different from previous
+    but not pushed upstream.
+ */
+bool ResourceItem::needPushChange() const
+{
+    return (m_flags & FlagNeedPushChange) > 0;
+}
+
+/*! Clears set and changed push flags, called after value has been pushed to upstream. */
+void ResourceItem::clearNeedPush()
+{
+    m_flags &= ~static_cast<quint16>(FlagNeedPushSet | FlagNeedPushChange);
+}
+
 /*! Copy assignment. */
 ResourceItem &ResourceItem::operator=(const ResourceItem &other)
 {
@@ -467,6 +488,7 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
     }
 
     m_isPublic = other.m_isPublic;
+    m_flags = other.m_flags;
     m_num = other.m_num;
     m_numPrev = other.m_numPrev;
     m_rid = other.m_rid;
@@ -504,6 +526,7 @@ ResourceItem &ResourceItem::operator=(ResourceItem &&other)
     }
 
     m_isPublic = other.m_isPublic;
+    m_flags = other.m_flags;
     m_num = other.m_num;
     m_numPrev = other.m_numPrev;
     m_rid = other.m_rid;
@@ -615,10 +638,12 @@ bool ResourceItem::setValue(const QString &val)
     if (m_str)
     {
         m_lastSet = QDateTime::currentDateTime();
+        m_flags |= FlagNeedPushSet;
         if (*m_str != val)
         {
             *m_str = val;
             m_lastChanged = m_lastSet;
+            m_flags |= FlagNeedPushChange;
         }
         return true;
     }
@@ -639,11 +664,13 @@ bool ResourceItem::setValue(qint64 val)
 
     m_lastSet = QDateTime::currentDateTime();
     m_numPrev = m_num;
+    m_flags |= FlagNeedPushSet;
 
     if (m_num != val)
     {
         m_num = val;
         m_lastChanged = m_lastSet;
+        m_flags |= FlagNeedPushChange;
     }
 
     return true;
@@ -667,10 +694,12 @@ bool ResourceItem::setValue(const QVariant &val)
         if (m_str)
         {
             m_lastSet = now;
+            m_flags |= FlagNeedPushSet;
             if (*m_str != val.toString())
             {
                 *m_str = val.toString();
                 m_lastChanged = m_lastSet;
+                m_flags |= FlagNeedPushChange;
             }
             return true;
         }
@@ -679,11 +708,13 @@ bool ResourceItem::setValue(const QVariant &val)
     {
         m_lastSet = now;
         m_numPrev = m_num;
+        m_flags |= FlagNeedPushSet;
 
         if (m_num != val.toBool())
         {
             m_num = val.toBool();
             m_lastChanged = m_lastSet;
+            m_flags |= FlagNeedPushChange;
         }
         return true;
     }
@@ -697,11 +728,13 @@ bool ResourceItem::setValue(const QVariant &val)
             {
                 m_lastSet = now;
                 m_numPrev = m_num;
+                m_flags |= FlagNeedPushSet;
 
                 if (m_num != dt.toMSecsSinceEpoch())
                 {
                     m_num = dt.toMSecsSinceEpoch();
                     m_lastChanged = m_lastSet;
+                    m_flags |= FlagNeedPushChange;
                 }
                 return true;
             }
@@ -710,11 +743,13 @@ bool ResourceItem::setValue(const QVariant &val)
         {
             m_lastSet = now;
             m_numPrev = m_num;
+            m_flags |= FlagNeedPushSet;
 
             if (m_num != val.toDateTime().toMSecsSinceEpoch())
             {
                 m_num = val.toDateTime().toMSecsSinceEpoch();
                 m_lastChanged = m_lastSet;
+                m_flags |= FlagNeedPushChange;
             }
             return true;
         }
@@ -735,11 +770,13 @@ bool ResourceItem::setValue(const QVariant &val)
 
             m_lastSet = now;
             m_numPrev = m_num;
+            m_flags |= FlagNeedPushSet;
 
             if (m_num != n)
             {
                 m_num = n;
                 m_lastChanged = m_lastSet;
+                m_flags |= FlagNeedPushChange;
             }
             return true;
         }
