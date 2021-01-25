@@ -4953,8 +4953,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         }
                     }
                     else if ((node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER) &&
-                              manufacturer.endsWith(QLatin1String("oclfnxz")) ||
-                              manufacturer.endsWith(QLatin1String("88teujp")) )
+                             ( manufacturer.endsWith(QLatin1String("oclfnxz")) ||
+                              manufacturer.endsWith(QLatin1String("88teujp")) ) )
                     {
                         fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
                     }
