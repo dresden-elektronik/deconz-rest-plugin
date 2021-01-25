@@ -1000,14 +1000,11 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     bool ok;
                     qint32 offset = (qint32)(round(map[pi.key()].toInt(&ok) / 10.0));
-                    if (ok && (sensor->modelId().startsWith(QLatin1String("kud7u2l")) ||
-                               sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
-                               sensor->modelId().startsWith(QLatin1String("88teujp")) ||
-                               sensor->modelId().startsWith(QLatin1String("eaxp72v")) ||
-                               sensor->modelId().startsWith(QLatin1String("fvq6avy")) ||
-                              (sensor->manufacturer() == QLatin1String("_TZE200_c88teujp")) ||
-                              (sensor->manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ) ) // Tuya Smart TRV HY369 Thermostatic Radiator Valve
-                    {
+                    if (ok && (sensor->manufacturer().endsWith(QLatin1String("kud7u2l")) ||  // Tuya Smart TRV HY369 Thermostatic Radiator Valve
+                               sensor->manufacturer().endsWith(QLatin1String("GbxAXL2")) ||
+                               sensor->manufacturer().endsWith(QLatin1String("eaxp72v")) ||
+                               sensor->manufacturer().endsWith(QLatin1String("fvq6avy")) ||
+                               sensor->manufacturer().endsWith(QLatin1String("88teujp")) ) )
                         QByteArray data;
                         if (offset > 90) { offset = 90; }
                         if (offset < -90) { offset = -90; }
@@ -1033,7 +1030,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         QByteArray data;
                         if (offset > 6) { offset = 6; }
                         if (offset < -6) { offset = -6; }
-                        if (offset < 0) { offset += 0xFFFFFFFF + 1; }
                         data.append((qint8)((offset >> 24) & 0xff));
                         data.append((qint8)((offset >> 16) & 0xff));
                         data.append((qint8)((offset >> 8) & 0xff));
@@ -1147,24 +1143,23 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             return REQ_READY_SEND;
                         }
                     }
-                    else if (sensor->modelId().startsWith(QLatin1String("kud7u2l")) ||
-                             sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
-                             sensor->modelId().startsWith(QLatin1String("88teujp")) ||
-                             sensor->modelId().startsWith(QLatin1String("eaxp72v")) ||
-                             sensor->modelId().startsWith(QLatin1String("fvq6avy")) ||
-                             sensor->manufacturer() == QLatin1String("_TYST11_zuhszj9s") ||
-                            (sensor->manufacturer() == QLatin1String("_TZE200_aoclfnxz")) ||
-                            (sensor->manufacturer() == QLatin1String("_TZE200_c88teujp")) ||
-                            (sensor->manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )// Tuya Smart TRV HY369 Thermostatic Radiator Valve
+                    else if (sensor->manufacturer().endsWith(QLatin1String("kud7u2l")) ||
+                             sensor->manufacturer().endsWith(QLatin1String("GbxAXL2")) ||
+                             sensor->manufacturer().endsWith(QLatin1String("88teujp")) ||
+                             sensor->manufacturer().endsWith(QLatin1String("eaxp72v")) ||
+                             sensor->manufacturer().endsWith(QLatin1String("fvq6avy")) ||
+                             sensor->manufacturer().endsWith(QLatin1String("uhszj9s")) ||
+                             sensor->manufacturer().endsWith(QLatin1String("oclfnxz")) ||
+                             sensor->manufacturer().endsWith(QLatin1String("88teujp")) )
                     {
                         heatsetpoint = heatsetpoint / 10;
                         QByteArray data = QByteArray("\x00\x00",2);
 
                         qint8 dp = 0x02;
 
-                        if (sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
-                            sensor->manufacturer() == QLatin1String("_TYST11_zuhszj9s") ||
-                            sensor->modelId().startsWith(QLatin1String("88teujp")) )
+                        if (sensor->manufacturer().endsWith(QLatin1String("GbxAXL2")) ||
+                            sensor->manufacturer().endsWith(QLatin1String("uhszj9s")) ||
+                            sensor->manufacturer().endsWith(QLatin1String("88teujp")) )
                         {
                             dp = 0x67;
                         }
@@ -1248,12 +1243,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                         rspItem["success"] = rspItemState;
                     }
-                    else if ((sensor->modelId().startsWith(QLatin1String("kud7u2l"))) ||
-                             (sensor->modelId().startsWith(QLatin1String("eaxp72v"))) ||
-                             (sensor->modelId().startsWith(QLatin1String("88teujp"))) ||
-                             (sensor->modelId().startsWith(QLatin1String("fvq6avy"))) ||
-                             (sensor->manufacturer() == QLatin1String("_TZE200_c88teujp")) ||
-                             (sensor->manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ) // Tuya Smart TRV HY369 Thermostatic Radiator Valve
+                    else if ( sensor->modelId().endsWith(QLatin1String("kud7u2l")) ||
+                              sensor->modelId().endsWith(QLatin1String("eaxp72v")) ||
+                              sensor->modelId().endsWith(QLatin1String("fvq6avy")) ||
+                              sensor->modelId().endsWith(QLatin1String("88teujp")) ) // Tuya Smart TRV HY369 Thermostatic Radiator Valve
                     {
                         QByteArray data;
                         QString modeSet = map[pi.key()].toString();
@@ -1449,13 +1442,11 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
                 }
-                else if ((rid.suffix == RConfigPreset) && (sensor->modelId().startsWith(QLatin1String("kud7u2l")) ||
-                                                           sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
-                                                           sensor->modelId().startsWith(QLatin1String("88teujp")) ||
-                                                           sensor->modelId().startsWith(QLatin1String("fvq6avy")) ||
-                                                           sensor->modelId().startsWith(QLatin1String("eaxp72v")) ||
-                                                          (sensor->manufacturer() == QLatin1String("_TZE200_c88teujp")) ||
-                                                          (sensor->manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ))
+                else if ((rid.suffix == RConfigPreset) && (sensor->modelId().endsWith(QLatin1String("kud7u2l")) ||
+                                                           sensor->modelId().endsWith(QLatin1String("GbxAXL2")) ||
+                                                           sensor->modelId().endsWith(QLatin1String("fvq6avy")) ||
+                                                           sensor->modelId().endsWith(QLatin1String("eaxp72v")) ||
+                                                           sensor->modelId().endsWith(QLatin1String("88teujp")) ))
                 {
                     QByteArray data;
                     QString presetSet = map[pi.key()].toString();
@@ -1500,15 +1491,14 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     if (map[pi.key()].type() == QVariant::Bool)
                     {
-                        if (sensor->modelId().startsWith(QLatin1String("kud7u2l")) ||
-                            sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
-                            sensor->modelId().startsWith(QLatin1String("fvq6avy")) ||
-                            sensor->modelId().startsWith(QLatin1String("eaxp72v")) ||
-                            sensor->modelId().startsWith(QLatin1String("88teujp")) ||
-                            sensor->manufacturer() == QLatin1String("_TYST11_zuhszj9s") ||
-                           (sensor->manufacturer() == QLatin1String("_TZE200_c88teujp")) ||
-                           (sensor->manufacturer() == QLatin1String("_TZE200_aoclfnxz")) ||
-                           (sensor->manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )
+                        if (sensor->manufacturer().endsWith(QLatin1String("GbxAXL2")) ||
+                            sensor->manufacturer().endsWith(QLatin1String("fvq6avy")) ||
+                            sensor->manufacturer().endsWith(QLatin1String("eaxp72v")) ||
+                            sensor->manufacturer().endsWith(QLatin1String("88teujp")) ||
+                            sensor->manufacturer().endsWith(QLatin1String("uhszj9s")) ||
+                            sensor->manufacturer().endsWith(QLatin1String("88teujp")) ||
+                            sensor->manufacturer().endsWith(QLatin1String("oclfnxz")) ||
+                            sensor->manufacturer().endsWith(QLatin1String("kud7u2l")) ) )
                         {
                             QByteArray data = QByteArray("\x00", 1);
                             if (map[pi.key()].toBool())
@@ -1703,14 +1693,13 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         return REQ_READY_SEND;
                     }
                 }
-                else if ((rid.suffix == RConfigWindowOpen) && (sensor->modelId().startsWith(QLatin1String("kud7u2l")) ||
-                                                           sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
-                                                           sensor->modelId().startsWith(QLatin1String("fvq6avy")) ||
-                                                           sensor->modelId().startsWith(QLatin1String("88teujp")) ||
-                                                           sensor->modelId().startsWith(QLatin1String("eaxp72v")) ||
-                                                           sensor->manufacturer() == QLatin1String("_TYST11_zuhszj9s") ||
-                                                          (sensor->manufacturer() == QLatin1String("_TZE200_c88teujp")) ||
-                                                          (sensor->manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ) )
+                else if ((rid.suffix == RConfigWindowOpen) && (sensor->manufacturer().endsWith(QLatin1String("kud7u2l"))||
+                                                               sensor->manufacturer().endsWith(QLatin1String("GbxAXL2")) ||
+                                                               sensor->manufacturer().endsWith(QLatin1String("fvq6avy")) ||
+                                                               sensor->manufacturer().endsWith(QLatin1String("88teujp")) ||
+                                                               sensor->manufacturer().endsWith(QLatin1String("eaxp72v")) ||
+                                                               sensor->manufacturer().endsWith(QLatin1String("uhszj9s")) ||
+                                                               sensor->manufacturer().endsWith(QLatin1String("88teujp"))  )
                 {
                     // Config on / off
                     if (map[pi.key()].type() == QVariant::Bool)
@@ -2076,12 +2065,11 @@ int DeRestPluginPrivate::changeThermostatSchedule(const ApiRequest &req, ApiResp
     task.req.setSrcEndpoint(getSrcEndpoint(sensor, task.req));
     task.req.setDstAddressMode(deCONZ::ApsExtAddress);
     
-    if ((sensor->modelId() == QLatin1String("kud7u2l")) ||
-        (sensor->modelId() == QLatin1String("eaxp72v")) ||
-        (sensor->modelId() == QLatin1String("88teujp")) ||
-        (sensor->modelId() == QLatin1String("fvq6avy")) ||
-        (sensor->manufacturer() == QLatin1String("_TZE200_c88teujp")) ||
-        (sensor->modelId() == QLatin1String("GbxAXL2")) )
+    if ( sensor->manufacturer().endsWith(QLatin1String("kud7u2l")) ||
+         sensor->manufacturer().endsWith(QLatin1String("eaxp72v")) ||
+         sensor->manufacturer().endsWith(QLatin1String("88teujp")) ||
+         sensor->manufacturer().endsWith(QLatin1String("fvq6avy")) ||
+         sensor->manufacturer().endsWith(QLatin1String("GbxAXL2")) )
     {
         ok2 = SendTuyaRequestThermostatSetWeeklySchedule(task, weekdays , transitions , 0x70 );
     }

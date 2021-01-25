@@ -3539,69 +3539,62 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 if (sensor.modelId().startsWith(QLatin1String("SLR2")) ||   // Hive
                     sensor.modelId() == QLatin1String("SLR1b") ||           // Hive
                     sensor.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
-                    sensor.modelId() == QLatin1String("GbxAXL2") ||         // Tuya
-                    sensor.modelId() == QLatin1String("88teujp") ||         // Tuya
-                    sensor.modelId() == QLatin1String("kud7u2l") ||         // Tuya
                     sensor.modelId() == QLatin1String("902010/32") ||       // Bitron
-                    sensor.manufacturer() == QLatin1String("_TYST11_zuhszj9s") ||         // Tuya
-                   (sensor.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ||          // Tuya
-                   (sensor.manufacturer() == QLatin1String("_TZE200_aoclfnxz")))            // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("GbxAXL2")) ||         // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("88teujp")) ||         // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("kud7u2l")) ||         // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("uhszj9s")) ||         // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("oclfnxz")) )          // Tuya
                 {
                     sensor.addItem(DataTypeString, RConfigMode);
                 }
 
-                if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya
-                    sensor.modelId() == QLatin1String("GbxAXL2") || // Tuya
-                    sensor.modelId() == QLatin1String("88teujp") || // Tuya
-                    sensor.manufacturer() == QLatin1String("_TYST11_zuhszj9s") || // Tuya
-                   (sensor.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
+                if (sensor.manufacturer().endsWith(QLatin1String("kud7u2l")) || // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("GbxAXL2")) || // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("88teujp")) || // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("uhszj9s")) )   // Tuya
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
                     sensor.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
                 }
 
-                if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya
-                    sensor.modelId() == QLatin1String("eaxp72v") || // Tuya
-                    sensor.modelId() == QLatin1String("fvq6avy") || // Tuya
-                    sensor.modelId() == QLatin1String("88teujp") || // Tuya
-                    sensor.manufacturer() == QLatin1String("_TYST11_zuhszj9s") || // Tuya
-                   (sensor.manufacturer() == QLatin1String("_TZE200_c88teujp")) ||  // Tuya
-                   (sensor.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ||  // Tuya
-                   (sensor.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) )   // Tuya
+                if (sensor.manufacturer().endsWith(QLatin1String("kud7u2l"))  || // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("eaxp72v")) || // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("fvq6avy")) || // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("88teujp")) || // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("uhszj9s")) || // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("oclfnxz")) )   // Tuya
                 {
                     sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                 }
 
-                if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya
-                    sensor.modelId() == QLatin1String("eaxp72v") || // Tuya
-                    sensor.modelId() == QLatin1String("fvq6avy") || // Tuya
-                    sensor.modelId() == QLatin1String("88teujp") || // Tuya
-                   (sensor.manufacturer() == QLatin1String("_TZE200_c88teujp")) ||  // Tuya
-                   (sensor.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ||  // Tuya
-                   (sensor.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) )   // Tuya
+                if (sensor.manufacturer().endsWith(QLatin1String("kud7u2l")) || // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("eaxp72v")) || // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("fvq6avy")) || // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("88teujp")) || // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("88teujp")) ||  // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("oclfnxz")) )   // Tuya
                 {
                     sensor.addItem(DataTypeString, RConfigPreset);
                     sensor.addItem(DataTypeBool, RConfigSetValve)->setValue(false);
                 }
 
-                if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya
-                    sensor.modelId() == QLatin1String("fvq6avy") || // Tuya
-                    sensor.modelId() == QLatin1String("88teujp") || // Tuya
-                    sensor.manufacturer() == QLatin1String("_TYST11_zuhszj9s") || // Tuya
-                   (sensor.manufacturer() == QLatin1String("_TZE200_c88teujp")) ||  // Tuya
-                   (sensor.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ||  // Tuya
-                   (sensor.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) )   // Tuya
+                if (sensor.manufacturer().endsWith(QLatin1String("kud7u2l"))  || // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("fvq6avy")) ||  // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("88teujp")) ||  // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("uhszj9s")) ||  // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("88teujp")) ||  // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("oclfnxz")) )   // Tuya
                 {
                     sensor.addItem(DataTypeString, RConfigSchedule);
                 }
 
-                if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya
-                    sensor.modelId() == QLatin1String("eaxp72v") || // Tuya
-                    sensor.modelId() == QLatin1String("88teujp") || // Tuya
-                    sensor.modelId() == QLatin1String("fvq6avy") || // Tuya
-                    sensor.manufacturer() == QLatin1String("_TYST11_zuhszj9s") || // Tuya
-                   (sensor.manufacturer() == QLatin1String("_TZE200_c88teujp")) ||  // Tuya
-                   (sensor.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
+                if (sensor.manufacturer().endsWith(QLatin1String("kud7u2l"))  || // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("eaxp72v")) ||  // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("88teujp")) ||  // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("fvq6avy")) ||  // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("uhszj9s")) ||  // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("88teujp")) )   // Tuya
                 {
                     sensor.addItem(DataTypeBool, RConfigWindowOpen)->setValue(false);
                 }

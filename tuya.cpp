@@ -246,7 +246,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 case 0x0071: // holiday = Not working day (6)
                 {
                     part = 1;
-                    listday << 003;
+                    listday << 3;
                     length = length / 3;
                 }
                 break;
@@ -266,9 +266,16 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 case 0x0080: // Friday
                 case 0x0081: // Saturday
                 {
-                    int t[8] = {1,64,32,46,8,4,2};
+                    const std::array<int, 7> t = {1,64,32,46,8,4,2};
                     part = 1;
-                    listday << t[dp-123];
+                    
+                    if (dp < 0x007B || (dp - 0x007B) >= t.size())
+                    {
+                        DPG_Printf(DBG_INFO, "Tuya unsupported daily schedule dp value: 0x%04X\n", dp);
+                        return; // bail out early
+                    }
+                    
+                    listday << t[dp - 0x007B];
                     
                     length = (length - 1) / 2;
                     
@@ -292,9 +299,9 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     {
                         stream >> minut16;
                         stream >> heatSetpoint16;
-                        hour = (quint8) ((minut16 / 60) & 0xff);
-                        minut = (quint8) ((minut16 - 60 * hour) & 0xff);
-                        heatSetpoint = (quint8) ((heatSetpoint16 / 10) & 0xff);
+                        hour = static_cast<quint8>((minut16 / 60) & 0xff);
+                        minut = static_cast<quint8>((minut16 - 60 * hour) & 0xff);
+                        heatSetpoint = static_cast<quint8>((heatSetpoint16 / 10) & 0xff);
                     }
                     else
                     {
@@ -1034,7 +1041,7 @@ bool DeRestPluginPrivate::SendTuyaRequest(TaskItem &taskRef, TaskType taskType ,
     stream << (qint8) data.length(); // length (can be 0 for Dp_identifier = enums)
     for (int i = 0; i < data.length(); i++)
     {
-        stream << (quint8) data[i];
+        stream << static_cast<quint8>(data[i]);
     }
 
     { // ZCL frame
@@ -1058,7 +1065,7 @@ bool DeRestPluginPrivate::SendTuyaRequest(TaskItem &taskRef, TaskType taskType ,
     return true;
 }
 
-bool DeRestPluginPrivate::SendTuyaCommand( const deCONZ::ApsDataIndication &ind, qint8 command, QByteArray data )
+bool DeRestPluginPrivate::SendTuyaCommand(const deCONZ::ApsDataIndication &ind, qint8 command, QByteArray data)
 {
     DBG_Printf(DBG_INFO, "Send Tuya Command 0x%02X Data: %s\n", command , qPrintable(data.toHex()));
 
@@ -1069,9 +1076,8 @@ bool DeRestPluginPrivate::SendTuyaCommand( const deCONZ::ApsDataIndication &ind,
     
     task.req.dstAddress() = ind.srcAddress();
     task.req.setDstAddressMode(deCONZ::ApsExtAddress);
-    task.req.setDstEndpoint(ind.srcEndpoint() );
-    task.req.setSrcEndpoint( endpoint() );
-    task.req.setDstEndpoint(ind.srcEndpoint() );
+    task.req.setDstEndpoint(ind.srcEndpoint());
+    task.req.setSrcEndpoint(endpoint());
     task.req.setClusterId(TUYA_CLUSTER_ID);
     task.req.setProfileId(HA_PROFILE_ID);
 
@@ -1106,7 +1112,7 @@ bool DeRestPluginPrivate::SendTuyaCommand( const deCONZ::ApsDataIndication &ind,
     }
     else
     {
-        DBG_Printf(DBG_INFO, "Tuya debug 7");
+        DBG_Printf(DBG_INFO, "Failed to send Tuya command 0x%02X data: %s\n", command, qPrintable(data.toHex()));
         return false;
     }
 
