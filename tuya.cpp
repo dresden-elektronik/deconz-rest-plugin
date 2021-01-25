@@ -909,16 +909,13 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             DeRestPluginPrivate::getTime(&time_now, &time_zone, &time_dst_start, &time_dst_end, &time_dst_shift, &time_std_time, &time_local_time);
 
             QByteArray data;
-            // Add UTC time
-            data.append((qint8)((time_now >> 24) & 0xff));
-            data.append((qint8)((time_now >> 16) & 0xff));
-            data.append((qint8)((time_now >> 8) & 0xff));
-            data.append((qint8)(time_now & 0xff));
+            QDataStream stream2(&data, QIODevice::WriteOnly);
+            stream2.setByteOrder(QDataStream::LittleEndian);
+
+             // Add UTC time
+            stream << timeNow;
             // Ad local time
-            data.append((qint8)((time_local_time >> 24) & 0xff));
-            data.append((qint8)((time_local_time >> 16) & 0xff));
-            data.append((qint8)((time_local_time >> 8) & 0xff));
-            data.append((qint8)(time_local_time & 0xff));
+            stream << timeLocalTime;
 
             SendTuyaCommand( ind, 0x24, data );
 

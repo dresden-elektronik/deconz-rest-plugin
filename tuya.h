@@ -27,6 +27,15 @@
 #define DP_TYPE_ENUM 0x04
 #define DP_TYPE_FAULT 0x05
 
+// Value for dp_identifier
+//-------------------
+#define DP_IDENTIFIER_WINDOW_OPEN 0x12
+#define DP_IDENTIFIER_WINDOW_OPEN2 0x08
+#define DP_IDENTIFIER_THERMOSTAT_SCHEDULE_1 0x65 // Moe thermostat W124 (4) + W002 (4) + W001 (4)
+#define DP_IDENTIFIER_THERMOSTAT_SCHEDULE_2 0x70 // work days (6)
+#define DP_IDENTIFIER_THERMOSTAT_SCHEDULE_3 0x71 // holiday = Not working day (6)
+#define DP_IDENTIFIER_THERMOSTAT_SCHEDULE_4 0x6D // Not finished
+
 bool isTuyaManufacturerName(const QString &manufacturer);
 bool UseTuyaCluster(const QString &manufacturer);
 

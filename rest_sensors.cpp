@@ -1710,14 +1710,14 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             data = QByteArray("\x01", 1);
                         }
 
-                        qint8 dp = 0x12;
+                        qint8 dp_identifier = DP_IDENTIFIER_WINDOW_OPEN;
 
                         if (sensor->manufacturer() == QLatin1String("_TYST11_zuhszj9s"))
                         {
-                            dp = 0x08;
+                            dp_identifier = DP_IDENTIFIER_WINDOW_OPEN2;
                         }
 
-                        if (SendTuyaRequest(task, TaskThermostat , DP_TYPE_BOOL, dp, data))
+                        if (SendTuyaRequest(task, TaskThermostat , DP_TYPE_BOOL, dp_identifier, data))
                         {
                             updated = true;
                         }
@@ -2071,15 +2071,15 @@ int DeRestPluginPrivate::changeThermostatSchedule(const ApiRequest &req, ApiResp
          sensor->manufacturer().endsWith(QLatin1String("fvq6avy")) ||
          sensor->manufacturer().endsWith(QLatin1String("GbxAXL2")) )
     {
-        ok2 = SendTuyaRequestThermostatSetWeeklySchedule(task, weekdays , transitions , 0x70 );
+        ok2 = SendTuyaRequestThermostatSetWeeklySchedule(task, weekdays , transitions , DP_IDENTIFIER_THERMOSTAT_SCHEDULE_2 );
     }
     else if (sensor->manufacturer() == QLatin1String("_TZE200_aoclfnxz"))
     {
-        ok2 = SendTuyaRequestThermostatSetWeeklySchedule(task, weekdays , transitions , 0x65 );
+        ok2 = SendTuyaRequestThermostatSetWeeklySchedule(task, weekdays , transitions , DP_IDENTIFIER_THERMOSTAT_SCHEDULE_1 );
     }
     else if (sensor->manufacturer() == QLatin1String("_TYST11_zuhszj9s"))
     {
-        ok2 = SendTuyaRequestThermostatSetWeeklySchedule(task, weekdays , transitions , 0x6D );
+        ok2 = SendTuyaRequestThermostatSetWeeklySchedule(task, weekdays , transitions , DP_IDENTIFIER_THERMOSTAT_SCHEDULE_4 );
     }
     else
     {
