@@ -1495,11 +1495,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         if (sensor->manufacturer().endsWith(QLatin1String("GbxAXL2")) ||
                             sensor->manufacturer().endsWith(QLatin1String("fvq6avy")) ||
                             sensor->manufacturer().endsWith(QLatin1String("eaxp72v")) ||
-                            sensor->manufacturer().endsWith(QLatin1String("88teujp")) ||
                             sensor->manufacturer().endsWith(QLatin1String("uhszj9s")) ||
                             sensor->manufacturer().endsWith(QLatin1String("88teujp")) ||
                             sensor->manufacturer().endsWith(QLatin1String("oclfnxz")) ||
-                            sensor->manufacturer().endsWith(QLatin1String("kud7u2l")) ) )
+                            sensor->manufacturer().endsWith(QLatin1String("kud7u2l")) )
                         {
                             QByteArray data = QByteArray("\x00", 1);
                             if (map[pi.key()].toBool())
