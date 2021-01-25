@@ -1005,6 +1005,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                sensor->manufacturer().endsWith(QLatin1String("eaxp72v")) ||
                                sensor->manufacturer().endsWith(QLatin1String("fvq6avy")) ||
                                sensor->manufacturer().endsWith(QLatin1String("88teujp")) ) )
+                    {
                         QByteArray data;
                         if (offset > 90) { offset = 90; }
                         if (offset < -90) { offset = -90; }
