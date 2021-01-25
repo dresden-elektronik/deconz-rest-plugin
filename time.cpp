@@ -33,7 +33,7 @@ void DeRestPluginPrivate::getTime(quint32 *time, qint32 *tz, quint32 *dstStart, 
     
     QDateTime epoch = J2000_epoch;
 
-    if ( mode == 1)
+    if ( mode == UNIX_EPOCH)
     {
         epoch = Unix_epoch;
     }

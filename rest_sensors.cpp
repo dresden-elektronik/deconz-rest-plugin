@@ -1632,7 +1632,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             data = QByteArray("\x01", 1);
                         }
 
-                        if (SendTuyaRequest(task, TaskThermostat , DP_TYPE_BOOL, 0x14, data))
+                        if (SendTuyaRequest(task, TaskThermostat , DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_VALVE , data))
                         {
                             updated = true;
                         }
