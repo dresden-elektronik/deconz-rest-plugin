@@ -1156,13 +1156,13 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         heatsetpoint = heatsetpoint / 10;
                         QByteArray data = QByteArray("\x00\x00",2);
 
-                        qint8 dp = 0x02;
+                        qint8 dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT;
 
                         if (sensor->manufacturer().endsWith(QLatin1String("GbxAXL2")) ||
                             sensor->manufacturer().endsWith(QLatin1String("uhszj9s")) ||
                             sensor->manufacturer().endsWith(QLatin1String("88teujp")) )
                         {
-                            dp = 0x67;
+                            dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_2;
                         }
                         if (sensor->manufacturer() == QLatin1String("_TZE200_aoclfnxz"))
                         {

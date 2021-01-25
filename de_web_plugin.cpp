@@ -2159,7 +2159,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         {
             if (manufacturer.isEmpty())
             {
-                DBG_Printf(DBG_INFO, "Tuya debug 7 : Missing manufacture name for 0x%016llx\n", node->address().ext());
+                DBG_Printf(DBG_INFO_L2, "Tuya debug 7 : Missing manufacture name for 0x%016llx\n", node->address().ext());
 
                 //searching in DB
                 openDb();
@@ -2178,7 +2178,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
 				if (manufacturer.isEmpty())
 				{
-					DBG_Printf(DBG_INFO, "Tuya debug 7 : Missing manufacture name, till missing in DB.\n");
+					DBG_Printf(DBG_INFO_L2, "Tuya debug 7 : Missing manufacture name, till missing in DB.\n");
 				}
             }
             if (!manufacturer.isEmpty())
