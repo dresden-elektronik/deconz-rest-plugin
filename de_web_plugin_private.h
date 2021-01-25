@@ -213,6 +213,7 @@ using namespace deCONZ::literals;
 #define VENDOR_CLUSTER_ID                     0xFC00
 #define UBISYS_DEVICE_SETUP_CLUSTER_ID        0xFC00
 #define SAMJIN_CLUSTER_ID                     0xFC02
+#define SENGLED_CLUSTER_ID                    0xFC10
 #define LEGRAND_CONTROL_CLUSTER_ID            0xFC40
 #define XAL_CLUSTER_ID                        0xFCCE
 #define BOSCH_AIR_QUALITY_CLUSTER_ID          quint16(0xFDEF)

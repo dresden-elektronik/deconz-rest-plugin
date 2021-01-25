@@ -4625,6 +4625,13 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     }
 
                 }
+                else if (ind.clusterId() == SENGLED_CLUSTER_ID)
+                {
+                    if (buttonMap.zclParam0 != pl0)
+                    {
+                        ok = false;
+                    }
+                }
 
                 if (ok && buttonMap.button != 0)
                 {

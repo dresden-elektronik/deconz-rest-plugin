@@ -51,7 +51,8 @@
         "WINDOW_COVERING": 258,
         "COLOR_CONTROL": 768,
         "IAS_ZONE": 1280,
-        "IAS_ACE": 1281
+        "IAS_ACE": 1281,
+        "SENGLED": 64528
 	},
 	"commands": {
         "DOOR_LOCK": {
@@ -112,6 +113,9 @@
         },
         "MULTISTATE_INPUT": {
             "ATTRIBUTE_REPORT": 10
+        },
+        "SENGLED": {
+            "CLICK": 0
         }
 	},
 	"maps": {
@@ -1223,6 +1227,21 @@
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_4", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"]
             ]
 
+        },
+        "sengledMap": {
+            "vendor": "sengled",
+            "doc": "Sengled Smart Light Switch E1E-G7F",
+            "modelids": ["E1E-G7F"],
+            "map": [
+                [1, "0x01", "SENGLED", "CLICK", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
+                [1, "0x01", "SENGLED", "CLICK", "2", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "DimUp Press"],
+                [1, "0x01", "SENGLED", "CLICK", "3", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "DimDown Press"],
+                [1, "0x01", "SENGLED", "CLICK", "4", "S_BUTTON_4", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
+                [1, "0x01", "SENGLED", "CLICK", "5", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "On (0)"],
+                [1, "0x01", "SENGLED", "CLICK", "6", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "On (1)"],
+                [1, "0x01", "SENGLED", "CLICK", "7", "S_BUTTON_4", "S_BUTTON_ACTION_DOUBLE_PRESS", "Off (0)"],
+                [1, "0x01", "SENGLED", "CLICK", "8", "S_BUTTON_4", "S_BUTTON_ACTION_HOLD", "Off (1)"]
+            ]
         }
     }
 }
