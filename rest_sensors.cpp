@@ -1693,13 +1693,13 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         return REQ_READY_SEND;
                     }
                 }
-                else if ((rid.suffix == RConfigWindowOpen) && (sensor->manufacturer().endsWith(QLatin1String("kud7u2l"))||
+                else if ((rid.suffix == RConfigWindowOpen) && (sensor->manufacturer().endsWith(QLatin1String("kud7u2l")) ||
                                                                sensor->manufacturer().endsWith(QLatin1String("GbxAXL2")) ||
                                                                sensor->manufacturer().endsWith(QLatin1String("fvq6avy")) ||
                                                                sensor->manufacturer().endsWith(QLatin1String("88teujp")) ||
                                                                sensor->manufacturer().endsWith(QLatin1String("eaxp72v")) ||
                                                                sensor->manufacturer().endsWith(QLatin1String("uhszj9s")) ||
-                                                               sensor->manufacturer().endsWith(QLatin1String("88teujp"))  )
+                                                               sensor->manufacturer().endsWith(QLatin1String("88teujp"))  ) )
                 {
                     // Config on / off
                     if (map[pi.key()].type() == QVariant::Bool)

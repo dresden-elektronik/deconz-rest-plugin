@@ -269,9 +269,9 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     const std::array<int, 7> t = {1,64,32,46,8,4,2};
                     part = 1;
                     
-                    if (dp < 0x007B || (dp - 0x007B) >= t.size())
+                    if (dp < 0x007B || (dp - 0x007B) >= static_cast<int>(t.size()))
                     {
-                        DPG_Printf(DBG_INFO, "Tuya unsupported daily schedule dp value: 0x%04X\n", dp);
+                        DBG_Printf(DBG_INFO, "Tuya unsupported daily schedule dp value: 0x%04X\n", dp);
                         return; // bail out early
                     }
                     
@@ -913,9 +913,9 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             stream2.setByteOrder(QDataStream::LittleEndian);
 
              // Add UTC time
-            stream << timeNow;
+            stream << time_now;
             // Ad local time
-            stream << timeLocalTime;
+            stream << time_local_time;
 
             SendTuyaCommand( ind, 0x24, data );
 
