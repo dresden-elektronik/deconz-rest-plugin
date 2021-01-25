@@ -4,7 +4,6 @@
  * Implementation of Tuya cluster.
  *
  */
-#include <QTimeZone>
 
 #include <regex>
 #include "de_web_plugin.h"
@@ -58,6 +57,22 @@
 // -------------------------
 // 0x03     Presence detection (with 0x04)
 // 0x65     Water leak (with 0x01)
+
+// List of tuya command
+// ---------------------
+// Cmd ID       Description
+// 0x01        Product Information Inquiry / Reporting
+// 0x02        Device Status Query / Report
+// 0x03        Zigbee Device Reset
+// 0x04        Order Issuance
+// 0x05        Status Report
+// 0x06        Status Search
+// 0x07        reserved
+// 0x08        Zigbee Device Functional Test
+// 0x09        Query key information (only scene switch devices are valid)
+// 0x0A        Scene wakeup command (only scene switch device is valid)
+// 0x0A-0x23   reserved
+// 0x24        Time synchronization
 
 //******************************************************************************************
 
@@ -131,18 +146,20 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
     {
         return;
     }
+    
+    // DBG_Printf(DBG_INFO, "Tuya debug 4 : Address 0x%016llX , Command 0x%02X, Payload %s\n" , ind.srcAddress().ext(), zclFrame.commandId() , qPrintable(zclFrame.payload().toHex()));
 
-    if (zclFrame.commandId() == 0x00)
+    if (zclFrame.commandId() == TUYA_REQUEST)
     {
         // 0x00 : Used to send command, so not used here
     }
-    else if ( (zclFrame.commandId() == 0x01) || (zclFrame.commandId() == 0x02) )
+    else if ( (zclFrame.commandId() == TUYA_REPORTING) || (zclFrame.commandId() == TUYA_QUERY) )
     {
         // 0x01 Used to inform of changes in its state.
         // 0x02 Send after receiving a 0x00 command.
         
         // Send default response
-        if ( zclFrame.commandId() == 0x01 && !(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
+        if ( zclFrame.commandId() == TUYA_REPORTING && !(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
         {
             sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
         }
@@ -702,9 +719,9 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 case 0x0266: // min temperature limit
                 {
                     //Can be Temperature for some device
-                    if (sensorNode->modelId() == QLatin1String("GbxAXL2") ||
-                        sensorNode->manufacturer() == QLatin1String("_TYST11_zuhszj9s") ||
-                        sensorNode->modelId() == QLatin1String("88teujp") )
+                    if (sensorNode->manufacturer().endsWith(QLatin1String("GbxAXL2")) ||
+                        sensorNode->manufacturer().endsWith(QLatin1String("uhszj9s")) ||
+                        sensorNode->manufacturer().endsWith(QLatin1String("88teujp")) )
                     {
                         qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
                         ResourceItem *item = sensorNode->item(RStateTemperature);
@@ -722,9 +739,9 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 case 0x0267: // max temperature limit
                 {
                     //can be setpoint for some device
-                    if (sensorNode->modelId() == QLatin1String("GbxAXL2") ||
-                        sensorNode->manufacturer() == QLatin1String("_TYST11_zuhszj9s") ||
-                        sensorNode->modelId() == QLatin1String("88teujp") )
+                    if (sensorNode->manufacturer().endsWith(QLatin1String("GbxAXL2")) ||
+                        sensorNode->manufacturer().endsWith(QLatin1String("uhszj9s")) ||
+                        sensorNode->manufacturer().endsWith(QLatin1String("88teujp")) )
                     {
                         qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
                         ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
@@ -882,45 +899,50 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
     }
     // Time sync command
     //https://developer.tuya.com/en/docs/iot/device-development/embedded-software-development/mcu-development-access/zigbee-general-solution/tuya-zigbee-module-uart-communication-protocol
-    else if (zclFrame.commandId() == 0x24)
+    else if (zclFrame.commandId() == TUYA_TIME_SYNCHRONISATION)
     {
         DBG_Printf(DBG_INFO, "Tuya debug 1 : Time sync Request" );
-        
+
         QDataStream stream(zclFrame.payload());
         stream.setByteOrder(QDataStream::LittleEndian);
+
+        quint16 UnknowHeader;
+
+        stream >> UnknowHeader;
+
+        // This is disabled for the moment, need investigations
+        // It seem some device send a UnknowHeader = 0x0000
+        // it s always 0x0000 for device > gateway
+        // And always 0x0008 for gateway > device (0x0008 is the payload size)
+        //
+        //if (UnknowHeader == 0x0000)
+        //{
+        //}
+
+        quint32 time_now = 0xFFFFFFFF;              // id 0x0000 Time
+        qint32 time_zone = 0xFFFFFFFF;              // id 0x0002 TimeZone
+        quint32 time_dst_start = 0xFFFFFFFF;        // id 0x0003 DstStart
+        quint32 time_dst_end = 0xFFFFFFFF;          // id 0x0004 DstEnd
+        qint32 time_dst_shift = 0xFFFFFFFF;         // id 0x0005 DstShift
+        quint32 time_std_time = 0xFFFFFFFF;         // id 0x0006 StandardTime
+        quint32 time_local_time = 0xFFFFFFFF;       // id 0x0007 LocalTime
+
+        DeRestPluginPrivate::getTime(&time_now, &time_zone, &time_dst_start, &time_dst_end, &time_dst_shift, &time_std_time, &time_local_time, 1);
         
-        quint16 payloadSize;
+        QByteArray data;
+        QDataStream stream2(&data, QIODevice::WriteOnly);
+        stream2.setByteOrder(QDataStream::LittleEndian);
         
-        stream >> payloadSize; // Always 0 for device > gateway
-        //other data ore useless
-        if (payloadSize == 0)
-        {
-            
-            quint32 time_now = 0xFFFFFFFF;              // id 0x0000 Time
-            //qint8 time_status = 0x0D;                   // id 0x0001 TimeStatus Master|MasterZoneDst|Superseding
-            qint32 time_zone = 0xFFFFFFFF;              // id 0x0002 TimeZone
-            quint32 time_dst_start = 0xFFFFFFFF;        // id 0x0003 DstStart
-            quint32 time_dst_end = 0xFFFFFFFF;          // id 0x0004 DstEnd
-            qint32 time_dst_shift = 0xFFFFFFFF;         // id 0x0005 DstShift
-            quint32 time_std_time = 0xFFFFFFFF;         // id 0x0006 StandardTime
-            quint32 time_local_time = 0xFFFFFFFF;       // id 0x0007 LocalTime
-            //quint32 time_valid_until_time = 0xFFFFFFFF; // id 0x0009 ValidUntilTime
+        //Add the "magic value"
+        stream2 << UnknowHeader;
+         // Add UTC time
+        stream2 << time_now;
+        // Ad local time
+        stream2 << time_local_time;
 
-            DeRestPluginPrivate::getTime(&time_now, &time_zone, &time_dst_start, &time_dst_end, &time_dst_shift, &time_std_time, &time_local_time);
+        SendTuyaCommand( ind, TUYA_TIME_SYNCHRONISATION, data );
 
-            QByteArray data;
-            QDataStream stream2(&data, QIODevice::WriteOnly);
-            stream2.setByteOrder(QDataStream::LittleEndian);
-
-             // Add UTC time
-            stream << time_now;
-            // Ad local time
-            stream << time_local_time;
-
-            SendTuyaCommand( ind, 0x24, data );
-
-            return;
-        }
+        return;
     }
     else
     {
@@ -1067,10 +1089,10 @@ bool DeRestPluginPrivate::SendTuyaCommand(const deCONZ::ApsDataIndication &ind, 
     DBG_Printf(DBG_INFO, "Send Tuya Command 0x%02X Data: %s\n", command , qPrintable(data.toHex()));
 
     TaskItem task;
-    
+
     //Tuya task
     task.taskType = TaskTuyaRequest;
-    
+
     task.req.dstAddress() = ind.srcAddress();
     task.req.setDstAddressMode(deCONZ::ApsExtAddress);
     task.req.setDstEndpoint(ind.srcEndpoint());
@@ -1082,15 +1104,14 @@ bool DeRestPluginPrivate::SendTuyaCommand(const deCONZ::ApsDataIndication &ind, 
     task.zclFrame.setSequenceNumber(zclSeq++);
     task.zclFrame.setCommandId(command); // Command
     task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
-                             deCONZ::ZclFCDirectionServerToClient |
+                             deCONZ::ZclFCDirectionClientToServer |
                              deCONZ::ZclFCDisableDefaultResponse);
 
     // payload
     QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
     stream.setByteOrder(QDataStream::LittleEndian);
-    
+
     // Data
-    stream << (qint16) data.length(); // length always 8
     for (int i = 0; i < data.length(); i++)
     {
         stream << (quint8) data[i];
@@ -1116,4 +1137,4 @@ bool DeRestPluginPrivate::SendTuyaCommand(const deCONZ::ApsDataIndication &ind, 
     processTasks();
 
     return true;
-}
+} 

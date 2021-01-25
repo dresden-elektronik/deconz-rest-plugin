@@ -3572,7 +3572,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.manufacturer().endsWith(QLatin1String("eaxp72v")) || // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("fvq6avy")) || // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("88teujp")) || // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("88teujp")) ||  // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("uhszj9s")) || // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("oclfnxz")) )   // Tuya
                 {
                     sensor.addItem(DataTypeString, RConfigPreset);

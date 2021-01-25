@@ -455,6 +455,10 @@ using namespace deCONZ::literals;
 #define RECONNECT_CHECK_DELAY  5000
 #define RECONNECT_NOW          100
 
+//Epoch mode
+#define UNIX_EPOCH 0
+#define J2000_EPOCH 1
+
 extern const quint64 macPrefixMask;
 
 extern const quint64 celMacPrefix;
@@ -1222,7 +1226,7 @@ public:
     void initResetDeviceApi();
 
     //Time
-    void getTime(quint32 *time, qint32 *tz, quint32 *dstStart, quint32 *dstEnd, qint32 *dstShift, quint32 *standardTime, quint32 *localTime) const;
+    void getTime(quint32 *time, qint32 *tz, quint32 *dstStart, quint32 *dstEnd, qint32 *dstShift, quint32 *standardTime, quint32 *localTime, quint8 mode);
 
     //Timezone
     // std::string getTimezone();

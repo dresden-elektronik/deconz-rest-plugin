@@ -36,6 +36,13 @@
 #define DP_IDENTIFIER_THERMOSTAT_SCHEDULE_3 0x71 // holiday = Not working day (6)
 #define DP_IDENTIFIER_THERMOSTAT_SCHEDULE_4 0x6D // Not finished
 
+// Value for tuya command
+//-----------------------
+#define TUYA_REQUEST 0x01
+#define TUYA_REPORTING 0x01
+#define TUYA_QUERY 0x02
+#define TUYA_TIME_SYNCHRONISATION 0x24
+
 bool isTuyaManufacturerName(const QString &manufacturer);
 bool UseTuyaCluster(const QString &manufacturer);
 
