@@ -381,7 +381,7 @@ void DeRestPluginPrivate::initNetworkInfo()
                 QString mac = i->hardwareAddress().toLower();
                 gwMAC = mac;
                 if (gwLANBridgeId) {
-                    gwBridgeId = mac.mid(0,2) + mac.mid(3,2) + mac.mid(6,2) + "fffe" + mac.mid(9,2) + mac.mid(12,2) + mac.mid(15,2);
+                    gwBridgeId = (mac.mid(0,2) + mac.mid(3,2) + mac.mid(6,2) + "fffe" + mac.mid(9,2) + mac.mid(12,2) + mac.mid(15,2)).toUpper();
                     if (!gwConfig.contains("bridgeid") || gwConfig["bridgeid"] != gwBridgeId)
                     {
                         DBG_Printf(DBG_INFO, "Set bridgeid to %s\n", qPrintable(gwBridgeId));
@@ -1090,8 +1090,8 @@ void DeRestPluginPrivate::basicConfigToMap(const ApiRequest &req, QVariantMap &m
     else
     {
         map["modelid"] = QLatin1String("BSB002");
-        map["swversion"] = QLatin1String("1941132070");
-        map["apiversion"] = QLatin1String("1.41.0");
+        map["swversion"] = QLatin1String("1942135050");
+        map["apiversion"] = QLatin1String("1.42.0");
         map["datastoreversion"] = QLatin1String("98");
     }
     map["mac"] = gwMAC;
