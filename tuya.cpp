@@ -960,7 +960,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         }
         if (sensorNode)
         {
-            updateEtag(&*sensorNode);
+            updateSensorEtag(&*sensorNode);
 
             sensorNode->updateStateTimestamp();
             enqueueEvent(Event(RSensors, RStateLastUpdated, sensorNode->id()));
