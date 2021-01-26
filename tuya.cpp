@@ -927,7 +927,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         quint32 time_std_time = 0xFFFFFFFF;         // id 0x0006 StandardTime
         quint32 time_local_time = 0xFFFFFFFF;       // id 0x0007 LocalTime
 
-        DeRestPluginPrivate::getTime(&time_now, &time_zone, &time_dst_start, &time_dst_end, &time_dst_shift, &time_std_time, &time_local_time, 1);
+        DeRestPluginPrivate::getTime(&time_now, &time_zone, &time_dst_start, &time_dst_end, &time_dst_shift, &time_std_time, &time_local_time, UNIX_EPOCH);
         
         QByteArray data;
         QDataStream stream2(&data, QIODevice::WriteOnly);
@@ -960,11 +960,12 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         }
         if (sensorNode)
         {
-            // Update Node Sensor
-            //updateEtag(sensorNode->etag);
-            //updateEtag(gwConfigEtag);
-            //sensorNode->setNeedSaveDatabase(true);
-            //queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+            updateEtag(&*sensorNode);
+
+            sensorNode->updateStateTimestamp();
+            enqueueEvent(Event(RSensors, RStateLastUpdated, sensorNode->id()));
+
+            sensorNode->setNeedSaveDatabase(true);
         }
     }
 
@@ -1027,6 +1028,8 @@ bool DeRestPluginPrivate::SendTuyaRequest(TaskItem &taskRef, TaskType taskType ,
 {
 
     DBG_Printf(DBG_INFO, "Send Tuya Request: Dp_type: 0x%02X Dp_ identifier 0x%02X Data: %s\n", Dp_type, Dp_identifier , qPrintable(data.toHex()));
+    
+    const quint8 seq = zclSeq++;
 
     TaskItem task;
     copyTaskReq(taskRef, task);
@@ -1038,9 +1041,9 @@ bool DeRestPluginPrivate::SendTuyaRequest(TaskItem &taskRef, TaskType taskType ,
     task.req.setProfileId(HA_PROFILE_ID);
 
     task.zclFrame.payload().clear();
-    task.zclFrame.setSequenceNumber(zclSeq++);
+    task.zclFrame.setSequenceNumber(seq);
     task.zclFrame.setCommandId(0x00); // Command 0x00
-    task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand | deCONZ::ZclFCDirectionClientToServer);
+    task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand | deCONZ::ZclFCDirectionClientToServer | deCONZ::ZclFCDisableDefaultResponse);
 
     // payload
     QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
@@ -1048,8 +1051,8 @@ bool DeRestPluginPrivate::SendTuyaRequest(TaskItem &taskRef, TaskType taskType ,
 
     //Status always 0x00
     stream << (qint8) 0x00;
-    //TransID , use 0
-    stream << (qint8) 0x00;
+    //TransID , use seq
+    stream << (qint8) seq;
     //Dp_indentifier
     stream << (qint8) Dp_identifier;
     //Dp_type
@@ -1070,11 +1073,7 @@ bool DeRestPluginPrivate::SendTuyaRequest(TaskItem &taskRef, TaskType taskType ,
         task.zclFrame.writeToStream(stream);
     }
 
-    if (addTask(task))
-    {
-        taskToLocalData(task);
-    }
-    else
+    if (!addTask(task))
     {
         return false;
     }
@@ -1089,6 +1088,8 @@ bool DeRestPluginPrivate::SendTuyaCommand(const deCONZ::ApsDataIndication &ind, 
     DBG_Printf(DBG_INFO, "Send Tuya Command 0x%02X Data: %s\n", command , qPrintable(data.toHex()));
 
     TaskItem task;
+    
+    const quint8 seq = zclSeq++;
 
     //Tuya task
     task.taskType = TaskTuyaRequest;
@@ -1101,7 +1102,7 @@ bool DeRestPluginPrivate::SendTuyaCommand(const deCONZ::ApsDataIndication &ind, 
     task.req.setProfileId(HA_PROFILE_ID);
 
     task.zclFrame.payload().clear();
-    task.zclFrame.setSequenceNumber(zclSeq++);
+    task.zclFrame.setSequenceNumber(seq);
     task.zclFrame.setCommandId(command); // Command
     task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
                              deCONZ::ZclFCDirectionClientToServer |
@@ -1124,11 +1125,7 @@ bool DeRestPluginPrivate::SendTuyaCommand(const deCONZ::ApsDataIndication &ind, 
         task.zclFrame.writeToStream(stream);
     }
 
-    if (addTask(task))
-    {
-        taskToLocalData(task);
-    }
-    else
+    if (!addTask(task))
     {
         DBG_Printf(DBG_INFO, "Failed to send Tuya command 0x%02X data: %s\n", command, qPrintable(data.toHex()));
         return false;
