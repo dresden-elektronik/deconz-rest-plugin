@@ -22,6 +22,10 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 
+//Used somewhere else in the code
+const QDateTime epoch = QDateTime(QDate(2000, 1, 1), QTime(0, 0), Qt::UTC);
+
+// Used only localy
 const QDateTime J2000_epoch = QDateTime(QDate(2000, 1, 1), QTime(0, 0), Qt::UTC);
 const QDateTime Unix_epoch = QDateTime(QDate(1970, 1, 1), QTime(0, 0), Qt::UTC);
 
@@ -31,21 +35,21 @@ void DeRestPluginPrivate::getTime(quint32 *time, qint32 *tz, quint32 *dstStart, 
     QDateTime yearStart(QDate(QDate::currentDate().year(), 1, 1), QTime(0, 0), Qt::UTC);
     QTimeZone timeZone(QTimeZone::systemTimeZoneId());
     
-    QDateTime epoch = J2000_epoch;
+    QDateTime epoch2 = J2000_epoch;
 
     if ( mode == UNIX_EPOCH)
     {
-        epoch = Unix_epoch;
+        epoch2 = Unix_epoch;
     }
 
-    *time = *standardTime = *localTime = epoch.secsTo(now);
+    *time = *standardTime = *localTime = epoch2.secsTo(now);
     *tz = timeZone.offsetFromUtc(yearStart);
     if (timeZone.hasTransitions())
     {
         QTimeZone::OffsetData dstStartOffsetData = timeZone.nextTransition(yearStart);
         QTimeZone::OffsetData dstEndOffsetData = timeZone.nextTransition(dstStartOffsetData.atUtc);
-        *dstStart = epoch.secsTo(dstStartOffsetData.atUtc);
-        *dstEnd = epoch.secsTo(dstEndOffsetData.atUtc);
+        *dstStart = epoch2.secsTo(dstStartOffsetData.atUtc);
+        *dstEnd = epoch2.secsTo(dstEndOffsetData.atUtc);
         *dstShift = dstStartOffsetData.daylightTimeOffset;
         *standardTime += *tz;
         *localTime += *tz + ((*time >= *dstStart && *time <= *dstEnd) ? *dstShift : 0);
