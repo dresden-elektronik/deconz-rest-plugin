@@ -575,6 +575,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         if ((taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq")) ||
             (taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_xuzcvlku")) ||
             (taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_wmcdj3aq")) ||
+            (taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_nogaemzt")) ||
             (taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_zah67ekd")) || // MoesHouse / Livolo Roller Blinds
             (taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3")) )
         {
@@ -1561,6 +1562,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     if ((taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq")) ||
         (taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_xuzcvlku")) ||
         (taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_wmcdj3aq")) ||
+        (taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_nogaemzt")) ||
         (taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_zah67ekd")) || // MoesHouse / Livolo Roller Blinds
         (taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3")) )
     {
