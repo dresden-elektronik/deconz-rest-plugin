@@ -155,8 +155,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
     }
     else if ( (zclFrame.commandId() == TUYA_REPORTING) || (zclFrame.commandId() == TUYA_QUERY) )
     {
-        // 0x01 Used to inform of changes in its state.
-        // 0x02 Send after receiving a 0x00 command.
+        // 0x01 : TUYA_REPORTING > Used to inform of changes in its state.
+        // 0x02 : TUYA_QUERY > Send after receiving a 0x00 command.
         
         // Send default response
         if ( zclFrame.commandId() == TUYA_REPORTING && !(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))

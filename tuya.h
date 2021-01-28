@@ -55,7 +55,7 @@
 
 // Value for tuya command
 //-----------------------
-#define TUYA_REQUEST 0x01
+#define TUYA_REQUEST 0x00
 #define TUYA_REPORTING 0x01
 #define TUYA_QUERY 0x02
 #define TUYA_TIME_SYNCHRONISATION 0x24
