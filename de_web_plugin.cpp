@@ -455,7 +455,7 @@ static const lidlDevice lidlDevices[] = { // Sorted by zigbeeManufacturerName
     { "_TZ3000_oborybow", "TS0502A", "LIDL Livarno Lux", "HG06492B" }, // CT Light (E14)
     { "_TZ3000_odygigth", "TS0505A", "LIDL Livarno Lux", "HG06106B" }, // RGB Light (E14)
     { "_TZ3000_riwp3k79", "TS0505A", "LIDL Livarno Lux", "HG06104A" }, // LED Light Strip
-    // { "_TZE200_s8gkrkxk", "TS0601",  "LIDL Livarno Lux", "HG06467" }, // Smart LED String Lights (EU)
+    { "_TZE200_s8gkrkxk", "TS0601",  "LIDL Livarno Lux", "HG06467" }, // Smart LED String Lights (EU)
     { nullptr, nullptr, nullptr, nullptr }
 };
 
@@ -14705,10 +14705,10 @@ void DeRestPluginPrivate::handlePhilipsClusterIndication(const deCONZ::ApsDataIn
             {
                 button *= 1000;
                 button += event;
-                
+
                 DBG_Printf(DBG_INFO, "[INFO] - Button %u - %s endpoint: 0x%02X cluster: PHILIPS_SPECIFIC (0x%04X)\n", button,
                            qPrintable(sensorNode->modelId()), ind.srcEndpoint(), ind.clusterId());
-                
+
                 ResourceItem *item = sensorNode->item(RStateButtonEvent);
                 if (item)
                 {
