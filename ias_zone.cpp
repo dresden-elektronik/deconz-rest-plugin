@@ -688,7 +688,7 @@ void DeRestPluginPrivate::checkIasEnrollmentStatus(Sensor *sensor)
 
             if (dt > 5)
             {
-                DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX initiate unsoliticed enroll response after %d seconds delay.\n", sensor->address().ext(), (int)dt);
+                DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX initiate unsoliticed enroll response after %d seconds delay.\n", sensor->address().ext(), static_cast<int>(dt));
                 iasState = IAS_SetState(sensor, itemIasState, IAS_STATE_ENROLL);
             }
         }
@@ -752,12 +752,12 @@ void DeRestPluginPrivate::checkIasEnrollmentStatus(Sensor *sensor)
 
             if (dt > 8) // Wait up to 8 seconds, because next mac poll might take 7.x seconds until max transactions expires.
             {
-                DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX timeout after %d seconds, state: %d, retry...\n", sensor->address().ext(), (int)dt, iasState);
+                DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX timeout after %d seconds, state: %d, retry...\n", sensor->address().ext(), static_cast<int>(dt), iasState);
                 IAS_SetState(sensor, itemIasState, IAS_STATE_INIT);
             }
             else
             {
-                DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Sensor enrollment pending... since %d seconds.\n", sensor->address().ext(), (int)dt);
+                DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Sensor enrollment pending... since %d seconds.\n", sensor->address().ext(), static_cast<int>(dt));
             }
         }
     }
