@@ -77,6 +77,7 @@ using namespace deCONZ::literals;
 
 #define ERR_DEVICE_SCENES_TABLE_FULL   402 // de extension
 
+#define IDLE_TIMER_INTERVAL 1000
 #define IDLE_LIMIT 30
 #define IDLE_READ_LIMIT 120
 #define IDLE_USER_LIMIT 20
@@ -2033,6 +2034,7 @@ public:
     QTime queryTime;
     deCONZ::ApsController *apsCtrl;
     uint groupTaskNodeIter; // Iterates through nodes array
+    QElapsedTimer idleTimer;
     int idleTotalCounter; // sys timer
     int idleLimit;
     int idleUpdateZigBeeConf; //
