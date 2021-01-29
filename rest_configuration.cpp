@@ -1057,6 +1057,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     map["networkopenduration"] = gwNetworkOpenDuration;
     map["timeformat"] = gwTimeFormat;
     map["whitelist"] = whitelist;
+    map["lightlastseeninterval"] = gwLightLastSeenInterval;
     map["linkbutton"] = gwLinkButton;
     map["portalservices"] = false;
     map["websocketport"] = static_cast<double>(gwConfig["websocketport"].toUInt());
