@@ -247,6 +247,12 @@ extern const ResourceItemDescriptor rInvalidItemDescriptor;
 
 class ResourceItem
 {
+    enum ItemFlags
+    {
+        FlagNeedPushSet     = 0x1, // set after a value has been set
+        FlagNeedPushChange  = 0x2  // set when new value different than previous
+    };
+
 public:
     ResourceItem(const ResourceItem &other);
     ResourceItem(ResourceItem &&other);
@@ -254,6 +260,9 @@ public:
     ResourceItem &operator=(const ResourceItem &other);
     ResourceItem &operator=(ResourceItem &&other);
     ~ResourceItem();
+    bool needPushSet() const;
+    bool needPushChange() const;
+    void clearNeedPush();
     const QString &toString() const;
     qint64 toNumber() const;
     qint64 toNumberPrevious() const;
@@ -275,6 +284,7 @@ private:
     ResourceItem() = delete;
 
     bool m_isPublic = true;
+    quint16 m_flags = 0; // bitmap of ResourceItem::ItemFlags
     qint64 m_num = 0;
     qint64 m_numPrev = 0;
     QString *m_str = nullptr;
