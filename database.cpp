@@ -3544,6 +3544,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.manufacturer().endsWith(QLatin1String("88teujp")) ||         // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("kud7u2l")) ||         // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("uhszj9s")) ||         // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("w7cahqs")) ||         // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("oclfnxz")) )          // Tuya
                 {
                     sensor.addItem(DataTypeString, RConfigMode);
@@ -3552,17 +3553,19 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 if (sensor.manufacturer().endsWith(QLatin1String("kud7u2l")) || // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("GbxAXL2")) || // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("88teujp")) || // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("uhszj9s")) )   // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("w7cahqs")) || // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("uhszj9s")) )  // Tuya
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
                     sensor.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
                 }
 
                 if (sensor.manufacturer().endsWith(QLatin1String("kud7u2l"))  || // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("eaxp72v")) || // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("fvq6avy")) || // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("88teujp")) || // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("uhszj9s")) || // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("eaxp72v")) ||  // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("fvq6avy")) ||  // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("88teujp")) ||  // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("uhszj9s")) ||  // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("w7cahqs")) ||  // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("oclfnxz")) )   // Tuya
                 {
                     sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
@@ -3573,6 +3576,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.manufacturer().endsWith(QLatin1String("fvq6avy")) || // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("88teujp")) || // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("uhszj9s")) || // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("w7cahqs")) || // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("oclfnxz")) )   // Tuya
                 {
                     sensor.addItem(DataTypeString, RConfigPreset);
@@ -3583,6 +3587,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.manufacturer().endsWith(QLatin1String("fvq6avy")) ||  // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("88teujp")) ||  // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("uhszj9s")) ||  // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("w7cahqs")) ||  // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("88teujp")) ||  // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("oclfnxz")) )   // Tuya
                 {
@@ -3594,6 +3599,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.manufacturer().endsWith(QLatin1String("88teujp")) ||  // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("fvq6avy")) ||  // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("uhszj9s")) ||  // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("w7cahqs")) ||  // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("88teujp")) )   // Tuya
                 {
                     sensor.addItem(DataTypeBool, RConfigWindowOpen)->setValue(false);

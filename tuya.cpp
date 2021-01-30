@@ -151,7 +151,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
 
     if (zclFrame.commandId() == TUYA_REQUEST)
     {
-        // 0x00 : Used to send command, so not used here
+        // 0x00 : TUYA_REQUEST > Used to send command, so not used here
     }
     else if ( (zclFrame.commandId() == TUYA_REPORTING) || (zclFrame.commandId() == TUYA_QUERY) )
     {
