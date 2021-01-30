@@ -2221,7 +2221,8 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             }
             //Covering
             if ((lightNode.manufacturer() == QLatin1String("_TZE200_wmcdj3aq")) ||
-                (lightNode.manufacturer() == QLatin1String("_TZE200_xuzcvlku")) ) // Zemismart Chain Roller Shades Driver M515EGB (TS0601)
+                (lightNode.manufacturer() == QLatin1String("_TZE200_zah67ekd")) || // Device name Tuya AM43-0.45-40 Blind drive motor
+                (lightNode.manufacturer() == QLatin1String("_TZE200_xuzcvlku")) )  // Zemismart Chain Roller Shades Driver M515EGB (TS0601)
             {
                 hasServerOnOff = true;
             }
@@ -2552,6 +2553,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         if ((lightNode.manufacturer() == QString("_TYST11_xu1rkty3")) ||
             (lightNode.manufacturer() == QString("_TZE200_xuzcvlku")) ||
             (lightNode.manufacturer() == QString("_TZE200_wmcdj3aq")) ||
+            (lightNode.manufacturer() == QString("_TZE200_zah67ekd")) ||
             (lightNode.manufacturer() == QString("_TYST11_wmcdj3aq")) )
         {
             lightNode.addItem(DataTypeBool, RStateOpen);
