@@ -8622,8 +8622,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         updateSensorEtag(&*i);
                                     }
                                 }
-                                else if (i->modelId().startsWith(QLatin1String("lumi.plug")) ||
-                                         i->modelId().startsWith(QLatin1String("lumi.ctrl_")))
+                                else if ((i->modelId() == QLatin1String("lumi.plug.mmeu01") && event.endpoint() == 21) ||
+                                         (i->modelId() == QLatin1String("lumi.plug") && event.endpoint() == 2) ||
+                                         (i->modelId().startsWith(QLatin1String("lumi.ctrl_")) && event.endpoint() == 2) ||
+                                          i->modelId().startsWith(QLatin1String("lumi.relay.c")))
                                 {
                                     if (i->type() == QLatin1String("ZHAPower"))
                                     {
@@ -8640,9 +8642,14 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         }
                                         updateSensorEtag(&*i);
                                     }
-                                    else if (i->type() == QLatin1String("ZHAConsumption"))
+                                }
+                                else if ((i->modelId() == QLatin1String("lumi.plug.mmeu01") && event.endpoint() == 22) ||
+                                         ((i->modelId() == QLatin1String("lumi.plug") && event.endpoint() == 3)) ||
+                                         (i->modelId().startsWith(QLatin1String("lumi.ctrl_")) && event.endpoint() == 3))
+                                {
+                                    if (i->type() == QLatin1String("ZHAConsumption"))
                                     {
-                                        quint64 consumption = ia->numericValue().real * 1000;
+                                        quint64 consumption = round(ia->numericValue().real) * 1000;
                                         ResourceItem *item = i->item(RStateConsumption);
 
                                         if (item)
