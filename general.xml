@@ -221,7 +221,7 @@
 		<client>
 		</client>
 	</cluster>
-	<cluster id="0001" name="Power Configuration">
+	<cluster id="0x0001" name="Power Configuration">
 		<description>Attributes for determining more detailed information about a device’s power source(s), and for configuring under/over voltage alarms.</description>
 		<server>
 		<attribute-set id="0x0000" description="Mains Information">
@@ -339,7 +339,7 @@
 					</command>
 		</client>
 	</cluster>
-	<cluster id="0004" name="Groups">
+	<cluster id="0x0004" name="Groups">
 	<description>Attributes and commands for group configuration and manipulation.</description>
 		<server>
 			<attribute id="0000" name="Name Support" type="bmp8" range="x0000000" access="r" required="m">
@@ -418,7 +418,7 @@
 			</command>
 		</client>
 	</cluster>
-	<cluster id="0005" name="Scenes">
+	<cluster id="0x0005" name="Scenes">
 	<description>Attributes and commands for scene configuration and manipulation.</description>
 		<server>
 			<attribute id="0x0000" name="Scene Count" type="u8" range="0x00-0xff" access="r" required="m" showas="hex" default="0x00"></attribute>
@@ -547,7 +547,7 @@
 		<!-- TODO -->
 		</client>
 	</cluster>
-	<cluster id="0006" name="On/Off">
+	<cluster id="0x0006" name="On/Off">
 		<description>Attributes and commands for switching devices between 'On' and 'Off' states.</description>
 		<server>
         <attribute-set id="0x0000" description="OnOff state">
@@ -629,7 +629,7 @@
 		<client>
 		</client>
 	</cluster>
-	<cluster id="de06" name="RGB Color">
+	<cluster id="0xde06" name="RGB Color">
 		<description>Attributes and commands for setting devices light color. The color is specified in the RGB range from 0 - 255.</description>
 		<server>
 			<attribute id="0000" name="CurrentColorSet" type="u32" access="r" default="0" required="m" showas="hex">
@@ -820,7 +820,7 @@
 		<client>
 		</client>
 	</cluster>
-	<cluster id="000b" name="Location">
+	<cluster id="0x000b" name="Location">
         <description>Measure distance between devices.</description>
 		<server>
 			<command id="0x40" dir="recv" name="Distance measure" required="m" response="0x40" showas="hex">
@@ -918,7 +918,7 @@
         <client>
         </client>
     </cluster>
-	<cluster id="000e" name="Analog Value (Basic)">
+	<cluster id="0x000e" name="Analog Value (Basic)">
 	<description>An interface for setting an analog value, typically used as a control system parameter, and accessing various characteristics of that value.</description>
         <server>
             <attribute id="0x001c" name="Description" type="cstring" required="o" access="rw"></attribute>
@@ -950,7 +950,7 @@
         <client>
         </client>
 	</cluster>
-	<cluster id="000f" name="Binary Input (Basic)">
+	<cluster id="0x000f" name="Binary Input (Basic)">
 		<description>The Binary Input (Basic) cluster provides an interface for reading the value of a binary measurement and accessing various characteristics of that measurement. The cluster is typically used to implement a sensor that measures a two-state physical quantity.</description>
 		<server>
 			<attribute id="0x0004" name="Active Text" type="cstring" required="o" access="rw" default=""></attribute>
@@ -986,7 +986,7 @@
 		<client>
 		</client>
 	</cluster>
-	<cluster id="0010" name="Binary Output (Basic)">
+	<cluster id="0x0010" name="Binary Output (Basic)">
 	<description>The Binary Output (Basic) cluster provides an interface for setting the value of a binary output, and accessing various characteristics of that value.</description>
         <server>
             <attribute id="0x0004" name="Active Text" type="cstring" required="o" access="rw" default=""></attribute>
@@ -1028,7 +1028,7 @@
         <client>
         </client>
 	</cluster>
-	<cluster id="0011" name="Binary Value (Basic)">
+	<cluster id="0x0011" name="Binary Value (Basic)">
 	<description>The Binary Value (Basic) cluster provides an interface for setting a binary value, typically used as a control system parameter, and accessing various characteristics of that value.</description>
         <server>
             <attribute id="0x0004" name="Active Text" type="cstring" required="o" access="rw" default=""></attribute>
@@ -1094,7 +1094,7 @@
         <client>
         </client>
 	</cluster>
-	<cluster id="0013" name="Multistate Output (Basic)">
+	<cluster id="0x0013" name="Multistate Output (Basic)">
   	<description>The Multistate Output (Basic) cluster provides an interface for setting the value of an output that can take one of a number of discrete values, and accessing characteristics of that value.</description>
         <server>
             <attribute id="0x001c" name="Description" type="cstring" required="o" access="rw" default=""></attribute>
@@ -1126,7 +1126,7 @@
         <client>
         </client>
 	</cluster>
-	<cluster id="0014" name="Multistate Value (Basic)">
+	<cluster id="0x0014" name="Multistate Value (Basic)">
 	<description>The Multistate Value (Basic) cluster provides an interface for setting a multistate value, typically used as a control system parameter, and accessing characteristics of that value.</description>
         <server>
             <attribute id="0x001c" name="Description" type="cstring" required="o" access="rw" default=""></attribute>
@@ -1158,7 +1158,7 @@
         <client>
         </client>
 	</cluster>
-	<cluster id="0015" name="Commissioning">
+	<cluster id="0x0015" name="Commissioning">
 	<description>Attributes and commands for commissioning and managing a ZigBee device.</description>
 		<server>
 			<!-- TODO -->
@@ -1294,7 +1294,7 @@
 			</command>
 		</client>
 		</cluster>
-		<cluster id="0019" name="OTAU">
+		<cluster id="0x0019" name="OTAU">
 			<description>Over the air upgrade.</description>
 			<client>
 				<attribute id="0x0000" name="Upgrade server" type="uid" default="0" access="rw" required="m"></attribute>
@@ -1390,7 +1390,7 @@ by the Poll Control Cluster Client.</description>
 				</command>
 			</server>
 		</cluster>
-		<cluster id="0800" name="Key Establishment">
+		<cluster id="0x0800" name="Key Establishment">
 			<description></description>
 			<client></client>
 			<server></server>
@@ -1398,11 +1398,11 @@ by the Poll Control Cluster Client.</description>
 		</cluster>
 	</domain>
 	<domain name="Closures" low_bound="0100" high_bound="01ff" description="The closures functional domain contains clusters and information to build devices in the closure domain, e.g. shade controllers.">
-		<cluster id="0100" name="Shade Configuration">
+		<cluster id="0x0100" name="Shade Configuration">
 			<description></description>
 			<!-- TODO -->
 		</cluster>
-    <cluster id="0100" name="Shade Configuration">
+    <cluster id="0x0100" name="Shade Configuration">
       <description>The shade configuration cluster provides an interface for reading information about a shade, and configuring its open and closed limits.</description>
       <client>
       </client>
@@ -2061,7 +2061,7 @@ Note: It does not clear or delete previous weekly schedule programming configura
         </command>
 			</client>
 		</cluster>
-		<cluster id="0202" name="Fan Control">
+		<cluster id="0x0202" name="Fan Control">
 			<description>This cluster specifies an interface to control the speed of a fan as part of a heating / cooling system.</description>
 			<server>
 				<attribute id="0x0000" name="Fan Mode" type="enum8" access="rw" default="0x05" required="m">
@@ -2084,11 +2084,11 @@ Note: It does not clear or delete previous weekly schedule programming configura
 			<client>
 			</client>
 		</cluster>
-		<cluster id="0203" name="Dehumidification Control">
+		<cluster id="0x0203" name="Dehumidification Control">
 			<description>dfdf</description>
 			<!-- TODO -->
 		</cluster>
-		<cluster id="0204" name="Thermostat User Interface Configuration">
+		<cluster id="0x0204" name="Thermostat User Interface Configuration">
 			<description>This cluster provides an interface to allow configuration of the user interface for a thermostat, or a thermostat
 controller device, that supports a keypad and LCD screen.</description>
 			<server>
@@ -2128,7 +2128,7 @@ controller device, that supports a keypad and LCD screen.</description>
 	</cluster>
 	</domain>
 	<domain name="Lighting" low_bound="0300" high_bound="03ff" description="The lighting functional domain contains clusters and information to build devices in the lighting domain, e.g. ballast units.">
-	<cluster id="0300" name="Color control">
+	<cluster id="0x0300" name="Color control">
 		<description>Attributes and commands for controlling the color properties of a color-capable light.</description>
 		<server>
 			<attribute-set id="0x0000" description="Color Information">
@@ -3086,7 +3086,7 @@ controller device, that supports a keypad and LCD screen.</description>
 	<domain name="Protocol interfaces" low_bound="0600" high_bound="06ff" description="The protocol interfaces functional domain contains clusters and information to build devices to interface to other protocols, e.g. BACnet.">
 	</domain>
 	<domain name="Smart energy" low_bound="0700" high_bound="07ff" description="TODO Smart Energy Description">
-		<cluster id="0700" name="Price">
+		<cluster id="0x0700" name="Price">
 			<description>The Price Cluster provides the mechanism for communicating Gas, Energy, or Water pricing information within the premise. This pricing information is distributed to the ESP from either the utilities or from regional energy providers.</description>
 			<server>
 				<attribute id="0000" name="Tier1 Price Label" type="ostring" access="rw" required="o" range="0,12" default="Tier1"></attribute>
@@ -3113,7 +3113,7 @@ controller device, that supports a keypad and LCD screen.</description>
 			<!-- TODO -->
 			</client>
 		</cluster>
-		<cluster id="0701" name="Demand Response and Load Control">
+		<cluster id="0x0701" name="Demand Response and Load Control">
 			<description>This cluster provides an interface to the functionality of Smart Energy Demand Response and Load Control. Devices targeted by this cluster include thermostats and devices that support load control.</description>
 		<client>
 		<attribute id="0000" name="Utility Enrolment Group" type="u8" access="rw" default="0" range="0x00,0xff" required="m"></attribute>
@@ -3125,7 +3125,7 @@ controller device, that supports a keypad and LCD screen.</description>
 		<!-- TODO -->
 		</server>
 		</cluster>
-		<cluster id="0702" name="Simple Metering">
+		<cluster id="0x0702" name="Simple Metering">
 			<description>The Simple Metering Cluster provides a mechanism to retrieve usage information from Electric, Gas, Water, and potentially Thermal metering devices. These
 devices can operate on either battery or mains power, and can have a wide variety of sophistication.</description>
 			<server>
@@ -3268,7 +3268,7 @@ devices can operate on either battery or mains power, and can have a wide variet
 			<!-- TODO -->
 			</client>
 		</cluster>
-		<cluster id="0703" name="Message">
+		<cluster id="0x0703" name="Message">
 			<description>This cluster provides an interface for passing text messages between ZigBee devices.</description>
 			<server>
 			</server>
@@ -3276,7 +3276,7 @@ devices can operate on either battery or mains power, and can have a wide variet
 			</client>
 			<!-- TODO -->
 		</cluster>
-		<cluster id="0704" name="Smart Energy Tunneling (Complex Metering)">
+		<cluster id="0x0704" name="Smart Energy Tunneling (Complex Metering)">
 			<description>The tunneling cluster provides an interface for tunneling protocols.</description>
 			<server>
 				<attribute id="0000" name="Close Tunnel Timeout" type="u16" range="0x0001,0xFFFF" default="0xFFFF" access="r" required="m"></attribute>
@@ -3285,14 +3285,14 @@ devices can operate on either battery or mains power, and can have a wide variet
 			</client>
 			<!-- TODO -->
 		</cluster>
-		<cluster id="0705" name="Prepayment">
+		<cluster id="0x0705" name="Prepayment">
 			<description></description>
 			<!-- TODO -->
 		</cluster>
 	</domain>
 
     <domain name="Appliances" low_bound="0b00" high_bound="0b03" description="The Appliance clusters are typically used in ZigBee appliance management.">
-		<cluster id="001b" name="Appliance Control">
+		<cluster id="0x001b" name="Appliance Control">
 			<description>The Appliance Control cluster provides an interface to remotely control and to program household appliances. Example of control is Start, Stop and Pause commands.</description>
 			<server>
 			<!-- TODO -->
@@ -3301,7 +3301,7 @@ devices can operate on either battery or mains power, and can have a wide variet
 			<!-- TODO -->
 			</client>
 		</cluster>
-        <cluster id="0b01" name="Appliance Identification">
+        <cluster id="0x0b01" name="Appliance Identification">
 			<description>Attributes and commands for determining basic information about a device and setting user device information. The Appliance Identification Cluster is a transposition of EN50523 "Identify Product" functional block.</description>
 			<server>
 			<!-- TODO -->
@@ -3310,7 +3310,7 @@ devices can operate on either battery or mains power, and can have a wide variet
 			<!-- TODO -->
 			</client>
 		</cluster>
-        <cluster id="0b02" name="Appliance Events and Alerts">
+        <cluster id="0x0b02" name="Appliance Events and Alerts">
 			<description>Attributes and commands for transmitting or notifying the occurrence of an event, such as "temperature reached" and of an alert such as alarm, fault or warning. It is based on the "Signal event" syntax of EN50523 and completed where necessary.</description>
 			<server>
                 <command id="0x00" dir="recv" name="Get Alerts" required="m">
@@ -3321,7 +3321,7 @@ devices can operate on either battery or mains power, and can have a wide variet
 			<!-- TODO -->
 			</client>
 		</cluster>
-        <cluster id="0b03" name="Appliance Statistics">
+        <cluster id="0x0b03" name="Appliance Statistics">
 			<description>The Appliance Statistics provides a mechanism for transmitting appliance statistics to a collection unit (gateway). The statistics can be in format of data logs.</description>
 			<server>
 			<!-- TODO -->
