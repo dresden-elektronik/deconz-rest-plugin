@@ -5369,6 +5369,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         //Using whitelist to ensure  old doorlock hardware compatibility
                         if ((modelId == QLatin1String("SMARTCODE_CONVERT_GEN1")) || // Kwikset 914
+                            (modelId == QLatin1String("YRD226/246 TSDB")) || // Yale YRD226 ZigBee keypad door lock
+                            (modelId == QLatin1String("YRD226 TSDB")) || // Yale YRD226 ZigBee keypad door lock
                             (modelId == QLatin1String("ID Lock 150")) )
                         {
                             fpDoorLockSensor.inClusters.push_back(DOOR_LOCK_CLUSTER_ID);
