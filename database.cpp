@@ -1570,6 +1570,15 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             d->gwLightLastSeenInterval = lightLastSeen;
         }
     }
+    else if (strcmp(colval[0], "exposecoordinatoraslight") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            bool exposeAsLight = val == "false";
+            d->gwConfig["exposecoordinatoraslight"] = exposeAsLight;
+            d->gwExposeCoordinatorAsLight = exposeAsLight;
+        }
+    }
 
     return 0;
 }
@@ -4600,6 +4609,7 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["proxyport"] = gwProxyPort;
         gwConfig["zclvaluemaxage"] = dbZclValueMaxAge;
         gwConfig["lightlastseeninterval"] = gwLightLastSeenInterval;
+        gwConfig["exposecoordinatorasllight"] = gwExposeCoordinatorAsLight;
 
         QVariantMap::iterator i = gwConfig.begin();
         QVariantMap::iterator end = gwConfig.end();
