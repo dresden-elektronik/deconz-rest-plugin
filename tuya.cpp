@@ -935,6 +935,10 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         
         //Add the "magic value"
         stream2 << UnknowHeader;
+        
+        //change byter order
+        stream2.setByteOrder(QDataStream::BigEndian);
+        
          // Add UTC time
         stream2 << time_now;
         // Ad local time
