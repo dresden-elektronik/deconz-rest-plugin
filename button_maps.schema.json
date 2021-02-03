@@ -88,7 +88,7 @@
       "enum": [ "ADD_SCENE", "VIEW_SCENE", "REMOVE_SCENE", "STORE_SCENE", "RECALL_SCENE", "IKEA_STEP_CT", "IKEA_MOVE_CT", "IKEA_STOP_CT" ]
     },
     "onoff-commands": {
-      "enum": [ "ATTRIBUTE_REPORT", "OFF", "ON", "TOGGLE", "OFF_WITH_EFFECT", "ON_WITH_TIMED_OFF" ]
+      "enum": [ "ATTRIBUTE_REPORT", "OFF", "ON", "TOGGLE", "OFF_WITH_EFFECT", "ON_WITH_TIMED_OFF", "LIDL" ]
     },
     "level-commands": {
       "enum": [ "MOVE_TO_LEVEL", "MOVE", "STEP", "STOP", "MOVE_TO_LEVEL_WITH_ON_OFF", "MOVE_WITH_ON_OFF", "STEP_WITH_ON_OFF", "STOP_WITH_ON_OFF" ]

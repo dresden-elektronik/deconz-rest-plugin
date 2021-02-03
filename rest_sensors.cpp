@@ -1109,7 +1109,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             return REQ_READY_SEND;
                         }
                     }
-                    else if (sensor->modelId().startsWith(QLatin1String("TRV001")))
+                    else if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001"))
                     {
                         if (addTaskThermostatCmd(task, VENDOR_DANFOSS, 0x40, heatsetpoint, 0))
                         {
@@ -1286,15 +1286,16 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             updated = true;
                         }
                     }
-                    else if (sensor->modelId().startsWith(QLatin1String("SLR2")) ||   // Hive
-                             sensor->modelId() == QLatin1String("SLR1b") ||           // Hive
-                             sensor->modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
-                             sensor->modelId().startsWith(QLatin1String("902010/32")) ||  // Bitron
-                             sensor->modelId().startsWith(QLatin1String("Zen-01")) || // Zen
-                             sensor->modelId().startsWith(QLatin1String("3157100")) ||// Centralite Pearl
-                             sensor->modelId().startsWith(QLatin1String("SORB")) ||   // Stelpro Orleans Fan
-                             sensor->modelId().startsWith(QLatin1String("AC201")) ||  // OWON
-                             sensor->modelId().startsWith(QLatin1String("Super TR"))) // ELKO
+                    else if (sensor->modelId().startsWith(QLatin1String("SLR2")) ||         // Hive
+                             sensor->modelId() == QLatin1String("SLR1b") ||                 // Hive
+                             sensor->modelId() == QLatin1String("TH1300ZB") ||              // Sinope
+                             sensor->modelId().startsWith(QLatin1String("TH112")) ||        // Sinope
+                             sensor->modelId().startsWith(QLatin1String("902010/32")) ||    // Bitron
+                             sensor->modelId().startsWith(QLatin1String("Zen-01")) ||       // Zen
+                             sensor->modelId().startsWith(QLatin1String("3157100")) ||      // Centralite Pearl
+                             sensor->modelId().startsWith(QLatin1String("SORB")) ||         // Stelpro Orleans Fan
+                             sensor->modelId().startsWith(QLatin1String("AC201")) ||        // OWON
+                             sensor->modelId().startsWith(QLatin1String("Super TR")))       // ELKO
                     {
 
                         QString modeSet = map[pi.key()].toString();
@@ -1500,7 +1501,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                         }
                         else if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001") ||
-                                 sensor->modelId() == QLatin1String("SORB") || sensor->modelId() == QLatin1String("3157100"))
+                                 sensor->modelId() == QLatin1String("SORB") || sensor->modelId() == QLatin1String("3157100") ||
+                                 sensor->modelId() == QLatin1String("TH1300ZB"))
                         {
                             quint32 data = map[pi.key()].toUInt(&ok);
 
@@ -2721,14 +2723,14 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
     if (strncmp(e.what(), "state/", 6) == 0)
     {
         ResourceItem *item = sensor->item(e.what());
-        if (item)
+        if (item && item->isPublic())
         {
             if (item->descriptor().suffix == RStatePresence && item->toBool())
             {
                 globalLastMotion = item->lastSet(); // remember
             }
 
-            if (sensor->lastStatePush.isValid() && item->lastSet() < sensor->lastStatePush)
+            if (!(item->needPushSet() || item->needPushChange()))
             {
                 DBG_Printf(DBG_INFO_L2, "discard sensor state push for %s: %s (already pushed)\n", qPrintable(e.id()), e.what());
                 webSocketServer->flush(); // force transmit send buffer
@@ -2745,10 +2747,8 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             ResourceItem *iox = nullptr;
             ResourceItem *ioy = nullptr;
             ResourceItem *ioz = nullptr;
-            QVariantList orientation;
             ResourceItem *ix = nullptr;
             ResourceItem *iy = nullptr;
-            QVariantList xy;
 
             for (int i = 0; i < sensor->itemCount(); i++)
             {
@@ -2779,20 +2779,23 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                     {
                         iy = item;
                     }
-                    else if (item->lastSet().isValid() && (gwWebSocketNotifyAll || rid.suffix == RStateButtonEvent || (item->lastChanged().isValid() && item->lastChanged() >= sensor->lastStatePush)))
+                    else if (item->isPublic() && item->lastSet().isValid() && (gwWebSocketNotifyAll || rid.suffix == RStateButtonEvent || item->needPushChange()))
                     {
                         state[key] = item->toVariant();
+                        item->clearNeedPush();
                     }
                 }
             }
 
             if (iox && iox->lastSet().isValid() && ioy && ioy->lastSet().isValid() && ioz && ioz->lastSet().isValid())
             {
-                if (gwWebSocketNotifyAll ||
-                    (iox->lastChanged().isValid() && iox->lastChanged() >= sensor->lastStatePush) ||
-                    (ioy->lastChanged().isValid() && ioy->lastChanged() >= sensor->lastStatePush) ||
-                    (ioz->lastChanged().isValid() && ioz->lastChanged() >= sensor->lastStatePush))
+                if (gwWebSocketNotifyAll || iox->needPushChange() || ioy->needPushChange() || ioz->needPushChange())
                 {
+                    iox->clearNeedPush();
+                    ioy->clearNeedPush();
+                    ioz->clearNeedPush();
+
+                    QVariantList orientation;
                     orientation.append(iox->toNumber());
                     orientation.append(ioy->toNumber());
                     orientation.append(ioz->toNumber());
@@ -2802,10 +2805,12 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
 
             if (ix && ix->lastSet().isValid() && iy && iy->lastSet().isValid())
             {
-                if (gwWebSocketNotifyAll ||
-                    (ix->lastChanged().isValid() && ix->lastChanged() >= sensor->lastStatePush) ||
-                    (iy->lastChanged().isValid() && iy->lastChanged() >= sensor->lastStatePush))
+                if (gwWebSocketNotifyAll || ix->needPushChange() || iy->needPushChange())
                 {
+                    ix->clearNeedPush();
+                    iy->clearNeedPush();
+
+                    QVariantList xy;
                     xy.append(round(ix->toNumber() / 6.5535) / 10000.0);
                     xy.append(round(iy->toNumber() / 6.5535) / 10000.0);
                     state["xy"] = xy;
@@ -2816,17 +2821,15 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             {
                 map["state"] = state;
                 webSocketServer->broadcastTextMessage(Json::serialize(map));
-                sensor->lastStatePush = now;
             }
         }
     }
     else if (strncmp(e.what(), "config/", 7) == 0)
     {
         ResourceItem *item = sensor->item(e.what());
-        if (item)
+        if (item && item->isPublic())
         {
-            if (sensor->lastConfigPush.isValid() &&
-            item->lastSet() < sensor->lastConfigPush)
+            if (!(item->needPushSet() || item->needPushChange()))
             {
                 DBG_Printf(DBG_INFO_L2, "discard sensor config push for %s (already pushed)\n", e.what());
                 return; // already pushed
@@ -2839,10 +2842,9 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             map["id"] = e.id();
             map["uniqueid"] = sensor->uniqueId();
             QVariantMap config;
-            const ResourceItem *ilcs = nullptr;
-            const ResourceItem *ilca = nullptr;
-            const ResourceItem *ilct = nullptr;
-            QVariantMap lastchange;
+            ResourceItem *ilcs = nullptr;
+            ResourceItem *ilca = nullptr;
+            ResourceItem *ilct = nullptr;
 
             for (int i = 0; i < sensor->itemCount(); i++)
             {
@@ -2869,7 +2871,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                     {
                         ilct = item;
                     }
-                    else if (item->lastSet().isValid() && (gwWebSocketNotifyAll || (item->lastChanged().isValid() && item->lastChanged() >= sensor->lastConfigPush)))
+                    else if (item->isPublic() && item->lastSet().isValid() && (gwWebSocketNotifyAll || item->needPushChange()))
                     {
                         if (rid.suffix == RConfigSchedule)
                         {
@@ -2881,16 +2883,19 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                         {
                             config[key] = item->toVariant();
                         }
+                        item->clearNeedPush();
                     }
                 }
             }
             if (ilcs && ilcs->lastSet().isValid() && ilca && ilca->lastSet().isValid() && ilct && ilct->lastSet().isValid())
             {
-                if (gwWebSocketNotifyAll ||
-                    (ilcs->lastChanged().isValid() && ilcs->lastChanged() >= sensor->lastConfigPush) ||
-                    (ilca->lastChanged().isValid() && ilca->lastChanged() >= sensor->lastConfigPush) ||
-                    (ilct->lastChanged().isValid() && ilct->lastChanged() >= sensor->lastConfigPush))
+                if (gwWebSocketNotifyAll || ilcs->needPushChange() || ilca->needPushChange() || ilct->needPushChange())
                 {
+                    ilcs->clearNeedPush();
+                    ilca->clearNeedPush();
+                    ilct->clearNeedPush();
+
+                    QVariantMap lastchange;
                     lastchange["source"] = RConfigLastChangeSourceValues[ilcs->toNumber()];
                     lastchange["amount"] = ilca->toNumber();
                     lastchange["time"] = ilct->toVariant().toDateTime().toString("yyyy-MM-ddTHH:mm:ssZ");
@@ -2902,14 +2907,13 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             {
                 map["config"] = config;
                 webSocketServer->broadcastTextMessage(Json::serialize(map));
-                sensor->lastConfigPush = now;
             }
         }
     }
     else if (strncmp(e.what(), "attr/", 5) == 0)
     {
         ResourceItem *item = sensor->item(e.what());
-        if (item)
+        if (item && item->isPublic())
         {
             QVariantMap map;
             map["t"] = QLatin1String("event");
