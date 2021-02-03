@@ -12,6 +12,7 @@
 
 #include "deconz.h"
 #include "resource.h"
+#include "tuya.h"
 
 const char *RSensors = "/sensors";
 const char *RLights = "/lights";
@@ -32,6 +33,7 @@ const char *RAttrType = "attr/type";
 const char *RAttrClass = "attr/class";
 const char *RAttrId = "attr/id";
 const char *RAttrUniqueId = "attr/uniqueid";
+const char *RAttrProductId = "attr/productid";
 const char *RAttrSwVersion = "attr/swversion";
 const char *RAttrLastAnnounced = "attr/lastannounced";
 const char *RAttrLastSeen = "attr/lastseen";
@@ -202,6 +204,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrClass));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrUniqueId));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrProductId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrSwVersion));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RAttrLastAnnounced));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RAttrLastSeen));
@@ -419,6 +422,114 @@ bool R_HasFlags(const ResourceItem *item, qint64 flags)
     }
 
     return false;
+}
+
+/*! The product map is a helper to map Basic Cluster manufacturer name and modelid
+   to human readable product identifiers like marketing string or the model no. as printed on the product package.
+
+   In case of Tuya multiple entries may refer to the same device, so in matching code
+   it's best to match against the \c productId.
+
+   Example:
+
+   if (R_GetProductId(sensor) == QLatin1String("SEA801-ZIGBEE TRV"))
+   {
+   }
+
+   Note: this will later on be replaced with the data from DDF files.
+*/
+struct ProductMap
+{
+    const char *zmanufacturerName;
+    const char *zmodelId;
+    const char *manufacturer;
+    // a common product identifier even if multipe branded versions exist
+    const char *commonProductId;
+};
+
+static const ProductMap products[] =
+{
+    // Tuya
+    {"_TYST11_zuhszj9s", "uhszj9s", "Saswell", "SEA801-ZIGBEE TRV"},
+    {"_TYST11_c88teujp", "88teujp", "Saswell", "SEA801-ZIGBEE TRV"},
+    {"_TZE200_c88teujp", "TS0601", "Saswell", "SEA801-ZIGBEE TRV"},
+
+    {nullptr, nullptr, nullptr, nullptr}
+};
+
+/*! Returns the product identifier for a matching Basic Cluster manufacturer name. */
+static QLatin1String productIdForManufacturerName(const QString &manufacturerName, const ProductMap *mapIter)
+{
+    Q_ASSERT(mapIter);
+
+    for (; mapIter->commonProductId != nullptr; mapIter++)
+    {
+        if (manufacturerName == QLatin1String(mapIter->zmanufacturerName))
+        {
+            return QLatin1String(mapIter->commonProductId);
+        }
+    }
+
+    return {};
+}
+
+/*! Returns the product identifier for a resource. */
+const QString R_GetProductId(Resource *resource)
+{
+    DBG_Assert(resource);
+
+
+    if (!resource)
+    {
+        return rInvalidString;
+    }
+
+    auto *productId = resource->item(RAttrProductId);
+
+    if (productId)
+    {
+        return productId->toString();
+    }
+
+    const auto *manufacturerName = resource->item(RAttrManufacturerName);
+    const auto *modelId = resource->item(RAttrManufacturerName);
+
+    if (!manufacturerName || !modelId)
+    {
+        return rInvalidString;
+    }
+
+    if (isTuyaManufacturerName(manufacturerName->toString()))
+    {
+        // for Tuya devices match against manufacturer name
+        const auto productIdStr = productIdForManufacturerName(manufacturerName->toString(), products);
+        if (productIdStr.size() > 0)
+        {
+            productId = resource->addItem(DataTypeString, RAttrProductId);
+            DBG_Assert(productId);
+            productId->setValue(QString(productIdStr));
+            productId->setIsPublic(false); // not ready for public
+            return productId->toString();
+        }
+        else
+        {
+            // Fallback
+            // manufacturer name is the most unique identifier for Tuya
+            if (DBG_IsEnabled(DBG_INFO_L2))
+            {
+                DBG_Printf(DBG_INFO_L2, "No Tuya productId entry found for manufacturername: %s, modelId: %s\n",
+                    qPrintable(manufacturerName->toString()), qPrintable(modelId->toString()));
+            }
+
+            return manufacturerName->toString();
+        }
+    }
+    else
+    {
+        return modelId->toString();
+    }
+
+    return rInvalidString;
 }
 
 /*! Copy constructor. */
