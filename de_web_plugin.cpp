@@ -432,6 +432,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_LDS, "ZBT-CCTSwitch-D0001", silabs2MacPrefix }, // Leedarson remote control
     { VENDOR_YALE, "YRD226 TSDB", emberMacPrefix }, // Yale YRD226 ZigBee keypad door lock
     { VENDOR_YALE, "YRD226/246 TSDB", emberMacPrefix }, // Yale YRD226 ZigBee keypad door lock
+    { VENDOR_YALE, "YRD256L TSDB SL", emberMacPrefix }, // Yale YRD256L ZigBee keypad door lock
     { VENDOR_KWIKSET, "SMARTCODE_CONVERT_GEN1", zenMacPrefix }, // Kwikset 914 ZigBee smart lock
     { VENDOR_EMBER, "TS1001", silabs5MacPrefix }, // LIDL Livarno Lux Remote Control HG06323
     { VENDOR_EMBER, "TS1001", silabs7MacPrefix }, // LIDL Livarno Lux Remote Control HG06323
@@ -5371,6 +5372,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         if ((modelId == QLatin1String("SMARTCODE_CONVERT_GEN1")) || // Kwikset 914
                             (modelId == QLatin1String("YRD226/246 TSDB")) || // Yale YRD226 ZigBee keypad door lock
                             (modelId == QLatin1String("YRD226 TSDB")) || // Yale YRD226 ZigBee keypad door lock
+                            (modelId == QLatin1String("YRD256L TSDB SL")) || 
                             (modelId == QLatin1String("ID Lock 150")) )
                         {
                             fpDoorLockSensor.inClusters.push_back(DOOR_LOCK_CLUSTER_ID);
