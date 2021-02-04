@@ -3842,7 +3842,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         if (zclFrame.sequenceNumber() == sensor->previousSequenceNumber)
         {
             DBG_Printf(DBG_INFO, "[INFO] - Discard second event (seq-num = %d) %s\n", 
-                (int)sensor->previousSequenceNumber, qPrintable(sensor->modelId()));
+                static_cast<int>(sensor->previousSequenceNumber), qPrintable(sensor->modelId()));
             return;
         }
         sensor->previousSequenceNumber = zclFrame.sequenceNumber();
@@ -4641,7 +4641,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                             if (dt > 0 && dt < 500)
                             {
                                 DBG_Printf(DBG_INFO, "[INFO] - Discard too fast event (dt = %d) %s\n", 
-                                    (int)dt, qPrintable(sensor->modelId()));
+                                    static_cast<int>(dt), qPrintable(sensor->modelId()));
                                 break;
                             }
                         }
@@ -12483,7 +12483,8 @@ void DeRestPluginPrivate::sendZclDefaultResponse(const deCONZ::ApsDataIndication
 {
     deCONZ::ApsDataRequest apsReq;
 
-    DBG_Printf(DBG_INFO, "Send zcl default response %u, seqno: %u\n", (unsigned)status, (unsigned)zclFrame.sequenceNumber());
+    DBG_Printf(DBG_INFO, "Send zcl default response %u, seqno: %u\n",
+	       static_cast<unsigned>(status), static_cast<unsigned>(zclFrame.sequenceNumber()));
 
     // ZDP Header
     apsReq.dstAddress() = ind.srcAddress();
