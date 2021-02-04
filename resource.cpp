@@ -12,6 +12,7 @@
 
 #include "deconz.h"
 #include "resource.h"
+#include "tuya.h"
 
 const char *RSensors = "/sensors";
 const char *RLights = "/lights";
@@ -32,6 +33,7 @@ const char *RAttrType = "attr/type";
 const char *RAttrClass = "attr/class";
 const char *RAttrId = "attr/id";
 const char *RAttrUniqueId = "attr/uniqueid";
+const char *RAttrProductId = "attr/productid";
 const char *RAttrSwVersion = "attr/swversion";
 const char *RAttrLastAnnounced = "attr/lastannounced";
 const char *RAttrLastSeen = "attr/lastseen";
@@ -202,6 +204,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrClass));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrUniqueId));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrProductId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrSwVersion));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RAttrLastAnnounced));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RAttrLastSeen));
@@ -369,7 +372,6 @@ bool getResourceItemDescriptor(const QString &str, ResourceItemDescriptor &descr
 /*! Clears \p flags in \p item which must be a numeric value item.
     The macro is used to print the flag defines as human readable.
  */
-#define R_ClearFlags(item, flags) R_ClearFlags1(item, flags, #flags)
 bool R_ClearFlags1(ResourceItem *item, qint64 flags, const char *strFlags)
 {
     DBG_Assert(item);
@@ -391,7 +393,6 @@ bool R_ClearFlags1(ResourceItem *item, qint64 flags, const char *strFlags)
 /*! Sets \p flags in \p item which must be a numeric value item.
     The macro is used to print the flag defines as human readable.
  */
-#define R_SetFlags(item, flags) R_SetFlags1(item, flags, #flags)
 bool R_SetFlags1(ResourceItem *item, qint64 flags, const char *strFlags)
 {
     DBG_Assert(item);
@@ -423,6 +424,114 @@ bool R_HasFlags(const ResourceItem *item, qint64 flags)
     return false;
 }
 
+/*! The product map is a helper to map Basic Cluster manufacturer name and modelid
+   to human readable product identifiers like marketing string or the model no. as printed on the product package.
+
+   In case of Tuya multiple entries may refer to the same device, so in matching code
+   it's best to match against the \c productId.
+
+   Example:
+
+   if (R_GetProductId(sensor) == QLatin1String("SEA801-ZIGBEE TRV"))
+   {
+   }
+
+   Note: this will later on be replaced with the data from DDF files.
+*/
+struct ProductMap
+{
+    const char *zmanufacturerName;
+    const char *zmodelId;
+    const char *manufacturer;
+    // a common product identifier even if multipe branded versions exist
+    const char *commonProductId;
+};
+
+static const ProductMap products[] =
+{
+    // Tuya
+    {"_TYST11_zuhszj9s", "uhszj9s", "Saswell", "SEA801-ZIGBEE TRV"},
+    {"_TYST11_c88teujp", "88teujp", "Saswell", "SEA801-ZIGBEE TRV"},
+    {"_TZE200_c88teujp", "TS0601", "Saswell", "SEA801-ZIGBEE TRV"},
+
+    {nullptr, nullptr, nullptr, nullptr}
+};
+
+/*! Returns the product identifier for a matching Basic Cluster manufacturer name. */
+static QLatin1String productIdForManufacturerName(const QString &manufacturerName, const ProductMap *mapIter)
+{
+    Q_ASSERT(mapIter);
+
+    for (; mapIter->commonProductId != nullptr; mapIter++)
+    {
+        if (manufacturerName == QLatin1String(mapIter->zmanufacturerName))
+        {
+            return QLatin1String(mapIter->commonProductId);
+        }
+    }
+
+    return {};
+}
+
+/*! Returns the product identifier for a resource. */
+const QString R_GetProductId(Resource *resource)
+{
+    DBG_Assert(resource);
+
+
+    if (!resource)
+    {
+        return rInvalidString;
+    }
+
+    auto *productId = resource->item(RAttrProductId);
+
+    if (productId)
+    {
+        return productId->toString();
+    }
+
+    const auto *manufacturerName = resource->item(RAttrManufacturerName);
+    const auto *modelId = resource->item(RAttrManufacturerName);
+
+    if (!manufacturerName || !modelId)
+    {
+        return rInvalidString;
+    }
+
+    if (isTuyaManufacturerName(manufacturerName->toString()))
+    {
+        // for Tuya devices match against manufacturer name
+        const auto productIdStr = productIdForManufacturerName(manufacturerName->toString(), products);
+        if (productIdStr.size() > 0)
+        {
+            productId = resource->addItem(DataTypeString, RAttrProductId);
+            DBG_Assert(productId);
+            productId->setValue(QString(productIdStr));
+            productId->setIsPublic(false); // not ready for public
+            return productId->toString();
+        }
+        else
+        {
+            // Fallback
+            // manufacturer name is the most unique identifier for Tuya
+            if (DBG_IsEnabled(DBG_INFO_L2))
+            {
+                DBG_Printf(DBG_INFO_L2, "No Tuya productId entry found for manufacturername: %s, modelId: %s\n",
+                    qPrintable(manufacturerName->toString()), qPrintable(modelId->toString()));
+            }
+
+            return manufacturerName->toString();
+        }
+    }
+    else
+    {
+        return modelId->toString();
+    }
+
+    return rInvalidString;
+}
+
 /*! Copy constructor. */
 ResourceItem::ResourceItem(const ResourceItem &other)
 {
@@ -432,6 +541,7 @@ ResourceItem::ResourceItem(const ResourceItem &other)
 /*! Move constructor. */
 ResourceItem::ResourceItem(ResourceItem &&other) :
     m_isPublic(other.m_isPublic),
+    m_flags(other.m_flags),
     m_num(other.m_num),
     m_numPrev(other.m_numPrev),
     m_str(nullptr),
@@ -459,6 +569,26 @@ ResourceItem::~ResourceItem()
     }
 }
 
+/*! Returns true when a value has been set but not pushed upstream. */
+bool ResourceItem::needPushSet() const
+{
+    return (m_flags & FlagNeedPushSet) > 0;
+}
+
+/*! Returns true when a value has been set and is different from previous
+    but not pushed upstream.
+ */
+bool ResourceItem::needPushChange() const
+{
+    return (m_flags & FlagNeedPushChange) > 0;
+}
+
+/*! Clears set and changed push flags, called after value has been pushed to upstream. */
+void ResourceItem::clearNeedPush()
+{
+    m_flags &= ~static_cast<quint16>(FlagNeedPushSet | FlagNeedPushChange);
+}
+
 /*! Copy assignment. */
 ResourceItem &ResourceItem::operator=(const ResourceItem &other)
 {
@@ -469,6 +599,7 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
     }
 
     m_isPublic = other.m_isPublic;
+    m_flags = other.m_flags;
     m_num = other.m_num;
     m_numPrev = other.m_numPrev;
     m_rid = other.m_rid;
@@ -506,6 +637,7 @@ ResourceItem &ResourceItem::operator=(ResourceItem &&other)
     }
 
     m_isPublic = other.m_isPublic;
+    m_flags = other.m_flags;
     m_num = other.m_num;
     m_numPrev = other.m_numPrev;
     m_rid = other.m_rid;
@@ -617,10 +749,12 @@ bool ResourceItem::setValue(const QString &val)
     if (m_str)
     {
         m_lastSet = QDateTime::currentDateTime();
+        m_flags |= FlagNeedPushSet;
         if (*m_str != val)
         {
             *m_str = val;
             m_lastChanged = m_lastSet;
+            m_flags |= FlagNeedPushChange;
         }
         return true;
     }
@@ -641,11 +775,13 @@ bool ResourceItem::setValue(qint64 val)
 
     m_lastSet = QDateTime::currentDateTime();
     m_numPrev = m_num;
+    m_flags |= FlagNeedPushSet;
 
     if (m_num != val)
     {
         m_num = val;
         m_lastChanged = m_lastSet;
+        m_flags |= FlagNeedPushChange;
     }
 
     return true;
@@ -669,10 +805,12 @@ bool ResourceItem::setValue(const QVariant &val)
         if (m_str)
         {
             m_lastSet = now;
+            m_flags |= FlagNeedPushSet;
             if (*m_str != val.toString())
             {
                 *m_str = val.toString();
                 m_lastChanged = m_lastSet;
+                m_flags |= FlagNeedPushChange;
             }
             return true;
         }
@@ -681,11 +819,13 @@ bool ResourceItem::setValue(const QVariant &val)
     {
         m_lastSet = now;
         m_numPrev = m_num;
+        m_flags |= FlagNeedPushSet;
 
         if (m_num != val.toBool())
         {
             m_num = val.toBool();
             m_lastChanged = m_lastSet;
+            m_flags |= FlagNeedPushChange;
         }
         return true;
     }
@@ -699,11 +839,13 @@ bool ResourceItem::setValue(const QVariant &val)
             {
                 m_lastSet = now;
                 m_numPrev = m_num;
+                m_flags |= FlagNeedPushSet;
 
                 if (m_num != dt.toMSecsSinceEpoch())
                 {
                     m_num = dt.toMSecsSinceEpoch();
                     m_lastChanged = m_lastSet;
+                    m_flags |= FlagNeedPushChange;
                 }
                 return true;
             }
@@ -712,11 +854,13 @@ bool ResourceItem::setValue(const QVariant &val)
         {
             m_lastSet = now;
             m_numPrev = m_num;
+            m_flags |= FlagNeedPushSet;
 
             if (m_num != val.toDateTime().toMSecsSinceEpoch())
             {
                 m_num = val.toDateTime().toMSecsSinceEpoch();
                 m_lastChanged = m_lastSet;
+                m_flags |= FlagNeedPushChange;
             }
             return true;
         }
@@ -737,11 +881,13 @@ bool ResourceItem::setValue(const QVariant &val)
 
             m_lastSet = now;
             m_numPrev = m_num;
+            m_flags |= FlagNeedPushSet;
 
             if (m_num != n)
             {
                 m_num = n;
                 m_lastChanged = m_lastSet;
+                m_flags |= FlagNeedPushChange;
             }
             return true;
         }
