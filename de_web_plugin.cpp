@@ -115,6 +115,7 @@ const quint64 silabs2MacPrefix    = 0xcccccc0000000000ULL;
 const quint64 silabs3MacPrefix    = 0xec1bbd0000000000ULL;
 const quint64 energyMiMacPrefix   = 0xd0cf5e0000000000ULL;
 const quint64 bjeMacPrefix        = 0xd85def0000000000ULL;
+const quint64 onestiPrefix        = 0xf4ce360000000000ULL;
 const quint64 xalMacPrefix        = 0xf8f0050000000000ULL;
 const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
 // Danalock support
@@ -434,6 +435,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_YALE, "YRD226/246 TSDB", emberMacPrefix }, // Yale YRD226 ZigBee keypad door lock
     { VENDOR_YALE, "YRD256L TSDB SL", emberMacPrefix }, // Yale YRD256L ZigBee keypad door lock
     { VENDOR_KWIKSET, "SMARTCODE_CONVERT_GEN1", zenMacPrefix }, // Kwikset 914 ZigBee smart lock
+    { VENDOR_DSR, "easyCodeTouch_v1", onestiPrefix }, // EasyAccess EasyCodeTouch
     { VENDOR_EMBER, "TS1001", silabs5MacPrefix }, // LIDL Livarno Lux Remote Control HG06323
     { VENDOR_EMBER, "TS1001", silabs7MacPrefix }, // LIDL Livarno Lux Remote Control HG06323
 
@@ -5372,7 +5374,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         if ((modelId == QLatin1String("SMARTCODE_CONVERT_GEN1")) || // Kwikset 914
                             (modelId == QLatin1String("YRD226/246 TSDB")) || // Yale YRD226 ZigBee keypad door lock
                             (modelId == QLatin1String("YRD226 TSDB")) || // Yale YRD226 ZigBee keypad door lock
-                            (modelId == QLatin1String("YRD256L TSDB SL")) || 
+                            (modelId == QLatin1String("YRD256L TSDB SL")) ||
+                            (modelId == QLatin1String("easyCodeTouch_v1")) || // EasyAccess EasyCodeTouch
                             (modelId == QLatin1String("ID Lock 150")) )
                         {
                             fpDoorLockSensor.inClusters.push_back(DOOR_LOCK_CLUSTER_ID);

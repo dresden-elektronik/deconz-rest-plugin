@@ -473,6 +473,7 @@ extern const quint64 samjinMacPrefix;
 extern const quint64 tiMacPrefix;
 extern const quint64 ubisysMacPrefix;
 extern const quint64 xalMacPrefix;
+extern const quint64 onestiPrefix;
 extern const quint64 develcoMacPrefix;
 extern const quint64 legrandMacPrefix;
 extern const quint64 profaluxMacPrefix;
