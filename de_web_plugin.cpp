@@ -5655,7 +5655,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 {
                     sensor = nullptr;
                 }
-                fpSwitch.endpoint = 2;
+                if (modelId != QLatin1String("RWL022")) // new model with one endpoint
+                {
+                    fpSwitch.endpoint = 2;
+                }
             }
 
             if (modelId.startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
