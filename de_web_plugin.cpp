@@ -4644,7 +4644,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
                             if (dt > 0 && dt < 500)
                             {
-                                DBG_Printf(DBG_INFO, "[INFO] - Button %u %s, discard too fast event (dt = %d) %s\n", buttonMap.button, qPrintable(cmd), dt, qPrintable(sensor->modelId()));
+                                DBG_Printf(DBG_INFO, "[INFO] - Button %u %s, discard too fast event (dt = %d) %s\n", buttonMap.button, qPrintable(cmd), static_cast<int>(dt), qPrintable(sensor->modelId()));
                                 break;
                             }
                         }
