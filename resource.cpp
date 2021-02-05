@@ -449,20 +449,24 @@ struct ProductMap
 
 static const ProductMap products[] =
 {
+    // Prefix signification
+    // --------------------
+    // Tuya_THD : thermostat device using Tuya cluster
+    
     // Tuya Thermostat / TRV
-    {"_TYST11_zuhszj9s", "uhszj9s", "HiHome", "WZB-TRVL Thermostat"},
-    {"_TYST11_KGbxAXL2", "GbxAXL2", "Saswell", "SEA801-ZIGBEE TRV"},
-    {"_TYST11_c88teujp", "88teujp", "Saswell", "SEA801-ZIGBEE TRV"},
-    {"_TZE200_c88teujp", "TS0601", "Saswell", "SEA801-ZIGBEE TRV"},
-    {"_TYST11_ckud7u2l", "kud7u2l", "Tuya", "TRV HY369"},
-    {"_TZE200_ckud7u2l", "TS0601", "Tuya", "TRV HY369"},
-    {"_TZE200_aoclfnxz", "TS0601", "Moes", "Thermostat BTH-002"},
-    {"_TYST11_jeaxp72v", "eaxp72v", "Essentials", "Thermostat Essentials Premium"},
-    {"_TYST11_kfvq6avy", "fvq6avy", "Revolt", "NX-4911-675"},
-    {"_TZE200_kfvq6avy", "TS0601", "Revolt", "NX-4911-675"},
-    {"_TYST11_zivfvd7h", "ivfvd7h", "Siterwell", "GS361A-H04"},
-    {"_TZE200_zivfvd7h", "TS0601", "Siterwell", "GS361A-H04"},
-    {"_TYST11_yw7cahqs", "w7cahqs", "Hama", "Smart radiator thermostat"},
+    {"_TYST11_zuhszj9s", "uhszj9s", "HiHome", "Tuya_THD WZB-TRVL TRV"},
+    {"_TYST11_KGbxAXL2", "GbxAXL2", "Saswell", "Tuya_THD SEA801-ZIGBEE TRV"},
+    {"_TYST11_c88teujp", "88teujp", "Saswell", "Tuya_THD SEA801-ZIGBEE TRV"},
+    {"_TZE200_c88teujp", "TS0601", "Saswell", "Tuya_THD SEA801-ZIGBEE TRV"},
+    {"_TYST11_ckud7u2l", "kud7u2l", "Tuya", "Tuya_THD HY369 TRV"},
+    {"_TZE200_ckud7u2l", "TS0601", "Tuya", "Tuya_THD HY369 TRV "},
+    {"_TZE200_aoclfnxz", "TS0601", "Moes", "Tuya_THD BTH-002 Thermostat"},
+    {"_TYST11_jeaxp72v", "eaxp72v", "Essentials", "Tuya_THD Essentials TRV"},
+    {"_TYST11_kfvq6avy", "fvq6avy", "Revolt", "Tuya_THD NX-4911-675 TRV"},
+    {"_TZE200_kfvq6avy", "TS0601", "Revolt", "Tuya_THD NX-4911-675 TRV"},
+    {"_TYST11_zivfvd7h", "ivfvd7h", "Siterwell", "Tuya_THD GS361A-H04 TRV"},
+    {"_TZE200_zivfvd7h", "TS0601", "Siterwell", "Tuya_THD GS361A-H04 TRV"},
+    {"_TYST11_yw7cahqs", "w7cahqs", "Hama", "Tuya_THD Smart radiator TRV"},
     
     // Tuya Covering
     {"_TYST11_wmcdj3aq", "mcdj3aq", "Zemismart", "ZM25TQ"},
@@ -472,7 +476,7 @@ static const ProductMap products[] =
     {"_TZE200_xuzcvlku", "TS0601", "Zemismart", "M515EGB"},
     {"_TZE200_zah67ekd", "TS0601", "MoesHouse / Livolo", "AM43-0.45-40"},
     {"_TZE200_nogaemzt", "TS0601", "Tuya", "YS-MT750"},
-    {"_TZE200_zpzndjez", "TS0601", "", ""},
+    {"_TZE200_zpzndjez", "TS0601", "Tuya", "DS82"},
     {"_TZE200_cowvfni3", "TS0601", "Zemismart", "ZM79E-DT"},
     {"_TZE200_5zbp6j0u", "TS0601", "Tuya/Zemismart", "DT82LEMA-1.2N"},
     {"_TZE200_fdtjuw7u", "TS0601", "Yushun", "YS-MT750"},
