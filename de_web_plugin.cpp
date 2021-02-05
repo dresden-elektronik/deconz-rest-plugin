@@ -6717,7 +6717,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
         if (modelId.startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
         {
-            sensorNode.fingerPrint().endpoint = 2;
+            if (modelId != QLatin1String("RWL022")) // new model with one endpoint
+            {
+                sensorNode.fingerPrint().endpoint = 2;
+            }
             clusterId = VENDOR_CLUSTER_ID;
 
             if (!sensorNode.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
