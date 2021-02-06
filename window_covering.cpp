@@ -181,7 +181,9 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
                     }
                 }
                 // Reverse for some tuya covering
-                if (lightNode->manufacturer() == QLatin1String("_TZ3000_egq7y6pr"))
+                if ((lightNode->manufacturer() == QLatin1String("_TZ3000_egq7y6pr")) ||
+                    (lightNode->manufacturer() == QLatin1String("_TZ3000_xzqbrqk1")) || //Tuya covering switch
+                    (lightNode->manufacturer() == QLatin1String("_TZ3000_vd43bbfq")) ) // TS130F Tuya Zigbee Curtain module QS-Zigbee-C01
                 {
                     lift = 100 - lift;
                 }
