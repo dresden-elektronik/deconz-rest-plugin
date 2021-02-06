@@ -1731,6 +1731,8 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     {
         if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain")) ||
            (taskRef.lightNode->manufacturer() == QLatin1String("_TZ3000_egq7y6pr")) ||
+           (taskRef.lightNode->manufacturer() == QLatin1String("_TZ3000_vd43bbfq")) || // TS130F Tuya Zigbee Curtain module QS-Zigbee-C01
+           (taskRef.lightNode->manufacturer() == QLatin1String("_TZ3000_xzqbrqk1")) || // Tuya covering switch
            (taskRef.lightNode->modelId() == QLatin1String("Motor Controller")))
         {
             targetLiftZigBee = 100 - targetLift;
