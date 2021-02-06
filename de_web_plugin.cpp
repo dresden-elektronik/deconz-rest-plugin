@@ -448,14 +448,16 @@ static const lidlDevice lidlDevices[] = { // Sorted by zigbeeManufacturerName
     { "_TYZB01_bngwdjsr", "TS1001",  "LIDL Livarno Lux", "HG06323" }, // Remote Control
     { "_TZ3000_1obwwnmq", "TS011F",  "LIDL Silvercrest", "HG06338" }, // Smart USB Extension Lead (EU)
     { "_TZ3000_49qchf10", "TS0502A", "LIDL Livarno Lux", "HG06492C" }, // CT Light (E27)
+    { "_TZ3000_9cpuaca6", "TS0505A", "LIDL Livarno Lux", "14148906L" }, // Stimmungsleuchte
     { "_TZ3000_dbou1ap4", "TS0505A", "LIDL Livarno Lux", "HG06106C" }, // RGB Light (E27)
     { "_TZ3000_el5kt5im", "TS0502A", "LIDL Livarno Lux", "HG06492A" }, // CT Light (GU10)
+    { "_TZ3000_gek6snaj", "TS0505A", "LIDL Livarno Lux", "14149506L" }, // Lichtleiste
     { "_TZ3000_kdi2o9m6", "TS011F",  "LIDL Silvercrest", "HG06337" }, // Smart plug (EU)
     { "_TZ3000_kdpxju99", "TS0505A", "LIDL Livarno Lux", "HG06106A" }, // RGB Light (GU10)
     { "_TZ3000_oborybow", "TS0502A", "LIDL Livarno Lux", "HG06492B" }, // CT Light (E14)
     { "_TZ3000_odygigth", "TS0505A", "LIDL Livarno Lux", "HG06106B" }, // RGB Light (E14)
     { "_TZ3000_riwp3k79", "TS0505A", "LIDL Livarno Lux", "HG06104A" }, // LED Light Strip
-    // { "_TZE200_s8gkrkxk", "TS0601",  "LIDL Livarno Lux", "HG06467" }, // Smart LED String Lights (EU)
+    { "_TZE200_s8gkrkxk", "TS0601",  "LIDL Livarno Lux", "HG06467" }, // Smart LED String Lights (EU)
     { nullptr, nullptr, nullptr, nullptr }
 };
 
@@ -5660,7 +5662,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 {
                     sensor = nullptr;
                 }
-                fpSwitch.endpoint = 2;
+                if (modelId != QLatin1String("RWL022")) // new model with one endpoint
+                {
+                    fpSwitch.endpoint = 2;
+                }
             }
 
             if (modelId.startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
@@ -6732,7 +6737,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
         if (modelId.startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
         {
-            sensorNode.fingerPrint().endpoint = 2;
+            if (modelId != QLatin1String("RWL022")) // new model with one endpoint
+            {
+                sensorNode.fingerPrint().endpoint = 2;
+            }
             clusterId = VENDOR_CLUSTER_ID;
 
             if (!sensorNode.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
@@ -14712,10 +14720,10 @@ void DeRestPluginPrivate::handlePhilipsClusterIndication(const deCONZ::ApsDataIn
             {
                 button *= 1000;
                 button += event;
-                
+
                 DBG_Printf(DBG_INFO, "[INFO] - Button %u - %s endpoint: 0x%02X cluster: PHILIPS_SPECIFIC (0x%04X)\n", button,
                            qPrintable(sensorNode->modelId()), ind.srcEndpoint(), ind.clusterId());
-                
+
                 ResourceItem *item = sensorNode->item(RStateButtonEvent);
                 if (item)
                 {
