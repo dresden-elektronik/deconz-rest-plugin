@@ -141,6 +141,7 @@ extern const char *RConfigLastChangeAmount;
 extern const char *RConfigLastChangeSource;
 extern const char *RConfigLastChangeTime;
 extern const char *RConfigId;
+extern const char *RConfigInterfaceMode;
 extern const char *RConfigLat;
 extern const char *RConfigLedIndication;
 extern const char *RConfigLocalTime;
