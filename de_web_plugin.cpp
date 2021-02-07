@@ -141,7 +141,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_CENTRALITE, "3321-S", emberMacPrefix }, // Centralite multipurpose sensor
     { VENDOR_CENTRALITE, "3325-S", emberMacPrefix }, // Centralite motion sensor
     { VENDOR_CENTRALITE, "3305-S", emberMacPrefix }, // Centralite motion sensor
-    { VENDOR_CLS, "3200-S", emberMacPrefix }, // Centralite smart plug / Samsung smart outlet
+    { VENDOR_CLS, "3200-Sgb", emberMacPrefix }, // Centralite smart plug / Samsung smart outlet
+    { VENDOR_CLS, "3200-de", emberMacPrefix }, // Centralite smart plug / Samsung smart outlet
     { VENDOR_C2DF, "3300", emberMacPrefix }, // Centralite contact sensor
     { VENDOR_C2DF, "3320-L", emberMacPrefix }, // Centralite contact sensor
     { VENDOR_C2DF, "3315", emberMacPrefix }, // Centralite water sensor
@@ -3814,7 +3815,13 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     const std::vector<Sensor::ButtonMap> buttonMapVec = sensor->buttonMap(buttonMapData, buttonMapForModelId);
     QString cluster = "0x" + QString("%1").arg(ind.clusterId(), 4, 16, QLatin1Char('0')).toUpper();
     QString cmd = "0x" + QString("%1").arg(zclFrame.commandId(), 2, 16, QLatin1Char('0')).toUpper();
+    QString addressMode;
+    QString zclPayload = zclFrame.payload().isEmpty() ? "None" : qPrintable(zclFrame.payload().toHex().toUpper());
     quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
+
+    if (ind.dstAddress().isNwkUnicast()) { addressMode = ", unicast to: 0x" + QString("%1").arg(ind.dstAddress().nwk(), 4, 16, QLatin1Char('0')).toUpper(); }
+    else if (ind.dstAddressMode() == deCONZ::ApsGroupAddress) { addressMode = ", broadcast to: 0x" + QString("%1").arg(ind.dstAddress().group(), 4, 16, QLatin1Char('0')).toUpper(); }
+    else { addressMode = ", unknown"; }
 
     if (!btnMapClusters.key(ind.clusterId()).isEmpty())
     {
@@ -3827,8 +3834,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
     if (buttonMapVec.empty())
     {
-        DBG_Printf(DBG_INFO, "[INFO] - No button map for: %s endpoint: 0x%02X cluster: %s command: %s payload[0]: 0%02X\n",
-                   qPrintable(sensor->modelId()), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), pl0);
+        DBG_Printf(DBG_INFO, "[INFO] - No button map for: %s%s, endpoint: 0x%02X, cluster: %s, command: %s, payload: %s, zclSeq: %u\n",
+            qPrintable(sensor->modelId()), qPrintable(addressMode), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), qPrintable(zclPayload), zclFrame.sequenceNumber());
         return;
     }
 
@@ -4639,8 +4646,10 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 if (ok && buttonMap.button != 0)
                 {
                     if (!buttonMap.name.isEmpty()) { cmd = buttonMap.name; }
-                    DBG_Printf(DBG_INFO, "[INFO] - Button %u - %s endpoint: 0x%02X cluster: %s command: %s payload[0]: 0%02X\n", buttonMap.button,
-                               qPrintable(sensor->modelId()), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), pl0);
+                    
+                    DBG_Printf(DBG_INFO, "[INFO] - Button %u - %s%s, endpoint: 0x%02X, cluster: %s, action: %s, payload: %s, zclSeq: %u\n",
+                        buttonMap.button, qPrintable(sensor->modelId()), qPrintable(addressMode), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), qPrintable(zclPayload), zclFrame.sequenceNumber());
+                    
                     ResourceItem *item = sensor->item(RStateButtonEvent);
                     if (item)
                     {
@@ -4722,8 +4731,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
     if (sensor->item(RStateButtonEvent))
     {
-        DBG_Printf(DBG_INFO, "[INFO] - No button handler for: %s endpoint: 0x%02X cluster: %s command: %s payload[0]: 0%02X\n",
-               qPrintable(sensor->modelId()), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), pl0);
+        DBG_Printf(DBG_INFO, "[INFO] - No button handler for: %s%s, endpoint: 0x%02X, cluster: %s, command: %s, payload: %s, zclSeq: %u\n",
+            qPrintable(sensor->modelId()), qPrintable(addressMode), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), qPrintable(zclPayload), zclFrame.sequenceNumber());
     }
 }
 
@@ -8634,8 +8643,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         updateSensorEtag(&*i);
                                     }
                                 }
-                                else if (i->modelId().startsWith(QLatin1String("lumi.plug")) ||
-                                         i->modelId().startsWith(QLatin1String("lumi.ctrl_")))
+                                else if ((i->modelId() == QLatin1String("lumi.plug.mmeu01") && event.endpoint() == 21) ||
+                                         (i->modelId() == QLatin1String("lumi.plug") && event.endpoint() == 2) ||
+                                         (i->modelId().startsWith(QLatin1String("lumi.ctrl_")) && event.endpoint() == 2) ||
+                                          i->modelId().startsWith(QLatin1String("lumi.relay.c")))
                                 {
                                     if (i->type() == QLatin1String("ZHAPower"))
                                     {
@@ -8652,9 +8663,14 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         }
                                         updateSensorEtag(&*i);
                                     }
-                                    else if (i->type() == QLatin1String("ZHAConsumption"))
+                                }
+                                else if ((i->modelId() == QLatin1String("lumi.plug.mmeu01") && event.endpoint() == 22) ||
+                                         ((i->modelId() == QLatin1String("lumi.plug") && event.endpoint() == 3)) ||
+                                         (i->modelId().startsWith(QLatin1String("lumi.ctrl_")) && event.endpoint() == 3))
+                                {
+                                    if (i->type() == QLatin1String("ZHAConsumption"))
                                     {
-                                        quint64 consumption = ia->numericValue().real * 1000;
+                                        quint64 consumption = round(ia->numericValue().real) * 1000;
                                         ResourceItem *item = i->item(RStateConsumption);
 
                                         if (item)
@@ -8967,7 +8983,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("lumi.plug.maeu")) || // Xiaomi Aqara ZB3.0 smart plug
                                         i->modelId() == QLatin1String("RICI01") ||           // LifeControl Smart Plug
                                         i->modelId().startsWith(QLatin1String("outlet")) ||  // Samsung SmartThings IM6001-OTP/IM6001-OTP01
-                                        i->modelId().startsWith(QLatin1String("3200-S")) ||    // Samsung/Centralite smart outlet
+                                        i->modelId() == QLatin1String("3200-Sgb") ||           // Samsung/Centralite smart outlet
+                                        i->modelId() == QLatin1String("3200-de") ||            // Samsung/Centralite smart outlet
                                         i->modelId().startsWith(QLatin1String("lumi.switch.b1naus01"))) // Xiaomi ZB3.0 Smart Wall Switch
                                     {
                                         //power += 5; power /= 10; // 0.1W -> W
@@ -9071,7 +9088,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     else if (i->modelId() == QLatin1String("SmartPlug") ||        // Heiman
                                              i->modelId().startsWith(QLatin1String("EMIZB-1")) || // Develco EMI
                                              i->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
-                                             i->modelId().startsWith(QLatin1String("3200-S")) ||  // Samsung smart outlet
+                                             i->modelId() == QLatin1String("3200-Sgb") ||         // Samsung smart outlet
+                                             i->modelId() == QLatin1String("3200-de") ||          // Samsung smart outlet
                                              i->modelId().startsWith(QLatin1String("SPW35Z")) ||  // RT-RK OBLO SPW35ZD0 smart plug
                                              i->modelId() == QLatin1String("TH1300ZB"))           // Sinope thermostat
                                     {
