@@ -1730,7 +1730,9 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     if (hasLift)
     {
         if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain")) ||
-           (taskRef.lightNode->manufacturer() == QLatin1String("_TZ3000_egq7y6pr")) ||
+           (R_GetProductId(taskRef.lightNode) == QLatin1String("11830304 Switch")) ||
+           (R_GetProductId(taskRef.lightNode) == QLatin1String("QS-Zigbee-C01 Module")) ||
+           (R_GetProductId(taskRef.lightNode) == QLatin1String("11830304(2) Switch")) ||
            (taskRef.lightNode->modelId() == QLatin1String("Motor Controller")))
         {
             targetLiftZigBee = 100 - targetLift;
