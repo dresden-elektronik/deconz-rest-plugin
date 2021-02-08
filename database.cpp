@@ -3540,67 +3540,67 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.modelId() == QLatin1String("SLR1b") ||           // Hive
                     sensor.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
                     sensor.modelId() == QLatin1String("902010/32") ||       // Bitron
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                 {
                     sensor.addItem(DataTypeString, RConfigMode);
                 }
 
-                if (R_GetProductId(sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV"))
+                if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV"))
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
                     sensor.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
                 }
 
-                if (R_GetProductId(sensor) == QLatin1String("Tuya_THD HY369 TRV")  ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
+                if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV")  ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                 {
                     sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                 }
 
-                if (R_GetProductId(sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
+                if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                 {
                     sensor.addItem(DataTypeString, RConfigPreset);
                     sensor.addItem(DataTypeBool, RConfigSetValve)->setValue(false);
                 }
 
-                if (R_GetProductId(sensor) == QLatin1String("Tuya_THD HY369 TRV")  ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
+                if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV")  ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                 {
                     sensor.addItem(DataTypeString, RConfigSchedule);
                 }
 
-                if (R_GetProductId(sensor) == QLatin1String("Tuya_THD HY369 TRV")  ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
-                    R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV"))
+                if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV")  ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV"))
                 {
                     sensor.addItem(DataTypeBool, RConfigWindowOpen)->setValue(false);
                 }
