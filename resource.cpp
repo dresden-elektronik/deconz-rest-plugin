@@ -504,7 +504,7 @@ static QLatin1String productIdForManufacturerName(const QString &manufacturerNam
         }
     }
 
-    return {};
+    return QLatin1String("");
 }
 
 /*! Returns the product identifier for a resource. */
