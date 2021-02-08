@@ -166,7 +166,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
 
         if (zclFrame.payload().size() < 7)
         {
-            DBG_Printf(DBG_INFO, "Tuya : Payload too short");
+            DBG_Printf(DBG_INFO, "Tuya : Payload too short\n");
             return;
         }
 
@@ -217,8 +217,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         dp_identifier = (quint8) (dp & 0xFF);
         dp_type = (quint8) ((dp >> 8) & 0xFF);
 
-        DBG_Printf(DBG_INFO, "Tuya debug 4 : Address 0x%016llX Payload %s\n" , ind.srcAddress().ext(), qPrintable(zclFrame.payload().toHex()));
-        DBG_Printf(DBG_INFO, "Tuya debug 5 : Status: %d Transid: %d Dp: %d (0x%02X,0x%02X) Fn: %d Data %ld\n", status , transid , dp , dp_type, dp_identifier, fn , data);
+        DBG_Printf(DBG_INFO, "Tuya debug 4 : Address 0x%016llX Payload %s\n", ind.srcAddress().ext(), qPrintable(zclFrame.payload().toHex()));
+        DBG_Printf(DBG_INFO, "Tuya debug 5 : Status: %u Transid: %u Dp: %u (0x%02X,0x%02X) Fn: %u Data %ld\n", status, transid, dp, dp_type, dp_identifier, fn, data);
 
         if (length > 4) //schedule command
         {
@@ -484,7 +484,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     quint8 temperature = (quint8) ((dp >> 8) & 0xFF);
                     quint8 minute = (quint8) ((dp >> 16) & 0xFF);
 
-                    DBG_Printf(DBG_INFO, "Tuya debug 9 : windows open info: %d %d %d" ,valve , temperature, minute );
+                    DBG_Printf(DBG_INFO, "Tuya debug 9 : windows open info: %d %d %d\n", valve, temperature, minute);
 
                 }
                 break;
@@ -898,7 +898,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         }
         else
         {
-            DBG_Printf(DBG_INFO, "Tuya debug 6 : No device found");
+            DBG_Printf(DBG_INFO, "Tuya debug 6 : No device found\n");
         }
 
     }
@@ -906,7 +906,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
     //https://developer.tuya.com/en/docs/iot/device-development/embedded-software-development/mcu-development-access/zigbee-general-solution/tuya-zigbee-module-uart-communication-protocol
     else if (zclFrame.commandId() == TUYA_TIME_SYNCHRONISATION)
     {
-        DBG_Printf(DBG_INFO, "Tuya debug 1 : Time sync Request" );
+        DBG_Printf(DBG_INFO, "Tuya debug 1 : Time sync Request\n");
 
         QDataStream stream(zclFrame.payload());
         stream.setByteOrder(QDataStream::LittleEndian);
@@ -1035,7 +1035,7 @@ bool DeRestPluginPrivate::SendTuyaRequestThermostatSetWeeklySchedule(TaskItem &t
 //
 bool DeRestPluginPrivate::SendTuyaRequest(TaskItem &taskRef, TaskType taskType , qint8 Dp_type, qint8 Dp_identifier , QByteArray data )
 {
-
+    DBG_Printf(DBG_INFO, "Send Tuya Request: Dp_type: 0x%02X Dp_ identifier 0x%02X Data: %s\n", Dp_type, Dp_identifier, qPrintable(data.toHex()));
     DBG_Printf(DBG_INFO, "Send Tuya Request: Dp_type: 0x%02X Dp_ identifier 0x%02X Data: %s\n", Dp_type, Dp_identifier , qPrintable(data.toHex()));
     
     const quint8 seq = zclSeq++;
@@ -1094,7 +1094,7 @@ bool DeRestPluginPrivate::SendTuyaRequest(TaskItem &taskRef, TaskType taskType ,
 
 bool DeRestPluginPrivate::SendTuyaCommand(const deCONZ::ApsDataIndication &ind, qint8 command, QByteArray data)
 {
-    DBG_Printf(DBG_INFO, "Send Tuya Command 0x%02X Data: %s\n", command , qPrintable(data.toHex()));
+    DBG_Printf(DBG_INFO, "Send Tuya Command 0x%02X Data: %s\n", command, qPrintable(data.toHex()));
 
     TaskItem task;
     
