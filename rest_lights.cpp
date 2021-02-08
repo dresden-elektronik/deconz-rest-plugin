@@ -1786,7 +1786,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
 
         if (cluster == TUYA_CLUSTER_ID)
         {
-            ok = SendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_CONTROL, QByteArray("\x01", 1));
+            ok = sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_CONTROL, QByteArray("\x01", 1));
         }
         else
         {
@@ -1818,7 +1818,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         {
             QByteArray lev = QByteArray("\x00\x00\x00", 3);
             lev.append(targetLiftZigBee);
-            ok = SendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_PERCENT_CONTROL, lev);
+            ok = sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_PERCENT_CONTROL, lev);
         }
         else if (cluster == ANALOG_OUTPUT_CLUSTER_ID)
         {
@@ -1906,11 +1906,11 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         {
             if (targetOpen)
             {
-                ok = SendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_CONTROL, QByteArray("\x02", 1));
+                ok = sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_CONTROL, QByteArray("\x02", 1));
             }
             else
             {
-                ok = SendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_CONTROL, QByteArray("\x00", 1));
+                ok = sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_CONTROL, QByteArray("\x00", 1));
             }
         }
         else
@@ -2009,7 +2009,7 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
                 data = QByteArray("\x00",1);
             }
 
-            ok = SendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_BOOL, button, data);
+            ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_BOOL, button, data);
 
             if (ok)
             {
@@ -2358,7 +2358,7 @@ int DeRestPluginPrivate::setLightAttributes(const ApiRequest &req, ApiResponse &
             direction = QByteArray("\x01\x01", 2);
         }
 
-        if (SendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_WORK_STATE, direction))
+        if (sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_WORK_STATE, direction))
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;

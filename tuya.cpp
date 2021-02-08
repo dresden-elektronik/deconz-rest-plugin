@@ -214,8 +214,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         }
 
         //To be more precise
-        dp_identifier = (quint8) (dp & 0xFF);
-        dp_type = (quint8) ((dp >> 8) & 0xFF);
+        dp_identifier = (dp & 0xFF);
+        dp_type = ((dp >> 8) & 0xFF);
 
         DBG_Printf(DBG_INFO, "Tuya debug 4 : Address 0x%016llX Payload %s\n", ind.srcAddress().ext(), qPrintable(zclFrame.payload().toHex()));
         DBG_Printf(DBG_INFO, "Tuya debug 5 : Status: %u Transid: %u Dp: %u (0x%02X,0x%02X) Fn: %u Data %ld\n", status, transid, dp, dp_type, dp_identifier, fn, data);
@@ -391,7 +391,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     case 0x0202: // going to position
                     case 0x0203: // position reached (more usefull I think)
                     {
-                        quint8 lift = (quint8) data;
+                        quint8 lift = static_cast<quint8>(data);
                         bool open = lift < 100;
                         lightNode->setValue(RStateLift, lift);
                         lightNode->setValue(RStateOpen, open);
@@ -902,50 +902,50 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
     //https://developer.tuya.com/en/docs/iot/device-development/embedded-software-development/mcu-development-access/zigbee-general-solution/tuya-zigbee-module-uart-communication-protocol
     else if (zclFrame.commandId() == TUYA_TIME_SYNCHRONISATION)
     {
-        DBG_Printf(DBG_INFO, "Tuya debug 1 : Time sync Request\n");
+        DBG_Printf(DBG_INFO, "Tuya debug 1 : Time sync request\n");
 
         QDataStream stream(zclFrame.payload());
         stream.setByteOrder(QDataStream::LittleEndian);
 
-        quint16 UnknowHeader;
+        quint16 unknowHeader;
 
-        stream >> UnknowHeader;
+        stream >> unknowHeader;
 
         // This is disabled for the moment, need investigations
         // It seem some device send a UnknowHeader = 0x0000
         // it s always 0x0000 for device > gateway
         // And always 0x0008 for gateway > device (0x0008 is the payload size)
         //
-        //if (UnknowHeader == 0x0000)
+        //if (unknowHeader == 0x0000)
         //{
         //}
 
-        quint32 time_now = 0xFFFFFFFF;              // id 0x0000 Time
-        qint32 time_zone = 0xFFFFFFFF;              // id 0x0002 TimeZone
-        quint32 time_dst_start = 0xFFFFFFFF;        // id 0x0003 DstStart
-        quint32 time_dst_end = 0xFFFFFFFF;          // id 0x0004 DstEnd
-        qint32 time_dst_shift = 0xFFFFFFFF;         // id 0x0005 DstShift
-        quint32 time_std_time = 0xFFFFFFFF;         // id 0x0006 StandardTime
-        quint32 time_local_time = 0xFFFFFFFF;       // id 0x0007 LocalTime
+        quint32 timeNow = 0xFFFFFFFF;              // id 0x0000 Time
+        qint32 timeZone = 0xFFFFFFFF;              // id 0x0002 TimeZone
+        quint32 timeDstStart = 0xFFFFFFFF;        // id 0x0003 DstStart
+        quint32 timeDstEnd = 0xFFFFFFFF;          // id 0x0004 DstEnd
+        qint32 timeDstShift = 0xFFFFFFFF;         // id 0x0005 DstShift
+        quint32 timeStdTime = 0xFFFFFFFF;         // id 0x0006 StandardTime
+        quint32 timeLocalTime = 0xFFFFFFFF;       // id 0x0007 LocalTime
 
-        getTime(&time_now, &time_zone, &time_dst_start, &time_dst_end, &time_dst_shift, &time_std_time, &time_local_time, UNIX_EPOCH);
+        getTime(&timeNow, &timeZone, &timeDstStart, &timeDstEnd, &timeDstShift, &timeStdTime, &timeLocalTime, UNIX_EPOCH);
         
         QByteArray data;
         QDataStream stream2(&data, QIODevice::WriteOnly);
         stream2.setByteOrder(QDataStream::LittleEndian);
         
         //Add the "magic value"
-        stream2 << UnknowHeader;
+        stream2 << unknowHeader;
         
         //change byter order
         stream2.setByteOrder(QDataStream::BigEndian);
         
          // Add UTC time
-        stream2 << time_now;
+        stream2 << timeNow;
         // Ad local time
-        stream2 << time_local_time;
+        stream2 << timeLocalTime;
 
-        SendTuyaCommand(ind, TUYA_TIME_SYNCHRONISATION, data);
+        sendTuyaCommand(ind, TUYA_TIME_SYNCHRONISATION, data);
 
         return;
     }
@@ -976,7 +976,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
 
 }
 
-bool DeRestPluginPrivate::SendTuyaRequestThermostatSetWeeklySchedule(TaskItem &taskRef, quint8 weekdays, QString transitions, qint8 Dp_identifier)
+bool DeRestPluginPrivate::sendTuyaRequestThermostatSetWeeklySchedule(TaskItem &taskRef, quint8 weekdays, const QString &transitions, qint8 Dp_identifier)
 {
     QByteArray data;
 
@@ -986,11 +986,11 @@ bool DeRestPluginPrivate::SendTuyaRequestThermostatSetWeeklySchedule(TaskItem &t
     quint8 mm;
     quint8 heatSetpoint;
 
-    if (Dp_identifier == 0x65)
+    if (Dp_identifier == DP_IDENTIFIER_THERMOSTAT_SCHEDULE_1)
     {
         //To finish
     }
-    else if (Dp_identifier == 0x6D)
+    else if (Dp_identifier == DP_IDENTIFIER_THERMOSTAT_SCHEDULE_4)
     {
         //To finish
     }
@@ -998,7 +998,7 @@ bool DeRestPluginPrivate::SendTuyaRequestThermostatSetWeeklySchedule(TaskItem &t
     {
         if (weekdays == 3)
         {
-            Dp_identifier = 0x71;
+            Dp_identifier = DP_IDENTIFIER_THERMOSTAT_SCHEDULE_3;
         }
         if (list.size() != 6)
         {
@@ -1013,8 +1013,8 @@ bool DeRestPluginPrivate::SendTuyaRequestThermostatSetWeeklySchedule(TaskItem &t
         {
             return false;
         }
-        hh = attributes.at(0).mid(0, 2).toUInt();
-        mm = attributes.at(0).mid(3, 2).toUInt();
+        hh = attributes.at(0).midRef(0, 2).toUInt();
+        mm = attributes.at(0).midRef(3, 2).toUInt();
         heatSetpoint = attributes.at(1).toInt();
 
         data.append(QByteArray::number(hh, 16));
@@ -1022,15 +1022,15 @@ bool DeRestPluginPrivate::SendTuyaRequestThermostatSetWeeklySchedule(TaskItem &t
         data.append(QByteArray::number(heatSetpoint, 16));
     }
 
-    return SendTuyaRequest(taskRef, TaskThermostat, DP_TYPE_RAW, Dp_identifier, data);
+    return sendTuyaRequest(taskRef, TaskThermostat, DP_TYPE_RAW, Dp_identifier, data);
 }
 
 //
 // Tuya Devices
 //
-bool DeRestPluginPrivate::SendTuyaRequest(TaskItem &taskRef, TaskType taskType, qint8 Dp_type, qint8 Dp_identifier, QByteArray data)
+bool DeRestPluginPrivate::sendTuyaRequest(TaskItem &taskRef, TaskType taskType, qint8 Dp_type, qint8 Dp_identifier, const QByteArray &data)
 {
-    DBG_Printf(DBG_INFO, "Send Tuya Request: Dp_type: 0x%02X Dp_ identifier 0x%02X Data: %s\n", Dp_type, Dp_identifier, qPrintable(data.toHex()));
+    DBG_Printf(DBG_INFO, "Send Tuya request: Dp_type: 0x%02X, Dp_identifier 0x%02X, data: %s\n", Dp_type, Dp_identifier, qPrintable(data.toHex()));
     
     const quint8 seq = zclSeq++;
 
@@ -1052,18 +1052,13 @@ bool DeRestPluginPrivate::SendTuyaRequest(TaskItem &taskRef, TaskType taskType, 
     QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
     stream.setByteOrder(QDataStream::LittleEndian);
 
-    //Status always 0x00
-    stream << (qint8) 0x00;
-    //TransID , use seq
-    stream << (qint8) seq;
-    //Dp_indentifier
-    stream << (qint8) Dp_identifier;
-    //Dp_type
-    stream << (qint8) Dp_type;
-    //Fn , always 0
-    stream << (qint8) 0x00;
+    stream << static_cast<qint8>(0x00);          // Status always 0x00
+    stream << static_cast<qint8>(seq);           // TransID, use seq
+    stream << static_cast<qint8>(Dp_identifier); // Dp_indentifier
+    stream << static_cast<qint8>(Dp_type);       // Dp_type
+    stream << static_cast<qint8>(0x00);          // Fn, always 0
     // Data
-    stream << (qint8) data.length(); // length (can be 0 for Dp_identifier = enums)
+    stream << static_cast<qint8>(data.length()); // length (can be 0 for Dp_identifier = enums)
     for (int i = 0; i < data.length(); i++)
     {
         stream << static_cast<quint8>(data[i]);
@@ -1086,13 +1081,11 @@ bool DeRestPluginPrivate::SendTuyaRequest(TaskItem &taskRef, TaskType taskType, 
     return true;
 }
 
-bool DeRestPluginPrivate::SendTuyaCommand(const deCONZ::ApsDataIndication &ind, qint8 command, QByteArray data)
+bool DeRestPluginPrivate::sendTuyaCommand(const deCONZ::ApsDataIndication &ind, qint8 commandId, const QByteArray &data)
 {
-    DBG_Printf(DBG_INFO, "Send Tuya Command 0x%02X Data: %s\n", command, qPrintable(data.toHex()));
+    DBG_Printf(DBG_INFO, "Send Tuya command 0x%02X, data: %s\n", commandId, qPrintable(data.toHex()));
 
     TaskItem task;
-    
-    const quint8 seq = zclSeq++;
 
     //Tuya task
     task.taskType = TaskTuyaRequest;
@@ -1105,8 +1098,8 @@ bool DeRestPluginPrivate::SendTuyaCommand(const deCONZ::ApsDataIndication &ind, 
     task.req.setProfileId(HA_PROFILE_ID);
 
     task.zclFrame.payload().clear();
-    task.zclFrame.setSequenceNumber(seq);
-    task.zclFrame.setCommandId(command); // Command
+    task.zclFrame.setSequenceNumber(zclSeq++);
+    task.zclFrame.setCommandId(commandId); // Command
     task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
                              deCONZ::ZclFCDirectionClientToServer |
                              deCONZ::ZclFCDisableDefaultResponse);
@@ -1118,7 +1111,7 @@ bool DeRestPluginPrivate::SendTuyaCommand(const deCONZ::ApsDataIndication &ind, 
     // Data
     for (int i = 0; i < data.length(); i++)
     {
-        stream << (quint8) data[i];
+        stream << static_cast<quint8>(data[i]);
     }
 
     { // ZCL frame
@@ -1130,7 +1123,7 @@ bool DeRestPluginPrivate::SendTuyaCommand(const deCONZ::ApsDataIndication &ind, 
 
     if (!addTask(task))
     {
-        DBG_Printf(DBG_INFO, "Failed to send Tuya command 0x%02X data: %s\n", command, qPrintable(data.toHex()));
+        DBG_Printf(DBG_INFO, "Failed to send Tuya command 0x%02X, data: %s\n", commandId, qPrintable(data.toHex()));
         return false;
     }
 
