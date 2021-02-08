@@ -6476,7 +6476,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
                 sensorNode.modelId() == QLatin1String("902010/32") ||       // Bitron
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
-                R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD HY369 TRV"))
@@ -6485,7 +6484,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             }
 
             if (R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD HY369 TRV") ||
-                R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV"))
