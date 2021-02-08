@@ -1,5 +1,5 @@
 /*
- * Copyright (c)2018 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c)2018-2021 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -26,6 +26,39 @@
 #define DP_TYPE_STRING 0x03
 #define DP_TYPE_ENUM 0x04
 #define DP_TYPE_FAULT 0x05
+
+// Value for dp_identifier for sensor
+//-----------------------------------
+#define DP_IDENTIFIER_WINDOW_OPEN 0x12
+#define DP_IDENTIFIER_WINDOW_OPEN2 0x08
+#define DP_IDENTIFIER_THERMOSTAT_SCHEDULE_1 0x65 // Moe thermostat W124 (4) + W002 (4) + W001 (4)
+#define DP_IDENTIFIER_THERMOSTAT_SCHEDULE_2 0x70 // work days (6)
+#define DP_IDENTIFIER_THERMOSTAT_SCHEDULE_3 0x71 // holiday = Not working day (6)
+#define DP_IDENTIFIER_THERMOSTAT_SCHEDULE_4 0x6D // Not finished
+
+#define DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT 0x02 // Heatsetpoint
+#define DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_2 0x67 // Heatsetpoint
+#define DP_IDENTIFIER_THERMOSTAT_VALVE 0x14 // Heatsetpoint
+
+
+// Value for dp_identifier for covering
+//-----------------------------------
+#define DP_IDENTIFIER_CONTROL 0x01
+#define DP_IDENTIFIER_PERCENT_CONTROL 0x02
+#define DP_IDENTIFIER_WORK_STATE 0x05
+
+// Value for dp_identifier for switches
+//-----------------------------------
+#define DP_IDENTIFIER_BUTTON_1 0x01
+#define DP_IDENTIFIER_BUTTON_2 0x02
+#define DP_IDENTIFIER_BUTTON_3 0x03
+
+// Value for tuya command
+//-----------------------
+#define TUYA_REQUEST 0x00
+#define TUYA_REPORTING 0x01
+#define TUYA_QUERY 0x02
+#define TUYA_TIME_SYNCHRONISATION 0x24
 
 bool isTuyaManufacturerName(const QString &manufacturer);
 bool UseTuyaCluster(const QString &manufacturer);

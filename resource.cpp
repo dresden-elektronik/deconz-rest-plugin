@@ -452,6 +452,8 @@ static const ProductMap products[] =
     // Prefix signification
     // --------------------
     // Tuya_THD : thermostat device using Tuya cluster
+    // Tuya_COVD : covering device using Tuya cluster
+    
     
     // Tuya Thermostat / TRV
     {"_TYST11_zuhszj9s", "uhszj9s", "HiHome", "Tuya_THD WZB-TRVL TRV"},
@@ -459,7 +461,7 @@ static const ProductMap products[] =
     {"_TYST11_c88teujp", "88teujp", "Saswell", "Tuya_THD SEA801-ZIGBEE TRV"},
     {"_TZE200_c88teujp", "TS0601", "Saswell", "Tuya_THD SEA801-ZIGBEE TRV"},
     {"_TYST11_ckud7u2l", "kud7u2l", "Tuya", "Tuya_THD HY369 TRV"},
-    {"_TZE200_ckud7u2l", "TS0601", "Tuya", "Tuya_THD HY369 TRV "},
+    {"_TZE200_ckud7u2l", "TS0601", "Tuya", "Tuya_THD HY369 TRV"},
     {"_TZE200_aoclfnxz", "TS0601", "Moes", "Tuya_THD BTH-002 Thermostat"},
     {"_TYST11_jeaxp72v", "eaxp72v", "Essentials", "Tuya_THD Essentials TRV"},
     {"_TYST11_kfvq6avy", "fvq6avy", "Revolt", "Tuya_THD NX-4911-675 TRV"},
@@ -469,18 +471,22 @@ static const ProductMap products[] =
     {"_TYST11_yw7cahqs", "w7cahqs", "Hama", "Tuya_THD Smart radiator TRV"},
     
     // Tuya Covering
-    {"_TYST11_wmcdj3aq", "mcdj3aq", "Zemismart", "ZM25TQ"},
-    {"_TZE200_wmcdj3aq", "TS0601", "Zemismart", "ZM25TQ"},
-    {"_TZE200_fzo2pocs", "TS0601", "Zemismart", "ZM25TQ"},
-    {"_TYST11_xu1rkty3", "u1rkty3", "Smart Home", "DT82LEMA-1.2N"},
-    {"_TZE200_xuzcvlku", "TS0601", "Zemismart", "M515EGB"},
-    {"_TZE200_zah67ekd", "TS0601", "MoesHouse / Livolo", "AM43-0.45-40"},
-    {"_TZE200_nogaemzt", "TS0601", "Tuya", "YS-MT750"},
-    {"_TZE200_zpzndjez", "TS0601", "Tuya", "DS82"},
-    {"_TZE200_cowvfni3", "TS0601", "Zemismart", "ZM79E-DT"},
-    {"_TZE200_5zbp6j0u", "TS0601", "Tuya/Zemismart", "DT82LEMA-1.2N"},
-    {"_TZE200_fdtjuw7u", "TS0601", "Yushun", "YS-MT750"},
-    {"_TZE200_bqcqqjpb", "TS0601", "Yushun", "YS-MT750"},
+    {"_TYST11_wmcdj3aq", "mcdj3aq", "Zemismart", "Tuya_COVD ZM25TQ"},
+    {"_TZE200_wmcdj3aq", "TS0601", "Zemismart", "Tuya_COVD ZM25TQ"},
+    {"_TZE200_fzo2pocs", "TS0601", "Zemismart", "Tuya_COVD ZM25TQ"},
+    {"_TYST11_xu1rkty3", "u1rkty3", "Smart Home", "Tuya_COVD DT82LEMA-1.2N"},
+    {"_TZE200_xuzcvlku", "TS0601", "Zemismart", "Tuya_COVD M515EGB"},
+    {"_TZE200_zah67ekd", "TS0601", "MoesHouse / Livolo", "Tuya_COVD AM43-0.45-40"},
+    {"_TZE200_nogaemzt", "TS0601", "Tuya", "Tuya_COVD YS-MT750"},
+    {"_TZE200_zpzndjez", "TS0601", "Tuya", "Tuya_COVD DS82"},
+    {"_TZE200_cowvfni3", "TS0601", "Zemismart", "Tuya_COVD ZM79E-DT"},
+    {"_TZE200_5zbp6j0u", "TS0601", "Tuya/Zemismart", "Tuya_COVD DT82LEMA-1.2N"},
+    {"_TZE200_fdtjuw7u", "TS0601", "Yushun", "Tuya_COVD YS-MT750"},
+    {"_TZE200_bqcqqjpb", "TS0601", "Yushun", "Tuya_COVD YS-MT750"},
+    
+    {"_TZ3000_egq7y6pr", "TS130F", "Lonsonho", "11830304 Switch"},
+    {"_TZ3000_xzqbrqk1", "TS130F", "Lonsonho", "11830304(2) Switch"}, // Not sure for this one.
+    {"_TZ3000_vd43bbfq", "TS130F", "Tuya", "QS-Zigbee-C01 Module"}, // Curtain module QS-Zigbee-C01
     
     {nullptr, nullptr, nullptr, nullptr}
 };
@@ -498,7 +504,7 @@ static QLatin1String productIdForManufacturerName(const QString &manufacturerNam
         }
     }
 
-    return {};
+    return QLatin1String("");
 }
 
 /*! Returns the product identifier for a resource. */
