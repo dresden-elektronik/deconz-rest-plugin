@@ -142,7 +142,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
     LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
     Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
 
-    if ((!sensorNode) && (!lightNode))
+    if (!sensorNode && !lightNode)
     {
         return;
     }
@@ -336,7 +336,6 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     {
                         updateThermostatSchedule(sensorNode, listday.at(part - 1), transitions);
                     }
-
                 }
             }
 
@@ -476,9 +475,9 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             {
                 case 0x0068: // window open information
                 {
-                    quint8 valve = (quint8) (dp & 0xFF);
-                    quint8 temperature = (quint8) ((dp >> 8) & 0xFF);
-                    quint8 minute = (quint8) ((dp >> 16) & 0xFF);
+                    quint8 valve = static_cast<quint8>(dp & 0xFF);
+                    quint8 temperature = static_cast<quint8>((dp >> 8) & 0xFF);
+                    quint8 minute = static_cast<quint8>((dp >> 16) & 0xFF); // TODO, U16 >> 16 ... this is always 0?!
 
                     DBG_Printf(DBG_INFO, "Tuya debug 9 : windows open info: %d %d %d\n", valve, temperature, minute);
 
