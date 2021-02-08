@@ -22,22 +22,34 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 
+//Used somewhere else in the code
 const QDateTime epoch = QDateTime(QDate(2000, 1, 1), QTime(0, 0), Qt::UTC);
 
-static void getTime(quint32 *time, qint32 *tz, quint32 *dstStart, quint32 *dstEnd, qint32 *dstShift, quint32 *standardTime, quint32 *localTime)
+// Used only localy
+const QDateTime J2000_epoch = QDateTime(QDate(2000, 1, 1), QTime(0, 0), Qt::UTC);
+const QDateTime Unix_epoch = QDateTime(QDate(1970, 1, 1), QTime(0, 0), Qt::UTC);
+
+void DeRestPluginPrivate::getTime(quint32 *time, qint32 *tz, quint32 *dstStart, quint32 *dstEnd, qint32 *dstShift, quint32 *standardTime, quint32 *localTime, quint8 mode)
 {
     QDateTime now = QDateTime::currentDateTimeUtc();
     QDateTime yearStart(QDate(QDate::currentDate().year(), 1, 1), QTime(0, 0), Qt::UTC);
     QTimeZone timeZone(QTimeZone::systemTimeZoneId());
+    
+    QDateTime epoch2 = J2000_epoch;
 
-    *time = *standardTime = *localTime = epoch.secsTo(now);
+    if ( mode == UNIX_EPOCH)
+    {
+        epoch2 = Unix_epoch;
+    }
+
+    *time = *standardTime = *localTime = epoch2.secsTo(now);
     *tz = timeZone.offsetFromUtc(yearStart);
     if (timeZone.hasTransitions())
     {
         QTimeZone::OffsetData dstStartOffsetData = timeZone.nextTransition(yearStart);
         QTimeZone::OffsetData dstEndOffsetData = timeZone.nextTransition(dstStartOffsetData.atUtc);
-        *dstStart = epoch.secsTo(dstStartOffsetData.atUtc);
-        *dstEnd = epoch.secsTo(dstEndOffsetData.atUtc);
+        *dstStart = epoch2.secsTo(dstStartOffsetData.atUtc);
+        *dstEnd = epoch2.secsTo(dstEndOffsetData.atUtc);
         *dstShift = dstStartOffsetData.daylightTimeOffset;
         *standardTime += *tz;
         *localTime += *tz + ((*time >= *dstStart && *time <= *dstEnd) ? *dstShift : 0);
@@ -104,7 +116,7 @@ void DeRestPluginPrivate::sendTimeClusterResponse(const deCONZ::ApsDataIndicatio
     quint32 time_local_time = 0xFFFFFFFF;       // id 0x0007 LocalTime
     quint32 time_valid_until_time = 0xFFFFFFFF; // id 0x0009 ValidUntilTime
 
-    getTime(&time_now, &time_zone, &time_dst_start, &time_dst_end, &time_dst_shift, &time_std_time, &time_local_time);
+    getTime(&time_now, &time_zone, &time_dst_start, &time_dst_end, &time_dst_shift, &time_std_time, &time_local_time, J2000_EPOCH);
     time_valid_until_time = time_now + (3600 * 24 * 30 * 12);
 
     { // payload
@@ -257,7 +269,7 @@ bool DeRestPluginPrivate::addTaskSyncTime(Sensor *sensor)
     quint32 time_local_time = 0xFFFFFFFF;       // id 0x0007 LocalTime
     quint32 time_valid_until_time = 0xFFFFFFFF; // id 0x0009 ValidUntilTime
 
-    getTime(&time_now, &time_zone, &time_dst_start, &time_dst_end, &time_dst_shift, &time_std_time, &time_local_time);
+    getTime(&time_now, &time_zone, &time_dst_start, &time_dst_end, &time_dst_shift, &time_std_time, &time_local_time, J2000_EPOCH);
     time_valid_until_time = time_now + (3600 * 24);
 
     QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);

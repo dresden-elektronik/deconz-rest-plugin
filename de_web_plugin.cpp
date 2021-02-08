@@ -374,6 +374,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "TS0044", silabs9MacPrefix }, // Tuya wireless switch
     { VENDOR_NONE, "kud7u2l", silabs3MacPrefix }, // Tuya Smart TRV HY369 Thermostatic Radiator Valve
     { VENDOR_NONE, "GbxAXL2", silabs3MacPrefix }, // Another Tuya Smart TRV Thermostatic Radiator Valve
+    { VENDOR_NONE, "w7cahqs", silabs8MacPrefix }, // hama Smart Radiator Thermostat
     { VENDOR_EMBER, "TS0601", silabs7MacPrefix }, // Tuya Smart TRV HY369 Thermostatic Radiator Valve
     { VENDOR_EMBER, "TS0601", silabs5MacPrefix }, // MOES Zigbee Radiator Actuator HY368 / Moes Tuya Thermostat BTH-002
     { VENDOR_EMBER, "TS0207", silabs3MacPrefix }, // Tuya water leak sensor
@@ -381,6 +382,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "0yu2xgi", silabs5MacPrefix }, // Tuya siren
     { VENDOR_NONE, "eaxp72v", ikea2MacPrefix }, // Tuya TRV Wesmartify Thermostat Essentials Premium
     { VENDOR_NONE, "88teujp", silabs8MacPrefix }, // SEA802-Zigbee
+    { VENDOR_NONE, "uhszj9s", silabs8MacPrefix }, // HiHome WZB-TRVL
     { VENDOR_NONE, "fvq6avy", silabs7MacPrefix }, // Revolt NX-4911-675 Thermostat
     { VENDOR_HEIMAN, "TY0203", silabs3MacPrefix }, // Lidl/Silvercrest Smart Window or Door Sensor
     { VENDOR_HEIMAN, "TY0203", silabs7MacPrefix }, // Lidl/Silvercrest Smart Window or Door Sensor
@@ -2162,7 +2164,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         {
             if (manufacturer.isEmpty())
             {
-                DBG_Printf(DBG_INFO, "Tuya debug 7 : Missing manufacture name for 0x%016llx\n", node->address().ext());
+                DBG_Printf(DBG_INFO_L2, "Tuya debug 7 : Missing manufacture name for 0x%016llx\n", node->address().ext());
 
                 //searching in DB
                 openDb();
@@ -2181,7 +2183,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
 				if (manufacturer.isEmpty())
 				{
-					DBG_Printf(DBG_INFO, "Tuya debug 7 : Missing manufacture name, till missing in DB.\n");
+					DBG_Printf(DBG_INFO_L2, "Tuya debug 7 : Missing manufacture name, till missing in DB.\n");
 				}
             }
             if (!manufacturer.isEmpty())
@@ -2209,12 +2211,16 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             //Tuya black list
             // _TYST11_ckud7u2l is valve with 2 cluster
             // _TYST11_jeaxp72v same
-            // _TYST11_kfvq6avy same
+            // _TYST11_kfvq6avy same, _TZE200_kfvq6avy
             // _TYST11_c88teujp same
-            if ((lightNode.manufacturer() == QLatin1String("_TYST11_ckud7u2l")) ||
-                (lightNode.manufacturer() == QLatin1String("_TYST11_kfvq6avy")) ||
-                (lightNode.manufacturer() == QLatin1String("_TYST11_c88teujp")) ||
-                (lightNode.manufacturer() == QLatin1String("_TYST11_jeaxp72v")) )
+            // _TYST11_zuhszj9s same
+            // _TYST11_yw7cahqs same
+            if (lightNode.manufacturer().endsWith(QLatin1String("kud7u2l"))  ||
+                lightNode.manufacturer().endsWith(QLatin1String("fvq6avy")) ||
+                lightNode.manufacturer().endsWith(QLatin1String("88teujp")) ||
+                lightNode.manufacturer().endsWith(QLatin1String("uhszj9s")) ||
+                lightNode.manufacturer().endsWith(QLatin1String("w7cahqs")) ||
+                lightNode.manufacturer().endsWith(QLatin1String("eaxp72v")) )
             {
                 hasServerOnOff = false;
             }
@@ -4954,11 +4960,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     else if (!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == VENDOR_NONE)
                     {
                         // For some device the Tuya cluster is sometime Invisible, so force device detection
-                        if ((modelId == QLatin1String("kud7u2l")) ||
-                            (modelId == QLatin1String("eaxp72v")) ||
-                            (modelId == QLatin1String("88teujp")) ||
-                            (modelId == QLatin1String("fvq6avy")) ||
-                            (modelId == QLatin1String("GbxAXL2")) )
+                        if ( manufacturer.endsWith(QLatin1String("kud7u2l"))  ||
+                             manufacturer.endsWith(QLatin1String("eaxp72v")) ||
+                             manufacturer.endsWith(QLatin1String("88teujp")) ||
+                             manufacturer.endsWith(QLatin1String("uhszj9s")) ||
+                             manufacturer.endsWith(QLatin1String("fvq6avy")) ||
+                             manufacturer.endsWith(QLatin1String("w7cahqs")) ||
+                             manufacturer.endsWith(QLatin1String("GbxAXL2")) )
                         {
                             fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
                         }
@@ -4968,8 +4976,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         }
                     }
                     else if ((node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER) &&
-                             ((manufacturer == QLatin1String("_TZE200_aoclfnxz")) ||
-                              (manufacturer == QLatin1String("_TZE200_c88teujp"))) )
+                             ( manufacturer.endsWith(QLatin1String("oclfnxz")) ||
+                              manufacturer.endsWith(QLatin1String("88teujp")) ) )
                     {
                         fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
                     }
@@ -5402,14 +5410,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case TUYA_CLUSTER_ID:
                 {
-                    if ((modelId == QLatin1String("kud7u2l")) ||
-                        (modelId == QLatin1String("GbxAXL2")) ||
-                        (manufacturer == QLatin1String("_TYST11_jeaxp72v")) ||
-                        (manufacturer == QLatin1String("_TYST11_kfvq6avy")) ||
-                        (manufacturer == QLatin1String("_TYST11_c88teujp")) ||
-                        (manufacturer == QLatin1String("_TZE200_aoclfnxz")) ||
-                        (manufacturer == QLatin1String("_TZE200_c88teujp")) ||
-                        (manufacturer == QLatin1String("_TZE200_ckud7u2l")) )
+                    if (manufacturer.endsWith(QLatin1String("kud7u2l")) ||
+                        manufacturer.endsWith(QLatin1String("GbxAXL2")) ||
+                        manufacturer.endsWith(QLatin1String("eaxp72v")) ||
+                        manufacturer.endsWith(QLatin1String("fvq6avy")) ||
+                        manufacturer.endsWith(QLatin1String("uhszj9s")) ||
+                        manufacturer.endsWith(QLatin1String("oclfnxz")) ||
+                        manufacturer.endsWith(QLatin1String("w7cahqs")) ||
+                        manufacturer.endsWith(QLatin1String("88teujp")) )
                     {
                         fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
                     }
@@ -6472,52 +6480,64 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             if (sensorNode.modelId().startsWith(QLatin1String("SLR2")) ||   // Hive
                 sensorNode.modelId() == QLatin1String("SLR1b") ||           // Hive
                 sensorNode.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
-                sensorNode.modelId() == QLatin1String("kud7u2l") ||         // Tuya
-                sensorNode.modelId() == QLatin1String("GbxAXL2") ||         // Tuya
                 sensorNode.modelId() == QLatin1String("902010/32") ||       // Bitron
-               (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ||          // Tuya
-               (sensorNode.manufacturer() == QLatin1String("_TZE200_aoclfnxz")))            // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("GbxAXL2")) ||         // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("88teujp")) ||         // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("uhszj9s")) ||         // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("w7cahqs")) ||         // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("kud7u2l")) )          // Tuya
             {
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
 
-            if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
-                sensorNode.modelId() == QLatin1String("GbxAXL2") || // Tuya
-                (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
+            if (sensorNode.manufacturer().endsWith(QLatin1String("kud7u2l")) || // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("GbxAXL2")) ||  // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("uhszj9s")) || // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("w7cahqs")) || // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("88teujp")) )  // Tuya
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
                 sensorNode.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
             }
 
-            if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
-                sensorNode.modelId() == QLatin1String("eaxp72v") || // Tuya
-                sensorNode.modelId() == QLatin1String("88teujp") || // Tuya
-                sensorNode.modelId() == QLatin1String("fvq6avy") || // Tuya
-               (sensorNode.manufacturer() == QLatin1String("_TZE200_c88teujp")) ||
-               (sensorNode.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) ||
-               (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
+            if (sensorNode.manufacturer().endsWith(QLatin1String("kud7u2l")) || // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("eaxp72v")) ||   // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("88teujp")) ||   // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("fvq6avy")) ||   // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("uhszj9s")) ||   // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("w7cahqs")) ||   // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("oclfnxz")) )    // Tuya
+            {
+                sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
+            }
+
+            if (sensorNode.manufacturer().endsWith(QLatin1String("kud7u2l")) || // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("eaxp72v")) || // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("88teujp")) || // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("fvq6avy")) || // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("w7cahqs")) || // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("oclfnxz")) )   // Tuya
             {
                 sensorNode.addItem(DataTypeString, RConfigPreset);
-                sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                 sensorNode.addItem(DataTypeBool, RConfigSetValve)->setValue(false);
             }
 
-            if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
-                sensorNode.modelId() == QLatin1String("88teujp") || // Tuya
-                sensorNode.modelId() == QLatin1String("fvq6avy") || // Tuya
-               (sensorNode.manufacturer() == QLatin1String("_TZE200_c88teujp")) ||
-               (sensorNode.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) ||
-               (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
+            if (sensorNode.manufacturer().endsWith(QLatin1String("kud7u2l")) || // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("88teujp")) || // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("fvq6avy")) || // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("uhszj9s")) || // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("w7cahqs")) || // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("oclfnxz")) )   // Tuya
             {
                 sensorNode.addItem(DataTypeString, RConfigSchedule);
             }
 
-            if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
-                sensorNode.modelId() == QLatin1String("eaxp72v") || // Tuya
-                sensorNode.modelId() == QLatin1String("88teujp") || // Tuya
-                sensorNode.modelId() == QLatin1String("fvq6avy") || // Tuya
-               (sensorNode.manufacturer() == QLatin1String("_TZE200_c88teujp")) ||
-               (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
+            if (sensorNode.manufacturer().endsWith(QLatin1String("kud7u2l")) || // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("eaxp72v")) || // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("fvq6avy")) || // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("uhszj9s")) || // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("w7cahqs")) || // Tuya
+                sensorNode.manufacturer().endsWith(QLatin1String("88teujp")) )  // Tuya
             {
                 sensorNode.addItem(DataTypeBool, RConfigWindowOpen)->setValue(false);
             }

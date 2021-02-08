@@ -458,6 +458,10 @@ using namespace deCONZ::literals;
 #define RECONNECT_CHECK_DELAY  5000
 #define RECONNECT_NOW          100
 
+//Epoch mode
+#define UNIX_EPOCH 0
+#define J2000_EPOCH 1
+
 extern const quint64 macPrefixMask;
 
 extern const quint64 celMacPrefix;
@@ -1224,6 +1228,9 @@ public:
     //reset Device
     void initResetDeviceApi();
 
+    //Time
+    void getTime(quint32 *time, qint32 *tz, quint32 *dstStart, quint32 *dstEnd, qint32 *dstShift, quint32 *standardTime, quint32 *localTime, quint8 mode);
+
     //Timezone
     // std::string getTimezone();
     QVariantList getTimezones();
@@ -1527,6 +1534,7 @@ public:
     bool sendIasZoneEnrollResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleIndicationSearchSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     bool SendTuyaRequest(TaskItem &task, TaskType taskType , qint8 Dp_type, qint8 Dp_identifier , QByteArray data );
+    bool SendTuyaCommand( const deCONZ::ApsDataIndication &ind, qint8 command, QByteArray data );
     void handleCommissioningClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     bool SendTuyaRequestThermostatSetWeeklySchedule(TaskItem &taskRef, quint8 weekdays , QString transitions , qint8 Dp_identifier);
     void handleZdpIndication(const deCONZ::ApsDataIndication &ind);
