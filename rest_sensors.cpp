@@ -1007,7 +1007,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     QByteArray data;
                     data.append(static_cast<qint8>(melody & 0xff));
 
-                    if (SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_ENUM, DP_IDENTIFIER_MELODY, data))
+                    if (sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_ENUM, DP_IDENTIFIER_MELODY, data))
                     {
                         updated = true;
                     }
@@ -1022,7 +1022,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     QByteArray data;
                     data.append(static_cast<qint8>(volume & 0xff));
 
-                    if (SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_ENUM, DP_IDENTIFIER_VOLUME, data))
+                    if (sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_ENUM, DP_IDENTIFIER_VOLUME, data))
                     {
                         updated = true;
                     }
@@ -1033,26 +1033,26 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     QString presetSet = map[pi.key()].toString();
                     if (presetSet == "both")
                     {
-                        SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, DP_IDENTIFIER_TEMPERATURE_ALARM, QByteArray("\x01",1));
-                        SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, DP_IDENTIFIER_HUMIDITY_ALARM, QByteArray("\x01",1));
+                        sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, DP_IDENTIFIER_TEMPERATURE_ALARM, QByteArray("\x01",1));
+                        sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, DP_IDENTIFIER_HUMIDITY_ALARM, QByteArray("\x01",1));
                         //SendTuyaRequest2(task, TaskTuyaRequest , DP_TYPE_BOOL, 0x71, QByteArray("\x01",1) ,DP_TYPE_BOOL, 0x72, QByteArray("\x01",1) );
                     }
                     else if (presetSet == "humidity")
                     {
-                        SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, DP_IDENTIFIER_TEMPERATURE_ALARM, QByteArray("\x00",1));
-                        SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, DP_IDENTIFIER_HUMIDITY_ALARM, QByteArray("\x01",1));
+                        sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, DP_IDENTIFIER_TEMPERATURE_ALARM, QByteArray("\x00",1));
+                        sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, DP_IDENTIFIER_HUMIDITY_ALARM, QByteArray("\x01",1));
                         //SendTuyaRequest2(task, TaskTuyaRequest , DP_TYPE_BOOL, 0x71, QByteArray("\x00",1) ,DP_TYPE_BOOL, 0x72, QByteArray("\x01",1) );
                     }
                     else if (presetSet == "temperature")
                     {
-                        SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, DP_IDENTIFIER_TEMPERATURE_ALARM, QByteArray("\x01",1));
-                        SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, DP_IDENTIFIER_HUMIDITY_ALARM, QByteArray("\x00",1));
+                        sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, DP_IDENTIFIER_TEMPERATURE_ALARM, QByteArray("\x01",1));
+                        sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, DP_IDENTIFIER_HUMIDITY_ALARM, QByteArray("\x00",1));
                         //SendTuyaRequest2(task, TaskTuyaRequest , DP_TYPE_BOOL, 0x71, QByteArray("\x01",1) ,DP_TYPE_BOOL, 0x72, QByteArray("\x00",1) );
                     }
                     else if (presetSet == "off")
                     {
-                        SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, DP_IDENTIFIER_TEMPERATURE_ALARM, QByteArray("\x00",1));
-                        SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, DP_IDENTIFIER_HUMIDITY_ALARM, QByteArray("\x00",1));
+                        sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, DP_IDENTIFIER_TEMPERATURE_ALARM, QByteArray("\x00",1));
+                        sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, DP_IDENTIFIER_HUMIDITY_ALARM, QByteArray("\x00",1));
                         //SendTuyaRequest2(task, TaskTuyaRequest , DP_TYPE_BOOL, 0x71, QByteArray("\x00",1) ,DP_TYPE_BOOL, 0x72, QByteArray("\x00",1) );
                     }
                     else
@@ -1077,8 +1077,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             datamax.append(static_cast<qint8>(setting[1].toUInt()));
 
                             //SendTuyaRequest2(task, TaskTuyaRequest , DP_TYPE_VALUE, 0x6B, datamin ,DP_TYPE_VALUE, 0x6C, datamax );
-                            SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_VALUE, DP_IDENTIFIER_TRESHOLDTEMPMINI, datamin);
-                            SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_VALUE, DP_IDENTIFIER_TRESHOLDTEMPMAXI, datamax);
+                            sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_VALUE, DP_IDENTIFIER_TRESHOLDTEMPMINI, datamin);
+                            sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_VALUE, DP_IDENTIFIER_TRESHOLDTEMPMAXI, datamax);
 
                             rspItemState[QString("successfully updated")] = map[pi.key()].toString();
                             rspItem["success"] = rspItemState;
@@ -1100,8 +1100,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             datamax.append(static_cast<qint8>(setting[1].toUInt()));
 
                             //SendTuyaRequest2(task, TaskTuyaRequest , DP_TYPE_VALUE, 0x6D, datamin ,DP_TYPE_VALUE, 0x6E, datamax );
-                            SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_VALUE, DP_IDENTIFIER_TRESHOLDTHUMIMINI, datamin);
-                            SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_VALUE, DP_IDENTIFIER_TRESHOLDHUMIMAXI, datamax);
+                            sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_VALUE, DP_IDENTIFIER_TRESHOLDTHUMIMINI, datamin);
+                            sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_VALUE, DP_IDENTIFIER_TRESHOLDHUMIMAXI, datamax);
 
                             rspItemState[QString("successfully updated")] = map[pi.key()].toString();
                             rspItem["success"] = rspItemState;
