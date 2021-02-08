@@ -9386,6 +9386,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                     else if (event.clusterId() == TIME_CLUSTER_ID)
                     {
                         bool updated = false;
+                        const QDateTime epoch = QDateTime(QDate(2000, 1, 1), QTime(0, 0), Qt::UTC);
 
                         for (;ia != enda; ++ia)
                         {

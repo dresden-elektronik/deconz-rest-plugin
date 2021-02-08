@@ -512,8 +512,6 @@ extern const quint64 zhejiangMacPrefix;
 extern const quint64 danalockMacPrefix;
 extern const quint64 schlageMacPrefix;
 
-extern const QDateTime epoch;
-
 inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
 {
     const quint64 prefix = addr & macPrefixMask;
