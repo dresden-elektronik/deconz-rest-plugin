@@ -932,7 +932,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         quint32 time_std_time = 0xFFFFFFFF;         // id 0x0006 StandardTime
         quint32 time_local_time = 0xFFFFFFFF;       // id 0x0007 LocalTime
 
-        DeRestPluginPrivate::getTime(&time_now, &time_zone, &time_dst_start, &time_dst_end, &time_dst_shift, &time_std_time, &time_local_time, UNIX_EPOCH);
+        getTime(&time_now, &time_zone, &time_dst_start, &time_dst_end, &time_dst_shift, &time_std_time, &time_local_time, UNIX_EPOCH);
         
         QByteArray data;
         QDataStream stream2(&data, QIODevice::WriteOnly);
