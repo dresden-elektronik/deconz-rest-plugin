@@ -1,5 +1,5 @@
 /*
- * Copyright (c)2018 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c)2018-2021 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD

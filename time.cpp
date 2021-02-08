@@ -22,34 +22,36 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 
-//Used somewhere else in the code
-const QDateTime epoch = QDateTime(QDate(2000, 1, 1), QTime(0, 0), Qt::UTC);
-
-// Used only localy
-const QDateTime J2000_epoch = QDateTime(QDate(2000, 1, 1), QTime(0, 0), Qt::UTC);
-const QDateTime Unix_epoch = QDateTime(QDate(1970, 1, 1), QTime(0, 0), Qt::UTC);
-
-void DeRestPluginPrivate::getTime(quint32 *time, qint32 *tz, quint32 *dstStart, quint32 *dstEnd, qint32 *dstShift, quint32 *standardTime, quint32 *localTime, quint8 mode)
+void getTime(quint32 *time, qint32 *tz, quint32 *dstStart, quint32 *dstEnd, qint32 *dstShift, quint32 *standardTime, quint32 *localTime, quint8 mode)
 {
-    QDateTime now = QDateTime::currentDateTimeUtc();
-    QDateTime yearStart(QDate(QDate::currentDate().year(), 1, 1), QTime(0, 0), Qt::UTC);
-    QTimeZone timeZone(QTimeZone::systemTimeZoneId());
-    
-    QDateTime epoch2 = J2000_epoch;
+    const QDateTime now = QDateTime::currentDateTimeUtc();
+    const QDateTime yearStart(QDate(QDate::currentDate().year(), 1, 1), QTime(0, 0), Qt::UTC);
+    const QTimeZone timeZone(QTimeZone::systemTimeZoneId());
 
-    if ( mode == UNIX_EPOCH)
+    QDateTime epoch;
+
+    DBG_Assert(mode == UNIX_EPOCH || mode == J2000_EPOCH);
+    if (mode == UNIX_EPOCH)
     {
-        epoch2 = Unix_epoch;
+        epoch = QDateTime(QDate(1970, 1, 1), QTime(0, 0), Qt::UTC);
+    }
+    else if (mode == J2000_EPOCH)
+    {
+        epoch = QDateTime(QDate(2000, 1, 1), QTime(0, 0), Qt::UTC);;
+    }
+    else
+    {
+        return;
     }
 
-    *time = *standardTime = *localTime = epoch2.secsTo(now);
+    *time = *standardTime = *localTime = epoch.secsTo(now);
     *tz = timeZone.offsetFromUtc(yearStart);
     if (timeZone.hasTransitions())
     {
-        QTimeZone::OffsetData dstStartOffsetData = timeZone.nextTransition(yearStart);
-        QTimeZone::OffsetData dstEndOffsetData = timeZone.nextTransition(dstStartOffsetData.atUtc);
-        *dstStart = epoch2.secsTo(dstStartOffsetData.atUtc);
-        *dstEnd = epoch2.secsTo(dstEndOffsetData.atUtc);
+        const QTimeZone::OffsetData dstStartOffsetData = timeZone.nextTransition(yearStart);
+        const QTimeZone::OffsetData dstEndOffsetData = timeZone.nextTransition(dstStartOffsetData.atUtc);
+        *dstStart = epoch.secsTo(dstStartOffsetData.atUtc);
+        *dstEnd = epoch.secsTo(dstEndOffsetData.atUtc);
         *dstShift = dstStartOffsetData.daylightTimeOffset;
         *standardTime += *tz;
         *localTime += *tz + ((*time >= *dstStart && *time <= *dstEnd) ? *dstShift : 0);
