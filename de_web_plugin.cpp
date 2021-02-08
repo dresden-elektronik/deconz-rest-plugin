@@ -5523,7 +5523,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 }
                     break;
 
-                case 0xFCC0:    // Xiaomi specific
+                case XIAOMI_CLUSTER_ID:    // Xiaomi specific
                 {
                     if (modelId.startsWith(QLatin1String("lumi.")))
                     {
@@ -7113,7 +7113,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             for (const auto &ind : fastProbeIndications)
             {
-                if (ind.clusterId() == BASIC_CLUSTER_ID && ind.profileId() != ZDP_PROFILE_ID)
+                if ((ind.clusterId() == BASIC_CLUSTER_ID || ind.clusterId() == XIAOMI_CLUSTER_ID) && ind.profileId() != ZDP_PROFILE_ID)
                 {
                     deCONZ::ZclFrame zclFrame;
 
@@ -11708,7 +11708,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
         }
     }
 
-    if (zclFrame.isProfileWideCommand() && existDevicesWithVendorCodeForMacPrefix(ind.srcAddress().ext(), VENDOR_XIAOMI) && (ind.clusterId() == BASIC_CLUSTER_ID || ind.clusterId() == 0xfcc0))
+    if (zclFrame.isProfileWideCommand() && existDevicesWithVendorCodeForMacPrefix(ind.srcAddress().ext(), VENDOR_XIAOMI) && (ind.clusterId() == BASIC_CLUSTER_ID || ind.clusterId() == XIAOMI_CLUSTER_ID))
     {
         handleZclAttributeReportIndicationXiaomiSpecial(ind, zclFrame);
     }
@@ -12075,6 +12075,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
     for (LightNode &lightNode: nodes)
     {
+        if (!lightNode.modelId().startsWith(QLatin1String("lumi.")))
+        {
+            continue;
+        }
+        
         if      (ind.srcAddress().hasExt() && lightNode.address().hasExt() &&
                  ind.srcAddress().ext() == lightNode.address().ext())
         { }
@@ -12086,19 +12091,19 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             continue;
         }
 
-        quint8 value = UINT8_MAX;
+        quint8 stateOnOff = UINT8_MAX;
         ResourceItem *item;
 
         if (lightNode.modelId().startsWith(QLatin1String("lumi.ctrl_neutral")))
         {
             if (lightNode.haEndpoint().endpoint() == 0x02 && onOff != UINT8_MAX)
             {
-                value = onOff;
+                stateOnOff = onOff;
 
             }
             else if (lightNode.haEndpoint().endpoint() == 0x03 && onOff2 != UINT8_MAX)
             {
-                value = onOff2;
+                stateOnOff = onOff2;
             }
             else
             {
@@ -12109,11 +12114,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             if (lightNode.haEndpoint().endpoint() == 0x01 && onOff != UINT8_MAX)
             {
-                value = onOff;
+                stateOnOff = onOff;
             }
             else if (lightNode.haEndpoint().endpoint() == 0x02 && onOff2 != UINT8_MAX)
             {
-                value = onOff2;
+                stateOnOff = onOff2;
             }
             else
             {
@@ -12142,13 +12147,13 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 const uint bri = lift * 254 / 100;
                 item->setValue(bri);
                 enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
-                value = bri != 0;
+                stateOnOff = bri != 0;
             }
             // END FIXME: deprecate
         }
-        else
+        else if (lightNode.modelId() == QLatin1String("lumi.plug.mmeu01"))
         {
-            continue;
+            stateOnOff = onOff;
         }
 
         lightNode.rx();
@@ -12159,9 +12164,10 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
         }
         item = lightNode.item(RStateOn);
-        if (item)
+        if (item && stateOnOff != UINT8_MAX) // updated?
         {
-            item->setValue(value);
+            DBG_Assert(stateOnOff == 0 || stateOnOff == 1);
+            item->setValue(stateOnOff);
             enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
         }
         updateLightEtag(&lightNode);
@@ -12442,7 +12448,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             DBG_Printf(DBG_INFO, "Write Aqara Opple switch 0x%016llX mode attribute 0x0009 = 1\n", ind.srcAddress().ext());
             deCONZ::ZclAttribute attr(0x0009, deCONZ::Zcl8BitUint, QLatin1String("mode"), deCONZ::ZclReadWrite, false);
             attr.setValue(static_cast<quint64>(1));
-            writeAttribute(restNodePending, 0x01, 0xFCC0, attr, VENDOR_XIAOMI);
+            writeAttribute(restNodePending, 0x01, XIAOMI_CLUSTER_ID, attr, VENDOR_XIAOMI);
             item->setValue(item->toNumber() & ~R_PENDING_MODE);
         }
     }
@@ -16707,7 +16713,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 // send the magic word to the Aqara Opple switch
                 deCONZ::ZclAttribute attr(0x0009, deCONZ::Zcl8BitUint, "mode", deCONZ::ZclReadWrite, false);
                 attr.setValue(static_cast<quint64>(1));
-                writeAttribute(sensor, sensor->fingerPrint().endpoint, 0xFCC0, attr, VENDOR_XIAOMI);
+                writeAttribute(sensor, sensor->fingerPrint().endpoint, XIAOMI_CLUSTER_ID, attr, VENDOR_XIAOMI);
                 item->setValue(item->toNumber() & ~R_PENDING_MODE);
             }
         }
