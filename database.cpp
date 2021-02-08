@@ -3234,17 +3234,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeUInt16, RStateSpectralZ);
             item->setValue(0);
         }
-        else if (sensor.type().endsWith(QLatin1String("Tuya")))
-        {
-            clusterId = clusterId ? clusterId : TUYA_CLUSTER_ID;
-
-            item = sensor.addItem(DataTypeInt16, RStateTemperature);
-            item->setValue(0);
-            item = sensor.addItem(DataTypeUInt16, RStateHumidity);
-            item->setValue(0);
-            item = sensor.addItem(DataTypeBool, RStateAlarm);
-            item->setValue(false);
-        }
         else if (sensor.type().endsWith(QLatin1String("Humidity")))
         {
             if (sensor.fingerPrint().hasInCluster(RELATIVE_HUMIDITY_CLUSTER_ID))
@@ -3371,6 +3360,16 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             item = sensor.addItem(DataTypeBool, RStateAlarm);
             item->setValue(false);
+            
+            if (sensor.manufacturer().endsWith(QLatin1String("0yu2xgi")))
+            {	
+                sensor.addItem(DataTypeUInt8, RConfigMelody);	
+                sensor.addItem(DataTypeString, RConfigPreset);	
+                sensor.addItem(DataTypeUInt8, RConfigVolume);	
+                sensor.addItem(DataTypeString, RConfigTempThreshold);	
+                sensor.addItem(DataTypeString, RConfigHumiThreshold);	
+            }
+            
         }
         else if (sensor.type().endsWith(QLatin1String("CarbonMonoxide")))
         {
@@ -3838,7 +3837,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
         {
-            if (sensor.modelId() == QLatin1String("button") || sensor.modelId().startsWith(QLatin1String("multi")) || sensor.modelId() == QLatin1String("water") ||
+            if (sensor.modelId() == QLatin1String("button") ||
+                sensor.modelId().startsWith(QLatin1String("multi")) ||
+                sensor.modelId() == QLatin1String("water") ||
+                sensor.manufacturer().endsWith(QLatin1String("0yu2xgi")) ||
                 sensor.modelId() == QLatin1String("Motion Sensor-A"))
             {
                 // no support for some IAS Zone flags

@@ -785,6 +785,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/sensors/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
                     }
                 }
+                //don't update value for those setting, let them be filled by the return from device
+                else if ( (rid.suffix == RConfigTempThreshold) or (rid.suffix == RConfigHumiThreshold))
+                {
+                }
                 else if (item->setValue(val))
                 {
                     // TODO: Fix bug
@@ -993,6 +997,119 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 return REQ_READY_SEND;
             }
 
+            //special part for tuya siren
+            if (sensor->manufacturer() == QLatin1String("_TYST11_d0yu2xgi"))
+            {
+                if (rid.suffix == RConfigMelody)
+                {
+                    int16_t melody = map[pi.key()].toUInt(&ok);
+
+                    QByteArray data;
+                    data.append(static_cast<qint8>(melody & 0xff));
+
+                    if (SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_ENUM, 0x66, data))
+                    {
+                        updated = true;
+                    }
+
+                }
+                else if (rid.suffix == RConfigVolume)
+                {
+                    int16_t volume = map[pi.key()].toUInt(&ok);
+
+                    if (volume > 2) { volume = 2; }
+
+                    QByteArray data;
+                    data.append(static_cast<qint8>(volume & 0xff));
+
+                    if (SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_ENUM, 0x74, data))
+                    {
+                        updated = true;
+                    }
+
+                }
+                else if (rid.suffix == RConfigPreset)
+                {
+                    QString presetSet = map[pi.key()].toString();
+                    if (presetSet == "both")
+                    {
+                        SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, 0x71, QByteArray("\x01",1));
+                        SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, 0x72, QByteArray("\x01",1));
+                        //SendTuyaRequest2(task, TaskTuyaRequest , DP_TYPE_BOOL, 0x71, QByteArray("\x01",1) ,DP_TYPE_BOOL, 0x72, QByteArray("\x01",1) );
+                    }
+                    else if (presetSet == "humidity")
+                    {
+                        SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, 0x71, QByteArray("\x00",1));
+                        SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, 0x72, QByteArray("\x01",1));
+                        //SendTuyaRequest2(task, TaskTuyaRequest , DP_TYPE_BOOL, 0x71, QByteArray("\x00",1) ,DP_TYPE_BOOL, 0x72, QByteArray("\x01",1) );
+                    }
+                    else if (presetSet == "temperature")
+                    {
+                        SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, 0x71, QByteArray("\x01",1));
+                        SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, 0x72, QByteArray("\x00",1));
+                        //SendTuyaRequest2(task, TaskTuyaRequest , DP_TYPE_BOOL, 0x71, QByteArray("\x01",1) ,DP_TYPE_BOOL, 0x72, QByteArray("\x00",1) );
+                    }
+                    else if (presetSet == "off")
+                    {
+                        SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, 0x71, QByteArray("\x00",1));
+                        SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, 0x72, QByteArray("\x00",1));
+                        //SendTuyaRequest2(task, TaskTuyaRequest , DP_TYPE_BOOL, 0x71, QByteArray("\x00",1) ,DP_TYPE_BOOL, 0x72, QByteArray("\x00",1) );
+                    }
+                    else
+                    {
+                        //rspItemState[QString("error unknown preset for %1").arg(sensor->modelId())] = map[pi.key()];
+                        rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),QString("Could not set attribute")));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
+                else if (rid.suffix == RConfigTempThreshold)
+                {
+                    if (map[pi.key()].type() == QVariant::List)
+                    {
+                        QVariantList setting = map[pi.key()].toList();
+
+                        if ( (setting.size() == 2) && (setting[0].type() == QVariant::Double) && (setting[1].type() == QVariant::Double) )
+                        {
+                            QByteArray datamin = QByteArray("\x00\x00\x00",3);
+                            QByteArray datamax = QByteArray("\x00\x00\x00",3);
+                            datamin.append(static_cast<qint8>(setting[0].toUInt()));
+                            datamax.append(static_cast<qint8>(setting[1].toUInt()));
+
+                            //SendTuyaRequest2(task, TaskTuyaRequest , DP_TYPE_VALUE, 0x6B, datamin ,DP_TYPE_VALUE, 0x6C, datamax );
+                            SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_VALUE, 0x6B, datamin);
+                            SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_VALUE, 0x6C, datamax);
+
+                            rspItemState[QString("successfully updated")] = map[pi.key()].toString();
+                            rspItem["success"] = rspItemState;
+
+                        }
+                    }
+                }
+                else if (rid.suffix == RConfigHumiThreshold)
+                {
+                    if (map[pi.key()].type() == QVariant::List)
+                    {
+                        QVariantList setting = map[pi.key()].toList();
+
+                        if ( (setting.size() == 2) && (setting[0].type() == QVariant::Double) && (setting[1].type() == QVariant::Double) )
+                        {
+                            QByteArray datamin = QByteArray("\x00\x00\x00",3);
+                            QByteArray datamax = QByteArray("\x00\x00\x00",3);
+                            datamin.append(static_cast<qint8>(setting[0].toUInt()));
+                            datamax.append(static_cast<qint8>(setting[1].toUInt()));
+
+                            //SendTuyaRequest2(task, TaskTuyaRequest , DP_TYPE_VALUE, 0x6D, datamin ,DP_TYPE_VALUE, 0x6E, datamax );
+                            SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_VALUE, 0x6D, datamin);
+                            SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_VALUE, 0x6E, datamax);
+
+                            rspItemState[QString("successfully updated")] = map[pi.key()].toString();
+                            rspItem["success"] = rspItemState;
+                        }
+                    }
+                }
+            }
+            
             //Special part for thermostat
             if (sensor->type() == "ZHAThermostat")
             {
