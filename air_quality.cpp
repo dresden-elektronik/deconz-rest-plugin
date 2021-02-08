@@ -91,12 +91,12 @@ void DeRestPluginPrivate::handleAirQualityClusterIndication(const deCONZ::ApsDat
             {
                 QString airquality = QLatin1String("none");
 
-                if (levelPpb <= 65)                      { airquality = QLatin1String("excellent"); }
-                if (levelPpb > 65 && levelPpb <= 220)    { airquality = QLatin1String("good"); }
-                if (levelPpb > 220 && levelPpb <= 660)   { airquality = QLatin1String("moderate"); }
-                if (levelPpb > 660 && levelPpb <= 2200)  { airquality = QLatin1String("poor"); }
-                if (levelPpb > 2200 && levelPpb <= 5500) { airquality = QLatin1String("unhealthy"); }
-                if (levelPpb > 5500 )                    { airquality = QLatin1String("out of scale"); }
+                if (levelPpb <= 300)                       { airquality = QLatin1String("excellent"); }
+                if (levelPpb > 300 && levelPpb <= 1000)    { airquality = QLatin1String("good"); }
+                if (levelPpb > 1000 && levelPpb <= 3000)   { airquality = QLatin1String("moderate"); }
+                if (levelPpb > 3000 && levelPpb <= 10000)  { airquality = QLatin1String("poor"); }
+                if (levelPpb > 10000 && levelPpb <= 25000) { airquality = QLatin1String("unhealthy"); }
+                if (levelPpb > 25000 )                     { airquality = QLatin1String("out of scale"); }
 
                 ResourceItem *item = sensor->item(RStateAirQuality);
                 if (item)
