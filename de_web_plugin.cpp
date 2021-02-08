@@ -2220,7 +2220,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 lightNode.manufacturer().endsWith(QLatin1String("88teujp")) ||
                 lightNode.manufacturer().endsWith(QLatin1String("uhszj9s")) ||
                 lightNode.manufacturer().endsWith(QLatin1String("w7cahqs")) ||
-                lightNode.manufacturer().endsWith(QLatin1String("eaxp72v")) )
+                lightNode.manufacturer().endsWith(QLatin1String("eaxp72v")))
             {
                 hasServerOnOff = false;
             }
@@ -2230,8 +2230,8 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             //Tuya black list
             //_TZE200_aoclfnxz is a thermostat
             //_TZE200_c88teujp same
-            if ((lightNode.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) ||
-                (lightNode.manufacturer() == QLatin1String("_TZE200_c88teujp")) )
+            if (lightNode.manufacturer() == QLatin1String("_TZE200_aoclfnxz") ||
+                lightNode.manufacturer() == QLatin1String("_TZE200_c88teujp"))
             {
                 hasServerOnOff = false;
             }
@@ -2241,13 +2241,13 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 hasServerOnOff = true;
             }
             //wireless switch
-            if ((lightNode.manufacturer() == QLatin1String("_TZ3000_bi6lpsew")) ||
-                (lightNode.manufacturer() == QLatin1String("_TZ3400_keyjhapk")) ||
-                (lightNode.manufacturer() == QLatin1String("_TYZB02_key8kk7r")) ||
-                (lightNode.manufacturer() == QLatin1String("_TZ3400_keyjqthh")) ||
-                (lightNode.manufacturer() == QLatin1String("_TZ3400_key8kk7r")) ||
-                (lightNode.manufacturer() == QLatin1String("_TZ3000_vp6clf9d")) ||
-                (lightNode.manufacturer() == QLatin1String("_TYZB02_keyjqthh")))
+            if (lightNode.manufacturer() == QLatin1String("_TZ3000_bi6lpsew") ||
+                lightNode.manufacturer() == QLatin1String("_TZ3400_keyjhapk") ||
+                lightNode.manufacturer() == QLatin1String("_TYZB02_key8kk7r") ||
+                lightNode.manufacturer() == QLatin1String("_TZ3400_keyjqthh") ||
+                lightNode.manufacturer() == QLatin1String("_TZ3400_key8kk7r") ||
+                lightNode.manufacturer() == QLatin1String("_TZ3000_vp6clf9d") ||
+                lightNode.manufacturer() == QLatin1String("_TYZB02_keyjqthh"))
             {
                 hasServerOnOff = false;
             }
@@ -2564,10 +2564,10 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
         //Add missing field for Tuya Device with tuya cluster
         // Window covering
-        if ((lightNode.manufacturer() == QString("_TYST11_xu1rkty3")) ||
-            (lightNode.manufacturer() == QString("_TZE200_xuzcvlku")) ||
-            (lightNode.manufacturer() == QString("_TZE200_wmcdj3aq")) ||
-            (lightNode.manufacturer() == QString("_TYST11_wmcdj3aq")) )
+        if (lightNode.manufacturer() == QString("_TYST11_xu1rkty3") ||
+            lightNode.manufacturer() == QString("_TZE200_xuzcvlku") ||
+            lightNode.manufacturer() == QString("_TZE200_wmcdj3aq") ||
+            lightNode.manufacturer() == QString("_TYST11_wmcdj3aq"))
         {
             lightNode.addItem(DataTypeBool, RStateOpen);
             lightNode.addItem(DataTypeUInt8, RStateLift);
@@ -3982,7 +3982,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     else if (sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
              sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
              sensor->modelId().startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote
-             sensor->modelId().startsWith(QLatin1String("Switch-LIGHTIFY")) ) // Osram 4 button remote
+             sensor->modelId().startsWith(QLatin1String("Switch-LIGHTIFY"))) // Osram 4 button remote
     {
         checkReporting = true;
         checkClientCluster = true;
@@ -4414,7 +4414,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 }
                 else if (ind.clusterId() == LEVEL_CLUSTER_ID &&
                            (zclFrame.commandId() == 0x03 ||  // stop
-                            zclFrame.commandId() == 0x07) )  // stop (with on/off)
+                            zclFrame.commandId() == 0x07))  // stop (with on/off)
                 {
                     ok = false;
                     if (buttonMap.zclParam0 == sensor->previousDirection) // direction of previous move/step
@@ -4584,7 +4584,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 }
                 else if ((ind.clusterId() == COLOR_CLUSTER_ID) &&
                          (zclFrame.commandId() == 0x4b) &&
-                         sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001")) )
+                         sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001")))
                 {
                     quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
                     if (buttonMap.zclParam0 != pl0)
@@ -4593,7 +4593,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     }
                 }
                 else if (ind.clusterId() == COLOR_CLUSTER_ID &&
-                         (zclFrame.commandId() == 0x4b && zclFrame.payload().size() >= 7) )  // move color temperature
+                         (zclFrame.commandId() == 0x4b && zclFrame.payload().size() >= 7))  // move color temperature
                 {
                     ok = false;
                     // u8 move mode
@@ -4626,13 +4626,13 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         ok = true;
                     }
                 }
-                else if (ind.clusterId() == COLOR_CLUSTER_ID && (zclFrame.commandId() == 0x01 ) )  // Move hue command
+                else if (ind.clusterId() == COLOR_CLUSTER_ID && (zclFrame.commandId() == 0x01 ))  // Move hue command
                 {
                     // Only used by Osram devices currently
                     if (sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
                         sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
                         sensor->modelId().startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote
-                        sensor->modelId().startsWith(QLatin1String("Switch-LIGHTIFY")) ) // Osram 4 button remote
+                        sensor->modelId().startsWith(QLatin1String("Switch-LIGHTIFY"))) // Osram 4 button remote
                     {
                         if (buttonMap.zclParam0 != pl0)
                         {
@@ -4960,13 +4960,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     else if (!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == VENDOR_NONE)
                     {
                         // For some device the Tuya cluster is sometime Invisible, so force device detection
-                        if ( manufacturer.endsWith(QLatin1String("kud7u2l"))  ||
-                             manufacturer.endsWith(QLatin1String("eaxp72v")) ||
-                             manufacturer.endsWith(QLatin1String("88teujp")) ||
-                             manufacturer.endsWith(QLatin1String("uhszj9s")) ||
-                             manufacturer.endsWith(QLatin1String("fvq6avy")) ||
-                             manufacturer.endsWith(QLatin1String("w7cahqs")) ||
-                             manufacturer.endsWith(QLatin1String("GbxAXL2")) )
+                        if (manufacturer.endsWith(QLatin1String("kud7u2l"))  ||
+                            manufacturer.endsWith(QLatin1String("eaxp72v")) ||
+                            manufacturer.endsWith(QLatin1String("88teujp")) ||
+                            manufacturer.endsWith(QLatin1String("uhszj9s")) ||
+                            manufacturer.endsWith(QLatin1String("fvq6avy")) ||
+                            manufacturer.endsWith(QLatin1String("w7cahqs")) ||
+                            manufacturer.endsWith(QLatin1String("GbxAXL2")))
                         {
                             fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
                         }
@@ -4975,9 +4975,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                             fpTuyaSensor.inClusters.push_back(TUYA_CLUSTER_ID);
                         }
                     }
-                    else if ((node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER) &&
-                             ( manufacturer.endsWith(QLatin1String("oclfnxz")) ||
-                              manufacturer.endsWith(QLatin1String("88teujp")) ) )
+                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER &&
+                             (manufacturer.endsWith(QLatin1String("oclfnxz")) ||
+                              manufacturer.endsWith(QLatin1String("88teujp"))))
                     {
                         fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
                     }
@@ -5007,7 +5007,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpBatterySensor.inClusters.push_back(ci->id());
                     }
                     if ((node->nodeDescriptor().manufacturerCode() == VENDOR_AXIS || node->nodeDescriptor().manufacturerCode() == VENDOR_MMB) &&
-                        (modelId == QLatin1String("Gear")) && (i->endpoint() == 0x01) )
+                        (modelId == QLatin1String("Gear")) && (i->endpoint() == 0x01))
                     {
                         fpBatterySensor.inClusters.push_back(ci->id());
                     }
@@ -5036,7 +5036,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     else if (modelId.startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
                              modelId.startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
                              modelId.startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote
-                             modelId.startsWith(QLatin1String("Switch-LIGHTIFY")) ) // Osram 4 button remote
+                             modelId.startsWith(QLatin1String("Switch-LIGHTIFY"))) // Osram 4 button remote
                     {
                         // Don't create entry for this cluster
                     }
@@ -5076,13 +5076,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
-                    else if ((manufacturer == QLatin1String("_TZ3000_bi6lpsew")) ||
-                             (manufacturer == QLatin1String("_TZ3400_keyjhapk")) ||
-                             (manufacturer == QLatin1String("_TYZB02_key8kk7r")) ||
-                             (manufacturer == QLatin1String("_TZ3400_keyjqthh")) ||
-                             (manufacturer == QLatin1String("_TZ3000_vp6clf9d")) ||
-                             (manufacturer == QLatin1String("_TZ3400_key8kk7r")) ||
-                             (manufacturer == QLatin1String("_TYZB02_keyjqthh")) )
+                    else if (manufacturer == QLatin1String("_TZ3000_bi6lpsew") ||
+                             manufacturer == QLatin1String("_TZ3400_keyjhapk") ||
+                             manufacturer == QLatin1String("_TYZB02_key8kk7r") ||
+                             manufacturer == QLatin1String("_TZ3400_keyjqthh") ||
+                             manufacturer == QLatin1String("_TZ3000_vp6clf9d") ||
+                             manufacturer == QLatin1String("_TZ3400_key8kk7r") ||
+                             manufacturer == QLatin1String("_TYZB02_keyjqthh"))
                     {
                         //Making the device only for endpoint 0x01
                         if (i->endpoint() == 0x01)
@@ -5276,7 +5276,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                     }
                     // Don't create entry for cluster 0x07 and 0x08 for Hive thermostat
-                    else if (((modelId.startsWith(QLatin1String("SLR2"))) || (modelId == QLatin1String("SLR1b")) ) && (i->endpoint() > 0x06 ))
+                    else if ((modelId.startsWith(QLatin1String("SLR2")) || modelId == QLatin1String("SLR1b")) && i->endpoint() > 0x06)
                     {
                     }
                     // Don't create entry for the door lock
@@ -5363,14 +5363,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
-                    else if (((modelId == QLatin1String("lumi.remote.b186acn01")) ||
-                             (modelId == QLatin1String("lumi.remote.b186acn02")) )
+                    else if ((modelId == QLatin1String("lumi.remote.b186acn01") ||
+                              modelId == QLatin1String("lumi.remote.b186acn02"))
                              && i->endpoint() == 0x01)
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
-                    else if (((modelId == QLatin1String("lumi.remote.b286acn01")) ||
-                             (modelId == QLatin1String("lumi.remote.b286acn02")) )
+                    else if ((modelId == QLatin1String("lumi.remote.b286acn01") ||
+                              modelId == QLatin1String("lumi.remote.b286acn02"))
                              && i->endpoint() == 0x01)
                     {
                         fpSwitch.inClusters.push_back(ci->id());
@@ -5380,8 +5380,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case BINARY_INPUT_CLUSTER_ID:
                 {
-                    if ( (modelId.startsWith(QLatin1String("tagv4"))) || // SmartThings Arrival sensor
-                        ( modelId == QLatin1String("Remote motion sensor") )) // Legrand motion sensor
+                    if (modelId.startsWith(QLatin1String("tagv4")) || // SmartThings Arrival sensor
+                        modelId == QLatin1String("Remote motion sensor")) // Legrand motion sensor
                     {
                         fpPresenceSensor.inClusters.push_back(ci->id());
                     }
@@ -5417,7 +5417,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         manufacturer.endsWith(QLatin1String("uhszj9s")) ||
                         manufacturer.endsWith(QLatin1String("oclfnxz")) ||
                         manufacturer.endsWith(QLatin1String("w7cahqs")) ||
-                        manufacturer.endsWith(QLatin1String("88teujp")) )
+                        manufacturer.endsWith(QLatin1String("88teujp")))
                     {
                         fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
                     }
@@ -5595,7 +5595,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     else if (modelId.startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
                              modelId.startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
                              modelId.startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote
-                             modelId.startsWith(QLatin1String("Switch-LIGHTIFY")) ) // Osram 4 button remote
+                             modelId.startsWith(QLatin1String("Switch-LIGHTIFY"))) // Osram 4 button remote
                     {
                         // Only create entry for endpoint 0x01
                         fpSwitch.outClusters.push_back(ci->id());
@@ -5688,7 +5688,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             if (modelId.startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
                 modelId.startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
                 modelId.startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote
-                modelId.startsWith(QLatin1String("Switch-LIGHTIFY")) ) // Osram 4 button remote
+                modelId.startsWith(QLatin1String("Switch-LIGHTIFY"))) // Osram 4 button remote
             {
                 sensor = getSensorNodeForAddress(node->address().ext());
                 if (sensor && sensor->deletedState() != Sensor::StateNormal)
@@ -5988,7 +5988,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         // ZHAThermostat
         if (fpThermostatSensor.hasInCluster(THERMOSTAT_CLUSTER_ID) ||
            (fpThermostatSensor.hasInCluster(LEGRAND_CONTROL_CLUSTER_ID) && modelId == QLatin1String("Cable outlet")) ||
-           (fpThermostatSensor.hasInCluster(TUYA_CLUSTER_ID)) )
+           (fpThermostatSensor.hasInCluster(TUYA_CLUSTER_ID)))
         {
             fpThermostatSensor.endpoint = i->endpoint();
             fpThermostatSensor.deviceId = i->deviceId();
@@ -6007,7 +6007,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
         // ZHABattery
         if (fpBatterySensor.hasInCluster(POWER_CONFIGURATION_CLUSTER_ID) ||
-            fpBatterySensor.hasInCluster(TUYA_CLUSTER_ID) )
+            fpBatterySensor.hasInCluster(TUYA_CLUSTER_ID))
         {
             fpBatterySensor.endpoint = i->endpoint();
             fpBatterySensor.deviceId = i->deviceId();

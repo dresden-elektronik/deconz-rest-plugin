@@ -3521,8 +3521,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
 
             //only for legrand cluster. Add only mode field.
-            if ( (sensor.fingerPrint().hasInCluster(LEGRAND_CONTROL_CLUSTER_ID)) &&
-                 (sensor.modelId() == QLatin1String("Cable outlet") ) )
+            if (sensor.fingerPrint().hasInCluster(LEGRAND_CONTROL_CLUSTER_ID) &&
+                sensor.modelId() == QLatin1String("Cable outlet"))
             {
                 clusterId = LEGRAND_CONTROL_CLUSTER_ID;
                 sensor.addItem(DataTypeString, RConfigMode);
@@ -3545,7 +3545,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.manufacturer().endsWith(QLatin1String("kud7u2l")) ||         // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("uhszj9s")) ||         // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("w7cahqs")) ||         // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("oclfnxz")) )          // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("oclfnxz")))          // Tuya
                 {
                     sensor.addItem(DataTypeString, RConfigMode);
                 }
@@ -3554,7 +3554,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.manufacturer().endsWith(QLatin1String("GbxAXL2")) || // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("88teujp")) || // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("w7cahqs")) || // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("uhszj9s")) )  // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("uhszj9s")))  // Tuya
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
                     sensor.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
@@ -3566,7 +3566,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.manufacturer().endsWith(QLatin1String("88teujp")) ||  // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("uhszj9s")) ||  // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("w7cahqs")) ||  // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("oclfnxz")) )   // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("oclfnxz")))   // Tuya
                 {
                     sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                 }
@@ -3577,7 +3577,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.manufacturer().endsWith(QLatin1String("88teujp")) || // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("uhszj9s")) || // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("w7cahqs")) || // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("oclfnxz")) )   // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("oclfnxz")))   // Tuya
                 {
                     sensor.addItem(DataTypeString, RConfigPreset);
                     sensor.addItem(DataTypeBool, RConfigSetValve)->setValue(false);
@@ -3589,7 +3589,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.manufacturer().endsWith(QLatin1String("uhszj9s")) ||  // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("w7cahqs")) ||  // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("88teujp")) ||  // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("oclfnxz")) )   // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("oclfnxz")))   // Tuya
                 {
                     sensor.addItem(DataTypeString, RConfigSchedule);
                 }
@@ -3600,7 +3600,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.manufacturer().endsWith(QLatin1String("fvq6avy")) ||  // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("uhszj9s")) ||  // Tuya
                     sensor.manufacturer().endsWith(QLatin1String("w7cahqs")) ||  // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("88teujp")) )   // Tuya
+                    sensor.manufacturer().endsWith(QLatin1String("88teujp")))   // Tuya
                 {
                     sensor.addItem(DataTypeBool, RConfigWindowOpen)->setValue(false);
                 }
@@ -3656,8 +3656,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeString, RConfigMode);
                     sensor.addItem(DataTypeString, RConfigFanMode);
                 }
-                else if ((sensor.modelId() == QLatin1String("eTRV0100")) || // Danfoss Ally
-                         (sensor.modelId() == QLatin1String("TRV001")) )    // Hive TRV
+                else if (sensor.modelId() == QLatin1String("eTRV0100") || // Danfoss Ally
+                         sensor.modelId() == QLatin1String("TRV001"))     // Hive TRV
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
                     sensor.addItem(DataTypeString, RStateWindowOpen);
