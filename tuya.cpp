@@ -527,6 +527,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         {
             //Special part just for siren
             if (sensorNode->manufacturer().endsWith(QLatin1String("0yu2xgi"))) //siren
+            {
+                switch (dp)
                 {
                     case 0x0171: // Alarm siren temperature
                     {
