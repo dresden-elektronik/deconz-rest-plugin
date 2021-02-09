@@ -2599,9 +2599,9 @@ controller device, that supports a keypad and LCD screen.</description>
 					<attribute id="0x0031" name="Sensitivity max." type="u8" default="0" access="rw" required="o" mfcode="0x100b"></attribute>
 				</attribute-set>
 				<attribute-set id="0xfc00" description="Develco Specific" mfcode="0x1015">
-					<attribute id="0xfc00" name="ArmThreshold_MinTemperature" type="sint16" access="rw" range="0x954d,0x7ffe" required="m" mfcode="0x1015"></attribute>
-					<attribute id="0xfc01" name="ArmThreshold_MaxTemperature" type="sint16" access="rw" range="0x954d,0x7ffe" required="m" mfcode="0x1015"></attribute>
-					<attribute id="0xfc02" name="Target Level" type="uint16" access="rw" range="0x0002,0xfffd" required="m" mfcode="0x1015"></attribute>
+					<attribute id="0xfc00" name="ArmThreshold_MinTemperature" type="s16" access="rw" range="0x954d,0x7ffe" required="m" mfcode="0x1015"></attribute>
+					<attribute id="0xfc01" name="ArmThreshold_MaxTemperature" type="s16" access="rw" range="0x954d,0x7ffe" required="m" mfcode="0x1015"></attribute>
+					<attribute id="0xfc02" name="Target Level" type="u16" access="rw" range="0x0002,0xfffd" required="m" mfcode="0x1015"></attribute>
 				</attribute-set>
 			</server>
 			<client>
