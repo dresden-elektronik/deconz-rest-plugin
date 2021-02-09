@@ -9211,13 +9211,25 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     //Only 2 modes for the moment
                                     QString str = QLatin1String("closed");
+                                    bool dl_open = false;
+                                    
                                     if (ia->numericValue().u8 == 1)
                                     {
                                         str = QLatin1String("open");
+                                        dl_open = true;
                                     }
                                     
                                     DBG_Printf(DBG_INFO, "Status doorlock : %u\n", (uint)ia->numericValue().u8);
+                                    
+                                    // Update RConfigLock bool state
+                                    ResourceItem *item = i->item(RConfigLock);
+                                    if (item && item->toNumber() != dl_open)
+                                    {
+                                        item->setValue(dl_open);
+                                        enqueueEvent(Event(RSensors, RConfigLock, i->id(), item));
+                                    }
 
+                                    // Update RStateLockState Str value
                                     ResourceItem *item = i->item(RStateLockState);
                                     if (item && item->toString() != str)
                                     {
@@ -9225,7 +9237,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
     
                                         item->setValue(str);
                                         enqueueEvent(Event(RSensors, RStateLockState, i->id(), item));
-                                    
                                     }
                                 }
                             }

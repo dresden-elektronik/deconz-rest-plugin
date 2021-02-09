@@ -793,7 +793,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     item = sensor->item(RConfigLock);
                     if (item)
                     {
-                        
                         if (val)
                         {
                             ok = addTaskDoorLockUnlock(task, 0x00 /*Lock*/);

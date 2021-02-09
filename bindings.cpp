@@ -2500,6 +2500,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("ID Lock 150")) ||
         // Yale
         sensor->modelId() == QLatin1String("YRD226 TSDB") || // TODO : check if necessary
+        sensor->modelId() == QLatin1String("YRD226/246 TSDB") || // TODO : check if necessary
         // ubisys
         sensor->modelId().startsWith(QLatin1String("C4")) ||
         sensor->modelId().startsWith(QLatin1String("D1")) ||
