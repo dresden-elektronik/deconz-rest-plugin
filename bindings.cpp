@@ -1374,6 +1374,51 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3}) || // Use OR because of manuf. specific attributes
                    sendConfigureReportingRequest(bt, {rq4, rq5});
         }
+        else if (sensor && (sensor->modelId() == QLatin1String("0x8020") || // Danfoss RT24V Display thermostat
+                            sensor->modelId() == QLatin1String("0x8021") || // Danfoss RT24V Display thermostat with floor sensor
+                            sensor->modelId() == QLatin1String("0x8030") || // Danfoss RTbattery Display thermostat
+                            sensor->modelId() == QLatin1String("0x8031") || // Danfoss RTbattery Display thermostat with infrared
+                            sensor->modelId() == QLatin1String("0x8034") || // Danfoss RTbattery Dial thermostat
+                            sensor->modelId() == QLatin1String("0x8035")))  // Danfoss RTbattery Dial thermostat with infrared
+        {
+            rq.dataType = deCONZ::Zcl16BitInt;
+            rq.attributeId = 0x0000;         // Local temperature
+            rq.minInterval = 60;
+            rq.maxInterval = 3600;
+            rq.reportableChange16bit = 50;
+
+            ConfigureReportingRequest rq2;
+            rq2.dataType = deCONZ::Zcl8BitBitMap;
+            rq2.attributeId = 0x0002;        // Occupancy
+            rq2.minInterval = 60;
+            rq2.maxInterval = 43200;
+            rq2.reportableChange8bit = 1;
+
+            ConfigureReportingRequest rq3;
+            rq3.dataType = deCONZ::Zcl16BitInt;
+            rq3.attributeId = 0x0012;        // Occupied heating setpoint
+            rq3.minInterval = 1;
+            rq3.maxInterval = 43200;
+            rq3.reportableChange16bit = 1;
+
+            ConfigureReportingRequest rq4;
+            rq4.dataType = deCONZ::Zcl16BitInt;
+            rq4.attributeId = 0x0014;        // Unoccupied heating setpoint
+            rq4.minInterval = 1;
+            rq4.maxInterval = 43200;
+            rq4.reportableChange16bit = 1;
+
+            ConfigureReportingRequest rq5;
+            rq5.dataType = deCONZ::Zcl8BitBitMap;
+            rq5.attributeId = 0x4110;        // Danfoss Output Status
+            rq5.minInterval = 60;
+            rq5.maxInterval = 3600;
+            rq5.reportableChange8bit = 1;
+            rq5.manufacturerCode = VENDOR_DANFOSS;
+
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4}) || // Use OR because of manuf. specific attributes
+            sendConfigureReportingRequest(bt, {rq5});
+        }
         else if (sensor && sensor->modelId() == QLatin1String("902010/32")) // Bitron thermostat
         {
             rq.dataType = deCONZ::Zcl16BitInt;
@@ -1605,8 +1650,14 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 900;        // value used by Hue bridge
             rq.reportableChange8bit = 4; // value used by Hue bridge
         }
-        else if ( (sensor && sensor->modelId() == QLatin1String("eTRV0100")) || // Danfoss Ally
-                  (sensor && sensor->modelId() == QLatin1String("TRV001") ))
+        else if (sensor && (sensor->modelId() == QLatin1String("eTRV0100") || // Danfoss Ally
+                            sensor->modelId() == QLatin1String("TRV001") ||   // Hive TRV
+                            sensor->modelId() == QLatin1String("0x8020") ||   // Danfoss RT24V Display thermostat
+                            sensor->modelId() == QLatin1String("0x8021") ||   // Danfoss RT24V Display thermostat with floor sensor
+                            sensor->modelId() == QLatin1String("0x8030") ||   // Danfoss RTbattery Display thermostat
+                            sensor->modelId() == QLatin1String("0x8031") ||   // Danfoss RTbattery Display thermostat with infrared
+                            sensor->modelId() == QLatin1String("0x8034") ||   // Danfoss RTbattery Dial thermostat
+                            sensor->modelId() == QLatin1String("0x8035")))    // Danfoss RTbattery Dial thermostat with infrared
         {
             rq.minInterval = 3600;         // Vendor defaults
             rq.maxInterval = 43200;        // Vendor defaults
@@ -2827,6 +2878,12 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("DS01") ||
         // Danfoss
         sensor->modelId() == QLatin1String("eTRV0100") ||
+        sensor->modelId() == QLatin1String("0x8020") ||
+        sensor->modelId() == QLatin1String("0x8021") ||
+        sensor->modelId() == QLatin1String("0x8030") ||
+        sensor->modelId() == QLatin1String("0x8031") ||
+        sensor->modelId() == QLatin1String("0x8034") ||
+        sensor->modelId() == QLatin1String("0x8035") ||
         // LIDL
         sensor->modelId() == QLatin1String("HG06323")
         )
