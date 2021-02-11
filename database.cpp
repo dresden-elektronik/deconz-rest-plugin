@@ -3542,6 +3542,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.modelId() == QLatin1String("902010/32") ||       // Bitron
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
@@ -3550,6 +3551,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 }
 
                 if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV"))
@@ -3559,6 +3561,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 }
 
                 if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV")  ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV")  ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
@@ -3570,6 +3573,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 }
 
                 if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
@@ -3582,6 +3586,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 }
 
                 if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV")  ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV")  ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
@@ -3592,6 +3597,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 }
 
                 if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV")  ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV")  ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
