@@ -149,7 +149,6 @@ public:
     const std::vector<Sensor::ButtonMap> buttonMap(const QMap<QString, std::vector<Sensor::ButtonMap>> &buttonMapData, QMap<QString, QString> &buttonMapForModelId);
     uint8_t previousDirection;
     quint16 previousCt;
-    QDateTime lastConfigPush;
     QDateTime durationDue;
     uint8_t previousSequenceNumber;
     uint8_t previousCommandId;

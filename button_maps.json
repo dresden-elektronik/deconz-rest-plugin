@@ -51,7 +51,8 @@
         "WINDOW_COVERING": 258,
         "COLOR_CONTROL": 768,
         "IAS_ZONE": 1280,
-        "IAS_ACE": 1281
+        "IAS_ACE": 1281,
+        "SENGLED": 64528
 	},
 	"commands": {
         "DOOR_LOCK": {
@@ -112,6 +113,9 @@
         },
         "MULTISTATE_INPUT": {
             "ATTRIBUTE_REPORT": 10
+        },
+        "SENGLED": {
+            "COMMAND_0": 0
         }
 	},
 	"maps": {
@@ -630,7 +634,7 @@
         "lutronLZL4BWHLSwitchMap": {
             "vendor": "Lutron",
             "doc": "LZL4BWHL remote",
-            "modelids": ["LZL4BWHL"],
+            "modelids": ["LZL4BWHL01 Remote"],
             "map": [
                 [4, "0x01", "LEVEL_CONTROL", "MOVE_TO_LEVEL_WITH_ON_OFF", "0xfe", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "on"],
                 [4, "0x01", "LEVEL_CONTROL", "STEP_WITH_ON_OFF", "0x00", "S_BUTTON_2", "S_BUTTON_ACTION_HOLD", "dimm up"],
@@ -719,10 +723,60 @@
                 [1, "0x08", "LEVEL_CONTROL", "STOP", "1", "S_BUTTON_27", "S_BUTTON_ACTION_LONG_RELEASED", "DimDown 6"]
             ]
         },
-        "icasaKeypadMap": {
+        "icasaKPD12Map": {
             "vendor": "iCasa",
-            "doc": "ICZB-KPD1 remote",
-            "modelids": ["ICZB-KPD1"],
+            "doc": "ICZB-KPD12 remote",
+            "modelids": ["ICZB-KPD12"],
+            "buttons": [
+                {"S_BUTTON_1": "Off button"},
+                {"S_BUTTON_2": "On button"}
+            ],
+            "map": [
+                [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
+                [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "1", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Move down (with on/off)"],
+                [1, "0x01", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "1", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_ (with on/off)"],
+                [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
+                [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_HOLD", "Move up (with on/off)"],
+                [1, "0x01", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_ (with on/off)"]
+            ]
+        },
+        "icasaKPD14SMap": {
+            "vendor": "iCasa",
+            "doc": "ICZB-KPD14S remote",
+            "modelids": ["ICZB-KPD14S"],
+            "buttons": [
+                {"S_BUTTON_1": "Off button"},
+                {"S_BUTTON_2": "On button"},
+                {"S_BUTTON_3": "S1 button"},
+                {"S_BUTTON_4": "S2 button"}
+            ],
+            "map": [
+                [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
+                [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "1", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Move down (with on/off)"],
+                [1, "0x01", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "1", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_ (with on/off)"],
+                [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
+                [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_HOLD", "Move up (with on/off)"],
+                [1, "0x01", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_ (with on/off)"],
+                [1, "0x01", "SCENES", "RECALL_SCENE", "1", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Recall scene 1"],
+                [1, "0x01", "SCENES", "STORE_SCENE", "1", "S_BUTTON_3", "S_BUTTON_ACTION_LONG_RELEASED", "Store scene 1"],
+                [1, "0x01", "SCENES", "RECALL_SCENE", "2", "S_BUTTON_4", "S_BUTTON_ACTION_SHORT_RELEASED", "Recall scene 2"],
+                [1, "0x01", "SCENES", "STORE_SCENE", "2", "S_BUTTON_4", "S_BUTTON_ACTION_LONG_RELEASED", "Store scene 2"]
+            ]
+        },
+        "icasaKPD18SMap": {
+            "vendor": "iCasa",
+            "doc": "ICZB-KPD18S remote",
+            "modelids": ["ICZB-KPD18S"],
+            "buttons": [
+                {"S_BUTTON_1": "Off button"},
+                {"S_BUTTON_2": "On button"},
+                {"S_BUTTON_3": "S1 button"},
+                {"S_BUTTON_4": "S2 button"},
+                {"S_BUTTON_5": "S3 button"},
+                {"S_BUTTON_6": "S4 button"},
+                {"S_BUTTON_7": "S5 button"},
+                {"S_BUTTON_8": "S6 button"}
+            ],
             "map": [
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "1", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Move down (with on/off)"],
@@ -747,7 +801,7 @@
         "icasaRemoteMap": {
             "vendor": "iCasa",
             "doc": "Remotes",
-            "modelids": ["ICZB-RM", "ZGRC-KEY-012", "ZGRC-KEY-013", "RGBgenie ZB-5001"],
+            "modelids": ["ICZB-RM11S", "ZGRC-KEY-012", "ZGRC-KEY-013", "RGBgenie ZB-5001"],
             "map": [
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "1", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Move down (with on/off)"],
@@ -823,8 +877,8 @@
         },
         "sunricherMap": {
             "vendor": "Sunricher",
-            "doc": "Remotes",
-            "modelids": ["ED-1001", "ZG2833K", "ZG2835", "45127"],
+            "doc": "Wireless switches from Sunricher, Namron and EcoDim",
+            "modelids": ["ED-10010", "ED-10011", "ED-10012", "ED-10013", "ED-10014", "ED-10015", "ZG2833K", "ZG2835", "4512700", "4512701", "4512702", "4512703", "4512705", "4512714", "4512719", "4512720", "4512721", "4512722"],
             "map": [
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Move up (with on/off)"],
@@ -876,6 +930,7 @@
             "doc": "Remote switch",
             "modelids": ["Remote switch"],
             "map": [
+                [1, "0x01", "ONOFF", "TOGGLE", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Toggle"],
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Dimm up"],
@@ -1031,7 +1086,7 @@
         "sonoffOnOffMap": {
             "vendor": "Sonoff",
             "doc": "Switch SNZB-01",
-            "modelids": ["WB01"],
+            "modelids": ["WB01", "WB-01"],
             "map": [
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "double"],
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "long"],
@@ -1170,6 +1225,22 @@
                 [1, "0x01", "LEVEL_CONTROL", "MOVE", "1", "S_BUTTON_3", "S_BUTTON_ACTION_HOLD", "DimDown Hold"],
                 [1, "0x01", "LEVEL_CONTROL", "STOP", "1", "S_BUTTON_3", "S_BUTTON_ACTION_LONG_RELEASED", "DimDown Release"],
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_4", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"]
+            ]
+
+        },
+        "sengledMap": {
+            "vendor": "Sengled",
+            "doc": "Sengled Smart Light Switch",
+            "modelids": ["E1E-G7F"],
+            "map": [
+                [1, "0x01", "SENGLED", "COMMAND_0", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On (single press)"],
+                [1, "0x01", "SENGLED", "COMMAND_0", "5", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "On (double press)"],
+                [1, "0x01", "SENGLED", "COMMAND_0", "6", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "On (long press)"],
+                [1, "0x01", "SENGLED", "COMMAND_0", "2", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Dim up"],
+                [1, "0x01", "SENGLED", "COMMAND_0", "3", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Dim down"],
+                [1, "0x01", "SENGLED", "COMMAND_0", "4", "S_BUTTON_4", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
+                [1, "0x01", "SENGLED", "COMMAND_0", "7", "S_BUTTON_4", "S_BUTTON_ACTION_DOUBLE_PRESS", "Off (double press)"],
+                [1, "0x01", "SENGLED", "COMMAND_0", "8", "S_BUTTON_4", "S_BUTTON_ACTION_LONG_RELEASED", "Off (long press)"]
             ]
 
         }
