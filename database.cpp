@@ -3560,8 +3560,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
                 }
 
-                if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV")  ||
-                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV")  ||
+                if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
