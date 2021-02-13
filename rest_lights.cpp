@@ -2034,6 +2034,45 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
             return REQ_READY_SEND;
         }
     }
+    else if (map.contains("bri"))
+    {
+        
+        if (!R_GetProductId(&taskRef.lightNode).startsWith(QLatin1String("Tuya_DIMSWITCH")))
+        {
+            return;
+        }
+        
+        bool ok = false;
+        if (map["bri"].type() == QVariant::Double)
+        {
+            qint16 targetBri = map[param].toUInt(&ok);
+            if (ok && bri <= 0xFF)
+            {
+                quint16 bri = targetBri * 1000 / 254:
+                QByteArray data = QByteArray("\x00\x00",2);
+                data.append(static_cast<qint8>((bri >> 8) & 0xff));
+                data.append(static_cast<qint8>(bri & 0xff));
+                
+                ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_DIMMER_LEVEL_EARDA, data);
+            }
+        }
+        
+        if (ok)
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/bri").arg(id)] = targetBri;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+
+            //Not needed ?
+            //taskRef.lightNode->setValue(RStateOn, targetOn);
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+        }
+    }
     else
     {
         rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state/on").arg(id), QString("parameter not available")));

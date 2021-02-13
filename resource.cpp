@@ -453,6 +453,7 @@ static const ProductMap products[] =
     // --------------------
     // Tuya_THD : thermostat device using Tuya cluster
     // Tuya_COVD : covering device using Tuya cluster
+    // Tuya_DIMSWITCH : Dimmer switches using Tuya cluster
     
     
     // Tuya Thermostat / TRV
@@ -487,6 +488,9 @@ static const ProductMap products[] =
     {"_TZ3000_egq7y6pr", "TS130F", "Lonsonho", "11830304 Switch"},
     {"_TZ3000_xzqbrqk1", "TS130F", "Lonsonho", "11830304(2) Switch"}, // Not sure for this one.
     {"_TZ3000_vd43bbfq", "TS130F", "Tuya", "QS-Zigbee-C01 Module"}, // Curtain module QS-Zigbee-C01
+    
+    // Switch
+    {"_TZE200_dfxkcots", "TS0601", "Tuya", "Tuya_DIMSWITCH Earda Dimmer"},
     
     {nullptr, nullptr, nullptr, nullptr}
 };
