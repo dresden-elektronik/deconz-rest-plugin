@@ -1780,7 +1780,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             quint16 pulseConfiguration = map[pi.key()].toUInt(&ok);
 
-                            if (addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0300, deCONZ::Zcl16BitInt, pulseConfiguration, VENDOR_DEVELCO))
+                            if (addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0300, deCONZ::Zcl16BitUint, pulseConfiguration, VENDOR_DEVELCO))
                             {
                                 updated = true;
                             }

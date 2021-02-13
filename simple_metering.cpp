@@ -95,14 +95,14 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
                     quint16 interfaceMode = attr.numericValue().u16;
                     quint8 mode = 0;
                     
-                    if (interfaceMode = 0x0000) { mode == 1; }
-                    else if (interfaceMode = 0x0001) { mode == 2; }
-                    else if (interfaceMode = 0x0002) { mode == 3; }
-                    else if (interfaceMode = 0x0100) { mode == 4; }
-                    else if (interfaceMode = 0x0101) { mode == 5; }
-                    else if (interfaceMode = 0x0102) { mode == 6; }
-                    else if (interfaceMode = 0x0103) { mode == 7; }
-                    else if (interfaceMode = 0x0104) { mode == 8; }
+                    if (interfaceMode == 0x0000) { mode = 1; }
+                    else if (interfaceMode == 0x0001) { mode = 2; }
+                    else if (interfaceMode == 0x0002) { mode = 3; }
+                    else if (interfaceMode == 0x0100) { mode = 4; }
+                    else if (interfaceMode == 0x0101) { mode = 5; }
+                    else if (interfaceMode == 0x0102) { mode = 6; }
+                    else if (interfaceMode == 0x0103) { mode = 7; }
+                    else if (interfaceMode == 0x0104) { mode = 8; }
                     
                     item = sensor->item(RConfigInterfaceMode);
                     if (item && item->toNumber() != mode && mode > 0 && mode < 9)
