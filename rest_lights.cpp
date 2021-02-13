@@ -2037,18 +2037,20 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
     else if (map.contains("bri"))
     {
         
-        if (!R_GetProductId(&taskRef.lightNode).startsWith(QLatin1String("Tuya_DIMSWITCH")))
+        if (!R_GetProductId(taskRef.lightNode).startsWith(QLatin1String("Tuya_DIMSWITCH")))
         {
-            return;
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state/bri").arg(id), QString("Not supported by this device")));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
         }
         
         bool ok = false;
         if (map["bri"].type() == QVariant::Double)
         {
             qint16 targetBri = map[param].toUInt(&ok);
-            if (ok && bri <= 0xFF)
+            if (ok && targetBri <= 0xFF)
             {
-                quint16 bri = targetBri * 1000 / 254:
+                quint16 bri = targetBri * 1000 / 254;
                 QByteArray data = QByteArray("\x00\x00",2);
                 data.append(static_cast<qint8>((bri >> 8) & 0xff));
                 data.append(static_cast<qint8>(bri & 0xff));
@@ -2075,7 +2077,7 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
     }
     else
     {
-        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state/on").arg(id), QString("parameter not available")));
+        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state").arg(id), QString("parameter not available")));
         rsp.httpStatus = HttpStatusBadRequest;
         return REQ_READY_SEND;
     }
