@@ -413,7 +413,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
 
                 }
             }
-            else if (R_GetProductId(&lightNode).startsWith(QLatin1String("Tuya_DIMSWITCH")))
+            else if (R_GetProductId(lightNode).startsWith(QLatin1String("Tuya_DIMSWITCH")))
             {
                 //Dimmer switches
                 switch (dp)
@@ -508,7 +508,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         if (item && item->toNumber() != bri)
                         {
                             item->setValue(bri);
-                            Event e(RLights, bri, lightNode->id(), item);
+                            Event e(RLights, RStateBri, lightNode->id(), item);
                             enqueueEvent(e);
                             update = true;
                         }
