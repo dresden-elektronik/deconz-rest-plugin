@@ -6416,6 +6416,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             {
                 item = sensorNode.addItem(DataTypeInt16, RStatePower);
             }
+            if (modelId == QLatin1String("ZHEMI101"))
+            {
+                sensorNode.addItem(DataTypeUInt8, RConfigInterfaceMode)->setValue(1);
+                sensorNode.addItem(DataTypeUInt16, RConfigPulseConfiguration)->setValue(1000);
+            }
         }
         else if (sensorNode.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
         {

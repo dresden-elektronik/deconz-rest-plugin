@@ -812,7 +812,8 @@ enum TaskType
     TaskDoorUnlock = 39,
     TaskSyncTime = 40,
     TaskTuyaRequest = 41,
-    TaskXmasLightStrip = 42
+    TaskXmasLightStrip = 42,
+    TaskSimpleMetering = 43
 };
 
 enum XmasLightStripMode
@@ -1507,6 +1508,7 @@ public:
     bool addTaskSyncTime(Sensor *sensor);
     bool addTaskThermostatUiConfigurationReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode=0);
     bool addTaskFanControlReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode=0);
+    bool addTaskSimpleMeteringReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode=0);
 
     // Merry Christmas!
     bool isXmasLightStrip(LightNode *lightNode);
@@ -1567,6 +1569,7 @@ public:
     bool deserialiseThermostatTransitions(const QString &s, QVariantList *transitions);
     bool serialiseThermostatSchedule(const QVariantMap &schedule, QString *s);
     bool deserialiseThermostatSchedule(const QString &s, QVariantMap *schedule);
+    void handleSimpleMeteringClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
 
     // Modify node attributes
     void setAttributeOnOff(LightNode *lightNode);
