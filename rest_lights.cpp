@@ -2047,7 +2047,7 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
         bool ok = false;
         if (map["bri"].type() == QVariant::Double)
         {
-            qint16 targetBri = map[param].toUInt(&ok);
+            qint16 targetBri = map["bri"].toUInt(&ok);
             if (ok && targetBri <= 0xFF)
             {
                 quint16 bri = targetBri * 1000 / 254;
