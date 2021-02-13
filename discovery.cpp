@@ -182,6 +182,7 @@ void DeRestPluginPrivate::internetDiscoveryTimerFired()
     {
         return;
     }
+    gwUpdateCheck = true;
 
     if (gwSwUpdateState == swUpdateState.transferring || gwSwUpdateState == swUpdateState.installing)
     {
@@ -271,6 +272,7 @@ void DeRestPluginPrivate::internetDiscoveryFinishedRequest(QNetworkReply *reply)
     }
 
     reply->deleteLater();
+    gwUpdateCheck = false;
 }
 
 /*! Fills major.minor.patch versions as int in the array \p ls.

@@ -78,6 +78,7 @@ void DeRestPluginPrivate::initConfig()
     gwZigbeeChannel = 0;
     gwGroup0 = 0;
     gwName = GW_DEFAULT_NAME;
+    gwUpdateCheck = false;
     gwUpdateVersion = GW_SW_VERSION; // will be replaced by discovery handler
     {
         const QDateTime d = QDateTime::fromMSecsSinceEpoch(GW_SW_DATE * 1000LLU);
@@ -999,12 +1000,12 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         devicetypes["sensors"] = QVariantList();
         swupdate["devicetypes"] = devicetypes;
         swupdate["updatestate"] = static_cast<double>(0);
-        swupdate["checkforupdate"] = false;
+        swupdate["checkforupdate"] = gwUpdateCheck;
         swupdate["url"] = "";
         swupdate["text"] = "";
         swupdate["notify"] = false;
-        map["portalconnection"] = QLatin1String("disconnected");
-        portalstate["signedon"] = false;
+        map["portalconnection"] = QLatin1String("connected");
+        portalstate["signedon"] = true;
         portalstate["incoming"] = false;
         portalstate["outgoing"] = false;
         portalstate["communication"] = QLatin1String("disconnected");
@@ -1020,10 +1021,10 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     bridge["state"] = gwSwUpdateState;
     bridge["lastinstall"] = gwUpdateDate;
     swupdate2["bridge"] = bridge;
-    swupdate2["checkforupdate"] = false;
+    swupdate2["checkforupdate"] = gwUpdateCheck;
     swupdate2["state"] = gwSwUpdateState;
     swupdate2["install"] = false;
-    autoinstall["updatetime"] = "";
+    autoinstall["updatetime"] = "T14:00:00";
     autoinstall["on"] = false;
     swupdate2["autoinstall"] = autoinstall;
     swupdate2["lastchange"] = "";
@@ -2196,6 +2197,21 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         rspItemState["/config/lightlastseeninterval"] = lightLastSeen;
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);
+    }
+
+    if (map.contains("swupdate2")) // optional
+    {
+        QVariantMap swupdate2 = map["swupdate2"].toMap();
+        if (swupdate2.contains("checkforupdate") && swupdate2["checkforupdate"].toBool())
+        {
+            internetDiscoveryTimerFired();
+
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState["/config/swupdate2/checkforupdate"] = swupdate2["checkforupdate"];
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+        }
     }
 
     if (changed)
