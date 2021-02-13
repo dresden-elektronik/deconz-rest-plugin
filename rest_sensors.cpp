@@ -1808,7 +1808,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         if (sensor->modelId() == QLatin1String("ZHEMI101"))
                         {
                             quint8 mode = map[pi.key()].toUInt(&ok);
-                            quint8 interfaceMode = 0;
+                            quint16 interfaceMode = 0;
                             
                             if (mode == 1) { interfaceMode = 0x0000; }
                             else if (mode == 2) { interfaceMode = 0x0001; }

@@ -77,7 +77,7 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
                     quint16 pulseConfiguration = attr.numericValue().u16;
 
                     item = sensor->item(RConfigPulseConfiguration);
-                    if (item && item != pulseConfiguration)
+                    if (item && item->toNumber() != pulseConfiguration)
                     {
                         item->setValue(pulseConfiguration);
                         enqueueEvent(Event(RSensors, RConfigPulseConfiguration, sensor->id(), item));
@@ -105,7 +105,7 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
                     else if (interfaceMode = 0x0104) { mode == 8; }
                     
                     item = sensor->item(RConfigInterfaceMode);
-                    if (item && item != mode && mode > 0 && mode < 9)
+                    if (item && item->toNumber() != mode && mode > 0 && mode < 9)
                     {
                         item->setValue(mode);
                         enqueueEvent(Event(RSensors, RConfigInterfaceMode, sensor->id(), item));
