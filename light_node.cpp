@@ -338,7 +338,7 @@ void LightNode::rx()
 {
     RestNodeBase *b = static_cast<RestNodeBase *>(this);
     b->rx();
-    if (lastRx() >= item(RAttrLastSeen)->lastChanged().addSecs(60))
+    if (lastRx() >= item(RAttrLastSeen)->lastChanged().addSecs(plugin->gwLightLastSeenInterval))
     {
         setValue(RAttrLastSeen, lastRx().toUTC());
     }
@@ -475,7 +475,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                         {
                             addItem(DataTypeUInt16, RStateX);
                             addItem(DataTypeUInt16, RStateY);
-                            addItem(DataTypeString, RStateEffect);
+                            addItem(DataTypeString, RStateEffect)->setValue(RStateEffectValues[R_EFFECT_NONE]);
                             addItem(DataTypeUInt16, RStateHue);
                             addItem(DataTypeUInt8, RStateSat);
                         }

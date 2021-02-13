@@ -1057,6 +1057,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     map["networkopenduration"] = gwNetworkOpenDuration;
     map["timeformat"] = gwTimeFormat;
     map["whitelist"] = whitelist;
+    map["lightlastseeninterval"] = gwLightLastSeenInterval;
     map["linkbutton"] = gwLinkButton;
     map["portalservices"] = false;
     map["websocketport"] = static_cast<double>(gwConfig["websocketport"].toUInt());
@@ -2170,6 +2171,29 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         QVariantMap rspItem;
         QVariantMap rspItemState;
         rspItemState["/config/disablePermitJoinAutoOff"] = v;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+    }
+    if (map.contains("lightlastseeninterval")) // optional
+    {
+        int lightLastSeen = map["lightlastseeninterval"].toInt(&ok);
+        if (!ok || lightLastSeen <= 0 || lightLastSeen > 65535)
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/lightlastseeninterval"), QString("invalid value, %1, for parameter, lightlastseeninterval").arg(map["lightlastseeninterval"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+
+        if (gwLightLastSeenInterval != lightLastSeen)
+        {
+            gwLightLastSeenInterval = lightLastSeen;
+            queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+            changed = true;
+        }
+
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState["/config/lightlastseeninterval"] = lightLastSeen;
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);
     }

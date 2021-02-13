@@ -175,13 +175,15 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
                 {
                     bool bStatus = false;
                     uint nHex = lightNode->swBuildId().toUInt(&bStatus,16);
-                    if (bStatus && (nHex < 33))
+                    if (bStatus && (nHex < 28))
                     {
                         lift = 100 - lift;
                     }
                 }
                 // Reverse for some tuya covering
-                if (lightNode->manufacturer() == QLatin1String("_TZ3000_egq7y6pr"))
+                if ((R_GetProductId(lightNode) == QLatin1String("11830304 Switch")) ||
+                    (R_GetProductId(lightNode) == QLatin1String("11830304(2) Switch")) ||
+                    (R_GetProductId(lightNode) == QLatin1String("QS-Zigbee-C01 Module")) )
                 {
                     lift = 100 - lift;
                 }
