@@ -9232,7 +9232,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     }
 
                                     // Update RStateLockState Str value
-                                    ResourceItem *item = i->item(RStateLockState);
+                                    item = i->item(RStateLockState);
                                     if (item && item->toString() != str)
                                     {
                                         //DBG_Printf(DBG_INFO, "0x%016llX onOff %u --> %u\n", lightNode->address().ext(), (uint)item->toNumber(), on);
