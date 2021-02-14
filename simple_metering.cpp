@@ -175,24 +175,26 @@ bool DeRestPluginPrivate::addTaskSimpleMeteringReadWriteAttribute(TaskItem &task
     QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
     stream.setByteOrder(QDataStream::LittleEndian);
 
-    stream << (quint16) attrId;
+    stream << static_cast<quint16>(attrId);
 
     if (readOrWriteCmd == deCONZ::ZclWriteAttributesId)
     {
-        stream << (quint8) attrType;
-        if (attrType == deCONZ::Zcl8BitEnum || attrType == deCONZ::Zcl8BitInt || attrType == deCONZ::Zcl8BitBitMap || attrType == deCONZ::ZclBoolean)
+        stream << static_cast<quint8>(attrType);
+        if (attrType == deCONZ::Zcl8BitUint || attrType == deCONZ::Zcl8BitEnum || attrType == deCONZ::Zcl8BitBitMap || attrType == deCONZ::ZclBoolean)
         {
-            stream << (quint8) attrValue;
+            stream << static_cast<quint8>(attrValue);
         }
-        else if (attrType == deCONZ::Zcl16BitInt || attrType == deCONZ::Zcl16BitBitMap)
+        else if (attrType == deCONZ::Zcl8BitInt)
         {
-            stream << (quint16) attrValue;
+            stream << static_cast<qint8>(attrValue);
         }
-        else if (attrType == deCONZ::Zcl24BitUint)
+        else if (attrType == deCONZ::Zcl16BitUint || attrType == deCONZ::Zcl16BitBitMap || attrType == deCONZ::Zcl16BitEnum)
         {
-            stream << (qint8) (attrValue & 0xFF);
-            stream << (qint8) ((attrValue >> 8) & 0xFF);
-            stream << (qint8) ((attrValue >> 16) & 0xFF);
+            stream << static_cast<quint16>(attrValue);
+        }
+        else if (attrType == deCONZ::Zcl16BitInt)
+        {
+            stream << static_cast<qint16>(attrValue);
         }
         else
         {

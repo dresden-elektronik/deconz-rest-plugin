@@ -923,6 +923,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
              handleClusterIndicationGateways(ind, zclFrame);
             break;
 
+        case METERING_CLUSTER_ID:
+            handleSimpleMeteringClusterIndication(ind, zclFrame);
+            break;
+
         case IAS_ZONE_CLUSTER_ID:
             handleIasZoneClusterIndication(ind, zclFrame);
             break;
