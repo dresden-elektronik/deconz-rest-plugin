@@ -40,6 +40,9 @@
 #include "websocket_server.h"
 #include "tuya.h"
 
+// enable domain specific string literals
+using namespace deCONZ::literals;
+
 #if defined(Q_OS_LINUX) && !defined(Q_PROCESSOR_X86)
   // Workaround to detect ARM and AARCH64 in older Qt versions.
   #define ARCH_ARM
@@ -68,11 +71,13 @@
 
 #define ERR_LINK_BUTTON_NOT_PRESSED    101
 #define ERR_DEVICE_OFF                 201
+#define ERR_DEVICE_NOT_REACHABLE       202
 #define ERR_BRIDGE_GROUP_TABLE_FULL    301
 #define ERR_DEVICE_GROUP_TABLE_FULL    302
 
 #define ERR_DEVICE_SCENES_TABLE_FULL   402 // de extension
 
+#define IDLE_TIMER_INTERVAL 1000
 #define IDLE_LIMIT 30
 #define IDLE_READ_LIMIT 120
 #define IDLE_USER_LIMIT 20
@@ -209,7 +214,9 @@
 #define VENDOR_CLUSTER_ID                     0xFC00
 #define UBISYS_DEVICE_SETUP_CLUSTER_ID        0xFC00
 #define SAMJIN_CLUSTER_ID                     0xFC02
+#define SENGLED_CLUSTER_ID                    0xFC10
 #define LEGRAND_CONTROL_CLUSTER_ID            0xFC40
+#define XIAOMI_CLUSTER_ID                     0xFCC0
 #define XAL_CLUSTER_ID                        0xFCCE
 #define BOSCH_AIR_QUALITY_CLUSTER_ID          quint16(0xFDEF)
 
@@ -250,6 +257,22 @@
 #define IAS_ZONE_TYPE_CARBON_MONOXIDE_SENSOR  0x002b
 #define IAS_ZONE_TYPE_VIBRATION_SENSOR        0x002d
 #define IAS_ZONE_TYPE_WARNING_DEVICE          0x0225
+
+// IAS Setup states
+#define IAS_STATE_INIT                 0
+#define IAS_STATE_ENROLLED             1 // finished
+#define IAS_STATE_READ                 2
+#define IAS_STATE_WAIT_READ            3
+#define IAS_STATE_WRITE_CIE_ADDR       4
+#define IAS_STATE_WAIT_WRITE_CIE_ADDR  5
+#define IAS_STATE_DELAY_ENROLL         6
+#define IAS_STATE_ENROLL               7
+#define IAS_STATE_WAIT_ENROLL          8
+#define IAS_STATE_MAX                  9 // invalid
+
+#ifndef DBG_IAS
+  #define DBG_IAS DBG_INFO  // DBG_IAS didn't exist before version v2.10.x
+#endif
 
 // read and write flags
 #define READ_MODEL_ID          (1 << 0)
@@ -435,6 +458,12 @@
 #define RECONNECT_CHECK_DELAY  5000
 #define RECONNECT_NOW          100
 
+//Epoch mode
+#define UNIX_EPOCH 0
+#define J2000_EPOCH 1
+
+void getTime(quint32 *time, qint32 *tz, quint32 *dstStart, quint32 *dstEnd, qint32 *dstShift, quint32 *standardTime, quint32 *localTime, quint8 mode);
+
 extern const quint64 macPrefixMask;
 
 extern const quint64 celMacPrefix;
@@ -482,8 +511,6 @@ extern const quint64 zhejiangMacPrefix;
 // Danalock support
 extern const quint64 danalockMacPrefix;
 extern const quint64 schlageMacPrefix;
-
-extern const QDateTime epoch;
 
 inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
 {
@@ -1435,8 +1462,9 @@ public:
     bool flsNbMaintenance(LightNode *lightNode);
     bool pushState(QString json, QTcpSocket *sock);
     void patchNodeDescriptor(const deCONZ::ApsDataIndication &ind);
-    void writeIasCieAddress(Sensor*);
+    bool writeIasCieAddress(Sensor*);
     void checkIasEnrollmentStatus(Sensor*);
+    void processIasZoneStatus(Sensor *sensor, quint16 zoneStatus, NodeValue::UpdateType updateType);
 
     void pushClientForClose(QTcpSocket *sock, int closeTimeout, const QHttpRequestHeader &hdr);
 
@@ -1499,11 +1527,13 @@ public:
     void handleOnOffClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleClusterIndicationGateways(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleIasZoneClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    void sendIasZoneEnrollResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    bool sendIasZoneEnrollResponse(Sensor *sensor);
+    bool sendIasZoneEnrollResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleIndicationSearchSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    bool SendTuyaRequest(TaskItem &task, TaskType taskType , qint8 Dp_type, qint8 Dp_identifier , QByteArray data );
+    bool sendTuyaRequest(TaskItem &task, TaskType taskType, qint8 Dp_type, qint8 Dp_identifier, const QByteArray &data);
+    bool sendTuyaCommand(const deCONZ::ApsDataIndication &ind, qint8 commandId, const QByteArray &data);
     void handleCommissioningClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    bool SendTuyaRequestThermostatSetWeeklySchedule(TaskItem &taskRef, quint8 weekdays , QString transitions , qint8 Dp_identifier);
+    bool sendTuyaRequestThermostatSetWeeklySchedule(TaskItem &taskRef, quint8 weekdays, const QString &transitions, qint8 Dp_identifier);
     void handleZdpIndication(const deCONZ::ApsDataIndication &ind);
     bool handleMgmtBindRspConfirm(const deCONZ::ApsDataConfirm &conf);
     void handleDeviceAnnceIndication(const deCONZ::ApsDataIndication &ind);
@@ -1658,6 +1688,7 @@ public:
     QString gwWifiEth0;
     QString gwWifiWlan0;
     QVariantList gwWifiAvailable;
+    int gwLightLastSeenInterval; // Intervall to throttle lastseen updates
     enum WifiState {
         WifiStateInitMgmt,
         WifiStateIdle
@@ -2010,6 +2041,7 @@ public:
     QTime queryTime;
     deCONZ::ApsController *apsCtrl;
     uint groupTaskNodeIter; // Iterates through nodes array
+    QElapsedTimer idleTimer;
     int idleTotalCounter; // sys timer
     int idleLimit;
     int idleUpdateZigBeeConf; //
