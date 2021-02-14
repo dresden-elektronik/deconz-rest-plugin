@@ -1825,7 +1825,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                             if (mode > 0 && mode < 9)
                             {
-                                if (addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0302, deCONZ::Zcl16BitUint, interfaceMode, VENDOR_DEVELCO))
+                                if (addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0302, deCONZ::Zcl16BitEnum, interfaceMode, VENDOR_DEVELCO))
                                 {
                                     updated = true;
                                 }
