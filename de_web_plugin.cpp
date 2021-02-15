@@ -2247,8 +2247,9 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             {
                 hasServerOnOff = false;
             }
-            //to test
-            if (lightNode.manufacturer() == QLatin1String("_TZE200_wmcdj3aq"))
+            //Battery covering
+            if ((lightNode.manufacturer() == QLatin1String("_TZE200_wmcdj3aq")) ||
+                (lightNode.manufacturer() == QLatin1String("_TZE200_zah67ekd"))) // MoesHouse / Livolo Roller Blinds
             {
                 hasServerOnOff = true;
             }
@@ -2583,6 +2584,8 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         if (lightNode.manufacturer() == QString("_TYST11_xu1rkty3") ||
             lightNode.manufacturer() == QString("_TZE200_xuzcvlku") ||
             lightNode.manufacturer() == QString("_TZE200_wmcdj3aq") ||
+            lightNode.manufacturer() == QString("_TZE200_nogaemzt") ||
+            lightNode.manufacturer() == QString("_TZE200_zah67ekd") || // MoesHouse / Livolo Roller Blinds
             lightNode.manufacturer() == QString("_TZE200_fzo2pocs") ||
             lightNode.manufacturer() == QString("_TYST11_wmcdj3aq"))
         {
