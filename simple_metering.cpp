@@ -1,7 +1,7 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 
-/*! Handle packets related to the ZCL diagnostics cluster.
+/*! Handle packets related to the ZCL simple metering cluster.
     \param ind the APS level data indication containing the ZCL packet
     \param zclFrame the actual ZCL frame which holds the Thermostat cluster command or attribute
  */
