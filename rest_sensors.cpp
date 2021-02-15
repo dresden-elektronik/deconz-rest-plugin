@@ -863,7 +863,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     		}
                     		rspItem["success"] = rspItemState;
                     	}
-
                     }
 
                     if (rid.suffix == RConfigWindowCoveringType)
@@ -884,7 +883,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     		rspItem["success"] = rspItemState;
                     	}
                     }
-
 
                     if (rid.suffix == RConfigGroup)
                     {
@@ -998,7 +996,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
             }
 
             //special part for tuya siren
-            if (R_GetProductId(&sensor) == QLatin1String("NAS-AB02B0 Siren"))
+            if (R_GetProductId(sensor) == QLatin1String("NAS-AB02B0 Siren"))
             {
                 if (rid.suffix == RConfigMelody)
                 {
@@ -1011,7 +1009,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         updated = true;
                     }
-
                 }
                 else if (rid.suffix == RConfigVolume)
                 {
@@ -1026,7 +1023,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         updated = true;
                     }
-
                 }
                 else if (rid.suffix == RConfigPreset)
                 {
@@ -1076,7 +1072,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                             rspItemState[QString("successfully updated")] = map[pi.key()].toString();
                             rspItem["success"] = rspItemState;
-
                         }
                     }
                 }
