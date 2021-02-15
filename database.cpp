@@ -3361,7 +3361,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeBool, RStateAlarm);
             item->setValue(false);
             
-            if (R_GetProductId(sensor) == QLatin1String("NAS-AB02B0 Siren"))
+            if (R_GetProductId(&sensor) == QLatin1String("NAS-AB02B0 Siren"))
             {	
                 sensor.addItem(DataTypeUInt8, RConfigMelody);	
                 sensor.addItem(DataTypeString, RConfigPreset);	
@@ -3843,7 +3843,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.modelId() == QLatin1String("button") ||
                 sensor.modelId().startsWith(QLatin1String("multi")) ||
                 sensor.modelId() == QLatin1String("water") ||
-                R_GetProductId(sensor) == QLatin1String("NAS-AB02B0 Siren") ||
+                R_GetProductId(&sensor) == QLatin1String("NAS-AB02B0 Siren") ||
                 sensor.modelId() == QLatin1String("Motion Sensor-A"))
             {
                 // no support for some IAS Zone flags

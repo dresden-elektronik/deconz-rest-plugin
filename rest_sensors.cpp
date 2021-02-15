@@ -998,7 +998,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
             }
 
             //special part for tuya siren
-            if (R_GetProductId(sensor) == QLatin1String("NAS-AB02B0 Siren"))
+            if (R_GetProductId(&sensor) == QLatin1String("NAS-AB02B0 Siren"))
             {
                 if (rid.suffix == RConfigMelody)
                 {
