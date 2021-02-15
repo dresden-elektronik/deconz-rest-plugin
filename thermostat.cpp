@@ -900,6 +900,31 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             }
                 break;
 
+            case 0x4015: // External Measured Room Sensor
+            {
+                if (zclFrame.manufacturerCode() == VENDOR_DANFOSS && (sensor->modelId() == QLatin1String("eTRV0100") ||
+                                                                      sensor->modelId() == QLatin1String("TRV001")))
+                {
+                    qint16 externalMeasurement = attr.numericValue().s16;
+                    item = sensor->item(RConfigExternalTemperatureSensor);
+                    if (item)
+                    {
+                        if (updateType == NodeValue::UpdateByZclReport)
+                        {
+                            configUpdated = true;
+                        }
+                        if (item->toNumber() != externalMeasurement)
+                        {
+                            item->setValue(externalMeasurement);
+                            enqueueEvent(Event(RSensors, RConfigExternalTemperatureSensor, sensor->id(), item));
+                            configUpdated = true;
+                        }
+                    }
+                }
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+
             default:
                 break;
             }

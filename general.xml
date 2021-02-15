@@ -1874,7 +1874,7 @@ Note: It does not clear or delete previous weekly schedule programming configura
 			<attribute id="0x4012" name="Mounting mode active" type="bool" default="0x01" access="r" required="o" mfcode="0x1246"></attribute>
 			<attribute id="0x4013" name="Mounting mode control" type="bool" access="rw" required="o" mfcode="0x1246"></attribute>
 			<attribute id="0x4014" name="eTRV Orientation" type="bool" default="0x00" access="rw" required="o" mfcode="0x1246"></attribute>
-			<attribute id="0x4015" name="External Measured Room Sensor" type="s16" access="r" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4015" name="External Measured Room Sensor" type="s16" access="rw" required="o" mfcode="0x1246"></attribute>
 			<attribute id="0x4016" name="Radiator Covered" type="bool" access="w" required="o" mfcode="0x1246"></attribute>
 			<attribute id="0x4020" name="Control Algorithm Scale Factor" type="u8" default="1" access="rw" required="o" mfcode="0x1246"></attribute>
 			<attribute id="0x4030" name="Heat Available" type="bool" default="0x00" access="rw" required="o" mfcode="0x1246"></attribute>

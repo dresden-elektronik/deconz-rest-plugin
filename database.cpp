@@ -3671,6 +3671,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     // Supported with Danfoss firmware version 1.08
                     sensor.addItem(DataTypeBool, RConfigScheduleOn)->setValue(false);
                     sensor.addItem(DataTypeString, RConfigSchedule);
+                    sensor.addItem(DataTypeInt16, RConfigExternalTemperatureSensor);
                 }
                 else if (sensor.modelId() == QLatin1String("AC201")) // OWON AC201 Thermostat
                 {
