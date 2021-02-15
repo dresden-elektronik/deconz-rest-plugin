@@ -998,7 +998,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
             }
 
             //special part for tuya siren
-            if (sensor->manufacturer().endsWith(QLatin1String("0yu2xgi")))
+            if (R_GetProductId(sensor) == QLatin1String("NAS-AB02B0 Siren"))
             {
                 if (rid.suffix == RConfigMelody)
                 {
@@ -1007,7 +1007,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     QByteArray data;
                     data.append(static_cast<qint8>(melody & 0xff));
 
-                    if (sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_ENUM, DP_IDENTIFIER_MELODY, data))
+                    if (sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_MELODY, data))
                     {
                         updated = true;
                     }
@@ -1022,7 +1022,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     QByteArray data;
                     data.append(static_cast<qint8>(volume & 0xff));
 
-                    if (sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_ENUM, DP_IDENTIFIER_VOLUME, data))
+                    if (sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_VOLUME, data))
                     {
                         updated = true;
                     }
@@ -1033,31 +1033,26 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     QString presetSet = map[pi.key()].toString();
                     if (presetSet == "both")
                     {
-                        sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, DP_IDENTIFIER_TEMPERATURE_ALARM, QByteArray("\x01",1));
-                        sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, DP_IDENTIFIER_HUMIDITY_ALARM, QByteArray("\x01",1));
-                        //SendTuyaRequest2(task, TaskTuyaRequest , DP_TYPE_BOOL, 0x71, QByteArray("\x01",1) ,DP_TYPE_BOOL, 0x72, QByteArray("\x01",1) );
+                        sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_BOOL, DP_IDENTIFIER_TEMPERATURE_ALARM, QByteArray("\x01", 1));
+                        sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_BOOL, DP_IDENTIFIER_HUMIDITY_ALARM, QByteArray("\x01", 1));
                     }
                     else if (presetSet == "humidity")
                     {
-                        sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, DP_IDENTIFIER_TEMPERATURE_ALARM, QByteArray("\x00",1));
-                        sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, DP_IDENTIFIER_HUMIDITY_ALARM, QByteArray("\x01",1));
-                        //SendTuyaRequest2(task, TaskTuyaRequest , DP_TYPE_BOOL, 0x71, QByteArray("\x00",1) ,DP_TYPE_BOOL, 0x72, QByteArray("\x01",1) );
+                        sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_BOOL, DP_IDENTIFIER_TEMPERATURE_ALARM, QByteArray("\x00", 1));
+                        sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_BOOL, DP_IDENTIFIER_HUMIDITY_ALARM, QByteArray("\x01", 1));
                     }
                     else if (presetSet == "temperature")
                     {
-                        sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, DP_IDENTIFIER_TEMPERATURE_ALARM, QByteArray("\x01",1));
-                        sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, DP_IDENTIFIER_HUMIDITY_ALARM, QByteArray("\x00",1));
-                        //SendTuyaRequest2(task, TaskTuyaRequest , DP_TYPE_BOOL, 0x71, QByteArray("\x01",1) ,DP_TYPE_BOOL, 0x72, QByteArray("\x00",1) );
+                        sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_BOOL, DP_IDENTIFIER_TEMPERATURE_ALARM, QByteArray("\x01", 1));
+                        sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_BOOL, DP_IDENTIFIER_HUMIDITY_ALARM, QByteArray("\x00", 1));
                     }
                     else if (presetSet == "off")
                     {
-                        sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, DP_IDENTIFIER_TEMPERATURE_ALARM, QByteArray("\x00",1));
-                        sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_BOOL, DP_IDENTIFIER_HUMIDITY_ALARM, QByteArray("\x00",1));
-                        //SendTuyaRequest2(task, TaskTuyaRequest , DP_TYPE_BOOL, 0x71, QByteArray("\x00",1) ,DP_TYPE_BOOL, 0x72, QByteArray("\x00",1) );
+                        sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_BOOL, DP_IDENTIFIER_TEMPERATURE_ALARM, QByteArray("\x00", 1));
+                        sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_BOOL, DP_IDENTIFIER_HUMIDITY_ALARM, QByteArray("\x00", 1));
                     }
                     else
                     {
-                        //rspItemState[QString("error unknown preset for %1").arg(sensor->modelId())] = map[pi.key()];
                         rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),QString("Could not set attribute")));
                         rsp.httpStatus = HttpStatusBadRequest;
                         return REQ_READY_SEND;
@@ -1076,9 +1071,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             datamin.append(static_cast<qint8>(setting[0].toUInt()));
                             datamax.append(static_cast<qint8>(setting[1].toUInt()));
 
-                            //SendTuyaRequest2(task, TaskTuyaRequest , DP_TYPE_VALUE, 0x6B, datamin ,DP_TYPE_VALUE, 0x6C, datamax );
-                            sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_VALUE, DP_IDENTIFIER_TRESHOLDTEMPMINI, datamin);
-                            sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_VALUE, DP_IDENTIFIER_TRESHOLDTEMPMAXI, datamax);
+                            sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_TRESHOLDTEMPMINI, datamin);
+                            sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_TRESHOLDTEMPMAXI, datamax);
 
                             rspItemState[QString("successfully updated")] = map[pi.key()].toString();
                             rspItem["success"] = rspItemState;
@@ -1099,9 +1093,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             datamin.append(static_cast<qint8>(setting[0].toUInt()));
                             datamax.append(static_cast<qint8>(setting[1].toUInt()));
 
-                            //SendTuyaRequest2(task, TaskTuyaRequest , DP_TYPE_VALUE, 0x6D, datamin ,DP_TYPE_VALUE, 0x6E, datamax );
-                            sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_VALUE, DP_IDENTIFIER_TRESHOLDTHUMIMINI, datamin);
-                            sendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_VALUE, DP_IDENTIFIER_TRESHOLDHUMIMAXI, datamax);
+                            sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_TRESHOLDTHUMIMINI, datamin);
+                            sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_TRESHOLDHUMIMAXI, datamax);
 
                             rspItemState[QString("successfully updated")] = map[pi.key()].toString();
                             rspItem["success"] = rspItemState;
@@ -1570,13 +1563,13 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     QByteArray data;
                     QString presetSet = map[pi.key()].toString();
-                    if (presetSet == "holiday") { data = QByteArray("\x00",1); }
-                    else if (presetSet == "auto") { data = QByteArray("\x01",1); }
-                    else if (presetSet == "manual") { data = QByteArray("\x02",1); }
-                    else if (presetSet == "confort") { data = QByteArray("\x03",1); }
-                    else if (presetSet == "eco") { data = QByteArray("\x04",1); }
-                    else if (presetSet == "boost") { data = QByteArray("\x05",1); }
-                    else if (presetSet == "complex") { data = QByteArray("\x06",1); }
+                    if (presetSet == "holiday") { data = QByteArray("\x00", 1); }
+                    else if (presetSet == "auto") { data = QByteArray("\x01", 1); }
+                    else if (presetSet == "manual") { data = QByteArray("\x02", 1); }
+                    else if (presetSet == "confort") { data = QByteArray("\x03", 1); }
+                    else if (presetSet == "eco") { data = QByteArray("\x04", 1); }
+                    else if (presetSet == "boost") { data = QByteArray("\x05", 1); }
+                    else if (presetSet == "complex") { data = QByteArray("\x06", 1); }
                     else
                     {
                         rspItemState[QString("error unknown preset for %1").arg(sensor->modelId())] = map[pi.key()];
@@ -1594,13 +1587,13 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     QString presetSet = map[pi.key()].toString();
                     if (presetSet == "auto")
                     {
-                        sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, 0x02, QByteArray("\x01",1));
-                        sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, 0x03, QByteArray("\x00",1));
+                        sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, 0x02, QByteArray("\x01", 1));
+                        sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, 0x03, QByteArray("\x00", 1));
                     }
                     else if (presetSet == "program")
                     {
-                        sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, 0x02, QByteArray("\x00",1));
-                        sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, 0x03, QByteArray("\x01",1));
+                        sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, 0x02, QByteArray("\x00", 1));
+                        sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, 0x03, QByteArray("\x01", 1));
                     }
                     else
                     {
@@ -1620,10 +1613,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             R_GetProductId(sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
                             R_GetProductId(sensor) == QLatin1String("Tuya_THD HY369 TRV"))
                         {
-                            QByteArray data = QByteArray("\x00",1);
+                            QByteArray data = QByteArray("\x00", 1);
                             if (map[pi.key()].toBool())
                             {
-                                data = QByteArray("\x01",1);
+                                data = QByteArray("\x01", 1);
                             }
                             
                             qint8 dp = 0x07;

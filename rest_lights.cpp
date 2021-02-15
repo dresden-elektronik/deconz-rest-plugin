@@ -2010,11 +2010,11 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
 
             if (targetOn)
             {
-                data = QByteArray("\x01",1);
+                data = QByteArray("\x01", 1);
             }
             else
             {
-                data = QByteArray("\x00",1);
+                data = QByteArray("\x00", 1);
             }
 
             ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_BOOL, button, data);

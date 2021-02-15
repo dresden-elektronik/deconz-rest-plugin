@@ -2224,7 +2224,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             // _TYST11_xu1rkty3 is covering with only 2 clusters
             // _TYST11_d0yu2xgi siren with only 2 clusters
             if (lightNode.manufacturer() == QLatin1String("_TYST11_xu1rkty3") ||
-                lightNode.manufacturer().endsWith(QLatin1String("0yu2xgi")))
+                R_GetProductId(lightNode) == QLatin1String("NAS-AB02B0 Siren"))
             {
                 hasServerOnOff = true;
             }
@@ -2596,24 +2596,24 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             lightNode.addItem(DataTypeUInt8, RStateLift);
             lightNode.addItem(DataTypeUInt8, RStateBri);
 
-            ResourceItem *Type = lightNode.item(RAttrType);
-            DBG_Assert(Type);
-            if (Type)
+            ResourceItem *type = lightNode.item(RAttrType);
+            DBG_Assert(type);
+            if (type)
             {
-                Type->setValue(QString("Window covering device"));
+                type->setValue(QString("Window covering device"));
             }
             lightNode.setNeedSaveDatabase(true);
         }
 
         //Siren
-        if (lightNode.manufacturer().endsWith(QLatin1String("0yu2xgi")))
+        if (R_GetProductId(lightNode) == QLatin1String("NAS-AB02B0 Siren"))
         {
             lightNode.removeItem(RStateOn);
-            ResourceItem *Type = lightNode.item(RAttrType);
-            DBG_Assert(Type);
-            if (Type)
+            ResourceItem *type = lightNode.item(RAttrType);
+            DBG_Assert(type);
+            if (type)
             {
-                Type->setValue(QString("Warning device"));
+                type->setValue(QString("Warning device"));
             }
             lightNode.setNeedSaveDatabase(true);
         }
@@ -6102,15 +6102,15 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             fpTuyaSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
 
             //So create 3 sensors for this one
-            const QStringList SensorList = { "ZHATemperature","ZHAHumidity","ZHAAlarm"};
+            const QStringList sensorlist = {"ZHATemperature", "ZHAHumidity", "ZHAAlarm" };
 
-            for (int l = 0; l < SensorList.size(); l++)
+            for (int l = 0; l < sensorlist.size(); l++)
             {
 
-                sensor = getSensorNodeForFingerPrint(node->address().ext(), fpTuyaSensor, SensorList[l]);
+                sensor = getSensorNodeForFingerPrint(node->address().ext(), fpTuyaSensor, sensorlist[l]);
                 if (!sensor || sensor->deletedState() != Sensor::StateNormal)
                 {
-                    addSensorNode(node, fpTuyaSensor, SensorList[l], modelId, manufacturer);
+                    addSensorNode(node, fpTuyaSensor, sensorlist[l], modelId, manufacturer);
                 }
                 else
                 {
@@ -6394,7 +6394,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         item = sensorNode.addItem(DataTypeBool, RStateAlarm);
         item->setValue(false);
 
-        if (sensorNode.manufacturer().endsWith(QLatin1String("0yu2xgi")))
+        if (R_GetProductId(sensorNode) == QLatin1String("NAS-AB02B0 Siren"))
         {
             sensorNode.addItem(DataTypeUInt8, RConfigMelody);
             sensorNode.addItem(DataTypeString, RConfigPreset);

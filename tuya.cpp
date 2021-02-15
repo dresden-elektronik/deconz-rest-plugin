@@ -355,7 +355,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             {
                 lightNode = nullptr;
             }
-            if (sensorNode->manufacturer().endsWith(QLatin1String("0yu2xgi")))
+            if (R_GetProductId(sensorNode) == QLatin1String("NAS-AB02B0 Siren"))
             {
                 if (dp == 0x0168) // Siren alarm
                 {
@@ -369,7 +369,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         }
 
         //Some device are more than 1 sensors for the same endpoint, so trying to take the good one
-        if (sensorNode && sensorNode->manufacturer().endsWith(QLatin1String("0yu2xgi")))
+        if (sensorNode && R_GetProductId(sensorNode) == QLatin1String("NAS-AB02B0 Siren"))
         {
             switch (dp)
             {
@@ -454,7 +454,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 }
             }
             //siren
-            else if (lightNode->manufacturer().endsWith(QLatin1String("0yu2xgi")))
+            else if (R_GetProductId(lightNode) == QLatin1String("NAS-AB02B0 Siren"))
             {
                 if (dp == 0x0168)
                 {
@@ -529,7 +529,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         else if (sensorNode)
         {
             //Special part just for siren
-            if (sensorNode->manufacturer().endsWith(QLatin1String("0yu2xgi"))) //siren
+            if (R_GetProductId(sensorNode) == QLatin1String("NAS-AB02B0 Siren")) //siren
             {
                 switch (dp)
                 {
