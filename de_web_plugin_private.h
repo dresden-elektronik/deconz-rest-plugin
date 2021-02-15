@@ -77,6 +77,7 @@ using namespace deCONZ::literals;
 
 #define ERR_DEVICE_SCENES_TABLE_FULL   402 // de extension
 
+#define IDLE_TIMER_INTERVAL 1000
 #define IDLE_LIMIT 30
 #define IDLE_READ_LIMIT 120
 #define IDLE_USER_LIMIT 20
@@ -213,7 +214,9 @@ using namespace deCONZ::literals;
 #define VENDOR_CLUSTER_ID                     0xFC00
 #define UBISYS_DEVICE_SETUP_CLUSTER_ID        0xFC00
 #define SAMJIN_CLUSTER_ID                     0xFC02
+#define SENGLED_CLUSTER_ID                    0xFC10
 #define LEGRAND_CONTROL_CLUSTER_ID            0xFC40
+#define XIAOMI_CLUSTER_ID                     0xFCC0
 #define XAL_CLUSTER_ID                        0xFCCE
 #define BOSCH_AIR_QUALITY_CLUSTER_ID          quint16(0xFDEF)
 
@@ -455,6 +458,12 @@ using namespace deCONZ::literals;
 #define RECONNECT_CHECK_DELAY  5000
 #define RECONNECT_NOW          100
 
+//Epoch mode
+#define UNIX_EPOCH 0
+#define J2000_EPOCH 1
+
+void getTime(quint32 *time, qint32 *tz, quint32 *dstStart, quint32 *dstEnd, qint32 *dstShift, quint32 *standardTime, quint32 *localTime, quint8 mode);
+
 extern const quint64 macPrefixMask;
 
 extern const quint64 celMacPrefix;
@@ -502,8 +511,6 @@ extern const quint64 zhejiangMacPrefix;
 // Danalock support
 extern const quint64 danalockMacPrefix;
 extern const quint64 schlageMacPrefix;
-
-extern const QDateTime epoch;
 
 inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
 {
@@ -1523,9 +1530,10 @@ public:
     bool sendIasZoneEnrollResponse(Sensor *sensor);
     bool sendIasZoneEnrollResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleIndicationSearchSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    bool SendTuyaRequest(TaskItem &task, TaskType taskType , qint8 Dp_type, qint8 Dp_identifier , QByteArray data );
+    bool sendTuyaRequest(TaskItem &task, TaskType taskType, qint8 Dp_type, qint8 Dp_identifier, const QByteArray &data);
+    bool sendTuyaCommand(const deCONZ::ApsDataIndication &ind, qint8 commandId, const QByteArray &data);
     void handleCommissioningClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    bool SendTuyaRequestThermostatSetWeeklySchedule(TaskItem &taskRef, quint8 weekdays , QString transitions , qint8 Dp_identifier);
+    bool sendTuyaRequestThermostatSetWeeklySchedule(TaskItem &taskRef, quint8 weekdays, const QString &transitions, qint8 Dp_identifier);
     void handleZdpIndication(const deCONZ::ApsDataIndication &ind);
     bool handleMgmtBindRspConfirm(const deCONZ::ApsDataConfirm &conf);
     void handleDeviceAnnceIndication(const deCONZ::ApsDataIndication &ind);
@@ -2033,6 +2041,7 @@ public:
     QTime queryTime;
     deCONZ::ApsController *apsCtrl;
     uint groupTaskNodeIter; // Iterates through nodes array
+    QElapsedTimer idleTimer;
     int idleTotalCounter; // sys timer
     int idleLimit;
     int idleUpdateZigBeeConf; //

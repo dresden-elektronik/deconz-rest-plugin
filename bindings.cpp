@@ -2546,7 +2546,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("Motion Sensor-A")) ||
         sensor->modelId().startsWith(QLatin1String("3300")) ||
         sensor->modelId().startsWith(QLatin1String("332")) ||
-        sensor->modelId().startsWith(QLatin1String("3200-S")) ||
+        sensor->modelId().startsWith(QLatin1String("3200-Sgb")) ||
+        sensor->modelId() == QLatin1String("3200-de") ||
         sensor->modelId().startsWith(QLatin1String("3305-S")) ||
         sensor->modelId().startsWith(QLatin1String("3315")) ||
         sensor->modelId().startsWith(QLatin1String("3320-L")) ||
