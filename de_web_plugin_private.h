@@ -1530,6 +1530,8 @@ public:
     void handleIasZoneClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     bool sendIasZoneEnrollResponse(Sensor *sensor);
     bool sendIasZoneEnrollResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleIasAceClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void sendArmResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, quint8 armMode);
     void handleIndicationSearchSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     bool sendTuyaRequest(TaskItem &task, TaskType taskType, qint8 Dp_type, qint8 Dp_identifier, const QByteArray &data);
     bool sendTuyaCommand(const deCONZ::ApsDataIndication &ind, qint8 commandId, const QByteArray &data);
