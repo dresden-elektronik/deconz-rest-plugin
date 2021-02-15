@@ -3791,6 +3791,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeString, RConfigAlert);
             item->setValue(R_ALERT_DEFAULT);
         }
+        else if (sensor.modelId() == QLatin1String("lumi.sensor_magnet.agl02")) // skip
+        {
+        }
         else if (sensor.modelId().startsWith(QLatin1String("lumi.")))
         {
             if (!sensor.modelId().startsWith(QLatin1String("lumi.ctrl_")) &&
