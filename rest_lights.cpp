@@ -572,9 +572,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     else if (UseTuyaCluster(taskRef.lightNode->manufacturer()))
     {
         //window covering
+
         if (taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq") ||
             taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_xuzcvlku") ||
             taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_wmcdj3aq") ||
+            taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_fzo2pocs") ||
             taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3"))
         {
             return setWindowCoveringState(req, rsp, taskRef, map);
@@ -1560,6 +1562,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     if (taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq") ||
         taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_xuzcvlku") ||
         taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_wmcdj3aq") ||
+        taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_fzo2pocs") ||
         taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3"))
     {
         cluster = TUYA_CLUSTER_ID;
