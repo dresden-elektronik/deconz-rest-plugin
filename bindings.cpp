@@ -1638,6 +1638,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                             sensor->modelId() == QLatin1String("TS0202") || // Tuya sensor
                             sensor->modelId() == QLatin1String("3AFE14010402000D") || // Konke presence sensor
                             sensor->modelId() == QLatin1String("3AFE28010402000D") || // Konke presence sensor
+                            sensor->modelId().startsWith(QLatin1String("GZ-PIR02")) ||          // Sercomm motion sensor
                             sensor->modelId().startsWith(QLatin1String("3300")) ||          // Centralite contatc sensor
                             sensor->modelId().startsWith(QLatin1String("3315")) ||
                             sensor->modelId().startsWith(QLatin1String("3157100")) ||
@@ -2763,6 +2764,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("Keyfob-ZB3.0") ||
         // Sercomm
         sensor->modelId().startsWith(QLatin1String("SZ-")) ||
+        sensor->modelId().startsWith(QLatin1String("GZ-")) ||
         sensor->modelId() == QLatin1String("Tripper") ||
         // WAXMAN
         sensor->modelId() == QLatin1String("leakSMART Water Sensor V2") ||
