@@ -292,8 +292,7 @@ void DeRestPluginPrivate::updateThermostatSchedule(Sensor *sensor, quint8 newWee
     }
     item->setValue(s);
     enqueueEvent(Event(RSensors, RConfigSchedule, sensor->id(), item));
-    updateEtag(sensor->etag);
-    updateEtag(gwConfigEtag);
+    updateSensorEtag(&*sensor);
     sensor->setNeedSaveDatabase(true);
     queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
 }
@@ -313,7 +312,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
     if (!sensor)
     {
-        DBG_Printf(DBG_INFO, "No thermostat sensor found for 0x%016llX, endpoint: 0x%08X\n", ind.srcAddress().ext(), ind.srcEndpoint());
+        DBG_Printf(DBG_INFO, "No thermostat sensor found for 0x%016llX, endpoint: 0x%02X\n", ind.srcAddress().ext(), ind.srcEndpoint());
         return;
     }
 
@@ -599,6 +598,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
             case 0x0032: // Setpoint Change Timestamp
             {
+                const QDateTime epoch = QDateTime(QDate(2000, 1, 1), QTime(0, 0), Qt::UTC);
                 QDateTime time = epoch.addSecs(attr.numericValue().u32 - QDateTime::currentDateTime().offsetFromUtc());
                 item = sensor->item(RConfigLastChangeTime);
                 if (item) // && item->toVariant().toDateTime().toMSecsSinceEpoch() != time.toMSecsSinceEpoch())
@@ -913,8 +913,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
         if (configUpdated || stateUpdated)
         {
-            updateEtag(sensor->etag);
-            updateEtag(gwConfigEtag);
+            updateSensorEtag(&*sensor);
             sensor->setNeedSaveDatabase(true);
             queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
         }
@@ -1013,9 +1012,9 @@ bool DeRestPluginPrivate::addTaskThermostatCmd(TaskItem &task, uint16_t mfrCode,
     {
         // no payload
     }
-    else if (cmd == 0x40) // Hive manufacture command
+    else if (cmd == 0x40) // Danfoss/Hive manufacturer command
     {
-        stream << (qint8) 0x01;  // ???
+        stream << (qint8) 0x01;       // Large valve movement
         stream << (qint16) setpoint;  // temperature
     }
     else
