@@ -85,8 +85,8 @@ const quint64 boschMacPrefix      = 0x00155f0000000000ULL;
 const quint64 jennicMacPrefix     = 0x00158d0000000000ULL;
 const quint64 develcoMacPrefix    = 0x0015bc0000000000ULL;
 const quint64 philipsMacPrefix    = 0x0017880000000000ULL;
-const quint64 celMacPrefix        = 0x0022a30000000000ULL; // California Eastern Laboratories
 const quint64 computimeMacPrefix  = 0x001e5e0000000000ULL;
+const quint64 celMacPrefix        = 0x0022a30000000000ULL; // California Eastern Laboratories
 const quint64 ubisysMacPrefix     = 0x001fee0000000000ULL;
 const quint64 deMacPrefix         = 0x00212e0000000000ULL;
 const quint64 keenhomeMacPrefix   = 0x0022a30000000000ULL;
@@ -394,6 +394,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_HEIMAN, "TY0202", silabs7MacPrefix }, // Lidl/Silvercrest Smart Motion Sensor
     { VENDOR_AURORA, "DoubleSocket50AU", jennicMacPrefix }, // Aurora AOne Double Socket UK
     { VENDOR_COMPUTIME, "SP600", computimeMacPrefix }, // Salus smart plug
+    { VENDOR_COMPUTIME, "SPE600", computimeMacPrefix }, // Salus smart plug
     { VENDOR_HANGZHOU_IMAGIC, "1116-S", energyMiMacPrefix }, // iris contact sensor v3
     { VENDOR_HANGZHOU_IMAGIC, "1117-S", energyMiMacPrefix }, // iris motion sensor v3
     { VENDOR_JENNIC, "113D", jennicMacPrefix }, // iHorn (Huawei) temperature and humidity sensor
