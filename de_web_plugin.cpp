@@ -1063,6 +1063,11 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                         (sensorNode->manufacturer() == QLatin1String("_TZ3400_keyjqthh")) ||
                         (sensorNode->manufacturer() == QLatin1String("_TZ3400_key8kk7r")) ||
                         (sensorNode->manufacturer() == QLatin1String("_TZ3000_vp6clf9d")) ||
+                        (sensorNode->manufacturer() == QLatin1String("_TZ3000_peszejy7")) ||
+                        (sensorNode->manufacturer() == QLatin1String("_TZ3000_qzjcsmar")) ||
+                        (sensorNode->manufacturer() == QLatin1String("_TZ3000_owgcnkrh")) ||
+                        (sensorNode->manufacturer() == QLatin1String("_TZ3000_adkvzooy")) ||
+                        (sensorNode->manufacturer() == QLatin1String("_TZ3000_arfwfgoa")) ||
                         (sensorNode->manufacturer() == QLatin1String("_TYZB02_keyjqthh")))
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
@@ -2243,6 +2248,10 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 lightNode.manufacturer() == QLatin1String("_TZ3400_keyjqthh") ||
                 lightNode.manufacturer() == QLatin1String("_TZ3400_key8kk7r") ||
                 lightNode.manufacturer() == QLatin1String("_TZ3000_vp6clf9d") ||
+                lightNode.manufacturer() == QLatin1String("_TZ3000_peszejy7") ||
+                lightNode.manufacturer() == QLatin1String("_TZ3000_qzjcsmar") ||
+                lightNode.manufacturer() == QLatin1String("_TZ3000_owgcnkrh") ||
+                lightNode.manufacturer() == QLatin1String("_TZ3000_arfwfgoa") ||
                 lightNode.manufacturer() == QLatin1String("_TYZB02_keyjqthh"))
             {
                 hasServerOnOff = false;
@@ -5079,6 +5088,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              manufacturer == QLatin1String("_TZ3400_keyjqthh") ||
                              manufacturer == QLatin1String("_TZ3000_vp6clf9d") ||
                              manufacturer == QLatin1String("_TZ3400_key8kk7r") ||
+                             manufacturer == QLatin1String("_TZ3000_peszejy7") ||
+                             manufacturer == QLatin1String("_TZ3000_qzjcsmar") ||
+                             manufacturer == QLatin1String("_TZ3000_owgcnkrh") ||
+                             manufacturer == QLatin1String("_TZ3000_adkvzooy") ||
+                             manufacturer == QLatin1String("_TZ3000_arfwfgoa") ||
                              manufacturer == QLatin1String("_TYZB02_keyjqthh"))
                     {
                         //Making the device only for endpoint 0x01
