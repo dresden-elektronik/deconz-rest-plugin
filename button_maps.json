@@ -1244,7 +1244,7 @@
             ]
 
         },
-	"elkoMap": {
+        "elkoMap": {
             "vendor": "ELKO",
             "doc": "Elko ESH 316 Endevender RF",
             "modelids": ["ElkoDimmerRemoteZHA"],
