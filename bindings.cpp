@@ -1322,6 +1322,16 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5});
         }
+        else if (sensor && sensor->modelId() == QLatin1String("PR412C")) // OWON PCT502 Thermostat
+        {
+            rq.dataType = deCONZ::Zcl16BitInt;
+            rq.attributeId = 0x0000;         // Local Temperature
+            rq.minInterval = 1;
+            rq.maxInterval = 600;
+            rq.reportableChange16bit = 50;
+
+            return sendConfigureReportingRequest(bt, {rq});
+        }
         else if ( (sensor && sensor->modelId() == QLatin1String("eTRV0100")) || // Danfoss Ally
                   (sensor && sensor->modelId() == QLatin1String("TRV001")) )    // Hive TRV
         {
@@ -1487,6 +1497,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (sensor && (sensor->modelId() == QLatin1String("SORB") ||               // Stelpro Orleans Fan
                             sensor->modelId() == QLatin1String("TH1300ZB") ||           // Sinope thermostat
+                            sensor->modelId() == QLatin1String("PR412C") ||             // Owon thermostat
                             sensor->modelId().startsWith(QLatin1String("3157100")) ||   // Centralite pearl
                             sensor->modelId().startsWith(QLatin1String("STZB402"))))    // Stelpro baseboard thermostat
         {
@@ -2299,6 +2310,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturerCode() == VENDOR_STELPRO)
         {
         }
+        else if (lightNode->manufacturerCode() == VENDOR_OWON)
+        {
+        }
         else if (lightNode->modelId().startsWith(QLatin1String("SP ")))
         {
         }
@@ -2795,6 +2809,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("Bell") ||
         // Owon
         sensor->modelId() == QLatin1String("AC201") ||
+        sensor->modelId() == QLatin1String("PR412C") ||
         // Sonoff
         sensor->modelId() == QLatin1String("WB01") ||
         sensor->modelId() == QLatin1String("WB-01") ||

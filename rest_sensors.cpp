@@ -1524,7 +1524,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                         else if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001") ||
                                  sensor->modelId() == QLatin1String("SORB") || sensor->modelId() == QLatin1String("3157100") ||
-                                 sensor->modelId() == QLatin1String("TH1300ZB"))
+                                 sensor->modelId() == QLatin1String("TH1300ZB") || sensor->modelId() == QLatin1String("PR412C"))
                         {
                             quint32 data = map[pi.key()].toUInt(&ok);
 
