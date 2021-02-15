@@ -2695,7 +2695,8 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
 
     if (lightNode->manufacturerCode() == VENDOR_LEDVANCE &&
             (lightNode->modelId() == QLatin1String("BR30 RGBW") ||
-             lightNode->modelId() == QLatin1String("A19 RGBW")))
+            lightNode->modelId() == QLatin1String("RT RGBW") ||
+            lightNode->modelId() == QLatin1String("A19 RGBW")))
     {
         item = lightNode->item(RAttrType);
         if (item)
