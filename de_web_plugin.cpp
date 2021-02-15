@@ -322,6 +322,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_DEVELCO, "FLSZB-1", develcoMacPrefix }, // Develco water leak sensor
     { VENDOR_DEVELCO, "EMIZB-1", develcoMacPrefix }, // Develco EMI Norwegian HAN
     { VENDOR_DEVELCO, "SMRZB-3", develcoMacPrefix }, // Develco Smart Relay DIN
+    { VENDOR_DEVELCO, "SMRZB-1", develcoMacPrefix }, // Develco Smart Cable
     { VENDOR_DEVELCO, "SIRZB-1", develcoMacPrefix }, // Develco siren
     { VENDOR_DEVELCO, "HMSZB-1", develcoMacPrefix }, // Develco temp/hum sensor
     { VENDOR_DEVELCO, "ZHMS101", develcoMacPrefix }, // Wattle (Develco) magnetic sensor
@@ -9095,6 +9096,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     if (i->modelId() == QLatin1String("SmartPlug") ||         // Heiman
                                         i->modelId().startsWith(QLatin1String("SPLZB-1")) ||  // Develco smart plug
                                         i->modelId().startsWith(QLatin1String("SMRZB-3")) ||  // Develco smart relay
+                                        i->modelId().startsWith(QLatin1String("SMRZB-1")) ||  // Develco smart cable
                                         i->modelId().startsWith(QLatin1String("SKHMP30")) ||  // GS smart plug
                                         i->modelId() == QLatin1String("PoP"))           // Apex Smart Plug
                                     {
@@ -9145,6 +9147,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("ROB_200")) ||  // ROBB Smarrt micro dimmer
                                         i->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
                                         i->modelId() == QLatin1String("Connected socket outlet") || // Niko smart socket
+                                        i->modelId() == QLatin1String("SMRZB-1") || // Develco smart cable
                                         i->modelId().startsWith(QLatin1String("S1")) || // Ubisys S1/S1-R
                                         i->modelId().startsWith(QLatin1String("S2")) || // Ubisys S2/S2-R
                                         i->modelId().startsWith(QLatin1String("J1")) || // Ubisys J1/J1-R
