@@ -338,7 +338,7 @@ void LightNode::rx()
 {
     RestNodeBase *b = static_cast<RestNodeBase *>(this);
     b->rx();
-    if (lastRx() >= item(RAttrLastSeen)->lastChanged().addSecs(60))
+    if (lastRx() >= item(RAttrLastSeen)->lastChanged().addSecs(plugin->gwLightLastSeenInterval))
     {
         setValue(RAttrLastSeen, lastRx().toUTC());
     }
@@ -475,7 +475,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                         {
                             addItem(DataTypeUInt16, RStateX);
                             addItem(DataTypeUInt16, RStateY);
-                            addItem(DataTypeString, RStateEffect);
+                            addItem(DataTypeString, RStateEffect)->setValue(RStateEffectValues[R_EFFECT_NONE]);
                             addItem(DataTypeUInt16, RStateHue);
                             addItem(DataTypeUInt8, RStateSat);
                         }
@@ -549,7 +549,8 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                         modelId().startsWith(QLatin1String("HESZB-1")) ||     // Develco heat sensor with siren
                         modelId().startsWith(QLatin1String("FLSZB-1")) ||     // Develco water leak sensor with siren
                         modelId().startsWith(QLatin1String("SIRZB-1")) ||     // Develco siren
-                        modelId() == QLatin1String("902010/29"))              // Bitron outdoor siren
+                        modelId() == QLatin1String("902010/29") ||            // Bitron outdoor siren
+                        modelId() == QLatin1String("SD8SC_00.00.03.09TC"))    // Centralite smoke sensor
                     {
                         removeItem(RStateOn);
                         ltype = QLatin1String("Warning device");
