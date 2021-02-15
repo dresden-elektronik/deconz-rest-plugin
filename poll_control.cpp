@@ -113,6 +113,13 @@ bool DeRestPluginPrivate::checkPollControlClusterTask(Sensor *sensor)
         return false;
     }
 
+    if (sensor->node()->nodeDescriptor().manufacturerCode() == VENDOR_IKEA && (item->toNumber() & R_PENDING_SET_LONG_POLL_INTERVAL) != 0)
+    {
+        // for IKEA devices leave long poll interval at factory default settings
+        // TODO configure in DDF
+        item->setValue(item->toNumber() & ~(R_PENDING_SET_LONG_POLL_INTERVAL));
+    }
+
     if (item->toNumber() & R_PENDING_WRITE_POLL_CHECKIN_INTERVAL)
     {
         // write poll control checkin interval
@@ -128,12 +135,13 @@ bool DeRestPluginPrivate::checkPollControlClusterTask(Sensor *sensor)
             item->setValue(item->toNumber() & ~R_PENDING_WRITE_POLL_CHECKIN_INTERVAL);
             return true;
         }
+
+        return false; // only send Set Long Poll Interval after writing this attribute
     }
 
     if (item->toNumber() & R_PENDING_SET_LONG_POLL_INTERVAL)
     {
         deCONZ::ApsDataRequest apsReq;
-        deCONZ::ZclFrame zclFrame;
 
          // ZDP Header
          apsReq.dstAddress() = sensor->address();
@@ -146,7 +154,7 @@ bool DeRestPluginPrivate::checkPollControlClusterTask(Sensor *sensor)
          apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
 
          deCONZ::ZclFrame outZclFrame;
-         outZclFrame.setSequenceNumber(zclFrame.sequenceNumber());
+         outZclFrame.setSequenceNumber(static_cast<quint8>(QDateTime::currentMSecsSinceEpoch()));
          outZclFrame.setCommandId(0x02); // set long poll interval
          outZclFrame.setFrameControl(deCONZ::ZclFCClusterCommand | deCONZ::ZclFCDirectionClientToServer);
 

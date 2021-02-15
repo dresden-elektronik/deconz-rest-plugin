@@ -38,7 +38,7 @@ contains(QMAKE_SPEC_T,.*linux.*) {
 
     packagesExist(openssl) {
         DEFINES += HAS_OPENSSL
-        PKGCONFIG += openssl
+        #PKGCONFIG += openssl
     }
 }
 
@@ -73,7 +73,7 @@ GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.07.01\\\"
+DEFINES += GW_SW_VERSION=\\\"2.09.03\\\"
 DEFINES += GW_SW_DATE=$$GIT_COMMIT_DATE
 DEFINES += GW_API_VERSION=\\\"1.16.0\\\"
 DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
@@ -143,6 +143,7 @@ SOURCES  = air_quality.cpp \
            group.cpp \
            group_info.cpp \
            gw_uuid.cpp \
+           ias_ace.cpp \
            ias_zone.cpp \
            identify.cpp \
            json.cpp \
@@ -191,9 +192,9 @@ win32 {
     exists($$OPENSSL_PATH) {
         message(OpenSLL detected $$OPENSSL_PATH)
 
-        LIBS += -L$$OPENSSL_PATH/bin \
-             -llibcrypto-1_1 \
-             -llibssl-1_1
+        #LIBS += -L$$OPENSSL_PATH/bin \
+        #     -llibcrypto-1_1 \
+        #     -llibssl-1_1
         INCLUDEPATH += $$OPENSSL_PATH/include
         DEFINES += HAS_OPENSSL
     }

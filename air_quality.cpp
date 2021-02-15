@@ -10,7 +10,7 @@ void DeRestPluginPrivate::handleAirQualityClusterIndication(const deCONZ::ApsDat
     Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint(), QLatin1String("ZHAAirQuality"));
     if (!sensor)
     {
-        DBG_Printf(DBG_INFO, "No air quality sensor found for 0x%016llX, endpoint: 0x%08X\n", ind.srcAddress().ext(), ind.srcEndpoint());
+        DBG_Printf(DBG_INFO, "No air quality sensor found for 0x%016llX, endpoint: 0x%02X\n", ind.srcAddress().ext(), ind.srcEndpoint());
         return;
     }
 
@@ -140,8 +140,7 @@ void DeRestPluginPrivate::handleAirQualityClusterIndication(const deCONZ::ApsDat
 
         if (configUpdated || stateUpdated)
         {
-            updateEtag(sensor->etag);
-            updateEtag(gwConfigEtag);
+            updateSensorEtag(&*sensor);
             sensor->setNeedSaveDatabase(true);
             queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
         }
