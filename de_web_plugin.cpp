@@ -193,6 +193,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_MMB, "Gear", zenMacPrefix },
     { VENDOR_NYCE, "3011", emberMacPrefix }, // NYCE door/window sensor
     { VENDOR_NYCE, "3014", emberMacPrefix }, // NYCE garage door/tilt sensor
+    { VENDOR_NYCE, "3041", emberMacPrefix }, // NYCE motion sensor
     { VENDOR_NYCE, "3043", emberMacPrefix }, // NYCE ceiling motion sensor
     { VENDOR_PHILIPS, "RWL02", philipsMacPrefix }, // Hue dimmer switch
     { VENDOR_PHILIPS, "ROM00", philipsMacPrefix }, // Hue smart button
@@ -5141,6 +5142,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId == QLatin1String("3AFE28010402000D") ||          // Konke motion sensor ver.2
                              modelId == QLatin1String("motion") ||                    // Samjin motion sensor
                              modelId == QLatin1String("ZB-MotionSensor-D0003") ||     // Linkind motion sensor
+                             modelId == QLatin1String("3041") ||                      // NYCE motion sensor
                              modelId.startsWith(QLatin1String("902010/22")) ||        // Bitron motion sensor
                              modelId.startsWith(QLatin1String("SN10ZW")) ||           // ORVIBO motion sensor
                              modelId.startsWith(QLatin1String("MOSZB-1")) ||          // Develco motion sensor

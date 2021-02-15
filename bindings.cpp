@@ -2563,6 +2563,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // NYCE
         sensor->modelId() == QLatin1String("3011") ||
         sensor->modelId() == QLatin1String("3014") ||
+        sensor->modelId() == QLatin1String("3041") ||
         sensor->modelId() == QLatin1String("3043") ||
         // Philips
         sensor->modelId().startsWith(QLatin1String("SML00")) ||
