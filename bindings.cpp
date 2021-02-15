@@ -1818,6 +1818,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq2.minInterval = 1;
         rq2.maxInterval = 300;
         if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||       // Heiman
+                       sensor->modelId() == QLatin1String("PoP") ||       // Apex Smart Plug
                        sensor->modelId() == QLatin1String("SKHMP30-I1") ||      // GS smart plug
                        sensor->modelId().startsWith(QLatin1String("SPLZB-1")))) // Develco smart plug
         {
@@ -1845,6 +1846,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq3.minInterval = 1;
         rq3.maxInterval = 300;
         if (sensor && (sensor->modelId() == QLatin1String("SP 120") ||           // innr
+                       sensor->modelId() == QLatin1String("PoP") ||           // Apex Smart Plug
                        sensor->modelId() == QLatin1String("DoubleSocket50AU") || // Aurora
                        sensor->modelId().startsWith(QLatin1String("SPLZB-1")) || // Develco smart plug
                        sensor->modelId() == QLatin1String("SZ-ESW01-AU") ||      // Sercomm / Telstra smart plug
@@ -2643,6 +2645,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("outlet")) ||
         // Axis
         sensor->modelId() == QLatin1String("Gear") ||
+        // Datek
+        sensor->modelId() == QLatin1String("PoP") ||
         // Bitron
         sensor->modelId().startsWith(QLatin1String("902010")) ||
         // Develco

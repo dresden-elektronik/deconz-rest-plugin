@@ -321,6 +321,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_DEVELCO, "HMSZB-1", develcoMacPrefix }, // Develco temp/hum sensor
     { VENDOR_DEVELCO, "ZHMS101", develcoMacPrefix }, // Wattle (Develco) magnetic sensor
     { VENDOR_DEVELCO, "MotionSensor51AU", develcoMacPrefix }, // Aurora (Develco) motion sensor
+    { VENDOR_DATEK_WIRLESS, "PoP", konkeMacPrefix }, // Apex Smart Plug
     { VENDOR_EMBER, "3AFE14010402000D", konkeMacPrefix }, // Konke Kit Pro-BS Motion Sensor
     { VENDOR_KONKE, "3AFE28010402000D", ikea2MacPrefix }, // Konke Kit Pro-BS Motion Sensor ver.2
     { VENDOR_EMBER, "3AFE140103020000", konkeMacPrefix }, // Konke Kit Pro-FT Temp Humidity Sensor
@@ -9049,7 +9050,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     if (i->modelId() == QLatin1String("SmartPlug") ||         // Heiman
                                         i->modelId().startsWith(QLatin1String("SPLZB-1")) ||  // Develco smart plug
                                         i->modelId().startsWith(QLatin1String("SMRZB-3")) ||  // Develco smart relay
-                                        i->modelId().startsWith(QLatin1String("SKHMP30")))    // GS smart plug
+                                        i->modelId().startsWith(QLatin1String("SKHMP30")) ||  // GS smart plug
+                                        i->modelId() == QLatin1String("PoP"))           // Apex Smart Plug
                                     {
                                         //voltage += 50; voltage /= 100; // 0.01V -> V
                                         voltage = static_cast<quint16>(round((double)voltage / 100.0)); // 0.01V -> V
