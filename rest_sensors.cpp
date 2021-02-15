@@ -786,7 +786,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                 }
                 //don't update value for those setting, let them be filled by the return from device
-                else if ( (rid.suffix == RConfigTempThreshold) or (rid.suffix == RConfigHumiThreshold))
+                else if (rid.suffix == RConfigTempThreshold || rid.suffix == RConfigHumiThreshold)
                 {
                 }
                 else if (item->setValue(val))
