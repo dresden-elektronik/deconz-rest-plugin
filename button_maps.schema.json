@@ -71,6 +71,7 @@
       "enum": [
           "BASIC",
           "SCENES",
+          "SENGLED",
           "ONOFF",
           "LEVEL_CONTROL",
           "MULTISTATE_INPUT",
@@ -86,6 +87,9 @@
     },
     "scene-commands": {
       "enum": [ "ADD_SCENE", "VIEW_SCENE", "REMOVE_SCENE", "STORE_SCENE", "RECALL_SCENE", "IKEA_STEP_CT", "IKEA_MOVE_CT", "IKEA_STOP_CT" ]
+    },
+    "sengled-commands": {
+      "enum": [ "COMMAND_0" ]
     },
     "onoff-commands": {
       "enum": [ "ATTRIBUTE_REPORT", "OFF", "ON", "TOGGLE", "OFF_WITH_EFFECT", "ON_WITH_TIMED_OFF", "LIDL" ]
@@ -144,6 +148,7 @@
             { "$ref": "#/definitions/level-commands" },
             { "$ref": "#/definitions/color-commands" },
             { "$ref": "#/definitions/scene-commands" },
+            { "$ref": "#/definitions/sengled-commands" },
             { "$ref": "#/definitions/window-covering-commands" },
             { "$ref": "#/definitions/ias-commands" },
             { "$ref": "#/definitions/multistate-input-commands" }
