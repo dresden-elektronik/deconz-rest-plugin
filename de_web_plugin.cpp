@@ -2224,7 +2224,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             // _TYST11_xu1rkty3 is covering with only 2 clusters
             // _TYST11_d0yu2xgi siren with only 2 clusters
             if (lightNode.manufacturer() == QLatin1String("_TYST11_xu1rkty3") ||
-                R_GetProductId(lightNode) == QLatin1String("NAS-AB02B0 Siren"))
+                R_GetProductId(&lightNode) == QLatin1String("NAS-AB02B0 Siren"))
             {
                 hasServerOnOff = true;
             }
@@ -2606,7 +2606,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         }
 
         //Siren
-        if (R_GetProductId(lightNode) == QLatin1String("NAS-AB02B0 Siren"))
+        if (R_GetProductId(&lightNode) == QLatin1String("NAS-AB02B0 Siren"))
         {
             lightNode.removeItem(RStateOn);
             ResourceItem *type = lightNode.item(RAttrType);
@@ -6394,7 +6394,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         item = sensorNode.addItem(DataTypeBool, RStateAlarm);
         item->setValue(false);
 
-        if (R_GetProductId(sensorNode) == QLatin1String("NAS-AB02B0 Siren"))
+        if (R_GetProductId(&sensorNode) == QLatin1String("NAS-AB02B0 Siren"))
         {
             sensorNode.addItem(DataTypeUInt8, RConfigMelody);
             sensorNode.addItem(DataTypeString, RConfigPreset);
