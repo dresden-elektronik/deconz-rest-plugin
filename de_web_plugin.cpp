@@ -5144,7 +5144,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case IAS_ZONE_CLUSTER_ID:
                 {
-                    if (modelId.startsWith(QLatin1String("CO_")) ||                   // Heiman CO sensor
+                    // Don't create ZHAalarm for this device using this cluster
+                    if (modelId == QLatin1String("0yu2xgi"))
+                    { 
+                    }
+                    else if (modelId.startsWith(QLatin1String("CO_")) ||                   // Heiman CO sensor
                         modelId.startsWith(QLatin1String("COSensor")) ||              // Heiman CO sensor (newer model)
                         modelId.startsWith(QLatin1String("lumi.sensor_natgas")))      // Xiaomi Mi gas detector
                     {
@@ -5879,8 +5883,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         }
 
         // ZHAAlarm
-        if ((fpAlarmSensor.hasInCluster(IAS_ZONE_CLUSTER_ID)) ||
-            (fpAlarmSensor.hasInCluster(TUYA_CLUSTER_ID)))
+        if (fpAlarmSensor.hasInCluster(IAS_ZONE_CLUSTER_ID))
         {
             fpAlarmSensor.endpoint = i->endpoint();
             fpAlarmSensor.deviceId = i->deviceId();
