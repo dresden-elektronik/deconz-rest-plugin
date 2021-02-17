@@ -143,6 +143,7 @@ const char *RConfigLevelMin = "config/levelmin";
 const char *RConfigMode = "config/mode";
 const char *RConfigSetValve = "config/setvalve";
 const char *RConfigMountingMode = "config/mountingmode";
+const char *RConfigExternalTemperatureSensor = "config/externalsensortemp";
 const char *RConfigOffset = "config/offset";
 const char *RConfigOn = "config/on";
 const char *RConfigPending = "config/pending";
@@ -329,6 +330,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigUsertest));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigWindowCoveringType));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigWindowOpen));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigExternalTemperatureSensor));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigUbisysJ1Mode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigUbisysJ1WindowCoveringType));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigUbisysJ1ConfigurationAndStatus));
@@ -462,6 +464,7 @@ static const ProductMap products[] =
     {"_TZE200_c88teujp", "TS0601", "Saswell", "Tuya_THD SEA801-ZIGBEE TRV"},
     {"_TYST11_ckud7u2l", "kud7u2l", "Tuya", "Tuya_THD HY369 TRV"},
     {"_TZE200_ckud7u2l", "TS0601", "Tuya", "Tuya_THD HY369 TRV"},
+    {"_TZE200_ywdxldoj", "TS0601", "MOES/tuya", "Tuya_THD HY368 TRV"},
     {"_TZE200_aoclfnxz", "TS0601", "Moes", "Tuya_THD BTH-002 Thermostat"},
     {"_TYST11_jeaxp72v", "eaxp72v", "Essentials", "Tuya_THD Essentials TRV"},
     {"_TYST11_kfvq6avy", "fvq6avy", "Revolt", "Tuya_THD NX-4911-675 TRV"},
@@ -484,8 +487,10 @@ static const ProductMap products[] =
     {"_TZE200_fdtjuw7u", "TS0601", "Yushun", "Tuya_COVD YS-MT750"},
     {"_TZE200_bqcqqjpb", "TS0601", "Yushun", "Tuya_COVD YS-MT750"},
     
+    // Tuya covering not using tuya cluster but need reversing
     {"_TZ3000_egq7y6pr", "TS130F", "Lonsonho", "11830304 Switch"},
-    {"_TZ3000_xzqbrqk1", "TS130F", "Lonsonho", "11830304(2) Switch"}, // Not sure for this one.
+    {"_TZ3000_xzqbrqk1", "TS130F", "Lonsonho", "Zigbee curtain switch"}, // https://github.com/dresden-elektronik/deconz-rest-plugin/issues/3757#issuecomment-776201454
+    {"_TZ3000_ltiqubue", "TS130F", "Tuya", "Zigbee curtain switch"},
     {"_TZ3000_vd43bbfq", "TS130F", "Tuya", "QS-Zigbee-C01 Module"}, // Curtain module QS-Zigbee-C01
     
     {nullptr, nullptr, nullptr, nullptr}

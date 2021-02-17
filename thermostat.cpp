@@ -598,6 +598,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
             case 0x0032: // Setpoint Change Timestamp
             {
+                const QDateTime epoch = QDateTime(QDate(2000, 1, 1), QTime(0, 0), Qt::UTC);
                 QDateTime time = epoch.addSecs(attr.numericValue().u32 - QDateTime::currentDateTime().offsetFromUtc());
                 item = sensor->item(RConfigLastChangeTime);
                 if (item) // && item->toVariant().toDateTime().toMSecsSinceEpoch() != time.toMSecsSinceEpoch())
@@ -893,6 +894,31 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                         item->setValue(enabled);
                         enqueueEvent(Event(RSensors, RConfigMountingMode, sensor->id(), item));
                         configUpdated = true;
+                    }
+                }
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+
+            case 0x4015: // External Measured Room Sensor
+            {
+                if (zclFrame.manufacturerCode() == VENDOR_DANFOSS && (sensor->modelId() == QLatin1String("eTRV0100") ||
+                                                                      sensor->modelId() == QLatin1String("TRV001")))
+                {
+                    qint16 externalMeasurement = attr.numericValue().s16;
+                    item = sensor->item(RConfigExternalTemperatureSensor);
+                    if (item)
+                    {
+                        if (updateType == NodeValue::UpdateByZclReport)
+                        {
+                            configUpdated = true;
+                        }
+                        if (item->toNumber() != externalMeasurement)
+                        {
+                            item->setValue(externalMeasurement);
+                            enqueueEvent(Event(RSensors, RConfigExternalTemperatureSensor, sensor->id(), item));
+                            configUpdated = true;
+                        }
                     }
                 }
                 sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());

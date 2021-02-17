@@ -572,9 +572,13 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     else if (UseTuyaCluster(taskRef.lightNode->manufacturer()))
     {
         //window covering
+
         if (taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq") ||
             taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_xuzcvlku") ||
             taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_wmcdj3aq") ||
+            taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_nogaemzt") ||
+            taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_zah67ekd") || // MoesHouse / Livolo Roller Blinds
+            taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_fzo2pocs") ||
             taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3"))
         {
             return setWindowCoveringState(req, rsp, taskRef, map);
@@ -1560,6 +1564,9 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     if (taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq") ||
         taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_xuzcvlku") ||
         taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_wmcdj3aq") ||
+        taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_nogaemzt") ||
+        taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_zah67ekd") || // MoesHouse / Livolo Roller Blinds
+        taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_fzo2pocs") ||
         taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3"))
     {
         cluster = TUYA_CLUSTER_ID;
@@ -1732,7 +1739,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain")) ||
             R_GetProductId(taskRef.lightNode) == QLatin1String("11830304 Switch") ||
             R_GetProductId(taskRef.lightNode) == QLatin1String("QS-Zigbee-C01 Module") ||
-            R_GetProductId(taskRef.lightNode) == QLatin1String("11830304(2) Switch") ||
+            R_GetProductId(taskRef.lightNode) == QLatin1String("Zigbee curtain switch") ||
             taskRef.lightNode->modelId() == QLatin1String("Motor Controller"))
         {
             targetLiftZigBee = 100 - targetLift;

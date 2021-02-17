@@ -328,6 +328,7 @@ using namespace deCONZ::literals;
 #define VENDOR_NYCE                 0x10B9
 #define VENDOR_UNIVERSAL2           0x10EF
 #define VENDOR_UBISYS               0x10F2
+#define VENDOR_DATEK_WIRLESS        0x1337
 #define VENDOR_DANALOCK             0x115C
 #define VENDOR_SCHLAGE              0x1236 // Used by Schlage Locks
 #define VENDOR_BEGA                 0x1105
@@ -511,8 +512,6 @@ extern const quint64 zhejiangMacPrefix;
 // Danalock support
 extern const quint64 danalockMacPrefix;
 extern const quint64 schlageMacPrefix;
-
-extern const QDateTime epoch;
 
 inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
 {
@@ -1076,7 +1075,7 @@ public:
     int putHomebridgeUpdated(const ApiRequest &req, ApiResponse &rsp);
 
     void configToMap(const ApiRequest &req, QVariantMap &map);
-    void basicConfigToMap(QVariantMap &map);
+    void basicConfigToMap(const ApiRequest &req, QVariantMap &map);
 
     // REST API userparameter
     int handleUserparameterApi(const ApiRequest &req, ApiResponse &rsp);
@@ -1531,6 +1530,8 @@ public:
     void handleIasZoneClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     bool sendIasZoneEnrollResponse(Sensor *sensor);
     bool sendIasZoneEnrollResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleIasAceClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void sendArmResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, quint8 armMode);
     void handleIndicationSearchSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     bool sendTuyaRequest(TaskItem &task, TaskType taskType, qint8 Dp_type, qint8 Dp_identifier, const QByteArray &data);
     bool sendTuyaCommand(const deCONZ::ApsDataIndication &ind, qint8 commandId, const QByteArray &data);
@@ -1732,6 +1733,7 @@ public:
     QString gwHomebridgeUpdateVersion;
     bool gwHomebridgeUpdate;
     QString gwName;
+    bool gwHueMode;
     bool gwLANBridgeId;
     QString gwBridgeId;
     QString gwUuid;
