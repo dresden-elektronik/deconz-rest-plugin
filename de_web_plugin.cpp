@@ -2249,8 +2249,9 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 hasServerOnOff = false;
             }
             //Battery covering
-            if ((lightNode.manufacturer() == QLatin1String("_TZE200_wmcdj3aq")) ||
-                (lightNode.manufacturer() == QLatin1String("_TZE200_zah67ekd"))) // MoesHouse / Livolo Roller Blinds
+            if (lightNode.manufacturer() == QLatin1String("_TZE200_wmcdj3aq") ||
+                lightNode.manufacturer() == QLatin1String("_TZE200_xuzcvlku") || //Zemismart M515EGBZTN, exist in router and in end-device
+                lightNode.manufacturer() == QLatin1String("_TZE200_zah67ekd")) // MoesHouse / Livolo Roller Blinds
             {
                 hasServerOnOff = true;
             }
