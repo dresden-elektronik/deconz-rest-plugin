@@ -558,9 +558,10 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 }
                 else if (i->id() == IDENTIFY_CLUSTER_ID)
                 {
-                    if (manufacturerCode() == VENDOR_IKEA && deviceId == DEV_ID_RANGE_EXTENDER)
+                    if ((manufacturerCode() == VENDOR_IKEA && deviceId == DEV_ID_RANGE_EXTENDER) ||
+                        (manufacturerCode() == VENDOR_EMBER && deviceId == DEV_ID_RANGE_EXTENDER))
                     {
-                        // the repeater has no on/off cluster but an led which supports identify
+                        // the ikea repeater has no on/off cluster but an led which supports identify
                         removeItem(RStateOn);
                         ltype = QLatin1String("Range extender");
                     }
