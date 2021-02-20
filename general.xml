@@ -1874,7 +1874,7 @@ Note: It does not clear or delete previous weekly schedule programming configura
 			<attribute id="0x4012" name="Mounting mode active" type="bool" default="0x01" access="r" required="o" mfcode="0x1246"></attribute>
 			<attribute id="0x4013" name="Mounting mode control" type="bool" access="rw" required="o" mfcode="0x1246"></attribute>
 			<attribute id="0x4014" name="eTRV Orientation" type="bool" default="0x00" access="rw" required="o" mfcode="0x1246"></attribute>
-			<attribute id="0x4015" name="External Measured Room Sensor" type="s16" access="r" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4015" name="External Measured Room Sensor" type="s16" access="rw" required="o" mfcode="0x1246"></attribute>
 			<attribute id="0x4016" name="Radiator Covered" type="bool" access="w" required="o" mfcode="0x1246"></attribute>
 			<attribute id="0x4020" name="Control Algorithm Scale Factor" type="u8" default="1" access="rw" required="o" mfcode="0x1246"></attribute>
 			<attribute id="0x4030" name="Heat Available" type="bool" default="0x00" access="rw" required="o" mfcode="0x1246"></attribute>
@@ -3929,6 +3929,45 @@ Writing 1 to 0x0202 and 0x0302 makes 0x0300 writable. Then writing 1 to 0x0300 s
 				<attribute id="0x0600" name="Unknown" type="seckey" mfcode="0x125f" access="rw" required="m"> </attribute>
 				<attribute id="0x0601" name="Unknown" type="seckey" mfcode="0x125f" access="rw" required="m"> </attribute>
 				<attribute id="0xFFFD" name="Cluster Revision" type="u16" mfcode="0x125f" access="rw" required="m"> </attribute>
+			</server>
+			<client>
+			</client>
+		</cluster>
+        
+		<!-- DATEK -->
+		<cluster id="0xfee1" name="Datek on/off configuration" mfcode="0x1337">
+			<description>Datek on/off configuration attributes.</description>
+			<server>
+				<attribute id="0x0000" name="Off if offline" type="u8" mfcode="0x1337" access="rw" required="m"> </attribute>
+				<attribute id="0x0001" name="Frost guard temperature" type="u8" mfcode="0x1337" access="rw" required="m"> </attribute>
+				<attribute id="0x0002" name="Frost guard temperature hysteresis" type="u8" mfcode="0x1337" access="rw" required="m"> </attribute>
+				<attribute id="0x0003" name="Frost guard mins between change" type="u8" mfcode="0x1337" access="rw" required="m"> </attribute>
+				<attribute id="0x0004" name="On time" type="u16" mfcode="0x1337" access="rw" required="m"> </attribute>
+				<attribute id="0x0010" name="On/off configuration mode" type="enum8" mfcode="0x1337" access="rw" required="m">
+					<value name="Off" value="0x00"></value>
+					<value name="On" value="0x01"></value>
+				</attribute>
+				<attribute id="0xFFFD" name="Cluster revision" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
+			</server>
+			<client>
+			</client>
+		</cluster>
+		<cluster id="0xfeed" name="Datek diagnostics" mfcode="0x1337">
+			<description>Datek diagnostics cluster attributes.</description>
+			<server>
+				<attribute id="0x0000" name="Last reset info" type="u8" mfcode="0x1337" access="r" required="m"> </attribute>
+				<attribute id="0x0001" name="Last extended reset info" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
+				<attribute id="0x0002" name="Reboot counter" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
+				<attribute id="0x0003" name="Last hop LQI" type="u8" mfcode="0x1337" access="r" required="m"> </attribute>
+				<attribute id="0x0004" name="Last hop RSSI" type="s8" mfcode="0x1337" access="r" required="m"> </attribute>
+				<attribute id="0x0005" name="Tx power" type="s8" mfcode="0x1337" access="r" required="m"> </attribute>
+				<attribute id="0x0010" name="Button 0 click counter" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
+				<attribute id="0x0020" name="Button 0 ms click counter" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
+				<attribute id="0x0100" name="Electrical measurement avg" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
+				<attribute id="0x0101" name="Electrical measurement raw" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
+				<attribute id="0x0102" name="Electrical measurement noise w load" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
+				<attribute id="0x0103" name="Electrical measurement noise w/o load" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
+				<attribute id="0xFFFD" name="Cluster revision" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
 			</server>
 			<client>
 			</client>

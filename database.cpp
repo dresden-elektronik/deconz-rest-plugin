@@ -3540,67 +3540,69 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.modelId() == QLatin1String("SLR1b") ||           // Hive
                     sensor.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
                     sensor.modelId() == QLatin1String("902010/32") ||       // Bitron
-                    sensor.manufacturer().endsWith(QLatin1String("GbxAXL2")) ||         // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("88teujp")) ||         // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("kud7u2l")) ||         // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("uhszj9s")) ||         // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("w7cahqs")) ||         // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("oclfnxz")))          // Tuya
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                 {
                     sensor.addItem(DataTypeString, RConfigMode);
                 }
 
-                if (sensor.manufacturer().endsWith(QLatin1String("kud7u2l")) || // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("GbxAXL2")) || // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("88teujp")) || // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("w7cahqs")) || // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("uhszj9s")))  // Tuya
+                if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV"))
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
                     sensor.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
                 }
 
-                if (sensor.manufacturer().endsWith(QLatin1String("kud7u2l"))  || // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("eaxp72v")) ||  // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("fvq6avy")) ||  // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("88teujp")) ||  // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("uhszj9s")) ||  // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("w7cahqs")) ||  // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("oclfnxz")))   // Tuya
+                if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                 {
                     sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                 }
 
-                if (sensor.manufacturer().endsWith(QLatin1String("kud7u2l")) || // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("eaxp72v")) || // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("fvq6avy")) || // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("88teujp")) || // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("uhszj9s")) || // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("w7cahqs")) || // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("oclfnxz")))   // Tuya
+                if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                 {
                     sensor.addItem(DataTypeString, RConfigPreset);
                     sensor.addItem(DataTypeBool, RConfigSetValve)->setValue(false);
                 }
 
-                if (sensor.manufacturer().endsWith(QLatin1String("kud7u2l"))  || // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("fvq6avy")) ||  // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("88teujp")) ||  // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("uhszj9s")) ||  // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("w7cahqs")) ||  // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("88teujp")) ||  // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("oclfnxz")))   // Tuya
+                if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV")  ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV")  ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                 {
                     sensor.addItem(DataTypeString, RConfigSchedule);
                 }
 
-                if (sensor.manufacturer().endsWith(QLatin1String("kud7u2l"))  || // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("eaxp72v")) ||  // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("88teujp")) ||  // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("fvq6avy")) ||  // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("uhszj9s")) ||  // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("w7cahqs")) ||  // Tuya
-                    sensor.manufacturer().endsWith(QLatin1String("88teujp")))   // Tuya
+                if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV")  ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV")  ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV"))
                 {
                     sensor.addItem(DataTypeBool, RConfigWindowOpen)->setValue(false);
                 }
@@ -3669,6 +3671,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     // Supported with Danfoss firmware version 1.08
                     sensor.addItem(DataTypeBool, RConfigScheduleOn)->setValue(false);
                     sensor.addItem(DataTypeString, RConfigSchedule);
+                    sensor.addItem(DataTypeInt16, RConfigExternalTemperatureSensor);
                 }
                 else if (sensor.modelId() == QLatin1String("AC201")) // OWON AC201 Thermostat
                 {
@@ -3842,6 +3845,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.modelId() == QLatin1String("Motion Sensor-A"))
             {
                 // no support for some IAS Zone flags
+            }
+            else if (sensor.modelId() == QLatin1String("Keyfob-ZB3.0"))
+            {
+                sensor.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
             }
             else
             {
