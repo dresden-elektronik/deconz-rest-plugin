@@ -19383,6 +19383,14 @@ void DeRestPluginPrivate::genericDisconnectNetwork()
     DBG_Printf(DBG_INFO_L2, "networkState: DisconnectingNetwork\n");
 
     apsCtrl->setNetworkState(deCONZ::NotInNetwork);
+    
+    if (!reconnectTimer)
+    {
+        reconnectTimer = new QTimer(this);
+        reconnectTimer->setSingleShot(true);
+        connect(reconnectTimer, SIGNAL(timeout()),
+                this, SLOT(reconnectTimerFired()));
+    }
 
     reconnectTimer->start(DISCONNECT_CHECK_DELAY);
 }
