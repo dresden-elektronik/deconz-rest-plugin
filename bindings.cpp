@@ -1702,6 +1702,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                             sensor->modelId() == QLatin1String("3AFE14010402000D") || // Konke presence sensor
                             sensor->modelId() == QLatin1String("3AFE28010402000D") || // Konke presence sensor
                             sensor->modelId().startsWith(QLatin1String("GZ-PIR02")) ||          // Sercomm motion sensor
+                            sensor->modelId().startsWith(QLatin1String("SZ-WTD02N_CAR")) ||     // Sercomm water sensor
                             sensor->modelId().startsWith(QLatin1String("3300")) ||          // Centralite contatc sensor
                             sensor->modelId().startsWith(QLatin1String("3315")) ||
                             sensor->modelId().startsWith(QLatin1String("3157100")) ||
