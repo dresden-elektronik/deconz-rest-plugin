@@ -19430,8 +19430,8 @@ void DeRestPluginPrivate::genericDisconnectNetwork()
     DBG_Printf(DBG_INFO_L2, "networkState: DisconnectingNetwork\n");
 
     apsCtrl->setNetworkState(deCONZ::NotInNetwork);
-
-    reconnectTimer->start(DISCONNECT_CHECK_DELAY);
+    
+    startReconnectNetwork(RECONNECT_CHECK_DELAY);
 }
 
 /*! Checks if network is disconnected to proceed with further actions.
