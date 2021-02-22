@@ -928,7 +928,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     break;
                     case 0x0203: // Thermostat current temperature
                     {
-                        qiqint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;                        
+                        qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;                        
                         ResourceItem *item = sensorNode->item(RStateTemperature);
 
                         if (item && item->toNumber() != temp)
