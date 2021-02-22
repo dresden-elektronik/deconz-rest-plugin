@@ -1920,6 +1920,32 @@ Note: It does not clear or delete previous weekly schedule programming configura
 			<attribute id="0x401C" name="System mode" type="enum8" access="rw" required="m"></attribute>
 		</attribute-set>
 
+        <!-- Danfoss manufacturer specific -->
+        <attribute-set id="0x4100" description="Danfoss specific" mfcode="0x1246">
+            <attribute id="0x4100" name="Room Status Code" type="enum16" default="0x0000" access="r" required="o" mfcode="0x1246">
+                <value name="No Error" value="0x0000"></value>
+                <value name="Missing RT" value="0x0101"></value>
+                <value name="RT Touch Error" value="0x0201"></value>
+                <value name="Floor Sensor Short Circuit" value="0x0401"></value>
+                <value name="Floor Sensor Disconnected" value="0x0801"></value>
+            </attribute>
+            <attribute id="0x4110" name="Output Status" type="enum8" default="0x00" access="r" required="o" mfcode="0x1246">
+                <value name="Inactive" value="0x00"></value>
+                <value name="Active" value="0x01"></value>
+            </attribute>
+            <attribute id="0x4120" name="Room Floor Sensor Mode" type="enum8" default="0x00" access="r" required="o" mfcode="0x1246">
+                <value name="Comfort Mode" value="0x00"></value>
+                <value name="Floor Sensor Mode" value="0x01"></value>
+                <value name="Dual Mode" value="0x02"></value>
+            </attribute>
+            <attribute id="0x4121" name="Floor Minimum Setpoint" type="s16" default="0x0708" access="rw" required="o" mfcode="0x1246"></attribute>
+            <attribute id="0x4121" name="Floor Maximum Setpoint" type="s16" default="0x0DAC" access="rw" required="o" mfcode="0x1246"></attribute>
+            <attribute id="0x4130" name="Schedule Type Used" type="enum8" default="0x00" access="rw" required="o" mfcode="0x1246">
+                <value name="Regular Schedule" value="0x00"></value>
+                <value name="Vacation Schedule" value="0x01"></value>
+            </attribute>
+        </attribute-set>
+
 		<command id="0x00" dir="recv" name="Setpoint Raise/Lower" required="m">
 			<description>This command increases (or decreases) the setpoint(s) by amount, in steps of 0.1°C.</description>
 			<payload>
