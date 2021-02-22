@@ -2890,7 +2890,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("0x8034") ||
         sensor->modelId() == QLatin1String("0x8035") ||
         // LIDL
-        sensor->modelId() == QLatin1String("HG06323")
+        sensor->modelId() == QLatin1String("HG06323") ||
+        // Eria
+        sensor->modelId() == QLatin1String("Adurolight_NCC")
         )
     {
         deviceSupported = true;
@@ -3633,7 +3635,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     // Linkind 1 key Remote Control / ZS23000178
     // SR-ZG2835 Zigbee Rotary Switch
     else if (sensor->modelId().startsWith(QLatin1String("ZBT-DIMSwitch")) ||
-             sensor->modelId().startsWith(QLatin1String("ZG2835")))
+             sensor->modelId().startsWith(QLatin1String("ZG2835")) ||
+             sensor->modelId().startsWith(QLatin1String("Adurolight_NCC")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
@@ -3763,6 +3766,7 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         sensor->modelId().startsWith(QLatin1String("TRADFRI wireless dimmer")) ||
         // sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
         sensor->modelId().startsWith(QLatin1String("902010/23")) || // bitron remote
+        sensor->modelId().startsWith(QLatin1String("Adurolight_NCC")) || // Eria Adurosmart Wireless Dimming Switch
         sensor->modelId().startsWith(QLatin1String("WB01")) || // Sonoff SNZB-01
         sensor->modelId().startsWith(QLatin1String("WB-01")) || // Sonoff SNZB-01
         sensor->modelId().startsWith(QLatin1String("Bell")) || // Sage doorbell sensor
