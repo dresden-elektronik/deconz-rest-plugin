@@ -2843,6 +2843,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // WAXMAN
         sensor->modelId() == QLatin1String("leakSMART Water Sensor V2") ||
         // GamaBit
+        sensor->modelId() == QLatin1String("GMB-HAS-WL-B01") ||
         sensor->modelId() == QLatin1String("GMB-HAS-DW-B01") ||
         // RGBgenie
         sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) ||
