@@ -2053,7 +2053,7 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
                 data = QByteArray("\x01",1);
             }
 
-            if (sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_BOOL, DP_IDENTIFIER_ALARM, data));
+            if (sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_BOOL, DP_IDENTIFIER_ALARM, data))
             {
             }
             else
