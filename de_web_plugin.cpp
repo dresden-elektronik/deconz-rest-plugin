@@ -2529,7 +2529,10 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
         if (lightNode.id().isEmpty())
         {
-            if (!(searchLightsState == SearchLightsActive || permitJoinFlag))
+            if (deCONZ::appArgumentNumeric("--always-add-lights", 0) == 1)
+            {
+            }
+            else if (!(searchLightsState == SearchLightsActive || permitJoinFlag))
             {
                 // don't add new light node when search is not active
                 return;
