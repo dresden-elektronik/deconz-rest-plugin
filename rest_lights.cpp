@@ -2143,11 +2143,11 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
             if (taskRef.lightNode->modelId().startsWith(QLatin1String("902010/24")) ||
                 taskRef.lightNode->modelId() == QLatin1String("902010/29"))
             {
-                task.options = 0x12;
+                task.options = 0x12;    // Warning mode 1 (burglar), no Strobe, Very high sound
             }
             else if (taskRef.lightNode->modelId() == QLatin1String("SIRZB-110"))    // Doesn't support strobe
             {
-                task.options = 0x13;
+                task.options = 0x13;    // Warning mode 1 (burglar), no Strobe, Very high sound
             }
             task.duration = 1;
         }
@@ -2157,11 +2157,11 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
             if (taskRef.lightNode->modelId().startsWith(QLatin1String("902010/24")) ||
                 taskRef.lightNode->modelId() == QLatin1String("902010/29"))
             {
-                task.options = 0x12;
+                task.options = 0x12;    // Warning mode 1 (burglar), no Strobe, Very high sound
             }
             else if (taskRef.lightNode->modelId() == QLatin1String("SIRZB-110"))    // Doesn't support strobe
             {
-                task.options = 0x13;
+                task.options = 0x13;    // Warning mode 1 (burglar), no Strobe, Very high sound
             }
             task.duration = onTime > 0 ? onTime : 300;
         }
