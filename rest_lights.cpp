@@ -2145,6 +2145,10 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
             {
                 task.options = 0x12;
             }
+            else if (taskRef.lightNode->modelId() == QLatin1String("SIRZB-110"))    // Doesn't support strobe
+            {
+                task.options = 0x13;
+            }
             task.duration = 1;
         }
         else if (alert == "lselect")
@@ -2154,6 +2158,10 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
                 taskRef.lightNode->modelId() == QLatin1String("902010/29"))
             {
                 task.options = 0x12;
+            }
+            else if (taskRef.lightNode->modelId() == QLatin1String("SIRZB-110"))    // Doesn't support strobe
+            {
+                task.options = 0x13;
             }
             task.duration = onTime > 0 ? onTime : 300;
         }
