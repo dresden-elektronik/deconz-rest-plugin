@@ -19384,15 +19384,7 @@ void DeRestPluginPrivate::genericDisconnectNetwork()
 
     apsCtrl->setNetworkState(deCONZ::NotInNetwork);
     
-    if (!reconnectTimer)
-    {
-        reconnectTimer = new QTimer(this);
-        reconnectTimer->setSingleShot(true);
-        connect(reconnectTimer, SIGNAL(timeout()),
-                this, SLOT(reconnectTimerFired()));
-    }
-
-    reconnectTimer->start(DISCONNECT_CHECK_DELAY);
+    startReconnectNetwork(RECONNECT_CHECK_DELAY);
 }
 
 /*! Checks if network is disconnected to proceed with further actions.
