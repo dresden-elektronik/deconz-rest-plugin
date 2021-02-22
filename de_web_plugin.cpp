@@ -6171,6 +6171,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     sensorNode.fingerPrint() = fingerPrint;
     sensorNode.setModelId(modelId);
     quint16 clusterId = 0;
+    
+    if (!manufacturer.isEmpty())
+    {
+        sensorNode.setManufacturer(manufacturer);
+    }
 
     // simple check if existing device needs to be updated
     Sensor *sensor2 = nullptr;
@@ -7039,11 +7044,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.setManufacturer("Sercomm Corp.");
     }
 
-    if (sensorNode.manufacturer().isEmpty() && !manufacturer.isEmpty())
-    {
-        sensorNode.setManufacturer(manufacturer);
-    }
-
     if (sensorNode.manufacturer().isEmpty())
     {
         return; // required
@@ -7054,7 +7054,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         if (modelId == QLatin1String("button") ||
             modelId.startsWith(QLatin1String("multi")) ||
             modelId == QLatin1String("water") ||
-            modelId == QLatin1String("0yu2xgi") ||
+            R_GetProductId(&sensorNode) == QLatin1String("NAS-AB02B0 Siren") ||
             modelId == QLatin1String("Motion Sensor-A"))
         {
             // no support for some IAS flags

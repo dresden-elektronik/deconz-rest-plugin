@@ -655,7 +655,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     case 0x026B : // min alarm temperature threshold
                     case 0x026C : // max alarm temperature threshold
                     {
-                        qint8 min = (static_cast<qint8>(data & 0xFF));
+                        qint8 min = static_cast<qint8>(data & 0xFF);
                         ResourceItem *item = sensorNode->item(RConfigTempThreshold);
 
                         if (item)
@@ -696,7 +696,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     case 0x026D : // min alarm humidity threshold
                     case 0x026E : // max alarm humidity threshold
                     {
-                        qint8 min = (static_cast<qint8>(data & 0xFF));
+                        qint8 min = static_cast<qint8>(data & 0xFF);
                         ResourceItem *item = sensorNode->item(RConfigHumiThreshold);
 
                         if (item)
@@ -732,7 +732,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     break;
                     case 0x0466 : // melody
                     {
-                        quint8 melody = (static_cast<qint8>(data & 0xFF));
+                        quint8 melody = static_cast<qint8>(data & 0xFF);
 
                         ResourceItem *item = sensorNode->item(RConfigMelody);
 
@@ -747,7 +747,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     break;
                     case 0x0474 : // volume
                     {
-                        quint8 volume = (static_cast<qint8>(data & 0xFF));
+                        quint8 volume = static_cast<qint8>(data & 0xFF);
 
                         ResourceItem *item = sensorNode->item(RConfigVolume);
 
@@ -871,22 +871,6 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
-                    case 0x0168: // Alarm
-                    {
-                        bool alarm = false;
-                        if (data == 1) { alarm = true; }
-
-                        ResourceItem *item = sensorNode->item(RStateAlarm);
-
-                        if (item && item->toBool() != alarm)
-                        {
-                            item->setValue(alarm);
-                            Event e(RSensors, RStateAlarm, sensorNode->id(), item);
-                            enqueueEvent(e);
-                            update = true;
-                        }
-                    }
-                    break;
                     case 0x016A: // Away mode
                     {
                         //bool away = false;
@@ -930,7 +914,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     break;
                     case 0x0202: // Thermostat heatsetpoint
                     {
-                        qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
+                        qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
                         ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
 
                         if (item && item->toNumber() != temp)
@@ -944,7 +928,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     break;
                     case 0x0203: // Thermostat current temperature
                     {
-                        qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
+                        qiqint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;                        
                         ResourceItem *item = sensorNode->item(RStateTemperature);
 
                         if (item && item->toNumber() != temp)
@@ -958,7 +942,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     break;
                     case 0x0210: // Thermostat heatsetpoint for moe
                     {
-                        qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 100;
+                        qint16 temp = static_cast<qint16>(data & 0xFFFF) * 100;
                         ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
 
                         if (item && item->toNumber() != temp)
@@ -972,7 +956,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     break;
                     case 0x0215: // battery
                     {
-                        quint8 bat = (static_cast<qint8>(data & 0xFF));
+                        quint8 bat = static_cast<qint8>(data & 0xFF);
                         if (bat > 100) { bat = 100; }
                         ResourceItem *item = sensorNode->item(RConfigBattery);
 
@@ -991,7 +975,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     break;
                     case 0x0218: // Thermostat current temperature for moe
                     {
-                        qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
+                        qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
                         ResourceItem *item = sensorNode->item(RStateTemperature);
 
                         if (item && item->toNumber() != temp)
@@ -1005,7 +989,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     break;
                     case 0x022c : // temperature calibration (offset)
                     {
-                        qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
+                        qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
                         ResourceItem *item = sensorNode->item(RConfigOffset);
 
                         if (item && item->toNumber() != temp)
@@ -1023,7 +1007,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             sensorNode->manufacturer().endsWith(QLatin1String("uhszj9s")) ||
                             sensorNode->manufacturer().endsWith(QLatin1String("88teujp")))
                         {
-                            qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
+                            qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
                             ResourceItem *item = sensorNode->item(RStateTemperature);
 
                             if (item && item->toNumber() != temp)
@@ -1043,7 +1027,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             sensorNode->manufacturer().endsWith(QLatin1String("uhszj9s")) ||
                             sensorNode->manufacturer().endsWith(QLatin1String("88teujp")))
                         {
-                            qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
+                            qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
                             ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
 
                             if (item && item->toNumber() != temp)
@@ -1062,7 +1046,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     break;
                     case 0x026D : // Valve position
                     {
-                        quint8 valve = (static_cast<qint8>(data & 0xFF));
+                        quint8 valve = static_cast<qint8>(data & 0xFF);
                         bool on = valve > 3;
 
                         ResourceItem *item = sensorNode->item(RStateOn);
@@ -1108,7 +1092,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         if (data == 0) { preset = QLatin1String("holiday"); }
                         else if (data == 1) { preset = QLatin1String("auto"); }
                         else if (data == 2) { preset = QLatin1String("manual"); }
-                        else if (data == 3) { preset = QLatin1String("confort"); }
+                        else if (data == 3) { preset = QLatin1String("comfort"); }
                         else if (data == 4) { preset = QLatin1String("eco"); }
                         else if (data == 5) { preset = QLatin1String("boost"); }
                         else if (data == 6) { preset = QLatin1String("complex"); }

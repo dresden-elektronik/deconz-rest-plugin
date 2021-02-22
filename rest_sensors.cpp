@@ -1060,7 +1060,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         QVariantList setting = map[pi.key()].toList();
 
-                        if ( (setting.size() == 2) && (setting[0].type() == QVariant::Double) && (setting[1].type() == QVariant::Double) )
+                        if (setting.size() == 2 && setting[0].type() == QVariant::Double && setting[1].type() == QVariant::Double)
                         {
                             QByteArray datamin = QByteArray("\x00\x00\x00",3);
                             QByteArray datamax = QByteArray("\x00\x00\x00",3);
@@ -1069,9 +1069,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                             sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_TRESHOLDTEMPMINI, datamin);
                             sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_TRESHOLDTEMPMAXI, datamax);
-
-                            rspItemState[QString("successfully updated")] = map[pi.key()].toString();
+                            
+                            rspItemState[QString("/sensors/%1/config/temperaturethreshold").arg(id)] = map[pi.key()].toString();
                             rspItem["success"] = rspItemState;
+                            rsp.list.append(rspItem);
                         }
                     }
                 }
@@ -1081,7 +1082,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         QVariantList setting = map[pi.key()].toList();
 
-                        if ( (setting.size() == 2) && (setting[0].type() == QVariant::Double) && (setting[1].type() == QVariant::Double) )
+                        if (setting.size() == 2 && setting[0].type() == QVariant::Double && setting[1].type() == QVariant::Double)
                         {
                             QByteArray datamin = QByteArray("\x00\x00\x00",3);
                             QByteArray datamax = QByteArray("\x00\x00\x00",3);
@@ -1091,8 +1092,9 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_TRESHOLDTHUMIMINI, datamin);
                             sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_TRESHOLDHUMIMAXI, datamax);
 
-                            rspItemState[QString("successfully updated")] = map[pi.key()].toString();
+                            rspItemState[QString("/sensors/%1/config/humiditythreshold").arg(id)] = map[pi.key()].toString();
                             rspItem["success"] = rspItemState;
+                            rsp.list.append(rspItem);
                         }
                     }
                 }

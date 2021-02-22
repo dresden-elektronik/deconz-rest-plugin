@@ -2046,38 +2046,15 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
     {
         if (map["alert"].type() == QVariant::String)
         {
-            bool ok = false;
-            QByteArray data;
-            bool run = false;
+            QByteArray data("\x00", 1);
 
             if (map["alert"].toString() == "lselect")
             {
-                run = true;
-            }
-
-            DBG_Printf(DBG_INFO, "Tuya debug 17: ID : %s\n",  qPrintable(id));
-
-            if (run)
-            {
                 data = QByteArray("\x01",1);
             }
-            else
+
+            if (sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_BOOL, DP_IDENTIFIER_ALARM, data);)
             {
-                data = QByteArray("\x00",1);
-            }
-
-            ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_BOOL, DP_IDENTIFIER_ALARM, data);
-
-            if (ok)
-            {
-                //QVariantMap rspItem;
-                //QVariantMap rspItemState;
-                //rspItemState[QString("/lights/%1/state/alert").arg(id)] = targetOn;
-                //rspItem["success"] = rspItemState;
-                //rsp.list.append(rspItem);
-
-                //Not needed ?
-                //taskRef.lightNode->setValue(RStateOn, targetOn);
             }
             else
             {
@@ -2086,7 +2063,7 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
         }
         else
         {
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state/on").arg(id), QString("parameter, not available")));
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state/alert").arg(id), QString("parameter, not available")));
             rsp.httpStatus = HttpStatusBadRequest;
             return REQ_READY_SEND;
         }
