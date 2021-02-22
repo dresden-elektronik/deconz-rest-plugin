@@ -240,6 +240,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_XIAOMI, "lumi.switch.b1naus01", xiaomiMacPrefix }, // Xiaomi Aqara ZB3.0 Smart Wall Switch Single Rocker WS-USC03
     // { VENDOR_XIAOMI, "lumi.curtain", jennicMacPrefix}, // Xiaomi curtain controller (router) - exposed only as light
     { VENDOR_XIAOMI, "lumi.curtain.hagl04", xiaomiMacPrefix}, // Xiaomi B1 curtain controller
+    { VENDOR_XIAOMI, "lumi.sensor_magnet.agl02", xiaomiMacPrefix}, // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
     { VENDOR_UBISYS, "C4", ubisysMacPrefix },
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
     { VENDOR_UBISYS, "J1", ubisysMacPrefix },
@@ -5143,6 +5144,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("ZHMS101")) ||          // Wattle (Develco) door/window sensor
                              modelId.startsWith(QLatin1String("4655BC0")) ||          // Ecolink contact sensor
                              modelId.startsWith(QLatin1String("3300")) ||             // Centralite contact sensor
+                             modelId == QLatin1String("lumi.sensor_magnet.agl02") ||  // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
                              modelId == QLatin1String("E1D-G73") ||                   // Sengled contact sensor
                              modelId == QLatin1String("DS01") ||                      // Sonoff SNZB-04
                              modelId == QLatin1String("TY0203") ||                    // lidl / SilverCrest
@@ -6880,6 +6882,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.setManufacturer("Insta");
         checkInstaModelId(&sensorNode);
     }
+    else if (sensorNode.modelId() == QLatin1String("lumi.sensor_magnet.agl02")) // skip
+    {
+    }
     else if (modelId.startsWith(QLatin1String("lumi")))
     {
         sensorNode.setManufacturer("LUMI");
@@ -7728,8 +7733,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId() == QLatin1String("Remote switch") ||    // Legrand switch
                                     i->modelId() == QLatin1String("Double gangs remote switch") ||    // Legrand switch double
                                     i->modelId() == QLatin1String("Shutters central remote switch") || // Legrand switch module
-                                    i->modelId() == QLatin1String("Remote toggle switch") || //Legrand shutter switch
-                                    i->modelId() == QLatin1String("Remote motion sensor") || //Legrand motion sensor
+                                    i->modelId() == QLatin1String("Remote toggle switch") || // Legrand shutter switch
+                                    i->modelId() == QLatin1String("Remote motion sensor") || // Legrand motion sensor
+                                    i->modelId() == QLatin1String("lumi.sensor_magnet.agl02") || // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
                                     i->modelId() == QLatin1String("Zen-01") ||           // Zen thermostat
                                     i->modelId() == QLatin1String("Thermostat") ||       // eCozy thermostat
                                     i->modelId() == QLatin1String("Motion Sensor-A") ||  // Osram motion sensor
