@@ -925,6 +925,37 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             }
                 break;
 
+            // Manufacturer Specific for Danfoss Icon Floor Heating Controller
+            case 0x4110:  // Danfoss Output Status
+            {
+                if (sensor->modelId() == QLatin1String("0x8020") || // Danfoss RT24V Display thermostat
+                    sensor->modelId() == QLatin1String("0x8021") || // Danfoss RT24V Display thermostat with floor sensor
+                    sensor->modelId() == QLatin1String("0x8030") || // Danfoss RTbattery Display thermostat
+                    sensor->modelId() == QLatin1String("0x8031") || // Danfoss RTbattery Display thermostat with infrared
+                    sensor->modelId() == QLatin1String("0x8034") || // Danfoss RTbattery Dial thermostat
+                    sensor->modelId() == QLatin1String("0x8035"))   // Danfoss RTbattery Dial thermostat with infrared
+                {
+                    quint8 outputStatus = attr.numericValue().u8;
+                    bool on = outputStatus > 0;
+                    item = sensor->item(RStateOn);
+                    if (item)
+                    {
+                        if (updateType == NodeValue::UpdateByZclReport)
+                        {
+                            stateUpdated = true;
+                        }
+                        if (item->toBool() != on)
+                        {
+                            item->setValue(on);
+                            enqueueEvent(Event(RSensors, RStateOn, sensor->id(), item));
+                            stateUpdated = true;
+                        }
+                    }
+                }
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+
             default:
                 break;
             }
