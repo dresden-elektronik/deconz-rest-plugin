@@ -3370,7 +3370,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         {
                             str = QLatin1String("T10W1ZW switch");
                         }
-                        else if (str == QLatin1String("82c167c95ed756cdbd21d6817f72c593"))
+                        else if (str == QLatin1String("82c167c95ed746cdbd21d6817f72c593"))
                         {
                             str = QLatin1String("CM10ZW");
                         }
