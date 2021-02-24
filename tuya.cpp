@@ -416,39 +416,6 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
 
                 }
             }
-            else if (R_GetProductId(lightNode).startsWith(QLatin1String("Tuya_DIMSWITCH")))
-            {
-                //Dimmer switches
-                switch (dp)
-                {
-                    case 0x0201:
-                    {
-                        bool onoff = (data == 0) ? false : true;
-
-                        {
-                            ResourceItem *item = lightNode->item(RStateOn);
-                            if (item && item->toBool() != onoff)
-                            {
-                                item->setValue(onoff);
-                                Event e(RLights, RStateOn, lightNode->id(), item);
-                                enqueueEvent(e);
-                                update = true;
-                            }
-                        }
-                    }
-                    break;
-                    case 0x0202:
-                    case 0x0203:
-                    {
-                        quint8 value = static_cast<quint8>(data); // 0 to 1000 value
-                        quint8 level = value * 254 / 1000;
-
-                        lightNode->setValue(RStateBri, level);
-                        //lightNode->setValue(RStateOn, on);
-                    }
-                    break;
-                }
-            }
             else
             {
                 // Switch device 1/2/3 gangs or dimmer
@@ -502,7 +469,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     
                     // Dimmer level
                     case 0x0202:
-                    case 0x0203:
+                    //case 0x0203:
                     {
                         quint8 value = static_cast<quint8>(data); // 0 to 1000 value
                         quint8 bri = value * 254 / 1000;
