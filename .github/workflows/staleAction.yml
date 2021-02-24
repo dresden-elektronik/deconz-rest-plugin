@@ -16,4 +16,5 @@ jobs:
           exempt-issue-labels: 'To-Do,Backlog,Feature Request,Awaiting Merge,Announcement'
           days-before-stale: 21
           days-before-close: 7
+          remove-stale-when-updated: true
           close-issue-message: 'As there has not been any response in 28 days, this issue will be closed. **@ OP: If this issue is solved post what fixed it for you. If it is not solved, request to get this opened again.**' 
