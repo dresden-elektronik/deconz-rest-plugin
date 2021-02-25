@@ -3213,7 +3213,7 @@ devices can operate on either battery or mains power, and can have a wide variet
 					<value name="Pulse Counting on a Gas Meter – Unit m3" value="0x0001"></value>
 					<value name="Pulse Counting on a Water Meter – Unit m3" value="0x0002"></value>
 					<value name="Kamstrup KMP Protocol" value="0x0100"></value>
-					<value name="Not Supported - Linky Protocol " value="0x0101"></value>
+					<value name="Not Supported - Linky Protocol" value="0x0101"></value>
 					<value name="DLMS-COSEM - IEC62056-21 mod A" value="0x0102"></value>
 					<value name="P1 Dutch Standard – DSMR 2.3 Version" value="0x0103"></value>
 					<value name="P1 Dutch Standard – DSMR 4.0 Version" value="0x0104"></value>

@@ -95,14 +95,14 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
                     quint16 interfaceMode = attr.numericValue().u16;
                     quint8 mode = 0;
                     
-                    if (interfaceMode == 0x0000) { mode = 1; }
-                    else if (interfaceMode == 0x0001) { mode = 2; }
-                    else if (interfaceMode == 0x0002) { mode = 3; }
-                    else if (interfaceMode == 0x0100) { mode = 4; }
-                    else if (interfaceMode == 0x0101) { mode = 5; }
-                    else if (interfaceMode == 0x0102) { mode = 6; }
-                    else if (interfaceMode == 0x0103) { mode = 7; }
-                    else if (interfaceMode == 0x0104) { mode = 8; }
+                    if (interfaceMode == 0x0000) { mode = 1; }          // Pulse Counting on an Electricity Meter – Unit KWh
+                    else if (interfaceMode == 0x0001) { mode = 2; }     // Pulse Counting on a Gas Meter – Unit m3
+                    else if (interfaceMode == 0x0002) { mode = 3; }     // Pulse Counting on a Water Meter – Unit m3
+                    else if (interfaceMode == 0x0100) { mode = 4; }     // Kamstrup KMP Protocol
+                    else if (interfaceMode == 0x0101) { mode = 5; }     // Not Supported - Linky Protocol
+                    else if (interfaceMode == 0x0102) { mode = 6; }     // DLMS-COSEM - IEC62056-21 mod A
+                    else if (interfaceMode == 0x0103) { mode = 7; }     // P1 Dutch Standard – DSMR 2.3 Version
+                    else if (interfaceMode == 0x0104) { mode = 8; }     // P1 Dutch Standard – DSMR 4.0 Version
                     
                     item = sensor->item(RConfigInterfaceMode);
                     if (item && item->toNumber() != mode && mode > 0 && mode < 9)
@@ -175,28 +175,15 @@ bool DeRestPluginPrivate::addTaskSimpleMeteringReadWriteAttribute(TaskItem &task
     QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
     stream.setByteOrder(QDataStream::LittleEndian);
 
-    stream << static_cast<quint16>(attrId);
-
     if (readOrWriteCmd == deCONZ::ZclWriteAttributesId)
     {
+        stream << static_cast<quint16>(attrId);
         stream << static_cast<quint8>(attrType);
-        if (attrType == deCONZ::Zcl8BitUint || attrType == deCONZ::Zcl8BitEnum || attrType == deCONZ::Zcl8BitBitMap || attrType == deCONZ::ZclBoolean)
-        {
-            stream << static_cast<quint8>(attrValue);
-        }
-        else if (attrType == deCONZ::Zcl8BitInt)
-        {
-            stream << static_cast<qint8>(attrValue);
-        }
-        else if (attrType == deCONZ::Zcl16BitUint || attrType == deCONZ::Zcl16BitBitMap || attrType == deCONZ::Zcl16BitEnum)
-        {
-            stream << static_cast<quint16>(attrValue);
-        }
-        else if (attrType == deCONZ::Zcl16BitInt)
-        {
-            stream << static_cast<qint16>(attrValue);
-        }
-        else
+        
+        deCONZ::ZclAttribute attr(attrId, attrType, QLatin1String(""), deCONZ::ZclWrite, true);
+        attr.setValue(QVariant(attrValue));
+
+        if (!attr.writeToStream(stream))
         {
             return false;
         }

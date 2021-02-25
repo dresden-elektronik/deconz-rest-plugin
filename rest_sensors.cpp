@@ -1867,17 +1867,20 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             quint8 mode = map[pi.key()].toUInt(&ok);
                             quint16 interfaceMode = 0;
                             
-                            if (mode == 1) { interfaceMode = 0x0000; }
-                            else if (mode == 2) { interfaceMode = 0x0001; }
-                            else if (mode == 3) { interfaceMode = 0x0002; }
-                            else if (mode == 4) { interfaceMode = 0x0100; }
-                            else if (mode == 5) { interfaceMode = 0x0101; }
-                            else if (mode == 6) { interfaceMode = 0x0102; }
-                            else if (mode == 7) { interfaceMode = 0x0103; }
-                            else if (mode == 8) { interfaceMode = 0x0104; }
+                            if (mode == 1) { interfaceMode = 0x0000; }          // Pulse Counting on an Electricity Meter – Unit KWh
+                            else if (mode == 2) { interfaceMode = 0x0001; }     // Pulse Counting on a Gas Meter – Unit m3
+                            else if (mode == 3) { interfaceMode = 0x0002; }     // Pulse Counting on a Water Meter – Unit m3
+                            else if (mode == 4) { interfaceMode = 0x0100; }     // Kamstrup KMP Protocol
+                            else if (mode == 5) { interfaceMode = 0x0101; }     // Not Supported - Linky Protocol
+                            else if (mode == 6) { interfaceMode = 0x0102; }     // DLMS-COSEM - IEC62056-21 mod A
+                            else if (mode == 7) { interfaceMode = 0x0103; }     // P1 Dutch Standard – DSMR 2.3 Version
+                            else if (mode == 8) { interfaceMode = 0x0104; }     // P1 Dutch Standard – DSMR 4.0 Version
                             else
                             {
-                                rspItemState[QString("error unknown interface mode for %1").arg(sensor->modelId())] = map[pi.key()];
+                                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                           QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                                rsp.httpStatus = HttpStatusBadRequest;
+                                return REQ_READY_SEND;
                             }
 
                             if (mode > 0 && mode < 9)
