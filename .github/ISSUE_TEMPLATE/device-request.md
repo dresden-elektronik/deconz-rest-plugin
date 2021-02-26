@@ -49,7 +49,7 @@ assignees: ''
 -->
 
 <!--
-  If available add screenshots of other clusters. Remove sections that are not available on your device.
+  If available add screenshots of other clusters. Please Remove sections that are not available on your device.
 
   Relevant clusters are: Simple Metering, Electrical Measurement, Power Configuration, Thermostat, etc. You can typically spare Identify, Alarms, Device Temperature, On/Off. Please ensure data has been read prior to taking any screenshots.
 -->
