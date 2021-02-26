@@ -471,8 +471,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     case 0x0202:
                     //case 0x0203:
                     {
-                        quint16 value = static_cast<quint16>(data); // 0 to 1000 value
-                        quint8 bri = static_cast<quint8>(value * 254 / 1000);
+                        // 0 to 1000 value
+                        quint8 bri = static_cast<quint8>(data * 254 / 1000);
                         
                         ResourceItem *item = lightNode->item(RStateBri);
                         if (item && item->toNumber() != bri)
