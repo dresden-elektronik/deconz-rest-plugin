@@ -3475,7 +3475,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 }
                 else if (sensor.modelId() == QLatin1String("ZB-ONOFFPlug-D0005") ||
                          sensor.modelId() == QLatin1String("Plug-230V-ZB3.0") ||
-                         sensor.modelId() == QLatin1String("lumi.switch.b1naus01"))
+                         sensor.modelId() == QLatin1String("lumi.switch.b1naus01") ||
+                         sensor.manufacturer() == QLatin1String("Legrand"))
                 {
                     hasVoltage = false;
                 }
@@ -3790,6 +3791,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
             item = sensor.addItem(DataTypeString, RConfigAlert);
             item->setValue(R_ALERT_DEFAULT);
+        }
+        else if (sensor.modelId() == QLatin1String("lumi.sensor_magnet.agl02")) // skip
+        {
         }
         else if (sensor.modelId().startsWith(QLatin1String("lumi.")))
         {

@@ -240,6 +240,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_XIAOMI, "lumi.switch.b1naus01", xiaomiMacPrefix }, // Xiaomi Aqara ZB3.0 Smart Wall Switch Single Rocker WS-USC03
     // { VENDOR_XIAOMI, "lumi.curtain", jennicMacPrefix}, // Xiaomi curtain controller (router) - exposed only as light
     { VENDOR_XIAOMI, "lumi.curtain.hagl04", xiaomiMacPrefix}, // Xiaomi B1 curtain controller
+    { VENDOR_XIAOMI, "lumi.sensor_magnet.agl02", xiaomiMacPrefix}, // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
     { VENDOR_UBISYS, "C4", ubisysMacPrefix },
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
     { VENDOR_UBISYS, "J1", ubisysMacPrefix },
@@ -335,6 +336,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_KONKE, "3AFE220103020000", konkeMacPrefix }, // Konke Kit Pro-BS Temp Humidity Sensor ver ???
     { VENDOR_EMBER, "3AFE130104020015", konkeMacPrefix }, // Konke Kit Pro-Door Entry Sensor
     { VENDOR_NONE, "RICI01", tiMacPrefix}, // LifeControl smart plug
+    { VENDOR_JENNIC, "Adurolight_NCC", jennicMacPrefix}, // Eria Adurosmart Wireless Dimming Switch
     { VENDOR_JENNIC, "VOC_Sensor", jennicMacPrefix}, // LifeControl Enviroment sensor
     { VENDOR_JENNIC, "SN10ZW", jennicMacPrefix }, // ORVIBO motion sensor
     { VENDOR_OSRAM_STACK, "SF20", heimanMacPrefix }, // ORVIBO SF20 smoke sensor
@@ -391,6 +393,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "88teujp", silabs8MacPrefix }, // SEA802-Zigbee
     { VENDOR_NONE, "uhszj9s", silabs8MacPrefix }, // HiHome WZB-TRVL
     { VENDOR_NONE, "fvq6avy", silabs7MacPrefix }, // Revolt NX-4911-675 Thermostat
+    { VENDOR_NONE, "GMB-HAS-DW-B01", tiMacPrefix }, // GamaBit Ltd. Window/Door Sensor
     { VENDOR_HEIMAN, "TY0203", silabs3MacPrefix }, // Lidl/Silvercrest Smart Window or Door Sensor
     { VENDOR_HEIMAN, "TY0203", silabs7MacPrefix }, // Lidl/Silvercrest Smart Window or Door Sensor
     { VENDOR_HEIMAN, "TY0202", silabs3MacPrefix }, // Lidl/Silvercrest Smart Motion Sensor
@@ -409,6 +412,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SERCOMM, "SZ-SRN12N", emberMacPrefix }, // Sercomm siren
     { VENDOR_SERCOMM, "SZ-SRN12N", energyMiMacPrefix }, // Sercomm siren
     { VENDOR_SERCOMM, "SZ-DWS04", emberMacPrefix }, // Sercomm open/close sensor
+    { VENDOR_SERCOMM, "SZ-WTD02N_CAR", emberMacPrefix }, // Sercomm water sensor
     { VENDOR_SERCOMM, "GZ-PIR02", emberMacPrefix }, // Sercomm motion sensor
     { VENDOR_SERCOMM, "Tripper", emberMacPrefix }, // Quirky Tripper (Sercomm) open/close sensor
     { VENDOR_ALERTME, "MOT003", tiMacPrefix }, // Hive Motion Sensor
@@ -419,7 +423,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_ALERTME, "SLR2", computimeMacPrefix }, // Hive   Heating Receiver 2 channel
     { VENDOR_ALERTME, "SLR2b", computimeMacPrefix }, // Hive   Heating Receiver 2 channel second version
     { VENDOR_ALERTME, "SLT2", computimeMacPrefix }, // Hive thermostat
-    { VENDOR_DANFOSS, "TRV001", silabs2MacPrefix }, // Hive thermostat (From Danfoos)
+    { VENDOR_DANFOSS, "TRV001", silabs2MacPrefix }, // Hive thermostat (From Danfoss)
     { VENDOR_SUNRICHER, "45127", silabs2MacPrefix }, // Namron 1/2/4-ch remote controller
     { VENDOR_SENGLED_OPTOELEC, "E13-", zhejiangMacPrefix }, // Sengled PAR38 Bulbs
     { VENDOR_SENGLED_OPTOELEC, "E1D-", zhejiangMacPrefix }, // Sengled contact sensor
@@ -445,6 +449,12 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "TH01", tiMacPrefix }, // Sonoff SNZB-02
     { VENDOR_NONE, "DS01", tiMacPrefix }, // Sonoff SNZB-04
     { VENDOR_DANFOSS, "eTRV0100", silabs2MacPrefix }, // Danfoss Ally thermostat
+    { VENDOR_DANFOSS, "0x8020", silabs6MacPrefix }, // Danfoss RT24V Display thermostat
+    { VENDOR_DANFOSS, "0x8021", silabs6MacPrefix }, // Danfoss RT24V Display thermostat with floor sensor
+    { VENDOR_DANFOSS, "0x8030", silabs6MacPrefix }, // Danfoss RTbattery Display thermostat
+    { VENDOR_DANFOSS, "0x8031", silabs6MacPrefix }, // Danfoss RTbattery Display thermostat with infrared
+    { VENDOR_DANFOSS, "0x8034", silabs6MacPrefix }, // Danfoss RTbattery Dial thermostat
+    { VENDOR_DANFOSS, "0x8035", silabs6MacPrefix }, // Danfoss RTbattery Dial thermostat with infrared
     { VENDOR_LDS, "ZBT-CCTSwitch-D0001", silabs2MacPrefix }, // Leedarson remote control
     { VENDOR_KWIKSET, "SMARTCODE_CONVERT_GEN1", zenMacPrefix }, // Kwikset 914 ZigBee smart lock
     { VENDOR_EMBER, "TS1001", silabs5MacPrefix }, // LIDL Livarno Lux Remote Control HG06323
@@ -2249,8 +2259,9 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 hasServerOnOff = false;
             }
             //Battery covering
-            if ((lightNode.manufacturer() == QLatin1String("_TZE200_wmcdj3aq")) ||
-                (lightNode.manufacturer() == QLatin1String("_TZE200_zah67ekd"))) // MoesHouse / Livolo Roller Blinds
+            if (lightNode.manufacturer() == QLatin1String("_TZE200_wmcdj3aq") ||
+                lightNode.manufacturer() == QLatin1String("_TZE200_xuzcvlku") || // Zemismart Chain Roller Shades Driver M515EGB (TS0601)
+                lightNode.manufacturer() == QLatin1String("_TZE200_zah67ekd")) // MoesHouse / Livolo Roller Blinds
             {
                 hasServerOnOff = true;
             }
@@ -2518,7 +2529,10 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
         if (lightNode.id().isEmpty())
         {
-            if (!(searchLightsState == SearchLightsActive || permitJoinFlag))
+            if (deCONZ::appArgumentNumeric("--always-add-lights", 0) == 1)
+            {
+            }
+            else if (!(searchLightsState == SearchLightsActive || permitJoinFlag))
             {
                 // don't add new light node when search is not active
                 return;
@@ -5143,8 +5157,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("ZHMS101")) ||          // Wattle (Develco) door/window sensor
                              modelId.startsWith(QLatin1String("4655BC0")) ||          // Ecolink contact sensor
                              modelId.startsWith(QLatin1String("3300")) ||             // Centralite contact sensor
+                             modelId == QLatin1String("lumi.sensor_magnet.agl02") ||  // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
                              modelId == QLatin1String("E1D-G73") ||                   // Sengled contact sensor
                              modelId == QLatin1String("DS01") ||                      // Sonoff SNZB-04
+                             modelId == QLatin1String("GMB-HAS-DW-B01") ||            // GamaBit Ltd. Window/Door Sensor
                              modelId == QLatin1String("TY0203") ||                    // lidl / SilverCrest
                              modelId == QLatin1String("RH3001"))                      // Tuya/Blitzwolf BW-IS2 door/window sensor
                     {
@@ -5200,6 +5216,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("moisturev4")) ||       // SmartThings water leak sensor
                              modelId.startsWith(QLatin1String("WL4200")) ||           // Sinope Water Leak detector
                              modelId.startsWith(QLatin1String("3315")) ||             // Centralite water sensor
+                             modelId.startsWith(QLatin1String("SZ-WTD02N_CAR")) ||    // Sercomm water sensor
                              modelId.startsWith(QLatin1String("FLSZB-1")) ||          // Develco Water Leak detector
                              modelId.startsWith(QLatin1String("TS0207")))             // Tuya water leak sensor
                     {
@@ -5314,6 +5331,12 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     // Don't create entry for the door lock
                     //else if (modelId == QLatin1String("SMARTCODE_CONVERT_GEN1"))
                     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_KWIKSET)
+                    {
+                    }
+                    // Don't create entries for the following Danfoss in-room thermostats
+                    else if(modelId == QLatin1String("0x8020") ||
+                            modelId == QLatin1String("0x8030") ||
+                            modelId == QLatin1String("0x8034"))
                     {
                     }
                     else
@@ -6880,6 +6903,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.setManufacturer("Insta");
         checkInstaModelId(&sensorNode);
     }
+    else if (sensorNode.modelId() == QLatin1String("lumi.sensor_magnet.agl02")) // skip
+    {
+    }
     else if (modelId.startsWith(QLatin1String("lumi")))
     {
         sensorNode.setManufacturer("LUMI");
@@ -7705,6 +7731,22 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         bat = ia->numericValue().u8;
                                     }
 
+                                    if (i->modelId() == QLatin1String("0x8020") || // Danfoss RT24V Display thermostat
+                                        i->modelId() == QLatin1String("0x8021") || // Danfoss RT24V Display thermostat with floor sensor
+                                        i->modelId() == QLatin1String("0x8030") || // Danfoss RTbattery Display thermostat
+                                        i->modelId() == QLatin1String("0x8031") || // Danfoss RTbattery Display thermostat with infrared
+                                        i->modelId() == QLatin1String("0x8034") || // Danfoss RTbattery Dial thermostat
+                                        i->modelId() == QLatin1String("0x8035"))   // Danfoss RTbattery Dial thermostat with infrared
+                                    {
+                                        // The Danfoss Icon Zigbee module exposes each in-room thermostat in its controller
+                                        // as an endpoint. Each endpoint has the battery measurement for the device it represents.
+                                        // This check makes sure none of the other endpoints get their battery value overwritten.
+                                        if (event.endpoint() != i->fingerPrint().endpoint)
+                                        {
+                                            continue;
+                                        }
+                                    }
+
                                     if (item->toNumber() != bat)
                                     {
                                         i->setNeedSaveDatabase(true);
@@ -7728,8 +7770,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId() == QLatin1String("Remote switch") ||    // Legrand switch
                                     i->modelId() == QLatin1String("Double gangs remote switch") ||    // Legrand switch double
                                     i->modelId() == QLatin1String("Shutters central remote switch") || // Legrand switch module
-                                    i->modelId() == QLatin1String("Remote toggle switch") || //Legrand shutter switch
-                                    i->modelId() == QLatin1String("Remote motion sensor") || //Legrand motion sensor
+                                    i->modelId() == QLatin1String("Remote toggle switch") || // Legrand shutter switch
+                                    i->modelId() == QLatin1String("Remote motion sensor") || // Legrand motion sensor
+                                    i->modelId() == QLatin1String("lumi.sensor_magnet.agl02") || // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
                                     i->modelId() == QLatin1String("Zen-01") ||           // Zen thermostat
                                     i->modelId() == QLatin1String("Thermostat") ||       // eCozy thermostat
                                     i->modelId() == QLatin1String("Motion Sensor-A") ||  // Osram motion sensor
@@ -7760,6 +7803,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().startsWith(QLatin1String("4655BC0")) ||      // Ecolink contact sensor
                                     i->modelId().startsWith(QLatin1String("lumi.sen_ill")) || // Xiaomi ZB3.0 light sensor
                                     i->modelId().startsWith(QLatin1String("SZ-DWS04"))   || // Sercomm open/close sensor
+                                    i->modelId().startsWith(QLatin1String("SZ-WTD02N_CAR")) || // Sercomm water sensor
                                     i->modelId().startsWith(QLatin1String("GZ-PIR02"))   || // Sercomm motion sensor
                                     i->modelId().startsWith(QLatin1String("Tripper")) || // Quirky Tripper (Sercomm) open/close
                                     i->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
@@ -17661,6 +17705,12 @@ void DeRestPlugin::idleTimerFired()
                                 sensorNode->modelId().startsWith(QLatin1String("TH112")) ||     // Sinope devices
                                 sensorNode->modelId().startsWith(QLatin1String("TH1300ZB")) ||  // Sinope devices
                                 sensorNode->modelId().startsWith(QLatin1String("eTRV0100")) ||  // Danfoss Ally
+                                sensorNode->modelId().startsWith(QLatin1String("0x8020")) ||    // Danfoss RT24V Display thermostat
+                                sensorNode->modelId().startsWith(QLatin1String("0x8021")) ||    // Danfoss RT24V Display thermostat with floor sensor
+                                sensorNode->modelId().startsWith(QLatin1String("0x8030")) ||    // Danfoss RTbattery Display thermostat
+                                sensorNode->modelId().startsWith(QLatin1String("0x8031")) ||    // Danfoss RTbattery Display thermostat with infrared
+                                sensorNode->modelId().startsWith(QLatin1String("0x8034")) ||    // Danfoss RTbattery Dial thermostat
+                                sensorNode->modelId().startsWith(QLatin1String("0x8035")) ||    // Danfoss RTbattery Dial thermostat with infrared
                                 sensorNode->modelId().startsWith(QLatin1String("Zen-01")) ||    // Zen
                                 sensorNode->modelId().startsWith(QLatin1String("Super TR")) ||  // Elko
                                 sensorNode->modelId().startsWith(QLatin1String("AC201")) ||     // Owon
@@ -19383,8 +19433,8 @@ void DeRestPluginPrivate::genericDisconnectNetwork()
     DBG_Printf(DBG_INFO_L2, "networkState: DisconnectingNetwork\n");
 
     apsCtrl->setNetworkState(deCONZ::NotInNetwork);
-
-    reconnectTimer->start(DISCONNECT_CHECK_DELAY);
+    
+    startReconnectNetwork(RECONNECT_CHECK_DELAY);
 }
 
 /*! Checks if network is disconnected to proceed with further actions.

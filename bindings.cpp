@@ -1374,6 +1374,51 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3}) || // Use OR because of manuf. specific attributes
                    sendConfigureReportingRequest(bt, {rq4, rq5});
         }
+        else if (sensor && (sensor->modelId() == QLatin1String("0x8020") || // Danfoss RT24V Display thermostat
+                            sensor->modelId() == QLatin1String("0x8021") || // Danfoss RT24V Display thermostat with floor sensor
+                            sensor->modelId() == QLatin1String("0x8030") || // Danfoss RTbattery Display thermostat
+                            sensor->modelId() == QLatin1String("0x8031") || // Danfoss RTbattery Display thermostat with infrared
+                            sensor->modelId() == QLatin1String("0x8034") || // Danfoss RTbattery Dial thermostat
+                            sensor->modelId() == QLatin1String("0x8035")))  // Danfoss RTbattery Dial thermostat with infrared
+        {
+            rq.dataType = deCONZ::Zcl16BitInt;
+            rq.attributeId = 0x0000;         // Local temperature
+            rq.minInterval = 60;
+            rq.maxInterval = 3600;
+            rq.reportableChange16bit = 50;
+
+            ConfigureReportingRequest rq2;
+            rq2.dataType = deCONZ::Zcl8BitBitMap;
+            rq2.attributeId = 0x0002;        // Occupancy
+            rq2.minInterval = 60;
+            rq2.maxInterval = 43200;
+            rq2.reportableChange8bit = 1;
+
+            ConfigureReportingRequest rq3;
+            rq3.dataType = deCONZ::Zcl16BitInt;
+            rq3.attributeId = 0x0012;        // Occupied heating setpoint
+            rq3.minInterval = 1;
+            rq3.maxInterval = 43200;
+            rq3.reportableChange16bit = 1;
+
+            ConfigureReportingRequest rq4;
+            rq4.dataType = deCONZ::Zcl16BitInt;
+            rq4.attributeId = 0x0014;        // Unoccupied heating setpoint
+            rq4.minInterval = 1;
+            rq4.maxInterval = 43200;
+            rq4.reportableChange16bit = 1;
+
+            ConfigureReportingRequest rq5;
+            rq5.dataType = deCONZ::Zcl8BitBitMap;
+            rq5.attributeId = 0x4110;        // Danfoss Output Status
+            rq5.minInterval = 60;
+            rq5.maxInterval = 3600;
+            rq5.reportableChange8bit = 1;
+            rq5.manufacturerCode = VENDOR_DANFOSS;
+
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4}) || // Use OR because of manuf. specific attributes
+            sendConfigureReportingRequest(bt, {rq5});
+        }
         else if (sensor && sensor->modelId() == QLatin1String("902010/32")) // Bitron thermostat
         {
             rq.dataType = deCONZ::Zcl16BitInt;
@@ -1605,8 +1650,14 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 900;        // value used by Hue bridge
             rq.reportableChange8bit = 4; // value used by Hue bridge
         }
-        else if ( (sensor && sensor->modelId() == QLatin1String("eTRV0100")) || // Danfoss Ally
-                  (sensor && sensor->modelId() == QLatin1String("TRV001") ))
+        else if (sensor && (sensor->modelId() == QLatin1String("eTRV0100") || // Danfoss Ally
+                            sensor->modelId() == QLatin1String("TRV001") ||   // Hive TRV
+                            sensor->modelId() == QLatin1String("0x8020") ||   // Danfoss RT24V Display thermostat
+                            sensor->modelId() == QLatin1String("0x8021") ||   // Danfoss RT24V Display thermostat with floor sensor
+                            sensor->modelId() == QLatin1String("0x8030") ||   // Danfoss RTbattery Display thermostat
+                            sensor->modelId() == QLatin1String("0x8031") ||   // Danfoss RTbattery Display thermostat with infrared
+                            sensor->modelId() == QLatin1String("0x8034") ||   // Danfoss RTbattery Dial thermostat
+                            sensor->modelId() == QLatin1String("0x8035")))    // Danfoss RTbattery Dial thermostat with infrared
         {
             rq.minInterval = 3600;         // Vendor defaults
             rq.maxInterval = 43200;        // Vendor defaults
@@ -1620,7 +1671,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 43200;
             rq.reportableChange8bit = 1;
         }
-        else if (sensor && sensor->modelId() == QLatin1String("HG06323")) // LIDL
+        else if (sensor && (sensor->modelId() == QLatin1String("HG06323") || // LIDL
+                            sensor->modelId() == QLatin1String("lumi.sensor_magnet.agl02"))) // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
         {
             rq.minInterval = 7200;
             rq.maxInterval = 7200;
@@ -1650,6 +1702,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                             sensor->modelId() == QLatin1String("3AFE14010402000D") || // Konke presence sensor
                             sensor->modelId() == QLatin1String("3AFE28010402000D") || // Konke presence sensor
                             sensor->modelId().startsWith(QLatin1String("GZ-PIR02")) ||          // Sercomm motion sensor
+                            sensor->modelId().startsWith(QLatin1String("SZ-WTD02N_CAR")) ||     // Sercomm water sensor
                             sensor->modelId().startsWith(QLatin1String("3300")) ||          // Centralite contatc sensor
                             sensor->modelId().startsWith(QLatin1String("3315")) ||
                             sensor->modelId().startsWith(QLatin1String("3157100")) ||
@@ -2755,6 +2808,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("lumi.plug.maeu01")) ||
         sensor->modelId().startsWith(QLatin1String("lumi.sen_ill.mgl01")) ||
         sensor->modelId().startsWith(QLatin1String("lumi.switch.b1naus01")) ||
+        sensor->modelId() == QLatin1String("lumi.sensor_magnet.agl02") ||
         // iris
         sensor->modelId().startsWith(QLatin1String("1116-S")) ||
         sensor->modelId().startsWith(QLatin1String("1117-S")) ||
@@ -2788,6 +2842,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("Tripper") ||
         // WAXMAN
         sensor->modelId() == QLatin1String("leakSMART Water Sensor V2") ||
+        // GamaBit
+        sensor->modelId() == QLatin1String("GMB-HAS-DW-B01") ||
         // RGBgenie
         sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) ||
         sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")) ||
@@ -2827,8 +2883,16 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("DS01") ||
         // Danfoss
         sensor->modelId() == QLatin1String("eTRV0100") ||
+        sensor->modelId() == QLatin1String("0x8020") ||
+        sensor->modelId() == QLatin1String("0x8021") ||
+        sensor->modelId() == QLatin1String("0x8030") ||
+        sensor->modelId() == QLatin1String("0x8031") ||
+        sensor->modelId() == QLatin1String("0x8034") ||
+        sensor->modelId() == QLatin1String("0x8035") ||
         // LIDL
-        sensor->modelId() == QLatin1String("HG06323")
+        sensor->modelId() == QLatin1String("HG06323") ||
+        // Eria
+        sensor->modelId() == QLatin1String("Adurolight_NCC")
         )
     {
         deviceSupported = true;
@@ -3571,7 +3635,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     // Linkind 1 key Remote Control / ZS23000178
     // SR-ZG2835 Zigbee Rotary Switch
     else if (sensor->modelId().startsWith(QLatin1String("ZBT-DIMSwitch")) ||
-             sensor->modelId().startsWith(QLatin1String("ZG2835")))
+             sensor->modelId().startsWith(QLatin1String("ZG2835")) ||
+             sensor->modelId().startsWith(QLatin1String("Adurolight_NCC")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
@@ -3701,6 +3766,7 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         sensor->modelId().startsWith(QLatin1String("TRADFRI wireless dimmer")) ||
         // sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
         sensor->modelId().startsWith(QLatin1String("902010/23")) || // bitron remote
+        sensor->modelId().startsWith(QLatin1String("Adurolight_NCC")) || // Eria Adurosmart Wireless Dimming Switch
         sensor->modelId().startsWith(QLatin1String("WB01")) || // Sonoff SNZB-01
         sensor->modelId().startsWith(QLatin1String("WB-01")) || // Sonoff SNZB-01
         sensor->modelId().startsWith(QLatin1String("Bell")) || // Sage doorbell sensor
