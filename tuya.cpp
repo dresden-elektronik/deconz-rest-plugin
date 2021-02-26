@@ -363,6 +363,9 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             if (lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq") ||
                 lightNode->manufacturer() == QLatin1String("_TZE200_xuzcvlku") ||
                 lightNode->manufacturer() == QLatin1String("_TZE200_wmcdj3aq") ||
+                lightNode->manufacturer() == QLatin1String("_TZE200_nogaemzt") ||
+                lightNode->manufacturer() == QLatin1String("_TZE200_zah67ekd") || // MoesHouse / Livolo Roller Blinds
+                lightNode->manufacturer() == QLatin1String("_TZE200_fzo2pocs") ||
                 lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3"))
             {
 
@@ -719,9 +722,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 case 0x0266: // min temperature limit
                 {
                     //Can be Temperature for some device
-                    if (sensorNode->manufacturer().endsWith(QLatin1String("GbxAXL2")) ||
-                        sensorNode->manufacturer().endsWith(QLatin1String("uhszj9s")) ||
-                        sensorNode->manufacturer().endsWith(QLatin1String("88teujp")))
+                    if (R_GetProductId(sensorNode) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
+                        R_GetProductId(sensorNode) == QLatin1String("Tuya_THD WZB-TRVL TRV"))
                     {
                         qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
                         ResourceItem *item = sensorNode->item(RStateTemperature);
@@ -739,9 +741,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 case 0x0267: // max temperature limit
                 {
                     //can be setpoint for some device
-                    if (sensorNode->manufacturer().endsWith(QLatin1String("GbxAXL2")) ||
-                        sensorNode->manufacturer().endsWith(QLatin1String("uhszj9s")) ||
-                        sensorNode->manufacturer().endsWith(QLatin1String("88teujp")))
+                    if (R_GetProductId(sensorNode) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
+                        R_GetProductId(sensorNode) == QLatin1String("Tuya_THD WZB-TRVL TRV"))
                     {
                         qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
                         ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
