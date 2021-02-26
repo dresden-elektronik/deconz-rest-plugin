@@ -2368,6 +2368,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturerCode() == VENDOR_OWON)
         {
         }
+        else if (lightNode->manufacturerCode() == VENDOR_DATEK)
+        {
+        }
         else if (lightNode->modelId().startsWith(QLatin1String("SP ")))
         {
         }
@@ -2435,6 +2438,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         {
         }
         else if (lightNode->manufacturer() == QLatin1String("Kwikset"))
+        {
+        }
+        else if (lightNode->manufacturerCode() == VENDOR_YALE)
         {
         }
         else if (lightNode->manufacturer() == QLatin1String("NIKO NV"))
@@ -2641,6 +2647,13 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("ROM00")) ||
         // Lutron Aurora Friends-of-Hue dimmer switch
         sensor->modelId().startsWith(QLatin1String("Z3-1BRL")) ||
+        //Datek
+        sensor->modelId().startsWith(QLatin1String("ID Lock 150")) ||
+        // Yale
+        sensor->modelId() == QLatin1String("YRD226 TSDB") || // TODO : check if necessary
+        sensor->modelId() == QLatin1String("YRD226/246 TSDB") || // TODO : check if necessary
+        sensor->modelId() == QLatin1String("YRD220/240 TSDB") || // TODO : check if necessary
+        sensor->modelId() == QLatin1String("easyCodeTouch_v1") || // TODO : check if necessary
         // ubisys
         sensor->modelId().startsWith(QLatin1String("C4")) ||
         sensor->modelId().startsWith(QLatin1String("D1")) ||
