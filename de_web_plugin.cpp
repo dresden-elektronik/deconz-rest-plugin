@@ -5623,7 +5623,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 case SCENE_CLUSTER_ID:
                 case WINDOW_COVERING_CLUSTER_ID:
                 {
-                    if (modelId == QLatin1String("ZYCT-202") || modelId == QLatin1String("ZLL-NonColorController"))
+                    if (modelId == QLatin1String("ZYCT-202") ||
+                        modelId == QLatin1String("ZLL-NonColorController") ||
+                        // Eria Adurosmart Wireless Dimming Switch.
+                        modelId == QLatin1String("Adurolight_NCC"))
                     {
                         fpSwitch.outClusters.push_back(ci->id());
                     }
