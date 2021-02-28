@@ -2585,6 +2585,9 @@ controller device, that supports a keypad and LCD screen.</description>
 					<attribute id="0x0011" name="PIR Unoccupied To Occupied Delay" type="u16" range="0x00,0xfffe" access="rw" required="o" default="0x00">
 						<description>The PIRUnoccupiedToOccupiedDelay attribute is 16-bits in length and specifies the time delay, in seconds, before the PIR sensor changes to its unoccupied state when the sensed area becomes occupied.</description>
 					</attribute>
+					<attribute id="0x0012" name="PIR Unoccupied To Occupied Threshold" type="u8" range="0x01,0xfe" access="rw" required="o" default="0x01">
+						<description>The PIRUnoccupiedToOccupiedThreshold attribute is 8 bits in length and specifies the number of movement detection events that must occur in the period PIRUnoccupiedToOccupiedDelay, before the PIR sensor changes to its occupied state.</description>
+					</attribute>
 				</attribute-set>
 				<attribute-set id="0x0020" description="Ultrasonic configuration">
 					<attribute id="0x0020" name="Ultrasonic Occupied To Unoccupied Delay" type="u8" range="0x00,0xfe" access="rw" required="o" default="0x00">
