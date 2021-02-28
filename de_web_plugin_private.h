@@ -215,6 +215,7 @@ using namespace deCONZ::literals;
 #define UBISYS_DEVICE_SETUP_CLUSTER_ID        0xFC00
 #define SAMJIN_CLUSTER_ID                     0xFC02
 #define SENGLED_CLUSTER_ID                    0xFC10
+#define ADUROLIGHT_CLUSTER_ID                 0xFCCC
 #define LEGRAND_CONTROL_CLUSTER_ID            0xFC40
 #define XIAOMI_CLUSTER_ID                     0xFCC0
 #define XAL_CLUSTER_ID                        0xFCCE
