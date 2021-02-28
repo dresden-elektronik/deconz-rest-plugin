@@ -1588,11 +1588,21 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     }
     else if (bt.binding.clusterId == RELATIVE_HUMIDITY_CLUSTER_ID)
     {
+        Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
+        
         rq.dataType = deCONZ::Zcl16BitUint;
         rq.attributeId = 0x0000;       // measured value
         rq.minInterval = 10;
         rq.maxInterval = 300;
         rq.reportableChange16bit = 100; // resolution: 1%
+        
+        if (sensor && (sensor->modelId().startsWith(QLatin1String("AQSZB-1")) ||   // Develco air quality sensor
+                       sensor->modelId().startsWith(QLatin1String("HMSZB-1"))))    // Develco temp/hum sensor
+        {
+            rq.minInterval = 60;
+            rq.maxInterval = 600;
+        }
+        
         return sendConfigureReportingRequest(bt, {rq});
     }
     else if (bt.binding.clusterId == PRESSURE_MEASUREMENT_CLUSTER_ID)
@@ -1735,9 +1745,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                             sensor->modelId().startsWith(QLatin1String("MotionSensor51AU")))) // Aurora (Develco) motion sensor
         {
             rq.attributeId = 0x0020;   // battery voltage
-            rq.minInterval = 43200;    // according to technical manual
+            rq.minInterval = 300;      // according to technical manual
             rq.maxInterval = 43200;    // according to technical manual
-            rq.reportableChange8bit = 0;
+            rq.reportableChange8bit = 1;
         }
         else if (sensor && sensor->manufacturer() == QLatin1String("Samjin"))
         {
@@ -2265,7 +2275,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
         }
     }
-    else if (bt.binding.clusterId == 0xFC03)    // Develco specific -> VOC Management
+    else if (bt.binding.clusterId == DEVELCO_AIR_QUALITY_CLUSTER_ID)
     {
         Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
 
@@ -3186,7 +3196,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         {
             val = sensor->getZclValue(*i, 0x0012); // Acceleration X
         }
-        else if (*i == 0xFC03)  // Develco specific -> VOC Management
+        else if (*i == DEVELCO_AIR_QUALITY_CLUSTER_ID)
         {
             if (sensor->modelId() == QLatin1String("AQSZB-110"))     // Develco air quality sensor
             {
@@ -3253,7 +3263,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         case APPLIANCE_EVENTS_AND_ALERTS_CLUSTER_ID:
         case SAMJIN_CLUSTER_ID:
         case BOSCH_AIR_QUALITY_CLUSTER_ID:
-        case 0xFC03:        // Develco specific -> VOC Management
+        case DEVELCO_AIR_QUALITY_CLUSTER_ID:
         {
             DBG_Printf(DBG_INFO_L2, "0x%016llX (%s) create binding for attribute reporting of cluster 0x%04X on endpoint 0x%02X\n",
                        sensor->address().ext(), qPrintable(sensor->modelId()), (*i), srcEndpoint);
