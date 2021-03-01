@@ -503,6 +503,7 @@ static const ProductMap products[] =
 
     // Other
     {"_TYST11_d0yu2xgi", "0yu2xgi", "NEO/Tuya", "NAS-AB02B0 Siren"},
+    {"_TZE200_d0yu2xgi", "TS0601", "NEO/Tuya", "NAS-AB02B0 Siren"},
     
     {nullptr, nullptr, nullptr, nullptr}
 };
