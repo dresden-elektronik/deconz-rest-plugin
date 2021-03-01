@@ -4258,6 +4258,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 buttonMap.clusterId == ind.clusterId() &&
                 buttonMap.zclCommandId == zclFrame.commandId())
             {
+                int buttonPressed = buttonMap.button;
                 ok = true;
 
                 //Tuya
@@ -4305,12 +4306,12 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         {
                             const QDateTime now = QDateTime::currentDateTime();
 
-                            if (buttonMap.button == (S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS))
+                            if (buttonPressed == (S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS))
                             {
                                 sensor->durationDue = now.addMSecs(500); // enable generation of 1001 (hold)
                                 checkSensorsTimer->start(CHECK_SENSOR_FAST_INTERVAL);
                             }
-                            else if (buttonMap.button == (S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED))
+                            else if (buttonPressed == (S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED))
                             {
                                 sensor->durationDue = QDateTime(); // disable generation of 1001 (hold)
 
@@ -4677,38 +4678,55 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     }
 
                 }
-                else if (ind.clusterId() == SENGLED_CLUSTER_ID ||
-                         ind.clusterId() == ADUROLIGHT_CLUSTER_ID))
+                else if (ind.clusterId() == SENGLED_CLUSTER_ID)
                 {
                     if (buttonMap.zclParam0 == pl0)
                     {
                         ok = true;
                     }
                 }
+                // Eria Adurosmart Wireless Dimming Switch.
+                else if (ind.clusterId() == ADUROLIGHT_CLUSTER_ID && sensor->modelId() == QLatin1String("Adurolight_NCC"))
+                {
+                    ok = true;
+                    // Since the only way to determine which buttons was pressed is by the payload,
+                    // change the value of buttonPressed based on the payload value.
+                    quint16 payload;
+                    QDataStream stream(zclFrame.payload());
+                    stream.setByteOrder(QDataStream::LittleEndian);
+                    stream >> payload;
+                    switch (payload) {
+                        case 0x000000: buttonPressed = (S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED); break;
+                        case 0x000100: buttonPressed = (S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED); break;
+                        case 0x000200: buttonPressed = (S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED); break;
+                        case 0x000300: buttonPressed = (S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED); break;
+                        default: ok = false; break;
+                    }
+                }
 
-                if (ok && buttonMap.button != 0)
+                if (ok && buttonPressed != 0)
                 {
                     if (!buttonMap.name.isEmpty()) { cmd = buttonMap.name; }
                     
                     DBG_Printf(DBG_INFO, "[INFO] - Button %u - %s%s, endpoint: 0x%02X, cluster: %s, action: %s, payload: %s, zclSeq: %u\n",
-                        buttonMap.button, qPrintable(sensor->modelId()), qPrintable(addressMode), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), qPrintable(zclPayload), zclFrame.sequenceNumber());
+                        buttonPressed, qPrintable(sensor->modelId()), qPrintable(addressMode), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), qPrintable(zclPayload), zclFrame.sequenceNumber());
                     
                     ResourceItem *item = sensor->item(RStateButtonEvent);
                     if (item)
                     {
-                        if (item->toNumber() == buttonMap.button && ind.dstAddressMode() == deCONZ::ApsGroupAddress)
+                        if (item->toNumber() == buttonPressed && ind.dstAddressMode() == deCONZ::ApsGroupAddress)
                         {
                             QDateTime now = QDateTime::currentDateTime();
                             const auto dt = item->lastSet().msecsTo(now);
 
                             if (dt > 0 && dt < 500)
                             {
-                                DBG_Printf(DBG_INFO, "[INFO] - Button %u %s, discard too fast event (dt = %d) %s\n", buttonMap.button, qPrintable(cmd), static_cast<int>(dt), qPrintable(sensor->modelId()));
+                                DBG_Printf(DBG_INFO, "[INFO] - Button %u %s, discard too fast event (dt = %d) %s\n", buttonPressed, qPrintable(cmd), static_cast<int>(dt), qPrintable(sensor->modelId()));
                                 break;
                             }
                         }
 
-                        item->setValue(buttonMap.button);
+                        item->setValue(buttonPressed);
 
                         Event e(RSensors, RStateButtonEvent, sensor->id(), item);
                         enqueueEvent(e);
