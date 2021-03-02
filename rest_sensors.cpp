@@ -1753,7 +1753,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigSwingMode)
                 {
-                    if (map[pi.key()].type() == QVariant::String && map[pi.key()].toString().size() <= 19)
+                    if (map[pi.key()].type() == QVariant::String)
                     {
                         if (sensor->modelId() == QLatin1String("AC201"))
                         {
