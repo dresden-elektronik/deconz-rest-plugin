@@ -495,7 +495,8 @@ static const ProductMap products[] =
     {"_TZ3000_vd43bbfq", "TS130F", "Tuya", "QS-Zigbee-C01 Module"}, // Curtain module QS-Zigbee-C01
     
     // Switch
-    {"_TZE200_dfxkcots", "TS0601", "Tuya", "Tuya_DIMSWITCH Earda Dimmer"},
+    {"_TZE200_dfxkcots", "TS0601", "Earda", "Tuya_DIMSWITCH Earda Dimmer"},
+    {"_TZE200_9i9dt8is", "TS0601", "Earda", "Tuya_DIMSWITCH EDM-1ZAA-EU"},
     
     {nullptr, nullptr, nullptr, nullptr}
 };
