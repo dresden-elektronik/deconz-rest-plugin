@@ -4695,6 +4695,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 }
                 else if (ind.clusterId() == SENGLED_CLUSTER_ID)
                 {
+                    ok = false;
+                    
                     if (buttonMap.zclParam0 == pl0)
                     {
                         ok = true;
@@ -9048,7 +9050,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (item)
                                 {
-                                    item->setValue((qint16) power); // in W
+                                    item->setValue(power); // in W
                                     enqueueEvent(Event(RSensors, RStatePower, i->id(), item));
                                     updated = true;
                                 }

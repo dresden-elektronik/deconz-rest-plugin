@@ -1885,6 +1885,56 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         rspItemState[QString("Error : unknown Window open setting for %1").arg(sensor->modelId())] = map[pi.key()];
                     }
                 }
+                else if (rid.suffix == RConfigSwingMode)
+                {
+                    if (map[pi.key()].type() == QVariant::String)
+                    {
+                        if (sensor->modelId() == QLatin1String("AC201"))
+                        {
+                            QString modeSet = map[pi.key()].toString();
+                            quint8 mode = 0;
+
+                            if (modeSet == "fully closed") { mode = 0x01; }
+                            else if (modeSet == "fully open") { mode = 0x02; }
+                            else if (modeSet == "quarter open") { mode = 0x03; }
+                            else if (modeSet == "half open") { mode = 0x04; }
+                            else if (modeSet == "three quarters open") { mode = 0x05; }
+                            else
+                            {
+                                rspItemState[QString("error unknown swing mode for %1").arg(sensor->modelId())] = map[pi.key()];
+                            }
+
+                            if (mode > 0 && mode < 6)
+                            {
+                                if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, 0x0045, deCONZ::Zcl8BitEnum, mode))
+                                {
+                                    updated = true;
+                                }
+                                else
+                                {
+                                    rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                            QString("Could not set attribute")));
+                                    rsp.httpStatus = HttpStatusBadRequest;
+                                    return REQ_READY_SEND;
+                                }
+                            }
+                            else
+                            {
+                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                        QString("Could not set attribute")));
+                                rsp.httpStatus = HttpStatusBadRequest;
+                                return REQ_READY_SEND;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
                 else if (rid.suffix == RConfigFanMode)
                 {
                     if (map[pi.key()].type() == QVariant::String && map[pi.key()].toString().size() <= 6)
@@ -1931,56 +1981,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         return REQ_READY_SEND;
                     }
                 }
-            }
-        }
-        else if (rid.suffix == RConfigSwingMode)
-        {
-            if (map[pi.key()].type() == QVariant::String && map[pi.key()].toString().size() <= 19)
-            {
-                if (sensor->modelId() == QLatin1String("AC201"))
-                {
-                    QString modeSet = map[pi.key()].toString();
-                    quint8 mode = 0;
-
-                    if (modeSet == "fully closed") { mode = 0x01; }
-                    else if (modeSet == "fully open") { mode = 0x02; }
-                    else if (modeSet == "quarter open") { mode = 0x03; }
-                    else if (modeSet == "half open") { mode = 0x04; }
-                    else if (modeSet == "three quarters open") { mode = 0x05; }
-                    else
-                    {
-                        rspItemState[QString("error unknown swing mode for %1").arg(sensor->modelId())] = map[pi.key()];
-                    }
-
-                    if (mode > 0 && mode < 6)
-                    {
-                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, 0x0045, deCONZ::Zcl8BitEnum, mode))
-                        {
-                            updated = true;
-                        }
-                        else
-                        {
-                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
-                                                    QString("Could not set attribute")));
-                            rsp.httpStatus = HttpStatusBadRequest;
-                            return REQ_READY_SEND;
-                        }
-                    }
-                    else
-                    {
-                        rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
-                                                QString("Could not set attribute")));
-                        rsp.httpStatus = HttpStatusBadRequest;
-                        return REQ_READY_SEND;
-                    }
-                }
-            }
-            else
-            {
-                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
-                                           QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
-                rsp.httpStatus = HttpStatusBadRequest;
-                return REQ_READY_SEND;
             }
         }
 
@@ -3309,9 +3309,9 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                     DBG_Printf(DBG_INFO, "sensor %s (%s): disable presence\n", qPrintable(sensor->id()), qPrintable(sensor->modelId()));
                     item->setValue(false);
                     sensor->updateStateTimestamp();
-                    Event e(RSensors, RStatePresence, sensor->id(), item);
-                    enqueueEvent(e);
+                    enqueueEvent(Event(RSensors, RStatePresence, sensor->id(), item));
                     enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
+                    updateSensorEtag(sensor);
                     for (quint16 clusterId : sensor->fingerPrint().inClusters)
                     {
                         if (sensor->modelId().startsWith(QLatin1String("TRADFRI")))
@@ -3336,9 +3336,9 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                         item->setValue(S_BUTTON_1 + S_BUTTON_ACTION_HOLD);
                         DBG_Printf(DBG_INFO, "[INFO] - Button %u Hold %s\n", item->toNumber(), qPrintable(sensor->modelId()));
                         sensor->updateStateTimestamp();
-                        Event e(RSensors, RStateButtonEvent, sensor->id(), item);
-                        enqueueEvent(e);
+                        enqueueEvent(Event(RSensors, RStateButtonEvent, sensor->id(), item));
                         enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
+                        updateSensorEtag(sensor);
                     }
                 }
                 else if (sensor->modelId() == QLatin1String("FOHSWITCH"))
@@ -3354,9 +3354,9 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                         item->setValue(btn + S_BUTTON_ACTION_HOLD);
                         DBG_Printf(DBG_INFO, "FoH switch button %d Hold %s\n", item->toNumber(), qPrintable(sensor->modelId()));
                         sensor->updateStateTimestamp();
-                        Event e(RSensors, RStateButtonEvent, sensor->id(), item);
-                        enqueueEvent(e);
+                        enqueueEvent(Event(RSensors, RStateButtonEvent, sensor->id(), item));
                         enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
+                        updateSensorEtag(sensor);
                     }
                 }
                 else if (!item && sensor->modelId().startsWith(QLatin1String("lumi.vibration")) && sensor->type() == QLatin1String("ZHAVibration"))
@@ -3369,6 +3369,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                         sensor->updateStateTimestamp();
                         enqueueEvent(Event(RSensors, RStateVibration, sensor->id(), item));
                         enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
+                        updateSensorEtag(sensor);
                     }
                 }
 
