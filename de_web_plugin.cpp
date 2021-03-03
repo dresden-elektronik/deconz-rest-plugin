@@ -5278,7 +5278,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                        // use manufacturer specific cluster instead
                     }
                     // Don't create sensor for first endpoint
-                    else if ((modelId == QLatin1String("ST30 Temperature Sensor")) && (i->endpoint() != 0x02))
+                    else if (modelId == QLatin1String("ST30 Temperature Sensor") && i->endpoint() != 0x02)
                     {
                     }
                     else if (modelId != QLatin1String("VOC_Sensor"))
