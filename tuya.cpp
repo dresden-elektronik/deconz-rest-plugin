@@ -625,7 +625,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     break;
                     case 0x0269: // siren temperature
                     {
-                        qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10 + 200;
+                        qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10 + 200;
                         ResourceItem *item = sensorNode->item(RStateTemperature);
 
                         if (item && item->toNumber() != temp)
@@ -640,7 +640,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     break;
                     case 0x026A : // Siren Humidity
                     {
-                        qint16 Hum = (static_cast<qint16>(data & 0xFFFF)) * 100;
+                        qint16 Hum = static_cast<qint16>(data & 0xFFFF) * 100;
                         ResourceItem *item = sensorNode->item(RStateHumidity);
 
                         if (item && item->toNumber() != Hum)
@@ -772,9 +772,9 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     {
                         quint8 valve = static_cast<quint8>(dp & 0xFF);
                         quint8 temperature = static_cast<quint8>((dp >> 8) & 0xFF);
-                        quint8 minute = static_cast<quint8>((dp >> 16) & 0xFF); // TODO, U16 >> 16 ... this is always 0?!
+                        quint8 minute = static_cast<quint8>((dp >> 16) & 0xFF);
 
-                        DBG_Printf(DBG_INFO, "Tuya debug 9 : windows open info: %d %d %d\n", valve, temperature, minute);
+                        DBG_Printf(DBG_INFO_L2, "Tuya debug 9 : windows open info > valve state: %d Temperature threshold: %d Timer: %d\n", valve, temperature, minute);
 
                     }
                     break;
@@ -928,7 +928,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     break;
                     case 0x0203: // Thermostat current temperature
                     {
-                        qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;                        
+                        qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
                         ResourceItem *item = sensorNode->item(RStateTemperature);
 
                         if (item && item->toNumber() != temp)

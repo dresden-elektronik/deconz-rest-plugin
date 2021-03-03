@@ -4916,7 +4916,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         SensorFingerprint fpTimeSensor;
         SensorFingerprint fpVibrationSensor;
         SensorFingerprint fpWaterSensor;
-        SensorFingerprint fpTuyaSensor;
 
         {   // scan server clusters of endpoint
             QList<deCONZ::ZclCluster>::const_iterator ci = i->inClusters().constBegin();
@@ -5011,7 +5010,12 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         }
                         if (manufacturer.endsWith(QLatin1String("0yu2xgi")))
                         {
-                            fpTuyaSensor.inClusters.push_back(TUYA_CLUSTER_ID);
+                            fpTemperatureSensor.inClusters.push_back(TUYA_CLUSTER_ID);
+                            fpTemperatureSensor.inClusters.push_back(TEMPERATURE_MEASUREMENT_CLUSTER_ID);
+                            fpHumiditySensor.inClusters.push_back(TUYA_CLUSTER_ID);
+                            fpHumiditySensor.inClusters.push_back(RELATIVE_HUMIDITY_CLUSTER_ID);
+                            fpAlarmSensor.inClusters.push_back(TUYA_CLUSTER_ID);
+                            fpAlarmSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
                         }
                     }
                     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER &&
@@ -6092,37 +6096,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             {
                 checkSensorNodeReachable(sensor);
             }
-        }
-
-        // ZHATuya
-        if (fpTuyaSensor.hasInCluster(TUYA_CLUSTER_ID))
-        {
-            fpTuyaSensor.endpoint = i->endpoint();
-            fpTuyaSensor.deviceId = i->deviceId();
-            fpTuyaSensor.profileId = i->profileId();
-
-            fpTuyaSensor.inClusters.push_back(TEMPERATURE_MEASUREMENT_CLUSTER_ID);
-            fpTuyaSensor.inClusters.push_back(RELATIVE_HUMIDITY_CLUSTER_ID);
-            fpTuyaSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
-
-            //So create 3 sensors for this one
-            const QStringList sensorlist = {"ZHATemperature", "ZHAHumidity", "ZHAAlarm" };
-
-            for (int l = 0; l < sensorlist.size(); l++)
-            {
-
-                sensor = getSensorNodeForFingerPrint(node->address().ext(), fpTuyaSensor, sensorlist[l]);
-                if (!sensor || sensor->deletedState() != Sensor::StateNormal)
-                {
-                    addSensorNode(node, fpTuyaSensor, sensorlist[l], modelId, manufacturer);
-                }
-                else
-                {
-                    checkSensorNodeReachable(sensor);
-                    checkIasEnrollmentStatus(sensor);
-                }
-            }
-
         }
 
         // ZHAAirQuality
