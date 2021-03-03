@@ -1987,16 +1987,8 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
     QString id = req.path[3];
     bool targetOn = false;
 
-    if (map.contains("bri"))
+    if (map.contains("bri") && R_GetProductId(taskRef.lightNode).startsWith(QLatin1String("Tuya_DIMSWITCH")))
     {
-        
-        if (!R_GetProductId(taskRef.lightNode).startsWith(QLatin1String("Tuya_DIMSWITCH")))
-        {
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state/bri").arg(id), QString("Not supported by this device")));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
-        }
-        
         bool ok = false;
         qint16 targetBri = 0;
         
@@ -2010,7 +2002,14 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
                 data.append(static_cast<qint8>((bri >> 8) & 0xff));
                 data.append(static_cast<qint8>(bri & 0xff));
                 
-                ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_DIMMER_LEVEL_EARDA, data);
+                if (R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_DIMSWITCH Earda Dimmer"))
+                {
+                    ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_DIMMER_LEVEL_MODE2, data);
+                }
+                else
+                {
+                    ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_DIMMER_LEVEL_MODE1, data);
+                }
             }
         }
         

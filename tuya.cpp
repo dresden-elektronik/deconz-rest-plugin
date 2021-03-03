@@ -467,23 +467,42 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     }
                     break;
                     
-                    // Dimmer level
+                    // Dimmer level for mode 1
                     case 0x0202:
-                    //case 0x0203:
                     {
-                        // 0 to 1000 value
-                        quint8 bri = static_cast<quint8>(data * 254 / 1000);
-                        
-                        ResourceItem *item = lightNode->item(RStateBri);
-                        if (item && item->toNumber() != bri)
+                        if (R_GetProductId(LightNode) == QLatin1String("Tuya_DIMSWITCH Earda Dimmer"))
                         {
-                            item->setValue(bri);
-                            Event e(RLights, RStateBri, lightNode->id(), item);
-                            enqueueEvent(e);
-                            update = true;
+                            quint8 bri = static_cast<quint8>(data * 254 / 1000); // 0 to 1000 value
+                            
+                            ResourceItem *item = lightNode->item(RStateBri);
+                            if (item && item->toNumber() != bri)
+                            {
+                                item->setValue(bri);
+                                Event e(RLights, RStateBri, lightNode->id(), item);
+                                enqueueEvent(e);
+                                update = true;
+                            }
                         }
-
                     }
+                    break;
+                    // Dimmer level for mode 2
+                    case 0x0203:
+                    {
+                        if (R_GetProductId(LightNode) == QLatin1String("Tuya_DIMSWITCH Not model found yet"))
+                        {
+                            quint8 bri = static_cast<quint8>(data * 254 / 1000); // 0 to 1000 value
+                            
+                            ResourceItem *item = lightNode->item(RStateBri);
+                            if (item && item->toNumber() != bri)
+                            {
+                                item->setValue(bri);
+                                Event e(RLights, RStateBri, lightNode->id(), item);
+                                enqueueEvent(e);
+                                update = true;
+                            }
+                        }
+                    }
+                    break;
 
                     //other
                     default:
