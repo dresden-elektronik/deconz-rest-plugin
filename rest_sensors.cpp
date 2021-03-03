@@ -785,6 +785,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/sensors/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
                     }
                 }
+                //don't update value for those setting, let them be filled by the return from device
+                else if (rid.suffix == RConfigTempThreshold || rid.suffix == RConfigHumiThreshold)
+                {
+                }
                 else if (item->setValue(val))
                 {
                     // TODO: Fix bug
@@ -859,7 +863,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     		}
                     		rspItem["success"] = rspItemState;
                     	}
-
                     }
 
                     if (rid.suffix == RConfigWindowCoveringType)
@@ -880,7 +883,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     		rspItem["success"] = rspItemState;
                     	}
                     }
-
 
                     if (rid.suffix == RConfigGroup)
                     {
@@ -993,6 +995,111 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 return REQ_READY_SEND;
             }
 
+            //special part for tuya siren
+            if (R_GetProductId(sensor) == QLatin1String("NAS-AB02B0 Siren"))
+            {
+                if (rid.suffix == RConfigMelody)
+                {
+                    int16_t melody = map[pi.key()].toUInt(&ok);
+
+                    QByteArray data;
+                    data.append(static_cast<qint8>(melody & 0xff));
+
+                    if (sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_MELODY, data))
+                    {
+                        updated = true;
+                    }
+                }
+                else if (rid.suffix == RConfigVolume)
+                {
+                    int16_t volume = map[pi.key()].toUInt(&ok);
+
+                    if (volume > 2) { volume = 2; }
+
+                    QByteArray data;
+                    data.append(static_cast<qint8>(volume & 0xff));
+
+                    if (sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_VOLUME, data))
+                    {
+                        updated = true;
+                    }
+                }
+                else if (rid.suffix == RConfigPreset)
+                {
+                    QString presetSet = map[pi.key()].toString();
+                    if (presetSet == "both")
+                    {
+                        sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_BOOL, DP_IDENTIFIER_TEMPERATURE_ALARM, QByteArray("\x01", 1));
+                        sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_BOOL, DP_IDENTIFIER_HUMIDITY_ALARM, QByteArray("\x01", 1));
+                    }
+                    else if (presetSet == "humidity")
+                    {
+                        sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_BOOL, DP_IDENTIFIER_TEMPERATURE_ALARM, QByteArray("\x00", 1));
+                        sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_BOOL, DP_IDENTIFIER_HUMIDITY_ALARM, QByteArray("\x01", 1));
+                    }
+                    else if (presetSet == "temperature")
+                    {
+                        sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_BOOL, DP_IDENTIFIER_TEMPERATURE_ALARM, QByteArray("\x01", 1));
+                        sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_BOOL, DP_IDENTIFIER_HUMIDITY_ALARM, QByteArray("\x00", 1));
+                    }
+                    else if (presetSet == "off")
+                    {
+                        sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_BOOL, DP_IDENTIFIER_TEMPERATURE_ALARM, QByteArray("\x00", 1));
+                        sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_BOOL, DP_IDENTIFIER_HUMIDITY_ALARM, QByteArray("\x00", 1));
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),QString("Could not set attribute")));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
+                else if (rid.suffix == RConfigTempThreshold)
+                {
+                    if (map[pi.key()].type() == QVariant::List)
+                    {
+                        QVariantList setting = map[pi.key()].toList();
+
+                        if (setting.size() == 2 && setting[0].type() == QVariant::Double && setting[1].type() == QVariant::Double)
+                        {
+                            QByteArray datamin = QByteArray("\x00\x00\x00",3);
+                            QByteArray datamax = QByteArray("\x00\x00\x00",3);
+                            datamin.append(static_cast<qint8>(setting[0].toUInt()));
+                            datamax.append(static_cast<qint8>(setting[1].toUInt()));
+
+                            sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_TRESHOLDTEMPMINI, datamin);
+                            sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_TRESHOLDTEMPMAXI, datamax);
+                            
+                            rspItemState[QString("/sensors/%1/config/temperaturethreshold").arg(id)] = map[pi.key()].toString();
+                            rspItem["success"] = rspItemState;
+                            rsp.list.append(rspItem);
+                        }
+                    }
+                }
+                else if (rid.suffix == RConfigHumiThreshold)
+                {
+                    if (map[pi.key()].type() == QVariant::List)
+                    {
+                        QVariantList setting = map[pi.key()].toList();
+
+                        if (setting.size() == 2 && setting[0].type() == QVariant::Double && setting[1].type() == QVariant::Double)
+                        {
+                            QByteArray datamin = QByteArray("\x00\x00\x00",3);
+                            QByteArray datamax = QByteArray("\x00\x00\x00",3);
+                            datamin.append(static_cast<qint8>(setting[0].toUInt()));
+                            datamax.append(static_cast<qint8>(setting[1].toUInt()));
+
+                            sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_TRESHOLDTHUMIMINI, datamin);
+                            sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_TRESHOLDHUMIMAXI, datamax);
+
+                            rspItemState[QString("/sensors/%1/config/humiditythreshold").arg(id)] = map[pi.key()].toString();
+                            rspItem["success"] = rspItemState;
+                            rsp.list.append(rspItem);
+                        }
+                    }
+                }
+            }
+            
             //Special part for thermostat
             if (sensor->type() == "ZHAThermostat")
             {

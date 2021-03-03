@@ -389,6 +389,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "TS0207", silabs3MacPrefix }, // Tuya water leak sensor
     { VENDOR_NONE, "TS0202", silabs4MacPrefix }, // Tuya presence sensor
     { VENDOR_NONE, "0yu2xgi", silabs5MacPrefix }, // Tuya siren
+    { VENDOR_EMBER, "TS0601", silabs9MacPrefix }, // Tuya siren
     { VENDOR_NONE, "eaxp72v", ikea2MacPrefix }, // Tuya TRV Wesmartify Thermostat Essentials Premium
     { VENDOR_NONE, "88teujp", silabs8MacPrefix }, // SEA802-Zigbee
     { VENDOR_NONE, "uhszj9s", silabs8MacPrefix }, // HiHome WZB-TRVL
@@ -2231,8 +2232,10 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             }
             //Tuya white list
             // _TYST11_wmcdj3aq is covering with cluster 0x0006
-            // _TYST11_xu1rkty3 is covering with only 2 endpoints
-            if (lightNode.manufacturer() == QLatin1String("_TYST11_xu1rkty3"))
+            // _TYST11_xu1rkty3 is covering with only 2 clusters
+            // _TYST11_d0yu2xgi siren with only 2 clusters
+            if (lightNode.manufacturer() == QLatin1String("_TYST11_xu1rkty3") ||
+                R_GetProductId(&lightNode) == QLatin1String("NAS-AB02B0 Siren"))
             {
                 hasServerOnOff = true;
             }
@@ -2608,11 +2611,24 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             lightNode.addItem(DataTypeUInt8, RStateLift);
             lightNode.addItem(DataTypeUInt8, RStateBri);
 
-            ResourceItem *Type = lightNode.item(RAttrType);
-            DBG_Assert(Type);
-            if (Type)
+            ResourceItem *type = lightNode.item(RAttrType);
+            DBG_Assert(type);
+            if (type)
             {
-                Type->setValue(QString("Window covering device"));
+                type->setValue(QString("Window covering device"));
+            }
+            lightNode.setNeedSaveDatabase(true);
+        }
+
+        //Siren
+        if (R_GetProductId(&lightNode) == QLatin1String("NAS-AB02B0 Siren"))
+        {
+            lightNode.removeItem(RStateOn);
+            ResourceItem *type = lightNode.item(RAttrType);
+            DBG_Assert(type);
+            if (type)
+            {
+                type->setValue(QString("Warning device"));
             }
             lightNode.setNeedSaveDatabase(true);
         }
@@ -4914,7 +4930,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         SensorFingerprint fpTimeSensor;
         SensorFingerprint fpVibrationSensor;
         SensorFingerprint fpWaterSensor;
-        SensorFingerprint fpTuyaSensor;
 
         {   // scan server clusters of endpoint
             QList<deCONZ::ZclCluster>::const_iterator ci = i->inClusters().constBegin();
@@ -5007,9 +5022,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         {
                             fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
                         }
-                        if (modelId == QLatin1String("0yu2xgi"))
+                        if (manufacturer.endsWith(QLatin1String("0yu2xgi")))
                         {
-                            fpTuyaSensor.inClusters.push_back(TUYA_CLUSTER_ID);
+                            fpTemperatureSensor.inClusters.push_back(TUYA_CLUSTER_ID);
+                            fpTemperatureSensor.inClusters.push_back(TEMPERATURE_MEASUREMENT_CLUSTER_ID);
+                            fpHumiditySensor.inClusters.push_back(TUYA_CLUSTER_ID);
+                            fpHumiditySensor.inClusters.push_back(RELATIVE_HUMIDITY_CLUSTER_ID);
+                            fpAlarmSensor.inClusters.push_back(TUYA_CLUSTER_ID);
+                            fpAlarmSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
                         }
                     }
                     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER &&
@@ -5143,7 +5163,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case IAS_ZONE_CLUSTER_ID:
                 {
-                    if (modelId.startsWith(QLatin1String("CO_")) ||                   // Heiman CO sensor
+                    // Don't create ZHAalarm for this device using this cluster
+                    if (manufacturer.endsWith(QLatin1String("0yu2xgi")))
+                    { 
+                    }
+                    else if (modelId.startsWith(QLatin1String("CO_")) ||                   // Heiman CO sensor
                         modelId.startsWith(QLatin1String("COSensor")) ||              // Heiman CO sensor (newer model)
                         modelId.startsWith(QLatin1String("lumi.sensor_natgas")))      // Xiaomi Mi gas detector
                     {
@@ -5887,8 +5911,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         }
 
         // ZHAAlarm
-        if ((fpAlarmSensor.hasInCluster(IAS_ZONE_CLUSTER_ID)) ||
-            (fpAlarmSensor.hasInCluster(TUYA_CLUSTER_ID)))
+        if (fpAlarmSensor.hasInCluster(IAS_ZONE_CLUSTER_ID))
         {
             fpAlarmSensor.endpoint = i->endpoint();
             fpAlarmSensor.deviceId = i->deviceId();
@@ -6098,25 +6121,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             }
         }
 
-        // ZHATuya
-        if (fpTuyaSensor.hasInCluster(TUYA_CLUSTER_ID))
-        {
-            fpTuyaSensor.endpoint = i->endpoint();
-            fpTuyaSensor.deviceId = i->deviceId();
-            fpTuyaSensor.profileId = i->profileId();
-
-            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpTuyaSensor, "ZHATuya");
-            if (!sensor || sensor->deletedState() != Sensor::StateNormal)
-            {
-                addSensorNode(node, fpTuyaSensor, "ZHATuya", modelId, manufacturer);
-            }
-            else
-            {
-                checkSensorNodeReachable(sensor);
-                checkIasEnrollmentStatus(sensor);
-            }
-        }
-
         // ZHAAirQuality
         if (fpAirQualitySensor.hasInCluster(0xFC03)      // Develco specific -> VOC Management
             || fpAirQualitySensor.hasInCluster(BOSCH_AIR_QUALITY_CLUSTER_ID)) // Bosch Air quality sensor
@@ -6164,6 +6168,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     sensorNode.fingerPrint() = fingerPrint;
     sensorNode.setModelId(modelId);
     quint16 clusterId = 0;
+    
+    if (!manufacturer.isEmpty())
+    {
+        sensorNode.setManufacturer(manufacturer);
+    }
 
     // simple check if existing device needs to be updated
     Sensor *sensor2 = nullptr;
@@ -6306,15 +6315,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.addItem(DataTypeUInt16, RStateSpectralY);
         sensorNode.addItem(DataTypeUInt16, RStateSpectralZ);
     }
-    else if (sensorNode.type().endsWith(QLatin1String("Tuya")))
-    {
-        clusterId = TUYA_CLUSTER_ID;
-
-        sensorNode.addItem(DataTypeUInt16, RStateTemperature);
-        sensorNode.addItem(DataTypeUInt16, RStateHumidity);
-        item = sensorNode.addItem(DataTypeBool, RStateAlarm);
-        item->setValue(false);
-    }
     else if (sensorNode.type().endsWith(QLatin1String("Temperature")))
     {
         if (sensorNode.fingerPrint().hasInCluster(TEMPERATURE_MEASUREMENT_CLUSTER_ID))
@@ -6399,11 +6399,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         item = sensorNode.addItem(DataTypeBool, RStateAlarm);
         item->setValue(false);
 
-        if (modelId == QLatin1String("0yu2xgi"))
+        if (R_GetProductId(&sensorNode) == QLatin1String("NAS-AB02B0 Siren"))
         {
-            clusterId = TUYA_CLUSTER_ID;
-            sensorNode.addItem(DataTypeInt16, RStateTemperature);
-            sensorNode.addItem(DataTypeUInt16, RStateHumidity);
+            sensorNode.addItem(DataTypeUInt8, RConfigMelody);
+            sensorNode.addItem(DataTypeString, RConfigPreset);
+            sensorNode.addItem(DataTypeUInt8, RConfigVolume);
+            sensorNode.addItem(DataTypeString, RConfigTempThreshold);
+            sensorNode.addItem(DataTypeString, RConfigHumiThreshold);
         }
     }
     else if (sensorNode.type().endsWith(QLatin1String("CarbonMonoxide")))
@@ -7042,11 +7044,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.setManufacturer("Sercomm Corp.");
     }
 
-    if (sensorNode.manufacturer().isEmpty() && !manufacturer.isEmpty())
-    {
-        sensorNode.setManufacturer(manufacturer);
-    }
-
     if (sensorNode.manufacturer().isEmpty())
     {
         return; // required
@@ -7054,7 +7051,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
     if (clusterId == IAS_ZONE_CLUSTER_ID)
     {
-        if (modelId == QLatin1String("button") || modelId.startsWith(QLatin1String("multi")) || modelId == QLatin1String("water") ||
+        if (modelId == QLatin1String("button") ||
+            modelId.startsWith(QLatin1String("multi")) ||
+            modelId == QLatin1String("water") ||
+            R_GetProductId(&sensorNode) == QLatin1String("NAS-AB02B0 Siren") ||
             modelId == QLatin1String("Motion Sensor-A"))
         {
             // no support for some IAS flags
@@ -12911,6 +12911,7 @@ bool DeRestPluginPrivate::addTask(const TaskItem &task)
         (task.taskType != TaskReadAttributes) &&
         (task.taskType != TaskWriteAttribute) &&
         (task.taskType != TaskViewScene) &&
+        (task.taskType != TaskTuyaRequest) &&
         (task.taskType != TaskAddScene))
     {
         for (; i != end; ++i)

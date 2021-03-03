@@ -151,6 +151,10 @@ const char *RConfigPowerup = "config/powerup";
 const char *RConfigPowerOnCt = "config/poweronct";
 const char *RConfigPowerOnLevel = "config/poweronlevel";
 const char *RConfigPreset = "config/preset";
+const char *RConfigMelody = "config/melody";
+const char *RConfigVolume = "config/volume";
+const char *RConfigTempThreshold = "config/temperaturethreshold";
+const char *RConfigHumiThreshold = "config/humiditythreshold";
 const char *RConfigReachable = "config/reachable";
 const char *RConfigSchedule = "config/schedule";
 const char *RConfigScheduleOn = "config/schedule_on";
@@ -314,6 +318,10 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigPowerOnLevel));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigPowerOnCt));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigPreset));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigMelody));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigVolume));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigTempThreshold));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigHumiThreshold));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigReachable));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigSchedule));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigScheduleOn));
@@ -492,6 +500,10 @@ static const ProductMap products[] =
     {"_TZ3000_xzqbrqk1", "TS130F", "Lonsonho", "Zigbee curtain switch"}, // https://github.com/dresden-elektronik/deconz-rest-plugin/issues/3757#issuecomment-776201454
     {"_TZ3000_ltiqubue", "TS130F", "Tuya", "Zigbee curtain switch"},
     {"_TZ3000_vd43bbfq", "TS130F", "Tuya", "QS-Zigbee-C01 Module"}, // Curtain module QS-Zigbee-C01
+
+    // Other
+    {"_TYST11_d0yu2xgi", "0yu2xgi", "NEO/Tuya", "NAS-AB02B0 Siren"},
+    {"_TZE200_d0yu2xgi", "TS0601", "NEO/Tuya", "NAS-AB02B0 Siren"},
     
     {nullptr, nullptr, nullptr, nullptr}
 };
