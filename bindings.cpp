@@ -2675,6 +2675,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("CSW_ADUROLIGHT")) ||
         // iCasa
         sensor->modelId().startsWith(QLatin1String("ICZB-RM")) ||
+        // Envilar
+        sensor->modelId() == QLatin1String("ZGR904-S") ||
         // innr
         sensor->modelId().startsWith(QLatin1String("SP ")) ||
         sensor->modelId().startsWith(QLatin1String("RC 110")) ||
@@ -2702,7 +2704,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("RC-EM")) ||
         sensor->modelId().startsWith(QLatin1String("RC-EF-3.0")) ||
         // lidl / SilverCrest
-        sensor->modelId()== QLatin1String("TY0203") ||  // Door sensor
+        sensor->modelId() == QLatin1String("TY0203") ||  // Door sensor
         sensor->modelId() == QLatin1String("TY0202") || // Motion Sensor
         sensor->modelId() == QLatin1String("TS0211") || // Door bell
         // Konke
@@ -3542,6 +3544,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
     else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")) ||
+             sensor->modelId().startsWith(QLatin1String("ZGR904-S")) ||
              sensor->modelId().startsWith(QLatin1String("ZGRC-KEY-013")) ||
              sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5001")))
     {
