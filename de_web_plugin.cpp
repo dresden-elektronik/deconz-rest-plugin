@@ -1839,8 +1839,8 @@ QVariantMap DeRestPluginPrivate::errorToMap(int id, const QString &ressource, co
     QVariantMap map;
     QVariantMap error;
     error["type"] = (double)id;
-    error["address"] = ressource;
-    error["description"] = description;
+    error["address"] = ressource.toHtmlEscaped();
+    error["description"] = description.toHtmlEscaped();
     map["error"] = error;
 
     DBG_Printf(DBG_INFO_L2, "API error %d, %s, %s\n", id, qPrintable(ressource), qPrintable(description));

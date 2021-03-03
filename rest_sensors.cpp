@@ -984,7 +984,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else
                 {
-                    rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                    rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                QString("Could not set attribute")));
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
@@ -1020,7 +1020,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                         else
                         {
-                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                        QString("Could not set attribute")));
                             rsp.httpStatus = HttpStatusBadRequest;
                             return REQ_READY_SEND;
@@ -1041,7 +1041,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                         else
                         {
-                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                        QString("Could not set attribute")));
                             rsp.httpStatus = HttpStatusBadRequest;
                             return REQ_READY_SEND;
@@ -1083,7 +1083,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else
                     {
-                        rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                        rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                    QString("Could not set attribute")));
                         rsp.httpStatus = HttpStatusBadRequest;
                         return REQ_READY_SEND;
@@ -1122,7 +1122,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                         else
                         {
-                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                        QString("Could not set attribute")));
                             rsp.httpStatus = HttpStatusBadRequest;
                             return REQ_READY_SEND;
@@ -1136,7 +1136,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                         else
                         {
-                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                        QString("Could not set attribute")));
                             rsp.httpStatus = HttpStatusBadRequest;
                             return REQ_READY_SEND;
@@ -1177,7 +1177,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                         else
                         {
-                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                        QString("Could not set attribute")));
                             rsp.httpStatus = HttpStatusBadRequest;
                             return REQ_READY_SEND;
@@ -1200,7 +1200,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                         else
                         {
-                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                        QString("Could not set attribute")));
                             rsp.httpStatus = HttpStatusBadRequest;
                             return REQ_READY_SEND;
@@ -1208,8 +1208,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else
                     {
-                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
-                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
                         rsp.httpStatus = HttpStatusBadRequest;
                         return REQ_READY_SEND;
                     }
@@ -1229,8 +1229,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         else if (modeSet == "off") { mode = 0x05; }
                         else
                         {
-                            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
-                                                       QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                       QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
                             rsp.httpStatus = HttpStatusBadRequest;
                             return REQ_READY_SEND;
                         }
@@ -1243,7 +1243,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                             else
                             {
-                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                            QString("Could not set attribute")));
                                 rsp.httpStatus = HttpStatusBadRequest;
                                 return REQ_READY_SEND;
@@ -1264,8 +1264,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         else if (modeSet == "off") { data = QByteArray("\x02", 1); }
                         else
                         {
-                            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
-                                                       QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                       QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
                             rsp.httpStatus = HttpStatusBadRequest;
                             return REQ_READY_SEND;
                         }
@@ -1277,7 +1277,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                             else
                             {
-                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                            QString("Could not set attribute")));
                                 rsp.httpStatus = HttpStatusBadRequest;
                                 return REQ_READY_SEND;
@@ -1291,8 +1291,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         if (modeSet == "heat") { data = QByteArray("\x01", 1); }
                         else
                         {
-                            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
-                                                       QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                       QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
                             rsp.httpStatus = HttpStatusBadRequest;
                             return REQ_READY_SEND;
                         }
@@ -1303,7 +1303,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                         else
                         {
-                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                        QString("Could not set attribute")));
                             rsp.httpStatus = HttpStatusBadRequest;
                             return REQ_READY_SEND;
@@ -1340,7 +1340,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                         else
                         {
-                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                        QString("Could not set attribute")));
                             rsp.httpStatus = HttpStatusBadRequest;
                             return REQ_READY_SEND;
@@ -1371,8 +1371,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         else if (modeSet == "sleep") { mode = 0x09; }
                         else
                         {
-                            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
-                                                       QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                       QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
                             rsp.httpStatus = HttpStatusBadRequest;
                             return REQ_READY_SEND;
                         }
@@ -1390,7 +1390,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                     }
                                     else
                                     {
-                                        rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                        rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                                    QString("Could not set attribute")));
                                         rsp.httpStatus = HttpStatusBadRequest;
                                         return REQ_READY_SEND;
@@ -1405,7 +1405,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                     }
                                     else
                                     {
-                                        rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                        rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                                    QString("Could not set attribute")));
                                         rsp.httpStatus = HttpStatusBadRequest;
                                         return REQ_READY_SEND;
@@ -1413,7 +1413,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                 }
                                 else
                                 {
-                                    rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                    rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                            QString("Unsupported mode for device")));
                                     rsp.httpStatus = HttpStatusBadRequest;
                                     return REQ_READY_SEND;
@@ -1516,8 +1516,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     else if (presetSet == "complex") { data = QByteArray("\x06", 1); }
                     else
                     {
-                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
-                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
                         rsp.httpStatus = HttpStatusBadRequest;
                         return REQ_READY_SEND;
                     }
@@ -1529,7 +1529,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                         else
                         {
-                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                        QString("Could not set attribute")));
                             rsp.httpStatus = HttpStatusBadRequest;
                             return REQ_READY_SEND;
@@ -1551,8 +1551,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else
                     {
-                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
-                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
                         rsp.httpStatus = HttpStatusBadRequest;
                         return REQ_READY_SEND;
                     }
@@ -1590,7 +1590,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                             else
                             {
-                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                            QString("Could not set attribute")));
                                 rsp.httpStatus = HttpStatusBadRequest;
                                 return REQ_READY_SEND;
@@ -1608,7 +1608,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                             else
                             {
-                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                            QString("Could not set attribute")));
                                 rsp.httpStatus = HttpStatusBadRequest;
                                 return REQ_READY_SEND;
@@ -1624,7 +1624,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                             else
                             {
-                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                            QString("Could not set attribute")));
                                 rsp.httpStatus = HttpStatusBadRequest;
                                 return REQ_READY_SEND;
@@ -1633,8 +1633,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else
                     {
-                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
-                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
                         rsp.httpStatus = HttpStatusBadRequest;
                         return REQ_READY_SEND;
                     }
@@ -1653,7 +1653,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                             else
                             {
-                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                            QString("Could not set attribute")));
                                 rsp.httpStatus = HttpStatusBadRequest;
                                 return REQ_READY_SEND;
@@ -1662,8 +1662,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else
                     {
-                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
-                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
                         rsp.httpStatus = HttpStatusBadRequest;
                         return REQ_READY_SEND;
                     }
@@ -1682,7 +1682,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                             else
                             {
-                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                            QString("Could not set attribute")));
                                 rsp.httpStatus = HttpStatusBadRequest;
                                 return REQ_READY_SEND;
@@ -1691,8 +1691,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else
                     {
-                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
-                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
                         rsp.httpStatus = HttpStatusBadRequest;
                         return REQ_READY_SEND;
                     }
@@ -1711,7 +1711,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                             else
                             {
-                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                            QString("Could not set attribute")));
                                 rsp.httpStatus = HttpStatusBadRequest;
                                 return REQ_READY_SEND;
@@ -1720,8 +1720,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else
                     {
-                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
-                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
                         rsp.httpStatus = HttpStatusBadRequest;
                         return REQ_READY_SEND;
                     }
@@ -1743,7 +1743,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                         else
                         {
-                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                        QString("Could not set attribute")));
                             rsp.httpStatus = HttpStatusBadRequest;
                             return REQ_READY_SEND;
@@ -1751,8 +1751,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else
                     {
-                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
-                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
                         rsp.httpStatus = HttpStatusBadRequest;
                         return REQ_READY_SEND;
                     }
@@ -1771,8 +1771,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             else if (modeSet == "floor protection") { mode = 0x03; }
                             else
                             {
-                                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
-                                                           QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                           QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
                                 rsp.httpStatus = HttpStatusBadRequest;
                                 return REQ_READY_SEND;
                             }
@@ -1785,7 +1785,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                 }
                                 else
                                 {
-                                    rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                    rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                                QString("Could not set attribute")));
                                     rsp.httpStatus = HttpStatusBadRequest;
                                     return REQ_READY_SEND;
@@ -1795,8 +1795,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else
                     {
-                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
-                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
                         rsp.httpStatus = HttpStatusBadRequest;
                         return REQ_READY_SEND;
                     }
@@ -1831,7 +1831,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                         else
                         {
-                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                        QString("Could not set attribute")));
                             rsp.httpStatus = HttpStatusBadRequest;
                             return REQ_READY_SEND;
@@ -1857,7 +1857,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                             else
                             {
-                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                            QString("Could not set attribute")));
                                 rsp.httpStatus = HttpStatusBadRequest;
                                 return REQ_READY_SEND;
@@ -1866,8 +1866,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else
                     {
-                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
-                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
                         rsp.httpStatus = HttpStatusBadRequest;
                         return REQ_READY_SEND;
                     }
@@ -1891,8 +1891,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             else if (modeSet == "smart") { mode = 0x06; }
                             else
                             {
-                                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
-                                                           QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                           QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
                                 rsp.httpStatus = HttpStatusBadRequest;
                                 return REQ_READY_SEND;
                             }
@@ -1905,7 +1905,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                 }
                                 else
                                 {
-                                    rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                    rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                                QString("Could not set attribute")));
                                     rsp.httpStatus = HttpStatusBadRequest;
                                     return REQ_READY_SEND;
@@ -1915,8 +1915,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else
                     {
-                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
-                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
                         rsp.httpStatus = HttpStatusBadRequest;
                         return REQ_READY_SEND;
                     }
@@ -1950,7 +1950,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                         else
                         {
-                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                     QString("Could not set attribute")));
                             rsp.httpStatus = HttpStatusBadRequest;
                             return REQ_READY_SEND;
@@ -1958,7 +1958,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else
                     {
-                        rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                        rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                 QString("Could not set attribute")));
                         rsp.httpStatus = HttpStatusBadRequest;
                         return REQ_READY_SEND;
@@ -1967,8 +1967,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
             }
             else
             {
-                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
-                                           QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                           QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
                 rsp.httpStatus = HttpStatusBadRequest;
                 return REQ_READY_SEND;
             }
