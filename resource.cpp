@@ -455,6 +455,7 @@ static const ProductMap products[] =
     // --------------------
     // Tuya_THD : thermostat device using Tuya cluster
     // Tuya_COVD : covering device using Tuya cluster
+    // Tuya_RPT : Repeater
     
     
     // Tuya Thermostat / TRV
@@ -493,7 +494,7 @@ static const ProductMap products[] =
     {"_TZ3000_ltiqubue", "TS130F", "Tuya", "Zigbee curtain switch"},
     {"_TZ3000_vd43bbfq", "TS130F", "Tuya", "QS-Zigbee-C01 Module"}, // Curtain module QS-Zigbee-C01
     
-    {"_TZ3000_m0vaazab", "TS0207", "Tuya", "Zigbee Repeater"},
+    {"_TZ3000_m0vaazab", "TS0207", "Tuya", "Tuya_RPT Repeater"},
     
     {nullptr, nullptr, nullptr, nullptr}
 };

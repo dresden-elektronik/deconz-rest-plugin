@@ -2357,7 +2357,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 case DEV_ID_RANGE_EXTENDER:
                     {
                         if (node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA ||
-                           R_GetProductId(&lightNode) == QLatin1String("Zigbee Repeater"))
+                           R_GetProductId(&lightNode) == QLatin1String("Tuya_RPT Repeater"))
                         {
                             lightNode.setHaEndpoint(*i);
                         }
