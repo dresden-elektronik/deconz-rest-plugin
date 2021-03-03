@@ -345,6 +345,7 @@ static const SupportedDevice supportedDevices[] = {
     // Schlage support
     { VENDOR_SCHLAGE, "BE468", schlageMacPrefix}, // Schlage BE468 Smart Lock
     { VENDOR_HEIMAN, "SF21", emberMacPrefix }, // ORVIBO SF21 smoke sensor
+    { VENDOR_3A_SMART_HOME, "ST30 Temperature Sensor", jennicMacPrefix }, // Orvibo ST30 Temp/Humidity Sensor with diplay
     { VENDOR_HEIMAN, "358e4e3e03c644709905034dae81433e", emberMacPrefix }, // Orvibo Combustible Gas Sensor
     { VENDOR_LEGRAND, "Dimmer switch w/o neutral", legrandMacPrefix }, // Legrand Dimmer switch wired
     { VENDOR_LEGRAND, "Connected outlet", legrandMacPrefix }, // Legrand Plug
@@ -2307,6 +2308,17 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                     }
                 }
                 break;
+                case DEV_ID_DOOR_LOCK_UNIT: // ORVIBO Zigbee Dry Contact CM10ZW
+                {
+                    if (!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == VENDOR_NONE)
+                    {
+                        if (hasServerOnOff)
+                        {
+                            lightNode.setHaEndpoint(*i);
+                        }
+                    }
+                }
+                break;
 
                 case DEV_ID_FAN:
                 {
@@ -2657,6 +2669,11 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         else if (lightNode.modelId() == QLatin1String("545df2981b704114945f6df1c780515a"))
         {
             lightNode.setModelId(QLatin1String("T10W1ZW switch"));
+            lightNode.setNeedSaveDatabase(true);
+        }
+        else if (lightNode.modelId() == QLatin1String("82c167c95ed746cdbd21d6817f72c593"))
+        {
+            lightNode.setModelId(QLatin1String("CM10ZW"));
             lightNode.setNeedSaveDatabase(true);
         }
 
@@ -3418,6 +3435,10 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         else if (str == QLatin1String("545df2981b704114945f6df1c780515a"))
                         {
                             str = QLatin1String("T10W1ZW switch");
+                        }
+                        else if (str == QLatin1String("82c167c95ed746cdbd21d6817f72c593"))
+                        {
+                            str = QLatin1String("CM10ZW");
                         }
 
                         if (item && !str.isEmpty() && str != item->toString())
@@ -4969,6 +4990,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                                 {
                                     modelId = QLatin1String("SF21 smoke sensor");
                                 }
+                                else if (modelId == QLatin1String("898ca74409a740b28d5841661e72268d"))
+                                {
+                                    modelId = QLatin1String("ST30 Temperature Sensor");
+                                }
                                 //This device have model ID but not manufacture name
                                 if (modelId == QLatin1String("PST03A-v2.2.5"))
                                 {
@@ -5377,6 +5402,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     if (modelId == QLatin1String("AIR") && node->nodeDescriptor().manufacturerCode() == VENDOR_BOSCH2)
                     {
                        // use manufacturer specific cluster instead
+                    }
+                    // Don't create sensor for first endpoint
+                    else if (modelId == QLatin1String("ST30 Temperature Sensor") && i->endpoint() != 0x02)
+                    {
                     }
                     else if (modelId != QLatin1String("VOC_Sensor"))
                     {
@@ -8534,6 +8563,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 else if (str == QLatin1String("98293058552c49f38ad0748541ee96ba"))
                                 {
                                     str = QLatin1String("SF21 smoke sensor");
+                                }
+                                else if (str == QLatin1String("898ca74409a740b28d5841661e72268d"))
+                                {
+                                    str = QLatin1String("ST30 Temperature Sensor");
                                 }
                                 if (!str.isEmpty())
                                 {
