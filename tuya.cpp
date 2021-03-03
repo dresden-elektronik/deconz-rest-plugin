@@ -770,12 +770,6 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 {
                     case 0x0068: // window open information
                     {
-                        quint8 valve = static_cast<quint8>(dp & 0xFF);
-                        quint8 temperature = static_cast<quint8>((dp >> 8) & 0xFF);
-                        quint8 minute = static_cast<quint8>((dp >> 16) & 0xFF);
-
-                        DBG_Printf(DBG_INFO_L2, "Tuya debug 9 : windows open info > valve state: %d Temperature threshold: %d Timer: %d\n", valve, temperature, minute);
-
                     }
                     break;
                     case 0x0101: // off / running for Moe
