@@ -397,6 +397,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "88teujp", silabs8MacPrefix }, // SEA802-Zigbee
     { VENDOR_NONE, "uhszj9s", silabs8MacPrefix }, // HiHome WZB-TRVL
     { VENDOR_NONE, "fvq6avy", silabs7MacPrefix }, // Revolt NX-4911-675 Thermostat
+    { VENDOR_NONE, "GMB-HAS-WL-B01", tiMacPrefix }, // GamaBit Ltd. water leak Sensor
     { VENDOR_NONE, "GMB-HAS-DW-B01", tiMacPrefix }, // GamaBit Ltd. Window/Door Sensor
     { VENDOR_HEIMAN, "TY0203", silabs3MacPrefix }, // Lidl/Silvercrest Smart Window or Door Sensor
     { VENDOR_HEIMAN, "TY0203", silabs7MacPrefix }, // Lidl/Silvercrest Smart Window or Door Sensor
@@ -5275,6 +5276,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("3315")) ||             // Centralite water sensor
                              modelId.startsWith(QLatin1String("SZ-WTD02N_CAR")) ||    // Sercomm water sensor
                              modelId.startsWith(QLatin1String("FLSZB-1")) ||          // Develco Water Leak detector
+                             modelId == QLatin1String("GMB-HAS-WL-B01") ||            // GamaBit Ltd. water leak Sensor
                              modelId.startsWith(QLatin1String("TS0207")))             // Tuya water leak sensor
                     {
                         fpWaterSensor.inClusters.push_back(ci->id());
