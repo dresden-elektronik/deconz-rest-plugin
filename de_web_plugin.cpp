@@ -1005,7 +1005,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             handleIdentifyClusterIndication(ind, zclFrame);
         break;
 
-        case 0xFC03:    // Develco specific -> VOC Management
+        case DEVELCO_AIR_QUALITY_CLUSTER_ID: // Develco specific -> VOC Management
         case BOSCH_AIR_QUALITY_CLUSTER_ID: // Bosch Air quality sensor
             handleAirQualityClusterIndication(ind, zclFrame);
             break;
@@ -5580,7 +5580,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 }
                     break;
 
-                case 0xFC03:    // Develco specific -> VOC Management
+                case DEVELCO_AIR_QUALITY_CLUSTER_ID:
                 {
                     if (modelId == QLatin1String("AQSZB-110"))  // Develco air quality sensor
                     {
@@ -6124,7 +6124,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         }
 
         // ZHAAirQuality
-        if (fpAirQualitySensor.hasInCluster(0xFC03)      // Develco specific -> VOC Management
+        if (fpAirQualitySensor.hasInCluster(DEVELCO_AIR_QUALITY_CLUSTER_ID)   // Develco specific -> VOC Management
             || fpAirQualitySensor.hasInCluster(BOSCH_AIR_QUALITY_CLUSTER_ID)) // Bosch Air quality sensor
         {
             fpAirQualitySensor.endpoint = i->endpoint();
@@ -6723,9 +6723,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     }
     else if (sensorNode.type().endsWith(QLatin1String("AirQuality")))
     {
-        if (sensorNode.fingerPrint().hasInCluster(0xFC03))  // Develco specific -> VOC Management
+        if (sensorNode.fingerPrint().hasInCluster(DEVELCO_AIR_QUALITY_CLUSTER_ID))
         {
-            clusterId = 0xFC03;
+            clusterId = DEVELCO_AIR_QUALITY_CLUSTER_ID;
         }
         else if (sensorNode.fingerPrint().hasInCluster(BOSCH_AIR_QUALITY_CLUSTER_ID))
         {
@@ -7817,7 +7817,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     continue;
                                 }
-
 
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {

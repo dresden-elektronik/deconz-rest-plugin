@@ -3214,9 +3214,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : BOSCH_AIR_QUALITY_CLUSTER_ID;
             }
-            else if (sensor.fingerPrint().hasInCluster(0xFC03))  // Develco air quality sensor
+            else if (sensor.fingerPrint().hasInCluster(DEVELCO_AIR_QUALITY_CLUSTER_ID))  // Develco air quality sensor
             {
-                clusterId = clusterId ? clusterId : 0xFC03;
+                clusterId = clusterId ? clusterId : DEVELCO_AIR_QUALITY_CLUSTER_ID;
             }
             item = sensor.addItem(DataTypeString, RStateAirQuality);
             item = sensor.addItem(DataTypeUInt16, RStateAirQualityPpb);
