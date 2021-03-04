@@ -177,8 +177,8 @@ bool DeRestPluginPrivate::addTaskSimpleMeteringReadWriteAttribute(TaskItem &task
 
     if (readOrWriteCmd == deCONZ::ZclWriteAttributesId)
     {
-        stream << static_cast<quint16>(attrId);
-        stream << static_cast<quint8>(attrType);
+        stream << attrId;
+        stream << attrType;
         
         deCONZ::ZclAttribute attr(attrId, attrType, QLatin1String(""), deCONZ::ZclWrite, true);
         attr.setValue(QVariant(attrValue));

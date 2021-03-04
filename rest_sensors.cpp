@@ -1197,7 +1197,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         qint16 coolsetpoint = map[pi.key()].toInt(&ok);
 
-                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, 0x0011, deCONZ::Zcl16BitInt, coolsetpoint))
+                        if (ok && addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, 0x0011, deCONZ::Zcl16BitInt, coolsetpoint))
                         {
                             updated = true;
                         }
@@ -1631,7 +1631,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             qint16 externalMeasurement = map[pi.key()].toInt(&ok);
 
-                            if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_DANFOSS, 0x4015, deCONZ::Zcl16BitInt, externalMeasurement))
+                            if (ok && addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_DANFOSS, 0x4015, deCONZ::Zcl16BitInt, externalMeasurement))
                             {
                                 updated = true;
                             }
@@ -1837,7 +1837,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             quint16 pulseConfiguration = map[pi.key()].toUInt(&ok);
 
-                            if (addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0300, deCONZ::Zcl16BitUint, pulseConfiguration, VENDOR_DEVELCO))
+                            if (ok && addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0300, deCONZ::Zcl16BitUint, pulseConfiguration, VENDOR_DEVELCO))
                             {
                                 updated = true;
                             }
@@ -1867,14 +1867,14 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             quint8 mode = map[pi.key()].toUInt(&ok);
                             quint16 interfaceMode = 0;
                             
-                            if (mode == 1) { interfaceMode = 0x0000; }          // Pulse Counting on an Electricity Meter – Unit KWh
-                            else if (mode == 2) { interfaceMode = 0x0001; }     // Pulse Counting on a Gas Meter – Unit m3
-                            else if (mode == 3) { interfaceMode = 0x0002; }     // Pulse Counting on a Water Meter – Unit m3
-                            else if (mode == 4) { interfaceMode = 0x0100; }     // Kamstrup KMP Protocol
-                            else if (mode == 5) { interfaceMode = 0x0101; }     // Not Supported - Linky Protocol
-                            else if (mode == 6) { interfaceMode = 0x0102; }     // DLMS-COSEM - IEC62056-21 mod A
-                            else if (mode == 7) { interfaceMode = 0x0103; }     // P1 Dutch Standard – DSMR 2.3 Version
-                            else if (mode == 8) { interfaceMode = 0x0104; }     // P1 Dutch Standard – DSMR 4.0 Version
+                            if (ok && mode == 1) { interfaceMode = 0x0000; }          // Pulse Counting on an Electricity Meter – Unit KWh
+                            else if (ok && mode == 2) { interfaceMode = 0x0001; }     // Pulse Counting on a Gas Meter – Unit m3
+                            else if (ok && mode == 3) { interfaceMode = 0x0002; }     // Pulse Counting on a Water Meter – Unit m3
+                            else if (ok && mode == 4) { interfaceMode = 0x0100; }     // Kamstrup KMP Protocol
+                            else if (ok && mode == 5) { interfaceMode = 0x0101; }     // Not Supported - Linky Protocol
+                            else if (ok && mode == 6) { interfaceMode = 0x0102; }     // DLMS-COSEM - IEC62056-21 mod A
+                            else if (ok && mode == 7) { interfaceMode = 0x0103; }     // P1 Dutch Standard – DSMR 2.3 Version
+                            else if (ok && mode == 8) { interfaceMode = 0x0104; }     // P1 Dutch Standard – DSMR 4.0 Version
                             else
                             {
                                 rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
