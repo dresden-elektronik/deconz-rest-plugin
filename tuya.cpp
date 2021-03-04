@@ -470,8 +470,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     // Dimmer level for mode 1
                     case 0x0202:
                     {
-                        if (R_GetProductId(LightNode) == QLatin1String("Tuya_DIMSWITCH Earda Dimmer") ||
-                            R_GetProductId(LightNode) == QLatin1String("Tuya_DIMSWITCH EDM-1ZAA-EU"))
+                        if (R_GetProductId(lightNode) == QLatin1String("Tuya_DIMSWITCH Earda Dimmer") ||
+                            R_GetProductId(lightNode) == QLatin1String("Tuya_DIMSWITCH EDM-1ZAA-EU"))
                         {
                             quint8 bri = static_cast<quint8>(data * 254 / 1000); // 0 to 1000 value
                             
@@ -489,7 +489,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     // Dimmer level for mode 2
                     case 0x0203:
                     {
-                        if (R_GetProductId(LightNode) == QLatin1String("Tuya_DIMSWITCH Not model found yet"))
+                        if (R_GetProductId(lightNode) == QLatin1String("Tuya_DIMSWITCH Not model found yet"))
                         {
                             quint8 bri = static_cast<quint8>(data * 254 / 1000); // 0 to 1000 value
                             
