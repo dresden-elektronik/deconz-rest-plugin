@@ -2611,6 +2611,9 @@ controller device, that supports a keypad and LCD screen.</description>
 					<attribute id="0x0011" name="PIR Unoccupied To Occupied Delay" type="u16" range="0x00,0xfffe" access="rw" required="o" default="0x00">
 						<description>The PIRUnoccupiedToOccupiedDelay attribute is 16-bits in length and specifies the time delay, in seconds, before the PIR sensor changes to its unoccupied state when the sensed area becomes occupied.</description>
 					</attribute>
+					<attribute id="0x0012" name="PIR Unoccupied To Occupied Threshold" type="u8" range="0x01,0xfe" access="rw" required="o" default="0x01">
+						<description>The PIRUnoccupiedToOccupiedThreshold attribute is 8 bits in length and specifies the number of movement detection events that must occur in the period PIRUnoccupiedToOccupiedDelay, before the PIR sensor changes to its occupied state.</description>
+					</attribute>
 				</attribute-set>
 				<attribute-set id="0x0020" description="Ultrasonic configuration">
 					<attribute id="0x0020" name="Ultrasonic Occupied To Unoccupied Delay" type="u8" range="0x00,0xfe" access="rw" required="o" default="0x00">
@@ -2625,9 +2628,9 @@ controller device, that supports a keypad and LCD screen.</description>
 					<attribute id="0x0031" name="Sensitivity max." type="u8" default="0" access="rw" required="o" mfcode="0x100b"></attribute>
 				</attribute-set>
 				<attribute-set id="0xfc00" description="Develco Specific" mfcode="0x1015">
-					<attribute id="0xfc00" name="ArmThreshold_MinTemperature" type="sint16" access="rw" range="0x954d,0x7ffe" required="m" mfcode="0x1015"></attribute>
-					<attribute id="0xfc01" name="ArmThreshold_MaxTemperature" type="sint16" access="rw" range="0x954d,0x7ffe" required="m" mfcode="0x1015"></attribute>
-					<attribute id="0xfc02" name="Target Level" type="uint16" access="rw" range="0x0002,0xfffd" required="m" mfcode="0x1015"></attribute>
+					<attribute id="0xfc00" name="ArmThreshold_MinTemperature" type="s16" access="rw" range="0x954d,0x7ffe" required="m" mfcode="0x1015"></attribute>
+					<attribute id="0xfc01" name="ArmThreshold_MaxTemperature" type="s16" access="rw" range="0x954d,0x7ffe" required="m" mfcode="0x1015"></attribute>
+					<attribute id="0xfc02" name="Target Level" type="u16" access="rw" range="0x0002,0xfffd" required="m" mfcode="0x1015"></attribute>
 				</attribute-set>
 			</server>
 			<client>
@@ -3570,9 +3573,9 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 				<description>Set fil pilote mode</description>
 				<payload>
 					<attribute id="0x0000" type="enum8" name="Mode" required="m" default="0x00">
-						<value name="Confort" value="0x00"></value>
-						<value name="Confort -1" value="0x01"></value>
-						<value name="Confort -2" value="0x02"></value>
+						<value name="Comfort" value="0x00"></value>
+						<value name="Comfort -1" value="0x01"></value>
+						<value name="Comfort -2" value="0x02"></value>
 						<value name="Eco" value="0x03"></value>
 						<value name="Hors-Gel" value="0x04"></value>
 						<value name="Off" value="0x05"></value>
@@ -3582,9 +3585,9 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 
 			<attribute id="0x0000" type="enum8" name="Mode" default="0x00" access="r" required="m">
 				<description>Heating mode</description>
-					<value name="Confort" value="0x00"></value>
-					<value name="Confort -1" value="0x01"></value>
-					<value name="Confort -2" value="0x02"></value>
+					<value name="Comfort" value="0x00"></value>
+					<value name="Comfort -1" value="0x01"></value>
+					<value name="Comfort -2" value="0x02"></value>
 					<value name="Eco" value="0x03"></value>
 					<value name="Hors-Gel" value="0x04"></value>
 					<value name="Off" value="0x05"></value>
