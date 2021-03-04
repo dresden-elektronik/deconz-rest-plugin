@@ -5227,7 +5227,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpAlarmSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelId == QLatin1String("GMB-HAS-VB-B01")))               // GamaBit Ltd. Vibration Sensor
+                    else if (modelId == QLatin1String("GMB-HAS-VB-B01"))                // GamaBit Ltd. Vibration Sensor
                     {
                         fpVibrationSensor.inClusters.push_back(ci->id());
                     }
