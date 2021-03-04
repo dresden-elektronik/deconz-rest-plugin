@@ -399,6 +399,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "fvq6avy", silabs7MacPrefix }, // Revolt NX-4911-675 Thermostat
     { VENDOR_NONE, "GMB-HAS-WL-B01", tiMacPrefix }, // GamaBit Ltd. water leak Sensor
     { VENDOR_NONE, "GMB-HAS-DW-B01", tiMacPrefix }, // GamaBit Ltd. Window/Door Sensor
+    { VENDOR_NONE, "GMB-HAS-VB-B01", tiMacPrefix }, // GamaBit Ltd. Vibration Sensor
     { VENDOR_HEIMAN, "TY0203", silabs3MacPrefix }, // Lidl/Silvercrest Smart Window or Door Sensor
     { VENDOR_HEIMAN, "TY0203", silabs7MacPrefix }, // Lidl/Silvercrest Smart Window or Door Sensor
     { VENDOR_HEIMAN, "TY0202", silabs3MacPrefix }, // Lidl/Silvercrest Smart Motion Sensor
@@ -5287,6 +5288,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId == QLatin1String("902010/29"))                     // Bitron outdoor siren
                     {
                         fpAlarmSensor.inClusters.push_back(ci->id());
+                    }
+                    else if (modelId == QLatin1String("GMB-HAS-VB-B01"))                // GamaBit Ltd. Vibration Sensor
+                    {
+                        fpVibrationSensor.inClusters.push_back(ci->id());
                     }
                     else if ((manufacturer == QLatin1String("Samjin") && modelId == QLatin1String("button")) ||
                               modelId == QLatin1String("Keyfob-ZB3.0") || modelId == QLatin1String("TS0211"))
