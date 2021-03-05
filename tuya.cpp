@@ -355,6 +355,43 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             {
                 lightNode = nullptr;
             }
+            if (R_GetProductId(sensorNode) == QLatin1String("NAS-AB02B0 Siren"))
+            {
+                if (dp == 0x0168) // Siren alarm
+                {
+                    sensorNode = nullptr;
+                }
+                else
+                {
+                    lightNode = nullptr;
+                }
+            }
+        }
+
+        //Some device are more than 1 sensors for the same endpoint, so trying to take the good one
+        if (sensorNode && R_GetProductId(sensorNode) == QLatin1String("NAS-AB02B0 Siren"))
+        {
+            switch (dp)
+            {
+                //temperature
+                case 0x0269:
+                {
+                    sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint(), QLatin1String("ZHATemperature"));
+                }
+                break;
+                //Humidity
+                case 0x026A:
+                {
+                    sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint(), QLatin1String("ZHAHumidity"));
+                }
+                break;
+                default:
+                // All other are for the alarm sensor
+                {
+                    sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint(), QLatin1String("ZHAAlarm"));
+                }
+                break;
+            }
         }
 
         if (lightNode)
@@ -416,6 +453,23 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
 
                 }
             }
+            //siren
+            else if (R_GetProductId(lightNode) == QLatin1String("NAS-AB02B0 Siren"))
+            {
+                if (dp == 0x0168)
+                {
+                    if (data == 0x00)
+                    {
+                        lightNode->setValue(RStateAlert, QString("none"));
+                    }
+                    else
+                    {
+                        lightNode->setValue(RStateAlert, QString("lselect"));
+                    }
+
+                     update = true;
+                }
+            }
             else
             {
                 // Switch device 1/2/3 gangs
@@ -474,258 +528,104 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         }
         else if (sensorNode)
         {
-            switch (dp)
+            //Special part just for siren
+            if (R_GetProductId(sensorNode) == QLatin1String("NAS-AB02B0 Siren")) //siren
             {
-                case 0x0068: // window open information
+                switch (dp)
                 {
-                    quint8 valve = static_cast<quint8>(dp & 0xFF);
-                    quint8 temperature = static_cast<quint8>((dp >> 8) & 0xFF);
-                    quint8 minute = static_cast<quint8>((dp >> 16) & 0xFF); // TODO, U16 >> 16 ... this is always 0?!
-
-                    DBG_Printf(DBG_INFO, "Tuya debug 9 : windows open info: %d %d %d\n", valve, temperature, minute);
-
-                }
-                break;
-                case 0x0101: // off / running for Moe
-                {
-                    QString mode;
-                    if      (data == 0) { mode = QLatin1String("off"); }
-                    else if (data == 1) { mode = QLatin1String("heat"); }
-                    else
+                    case 0x0171: // Alarm siren temperature
                     {
-                        return;
+                        ResourceItem *item = sensorNode->item(RConfigPreset);
+                        
+                        if (item)
+                        {
+                            QString mode;
+                            if (data == 0)
+                            {
+                                if (item->toString() == "both")
+                                {
+                                    mode = QLatin1String("humidity");
+                                }
+                                else
+                                {
+                                    mode = QLatin1String("off");
+                                }
+                            }
+                            else if (data == 1)
+                            {
+                                if (item->toString() == "humidity")
+                                {
+                                    mode = QLatin1String("both");
+                                }
+                                else
+                                {
+                                    mode = QLatin1String("temperature");
+                                }
+                            }
+                            else
+                            {
+                                return;
+                            }
+
+                            if (item->toString() != mode)
+                            {
+                                update = true;
+                                
+                                item->setValue(mode);
+                                Event e(RSensors, RConfigPreset, sensorNode->id(), item);
+                                enqueueEvent(e);
+                            }
+                        }
                     }
-
-                    ResourceItem *item = sensorNode->item(RConfigMode);
-
-                    if (item && item->toString() != mode)
+                    break;
+                    case 0x0172: // Alarm siren humidity
                     {
-                        item->setValue(mode);
-                        enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                        ResourceItem *item = sensorNode->item(RConfigPreset);
+                        
+                        if (item)
+                        {
+                            QString mode;
+                            if (data == 0)
+                            {
+                                if (item->toString() == "both")
+                                {
+                                    mode = QLatin1String("temperature");
+                                }
+                                else
+                                {
+                                    mode = QLatin1String("off");
+                                }
+                            }
+                            else if (data == 1)
+                            {
+                                if (item->toString() == "temperature")
+                                {
+                                    mode = QLatin1String("both");
+                                }
+                                else
+                                {
+                                    mode = QLatin1String("humidity");
+                                }
+                            }
+                            else
+                            {
+                                return;
+                            }
+
+                            if (item->toString() != mode)
+                            {
+                                update = true;
+                                
+                                item->setValue(mode);
+                                Event e(RSensors, RConfigPreset, sensorNode->id(), item);
+                                enqueueEvent(e);
+                            }
+                        }
                     }
-                }
-                break;
-                case 0x0107 : // Childlock status
-                {
-                    bool locked = (data == 0) ? false : true;
-                    ResourceItem *item = sensorNode->item(RConfigLocked);
-
-                    if (item && item->toBool() != locked)
+                    break;
+                    case 0x0269: // siren temperature
                     {
-                        item->setValue(locked);
-                        Event e(RSensors, RConfigLocked, sensorNode->id(), item);
-                        enqueueEvent(e);
-                    }
-                }
-                break;
-                case 0x0112 : // Window open status
-                {
-                    bool winopen = (data == 0) ? false : true;
-                    ResourceItem *item = sensorNode->item(RConfigWindowOpen);
-
-                    if (item && item->toBool() != winopen)
-                    {
-                        item->setValue(winopen);
-                        Event e(RSensors, RConfigWindowOpen, sensorNode->id(), item);
-                        enqueueEvent(e);
-                    }
-                }
-                break;
-                case 0x0114: // Valve state on / off
-                {
-                    bool onoff = false;
-                    if (data == 1) { onoff = true; }
-
-                    ResourceItem *item = sensorNode->item(RConfigSetValve);
-
-                    if (item && item->toBool() != onoff)
-                    {
-                        item->setValue(onoff);
-                        Event e(RSensors, RConfigSetValve, sensorNode->id(), item);
-                        enqueueEvent(e);
-                    }
-                }
-                break;
-                case 0x0128 : // Childlock status for moe
-                {
-                    bool locked = (data == 0) ? false : true;
-                    ResourceItem *item = sensorNode->item(RConfigLocked);
-
-                    if (item && item->toBool() != locked)
-                    {
-                        item->setValue(locked);
-                        Event e(RSensors, RConfigLocked, sensorNode->id(), item);
-                        enqueueEvent(e);
-                    }
-                }
-                break;
-                case 0x0165: // off / on > [off = off, on = heat]
-                {
-                    QString mode;
-                    if      (data == 0) { mode = QLatin1String("off"); }
-                    else if (data == 1) { mode = QLatin1String("manu"); }
-                    else
-                    {
-                        return;
-                    }
-
-                    ResourceItem *item = sensorNode->item(RConfigMode);
-
-                    if (item && item->toString() != mode && data == 0) // Only change if off
-                    {
-                        item->setValue(mode);
-                        enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
-                    }
-                }
-                break;
-                case 0x0168: // Alarm
-                {
-                    bool alarm = false;
-                    if (data == 1) { alarm = true; }
-
-                    ResourceItem *item = sensorNode->item(RStateAlarm);
-
-                    if (item && item->toBool() != alarm)
-                    {
-                        item->setValue(alarm);
-                        Event e(RSensors, RStateAlarm, sensorNode->id(), item);
-                        enqueueEvent(e);
-                    }
-                }
-                break;
-                case 0x016A: // Away mode
-                {
-                    //bool away = false;
-                    //if (data == 1) { away = true; }
-                }
-                break;
-                case 0x016c: // manual / auto
-                {
-                    QString mode;
-                    if      (data == 0) { mode = QLatin1String("heat"); } // was "manu"
-                    else if (data == 1) { mode = QLatin1String("auto"); } // back to "auto"
-                    else
-                    {
-                        return;
-                    }
-
-                    ResourceItem *item = sensorNode->item(RConfigMode);
-
-                    if (item && item->toString() != mode)
-                    {
-                        item->setValue(mode);
-                        enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
-                    }
-                }
-                break;
-                case 0x016E: // Low battery
-                {
-                    bool bat = false;
-                    if (data == 1) { bat = true; }
-
-                    ResourceItem *item = sensorNode->item(RStateLowBattery);
-
-                    if (item && item->toBool() != bat)
-                    {
-                        item->setValue(bat);
-                        Event e(RSensors, RStateLowBattery, sensorNode->id(), item);
-                        enqueueEvent(e);
-                    }
-                }
-                break;
-                case 0x0202: // Thermostat heatsetpoint
-                {
-                    qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
-                    ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
-
-                    if (item && item->toNumber() != temp)
-                    {
-                        item->setValue(temp);
-                        Event e(RSensors, RConfigHeatSetpoint, sensorNode->id(), item);
-                        enqueueEvent(e);
-
-                    }
-                }
-                break;
-                case 0x0203: // Thermostat current temperature
-                {
-                    qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
-                    ResourceItem *item = sensorNode->item(RStateTemperature);
-
-                    if (item && item->toNumber() != temp)
-                    {
-                        item->setValue(temp);
-                        Event e(RSensors, RStateTemperature, sensorNode->id(), item);
-                        enqueueEvent(e);
-
-                    }
-                }
-                break;
-                case 0x0210: // Thermostat heatsetpoint for moe
-                {
-                    qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 100;
-                    ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
-
-                    if (item && item->toNumber() != temp)
-                    {
-                        item->setValue(temp);
-                        Event e(RSensors, RConfigHeatSetpoint, sensorNode->id(), item);
-                        enqueueEvent(e);
-                    }
-                }
-                break;
-                case 0x0215: // battery
-                {
-                    quint8 bat = (static_cast<qint8>(data & 0xFF));
-                    if (bat > 100) { bat = 100; }
-                    ResourceItem *item = sensorNode->item(RConfigBattery);
-
-                    if (!item && bat > 0) // valid value: create resource item
-                    {
-                        item = sensorNode->addItem(DataTypeUInt8, RConfigBattery);
-                    }
-
-                    if (item && item->toNumber() != bat)
-                    {
-                        item->setValue(bat);
-                        Event e(RSensors, RConfigBattery, sensorNode->id(), item);
-                        enqueueEvent(e);
-                    }
-                }
-                break;
-                case 0x0218: // Thermostat current temperature for moe
-                {
-                    qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
-                    ResourceItem *item = sensorNode->item(RStateTemperature);
-
-                    if (item && item->toNumber() != temp)
-                    {
-                        item->setValue(temp);
-                        Event e(RSensors, RStateTemperature, sensorNode->id(), item);
-                        enqueueEvent(e);
-                    }
-                }
-                break;
-                case 0x022c : // temperature calibration (offset)
-                {
-                    qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
-                    ResourceItem *item = sensorNode->item(RConfigOffset);
-
-                    if (item && item->toNumber() != temp)
-                    {
-                        item->setValue(temp);
-                        Event e(RSensors, RConfigOffset, sensorNode->id(), item);
-                        enqueueEvent(e);
-                    }
-                }
-                break;
-                case 0x0266: // min temperature limit
-                {
-                    //Can be Temperature for some device
-                    if (R_GetProductId(sensorNode) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
-                        R_GetProductId(sensorNode) == QLatin1String("Tuya_THD WZB-TRVL TRV"))
-                    {
-                        qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
+                        qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10 + 200;
                         ResourceItem *item = sensorNode->item(RStateTemperature);
 
                         if (item && item->toNumber() != temp)
@@ -733,18 +633,282 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             item->setValue(temp);
                             Event e(RSensors, RStateTemperature, sensorNode->id(), item);
                             enqueueEvent(e);
+                            update = true;
+                        }
 
+                    }
+                    break;
+                    case 0x026A : // Siren Humidity
+                    {
+                        qint16 Hum = static_cast<qint16>(data & 0xFFFF) * 100;
+                        ResourceItem *item = sensorNode->item(RStateHumidity);
+
+                        if (item && item->toNumber() != Hum)
+                        {
+                            item->setValue(Hum);
+                            Event e(RSensors, RStateHumidity, sensorNode->id(), item);
+                            enqueueEvent(e);
+                            update = true;
                         }
                     }
-                }
-                break;
-                case 0x0267: // max temperature limit
-                {
-                    //can be setpoint for some device
-                    if (R_GetProductId(sensorNode) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
-                        R_GetProductId(sensorNode) == QLatin1String("Tuya_THD WZB-TRVL TRV"))
+                    break;
+                    case 0x026B : // min alarm temperature threshold
+                    case 0x026C : // max alarm temperature threshold
                     {
-                        qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
+                        qint8 min = static_cast<qint8>(data & 0xFF);
+                        ResourceItem *item = sensorNode->item(RConfigTempThreshold);
+
+                        if (item)
+                        {
+                            QString values;
+                            
+                            if (item->toString().isEmpty())
+                            {
+                                values = QString("0,0");
+                            }
+                            else
+                            {
+                                values = item->toString();
+                            }
+                            
+                            QStringList valuesList = values.split(",");
+                            if (valuesList.size() != 2)
+                            {
+                                valuesList = QStringList();
+                                valuesList << "0" << "0" ;
+                            }
+
+                            DBG_Printf(DBG_INFO, "Tuya debug 33 : %s\n", qPrintable(valuesList.join(',')));
+                            
+                            if (dp == 0x026B) { valuesList[0] = QString::number(min); }
+                            if (dp == 0x026C) { valuesList[1] = QString::number(min); }
+                            
+                            DBG_Printf(DBG_INFO, "Tuya debug 34 : %s\n", qPrintable(valuesList.join(',')));
+                            
+                            item->setValue(valuesList.join(','));
+                            Event e(RSensors, RConfigTempThreshold, sensorNode->id(), item);
+                            enqueueEvent(e);
+                            
+                            update = true;
+                        }
+                    }
+                    break;
+                    case 0x026D : // min alarm humidity threshold
+                    case 0x026E : // max alarm humidity threshold
+                    {
+                        qint8 min = static_cast<qint8>(data & 0xFF);
+                        ResourceItem *item = sensorNode->item(RConfigHumiThreshold);
+
+                        if (item)
+                        {
+                            QString values;
+                            
+                            if (item->toString().isEmpty())
+                            {
+                                values = QString("0,0");
+                            }
+                            else
+                            {
+                                values = item->toString();
+                            }
+                            
+                            QStringList valuesList = values.split(",");
+                            if (valuesList.size() != 2)
+                            {
+                                valuesList = QStringList();
+                                valuesList << "0" << "0";
+                            }
+                            
+                            if (dp == 0x026D) { valuesList[0] = QString::number(min); }
+                            if (dp == 0x026E) { valuesList[1] = QString::number(min); }
+                            
+                            item->setValue(valuesList.join(','));
+                            Event e(RSensors, RConfigHumiThreshold, sensorNode->id(), item);
+                            enqueueEvent(e);
+                            
+                            update = true;
+                        }
+                    }
+                    break;
+                    case 0x0466 : // melody
+                    {
+                        quint8 melody = static_cast<qint8>(data & 0xFF);
+
+                        ResourceItem *item = sensorNode->item(RConfigMelody);
+
+                        if (item && item->toNumber() != melody)
+                        {
+                            item->setValue(melody);
+                            enqueueEvent(Event(RSensors, RConfigMelody, sensorNode->id(), item));
+                            update = true;
+                        }
+                        
+                    }
+                    break;
+                    case 0x0474 : // volume
+                    {
+                        quint8 volume = static_cast<qint8>(data & 0xFF);
+
+                        ResourceItem *item = sensorNode->item(RConfigVolume);
+
+                        if (item && item->toNumber() != volume)
+                        {
+                            item->setValue(volume);
+                            enqueueEvent(Event(RSensors, RConfigVolume, sensorNode->id(), item));
+                            update = true;
+                        }
+                    }
+                    break;
+                    default:
+                    break;
+                }
+            }
+            else
+            {
+                // Generic part
+                switch (dp)
+                {
+                    case 0x0068: // window open information
+                    {
+                    }
+                    break;
+                    case 0x0101: // off / running for Moe
+                    {
+                        QString mode;
+                        if      (data == 0) { mode = QLatin1String("off"); }
+                        else if (data == 1) { mode = QLatin1String("heat"); }
+                        else
+                        {
+                            return;
+                        }
+
+                        ResourceItem *item = sensorNode->item(RConfigMode);
+
+                        if (item && item->toString() != mode)
+                        {
+                            item->setValue(mode);
+                            enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                        }
+                    }
+                    break;
+                    case 0x0107 : // Childlock status
+                    {
+                        bool locked = (data == 0) ? false : true;
+                        ResourceItem *item = sensorNode->item(RConfigLocked);
+
+                        if (item && item->toBool() != locked)
+                        {
+                            item->setValue(locked);
+                            Event e(RSensors, RConfigLocked, sensorNode->id(), item);
+                            enqueueEvent(e);
+                        }
+                    }
+                    break;
+                    case 0x0112 : // Window open status
+                    {
+                        bool winopen = (data == 0) ? false : true;
+                        ResourceItem *item = sensorNode->item(RConfigWindowOpen);
+
+                        if (item && item->toBool() != winopen)
+                        {
+                            item->setValue(winopen);
+                            Event e(RSensors, RConfigWindowOpen, sensorNode->id(), item);
+                            enqueueEvent(e);
+                        }
+                    }
+                    break;
+                    case 0x0114: // Valve state on / off
+                    {
+                        bool onoff = false;
+                        if (data == 1) { onoff = true; }
+
+                        ResourceItem *item = sensorNode->item(RConfigSetValve);
+
+                        if (item && item->toBool() != onoff)
+                        {
+                            item->setValue(onoff);
+                            Event e(RSensors, RConfigSetValve, sensorNode->id(), item);
+                            enqueueEvent(e);
+                            update = true;
+                        }
+                    }
+                    break;
+                    case 0x0128 : // Childlock status for moe
+                    {
+                        bool locked = (data == 0) ? false : true;
+                        ResourceItem *item = sensorNode->item(RConfigLocked);
+
+                        if (item && item->toBool() != locked)
+                        {
+                            item->setValue(locked);
+                            Event e(RSensors, RConfigLocked, sensorNode->id(), item);
+                            enqueueEvent(e);
+                        }
+                    }
+                    break;
+                    case 0x0165: // off / on > [off = off, on = heat]
+                    {
+                        QString mode;
+                        if      (data == 0) { mode = QLatin1String("off"); }
+                        else if (data == 1) { mode = QLatin1String("manu"); }
+                        else
+                        {
+                            return;
+                        }
+
+                        ResourceItem *item = sensorNode->item(RConfigMode);
+
+                        if (item && item->toString() != mode && data == 0) // Only change if off
+                        {
+                            item->setValue(mode);
+                            enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                        }
+                    }
+                    break;
+                    case 0x016A: // Away mode
+                    {
+                        //bool away = false;
+                        //if (data == 1) { away = true; }
+                    }
+                    break;
+                    case 0x016c: // manual / auto
+                    {
+                        QString mode;
+                        if      (data == 0) { mode = QLatin1String("heat"); } // was "manu"
+                        else if (data == 1) { mode = QLatin1String("auto"); } // back to "auto"
+                        else
+                        {
+                            return;
+                        }
+
+                        ResourceItem *item = sensorNode->item(RConfigMode);
+
+                        if (item && item->toString() != mode)
+                        {
+                            item->setValue(mode);
+                            enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                        }
+                    }
+                    break;
+                    case 0x016E: // Low battery
+                    {
+                        bool bat = false;
+                        if (data == 1) { bat = true; }
+
+                        ResourceItem *item = sensorNode->item(RStateLowBattery);
+
+                        if (item && item->toBool() != bat)
+                        {
+                            item->setValue(bat);
+                            Event e(RSensors, RStateLowBattery, sensorNode->id(), item);
+                            enqueueEvent(e);
+                            update = true;
+                        }
+                    }
+                    break;
+                    case 0x0202: // Thermostat heatsetpoint
+                    {
+                        qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
                         ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
 
                         if (item && item->toNumber() != temp)
@@ -755,13 +919,10 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
 
                         }
                     }
-                }
-                break;
-                case 0x0269: // siren temperature, Boost time
-                {
-                    if (sensorNode->modelId() == QLatin1String("0yu2xgi")) //siren
+                    break;
+                    case 0x0203: // Thermostat current temperature
                     {
-                        qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
+                        qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
                         ResourceItem *item = sensorNode->item(RStateTemperature);
 
                         if (item && item->toNumber() != temp)
@@ -769,127 +930,219 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             item->setValue(temp);
                             Event e(RSensors, RStateTemperature, sensorNode->id(), item);
                             enqueueEvent(e);
+                            update = true;
                         }
                     }
-                }
-                break;
-                case 0x026A : // Siren Humidity
-                {
-                    qint16 Hum = (static_cast<qint16>(data & 0xFFFF)) * 10;
-                    ResourceItem *item = sensorNode->item(RStateHumidity);
-
-                    if (item && item->toNumber() != Hum)
+                    break;
+                    case 0x0210: // Thermostat heatsetpoint for moe
                     {
-                        item->setValue(Hum);
-                        Event e(RSensors, RStateHumidity, sensorNode->id(), item);
-                        enqueueEvent(e);
-                    }
-                }
-                break;
-                case 0x026D : // Valve position
-                {
-                    quint8 valve = (static_cast<qint8>(data & 0xFF));
-                    bool on = valve > 3;
+                        qint16 temp = static_cast<qint16>(data & 0xFFFF) * 100;
+                        ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
 
-                    ResourceItem *item = sensorNode->item(RStateOn);
-                    if (item)
-                    {
-                        if (item->toBool() != on)
+                        if (item && item->toNumber() != temp)
                         {
-                            item->setValue(on);
-                            enqueueEvent(Event(RSensors, RStateOn, sensorNode->id(), item));
+                            item->setValue(temp);
+                            Event e(RSensors, RConfigHeatSetpoint, sensorNode->id(), item);
+                            enqueueEvent(e);
+                            update = true;
                         }
                     }
-                    item = sensorNode->item(RStateValve);
-                    if (item && item->toNumber() != valve)
+                    break;
+                    case 0x0215: // battery
                     {
-                        item->setValue(valve);
-                        enqueueEvent(Event(RSensors, RStateValve, sensorNode->id(), item));
+                        quint8 bat = static_cast<qint8>(data & 0xFF);
+                        if (bat > 100) { bat = 100; }
+                        ResourceItem *item = sensorNode->item(RConfigBattery);
+
+                        if (!item && bat > 0) // valid value: create resource item
+                        {
+                            item = sensorNode->addItem(DataTypeUInt8, RConfigBattery);
+                        }
+
+                        if (item && item->toNumber() != bat)
+                        {
+                            item->setValue(bat);
+                            Event e(RSensors, RConfigBattery, sensorNode->id(), item);
+                            enqueueEvent(e);
+                        }
                     }
+                    break;
+                    case 0x0218: // Thermostat current temperature for moe
+                    {
+                        qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
+                        ResourceItem *item = sensorNode->item(RStateTemperature);
+
+                        if (item && item->toNumber() != temp)
+                        {
+                            item->setValue(temp);
+                            Event e(RSensors, RStateTemperature, sensorNode->id(), item);
+                            enqueueEvent(e);
+                            update = true;
+                        }
+                    }
+                    break;
+                    case 0x022c : // temperature calibration (offset)
+                    {
+                        qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
+                        ResourceItem *item = sensorNode->item(RConfigOffset);
+
+                        if (item && item->toNumber() != temp)
+                        {
+                            item->setValue(temp);
+                            Event e(RSensors, RConfigOffset, sensorNode->id(), item);
+                            enqueueEvent(e);
+                        }
+                    }
+                    break;
+                    case 0x0266: // min temperature limit
+                    {
+                        //Can be Temperature for some device
+                        if (sensorNode->manufacturer().endsWith(QLatin1String("GbxAXL2")) ||
+                            sensorNode->manufacturer().endsWith(QLatin1String("uhszj9s")) ||
+                            sensorNode->manufacturer().endsWith(QLatin1String("88teujp")))
+                        {
+                            qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
+                            ResourceItem *item = sensorNode->item(RStateTemperature);
+
+                            if (item && item->toNumber() != temp)
+                            {
+                                item->setValue(temp);
+                                Event e(RSensors, RStateTemperature, sensorNode->id(), item);
+                                enqueueEvent(e);
+
+                            }
+                        }
+                    }
+                    break;
+                    case 0x0267: // max temperature limit
+                    {
+                        //can be setpoint for some device
+                        if (sensorNode->manufacturer().endsWith(QLatin1String("GbxAXL2")) ||
+                            sensorNode->manufacturer().endsWith(QLatin1String("uhszj9s")) ||
+                            sensorNode->manufacturer().endsWith(QLatin1String("88teujp")))
+                        {
+                            qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
+                            ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
+
+                            if (item && item->toNumber() != temp)
+                            {
+                                item->setValue(temp);
+                                Event e(RSensors, RConfigHeatSetpoint, sensorNode->id(), item);
+                                enqueueEvent(e);
+
+                            }
+                        }
+                    }
+                    break;
+                    case 0x0269: // Boost time
+                    {
+                    }
+                    break;
+                    case 0x026D : // Valve position
+                    {
+                        quint8 valve = static_cast<qint8>(data & 0xFF);
+                        bool on = valve > 3;
+
+                        ResourceItem *item = sensorNode->item(RStateOn);
+                        if (item)
+                        {
+                            if (item->toBool() != on)
+                            {
+                                item->setValue(on);
+                                enqueueEvent(Event(RSensors, RStateOn, sensorNode->id(), item));
+                            }
+                        }
+                        item = sensorNode->item(RStateValve);
+                        if (item && item->toNumber() != valve)
+                        {
+                            item->setValue(valve);
+                            enqueueEvent(Event(RSensors, RStateValve, sensorNode->id(), item));
+                        }
+                    }
+                    break;
+                    case 0x0402 : // preset for moe
+                    case 0x0403 : // preset for moe
+                    {
+                        QString preset;
+                        if (dp == 0x0402) { preset = QLatin1String("auto"); }
+                        else if (dp == 0x0403) { preset = QLatin1String("program"); }
+                        else
+                        {
+                            return;
+                        }
+
+                        ResourceItem *item = sensorNode->item(RConfigPreset);
+
+                        if (item && item->toString() != preset)
+                        {
+                            item->setValue(preset);
+                            enqueueEvent(Event(RSensors, RConfigPreset, sensorNode->id(), item));
+                        }
+                    }
+                    break;
+                    case 0x0404 : // preset
+                    {
+                        QString preset;
+                        if (data == 0) { preset = QLatin1String("holiday"); }
+                        else if (data == 1) { preset = QLatin1String("auto"); }
+                        else if (data == 2) { preset = QLatin1String("manual"); }
+                        else if (data == 3) { preset = QLatin1String("comfort"); }
+                        else if (data == 4) { preset = QLatin1String("eco"); }
+                        else if (data == 5) { preset = QLatin1String("boost"); }
+                        else if (data == 6) { preset = QLatin1String("complex"); }
+                        else
+                        {
+                            return;
+                        }
+
+                        ResourceItem *item = sensorNode->item(RConfigPreset);
+
+                        if (item && item->toString() != preset)
+                        {
+                            item->setValue(preset);
+                            enqueueEvent(Event(RSensors, RConfigPreset, sensorNode->id(), item));
+                        }
+                    }
+                    break;
+                    case 0x046a : // mode
+                    {
+                        QString mode;
+                        if (data == 0) { mode = QLatin1String("auto"); }
+                        else if (data == 1) { mode = QLatin1String("heat"); }
+                        else if (data == 2) { mode = QLatin1String("off"); }
+                        else
+                        {
+                            return;
+                        }
+
+                        ResourceItem *item = sensorNode->item(RConfigMode);
+
+                        if (item && item->toString() != mode)
+                        {
+                            item->setValue(mode);
+                            enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                        }
+                    }
+                    break;
+                    case 0x0569 : // Low battery
+                    {
+                        bool bat = false;
+                        if (data == 1) { bat = true; }
+
+                        ResourceItem *item = sensorNode->item(RStateLowBattery);
+
+                        if (item && item->toBool() != bat)
+                        {
+                            item->setValue(bat);
+                            Event e(RSensors, RStateLowBattery, sensorNode->id(), item);
+                            enqueueEvent(e);
+                        }
+                    }
+                    break;
+
+                    default:
+                    break;
                 }
-                break;
-                case 0x0402 : // preset for moe
-                case 0x0403 : // preset for moe
-                {
-                    QString preset;
-                    if (dp == 0x0402) { preset = QLatin1String("auto"); }
-                    else if (dp == 0x0403) { preset = QLatin1String("program"); }
-                    else
-                    {
-                        return;
-                    }
-
-                    ResourceItem *item = sensorNode->item(RConfigPreset);
-
-                    if (item && item->toString() != preset)
-                    {
-                        item->setValue(preset);
-                        enqueueEvent(Event(RSensors, RConfigPreset, sensorNode->id(), item));
-                    }
-                }
-                break;
-                case 0x0404 : // preset
-                {
-                    QString preset;
-                    if (data == 0) { preset = QLatin1String("holiday"); }
-                    else if (data == 1) { preset = QLatin1String("auto"); }
-                    else if (data == 2) { preset = QLatin1String("manual"); }
-                    else if (data == 3) { preset = QLatin1String("confort"); }
-                    else if (data == 4) { preset = QLatin1String("eco"); }
-                    else if (data == 5) { preset = QLatin1String("boost"); }
-                    else if (data == 6) { preset = QLatin1String("complex"); }
-                    else
-                    {
-                        return;
-                    }
-
-                    ResourceItem *item = sensorNode->item(RConfigPreset);
-
-                    if (item && item->toString() != preset)
-                    {
-                        item->setValue(preset);
-                        enqueueEvent(Event(RSensors, RConfigPreset, sensorNode->id(), item));
-                    }
-                }
-                break;
-                case 0x046a : // mode
-                {
-                    QString mode;
-                    if (data == 0) { mode = QLatin1String("auto"); }
-                    else if (data == 1) { mode = QLatin1String("heat"); }
-                    else if (data == 2) { mode = QLatin1String("off"); }
-                    else
-                    {
-                        return;
-                    }
-
-                    ResourceItem *item = sensorNode->item(RConfigMode);
-
-                    if (item && item->toString() != mode)
-                    {
-                        item->setValue(mode);
-                        enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
-                    }
-                }
-                break;
-                case 0x0569 : // Low battery
-                {
-                    bool bat = false;
-                    if (data == 1) { bat = true; }
-
-                    ResourceItem *item = sensorNode->item(RStateLowBattery);
-
-                    if (item && item->toBool() != bat)
-                    {
-                        item->setValue(bat);
-                        Event e(RSensors, RStateLowBattery, sensorNode->id(), item);
-                        enqueueEvent(e);
-                    }
-                }
-                break;
-
-                default:
-                break;
             }
         }
         else
