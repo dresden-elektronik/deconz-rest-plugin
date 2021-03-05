@@ -9441,36 +9441,36 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (ia->id() == 0x0000) // Lock state
                                 {
                                     QString str;
-                                    bool dl_open;
+                                    bool dl_lock;
                                     
                                     if (ia->numericValue().u8 == 1)
                                     {
                                         str = QLatin1String("locked");
-                                        dl_open = false;
+                                        dl_lock = true;
                                     }
                                     else if (ia->numericValue().u8 == 0)
                                     {
                                         str = QLatin1String("not fully locked");
-                                        dl_open = true;
+                                        dl_lock = false;
                                     }
                                     else if (ia->numericValue().u8 == 2)
                                     {
                                         str = QLatin1String("unlocked");
-                                        dl_open = true;
+                                        dl_lock = false;
                                     }
                                     else
                                     {
                                         str = QLatin1String("undefined");
-                                        dl_open = true;
+                                        dl_lock = false;
                                     }
                                     
                                     DBG_Printf(DBG_INFO, "Status doorlock : %u\n", (uint)ia->numericValue().u8);
                                     
                                     // Update RConfigLock bool state
                                     ResourceItem *item = i->item(RConfigLock);
-                                    if (item && item->toNumber() != dl_open)
+                                    if (item && item->toNumber() != dl_lock)
                                     {
-                                        item->setValue(dl_open);
+                                        item->setValue(dl_lock);
                                         enqueueEvent(Event(RSensors, RConfigLock, i->id(), item));
                                         updated = true;
                                     }
