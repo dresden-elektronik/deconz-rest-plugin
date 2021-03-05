@@ -9440,13 +9440,27 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (ia->id() == 0x0000) // Lock state
                                 {
-                                    //Only 2 modes for the moment
-                                    QString str = QLatin1String("closed");
-                                    bool dl_open = false;
+                                    QString str;
+                                    bool dl_open;
                                     
                                     if (ia->numericValue().u8 == 1)
                                     {
-                                        str = QLatin1String("open");
+                                        str = QLatin1String("locked");
+                                        dl_open = false;
+                                    }
+                                    else if (ia->numericValue().u8 == 0)
+                                    {
+                                        str = QLatin1String("not fully locked");
+                                        dl_open = true;
+                                    }
+                                    else if (ia->numericValue().u8 == 2)
+                                    {
+                                        str = QLatin1String("unlocked");
+                                        dl_open = true;
+                                    }
+                                    else
+                                    {
+                                        str = QLatin1String("undefined");
                                         dl_open = true;
                                     }
                                     
@@ -9458,6 +9472,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         item->setValue(dl_open);
                                         enqueueEvent(Event(RSensors, RConfigLock, i->id(), item));
+                                        updated = true;
                                     }
 
                                     // Update RStateLockState Str value
@@ -9468,6 +9483,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
     
                                         item->setValue(str);
                                         enqueueEvent(Event(RSensors, RStateLockState, i->id(), item));
+                                        updated = true;
                                     }
                                 }
                             }
