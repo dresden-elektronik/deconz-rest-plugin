@@ -397,13 +397,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         if (lightNode)
         {
             //Window covering ?
-            if (lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq") ||
-                lightNode->manufacturer() == QLatin1String("_TZE200_xuzcvlku") ||
-                lightNode->manufacturer() == QLatin1String("_TZE200_wmcdj3aq") ||
-                lightNode->manufacturer() == QLatin1String("_TZE200_nogaemzt") ||
-                lightNode->manufacturer() == QLatin1String("_TZE200_zah67ekd") || // MoesHouse / Livolo Roller Blinds
-                lightNode->manufacturer() == QLatin1String("_TZE200_fzo2pocs") ||
-                lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3"))
+            if (R_GetProductId(lightNode).startsWith(QLatin1String("Tuya_COVD")))
             {
 
                 switch (dp)
