@@ -47,6 +47,7 @@ extern const char *RAttrType;
 extern const char *RAttrClass;
 extern const char *RAttrId;
 extern const char *RAttrUniqueId;
+extern const char *RAttrProductId;
 extern const char *RAttrSwVersion;
 extern const char *RAttrLastAnnounced;
 extern const char *RAttrLastSeen;
@@ -108,6 +109,7 @@ extern const char *RStateSunrise;
 extern const char *RStateSunset;
 extern const char *RStateTampered;
 extern const char *RStateTemperature;
+extern const char *RStateTest;
 extern const char *RStateTilt;
 extern const char *RStateTiltAngle;
 extern const char *RStateUtc;
@@ -130,6 +132,7 @@ extern const char *RConfigCoolSetpoint;
 extern const char *RConfigDelay;
 extern const char *RConfigDisplayFlipped;
 extern const char *RConfigDuration;
+extern const char *RConfigEnrolled;
 extern const char *RConfigFanMode;
 extern const char *RConfigGroup;
 extern const char *RConfigHeatSetpoint;
@@ -154,6 +157,10 @@ extern const char *RConfigPowerup;
 extern const char *RConfigPowerOnCt;
 extern const char *RConfigPowerOnLevel;
 extern const char *RConfigPreset;
+extern const char *RConfigMelody;
+extern const char *RConfigTempThreshold;
+extern const char *RConfigHumiThreshold;
+extern const char *RConfigVolume;
 extern const char *RConfigReachable;
 extern const char *RConfigSchedule;
 extern const char *RConfigScheduleOn;
@@ -170,6 +177,8 @@ extern const char *RConfigUrl;
 extern const char *RConfigUsertest;
 extern const char *RConfigWindowCoveringType;
 extern const char *RConfigWindowOpen;
+extern const char *RConfigExternalTemperatureSensor;
+extern const char *RConfigExternalWindowOpen;
 extern const char *RConfigUbisysJ1Mode;
 extern const char *RConfigUbisysJ1WindowCoveringType;
 extern const char *RConfigUbisysJ1ConfigurationAndStatus;
@@ -245,6 +254,12 @@ extern const ResourceItemDescriptor rInvalidItemDescriptor;
 
 class ResourceItem
 {
+    enum ItemFlags
+    {
+        FlagNeedPushSet     = 0x1, // set after a value has been set
+        FlagNeedPushChange  = 0x2  // set when new value different than previous
+    };
+
 public:
     ResourceItem(const ResourceItem &other);
     ResourceItem(ResourceItem &&other);
@@ -252,6 +267,9 @@ public:
     ResourceItem &operator=(const ResourceItem &other);
     ResourceItem &operator=(ResourceItem &&other);
     ~ResourceItem();
+    bool needPushSet() const;
+    bool needPushChange() const;
+    void clearNeedPush();
     const QString &toString() const;
     qint64 toNumber() const;
     qint64 toNumberPrevious() const;
@@ -273,6 +291,7 @@ private:
     ResourceItem() = delete;
 
     bool m_isPublic = true;
+    quint16 m_flags = 0; // bitmap of ResourceItem::ItemFlags
     qint64 m_num = 0;
     qint64 m_numPrev = 0;
     QString *m_str = nullptr;
@@ -315,5 +334,11 @@ private:
 void initResourceDescriptors();
 const char *getResourcePrefix(const QString &str);
 bool getResourceItemDescriptor(const QString &str, ResourceItemDescriptor &descr);
+#define R_SetFlags(item, flags) R_SetFlags1(item, flags, #flags)
+bool R_SetFlags1(ResourceItem *item, qint64 flags, const char *strFlags);
+#define R_ClearFlags(item, flags) R_ClearFlags1(item, flags, #flags)
+bool R_ClearFlags1(ResourceItem *item, qint64 flags, const char *strFlags);
+bool R_HasFlags(const ResourceItem *item, qint64 flags);
+const QString R_GetProductId(Resource *resource);
 
 #endif // RESOURCE_H

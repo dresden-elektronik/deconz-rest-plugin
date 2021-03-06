@@ -74,7 +74,7 @@ QMap<QString, quint16> loadButtonMapClustersJson(const QJsonDocument &buttonMaps
             DBG_Printf(DBG_INFO, "[ERROR] - Key #%d for object 'clusters' is no string or too long. Skipping entry...\n", counter);
             continue;
         }
-        else if (!i.value().isDouble() || i.value().toDouble() > 2000)
+        else if (!i.value().isDouble() || i.value().toDouble() > 65535)
         {
             DBG_Printf(DBG_INFO, "[ERROR] - Value #%d for object 'clusters' is no number or too large. Skipping entry...\n", counter);
             continue;
@@ -124,7 +124,7 @@ QMap<QString, QMap<QString, quint16>> loadButtonMapCommadsJson(const QJsonDocume
                     DBG_Printf(DBG_INFO, "[ERROR] - Key #%d for object '%s' is no string or too long. Skipping entry...\n", counter2, qPrintable(commandsObjName));
                     continue;
                 }
-                else if (!i.value().isDouble() || i.value().toDouble() > 100)       // FIXME: value might be too small
+                else if (!i.value().isDouble() || i.value().toDouble() > 0xFF)       // FIXME: value might be too small
                 {
                     DBG_Printf(DBG_INFO, "[ERROR] - Value #%d for object '%s' is no number or too large. Skipping entry...\n", counter2, qPrintable(commandsObjName));
                     continue;

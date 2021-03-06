@@ -7,7 +7,7 @@ comment: "Hi there. </br>
           In this regard, please take note that: </br>
           - read the template thoroughly</br>
           - all given header lines (starting with ###) **must not be deleted** </br>
-          - everything enclosed by <!-- --> is intended to give you guidance and should be replaced by your input specific to the issue </br>
+          - everything enclosed by `<!-- -->` is intended to give you guidance and should be replaced by your input specific to the issue </br>
           - Listings regarding your environment must be filled out completely where applicable (bug reports and user questions).</br>
           - Not following the template or providing insufficient information can still implicate manual closure.</br>
           </br>
