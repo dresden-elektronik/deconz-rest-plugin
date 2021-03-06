@@ -53,6 +53,19 @@
 #define DP_IDENTIFIER_BUTTON_2 0x02
 #define DP_IDENTIFIER_BUTTON_3 0x03
 
+// Value for dp_identifier for siren
+//-----------------------------------
+#define DP_IDENTIFIER_MELODY 0x66
+#define DP_IDENTIFIER_ALARM 0x68
+#define DP_IDENTIFIER_TRESHOLDTEMPMINI 0x6B
+#define DP_IDENTIFIER_TRESHOLDTEMPMAXI 0x6C
+#define DP_IDENTIFIER_TRESHOLDTHUMIMINI 0x6D
+#define DP_IDENTIFIER_TRESHOLDHUMIMAXI 0x6E
+#define DP_IDENTIFIER_TEMPERATURE_ALARM 0x71
+#define DP_IDENTIFIER_HUMIDITY_ALARM 0x72
+#define DP_IDENTIFIER_VOLUME 0x74
+
+
 // Value for tuya command
 //-----------------------
 #define TUYA_REQUEST 0x00

@@ -1588,11 +1588,21 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     }
     else if (bt.binding.clusterId == RELATIVE_HUMIDITY_CLUSTER_ID)
     {
+        Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
+        
         rq.dataType = deCONZ::Zcl16BitUint;
         rq.attributeId = 0x0000;       // measured value
         rq.minInterval = 10;
         rq.maxInterval = 300;
         rq.reportableChange16bit = 100; // resolution: 1%
+        
+        if (sensor && (sensor->modelId().startsWith(QLatin1String("AQSZB-1")) ||   // Develco air quality sensor
+                       sensor->modelId().startsWith(QLatin1String("HMSZB-1"))))    // Develco temp/hum sensor
+        {
+            rq.minInterval = 60;
+            rq.maxInterval = 600;
+        }
+        
         return sendConfigureReportingRequest(bt, {rq});
     }
     else if (bt.binding.clusterId == PRESSURE_MEASUREMENT_CLUSTER_ID)
@@ -1672,7 +1682,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.reportableChange8bit = 1;
         }
         else if (sensor && (sensor->modelId() == QLatin1String("HG06323") || // LIDL
-                            sensor->modelId() == QLatin1String("lumi.sensor_magnet.agl02"))) // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
+                            sensor->modelId() == QLatin1String("lumi.sensor_magnet.agl02") || // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
+                            sensor->modelId() == QLatin1String("lumi.flood.agl02")))          // Xiaomi Aqara T1 water leak sensor SJCGQ12LM
         {
             rq.minInterval = 7200;
             rq.maxInterval = 7200;
@@ -1735,9 +1746,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                             sensor->modelId().startsWith(QLatin1String("MotionSensor51AU")))) // Aurora (Develco) motion sensor
         {
             rq.attributeId = 0x0020;   // battery voltage
-            rq.minInterval = 43200;    // according to technical manual
+            rq.minInterval = 300;      // according to technical manual
             rq.maxInterval = 43200;    // according to technical manual
-            rq.reportableChange8bit = 0;
+            rq.reportableChange8bit = 1;
         }
         else if (sensor && sensor->manufacturer() == QLatin1String("Samjin"))
         {
@@ -2265,7 +2276,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
         }
     }
-    else if (bt.binding.clusterId == 0xFC03)    // Develco specific -> VOC Management
+    else if (bt.binding.clusterId == DEVELCO_AIR_QUALITY_CLUSTER_ID)
     {
         Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
 
@@ -2678,6 +2689,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("CSW_ADUROLIGHT")) ||
         // iCasa
         sensor->modelId().startsWith(QLatin1String("ICZB-RM")) ||
+        // Envilar
+        sensor->modelId() == QLatin1String("ZGR904-S") ||
         // innr
         sensor->modelId().startsWith(QLatin1String("SP ")) ||
         sensor->modelId().startsWith(QLatin1String("RC 110")) ||
@@ -2705,7 +2718,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("RC-EM")) ||
         sensor->modelId().startsWith(QLatin1String("RC-EF-3.0")) ||
         // lidl / SilverCrest
-        sensor->modelId()== QLatin1String("TY0203") ||  // Door sensor
+        sensor->modelId() == QLatin1String("TY0203") ||  // Door sensor
         sensor->modelId() == QLatin1String("TY0202") || // Motion Sensor
         sensor->modelId() == QLatin1String("TS0211") || // Door bell
         // Konke
@@ -2822,6 +2835,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("lumi.sen_ill.mgl01")) ||
         sensor->modelId().startsWith(QLatin1String("lumi.switch.b1naus01")) ||
         sensor->modelId() == QLatin1String("lumi.sensor_magnet.agl02") ||
+        sensor->modelId() == QLatin1String("lumi.flood.agl02") ||
         // iris
         sensor->modelId().startsWith(QLatin1String("1116-S")) ||
         sensor->modelId().startsWith(QLatin1String("1117-S")) ||
@@ -2856,7 +2870,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // WAXMAN
         sensor->modelId() == QLatin1String("leakSMART Water Sensor V2") ||
         // GamaBit
+        sensor->modelId() == QLatin1String("GMB-HAS-WL-B01") ||
         sensor->modelId() == QLatin1String("GMB-HAS-DW-B01") ||
+        sensor->modelId() == QLatin1String("GMB-HAS-VB-B01") ||
         // RGBgenie
         sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) ||
         sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")) ||
@@ -3199,7 +3215,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         {
             val = sensor->getZclValue(*i, 0x0012); // Acceleration X
         }
-        else if (*i == 0xFC03)  // Develco specific -> VOC Management
+        else if (*i == DEVELCO_AIR_QUALITY_CLUSTER_ID)
         {
             if (sensor->modelId() == QLatin1String("AQSZB-110"))     // Develco air quality sensor
             {
@@ -3267,7 +3283,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         case SAMJIN_CLUSTER_ID:
         case DOOR_LOCK_CLUSTER_ID: // To test
         case BOSCH_AIR_QUALITY_CLUSTER_ID:
-        case 0xFC03:        // Develco specific -> VOC Management
+        case DEVELCO_AIR_QUALITY_CLUSTER_ID:
         {
             // For the moment reserved to doorlock device
             if (*i == DOOR_LOCK_CLUSTER_ID)
@@ -3561,6 +3577,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
     else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")) ||
+             sensor->modelId().startsWith(QLatin1String("ZGR904-S")) ||
              sensor->modelId().startsWith(QLatin1String("ZGRC-KEY-013")) ||
              sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5001")))
     {
@@ -3628,7 +3645,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
     // Heiman remote control
-    else if (sensor->modelId().startsWith(QLatin1String("RC_V14")) ||
+    else if (sensor->modelId().startsWith(QLatin1String("TS0215")) ||
+             sensor->modelId().startsWith(QLatin1String("RC_V14")) ||
              sensor->modelId().startsWith(QLatin1String("RC-EM")) ||
              sensor->modelId().startsWith(QLatin1String("RC-EF-3.0")))
     {

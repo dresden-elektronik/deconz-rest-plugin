@@ -799,8 +799,8 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
                 break;
 
-            case 0x4003: // Current temperature set point
-            {   // this will be reported when manually changing the temperature
+            case 0x4003:
+            {   // Current temperature set point - this will be reported when manually changing the temperature
                 if (zclFrame.manufacturerCode() == VENDOR_JENNIC && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
                 {
                     qint16 heatSetpoint = attr.numericValue().s16;
@@ -819,6 +819,21 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                         }
                     }
                 }
+
+                // External Window Open signal
+                if (zclFrame.manufacturerCode() == VENDOR_DANFOSS && (sensor->modelId() == QLatin1String("eTRV0100") ||
+                                                                      sensor->modelId() == QLatin1String("TRV001")))
+                {
+                    bool enabled = attr.numericValue().u8 > 0 ? true : false;
+                    item = sensor->item(RConfigExternalWindowOpen);
+                    if (item && item->toBool() != enabled)
+                    {
+                        item->setValue(enabled);
+                        enqueueEvent(Event(RSensors, RConfigExternalWindowOpen, sensor->id(), item));
+                        configUpdated = true;
+                    }
+                }
+                
                 sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
             }
                 break;
