@@ -3358,7 +3358,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             
             sensor.addItem(DataTypeString, RStateLockState);
             sensor.addItem(DataTypeBool, RConfigLock);
-            
         }
         else if (sensor.type().endsWith(QLatin1String("Alarm")))
         {

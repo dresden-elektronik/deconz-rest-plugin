@@ -9492,7 +9492,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     }
                                 }
                             }
-                            else // Door lock
+                            else if (i->type() == QLatin1String("ZHADoorLock")) // Door lock
                             {
                                 if (ia->id() == 0x0000) // Lock state
                                 {

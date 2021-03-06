@@ -1997,7 +1997,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         return sendConfigureReportingRequest(bt, {rq});
     }
-    // Danalock support
     else if (bt.binding.clusterId == DOOR_LOCK_CLUSTER_ID)
     {
         rq.dataType = deCONZ::Zcl8BitEnum;;
@@ -2661,10 +2660,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         //Datek
         sensor->modelId().startsWith(QLatin1String("ID Lock 150")) ||
         // Yale
-        sensor->modelId() == QLatin1String("YRD226 TSDB") || // TODO : check if necessary
-        sensor->modelId() == QLatin1String("YRD226/246 TSDB") || // TODO : check if necessary
-        sensor->modelId() == QLatin1String("YRD220/240 TSDB") || // TODO : check if necessary
-        sensor->modelId() == QLatin1String("easyCodeTouch_v1") || // TODO : check if necessary
+        sensor->modelId() == QLatin1String("YRD226 TSDB") ||
+        sensor->modelId() == QLatin1String("YRD226/246 TSDB") ||
+        sensor->modelId() == QLatin1String("YRD220/240 TSDB") ||
+        sensor->modelId() == QLatin1String("easyCodeTouch_v1") ||
         // ubisys
         sensor->modelId().startsWith(QLatin1String("C4")) ||
         sensor->modelId().startsWith(QLatin1String("D1")) ||
@@ -3281,23 +3280,14 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         case DIAGNOSTICS_CLUSTER_ID:
         case APPLIANCE_EVENTS_AND_ALERTS_CLUSTER_ID:
         case SAMJIN_CLUSTER_ID:
-        case DOOR_LOCK_CLUSTER_ID: // To test
+        case DOOR_LOCK_CLUSTER_ID:
         case BOSCH_AIR_QUALITY_CLUSTER_ID:
         case DEVELCO_AIR_QUALITY_CLUSTER_ID:
         {
             // For the moment reserved to doorlock device
-            if (*i == DOOR_LOCK_CLUSTER_ID)
+            if (*i == DOOR_LOCK_CLUSTER_ID && sensor->type() != QLatin1String("ZHADoorLock")
             {
-                if (sensor->modelId() == QLatin1String("YRD226 TSDB") ||
-                    sensor->modelId() == QLatin1String("YRD226/246 TSDB") ||
-                    sensor->modelId() == QLatin1String("YRD220/240 TSDB") ||
-                    sensor->modelId() == QLatin1String("easyCodeTouch_v1"))
-                {
-                }
-                else
-                {
-                    break;
-                }
+                break;
             }
             
             DBG_Printf(DBG_INFO_L2, "0x%016llX (%s) create binding for attribute reporting of cluster 0x%04X on endpoint 0x%02X\n",
