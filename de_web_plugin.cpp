@@ -1023,6 +1023,11 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         case FAN_CONTROL_CLUSTER_ID:
             handleFanControlClusterIndication(ind, zclFrame);
 
+        case LUMI_CLUSTER_ID:
+            // Lumi manfacture cluster:
+            handleLumiClusterIndication(ind, zclFrame);
+            break;
+
         default:
         {
         }
