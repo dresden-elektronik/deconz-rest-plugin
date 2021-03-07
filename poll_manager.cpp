@@ -408,24 +408,10 @@ void PollManager::pollTimerFired()
     }
     else if (suffix == RStatePower)
     {
-        bool NotOnlyPower = true;
         clusterId = ELECTRICAL_MEASUREMENT_CLUSTER_ID;
         attributes.push_back(0x050b); // Active Power
-        item = r->item(RAttrModelId);
-        if (item && !item->toString().startsWith(QLatin1String("Plug"))) //Osram plug
-        {
-            NotOnlyPower = false;
-        }
-        item = r->item(RAttrManufacturerName);
-        if (item && !item->toString().startsWith(QLatin1String("Legrand")))  // All legrand Devices
-        {
-            NotOnlyPower = false;
-        }
-        if (NotOnlyPower)
-        {
-            attributes.push_back(0x0505); // RMS Voltage
-            attributes.push_back(0x0508); // RMS Current
-        }
+        attributes.push_back(0x0505); // RMS Voltage
+        attributes.push_back(0x0508); // RMS Current
     }
     else if (suffix == RAttrModelId)
     {
@@ -445,8 +431,15 @@ void PollManager::pollTimerFired()
         if (item && (item->toString().isEmpty() ||
              (item->lastSet().secsTo(now) > READ_SWBUILD_ID_INTERVAL))) // dynamic
         {
-
-            if (lightNode->manufacturerCode() == VENDOR_UBISYS ||
+            if (lightNode->manufacturerCode() == VENDOR_EMBER && lightNode->modelId() == QLatin1String("TS011F")) // LIDL plugs
+            {
+                if (item->toString().isEmpty())
+                {
+                    attributes.push_back(0x0001);  // application version
+                    clusterId = BASIC_CLUSTER_ID;
+                }
+            }
+            else if (lightNode->manufacturerCode() == VENDOR_UBISYS ||
                 lightNode->manufacturerCode() == VENDOR_EMBER ||
                 lightNode->manufacturerCode() == VENDOR_HEIMAN ||
                 lightNode->manufacturerCode() == VENDOR_XIAOMI ||
@@ -503,6 +496,11 @@ void PollManager::pollTimerFired()
                             // discard attributes which are not be available
                             if (attrId == attr.id() && attr.isAvailable())
                             {
+                                if (attr.dataType_t() == deCONZ::ZclCharacterString && attr.toString().isEmpty() && attr.lastRead() != static_cast<time_t>(-1))
+                                {
+                                    continue; // skip empty string attributes which are available, read only once
+                                }
+
                                 check.push_back(attr.id());     // Only use available attributes
 
                                 if (cl.id() == BASIC_CLUSTER_ID)

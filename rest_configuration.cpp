@@ -93,7 +93,8 @@ void DeRestPluginPrivate::initConfig()
     gwIPAddress = "127.0.0.1";
     gwPort = (apsCtrl ? apsCtrl->getParameter(deCONZ::ParamHttpPort) : static_cast<quint16>(deCONZ::appArgumentNumeric("--http-port", 80)));
     gwNetMask = "255.0.0.0";
-    gwLANBridgeId = (deCONZ::appArgumentNumeric("--lan-bridgeid", 0) == 1);
+    gwHueMode = (deCONZ::appArgumentNumeric("--hue-mode", 0) == 1);
+    gwLANBridgeId = (deCONZ::appArgumentNumeric("--lan-bridgeid", 0) == 1) || gwHueMode;
     gwBridgeId = "0000000000000000";
     gwAllowLocal = (deCONZ::appArgumentNumeric("--allow-local", 1) == 1);
     gwConfig["websocketport"] = 443;
@@ -380,7 +381,7 @@ void DeRestPluginPrivate::initNetworkInfo()
                 QString mac = i->hardwareAddress().toLower();
                 gwMAC = mac;
                 if (gwLANBridgeId) {
-                    gwBridgeId = mac.mid(0,2) + mac.mid(3,2) + mac.mid(6,2) + "fffe" + mac.mid(9,2) + mac.mid(12,2) + mac.mid(15,2);
+                    gwBridgeId = (mac.mid(0,2) + mac.mid(3,2) + mac.mid(6,2) + "fffe" + mac.mid(9,2) + mac.mid(12,2) + mac.mid(15,2)).toUpper();
                     if (!gwConfig.contains("bridgeid") || gwConfig["bridgeid"] != gwBridgeId)
                     {
                         DBG_Printf(DBG_INFO, "Set bridgeid to %s\n", qPrintable(gwBridgeId));
@@ -900,7 +901,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     QDateTime datetime = QDateTime::currentDateTimeUtc();
     QDateTime localtime = QDateTime::currentDateTime();
 
-    basicConfigToMap(map);
+    basicConfigToMap(req, map);
     map["ipaddress"] = gwIPAddress;
     map["netmask"] = gwNetMask;
 
@@ -918,7 +919,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         }
     }
 
-    if (req.apiVersion() == ApiVersion_1_DDEL)
+    if (req.apiVersion() >= ApiVersion_1_DDEL)
     {
         map["permitjoin"] = static_cast<double>(gwPermitJoinDuration);
         map["permitjoinfull"] = static_cast<double>(gwPermitJoinResend);
@@ -988,12 +989,6 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     }
     else
     {
-        if (req.mode != ApiModeNormal)
-        {
-            map["swversion"] = QLatin1String("1940042020");
-            map["apiversion"] = QLatin1String("1.40.0");
-            map["modelid"] = QLatin1String("BSB002");
-        }
         devicetypes["bridge"] = false;
         devicetypes["lights"] = QVariantList();
         devicetypes["sensors"] = QVariantList();
@@ -1009,7 +1004,10 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         portalstate["outgoing"] = false;
         portalstate["communication"] = QLatin1String("disconnected");
         map["portalstate"] = portalstate;
+        internetservices["internet"] = QLatin1String("connected");
         internetservices["remoteaccess"] = QLatin1String("disconnected");
+        internetservices["time"] = QLatin1String("connected");
+        internetservices["swupdate"] = QLatin1String("connected");
         map["internetservices"] = internetservices;
         backup["status"] = QLatin1String("idle");
         backup["errorcode"] = 0;
@@ -1022,12 +1020,10 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     swupdate2["bridge"] = bridge;
     swupdate2["checkforupdate"] = false;
     swupdate2["state"] = gwSwUpdateState;
-    swupdate2["install"] = false;
     autoinstall["updatetime"] = "";
     autoinstall["on"] = false;
     swupdate2["autoinstall"] = autoinstall;
     swupdate2["lastchange"] = "";
-    swupdate2["lastinstall"] = "";
     map["swupdate2"] = swupdate2;
 
     map["fwversion"] = gwFirmwareVersion;
@@ -1057,6 +1053,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     map["networkopenduration"] = gwNetworkOpenDuration;
     map["timeformat"] = gwTimeFormat;
     map["whitelist"] = whitelist;
+    map["lightlastseeninterval"] = gwLightLastSeenInterval;
     map["linkbutton"] = gwLinkButton;
     map["portalservices"] = false;
     map["websocketport"] = static_cast<double>(gwConfig["websocketport"].toUInt());
@@ -1079,19 +1076,29 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
 
 /*! Puts all parameters in a map for later JSON serialization.
  */
-void DeRestPluginPrivate::basicConfigToMap(QVariantMap &map)
+void DeRestPluginPrivate::basicConfigToMap(const ApiRequest &req, QVariantMap &map)
 {
     map["name"] = gwName;
-    map["datastoreversion"] = QLatin1String("93");
-    const QStringList versions = QString(GW_SW_VERSION).split('.');
-    const QString swversion = QString("%1.%2.%3").arg(versions[0].toInt()).arg(versions[1].toInt()).arg(versions[2].toInt());
-    map["swversion"] = swversion;
-    map["apiversion"] = QString(GW_API_VERSION);
+    if (req.mode == ApiModeNormal)
+    {
+        map["modelid"] = QLatin1String("deCONZ");
+        const QStringList versions = QString(GW_SW_VERSION).split('.');
+        const QString swversion = QString("%1.%2.%3").arg(versions[0].toInt()).arg(versions[1].toInt()).arg(versions[2].toInt());
+        map["swversion"] = swversion;
+        map["apiversion"] = QString(GW_API_VERSION);
+        map["datastoreversion"] = QLatin1String("93");
+    } 
+    else
+    {
+        map["modelid"] = QLatin1String("BSB002");
+        map["swversion"] = QLatin1String("1942135050");
+        map["apiversion"] = QLatin1String("1.42.0");
+        map["datastoreversion"] = QLatin1String("98");
+    }
     map["mac"] = gwMAC;
     map["bridgeid"] = gwBridgeId;
     map["factorynew"] = false;
     map["replacesbridgeid"] = QVariant();
-    map["modelid"] = QLatin1String("deCONZ");
     map["starterkitid"] = QLatin1String("");
 
     if (!apsCtrl->getParameter(deCONZ::ParamDeviceName).isEmpty())
@@ -1308,7 +1315,7 @@ int DeRestPluginPrivate::getBasicConfig(const ApiRequest &req, ApiResponse &rsp)
             return REQ_READY_SEND;
         }
     }
-    basicConfigToMap(rsp.map);
+    basicConfigToMap(req, rsp.map);
 
     // include devicename attribute in web based requests
     if (!apsCtrl->getParameter(deCONZ::ParamDeviceName).isEmpty() && req.hdr.hasKey("User-Agent"))
@@ -2170,6 +2177,29 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         QVariantMap rspItem;
         QVariantMap rspItemState;
         rspItemState["/config/disablePermitJoinAutoOff"] = v;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+    }
+    if (map.contains("lightlastseeninterval")) // optional
+    {
+        int lightLastSeen = map["lightlastseeninterval"].toInt(&ok);
+        if (!ok || lightLastSeen <= 0 || lightLastSeen > 65535)
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/lightlastseeninterval"), QString("invalid value, %1, for parameter, lightlastseeninterval").arg(map["lightlastseeninterval"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+
+        if (gwLightLastSeenInterval != lightLastSeen)
+        {
+            gwLightLastSeenInterval = lightLastSeen;
+            queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+            changed = true;
+        }
+
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState["/config/lightlastseeninterval"] = lightLastSeen;
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);
     }
@@ -3675,9 +3705,12 @@ size_t DeRestPluginPrivate::calcDaylightOffsets(Sensor *daylightSensor, size_t i
         return iter;
     }
 
-    for (;iter < sensors.size(); iter++)
+    QElapsedTimer t; // don't block too long
+    t.start();
+    while (iter < sensors.size() && t.elapsed() < 3)
     {
         Sensor &s = sensors[iter];
+        iter++;
 
         if (s.type() != QLatin1String("CLIPDaylightOffset"))
         {
@@ -3705,11 +3738,16 @@ size_t DeRestPluginPrivate::calcDaylightOffsets(Sensor *daylightSensor, size_t i
         }
         else if (mode->toString() == QLatin1String("fix"))
         {
-            auto dt = QDateTime::fromString(localTime->toString(), QLatin1String("yyyy-MM-ddTHH:mm:ss"));
+            auto dt = QDateTime::fromMSecsSinceEpoch(localTime->toNumber());
+            const auto today = QDate::currentDate();
+            if (dt.date() != today)
+            {
+                dt.setDate(today);
+            }
             tref = dt.toMSecsSinceEpoch();
         }
 
-        if (tref != localTime->toNumber())
+        if (tref > 0 && tref != localTime->toNumber())
         {
             localTime->setValue(tref);
             s.updateStateTimestamp();

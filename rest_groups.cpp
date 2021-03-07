@@ -219,7 +219,11 @@ int DeRestPluginPrivate::createGroup(const ApiRequest &req, ApiResponse &rsp)
             for (const char *c : { "Living room", "Kitchen", "Dining", "Bedroom", "Kids bedroom",
                                    "Bathroom", "Nursery", "Recreation", "Office", "Gym", "Hallway",
                                    "Toilet", "Front door", "Garage", "Terrace", "Garden", "Driveway",
-                                   "Carport", "Other" })
+                                   "Carport", "Other",
+                                   "Home", "Downstairs", "Upstairs", "Top floor", "Attic", "Guest room",
+                                   "Staircase", "Lounge", "Man cave", "Computer", "Studio", "Music", 
+                                   "TV", "Reading", "Closet", "Storage", "Laundry room", "Balcony", 
+                                   "Porch", "Barbecue", "Pool" })
             {
                 if (gclass == QLatin1String(c))
                 {
@@ -439,7 +443,11 @@ int DeRestPluginPrivate::setGroupAttributes(const ApiRequest &req, ApiResponse &
             for (const char *c : { "Living room", "Kitchen", "Dining", "Bedroom", "Kids bedroom",
                                    "Bathroom", "Nursery", "Recreation", "Office", "Gym", "Hallway",
                                    "Toilet", "Front door", "Garage", "Terrace", "Garden", "Driveway",
-                                   "Carport", "Other" })
+                                   "Carport", "Other",
+                                   "Home", "Downstairs", "Upstairs", "Top floor", "Attic", "Guest room",
+                                   "Staircase", "Lounge", "Man cave", "Computer", "Studio", "Music", 
+                                   "TV", "Reading", "Closet", "Storage", "Laundry room", "Balcony", 
+                                   "Porch", "Barbecue", "Pool" })
             {
                 if (gclass == QLatin1String(c))
                 {
@@ -1887,7 +1895,7 @@ bool DeRestPluginPrivate::groupToMap(const ApiRequest &req, const Group *group, 
     map["state"] = state;
 
     // following attributes are only shown for Phoscon App
-    if (req.apiVersion() == ApiVersion_1_DDEL)
+    if (req.apiVersion() >= ApiVersion_1_DDEL)
     {
         QStringList multis;
         auto m = group->m_multiDeviceIds.begin();

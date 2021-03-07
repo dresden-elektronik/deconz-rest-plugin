@@ -10,7 +10,7 @@ void DeRestPluginPrivate::handleAirQualityClusterIndication(const deCONZ::ApsDat
     Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint(), QLatin1String("ZHAAirQuality"));
     if (!sensor)
     {
-        DBG_Printf(DBG_INFO, "No air quality sensor found for 0x%016llX, endpoint: 0x%08X\n", ind.srcAddress().ext(), ind.srcEndpoint());
+        DBG_Printf(DBG_INFO, "No air quality sensor found for 0x%016llX, endpoint: 0x%02X\n", ind.srcAddress().ext(), ind.srcEndpoint());
         return;
     }
 
@@ -91,7 +91,7 @@ void DeRestPluginPrivate::handleAirQualityClusterIndication(const deCONZ::ApsDat
             {
                 QString airquality = QLatin1String("none");
 
-                if (levelPpb > 0 && levelPpb <= 65)      { airquality = QLatin1String("excellent"); }
+                if (levelPpb <= 65)                      { airquality = QLatin1String("excellent"); }
                 if (levelPpb > 65 && levelPpb <= 220)    { airquality = QLatin1String("good"); }
                 if (levelPpb > 220 && levelPpb <= 660)   { airquality = QLatin1String("moderate"); }
                 if (levelPpb > 660 && levelPpb <= 2200)  { airquality = QLatin1String("poor"); }
@@ -140,8 +140,7 @@ void DeRestPluginPrivate::handleAirQualityClusterIndication(const deCONZ::ApsDat
 
         if (configUpdated || stateUpdated)
         {
-            updateEtag(sensor->etag);
-            updateEtag(gwConfigEtag);
+            updateSensorEtag(&*sensor);
             sensor->setNeedSaveDatabase(true);
             queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
         }
