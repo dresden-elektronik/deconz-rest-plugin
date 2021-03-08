@@ -475,9 +475,16 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                         {
                             addItem(DataTypeUInt16, RStateX);
                             addItem(DataTypeUInt16, RStateY);
-                            addItem(DataTypeString, RStateEffect)->setValue(RStateEffectValues[R_EFFECT_NONE]);
-                            addItem(DataTypeUInt16, RStateHue);
-                            addItem(DataTypeUInt8, RStateSat);
+                            if (manufacturer() == QLatin1String("LIDL Livarno Lux"))
+                            {
+                                removeItem(RConfigColorCapabilities);
+                            }
+                            else
+                            {
+                                addItem(DataTypeString, RStateEffect)->setValue(RStateEffectValues[R_EFFECT_NONE]);
+                                addItem(DataTypeUInt16, RStateHue);
+                                addItem(DataTypeUInt8, RStateSat);
+                            }
                         }
                         break;
                     default:
