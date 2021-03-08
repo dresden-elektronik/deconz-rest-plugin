@@ -637,12 +637,11 @@ void DeRestPluginPrivate::checkIasEnrollmentStatus(Sensor *sensor)
     ResourceItem *itemIasState = sensor->item(RConfigEnrolled); // holds per device IAS state variable
     ResourceItem *itemPending = sensor->item(RConfigPending);
 
-    DBG_Assert(itemIasState);
-    DBG_Assert(itemPending);
-
     if (!itemIasState || !itemPending)
     {
-        return; // all IAS devices should have this
+        // All IAS devices should have these items.
+        // Bail out early for non IAS devices.
+        return;
     }
 
     IAS_EnsureValidState(itemIasState);
