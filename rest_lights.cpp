@@ -1985,32 +1985,48 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
 int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map)
 {
     QString id = req.path[3];
+    
     bool targetOn = false;
-
+    bool hasOn = false;
+    bool hasBri = false;
+    qint16 targetBri = 0;
+    
+    bool ok = false;
+    
     if (map.contains("bri") && R_GetProductId(taskRef.lightNode).startsWith(QLatin1String("Tuya_DIMSWITCH")))
     {
-        bool ok = false;
-        qint16 targetBri = 0;
-        
         if (map["bri"].type() == QVariant::Double)
         {
+            hasBri = true;
             targetBri = map["bri"].toUInt(&ok);
-            if (targetBri <= 0xFF)
+        }
+    }
+    if (map.contains("on") && taskRef.lightNode->item(RStateOn) )
+    {
+        if (map["on"].type() == QVariant::Bool)
+        {
+            hasOn = true;
+            targetOn = map["on"].toBool();
+        }
+    }
+
+    if (hasBri)
+    {
+        if (targetBri <= 0xFF)
+        {
+            quint16 bri = targetBri * 1000 / 254;
+            QByteArray data = QByteArray("\x00\x00",2);
+            data.append(static_cast<qint8>((bri >> 8) & 0xff));
+            data.append(static_cast<qint8>(bri & 0xff));
+            
+            if (R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_DIMSWITCH Earda Dimmer") ||
+                R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_DIMSWITCH EDM-1ZAA-EU"))
             {
-                quint16 bri = targetBri * 1000 / 254;
-                QByteArray data = QByteArray("\x00\x00",2);
-                data.append(static_cast<qint8>((bri >> 8) & 0xff));
-                data.append(static_cast<qint8>(bri & 0xff));
-                
-                if (R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_DIMSWITCH Earda Dimmer") ||
-                    R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_DIMSWITCH EDM-1ZAA-EU"))
-                {
-                    ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_DIMMER_LEVEL_MODE2, data);
-                }
-                else
-                {
-                    ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_DIMMER_LEVEL_MODE1, data);
-                }
+                ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_DIMMER_LEVEL_MODE2, data);
+            }
+            else
+            {
+                ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_DIMMER_LEVEL_MODE1, data);
             }
         }
         
@@ -2021,68 +2037,52 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
             rspItemState[QString("/lights/%1/state/bri").arg(id)] = targetBri;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
-
-            //Not needed ?
-            //taskRef.lightNode->setValue(RStateOn, targetOn);
         }
         else
         {
             rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
     }
-    else if (map.contains("on"))
+
+    if (hasOn)
     {
-        if (map["on"].type() == QVariant::Bool)
+        qint8 button = DP_IDENTIFIER_BUTTON_1;
+        QByteArray data;
+
+        //Retreive Fake endpoint, and change button value
+        uint8_t ep = taskRef.lightNode->haEndpoint().endpoint();
+        if (ep == 0x02) { button = DP_IDENTIFIER_BUTTON_2; }
+        if (ep == 0x03) { button = DP_IDENTIFIER_BUTTON_3; }
+
+        //Use only the first endpoint for command
+        taskRef.req.setDstEndpoint(0x01);
+
+        DBG_Printf(DBG_INFO, "Tuya debug 10: EP: %d ID : %s\n", ep, qPrintable(id));
+
+        if (targetOn)
         {
-            bool ok = false;
-            qint8 button = DP_IDENTIFIER_BUTTON_1;
-            QByteArray data;
-
-            targetOn = map["on"].toBool();
-
-            //Retreive Fake endpoint, and change button value
-            uint8_t ep = taskRef.lightNode->haEndpoint().endpoint();
-            if (ep == 0x02) { button = DP_IDENTIFIER_BUTTON_2; }
-            if (ep == 0x03) { button = DP_IDENTIFIER_BUTTON_3; }
-
-            //Use only the first endpoint for command
-            taskRef.req.setDstEndpoint(0x01);
-
-            DBG_Printf(DBG_INFO, "Tuya debug 10: EP: %d ID : %s\n", ep, qPrintable(id));
-
-            if (targetOn)
-            {
-                data = QByteArray("\x01",1);
-            }
-            else
-            {
-                data = QByteArray("\x00",1);
-            }
-
-            ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_BOOL, button, data);
-
-            if (ok)
-            {
-                QVariantMap rspItem;
-                QVariantMap rspItemState;
-                rspItemState[QString("/lights/%1/state/on").arg(id)] = targetOn;
-                rspItem["success"] = rspItemState;
-                rsp.list.append(rspItem);
-
-                //Not needed ?
-                //taskRef.lightNode->setValue(RStateOn, targetOn);
-            }
-            else
-            {
-                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
-            }
+            data = QByteArray("\x01",1);
         }
         else
         {
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state/on").arg(id), QString("parameter, not available")));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
+            data = QByteArray("\x00",1);
         }
+
+        ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_BOOL, button, data);
+
+        if (ok)
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/on").arg(id)] = targetOn;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+        }
+
     }
     else
     {
@@ -2090,12 +2090,6 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
         rsp.httpStatus = HttpStatusBadRequest;
         return REQ_READY_SEND;
     }
-
-    //if (taskRef.lightNode)
-    //{
-    //    updateLightEtag(taskRef.lightNode);
-    //    rsp.etag = taskRef.lightNode->etag;
-    //}
 
     return REQ_READY_SEND;
 }
