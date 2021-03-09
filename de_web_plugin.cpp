@@ -466,6 +466,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_DANFOSS, "0x8034", silabs6MacPrefix }, // Danfoss RTbattery Dial thermostat
     { VENDOR_DANFOSS, "0x8035", silabs6MacPrefix }, // Danfoss RTbattery Dial thermostat with infrared
     { VENDOR_LDS, "ZBT-CCTSwitch-D0001", silabs2MacPrefix }, // Leedarson remote control
+    { VENDOR_YALE, "YRD256 TSDB", emberMacPrefix }, // Yale YRD256 ZigBee keypad door lock
     { VENDOR_YALE, "YRD226 TSDB", emberMacPrefix }, // Yale YRD226 ZigBee keypad door lock
     { VENDOR_YALE, "YRD226/246 TSDB", emberMacPrefix }, // Yale YRD226 ZigBee keypad door lock
     { VENDOR_YALE, "YRD256L TSDB SL", emberMacPrefix }, // Yale YRD256L ZigBee keypad door lock
@@ -5543,10 +5544,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     }
                     else
                     {
-                        //Using whitelist to ensure  old doorlock hardware compatibility
+                        //Using whitelist to ensure old doorlock hardware compatibility
                         if ((modelId == QLatin1String("SMARTCODE_CONVERT_GEN1")) || // Kwikset 914
                             (modelId == QLatin1String("YRD226/246 TSDB")) || // Yale YRD226 ZigBee keypad door lock
                             (modelId == QLatin1String("YRD226 TSDB")) || // Yale YRD226 ZigBee keypad door lock
+                            (modelId == QLatin1String("YRD256 TSDB")) || // Yale YRD256 ZigBee keypad door lock
                             (modelId == QLatin1String("YRD256L TSDB SL")) ||
                             (modelId == QLatin1String("YRD220/240 TSDB")) ||
                             (modelId == QLatin1String("easyCodeTouch_v1")) || // EasyAccess EasyCodeTouch
