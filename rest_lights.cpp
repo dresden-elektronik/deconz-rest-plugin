@@ -2084,7 +2084,8 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
         }
 
     }
-    else
+    
+    if (!hasOn && !hasBri)
     {
         rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state").arg(id), QString("parameter not available")));
         rsp.httpStatus = HttpStatusBadRequest;
