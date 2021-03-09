@@ -2660,6 +2660,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         //Datek
         sensor->modelId().startsWith(QLatin1String("ID Lock 150")) ||
         // Yale
+        sensor->modelId() == QLatin1String("YRD256 TSDB") ||
         sensor->modelId() == QLatin1String("YRD226 TSDB") ||
         sensor->modelId() == QLatin1String("YRD226/246 TSDB") ||
         sensor->modelId() == QLatin1String("YRD220/240 TSDB") ||
