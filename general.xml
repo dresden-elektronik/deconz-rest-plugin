@@ -1471,7 +1471,7 @@ by the Poll Control Cluster Client.</description>
               <value name="Use LED signalization except for access allowed events" value="0x01"></value>
               <value name="Use LED signalization for all events" value="0x02"></value>
           </attribute>
-          <attribute id="0x0021" name="Auto Relock Time" type="u32" default="0" access="rw" required="o"></attribute>
+          <attribute id="0x0023" name="Auto Relock Time" type="u32" default="0" access="rw" required="o"></attribute>
           <attribute id="0x0024" name="Sound Volume" type="u8" default="0" access="rw" required="o">
               <value name="Silent Mode" value="0x00"></value>
               <value name="Low Volume" value="0x01"></value>
