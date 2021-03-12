@@ -169,7 +169,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "902010/25", tiMacPrefix }, // Bitron: smart plug
     { VENDOR_NONE, "902010/29", tiMacPrefix }, // Bitron: Outdoor siren
     { VENDOR_NONE, "SPW35Z", tiMacPrefix }, // RT-RK OBLO SPW35ZD0 smart plug
-    { VENDOR_NONE, "LXEK-5", konkeMacPrefix }, // ADEO Lexman Télécommande (Leroy Merlin)
+    { VENDOR_ADEO, "LXEK-5", emberMacPrefix }, // ADEO Lexman Télécommande (Leroy Merlin)
     { VENDOR_BITRON, "902010/32", emberMacPrefix }, // Bitron: thermostat
     { VENDOR_DDEL, "Lighting Switch", deMacPrefix },
     { VENDOR_DDEL, "Scene Switch", deMacPrefix },

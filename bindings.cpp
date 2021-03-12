@@ -3803,6 +3803,7 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         sensor->modelId().startsWith(QLatin1String("ElkoDimmer")) || // Elko dimmer
         sensor->modelId().startsWith(QLatin1String("E1E-")) || // Sengled smart light switch
         sensor->modelId().startsWith(QLatin1String("ZG2835")) || // SR-ZG2835 Zigbee Rotary Switch
+        sensor->modelId().startsWith(QLatin1String("LXEK-5")) || // ADEO Lexman Télécommande (Leroy Merlin)
         sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5121"))) // RGBgenie ZB-5121 remote
     {
 

@@ -377,6 +377,7 @@ using namespace deCONZ::literals;
 #define VENDOR_NIKO_NV              0x125F
 #define VENDOR_KONKE                0x1268
 #define VENDOR_SHYUGJ_TECHNOLOGY    0x126A
+#define VENDOR_ADEO                 0x1277
 #define VENDOR_OSRAM_STACK          0xBBAA
 #define VENDOR_C2DF                 0xC2DF
 #define VENDOR_PHILIO               0xFFA0
@@ -533,6 +534,9 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
                    prefix == silabs6MacPrefix;
         case VENDOR_3A_SMART_HOME:
             return prefix == jennicMacPrefix;
+        case VENDOR_ADEO:
+            return prefix == emberMacPrefix ||
+                   prefix == konkeMacPrefix;
         case VENDOR_ALERTME:
             return prefix == tiMacPrefix ||
                    prefix == computimeMacPrefix;
