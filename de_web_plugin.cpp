@@ -4725,6 +4725,13 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     }
 
                 }
+                else if (ind.clusterId() == COLOR_CLUSTER_ID && (zclFrame.commandId() == 0x05 ))  // Step Saturation
+                {
+                    if (buttonMap.zclParam0 != pl0)
+                    {
+                        ok = false;
+                    }
+                }
                 else if (ind.clusterId() == SENGLED_CLUSTER_ID)
                 {
                     ok = false;
