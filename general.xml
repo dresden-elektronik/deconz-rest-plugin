@@ -196,6 +196,12 @@
 			</attribute>
 			<attribute id="0x0032" name="Usertest" type="bool" default="0" access="rw" required="o" mfcode="0x100b"></attribute>
 			<attribute id="0x0033" name="LED Indication" type="bool" default="0" access="rw" required="o" mfcode="0x100b"></attribute>
+      <attribute id="0x0034" name="Device Mode" type="enum8" default="0" access="rw" required="o" mfcode="0x100b">
+        <value name="Single Rocker" value="0"></value>
+        <value name="Single Push Button" value="1"></value>
+        <value name="Dual Rocker" value="2"></value>
+        <value name="Dual Push Button" value="3"></value>
+      </attribute>
 		</attribute-set>
 		<attribute-set id="0x4000" description="Manufacturer specific" mfcode="0x1037">
 			<attribute id="0x4001" name="128-Bit security key" type="seckey" access="r" required="m" mfcode="0x1037"></attribute>
@@ -3962,7 +3968,7 @@ Writing 1 to 0x0202 and 0x0302 makes 0x0300 writable. Then writing 1 to 0x0300 s
 			<client>
 			</client>
 		</cluster>
-        
+
 		<!-- DATEK -->
 		<cluster id="0xfee1" name="Datek on/off configuration" mfcode="0x1337">
 			<description>Datek on/off configuration attributes.</description>
