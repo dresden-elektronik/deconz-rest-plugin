@@ -1035,7 +1035,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             !(zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient) ||
             (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId))
         {
-            Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
+            Sensor *sensorNode = getSensorNodeForAddressEndpointAndCluster(ind.srcAddress(), ind.srcEndpoint(), ind.clusterId());
 
             if (sensorNode && ind.clusterId() == IAS_ZONE_CLUSTER_ID && sensorNode->type() != QLatin1String("ZHASwitch"))
             {
@@ -9779,6 +9779,23 @@ Sensor *DeRestPluginPrivate::getSensorNodeForAddressAndEndpoint(const deCONZ::Ad
 
     return 0;
 
+}
+
+/*! Returns the first Sensor for its given \p Address and \p Endpoint and \p Cluster or 0 if not found.
+ */
+Sensor *DeRestPluginPrivate::getSensorNodeForAddressEndpointAndCluster(const deCONZ::Address &addr, quint8 ep, quint16 cluster)
+{
+    for (Sensor &sensor: sensors)
+    {
+        if (sensor.deletedState() != Sensor::StateNormal || !sensor.node())                                     { continue; }
+        if (!((sensor.address().hasExt() && addr.hasExt() && sensor.address().ext() == addr.ext()) ||
+            (sensor.address().hasNwk() && addr.hasNwk() && sensor.address().nwk() == addr.nwk())))              { continue; }
+        if (!((sensor.fingerPrint().hasInCluster(cluster) || sensor.fingerPrint().hasOutCluster(cluster))))     { continue; }
+        if (sensor.fingerPrint().endpoint != ep)                                                                { continue; }
+        else { return &sensor; }
+    }
+
+    return nullptr;
 }
 
 /*! Returns the first Sensor which matches a fingerprint.

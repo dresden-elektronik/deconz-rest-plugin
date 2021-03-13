@@ -1422,6 +1422,7 @@ public:
     void updateSensorNode(const deCONZ::NodeEvent &event);
     void updateSensorLightLevel(Sensor &sensor, quint16 measuredValue);
     bool isDeviceSupported(const deCONZ::Node *node, const QString &modelId);
+    Sensor *getSensorNodeForAddressEndpointAndCluster(const deCONZ::Address &addr, quint8 ep, quint16 cluster);
     Sensor *getSensorNodeForAddressAndEndpoint(const deCONZ::Address &addr, quint8 ep, const QString &type);
     Sensor *getSensorNodeForAddressAndEndpoint(const deCONZ::Address &addr, quint8 ep);
     Sensor *getSensorNodeForAddress(quint64 extAddr);
