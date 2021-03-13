@@ -4485,7 +4485,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 }
                 else if (ind.clusterId() == LEVEL_CLUSTER_ID &&
                          (zclFrame.commandId() == 0x01 ||  // move
-                          zclFrame.commandId() == 0x02 ||  // step
                           zclFrame.commandId() == 0x05 ||  // move (with on/off)
                           zclFrame.commandId() == 0x06))   // step (with on/off)
                 {
@@ -4494,6 +4493,33 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     {
                         sensor->previousDirection = zclFrame.payload().at(0);
                         ok = true;
+                    }
+                }
+                else if (ind.clusterId() == LEVEL_CLUSTER_ID && zclFrame.commandId() == 0x02 )  // step
+                {
+                    ok = false;
+                    if (zclFrame.payload().size() >= 1 && buttonMap.zclParam0 == zclFrame.payload().at(0)) // direction
+                    {
+                        sensor->previousDirection = zclFrame.payload().at(0);
+                        ok = true;
+                    }
+                    if (zclFrame.payload().size() >= 3)
+                    {
+                        //First value is a quint8 for step mode : 0x00 UP and 0x01 DOWN
+                        //The second one is step size
+                        //The third value is a quint16 for transition
+                        if (sensor->modelId().startsWith(QLatin1String("LXEK-5"))) // ADEO Lexman Télécommande (Leroy Merlin)
+                        {
+                            //need to use stepsize too for this device
+                            ok = true;
+                            quint16 param = quint16)zclFrame.payload().at(1) & 0xff;
+                            param <<= 8;
+                            param |= (quint16)zclFrame.payload().at(0) & 0xff;
+                            if (buttonMap.zclParam0 != param)
+                            {
+                                ok = false;
+                            }
+                        }
                     }
                 }
                 else if (ind.clusterId() == LEVEL_CLUSTER_ID &&
@@ -4725,7 +4751,10 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     }
 
                 }
-                else if (ind.clusterId() == COLOR_CLUSTER_ID && (zclFrame.commandId() == 0x05 ))  // Step Saturation
+                else if (ind.clusterId() == COLOR_CLUSTER_ID &&
+                        (zclFrame.commandId() == 0x02 || // Step Hue
+                         zclFrame.commandId() == 0x4C || // Step Color Temperature
+                         zclFrame.commandId() == 0x05)) // Step Saturation
                 {
                     if (buttonMap.zclParam0 != pl0)
                     {
@@ -4744,10 +4773,11 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
                 if (ok && buttonMap.button != 0)
                 {
-                    if (!buttonMap.name.isEmpty()) { cmd = buttonMap.name; }
+                    QString action = QLatin1String("Not defined");
+                    if (!buttonMap.name.isEmpty()) { action = buttonMap.name; }
                     
-                    DBG_Printf(DBG_INFO, "[INFO] - Button %u - %s%s, endpoint: 0x%02X, cluster: %s, action: %s, payload: %s, zclSeq: %u\n",
-                        buttonMap.button, qPrintable(sensor->modelId()), qPrintable(addressMode), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), qPrintable(zclPayload), zclFrame.sequenceNumber());
+                    DBG_Printf(DBG_INFO, "[INFO] - Button %u - %s%s, endpoint: 0x%02X, cluster: %s, command: %s, action: %s, payload: %s, zclSeq: %u\n",
+                        buttonMap.button, qPrintable(sensor->modelId()), qPrintable(addressMode), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), qPrintable(action), qPrintable(zclPayload), zclFrame.sequenceNumber());
                     
                     ResourceItem *item = sensor->item(RStateButtonEvent);
                     if (item)
