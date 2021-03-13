@@ -4512,7 +4512,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         {
                             //need to use stepsize too for this device
                             ok = true;
-                            quint16 param = quint16)zclFrame.payload().at(1) & 0xff;
+                            quint16 param = (quint16)zclFrame.payload().at(1) & 0xff;
                             param <<= 8;
                             param |= (quint16)zclFrame.payload().at(0) & 0xff;
                             if (buttonMap.zclParam0 != param)
