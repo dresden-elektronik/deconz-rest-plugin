@@ -3214,9 +3214,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : BOSCH_AIR_QUALITY_CLUSTER_ID;
             }
-            else if (sensor.fingerPrint().hasInCluster(0xFC03))  // Develco air quality sensor
+            else if (sensor.fingerPrint().hasInCluster(DEVELCO_AIR_QUALITY_CLUSTER_ID))  // Develco air quality sensor
             {
-                clusterId = clusterId ? clusterId : 0xFC03;
+                clusterId = clusterId ? clusterId : DEVELCO_AIR_QUALITY_CLUSTER_ID;
             }
             item = sensor.addItem(DataTypeString, RStateAirQuality);
             item = sensor.addItem(DataTypeUInt16, RStateAirQualityPpb);
@@ -3233,17 +3233,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(0);
             item = sensor.addItem(DataTypeUInt16, RStateSpectralZ);
             item->setValue(0);
-        }
-        else if (sensor.type().endsWith(QLatin1String("Tuya")))
-        {
-            clusterId = clusterId ? clusterId : TUYA_CLUSTER_ID;
-
-            item = sensor.addItem(DataTypeInt16, RStateTemperature);
-            item->setValue(0);
-            item = sensor.addItem(DataTypeUInt16, RStateHumidity);
-            item->setValue(0);
-            item = sensor.addItem(DataTypeBool, RStateAlarm);
-            item->setValue(false);
         }
         else if (sensor.type().endsWith(QLatin1String("Humidity")))
         {
@@ -3371,6 +3360,16 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             item = sensor.addItem(DataTypeBool, RStateAlarm);
             item->setValue(false);
+            
+            if (R_GetProductId(&sensor) == QLatin1String("NAS-AB02B0 Siren"))
+            {	
+                sensor.addItem(DataTypeUInt8, RConfigMelody);	
+                sensor.addItem(DataTypeString, RConfigPreset);	
+                sensor.addItem(DataTypeUInt8, RConfigVolume);	
+                sensor.addItem(DataTypeString, RConfigTempThreshold);	
+                sensor.addItem(DataTypeString, RConfigHumiThreshold);	
+            }
+            
         }
         else if (sensor.type().endsWith(QLatin1String("CarbonMonoxide")))
         {
@@ -3475,7 +3474,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 }
                 else if (sensor.modelId() == QLatin1String("ZB-ONOFFPlug-D0005") ||
                          sensor.modelId() == QLatin1String("Plug-230V-ZB3.0") ||
-                         sensor.modelId() == QLatin1String("lumi.switch.b1naus01"))
+                         sensor.modelId() == QLatin1String("lumi.switch.b1naus01") ||
+                         sensor.manufacturer() == QLatin1String("Legrand"))
                 {
                     hasVoltage = false;
                 }
@@ -3672,6 +3672,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeBool, RConfigScheduleOn)->setValue(false);
                     sensor.addItem(DataTypeString, RConfigSchedule);
                     sensor.addItem(DataTypeInt16, RConfigExternalTemperatureSensor);
+                    sensor.addItem(DataTypeBool, RConfigExternalWindowOpen)->setValue(false);
                 }
                 else if (sensor.modelId() == QLatin1String("AC201")) // OWON AC201 Thermostat
                 {
@@ -3791,6 +3792,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeString, RConfigAlert);
             item->setValue(R_ALERT_DEFAULT);
         }
+        else if (sensor.modelId() == QLatin1String("lumi.sensor_magnet.agl02") || // skip
+                 sensor.modelId() == QLatin1String("lumi.flood.agl02"))
+        {
+        }
         else if (sensor.modelId().startsWith(QLatin1String("lumi.")))
         {
             if (!sensor.modelId().startsWith(QLatin1String("lumi.ctrl_")) &&
@@ -3841,7 +3846,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
         {
-            if (sensor.modelId() == QLatin1String("button") || sensor.modelId().startsWith(QLatin1String("multi")) || sensor.modelId() == QLatin1String("water") ||
+            if (sensor.modelId() == QLatin1String("button") ||
+                sensor.modelId().startsWith(QLatin1String("multi")) ||
+                sensor.modelId() == QLatin1String("water") ||
+                R_GetProductId(&sensor) == QLatin1String("NAS-AB02B0 Siren") ||
                 sensor.modelId() == QLatin1String("Motion Sensor-A"))
             {
                 // no support for some IAS Zone flags

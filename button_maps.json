@@ -878,7 +878,7 @@
         "sunricherMap": {
             "vendor": "Sunricher",
             "doc": "Wireless switches from Sunricher, Namron and EcoDim",
-            "modelids": ["ED-10010", "ED-10011", "ED-10012", "ED-10013", "ED-10014", "ED-10015", "ZG2833K", "ZG2835", "4512700", "4512701", "4512702", "4512703", "4512705", "4512714", "4512719", "4512720", "4512721", "4512722"],
+            "modelids": ["ED-10010", "ED-10011", "ED-10012", "ED-10013", "ED-10014", "ED-10015", "ZG2833K8_EU05", "ZG2835", "4512700", "4512701", "4512702", "4512703", "4512705", "4512714", "4512719", "4512720", "4512721", "4512722"],
             "map": [
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Move up (with on/off)"],

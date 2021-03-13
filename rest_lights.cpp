@@ -561,10 +561,6 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         return setWindowCoveringState(req, rsp, taskRef, map);
     }
-    else if (taskRef.lightNode->type() == QLatin1String("Warning device"))
-    {
-        return setWarningDeviceState(req, rsp, taskRef, map);
-    }
     else if (isXmasLightStrip(taskRef.lightNode))
     {
         return setXmasLightStripState(req, rsp, taskRef, map);
@@ -587,12 +583,17 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         else if (taskRef.lightNode->item(RStateColorMode))
         {
         }
-        //switch
+        //switch and siren
         else
         {
             return setTuyaDeviceState(req, rsp, taskRef, map);
         }
     }
+    else if (taskRef.lightNode->type() == QLatin1String("Warning device")) // Put it here because some tuya device are Warning device but need to be process by tuya part
+    {
+        return setWarningDeviceState(req, rsp, taskRef, map);
+    }
+    
     // Danalock support. You need to check for taskRef.lightNode->type() == QLatin1String("Door lock"), similar to what I've done under hasAlert for the Siren.
     bool isDoorLockDevice = false;
     if (taskRef.lightNode->type() == QLatin1String("Door Lock"))
@@ -2188,7 +2189,11 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
             if (taskRef.lightNode->modelId().startsWith(QLatin1String("902010/24")) ||
                 taskRef.lightNode->modelId() == QLatin1String("902010/29"))
             {
-                task.options = 0x12;
+                task.options = 0x12;    // Warning mode 1 (burglar), no Strobe, high sound
+            }
+            else if (taskRef.lightNode->modelId() == QLatin1String("SIRZB-110"))    // Doesn't support strobe
+            {
+                task.options = 0x13;    // Warning mode 1 (burglar), no Strobe, Very high sound
             }
             task.duration = 1;
         }
@@ -2198,7 +2203,11 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
             if (taskRef.lightNode->modelId().startsWith(QLatin1String("902010/24")) ||
                 taskRef.lightNode->modelId() == QLatin1String("902010/29"))
             {
-                task.options = 0x12;
+                task.options = 0x12;    // Warning mode 1 (burglar), no Strobe, high sound
+            }
+            else if (taskRef.lightNode->modelId() == QLatin1String("SIRZB-110"))    // Doesn't support strobe
+            {
+                task.options = 0x13;    // Warning mode 1 (burglar), no Strobe, Very high sound
             }
             task.duration = onTime > 0 ? onTime : 300;
         }
