@@ -354,6 +354,7 @@ using namespace deCONZ::literals;
 #define VENDOR_INNR                 0x1166
 #define VENDOR_LDS                  0x1168 // Used by Samsung SmartPlug 2019
 #define VENDOR_PLUGWISE_BV          0x1172
+#define VENDOR_D_LINK               0x1175
 #define VENDOR_INSTA                0x117A
 #define VENDOR_IKEA                 0x117C
 #define VENDOR_3A_SMART_HOME        0x117E
@@ -646,6 +647,8 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
             return prefix == schlageMacPrefix;
         case VENDOR_ADUROLIGHT:
 	        return prefix == jennicMacPrefix;
+        case VENDOR_D_LINK:
+            return prefix == dlinkMacPrefix;
         default:
             return false;
     }
