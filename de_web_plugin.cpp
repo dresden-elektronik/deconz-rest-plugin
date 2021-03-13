@@ -6938,6 +6938,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         else if (modelId.startsWith(QLatin1String("RDM00"))) // Hue wall switch module
         {
             item = sensorNode.addItem(DataTypeString, RConfigDeviceMode);
+            item->setValue(0);
             item = sensorNode.addItem(DataTypeUInt16, RConfigPending);
             item->setValue(0);
         }
@@ -8315,6 +8316,20 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     enqueueEvent(e);
                                 }
 
+                                if (i->mustRead(WRITE_DELAY))
+                                {
+                                    ResourceItem *item = i->item(RConfigPending);
+                                    if (item)
+                                    {
+                                        quint16 mask = item->toNumber();
+                                        mask &= ~R_PENDING_DELAY;
+                                        item->setValue(mask);
+                                        Event e(RSensors, RConfigPending, i->id(), item);
+                                        enqueueEvent(e);
+                                    }
+                                    i->clearRead(WRITE_DELAY);
+                                }
+
                                 updateSensorEtag(&*i);
                             }
                             else if (ia->id() == 0x0030) // sensitivity
@@ -8340,6 +8355,20 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->setNeedSaveDatabase(true);
                                     Event e(RSensors, RConfigSensitivity, i->id(), item);
                                     enqueueEvent(e);
+                                }
+
+                                if (i->mustRead(WRITE_SENSITIVITY))
+                                {
+                                    ResourceItem *item = i->item(RConfigPending);
+                                    if (item)
+                                    {
+                                        quint16 mask = item->toNumber();
+                                        mask &= ~R_PENDING_SENSITIVITY;
+                                        item->setValue(mask);
+                                        Event e(RSensors, RConfigPending, i->id(), item);
+                                        enqueueEvent(e);
+                                    }
+                                    i->clearRead(WRITE_SENSITIVITY);
                                 }
 
                                 updateSensorEtag(&*i);
@@ -8733,6 +8762,20 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     enqueueEvent(e);
                                 }
 
+                                if (i->mustRead(WRITE_USERTEST))
+                                {
+                                    ResourceItem *item = i->item(RConfigPending);
+                                    if (item)
+                                    {
+                                        quint16 mask = item->toNumber();
+                                        mask &= ~R_PENDING_USERTEST;
+                                        item->setValue(mask);
+                                        Event e(RSensors, RConfigPending, i->id(), item);
+                                        enqueueEvent(e);
+                                    }
+                                    i->clearRead(WRITE_USERTEST);
+                                }
+
                                 updateSensorEtag(&*i);
                             }
                             else if (ia->id() == 0x0033) // ledindication
@@ -8751,6 +8794,20 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->setNeedSaveDatabase(true);
                                     Event e(RSensors, RConfigLedIndication, i->id(), item);
                                     enqueueEvent(e);
+                                }
+
+                                if (i->mustRead(WRITE_LEDINDICATION))
+                                {
+                                    ResourceItem *item = i->item(RConfigPending);
+                                    if (item)
+                                    {
+                                        quint16 mask = item->toNumber();
+                                        mask &= ~R_PENDING_LEDINDICATION;
+                                        item->setValue(mask);
+                                        Event e(RSensors, RConfigPending, i->id(), item);
+                                        enqueueEvent(e);
+                                    }
+                                    i->clearRead(WRITE_LEDINDICATION);
                                 }
 
                                 updateSensorEtag(&*i);
@@ -10501,6 +10558,8 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
 
     QTime tNow = QTime::currentTime();
 
+    // FIXME: Need check that end device is awake.
+
     if (sensorNode->mustRead(READ_BINDING_TABLE) && tNow > sensorNode->nextReadTime(READ_BINDING_TABLE))
     {
         bool ok = false;
@@ -10629,6 +10688,9 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
 
             if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attr))
             {
+                // FIXME: The Write Attributes command will not reach deep sleepers.
+                //        Unfortuneately, Occupied to Unoccupied Delay is not reportable.
+                //        Fortunately, the Hue motion sensor is a light sleeper.
                 ResourceItem *item = sensorNode->item(RConfigPending);
                 quint16 mask = item->toNumber();
                 mask &= ~R_PENDING_DELAY;
@@ -10657,11 +10719,11 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
 
             if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, BASIC_CLUSTER_ID, attr, VENDOR_PHILIPS))
             {
-                ResourceItem *item = sensorNode->item(RConfigPending);
-                quint16 mask = item->toNumber();
-                mask &= ~R_PENDING_LEDINDICATION;
-                item->setValue(mask);
-                sensorNode->clearRead(WRITE_LEDINDICATION);
+                // ResourceItem *item = sensorNode->item(RConfigPending);
+                // quint16 mask = item->toNumber();
+                // mask &= ~R_PENDING_LEDINDICATION;
+                // item->setValue(mask);
+                // sensorNode->clearRead(WRITE_LEDINDICATION);
                 processed++;
             }
         }
@@ -10685,11 +10747,11 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
 
             if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attr, VENDOR_PHILIPS))
             {
-                ResourceItem *item = sensorNode->item(RConfigPending);
-                quint16 mask = item->toNumber();
-                mask &= ~R_PENDING_SENSITIVITY;
-                item->setValue(mask);
-                sensorNode->clearRead(WRITE_SENSITIVITY);
+                // ResourceItem *item = sensorNode->item(RConfigPending);
+                // quint16 mask = item->toNumber();
+                // mask &= ~R_PENDING_SENSITIVITY;
+                // item->setValue(mask);
+                // sensorNode->clearRead(WRITE_SENSITIVITY);
                 processed++;
             }
         }
@@ -10713,11 +10775,11 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
 
             if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, BASIC_CLUSTER_ID, attr, VENDOR_PHILIPS))
             {
-                ResourceItem *item = sensorNode->item(RConfigPending);
-                quint16 mask = item->toNumber();
-                mask &= ~R_PENDING_USERTEST;
-                item->setValue(mask);
-                sensorNode->clearRead(WRITE_USERTEST);
+                // ResourceItem *item = sensorNode->item(RConfigPending);
+                // quint16 mask = item->toNumber();
+                // mask &= ~R_PENDING_USERTEST;
+                // item->setValue(mask);
+                // sensorNode->clearRead(WRITE_USERTEST);
                 processed++;
             }
         }
@@ -11031,6 +11093,15 @@ bool DeRestPluginPrivate::writeAttribute(RestNodeBase *restNode, quint8 endpoint
     if (!restNode || !restNode->isAvailable())
     {
         return false;
+    }
+
+    if (!restNode->node()->nodeDescriptor().receiverOnWhenIdle())
+    {
+        QDateTime now = QDateTime::currentDateTime();
+        if (!restNode->lastRx().isValid() || (restNode->lastRx().secsTo(now) > 3))
+        {
+            return false;
+        }
     }
 
     TaskItem task;
@@ -16625,7 +16696,6 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         }
         else if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
                  sensor->modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
-                 sensor->modelId().startsWith(QLatin1String("RDM00")) || // Hue wall switch module
                  sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
 
         {
@@ -16660,6 +16730,48 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
 
             checkSensorGroup(sensor);
             checkSensorBindingsForClientClusters(sensor);
+        }
+        else if (sensor->modelId().startsWith(QLatin1String("RDM00"))) // Hue wall switch module
+        {
+            NodeValue val = sensor->getZclValue(VENDOR_CLUSTER_ID, 0x0000);
+            if (!val.isValid())
+            {
+                if (checkSensorBindingsForAttributeReporting(sensor))
+                {
+                }
+            }
+
+            // Stop the Hue dimmer from touchlinking when holding the On button.
+            deCONZ::ZclAttribute attr(0x0031, deCONZ::Zcl16BitBitMap, "mode", deCONZ::ZclReadWrite, false);
+            attr.setBitmap(0x000b);
+
+            val = sensor->getZclValue(BASIC_CLUSTER_ID, 0x0031);
+
+            if (val.isValid()) // already done
+            {
+            }
+            else if (writeAttribute(sensor, sensor->fingerPrint().endpoint, BASIC_CLUSTER_ID, attr, VENDOR_PHILIPS))
+            {
+                queryTime = queryTime.addSecs(1);
+
+                // mark done
+                deCONZ::NumericUnion touchLink;
+                touchLink.u64 = 0x000b;
+                sensor->setZclValue(NodeValue::UpdateByZclRead, sensor->fingerPrint().endpoint, BASIC_CLUSTER_ID, 0x0031, touchLink);
+            }
+
+            std::vector<uint16_t> attributes;
+            const NodeValue &devicemode = sensor->getZclValue(BASIC_CLUSTER_ID, 0x0034);
+            if (!devicemode.timestamp.isValid())
+            {
+                attributes.push_back(0x0034); // devicemode
+            }
+
+            if (!attributes.empty() &&
+                readAttributes(sensor, sensor->fingerPrint().endpoint, BASIC_CLUSTER_ID, attributes, VENDOR_PHILIPS))
+            {
+                queryTime = queryTime.addSecs(1);
+            }
         }
         else if (sensor->modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
         {

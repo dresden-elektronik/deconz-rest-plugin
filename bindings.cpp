@@ -2125,7 +2125,48 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             return sendConfigureReportingRequest(bt, {rq, rq1, rq2, rq3});
         }
     }
-    else if (bt.binding.clusterId == BASIC_CLUSTER_ID && manufacturerCode == VENDOR_PHILIPS) {
+    else if (bt.binding.clusterId == BASIC_CLUSTER_ID && manufacturerCode == VENDOR_IKEA && lightNode)
+    {
+        deCONZ::NumericUnion dummy;
+        dummy.u64 = 0;
+        // 'sw build id' value if not already present
+        if (bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x4000, bt.binding.srcEndpoint).attributeId != 0x4000)
+        {
+            bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.srcEndpoint, BASIC_CLUSTER_ID, 0x4000, dummy);
+        }
+
+        NodeValue &val = bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x4000, bt.binding.srcEndpoint);
+
+        if (val.timestampLastReport.isValid() && (val.timestampLastReport.secsTo(now) > val.maxInterval * 1.5))
+        {
+            return false; // reporting this attribute might be already disabled
+        }
+
+        // already configured? wait for report ...
+        if (val.timestampLastConfigured.isValid() && (val.timestampLastConfigured.secsTo(now) < val.maxInterval * 1.5))
+        {
+            return false;
+        }
+
+        rq.dataType = deCONZ::ZclCharacterString;
+        rq.attributeId = 0x4000; // sw build id
+        rq.minInterval = 0;   // value used by IKEA gateway
+        rq.maxInterval = 0xffff; // disable reporting to prevent group casts
+
+        return sendConfigureReportingRequest(bt, {rq});
+    }
+    else if (bt.binding.clusterId == BASIC_CLUSTER_ID && manufacturerCode == VENDOR_MUELLER && lightNode)
+    {
+        rq.dataType = deCONZ::Zcl8BitUint;
+        rq.attributeId = 0x4005; // Mueller special scene
+        rq.minInterval = 1;
+        rq.maxInterval = 300;
+        rq.reportableChange8bit = 1;
+        rq.manufacturerCode = VENDOR_MUELLER;
+
+        return sendConfigureReportingRequest(bt, {rq});
+    }
+    else if (bt.binding.clusterId == BASIC_CLUSTER_ID) {
         Sensor *sensor = dynamic_cast<Sensor*>(bt.restNode);
         if (!sensor)
         {
@@ -2155,7 +2196,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                 return false;
             }
 
-            rq.dataType = deCONZ::ZclBoolean;
+            rq.dataType = deCONZ::Zcl8BitEnum;
             rq.attributeId = 0x0034; // Device Mode
             rq.minInterval = 0;   // value used by Hue bridge
             rq.maxInterval = 7200;   // value used by Hue bridge
@@ -2212,47 +2253,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         {
             return false;
         }
-    }
-    else if (bt.binding.clusterId == BASIC_CLUSTER_ID && manufacturerCode == VENDOR_IKEA && lightNode)
-    {
-        deCONZ::NumericUnion dummy;
-        dummy.u64 = 0;
-        // 'sw build id' value if not already present
-        if (bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x4000, bt.binding.srcEndpoint).attributeId != 0x4000)
-        {
-            bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.srcEndpoint, BASIC_CLUSTER_ID, 0x4000, dummy);
-        }
-
-        NodeValue &val = bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x4000, bt.binding.srcEndpoint);
-
-        if (val.timestampLastReport.isValid() && (val.timestampLastReport.secsTo(now) > val.maxInterval * 1.5))
-        {
-            return false; // reporting this attribute might be already disabled
-        }
-
-        // already configured? wait for report ...
-        if (val.timestampLastConfigured.isValid() && (val.timestampLastConfigured.secsTo(now) < val.maxInterval * 1.5))
-        {
-            return false;
-        }
-
-        rq.dataType = deCONZ::ZclCharacterString;
-        rq.attributeId = 0x4000; // sw build id
-        rq.minInterval = 0;   // value used by IKEA gateway
-        rq.maxInterval = 0xffff; // disable reporting to prevent group casts
-
-        return sendConfigureReportingRequest(bt, {rq});
-    }
-    else if (bt.binding.clusterId == BASIC_CLUSTER_ID && manufacturerCode == VENDOR_MUELLER && lightNode)
-    {
-        rq.dataType = deCONZ::Zcl8BitUint;
-        rq.attributeId = 0x4005; // Mueller special scene
-        rq.minInterval = 1;
-        rq.maxInterval = 300;
-        rq.reportableChange8bit = 1;
-        rq.manufacturerCode = VENDOR_MUELLER;
-
-        return sendConfigureReportingRequest(bt, {rq});
     }
     else if (bt.binding.clusterId == VENDOR_CLUSTER_ID)
     {
@@ -3179,6 +3179,21 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             {
                 val = sensor->getZclValue(*i, 0x0032); // usertest
                 // val = sensor->getZclValue(*i, 0x0033); // ledindication
+
+                if (searchSensorsState != SearchSensorsActive &&
+                    idleTotalCounter < (IDLE_READ_LIMIT + (7200))) // wait for max reporting interval before fire bindings
+                {
+                    continue;
+                }
+
+                if (val.timestampLastConfigured.isValid() && val.timestampLastConfigured.secsTo(now) < (val.maxInterval * 1.5))
+                {
+                    continue;
+                }
+            }
+            else if (sensor->modelId().startsWith(QLatin1String("RDM00")))
+            {
+                val = sensor->getZclValue(*i, 0x0034); // devicemode
 
                 if (searchSensorsState != SearchSensorsActive &&
                     idleTotalCounter < (IDLE_READ_LIMIT + (7200))) // wait for max reporting interval before fire bindings
