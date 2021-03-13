@@ -950,12 +950,16 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case ONOFF_CLUSTER_ID:
-             handleOnOffClusterIndication(ind, zclFrame);
-             handleClusterIndicationGateways(ind, zclFrame);
+            handleOnOffClusterIndication(ind, zclFrame);
+            handleClusterIndicationGateways(ind, zclFrame);
             break;
 
         case IAS_ZONE_CLUSTER_ID:
             handleIasZoneClusterIndication(ind, zclFrame);
+            break;
+
+        case IAS_ACE_CLUSTER_ID:
+            handleIasAceClusterIndication(ind, zclFrame);
             break;
 
         case VENDOR_CLUSTER_ID:
@@ -1009,7 +1013,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         case IDENTIFY_CLUSTER_ID:
             handleIdentifyClusterIndication(ind, zclFrame);
-        break;
+            break;
 
         case DEVELCO_AIR_QUALITY_CLUSTER_ID: // Develco specific -> VOC Management
         case BOSCH_AIR_QUALITY_CLUSTER_ID: // Bosch Air quality sensor
@@ -1022,6 +1026,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         case FAN_CONTROL_CLUSTER_ID:
             handleFanControlClusterIndication(ind, zclFrame);
+            break;
 
         default:
         {
