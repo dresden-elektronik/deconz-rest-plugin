@@ -6938,7 +6938,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         else if (modelId.startsWith(QLatin1String("RDM00"))) // Hue wall switch module
         {
             item = sensorNode.addItem(DataTypeString, RConfigDeviceMode);
-            item->setValue(0);
+            item->setValue(RConfigDeviceModeValues[0]);
             item = sensorNode.addItem(DataTypeUInt16, RConfigPending);
             item->setValue(0);
         }
