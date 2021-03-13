@@ -158,8 +158,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         // 0x01 : TUYA_REPORTING > Used to inform of changes in its state.
         // 0x02 : TUYA_QUERY > Send after receiving a 0x00 command.
         
-        // Send default response
-        if (zclFrame.commandId() == TUYA_REPORTING && !(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
+        // Send default response, it seem at least 0x01 and 0x02 need defaut response
+        if ((zclFrame.commandId() == TUYA_REPORTING || zclFrame.commandId() == TUYA_QUERY)&& !(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
         {
             sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
         }
@@ -472,9 +472,10 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             }
             else
             {
-                // Switch device 1/2/3 gangs
+                // Switch device 1/2/3 gangs or dimmer
                 switch (dp)
                 {
+                    // State
                     case 0x0101:
                     case 0x0102:
                     case 0x0103:
@@ -513,6 +514,44 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             {
                                 item->setValue(onoff);
                                 Event e(RLights, RStateOn, lightNode->id(), item);
+                                enqueueEvent(e);
+                                update = true;
+                            }
+                        }
+                    }
+                    break;
+                    
+                    // Dimmer level for mode 1
+                    case 0x0202:
+                    {
+                        if (R_GetProductId(lightNode) == QLatin1String("Tuya_DIMSWITCH Earda Dimmer") ||
+                            R_GetProductId(lightNode) == QLatin1String("Tuya_DIMSWITCH EDM-1ZAA-EU"))
+                        {
+                            quint8 bri = static_cast<quint8>(data * 254 / 1000); // 0 to 1000 value
+                            
+                            ResourceItem *item = lightNode->item(RStateBri);
+                            if (item && item->toNumber() != bri)
+                            {
+                                item->setValue(bri);
+                                Event e(RLights, RStateBri, lightNode->id(), item);
+                                enqueueEvent(e);
+                                update = true;
+                            }
+                        }
+                    }
+                    break;
+                    // Dimmer level for mode 2
+                    case 0x0203:
+                    {
+                        if (R_GetProductId(lightNode) == QLatin1String("Tuya_DIMSWITCH Not model found yet"))
+                        {
+                            quint8 bri = static_cast<quint8>(data * 254 / 1000); // 0 to 1000 value
+                            
+                            ResourceItem *item = lightNode->item(RStateBri);
+                            if (item && item->toNumber() != bri)
+                            {
+                                item->setValue(bri);
+                                Event e(RLights, RStateBri, lightNode->id(), item);
                                 enqueueEvent(e);
                                 update = true;
                             }
