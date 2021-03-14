@@ -1045,7 +1045,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     {
                         if (sensorNode->manufacturer().endsWith(QLatin1String("hn3negr")))
                         {
-                            qint16 temp = static_cast<qint16>(data & 0xFFFF) */ 2;
+                            qint16 temp = static_cast<qint16>(data & 0xFFFF) / 2;
    
                             ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
 
@@ -1087,9 +1087,9 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         if (sensorNode->manufacturer().endsWith(QLatin1String("hn3negr")))
                         {
                             QString mode;
-                            if (mode == 0) { preset = QLatin1String("auto"); } //schedule
-                            else if (mode == 1) { preset = QLatin1String("heat"); } //manual
-                            else if (mode == 2) { preset = QLatin1String("off"); } //away
+                            if (data == 0) { mode = QLatin1String("auto"); } //schedule
+                            else if (data == 1) { mode = QLatin1String("heat"); } //manual
+                            else if (data == 2) { mode = QLatin1String("off"); } //away
                             else
                             {
                                 return;
