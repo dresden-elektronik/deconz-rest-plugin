@@ -1259,10 +1259,9 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD MOES TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV"))
                     {
-                        heatsetpoint = heatsetpoint / 10;
                         QByteArray data = QByteArray("\x00\x00",2);
-
                         qint8 dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT;
+                        heatsetpoint = heatsetpoint / 10;
 
                         if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                             R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
@@ -1277,7 +1276,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                         else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD MOES TRV"))
                         {
-                            ResourceItem *item2 = sensorNode->item(RConfigMode);
+                            ResourceItem *item2 = sensor->item(RConfigMode);
                             if (item2->toString() == QLatin1String("heat"))
                             {
                                 dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_3;
@@ -1286,7 +1285,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             {
                                 dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_4;
                             }    
-                            heatsetpoint = (int16_t)(heatsetpoint * 2);
+                            heatsetpoint = (int16_t)(heatsetpoint * 2 / 10);
                         }
                         
                         data.append(static_cast<qint8>((heatsetpoint >> 8) & 0xff));

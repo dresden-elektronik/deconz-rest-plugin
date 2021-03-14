@@ -941,7 +941,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         
                         if (sensorNode->manufacturer().endsWith(QLatin1String("hn3negr")))
                         {
-                            temp = static_cast<qint16>(data & 0xFFFF) / 2;
+                            temp = static_cast<qint16>(data & 0xFFFF) * 100 / 2;
                         }
                         
                         ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
@@ -1045,7 +1045,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     {
                         if (sensorNode->manufacturer().endsWith(QLatin1String("hn3negr")))
                         {
-                            qint16 temp = static_cast<qint16>(data & 0xFFFF) / 2;
+                            qint16 temp = static_cast<qint16>(data & 0xFFFF) * 100 / 2;
    
                             ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
 
