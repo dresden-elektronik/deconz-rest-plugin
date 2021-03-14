@@ -1277,8 +1277,15 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                         else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD MOES TRV"))
                         {
-                            
-                            dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_3;
+                            ResourceItem *item2 = sensorNode->item(RConfigMode);
+                            if (item2->toString() == QLatin1String("heat"))
+                            {
+                                dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_3;
+                            }
+                            else
+                            {
+                                dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_4;
+                            }    
                             heatsetpoint = (int16_t)(heatsetpoint * 2);
                         }
                         
