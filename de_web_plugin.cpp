@@ -2662,16 +2662,9 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         }
 
         // "translate" ORVIBO vendor name
-		if (lightNode.manufacturer() == QString("\u6B27\u745E"))
+	if (lightNode.manufacturer() == QString("欧瑞博") || lightNode.manufacturer() == QString("\u6B27\u745E"))
         {
             lightNode.setManufacturerName(QLatin1String("Orvibo"));
-            lightNode.setNeedSaveDatabase(true);
-        }
-        
-        // "translate" ORVIBO vendor name
-        if (lightNode.manufacturer() == QString("欧瑞博"))
-        {
-            lightNode.setManufacturerName(QLatin1String("ORVIBO"));
             lightNode.setNeedSaveDatabase(true);
         }
         
@@ -3419,11 +3412,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             }
                             str = QLatin1String(device->manufacturername);
                         }
-						if (str == QString("\u6B27\u745E"))
-                        {
-                            str = QLatin1String("Orvibo");
-                        }
-                        if (str == QString("欧瑞博"))
+			if (str == QString("欧瑞博") || str == QString("\u6B27\u745E"))
                         {
                             str = QLatin1String("Orvibo");
                         }
@@ -5003,7 +4992,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                                 if (modelId == QLatin1String("895a2d80097f4ae2b2d40500d5e03dcc") || modelId == QLatin1String("585fdfb8c2304119a2432e9845cf2623"))
                                 {
                                     modelId = QLatin1String("SN10ZW motion sensor");
-									manufacturer = QLatin1String("Orvibo");
+	  			    manufacturer = QLatin1String("Orvibo");
                                 }
                                 else if (modelId == QLatin1String("b5db59bfd81e4f1f95dc57fdbba17931"))
                                 {
@@ -5249,7 +5238,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId == QLatin1String("3041") ||                      // NYCE motion sensor
                              modelId.startsWith(QLatin1String("902010/22")) ||        // Bitron motion sensor
                              modelId.startsWith(QLatin1String("SN10ZW")) ||           // ORVIBO motion sensor
-							 //modelId == QLatin1String("585fdfb8c2304119a2432e9845cf2623") ||
+  			     //modelId == QLatin1String("585fdfb8c2304119a2432e9845cf2623") ||
                              modelId.startsWith(QLatin1String("MOSZB-1")) ||          // Develco motion sensor
                              modelId.startsWith(QLatin1String("MotionSensor51AU")) || // Aurora (Develco) motion sensor
                              modelId.startsWith(QLatin1String("MOT003")) ||           // Hive motion sensor
@@ -5355,7 +5344,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                                         else
                                         {
                                             fpAlarmSensor.inClusters.push_back(ci->id());
-                                            
                                         }
                                         break;
                                 }
