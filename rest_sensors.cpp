@@ -1395,12 +1395,12 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                 }
                                 else
                                 {
-                                    sendTuyaRequest(task, TaskThermostat , DP_TYPE_ENUM, 0x02, data))
+                                    sendTuyaRequest(task, TaskThermostat , DP_TYPE_ENUM, 0x02, data);
                                 }
                             }
                             else
                             {
-                                sendTuyaRequest(task, TaskThermostat , DP_TYPE_ENUM, 0x6a, data))
+                                sendTuyaRequest(task, TaskThermostat , DP_TYPE_ENUM, 0x6a, data);
                             }
                             
                             updated = true;
