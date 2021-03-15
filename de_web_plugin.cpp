@@ -4023,7 +4023,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
              sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
              sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")))
     {
-
         if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() == 0)
         {
             checkClientCluster = true;
@@ -4730,6 +4729,15 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     ok = false;
 
                     if (buttonMap.zclParam0 == pl0)
+                    {
+                        ok = true;
+                    }
+                }
+                else if (ind.clusterId() == ADUROLIGHT_CLUSTER_ID)
+                {
+                    ok = false;
+                    
+                    if (buttonMap.zclParam0 == zclFrame.payload().at(1))
                     {
                         ok = true;
                     }
@@ -5696,7 +5704,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 case SCENE_CLUSTER_ID:
                 case WINDOW_COVERING_CLUSTER_ID:
                 {
-                    if (modelId == QLatin1String("ZYCT-202") || modelId == QLatin1String("ZLL-NonColorController"))
+                    if (modelId == QLatin1String("ZYCT-202") || modelId == QLatin1String("ZLL-NonColorController") || modelId == QLatin1String("Adurolight_NCC"))
                     {
                         fpSwitch.outClusters.push_back(ci->id());
                     }
