@@ -1589,20 +1589,20 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     else if (bt.binding.clusterId == RELATIVE_HUMIDITY_CLUSTER_ID)
     {
         Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
-        
+
         rq.dataType = deCONZ::Zcl16BitUint;
         rq.attributeId = 0x0000;       // measured value
         rq.minInterval = 10;
         rq.maxInterval = 300;
         rq.reportableChange16bit = 100; // resolution: 1%
-        
+
         if (sensor && (sensor->modelId().startsWith(QLatin1String("AQSZB-1")) ||   // Develco air quality sensor
                        sensor->modelId().startsWith(QLatin1String("HMSZB-1"))))    // Develco temp/hum sensor
         {
             rq.minInterval = 60;
             rq.maxInterval = 600;
         }
-        
+
         return sendConfigureReportingRequest(bt, {rq});
     }
     else if (bt.binding.clusterId == PRESSURE_MEASUREMENT_CLUSTER_ID)
@@ -1648,7 +1648,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 300;        // value used by Hue bridge
             rq.reportableChange8bit = 0; // value used by Hue bridge
         }
-        else if (sensor && sensor->modelId().startsWith(QLatin1String("ROM00"))) // Hue smart button
+        else if (sensor && (sensor->modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
+                            sensor->modelId().startsWith(QLatin1String("RDM00")))) // Hue wall switch module
         {
             rq.minInterval = 900;        // value used by Hue bridge
             rq.maxInterval = 900;        // value used by Hue bridge
@@ -1945,7 +1946,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         {
             rq3.reportableChange16bit = 1; // 0.1 A
         }
-        
+
         if (sensor && sensor->modelId() == QLatin1String("TH1300ZB"))
         {
             ConfigureReportingRequest rq4;
@@ -1954,7 +1955,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq4.minInterval = 1;
             rq4.maxInterval = 300;
             rq4.reportableChange16bit = 100; // 0.1 W
-            
+
             return sendConfigureReportingRequest(bt, {rq2, rq3, rq4});
         }
 
@@ -2124,63 +2125,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             return sendConfigureReportingRequest(bt, {rq, rq1, rq2, rq3});
         }
     }
-    else if (bt.binding.clusterId == BASIC_CLUSTER_ID && existDevicesWithVendorCodeForMacPrefix(bt.restNode->address(), VENDOR_PHILIPS))
-    {
-        Sensor *sensor = dynamic_cast<Sensor*>(bt.restNode);
-        if (!sensor)
-        {
-            return false;
-        }
-
-        // only process for presence sensor: don't issue configuration for temperature and illuminance sensors
-        // TODO check if just used for hue motion sensor or also hue dimmer switch?
-        if (sensor->type() != QLatin1String("ZHAPresence"))
-        {
-            return false;
-        }
-
-        deCONZ::NumericUnion dummy;
-        dummy.u64 = 0;
-        // add usertest value if not already present
-        if (bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x0032, bt.binding.srcEndpoint).attributeId != 0x0032)
-        {
-            bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.srcEndpoint, BASIC_CLUSTER_ID, 0x0032, dummy);
-        }
-        // ledindication value if not already present
-        if (bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x0033, bt.binding.srcEndpoint).attributeId != 0x0033)
-        {
-            bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.srcEndpoint, BASIC_CLUSTER_ID, 0x0033, dummy);
-        }
-
-        NodeValue &val = bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x0032, bt.binding.srcEndpoint);
-
-        if (val.timestampLastReport.isValid() && (val.timestampLastReport.secsTo(now) < val.maxInterval * 1.5))
-        {
-            return false;
-        }
-
-        // already configured? wait for report ...
-        if (val.timestampLastConfigured.isValid() && (val.timestampLastConfigured.secsTo(now) < val.maxInterval * 1.5))
-        {
-            return false;
-        }
-
-        rq.dataType = deCONZ::ZclBoolean;
-        rq.attributeId = 0x0032; // usertest
-        rq.minInterval = 5;   // value used by Hue bridge
-        rq.maxInterval = 7200;   // value used by Hue bridge
-        rq.manufacturerCode = VENDOR_PHILIPS;
-
-        ConfigureReportingRequest rq2;
-        rq2 = ConfigureReportingRequest();
-        rq2.dataType = deCONZ::ZclBoolean;
-        rq2.attributeId = 0x0033; // ledindication
-        rq2.minInterval = 5; // value used by Hue bridge
-        rq2.maxInterval = 7200; // value used by Hue bridge
-        rq2.manufacturerCode = VENDOR_PHILIPS;
-
-        return sendConfigureReportingRequest(bt, {rq, rq2});
-    }
     else if (bt.binding.clusterId == BASIC_CLUSTER_ID && manufacturerCode == VENDOR_IKEA && lightNode)
     {
         deCONZ::NumericUnion dummy;
@@ -2222,12 +2166,101 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         return sendConfigureReportingRequest(bt, {rq});
     }
+    else if (bt.binding.clusterId == BASIC_CLUSTER_ID) {
+        Sensor *sensor = dynamic_cast<Sensor*>(bt.restNode);
+        if (!sensor)
+        {
+            return false;
+        }
+
+        if (sensor->modelId().startsWith(QLatin1String("RDM00"))) // Hue wall switch module
+        {
+            deCONZ::NumericUnion dummy;
+            dummy.u64 = 0;
+            // add device mode value if not already present
+            if (bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x0034, bt.binding.srcEndpoint).attributeId != 0x0034)
+            {
+                bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.srcEndpoint, BASIC_CLUSTER_ID, 0x0034, dummy);
+            }
+
+            NodeValue &val = bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x0034, bt.binding.srcEndpoint);
+
+            if (val.timestampLastReport.isValid() && (val.timestampLastReport.secsTo(now) < val.maxInterval * 1.5))
+            {
+                return false;
+            }
+
+            // already configured? wait for report ...
+            if (val.timestampLastConfigured.isValid() && (val.timestampLastConfigured.secsTo(now) < val.maxInterval * 1.5))
+            {
+                return false;
+            }
+
+            rq.dataType = deCONZ::Zcl8BitEnum;
+            rq.attributeId = 0x0034; // Device Mode
+            rq.minInterval = 0;   // value used by Hue bridge
+            rq.maxInterval = 7200;   // value used by Hue bridge
+            rq.manufacturerCode = VENDOR_PHILIPS;
+
+            return sendConfigureReportingRequest(bt, {rq});
+        }
+        else if (sensor->modelId().startsWith(QLatin1String("SML00")) && // Hue motion sensor
+                 sensor->type() == QLatin1String("ZHAPresence"))
+        {
+            deCONZ::NumericUnion dummy;
+            dummy.u64 = 0;
+            // add usertest value if not already present
+            if (bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x0032, bt.binding.srcEndpoint).attributeId != 0x0032)
+            {
+                bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.srcEndpoint, BASIC_CLUSTER_ID, 0x0032, dummy);
+            }
+            // ledindication value if not already present
+            if (bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x0033, bt.binding.srcEndpoint).attributeId != 0x0033)
+            {
+                bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.srcEndpoint, BASIC_CLUSTER_ID, 0x0033, dummy);
+            }
+
+            NodeValue &val = bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x0032, bt.binding.srcEndpoint);
+
+            if (val.timestampLastReport.isValid() && (val.timestampLastReport.secsTo(now) < val.maxInterval * 1.5))
+            {
+                return false;
+            }
+
+            // already configured? wait for report ...
+            if (val.timestampLastConfigured.isValid() && (val.timestampLastConfigured.secsTo(now) < val.maxInterval * 1.5))
+            {
+                return false;
+            }
+
+            rq.dataType = deCONZ::ZclBoolean;
+            rq.attributeId = 0x0032; // usertest
+            rq.minInterval = 5;   // value used by Hue bridge
+            rq.maxInterval = 7200;   // value used by Hue bridge
+            rq.manufacturerCode = VENDOR_PHILIPS;
+
+            ConfigureReportingRequest rq2;
+            rq2 = ConfigureReportingRequest();
+            rq2.dataType = deCONZ::ZclBoolean;
+            rq2.attributeId = 0x0033; // ledindication
+            rq2.minInterval = 5; // value used by Hue bridge
+            rq2.maxInterval = 7200; // value used by Hue bridge
+            rq2.manufacturerCode = VENDOR_PHILIPS;
+
+            return sendConfigureReportingRequest(bt, {rq, rq2});
+        }
+        else
+        {
+            return false;
+        }
+    }
     else if (bt.binding.clusterId == VENDOR_CLUSTER_ID)
     {
         Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
 
         if (sensor && (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
                        sensor->modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
+                       sensor->modelId().startsWith(QLatin1String("RDM00")) || // Hue wall switch module
                        sensor->modelId().startsWith(QLatin1String("Z3-1BRL")))) // Lutron Aurora Friends-of-Hue dimmer switch
         {
             deCONZ::NumericUnion val;
@@ -2650,6 +2683,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("SML00")) ||
         sensor->modelId().startsWith(QLatin1String("RWL02")) ||
         sensor->modelId().startsWith(QLatin1String("ROM00")) ||
+        sensor->modelId().startsWith(QLatin1String("RDM00")) ||
         // Lutron Aurora Friends-of-Hue dimmer switch
         sensor->modelId().startsWith(QLatin1String("Z3-1BRL")) ||
         // ubisys
@@ -3120,6 +3154,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         {
             if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
                 sensor->modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
+                sensor->modelId().startsWith(QLatin1String("RDM00")) || // Hue wall switch module
                 sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
             {
                 val = sensor->getZclValue(*i, 0x0000); // button event
@@ -3144,6 +3179,21 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             {
                 val = sensor->getZclValue(*i, 0x0032); // usertest
                 // val = sensor->getZclValue(*i, 0x0033); // ledindication
+
+                if (searchSensorsState != SearchSensorsActive &&
+                    idleTotalCounter < (IDLE_READ_LIMIT + (7200))) // wait for max reporting interval before fire bindings
+                {
+                    continue;
+                }
+
+                if (val.timestampLastConfigured.isValid() && val.timestampLastConfigured.secsTo(now) < (val.maxInterval * 1.5))
+                {
+                    continue;
+                }
+            }
+            else if (sensor->modelId().startsWith(QLatin1String("RDM00")))
+            {
+                val = sensor->getZclValue(*i, 0x0034); // devicemode
 
                 if (searchSensorsState != SearchSensorsActive &&
                     idleTotalCounter < (IDLE_READ_LIMIT + (7200))) // wait for max reporting interval before fire bindings
@@ -3301,7 +3351,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             {
                 ret = queueBindingTask(bindingTask);
             }
-            
+
             if (*i == IAS_ZONE_CLUSTER_ID)
             {
                 checkIasEnrollmentStatus(sensor);
