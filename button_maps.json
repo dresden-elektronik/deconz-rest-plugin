@@ -52,7 +52,8 @@
         "COLOR_CONTROL": 768,
         "IAS_ZONE": 1280,
         "IAS_ACE": 1281,
-        "SENGLED": 64528
+        "SENGLED": 64528,
+        "ADEO": 65024
 	},
 	"commands": {
         "DOOR_LOCK": {
@@ -118,6 +119,9 @@
         },
         "SENGLED": {
             "COMMAND_0": 0
+        },
+        "ADEO": {
+            "RECALL_SCENE": 0
         }
 	},
 	"maps": {
@@ -1029,18 +1033,48 @@
             ]
         },
         "adeoLXEK5": {
+            "vendor": "Adeo / Lexman",
+            "doc": "Remote",
             "modelids": ["LXEK-5"],
+            "buttons": [
+                {"S_BUTTON_1": "On button"},
+                {"S_BUTTON_2": "Off button"},
+                {"S_BUTTON_3": "Dim up"},
+                {"S_BUTTON_4": "Dim down"},
+                {"S_BUTTON_5": "Color saturation up"},
+                {"S_BUTTON_6": "Color saturation down"},
+                {"S_BUTTON_7": "White Temperature up"},
+                {"S_BUTTON_8": "White Temperature down"},
+                {"S_BUTTON_9": "Color right"},
+                {"S_BUTTON_10": "Color left"},
+                {"S_BUTTON_11": "Scene 1"},
+                {"S_BUTTON_12": "Scene 2"},
+                {"S_BUTTON_13": "Scene 3"},
+                {"S_BUTTON_14": "Scene 4"}
+            ],
             "map": [
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
-                [1, "0x01", "ONOFF", "OFF", "0","S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
-                [1, "0x01", "LEVEL_CONTROL", "STEP", "0x00", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Dimm up"],
-                [1, "0x01", "LEVEL_CONTROL", "STEP", "0x01", "S_BUTTON_4", "S_BUTTON_ACTION_SHORT_RELEASED", "Dimm down"],
-                [1, "0x01", "COLOR_CONTROL", "STEP_SATURATION", "0x01", "S_BUTTON_5", "S_BUTTON_ACTION_SHORT_RELEASED", "Saturation up"],
-                [1, "0x01", "COLOR_CONTROL", "STEP_SATURATION", "0x03", "S_BUTTON_6", "S_BUTTON_ACTION_SHORT_RELEASED", "Saturation down"],
-                [1, "0x01", "COLOR_CONTROL", "STEP_COLOR_TEMPERATURE", "0x01", "S_BUTTON_7", "S_BUTTON_ACTION_SHORT_RELEASED", "Color up"],
-                [1, "0x01", "COLOR_CONTROL", "STEP_COLOR_TEMPERATURE", "0x03", "S_BUTTON_8", "S_BUTTON_ACTION_SHORT_RELEASED", "Color down"],
-                [1, "0x01", "COLOR_CONTROL", "STEP_HUE", "0x01", "S_BUTTON_9", "S_BUTTON_ACTION_SHORT_RELEASED", "??? up"],
-                [1, "0x01", "COLOR_CONTROL", "STEP_HUE", "0x03", "S_BUTTON_10", "S_BUTTON_ACTION_SHORT_RELEASED", "??? down"]
+                [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
+                [1, "0x01", "LEVEL_CONTROL", "STEP", "0x001A", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Dimm up"],
+                [1, "0x01", "LEVEL_CONTROL", "STEP", "0x00FE", "S_BUTTON_3", "S_BUTTON_ACTION_HOLD", "Dimm up Hold"],
+                [1, "0x01", "LEVEL_CONTROL", "STEP", "0x011A", "S_BUTTON_4", "S_BUTTON_ACTION_SHORT_RELEASED", "Dimm down"],
+                [1, "0x01", "LEVEL_CONTROL", "STEP", "0x01FE", "S_BUTTON_4", "S_BUTTON_ACTION_HOLD", "Dimm down Hold"],
+                [1, "0x01", "LEVEL_CONTROL", "STOP", "0", "S_BUTTON_4", "S_BUTTON_ACTION_LONG_RELEASED", "Dim Released"],
+                [1, "0x01", "COLOR_CONTROL", "STEP_SATURATION", "0x011A", "S_BUTTON_5", "S_BUTTON_ACTION_SHORT_RELEASED", "Color saturation up"],
+                [1, "0x01", "COLOR_CONTROL", "STEP_SATURATION", "0x01FE", "S_BUTTON_5", "S_BUTTON_ACTION_HOLD", "Color saturation up Hold"],
+                [1, "0x01", "COLOR_CONTROL", "STEP_SATURATION", "0x031A", "S_BUTTON_6", "S_BUTTON_ACTION_SHORT_RELEASED", "Color saturation down"],
+                [1, "0x01", "COLOR_CONTROL", "STEP_SATURATION", "0x03FE", "S_BUTTON_6", "S_BUTTON_ACTION_HOLD", "Color saturation down Hold"],
+                [1, "0x01", "COLOR_CONTROL", "STEP_COLOR_TEMPERATURE", "0x0316", "S_BUTTON_7", "S_BUTTON_ACTION_SHORT_RELEASED", "White Temperature up"],
+                [1, "0x01", "COLOR_CONTROL", "STEP_COLOR_TEMPERATURE", "0x03D9", "S_BUTTON_7", "S_BUTTON_ACTION_HOLD", "White Temperature up Hold"],
+                [1, "0x01", "COLOR_CONTROL", "STEP_COLOR_TEMPERATURE", "0x0116", "S_BUTTON_8", "S_BUTTON_ACTION_SHORT_RELEASED", "White Temperature down"],
+                [1, "0x01", "COLOR_CONTROL", "STEP_COLOR_TEMPERATURE", "0x01D9", "S_BUTTON_8", "S_BUTTON_ACTION_HOLD", "White Temperature down Hold"],
+                [1, "0x01", "COLOR_CONTROL", "STOP_MOVE_STEP", "0", "S_BUTTON_8", "S_BUTTON_ACTION_LONG_RELEASED", "Saturation / White Temperature Released"],
+                [1, "0x01", "COLOR_CONTROL", "STEP_HUE", "0x01", "S_BUTTON_9", "S_BUTTON_ACTION_SHORT_RELEASED", "Color right"],
+                [1, "0x01", "COLOR_CONTROL", "STEP_HUE", "0x03", "S_BUTTON_10", "S_BUTTON_ACTION_SHORT_RELEASED", "Color left"],
+                [1, "0x01", "ADEO", "RECALL_SCENE", "0x0A", "S_BUTTON_11", "S_BUTTON_ACTION_SHORT_RELEASED", "Scene 1"],
+                [1, "0x01", "ADEO", "RECALL_SCENE", "0x0B", "S_BUTTON_12", "S_BUTTON_ACTION_SHORT_RELEASED", "Scene 2"],
+                [1, "0x01", "ADEO", "RECALL_SCENE", "0x0C", "S_BUTTON_13", "S_BUTTON_ACTION_SHORT_RELEASED", "Scene 3"],
+                [1, "0x01", "ADEO", "RECALL_SCENE", "0x0D", "S_BUTTON_14", "S_BUTTON_ACTION_SHORT_RELEASED", "Scene 4"]
             ]
         },
         "bitronRemoteMap": {
@@ -1278,3 +1312,4 @@
         }
     }
 }
+

@@ -221,6 +221,7 @@ using namespace deCONZ::literals;
 #define XIAOMI_CLUSTER_ID                     0xFCC0
 #define XAL_CLUSTER_ID                        0xFCCE
 #define BOSCH_AIR_QUALITY_CLUSTER_ID          quint16(0xFDEF)
+#define ADEO_CLUSTER_ID                       0xFE00
 
 #define IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID  0x0002
 

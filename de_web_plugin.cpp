@@ -1034,7 +1034,8 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         if (ind.dstAddressMode() == deCONZ::ApsGroupAddress || ind.clusterId() == VENDOR_CLUSTER_ID || ind.clusterId() == IAS_ZONE_CLUSTER_ID ||
             !(zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient) ||
-            (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId))
+            (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId) ||
+            (ind.clusterId() == ADEO_CLUSTER_ID && zclFrame.manufacturerCode() == VENDOR_ADEO))
         {
             Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
 
@@ -4535,7 +4536,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     if (buttonMap.zclParam0 != sensor->previousDirection && // direction of previous move/step
                         (sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5121")) || // Device sends cmd = 7 + param = 0 for dim up/down
                         sensor->modelId().startsWith(QLatin1String("ZBT-DIMSwitch-D0001")) ||
-                        sensor->modelId().startsWith(QLatin1String("ZGRC-TEUR-003"))))
+                        sensor->modelId().startsWith(QLatin1String("ZGRC-TEUR-003")) ||
+                        sensor->modelId().startsWith(QLatin1String("LXEK-5"))))
                     {
                         sensor->previousDirection = 0xFF;
                         ok = true;
@@ -4751,6 +4753,36 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     }
 
                 }
+                else if (ind.clusterId() == COLOR_CLUSTER_ID && 
+                        ((zclFrame.commandId() == 0x05 ) || // Step Saturation
+                        (zclFrame.commandId() == 0x4C )) && // Step Color Temperature
+                        sensor->modelId().startsWith(QLatin1String("LXEK-5")))
+                {
+                    ok = false;
+                    if (zclFrame.payload().size() >= 1 && buttonMap.zclParam0 == zclFrame.payload().at(0)) // direction
+                    {
+                        sensor->previousDirection = zclFrame.payload().at(0);
+                        ok = true;
+                    }
+                    if (zclFrame.payload().size() >= 3)
+                    {
+                        //First value is a quint8 for step mode : 0x00 UP and 0x01 DOWN
+                        //The second one is step size
+                        //The third value is a quint16 for transition
+                        if (sensor->modelId().startsWith(QLatin1String("LXEK-5"))) // ADEO Lexman Télécommande (Leroy Merlin)
+                        {
+                            //need to use stepsize too for this device
+                            ok = true;
+                            quint16 param = (quint16)zclFrame.payload().at(0) & 0xff;
+                            param <<= 8;
+                            param |= (quint16)zclFrame.payload().at(1) & 0xff;
+                            if (buttonMap.zclParam0 != param)
+                            {
+                                ok = false;
+                            }
+                        }
+                    }
+                }
                 else if (ind.clusterId() == COLOR_CLUSTER_ID &&
                         (zclFrame.commandId() == 0x02 || // Step Hue
                          zclFrame.commandId() == 0x4C || // Step Color Temperature
@@ -4761,7 +4793,31 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         ok = false;
                     }
                 }
+                else if (ind.clusterId() == COLOR_CLUSTER_ID && (zclFrame.commandId() == 0x47)) // stop
+                {
+                    ok = false;
+                    if (buttonMap.zclParam0 == sensor->previousDirection) // direction of previous step
+                    {
+                        sensor->previousDirection = 0xFF;
+                        ok = true;
+                    }
+                    if (buttonMap.zclParam0 != sensor->previousDirection && // direction of previous step
+                        sensor->modelId().startsWith(QLatin1String("LXEK-5")))
+                    {
+                        sensor->previousDirection = 0xFF;
+                        ok = true;
+                    }
+                }
                 else if (ind.clusterId() == SENGLED_CLUSTER_ID)
+                {
+                    ok = false;
+                    
+                    if (buttonMap.zclParam0 == pl0)
+                    {
+                        ok = true;
+                    }
+                }
+                else if (ind.clusterId() == ADEO_CLUSTER_ID)
                 {
                     ok = false;
                     
