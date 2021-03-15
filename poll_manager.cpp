@@ -283,7 +283,7 @@ void PollManager::pollTimerFired()
         {
             //Thoses devices haven't cluster 0006, and use Cluster specific
         }
-        else if (lightNode->manufacturerCode() != VENDOR_XIAOMI) // reports
+        else
         {
             clusterId = ONOFF_CLUSTER_ID;
             attributes.push_back(0x0000); // onOff
