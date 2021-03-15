@@ -265,7 +265,7 @@ QMap<QString, std::vector<Sensor::ButtonMap>> loadButtonMapsJson(const QJsonDocu
         {
             QString buttonMapName = i.key();    // Individual button map name
             //DBG_Printf(DBG_INFO, "[INFO] - Button map name: %s\n", qPrintable(buttonMapName));
-            quint8 mapItem = 0;
+            int mapItem = 0;
 
             if (i.value().isObject())        // Check if individual button map is an object
             {
@@ -277,10 +277,9 @@ QMap<QString, std::vector<Sensor::ButtonMap>> loadButtonMapsJson(const QJsonDocu
                     QJsonArray buttonMapArr = buttonMapObj.value(QString("map")).toArray();
                     //DBG_Printf(DBG_INFO, "[INFO] - Button map size: %d\n", i.value().toArray().size());
 
-                    for (auto i = buttonMapArr.constBegin(); i != buttonMapArr.constEnd(); ++i)       // Loop through button map items
+                    for (auto i = buttonMapArr.constBegin(); i != buttonMapArr.constEnd(); ++i, mapItem++)       // Loop through button map items
                     {
                         QJsonValue val = *i;
-                        mapItem++;
                         if (val.isArray())
                         {
                             QJsonArray buttonMapItemArr = val.toArray();
@@ -462,7 +461,6 @@ QMap<QString, std::vector<Sensor::ButtonMap>> loadButtonMapsJson(const QJsonDocu
                                 //DBG_Printf(DBG_INFO, "[INFO] - btnMap item #6: %d\n", btnMap.button);
                                 //DBG_Printf(DBG_INFO, "[INFO] - btnMap item #7: %s\n", qPrintable(btnMap.name));
                                 btnMapVec.push_back(btnMap);
-                                mapItem++;
                             }
                         }
                         else
