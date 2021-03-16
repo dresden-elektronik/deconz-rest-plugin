@@ -1024,11 +1024,6 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             handleFanControlClusterIndication(ind, zclFrame);
             break;
 
-        case LUMI_CLUSTER_ID:
-            // Lumi manfacture cluster:
-            handleLumiClusterIndication(ind, zclFrame);
-            break;
-
         default:
         {
         }
@@ -2535,6 +2530,13 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 lightNode.setManufacturerName(QLatin1String("LUMI"));
                 lightNode.setNeedSaveDatabase(true);
             }
+
+            if (lightNode.modelId() == QLatin1String("lumi.switch.n4acn4"))
+            {
+                /* code */
+                lightNode.addItem(DataTypeString, RStateAqaraS1PanelCommunication);
+            }
+            
         }
 
         if (lightNode.manufacturerCode() == VENDOR_MAXSTREAM)
@@ -3557,6 +3559,21 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
 
                         uint8_t mode = ia->numericValue().u8;
                         lightNode->setValue(RStateSpeed, mode);
+                    }
+                }
+            }
+            else if (ic->id() == XIAOMI_CLUSTER_ID && (event.clusterId() == XIAOMI_CLUSTER_ID))
+            {
+                std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
+                std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
+                for (;ia != enda; ++ia)
+                {
+                    if (ia->id() == 0xfff2) // Communication
+                    {
+                        QString val = ia->toString()
+                        lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), val);
+
+                        lightNode->setValue(RStateAqaraS1PanelCommunication, val);
                     }
                 }
             }

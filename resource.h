@@ -61,6 +61,7 @@ extern const char *RStateAlert;
 extern const char *RStateAllOn;
 extern const char *RStateAngle;
 extern const char *RStateAnyOn;
+extern const char *RStateAqaraS1PanelCommunication;
 extern const char *RStateBattery;
 extern const char *RStateBri;
 extern const char *RStateButtonEvent;

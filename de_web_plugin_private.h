@@ -220,7 +220,6 @@ using namespace deCONZ::literals;
 #define LEGRAND_CONTROL_CLUSTER_ID            0xFC40
 #define XIAOMI_CLUSTER_ID                     0xFCC0
 #define XAL_CLUSTER_ID                        0xFCCE
-#define LUMI_CLUSTER_ID                       0xFCC0
 #define BOSCH_AIR_QUALITY_CLUSTER_ID          quint16(0xFDEF)
 
 #define IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID  0x0002
@@ -1568,7 +1567,6 @@ public:
     void sendBasicClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handlePhilipsClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleTuyaClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    void handleLumiClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclAttributeReportIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclConfigureReportingResponseIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendZclDefaultResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, quint8 status);

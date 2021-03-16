@@ -148,7 +148,6 @@ SOURCES  = air_quality.cpp \
            identify.cpp \
            json.cpp \
            light_node.cpp \
-           lumi.cpp \
            poll_control.cpp \
            poll_manager.cpp \
            read_files.cpp \

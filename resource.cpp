@@ -47,6 +47,7 @@ const char *RStateAlert = "state/alert";
 const char *RStateAllOn = "state/all_on";
 const char *RStateAngle = "state/angle";
 const char *RStateAnyOn = "state/any_on";
+const char *RStateAqaraS1PanelCommunication = "state/aqara_s1_panel_communication";
 const char *RStateBattery = "state/battery";
 const char *RStateBri = "state/bri";
 const char *RStateButtonEvent = "state/buttonevent";
@@ -222,6 +223,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAllOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateAngle));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAnyOn));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateAqaraS1PanelCommunication));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateBattery, 0, 100));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateBri));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt32, RStateButtonEvent));
