@@ -2533,7 +2533,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 lightNode.setNeedSaveDatabase(true);
             }
 
-            if (lightNode.modelId() == QLatin1String("lumi.switch.n4acn4"))
+            // if (lightNode.modelId() == QLatin1String("lumi.switch.n4acn4"))
             {
                 /* code */
                 DBG_Printf(DBG_INFO, "LightNode####################\n");
