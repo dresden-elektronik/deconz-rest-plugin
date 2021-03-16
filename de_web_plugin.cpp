@@ -3575,7 +3575,8 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     {
                         QString val = ia->toString();
                         // lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), val);
-
+                        
+                        DBG_Printf(DBG_INFO, "LightNode %s set node %s ################## updated 0xfff2\n", qPrintable(lightNode->id()), qPrintable(event.node()->address().toStringExt()));
                         lightNode->setValue(RStateAqaraS1PanelCommunication, val);
                     }
                 }
