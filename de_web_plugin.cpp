@@ -3570,7 +3570,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                 {
                     if (ia->id() == 0xfff2) // Communication
                     {
-                        QString val = ia->toString()
+                        QString val = ia->toString();
                         lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), val);
 
                         lightNode->setValue(RStateAqaraS1PanelCommunication, val);
