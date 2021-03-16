@@ -2523,8 +2523,10 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
         DBG_Assert(lightNode.state() != LightNode::StateDeleted);
 
+                DBG_Printf(DBG_INFO, "LightNode####################\n");
         if (lightNode.manufacturerCode() == VENDOR_XIAOMI)
         {
+                DBG_Printf(DBG_INFO, "LightNode####################\n");
             if (lightNode.manufacturer() != QLatin1String("LUMI"))
             {
                 lightNode.setManufacturerName(QLatin1String("LUMI"));
@@ -2534,6 +2536,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             if (lightNode.modelId() == QLatin1String("lumi.switch.n4acn4"))
             {
                 /* code */
+                DBG_Printf(DBG_INFO, "LightNode####################\n");
                 lightNode.addItem(DataTypeString, RStateAqaraS1PanelCommunication);
             }
             
