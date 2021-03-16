@@ -237,6 +237,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
 
         if      (item->descriptor().suffix == RStateOn) { state["on"] = item->toBool(); }
         else if (item->descriptor().suffix == RStateAlert) { state["alert"] = QLatin1String("none"); }
+        else if (item->descriptor().suffix == RStateAqaraS1PanelCommunication) { state["aqara_s1_panel_communication"] = item->toString(); }
         else if (item->descriptor().suffix == RStateBri) { state["bri"] = static_cast<double>(item->toNumber()); }
         else if (item->descriptor().suffix == RStateHue) { state["hue"] = static_cast<double>(item->toNumber()); }
         else if (item->descriptor().suffix == RStateSat) { state["sat"] = static_cast<double>(item->toNumber()); }
