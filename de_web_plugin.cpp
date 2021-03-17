@@ -11995,6 +11995,8 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
     if (stream.atEnd() || attrId == 0)
     {
+
+            DBG_Printf(DBG_INFO, "0x%016llX skip Xiaomi attribute 0x%04X #####################\n", ind.srcAddress().ext(), attrId);
         return;
     }
 
