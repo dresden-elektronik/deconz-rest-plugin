@@ -2623,13 +2623,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
         //Add missing field for Tuya Device with tuya cluster
         // Window covering
-        if (lightNode.manufacturer() == QString("_TYST11_xu1rkty3") ||
-            lightNode.manufacturer() == QString("_TZE200_xuzcvlku") ||
-            lightNode.manufacturer() == QString("_TZE200_wmcdj3aq") ||
-            lightNode.manufacturer() == QString("_TZE200_nogaemzt") ||
-            lightNode.manufacturer() == QString("_TZE200_zah67ekd") || // MoesHouse / Livolo Roller Blinds
-            lightNode.manufacturer() == QString("_TZE200_fzo2pocs") ||
-            lightNode.manufacturer() == QString("_TYST11_wmcdj3aq"))
+        if (R_GetProductId(&lightNode).startsWith(QLatin1String("Tuya_COVD")))
         {
             lightNode.addItem(DataTypeBool, RStateOpen);
             lightNode.addItem(DataTypeUInt8, RStateLift);
