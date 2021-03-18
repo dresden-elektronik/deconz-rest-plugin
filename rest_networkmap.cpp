@@ -42,7 +42,6 @@ int DeRestPluginPrivate::getNetworkMapDatas(const ApiRequest &req, ApiResponse &
     while (apsCtrl->getNode(n, &node) == 0)
     {
         QVariantMap currentNode;
-        QVariantMap currentStyleMap;
         QString className;
         currentNode["id"] = node->address().toStringExt();
         currentNode["name"] = node->userDescriptor();
