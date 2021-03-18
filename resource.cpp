@@ -12,6 +12,7 @@
 #include <QJSEngine>
 #include "deconz.h"
 #include "resource.h"
+#include "tuya.h"
 #include "de_web_plugin_private.h"
 
 const char *RDevices = "/devices";
@@ -44,6 +45,7 @@ const char *RAttrType = "attr/type";
 const char *RAttrClass = "attr/class";
 const char *RAttrId = "attr/id";
 const char *RAttrUniqueId = "attr/uniqueid";
+const char *RAttrProductId = "attr/productid";
 const char *RAttrSwVersion = "attr/swversion";
 const char *RAttrLastAnnounced = "attr/lastannounced";
 const char *RAttrLastSeen = "attr/lastseen";
@@ -137,6 +139,7 @@ const char *RConfigCheckin = "config/checkin";
 const char *RConfigConfigured = "config/configured";
 const char *RConfigCoolSetpoint = "config/coolsetpoint";
 const char *RConfigDelay = "config/delay";
+const char *RConfigDeviceMode = "config/devicemode";
 const char *RConfigDisplayFlipped = "config/displayflipped";
 const char *RConfigDuration = "config/duration";
 const char *RConfigEnrolled = "config/enrolled";
@@ -157,6 +160,8 @@ const char *RConfigLevelMin = "config/levelmin";
 const char *RConfigMode = "config/mode";
 const char *RConfigSetValve = "config/setvalve";
 const char *RConfigMountingMode = "config/mountingmode";
+const char *RConfigExternalTemperatureSensor = "config/externalsensortemp";
+const char *RConfigExternalWindowOpen = "config/externalwindowopen";
 const char *RConfigOffset = "config/offset";
 const char *RConfigOn = "config/on";
 const char *RConfigPending = "config/pending";
@@ -164,6 +169,10 @@ const char *RConfigPowerup = "config/powerup";
 const char *RConfigPowerOnCt = "config/poweronct";
 const char *RConfigPowerOnLevel = "config/poweronlevel";
 const char *RConfigPreset = "config/preset";
+const char *RConfigMelody = "config/melody";
+const char *RConfigVolume = "config/volume";
+const char *RConfigTempThreshold = "config/temperaturethreshold";
+const char *RConfigHumiThreshold = "config/humiditythreshold";
 const char *RConfigReachable = "config/reachable";
 const char *RConfigSchedule = "config/schedule";
 const char *RConfigScheduleOn = "config/schedule_on";
@@ -195,6 +204,10 @@ const char *RConfigUbisysJ1TotalSteps2 = "config/ubisys_j1_totalsteps2";
 const char *RConfigUbisysJ1AdditionalSteps = "config/ubisys_j1_additionalsteps";
 const char *RConfigUbisysJ1InactivePowerThreshold = "config/ubisys_j1_inactivepowerthreshold";
 const char *RConfigUbisysJ1StartupSteps = "config/ubisys_j1_startupsteps";
+
+const QStringList RConfigDeviceModeValues({
+    "singlerocker", "singlepushbutton", "dualrocker", "dualpushbutton"
+});
 
 const QStringList RConfigLastChangeSourceValues({
     "manual", "schedule", "zigbee"
@@ -626,6 +639,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrClass));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrUniqueId));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrProductId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrSwVersion));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RAttrLastAnnounced));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RAttrLastSeen));
@@ -711,6 +725,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigConfigured));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigCoolSetpoint, 700, 3500));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigDelay));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigDeviceMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigDisplayFlipped));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigDuration));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RConfigEnrolled));
@@ -733,11 +748,15 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigMountingMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigOffset, INT16_MIN, INT16_MAX));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigOn));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigPending));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigPending));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RConfigPowerup));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigPowerOnLevel));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigPowerOnCt));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigPreset));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigMelody));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigVolume));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigTempThreshold));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigHumiThreshold));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigReachable));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigSchedule));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigScheduleOn));
@@ -754,6 +773,8 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigUsertest));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigWindowCoveringType));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigWindowOpen));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigExternalTemperatureSensor));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigExternalWindowOpen));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigUbisysJ1Mode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigUbisysJ1WindowCoveringType));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigUbisysJ1ConfigurationAndStatus));
@@ -797,7 +818,6 @@ bool getResourceItemDescriptor(const QString &str, ResourceItemDescriptor &descr
 /*! Clears \p flags in \p item which must be a numeric value item.
     The macro is used to print the flag defines as human readable.
  */
-#define R_ClearFlags(item, flags) R_ClearFlags1(item, flags, #flags)
 bool R_ClearFlags1(ResourceItem *item, qint64 flags, const char *strFlags)
 {
     DBG_Assert(item);
@@ -819,7 +839,6 @@ bool R_ClearFlags1(ResourceItem *item, qint64 flags, const char *strFlags)
 /*! Sets \p flags in \p item which must be a numeric value item.
     The macro is used to print the flag defines as human readable.
  */
-#define R_SetFlags(item, flags) R_SetFlags1(item, flags, #flags)
 bool R_SetFlags1(ResourceItem *item, qint64 flags, const char *strFlags)
 {
     DBG_Assert(item);
@@ -851,6 +870,155 @@ bool R_HasFlags(const ResourceItem *item, qint64 flags)
     return false;
 }
 
+/*! The product map is a helper to map Basic Cluster manufacturer name and modelid
+   to human readable product identifiers like marketing string or the model no. as printed on the product package.
+
+   In case of Tuya multiple entries may refer to the same device, so in matching code
+   it's best to match against the \c productId.
+
+   Example:
+
+   if (R_GetProductId(sensor) == QLatin1String("SEA801-ZIGBEE TRV"))
+   {
+   }
+
+   Note: this will later on be replaced with the data from DDF files.
+*/
+struct ProductMap
+{
+    const char *zmanufacturerName;
+    const char *zmodelId;
+    const char *manufacturer;
+    // a common product identifier even if multipe branded versions exist
+    const char *commonProductId;
+};
+
+static const ProductMap products[] =
+{
+    // Prefix signification
+    // --------------------
+    // Tuya_THD : thermostat device using Tuya cluster
+    // Tuya_COVD : covering device using Tuya cluster
+
+
+    // Tuya Thermostat / TRV
+    {"_TYST11_zuhszj9s", "uhszj9s", "HiHome", "Tuya_THD WZB-TRVL TRV"},
+    {"_TYST11_KGbxAXL2", "GbxAXL2", "Saswell", "Tuya_THD SEA801-ZIGBEE TRV"},
+    {"_TYST11_c88teujp", "88teujp", "Saswell", "Tuya_THD SEA801-ZIGBEE TRV"},
+    {"_TZE200_c88teujp", "TS0601", "Saswell", "Tuya_THD SEA801-ZIGBEE TRV"},
+    {"_TYST11_ckud7u2l", "kud7u2l", "Tuya", "Tuya_THD HY369 TRV"},
+    {"_TZE200_ckud7u2l", "TS0601", "Tuya", "Tuya_THD HY369 TRV"},
+    {"_TZE200_ywdxldoj", "TS0601", "MOES/tuya", "Tuya_THD HY368 TRV"},
+    {"_TZE200_aoclfnxz", "TS0601", "Moes", "Tuya_THD BTH-002 Thermostat"},
+    {"_TYST11_jeaxp72v", "eaxp72v", "Essentials", "Tuya_THD Essentials TRV"},
+    {"_TYST11_kfvq6avy", "fvq6avy", "Revolt", "Tuya_THD NX-4911-675 TRV"},
+    {"_TZE200_kfvq6avy", "TS0601", "Revolt", "Tuya_THD NX-4911-675 TRV"},
+    {"_TYST11_zivfvd7h", "ivfvd7h", "Siterwell", "Tuya_THD GS361A-H04 TRV"},
+    {"_TZE200_zivfvd7h", "TS0601", "Siterwell", "Tuya_THD GS361A-H04 TRV"},
+    {"_TYST11_yw7cahqs", "w7cahqs", "Hama", "Tuya_THD Smart radiator TRV"},
+
+    // Tuya Covering
+    {"_TYST11_wmcdj3aq", "mcdj3aq", "Zemismart", "Tuya_COVD ZM25TQ"},
+    {"_TZE200_wmcdj3aq", "TS0601", "Zemismart", "Tuya_COVD ZM25TQ"},
+    {"_TZE200_fzo2pocs", "TS0601", "Zemismart", "Tuya_COVD ZM25TQ"},
+    {"_TYST11_xu1rkty3", "u1rkty3", "Smart Home", "Tuya_COVD DT82LEMA-1.2N"},
+    {"_TZE200_xuzcvlku", "TS0601", "Zemismart", "Tuya_COVD M515EGB"},
+    {"_TZE200_zah67ekd", "TS0601", "MoesHouse / Livolo", "Tuya_COVD AM43-0.45-40"},
+    {"_TZE200_nogaemzt", "TS0601", "Tuya", "Tuya_COVD YS-MT750"},
+    {"_TZE200_zpzndjez", "TS0601", "Tuya", "Tuya_COVD DS82"},
+    {"_TZE200_cowvfni3", "TS0601", "Zemismart", "Tuya_COVD ZM79E-DT"},
+    {"_TZE200_5zbp6j0u", "TS0601", "Tuya/Zemismart", "Tuya_COVD DT82LEMA-1.2N"},
+    {"_TZE200_fdtjuw7u", "TS0601", "Yushun", "Tuya_COVD YS-MT750"},
+    {"_TZE200_bqcqqjpb", "TS0601", "Yushun", "Tuya_COVD YS-MT750"},
+
+    // Tuya covering not using tuya cluster but need reversing
+    {"_TZ3000_egq7y6pr", "TS130F", "Lonsonho", "11830304 Switch"},
+    {"_TZ3000_xzqbrqk1", "TS130F", "Lonsonho", "Zigbee curtain switch"}, // https://github.com/dresden-elektronik/deconz-rest-plugin/issues/3757#issuecomment-776201454
+    {"_TZ3000_ltiqubue", "TS130F", "Tuya", "Zigbee curtain switch"},
+    {"_TZ3000_vd43bbfq", "TS130F", "Tuya", "QS-Zigbee-C01 Module"}, // Curtain module QS-Zigbee-C01
+
+    // Other
+    {"_TYST11_d0yu2xgi", "0yu2xgi", "NEO/Tuya", "NAS-AB02B0 Siren"},
+    {"_TZE200_d0yu2xgi", "TS0601", "NEO/Tuya", "NAS-AB02B0 Siren"},
+
+    {nullptr, nullptr, nullptr, nullptr}
+};
+
+/*! Returns the product identifier for a matching Basic Cluster manufacturer name. */
+static QLatin1String productIdForManufacturerName(const QString &manufacturerName, const ProductMap *mapIter)
+{
+    Q_ASSERT(mapIter);
+
+    for (; mapIter->commonProductId != nullptr; mapIter++)
+    {
+        if (manufacturerName == QLatin1String(mapIter->zmanufacturerName))
+        {
+            return QLatin1String(mapIter->commonProductId);
+        }
+    }
+
+    return QLatin1String("");
+}
+
+/*! Returns the product identifier for a resource. */
+const QString R_GetProductId(Resource *resource)
+{
+    DBG_Assert(resource);
+
+
+    if (!resource)
+    {
+        return rInvalidString;
+    }
+
+    auto *productId = resource->item(RAttrProductId);
+
+    if (productId)
+    {
+        return productId->toString();
+    }
+
+    const auto *manufacturerName = resource->item(RAttrManufacturerName);
+    const auto *modelId = resource->item(RAttrManufacturerName);
+
+    if (!manufacturerName || !modelId)
+    {
+        return rInvalidString;
+    }
+
+    if (isTuyaManufacturerName(manufacturerName->toString()))
+    {
+        // for Tuya devices match against manufacturer name
+        const auto productIdStr = productIdForManufacturerName(manufacturerName->toString(), products);
+        if (productIdStr.size() > 0)
+        {
+            productId = resource->addItem(DataTypeString, RAttrProductId);
+            DBG_Assert(productId);
+            productId->setValue(QString(productIdStr));
+            productId->setIsPublic(false); // not ready for public
+            return productId->toString();
+        }
+        else
+        {
+            // Fallback
+            // manufacturer name is the most unique identifier for Tuya
+            if (DBG_IsEnabled(DBG_INFO_L2))
+            {
+                DBG_Printf(DBG_INFO_L2, "No Tuya productId entry found for manufacturername: %s, modelId: %s\n",
+                    qPrintable(manufacturerName->toString()), qPrintable(modelId->toString()));
+            }
+
+            return manufacturerName->toString();
+        }
+    }
+    else
+    {
+        return modelId->toString();
+    }
+
+    return rInvalidString;
+}
+
 /*! Copy constructor. */
 ResourceItem::ResourceItem(const ResourceItem &other)
 {
@@ -860,6 +1028,7 @@ ResourceItem::ResourceItem(const ResourceItem &other)
 /*! Move constructor. */
 ResourceItem::ResourceItem(ResourceItem &&other) :
     m_isPublic(other.m_isPublic),
+    m_flags(other.m_flags),
     m_num(other.m_num),
     m_numPrev(other.m_numPrev),
     m_str(nullptr),
@@ -895,6 +1064,26 @@ ResourceItem::~ResourceItem()
     }
 }
 
+/*! Returns true when a value has been set but not pushed upstream. */
+bool ResourceItem::needPushSet() const
+{
+    return (m_flags & FlagNeedPushSet) > 0;
+}
+
+/*! Returns true when a value has been set and is different from previous
+    but not pushed upstream.
+ */
+bool ResourceItem::needPushChange() const
+{
+    return (m_flags & FlagNeedPushChange) > 0;
+}
+
+/*! Clears set and changed push flags, called after value has been pushed to upstream. */
+void ResourceItem::clearNeedPush()
+{
+    m_flags &= ~static_cast<quint16>(FlagNeedPushSet | FlagNeedPushChange);
+}
+
 /*! Copy assignment. */
 ResourceItem &ResourceItem::operator=(const ResourceItem &other)
 {
@@ -906,6 +1095,7 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
 
     m_valueSource = other.m_valueSource;
     m_isPublic = other.m_isPublic;
+    m_flags = other.m_flags;
     m_parseFunction = other.m_parseFunction;
     m_parseParameters = other.m_parseParameters;
     m_readParameters = other.m_readParameters;
@@ -951,6 +1141,7 @@ ResourceItem &ResourceItem::operator=(ResourceItem &&other)
 
     m_valueSource = other.m_valueSource;
     m_isPublic = other.m_isPublic;
+    m_flags = other.m_flags;
     m_num = other.m_num;
     m_numPrev = other.m_numPrev;
     m_rid = other.m_rid;
@@ -1081,10 +1272,12 @@ bool ResourceItem::setValue(const QString &val, ValueSource source)
     {
         m_valueSource = source;
         m_lastSet = QDateTime::currentDateTime();
+        m_flags |= FlagNeedPushSet;
         if (*m_str != val)
         {
             *m_str = val;
             m_lastChanged = m_lastSet;
+            m_flags |= FlagNeedPushChange;
         }
         return true;
     }
@@ -1106,11 +1299,13 @@ bool ResourceItem::setValue(qint64 val, ValueSource source)
     m_lastSet = QDateTime::currentDateTime();
     m_numPrev = m_num;
     m_valueSource = source;
+    m_flags |= FlagNeedPushSet;
 
     if (m_num != val)
     {
         m_num = val;
         m_lastChanged = m_lastSet;
+        m_flags |= FlagNeedPushChange;
     }
 
     return true;
@@ -1137,10 +1332,12 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
         if (m_str)
         {
             m_lastSet = now;
+            m_flags |= FlagNeedPushSet;
             if (*m_str != val.toString().trimmed())
             {
                 *m_str = val.toString().trimmed();
                 m_lastChanged = m_lastSet;
+                m_flags |= FlagNeedPushChange;
             }
             return true;
         }
@@ -1149,11 +1346,13 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
     {
         m_lastSet = now;
         m_numPrev = m_num;
+        m_flags |= FlagNeedPushSet;
 
         if (m_num != val.toBool())
         {
             m_num = val.toBool();
             m_lastChanged = m_lastSet;
+            m_flags |= FlagNeedPushChange;
         }
         return true;
     }
@@ -1167,11 +1366,13 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
             {
                 m_lastSet = now;
                 m_numPrev = m_num;
+                m_flags |= FlagNeedPushSet;
 
                 if (m_num != dt.toMSecsSinceEpoch())
                 {
                     m_num = dt.toMSecsSinceEpoch();
                     m_lastChanged = m_lastSet;
+                    m_flags |= FlagNeedPushChange;
                 }
                 return true;
             }
@@ -1180,11 +1381,13 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
         {
             m_lastSet = now;
             m_numPrev = m_num;
+            m_flags |= FlagNeedPushSet;
 
             if (m_num != val.toDateTime().toMSecsSinceEpoch())
             {
                 m_num = val.toDateTime().toMSecsSinceEpoch();
                 m_lastChanged = m_lastSet;
+                m_flags |= FlagNeedPushChange;
             }
             return true;
         }
@@ -1212,11 +1415,13 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
 
             m_lastSet = now;
             m_numPrev = m_num;
+            m_flags |= FlagNeedPushSet;
 
             if (m_num != n)
             {
                 m_num = n;
                 m_lastChanged = m_lastSet;
+                m_flags |= FlagNeedPushChange;
             }
             return true;
         }

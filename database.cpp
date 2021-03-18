@@ -3248,7 +3248,12 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.fingerPrint().hasOutCluster(ONOFF_CLUSTER_ID))
             {
                 clusterId = clusterId ? clusterId : ONOFF_CLUSTER_ID;
-                if (!sensor.modelId().startsWith(QLatin1String("SYMFONISK")))
+                if (sensor.modelId().startsWith(QLatin1String("RDM00")) ||
+                    sensor.modelId().startsWith(QLatin1String("SYMFONISK")))
+                {
+                    // blacklisted
+                }
+                else
                 {
                     sensor.addItem(DataTypeString, RConfigGroup);
                 }
@@ -3282,6 +3287,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             else if (sensor.modelId().startsWith(QLatin1String("RWL02")) ||
                      sensor.modelId().startsWith(QLatin1String("ROM00")) ||
+                     sensor.modelId().startsWith(QLatin1String("RDM00")) ||
                      sensor.modelId().startsWith(QLatin1String("Z3-1BRL")))
             {
                 sensor.addItem(DataTypeUInt16, RStateEventDuration);
@@ -3330,9 +3336,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : BOSCH_AIR_QUALITY_CLUSTER_ID;
             }
-            else if (sensor.fingerPrint().hasInCluster(0xFC03))  // Develco air quality sensor
+            else if (sensor.fingerPrint().hasInCluster(DEVELCO_AIR_QUALITY_CLUSTER_ID))  // Develco air quality sensor
             {
-                clusterId = clusterId ? clusterId : 0xFC03;
+                clusterId = clusterId ? clusterId : DEVELCO_AIR_QUALITY_CLUSTER_ID;
             }
             item = sensor.addItem(DataTypeString, RStateAirQuality);
             item = sensor.addItem(DataTypeUInt16, RStateAirQualityPpb);
@@ -3349,17 +3355,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(0);
             item = sensor.addItem(DataTypeUInt16, RStateSpectralZ);
             item->setValue(0);
-        }
-        else if (sensor.type().endsWith(QLatin1String("Tuya")))
-        {
-            clusterId = clusterId ? clusterId : TUYA_CLUSTER_ID;
-
-            item = sensor.addItem(DataTypeInt16, RStateTemperature);
-            item->setValue(0);
-            item = sensor.addItem(DataTypeUInt16, RStateHumidity);
-            item->setValue(0);
-            item = sensor.addItem(DataTypeBool, RStateAlarm);
-            item->setValue(false);
         }
         else if (sensor.type().endsWith(QLatin1String("Humidity")))
         {
@@ -3487,6 +3482,16 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             item = sensor.addItem(DataTypeBool, RStateAlarm);
             item->setValue(false);
+
+            if (R_GetProductId(&sensor) == QLatin1String("NAS-AB02B0 Siren"))
+            {
+                sensor.addItem(DataTypeUInt8, RConfigMelody);
+                sensor.addItem(DataTypeString, RConfigPreset);
+                sensor.addItem(DataTypeUInt8, RConfigVolume);
+                sensor.addItem(DataTypeString, RConfigTempThreshold);
+                sensor.addItem(DataTypeString, RConfigHumiThreshold);
+            }
+
         }
         else if (sensor.type().endsWith(QLatin1String("CarbonMonoxide")))
         {
@@ -3591,7 +3596,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 }
                 else if (sensor.modelId() == QLatin1String("ZB-ONOFFPlug-D0005") ||
                          sensor.modelId() == QLatin1String("Plug-230V-ZB3.0") ||
-                         sensor.modelId() == QLatin1String("lumi.switch.b1naus01"))
+                         sensor.modelId() == QLatin1String("lumi.switch.b1naus01") ||
+                         sensor.manufacturer() == QLatin1String("Legrand"))
                 {
                     hasVoltage = false;
                 }
@@ -3637,8 +3643,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
 
             //only for legrand cluster. Add only mode field.
-            if ( (sensor.fingerPrint().hasInCluster(LEGRAND_CONTROL_CLUSTER_ID)) &&
-                 (sensor.modelId() == QLatin1String("Cable outlet") ) )
+            if (sensor.fingerPrint().hasInCluster(LEGRAND_CONTROL_CLUSTER_ID) &&
+                sensor.modelId() == QLatin1String("Cable outlet"))
             {
                 clusterId = LEGRAND_CONTROL_CLUSTER_ID;
                 sensor.addItem(DataTypeString, RConfigMode);
@@ -3655,52 +3661,70 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 if (sensor.modelId().startsWith(QLatin1String("SLR2")) ||   // Hive
                     sensor.modelId() == QLatin1String("SLR1b") ||           // Hive
                     sensor.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
-                    sensor.modelId() == QLatin1String("GbxAXL2") ||         // Tuya
-                    sensor.modelId() == QLatin1String("kud7u2l") ||         // Tuya
                     sensor.modelId() == QLatin1String("902010/32") ||       // Bitron
-                   (sensor.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ||          // Tuya
-                   (sensor.manufacturer() == QLatin1String("_TZE200_aoclfnxz")))            // Tuya
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                 {
                     sensor.addItem(DataTypeString, RConfigMode);
                 }
 
-                if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya
-                    sensor.modelId() == QLatin1String("GbxAXL2") || // Tuya
-                   (sensor.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
+                if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV"))
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
                     sensor.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
                 }
 
-                if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya
-                    sensor.modelId() == QLatin1String("eaxp72v") || // Tuya
-                    sensor.modelId() == QLatin1String("fvq6avy") || // Tuya
-                    sensor.modelId() == QLatin1String("88teujp") || // Tuya
-                   (sensor.manufacturer() == QLatin1String("_TZE200_c88teujp")) ||  // Tuya
-                   (sensor.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ||  // Tuya
-                   (sensor.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) )   // Tuya
+                if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
+                {
+                    sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
+                }
+
+                if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                 {
                     sensor.addItem(DataTypeString, RConfigPreset);
-                    sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                     sensor.addItem(DataTypeBool, RConfigSetValve)->setValue(false);
                 }
 
-                if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya
-                    sensor.modelId() == QLatin1String("fvq6avy") || // Tuya
-                    sensor.modelId() == QLatin1String("88teujp") || // Tuya
-                   (sensor.manufacturer() == QLatin1String("_TZE200_c88teujp")) ||  // Tuya
-                   (sensor.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ||  // Tuya
-                   (sensor.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) )   // Tuya
+                if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV")  ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV")  ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                 {
                     sensor.addItem(DataTypeString, RConfigSchedule);
                 }
 
-                if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya
-                    sensor.modelId() == QLatin1String("eaxp72v") || // Tuya
-                    sensor.modelId() == QLatin1String("88teujp") || // Tuya
-                    sensor.modelId() == QLatin1String("fvq6avy") || // Tuya
-                   (sensor.manufacturer() == QLatin1String("_TZE200_c88teujp")) ||  // Tuya
-                   (sensor.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
+                if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV")  ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV")  ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV"))
                 {
                     sensor.addItem(DataTypeBool, RConfigWindowOpen)->setValue(false);
                 }
@@ -3756,8 +3780,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeString, RConfigMode);
                     sensor.addItem(DataTypeString, RConfigFanMode);
                 }
-                else if ((sensor.modelId() == QLatin1String("eTRV0100")) || // Danfoss Ally
-                         (sensor.modelId() == QLatin1String("TRV001")) )    // Hive TRV
+                else if (sensor.modelId() == QLatin1String("eTRV0100") || // Danfoss Ally
+                         sensor.modelId() == QLatin1String("TRV001"))     // Hive TRV
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
                     sensor.addItem(DataTypeString, RStateWindowOpen);
@@ -3769,6 +3793,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     // Supported with Danfoss firmware version 1.08
                     sensor.addItem(DataTypeBool, RConfigScheduleOn)->setValue(false);
                     sensor.addItem(DataTypeString, RConfigSchedule);
+                    sensor.addItem(DataTypeInt16, RConfigExternalTemperatureSensor);
+                    sensor.addItem(DataTypeBool, RConfigExternalWindowOpen)->setValue(false);
                 }
                 else if (sensor.modelId() == QLatin1String("AC201")) // OWON AC201 Thermostat
                 {
@@ -3822,7 +3848,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
         {
             clusterId = VENDOR_CLUSTER_ID;
-            endpoint = 2;
+            endpoint = (sensor.modelId() == QLatin1String("RWL022")) ? 1 : 2;
 
             if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
             {
@@ -3853,6 +3879,26 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.setNeedSaveDatabase(true);
             }
         }
+        else if (sensor.modelId().startsWith(QLatin1String("RDM00"))) // Hue wall switch module
+        {
+            clusterId = VENDOR_CLUSTER_ID;
+            endpoint = 1;
+
+            if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
+            {
+                sensor.fingerPrint().inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
+                sensor.setNeedSaveDatabase(true);
+            }
+
+            if (!sensor.fingerPrint().hasInCluster(VENDOR_CLUSTER_ID)) // for realtime button feedback
+            {
+                sensor.fingerPrint().inClusters.push_back(VENDOR_CLUSTER_ID);
+                sensor.setNeedSaveDatabase(true);
+            }
+            item = sensor.addItem(DataTypeString, RConfigDeviceMode);
+            item = sensor.addItem(DataTypeUInt16, RConfigPending);
+            item->setValue(0);
+        }
         else if (sensor.modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
         {
             if (!sensor.fingerPrint().hasInCluster(BASIC_CLUSTER_ID))
@@ -3869,7 +3915,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(R_ALERT_DEFAULT);
             item = sensor.addItem(DataTypeBool, RConfigLedIndication);
             item->setValue(false);
-            item = sensor.addItem(DataTypeUInt8, RConfigPending);
+            item = sensor.addItem(DataTypeUInt16, RConfigPending);
             item->setValue(0);
             item = sensor.addItem(DataTypeBool, RConfigUsertest);
             item->setValue(false);
@@ -3887,6 +3933,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
             item = sensor.addItem(DataTypeString, RConfigAlert);
             item->setValue(R_ALERT_DEFAULT);
+        }
+        else if (sensor.modelId() == QLatin1String("lumi.sensor_magnet.agl02") || // skip
+                 sensor.modelId() == QLatin1String("lumi.flood.agl02"))
+        {
         }
         else if (sensor.modelId().startsWith(QLatin1String("lumi.")))
         {
@@ -3908,7 +3958,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item = sensor.addItem(DataTypeUInt8, RConfigSensitivity);
                 item = sensor.addItem(DataTypeUInt8, RConfigSensitivityMax);
                 item->setValue(0x15); // low
-                item = sensor.addItem(DataTypeUInt8, RConfigPending);
+                item = sensor.addItem(DataTypeUInt16, RConfigPending);
             }
 
             if (!sensor.item(RStateTemperature) &&
@@ -3926,7 +3976,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.modelId().endsWith(QLatin1String("86opcn01")))
             {
                 // Aqara Opple switches need to be configured to send proper button events
-                item = sensor.addItem(DataTypeUInt8, RConfigPending);
+                item = sensor.addItem(DataTypeUInt16, RConfigPending);
                 item->setValue(item->toNumber() | R_PENDING_MODE);
             }
         }
@@ -3938,10 +3988,17 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
         {
-            if (sensor.modelId() == QLatin1String("button") || sensor.modelId().startsWith(QLatin1String("multi")) || sensor.modelId() == QLatin1String("water") ||
+            if (sensor.modelId() == QLatin1String("button") ||
+                sensor.modelId().startsWith(QLatin1String("multi")) ||
+                sensor.modelId() == QLatin1String("water") ||
+                R_GetProductId(&sensor) == QLatin1String("NAS-AB02B0 Siren") ||
                 sensor.modelId() == QLatin1String("Motion Sensor-A"))
             {
                 // no support for some IAS Zone flags
+            }
+            else if (sensor.modelId() == QLatin1String("Keyfob-ZB3.0"))
+            {
+                sensor.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
             }
             else
             {
@@ -3958,7 +4015,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     item->setValue(false);
                 }
             }
-            item = sensor.addItem(DataTypeUInt8, RConfigPending);
+            item = sensor.addItem(DataTypeUInt16, RConfigPending);
             item->setValue(0);
             sensor.addItem(DataTypeUInt32, RConfigEnrolled)->setValue(IAS_STATE_INIT);
         }
@@ -4144,6 +4201,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                             Event e(RSensors, REventValidGroup, sensor.id());
                             d->enqueueEvent(e);
                         }
+                    }
+                }
+
+                {
+                    auto *productId = sensor.item(RAttrProductId);
+                    if (productId)
+                    {
+                        productId->setIsPublic(false); // don't show in REST-API
                     }
                 }
 

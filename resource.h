@@ -60,6 +60,7 @@ extern const char *RAttrType;
 extern const char *RAttrClass;
 extern const char *RAttrId;
 extern const char *RAttrUniqueId;
+extern const char *RAttrProductId;
 extern const char *RAttrSwVersion;
 extern const char *RAttrLastAnnounced;
 extern const char *RAttrLastSeen;
@@ -146,6 +147,7 @@ extern const char *RConfigCheckin;
 extern const char *RConfigConfigured;
 extern const char *RConfigCoolSetpoint;
 extern const char *RConfigDelay;
+extern const char *RConfigDeviceMode;
 extern const char *RConfigDisplayFlipped;
 extern const char *RConfigDuration;
 extern const char *RConfigEnrolled;
@@ -173,6 +175,10 @@ extern const char *RConfigPowerup;
 extern const char *RConfigPowerOnCt;
 extern const char *RConfigPowerOnLevel;
 extern const char *RConfigPreset;
+extern const char *RConfigMelody;
+extern const char *RConfigTempThreshold;
+extern const char *RConfigHumiThreshold;
+extern const char *RConfigVolume;
 extern const char *RConfigReachable;
 extern const char *RConfigSchedule;
 extern const char *RConfigScheduleOn;
@@ -189,6 +195,8 @@ extern const char *RConfigUrl;
 extern const char *RConfigUsertest;
 extern const char *RConfigWindowCoveringType;
 extern const char *RConfigWindowOpen;
+extern const char *RConfigExternalTemperatureSensor;
+extern const char *RConfigExternalWindowOpen;
 extern const char *RConfigUbisysJ1Mode;
 extern const char *RConfigUbisysJ1WindowCoveringType;
 extern const char *RConfigUbisysJ1ConfigurationAndStatus;
@@ -222,6 +230,8 @@ extern const QStringList RStateEffectValuesMueller;
 #define R_EFFECT_NIGHTLIGHT         7
 extern const QStringList RConfigLastChangeSourceValues;
 
+extern const QStringList RConfigDeviceModeValues;
+
 #define R_PENDING_DELAY             (1 << 0)
 #define R_PENDING_LEDINDICATION     (1 << 1)
 #define R_PENDING_SENSITIVITY       (1 << 2)
@@ -231,6 +241,7 @@ extern const QStringList RConfigLastChangeSourceValues;
 #define R_PENDING_MODE              (1 << 6)
 #define R_PENDING_WRITE_POLL_CHECKIN_INTERVAL  (1 << 6)
 #define R_PENDING_SET_LONG_POLL_INTERVAL       (1 << 7)
+#define R_PENDING_DEVICEMODE        (1 << 8)
 
 // after device announce is received lights can be brought into a defined state
 // this might be useful for powerloss and OTA updates or simply providing a default power on configuration
@@ -429,6 +440,12 @@ extern const ResourceItemDescriptor rInvalidItemDescriptor;
 
 class ResourceItem
 {
+    enum ItemFlags
+    {
+        FlagNeedPushSet     = 0x1, // set after a value has been set
+        FlagNeedPushChange  = 0x2  // set when new value different than previous
+    };
+
 public:
     enum ValueSource
     {
@@ -443,6 +460,9 @@ public:
     ResourceItem &operator=(const ResourceItem &other);
     ResourceItem &operator=(ResourceItem &&other);
     ~ResourceItem();
+    bool needPushSet() const;
+    bool needPushChange() const;
+    void clearNeedPush();
     const QString &toString() const;
     qint64 toNumber() const;
     qint64 toNumberPrevious() const;
@@ -478,6 +498,7 @@ private:
 
     ValueSource m_valueSource = SourceUnknown;
     bool m_isPublic = true;
+    quint16 m_flags = 0; // bitmap of ResourceItem::ItemFlags
     qint64 m_num = 0;
     qint64 m_numPrev = 0;
     QString *m_str = nullptr;
@@ -543,6 +564,7 @@ bool R_SetFlags1(ResourceItem *item, qint64 flags, const char *strFlags);
 #define R_ClearFlags(item, flags) R_ClearFlags1(item, flags, #flags)
 bool R_ClearFlags1(ResourceItem *item, qint64 flags, const char *strFlags);
 bool R_HasFlags(const ResourceItem *item, qint64 flags);
+const QString R_GetProductId(Resource *resource);
 
 template <typename V>
 bool R_SetValue(Resource *r, const char *suffix, const V &val, ResourceItem::ValueSource source)
