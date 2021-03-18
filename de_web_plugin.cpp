@@ -18325,6 +18325,10 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
             {
                 ret = d->handleGatewaysApi(req, rsp);
             }
+            else if (path[2] == QLatin1String("networkmap"))
+            {
+                ret = d->handleNetworkMapApi(req, rsp);
+            }
             else
             {
                 resourceExist = false;
