@@ -2523,10 +2523,8 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
         DBG_Assert(lightNode.state() != LightNode::StateDeleted);
 
-                DBG_Printf(DBG_INFO, "LightNode####################\n");
         if (lightNode.manufacturerCode() == VENDOR_XIAOMI)
         {
-                DBG_Printf(DBG_INFO, "LightNode####################\n");
             if (lightNode.manufacturer() != QLatin1String("LUMI"))
             {
                 lightNode.setManufacturerName(QLatin1String("LUMI"));
@@ -2535,8 +2533,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
             // if (lightNode.modelId() == QLatin1String("lumi.switch.n4acn4"))
             {
-                /* code */
-                DBG_Printf(DBG_INFO, "LightNode####################\n");
                 lightNode.addItem(DataTypeString, RStateAqaraS1PanelCommunication);
             }
             
@@ -3562,22 +3558,6 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
 
                         uint8_t mode = ia->numericValue().u8;
                         lightNode->setValue(RStateSpeed, mode);
-                    }
-                }
-            }
-            else if (ic->id() == XIAOMI_CLUSTER_ID && (event.clusterId() == XIAOMI_CLUSTER_ID))
-            {
-                std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
-                std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
-                for (;ia != enda; ++ia)
-                {
-                    if (ia->id() == 0xfff2) // Communication
-                    {
-                        QString val = ia->toString();
-                        // lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), val);
-                        
-                        DBG_Printf(DBG_INFO, "LightNode %s set node %s ################## updated 0xfff2\n", qPrintable(lightNode->id()), qPrintable(event.node()->address().toStringExt()));
-                        lightNode->setValue(RStateAqaraS1PanelCommunication, val);
                     }
                 }
             }
@@ -11981,6 +11961,72 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             attrId = a;
         }
+        else if (a == 0xfff2 && dataType == deCONZ::ZclOctedString)
+        {
+            attrId = a;
+            // QString str = QString::fromUtf8(zclFrame.payload());
+            // QString DataAsString = QString(zclFrame.payload());
+            // char *data = zclFrame.payload().data();
+            // std::string string = zclFrame.payload().toStdString();
+            // QString str2 = QString::/*fromCString*/fromLatin1(data);
+            QString str3 = zclFrame.payload().toHex();
+            // DBG_Printf(DBG_INFO, "0x%016llX Xiaomi attribute %s\n", ind.srcAddress().ext(), str);
+            // DBG_Printf(DBG_INFO, "0x%016llX Xiaomi attribute 0x%02X\n", ind.srcAddress().ext(), data[0]);
+            // DBG_Printf(DBG_INFO, "0x%016llX Xiaomi attribute 0x%02X\n", ind.srcAddress().ext(), data[1]);
+            // DBG_Printf(DBG_INFO, "0x%016llX Xiaomi attribute 0x%02X\n", ind.srcAddress().ext(), string[0]);
+            // DBG_Printf(DBG_INFO, "0x%016llX Xiaomi attribute 0x%02X\n", ind.srcAddress().ext(), string[1]);
+            // DBG_Printf(DBG_INFO, "0x%016llX Xiaomi attribute %s\n", ind.srcAddress().ext(), DataAsString);
+            // DBG_Printf(DBG_INFO, "0x%016llX Xiaomi attribute %s\n", ind.srcAddress().ext(), str2);
+            DBG_Printf(DBG_INFO, "0x%016llX Xiaomi attribute 0xfff2: %s\n", ind.srcAddress().ext(), str3);
+
+            for (LightNode &lightNode: nodes)
+            {
+                if (!lightNode.modelId().startsWith(QLatin1String("lumi.")))
+                {
+                    continue;
+                }
+                
+                if      (ind.srcAddress().hasExt() && lightNode.address().hasExt() &&
+                        ind.srcAddress().ext() == lightNode.address().ext())
+                { }
+                else if (ind.srcAddress().hasNwk() && lightNode.address().hasNwk() &&
+                        ind.srcAddress().nwk() == lightNode.address().nwk())
+                { }
+                else
+                {
+                    continue;
+                }
+
+                if (ind.srcEndpoint() != lightNode.haEndpoint().endpoint())
+                {
+                    continue;
+                }
+                
+                ResourceItem *item;
+
+                if (lightNode.modelId().startsWith(QLatin1String("lumi.switch.n4acn4")))
+                {
+                    item = lightNode.item(RStateAqaraS1PanelCommunication);
+                    if (item)
+                    {
+                        item->setValue(str3);
+                        enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
+                    }
+                }
+
+                lightNode.rx();
+                item = lightNode.item(RStateReachable);
+                if (item && !item->toBool())
+                {
+                    item->setValue(true);
+                    enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
+                }
+                updateLightEtag(&lightNode);
+                lightNode.setNeedSaveDatabase(true);
+                saveDatabaseItems |= DB_LIGHTS;
+            }
+            return;
+        }
 
         if (dataType == deCONZ::ZclCharacterString && attrId != 0xff01)
         {
@@ -11995,8 +12041,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
     if (stream.atEnd() || attrId == 0)
     {
-
-            DBG_Printf(DBG_INFO, "0x%016llX skip Xiaomi attribute 0x%04X #####################\n", ind.srcAddress().ext(), attrId);
         return;
     }
 
