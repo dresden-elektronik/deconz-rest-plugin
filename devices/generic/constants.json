@@ -4,6 +4,7 @@
     "manufacturers" : {
         "$MF_IKEA": "IKEA of Sweden",
         "$MF_LUMI": "LUMI",
+        "$MF_LUTRON": "Lutron",
         "$MF_PHILIPS": "Philips",
         "$MF_TUYA": "Tuyatec",
         "$MF_SAMJIN": "Samjin",
