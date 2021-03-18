@@ -265,7 +265,7 @@ QMap<QString, std::vector<Sensor::ButtonMap>> loadButtonMapsJson(const QJsonDocu
         {
             QString buttonMapName = i.key();    // Individual button map name
             //DBG_Printf(DBG_INFO, "[INFO] - Button map name: %s\n", qPrintable(buttonMapName));
-            quint8 mapItem = 0;
+            int mapItem = 0;
 
             if (i.value().isObject())        // Check if individual button map is an object
             {
@@ -277,7 +277,7 @@ QMap<QString, std::vector<Sensor::ButtonMap>> loadButtonMapsJson(const QJsonDocu
                     QJsonArray buttonMapArr = buttonMapObj.value(QString("map")).toArray();
                     //DBG_Printf(DBG_INFO, "[INFO] - Button map size: %d\n", i.value().toArray().size());
 
-                    for (auto i = buttonMapArr.constBegin(); i != buttonMapArr.constEnd(); ++i)       // Loop through button map items
+                    for (auto i = buttonMapArr.constBegin(); i != buttonMapArr.constEnd(); ++i, mapItem++)       // Loop through button map items
                     {
                         QJsonValue val = *i;
                         if (val.isArray())
@@ -288,7 +288,6 @@ QMap<QString, std::vector<Sensor::ButtonMap>> loadButtonMapsJson(const QJsonDocu
                             {
                                 DBG_Printf(DBG_INFO, "[ERROR] - Button map item #%d for '%s' has an incorrect size. Expected 8, got %d\n",
                                             mapItem, qPrintable(buttonMapName), buttonMapItemArr.size());
-                                mapItem++;
                                 continue;
                             }
                             else
@@ -318,8 +317,9 @@ QMap<QString, std::vector<Sensor::ButtonMap>> loadButtonMapsJson(const QJsonDocu
                                 }
                                 else
                                 {
-                                    DBG_Printf(DBG_INFO, "[INFO] - Button map item #%d, field #1 for '%s' does not seem to be an integer.\n",
+                                    DBG_Printf(DBG_INFO, "[ERROR] - Button map item #%d, field #1 for '%s' does not seem to be an integer. Skipping entry.\n",
                                                 mapItem, qPrintable(buttonMapName));
+                                    continue;
                                 }
 
                                 if (buttonMapItemArr.at(1).isString() && buttonMapItemArr.at(1).toString().startsWith(QLatin1String("0x")) &&
@@ -331,8 +331,9 @@ QMap<QString, std::vector<Sensor::ButtonMap>> loadButtonMapsJson(const QJsonDocu
                                 }
                                 else
                                 {
-                                    DBG_Printf(DBG_INFO, "[INFO] - Button map item #%d, field #2 for '%s' has an incorrect format.\n",
+                                    DBG_Printf(DBG_INFO, "[ERROR] - Button map item #%d, field #2 for '%s' has an incorrect format. Skipping entry.\n",
                                                 mapItem, qPrintable(buttonMapName));
+                                    continue;
                                 }
 
                                 if (buttonMapItemArr.at(2).isString() && buttonMapItemArr.at(2).toString().startsWith(QLatin1String("0x")) &&
@@ -349,15 +350,16 @@ QMap<QString, std::vector<Sensor::ButtonMap>> loadButtonMapsJson(const QJsonDocu
                                     if (btnMapClusters.value(cid, 65535) != 65535) { btnMap.clusterId = btnMapClusters.value(buttonMapItemArr.at(2).toString()); }
                                     else
                                     {
-                                        DBG_Printf(DBG_INFO, "[INFO] - Button map item #%d, field #3 for '%s' was not found in object 'clusters'.\n",
+                                        DBG_Printf(DBG_INFO, "[ERROR] - Button map item #%d, field #3 for '%s' was not found in object 'clusters'. Skipping entry.\n",
                                                     mapItem, qPrintable(buttonMapName));
+                                        continue;
                                     }
-
                                 }
                                 else
                                 {
-                                    DBG_Printf(DBG_INFO, "[INFO] - Button map item #%d, field #3 for '%s' has an incorrect format.\n",
+                                    DBG_Printf(DBG_INFO, "[ERROR] - Button map item #%d, field #3 for '%s' has an incorrect format. Skipping entry.\n",
                                                 mapItem, qPrintable(buttonMapName));
+                                    continue;
                                 }
 
                                 if (buttonMapItemArr.at(3).isString() && buttonMapItemArr.at(3).toString().startsWith(QLatin1String("0x")) &&
@@ -380,20 +382,23 @@ QMap<QString, std::vector<Sensor::ButtonMap>> loadButtonMapsJson(const QJsonDocu
                                         if (!temp.empty() && temp.value(cmd, 65535) != 65535) { btnMap.zclCommandId = temp.value(cmd); }
                                         else
                                         {
-                                            DBG_Printf(DBG_INFO, "[INFO] - Button map item #%d, field #4 for '%s' was not found in object 'commands' for cluster '%s'.\n",
+                                            DBG_Printf(DBG_INFO, "[ERROR] - Button map item #%d, field #4 for '%s' was not found in object 'commands' for cluster '%s'. Skipping entry.\n",
                                                         mapItem, qPrintable(buttonMapName), qPrintable(cid));
+                                            continue;
                                         }
                                     }
                                     else
                                     {
-                                        DBG_Printf(DBG_INFO, "[INFO] - Button map item #%d, field #4 for '%s' was not found as cluster in object 'commands'.\n",
+                                        DBG_Printf(DBG_INFO, "[ERROR] - Button map item #%d, field #4 for '%s' was not found as cluster in object 'commands'. Skipping entry.\n",
                                                     mapItem, qPrintable(buttonMapName));
+                                        continue;
                                     }
                                 }
                                 else
                                 {
-                                    DBG_Printf(DBG_INFO, "[INFO] - Button map item #%d, field #4 for '%s' has an incorrect format.\n",
+                                    DBG_Printf(DBG_INFO, "[ERROR] - Button map item #%d, field #4 for '%s' has an incorrect format. Skipping entry.\n",
                                                 mapItem, qPrintable(buttonMapName));
+                                    continue;
                                 }
 
                                 if (buttonMapItemArr.at(4).isString() && buttonMapItemArr.at(4).toString().length() <= 3)
@@ -411,8 +416,9 @@ QMap<QString, std::vector<Sensor::ButtonMap>> loadButtonMapsJson(const QJsonDocu
                                 }
                                 else
                                 {
-                                    DBG_Printf(DBG_INFO, "[INFO] - Button map item #%d, field #5 for '%s' has an incorrect format.\n",
+                                    DBG_Printf(DBG_INFO, "[ERROR] - Button map item #%d, field #5 for '%s' has an incorrect format. Skipping entry.\n",
                                                 mapItem, qPrintable(buttonMapName));
+                                    continue;
                                 }
 
                                 if (buttonMapItemArr.at(5).isString() && buttonMapItemArr.at(5).toString().length() <= 11)
@@ -422,8 +428,9 @@ QMap<QString, std::vector<Sensor::ButtonMap>> loadButtonMapsJson(const QJsonDocu
                                 }
                                 else
                                 {
-                                    DBG_Printf(DBG_INFO, "[INFO] - Button map item #%d, field #6 for '%s' is unknown.\n",
+                                    DBG_Printf(DBG_INFO, "[ERROR] - Button map item #%d, field #6 for '%s' is unknown. Skipping entry.\n",
                                                 mapItem, qPrintable(buttonMapName));
+                                    continue;
                                 }
 
                                 if (buttonMapItemArr.at(6).isString() && buttonMapItemArr.at(6).toString().length() <= 32)
@@ -434,8 +441,9 @@ QMap<QString, std::vector<Sensor::ButtonMap>> loadButtonMapsJson(const QJsonDocu
                                 }
                                 else
                                 {
-                                    DBG_Printf(DBG_INFO, "[INFO] - Button map item #%d, field #7 for '%s' is unknown.\n",
+                                    DBG_Printf(DBG_INFO, "[ERROR] - Button map item #%d, field #7 for '%s' is unknown. Skipping entry.\n",
                                                 mapItem, qPrintable(buttonMapName));
+                                    continue;
                                 }
 
                                 if (buttonMapItemArr.at(7).isString() && buttonMapItemArr.at(7).toString().length() <= 40)
@@ -445,22 +453,20 @@ QMap<QString, std::vector<Sensor::ButtonMap>> loadButtonMapsJson(const QJsonDocu
                                 }
                                 else
                                 {
-                                    DBG_Printf(DBG_INFO, "[INFO] - Button map item #%d, field #8 for '%s' is too long.\n",
+                                    DBG_Printf(DBG_INFO, "[ERROR] - Button map item #%d, field #8 for '%s' is too long. Skipping entry.\n",
                                                 mapItem, qPrintable(buttonMapName));
+                                    continue;
                                 }
 
                                 //DBG_Printf(DBG_INFO, "[INFO] - btnMap item #6: %d\n", btnMap.button);
                                 //DBG_Printf(DBG_INFO, "[INFO] - btnMap item #7: %s\n", qPrintable(btnMap.name));
                                 btnMapVec.push_back(btnMap);
-                                mapItem++;
                             }
                         }
                         else
                         {
                             DBG_Printf(DBG_INFO, "[ERROR] - Button map item #%d for '%s' in JSON must be an array, but isn't.\n",
                                         mapItem, qPrintable(buttonMapName));
-
-                            mapItem++;
                             continue;
                         }
                     }

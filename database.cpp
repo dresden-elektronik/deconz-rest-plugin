@@ -3132,7 +3132,12 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.fingerPrint().hasOutCluster(ONOFF_CLUSTER_ID))
             {
                 clusterId = clusterId ? clusterId : ONOFF_CLUSTER_ID;
-                if (!sensor.modelId().startsWith(QLatin1String("SYMFONISK")))
+                if (sensor.modelId().startsWith(QLatin1String("RDM00")) ||
+                    sensor.modelId().startsWith(QLatin1String("SYMFONISK")))
+                {
+                    // blacklisted
+                }
+                else
                 {
                     sensor.addItem(DataTypeString, RConfigGroup);
                 }
@@ -3166,6 +3171,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             else if (sensor.modelId().startsWith(QLatin1String("RWL02")) ||
                      sensor.modelId().startsWith(QLatin1String("ROM00")) ||
+                     sensor.modelId().startsWith(QLatin1String("RDM00")) ||
                      sensor.modelId().startsWith(QLatin1String("Z3-1BRL")))
             {
                 sensor.addItem(DataTypeUInt16, RStateEventDuration);
@@ -3360,16 +3366,16 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             item = sensor.addItem(DataTypeBool, RStateAlarm);
             item->setValue(false);
-            
+
             if (R_GetProductId(&sensor) == QLatin1String("NAS-AB02B0 Siren"))
-            {	
-                sensor.addItem(DataTypeUInt8, RConfigMelody);	
-                sensor.addItem(DataTypeString, RConfigPreset);	
-                sensor.addItem(DataTypeUInt8, RConfigVolume);	
-                sensor.addItem(DataTypeString, RConfigTempThreshold);	
-                sensor.addItem(DataTypeString, RConfigHumiThreshold);	
+            {
+                sensor.addItem(DataTypeUInt8, RConfigMelody);
+                sensor.addItem(DataTypeString, RConfigPreset);
+                sensor.addItem(DataTypeUInt8, RConfigVolume);
+                sensor.addItem(DataTypeString, RConfigTempThreshold);
+                sensor.addItem(DataTypeString, RConfigHumiThreshold);
             }
-            
+
         }
         else if (sensor.type().endsWith(QLatin1String("CarbonMonoxide")))
         {
@@ -3726,7 +3732,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
         {
             clusterId = VENDOR_CLUSTER_ID;
-            endpoint = 2;
+            endpoint = (sensor.modelId() == QLatin1String("RWL022")) ? 1 : 2;
 
             if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
             {
@@ -3757,6 +3763,26 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.setNeedSaveDatabase(true);
             }
         }
+        else if (sensor.modelId().startsWith(QLatin1String("RDM00"))) // Hue wall switch module
+        {
+            clusterId = VENDOR_CLUSTER_ID;
+            endpoint = 1;
+
+            if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
+            {
+                sensor.fingerPrint().inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
+                sensor.setNeedSaveDatabase(true);
+            }
+
+            if (!sensor.fingerPrint().hasInCluster(VENDOR_CLUSTER_ID)) // for realtime button feedback
+            {
+                sensor.fingerPrint().inClusters.push_back(VENDOR_CLUSTER_ID);
+                sensor.setNeedSaveDatabase(true);
+            }
+            item = sensor.addItem(DataTypeString, RConfigDeviceMode);
+            item = sensor.addItem(DataTypeUInt16, RConfigPending);
+            item->setValue(0);
+        }
         else if (sensor.modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
         {
             if (!sensor.fingerPrint().hasInCluster(BASIC_CLUSTER_ID))
@@ -3773,7 +3799,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(R_ALERT_DEFAULT);
             item = sensor.addItem(DataTypeBool, RConfigLedIndication);
             item->setValue(false);
-            item = sensor.addItem(DataTypeUInt8, RConfigPending);
+            item = sensor.addItem(DataTypeUInt16, RConfigPending);
             item->setValue(0);
             item = sensor.addItem(DataTypeBool, RConfigUsertest);
             item->setValue(false);
@@ -3816,7 +3842,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item = sensor.addItem(DataTypeUInt8, RConfigSensitivity);
                 item = sensor.addItem(DataTypeUInt8, RConfigSensitivityMax);
                 item->setValue(0x15); // low
-                item = sensor.addItem(DataTypeUInt8, RConfigPending);
+                item = sensor.addItem(DataTypeUInt16, RConfigPending);
             }
 
             if (!sensor.item(RStateTemperature) &&
@@ -3834,7 +3860,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.modelId().endsWith(QLatin1String("86opcn01")))
             {
                 // Aqara Opple switches need to be configured to send proper button events
-                item = sensor.addItem(DataTypeUInt8, RConfigPending);
+                item = sensor.addItem(DataTypeUInt16, RConfigPending);
                 item->setValue(item->toNumber() | R_PENDING_MODE);
             }
         }
@@ -3873,7 +3899,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     item->setValue(false);
                 }
             }
-            item = sensor.addItem(DataTypeUInt8, RConfigPending);
+            item = sensor.addItem(DataTypeUInt16, RConfigPending);
             item->setValue(0);
             sensor.addItem(DataTypeUInt32, RConfigEnrolled)->setValue(IAS_STATE_INIT);
         }
