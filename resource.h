@@ -266,11 +266,11 @@ class ResourceItem
 
 public:
     ResourceItem(const ResourceItem &other);
-    ResourceItem(ResourceItem &&other);
+    ResourceItem(ResourceItem &&other) noexcept;
     ResourceItem(const ResourceItemDescriptor &rid);
     ResourceItem &operator=(const ResourceItem &other);
-    ResourceItem &operator=(ResourceItem &&other);
-    ~ResourceItem();
+    ResourceItem &operator=(ResourceItem &&other) noexcept;
+    ~ResourceItem() noexcept;
     bool needPushSet() const;
     bool needPushChange() const;
     void clearNeedPush();
@@ -311,9 +311,9 @@ public:
     Resource(const char *prefix);
     ~Resource() = default;
     Resource(const Resource &other);
-    Resource(Resource &&other);
+    Resource(Resource &&other) noexcept;
     Resource &operator=(const Resource &other);
-    Resource &operator=(Resource &&other);
+    Resource &operator=(Resource &&other) noexcept;
     const char *prefix() const;
     ResourceItem *addItem(ApiDataType type, const char *suffix);
     void removeItem(const char *suffix);
