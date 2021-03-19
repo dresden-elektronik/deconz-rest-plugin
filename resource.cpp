@@ -1010,7 +1010,7 @@ void ResourceItem::inRule(int ruleHandle)
 }
 
 /*! Returns the rules handles in which the resource item is involved. */
-const std::vector<int> ResourceItem::rulesInvolved() const
+const std::vector<int> &ResourceItem::rulesInvolved() const
 {
     return m_rulesInvolved;
 }

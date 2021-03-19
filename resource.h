@@ -287,7 +287,7 @@ public:
     const QDateTime &lastChanged() const;
     void setTimeStamps(const QDateTime &t);
     void inRule(int ruleHandle);
-    const std::vector<int> rulesInvolved() const;
+    const std::vector<int> &rulesInvolved() const;
     bool isPublic() const;
     void setIsPublic(bool isPublic);
 
