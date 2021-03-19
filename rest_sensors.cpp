@@ -799,6 +799,42 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 else if (rid.suffix == RConfigTempThreshold || rid.suffix == RConfigHumiThreshold)
                 {
                 }
+                else if (rid.suffix == RConfigLock)
+                {
+                    bool ok;
+                    
+                    item = sensor->item(RConfigLock);
+                    if (item && map[pi.key()].type() == QVariant::Bool)
+                    {
+                        bool val = map[pi.key()].toBool();
+                        if (val)
+                        {
+                            ok = addTaskDoorLockUnlock(task, 0x00 /*Lock*/);
+                        }
+                        else
+                        {
+                            ok = addTaskDoorLockUnlock(task, 0x01 /*UnLock*/);
+                        }
+                        if (ok)
+                        {
+                            if (item->setValue(val))
+                            {
+                                rspItemState[QString("/sensors/%1/config/lock").arg(id)] = map["lock"];
+                                rspItem["success"] = rspItemState;
+                                //if (item->lastChanged() == item->lastSet())
+                                //{
+                                    updated = true;
+                                //}
+                            }
+                        }
+                        else
+                        {
+                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/lock").arg(id), QString("Command error, %1, for parameter, lock").arg(map[pi.key()].toString())));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
+                        }
+                    }
+                }
                 else if (item->setValue(val))
                 {
                     // TODO: Fix bug
