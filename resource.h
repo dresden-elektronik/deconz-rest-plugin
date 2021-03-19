@@ -132,6 +132,7 @@ extern const char *RConfigCtMax;
 extern const char *RConfigConfigured;
 extern const char *RConfigCoolSetpoint;
 extern const char *RConfigDelay;
+extern const char *RConfigDeviceMode;
 extern const char *RConfigDisplayFlipped;
 extern const char *RConfigDuration;
 extern const char *RConfigEnrolled;
@@ -214,6 +215,8 @@ extern const QStringList RStateEffectValuesMueller;
 #define R_EFFECT_NIGHTLIGHT         7
 extern const QStringList RConfigLastChangeSourceValues;
 
+extern const QStringList RConfigDeviceModeValues;
+
 #define R_PENDING_DELAY             (1 << 0)
 #define R_PENDING_LEDINDICATION     (1 << 1)
 #define R_PENDING_SENSITIVITY       (1 << 2)
@@ -223,6 +226,7 @@ extern const QStringList RConfigLastChangeSourceValues;
 #define R_PENDING_MODE              (1 << 6)
 #define R_PENDING_WRITE_POLL_CHECKIN_INTERVAL  (1 << 6)
 #define R_PENDING_SET_LONG_POLL_INTERVAL       (1 << 7)
+#define R_PENDING_DEVICEMODE        (1 << 8)
 
 // after device announce is received lights can be brought into a defined state
 // this might be useful for powerloss and OTA updates or simply providing a default power on configuration
