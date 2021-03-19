@@ -738,11 +738,16 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     Group* group = getGroupForId(gwGroup0);
     if (!group)
     {
-        Group group;
-        group.setAddress(gwGroup0);
-        group.setName("All");
-        groups.push_back(group);
+        Group group0;
+        group0.setAddress(gwGroup0);
+        groups.push_back(group0);
+        group = &groups.back();
         queSaveDb(DB_GROUPS, DB_LONG_SAVE_DELAY);
+    }
+
+    if (group && group->name() != QLatin1String("__All"))
+    {
+        group->setName(QLatin1String("__All")); // don't clash with user groups named "All"
     }
 
     connect(apsCtrl, SIGNAL(apsdeDataConfirm(const deCONZ::ApsDataConfirm&)),
