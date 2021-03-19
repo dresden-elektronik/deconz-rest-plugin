@@ -553,11 +553,13 @@ const QString R_GetProductId(Resource *resource)
     const auto *manufacturerName = resource->item(RAttrManufacturerName);
     const auto *modelId = resource->item(RAttrManufacturerName);
 
-    if (!manufacturerName || !modelId)
+    // Need manufacturerName
+    if (!manufacturerName)
     {
         return rInvalidString;
     }
-
+    
+    //Tuya don't need modelId
     if (isTuyaManufacturerName(manufacturerName->toString()))
     {
         // for Tuya devices match against manufacturer name
@@ -576,14 +578,14 @@ const QString R_GetProductId(Resource *resource)
             // manufacturer name is the most unique identifier for Tuya
             if (DBG_IsEnabled(DBG_INFO_L2))
             {
-                DBG_Printf(DBG_INFO_L2, "No Tuya productId entry found for manufacturername: %s, modelId: %s\n",
-                    qPrintable(manufacturerName->toString()), qPrintable(modelId->toString()));
+                DBG_Printf(DBG_INFO_L2, "No Tuya productId entry found for manufacturername: %s\n", qPrintable(manufacturerName->toString()));
             }
 
             return manufacturerName->toString();
         }
     }
-    else
+    
+    if (modelId)
     {
         return modelId->toString();
     }
