@@ -791,12 +791,12 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigLock)
                 {
-                    bool val = map[pi.key()].toBool();
                     bool ok;
                     
                     item = sensor->item(RConfigLock);
-                    if (item)
+                    if (item && map[pi.key()].type() == QVariant::Bool)
                     {
+                        bool val = map[pi.key()].toBool();
                         if (val)
                         {
                             ok = addTaskDoorLockUnlock(task, 0x00 /*Lock*/);
@@ -819,7 +819,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                         else
                         {
-                            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/lock").arg(id), QString("Command error, %1, for parameter, lock").arg(map[pi.key()].toString())));
+                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/lock").arg(id), QString("Command error, %1, for parameter, lock").arg(map[pi.key()].toString())));
                             rsp.httpStatus = HttpStatusBadRequest;
                             return REQ_READY_SEND;
                         }

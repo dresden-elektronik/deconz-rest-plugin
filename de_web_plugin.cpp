@@ -5937,7 +5937,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             else
             {
                 checkSensorNodeReachable(sensor);
-                checkIasEnrollmentStatus(sensor);
             }
         }
         
