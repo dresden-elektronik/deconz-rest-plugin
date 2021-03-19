@@ -599,7 +599,6 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         QString inputString;
         bool paramOk = false;
         bool valueOk = false;
-        bool hasCmd = false;
 
         for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
         {
@@ -607,7 +606,6 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             if (param == "aqara_s1_panel_communication" && taskRef.lightNode->item(RStateAqaraS1PanelCommunication))
             {
                 paramOk = true;
-                hasCmd = true;
                 if (map[param].type() == QVariant::String)
                 {
                     inputString = map[param].toString();
@@ -616,94 +614,90 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             }
         }
 
-        if (!paramOk || !valueOk)
+        if (paramOk && valueOk)
         {
-            // TODO: response error...
-            return REQ_NOT_HANDLED;
+            DBG_Printf(DBG_INFO, "Xiaomi attribute 0xfff2: %s\n", qPrintable(inputString));
+
+            TaskItem task;
+
+            // // FIXME: The following low-level code is needed because ZclAttribute is broken for Zcl8BitEnum.
+
+            const quint16 cluster = XIAOMI_CLUSTER_ID;
+            const quint16 attr = 0xfff2;
+            const quint8 type = deCONZ::ZclOctedString;
+            const QByteArray value = QByteArray::fromHex(inputString.toLatin1());
+
+            task.taskType = TaskWriteAttribute;
+
+            task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+            task.req.setDstEndpoint(taskRef.lightNode->haEndpoint().endpoint());
+            task.req.setDstAddressMode(deCONZ::ApsExtAddress);
+            task.req.dstAddress() = taskRef.lightNode->address();
+            task.req.setClusterId(cluster);
+            task.req.setProfileId(HA_PROFILE_ID);
+            task.req.setSrcEndpoint(getSrcEndpoint(taskRef.lightNode, task.req));
+
+            task.zclFrame.setSequenceNumber(zclSeq++);
+            task.zclFrame.setCommandId(deCONZ::ZclWriteAttributesId);
+            
+            task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                          deCONZ::ZclFCManufacturerSpecific |
+                                          deCONZ::ZclFCDirectionClientToServer |
+                                          deCONZ::ZclFCDisableDefaultResponse);
+            task.zclFrame.setManufacturerCode(VENDOR_XIAOMI);
+
+            
+            // task.zclFrame.setManufacturerCode(VENDOR_XIAOMI);
+            // task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+            //                               deCONZ::ZclFCManufacturerSpecific |
+            //                               deCONZ::ZclFCDirectionClientToServer |
+            //                               deCONZ::ZclFCDisableDefaultResponse);
+
+            DBG_Printf(DBG_INFO, "write attribute of 0x%016llX ep: 0x%02X cluster: 0x%04X: 0x%04X\n", taskRef.lightNode->address().ext(), taskRef.lightNode->haEndpoint().endpoint(), cluster, attr);
+
+            { // payload
+                QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+                stream.setByteOrder(QDataStream::LittleEndian);
+                stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
+
+                stream << attr;
+                stream << type;
+                stream.writeRawData(value.constData(),value.size());
+            }
+
+            { // ZCL frame
+                QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+                stream.setByteOrder(QDataStream::LittleEndian);
+                task.zclFrame.writeToStream(stream);
+            }
+
+            ok = addTask(task);
+
+            // FIXME: Use following code once ZclAttribute has been fixed.
+            
+            // deCONZ::ZclAttribute attr(0xfff2, type, "S1 Communication", deCONZ::ZclReadWrite, true);
+            // attr.setValue(data);
+            // attr.readFromStream(ds);
+            // attr.setValue((QVariant)inputString);
+            // attr.setManufacturerCode(VENDOR_XIAOMI);
+            // ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), cluster, attr, VENDOR_XIAOMI);
+
+            if (ok)
+            {
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
+                rspItemState[QString("/lights/%1/state/aqara_s1_panel_communication").arg(id)] = inputString;
+                rspItem["success"] = rspItemState;
+                rsp.list.append(rspItem);
+
+                taskRef.lightNode->setValue(RStateAqaraS1PanelCommunication, inputString);
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/aqara_s1_panel_communication").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+            }
+            return REQ_READY_SEND;
         }
-        
-
-        DBG_Printf(DBG_INFO, "Xiaomi attribute 0xfff2: %s\n", qPrintable(inputString));
-
-        TaskItem task;
-
-        // // FIXME: The following low-level code is needed because ZclAttribute is broken for Zcl8BitEnum.
-
-        const quint16 cluster = XIAOMI_CLUSTER_ID;
-        const quint16 attr = 0xfff2;
-        const quint8 type = deCONZ::ZclOctedString;
-        const QByteArray value = QByteArray::fromHex(inputString.toLatin1());
-
-        task.taskType = TaskWriteAttribute;
-
-        task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-        task.req.setDstEndpoint(taskRef.lightNode->haEndpoint().endpoint());
-        task.req.setDstAddressMode(deCONZ::ApsExtAddress);
-        task.req.dstAddress() = taskRef.lightNode->address();
-        task.req.setClusterId(cluster);
-        task.req.setProfileId(HA_PROFILE_ID);
-        task.req.setSrcEndpoint(getSrcEndpoint(taskRef.lightNode, task.req));
-
-        task.zclFrame.setSequenceNumber(zclSeq++);
-        task.zclFrame.setCommandId(deCONZ::ZclWriteAttributesId);
-        
-        task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-                                      deCONZ::ZclFCManufacturerSpecific |
-                                      deCONZ::ZclFCDirectionClientToServer |
-                                      deCONZ::ZclFCDisableDefaultResponse);
-        task.zclFrame.setManufacturerCode(VENDOR_XIAOMI);
-
-        
-        // task.zclFrame.setManufacturerCode(VENDOR_XIAOMI);
-        // task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-        //                               deCONZ::ZclFCManufacturerSpecific |
-        //                               deCONZ::ZclFCDirectionClientToServer |
-        //                               deCONZ::ZclFCDisableDefaultResponse);
-
-        DBG_Printf(DBG_INFO, "write attribute of 0x%016llX ep: 0x%02X cluster: 0x%04X: 0x%04X\n", taskRef.lightNode->address().ext(), taskRef.lightNode->haEndpoint().endpoint(), cluster, attr);
-
-        { // payload
-            QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
-            stream.setByteOrder(QDataStream::LittleEndian);
-            stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
-
-            stream << attr;
-            stream << type;
-            stream.writeRawData(value.constData(),value.size());
-        }
-
-        { // ZCL frame
-            QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
-            stream.setByteOrder(QDataStream::LittleEndian);
-            task.zclFrame.writeToStream(stream);
-        }
-
-        ok = addTask(task);
-
-        // FIXME: Use following code once ZclAttribute has been fixed.
-        
-        // deCONZ::ZclAttribute attr(0xfff2, type, "S1 Communication", deCONZ::ZclReadWrite, true);
-        // attr.setValue(data);
-        // attr.readFromStream(ds);
-        // attr.setValue((QVariant)inputString);
-        // attr.setManufacturerCode(VENDOR_XIAOMI);
-        // ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), cluster, attr, VENDOR_XIAOMI);
-
-        if (ok)
-        {
-            QVariantMap rspItem;
-            QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/state/aqara_s1_panel_communication").arg(id)] = inputString;
-            rspItem["success"] = rspItemState;
-            rsp.list.append(rspItem);
-
-            taskRef.lightNode->setValue(RStateAqaraS1PanelCommunication, inputString);
-        }
-        else
-        {
-            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/aqara_s1_panel_communication").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
-        }
-        return REQ_READY_SEND;
     }
     
     
