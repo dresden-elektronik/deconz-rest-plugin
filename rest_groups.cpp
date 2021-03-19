@@ -1767,7 +1767,7 @@ int DeRestPluginPrivate::deleteGroup(const ApiRequest &req, ApiResponse &rsp)
 
     userActivity();
 
-    if (!group || (group->state() == Group::StateDeleted) || (group->address() == gwGroup0))
+    if (!group || group->state() != Group::StateNormal || group->address() == gwGroup0)
     {
         rsp.httpStatus = HttpStatusNotFound;
         rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/groups/%1").arg(id), QString("resource, /groups/%1, not available").arg(id)));

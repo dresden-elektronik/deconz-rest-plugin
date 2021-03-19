@@ -2694,14 +2694,13 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             lightNode.setNeedSaveDatabase(true);
         }
 
-        // add light node to default group
+        // check light node legacy /group/0
         GroupInfo *groupInfo = getGroupInfo(&lightNode, gwGroup0);
-        if (!groupInfo)
+        if (groupInfo)
         {
-            groupInfo = createGroupInfo(&lightNode, gwGroup0);
-            lightNode.setNeedSaveDatabase(true);
-            groupInfo->actions &= ~GroupInfo::ActionRemoveFromGroup; // sanity
-            groupInfo->actions |= GroupInfo::ActionAddToGroup;
+            // remove from group, cleanup legacy group casts method
+            groupInfo->actions |= GroupInfo::ActionRemoveFromGroup;
+            groupInfo->actions &= ~GroupInfo::ActionAddToGroup;
         }
 
         // force reading attributes
@@ -13803,8 +13802,11 @@ void DeRestPluginPrivate::handleGroupClusterIndication(const deCONZ::ApsDataIndi
 
                 DBG_Printf(DBG_INFO, "%s found group 0x%04X\n", qPrintable(lightNode->address().toStringExt()), groupId);
 
-                foundGroup(groupId);
-                foundGroupMembership(lightNode, groupId);
+                if (groupId != gwGroup0)
+                {
+                    foundGroup(groupId);
+                    foundGroupMembership(lightNode, groupId);
+                }
             }
         }
 
@@ -13815,22 +13817,31 @@ void DeRestPluginPrivate::handleGroupClusterIndication(const deCONZ::ApsDataIndi
         {
             Group *group = getGroupForId(i->id);
 
-            if (group && group->state() == Group::StateNormal
-                && group->m_deviceMemberships.size() == 0 //no switch group
-                && !responseGroups.contains(i->id)
-                && i->state == GroupInfo::StateInGroup)
+            if (!group || group->state() != Group::StateNormal)
             {
-                    DBG_Printf(DBG_INFO, "restore group  0x%04X for lightNode %s\n", i->id, qPrintable(lightNode->address().toStringExt()));
-                    i->actions &= ~GroupInfo::ActionRemoveFromGroup; // sanity
-                    i->actions |= GroupInfo::ActionAddToGroup;
-                    i->state = GroupInfo::StateInGroup;
-                    updateEtag(group->etag);
-                    updateEtag(gwConfigEtag);
-                    lightNode->setNeedSaveDatabase(true);
-                    queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
+                continue;
             }
-            else if (group && group->state() == Group::StateNormal
-                && group->m_deviceMemberships.size() > 0) //a switch group
+
+            if (i->id == gwGroup0 && responseGroups.contains(i->id))
+            {
+                DBG_Printf(DBG_INFO, "remove group0 0x%04X from lightNode %s\n", i->id, qPrintable(lightNode->address().toStringExt()));
+                i->actions |= GroupInfo::ActionRemoveFromGroup; // remove legacy group cast method
+                i->actions &= ~GroupInfo::ActionAddToGroup;
+            }
+            else if (group->m_deviceMemberships.size() == 0 //no switch group
+                     && !responseGroups.contains(i->id)
+                     && i->state == GroupInfo::StateInGroup)
+            {
+                DBG_Printf(DBG_INFO, "restore group  0x%04X for lightNode %s\n", i->id, qPrintable(lightNode->address().toStringExt()));
+                i->actions &= ~GroupInfo::ActionRemoveFromGroup; // sanity
+                i->actions |= GroupInfo::ActionAddToGroup;
+                i->state = GroupInfo::StateInGroup;
+                updateEtag(group->etag);
+                updateEtag(gwConfigEtag);
+                lightNode->setNeedSaveDatabase(true);
+                queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
+            }
+            else if (group->m_deviceMemberships.size() > 0) // a switch group
             {
                 if (responseGroups.contains(i->id)
                     && i->state == GroupInfo::StateNotInGroup) // light was added by a switch -> add it to deCONZ group)
