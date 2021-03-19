@@ -763,6 +763,12 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     taskRef.req.setDstEndpoint(0xFF); // broadcast endpoint
     taskRef.req.setSrcEndpoint(getSrcEndpoint(0, taskRef.req));
 
+    if (group->address() == gwGroup0)
+    {
+        taskRef.req.setDstAddressMode(deCONZ::ApsNwkAddress);
+        taskRef.req.dstAddress().setNwk(deCONZ::BroadcastRxOnWhenIdle);
+    }
+
     bool ok;
     QVariant var = Json::parse(req.content, ok);
     QVariantMap map = var.toMap();
