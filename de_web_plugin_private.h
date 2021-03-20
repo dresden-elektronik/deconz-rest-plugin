@@ -137,8 +137,9 @@ using namespace deCONZ::literals;
 #define DEV_ID_HA_WINDOW_COVERING_DEVICE    0x0202 // Window Covering Device
 #define DEV_ID_HA_WINDOW_COVERING_CONTROLLER 0x0203 // Window Covering Controller
 
-// Danalock support
+// Door lock device
 #define DEV_ID_DOOR_LOCK                    0x000a // Door Lock
+#define DEV_ID_DOOR_LOCK_UNIT               0x000b // Door Lock controller
 
 //
 #define DEV_ID_IAS_ZONE                     0x0402 // IAS Zone
@@ -214,9 +215,11 @@ using namespace deCONZ::literals;
 #define VENDOR_CLUSTER_ID                     0xFC00
 #define UBISYS_DEVICE_SETUP_CLUSTER_ID        0xFC00
 #define SAMJIN_CLUSTER_ID                     0xFC02
+#define DEVELCO_AIR_QUALITY_CLUSTER_ID        0xFC03
 #define SENGLED_CLUSTER_ID                    0xFC10
 #define LEGRAND_CONTROL_CLUSTER_ID            0xFC40
 #define XIAOMI_CLUSTER_ID                     0xFCC0
+#define ADUROLIGHT_CLUSTER_ID                 0xFCCC
 #define XAL_CLUSTER_ID                        0xFCCE
 #define BOSCH_AIR_QUALITY_CLUSTER_ID          quint16(0xFDEF)
 
@@ -297,6 +300,7 @@ using namespace deCONZ::literals;
 #define READ_TIME              (1 << 19)
 #define WRITE_TIME             (1 << 20)
 #define READ_THERMOSTAT_SCHEDULE (1 << 21)
+#define WRITE_DEVICEMODE       (1 << 22)
 
 #define READ_MODEL_ID_INTERVAL   (60 * 60) // s
 #define READ_SWBUILD_ID_INTERVAL (60 * 60) // s
