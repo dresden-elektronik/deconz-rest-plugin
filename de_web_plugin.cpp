@@ -5059,7 +5059,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpCarbonMonoxideSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
                     }
-                    else if (!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == VENDOR_NONE)
+                    else if ((!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == VENDOR_NONE) ||
+                               node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER)
                     {
                         // For some device the Tuya cluster is sometime Invisible, so force device detection
                         if (manufacturer.endsWith(QLatin1String("kud7u2l"))  ||
@@ -5069,6 +5070,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                             manufacturer.endsWith(QLatin1String("fvq6avy")) ||
                             manufacturer.endsWith(QLatin1String("w7cahqs")) ||
                             manufacturer.endsWith(QLatin1String("wdxldoj")) ||
+                            manufacturer.endsWith(QLatin1String("oclfnxz")) ||
                             manufacturer.endsWith(QLatin1String("GbxAXL2")))
                         {
                             fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
@@ -5082,12 +5084,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                             fpAlarmSensor.inClusters.push_back(TUYA_CLUSTER_ID);
                             fpAlarmSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
                         }
-                    }
-                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER &&
-                             (manufacturer.endsWith(QLatin1String("oclfnxz")) ||
-                              manufacturer.endsWith(QLatin1String("88teujp"))))
-                    {
-                        fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
                     }
                 }
                     break;
