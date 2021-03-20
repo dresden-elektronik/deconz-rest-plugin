@@ -2381,10 +2381,10 @@ int DeRestPluginPrivate::setLightAttributes(const ApiRequest &req, ApiResponse &
         //taskRef.transitionTime = 4;
         //taskRef.onTime = 0;
 
-        QByteArray direction = QByteArray("\x00\x00", 2);
+        QByteArray direction = QByteArray("\x00", 1);
         if (map["reverse"].toBool())
         {
-            direction = QByteArray("\x00\x01", 2);
+            direction = QByteArray("\x01", 1);
         }
 
         if (sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_WORK_STATE, direction))
