@@ -2623,13 +2623,12 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
         //Add missing field for Tuya Device with tuya cluster
         // Window covering
-        DBG_Printf(DBG_INFO, "Tuya debug 33: %s\n", qPrintable(R_GetProductId(&lightNode)));
         if (R_GetProductId(&lightNode).startsWith(QLatin1String("Tuya_COVD")))
         {
             lightNode.addItem(DataTypeBool, RStateOpen);
             lightNode.addItem(DataTypeUInt8, RStateLift);
             lightNode.addItem(DataTypeUInt8, RStateBri);
-            DBG_Printf(DBG_INFO, "Tuya debug 33: 7\n");
+
             ResourceItem *type = lightNode.item(RAttrType);
             DBG_Assert(type);
             if (type)
