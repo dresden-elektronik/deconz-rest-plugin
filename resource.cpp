@@ -551,7 +551,7 @@ const QString R_GetProductId(Resource *resource)
     }
 
     const auto *manufacturerName = resource->item(RAttrManufacturerName);
-    const auto *modelId = resource->item(RAttrManufacturerName);
+    const auto *modelId = resource->item(RAttrModelId);
 
     // Need manufacturerName
     if (!manufacturerName)
