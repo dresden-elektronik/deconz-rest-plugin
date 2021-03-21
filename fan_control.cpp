@@ -159,26 +159,15 @@ bool DeRestPluginPrivate::addTaskFanControlReadWriteAttribute(TaskItem &task, ui
     QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
     stream.setByteOrder(QDataStream::LittleEndian);
 
-    stream << static_cast<quint16>(attrId);
-
     if (readOrWriteCmd == deCONZ::ZclWriteAttributesId)
     {
-        stream << static_cast<quint8>(attrType);
-        if (attrType == deCONZ::Zcl8BitEnum || attrType == deCONZ::Zcl8BitInt || attrType == deCONZ::Zcl8BitBitMap)
-        {
-            stream << static_cast<quint8>(attrValue);
-        }
-        else if (attrType == deCONZ::Zcl16BitInt || attrType == deCONZ::Zcl16BitBitMap)
-        {
-            stream << static_cast<quint16>(attrValue);
-        }
-        else if (attrType == deCONZ::Zcl24BitUint)
-        {
-            stream << static_cast<qint8>(attrValue & 0xFF);
-            stream << static_cast<qint8>((attrValue >> 8) & 0xFF);
-            stream << static_cast<qint8>((attrValue >> 16) & 0xFF);
-        }
-        else
+        stream << attrId;
+        stream << attrType;
+
+        deCONZ::ZclAttribute attr(attrId, attrType, QLatin1String(""), deCONZ::ZclWrite, true);
+        attr.setValue(QVariant(attrValue));
+
+        if (!attr.writeToStream(stream))
         {
             return false;
         }
