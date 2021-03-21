@@ -833,6 +833,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
+                    case 0x011E :
                     case 0x0128 : // Childlock status for moe
                     {
                         bool locked = (data == 0) ? false : true;
@@ -937,6 +938,12 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     case 0x0210: // Thermostat heatsetpoint for moe
                     {
                         qint16 temp = static_cast<qint16>(data & 0xFFFF) * 100;
+                        
+                        if (sensorNode->manufacturer().endsWith(QLatin1String("hn3negr")))
+                        {
+                            temp = static_cast<qint16>(data & 0xFFFF) * 100 / 2;
+                        }
+                        
                         ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
 
                         if (item && item->toNumber() != temp)
@@ -1034,8 +1041,22 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
-                    case 0x0269: // Boost time
+                    case 0x0269: // Boost time or Heatpoint
                     {
+                        if (sensorNode->manufacturer().endsWith(QLatin1String("hn3negr")))
+                        {
+                            qint16 temp = static_cast<qint16>(data & 0xFFFF) * 100 / 2;
+   
+                            ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
+
+                            if (item && item->toNumber() != temp)
+                            {
+                                item->setValue(temp);
+                                Event e(RSensors, RConfigHeatSetpoint, sensorNode->id(), item);
+                                enqueueEvent(e);
+                                update = true;
+                            }
+                        }
                     }
                     break;
                     case 0x026D : // Valve position
@@ -1060,23 +1081,45 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
-                    case 0x0402 : // preset for moe
+                    case 0x0402 : // preset for moe or mode
                     case 0x0403 : // preset for moe
                     {
-                        QString preset;
-                        if (dp == 0x0402) { preset = QLatin1String("auto"); }
-                        else if (dp == 0x0403) { preset = QLatin1String("program"); }
+                        if (sensorNode->manufacturer().endsWith(QLatin1String("hn3negr")))
+                        {
+                            QString mode;
+                            if (data == 0) { mode = QLatin1String("auto"); } //schedule
+                            else if (data == 1) { mode = QLatin1String("heat"); } //manual
+                            else if (data == 2) { mode = QLatin1String("off"); } //away
+                            else
+                            {
+                                return;
+                            }
+                            
+                            ResourceItem *item = sensorNode->item(RConfigMode);
+
+                            if (item && item->toString() != mode)
+                            {
+                                item->setValue(mode);
+                                enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                            }
+                        }
                         else
                         {
-                            return;
-                        }
+                            QString preset;
+                            if (dp == 0x0402) { preset = QLatin1String("auto"); }
+                            else if (dp == 0x0403) { preset = QLatin1String("program"); }
+                            else
+                            {
+                                return;
+                            }
 
-                        ResourceItem *item = sensorNode->item(RConfigPreset);
+                            ResourceItem *item = sensorNode->item(RConfigPreset);
 
-                        if (item && item->toString() != preset)
-                        {
-                            item->setValue(preset);
-                            enqueueEvent(Event(RSensors, RConfigPreset, sensorNode->id(), item));
+                            if (item && item->toString() != preset)
+                            {
+                                item->setValue(preset);
+                                enqueueEvent(Event(RSensors, RConfigPreset, sensorNode->id(), item));
+                            }
                         }
                     }
                     break;
