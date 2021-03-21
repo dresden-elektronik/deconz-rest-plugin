@@ -3348,7 +3348,6 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     if (ia->id() == 0x0000) // Lock state
                     {
                         bool on = ia->numericValue().u8 == 1;
-                        DBG_Printf(DBG_INFO, "Status doorlock: %u\n", (uint)ia->numericValue().u8);
                         ResourceItem *item = lightNode->item(RStateOn);
                         if (item && item->toBool() != on)
                         {
@@ -9640,9 +9639,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         str = QLatin1String("undefined");
                                         dl_lock = false;
                                     }
-                                    
-                                    DBG_Printf(DBG_INFO, "Status doorlock : %u\n", (uint)ia->numericValue().u8);
-                                    
+
                                     // Update RConfigLock bool state
                                     ResourceItem *item = i->item(RConfigLock);
                                     if (item && item->toNumber() != dl_lock)
