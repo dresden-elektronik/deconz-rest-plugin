@@ -16894,6 +16894,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                  sensor->modelId().startsWith(QLatin1String("TRADFRI SHORTCUT Button")) ||
                  sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
                  sensor->modelId().startsWith(QLatin1String("TRADFRI remote control")) ||
+                 sensor->modelId().startsWith(QLatin1String("Remote Control N2")) ||
                  sensor->modelId().startsWith(QLatin1String("TRADFRI wireless dimmer")) ||
                  sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")))
         {
