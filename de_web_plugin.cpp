@@ -4714,6 +4714,15 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         ok = true;
                     }
                 }
+                else if (ind.clusterId() == COLOR_CLUSTER_ID &&
+                         (zclFrame.commandId() == 0x4c))  // step color temperature
+                {
+                    ok = false;
+                    if (zclFrame.payload().size() >= 1 && buttonMap.zclParam0 == zclFrame.payload().at(0)) // direction
+                    {
+                        ok = true;
+                    }
+                }
                 else if (ind.clusterId() == COLOR_CLUSTER_ID && (zclFrame.commandId() == 0x01 ))  // Move hue command
                 {
                     // Only used by Osram devices currently
@@ -4741,7 +4750,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 else if (ind.clusterId() == ADUROLIGHT_CLUSTER_ID)
                 {
                     ok = false;
-                    
+
                     if (buttonMap.zclParam0 == zclFrame.payload().at(1))
                     {
                         ok = true;
