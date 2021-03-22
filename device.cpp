@@ -303,6 +303,26 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
     }
 }
 
+/*! Returns the first Simple Descriptor for a given server \p clusterId or nullptr if not found.
+ */
+const deCONZ::SimpleDescriptor *DEV_GetSimpleDescriptorForServerCluster(const Device *device, deCONZ::ZclClusterId_t clusterId)
+{
+    for (const auto &sd : device->node()->simpleDescriptors())
+    {
+        const auto cluster = std::find(sd.inClusters().cbegin(), sd.inClusters().cend(), [clusterId](const deCONZ::ZclCluster &cl)
+        {
+            return cl.id_t() == clusterId;
+        });
+
+        if (cluster != sd.inClusters().cend())
+        {
+            return &sd;
+        }
+    }
+
+    return nullptr;
+}
+
 /*! #4 This state checks that modelId of the device is known.
     TODO this should read all common basic cluster attributes needed to match a DDF,
     e.g. modelId, manufacturer name, application version, etc.
@@ -342,43 +362,28 @@ void DEV_ModelIdStateHandler(Device *device, const Event &event)
         }
         else // query modelId from basic cluster
         {
-            quint8 basicClusterEp = 0x00;
+            const auto *sd = DEV_GetSimpleDescriptorForServerCluster(device, 0x0000_clid);
 
-            for (const auto ep : device->node()->endpoints())
+            if (sd)
             {
-                deCONZ::SimpleDescriptor sd;
-                if (device->node()->copySimpleDescriptor(ep, &sd) == 0)
-                {
-                    const auto *cluster = sd.cluster(0x0000, deCONZ::ServerCluster);
-                    if (cluster)
-                    {
-                        basicClusterEp = ep;
-                        break;
-                    }
-                }
-            }
-
-            if (basicClusterEp != 0x00)
-            {
-                modelId->setReadParameters({QLatin1String("readGenericAttribute/4"), basicClusterEp, 0x0000, 0x0005, 0x0000});
-                modelId->setParseParameters({QLatin1String("parseGenericAttribute/4"), basicClusterEp, 0x0000, 0x0005, "$raw"});
+                modelId->setReadParameters({QLatin1String("readGenericAttribute/4"), sd->endpoint(), 0x0000, 0x0005, 0x0000});
+                modelId->setParseParameters({QLatin1String("parseGenericAttribute/4"), sd->endpoint(), 0x0000, 0x0005, "$raw"});
                 auto readFunction = getReadFunction(readFunctions, modelId->readParameters());
 
                 if (readFunction && readFunction(device, modelId, deCONZ::ApsController::instance()))
                 {
-
+                    device->startStateTimer(MinMacPollRxOn);
                 }
                 else
                 {
-                    DBG_Printf(DBG_INFO, "Failed to read %s: 0x%016llX on endpoint: 0x%02X\n", modelId->descriptor().suffix, device->key(), basicClusterEp);
+                    DBG_Printf(DBG_INFO, "Failed to read %s: 0x%016llX on endpoint: 0x%02X\n", modelId->descriptor().suffix, device->key(), sd->endpoint());
                 }
             }
             else
             {
                 DBG_Printf(DBG_INFO, "TODO no basic cluster found to read modelId: 0x%016llX\n", device->key());
+                device->setState(DEV_InitStateHandler);
             }
-
-            device->startStateTimer(MinMacPollRxOn);
         }
     }
     else if (event.what() == RAttrModelId)
