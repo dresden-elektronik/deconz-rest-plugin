@@ -24,6 +24,7 @@ const char *RConfig = "/config";
 const char *REventAdded = "event/added";
 const char *REventAwake = "event/awake";
 const char *REventBindingTable = "event/binding.table";
+const char *REventBindingTick = "event/binding.tick";
 const char *REventDeleted = "event/deleted";
 const char *REventPoll = "event/poll";
 const char *REventValidGroup = "event/validgroup";

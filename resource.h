@@ -38,6 +38,7 @@ extern const char *RConfig;
 extern const char *REventAdded;
 extern const char *REventAwake;
 extern const char *REventBindingTable;
+extern const char *REventBindingTick;
 extern const char *REventDeleted;
 extern const char *REventPoll;
 extern const char *REventValidGroup;

@@ -6,7 +6,59 @@
 #include "event.h"
 #include "zdp.h"
 
-const int MinMacPollRxOn = 8000; // 7680 ms + some space for timeout
+/* PlantUML state chart
+
+@startuml
+hide empty description
+state Init
+state "Node Descriptor" as NodeDescriptor
+state Endpoints as "Endpoints"
+state "Simple Descriptors" as SimpleDescriptors
+state "Basic Cluster" as BasicCluster
+state "Get DDF" as GetDDF
+
+[*] --> Init
+Init --> NodeDescriptor : Reachable or\nHas node Descriptor
+
+NodeDescriptor --> Init : Error
+NodeDescriptor --> Endpoints : Has Node Descriptor
+
+Endpoints --> SimpleDescriptors : Has Active Endpoints
+Endpoints --> Init : Error
+
+SimpleDescriptors --> BasicCluster : Has Simple Descriptors
+SimpleDescriptors --> Init : Error
+
+BasicCluster --> GetDDF
+BasicCluster --> Init : Error
+note bottom of BasicCluster : read common attributes
+
+
+GetDDF --> Init : Not found
+GetDDF --> Operating : Has DDF
+
+state Operating {
+  state Bindings
+  ||
+  state Scenes
+  ||
+  state "..."
+}
+
+
+Operating --> Init : Not Reachable
+@enduml
+
+*/
+
+constexpr int MinMacPollRxOn = 8000; // 7680 ms + some space for timeout
+
+void DEV_EnqueueEvent(Device *device, const char *event)
+{
+    Q_ASSERT(device);
+    Q_ASSERT(event);
+    device->plugin()->enqueueEvent(Event(device->prefix(), event, 0, device->key()));
+}
 
 Resource *DEV_GetSubDevice(Device *device, const char *prefix, const QString &identifier)
 {
@@ -33,7 +85,11 @@ void DEV_InitStateHandler(Device *device, const Event &event)
         DBG_Printf(DBG_INFO, "DEV Init event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
     }
 
-    if (event.what() == REventPoll || event.what() == REventAwake || event.what() == RConfigReachable  || event.what() == REventStateTimeout || event.what() == RStateLastUpdated)
+    if (event.what() == REventPoll ||
+        event.what() == REventAwake ||
+        event.what() == RConfigReachable ||
+        event.what() == REventStateTimeout ||
+        event.what() == RStateLastUpdated)
     {
         // lazy reference to deCONZ::Node
         if (!device->node())
@@ -102,10 +158,18 @@ void DEV_CheckItemChanges(Device *device, const Event &event)
 }
 
 void DEV_IdleStateHandler(Device *device, const Event &event)
-{
+{   
     if (event.what() == RAttrLastSeen || event.what() == REventPoll)
     {
          // don't print logs
+    }
+    else if (event.what() == REventStateEnter)
+    {
+        device->setState(DEV_BindingHandler, StateLevel1);
+    }
+    else if (event.what() == REventStateLeave)
+    {
+        device->setState(nullptr, StateLevel1);
     }
     else if (event.resource() ==  device->prefix())
     {
@@ -118,28 +182,10 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
 
     DEV_CheckItemChanges(device, event);
 
-    if (event.what() == REventPoll || event.what() == REventAwake)
+    // process parallel states
+    if (event.what() != REventStateEnter && event.what() != REventStateLeave)
     {
-        if (!device->m_bindingVerify.isValid() || device->m_bindingVerify.elapsed() > (1000 * 60 * 5))
-        {
-            DBG_Printf(DBG_INFO, "DEV Idle verify bindings %s/0x%016llX\n", event.resource(), event.deviceKey());
-            device->m_bindingIter = 0;
-            device->setState(DEV_BindingHandler);
-        }
-    }
-    else if (event.what() == REventBindingTable)
-    {
-        if (event.num() == deCONZ::ZdpSuccess)
-        {
-            device->m_mgmtBindSupported = true;
-        }
-        else if (event.num() == deCONZ::ZdpNotSupported)
-        {
-            device->m_mgmtBindSupported = false;
-        }
-
-        device->m_bindingIter = 0;
-        device->setState(DEV_BindingHandler);
+        device->handleEvent(event, StateLevel1);
     }
 }
 
@@ -168,7 +214,7 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
     {
         device->stopStateTimer();
         device->setState(DEV_InitStateHandler); // evaluate egain from state #1 init
-        device->plugin()->enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
+        DEV_EnqueueEvent(device, REventAwake);
     }
     else if (event.what() == REventStateTimeout)
     {
@@ -202,7 +248,7 @@ void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event)
     {
         device->stopStateTimer();
         device->setState(DEV_InitStateHandler);
-        device->plugin()->enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
+        DEV_EnqueueEvent(device, REventAwake);
     }
     else if (event.what() == REventStateTimeout)
     {
@@ -248,7 +294,7 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
     {
         device->stopStateTimer();
         device->setState(DEV_InitStateHandler);
-        device->plugin()->enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
+        DEV_EnqueueEvent(device, REventAwake);
     }
     else if (event.what() == REventStateTimeout)
     {
@@ -258,6 +304,8 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
 }
 
 /*! #4 This state checks that modelId of the device is known.
+    TODO this should read all common basic cluster attributes needed to match a DDF,
+    e.g. modelId, manufacturer name, application version, etc.
  */
 void DEV_ModelIdStateHandler(Device *device, const Event &event)
 {
@@ -310,7 +358,7 @@ void DEV_ModelIdStateHandler(Device *device, const Event &event)
                 }
             }
 
-            if (basicClusterEp != 0x00 && modelId)
+            if (basicClusterEp != 0x00)
             {
                 modelId->setReadParameters({QLatin1String("readGenericAttribute/4"), basicClusterEp, 0x0000, 0x0005, 0x0000});
                 modelId->setParseParameters({QLatin1String("parseGenericAttribute/4"), basicClusterEp, 0x0000, 0x0005, "$raw"});
@@ -338,7 +386,7 @@ void DEV_ModelIdStateHandler(Device *device, const Event &event)
         DBG_Printf(DBG_INFO, "DEV received modelId: 0x%016llX\n", device->key());
         device->stopStateTimer();
         device->setState(DEV_InitStateHandler); // ok re-evaluate
-        device->plugin()->enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
+        DEV_EnqueueEvent(device, REventAwake);
     }
     else if (event.what() == REventStateTimeout)
     {
@@ -395,7 +443,7 @@ static Resource *DEV_InitSensorNodeFromDescription(Device *device, const DeviceD
     }
 
     sensor.setId(QString::number(device->plugin()->getFreeSensorId()));
-    sensor.setName(QString("%1 %2").arg(friendlyName).arg(sensor.id()));
+    sensor.setName(QString("%1 %2").arg(friendlyName, sensor.id()));
 
     sensor.setNeedSaveDatabase(true);
     sensor.rx();
@@ -529,20 +577,71 @@ void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event)
     }
 }
 
+/*
+
+@startuml
+hide empty description
+
+[*] -> Binding
+Binding --> TableVerify : Start
+TableVerify --> Binding : Done
+TableVerify --> TableVerify : Ok, Next
+TableVerify --> AddBinding : Missing
+TableVerify --> ReadReportConfig : Stale Reports
+AddBinding --> ReadReportConfig : Ok
+AddBinding --> Binding : Error
+ReadReportConfig --> TableVerify : Error or Done
+ReadReportConfig --> ReadReportConfig : Ok, Next
+ReadReportConfig --> ConfigReporting : Not Found
+ConfigReporting --> ReadReportConfig : Error
+@enduml
+*/
+
 void DEV_BindingHandler(Device *device, const Event &event)
 {
-    if (event.what() == REventStateLeave)
+    if (event.what() == REventStateEnter)
     {
-
+        DBG_Printf(DBG_INFO, "DEV Binding enter %s/0x%016llX\n", event.resource(), event.deviceKey());
     }
-    else if (!(event.what() == REventStateEnter || event.what() == REventTick))
+
+    if (event.what() == REventPoll || event.what() == REventAwake)
+    {
+        if (!device->m_bindingVerify.isValid() || device->m_bindingVerify.elapsed() > (1000 * 60 * 5))
+        {
+            DBG_Printf(DBG_INFO, "DEV Binding verify bindings %s/0x%016llX\n", event.resource(), event.deviceKey());
+        }
+    }
+    else if (event.what() == REventBindingTable)
+    {
+        if (event.num() == deCONZ::ZdpSuccess)
+        {
+            device->m_mgmtBindSupported = true;
+        }
+        else if (event.num() == deCONZ::ZdpNotSupported)
+        {
+            device->m_mgmtBindSupported = false;
+        }
+    }
+    else
     {
         return;
+    }
+
+    device->m_bindingIter = 0;
+    device->setState(DEV_BindingTableVerifyHandler, StateLevel1);
+    DEV_EnqueueEvent(device, REventBindingTick);
+}
+
+void DEV_BindingTableVerifyHandler(Device *device, const Event &event)
+{
+    if (event.what() != REventBindingTick)
+    {
+
     }
     else if (device->m_bindingIter >= device->node()->bindingTable().size())
     {
         device->m_bindingVerify.start();
-        device->setState(DEV_IdleStateHandler);
+        device->setState(DEV_BindingHandler, StateLevel1);
     }
     else
     {
@@ -560,7 +659,7 @@ void DEV_BindingHandler(Device *device, const Event &event)
         }
 
         device->m_bindingIter++;
-        device->plugin()->enqueueEvent(Event(device->prefix(), REventTick, 0, device->key()));
+        DEV_EnqueueEvent(device, REventBindingTick);
     }
 }
 
@@ -604,29 +703,38 @@ void Device::addSubDevice(Resource *sub)
     m_subDevices.push_back({uniqueId, sub->prefix()});
 }
 
-void Device::handleEvent(const Event &event)
+void Device::handleEvent(const Event &event, DEV_StateLevel level)
 {
-    if (event.what() == REventAwake)
+    if (event.what() == REventAwake && level == StateLevel0)
     {
         m_awake.start();
     }
 
-    m_state(this, event);
+    if (m_state[level])
+    {
+        m_state[level](this, event);
+    }
 }
 
-void Device::setState(DeviceStateHandler state)
+void Device::setState(DeviceStateHandler state, DEV_StateLevel level)
 {
-    if (m_state != state)
+    if (m_state[level] != state)
     {
-        if (m_state)
+        if (m_state[level])
         {
-            m_state(this, Event(prefix(), REventStateLeave, 0, key()));
+            m_state[level](this, Event(prefix(), REventStateLeave, level, key()));
         }
-        m_state = state;
-        if (m_state)
+        m_state[level] = state;
+        if (m_state[level] && level == StateLevel0)
         {
             // invoke the handler in the next event loop iteration
-            plugin()->enqueueEvent(Event(prefix(), REventStateEnter, 0, key()));
+            plugin()->enqueueEvent(Event(prefix(), REventStateEnter, level, key()));
+        }
+        else if (m_state[level])
+        {
+            // invoke sub-states directly
+            // TODO: check might be wonky
+            m_state[level](this, Event(prefix(), REventStateEnter, level, key()));
         }
     }
 }
@@ -646,7 +754,7 @@ void Device::timerEvent(QTimerEvent *event)
     if (event->timerId() == m_timer.timerId())
     {
         m_timer.stop(); // single shot
-        m_state(this, Event(prefix(), REventStateTimeout, 0, key()));
+        m_state[StateLevel0](this, Event(prefix(), REventStateTimeout, 0, key()));
     }
 }
 

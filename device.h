@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QBasicTimer>
 #include <QElapsedTimer>
+#include <array>
 #include <unordered_map>
 #include <tuple>
 #include <deconz.h>
@@ -23,6 +24,16 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event);
 void DEV_ModelIdStateHandler(Device *device, const Event &event);
 void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event);
 void DEV_BindingHandler(Device *device, const Event &event);
+void DEV_BindingTableVerifyHandler(Device *device, const Event &event);
+
+/*! Indexes in m_state[] array.
+    Level 0   is the top level state
+    Level >0  are for parallel states in a compound level 0 state
+*/
+enum DEV_StateLevel {
+    StateLevel0 = 0,
+    StateLevel1 = 1
+};
 
 /*! \class Device
 
@@ -78,8 +89,8 @@ public:
     const deCONZ::Node *node() const { return m_node; }
     bool managed() const { return m_managed; }
 
-    void handleEvent(const Event &event);
-    void setState(DeviceStateHandler state);
+    void handleEvent(const Event &event, DEV_StateLevel level = StateLevel0);
+    void setState(DeviceStateHandler state, DEV_StateLevel level = StateLevel0);
     void startStateTimer(int IntervalMs);
     void stopStateTimer();
     void timerEvent(QTimerEvent *event) override;
@@ -95,16 +106,24 @@ public:
     friend void DEV_InitStateHandler(Device *device, const Event &event);
     friend void DEV_IdleStateHandler(Device *device, const Event &event);
     friend void DEV_BindingHandler(Device *device, const Event &event);
+    friend void DEV_BindingTableVerifyHandler(Device *device, const Event &event);
 
 private:
     Device(); // not accessible
     /*! sub-devices are not yet referenced via pointers since these may become dangling.
         This is a helper to query the actual sub-device Resource* on demand.
+
+        {uniqueid, (RSensors | RLights)}
     */
     std::vector<std::tuple<QString, const char*>> m_subDevices;
     const deCONZ::Node *m_node = nullptr; //! a reference to the deCONZ core node
     DeviceKey m_deviceKey = 0; //! for physical devices this is the MAC address
-    DeviceStateHandler m_state = nullptr; //! the currently active state handler function
+    //DeviceStateHandler m_state = nullptr; //! the currently active state handler function
+    /*! The currently active state handler function(s).
+        Indexes >0 represent sub states of StateLevel0 running in parallel.
+    */
+    std::array<DeviceStateHandler, 2> m_state{0};
+
     QBasicTimer m_timer; //! internal single shot timer
     QElapsedTimer m_awake; //! time to track when an end-device was last awake
     QElapsedTimer m_bindingVerify; //! time to track last binding table verification
