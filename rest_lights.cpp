@@ -2829,7 +2829,12 @@ int DeRestPluginPrivate::resetDeviceOnly(const ApiRequest &req, ApiResponse &rsp
     }
 
     lightNode->setResetRetryCount(10);
-
+    
+    {
+        Q_Q(DeRestPlugin);
+        q->nodeUpdated(lightNode->address().ext(), QLatin1String(""), QLatin1String(""));
+    }
+    
     rsp.httpStatus = HttpStatusOk;
     rsp.etag = lightNode->etag;
 
