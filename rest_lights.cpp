@@ -2832,7 +2832,7 @@ int DeRestPluginPrivate::resetDeviceOnly(const ApiRequest &req, ApiResponse &rsp
     
     {
         Q_Q(DeRestPlugin);
-        q->nodeUpdated(lightNode->address().ext(), QLatin1String(""), QLatin1String(""));
+        q->nodeUpdated(lightNode->address().ext(), QLatin1String("deleted"), QLatin1String(""));
     }
     
     rsp.httpStatus = HttpStatusOk;
