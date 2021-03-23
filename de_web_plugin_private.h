@@ -523,7 +523,8 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
     switch (vendor) {
         case VENDOR_XIAOMI:
             return prefix == jennicMacPrefix ||
-                   prefix == xiaomiMacPrefix;
+                   prefix == xiaomiMacPrefix ||
+                   prefix == aqaraMacPrefix;
         case VENDOR_SINOPE:
             return prefix == sinopeMacPrefix;
         case VENDOR_HEIMAN:
