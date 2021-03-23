@@ -2828,12 +2828,49 @@ int DeRestPluginPrivate::resetDeviceOnly(const ApiRequest &req, ApiResponse &rsp
         return REQ_READY_SEND;
     }
 
-    lightNode->setResetRetryCount(10);
+//    lightNode->setResetRetryCount(10);
     
+    DBG_Printf(DBG_INFO, "reset device retries: %i\n", retryCount);
+    // send mgmt_leave_request
+    lastNodeAddressExt = lightNode->address().ext();
+    zdpResetSeq += 1;
+    i->setZdpResetSeq(zdpResetSeq);
+
+    deCONZ::ApsDataRequest req;
+
+    req.setTxOptions(0);
+    req.setDstEndpoint(ZDO_ENDPOINT);
+    req.setDstAddressMode(deCONZ::ApsExtAddress);
+    req.dstAddress().setExt(lightNode->address().ext());
+    req.setProfileId(ZDP_PROFILE_ID);
+    req.setClusterId(ZDP_MGMT_LEAVE_REQ_CLID);
+    req.setSrcEndpoint(ZDO_ENDPOINT);
+    req.setRadius(0);
+
+    QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
+    stream.setByteOrder(QDataStream::LittleEndian);
+    stream << zdpResetSeq; // seq no.
+    stream << (quint64)lightNode->address().ext(); // device address
+
+    uint8_t flags = 0;
+    //                    flags |= 0x40; // remove children
+    //                    flags |= 0x80; // rejoin
+    stream << flags; // flags
+
+    if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
     {
-        Q_Q(DeRestPlugin);
-        q->nodeUpdated(lightNode->address().ext(), QLatin1String("deleted"), QLatin1String(""));
+        resetDeviceApsRequestId = req.id();
+        resetDeviceState = ResetWaitConfirm;
+        resetDeviceTimer->start(WAIT_CONFIRM);
+        DBG_Printf(DBG_INFO, "reset device apsdeDataRequest success\n");
+        return;
     }
+    else
+    {
+        DBG_Printf(DBG_ERROR, "can't send reset device apsdeDataRequest\n");
+    }
+    
+    
     
     rsp.httpStatus = HttpStatusOk;
     rsp.etag = lightNode->etag;
