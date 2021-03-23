@@ -2857,13 +2857,12 @@ int DeRestPluginPrivate::resetDeviceOnly(const ApiRequest &req, ApiResponse &rsp
     //                    flags |= 0x80; // rejoin
     stream << flags; // flags
 
-    if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
+    if (apsCtrl->apsdeDataRequest(reqAps) == deCONZ::Success)
     {
         resetDeviceApsRequestId = reqAps.id();
         resetDeviceState = ResetWaitConfirm;
         resetDeviceTimer->start(2000);
         DBG_Printf(DBG_INFO, "reset device apsdeDataRequest success\n");
-        return;
     }
     else
     {
