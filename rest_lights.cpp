@@ -2830,24 +2830,24 @@ int DeRestPluginPrivate::resetDeviceOnly(const ApiRequest &req, ApiResponse &rsp
 
 //    lightNode->setResetRetryCount(10);
     
-    DBG_Printf(DBG_INFO, "reset device retries: %i\n", retryCount);
+    DBG_Printf(DBG_INFO, "reset device retries: %i\n", /*retryCount*/1);
     // send mgmt_leave_request
     lastNodeAddressExt = lightNode->address().ext();
     zdpResetSeq += 1;
     lightNode->setZdpResetSeq(zdpResetSeq);
 
-    deCONZ::ApsDataRequest req;
+    deCONZ::ApsDataRequest reqAps;
 
-    req.setTxOptions(0);
-    req.setDstEndpoint(ZDO_ENDPOINT);
-    req.setDstAddressMode(deCONZ::ApsExtAddress);
-    req.dstAddress().setExt(lightNode->address().ext());
-    req.setProfileId(ZDP_PROFILE_ID);
-    req.setClusterId(ZDP_MGMT_LEAVE_REQ_CLID);
-    req.setSrcEndpoint(ZDO_ENDPOINT);
-    req.setRadius(0);
+    reqAps.setTxOptions(0);
+    reqAps.setDstEndpoint(ZDO_ENDPOINT);
+    reqAps.setDstAddressMode(deCONZ::ApsExtAddress);
+    reqAps.dstAddress().setExt(lightNode->address().ext());
+    reqAps.setProfileId(ZDP_PROFILE_ID);
+    reqAps.setClusterId(ZDP_MGMT_LEAVE_REQ_CLID);
+    reqAps.setSrcEndpoint(ZDO_ENDPOINT);
+    reqAps.setRadius(0);
 
-    QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
+    QDataStream stream(&reqAps.asdu(), QIODevice::WriteOnly);
     stream.setByteOrder(QDataStream::LittleEndian);
     stream << zdpResetSeq; // seq no.
     stream << (quint64)lightNode->address().ext(); // device address
@@ -2859,9 +2859,9 @@ int DeRestPluginPrivate::resetDeviceOnly(const ApiRequest &req, ApiResponse &rsp
 
     if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
     {
-        resetDeviceApsRequestId = req.id();
+        resetDeviceApsRequestId = reqAps.id();
         resetDeviceState = ResetWaitConfirm;
-        resetDeviceTimer->start(WAIT_CONFIRM);
+        resetDeviceTimer->start(2000);
         DBG_Printf(DBG_INFO, "reset device apsdeDataRequest success\n");
         return;
     }
