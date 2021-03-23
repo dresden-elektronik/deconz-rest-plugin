@@ -2834,7 +2834,7 @@ int DeRestPluginPrivate::resetDeviceOnly(const ApiRequest &req, ApiResponse &rsp
     // send mgmt_leave_request
     lastNodeAddressExt = lightNode->address().ext();
     zdpResetSeq += 1;
-    i->setZdpResetSeq(zdpResetSeq);
+    lightNode->setZdpResetSeq(zdpResetSeq);
 
     deCONZ::ApsDataRequest req;
 
