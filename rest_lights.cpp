@@ -2828,8 +2828,6 @@ int DeRestPluginPrivate::resetDeviceOnly(const ApiRequest &req, ApiResponse &rsp
         return REQ_READY_SEND;
     }
 
-//    lightNode->setResetRetryCount(10);
-    
     DBG_Printf(DBG_INFO, "reset device retries: %i\n", /*retryCount*/1);
     // send mgmt_leave_request
     lastNodeAddressExt = lightNode->address().ext();
@@ -2868,8 +2866,6 @@ int DeRestPluginPrivate::resetDeviceOnly(const ApiRequest &req, ApiResponse &rsp
     {
         DBG_Printf(DBG_ERROR, "can't send reset device apsdeDataRequest\n");
     }
-    
-    
     
     rsp.httpStatus = HttpStatusOk;
     rsp.etag = lightNode->etag;
