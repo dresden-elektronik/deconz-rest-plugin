@@ -799,8 +799,8 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
                 break;
 
-            case 0x4003: // Current temperature set point
-            {   // this will be reported when manually changing the temperature
+            case 0x4003:
+            {   // Current temperature set point - this will be reported when manually changing the temperature
                 if (zclFrame.manufacturerCode() == VENDOR_JENNIC && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
                 {
                     qint16 heatSetpoint = attr.numericValue().s16;
@@ -819,6 +819,21 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                         }
                     }
                 }
+
+                // External Window Open signal
+                if (zclFrame.manufacturerCode() == VENDOR_DANFOSS && (sensor->modelId() == QLatin1String("eTRV0100") ||
+                                                                      sensor->modelId() == QLatin1String("TRV001")))
+                {
+                    bool enabled = attr.numericValue().u8 > 0 ? true : false;
+                    item = sensor->item(RConfigExternalWindowOpen);
+                    if (item && item->toBool() != enabled)
+                    {
+                        item->setValue(enabled);
+                        enqueueEvent(Event(RSensors, RConfigExternalWindowOpen, sensor->id(), item));
+                        configUpdated = true;
+                    }
+                }
+                
                 sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
             }
                 break;
@@ -894,6 +909,62 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                         item->setValue(enabled);
                         enqueueEvent(Event(RSensors, RConfigMountingMode, sensor->id(), item));
                         configUpdated = true;
+                    }
+                }
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+
+            case 0x4015: // External Measured Room Sensor
+            {
+                if (zclFrame.manufacturerCode() == VENDOR_DANFOSS && (sensor->modelId() == QLatin1String("eTRV0100") ||
+                                                                      sensor->modelId() == QLatin1String("TRV001")))
+                {
+                    qint16 externalMeasurement = attr.numericValue().s16;
+                    item = sensor->item(RConfigExternalTemperatureSensor);
+                    if (item)
+                    {
+                        if (updateType == NodeValue::UpdateByZclReport)
+                        {
+                            configUpdated = true;
+                        }
+                        if (item->toNumber() != externalMeasurement)
+                        {
+                            item->setValue(externalMeasurement);
+                            enqueueEvent(Event(RSensors, RConfigExternalTemperatureSensor, sensor->id(), item));
+                            configUpdated = true;
+                        }
+                    }
+                }
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+
+            // Manufacturer Specific for Danfoss Icon Floor Heating Controller
+            case 0x4110:  // Danfoss Output Status
+            {
+                if (sensor->modelId() == QLatin1String("0x8020") || // Danfoss RT24V Display thermostat
+                    sensor->modelId() == QLatin1String("0x8021") || // Danfoss RT24V Display thermostat with floor sensor
+                    sensor->modelId() == QLatin1String("0x8030") || // Danfoss RTbattery Display thermostat
+                    sensor->modelId() == QLatin1String("0x8031") || // Danfoss RTbattery Display thermostat with infrared
+                    sensor->modelId() == QLatin1String("0x8034") || // Danfoss RTbattery Dial thermostat
+                    sensor->modelId() == QLatin1String("0x8035"))   // Danfoss RTbattery Dial thermostat with infrared
+                {
+                    quint8 outputStatus = attr.numericValue().u8;
+                    bool on = outputStatus > 0;
+                    item = sensor->item(RStateOn);
+                    if (item)
+                    {
+                        if (updateType == NodeValue::UpdateByZclReport)
+                        {
+                            stateUpdated = true;
+                        }
+                        if (item->toBool() != on)
+                        {
+                            item->setValue(on);
+                            enqueueEvent(Event(RSensors, RStateOn, sensor->id(), item));
+                            stateUpdated = true;
+                        }
                     }
                 }
                 sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
@@ -1166,26 +1237,15 @@ bool DeRestPluginPrivate::addTaskThermostatReadWriteAttribute(TaskItem &task, ui
     QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
     stream.setByteOrder(QDataStream::LittleEndian);
 
-    stream << (quint16) attrId;
-
     if (readOrWriteCmd == deCONZ::ZclWriteAttributesId)
     {
-        stream << (quint8) attrType;
-        if (attrType == deCONZ::Zcl8BitEnum || attrType == deCONZ::Zcl8BitInt || attrType == deCONZ::Zcl8BitBitMap || attrType == deCONZ::ZclBoolean)
-        {
-            stream << (quint8) attrValue;
-        }
-        else if (attrType == deCONZ::Zcl16BitInt || attrType == deCONZ::Zcl16BitBitMap)
-        {
-            stream << (quint16) attrValue;
-        }
-        else if (attrType == deCONZ::Zcl24BitUint)
-        {
-            stream << (qint8) (attrValue & 0xFF);
-            stream << (qint8) ((attrValue >> 8) & 0xFF);
-            stream << (qint8) ((attrValue >> 16) & 0xFF);
-        }
-        else
+        stream << attrId;
+        stream << attrType;
+
+        deCONZ::ZclAttribute attr(attrId, attrType, QLatin1String(""), deCONZ::ZclWrite, true);
+        attr.setValue(QVariant(attrValue));
+
+        if (!attr.writeToStream(stream))
         {
             return false;
         }

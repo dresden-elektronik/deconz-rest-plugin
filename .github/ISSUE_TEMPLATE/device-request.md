@@ -44,13 +44,36 @@ assignees: ''
   Required screenshots:
   - Endpoints and clusters of the node
   - Node Info panel
-  - Basic Cluster attributes in the Cluster Info panel.
 
   In the Cluster Info panel press "read" button to retreive the values. Please note that at least "Manufacturer Name" and "Model Identifier" must be populated with data (therefore, must not be empty), otherwise that information will not be usable. For battery powered devices, after pressing read it is required to wake-up the device by pressing a button or any other means of interaction.
 -->
 
 <!--
-  If available add screenshots of other clusters.
+  If available add screenshots of other clusters. Please Remove sections that are not available on your device.
 
   Relevant clusters are: Simple Metering, Electrical Measurement, Power Configuration, Thermostat, etc. You can typically spare Identify, Alarms, Device Temperature, On/Off. Please ensure data has been read prior to taking any screenshots.
 -->
+
+### Basic
+
+### Identify
+
+### Alarms
+
+### Device Temperature
+
+### Groups
+
+### Scenes
+
+### On/Off
+
+### Level Control
+
+### Color Control
+
+### Simple Metering
+
+### Diagnostics
+
+### Other clusters that are not mentioned above

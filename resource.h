@@ -130,6 +130,7 @@ extern const char *RConfigCtMax;
 extern const char *RConfigConfigured;
 extern const char *RConfigCoolSetpoint;
 extern const char *RConfigDelay;
+extern const char *RConfigDeviceMode;
 extern const char *RConfigDisplayFlipped;
 extern const char *RConfigDuration;
 extern const char *RConfigEnrolled;
@@ -157,6 +158,10 @@ extern const char *RConfigPowerup;
 extern const char *RConfigPowerOnCt;
 extern const char *RConfigPowerOnLevel;
 extern const char *RConfigPreset;
+extern const char *RConfigMelody;
+extern const char *RConfigTempThreshold;
+extern const char *RConfigHumiThreshold;
+extern const char *RConfigVolume;
 extern const char *RConfigReachable;
 extern const char *RConfigSchedule;
 extern const char *RConfigScheduleOn;
@@ -173,6 +178,8 @@ extern const char *RConfigUrl;
 extern const char *RConfigUsertest;
 extern const char *RConfigWindowCoveringType;
 extern const char *RConfigWindowOpen;
+extern const char *RConfigExternalTemperatureSensor;
+extern const char *RConfigExternalWindowOpen;
 extern const char *RConfigUbisysJ1Mode;
 extern const char *RConfigUbisysJ1WindowCoveringType;
 extern const char *RConfigUbisysJ1ConfigurationAndStatus;
@@ -206,6 +213,8 @@ extern const QStringList RStateEffectValuesMueller;
 #define R_EFFECT_NIGHTLIGHT         7
 extern const QStringList RConfigLastChangeSourceValues;
 
+extern const QStringList RConfigDeviceModeValues;
+
 #define R_PENDING_DELAY             (1 << 0)
 #define R_PENDING_LEDINDICATION     (1 << 1)
 #define R_PENDING_SENSITIVITY       (1 << 2)
@@ -215,6 +224,7 @@ extern const QStringList RConfigLastChangeSourceValues;
 #define R_PENDING_MODE              (1 << 6)
 #define R_PENDING_WRITE_POLL_CHECKIN_INTERVAL  (1 << 6)
 #define R_PENDING_SET_LONG_POLL_INTERVAL       (1 << 7)
+#define R_PENDING_DEVICEMODE        (1 << 8)
 
 // after device announce is received lights can be brought into a defined state
 // this might be useful for powerloss and OTA updates or simply providing a default power on configuration

@@ -475,9 +475,16 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                         {
                             addItem(DataTypeUInt16, RStateX);
                             addItem(DataTypeUInt16, RStateY);
-                            addItem(DataTypeString, RStateEffect)->setValue(RStateEffectValues[R_EFFECT_NONE]);
-                            addItem(DataTypeUInt16, RStateHue);
-                            addItem(DataTypeUInt8, RStateSat);
+                            if (manufacturer() == QLatin1String("LIDL Livarno Lux"))
+                            {
+                                removeItem(RConfigColorCapabilities);
+                            }
+                            else
+                            {
+                                addItem(DataTypeString, RStateEffect)->setValue(RStateEffectValues[R_EFFECT_NONE]);
+                                addItem(DataTypeUInt16, RStateHue);
+                                addItem(DataTypeUInt8, RStateSat);
+                            }
                         }
                         break;
                     default:
@@ -549,7 +556,8 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                         modelId().startsWith(QLatin1String("HESZB-1")) ||     // Develco heat sensor with siren
                         modelId().startsWith(QLatin1String("FLSZB-1")) ||     // Develco water leak sensor with siren
                         modelId().startsWith(QLatin1String("SIRZB-1")) ||     // Develco siren
-                        modelId() == QLatin1String("902010/29"))              // Bitron outdoor siren
+                        modelId() == QLatin1String("902010/29") ||            // Bitron outdoor siren
+                        modelId() == QLatin1String("SD8SC_00.00.03.09TC"))    // Centralite smoke sensor
                     {
                         removeItem(RStateOn);
                         ltype = QLatin1String("Warning device");
@@ -616,6 +624,8 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             case DEV_ID_HA_WINDOW_COVERING_DEVICE:     ltype = QLatin1String("Window covering device"); break;
             // Danalock support. Add the device id to setHAEndPoint() to set the type to "Door lock".
             case DEV_ID_DOOR_LOCK:                     ltype = QLatin1String("Door Lock"); break;
+            case DEV_ID_DOOR_LOCK_UNIT:                ltype = QLatin1String("Door Lock Unit"); break;
+            
             case DEV_ID_FAN:                           ltype = QLatin1String("Fan"); break;
             case DEV_ID_CONFIGURATION_TOOL:            removeItem(RStateOn);
                                                        removeItem(RStateAlert);

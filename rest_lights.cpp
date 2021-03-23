@@ -561,10 +561,6 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         return setWindowCoveringState(req, rsp, taskRef, map);
     }
-    else if (taskRef.lightNode->type() == QLatin1String("Warning device"))
-    {
-        return setWarningDeviceState(req, rsp, taskRef, map);
-    }
     else if (isXmasLightStrip(taskRef.lightNode))
     {
         return setXmasLightStripState(req, rsp, taskRef, map);
@@ -572,9 +568,13 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     else if (UseTuyaCluster(taskRef.lightNode->manufacturer()))
     {
         //window covering
+
         if (taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq") ||
             taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_xuzcvlku") ||
             taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_wmcdj3aq") ||
+            taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_nogaemzt") ||
+            taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_zah67ekd") || // MoesHouse / Livolo Roller Blinds
+            taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_fzo2pocs") ||
             taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3"))
         {
             return setWindowCoveringState(req, rsp, taskRef, map);
@@ -583,12 +583,17 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         else if (taskRef.lightNode->item(RStateColorMode))
         {
         }
-        //switch
+        //switch and siren
         else
         {
             return setTuyaDeviceState(req, rsp, taskRef, map);
         }
     }
+    else if (taskRef.lightNode->type() == QLatin1String("Warning device")) // Put it here because some tuya device are Warning device but need to be process by tuya part
+    {
+        return setWarningDeviceState(req, rsp, taskRef, map);
+    }
+    
     // Danalock support. You need to check for taskRef.lightNode->type() == QLatin1String("Door lock"), similar to what I've done under hasAlert for the Siren.
     bool isDoorLockDevice = false;
     if (taskRef.lightNode->type() == QLatin1String("Door Lock"))
@@ -1560,6 +1565,9 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     if (taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq") ||
         taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_xuzcvlku") ||
         taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_wmcdj3aq") ||
+        taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_nogaemzt") ||
+        taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_zah67ekd") || // MoesHouse / Livolo Roller Blinds
+        taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_fzo2pocs") ||
         taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3"))
     {
         cluster = TUYA_CLUSTER_ID;
@@ -1732,7 +1740,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain")) ||
             R_GetProductId(taskRef.lightNode) == QLatin1String("11830304 Switch") ||
             R_GetProductId(taskRef.lightNode) == QLatin1String("QS-Zigbee-C01 Module") ||
-            R_GetProductId(taskRef.lightNode) == QLatin1String("11830304(2) Switch") ||
+            R_GetProductId(taskRef.lightNode) == QLatin1String("Zigbee curtain switch") ||
             taskRef.lightNode->modelId() == QLatin1String("Motor Controller"))
         {
             targetLiftZigBee = 100 - targetLift;
@@ -2002,11 +2010,11 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
 
             if (targetOn)
             {
-                data = QByteArray("\x01",1);
+                data = QByteArray("\x01", 1);
             }
             else
             {
-                data = QByteArray("\x00",1);
+                data = QByteArray("\x00", 1);
             }
 
             ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_BOOL, button, data);
@@ -2030,6 +2038,32 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
         else
         {
             rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state/on").arg(id), QString("parameter, not available")));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+    else if (map.contains("alert"))
+    {
+        if (map["alert"].type() == QVariant::String)
+        {
+            QByteArray data("\x00", 1);
+
+            if (map["alert"].toString() == "lselect")
+            {
+                data = QByteArray("\x01",1);
+            }
+
+            if (sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_BOOL, DP_IDENTIFIER_ALARM, data))
+            {
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+            }
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state/alert").arg(id), QString("parameter, not available")));
             rsp.httpStatus = HttpStatusBadRequest;
             return REQ_READY_SEND;
         }
@@ -2143,7 +2177,11 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
             if (taskRef.lightNode->modelId().startsWith(QLatin1String("902010/24")) ||
                 taskRef.lightNode->modelId() == QLatin1String("902010/29"))
             {
-                task.options = 0x12;
+                task.options = 0x12;    // Warning mode 1 (burglar), no Strobe, high sound
+            }
+            else if (taskRef.lightNode->modelId() == QLatin1String("SIRZB-110"))    // Doesn't support strobe
+            {
+                task.options = 0x13;    // Warning mode 1 (burglar), no Strobe, Very high sound
             }
             task.duration = 1;
         }
@@ -2153,7 +2191,11 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
             if (taskRef.lightNode->modelId().startsWith(QLatin1String("902010/24")) ||
                 taskRef.lightNode->modelId() == QLatin1String("902010/29"))
             {
-                task.options = 0x12;
+                task.options = 0x12;    // Warning mode 1 (burglar), no Strobe, high sound
+            }
+            else if (taskRef.lightNode->modelId() == QLatin1String("SIRZB-110"))    // Doesn't support strobe
+            {
+                task.options = 0x13;    // Warning mode 1 (burglar), no Strobe, Very high sound
             }
             task.duration = onTime > 0 ? onTime : 300;
         }
