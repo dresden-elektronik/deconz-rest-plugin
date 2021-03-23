@@ -516,6 +516,7 @@ extern const quint64 zhejiangMacPrefix;
 // Danalock support
 extern const quint64 danalockMacPrefix;
 extern const quint64 schlageMacPrefix;
+extern const quint64 aqaraMacPrefix;
 
 inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
 {
