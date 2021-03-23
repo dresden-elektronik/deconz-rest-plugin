@@ -92,6 +92,11 @@ int DeRestPluginPrivate::handleLightsApi(const ApiRequest &req, ApiResponse &rsp
     {
         return removeAllGroups(req, rsp);
     }
+    // DELETE /api/<apikey>/lights/<id>/node
+    else if ((req.path.size() == 5) && (req.path[4] == "node") && (req.hdr.method() == "DELETE"))
+    {
+        return resetDeviceOnly(req, rsp);
+    }
 
     return REQ_NOT_HANDLED;
 }
@@ -2792,6 +2797,38 @@ int DeRestPluginPrivate::removeAllGroups(const ApiRequest &req, ApiResponse &rsp
 
     updateLightEtag(lightNode);
     queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
+
+    rsp.httpStatus = HttpStatusOk;
+    rsp.etag = lightNode->etag;
+
+    return REQ_READY_SEND;
+}
+
+/*! DELETE /api/<apikey>/lights/<id>/node
+    \return 0 - on success
+           -1 - on error
+ */
+int DeRestPluginPrivate::resetDeviceOnly(const ApiRequest &req, ApiResponse &rsp)
+{
+    DBG_Assert(req.path.size() == 5);
+
+    if (req.path.size() != 5)
+    {
+        return REQ_NOT_HANDLED;
+    }
+
+    const QString &id = req.path[3];
+
+    LightNode *lightNode = getLightNodeForId(id);
+
+    if (!lightNode || lightNode->state() == LightNode::StateDeleted)
+    {
+        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
+        rsp.httpStatus = HttpStatusNotFound;
+        return REQ_READY_SEND;
+    }
+
+    lightNode->setResetRetryCount(10);
 
     rsp.httpStatus = HttpStatusOk;
     rsp.etag = lightNode->etag;
