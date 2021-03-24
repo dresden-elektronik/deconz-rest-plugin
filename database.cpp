@@ -4283,7 +4283,7 @@ static int sqliteGetAllSensorIdsCallback(void *user, int ncols, char **colval , 
     {
         if (colval[i] && (colval[i][0] != '\0'))
         {
-            if (strcmp(colname[i], "id") == 0)
+            if (strcmp(colname[i], "sid") == 0)
             {
                 bool ok;
                 int id = QString(colval[i]).toInt(&ok);
