@@ -468,6 +468,7 @@ using namespace deCONZ::literals;
 #define J2000_EPOCH 1
 
 void getTime(quint32 *time, qint32 *tz, quint32 *dstStart, quint32 *dstEnd, qint32 *dstShift, quint32 *standardTime, quint32 *localTime, quint8 mode);
+int getFreeSensorId(); // TODO needs to be part of a Database class
 
 extern const quint64 macPrefixMask;
 
@@ -1633,7 +1634,6 @@ public:
     void loadLightDataFromDb(LightNode *lightNode, QVariantList &ls, qint64 fromTime, int max);
     void loadAllGatewaysFromDb();
     int getFreeLightId();
-    int getFreeSensorId();
     void saveDb();
     void saveApiKey(QString apikey);
     void closeDb();
@@ -1649,7 +1649,6 @@ public:
     int saveDatabaseIdleTotalCounter;
     QString sqliteDatabaseName;
     std::vector<int> lightIds;
-    std::vector<int> sensorIds;
     std::vector<QString> dbQueryQueue;
     qint64 dbZclValueMaxAge;
     QTimer *databaseTimer;

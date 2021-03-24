@@ -4277,7 +4277,7 @@ static int sqliteGetAllSensorIdsCallback(void *user, int ncols, char **colval , 
         return 0;
     }
 
-    DeRestPluginPrivate *d = static_cast<DeRestPluginPrivate*>(user);
+    auto *sensorIds = static_cast<std::vector<int>*>(user);
 
     for (int i = 0; i < ncols; i++)
     {
@@ -4290,7 +4290,7 @@ static int sqliteGetAllSensorIdsCallback(void *user, int ncols, char **colval , 
 
                 if (ok)
                 {
-                    d->sensorIds.push_back(id);
+                    sensorIds->push_back(id);
                 }
             }
         }
@@ -4378,38 +4378,34 @@ static int sqliteLoadAllGatewaysCallback(void *user, int ncols, char **colval , 
 
 /*! Determines a unused id for a sensor.
  */
-int DeRestPluginPrivate::getFreeSensorId()
+int getFreeSensorId()
 {
-    int rc;
-    bool ok;
-    char *errmsg = 0;
+    DeRestPluginPrivate *plugin = DeRestPluginPrivate::instance();
 
-    DBG_Assert(db != 0);
+    DBG_Assert(plugin && plugin->dbIsOpen());
 
-    if (!db)
+    if (!plugin || !plugin->dbIsOpen())
     {
-        return 1;
+        DBG_Printf(DBG_ERROR, "DB getFreeSensorId() called with no valid db pointer\n");
+        return 1; // TODO, this is an error we should handle this. 1 is misleading
     }
 
-    sensorIds.clear();
+    std::vector<int> sensorIds(plugin->sensors.size());
 
-    { // append all ids from nodes known at runtime
-        std::vector<Sensor>::const_iterator i = sensors.begin();
-        std::vector<Sensor>::const_iterator end = sensors.end();
-        for (;i != end; ++i)
-        {
-            sensorIds.push_back(i->id().toUInt());
-        }
-    }
+    // collect all ids from nodes known at runtime
+    std::transform (plugin->sensors.cbegin(), plugin->sensors.cend(), sensorIds.begin(),
+        [](const Sensor&s) { return s.id().toInt(); }
+    );
 
-    // add all ids references in rules
-    for (const Rule &r : rules)
+    // add all ids referenced in rules of sensors which don't exist anymore -> to not consider these
+    for (const Rule &r : plugin->rules)
     {
         for (const RuleCondition &c : r.conditions())
         {
-            if (c.address().startsWith(QLatin1String("/sensors/")))
+            if (c.resource() == RSensors)
             {
-                uint id = c.id().toUInt(&ok);
+                bool ok;
+                const int id = c.id().toInt(&ok);
                 if (ok && std::find(sensorIds.begin(), sensorIds.end(), id) == sensorIds.end())
                 {
                     sensorIds.push_back(id);
@@ -4418,31 +4414,39 @@ int DeRestPluginPrivate::getFreeSensorId()
         }
     }
 
-    // append all ids from database (dublicates are ok here)
-    QString sql = QString("SELECT * FROM sensors");
+    // append all deleted ids from database (dublicates are ok here)
+    const char * sql = "SELECT sid FROM sensors WHERE deletedState = 'deleted'";
 
-    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
-    rc = sqlite3_exec(db, qPrintable(sql), sqliteGetAllSensorIdsCallback, this, &errmsg);
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", sql);
+    char *errmsg = nullptr;
+    int rc = sqlite3_exec(db, sql, sqliteGetAllSensorIdsCallback, &sensorIds, &errmsg);
 
     if (rc != SQLITE_OK)
     {
         if (errmsg)
         {
-            DBG_Printf(DBG_ERROR_L2, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
+            DBG_Printf(DBG_ERROR_L2, "sqlite3_exec %s, error: %s\n", sql, errmsg);
             sqlite3_free(errmsg);
         }
     }
 
-    int id = sensors.empty() ? 1 : static_cast<int>(sensors.size()); // 'append' only
+    std::sort(sensorIds.begin(), sensorIds.end());
+
+    // 'append' only, start with largest known id
+    // skip daylight sensor.id 1000 from earlier versions to keep id value low as possible
+    const auto startId = std::find_if(sensorIds.rbegin(), sensorIds.rend(), [](int id) { return id < 1000; });
+
+    int id = (startId != sensorIds.rend()) ? *startId : 1;
+
     while (id < 10000)
     {
-        std::vector<int>::iterator result = std::find(sensorIds.begin(), sensorIds.end(), id);
+        const auto result = std::find(sensorIds.begin(), sensorIds.end(), id);
 
-        // id not known?
         if (result == sensorIds.end())
         {
             return id;
         }
+
         id++;
     }
 
