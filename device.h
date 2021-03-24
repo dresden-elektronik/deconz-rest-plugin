@@ -108,6 +108,9 @@ public:
     friend void DEV_BindingHandler(Device *device, const Event &event);
     friend void DEV_BindingTableVerifyHandler(Device *device, const Event &event);
 
+Q_SIGNALS:
+    void eventNotify(const Event&);
+
 private:
     Device(); // not accessible
     /*! sub-devices are not yet referenced via pointers since these may become dangling.

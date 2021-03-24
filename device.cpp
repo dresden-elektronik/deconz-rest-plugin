@@ -1,10 +1,16 @@
 #include <QTimerEvent>
-#include "de_web_plugin.h" // todo hack, remove later
-#include "de_web_plugin_private.h" // todo hack, remove later
+//#include "de_web_plugin.h" // todo hack, remove later
+//#include "de_web_plugin_private.h" // todo hack, remove later
 #include "device.h"
 #include "device_descriptions.h"
 #include "event.h"
 #include "zdp.h"
+
+// TODO move external declaration in de_web_plugin_private.h into utils.h
+QString generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId);
+
+// enable domain specific string literals
+using namespace deCONZ::literals;
 
 /* PlantUML state chart
 
@@ -53,11 +59,33 @@ Operating --> Init : Not Reachable
 
 constexpr int MinMacPollRxOn = 8000; // 7680 ms + some space for timeout
 
+/*! Returns deCONZ core node for a given \p extAddress.
+ */
+const deCONZ::Node *DEV_GetCoreNode(uint64_t extAddress)
+{
+    int i = 0;
+    const deCONZ::Node *result = nullptr;
+    const deCONZ::Node *node = nullptr;
+    deCONZ::ApsController *ctrl = deCONZ::ApsController::instance();
+
+    while (ctrl->getNode(i, &node) == 0)
+    {
+        if (node->address().ext() == extAddress)
+        {
+            result = node;
+            break;
+        }
+        i++;
+    }
+
+    return result;
+}
+
 void DEV_EnqueueEvent(Device *device, const char *event)
 {
     Q_ASSERT(device);
     Q_ASSERT(event);
-    device->plugin()->enqueueEvent(Event(device->prefix(), event, 0, device->key()));
+    device->eventNotify(Event(device->prefix(), event, 0, device->key()));
 }
 
 Resource *DEV_GetSubDevice(Device *device, const char *prefix, const QString &identifier)
@@ -94,7 +122,7 @@ void DEV_InitStateHandler(Device *device, const Event &event)
         // lazy reference to deCONZ::Node
         if (!device->node())
         {
-            device->m_node = getCoreNode(device->key());
+            device->m_node = DEV_GetCoreNode(device->key());
         }
 
         if (device->node())
@@ -102,7 +130,7 @@ void DEV_InitStateHandler(Device *device, const Event &event)
             device->item(RAttrExtAddress)->setValue(device->node()->address().ext());
             device->item(RAttrNwkAddress)->setValue(device->node()->address().nwk());
 
-            if (device->node()->nodeDescriptor().manufacturerCode() == VENDOR_DDEL && device->node()->address().nwk() == 0x0000)
+            if (device->node()->nodeDescriptor().manufacturerCode_t() == 0x1135_mfcode && device->node()->address().nwk() == 0x0000)
             {
                 return; // ignore coordinaor for now
             }
@@ -733,7 +761,7 @@ void Device::setState(DeviceStateHandler state, DEV_StateLevel level)
         if (m_state[level] && level == StateLevel0)
         {
             // invoke the handler in the next event loop iteration
-            plugin()->enqueueEvent(Event(prefix(), REventStateEnter, level, key()));
+            emit eventNotify(Event(prefix(), REventStateEnter, level, key()));
         }
         else if (m_state[level])
         {
