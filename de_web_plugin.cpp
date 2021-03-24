@@ -4027,18 +4027,24 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     }
     else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
              sensor->modelId().startsWith(QLatin1String("TRADFRI SHORTCUT Button")) ||
+             sensor->modelId().startsWith(QLatin1String("Remote Control N2")) ||
              sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
              sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")))
     {
         if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() == 0)
         {
-            checkClientCluster = true;
             ResourceItem *item = sensor->item(RConfigGroup);
             if (!item || (item && (item->toString() == QLatin1String("0") || item->toString().isEmpty())))
             {
                 // still default group, create unique group and binding
                 checkSensorGroup(sensor);
             }
+        }
+        checkReporting = true;
+        checkClientCluster = true;
+        if (ind.dstAddressMode() == deCONZ::ApsNwkAddress)
+        {
+            return;
         }
     }
     else if (sensor->modelId().startsWith(QLatin1String("SYMFONISK")))
