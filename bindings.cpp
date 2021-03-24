@@ -2693,6 +2693,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("S2")) ||
         // IKEA
         sensor->modelId().startsWith(QLatin1String("TRADFRI")) ||
+        sensor->modelId().startsWith(QLatin1String("Remote Control N2")) || // STYRBAR
         sensor->modelId().startsWith(QLatin1String("FYRTUR")) ||
         sensor->modelId().startsWith(QLatin1String("KADRILJ")) ||
         sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
@@ -3483,9 +3484,11 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     }
     // IKEA Trådfri on/off switch
     // IKEA Trådfri shortcut button
+    // IKEA STYRBAR
     // Sonoff SNZB-01
     else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
              sensor->modelId().startsWith(QLatin1String("TRADFRI SHORTCUT Button")) ||
+             sensor->modelId().startsWith(QLatin1String("Remote Control N2")) ||
              sensor->modelId().startsWith(QLatin1String("WB01")) ||
              sensor->modelId().startsWith(QLatin1String("WB-01")))
     {
@@ -3828,6 +3831,7 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         sensor->modelId().startsWith(QLatin1String("Z3-1BRL")) || // Lutron Aurora FoH smart dimmer
         sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
         sensor->modelId().startsWith(QLatin1String("TRADFRI SHORTCUT Button")) ||
+        sensor->modelId().startsWith(QLatin1String("Remote Control N2")) || // STYRBAR
         sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
         sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")) ||
         sensor->modelId().startsWith(QLatin1String("TRADFRI remote control")) ||
