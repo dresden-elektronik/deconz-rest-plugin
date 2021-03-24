@@ -23,6 +23,8 @@ static const char *pragmaPageCount = "PRAGMA page_count";
 static const char *pragmaPageSize = "PRAGMA page_size";
 static const char *pragmaFreeListCount = "PRAGMA freelist_count";
 
+static sqlite3 *db = nullptr; // TODO should be member of Database class
+
 struct DB_Callback {
   DeRestPluginPrivate *d = nullptr;
   LightNode *lightNode = nullptr;
@@ -950,6 +952,11 @@ void DeRestPluginPrivate::pushZclValueDb(quint64 extAddress, quint8 endpoint, qu
     dbQueryQueue.push_back(sql);
 }
 
+bool DeRestPluginPrivate::dbIsOpen() const
+{
+    return db != nullptr;
+}
+
 /*! Opens/creates sqlite database.
  */
 void DeRestPluginPrivate::openDb()
@@ -967,7 +974,7 @@ void DeRestPluginPrivate::openDb()
     if (rc != SQLITE_OK) {
         // failed
         DBG_Printf(DBG_ERROR, "Can't open database: %s\n", sqlite3_errmsg(db));
-        db = 0;
+        db = nullptr;
         return;
     }
 
@@ -5408,7 +5415,7 @@ void DeRestPluginPrivate::closeDb()
         int ret = sqlite3_close(db);
         if (ret == SQLITE_OK)
         {
-            db = 0;
+            db = nullptr;
 #ifdef Q_OS_LINUX
             QElapsedTimer measTimer;
             measTimer.restart();

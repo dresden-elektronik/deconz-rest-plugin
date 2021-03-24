@@ -618,7 +618,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
 //    gwScanner->startScan();
 
     QString dataPath = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation);
-    db = 0;
+
     saveDatabaseItems = 0;
     saveDatabaseIdleTotalCounter = 0;
     dbZclValueMaxAge = 0; // default disable
@@ -18843,7 +18843,7 @@ bool DeRestPluginPrivate::exportConfiguration()
     ttlDataBaseConnection = 0;
     closeDb();
 
-    if (db)
+    if (dbIsOpen())
     {
         DBG_Printf(DBG_ERROR, "backup: failed to export - database busy\n");
         return false; // might be busy
@@ -19100,7 +19100,7 @@ bool DeRestPluginPrivate::importConfiguration()
     saveDatabaseItems |= DB_NOSAVE;
     closeDb();
 
-    if (db)
+    if (dbIsOpen())
     {
         DBG_Printf(DBG_ERROR, "backup: failed to import - database busy\n");
         return false; // database might be busy
@@ -19379,7 +19379,7 @@ bool DeRestPluginPrivate::resetConfiguration(bool resetGW, bool deleteDB)
     saveDatabaseItems |= DB_NOSAVE;
     closeDb();
 
-    if (db)
+    if (dbIsOpen())
     {
         DBG_Printf(DBG_ERROR, "backup: failed to import - database busy\n");
         return false; // database might be busy
