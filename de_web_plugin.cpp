@@ -904,6 +904,12 @@ DeRestPluginPrivate::~DeRestPluginPrivate()
     }
 }
 
+DeRestPluginPrivate *DeRestPluginPrivate::instance()
+{
+    DBG_Assert(plugin);
+    return plugin;
+}
+
 /*! APSDE-DATA.indication callback.
     \param ind - the indication primitive
     \note Will be called from the main application for each incoming indication.

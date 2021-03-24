@@ -1032,6 +1032,8 @@ public:
     DeRestPluginPrivate(QObject *parent = 0);
     ~DeRestPluginPrivate();
 
+    static DeRestPluginPrivate *instance();
+
     // REST API authorisation
     void initAuthentication();
     bool allowedToCreateApikey(const ApiRequest &req, ApiResponse &rsp, QVariantMap &map);
