@@ -95,14 +95,14 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
                     quint16 interfaceMode = attr.numericValue().u16;
                     quint8 mode = 0;
                     
-                    if (interfaceMode == 0x0000) { mode = 1; }          // Pulse Counting on an Electricity Meter – Unit KWh
-                    else if (interfaceMode == 0x0001) { mode = 2; }     // Pulse Counting on a Gas Meter – Unit m3
-                    else if (interfaceMode == 0x0002) { mode = 3; }     // Pulse Counting on a Water Meter – Unit m3
-                    else if (interfaceMode == 0x0100) { mode = 4; }     // Kamstrup KMP Protocol
-                    else if (interfaceMode == 0x0101) { mode = 5; }     // Not Supported - Linky Protocol
-                    else if (interfaceMode == 0x0102) { mode = 6; }     // DLMS-COSEM - IEC62056-21 mod A
-                    else if (interfaceMode == 0x0103) { mode = 7; }     // P1 Dutch Standard – DSMR 2.3 Version
-                    else if (interfaceMode == 0x0104) { mode = 8; }     // P1 Dutch Standard – DSMR 4.0 Version
+                    if      (interfaceMode == PULSE_COUNTING_ELECTRICITY)   { mode = 1; }
+                    else if (interfaceMode == PULSE_COUNTING_GAS)           { mode = 2; }
+                    else if (interfaceMode == PULSE_COUNTING_WATER)         { mode = 3; }
+                    else if (interfaceMode == KAMSTRUP_KMP)                 { mode = 4; }
+                    else if (interfaceMode == LINKY)                        { mode = 5; }
+                    else if (interfaceMode == DLMS_COSEM)                   { mode = 6; }
+                    else if (interfaceMode == DSMR_23)                      { mode = 7; }
+                    else if (interfaceMode == DSMR_40)                      { mode = 8; }
                     
                     item = sensor->item(RConfigInterfaceMode);
                     if (item && item->toNumber() != mode && mode > 0 && mode < 9)

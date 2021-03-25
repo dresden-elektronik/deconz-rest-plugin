@@ -2121,25 +2121,32 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         if (sensor->modelId() == QLatin1String("ZHEMI101"))
                         {
-                            quint16 pulseConfiguration = map[pi.key()].toUInt(&ok);
+                            const uint pulseConfiguration = map[pi.key()].toUInt(&ok);
 
-                            if (ok && addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0300, deCONZ::Zcl16BitUint, pulseConfiguration, VENDOR_DEVELCO))
+                            if (ok && pulseConfiguration <=  UINT16_MAX && addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0300, deCONZ::Zcl16BitUint, pulseConfiguration, VENDOR_DEVELCO))
                             {
                                 updated = true;
                             }
                             else
                             {
-                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                            QString("Could not set attribute")));
                                 rsp.httpStatus = HttpStatusBadRequest;
                                 return REQ_READY_SEND;
                             }
                         }
+                        else
+                        {
+                            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                       QString("parameter, %1, not available").arg(pi.key())));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
+                        }
                     }
                     else
                     {
-                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
-                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
                         rsp.httpStatus = HttpStatusBadRequest;
                         return REQ_READY_SEND;
                     }
@@ -2150,21 +2157,21 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         if (sensor->modelId() == QLatin1String("ZHEMI101"))
                         {
-                            quint8 mode = map[pi.key()].toUInt(&ok);
+                            const uint mode = map[pi.key()].toUInt(&ok);
                             quint16 interfaceMode = 0;
                             
-                            if (ok && mode == 1) { interfaceMode = 0x0000; }          // Pulse Counting on an Electricity Meter – Unit KWh
-                            else if (ok && mode == 2) { interfaceMode = 0x0001; }     // Pulse Counting on a Gas Meter – Unit m3
-                            else if (ok && mode == 3) { interfaceMode = 0x0002; }     // Pulse Counting on a Water Meter – Unit m3
-                            else if (ok && mode == 4) { interfaceMode = 0x0100; }     // Kamstrup KMP Protocol
-                            else if (ok && mode == 5) { interfaceMode = 0x0101; }     // Not Supported - Linky Protocol
-                            else if (ok && mode == 6) { interfaceMode = 0x0102; }     // DLMS-COSEM - IEC62056-21 mod A
-                            else if (ok && mode == 7) { interfaceMode = 0x0103; }     // P1 Dutch Standard – DSMR 2.3 Version
-                            else if (ok && mode == 8) { interfaceMode = 0x0104; }     // P1 Dutch Standard – DSMR 4.0 Version
+                            if (ok && mode == 1)      { interfaceMode = PULSE_COUNTING_ELECTRICITY; }
+                            else if (ok && mode == 2) { interfaceMode = PULSE_COUNTING_GAS; }
+                            else if (ok && mode == 3) { interfaceMode = PULSE_COUNTING_WATER; }
+                            else if (ok && mode == 4) { interfaceMode = KAMSTRUP_KMP; }
+                            else if (ok && mode == 5) { interfaceMode = LINKY; }
+                            else if (ok && mode == 6) { interfaceMode = DLMS_COSEM; }
+                            else if (ok && mode == 7) { interfaceMode = DSMR_23; }
+                            else if (ok && mode == 8) { interfaceMode = DSMR_40; }
                             else
                             {
-                                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
-                                                           QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                           QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
                                 rsp.httpStatus = HttpStatusBadRequest;
                                 return REQ_READY_SEND;
                             }
@@ -2177,18 +2184,25 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                 }
                                 else
                                 {
-                                    rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                    rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                                QString("Could not set attribute")));
                                     rsp.httpStatus = HttpStatusBadRequest;
                                     return REQ_READY_SEND;
                                 }
                             }
                         }
+                        else
+                        {
+                            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                       QString("parameter, %1, not available").arg(pi.key())));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
+                        }
                     }
                     else
                     {
-                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
-                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
                         rsp.httpStatus = HttpStatusBadRequest;
                         return REQ_READY_SEND;
                     }
