@@ -471,8 +471,8 @@ static const ProductMap products[] =
     // --------------------
     // Tuya_THD : thermostat device using Tuya cluster
     // Tuya_COVD : covering device using Tuya cluster
-
-
+    // Tuya_RPT : Repeater
+    
     // Tuya Thermostat / TRV
     {"_TYST11_zuhszj9s", "uhszj9s", "HiHome", "Tuya_THD WZB-TRVL TRV"},
     {"_TYST11_KGbxAXL2", "GbxAXL2", "Saswell", "Tuya_THD SEA801-ZIGBEE TRV"},
@@ -512,6 +512,7 @@ static const ProductMap products[] =
     // Other
     {"_TYST11_d0yu2xgi", "0yu2xgi", "NEO/Tuya", "NAS-AB02B0 Siren"},
     {"_TZE200_d0yu2xgi", "TS0601", "NEO/Tuya", "NAS-AB02B0 Siren"},
+    {"_TZ3000_m0vaazab", "TS0207", "Tuya", "Tuya_RPT Repeater"},
 
     {nullptr, nullptr, nullptr, nullptr}
 };
