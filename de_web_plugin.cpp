@@ -5102,7 +5102,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
                     }
-                    else if ((node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC) &&
+                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC &&
                               modelId.startsWith(QLatin1String("lumi.lock.v1")))
                     {
                         fpDoorLockSensor.inClusters.push_back(DOOR_LOCK_CLUSTER_ID);
@@ -5558,14 +5558,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     else
                     {
                         //Using whitelist to ensure old doorlock hardware compatibility
-                        if ((modelId == QLatin1String("SMARTCODE_CONVERT_GEN1")) || // Kwikset 914
-                            (modelId == QLatin1String("YRD226/246 TSDB")) || // Yale YRD226 ZigBee keypad door lock
-                            (modelId == QLatin1String("YRD226 TSDB")) || // Yale YRD226 ZigBee keypad door lock
-                            (modelId == QLatin1String("YRD256 TSDB")) || // Yale YRD256 ZigBee keypad door lock
-                            (modelId == QLatin1String("YRD256L TSDB SL")) ||
-                            (modelId == QLatin1String("YRD220/240 TSDB")) ||
-                            (modelId == QLatin1String("easyCodeTouch_v1")) || // EasyAccess EasyCodeTouch
-                            (modelId == QLatin1String("ID Lock 150")) )
+                        if (modelId == QLatin1String("SMARTCODE_CONVERT_GEN1") || // Kwikset 914
+                            modelId == QLatin1String("YRD226/246 TSDB") || // Yale YRD226 ZigBee keypad door lock
+                            modelId == QLatin1String("YRD226 TSDB") || // Yale YRD226 ZigBee keypad door lock
+                            modelId == QLatin1String("YRD256 TSDB") || // Yale YRD256 ZigBee keypad door lock
+                            modelId == QLatin1String("YRD256L TSDB SL") ||
+                            modelId == QLatin1String("YRD220/240 TSDB") ||
+                            modelId == QLatin1String("easyCodeTouch_v1") || // EasyAccess EasyCodeTouch
+                            modelId == QLatin1String("ID Lock 150"))
                         {
                             fpDoorLockSensor.inClusters.push_back(DOOR_LOCK_CLUSTER_ID);
                         }
@@ -5937,7 +5937,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         }
 
         // ZHADoorLock
-        if (fpDoorLockSensor.hasInCluster(DOOR_LOCK_CLUSTER_ID) )
+        if (fpDoorLockSensor.hasInCluster(DOOR_LOCK_CLUSTER_ID))
         {
             fpDoorLockSensor.endpoint = i->endpoint();
             fpDoorLockSensor.deviceId = i->deviceId();
@@ -9617,34 +9617,34 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (ia->id() == 0x0000) // Lock state
                                 {
                                     QString str;
-                                    bool dl_lock;
+                                    bool dlLock;
                                     
                                     if (ia->numericValue().u8 == 1)
                                     {
                                         str = QLatin1String("locked");
-                                        dl_lock = true;
+                                        dlLock = true;
                                     }
                                     else if (ia->numericValue().u8 == 0)
                                     {
                                         str = QLatin1String("not fully locked");
-                                        dl_lock = false;
+                                        dlLock = false;
                                     }
                                     else if (ia->numericValue().u8 == 2)
                                     {
                                         str = QLatin1String("unlocked");
-                                        dl_lock = false;
+                                        dlLock = false;
                                     }
                                     else
                                     {
                                         str = QLatin1String("undefined");
-                                        dl_lock = false;
+                                        dlLock = false;
                                     }
 
                                     // Update RConfigLock bool state
                                     ResourceItem *item = i->item(RConfigLock);
-                                    if (item && item->toNumber() != dl_lock)
+                                    if (item && item->toNumber() != dlLock)
                                     {
-                                        item->setValue(dl_lock);
+                                        item->setValue(dlLock);
                                         enqueueEvent(Event(RSensors, RConfigLock, i->id(), item));
                                         updated = true;
                                     }

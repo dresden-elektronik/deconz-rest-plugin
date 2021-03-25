@@ -3336,7 +3336,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         case DEVELCO_AIR_QUALITY_CLUSTER_ID:
         {
             // For the moment reserved to doorlock device
-            if ((*i == DOOR_LOCK_CLUSTER_ID) && (sensor->type() != QLatin1String("ZHADoorLock")))
+            if (*i == DOOR_LOCK_CLUSTER_ID && sensor->type() != QLatin1String("ZHADoorLock"))
             {
                 break;
             }

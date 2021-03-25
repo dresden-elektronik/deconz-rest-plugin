@@ -821,10 +821,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             {
                                 rspItemState[QString("/sensors/%1/config/lock").arg(id)] = map["lock"];
                                 rspItem["success"] = rspItemState;
-                                //if (item->lastChanged() == item->lastSet())
-                                //{
-                                    updated = true;
-                                //}
+                                updated = true;
                             }
                         }
                         else
