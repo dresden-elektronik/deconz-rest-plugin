@@ -1676,7 +1676,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (sensor && (sensor->modelId().startsWith(QLatin1String("ED-1001")) || // EcoDim switches
                             sensor->modelId().startsWith(QLatin1String("45127")) ||   // Namron switches
-                            sensor->modelId().startsWith(QLatin1String("FNB56-"))))   // Feibit devices
+                            sensor->modelId().startsWith(QLatin1String("FNB56-")) ||  // Feibit devices
+                            sensor->modelId().startsWith(QLatin1String("FB56-"))))    // Feibit devices
         {
             rq.minInterval = 3600;
             rq.maxInterval = 43200;
@@ -2915,6 +2916,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("160-01")) ||
         // Feibit
         sensor->modelId().startsWith(QLatin1String("FNB56-")) ||
+        sensor->modelId().startsWith(QLatin1String("FB56-")) ||
         // Niko
         sensor->modelId() == QLatin1String("Connected socket outlet") ||
         // Sage

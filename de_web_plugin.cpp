@@ -153,6 +153,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_CENTRALITE, "3323", emberMacPrefix }, // Centralite contact sensor
     { VENDOR_DDEL, "de_spect", silabs3MacPrefix }, // dresden elektronic spectral sensor
     { VENDOR_JASCO, "45856", celMacPrefix },
+    { VENDOR_NONE, "FB56-DOS06HM1.3", tiMacPrefix }, // Feibit FB56-DOS06HM1.3 door/window sensor
     { VENDOR_NONE, "LM_",  tiMacPrefix },
     { VENDOR_NONE, "LMHT_", tiMacPrefix },
     { VENDOR_NONE, "IR_", tiMacPrefix },
@@ -5226,6 +5227,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     }
                     else if (modelId.startsWith(QLatin1String("DOOR_")) ||            // Heiman door/window sensor
                              modelId.startsWith(QLatin1String("Door")) ||             // Heiman door/window sensor (newer model)
+                             modelId == QLatin1String("FB56-DOS06HM1.3") ||           // Feibit FB56-DOS06HM1.3 door/window sensor
                              modelId == QLatin1String("3AFE130104020015") ||          // Konke door/window sensor
                              modelId.startsWith(QLatin1String("902010/21")) ||        // Bitron door/window sensor
                              modelId.startsWith(QLatin1String("WISZB-1")) ||          // Develco door/window sensor
@@ -7864,6 +7866,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId() == QLatin1String("ISW-ZPR1-WP13") ||    // Bosch motion sensor
                                     i->modelId() == QLatin1String("3AFE14010402000D") ||   // Konke motion sensor
                                     i->modelId() == QLatin1String("3AFE28010402000D") ||   // Konke motion sensor v2
+                                    i->modelId() == QLatin1String("FB56-DOS06HM1.3") ||    // Feibit FB56-DOS06HM1.3 door/window sensor
                                     i->modelId().endsWith(QLatin1String("86opcn01")) ||    // Aqara Opple
                                     i->modelId().startsWith(QLatin1String("AQSZB-1")) ||   // Develco air quality sensor
                                     i->modelId().startsWith(QLatin1String("SMSZB-1")) ||   // Develco smoke sensor
