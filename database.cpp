@@ -4405,10 +4405,10 @@ int getFreeSensorId()
             if (c.resource() == RSensors)
             {
                 bool ok;
-                const int id = c.id().toInt(&ok);
-                if (ok && std::find(sensorIds.begin(), sensorIds.end(), id) == sensorIds.end())
+                const int sid = c.id().toInt(&ok);
+                if (ok && std::find(sensorIds.begin(), sensorIds.end(), sid) == sensorIds.end())
                 {
-                    sensorIds.push_back(id);
+                    sensorIds.push_back(sid);
                 }
             }
         }
@@ -4434,23 +4434,23 @@ int getFreeSensorId()
 
     // 'append' only, start with largest known id
     // skip daylight sensor.id 1000 from earlier versions to keep id value low as possible
-    const auto startId = std::find_if(sensorIds.rbegin(), sensorIds.rend(), [](int id) { return id < 1000; });
+    const auto startId = std::find_if(sensorIds.rbegin(), sensorIds.rend(), [](int sid) { return sid < 1000; });
 
-    int id = (startId != sensorIds.rend()) ? *startId : 1;
+    int sid = (startId != sensorIds.rend()) ? *startId : 1;
 
-    while (id < 10000)
+    while (sid < 10000)
     {
-        const auto result = std::find(sensorIds.begin(), sensorIds.end(), id);
+        const auto result = std::find(sensorIds.begin(), sensorIds.end(), sid);
 
         if (result == sensorIds.end())
         {
-            return id;
+            return sid;
         }
 
-        id++;
+        sid++;
     }
 
-    return id;
+    return sid;
 }
 
 /*! Saves the current auth with apikey to the database.
