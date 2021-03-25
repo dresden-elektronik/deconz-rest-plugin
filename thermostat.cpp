@@ -799,8 +799,8 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
                 break;
 
-            case 0x4003: // Current temperature set point
-            {   // this will be reported when manually changing the temperature
+            case 0x4003:
+            {   // Current temperature set point - this will be reported when manually changing the temperature
                 if (zclFrame.manufacturerCode() == VENDOR_JENNIC && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
                 {
                     qint16 heatSetpoint = attr.numericValue().s16;
@@ -819,6 +819,21 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                         }
                     }
                 }
+
+                // External Window Open signal
+                if (zclFrame.manufacturerCode() == VENDOR_DANFOSS && (sensor->modelId() == QLatin1String("eTRV0100") ||
+                                                                      sensor->modelId() == QLatin1String("TRV001")))
+                {
+                    bool enabled = attr.numericValue().u8 > 0 ? true : false;
+                    item = sensor->item(RConfigExternalWindowOpen);
+                    if (item && item->toBool() != enabled)
+                    {
+                        item->setValue(enabled);
+                        enqueueEvent(Event(RSensors, RConfigExternalWindowOpen, sensor->id(), item));
+                        configUpdated = true;
+                    }
+                }
+                
                 sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
             }
                 break;
@@ -1222,26 +1237,15 @@ bool DeRestPluginPrivate::addTaskThermostatReadWriteAttribute(TaskItem &task, ui
     QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
     stream.setByteOrder(QDataStream::LittleEndian);
 
-    stream << (quint16) attrId;
-
     if (readOrWriteCmd == deCONZ::ZclWriteAttributesId)
     {
-        stream << (quint8) attrType;
-        if (attrType == deCONZ::Zcl8BitEnum || attrType == deCONZ::Zcl8BitInt || attrType == deCONZ::Zcl8BitBitMap || attrType == deCONZ::ZclBoolean)
-        {
-            stream << (quint8) attrValue;
-        }
-        else if (attrType == deCONZ::Zcl16BitInt || attrType == deCONZ::Zcl16BitBitMap)
-        {
-            stream << (quint16) attrValue;
-        }
-        else if (attrType == deCONZ::Zcl24BitUint)
-        {
-            stream << (qint8) (attrValue & 0xFF);
-            stream << (qint8) ((attrValue >> 8) & 0xFF);
-            stream << (qint8) ((attrValue >> 16) & 0xFF);
-        }
-        else
+        stream << attrId;
+        stream << attrType;
+
+        deCONZ::ZclAttribute attr(attrId, attrType, QLatin1String(""), deCONZ::ZclWrite, true);
+        attr.setValue(QVariant(attrValue));
+
+        if (!attr.writeToStream(stream))
         {
             return false;
         }

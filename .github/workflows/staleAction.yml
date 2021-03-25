@@ -1,0 +1,20 @@
+name: 'Close stale issues and PRs'
+on:
+  schedule:
+    - cron: '30 1 * * *'
+  workflow_dispatch:
+  
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v3
+        with:
+          stale-issue-message: 'As there has not been any response in 21 days, this issue has been automatically marked as stale. **At OP: Please either close this issue or keep it active**  It will be closed in 7 days if no further activity occurs.'
+          stale-issue-label: 'stale'
+          exempt-issue-labels: 'To-Do,Backlog,Feature Request,Awaiting Merge,Announcement,Confirmed Bug'
+          days-before-stale: 21
+          days-before-close: 7
+          remove-stale-when-updated: true
+          close-issue-message: 'As there has not been any response in 28 days, this issue will be closed. **@ OP: If this issue is solved post what fixed it for you. If it is not solved, request to get this opened again.**' 
