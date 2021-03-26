@@ -1895,11 +1895,12 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq2.attributeId = 0x0505; // RMS Voltage
         rq2.minInterval = 1;
         rq2.maxInterval = 300;
-        if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||       // Heiman
-                       sensor->modelId() == QLatin1String("PoP") ||       // Apex Smart Plug
-                       sensor->modelId() == QLatin1String("SKHMP30-I1") ||      // GS smart plug
-                       sensor->modelId() == QLatin1String("SMRZB-1") || // Develco smart cable
-                       sensor->modelId().startsWith(QLatin1String("SPLZB-1")))) // Develco smart plug
+        if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||           // Heiman
+                       sensor->modelId() == QLatin1String("PoP") ||                 // Apex Smart Plug
+                       sensor->modelId() == QLatin1String("SKHMP30-I1") ||          // GS smart plug
+                       sensor->modelId() == QLatin1String("SMRZB-1") ||             // Develco smart cable
+                       sensor->modelId() == QLatin1String("Smart16ARelay51AU") ||   // Aurora (Develco) smart plug
+                       sensor->modelId().startsWith(QLatin1String("SPLZB-1"))))     // Develco smart plug
         {
             rq2.reportableChange16bit = 100; // 1 V
         }
@@ -1924,13 +1925,14 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq3.attributeId = 0x0508; // RMS Current
         rq3.minInterval = 1;
         rq3.maxInterval = 300;
-        if (sensor && (sensor->modelId() == QLatin1String("SP 120") ||           // innr
-                       sensor->modelId() == QLatin1String("PoP") ||           // Apex Smart Plug
-                       sensor->modelId() == QLatin1String("DoubleSocket50AU") || // Aurora
-                       sensor->modelId().startsWith(QLatin1String("SPLZB-1")) || // Develco smart plug
-                       sensor->modelId() == QLatin1String("SZ-ESW01-AU") ||      // Sercomm / Telstra smart plug
+        if (sensor && (sensor->modelId() == QLatin1String("SP 120") ||                  // innr
+                       sensor->modelId() == QLatin1String("PoP") ||                     // Apex Smart Plug
+                       sensor->modelId() == QLatin1String("DoubleSocket50AU") ||        // Aurora
+                       sensor->modelId().startsWith(QLatin1String("SPLZB-1")) ||        // Develco smart plug
+                       sensor->modelId() == QLatin1String("Smart16ARelay51AU") ||       // Aurora (Develco) smart plug
+                       sensor->modelId() == QLatin1String("SZ-ESW01-AU") ||             // Sercomm / Telstra smart plug
                        sensor->modelId() == QLatin1String("Connected socket outlet") || // Niko smart socket
-                       sensor->modelId() == QLatin1String("SMRZB-1") || // Develco smart cable
+                       sensor->modelId() == QLatin1String("SMRZB-1") ||                 // Develco smart cable
                        sensor->modelId() == QLatin1String("TS0121")))                   // Tuya / Blitzwolf
         {
             rq3.reportableChange16bit = 100; // 0.1 A
@@ -2431,6 +2433,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturer().startsWith(QLatin1String("Develco"))) // Develco devices
         {
         }
+        else if (lightNode->manufacturer() == QLatin1String("Aurora"))
+        {
+        }
         else if (lightNode->modelId().startsWith(QLatin1String("RICI01"))) // LifeControl smart plug
         {
         }
@@ -2786,6 +2791,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("SPLZB-1")) ||   // smart plug
         sensor->modelId().startsWith(QLatin1String("HMSZB-1")) ||   // temp/hum sensor
         sensor->modelId() == QLatin1String("MotionSensor51AU") ||   // Aurora (Develco) motion sensor
+        sensor->modelId() == QLatin1String("Smart16ARelay51AU") ||  // Aurora (Develco) smart plug
         // LG
         sensor->modelId() == QLatin1String("LG IP65 HMS") ||
         // Sinope
