@@ -4011,7 +4011,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     }
     else if (sensor->modelId() == QLatin1String("TRADFRI wireless dimmer"))
     {
-        if (sensor->mode() != Sensor::ModeDimmer)
+        if (sensor->mode() != Sensor::ModeDimmer && sensor->mode() != Sensor::ModeScenes)
         {
             sensor->setMode(Sensor::ModeDimmer);
         }
@@ -4788,17 +4788,18 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     ResourceItem *item = sensor->item(RStateButtonEvent);
                     if (item)
                     {
-                        if (item->toNumber() == buttonMap.button && ind.dstAddressMode() == deCONZ::ApsGroupAddress)
-                        {
-                            QDateTime now = QDateTime::currentDateTime();
-                            const auto dt = item->lastSet().msecsTo(now);
-
-                            if (dt > 0 && dt < 500)
-                            {
-                                DBG_Printf(DBG_INFO, "[INFO] - Button %u %s, discard too fast event (dt = %d) %s\n", buttonMap.button, qPrintable(cmd), static_cast<int>(dt), qPrintable(sensor->modelId()));
-                                break;
-                            }
-                        }
+                        // FIXME: whitelist the devices that need this logic - DO NOT APPLY TO ALL DEVICES
+                        // if (item->toNumber() == buttonMap.button && ind.dstAddressMode() == deCONZ::ApsGroupAddress)
+                        // {
+                        //     QDateTime now = QDateTime::currentDateTime();
+                        //     const auto dt = item->lastSet().msecsTo(now);
+                        //
+                        //     if (dt > 0 && dt < 500)
+                        //     {
+                        //         DBG_Printf(DBG_INFO, "[INFO] - Button %u %s, discard too fast event (dt = %d) %s\n", buttonMap.button, qPrintable(cmd), static_cast<int>(dt), qPrintable(sensor->modelId()));
+                        //         break;
+                        //     }
+                        // }
 
                         item->setValue(buttonMap.button);
 
@@ -7003,6 +7004,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
         if (modelId == QLatin1String("TRADFRI wireless dimmer"))
         {
+
             sensorNode.setMode(Sensor::ModeDimmer);
         }
         else
