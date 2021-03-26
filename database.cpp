@@ -3455,6 +3455,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     item = sensor.addItem(DataTypeInt16, RStatePower);
                     item->setValue(0);
                 }
+                if (sensor.modelId() == QLatin1String("ZHEMI101"))
+                {
+                    sensor.addItem(DataTypeUInt8, RConfigInterfaceMode)->setValue(1);
+                    sensor.addItem(DataTypeUInt16, RConfigPulseConfiguration)->setValue(1000);
+                }
             }
             else if (sensor.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
             {
