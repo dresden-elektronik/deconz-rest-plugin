@@ -133,6 +133,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_3A_SMART_HOME, "FNB56-GAS", jennicMacPrefix }, // Feibit FNB56-GAS05FB1.4 gas leak detector
     { VENDOR_3A_SMART_HOME, "FNB56-COS", jennicMacPrefix }, // Feibit FNB56-COS06FB1.7 Carb. Mon. detector
     { VENDOR_3A_SMART_HOME, "FNB56-SMF", jennicMacPrefix }, // Feibit FNB56-SMF06FB1.6 smoke detector
+    { VENDOR_3A_SMART_HOME, "c3442b4ac59b4ba1a83119d938f283ab", jennicMacPrefix }, // ORVIBO SF30 smoke sensor
     { VENDOR_BUSCH_JAEGER, "RB01", bjeMacPrefix },
     { VENDOR_BUSCH_JAEGER, "RM01", bjeMacPrefix },
     { VENDOR_BOSCH, "ISW-ZDL1-WP11G", boschMacPrefix },
@@ -155,6 +156,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_CENTRALITE, "3323", emberMacPrefix }, // Centralite contact sensor
     { VENDOR_DDEL, "de_spect", silabs3MacPrefix }, // dresden elektronic spectral sensor
     { VENDOR_JASCO, "45856", celMacPrefix },
+    { VENDOR_NONE, "FB56-DOS06HM1.3", tiMacPrefix }, // Feibit FB56-DOS06HM1.3 door/window sensor
     { VENDOR_NONE, "LM_",  tiMacPrefix },
     { VENDOR_NONE, "LMHT_", tiMacPrefix },
     { VENDOR_NONE, "IR_", tiMacPrefix },
@@ -332,6 +334,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_DEVELCO, "SIRZB-1", develcoMacPrefix }, // Develco siren
     { VENDOR_DEVELCO, "HMSZB-1", develcoMacPrefix }, // Develco temp/hum sensor
     { VENDOR_DEVELCO, "ZHMS101", develcoMacPrefix }, // Wattle (Develco) magnetic sensor
+    { VENDOR_DEVELCO, "ZHEMI101", develcoMacPrefix }, // Wattle (Develco) External Meter Interface
     { VENDOR_DEVELCO, "MotionSensor51AU", develcoMacPrefix }, // Aurora (Develco) motion sensor
     { VENDOR_DATEK_WIRLESS, "PoP", konkeMacPrefix }, // Apex Smart Plug
     { VENDOR_EMBER, "3AFE14010402000D", konkeMacPrefix }, // Konke Kit Pro-BS Motion Sensor
@@ -394,6 +397,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "TS0601", silabs5MacPrefix }, // MOES Zigbee Radiator Actuator HY368 / Moes Tuya Thermostat BTH-002
     { VENDOR_EMBER, "TS0207", silabs3MacPrefix }, // Tuya water leak sensor
     { VENDOR_NONE, "TS0202", silabs4MacPrefix }, // Tuya presence sensor
+    { VENDOR_EMBER, "TS0202", ikea2MacPrefix }, // Tuya multi sensor
     { VENDOR_NONE, "0yu2xgi", silabs5MacPrefix }, // Tuya siren
     { VENDOR_EMBER, "TS0601", silabs9MacPrefix }, // Tuya siren
     { VENDOR_NONE, "eaxp72v", ikea2MacPrefix }, // Tuya TRV Wesmartify Thermostat Essentials Premium
@@ -1091,6 +1095,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             handleClusterIndicationGateways(ind, zclFrame);
             break;
 
+        case METERING_CLUSTER_ID:
+            handleSimpleMeteringClusterIndication(ind, zclFrame);
+            break;
+
         case IAS_ZONE_CLUSTER_ID:
             handleIasZoneClusterIndication(ind, zclFrame);
             break;
@@ -1240,6 +1248,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                         (sensorNode->manufacturer() == QLatin1String("_TZ3000_owgcnkrh")) ||
                         (sensorNode->manufacturer() == QLatin1String("_TZ3000_adkvzooy")) ||
                         (sensorNode->manufacturer() == QLatin1String("_TZ3000_arfwfgoa")) ||
+                        (sensorNode->manufacturer() == QLatin1String("_TZ3000_a7ouggvs")) ||
                         (sensorNode->manufacturer() == QLatin1String("_TYZB02_keyjqthh")))
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
@@ -2443,7 +2452,8 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 lightNode.manufacturer() == QLatin1String("_TZ3000_qzjcsmar") ||
                 lightNode.manufacturer() == QLatin1String("_TZ3000_owgcnkrh") ||
                 lightNode.manufacturer() == QLatin1String("_TZ3000_arfwfgoa") ||
-                lightNode.manufacturer() == QLatin1String("_TYZB02_keyjqthh"))
+                lightNode.manufacturer() == QLatin1String("_TYZB02_keyjqthh") ||
+                lightNode.manufacturer() == QLatin1String("_TZ3000_a7ouggvs"))
             {
                 hasServerOnOff = false;
             }
@@ -2545,7 +2555,8 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
                 case DEV_ID_RANGE_EXTENDER:
                     {
-                        if (node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA)
+                        if (node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA ||
+                           R_GetProductId(&lightNode) == QLatin1String("Tuya_RPT Repeater"))
                         {
                             lightNode.setHaEndpoint(*i);
                         }
@@ -5367,7 +5378,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              manufacturer == QLatin1String("_TZ3000_owgcnkrh") ||
                              manufacturer == QLatin1String("_TZ3000_adkvzooy") ||
                              manufacturer == QLatin1String("_TZ3000_arfwfgoa") ||
-                             manufacturer == QLatin1String("_TYZB02_keyjqthh"))
+                             manufacturer == QLatin1String("_TYZB02_keyjqthh") ||
+                             manufacturer == QLatin1String("_TZ3000_a7ouggvs"))
                     {
                         //Making the device only for endpoint 0x01
                         if (i->endpoint() == 0x01)
@@ -5398,6 +5410,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     }
                     else if (modelId.startsWith(QLatin1String("DOOR_")) ||            // Heiman door/window sensor
                              modelId.startsWith(QLatin1String("Door")) ||             // Heiman door/window sensor (newer model)
+                             modelId == QLatin1String("FB56-DOS06HM1.3") ||           // Feibit FB56-DOS06HM1.3 door/window sensor
                              modelId == QLatin1String("3AFE130104020015") ||          // Konke door/window sensor
                              modelId.startsWith(QLatin1String("902010/21")) ||        // Bitron door/window sensor
                              modelId.startsWith(QLatin1String("WISZB-1")) ||          // Develco door/window sensor
@@ -5445,6 +5458,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("HESZB-1")) ||                 // Develco heat detector
                              modelId.startsWith(QLatin1String("SF2")) ||                     // ORVIBO (Heiman) smoke sensor
                              modelId == QLatin1String("358e4e3e03c644709905034dae81433e") || // Orvibo Combustible Gas Sensor
+                             modelId == QLatin1String("c3442b4ac59b4ba1a83119d938f283ab") || // ORVIBO SF30 smoke sensor
                              modelId.startsWith(QLatin1String("LH05121")) ||                 // iHorn smoke detector
                              modelId.startsWith(QLatin1String("lumi.sensor_smoke")) ||       // Xiaomi Mi smoke sensor
                              modelId.startsWith(QLatin1String("TS0204")) ||                  // Tuya gas sensor
@@ -6719,6 +6733,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 (!modelId.startsWith(QLatin1String("SPW35Z"))))
             {
                 item = sensorNode.addItem(DataTypeInt16, RStatePower);
+            }
+            if (modelId == QLatin1String("ZHEMI101"))
+            {
+                sensorNode.addItem(DataTypeUInt8, RConfigInterfaceMode)->setValue(1);
+                sensorNode.addItem(DataTypeUInt16, RConfigPulseConfiguration)->setValue(1000);
             }
         }
         else if (sensorNode.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
@@ -8039,6 +8058,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId() == QLatin1String("ISW-ZPR1-WP13") ||    // Bosch motion sensor
                                     i->modelId() == QLatin1String("3AFE14010402000D") ||   // Konke motion sensor
                                     i->modelId() == QLatin1String("3AFE28010402000D") ||   // Konke motion sensor v2
+                                    i->modelId() == QLatin1String("FB56-DOS06HM1.3") ||    // Feibit FB56-DOS06HM1.3 door/window sensor
                                     i->modelId().endsWith(QLatin1String("86opcn01")) ||    // Aqara Opple
                                     i->modelId().startsWith(QLatin1String("AQSZB-1")) ||   // Develco air quality sensor
                                     i->modelId().startsWith(QLatin1String("SMSZB-1")) ||   // Develco smoke sensor

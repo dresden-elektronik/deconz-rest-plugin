@@ -1693,7 +1693,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (sensor && (sensor->modelId().startsWith(QLatin1String("ED-1001")) || // EcoDim switches
                             sensor->modelId().startsWith(QLatin1String("45127")) ||   // Namron switches
-                            sensor->modelId().startsWith(QLatin1String("FNB56-"))))   // Feibit devices
+                            sensor->modelId().startsWith(QLatin1String("FNB56-")) ||  // Feibit devices
+                            sensor->modelId().startsWith(QLatin1String("FB56-"))))    // Feibit devices
         {
             rq.minInterval = 3600;
             rq.maxInterval = 43200;
@@ -2794,6 +2795,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("FLSZB-1")) ||   // water leak sensor
         sensor->modelId().startsWith(QLatin1String("MOSZB-1")) ||   // motion sensor
         sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
+        sensor->modelId() == QLatin1String("ZHEMI101") ||           // Wattle (Develco) External Meter Interface
         sensor->modelId().startsWith(QLatin1String("EMIZB-1")) ||   // EMI Norwegian HAN
         sensor->modelId().startsWith(QLatin1String("SMRZB-3")) ||   // Smart Relay DIN
         sensor->modelId().startsWith(QLatin1String("SMRZB-1")) ||   // Smart Cable
@@ -2830,6 +2832,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Philio
         sensor->modelId() == QLatin1String("PST03A-v2.2.5") || //Philio pst03-a
         // ORVIBO
+        sensor->modelId() == QLatin1String("c3442b4ac59b4ba1a83119d938f283ab") ||
         sensor->modelId().startsWith(QLatin1String("SN10ZW")) ||
         sensor->modelId().startsWith(QLatin1String("SF2")) ||
         // Netvox
@@ -2932,6 +2935,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("160-01")) ||
         // Feibit
         sensor->modelId().startsWith(QLatin1String("FNB56-")) ||
+        sensor->modelId().startsWith(QLatin1String("FB56-")) ||
         // Niko
         sensor->modelId() == QLatin1String("Connected socket outlet") ||
         // Sage

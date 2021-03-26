@@ -134,11 +134,11 @@ const QStringList RStateEffectValuesMueller({
 const char *RConfigAlert = "config/alert";
 const char *RConfigBattery = "config/battery";
 const char *RConfigColorCapabilities = "config/colorcapabilities";
+const char *RConfigConfigured = "config/configured";
+const char *RConfigCoolSetpoint = "config/coolsetpoint";
 const char *RConfigCtMin = "config/ctmin";
 const char *RConfigCtMax = "config/ctmax";
 const char *RConfigCheckin = "config/checkin";
-const char *RConfigConfigured = "config/configured";
-const char *RConfigCoolSetpoint = "config/coolsetpoint";
 const char *RConfigDelay = "config/delay";
 const char *RConfigDeviceMode = "config/devicemode";
 const char *RConfigDisplayFlipped = "config/displayflipped";
@@ -149,17 +149,17 @@ const char *RConfigGroup = "config/group";
 const char *RConfigHeatSetpoint = "config/heatsetpoint";
 const char *RConfigHostFlags = "config/hostflags";
 const char *RConfigId = "config/id";
+const char *RConfigInterfaceMode = "config/interfacemode";
 const char *RConfigLastChangeAmount = "config/lastchange_amount";
 const char *RConfigLastChangeSource = "config/lastchange_source";
 const char *RConfigLastChangeTime = "config/lastchange_time";
 const char *RConfigLat = "config/lat";
 const char *RConfigLedIndication = "config/ledindication";
+const char *RConfigLevelMin = "config/levelmin";
 const char *RConfigLocalTime = "config/localtime";
 const char *RConfigLocked = "config/locked";
 const char *RConfigLong = "config/long";
-const char *RConfigLevelMin = "config/levelmin";
 const char *RConfigMode = "config/mode";
-const char *RConfigSetValve = "config/setvalve";
 const char *RConfigMountingMode = "config/mountingmode";
 const char *RConfigExternalTemperatureSensor = "config/externalsensortemp";
 const char *RConfigExternalWindowOpen = "config/externalwindowopen";
@@ -169,6 +169,7 @@ const char *RConfigPending = "config/pending";
 const char *RConfigPowerup = "config/powerup";
 const char *RConfigPowerOnCt = "config/poweronct";
 const char *RConfigPowerOnLevel = "config/poweronlevel";
+const char *RConfigPulseConfiguration = "config/pulseconfiguration";
 const char *RConfigPreset = "config/preset";
 const char *RConfigMelody = "config/melody";
 const char *RConfigVolume = "config/volume";
@@ -179,6 +180,7 @@ const char *RConfigSchedule = "config/schedule";
 const char *RConfigScheduleOn = "config/schedule_on";
 const char *RConfigSensitivity = "config/sensitivity";
 const char *RConfigSensitivityMax = "config/sensitivitymax";
+const char *RConfigSetValve = "config/setvalve";
 const char *RConfigSunriseOffset = "config/sunriseoffset";
 const char *RConfigSunsetOffset = "config/sunsetoffset";
 const char *RConfigSwingMode = "config/swingmode";
@@ -735,6 +737,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigHeatSetpoint, 500, 3200));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RConfigHostFlags));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RConfigId));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigInterfaceMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigLastChangeAmount));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigLastChangeSource));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RConfigLastChangeTime));
@@ -753,6 +756,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RConfigPowerup));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigPowerOnLevel));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigPowerOnCt));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigPulseConfiguration));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigPreset));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigMelody));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigVolume));
@@ -900,8 +904,8 @@ static const ProductMap products[] =
     // --------------------
     // Tuya_THD : thermostat device using Tuya cluster
     // Tuya_COVD : covering device using Tuya cluster
-
-
+    // Tuya_RPT : Repeater
+    
     // Tuya Thermostat / TRV
     {"_TYST11_zuhszj9s", "uhszj9s", "HiHome", "Tuya_THD WZB-TRVL TRV"},
     {"_TYST11_KGbxAXL2", "GbxAXL2", "Saswell", "Tuya_THD SEA801-ZIGBEE TRV"},
@@ -941,6 +945,7 @@ static const ProductMap products[] =
     // Other
     {"_TYST11_d0yu2xgi", "0yu2xgi", "NEO/Tuya", "NAS-AB02B0 Siren"},
     {"_TZE200_d0yu2xgi", "TS0601", "NEO/Tuya", "NAS-AB02B0 Siren"},
+    {"_TZ3000_m0vaazab", "TS0207", "Tuya", "Tuya_RPT Repeater"},
 
     {nullptr, nullptr, nullptr, nullptr}
 };

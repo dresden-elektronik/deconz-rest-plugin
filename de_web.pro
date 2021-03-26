@@ -179,6 +179,7 @@ SOURCES  = air_quality.cpp \
            permitJoin.cpp \
            scene.cpp \
            sensor.cpp \
+           simple_metering.cpp \
            thermostat.cpp \
            time.cpp \
            tuya.cpp \
