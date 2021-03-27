@@ -2818,6 +2818,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("c3442b4ac59b4ba1a83119d938f283ab") ||
         sensor->modelId().startsWith(QLatin1String("SN10ZW")) ||
         sensor->modelId().startsWith(QLatin1String("SF2")) ||
+        sensor->modelId() == QLatin1String("e70f96b3773a4c9283c6862dbafb6a99") ||
         // Netvox
         sensor->modelId().startsWith(QLatin1String("Z809A")) ||
         // Samsung SmartPlug 2019
