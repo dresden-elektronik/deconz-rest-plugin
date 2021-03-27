@@ -101,7 +101,7 @@ int RestDevices::getDevice(const ApiRequest &req, ApiResponse &rsp)
     bool ok;
     const auto deviceKey = uniqueId.toULongLong(&ok, 16);
 
-    Device *device = DEV_getDevice(plugin->m_devices, deviceKey);
+    Device *device = DEV_GetDevice(plugin->m_devices, deviceKey);
 
     rsp.httpStatus = device ? HttpStatusOk : HttpStatusNotFound;
 

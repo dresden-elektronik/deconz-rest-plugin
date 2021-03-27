@@ -141,7 +141,7 @@ using DeviceContainer = std::unordered_map<DeviceKey, Device*>;
     \param devices - the container which contains the device
     \param key - unique identifier for a device (MAC address for physical devices)
  */
-Device *DEV_getDevice(DeviceContainer &devices, DeviceKey key);
+Device *DEV_GetDevice(DeviceContainer &devices, DeviceKey key);
 
 /*! Returns a device for a given \p key.
 

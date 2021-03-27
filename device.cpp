@@ -829,7 +829,7 @@ std::vector<Resource *> Device::subDevices() const
     return result;
 }
 
-Device *DEV_getDevice(DeviceContainer &devices, DeviceKey key)
+Device *DEV_GetDevice(DeviceContainer &devices, DeviceKey key)
 {
     auto d = devices.find(key);
 
