@@ -3460,6 +3460,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeUInt8, RConfigInterfaceMode)->setValue(1);
                     sensor.addItem(DataTypeUInt16, RConfigPulseConfiguration)->setValue(1000);
                 }
+                if (sensor.modelId().startsWith(QLatin1String("EMIZB-1")))
+                {
+                    sensor.addItem(DataTypeUInt8, RConfigInterfaceMode)->setValue(1);
+                }
             }
             else if (sensor.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
             {

@@ -282,6 +282,11 @@ using namespace deCONZ::literals;
 #define DLMS_COSEM                      0x0102
 #define DSMR_23                         0x0103
 #define DSMR_40                         0x0104
+#define NORWEGIAN_HAN                   0x0200
+#define NORWEGIAN_HAN_EXTRA_LOAD        0x0201
+#define AIDON_METER                     0x0202
+#define KAIFA_KAMSTRUP_METERS           0x0203
+#define AUTO_DETECT                     0x0204
 
 #ifndef DBG_IAS
   #define DBG_IAS DBG_INFO  // DBG_IAS didn't exist before version v2.10.x
