@@ -63,7 +63,6 @@ constexpr int MinMacPollRxOn = 8000; // 7680 ms + some space for timeout
 const deCONZ::Node *DEV_GetCoreNode(uint64_t extAddress)
 {
     int i = 0;
-    const deCONZ::Node *result = nullptr;
     const deCONZ::Node *node = nullptr;
     deCONZ::ApsController *ctrl = deCONZ::ApsController::instance();
 
@@ -71,13 +70,12 @@ const deCONZ::Node *DEV_GetCoreNode(uint64_t extAddress)
     {
         if (node->address().ext() == extAddress)
         {
-            result = node;
-            break;
+            return node;
         }
         i++;
     }
 
-    return result;
+    return nullptr;
 }
 
 void DEV_EnqueueEvent(Device *device, const char *event)
