@@ -347,6 +347,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "Adurolight_NCC", jennicMacPrefix}, // Eria Adurosmart Wireless Dimming Switch
     { VENDOR_JENNIC, "VOC_Sensor", jennicMacPrefix}, // LifeControl Enviroment sensor
     { VENDOR_JENNIC, "SN10ZW", jennicMacPrefix }, // ORVIBO motion sensor
+    { VENDOR_JENNIC, "e70f96b3773a4c9283c6862dbafb6a99", jennicMacPrefix }, // ORVIBO open/close sensor SM11
     { VENDOR_OSRAM_STACK, "SF20", heimanMacPrefix }, // ORVIBO SF20 smoke sensor
     // Danalock support
     { VENDOR_DANALOCK, "V3", danalockMacPrefix}, // Danalock Smart Lock
@@ -5408,21 +5409,22 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpCarbonMonoxideSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelId.startsWith(QLatin1String("DOOR_")) ||            // Heiman door/window sensor
-                             modelId.startsWith(QLatin1String("Door")) ||             // Heiman door/window sensor (newer model)
-                             modelId == QLatin1String("FB56-DOS06HM1.3") ||           // Feibit FB56-DOS06HM1.3 door/window sensor
-                             modelId == QLatin1String("3AFE130104020015") ||          // Konke door/window sensor
-                             modelId.startsWith(QLatin1String("902010/21")) ||        // Bitron door/window sensor
-                             modelId.startsWith(QLatin1String("WISZB-1")) ||          // Develco door/window sensor
-                             modelId.startsWith(QLatin1String("ZHMS101")) ||          // Wattle (Develco) door/window sensor
-                             modelId.startsWith(QLatin1String("4655BC0")) ||          // Ecolink contact sensor
-                             modelId.startsWith(QLatin1String("3300")) ||             // Centralite contact sensor
-                             modelId == QLatin1String("lumi.sensor_magnet.agl02") ||  // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
-                             modelId == QLatin1String("E1D-G73") ||                   // Sengled contact sensor
-                             modelId == QLatin1String("DS01") ||                      // Sonoff SNZB-04
-                             modelId == QLatin1String("GMB-HAS-DW-B01") ||            // GamaBit Ltd. Window/Door Sensor
-                             modelId == QLatin1String("TY0203") ||                    // lidl / SilverCrest
-                             modelId == QLatin1String("RH3001"))                      // Tuya/Blitzwolf BW-IS2 door/window sensor
+                    else if (modelId.startsWith(QLatin1String("DOOR_")) ||                      // Heiman door/window sensor
+                             modelId.startsWith(QLatin1String("Door")) ||                       // Heiman door/window sensor (newer model)
+                             modelId == QLatin1String("FB56-DOS06HM1.3") ||                     // Feibit FB56-DOS06HM1.3 door/window sensor
+                             modelId == QLatin1String("3AFE130104020015") ||                    // Konke door/window sensor
+                             modelId == QLatin1String("e70f96b3773a4c9283c6862dbafb6a99") ||    // Orvibo door/window sensor
+                             modelId.startsWith(QLatin1String("902010/21")) ||                  // Bitron door/window sensor
+                             modelId.startsWith(QLatin1String("WISZB-1")) ||                    // Develco door/window sensor
+                             modelId.startsWith(QLatin1String("ZHMS101")) ||                    // Wattle (Develco) door/window sensor
+                             modelId.startsWith(QLatin1String("4655BC0")) ||                    // Ecolink contact sensor
+                             modelId.startsWith(QLatin1String("3300")) ||                       // Centralite contact sensor
+                             modelId == QLatin1String("lumi.sensor_magnet.agl02") ||            // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
+                             modelId == QLatin1String("E1D-G73") ||                             // Sengled contact sensor
+                             modelId == QLatin1String("DS01") ||                                // Sonoff SNZB-04
+                             modelId == QLatin1String("GMB-HAS-DW-B01") ||                      // GamaBit Ltd. Window/Door Sensor
+                             modelId == QLatin1String("TY0203") ||                              // lidl / SilverCrest
+                             modelId == QLatin1String("RH3001"))                                // Tuya/Blitzwolf BW-IS2 door/window sensor
                     {
                         fpOpenCloseSensor.inClusters.push_back(ci->id());
                     }
@@ -5747,6 +5749,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         manufacturer.endsWith(QLatin1String("88teujp")))
                     {
                         fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
+                    }
+                    if (manufacturer == QLatin1String("_TZE200_xuzcvlku"))
+                    {
+                        fpBatterySensor.inClusters.push_back(TUYA_CLUSTER_ID);
                     }
                 }
                     break;
@@ -6962,7 +6968,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = POWER_CONFIGURATION_CLUSTER_ID;
         }
-        if (sensorNode.manufacturer() == QLatin1String("_TYST11_xu1rkty3"))
+        else if (sensorNode.fingerPrint().hasInCluster(TUYA_CLUSTER_ID))
         {
             clusterId = TUYA_CLUSTER_ID;
         }

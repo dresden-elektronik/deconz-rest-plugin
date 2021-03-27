@@ -3830,7 +3830,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = POWER_CONFIGURATION_CLUSTER_ID;
             }
-            if (sensor.manufacturer() == QLatin1String("_TYST11_xu1rkty3"))
+            else if (sensor.fingerPrint().hasInCluster(TUYA_CLUSTER_ID))
             {
                 clusterId = TUYA_CLUSTER_ID;
             }
