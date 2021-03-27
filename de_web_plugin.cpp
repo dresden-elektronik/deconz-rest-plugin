@@ -12251,31 +12251,31 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if ((tag == 0x04 || structIndex == 0x03) && dataType == deCONZ::Zcl16BitUint)
         {
-            DBG_Printf(DBG_INFO, "\t04 unknown %d (0x%04X)\n", u16, u16);
+            DBG_Printf(DBG_INFO, "\t04 unknown %u (0x%04X)\n", u16, u16);
         }
         else if (tag == 0x05 && dataType == deCONZ::Zcl16BitUint)
         {
-            DBG_Printf(DBG_INFO, "\t05 RSSI dB (?) %d (0x%04X)\n", u16, u16); // Power outages for lumi.plug.mmeu01
+            DBG_Printf(DBG_INFO, "\t05 RSSI dB (?) %u (0x%04X)\n", u16, u16); // Power outages for lumi.plug.mmeu01
         }
         else if ((tag == 0x06 || structIndex == 0x04) && dataType == deCONZ::Zcl40BitUint)
         {
-            DBG_Printf(DBG_INFO, "\t06 LQI (?) %lld (0x%010llX)\n", u64, u64);
+            DBG_Printf(DBG_INFO, "\t06 LQI (?) %llu (0x%010llX)\n", u64, u64);
         }
         else if (tag == 0x07 && dataType == deCONZ::Zcl64BitUint) // lumi.ctrl_ln2
         {
-            DBG_Printf(DBG_INFO, "\t07 unknown %lld (0x%016llX)\n", u64, u64);
+            DBG_Printf(DBG_INFO, "\t07 unknown %llu (0x%016llX)\n", u64, u64);
         }
         else if (tag == 0x08 && dataType == deCONZ::Zcl16BitUint) // lumi.ctrl_ln2
         {
-            DBG_Printf(DBG_INFO, "\t08 unknown %d (0x%04X)\n", u16, u16);
+            DBG_Printf(DBG_INFO, "\t08 unknown %u (0x%04X)\n", u16, u16);
         }
         else if (tag == 0x09 && dataType == deCONZ::Zcl16BitUint) // lumi.ctrl_ln2
         {
-            DBG_Printf(DBG_INFO, "\t09 unknown %d (0x%04X)\n", u16, u16);
+            DBG_Printf(DBG_INFO, "\t09 unknown %u (0x%04X)\n", u16, u16);
         }
         else if (tag == 0x0a && dataType == deCONZ::Zcl16BitUint) // lumi.vibration.aq1
         {
-            DBG_Printf(DBG_INFO, "\t0a Parent NWK %d (0x%04X)\n", u16, u16);
+            DBG_Printf(DBG_INFO, "\t0a Parent NWK %u (0x%04X)\n", u16, u16);
         }
         else if (tag == 0x0b && dataType == deCONZ::Zcl16BitUint)
         {
@@ -12284,11 +12284,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x0b && dataType == deCONZ::Zcl8BitUint)
         {
-            DBG_Printf(DBG_INFO, "\t0b unknown %d (0x%02X)\n", u8, u8);
+            DBG_Printf(DBG_INFO, "\t0b unknown %u (0x%02X)\n", u8, u8);
         }
         else if ((tag == 0x64 || structIndex == 0x01) && dataType == deCONZ::ZclBoolean) // lumi.ctrl_ln2 endpoint 01
         {
-            DBG_Printf(DBG_INFO, "\t64 on/off %d\n", u8);
+            DBG_Printf(DBG_INFO, "\t64 on/off %u\n", u8);
             onOff = u8;
         }
         else if (tag == 0x64 && dataType == deCONZ::Zcl8BitUint) // lumi.curtain
@@ -12297,8 +12297,9 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             {
                 lift = 100 - u8;
             }
-            DBG_Printf(DBG_INFO, "\t64 lift %d (%d%%)\n", u8, lift);
-            DBG_Printf(DBG_INFO, "\t64 somke/gas density %d (0x%02X)\n", u8, u8);   // lumi.sensor_smoke/lumi.sensor_natgas
+            DBG_Printf(DBG_INFO, "\t64 lift %u (%u%%)\n", u8, lift);
+            DBG_Printf(DBG_INFO, "\t64 smoke/gas density %u (0x%02X)\n", u8, u8);   // lumi.sensor_smoke/lumi.sensor_natgas
+            DBG_Printf(DBG_INFO, "\t64 on/off %u (0x%02X)\n", u8, u8);   // lumi.sensor_smoke/lumi.sensor_natgas
         }
         else if (tag == 0x64 && dataType == deCONZ::Zcl16BitInt)
         {
@@ -12324,11 +12325,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x65 && dataType == deCONZ::Zcl8BitUint)
         {
-            DBG_Printf(DBG_INFO, "\t65 unknown %d (0x%02X)\n", u8, u8);
+            DBG_Printf(DBG_INFO, "\t65 unknown %u (0x%02X)\n", u8, u8);
         }
         else if (tag == 0x66 && dataType == deCONZ::Zcl16BitUint)
         {
-            DBG_Printf(DBG_INFO, "\t66 unknown %d (0x%04X)\n", u16, u16);
+            DBG_Printf(DBG_INFO, "\t66 unknown %u (0x%04X)\n", u16, u16);
         }
         else if (tag == 0x66 && dataType == deCONZ::Zcl32BitInt) // lumi.weather
         {
@@ -12337,15 +12338,15 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x6e && dataType == deCONZ::Zcl8BitUint) // lumi.ctrl_neutral2
         {
-            DBG_Printf(DBG_INFO, "\t6e unknown %d (0x%02X)\n", u8, u8);
+            DBG_Printf(DBG_INFO, "\t6e unknown %u (0x%02X)\n", u8, u8);
         }
         else if (tag == 0x6f && dataType == deCONZ::Zcl8BitUint) // lumi.ctrl_neutral2
         {
-            DBG_Printf(DBG_INFO, "\t6f unknown %d (0x%02X)\n", u8, u8);
+            DBG_Printf(DBG_INFO, "\t6f unknown %u (0x%02X)\n", u8, u8);
         }
         else if (tag == 0x94 && dataType == deCONZ::Zcl8BitUint) // lumi.relay.c2acn01
         {
-            DBG_Printf(DBG_INFO, "\t6f unknown %d (0x%02X)\n", u8, u8);
+            DBG_Printf(DBG_INFO, "\t6f unknown %u (0x%02X)\n", u8, u8);
         }
         else if (tag == 0x95 && dataType == deCONZ::ZclSingleFloat) // lumi.ctrl_ln2
         {
@@ -12359,11 +12360,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x96 && dataType == deCONZ::Zcl32BitUint) // lumi.sensor_smoke
         {
-            DBG_Printf(DBG_INFO, "\t96 unknown %d (0x%08X)\n", u32, u32);
+            DBG_Printf(DBG_INFO, "\t96 unknown %u (0x%08X)\n", u32, u32);
         }
         else if (tag == 0x97 && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_cube
         {
-            DBG_Printf(DBG_INFO, "\t97 unknown %d (0x%04X)\n", u16, u16);
+            DBG_Printf(DBG_INFO, "\t97 unknown %u (0x%04X)\n", u16, u16);
         }
         else if (tag == 0x97 && dataType == deCONZ::ZclSingleFloat) // lumi.plug.mmeu01
         {
@@ -12372,7 +12373,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x98 && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_cube
         {
-            DBG_Printf(DBG_INFO, "\t98 unknown %d (0x%04X)\n", u16, u16);
+            DBG_Printf(DBG_INFO, "\t98 unknown %u (0x%04X)\n", u16, u16);
         }
         else if (tag == 0x98 && dataType == deCONZ::ZclSingleFloat) // lumi.ctrl_ln2
         {
@@ -12381,27 +12382,27 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x99 && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_cube
         {
-            DBG_Printf(DBG_INFO, "\t99 unknown %d (0x%04X)\n", u16, u16);
+            DBG_Printf(DBG_INFO, "\t99 unknown %u (0x%04X)\n", u16, u16);
         }
         else if (tag == 0x99 && dataType == deCONZ::Zcl32BitUint) // lumi.ctrl_neutral2
         {
-            DBG_Printf(DBG_INFO, "\t99 unknown %d (0x%08X)\n", u32, u32);
+            DBG_Printf(DBG_INFO, "\t99 unknown %u (0x%08X)\n", u32, u32);
         }
         else if (tag == 0x9a && dataType == deCONZ::Zcl8BitUint) // lumi.ctrl_ln2
         {
-            DBG_Printf(DBG_INFO, "\t9a unknown %d (0x%02X)\n", u8, u8);
+            DBG_Printf(DBG_INFO, "\t9a unknown %u (0x%02X)\n", u8, u8);
         }
         else if (tag == 0x9a && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_cube
         {
-            DBG_Printf(DBG_INFO, "\t9a unknown %d (0x%04X)\n", u16, u16);
+            DBG_Printf(DBG_INFO, "\t9a unknown %u (0x%04X)\n", u16, u16);
         }
         else if (tag == 0x9a && dataType == deCONZ::Zcl48BitUint) // lumi.vibration.aq1
         {
-            DBG_Printf(DBG_INFO, "\t9a unknown %lld (0x%012llX)\n", u64, u64);
+            DBG_Printf(DBG_INFO, "\t9a unknown %llu (0x%012llX)\n", u64, u64);
         }
         else if (tag == 0x9b && dataType == deCONZ::Zcl16BitUint) // lumi.ctrl_neutral2
         {
-            DBG_Printf(DBG_INFO, "\t9b unknown %d (0x%04X)\n", u16, u16);
+            DBG_Printf(DBG_INFO, "\t9b unknown %u (0x%04X)\n", u16, u16);
         }
         else if (tag == 0x9b && dataType == deCONZ::ZclBoolean) // lumi.plug.mmeu01
         {
@@ -12409,11 +12410,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (structIndex == 0x05 && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_magnet
         {
-            DBG_Printf(DBG_INFO, "\tStruct index 05 unknown (counter?) %d (0x%04X)\n", u16, u16);
+            DBG_Printf(DBG_INFO, "\tStruct index 05 unknown (counter?) %u (0x%04X)\n", u16, u16);
         }
         else if (structIndex == 0x06 && dataType == deCONZ::Zcl8BitUint) // lumi.sensor_magnet
         {
-            DBG_Printf(DBG_INFO, "\tStruct index 06 unknown (counter?) %d (0x%02X)\n", u8, u8);
+            DBG_Printf(DBG_INFO, "\tStruct index 06 unknown (counter?) %u (0x%02X)\n", u8, u8);
         }
         else if (tag)
         {
@@ -12506,7 +12507,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             }
             // END FIXME: deprecate
         }
-        else if (lightNode.modelId() == QLatin1String("lumi.plug.mmeu01"))
+        else if (onOff != UINT8_MAX)
         {
             stateOnOff = onOff;
         }
@@ -12522,6 +12523,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         if (item && stateOnOff != UINT8_MAX) // updated?
         {
             DBG_Assert(stateOnOff == 0 || stateOnOff == 1);
+            
+            deCONZ::NumericUnion onOffValue;
+            onOffValue.u8 = stateOnOff;
+            lightNode.setZclValue(NodeValue::UpdateByZclReport, ind.srcEndpoint(), ONOFF_CLUSTER_ID, 0x0000, onOffValue);
+            
             item->setValue(stateOnOff);
             enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
         }
