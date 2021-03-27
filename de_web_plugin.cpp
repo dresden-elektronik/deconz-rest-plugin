@@ -4788,18 +4788,21 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     ResourceItem *item = sensor->item(RStateButtonEvent);
                     if (item)
                     {
-                        // FIXME: whitelist the devices that need this logic - DO NOT APPLY TO ALL DEVICES
-                        // if (item->toNumber() == buttonMap.button && ind.dstAddressMode() == deCONZ::ApsGroupAddress)
-                        // {
-                        //     QDateTime now = QDateTime::currentDateTime();
-                        //     const auto dt = item->lastSet().msecsTo(now);
-                        //
-                        //     if (dt > 0 && dt < 500)
-                        //     {
-                        //         DBG_Printf(DBG_INFO, "[INFO] - Button %u %s, discard too fast event (dt = %d) %s\n", buttonMap.button, qPrintable(cmd), static_cast<int>(dt), qPrintable(sensor->modelId()));
-                        //         break;
-                        //     }
-                        // }
+                        if (sensor->node()->nodeDescriptor().manufacturerCode() == VENDOR_PHILIPS ||
+                            sensor->node()->nodeDescriptor().manufacturerCode() == VENDOR_IKEA)
+                        {
+                        }
+                        else if (item->toNumber() == buttonMap.button && ind.dstAddressMode() == deCONZ::ApsGroupAddress)
+                        {
+                            QDateTime now = QDateTime::currentDateTime();
+                            const auto dt = item->lastSet().msecsTo(now);
+
+                            if (dt > 0 && dt < 500)
+                            {
+                                DBG_Printf(DBG_INFO, "[INFO] - Button %u %s, discard too fast event (dt = %d) %s\n", buttonMap.button, qPrintable(cmd), static_cast<int>(dt), qPrintable(sensor->modelId()));
+                                break;
+                            }
+                        }
 
                         item->setValue(buttonMap.button);
 
