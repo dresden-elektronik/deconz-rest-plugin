@@ -83,6 +83,8 @@ class Device : public QObject,
 {
     Q_OBJECT
 public:
+    Device() = delete;
+    Device(const Device &) = delete;
     explicit Device(DeviceKey key, QObject *parent = nullptr);
     void addSubDevice(Resource *sub);
     DeviceKey key() const { return m_deviceKey; }
@@ -109,7 +111,6 @@ Q_SIGNALS:
     void eventNotify(const Event&);
 
 private:
-    Device(); // not accessible
     /*! sub-devices are not yet referenced via pointers since these may become dangling.
         This is a helper to query the actual sub-device Resource* on demand.
 
