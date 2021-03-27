@@ -4406,7 +4406,7 @@ int getFreeSensorId()
             {
                 bool ok;
                 const int sid = c.id().toInt(&ok);
-                if (ok && std::find(sensorIds.begin(), sensorIds.end(), sid) == sensorIds.end())
+                if (ok && std::find(sensorIds.cbegin(), sensorIds.cend(), sid) == sensorIds.cend())
                 {
                     sensorIds.push_back(sid);
                 }
@@ -4440,7 +4440,7 @@ int getFreeSensorId()
 
     while (sid < 10000)
     {
-        const auto result = std::find(sensorIds.begin(), sensorIds.end(), sid);
+        const auto result = std::find(sensorIds.cbegin(), sensorIds.cend(), sid);
 
         if (result == sensorIds.end())
         {
