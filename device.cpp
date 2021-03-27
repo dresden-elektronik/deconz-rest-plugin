@@ -841,7 +841,7 @@ Device *DEV_GetDevice(DeviceContainer &devices, DeviceKey key)
     return nullptr;
 }
 
-Device *getOrCreateDevice(QObject *parent, DeviceContainer &devices, DeviceKey key)
+Device *DEV_GetOrCreateDevice(QObject *parent, DeviceContainer &devices, DeviceKey key)
 {
     Q_ASSERT(key != 0);
     auto d = devices.find(key);

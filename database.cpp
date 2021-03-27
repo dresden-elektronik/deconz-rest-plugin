@@ -4237,7 +4237,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 d->updateSensorEtag(&d->sensors.back());
 
                 const auto key = extAddr != 0 ? extAddr : qHash(sensor.uniqueId());
-                auto *device = getOrCreateDevice(d, d->m_devices, key);
+                auto *device = DEV_GetOrCreateDevice(d, d->m_devices, key);
                 device->addSubDevice(&d->sensors.back());
 
                 if (sensor.needSaveDatabase())

@@ -152,7 +152,7 @@ Device *DEV_GetDevice(DeviceContainer &devices, DeviceKey key);
     \param devices - the container which contains the device
     \param key - unique identifier for a device (MAC address for physical devices)
  */
-Device *getOrCreateDevice(QObject *parent, DeviceContainer &devices, DeviceKey key);
+Device *DEV_GetOrCreateDevice(QObject *parent, DeviceContainer &devices, DeviceKey key);
 
 /*! Returns \c Resource for a given \p identifier.
 
