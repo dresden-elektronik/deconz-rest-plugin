@@ -702,6 +702,8 @@ Device::Device(DeviceKey key, QObject *parent) :
     Resource(RDevices),
     m_deviceKey(key)
 {
+    Q_ASSERT(parent);
+    connect(this, SIGNAL(eventNotify(Event)), parent, SLOT(enqueueEvent(Event)));
     addItem(DataTypeBool, RStateReachable);
     addItem(DataTypeUInt64, RAttrExtAddress);
     addItem(DataTypeUInt16, RAttrNwkAddress);
