@@ -489,6 +489,27 @@
 					<attribute id="0x0001" type="u8" name="Scene ID" required="m" showas="hex" default="0x00"></attribute>
 				</payload>
 			</command>
+      <command id="0x07" dir="recv" name="IKEA step" required="o" vendor="0x117c">
+        <description>Command sent by TRADFRI remote control on press left or right.  Set Direction to 1 for left or leave at 0 for right.  Leave the Unknown parameters at their default values.</description>
+        <payload>
+          <attribute id="0x0000" type="u8" name="Direction" required="m" default="0x0"></attribute>
+          <attribute id="0x0001" type="u8" name="Unknown" required="m" showas="hex" default="0x01"></attribute>
+          <attribute id="0x0002" type="u16" name="Unknown" required="m" showas="hex" default="0x000d"></attribute>
+        </payload>
+      </command>
+      <command id="0x08" dir="recv" name="IKEA move" required="o" vendor="0x117c">
+        <description>Command sent by TRADFRI remote control on hold left or right.  Set Direction to 1 for left or leave at 0 for right.  Leave the Unknown parameter at its default value.</description>
+        <payload>
+          <attribute id="0x0000" type="u8" name="Direction" required="m" default="0x0"></attribute>
+          <attribute id="0x0001" type="u16" name="Unknown" required="m" showas="hex" default="0x000d"></attribute>
+        </payload>
+      </command>
+      <command id="0x09" dir="recv" name="IKEA stop" required="o" vendor="0x117c">
+        <description>Command sent by TRADFRI remote control on release (after hold).  Leave the Unknown parameter at its default value.</description>
+        <payload>
+          <attribute id="0x0000" type="u16" name="Unknown" required="m" showas="hex" default="0x0000"></attribute>
+        </payload>
+      </command>
 		<!-- TODO -->
 		</server>
 		<client>

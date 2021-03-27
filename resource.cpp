@@ -1039,42 +1039,20 @@ ResourceItem::ResourceItem(const ResourceItem &other)
 }
 
 /*! Move constructor. */
-ResourceItem::ResourceItem(ResourceItem &&other) :
-    m_isPublic(other.m_isPublic),
-    m_flags(other.m_flags),
-    m_num(other.m_num),
-    m_numPrev(other.m_numPrev),
-    m_str(nullptr),
-    m_rid(other.m_rid),
-    m_lastSet(std::move(other.m_lastSet)),
-    m_lastChanged(std::move(other.m_lastChanged)),
-    m_rulesInvolved(std::move(other.m_rulesInvolved)),
-    m_clusterId(other.m_clusterId),
-    m_attributeId(other.m_attributeId),
-    m_endpoint(other.m_endpoint),
-    m_parseFunction(other.m_parseFunction),
-    m_parseParameters(std::move(other.m_parseParameters)),
-    m_readParameters(std::move(other.m_readParameters)),
-    m_writeParameters(std::move(other.m_writeParameters))
-
+ResourceItem::ResourceItem(ResourceItem &&other) noexcept
 {
-    if (other.m_str) // release
-    {
-        m_str = other.m_str;
-        other.m_str = nullptr;
-    }
-
-    other.m_rid = &rInvalidItemDescriptor;
+    *this = std::move(other);
 }
 
 /*! Destructor. */
-ResourceItem::~ResourceItem()
+ResourceItem::~ResourceItem() noexcept
 {
     if (m_str)
     {
         delete m_str;
         m_str = nullptr;
     }
+    m_rid = &rInvalidItemDescriptor;
 }
 
 /*! Returns true when a value has been set but not pushed upstream. */
@@ -1144,7 +1122,7 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
 }
 
 /*! Move assignment. */
-ResourceItem &ResourceItem::operator=(ResourceItem &&other)
+ResourceItem &ResourceItem::operator=(ResourceItem &&other) noexcept
 {
     // self assignment?
     if (this == &other)
@@ -1520,7 +1498,7 @@ void ResourceItem::inRule(int ruleHandle)
 }
 
 /*! Returns the rules handles in which the resource item is involved. */
-const std::vector<int> ResourceItem::rulesInvolved() const
+const std::vector<int> &ResourceItem::rulesInvolved() const
 {
     return m_rulesInvolved;
 }
@@ -1570,14 +1548,9 @@ Resource::Resource(const Resource &other) :
 }
 
 /*! Move constructor. */
-Resource::Resource(Resource &&other) :
-    lastStatePush(std::move(other.lastStatePush)),
-    lastAttrPush(std::move(other.lastAttrPush)),
-    m_prefix(other.m_prefix),
-    m_parent(other.m_parent),
-    m_rItems(std::move(other.m_rItems))
+Resource::Resource(Resource &&other) noexcept
 {
-    other.m_prefix = RInvalidSuffix;
+    *this = std::move(other);
 }
 
 /*! Copy assignment. */
@@ -1595,7 +1568,7 @@ Resource &Resource::operator=(const Resource &other)
 }
 
 /*! Move assignment. */
-Resource &Resource::operator=(Resource &&other)
+Resource &Resource::operator=(Resource &&other) noexcept
 {
     if (this != &other)
     {

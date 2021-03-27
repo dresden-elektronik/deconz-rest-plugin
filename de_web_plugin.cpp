@@ -192,6 +192,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_IKEA, "KADRILJ", ikeaMacPrefix }, // smart blind
     { VENDOR_IKEA, "KADRILJ", silabs4MacPrefix }, // smart blind
     { VENDOR_IKEA, "SYMFONISK", ikea2MacPrefix }, // sound controller
+    { VENDOR_IKEA, "Remote Control N2", silabs4MacPrefix}, // STYRBAR
+    { VENDOR_IKEA, "Remote Control N2", silabs5MacPrefix}, // STYRBAR
     { VENDOR_INSTA, "Remote", instaMacPrefix },
     { VENDOR_INSTA, "HS_4f_GJ_1", instaMacPrefix },
     { VENDOR_INSTA, "WS_4f_J_1", instaMacPrefix },
@@ -668,7 +670,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
 //    gwScanner->startScan();
 
     QString dataPath = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation);
-    db = 0;
+
     saveDatabaseItems = 0;
     saveDatabaseIdleTotalCounter = 0;
     dbZclValueMaxAge = 0; // default disable
@@ -952,6 +954,12 @@ DeRestPluginPrivate::~DeRestPluginPrivate()
         inetDiscoveryManager->deleteLater();
         inetDiscoveryManager = 0;
     }
+}
+
+DeRestPluginPrivate *DeRestPluginPrivate::instance()
+{
+    DBG_Assert(plugin);
+    return plugin;
 }
 
 void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndication &ind)
@@ -4190,7 +4198,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     }
     else if (sensor->modelId() == QLatin1String("TRADFRI wireless dimmer"))
     {
-        if (sensor->mode() != Sensor::ModeDimmer)
+        if (sensor->mode() != Sensor::ModeDimmer && sensor->mode() != Sensor::ModeScenes)
         {
             sensor->setMode(Sensor::ModeDimmer);
         }
@@ -4212,9 +4220,12 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     }
     else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
              sensor->modelId().startsWith(QLatin1String("TRADFRI SHORTCUT Button")) ||
+             sensor->modelId().startsWith(QLatin1String("Remote Control N2")) ||
              sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
+             sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
              sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")))
     {
+        checkReporting = true;
         if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() == 0)
         {
             checkClientCluster = true;
@@ -4225,14 +4236,13 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 checkSensorGroup(sensor);
             }
         }
-    }
-    else if (sensor->modelId().startsWith(QLatin1String("SYMFONISK")))
-    {
-        if (zclFrame.sequenceNumber() == sensor->previousSequenceNumber)
+        if (ind.dstAddressMode() == deCONZ::ApsNwkAddress)
         {
             return;
         }
-        sensor->previousSequenceNumber = zclFrame.sequenceNumber();
+    }
+    else if (sensor->modelId().startsWith(QLatin1String("SYMFONISK")))
+    {
         checkReporting = true;
     }
     else if (sensor->modelId() == QLatin1String("Remote switch") || //legrand switch
@@ -4616,8 +4626,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         ok = true;
                     }
                 }
-                else if (ind.clusterId() == SCENE_CLUSTER_ID &&
-                         sensor->modelId().startsWith(QLatin1String("TRADFRI"))) // IKEA non-standard scene
+                else if (ind.clusterId() == SCENE_CLUSTER_ID && zclFrame.manufacturerCode() == VENDOR_IKEA) // IKEA non-standard scene
                 {
                     ok = false;
                     if (zclFrame.commandId() == 0x07 || // short release
@@ -4631,12 +4640,24 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     }
                     else if (zclFrame.commandId() == 0x09) // long release
                     {
-                        if (buttonMap.zclParam0 == sensor->previousDirection)
+                        if (zclFrame.payload().at(0) == 0x00 && zclFrame.payload().at(1) == 0x00)
                         {
-                            sensor->previousDirection = 0xFF;
-                            ok = true;
+                            sensor->previousCommandId = 0x09;
+                        }
+                        else
+                        {
+                            sensor->previousCommandId = 0x00;
+                            if (buttonMap.zclParam0 == sensor->previousDirection)
+                            {
+                                sensor->previousDirection = 0xFF;
+                                ok = true;
+                            }
                         }
                     }
+                }
+                else if (ind.clusterId() == ONOFF_CLUSTER_ID && sensor->manufacturer() == QLatin1String("IKEA of Sweden") && sensor->previousCommandId == 0x09)
+                {
+                    ok = false;
                 }
                 else if (ind.clusterId() == LEVEL_CLUSTER_ID && zclFrame.commandId() == 0x04 && // move to level (with on/off)
                          sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer
@@ -4901,6 +4922,15 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         ok = true;
                     }
                 }
+                else if (ind.clusterId() == COLOR_CLUSTER_ID &&
+                         (zclFrame.commandId() == 0x4c))  // step color temperature
+                {
+                    ok = false;
+                    if (zclFrame.payload().size() >= 1 && buttonMap.zclParam0 == zclFrame.payload().at(0)) // direction
+                    {
+                        ok = true;
+                    }
+                }
                 else if (ind.clusterId() == COLOR_CLUSTER_ID && (zclFrame.commandId() == 0x01 ))  // Move hue command
                 {
                     // Only used by Osram devices currently
@@ -4928,7 +4958,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 else if (ind.clusterId() == ADUROLIGHT_CLUSTER_ID)
                 {
                     ok = false;
-                    
+
                     if (buttonMap.zclParam0 == zclFrame.payload().at(1))
                     {
                         ok = true;
@@ -4945,7 +4975,11 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     ResourceItem *item = sensor->item(RStateButtonEvent);
                     if (item)
                     {
-                        if (item->toNumber() == buttonMap.button && ind.dstAddressMode() == deCONZ::ApsGroupAddress)
+                        if (sensor->node()->nodeDescriptor().manufacturerCode() == VENDOR_PHILIPS ||
+                            sensor->node()->nodeDescriptor().manufacturerCode() == VENDOR_IKEA)
+                        {
+                        }
+                        else if (item->toNumber() == buttonMap.button && ind.dstAddressMode() == deCONZ::ApsGroupAddress)
                         {
                             QDateTime now = QDateTime::currentDateTime();
                             const auto dt = item->lastSet().msecsTo(now);
@@ -7222,6 +7256,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
         if (modelId == QLatin1String("TRADFRI wireless dimmer"))
         {
+
             sensorNode.setMode(Sensor::ModeDimmer);
         }
         else
@@ -8007,6 +8042,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("FYRTUR")) || // IKEA
                                         i->modelId().startsWith(QLatin1String("KADRILJ")) || // IKEA
                                         i->modelId().startsWith(QLatin1String("SYMFONISK")) || // IKEA
+                                        i->modelId().startsWith(QLatin1String("Remote Control N2")) || // IKEA
                                         i->modelId().startsWith(QLatin1String("ICZB-")) || // iCasa keypads and remote
                                         i->modelId().startsWith(QLatin1String("ZGR904-S")) || // Envilar remote
                                         i->modelId().startsWith(QLatin1String("ED-1001")) || // EcoDim wireless switches
@@ -8052,6 +8088,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                     if (i->modelId().startsWith(QLatin1String("TRADFRI")) || // IKEA
                                         i->modelId().startsWith(QLatin1String("SYMFONISK")) || // IKEA
+                                        i->modelId().startsWith(QLatin1String("Remote Control N2")) || // IKEA
                                         i->modelId().startsWith(QLatin1String("ICZB-")) || // iCasa keypads and remote
                                         i->modelId().startsWith(QLatin1String("ZGR904-S")) || // Envilar remote
                                         i->modelId().startsWith(QLatin1String("ED-1001")) || // EcoDim wireless switches
@@ -17132,42 +17169,18 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                  sensor->modelId().startsWith(QLatin1String("TRADFRI SHORTCUT Button")) ||
                  sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
                  sensor->modelId().startsWith(QLatin1String("TRADFRI remote control")) ||
+                 sensor->modelId().startsWith(QLatin1String("Remote Control N2")) ||
+                 sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
                  sensor->modelId().startsWith(QLatin1String("TRADFRI wireless dimmer")) ||
                  sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")))
         {
             checkSensorGroup(sensor);
-
+            checkSensorBindingsForClientClusters(sensor);
             if (sensor->lastAttributeReportBind() < (idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT_SHORT))
             {
-                if (checkSensorBindingsForClientClusters(sensor))
+                if (checkSensorBindingsForAttributeReporting(sensor))
                 {
                     sensor->setLastAttributeReportBind(idleTotalCounter);
-
-                }
-            }
-        }
-        else if (sensor->modelId().startsWith(QLatin1String("SYMFONISK")))
-        {
-            ResourceItem *item = sensor->item(RStateButtonEvent);
-
-            if (!item || !item->lastSet().isValid())
-            {
-                BindingTask bindingTask;
-
-                bindingTask.state = BindingTask::StateIdle;
-                bindingTask.action = BindingTask::ActionBind;
-                bindingTask.restNode = sensor;
-                Binding &bnd = bindingTask.binding;
-                bnd.srcAddress = sensor->address().ext();
-                bnd.dstAddrMode = deCONZ::ApsExtAddress;
-                bnd.srcEndpoint = sensor->fingerPrint().endpoint;
-                bnd.clusterId = LEVEL_CLUSTER_ID;
-                bnd.dstAddress.ext = apsCtrl->getParameter(deCONZ::ParamMacAddress);
-                bnd.dstEndpoint = endpoint();
-
-                if (bnd.dstEndpoint > 0) // valid gateway endpoint?
-                {
-                    queueBindingTask(bindingTask);
                 }
             }
         }
@@ -19099,7 +19112,7 @@ bool DeRestPluginPrivate::exportConfiguration()
     ttlDataBaseConnection = 0;
     closeDb();
 
-    if (db)
+    if (dbIsOpen())
     {
         DBG_Printf(DBG_ERROR, "backup: failed to export - database busy\n");
         return false; // might be busy
@@ -19356,7 +19369,7 @@ bool DeRestPluginPrivate::importConfiguration()
     saveDatabaseItems |= DB_NOSAVE;
     closeDb();
 
-    if (db)
+    if (dbIsOpen())
     {
         DBG_Printf(DBG_ERROR, "backup: failed to import - database busy\n");
         return false; // database might be busy
@@ -19635,7 +19648,7 @@ bool DeRestPluginPrivate::resetConfiguration(bool resetGW, bool deleteDB)
     saveDatabaseItems |= DB_NOSAVE;
     closeDb();
 
-    if (db)
+    if (dbIsOpen())
     {
         DBG_Printf(DBG_ERROR, "backup: failed to import - database busy\n");
         return false; // database might be busy
