@@ -760,17 +760,21 @@ void Device::setState(DeviceStateHandler state, DEV_StateLevel level)
         {
             m_state[level](this, Event(prefix(), REventStateLeave, level, key()));
         }
+
         m_state[level] = state;
-        if (m_state[level] && level == StateLevel0)
+
+        if (m_state[level])
         {
-            // invoke the handler in the next event loop iteration
-            emit eventNotify(Event(prefix(), REventStateEnter, level, key()));
-        }
-        else if (m_state[level])
-        {
-            // invoke sub-states directly
-            // TODO: check might be wonky
-            m_state[level](this, Event(prefix(), REventStateEnter, level, key()));
+            if (level == StateLevel0)
+            {
+                // invoke the handler in the next event loop iteration
+                emit eventNotify(Event(prefix(), REventStateEnter, level, key()));
+            }
+            else
+            {
+                // invoke sub-states directly
+                m_state[level](this, Event(prefix(), REventStateEnter, level, key()));
+            }
         }
     }
 }
