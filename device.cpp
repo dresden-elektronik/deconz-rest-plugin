@@ -303,7 +303,7 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
         if (needFetchEp == 0x00)
         {
             DBG_Printf(DBG_INFO, "ZDP simple descriptors verified: 0x%016llX\n", device->key());
-            device->setState(DEV_ModelIdStateHandler);
+            device->setState(DEV_BasicClusterStateHandler);
         }
         else if (!device->reachable())
         {
@@ -348,79 +348,133 @@ const deCONZ::SimpleDescriptor *DEV_GetSimpleDescriptorForServerCluster(const De
     return nullptr;
 }
 
-/*! #4 This state checks that modelId of the device is known.
-    TODO this should read all common basic cluster attributes needed to match a DDF,
-    e.g. modelId, manufacturer name, application version, etc.
+/*! Try to fill \c ResourceItem value from \p subDevices if not already set.
  */
-void DEV_ModelIdStateHandler(Device *device, const Event &event)
+bool DEV_FillItemFromSubdevices(Device *device, const char *itemSuffix, const std::vector<Resource*> &subDevices)
 {
-    if (event.what() == REventStateEnter)
+    auto *ditem = device->item(itemSuffix);
+    Q_ASSERT(ditem);
+
+    if (ditem->lastSet().isValid())
     {
-        auto *modelId = device->item(RAttrModelId);
-        Q_ASSERT(modelId);
+        return true;
+    }
 
-        for (const auto rsub : device->subDevices())
+    for (const auto rsub : subDevices)
+    {
+        auto *sitem = rsub->item(itemSuffix);
+        if (sitem && sitem->lastSet().isValid())
         {
-            if (!modelId->toString().isEmpty())
+            // copy from sub-device into device
+            if (ditem->setValue(sitem->toVariant()))
             {
-                break;
-            }
-
-            auto *item = rsub->item(RAttrModelId);
-            if (item && !item->toString().isEmpty())
-            {
-                // copy modelId from sub-device into device
-                modelId->setValue(item->toString());
-                break;
-            }
-        }
-
-        if (!modelId->toString().isEmpty())
-        {
-            DBG_Printf(DBG_INFO, "DEV modelId: %s, 0x%016llX\n", qPrintable(modelId->toString()), device->key());
-            device->setState(DEV_GetDeviceDescriptionHandler);
-        }
-        else if (!device->reachable())
-        {
-            DBG_Printf(DBG_INFO, "DEV not reachable, check  modelId later: 0x%016llX\n", device->key());
-            device->setState(DEV_InitStateHandler);
-        }
-        else // query modelId from basic cluster
-        {
-            const auto *sd = DEV_GetSimpleDescriptorForServerCluster(device, 0x0000_clid);
-
-            if (sd)
-            {
-                modelId->setReadParameters({QLatin1String("readGenericAttribute/4"), sd->endpoint(), 0x0000, 0x0005, 0x0000});
-                modelId->setParseParameters({QLatin1String("parseGenericAttribute/4"), sd->endpoint(), 0x0000, 0x0005, "$raw"});
-                auto readFunction = getReadFunction(readFunctions, modelId->readParameters());
-
-                if (readFunction && readFunction(device, modelId, deCONZ::ApsController::instance()))
-                {
-                    device->startStateTimer(MinMacPollRxOn);
-                }
-                else
-                {
-                    DBG_Printf(DBG_INFO, "Failed to read %s: 0x%016llX on endpoint: 0x%02X\n", modelId->descriptor().suffix, device->key(), sd->endpoint());
-                }
-            }
-            else
-            {
-                DBG_Printf(DBG_INFO, "TODO no basic cluster found to read modelId: 0x%016llX\n", device->key());
-                device->setState(DEV_InitStateHandler);
+                return true;
             }
         }
     }
-    else if (event.what() == RAttrModelId)
+
+    return false;
+}
+
+/*! Sends a ZCL Read Attributes request for \p clusterId and \p attrId.
+    This also configures generic read and parse handlers for an \p item if not already set.
+ */
+bool DEV_ZclRead(Device *device, ResourceItem *item, deCONZ::ZclClusterId_t clusterId, deCONZ::ZclAttributeId_t attrId)
+{
+    Q_ASSERT(device);
+    Q_ASSERT(item);
+
+    if (!device->reachable())
     {
-        DBG_Printf(DBG_INFO, "DEV received modelId: 0x%016llX\n", device->key());
+        DBG_Printf(DBG_INFO, "DEV not reachable, skip read %s: 0x%016llX\n", item->descriptor().suffix, device->key());
+        return false;
+    }
+
+    const auto *sd = DEV_GetSimpleDescriptorForServerCluster(device, clusterId);
+
+    if (!sd)
+    {
+        DBG_Printf(DBG_INFO, "TODO cluster 0x%04X not found: 0x%016llX\n", device->key(), static_cast<quint16>(clusterId));
+        return false;
+    }
+
+    if (item->readParameters().empty())
+    {
+        item->setReadParameters({QLatin1String("readGenericAttribute/4"), sd->endpoint(), static_cast<quint16>(clusterId), static_cast<quint16>(attrId), 0x0000});
+    }
+    if (item->parseParameters().empty())
+    {
+        item->setParseParameters({QLatin1String("parseGenericAttribute/4"), sd->endpoint(), static_cast<quint16>(clusterId), static_cast<quint16>(attrId), "$raw"});
+    }
+    auto readFunction = getReadFunction(readFunctions, item->readParameters());
+
+    if (readFunction && readFunction(device, item, deCONZ::ApsController::instance()))
+    {
+        return true;
+    }
+
+    return false;
+}
+
+/*! #4 This state reads all common basic cluster attributes needed to match a DDF,
+    e.g. modelId, manufacturer name, application version, etc.
+ */
+void DEV_BasicClusterStateHandler(Device *device, const Event &event)
+{
+    if (event.what() == REventStateEnter)
+    {
+        struct _item {
+            const char *suffix;
+            deCONZ::ZclClusterId_t clusterId;
+            deCONZ::ZclAttributeId_t attrId;
+        };
+
+        const std::array<_item, 2> items = {
+            _item{ RAttrManufacturerName, 0x0000_clid, 0x0004_atid },
+            _item{ RAttrModelId,          0x0000_clid, 0x0005_atid }
+        };
+
+        size_t okCount = 0;
+        const auto subDevices = device->subDevices();
+
+        for (const auto &it : items)
+        {
+            if (DEV_FillItemFromSubdevices(device, it.suffix, subDevices))
+            {
+                okCount++;
+                continue;
+            }
+
+            if (DEV_ZclRead(device, device->item(it.suffix), it.clusterId, it.attrId))
+            {
+                device->startStateTimer(MinMacPollRxOn);
+                return; // keep state and wait for REventStateTimeout or response
+            }
+
+            DBG_Printf(DBG_INFO, "Failed to read %s: 0x%016llX\n", it.suffix, device->key());
+            break;
+        }
+
+        if (okCount != items.size())
+        {
+            device->setState(DEV_InitStateHandler);
+        }
+        else
+        {
+            DBG_Printf(DBG_INFO, "DEV modelId: %s, 0x%016llX\n", qPrintable(device->item(RAttrModelId)->toString()), device->key());
+            device->setState(DEV_GetDeviceDescriptionHandler);
+        }
+    }
+    else if (event.what() == RAttrManufacturerName || event.what() == RAttrModelId)
+    {
+        DBG_Printf(DBG_INFO, "DEV received %s: 0x%016llX\n", event.what(), device->key());
         device->stopStateTimer();
         device->setState(DEV_InitStateHandler); // ok re-evaluate
         DEV_EnqueueEvent(device, REventAwake);
     }
     else if (event.what() == REventStateTimeout)
     {
-        DBG_Printf(DBG_INFO, "DEV read modelId timeout: 0x%016llX\n", device->key());
+        DBG_Printf(DBG_INFO, "DEV read basic cluster timeout: 0x%016llX\n", device->key());
         device->setState(DEV_InitStateHandler);
     }
 }
@@ -706,6 +760,7 @@ Device::Device(DeviceKey key, QObject *parent) :
     addItem(DataTypeUInt64, RAttrExtAddress);
     addItem(DataTypeUInt16, RAttrNwkAddress);
     addItem(DataTypeString, RAttrUniqueId)->setValue(generateUniqueId(key, 0, 0));
+    addItem(DataTypeString, RAttrManufacturerName);
     addItem(DataTypeString, RAttrModelId);
 
     setState(DEV_InitStateHandler);

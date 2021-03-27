@@ -21,7 +21,7 @@ void DEV_IdleStateHandler(Device *device, const Event &event);
 void DEV_NodeDescriptorStateHandler(Device *device, const Event &event);
 void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event);
 void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event);
-void DEV_ModelIdStateHandler(Device *device, const Event &event);
+void DEV_BasicClusterStateHandler(Device *device, const Event &event);
 void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event);
 void DEV_BindingHandler(Device *device, const Event &event);
 void DEV_BindingTableVerifyHandler(Device *device, const Event &event);
