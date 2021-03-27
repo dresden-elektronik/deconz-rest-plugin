@@ -506,6 +506,7 @@ static const ProductMap products[] =
     {"_TZE200_5zbp6j0u", "TS0601", "Tuya/Zemismart", "Tuya_COVD DT82LEMA-1.2N"},
     {"_TZE200_fdtjuw7u", "TS0601", "Yushun", "Tuya_COVD YS-MT750"},
     {"_TZE200_bqcqqjpb", "TS0601", "Yushun", "Tuya_COVD YS-MT750"},
+    {"_TZE200_nueqqe6k", "TS0601", "Zemismart", "Tuya_COVD M515EGB"},
 
     // Tuya covering not using tuya cluster but need reversing
     {"_TZ3000_egq7y6pr", "TS130F", "Lonsonho", "11830304 Switch"},
