@@ -260,6 +260,14 @@ using namespace deCONZ::literals;
 #define IAS_ZONE_TYPE_VIBRATION_SENSOR        0x002d
 #define IAS_ZONE_TYPE_WARNING_DEVICE          0x0225
 
+// Thermostat cluster, Control Sequence of Operation (0x001B)
+#define COOLING_ONLY                            0x00
+#define COOLING_WITH_REHEAT                     0x01
+#define HEATING_ONLY                            0x02
+#define HEATING_WITH_REHEAT                     0x03
+#define COOLING_AND_HEATING_4PIPES              0x04
+#define COOLING_AND_HEATING_4PIPES_WITH_REHEAT  0x05
+
 // IAS Setup states
 #define IAS_STATE_INIT                 0
 #define IAS_STATE_ENROLLED             1 // finished
