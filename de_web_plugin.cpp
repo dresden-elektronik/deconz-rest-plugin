@@ -117,6 +117,7 @@ const quint64 silabs2MacPrefix    = 0xcccccc0000000000ULL;
 const quint64 silabs3MacPrefix    = 0xec1bbd0000000000ULL;
 const quint64 energyMiMacPrefix   = 0xd0cf5e0000000000ULL;
 const quint64 bjeMacPrefix        = 0xd85def0000000000ULL;
+const quint64 onestiPrefix        = 0xf4ce360000000000ULL;
 const quint64 xalMacPrefix        = 0xf8f0050000000000ULL;
 const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
 // Danalock support
@@ -154,6 +155,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_C2DF, "3326-L", emberMacPrefix }, // Iris motion sensor v2
     { VENDOR_CENTRALITE, "3328-G", emberMacPrefix }, // Centralite micro motion sensor
     { VENDOR_CENTRALITE, "3323", emberMacPrefix }, // Centralite contact sensor
+    { VENDOR_DATEK, "ID Lock 150", silabs4MacPrefix }, // ID-Lock
     { VENDOR_DDEL, "de_spect", silabs3MacPrefix }, // dresden elektronic spectral sensor
     { VENDOR_JASCO, "45856", celMacPrefix },
     { VENDOR_NONE, "FB56-DOS06HM1.3", tiMacPrefix }, // Feibit FB56-DOS06HM1.3 door/window sensor
@@ -213,6 +215,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SAMJIN, "water", samjinMacPrefix }, // Smarthings (Samjin) Water Sensor
     { VENDOR_SAMJIN, "button", samjinMacPrefix }, // Smarthings (Samjin) Button
     { VENDOR_SAMJIN, "outlet", samjinMacPrefix }, // Smarthings (Samjin) Outlet
+    { VENDOR_JENNIC, "lumi.lock.v1", jennicMacPrefix }, // Xiaomi A6121 Vima Smart Lock
     { VENDOR_JENNIC, "lumi.sensor_ht", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.weather", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_magnet", jennicMacPrefix },
@@ -471,7 +474,13 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_DANFOSS, "0x8034", silabs6MacPrefix }, // Danfoss RTbattery Dial thermostat
     { VENDOR_DANFOSS, "0x8035", silabs6MacPrefix }, // Danfoss RTbattery Dial thermostat with infrared
     { VENDOR_LDS, "ZBT-CCTSwitch-D0001", silabs2MacPrefix }, // Leedarson remote control
+    { VENDOR_YALE, "YRD256 TSDB", emberMacPrefix }, // Yale YRD256 ZigBee keypad door lock
+    { VENDOR_YALE, "YRD226 TSDB", emberMacPrefix }, // Yale YRD226 ZigBee keypad door lock
+    { VENDOR_YALE, "YRD226/246 TSDB", emberMacPrefix }, // Yale YRD226 ZigBee keypad door lock
+    { VENDOR_YALE, "YRD256L TSDB SL", emberMacPrefix }, // Yale YRD256L ZigBee keypad door lock
+    { VENDOR_YALE, "YRD220/240 TSDB", emberMacPrefix }, // Yale
     { VENDOR_KWIKSET, "SMARTCODE_CONVERT_GEN1", zenMacPrefix }, // Kwikset 914 ZigBee smart lock
+    { VENDOR_DSR, "easyCodeTouch_v1", onestiPrefix }, // EasyAccess EasyCodeTouch
     { VENDOR_EMBER, "TS1001", silabs5MacPrefix }, // LIDL Livarno Lux Remote Control HG06323
     { VENDOR_EMBER, "TS1001", silabs7MacPrefix }, // LIDL Livarno Lux Remote Control HG06323
 
@@ -1172,6 +1181,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         case FAN_CONTROL_CLUSTER_ID:
             handleFanControlClusterIndication(ind, zclFrame);
+            break;
+
+        case DOOR_LOCK_CLUSTER_ID:
+            DBG_Printf(DBG_INFO, "Door lock debug 0x%016llX, data 0x%08X \n", ind.srcAddress().ext(), zclFrame.commandId() );
             break;
 
         default:
@@ -2786,13 +2799,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
         //Add missing field for Tuya Device with tuya cluster
         // Window covering
-        if (lightNode.manufacturer() == QString("_TYST11_xu1rkty3") ||
-            lightNode.manufacturer() == QString("_TZE200_xuzcvlku") ||
-            lightNode.manufacturer() == QString("_TZE200_wmcdj3aq") ||
-            lightNode.manufacturer() == QString("_TZE200_nogaemzt") ||
-            lightNode.manufacturer() == QString("_TZE200_zah67ekd") || // MoesHouse / Livolo Roller Blinds
-            lightNode.manufacturer() == QString("_TZE200_fzo2pocs") ||
-            lightNode.manufacturer() == QString("_TYST11_wmcdj3aq"))
+        if (R_GetProductId(&lightNode).startsWith(QLatin1String("Tuya_COVD")))
         {
             lightNode.addItem(DataTypeBool, RStateOpen);
             lightNode.addItem(DataTypeUInt8, RStateLift);
@@ -3512,7 +3519,6 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     if (ia->id() == 0x0000) // Lock state
                     {
                         bool on = ia->numericValue().u8 == 1;
-                        DBG_Printf(DBG_INFO, "Status dørlås: %u\n", (uint)ia->numericValue().u8);
                         ResourceItem *item = lightNode->item(RStateOn);
                         if (item && item->toBool() != on)
                         {
@@ -5161,6 +5167,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         SensorFingerprint fpTimeSensor;
         SensorFingerprint fpVibrationSensor;
         SensorFingerprint fpWaterSensor;
+        SensorFingerprint fpDoorLockSensor;
 
         {   // scan server clusters of endpoint
             QList<deCONZ::ZclCluster>::const_iterator ci = i->inClusters().constBegin();
@@ -5273,6 +5280,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
                     }
+                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC &&
+                              modelId.startsWith(QLatin1String("lumi.lock.v1")))
+                    {
+                        fpDoorLockSensor.inClusters.push_back(DOOR_LOCK_CLUSTER_ID);
+                    }
                 }
                     break;
 
@@ -5316,6 +5328,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     fpTimeSensor.inClusters.push_back(ci->id());
                     fpVibrationSensor.inClusters.push_back(ci->id());
                     fpWaterSensor.inClusters.push_back(ci->id());
+                    fpDoorLockSensor.inClusters.push_back(ci->id());
                 }
                     break;
 
@@ -5724,6 +5737,21 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         // fpSwitch.inClusters.push_back(DOOR_LOCK_CLUSTER_ID);
                         fpVibrationSensor.inClusters.push_back(DOOR_LOCK_CLUSTER_ID);
                     }
+                    else
+                    {
+                        //Using whitelist to ensure old doorlock hardware compatibility
+                        if (modelId == QLatin1String("SMARTCODE_CONVERT_GEN1") || // Kwikset 914
+                            modelId == QLatin1String("YRD226/246 TSDB") || // Yale YRD226 ZigBee keypad door lock
+                            modelId == QLatin1String("YRD226 TSDB") || // Yale YRD226 ZigBee keypad door lock
+                            modelId == QLatin1String("YRD256 TSDB") || // Yale YRD256 ZigBee keypad door lock
+                            modelId == QLatin1String("YRD256L TSDB SL") ||
+                            modelId == QLatin1String("YRD220/240 TSDB") ||
+                            modelId == QLatin1String("easyCodeTouch_v1") || // EasyAccess EasyCodeTouch
+                            modelId == QLatin1String("ID Lock 150"))
+                        {
+                            fpDoorLockSensor.inClusters.push_back(DOOR_LOCK_CLUSTER_ID);
+                        }
+                    }
                 }
                     break;
 
@@ -6094,6 +6122,24 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             }
         }
 
+        // ZHADoorLock
+        if (fpDoorLockSensor.hasInCluster(DOOR_LOCK_CLUSTER_ID))
+        {
+            fpDoorLockSensor.endpoint = i->endpoint();
+            fpDoorLockSensor.deviceId = i->deviceId();
+            fpDoorLockSensor.profileId = i->profileId();
+
+            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpDoorLockSensor, "ZHADoorLock");
+            if (!sensor || sensor->deletedState() != Sensor::StateNormal)
+            {
+                addSensorNode(node, fpDoorLockSensor, "ZHADoorLock", modelId, manufacturer);
+            }
+            else
+            {
+                checkSensorNodeReachable(sensor);
+            }
+        }
+        
         // ZHATemperature
         if (fpTemperatureSensor.hasInCluster(TEMPERATURE_MEASUREMENT_CLUSTER_ID))
         {
@@ -6648,6 +6694,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         }
         item = sensorNode.addItem(DataTypeBool, RStateOpen);
         item->setValue(false);
+    }
+    else if (sensorNode.type().endsWith(QLatin1String("DoorLock")))
+    {
+        clusterId = DOOR_LOCK_CLUSTER_ID;
+
+        sensorNode.addItem(DataTypeString, RStateLockState);
+        sensorNode.addItem(DataTypeBool, RConfigLock);
     }
     else if (sensorNode.type().endsWith(QLatin1String("Alarm")))
     {
@@ -9754,6 +9807,55 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         item->setValue(angleZ);
                                         enqueueEvent(Event(RSensors, RStateOrientationZ, i->id(), item));
+                                        updated = true;
+                                    }
+                                }
+                            }
+                            else if (i->type() == QLatin1String("ZHADoorLock")) // Door lock
+                            {
+                                if (ia->id() == 0x0000) // Lock state
+                                {
+                                    QString str;
+                                    bool dlLock;
+                                    
+                                    if (ia->numericValue().u8 == 1)
+                                    {
+                                        str = QLatin1String("locked");
+                                        dlLock = true;
+                                    }
+                                    else if (ia->numericValue().u8 == 0)
+                                    {
+                                        str = QLatin1String("not fully locked");
+                                        dlLock = false;
+                                    }
+                                    else if (ia->numericValue().u8 == 2)
+                                    {
+                                        str = QLatin1String("unlocked");
+                                        dlLock = false;
+                                    }
+                                    else
+                                    {
+                                        str = QLatin1String("undefined");
+                                        dlLock = false;
+                                    }
+
+                                    // Update RConfigLock bool state
+                                    ResourceItem *item = i->item(RConfigLock);
+                                    if (item && item->toNumber() != dlLock)
+                                    {
+                                        item->setValue(dlLock);
+                                        enqueueEvent(Event(RSensors, RConfigLock, i->id(), item));
+                                        updated = true;
+                                    }
+
+                                    // Update RStateLockState Str value
+                                    item = i->item(RStateLockState);
+                                    if (item && item->toString() != str)
+                                    {
+                                        //DBG_Printf(DBG_INFO, "0x%016llX onOff %u --> %u\n", lightNode->address().ext(), (uint)item->toNumber(), on);
+    
+                                        item->setValue(str);
+                                        enqueueEvent(Event(RSensors, RStateLockState, i->id(), item));
                                         updated = true;
                                     }
                                 }

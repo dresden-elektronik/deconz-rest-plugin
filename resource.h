@@ -93,6 +93,7 @@ extern const char *RStateErrorCode;
 extern const char *RStateEventDuration;
 extern const char *RStateFire;
 extern const char *RStateFlag;
+extern const char *RStateLockState;
 extern const char *RStateFloorTemperature;
 extern const char *RStateGesture;
 extern const char *RStateHeating;
@@ -140,6 +141,7 @@ extern const char *RStateX;
 extern const char *RStateY;
 
 extern const char *RConfigAlert;
+extern const char *RConfigLock;
 extern const char *RConfigBattery;
 extern const char *RConfigColorCapabilities;
 extern const char *RConfigConfigured;

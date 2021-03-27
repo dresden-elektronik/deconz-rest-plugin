@@ -3474,6 +3474,13 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.setManufacturer(QLatin1String("SILVERCREST"));
             }
         }
+        else if (sensor.type().endsWith(QLatin1String("DoorLock")))
+        {
+            clusterId = clusterId ? clusterId : DOOR_LOCK_CLUSTER_ID;
+            
+            sensor.addItem(DataTypeString, RStateLockState);
+            sensor.addItem(DataTypeBool, RConfigLock);
+        }
         else if (sensor.type().endsWith(QLatin1String("Alarm")))
         {
             if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))

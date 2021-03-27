@@ -78,6 +78,7 @@ const char *RStateErrorCode = "state/errorcode";
 const char *RStateEventDuration = "state/eventduration";
 const char *RStateFire = "state/fire";
 const char *RStateFlag = "state/flag";
+const char *RStateLockState = "state/lockstate";
 const char *RStateFloorTemperature = "state/floortemperature";
 const char *RStateGesture = "state/gesture";
 const char *RStateHeating = "state/heating";
@@ -132,6 +133,7 @@ const QStringList RStateEffectValuesMueller({
 });
 
 const char *RConfigAlert = "config/alert";
+const char *RConfigLock = "config/lock";
 const char *RConfigBattery = "config/battery";
 const char *RConfigColorCapabilities = "config/colorcapabilities";
 const char *RConfigConfigured = "config/configured";
@@ -654,6 +656,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateAirQualityPpb));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAlarm));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateAlert));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateLockState));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAllOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateAngle));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAnyOn));
@@ -720,6 +723,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateY));
 
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigAlert));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigLock));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigBattery, 0, 100));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigColorCapabilities));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigCtMin));
@@ -935,6 +939,7 @@ static const ProductMap products[] =
     {"_TZE200_5zbp6j0u", "TS0601", "Tuya/Zemismart", "Tuya_COVD DT82LEMA-1.2N"},
     {"_TZE200_fdtjuw7u", "TS0601", "Yushun", "Tuya_COVD YS-MT750"},
     {"_TZE200_bqcqqjpb", "TS0601", "Yushun", "Tuya_COVD YS-MT750"},
+    {"_TZE200_nueqqe6k", "TS0601", "Zemismart", "Tuya_COVD M515EGB"},
 
     // Tuya covering not using tuya cluster but need reversing
     {"_TZ3000_egq7y6pr", "TS130F", "Lonsonho", "11830304 Switch"},
