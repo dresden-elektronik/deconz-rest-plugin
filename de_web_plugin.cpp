@@ -19777,6 +19777,21 @@ Resource *DeRestPluginPrivate::getResource(const char *resource, const QString &
     return 0;
 }
 
+// Used by Device class when querying resources.
+// Testing code uses a mocked implementation.
+Resource *DEV_GetResource(const char *resource, const QString &identifier)
+{
+    return plugin->getResource(resource, identifier);
+}
+
+// Used by Device class when creating Sensors.
+// Testing code uses a mocked implementation.
+Resource *DEV_AddResource(const Sensor &sensor)
+{
+    plugin->sensors.push_back(sensor);
+    return &plugin->sensors.back();
+}
+
 void DeRestPluginPrivate::pollSwUpdateStateTimerFired()
 {
     if (gwSwUpdateState != swUpdateState.transferring &&

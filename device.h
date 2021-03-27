@@ -12,7 +12,7 @@
 
 class Event;
 class Device;
-class DeRestPluginPrivate;
+class Sensor;
 using DeviceKey = uint64_t; //! uniqueId for an Device, MAC address for physical devices
 typedef void (*DeviceStateHandler)(Device *, const Event &);
 
@@ -99,9 +99,6 @@ public:
 
     std::vector<Resource*> subDevices() const;
 
-    DeRestPluginPrivate *plugin() const;
-
-
     // following handlers need access to private members (friend functions)
     friend void DEV_InitStateHandler(Device *device, const Event &event);
     friend void DEV_IdleStateHandler(Device *device, const Event &event);
@@ -121,7 +118,7 @@ private:
     std::vector<std::tuple<QString, const char*>> m_subDevices;
     const deCONZ::Node *m_node = nullptr; //! a reference to the deCONZ core node
     DeviceKey m_deviceKey = 0; //! for physical devices this is the MAC address
-    //DeviceStateHandler m_state = nullptr; //! the currently active state handler function
+
     /*! The currently active state handler function(s).
         Indexes >0 represent sub states of StateLevel0 running in parallel.
     */
@@ -156,5 +153,18 @@ Device *DEV_getDevice(DeviceContainer &devices, DeviceKey key);
     \param key - unique identifier for a device (MAC address for physical devices)
  */
 Device *getOrCreateDevice(QObject *parent, DeviceContainer &devices, DeviceKey key);
+
+/*! Returns \c Resource for a given \p identifier.
+
+    \param resource - RSensors | RLights | RGroups | RConfig
+    \param identifier - id | uniqueid | empty (for RConfig)
+*/
+Resource *DEV_GetResource(const char *resource, const QString &identifier);
+
+/*! Overloads to add specific resources to higher layer.
+    Since Device class doesn't know anything about web plugin or testing code this is a free standing function which needs to be implemented else where.
+*/
+Resource *DEV_AddResource(const Sensor &sensor);
+//Resource *DEV_AddResource(const LightNode &lightNode);
 
 #endif // DEVICE_H

@@ -1,12 +1,11 @@
 #include <QTimerEvent>
-//#include "de_web_plugin.h" // todo hack, remove later
-//#include "de_web_plugin_private.h" // todo hack, remove later
 #include "device.h"
 #include "device_descriptions.h"
 #include "event.h"
 #include "zdp.h"
 
 // TODO move external declaration in de_web_plugin_private.h into utils.h
+int getFreeSensorId();
 QString generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId);
 
 // enable domain specific string literals
@@ -85,7 +84,7 @@ void DEV_EnqueueEvent(Device *device, const char *event)
 {
     Q_ASSERT(device);
     Q_ASSERT(event);
-    device->eventNotify(Event(device->prefix(), event, 0, device->key()));
+    emit device->eventNotify(Event(device->prefix(), event, 0, device->key()));
 }
 
 Resource *DEV_GetSubDevice(Device *device, const char *prefix, const QString &identifier)
@@ -337,7 +336,7 @@ const deCONZ::SimpleDescriptor *DEV_GetSimpleDescriptorForServerCluster(const De
 {
     for (const auto &sd : device->node()->simpleDescriptors())
     {
-        const auto cluster = std::find(sd.inClusters().cbegin(), sd.inClusters().cend(), [clusterId](const deCONZ::ZclCluster &cl)
+        const auto cluster = std::find_if(sd.inClusters().cbegin(), sd.inClusters().cend(), [clusterId](const deCONZ::ZclCluster &cl)
         {
             return cl.id_t() == clusterId;
         });
@@ -475,16 +474,18 @@ static Resource *DEV_InitSensorNodeFromDescription(Device *device, const DeviceD
         friendlyName = friendlyName.mid(3);
     }
 
-    sensor.setId(QString::number(device->plugin()->getFreeSensorId()));
+    sensor.setId(QString::number(getFreeSensorId()));
     sensor.setName(QString("%1 %2").arg(friendlyName, sensor.id()));
 
     sensor.setNeedSaveDatabase(true);
     sensor.rx();
 
-    device->plugin()->sensors.push_back(sensor);
-    device->addSubDevice(&device->plugin()->sensors.back());
+    auto *r = DEV_AddResource(sensor);
+    Q_ASSERT(r);
 
-    return &device->plugin()->sensors.back();
+    device->addSubDevice(r);
+
+    return r;
 }
 
 /*! Creates and initialises sub-device Resources and ResourceItems if not already present.
@@ -817,7 +818,7 @@ std::vector<Resource *> Device::subDevices() const
     // temp hack to get valid sub device pointers
     for (const auto &sub : m_subDevices)
     {
-        auto *r = plugin()->getResource(std::get<1>(sub), std::get<0>(sub));
+        auto *r = DEV_GetResource(std::get<1>(sub), std::get<0>(sub));
 
         if (r)
         {
@@ -826,13 +827,6 @@ std::vector<Resource *> Device::subDevices() const
     }
 
     return result;
-}
-
-DeRestPluginPrivate *Device::plugin() const
-{
-    auto *plugin = dynamic_cast<DeRestPluginPrivate*>(parent());
-    Q_ASSERT(plugin);
-    return plugin;
 }
 
 Device *DEV_getDevice(DeviceContainer &devices, DeviceKey key)
