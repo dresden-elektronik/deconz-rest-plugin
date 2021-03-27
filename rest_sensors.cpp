@@ -1409,9 +1409,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                     {
-                        QByteArray data = QByteArray("\x00", 1);
+                        QByteArray data;
                         QString modeSet = map[pi.key()].toString();
                         if (modeSet == "heat") { data = QByteArray("\x01", 1); }
+                        else if (modeSet == "off") { data = QByteArray("\x00", 1); }
                         else
                         {
                             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
