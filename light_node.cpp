@@ -429,12 +429,6 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             {
                 if (i->id() == ONOFF_CLUSTER_ID)
                 {
-                    auto *it = item(RStateOn);
-                    if (it)
-                    {
-                        it->setParseParameters({QLatin1String("parseGenericAttribute/4"), endpoint.endpoint(), ONOFF_CLUSTER_ID, 0x0000, QLatin1String("$raw")});
-                        it->setReadParameters({QLatin1String("readGenericAttribute/4"), endpoint.endpoint(), ONOFF_CLUSTER_ID, 0x0000, 0x0000});
-                    }
                 }
                 else if (i->id() == LEVEL_CLUSTER_ID)
                 {
