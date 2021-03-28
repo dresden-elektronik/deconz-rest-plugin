@@ -1465,7 +1465,7 @@ int SC_WriteZclAttribute(const Resource *r, const StateChange *stateChange, deCO
             return -2;
         }
 
-        const auto fn = getWriteFunction(writeFunctions, item->writeParameters());
+        const auto fn = DA_GetWriteFunction(item->writeParameters());
 
         if (!fn)
         {

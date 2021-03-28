@@ -1449,7 +1449,7 @@ StateChange::State StateChange::tick(Resource *r, deCONZ::ApsController *apsCtrl
         m_state = StateFailed;
         if (item && !item->readParameters().empty())
         {
-            const auto fn = getReadFunction(readFunctions, item->readParameters());
+            const auto fn = DA_GetReadFunction(item->readParameters());
             if (fn && fn(rParent, item, apsCtrl))
             {
                 m_stateTimer.start();

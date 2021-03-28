@@ -412,7 +412,7 @@ bool DEV_ZclRead(Device *device, ResourceItem *item, deCONZ::ZclClusterId_t clus
     {
         item->setParseParameters({QLatin1String("parseGenericAttribute/4"), sd->endpoint(), static_cast<quint16>(clusterId), static_cast<quint16>(attrId), "$raw"});
     }
-    auto readFunction = getReadFunction(readFunctions, item->readParameters());
+    auto readFunction = DA_GetReadFunction(item->readParameters());
 
     if (readFunction && readFunction(device, item, deCONZ::ApsController::instance()))
     {

@@ -410,22 +410,15 @@ bool writeGenericAttribute6(const Resource *r, const ResourceItem *item, deCONZ:
     return result;
 }
 
-const std::vector<ParseFunction> parseFunctions = {
-    ParseFunction("parseGenericAttribute/4", 4, parseGenericAttribute4)
-};
-
-const std::vector<ReadFunction> readFunctions = {
-    ReadFunction("readGenericAttribute/4", 4, readGenericAttribute4)
-};
-
-const std::vector<WriteFunction> writeFunctions = {
-    WriteFunction("writeGenericAttribute/6", 6, writeGenericAttribute6)
-};
-
-ParseFunction_t getParseFunction(const std::vector<ParseFunction> &functions, const std::vector<QVariant> &params)
+ParseFunction_t DA_GetParseFunction(const std::vector<QVariant> &params)
 {
     ParseFunction_t result = nullptr;
 
+    const std::array<ParseFunction, 1> functions =
+    {
+        ParseFunction("parseGenericAttribute/4", 4, parseGenericAttribute4)
+    };
+
     if (params.size() >= 1)
     {
         const auto fnName = params.at(0).toString();
@@ -442,10 +435,15 @@ ParseFunction_t getParseFunction(const std::vector<ParseFunction> &functions, co
     return result;
 }
 
-ReadFunction_t getReadFunction(const std::vector<ReadFunction> &functions, const std::vector<QVariant> &params)
+ReadFunction_t DA_GetReadFunction(const std::vector<QVariant> &params)
 {
     ReadFunction_t result = nullptr;
 
+    const std::array<ReadFunction, 1> functions =
+    {
+        ReadFunction("readGenericAttribute/4", 4, readGenericAttribute4)
+    };
+
     if (params.size() >= 1)
     {
         const auto fnName = params.at(0).toString();
@@ -462,9 +460,14 @@ ReadFunction_t getReadFunction(const std::vector<ReadFunction> &functions, const
     return result;
 }
 
-WriteFunction_t getWriteFunction(const std::vector<WriteFunction> &functions, const std::vector<QVariant> &params)
+WriteFunction_t DA_GetWriteFunction(const std::vector<QVariant> &params)
 {
     WriteFunction_t result = nullptr;
+
+    const std::array<WriteFunction, 1> functions =
+    {
+        WriteFunction("writeGenericAttribute/6", 6, writeGenericAttribute6)
+    };
 
     if (params.size() >= 1)
     {

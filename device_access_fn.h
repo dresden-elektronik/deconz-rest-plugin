@@ -14,6 +14,7 @@
 #include <QString>
 #include <QVariant>
 #include <vector>
+#include <memory>
 
 class Resource;
 class ResourceItem;
@@ -64,13 +65,9 @@ struct WriteFunction
     WriteFunction_t fn = nullptr;
 };
 
-extern const std::vector<ParseFunction> parseFunctions;
-extern const std::vector<ReadFunction> readFunctions;
-extern const std::vector<WriteFunction> writeFunctions;
-
-ParseFunction_t getParseFunction(const std::vector<ParseFunction> &functions, const std::vector<QVariant> &params);
-ReadFunction_t getReadFunction(const std::vector<ReadFunction> &functions, const std::vector<QVariant> &params);
-WriteFunction_t getWriteFunction(const std::vector<WriteFunction> &functions, const std::vector<QVariant> &params);
+ParseFunction_t DA_GetParseFunction(const std::vector<QVariant> &params);
+ReadFunction_t DA_GetReadFunction(const std::vector<QVariant> &params);
+WriteFunction_t DA_GetWriteFunction(const std::vector<QVariant> &params);
 
 
 #endif // DEVICE_ACCESS_FN_H

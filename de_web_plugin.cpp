@@ -1012,7 +1012,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                 // Init the parse function. Later on this needs to be done by the device description loader.
                 if (!parseFunction)
                 {
-                    parseFunction = getParseFunction(parseFunctions, item->parseParameters());
+                    parseFunction = DA_GetParseFunction(item->parseParameters());
                 }
 
                 // TODO  item->lastSet() == item->lastChanged() doesn't cut it
