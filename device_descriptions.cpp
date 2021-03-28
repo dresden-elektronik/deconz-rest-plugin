@@ -176,7 +176,8 @@ static DeviceDescription::Item parseDeviceDescriptionItem(const QJsonObject &obj
         const auto parse = obj.value(QLatin1String("parse"));
         if (parse.isArray())
         {
-            for (const auto i : parse.toArray())
+            const auto arr = parse.toArray();
+            for (const auto &i : arr)
             {
                 result.parseParameters.push_back(i.toVariant());
             }
@@ -185,7 +186,8 @@ static DeviceDescription::Item parseDeviceDescriptionItem(const QJsonObject &obj
         const auto read = obj.value(QLatin1String("read"));
         if (read.isArray())
         {
-            for (const auto i : read.toArray())
+            const auto arr = read.toArray();
+            for (const auto &i : arr)
             {
                 result.readParameters.push_back(i.toVariant());
             }
@@ -194,7 +196,8 @@ static DeviceDescription::Item parseDeviceDescriptionItem(const QJsonObject &obj
         const auto write = obj.value(QLatin1String("write"));
         if (write.isArray())
         {
-            for (const auto i : write.toArray())
+            const auto arr = write.toArray();
+            for (const auto &i : arr)
             {
                 result.writeParameters.push_back(i.toVariant());
             }
@@ -232,7 +235,8 @@ static DeviceDescription::SubDevice parseDeviceDescriptionSubDevice(const QJsonO
     const auto uniqueId = obj.value(QLatin1String("uuid"));
     if (uniqueId.isArray())
     {
-        for (const auto i : uniqueId.toArray())
+        const auto arr = uniqueId.toArray();
+        for (const auto &i : arr)
         {
             result.uniqueId.push_back(i.toString());
         }
@@ -249,7 +253,8 @@ static DeviceDescription::SubDevice parseDeviceDescriptionSubDevice(const QJsonO
 
         if (fp.value(QLatin1String("in")).isArray())
         {
-            for (const auto &cl : fp.value(QLatin1String("in")).toArray())
+            const auto arr = fp.value(QLatin1String("in")).toArray();
+            for (const auto &cl : arr)
             {
                 const auto clusterId = ok ? cl.toString().toUInt(&ok, 0) : 0;
                 if (ok)
@@ -261,7 +266,8 @@ static DeviceDescription::SubDevice parseDeviceDescriptionSubDevice(const QJsonO
 
         if (fp.value(QLatin1String("out")).isArray())
         {
-            for (const auto &cl : fp.value(QLatin1String("out")).toArray())
+            const auto arr = fp.value(QLatin1String("out")).toArray();
+            for (const auto &cl : arr)
             {
                 const auto clusterId = ok ? cl.toString().toUInt(&ok, 0) : 0;
                 if (ok)
@@ -283,19 +289,22 @@ static DeviceDescription::SubDevice parseDeviceDescriptionSubDevice(const QJsonO
         return result;
     }
 
-    for (const auto &i : items.toArray())
     {
-        if (i.isObject())
+        const auto arr = items.toArray();
+        for (const auto &i : arr)
         {
-            const auto item = parseDeviceDescriptionItem(i.toObject());
-
-            if (item.isValid())
+            if (i.isObject())
             {
-                result.items.push_back(item);
-            }
-            else
-            {
+                const auto item = parseDeviceDescriptionItem(i.toObject());
 
+                if (item.isValid())
+                {
+                    result.items.push_back(item);
+                }
+                else
+                {
+
+                }
             }
         }
     }
@@ -314,7 +323,8 @@ static QStringList parseDeviceDescriptionModelids(const QJsonObject &obj)
     }
     else if (modelId.isArray()) // "modelid": [ "alpha.sensor", "beta.sensor" ]
     {
-        for (const auto &i : modelId.toArray())
+        const auto arr = modelId.toArray();
+        for (const auto &i : arr)
         {
             if (i.isString())
             {
@@ -347,12 +357,14 @@ static DeviceDescription parseDeviceDescriptionObject(const QJsonObject &obj)
     result.modelIds = parseDeviceDescriptionModelids(obj);
     result.product = obj.value(QLatin1String("product")).toString();
 
-    for (const auto &key : obj.keys())
+    const auto keys = obj.keys();
+    for (const auto &key : keys)
     {
         DBG_Printf(DBG_INFO, "DDF: %s: %s\n", qPrintable(key), qPrintable(obj.value(key).toString()));
     }
 
-    for (const auto &i : subDevices.toArray())
+    const auto subDevicesArr = subDevices.toArray();
+    for (const auto &i : subDevicesArr)
     {
         if (i.isObject())
         {
@@ -402,7 +414,8 @@ static std::vector<DeviceDescription> readDeviceDescriptionFile(const QString &p
     }
     else if (doc.isArray())
     {
-        for (const auto &i : doc.array())
+        const auto arr = doc.array();
+        for (const auto &i : arr)
         {
             if (i.isObject())
             {
