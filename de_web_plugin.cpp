@@ -1015,9 +1015,6 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                     parseFunction = DA_GetParseFunction(item->parseParameters());
                 }
 
-                // TODO  item->lastSet() == item->lastChanged() doesn't cut it
-                // This needs to be part of the ResourceItem: item.notifyOnlyChangeOnly() -> bool
-                // Some items like state/buttonevent should fire events on set, not only change
                 if (parseFunction && parseFunction(r, item, ind, zclFrame))
                 {
                     auto *idItem = r->item(RAttrId);
@@ -1026,7 +1023,9 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                         idItem = r->item(RAttrUniqueId);
                     }
 
-                    if (idItem)
+                    const bool push = item->pushOnSet() || (item->pushOnChange() && item->lastChanged() == item->lastSet());
+
+                    if (idItem && push)
                     {
                         enqueueEvent(Event(r->prefix(), item->descriptor().suffix, idItem->toString(), device->key()));
                     }

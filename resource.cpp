@@ -668,6 +668,40 @@ void ResourceItem::clearNeedPush()
     m_flags &= ~static_cast<quint16>(FlagNeedPushSet | FlagNeedPushChange);
 }
 
+bool ResourceItem::pushOnSet() const
+{
+    return (m_flags & FlagPushOnSet) > 0;
+}
+
+void ResourceItem::setPushOnSet(bool enable)
+{
+    if (enable)
+    {
+        m_flags |= static_cast<quint16>(FlagPushOnSet);
+    }
+    else
+    {
+        m_flags &= ~static_cast<quint16>(FlagPushOnSet);
+    }
+}
+
+bool ResourceItem::pushOnChange() const
+{
+    return (m_flags & FlagPushOnChange) > 0;
+}
+
+void ResourceItem::setPushOnChange(bool enable)
+{
+    if (enable)
+    {
+        m_flags |= static_cast<quint16>(FlagPushOnChange);
+    }
+    else
+    {
+        m_flags &= ~static_cast<quint16>(FlagPushOnChange);
+    }
+}
+
 /*! Copy assignment. */
 ResourceItem &ResourceItem::operator=(const ResourceItem &other)
 {
@@ -758,9 +792,6 @@ ResourceItem &ResourceItem::operator=(ResourceItem &&other) noexcept
 
 /*! Initial main constructor to create a valid ResourceItem. */
 ResourceItem::ResourceItem(const ResourceItemDescriptor &rid) :
-    m_num(0),
-    m_numPrev(0),
-    m_str(nullptr),
     m_rid(&rid)
 {
     if (m_rid->type == DataTypeString ||
@@ -770,16 +801,7 @@ ResourceItem::ResourceItem(const ResourceItemDescriptor &rid) :
         m_str = new QString;
     }
 
-    if (rid.suffix == RAttrModelId)
-    {
-        // basic cluster, model identifier
-//        setParseParameters({"parseGenericAttribute/4", 0xff, 0x0000, 0x0005, "$raw" });
-    }
-    else if (rid.suffix == RAttrManufacturerName)
-    {
-        // basic cluster, manufacturer name
-//        setParseParameters({"parseGenericAttribute/4", 0xff, 0x0000, 0x0004, "$raw" });
-    }
+    m_flags = FlagPushOnChange;
 }
 
 const QString &ResourceItem::toString() const

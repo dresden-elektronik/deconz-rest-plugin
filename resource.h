@@ -400,8 +400,10 @@ class ResourceItem
 {
     enum ItemFlags
     {
-        FlagNeedPushSet     = 0x1, // set after a value has been set
-        FlagNeedPushChange  = 0x2  // set when new value different than previous
+        FlagNeedPushSet     = 0x01, // set after a value has been set
+        FlagNeedPushChange  = 0x02, // set when new value different than previous
+        FlagPushOnSet       = 0x04, // events will be generated when item is set (even when value doesn't change)
+        FlagPushOnChange    = 0x08  // events will be generated only when item changes
     };
 
 public:
@@ -421,6 +423,10 @@ public:
     bool needPushSet() const;
     bool needPushChange() const;
     void clearNeedPush();
+    bool pushOnSet() const;
+    void setPushOnSet(bool enable);
+    bool pushOnChange() const;
+    void setPushOnChange(bool enable);
     const QString &toString() const;
     qint64 toNumber() const;
     qint64 toNumberPrevious() const;
