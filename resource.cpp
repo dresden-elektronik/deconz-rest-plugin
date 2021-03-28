@@ -62,6 +62,7 @@ const char *RStateErrorCode = "state/errorcode";
 const char *RStateEventDuration = "state/eventduration";
 const char *RStateFire = "state/fire";
 const char *RStateFlag = "state/flag";
+const char *RStateLockState = "state/lockstate";
 const char *RStateFloorTemperature = "state/floortemperature";
 const char *RStateGesture = "state/gesture";
 const char *RStateHeating = "state/heating";
@@ -116,6 +117,7 @@ const QStringList RStateEffectValuesMueller({
 });
 
 const char *RConfigAlert = "config/alert";
+const char *RConfigLock = "config/lock";
 const char *RConfigBattery = "config/battery";
 const char *RConfigColorCapabilities = "config/colorcapabilities";
 const char *RConfigConfigured = "config/configured";
@@ -226,6 +228,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateAirQualityPpb));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAlarm));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateAlert));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateLockState));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAllOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateAngle));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAnyOn));
@@ -292,6 +295,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateY));
 
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigAlert));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigLock));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigBattery, 0, 100));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigColorCapabilities));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigCtMin));
@@ -506,6 +510,7 @@ static const ProductMap products[] =
     {"_TZE200_5zbp6j0u", "TS0601", "Tuya/Zemismart", "Tuya_COVD DT82LEMA-1.2N"},
     {"_TZE200_fdtjuw7u", "TS0601", "Yushun", "Tuya_COVD YS-MT750"},
     {"_TZE200_bqcqqjpb", "TS0601", "Yushun", "Tuya_COVD YS-MT750"},
+    {"_TZE200_nueqqe6k", "TS0601", "Zemismart", "Tuya_COVD M515EGB"},
 
     // Tuya covering not using tuya cluster but need reversing
     {"_TZ3000_egq7y6pr", "TS130F", "Lonsonho", "11830304 Switch"},
@@ -556,13 +561,15 @@ const QString R_GetProductId(Resource *resource)
     }
 
     const auto *manufacturerName = resource->item(RAttrManufacturerName);
-    const auto *modelId = resource->item(RAttrManufacturerName);
+    const auto *modelId = resource->item(RAttrModelId);
 
-    if (!manufacturerName || !modelId)
+    // Need manufacturerName
+    if (!manufacturerName)
     {
         return rInvalidString;
     }
-
+    
+    //Tuya don't need modelId
     if (isTuyaManufacturerName(manufacturerName->toString()))
     {
         // for Tuya devices match against manufacturer name
@@ -581,14 +588,14 @@ const QString R_GetProductId(Resource *resource)
             // manufacturer name is the most unique identifier for Tuya
             if (DBG_IsEnabled(DBG_INFO_L2))
             {
-                DBG_Printf(DBG_INFO_L2, "No Tuya productId entry found for manufacturername: %s, modelId: %s\n",
-                    qPrintable(manufacturerName->toString()), qPrintable(modelId->toString()));
+                DBG_Printf(DBG_INFO_L2, "No Tuya productId entry found for manufacturername: %s\n", qPrintable(manufacturerName->toString()));
             }
 
             return manufacturerName->toString();
         }
     }
-    else
+    
+    if (modelId)
     {
         return modelId->toString();
     }
@@ -603,34 +610,20 @@ ResourceItem::ResourceItem(const ResourceItem &other)
 }
 
 /*! Move constructor. */
-ResourceItem::ResourceItem(ResourceItem &&other) :
-    m_isPublic(other.m_isPublic),
-    m_flags(other.m_flags),
-    m_num(other.m_num),
-    m_numPrev(other.m_numPrev),
-    m_str(nullptr),
-    m_rid(other.m_rid),
-    m_lastSet(std::move(other.m_lastSet)),
-    m_lastChanged(std::move(other.m_lastChanged)),
-    m_rulesInvolved(std::move(other.m_rulesInvolved))
+ResourceItem::ResourceItem(ResourceItem &&other) noexcept
 {
-    if (other.m_str) // release
-    {
-        m_str = other.m_str;
-        other.m_str = nullptr;
-    }
-
-    other.m_rid = &rInvalidItemDescriptor;
+    *this = std::move(other);
 }
 
 /*! Destructor. */
-ResourceItem::~ResourceItem()
+ResourceItem::~ResourceItem() noexcept
 {
     if (m_str)
     {
         delete m_str;
         m_str = nullptr;
     }
+    m_rid = &rInvalidItemDescriptor;
 }
 
 /*! Returns true when a value has been set but not pushed upstream. */
@@ -692,7 +685,7 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
 }
 
 /*! Move assignment. */
-ResourceItem &ResourceItem::operator=(ResourceItem &&other)
+ResourceItem &ResourceItem::operator=(ResourceItem &&other) noexcept
 {
     // self assignment?
     if (this == &other)
@@ -1029,7 +1022,7 @@ void ResourceItem::inRule(int ruleHandle)
 }
 
 /*! Returns the rules handles in which the resource item is involved. */
-const std::vector<int> ResourceItem::rulesInvolved() const
+const std::vector<int> &ResourceItem::rulesInvolved() const
 {
     return m_rulesInvolved;
 }
@@ -1064,13 +1057,9 @@ Resource::Resource(const Resource &other) :
 }
 
 /*! Move constructor. */
-Resource::Resource(Resource &&other) :
-    lastStatePush(std::move(other.lastStatePush)),
-    lastAttrPush(std::move(other.lastAttrPush)),
-    m_prefix(other.m_prefix),
-    m_rItems(std::move(other.m_rItems))
+Resource::Resource(Resource &&other) noexcept
 {
-    other.m_prefix = RInvalidSuffix;
+    *this = std::move(other);
 }
 
 /*! Copy assignment. */
@@ -1087,7 +1076,7 @@ Resource &Resource::operator=(const Resource &other)
 }
 
 /*! Move assignment. */
-Resource &Resource::operator=(Resource &&other)
+Resource &Resource::operator=(Resource &&other) noexcept
 {
     if (this != &other)
     {

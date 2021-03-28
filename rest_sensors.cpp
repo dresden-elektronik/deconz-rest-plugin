@@ -799,6 +799,44 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 else if (rid.suffix == RConfigTempThreshold || rid.suffix == RConfigHumiThreshold)
                 {
                 }
+                else if (rid.suffix == RConfigLock)
+                {
+                    bool ok;
+
+                    if (map[pi.key()].type() == QVariant::Bool)
+                    {
+                        const bool lock = map[pi.key()].toBool();
+                        if (lock)
+                        {
+                            ok = addTaskDoorLockUnlock(task, 0x00 /*Lock*/);
+                        }
+                        else
+                        {
+                            ok = addTaskDoorLockUnlock(task, 0x01 /*UnLock*/);
+                        }
+                        if (ok)
+                        {
+                            if (item->setValue(lock))
+                            {
+                                rspItemState[QString("/sensors/%1/config/lock").arg(id)] = map["lock"];
+                                rspItem["success"] = rspItemState;
+                                updated = true;
+                            }
+                        }
+                        else
+                        {
+                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/lock").arg(id), QString("Command error, %1, for parameter, lock").arg(map[pi.key()].toString())));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
+                        }
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/lock").arg(id), QString("invalid value, %1, for parameter, lock").arg(val.toString())));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
                 else if (item->setValue(val))
                 {
                     // TODO: Fix bug
@@ -1409,9 +1447,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                     {
-                        QByteArray data = QByteArray("\x00", 1);
+                        QByteArray data;
                         QString modeSet = map[pi.key()].toString();
                         if (modeSet == "heat") { data = QByteArray("\x01", 1); }
+                        else if (modeSet == "off") { data = QByteArray("\x00", 1); }
                         else
                         {
                             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
