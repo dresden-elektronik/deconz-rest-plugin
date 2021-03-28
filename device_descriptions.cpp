@@ -386,7 +386,12 @@ static std::vector<DeviceDescription> readDeviceDescriptionFile(const QString &p
     QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &error);
     file.close();
 
-//    DBG_Printf(DBG_INFO, "failed to read device constants: %s, err: %s, offset: %d\n", qPrintable(path), qPrintable(error.errorString()), error.offset);
+    if (error.error != QJsonParseError::NoError)
+    {
+        DBG_Printf(DBG_INFO, "DDF: failed to read %s, err: %s, offset: %d\n", qPrintable(path), qPrintable(error.errorString()), error.offset);
+        return result;
+    }
+
     if (doc.isObject())
     {
         const auto ddf = parseDeviceDescriptionObject(doc.object());
