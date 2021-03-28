@@ -840,7 +840,7 @@
         "icasaRemoteMap": {
             "vendor": "iCasa",
             "doc": "Remotes",
-            "modelids": ["ICZB-RM11S", "ZGRC-KEY-012", "ZGRC-KEY-013", "RGBgenie ZB-5001"],
+            "modelids": ["ICZB-RM11S", "ZGRC-KEY-012", "ZGRC-KEY-013", "RGBgenie ZB-5001", "RGBgenie ZB-5004"],
             "map": [
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "1", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Move down (with on/off)"],
