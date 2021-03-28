@@ -9,18 +9,27 @@ class DeviceJsPrivate
 public:
     QJSEngine engine;
     QJSValue result;
-    JsResource *resourceWrapper = nullptr;
+    JsResource *jsResource = nullptr;
+    JsZclAttribute *jsZclAttribute = nullptr;
+    JsResourceItem *jsItem = nullptr;
 };
 
 DeviceJs::DeviceJs() :
     d(new DeviceJsPrivate)
 {
-
     d->engine.installExtensions(QJSEngine::ConsoleExtension);
-    d->resourceWrapper = new JsResource(&d->engine);
 
-    auto R = d->engine.newQObject(d->resourceWrapper);
-    d->engine.globalObject().setProperty("R", R);
+    d->jsResource = new JsResource(&d->engine);
+    auto jsR = d->engine.newQObject(d->jsResource);
+    d->engine.globalObject().setProperty("R", jsR);
+
+    d->jsZclAttribute = new JsZclAttribute(&d->engine);
+    auto jsAttr = d->engine.newQObject(d->jsZclAttribute);
+    d->engine.globalObject().setProperty("Attr", jsAttr);
+
+    d->jsItem = new JsResourceItem(&d->engine);
+    auto jsItem = d->engine.newQObject(d->jsItem);
+    d->engine.globalObject().setProperty("Item", jsItem);
 }
 
 DeviceJs::~DeviceJs() = default;
@@ -38,8 +47,7 @@ JsEvalResult DeviceJs::evaluate(const QString &expr)
 
 void DeviceJs::setResource(Resource *r)
 {
-    d->resourceWrapper->r = r;
-
+    d->jsResource->r = r;
 }
 
 void DeviceJs::setApsIndication(const deCONZ::ApsDataIndication &ind)
@@ -54,12 +62,12 @@ void DeviceJs::setZclFrame(const deCONZ::ZclFrame &zclFrame)
 
 void DeviceJs::setZclAttribute(const deCONZ::ZclAttribute &attr)
 {
-    Q_UNUSED(attr)
+    d->jsZclAttribute->attr = &attr;
 }
 
-void DeviceJs::setItem(const ResourceItem *item)
+void DeviceJs::setItem(ResourceItem *item)
 {
-    Q_UNUSED(item)
+    d->jsItem->item = item;
 }
 
 QVariant DeviceJs::result()
@@ -69,7 +77,8 @@ QVariant DeviceJs::result()
 
 void DeviceJs::reset()
 {
-    d->resourceWrapper->r = nullptr;
+    d->jsResource->r = nullptr;
+    d->jsZclAttribute->attr = nullptr;
     d->engine.collectGarbage();
 }
 

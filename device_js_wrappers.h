@@ -42,12 +42,26 @@ public:
     ~JsResourceItem();
 
 public Q_SLOTS:
-    QJSValue str() const;
     QVariant value() const;
     void setValue(const QVariant &val);
 
 Q_SIGNALS:
     void valueChanged();
+};
+
+class JsZclAttribute : public QObject
+{
+    Q_OBJECT
+
+    Q_PROPERTY(QVariant val READ value)
+
+public:
+    const deCONZ::ZclAttribute *attr = nullptr;
+
+    JsZclAttribute(QObject *parent = nullptr);
+
+public Q_SLOTS:
+    QVariant value() const;
 };
 
 #endif // DEVICE_JS_WRAPPERS_H

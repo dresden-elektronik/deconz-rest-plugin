@@ -412,7 +412,10 @@ bool DEV_ZclRead(Device *device, ResourceItem *item, deCONZ::ZclClusterId_t clus
     }
     if (item->parseParameters().empty())
     {
-        item->setParseParameters({QLatin1String("parseGenericAttribute/4"), sd->endpoint(), static_cast<quint16>(clusterId), static_cast<quint16>(attrId), QString("R.item('%1').val").arg(item->descriptor().suffix)});
+        item->setParseParameters({QLatin1String("parseGenericAttribute/4"), sd->endpoint(),
+                                  static_cast<quint16>(clusterId),
+                                  static_cast<quint16>(attrId),
+                                  "Item.val = Attr.val"});
     }
     auto readFunction = DA_GetReadFunction(item->readParameters());
 

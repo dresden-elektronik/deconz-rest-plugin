@@ -111,7 +111,7 @@ bool parseGenericAttribute4(Resource *r, ResourceItem *item, const deCONZ::ApsDa
                 {
                     const auto res = engine.result();
                     DBG_Printf(DBG_INFO, "expression: %s --> %s\n", qPrintable(expr), qPrintable(res.toString()));
-                    item->setValue(res, ResourceItem::SourceDevice);
+                    // item->setValue(res, ResourceItem::SourceDevice);
                     result = true;
                 }
                 else
