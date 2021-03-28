@@ -3739,7 +3739,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
         return;
     }
 
-    if (deCONZ::appArgumentNumeric("--dev-test-managed", 0) > 0)
+    if (DEV_TestManaged())
     {
         return;
     }

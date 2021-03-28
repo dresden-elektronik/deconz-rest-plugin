@@ -168,4 +168,6 @@ Resource *DEV_GetResource(const char *resource, const QString &identifier);
 Resource *DEV_AddResource(const Sensor &sensor);
 //Resource *DEV_AddResource(const LightNode &lightNode);
 
+bool DEV_TestManaged();
+
 #endif // DEVICE_H

@@ -13874,6 +13874,11 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
             return;
         }
 
+        if (DEV_TestManaged())
+        {
+            return;
+        }
+
         DBG_Printf(DBG_INFO_L2, "Node data %s profileId: 0x%04X, clusterId: 0x%04X\n", qPrintable(event.node()->address().toStringExt()), event.profileId(), event.clusterId());
 
         // filter for supported sensor clusters
@@ -19915,6 +19920,29 @@ void DeRestPluginPrivate::pollNextDevice()
 
     if (q_ptr && !q_ptr->pluginActive())
     {
+        return;
+    }
+
+    if (DEV_TestManaged())
+    {
+        static int devIter = 1;
+
+        const deCONZ::Node *node = nullptr;
+        deCONZ::ApsController *ctrl = deCONZ::ApsController::instance();
+
+        if (ctrl->getNode(devIter, &node) == 0)
+        {
+            devIter++;
+
+            auto *device = DEV_GetOrCreateDevice(this, plugin->m_devices, node->address().ext());
+            Q_ASSERT(device);
+            enqueueEvent(Event(device->prefix(), REventPoll, 0, device->key()));
+        }
+        else
+        {
+            devIter = 1;
+        }
+
         return;
     }
 
