@@ -39,7 +39,8 @@
                     "name": "attr/name"
                 },
                 {
-                    "name": "attr/swversion"
+                    "name": "attr/swversion",
+                    "parse": ["parseGenericAttribute/4", 1, "0x0000", "0x4000", "Item.val = Attr.val"],
                 },
                 {
                     "name": "attr/type"
@@ -49,10 +50,11 @@
                 },
                 {
                     "name": "state/on",
-                    "parse": ["parseGenericAttribute/4", 1, "0x0006", "0x0000", "R.item('state/on').val"]
+                    "parse": ["parseGenericAttribute/4", 1, "0x0006", "0x0000", "Item.val = Attr.val"]
                 },
                 {
-                    "name": "state/bri"
+                    "name": "state/bri",
+                    "parse": ["parseGenericAttribute/4", 1, "0x0008", "0x0000", "Item.val = Attr.val"]
                 },
                 {
                     "name": "state/xy"
