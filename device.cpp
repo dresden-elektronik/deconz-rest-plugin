@@ -183,6 +183,11 @@ void DEV_CheckItemChanges(Device *device, const Event &event)
     }
 }
 
+/*! #7 In this state the device is operational and runs sub states
+    In parallel.
+
+    IdleState : Bindings | ItemChange
+ */
 void DEV_IdleStateHandler(Device *device, const Event &event)
 {   
     if (event.what() == RAttrLastSeen || event.what() == REventPoll)
@@ -197,7 +202,7 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
     {
         device->setState(nullptr, StateLevel1);
     }
-    else if (event.resource() ==  device->prefix())
+    else if (event.resource() == device->prefix())
     {
         DBG_Printf(DBG_INFO, "DEV Idle event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
     }
@@ -417,7 +422,7 @@ bool DEV_ZclRead(Device *device, ResourceItem *item, deCONZ::ZclClusterId_t clus
     return false;
 }
 
-/*! #4 This state reads all common basic cluster attributes needed to match a DDF,
+/*! #5 This state reads all common basic cluster attributes needed to match a DDF,
     e.g. modelId, manufacturer name, application version, etc.
  */
 void DEV_BasicClusterStateHandler(Device *device, const Event &event)
@@ -639,7 +644,7 @@ static bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescriptio
     return subCount == description.subDevices.size();
 }
 
-/*! #5 This state checks if for the modelId a device description is available.
+/*! #6 This state checks if for the modelId a device description is available.
     In that case the device is initialised (or updated) based on the JSON description.
  */
 void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event)
