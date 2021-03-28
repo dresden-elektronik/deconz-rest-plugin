@@ -101,6 +101,8 @@ HEADERS  = bindings.h \
            device.h \
            device_access_fn.h \
            device_descriptions.h \
+           device_js.h \
+           device_js_wrappers.h \
            event.h \
            gateway.h \
            gateway_scanner.h \
@@ -135,6 +137,8 @@ SOURCES  = air_quality.cpp \
            device.cpp \
            device_access_fn.cpp \
            device_descriptions.cpp \
+           device_js.cpp \
+           device_js_wrappers.cpp \
            device_setup.cpp \
            diagnostics.cpp \
            discovery.cpp \

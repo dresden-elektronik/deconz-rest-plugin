@@ -190,7 +190,7 @@ void DEV_CheckItemChanges(Device *device, const Event &event)
  */
 void DEV_IdleStateHandler(Device *device, const Event &event)
 {   
-    if (event.what() == RAttrLastSeen || event.what() == REventPoll)
+    if (event.what() == RAttrLastSeen /*|| event.what() == REventPoll*/)
     {
          // don't print logs
     }
@@ -410,7 +410,7 @@ bool DEV_ZclRead(Device *device, ResourceItem *item, deCONZ::ZclClusterId_t clus
     }
     if (item->parseParameters().empty())
     {
-        item->setParseParameters({QLatin1String("parseGenericAttribute/4"), sd->endpoint(), static_cast<quint16>(clusterId), static_cast<quint16>(attrId), "$raw"});
+        item->setParseParameters({QLatin1String("parseGenericAttribute/4"), sd->endpoint(), static_cast<quint16>(clusterId), static_cast<quint16>(attrId), QString("R.item('%1').val").arg(item->descriptor().suffix)});
     }
     auto readFunction = DA_GetReadFunction(item->readParameters());
 
@@ -546,6 +546,18 @@ static Resource *DEV_InitSensorNodeFromDescription(Device *device, const DeviceD
     return r;
 }
 
+/*! V1 compatibility function to create LightsNode based on sub-device description.
+ */
+static Resource *DEV_InitLightNodeFromDescription(Device *device, const DeviceDescription::SubDevice &sub, const QString &uniqueId)
+{
+    Q_UNUSED(device)
+    Q_UNUSED(sub)
+
+    DBG_Printf(DBG_INFO, "DEV TODO create LightNode %s\n", qPrintable(uniqueId));
+
+    return nullptr;
+}
+
 /*! Creates and initialises sub-device Resources and ResourceItems if not already present.
 
     This function can replace database and joining device initialisation.
@@ -581,6 +593,7 @@ static bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescriptio
         else if (!rsub && sub.restApi == QLatin1String("/lights"))
         {
             // TODO create LightNode for compatibility with v1
+            rsub = DEV_InitLightNodeFromDescription(device, sub, uniqueId);
         }
         else
         {
@@ -921,4 +934,9 @@ Device *DEV_GetOrCreateDevice(QObject *parent, DeviceContainer &devices, DeviceK
     Q_ASSERT(d != devices.end());
 
     return d->second;
+}
+
+bool DEV_TestManaged()
+{
+    return (deCONZ::appArgumentNumeric("--dev-test-managed", 0) > 0);
 }

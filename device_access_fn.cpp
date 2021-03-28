@@ -8,9 +8,9 @@
  *
  */
 
-#include <QJSEngine>
 #include "device.h"
 #include "device_access_fn.h"
+#include "device_js.h"
 
 quint8 zclNextSequenceNumber(); // todo defined in de_web_plugin_private.h
 
@@ -28,8 +28,6 @@ quint8 zclNextSequenceNumber(); // todo defined in de_web_plugin_private.h
  */
 bool parseGenericAttribute4(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame)
 {
-    Q_UNUSED(r)
-
     bool result = false;
 
     if (zclFrame.commandId() != deCONZ::ZclReadAttributesResponseId && zclFrame.commandId() != deCONZ::ZclReportAttributesId)
@@ -98,55 +96,27 @@ bool parseGenericAttribute4(Resource *r, ResourceItem *item, const deCONZ::ApsDa
 
         if (attrId == item->attributeId())
         {
-            auto expr = item->parseParameters().back().toString();
+            const auto expr = item->parseParameters().back().toString();
 
-            if (expr.contains(QLatin1String("$old")) && dataType < deCONZ::ZclOctedString)
+            if (!expr.isEmpty())
             {
-                expr.replace("$old", QString::number(item->toNumber()));
-            }
+                DeviceJs engine;
+                engine.setResource(r);
+                engine.setItem(item);
+                engine.setZclAttribute(attr);
+                engine.setZclFrame(zclFrame);
+                engine.setApsIndication(ind);
 
-            if (expr == QLatin1String("$raw"))
-            {
-                if (item->setValue(attr.toVariant(), ResourceItem::SourceDevice))
+                if (engine.evaluate(expr) == JsEvalResult::Ok)
                 {
-                    result = true;
-                }
-
-                DBG_Printf(DBG_INFO, "RD cluster: 0x%04X / %04X --> %s\n", ind.clusterId(), attrId, qPrintable(attr.toString()));
-            }
-            else if (expr.contains(QLatin1String("$raw")) && dataType < deCONZ::ZclOctedString) // numeric data type
-            {
-                if ((dataType >= deCONZ::Zcl8BitData && dataType <= deCONZ::Zcl64BitUint)
-                     || dataType == deCONZ::Zcl8BitEnum || dataType == deCONZ::Zcl16BitEnum)
-                {
-                    expr.replace("$raw", QString::number(attr.numericValue().u64));
-                }
-                else if (dataType >= deCONZ::Zcl8BitInt && dataType <= deCONZ::Zcl64BitInt)
-                {
-                    expr.replace("$raw", QString::number(attr.numericValue().s64));
-                }
-                else if (dataType >= deCONZ::ZclSemiFloat && dataType <= deCONZ::ZclDoubleFloat)
-                {
-                    expr.replace("$raw", QString::number(attr.numericValue().real));
-                }
-                else
-                {
-                    return result;
-                }
-
-                QJSEngine engine;
-
-                const auto res = engine.evaluate(expr);
-
-                if (!res.isError())
-                {
-                    DBG_Printf(DBG_INFO, "expression: %s = %.0f\n", qPrintable(expr), res.toNumber());
-                    item->setValue(res.toVariant(), ResourceItem::SourceDevice);
+                    const auto res = engine.result();
+                    DBG_Printf(DBG_INFO, "expression: %s --> %s\n", qPrintable(expr), qPrintable(res.toString()));
+                    item->setValue(res, ResourceItem::SourceDevice);
                     result = true;
                 }
                 else
                 {
-                    DBG_Printf(DBG_INFO, "failed to evaluate expression: %s, err: %d\n", qPrintable(expr), res.errorType());
+                    DBG_Printf(DBG_INFO, "failed to evaluate expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
                 }
             }
             break;
@@ -240,7 +210,6 @@ bool readGenericAttribute4(const Resource *r, const ResourceItem *item, deCONZ::
             stream << attributes[i];
         }
     }
-
 
     { // ZCL frame
         QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
@@ -371,20 +340,23 @@ bool writeGenericAttribute6(const Resource *r, const ResourceItem *item, deCONZ:
                 return result;
             }
 
-            QJSEngine engine;
+// TODO rewrite for DeviceJs
+//            QJSEngine engine;
 
-            const auto res = engine.evaluate(expr);
+//            const auto res = engine.evaluate(expr);
 
-            if (!res.isError())
-            {
-                DBG_Printf(DBG_INFO, "expression: %s = %.0f\n", qPrintable(expr), res.toNumber());
-                attribute.setValue(res.toVariant());
-            }
-            else
-            {
-                DBG_Printf(DBG_INFO, "failed to evaluate expression: %s, err: %d\n", qPrintable(expr), res.errorType());
-                return result;
-            }
+//            if (!res.isError())
+//            {
+//                DBG_Printf(DBG_INFO, "expression: %s = %.0f\n", qPrintable(expr), res.toNumber());
+//                attribute.setValue(res.toVariant());
+//            }
+//            else
+//            {
+//                DBG_Printf(DBG_INFO, "failed to evaluate expression: %s, err: %d\n", qPrintable(expr), res.errorType());
+//                return result;
+//            }
+
+            return result;
         }
 
         QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);

@@ -14,7 +14,6 @@
 #include <QString>
 #include <QVariant>
 #include <vector>
-#include <memory>
 
 class Resource;
 class ResourceItem;
