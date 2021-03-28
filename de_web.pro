@@ -99,6 +99,7 @@ HEADERS  = bindings.h \
            de_web_plugin_private.h \
            de_web_widget.h \
            device.h \
+           device_access_fn.h \
            device_descriptions.h \
            event.h \
            gateway.h \
@@ -132,6 +133,7 @@ SOURCES  = air_quality.cpp \
            database.cpp \
            daylight.cpp \
            device.cpp \
+           device_access_fn.cpp \
            device_descriptions.cpp \
            device_setup.cpp \
            diagnostics.cpp \

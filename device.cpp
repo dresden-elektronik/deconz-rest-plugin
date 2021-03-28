@@ -1,5 +1,6 @@
 #include <QTimerEvent>
 #include "device.h"
+#include "device_access_fn.h"
 #include "device_descriptions.h"
 #include "event.h"
 #include "zdp.h"
