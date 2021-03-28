@@ -4,6 +4,8 @@
 #include "device_descriptions.h"
 #include "event.h"
 #include "zdp.h"
+#include "sensor.h"
+#include "light_node.h"
 
 // TODO move external declaration in de_web_plugin_private.h into utils.h
 int getFreeSensorId();
@@ -550,12 +552,31 @@ static Resource *DEV_InitSensorNodeFromDescription(Device *device, const DeviceD
  */
 static Resource *DEV_InitLightNodeFromDescription(Device *device, const DeviceDescription::SubDevice &sub, const QString &uniqueId)
 {
-    Q_UNUSED(device)
-    Q_UNUSED(sub)
+    LightNode lightNode;
 
-    DBG_Printf(DBG_INFO, "DEV TODO create LightNode %s\n", qPrintable(uniqueId));
+    lightNode.address().setExt(device->item(RAttrExtAddress)->toNumber());
+    lightNode.address().setNwk(device->item(RAttrNwkAddress)->toNumber());
+    lightNode.setModelId(device->item(RAttrModelId)->toString());
+    lightNode.setManufacturerName(device->item(RAttrManufacturerName)->toString());
+    lightNode.setManufacturerCode(device->node()->nodeDescriptor().manufacturerCode());
+    lightNode.setNode(const_cast<deCONZ::Node*>(device->node())); // TODO this is evil
 
-    return nullptr;
+    lightNode.item(RAttrType)->setValue(DeviceDescriptions::instance()->constantToString(sub.type));
+    lightNode.setUniqueId(uniqueId);
+    lightNode.setNode(const_cast<deCONZ::Node*>(device->node()));
+
+    lightNode.setId(QString::number(getFreeSensorId()));
+    lightNode.setName(QString("%1 %2").arg(lightNode.type(), lightNode.id()));
+
+    lightNode.setNeedSaveDatabase(true);
+    lightNode.rx();
+
+    auto *r = DEV_AddResource(lightNode);
+    Q_ASSERT(r);
+
+    device->addSubDevice(r);
+
+    return r;
 }
 
 /*! Creates and initialises sub-device Resources and ResourceItems if not already present.

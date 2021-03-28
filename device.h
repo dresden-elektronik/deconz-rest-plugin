@@ -13,6 +13,7 @@
 class Event;
 class Device;
 class Sensor;
+class LightNode;
 using DeviceKey = uint64_t; //! uniqueId for an Device, MAC address for physical devices
 typedef void (*DeviceStateHandler)(Device *, const Event &);
 
@@ -166,7 +167,7 @@ Resource *DEV_GetResource(const char *resource, const QString &identifier);
     Since Device class doesn't know anything about web plugin or testing code this is a free standing function which needs to be implemented else where.
 */
 Resource *DEV_AddResource(const Sensor &sensor);
-//Resource *DEV_AddResource(const LightNode &lightNode);
+Resource *DEV_AddResource(const LightNode &lightNode);
 
 bool DEV_TestManaged();
 

@@ -19797,6 +19797,14 @@ Resource *DEV_AddResource(const Sensor &sensor)
     return &plugin->sensors.back();
 }
 
+// Used by Device class when creating LightNodes.
+// Testing code uses a mocked implementation.
+Resource *DEV_AddResource(const LightNode &lightNode)
+{
+    plugin->nodes.push_back(lightNode);
+    return &plugin->nodes.back();
+}
+
 void DeRestPluginPrivate::pollSwUpdateStateTimerFired()
 {
     if (gwSwUpdateState != swUpdateState.transferring &&
