@@ -12,6 +12,12 @@
 #include "device_access_fn.h"
 #include "device_js.h"
 
+enum DA_Constants
+{
+    BroadcastEndpoint = 255, //! Accept incoming commands from any endpoint.
+    AutoEndpoint = 0 //! Use src/dst endpoint of the related Resource (uniqueid).
+};
+
 quint8 zclNextSequenceNumber(); // todo defined in de_web_plugin_private.h
 
 /*! A generic function to parse ZCL values from read/report commands.
@@ -43,7 +49,23 @@ bool parseGenericAttribute4(Resource *r, ResourceItem *item, const deCONZ::ApsDa
             return result;
         }
         bool ok;
-        const auto endpoint = item->parseParameters().at(1).toString().toUInt(&ok, 0);
+        auto endpoint = item->parseParameters().at(1).toString().toUInt(&ok, 0);
+
+        if (endpoint == AutoEndpoint)
+        {
+            // hack to get endpoint. todo find better solution
+            auto ls = r->item(RAttrUniqueId)->toString().split('-', QString::SkipEmptyParts);
+            if (ls.size() >= 2)
+            {
+                bool ok = false;
+                uint ep = ls[1].toUInt(&ok, 10);
+                if (ok && ep < BroadcastEndpoint)
+                {
+                    endpoint = ep;
+                }
+            }
+        }
+
         const auto clusterId = ok ? item->parseParameters().at(2).toString().toUInt(&ok, 0) : 0;
         const auto attributeId = ok ? item->parseParameters().at(3).toString().toUInt(&ok, 0) : 0;
 
@@ -61,7 +83,7 @@ bool parseGenericAttribute4(Resource *r, ResourceItem *item, const deCONZ::ApsDa
         return result;
     }
 
-    if (item->endpoint() < 0xff && item->endpoint() != ind.srcEndpoint())
+    if (item->endpoint() < BroadcastEndpoint && item->endpoint() != ind.srcEndpoint())
     {
         return result;
     }
