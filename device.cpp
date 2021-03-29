@@ -592,6 +592,35 @@ static Resource *DEV_InitLightNodeFromDescription(Device *device, const DeviceDe
     return r;
 }
 
+/*! Creates a ResourceItem if not exist, initialized with \p ddfItem content.
+ */
+ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item &ddfItem, Resource *rsub)
+{
+    Q_ASSERT(rsub);
+    Q_ASSERT(ddfItem.isValid());
+
+    auto *item = rsub->item(ddfItem.descriptor.suffix);
+    const auto uniqueId = rsub->item(RAttrUniqueId)->toString();
+
+    if (item)
+    {
+        DBG_Printf(DBG_INFO, "sub-device: %s, has item: %s\n", qPrintable(uniqueId), ddfItem.descriptor.suffix);
+    }
+    else
+    {
+        DBG_Printf(DBG_INFO, "sub-device: %s, create item: %s\n", qPrintable(uniqueId), ddfItem.descriptor.suffix);
+        item = rsub->addItem(ddfItem.descriptor.type, ddfItem.descriptor.suffix);
+        Q_ASSERT(item);
+
+        if (ddfItem.defaultValue.isValid())
+        {
+            item->setValue(ddfItem.defaultValue);
+        }
+    }
+
+    return item;
+}
+
 /*! Creates and initialises sub-device Resources and ResourceItems if not already present.
 
     This function can replace database and joining device initialisation.
@@ -633,49 +662,28 @@ static bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescriptio
 
         subCount++;
 
+        auto *mf = rsub->item(RAttrManufacturerName);
+        if (mf && mf->toString().isEmpty())
         {
-            auto *mf = rsub->item(RAttrManufacturerName);
-            if (mf && mf->toString().isEmpty())
-            {
-                mf->setValue(DeviceDescriptions::instance()->constantToString(description.manufacturer));
-            }
+            mf->setValue(DeviceDescriptions::instance()->constantToString(description.manufacturer));
         }
 
-        for (const auto &i : sub.items)
+        for (const auto &ddfItem : sub.items)
         {
-            Q_ASSERT(i.isValid());
-
-            auto *item = rsub->item(i.descriptor.suffix);
-
-            if (item)
-            {
-                DBG_Printf(DBG_INFO, "sub-device: %s, has item: %s\n", qPrintable(uniqueId), i.descriptor.suffix);
-            }
-            else
-            {
-                DBG_Printf(DBG_INFO, "sub-device: %s, create item: %s\n", qPrintable(uniqueId), i.descriptor.suffix);
-                item = rsub->addItem(i.descriptor.type, i.descriptor.suffix);
-                Q_ASSERT(item);
-
-                if (i.defaultValue.isValid())
-                {
-                    item->setValue(i.defaultValue);
-                }
-            }
-
+            auto *item = DEV_InitDeviceDescriptionItem(ddfItem, rsub);
             if (!item)
             {
                 continue;
             }
 
-            item->setParseParameters(i.parseParameters);
-            item->setReadParameters(i.readParameters);
-            item->setWriteParameters(i.writeParameters);
+            item->setParseParameters(ddfItem.parseParameters);
+            item->setReadParameters(ddfItem.readParameters);
+            item->setWriteParameters(ddfItem.writeParameters);
 
             if (item->descriptor().suffix == RConfigCheckin)
             {
                 StateChange stateChange(StateChange::StateWaitSync, SC_WriteZclAttribute, sub.uniqueId.at(1).toUInt());
-                stateChange.addTargetValue(RConfigCheckin, i.defaultValue);
+                stateChange.addTargetValue(RConfigCheckin, ddfItem.defaultValue);
                 stateChange.setChangeTimeoutMs(1000 * 60 * 60);
                 rsub->addStateChange(stateChange);
             }
