@@ -18,7 +18,7 @@ public:
     class Item
     {
     public:
-        bool isValid() const { return descriptor.isValid(); }
+        bool isValid() const { return !name.isEmpty() && descriptor.isValid(); }
         QString name;
         ResourceItemDescriptor descriptor;
         std::vector<QVariant> parseParameters;
@@ -64,7 +64,6 @@ Q_SIGNALS:
 private:
     Q_DECLARE_PRIVATE_D(d_ptr2, DeviceDescriptions)
     DeviceDescriptionsPrivate *d_ptr2 = nullptr;
-
 };
 
 #endif // DEVICEDESCRIPTIONS_H

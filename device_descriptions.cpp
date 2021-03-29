@@ -8,18 +8,22 @@
 #include "device_descriptions.h"
 #include "resource.h"
 
-DeviceDescriptions *_instance = nullptr;
+static DeviceDescriptions *_instance = nullptr;
 
 class DeviceDescriptionsPrivate
 {
 public:
     std::map<QString,QString> constants;
+    std::vector<DeviceDescription::Item> genericItems;
     std::vector<DeviceDescription> descriptions;
 };
 
-static bool readDeviceConstantsJson(const QString &path, std::map<QString,QString> *constants);
-static std::vector<DeviceDescription> readDeviceDescriptionFile(const QString &path);
+static bool DDF_ReadConstantsJson(const QString &path, std::map<QString,QString> *constants);
+static DeviceDescription::Item DDF_ReadItemFile(const QString &path);
+static std::vector<DeviceDescription> DDF_ReadDeviceFile(const QString &path);
+static DeviceDescription DDF_MergeGenericItems(const std::vector<DeviceDescription::Item> &genericItems, const DeviceDescription &ddf);
 
+/*! Constructor. */
 DeviceDescriptions::DeviceDescriptions(QObject *parent) :
     QObject(parent),
     d_ptr2(new DeviceDescriptionsPrivate)
@@ -27,6 +31,7 @@ DeviceDescriptions::DeviceDescriptions(QObject *parent) :
     _instance = this;
 }
 
+/*! Destructor. */
 DeviceDescriptions::~DeviceDescriptions()
 {
     Q_ASSERT(_instance == this);
@@ -36,12 +41,17 @@ DeviceDescriptions::~DeviceDescriptions()
     d_ptr2 = nullptr;
 }
 
+/*! Returns the DeviceDescriptions singleton instance.
+ */
 DeviceDescriptions *DeviceDescriptions::instance()
 {
     Q_ASSERT(_instance);
     return _instance;
 }
 
+/*! Get the DDF object for a \p resource.
+    \returns The DDF object, DeviceDescription::isValid() to check for success.
+ */
 DeviceDescription DeviceDescriptions::get(const Resource *resource)
 {
     Q_ASSERT(resource);
@@ -64,6 +74,9 @@ DeviceDescription DeviceDescriptions::get(const Resource *resource)
     return {};
 }
 
+/*! Turns a string constant into it's value.
+    \returns The constant value on success, or the constant itself on error.
+ */
 QString DeviceDescriptions::constantToString(const QString &constant) const
 {
     Q_D(const DeviceDescriptions);
@@ -78,6 +91,8 @@ QString DeviceDescriptions::constantToString(const QString &constant) const
     return constant;
 }
 
+/*! Reads all DDF related files.
+ */
 void DeviceDescriptions::readAll()
 {
     Q_D(DeviceDescriptions);
@@ -86,6 +101,7 @@ void DeviceDescriptions::readAll()
                     QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
 
     std::vector<DeviceDescription> descriptions;
+    std::vector<DeviceDescription::Item> genericItems;
 
     while (it.hasNext())
     {
@@ -94,7 +110,7 @@ void DeviceDescriptions::readAll()
         if (it.fileName() == QLatin1String("constants.json"))
         {
             std::map<QString,QString> constants;
-            if (readDeviceConstantsJson(deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation) + QLatin1String("/devices/generic/constants.json"), &d->constants))
+            if (DDF_ReadConstantsJson(deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation) + QLatin1String("/devices/generic/constants.json"), &d->constants))
             {
                 d->constants = constants;
             }
@@ -103,19 +119,42 @@ void DeviceDescriptions::readAll()
         {  }
         else if (it.fileName().endsWith(QLatin1String(".json")))
         {
-            DBG_Printf(DBG_INFO, "CHK %s\n", qPrintable(it.fileName()));
-            std::vector<DeviceDescription> result = readDeviceDescriptionFile(it.filePath());
-            std::move(result.begin(), result.end(), std::back_inserter(descriptions));
+            if (it.filePath().contains(QLatin1String("generic/items/")))
+            {
+                const auto result = DDF_ReadItemFile(it.filePath());
+                if (result.isValid())
+                {
+                    genericItems.push_back(std::move(result));
+                }
+            }
+            else
+            {
+                DBG_Printf(DBG_INFO, "CHK %s\n", qPrintable(it.fileName()));
+                std::vector<DeviceDescription> result = DDF_ReadDeviceFile(it.filePath());
+                std::move(result.begin(), result.end(), std::back_inserter(descriptions));
+            }
         }
+    }
+
+    if (!genericItems.empty())
+    {
+        d->genericItems = genericItems;
     }
 
     if (!descriptions.empty())
     {
         d->descriptions = descriptions;
+
+        for (auto &ddf : d->descriptions)
+        {
+            ddf = DDF_MergeGenericItems(d->genericItems, ddf);
+        }
     }
 }
 
-static bool readDeviceConstantsJson(const QString &path, std::map<QString,QString> *constants)
+/*! Reads constants.json file and places them into \p constants map.
+ */
+static bool DDF_ReadConstantsJson(const QString &path, std::map<QString,QString> *constants)
 {
     Q_ASSERT(constants);
 
@@ -159,11 +198,21 @@ static bool readDeviceConstantsJson(const QString &path, std::map<QString,QStrin
     return false;
 }
 
-static DeviceDescription::Item parseDeviceDescriptionItem(const QJsonObject &obj)
+/*! Parses an item object.
+    \returns A parsed item, use DeviceDescription::Item::isValid() to check for success.
+ */
+static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
 {
     DeviceDescription::Item result;
 
-    result.name = obj.value(QLatin1String("name")).toString();
+    if (obj.contains(QLatin1String("name")))
+    {
+        result.name = obj.value(QLatin1String("name")).toString();
+    }
+    else if (obj.contains(QLatin1String("id"))) // generic/item TODO align name/id?
+    {
+        result.name = obj.value(QLatin1String("id")).toString();
+    }
 
     if (result.name.isEmpty())
     {
@@ -172,6 +221,19 @@ static DeviceDescription::Item parseDeviceDescriptionItem(const QJsonObject &obj
     else if (getResourceItemDescriptor(result.name, result.descriptor))
     {
         DBG_Printf(DBG_INFO, "DDF: loaded resource item descriptor: %s\n", result.descriptor.suffix);
+
+        if (obj.contains(QLatin1String("access")))
+        {
+            const auto access = obj.value(QLatin1String("access")).toString();
+            if (access == "R")
+            {
+                result.descriptor.access = ResourceItemDescriptor::Access::ReadOnly;
+            }
+            else if (access == "RW")
+            {
+                result.descriptor.access = ResourceItemDescriptor::Access::ReadWrite;
+            }
+        }
 
         const auto parse = obj.value(QLatin1String("parse"));
         if (parse.isArray())
@@ -216,7 +278,10 @@ static DeviceDescription::Item parseDeviceDescriptionItem(const QJsonObject &obj
     return result;
 }
 
-static DeviceDescription::SubDevice parseDeviceDescriptionSubDevice(const QJsonObject &obj)
+/*! Parses a sub device in a DDF object "subdevices" array.
+    \returns The sub device object, use DeviceDescription::SubDevice::isValid() to check for sucess.
+ */
+static DeviceDescription::SubDevice DDF_ParseSubDevice(const QJsonObject &obj)
 {
     DeviceDescription::SubDevice result;
 
@@ -295,7 +360,7 @@ static DeviceDescription::SubDevice parseDeviceDescriptionSubDevice(const QJsonO
         {
             if (i.isObject())
             {
-                const auto item = parseDeviceDescriptionItem(i.toObject());
+                const auto item = DDF_ParseItem(i.toObject());
 
                 if (item.isValid())
                 {
@@ -312,7 +377,11 @@ static DeviceDescription::SubDevice parseDeviceDescriptionSubDevice(const QJsonO
     return result;
 }
 
-static QStringList parseDeviceDescriptionModelids(const QJsonObject &obj)
+/*! Parses an model ids in DDF JSON object.
+    The model id can be a string or array of strings.
+    \returns List of parsed model ids.
+ */
+static QStringList DDF_ParseModelids(const QJsonObject &obj)
 {
     QStringList result;
     const auto modelId = obj.value(QLatin1String("modelid"));
@@ -336,7 +405,10 @@ static QStringList parseDeviceDescriptionModelids(const QJsonObject &obj)
     return result;
 }
 
-static DeviceDescription parseDeviceDescriptionObject(const QJsonObject &obj)
+/*! Parses an DDF JSON object.
+    \returns DDF object, use DeviceDescription::isValid() to check for success.
+ */
+static DeviceDescription DDF_ParseDeviceObject(const QJsonObject &obj)
 {
     DeviceDescription result;
 
@@ -354,7 +426,7 @@ static DeviceDescription parseDeviceDescriptionObject(const QJsonObject &obj)
     }
 
     result.manufacturer = obj.value(QLatin1String("manufacturer")).toString();
-    result.modelIds = parseDeviceDescriptionModelids(obj);
+    result.modelIds = DDF_ParseModelids(obj);
     result.product = obj.value(QLatin1String("product")).toString();
 
     const auto keys = obj.keys();
@@ -368,7 +440,7 @@ static DeviceDescription parseDeviceDescriptionObject(const QJsonObject &obj)
     {
         if (i.isObject())
         {
-            const auto sub = parseDeviceDescriptionSubDevice(i.toObject());
+            const auto sub = DDF_ParseSubDevice(i.toObject());
             if (sub.isValid())
             {
                 result.subDevices.push_back(sub);
@@ -379,7 +451,44 @@ static DeviceDescription parseDeviceDescriptionObject(const QJsonObject &obj)
     return result;
 }
 
-static std::vector<DeviceDescription> readDeviceDescriptionFile(const QString &path)
+/*! Reads an item file under (generic/items/).
+    \returns A parsed item, use DeviceDescription::Item::isValid() to check for success.
+ */
+static DeviceDescription::Item DDF_ReadItemFile(const QString &path)
+{
+    QFile file(path);
+    if (!file.exists())
+    {
+        return { };
+    }
+
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        return { };
+    }
+
+    QJsonParseError error;
+    QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &error);
+    file.close();
+
+    if (error.error != QJsonParseError::NoError)
+    {
+        DBG_Printf(DBG_INFO, "DDF: failed to read %s, err: %s, offset: %d\n", qPrintable(path), qPrintable(error.errorString()), error.offset);
+        return { };
+    }
+
+    if (doc.isObject())
+    {
+        return DDF_ParseItem(doc.object());
+    }
+
+    return { };
+}
+
+/*! Reads a DDF file which may contain one or more device descriptions.
+    \returns Vector of parsed DDF objects.
+ */
+static std::vector<DeviceDescription> DDF_ReadDeviceFile(const QString &path)
 {
     std::vector<DeviceDescription> result;
 
@@ -406,7 +515,7 @@ static std::vector<DeviceDescription> readDeviceDescriptionFile(const QString &p
 
     if (doc.isObject())
     {
-        const auto ddf = parseDeviceDescriptionObject(doc.object());
+        const auto ddf = DDF_ParseDeviceObject(doc.object());
         if (ddf.isValid())
         {
             result.push_back(ddf);
@@ -419,11 +528,46 @@ static std::vector<DeviceDescription> readDeviceDescriptionFile(const QString &p
         {
             if (i.isObject())
             {
-                const auto ddf = parseDeviceDescriptionObject(i.toObject());
+                const auto ddf = DDF_ParseDeviceObject(i.toObject());
                 if (ddf.isValid())
                 {
                     result.push_back(ddf);
                 }
+            }
+        }
+    }
+
+    return result;
+}
+
+/*! Merge common properties like "read", "parse" and "write" functions from generic items into DDF items.
+    Only properties which are already defined in the DDF file won't be overwritten.
+
+    \param genericItems - generic items used as source
+    \param ddf - DDF object with unmerged items
+    \returns The merged DDF object.
+ */
+static DeviceDescription DDF_MergeGenericItems(const std::vector<DeviceDescription::Item> &genericItems, const DeviceDescription &ddf)
+{
+    auto result = ddf;
+
+    for (auto &sub : result.subDevices)
+    {
+        for (auto &item : sub.items)
+        {
+            const auto genItem = std::find_if(genericItems.cbegin(), genericItems.cend(),
+                                              [&item](const DeviceDescription::Item &i){ return i.name == item.name; });
+            if (genItem == genericItems.cend())
+            {
+                continue;
+            }
+
+            if (item.parseParameters.empty()) { item.parseParameters = genItem->parseParameters; }
+            if (item.readParameters.empty()) { item.readParameters = genItem->readParameters; }
+            if (item.writeParameters.empty()) { item.writeParameters = genItem->writeParameters; }
+            if (item.descriptor.access == ResourceItemDescriptor::Access::Unknown)
+            {
+                item.descriptor.access = genItem->descriptor.access;
             }
         }
     }
