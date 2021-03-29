@@ -249,7 +249,12 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
         }
         else
         {
-            zdpSendNodeDescriptorReq(device->item(RAttrNwkAddress)->toNumber(), deCONZ::ApsController::instance());
+            auto zdpResult = ZDP_NodeDescriptorReq(device->item(RAttrNwkAddress)->toNumber(), deCONZ::ApsController::instance());
+            if (zdpResult.isEnqueued)
+            {
+
+            }
+
             device->startStateTimer(MinMacPollRxOn);
         }
     }
@@ -283,7 +288,7 @@ void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event)
         }
         else
         {
-            zdpSendActiveEndpointsReq(device->item(RAttrNwkAddress)->toNumber(), deCONZ::ApsController::instance());
+            ZDP_ActiveEndpointsReq(device->item(RAttrNwkAddress)->toNumber(), deCONZ::ApsController::instance());
             device->startStateTimer(MinMacPollRxOn);
         }
     }
@@ -329,7 +334,7 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
         }
         else
         {
-            zdpSendSimpleDescriptorReq(device->item(RAttrNwkAddress)->toNumber(), needFetchEp, deCONZ::ApsController::instance());
+            ZDP_SimpleDescriptorReq(device->item(RAttrNwkAddress)->toNumber(), needFetchEp, deCONZ::ApsController::instance());
             device->startStateTimer(MinMacPollRxOn);
         }
     }
