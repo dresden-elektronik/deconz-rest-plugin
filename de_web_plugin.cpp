@@ -15678,11 +15678,16 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
         stream >> nwk;
         stream >> ext;
         stream >> macCapabilities;
+
+        if (stream.status() == QDataStream::ReadPastEnd)
+        {
+            return; // invalid
+        }
     }
 
     auto *device = DEV_GetOrCreateDevice(this, m_devices, ext);
     Q_ASSERT(device);
-    enqueueEvent(Event(device->prefix(), REventDeviceAnnounce, macCapabilities, device->key()));
+    enqueueEvent(Event(device->prefix(), REventDeviceAnnounce, int(macCapabilities), device->key()));
 
     for (; i != end; ++i)
     {
