@@ -68,11 +68,11 @@ int RestDevices::getAllDevices(const ApiRequest &req, ApiResponse &rsp)
 
     rsp.httpStatus = HttpStatusOk;
 
-    for (const auto &d : plugin->m_devices)
+    for (const Device *d : plugin->m_devices)
     {
-        if (d.second->node()) // for now only physical devices
+        if (d) // for now only physical devices
         {
-            rsp.list.push_back(d.second->item(RAttrUniqueId)->toString());
+            rsp.list.push_back(d->item(RAttrUniqueId)->toString());
         }
     }
 

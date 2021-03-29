@@ -943,11 +943,11 @@ std::vector<Resource *> Device::subDevices() const
 
 Device *DEV_GetDevice(DeviceContainer &devices, DeviceKey key)
 {
-    auto d = devices.find(key);
+    auto d = std::find_if(devices.begin(), devices.end(), [key](Device *device){ return device->key() == key; });
 
     if (d != devices.end())
     {
-        return d->second;
+        return *d;
     }
 
     return nullptr;
@@ -956,18 +956,17 @@ Device *DEV_GetDevice(DeviceContainer &devices, DeviceKey key)
 Device *DEV_GetOrCreateDevice(QObject *parent, DeviceContainer &devices, DeviceKey key)
 {
     Q_ASSERT(key != 0);
-    auto d = devices.find(key);
+    auto d = std::find_if(devices.begin(), devices.end(), [key](Device *device){ return device->key() == key; });
 
     if (d == devices.end())
     {
-        auto res = devices.insert({key, new Device(key, parent)});
-        d = res.first;
-        Q_ASSERT(d->second);
+        devices.push_back(new Device(key, parent));
+        return devices.back();
     }
 
     Q_ASSERT(d != devices.end());
 
-    return d->second;
+    return *d;
 }
 
 /*! Is used to test full Device control over: Device and sub-device creation, read, write, parse of Zigbee commands.

@@ -144,7 +144,7 @@ private:
     bool m_managed = false; //! a managed device doesn't rely on legacy implementation of polling etc.
 };
 
-using DeviceContainer = std::unordered_map<DeviceKey, Device*>;
+using DeviceContainer = std::vector<Device*>;
 
 /*! Returns a device for a given \p key.
 
