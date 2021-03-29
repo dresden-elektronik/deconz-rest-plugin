@@ -12,12 +12,6 @@
 #define DEVICE_H
 
 #include <QObject>
-#include <QBasicTimer>
-#include <QElapsedTimer>
-#include <array>
-#include <unordered_map>
-#include <tuple>
-#include <deconz.h>
 #include "resource.h"
 
 class Event;

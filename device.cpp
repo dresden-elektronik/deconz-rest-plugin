@@ -8,7 +8,12 @@
  *
  */
 
+#include <QBasicTimer>
+#include <QElapsedTimer>
 #include <QTimerEvent>
+#include <array>
+#include <tuple>
+#include <deconz.h>
 #include "device.h"
 #include "device_access_fn.h"
 #include "device_descriptions.h"
