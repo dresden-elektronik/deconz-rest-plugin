@@ -31,6 +31,8 @@ void DeRestPluginPrivate::eventQueueTimerFired()
         handleGroupEvent(e);
     }
 
+    emit eventNotify(e);
+
     if (e.deviceKey() != 0)
     {
         auto *device = DEV_GetOrCreateDevice(this, m_devices, e.deviceKey());

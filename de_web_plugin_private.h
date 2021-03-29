@@ -1265,6 +1265,9 @@ public:
     bool importConfiguration();
     bool resetConfiguration(bool resetGW, bool deleteDB);
 
+Q_SIGNALS:
+    void eventNotify(const Event&);
+
 public Q_SLOTS:
     Resource *getResource(const char *resource, const QString &id = QString());
     void announceUpnp();
