@@ -89,19 +89,25 @@ enum DEV_StateLevel {
     have a different configuration between devices. All this class sees is a state/temperature item or more precisely
     — just a ResouceItem in a certain state.
  */
+
+class DevicePrivate;
+
 class Device : public QObject,
                public Resource
 {
     Q_OBJECT
+
 public:
+    DevicePrivate *d = nullptr; //! Public Pimpl pointer so that free functions in device.cpp can use it.
+
     Device() = delete;
     Device(const Device &) = delete;
     explicit Device(DeviceKey key, QObject *parent = nullptr);
+    ~Device();
     void addSubDevice(Resource *sub);
-    DeviceKey key() const { return m_deviceKey; }
-    const deCONZ::Node *node() const { return m_node; }
-    bool managed() const { return m_managed; }
-
+    DeviceKey key() const;
+    const deCONZ::Node *node() const;
+    bool managed() const;
     void handleEvent(const Event &event, DEV_StateLevel level = StateLevel0);
     void setState(DeviceStateHandler state, DEV_StateLevel level = StateLevel0);
     void startStateTimer(int IntervalMs);
@@ -109,39 +115,10 @@ public:
     void timerEvent(QTimerEvent *event) override;
     qint64 lastAwakeMs() const;
     bool reachable() const;
-
     std::vector<Resource*> subDevices() const;
-
-    // following handlers need access to private members (friend functions)
-    friend void DEV_InitStateHandler(Device *device, const Event &event);
-    friend void DEV_IdleStateHandler(Device *device, const Event &event);
-    friend void DEV_BindingHandler(Device *device, const Event &event);
-    friend void DEV_BindingTableVerifyHandler(Device *device, const Event &event);
 
 Q_SIGNALS:
     void eventNotify(const Event&); //! The device emits an event, which needs to be enqueued in a higher layer.
-
-private:
-    /*! sub-devices are not yet referenced via pointers since these may become dangling.
-        This is a helper to query the actual sub-device Resource* on demand.
-
-        {uniqueid, (RSensors | RLights)}
-    */
-    std::vector<std::tuple<QString, const char*>> m_subDevices;
-    const deCONZ::Node *m_node = nullptr; //! a reference to the deCONZ core node
-    DeviceKey m_deviceKey = 0; //! for physical devices this is the MAC address
-
-    /*! The currently active state handler function(s).
-        Indexes >0 represent sub states of StateLevel0 running in parallel.
-    */
-    std::array<DeviceStateHandler, 2> m_state{0};
-
-    QBasicTimer m_timer; //! internal single shot timer
-    QElapsedTimer m_awake; //! time to track when an end-device was last awake
-    QElapsedTimer m_bindingVerify; //! time to track last binding table verification
-    size_t m_bindingIter = 0;
-    bool m_mgmtBindSupported = false;
-    bool m_managed = false; //! a managed device doesn't rely on legacy implementation of polling etc.
 };
 
 using DeviceContainer = std::vector<Device*>;
@@ -174,7 +151,8 @@ Device *DEV_GetOrCreateDevice(QObject *parent, DeviceContainer &devices, DeviceK
 Resource *DEV_GetResource(const char *resource, const QString &identifier);
 
 /*! Overloads to add specific resources in higher layer.
-    Since Device class doesn't know anything about web plugin or testing code this is a free standing function which needs to be implemented in the higher layer.
+    Since Device class doesn't know anything about web plugin or testing code,
+    this is a free standing function which needs to be implemented in the higher layer.
 */
 Resource *DEV_AddResource(const Sensor &sensor);
 Resource *DEV_AddResource(const LightNode &lightNode);

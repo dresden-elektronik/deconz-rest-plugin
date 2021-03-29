@@ -71,6 +71,32 @@ Operating --> Init : Not Reachable
 
 constexpr int MinMacPollRxOn = 8000; // 7680 ms + some space for timeout
 
+class DevicePrivate
+{
+public:
+    /*! sub-devices are not yet referenced via pointers since these may become dangling.
+        This is a helper to query the actual sub-device Resource* on demand.
+
+        {uniqueid, (RSensors | RLights)}
+    */
+    std::vector<std::tuple<QString, const char*>> subDevices;
+    const deCONZ::Node *node = nullptr; //! a reference to the deCONZ core node
+    DeviceKey deviceKey = 0; //! for physical devices this is the MAC address
+
+    /*! The currently active state handler function(s).
+        Indexes >0 represent sub states of StateLevel0 running in parallel.
+    */
+    std::array<DeviceStateHandler, 2> state{0};
+
+    QBasicTimer timer; //! internal single shot timer
+    QElapsedTimer awake; //! time to track when an end-device was last awake
+    QElapsedTimer bindingVerify; //! time to track last binding table verification
+    size_t bindingIter = 0;
+    bool mgmtBindSupported = false;
+    bool managed = false; //! a managed device doesn't rely on legacy implementation of polling etc.
+};
+
+
 /*! Returns deCONZ core node for a given \p extAddress.
  */
 const deCONZ::Node *DEV_GetCoreNode(uint64_t extAddress)
@@ -132,7 +158,7 @@ void DEV_InitStateHandler(Device *device, const Event &event)
         // lazy reference to deCONZ::Node
         if (!device->node())
         {
-            device->m_node = DEV_GetCoreNode(device->key());
+            device->d->node = DEV_GetCoreNode(device->key());
         }
 
         if (device->node())
@@ -693,7 +719,6 @@ static bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescriptio
                 rsub->addStateChange(stateChange);
             }
         }
-
     }
 
     return subCount == description.subDevices.size();
@@ -746,6 +771,8 @@ ConfigReporting --> ReadReportConfig : Error
 
 void DEV_BindingHandler(Device *device, const Event &event)
 {
+    DevicePrivate *d = device->d;
+
     if (event.what() == REventStateEnter)
     {
         DBG_Printf(DBG_INFO, "DEV Binding enter %s/0x%016llX\n", event.resource(), event.deviceKey());
@@ -753,7 +780,7 @@ void DEV_BindingHandler(Device *device, const Event &event)
 
     if (event.what() == REventPoll || event.what() == REventAwake)
     {
-        if (!device->m_bindingVerify.isValid() || device->m_bindingVerify.elapsed() > (1000 * 60 * 5))
+        if (!d->bindingVerify.isValid() || d->bindingVerify.elapsed() > (1000 * 60 * 5))
         {
             DBG_Printf(DBG_INFO, "DEV Binding verify bindings %s/0x%016llX\n", event.resource(), event.deviceKey());
         }
@@ -762,11 +789,11 @@ void DEV_BindingHandler(Device *device, const Event &event)
     {
         if (event.num() == deCONZ::ZdpSuccess)
         {
-            device->m_mgmtBindSupported = true;
+            d->mgmtBindSupported = true;
         }
         else if (event.num() == deCONZ::ZdpNotSupported)
         {
-            device->m_mgmtBindSupported = false;
+            d->mgmtBindSupported = false;
         }
     }
     else
@@ -774,26 +801,28 @@ void DEV_BindingHandler(Device *device, const Event &event)
         return;
     }
 
-    device->m_bindingIter = 0;
+    d->bindingIter = 0;
     device->setState(DEV_BindingTableVerifyHandler, StateLevel1);
     DEV_EnqueueEvent(device, REventBindingTick);
 }
 
 void DEV_BindingTableVerifyHandler(Device *device, const Event &event)
 {
+    DevicePrivate *d = device->d;
+
     if (event.what() != REventBindingTick)
     {
 
     }
-    else if (device->m_bindingIter >= device->node()->bindingTable().size())
+    else if (d->bindingIter >= device->node()->bindingTable().size())
     {
-        device->m_bindingVerify.start();
+        d->bindingVerify.start();
         device->setState(DEV_BindingHandler, StateLevel1);
     }
     else
     {
         const auto now = QDateTime::currentMSecsSinceEpoch();
-        const auto &bnd = *(device->node()->bindingTable().const_begin() + device->m_bindingIter);
+        const auto &bnd = *(device->node()->bindingTable().const_begin() + d->bindingIter);
         const auto dt = bnd.confirmedMsSinceEpoch() > 0 ? (now - bnd.confirmedMsSinceEpoch()) / 1000: -1;
 
         if (bnd.dstAddressMode() == deCONZ::ApsExtAddress)
@@ -805,7 +834,7 @@ void DEV_BindingTableVerifyHandler(Device *device, const Event &event)
             DBG_Printf(DBG_INFO, "BND 0x%016llX cl: 0x%04X, dstAddrmode: %u, group: 0x%04X, dstEp: 0x%02X, dt: %lld seconds\n", bnd.srcAddress(), bnd.clusterId(), bnd.dstAddressMode(), bnd.dstAddress().group(), bnd.dstEndpoint(), dt);
         }
 
-        device->m_bindingIter++;
+        d->bindingIter++;
         DEV_EnqueueEvent(device, REventBindingTick);
     }
 }
@@ -813,9 +842,11 @@ void DEV_BindingTableVerifyHandler(Device *device, const Event &event)
 Device::Device(DeviceKey key, QObject *parent) :
     QObject(parent),
     Resource(RDevices),
-    m_deviceKey(key)
+    d(new DevicePrivate)
 {
     Q_ASSERT(parent);
+    d->deviceKey = key;
+    d->managed = DEV_TestManaged();
     connect(this, SIGNAL(eventNotify(Event)), parent, SLOT(enqueueEvent(Event)));
     addItem(DataTypeBool, RStateReachable);
     addItem(DataTypeUInt64, RAttrExtAddress);
@@ -829,11 +860,13 @@ Device::Device(DeviceKey key, QObject *parent) :
     static int initTimer = 1000;
     startStateTimer(initTimer);
     initTimer += 300; // hack for the first round init
+}
 
-    if (deCONZ::appArgumentNumeric("--dev-test-managed", 0) > 0)
-    {
-        m_managed = true;
-    }
+Device::~Device()
+{
+    Q_ASSERT(d);
+    delete d;
+    d = nullptr;
 }
 
 void Device::addSubDevice(Resource *sub)
@@ -844,40 +877,55 @@ void Device::addSubDevice(Resource *sub)
 
     sub->setParentResource(this);
 
-    for (const auto &s : m_subDevices)
+    for (const auto &s : d->subDevices)
     {
         if (std::get<0>(s) == uniqueId)
             return; // already registered
     }
 
-    m_subDevices.push_back({uniqueId, sub->prefix()});
+    d->subDevices.push_back({uniqueId, sub->prefix()});
+}
+
+DeviceKey Device::key() const
+{
+    return d->deviceKey;
+}
+
+const deCONZ::Node *Device::node() const
+{
+    return d->node;
+}
+
+bool Device::managed() const
+{
+    return d->managed;
 }
 
 void Device::handleEvent(const Event &event, DEV_StateLevel level)
 {
     if (event.what() == REventAwake && level == StateLevel0)
     {
-        m_awake.start();
+        d->awake.start();
     }
 
-    if (m_state[level])
+    if (d->state[level])
     {
-        m_state[level](this, event);
+        d->state[level](this, event);
     }
 }
 
 void Device::setState(DeviceStateHandler state, DEV_StateLevel level)
 {
-    if (m_state[level] != state)
+    if (d->state[level] != state)
     {
-        if (m_state[level])
+        if (d->state[level])
         {
-            m_state[level](this, Event(prefix(), REventStateLeave, level, key()));
+            d->state[level](this, Event(prefix(), REventStateLeave, level, key()));
         }
 
-        m_state[level] = state;
+        d->state[level] = state;
 
-        if (m_state[level])
+        if (d->state[level])
         {
             if (level == StateLevel0)
             {
@@ -887,7 +935,7 @@ void Device::setState(DeviceStateHandler state, DEV_StateLevel level)
             else
             {
                 // invoke sub-states directly
-                m_state[level](this, Event(prefix(), REventStateEnter, level, key()));
+                d->state[level](this, Event(prefix(), REventStateEnter, level, key()));
             }
         }
     }
@@ -895,35 +943,35 @@ void Device::setState(DeviceStateHandler state, DEV_StateLevel level)
 
 void Device::startStateTimer(int IntervalMs)
 {
-    m_timer.start(IntervalMs, this);
+    d->timer.start(IntervalMs, this);
 }
 
 void Device::stopStateTimer()
 {
-    m_timer.stop();
+    d->timer.stop();
 }
 
 void Device::timerEvent(QTimerEvent *event)
 {
-    if (event->timerId() == m_timer.timerId())
+    if (event->timerId() == d->timer.timerId())
     {
-        m_timer.stop(); // single shot
-        m_state[StateLevel0](this, Event(prefix(), REventStateTimeout, 0, key()));
+        d->timer.stop(); // single shot
+        d->state[StateLevel0](this, Event(prefix(), REventStateTimeout, 0, key()));
     }
 }
 
 qint64 Device::lastAwakeMs() const
 {
-    return m_awake.isValid() ? m_awake.elapsed() : 8640000;
+    return d->awake.isValid() ? d->awake.elapsed() : 8640000;
 }
 
 bool Device::reachable() const
 {
-    if (m_awake.isValid() && m_awake.elapsed() < MinMacPollRxOn)
+    if (lastAwakeMs() < MinMacPollRxOn)
     {
         return true;
     }
-    else if (m_node && !m_node->nodeDescriptor().isNull() && m_node->nodeDescriptor().receiverOnWhenIdle())
+    else if (node() && !node()->nodeDescriptor().isNull() && node()->nodeDescriptor().receiverOnWhenIdle())
     {
         return item(RStateReachable)->toBool();
     }
@@ -936,7 +984,7 @@ std::vector<Resource *> Device::subDevices() const
     std::vector<Resource *> result;
 
     // temp hack to get valid sub device pointers
-    for (const auto &sub : m_subDevices)
+    for (const auto &sub : d->subDevices)
     {
         auto *r = DEV_GetResource(std::get<1>(sub), std::get<0>(sub));
 
