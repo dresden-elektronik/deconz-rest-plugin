@@ -65,7 +65,11 @@ void DeRestPluginPrivate::permitJoinTimerFired()
 
     if ((gwPermitJoinDuration > 0) && (gwPermitJoinDuration < 255))
     {
-        permitJoinFlag = true;
+        if (!permitJoinFlag)
+        {
+            permitJoinFlag = true;
+            enqueueEvent(Event(RConfig, REventPermitjoinEnabled, 0));
+        }
         gwPermitJoinDuration--;
 
         if ((gwPermitJoinDuration % 10) == 0)
@@ -101,6 +105,7 @@ void DeRestPluginPrivate::permitJoinTimerFired()
     if (gwPermitJoinDuration == 0 && permitJoinFlag)
     {
         permitJoinFlag = false;
+        enqueueEvent(Event(RConfig, REventPermitjoinDisabled, 0));
     }
 
     if (!isInNetwork())

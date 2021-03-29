@@ -43,6 +43,8 @@ extern const char *REventBindingTable;
 extern const char *REventBindingTick;
 extern const char *REventDeleted;
 extern const char *REventDeviceAnnounce;
+extern const char *REventPermitjoinEnabled;
+extern const char *REventPermitjoinDisabled;
 extern const char *REventPoll;
 extern const char *REventValidGroup;
 extern const char *REventCheckGroupAnyOn;
