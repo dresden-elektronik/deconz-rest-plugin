@@ -4,5 +4,6 @@
 	"datatype": "String",
 	"access": "R",
 	"public": true,
-	"description": "Model identifier of the device."
+	"description": "Model identifier of the device.",
+	"parse": ["parseGenericAttribute/4", 255, "0x0000", "0x0005", "Item.val = Attr.val"]
 }

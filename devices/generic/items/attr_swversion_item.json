@@ -4,5 +4,6 @@
 	"datatype": "String",
 	"access": "R",
 	"public": true,
-	"description": "Firmware version of the device."
+	"description": "Firmware version of the device.",
+	"parse": ["parseGenericAttribute/4", 255, "0x0000", "0x4000", "Item.val = Attr.val"]
 }

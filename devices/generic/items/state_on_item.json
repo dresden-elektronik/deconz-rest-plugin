@@ -4,5 +4,6 @@
 	"datatype": "Bool",
 	"access": "RW",
 	"public": true,
-	"description": "True when device is on; false when off."
+	"description": "True when device is on; false when off.",
+	"parse": ["parseGenericAttribute/4", 0, "0x0006", "0x0000", "Item.val = Attr.val"]
 }

@@ -4,5 +4,6 @@
 	"datatype": "String",
 	"access": "R",
 	"public": true,
-	"description": "Manufacturer name of the device."
+	"description": "Manufacturer name of the device.",
+	"parse": ["parseGenericAttribute/4", 255, "0x0000", "0x0004", "Item.val = Attr.val"]
 }
