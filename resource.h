@@ -264,12 +264,8 @@ namespace deCONZ {
 class  ResourceItemDescriptor
 {
 public:
-    ResourceItemDescriptor() :
-        type(DataTypeUnknown),
-        suffix(RInvalidSuffix),
-        validMin(0),
-        validMax(0) { }
-
+    enum class Access { Unknown, ReadWrite, ReadOnly };
+    ResourceItemDescriptor() = default;
     ResourceItemDescriptor(ApiDataType t, const char *s, qint64 min = 0, qint64 max = 0) :
         type(t),
         suffix(s),
@@ -277,8 +273,9 @@ public:
         validMax(max) { }
 
     bool isValid() const { return (type != DataTypeUnknown && suffix); }
+    Access access = Access::Unknown;
     ApiDataType type = DataTypeUnknown;
-    const char *suffix = nullptr;
+    const char *suffix = RInvalidSuffix;
     qint64 validMin = 0;
     qint64 validMax = 0;
 };
