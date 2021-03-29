@@ -59,7 +59,7 @@ enum DEV_StateLevel {
     - ZDP Node Descriptor
     - ZDP Active Endpoints
     - ZDP Simple Descriptors
-    - ZCL ModelId
+    - ZCL Basic cluster modelid and manufacturer name
 
     TODO
 
@@ -109,7 +109,7 @@ public:
     friend void DEV_BindingTableVerifyHandler(Device *device, const Event &event);
 
 Q_SIGNALS:
-    void eventNotify(const Event&);
+    void eventNotify(const Event&); //! The device emits an event, which needs to be enqueued in a higher layer.
 
 private:
     /*! sub-devices are not yet referenced via pointers since these may become dangling.
@@ -163,8 +163,8 @@ Device *DEV_GetOrCreateDevice(QObject *parent, DeviceContainer &devices, DeviceK
 */
 Resource *DEV_GetResource(const char *resource, const QString &identifier);
 
-/*! Overloads to add specific resources to higher layer.
-    Since Device class doesn't know anything about web plugin or testing code this is a free standing function which needs to be implemented else where.
+/*! Overloads to add specific resources in higher layer.
+    Since Device class doesn't know anything about web plugin or testing code this is a free standing function which needs to be implemented in the higher layer.
 */
 Resource *DEV_AddResource(const Sensor &sensor);
 Resource *DEV_AddResource(const LightNode &lightNode);

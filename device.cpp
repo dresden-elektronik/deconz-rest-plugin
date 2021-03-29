@@ -960,6 +960,8 @@ Device *DEV_GetOrCreateDevice(QObject *parent, DeviceContainer &devices, DeviceK
     return d->second;
 }
 
+/*! Is used to test full Device control over: Device and sub-device creation, read, write, parse of Zigbee commands.
+ */
 bool DEV_TestManaged()
 {
     return (deCONZ::appArgumentNumeric("--dev-test-managed", 0) > 0);
