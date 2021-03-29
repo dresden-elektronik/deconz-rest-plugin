@@ -15680,6 +15680,10 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
         stream >> macCapabilities;
     }
 
+    auto *device = DEV_GetOrCreateDevice(this, m_devices, ext);
+    Q_ASSERT(device);
+    enqueueEvent(Event(device->prefix(), REventDeviceAnnounce, macCapabilities, device->key()));
+
     for (; i != end; ++i)
     {
         if (i->state() != LightNode::StateNormal)
@@ -15885,7 +15889,6 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
         handleIndicationSearchSensors(ind, zclFrame);
     }
 
-    auto *device = DEV_GetOrCreateDevice(this, m_devices, ext);
     Q_ASSERT(device);
     enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
 }
@@ -19941,7 +19944,7 @@ void DeRestPluginPrivate::pollNextDevice()
         {
             devIter++;
 
-            auto *device = DEV_GetOrCreateDevice(this, plugin->m_devices, node->address().ext());
+            auto *device = DEV_GetOrCreateDevice(this, m_devices, node->address().ext());
             Q_ASSERT(device);
             enqueueEvent(Event(device->prefix(), REventPoll, 0, device->key()));
         }
