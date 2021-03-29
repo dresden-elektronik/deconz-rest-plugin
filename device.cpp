@@ -608,84 +608,79 @@ static bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescriptio
         Q_ASSERT(sub.isValid());
 
         const auto uniqueId = uniqueIdFromTemplate(sub.uniqueId, device->item(RAttrExtAddress)->toNumber());
+        Resource *rsub = DEV_GetSubDevice(device, nullptr, uniqueId);
 
-        Resource *rsub = nullptr;
-
-        for (auto *r : device->subDevices())
-        {
-            if (r->item(RAttrUniqueId)->toString() == uniqueId)
-            {
-                rsub = r; // already existing Resource* for sub-device
-                break;
-            }
-        }
-
-        if (!rsub && sub.restApi == QLatin1String("/sensors"))
+        if (rsub)
+        { }
+        else if (sub.restApi == QLatin1String("/sensors"))
         {
             rsub = DEV_InitSensorNodeFromDescription(device, sub, uniqueId);
         }
-        else if (!rsub && sub.restApi == QLatin1String("/lights"))
+        else if (sub.restApi == QLatin1String("/lights"))
         {
-            // TODO create LightNode for compatibility with v1
             rsub = DEV_InitLightNodeFromDescription(device, sub, uniqueId);
         }
         else
         {
-            // TODO create dynamic Resource*
+            Q_ASSERT(nullptr); // TODO create dynamic Resource*
         }
 
-        if (rsub)
+        if (!rsub)
         {
-            subCount++;
+            DBG_Printf(DBG_INFO, "sub-device: %s, failed to setup: %s\n", qPrintable(uniqueId), qPrintable(sub.type));
+            return false;
+        }
 
+        subCount++;
+
+        {
+            auto *mf = rsub->item(RAttrManufacturerName);
+            if (mf && mf->toString().isEmpty())
             {
-                auto *mf = rsub->item(RAttrManufacturerName);
-                if (mf && mf->toString().isEmpty())
-                {
-                    mf->setValue(DeviceDescriptions::instance()->constantToString(description.manufacturer));
-                }
-            }
-
-            for (const auto &i : sub.items)
-            {
-                Q_ASSERT(i.isValid());
-
-                auto *item = rsub->item(i.descriptor.suffix);
-
-                if (item)
-                {
-                    DBG_Printf(DBG_INFO, "sub-device: %s, has item: %s\n", qPrintable(uniqueId), i.descriptor.suffix);
-                }
-                else
-                {
-                    DBG_Printf(DBG_INFO, "sub-device: %s, create item: %s\n", qPrintable(uniqueId), i.descriptor.suffix);
-                    item = rsub->addItem(i.descriptor.type, i.descriptor.suffix);
-                    Q_ASSERT(item);
-
-                    if (i.defaultValue.isValid())
-                    {
-                        item->setValue(i.defaultValue);
-                    }
-                }
-
-                if (!item)
-                {
-                    continue;
-                }
-
-                item->setParseParameters(i.parseParameters);
-                item->setReadParameters(i.readParameters);
-                item->setWriteParameters(i.writeParameters);
-
-                if (item->descriptor().suffix == RConfigCheckin)
-                {
-                    StateChange stateChange(StateChange::StateWaitSync, SC_WriteZclAttribute, sub.uniqueId.at(1).toUInt());
-                    stateChange.addTargetValue(RConfigCheckin, i.defaultValue);
-                    stateChange.setChangeTimeoutMs(1000 * 60 * 60);
-                    rsub->addStateChange(stateChange);
-                }
+                mf->setValue(DeviceDescriptions::instance()->constantToString(description.manufacturer));
             }
         }
+
+        for (const auto &i : sub.items)
+        {
+            Q_ASSERT(i.isValid());
+
+            auto *item = rsub->item(i.descriptor.suffix);
+
+            if (item)
+            {
+                DBG_Printf(DBG_INFO, "sub-device: %s, has item: %s\n", qPrintable(uniqueId), i.descriptor.suffix);
+            }
+            else
+            {
+                DBG_Printf(DBG_INFO, "sub-device: %s, create item: %s\n", qPrintable(uniqueId), i.descriptor.suffix);
+                item = rsub->addItem(i.descriptor.type, i.descriptor.suffix);
+                Q_ASSERT(item);
+
+                if (i.defaultValue.isValid())
+                {
+                    item->setValue(i.defaultValue);
+                }
+            }
+
+            if (!item)
+            {
+                continue;
+            }
+
+            item->setParseParameters(i.parseParameters);
+            item->setReadParameters(i.readParameters);
+            item->setWriteParameters(i.writeParameters);
+
+            if (item->descriptor().suffix == RConfigCheckin)
+            {
+                StateChange stateChange(StateChange::StateWaitSync, SC_WriteZclAttribute, sub.uniqueId.at(1).toUInt());
+                stateChange.addTargetValue(RConfigCheckin, i.defaultValue);
+                stateChange.setChangeTimeoutMs(1000 * 60 * 60);
+                rsub->addStateChange(stateChange);
+            }
+        }
+
     }
 
     return subCount == description.subDevices.size();
