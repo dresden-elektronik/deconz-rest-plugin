@@ -35,6 +35,7 @@
 #include <cmath>
 #include "colorspace.h"
 #include "device_descriptions.h"
+#include "device_tick.h"
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "de_web_widget.h"
@@ -907,6 +908,10 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     QTimer::singleShot(3000, this, SLOT(initWiFi()));
 
     connect(pollManager, &PollManager::done, this, &DeRestPluginPrivate::pollNextDevice);
+
+    auto *deviceTick = new DeviceTick(m_devices, this);
+    connect(this, &DeRestPluginPrivate::eventNotify, deviceTick, &DeviceTick::handleEvent);
+    connect(deviceTick, &DeviceTick::eventNotify, this, &DeRestPluginPrivate::enqueueEvent);
 
     const deCONZ::Node *node;
     if (apsCtrl && apsCtrl->getNode(0, &node) == 0)
@@ -19940,24 +19945,6 @@ void DeRestPluginPrivate::pollNextDevice()
 
     if (DEV_TestManaged())
     {
-        static int devIter = 1;
-
-        const deCONZ::Node *node = nullptr;
-        deCONZ::ApsController *ctrl = deCONZ::ApsController::instance();
-
-        if (ctrl->getNode(devIter, &node) == 0)
-        {
-            devIter++;
-
-            auto *device = DEV_GetOrCreateDevice(this, m_devices, node->address().ext());
-            Q_ASSERT(device);
-            enqueueEvent(Event(device->prefix(), REventPoll, 0, device->key()));
-        }
-        else
-        {
-            devIter = 1;
-        }
-
         return;
     }
 

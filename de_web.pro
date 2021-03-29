@@ -103,6 +103,7 @@ HEADERS  = bindings.h \
            device_descriptions.h \
            device_js.h \
            device_js_wrappers.h \
+           device_tick.h \
            event.h \
            gateway.h \
            gateway_scanner.h \
@@ -140,6 +141,7 @@ SOURCES  = air_quality.cpp \
            device_js.cpp \
            device_js_wrappers.cpp \
            device_setup.cpp \
+           device_tick.cpp \
            diagnostics.cpp \
            discovery.cpp \
            de_web_plugin.cpp \
