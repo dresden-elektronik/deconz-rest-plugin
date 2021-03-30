@@ -1459,7 +1459,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
     {
         // Map the command to the mapped button and action.
         // PTM215ZE Friends of Hue switch.
-        quint32 buttonMapPTM215ZE[] = {
+        const quint32 buttonMapPTM215ZE[] = {
             0x12, S_BUTTON_1, S_BUTTON_ACTION_INITIAL_PRESS,
             0x13, S_BUTTON_1, S_BUTTON_ACTION_SHORT_RELEASED,
             0x14, S_BUTTON_2, S_BUTTON_ACTION_INITIAL_PRESS,
@@ -1470,8 +1470,28 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
             0x23, S_BUTTON_4, S_BUTTON_ACTION_SHORT_RELEASED,
             0
         };
+
+        // PTM216Z Friends of Hue switch.
+        // CommandId: 0x69 Push, 0x6A Release
+        // Buttons: 0000 0001 A0
+        //          0000 0010 A1
+        //          0000 0100 B0
+        //          0000 1000 B1
+        //          0001 0000 Energy Bar
+        const quint32 buttonMapPTM216Z[] = {
+            0x6908, S_BUTTON_1, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x6904, S_BUTTON_2, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x6902, S_BUTTON_3, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x6901, S_BUTTON_4, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x690A, S_BUTTON_5, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x6905, S_BUTTON_6, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x6906, S_BUTTON_7, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x6909, S_BUTTON_8, S_BUTTON_ACTION_INITIAL_PRESS,
+            0
+        };
+
         // Generic Friends of Hue switch.
-        quint32 buttonMapFOHSWITCH[] = {
+        const quint32 buttonMapFOHSWITCH[] = {
             0x10, S_BUTTON_1, S_BUTTON_ACTION_INITIAL_PRESS,
             0x14, S_BUTTON_1, S_BUTTON_ACTION_SHORT_RELEASED,
             0x11, S_BUTTON_2, S_BUTTON_ACTION_INITIAL_PRESS,
@@ -1488,13 +1508,21 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
             0xe0, S_BUTTON_7, S_BUTTON_ACTION_SHORT_RELEASED,
             0
         };
-        quint32* buttonMap = 0;
+
+        const quint32* buttonMap = 0;
         // Determine which button map to use.
         if (sensor->swVersion() == QLatin1String("PTM215ZE"))
         {
             buttonMap = buttonMapPTM215ZE;
         }
-        else {
+        else if (sensor->swVersion() == QLatin1String("PTM216Z") && !ind.payload().isEmpty())
+        {
+            btn <<= 8;
+            btn |= static_cast<quint32>(ind.payload()[0]) & 0xff; // actual buttons in payload
+            buttonMap = buttonMapPTM216Z;
+        }
+        else
+        {
             buttonMap = buttonMapFOHSWITCH;
         }
 
@@ -1508,6 +1536,13 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
                 btnAction = buttonMap[i + 2];
                 break;
             }
+        }
+
+        if (buttonMap == buttonMapPTM216Z && ind.gpdCommandId() == 0x6A)
+        {
+            // Release event has no button payload, use the former press event button
+            btnAction = S_BUTTON_ACTION_SHORT_RELEASED;
+            btnMapped = item->toNumber() & ~0x3; // without action
         }
 
         const QDateTime now = QDateTime::currentDateTime();
@@ -1524,7 +1559,6 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
         else if (btnAction == S_BUTTON_ACTION_SHORT_RELEASED)
         {
             sensor->durationDue = QDateTime(); // disable generation of x001 (hold)
-            btn = buttonMap[btn & 0x0f];
             const quint32 action = item->toNumber() & 0x03; // last action
 
             if (action == S_BUTTON_ACTION_HOLD || // hold already triggered -> long release
@@ -1631,6 +1665,8 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
     case deCONZ::GpCommandIdShortPress1Of1:
     case deCONZ::GpCommandIdShortPress1Of2:
     case deCONZ::GpCommandIdShortPress2Of2:
+    case 0x69: // TODO replace with enum in later version
+    case 0x6A:
     {
         gpProcessButtonEvent(ind);
     }
@@ -1793,6 +1829,26 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
                 sensorNode.setModelId("FOHSWITCH");
                 sensorNode.setManufacturer("PhilipsFoH");
                 sensorNode.setSwVersion("1.0");
+            }
+            else if (gpdDeviceId == GpDeviceIdGenericSwitch && options.byte == 0x85 && extOptions.byte == 0xF2 &&
+                     ind.payload().size() == 31 &&
+                     ind.payload()[27] == 0x10 /* application info */ &&
+                     ind.payload()[29] == 0x05 /* switch type 5 button*/)
+            {
+                // This matches PTM216Z but there is no real information in the frame about the manufacturer.
+                // https://www.enocean.com/en/products/enocean_modules_24ghz/ptm-216z/
+                // srcId: 0x01520396
+
+                // Ind.payload: 07 85 f2 e0 7d 56 d0 10 e7 70 c9 95 eb af 6d 58 ad 17 0a 63 c2 27 ae dc 00 00 00
+                // 10 Application info
+                // 02 Optional data length
+                // 05 Switch type: 5 buttons
+                // 08 Button that was pressed (B1)
+
+                // Does this switch work in the Philips Hue bridge?
+                sensorNode.setModelId("FOHSWITCH");
+                sensorNode.setManufacturer("PhilipsFoH");
+                sensorNode.setSwVersion("PTM216Z");
             }
             else
             {
