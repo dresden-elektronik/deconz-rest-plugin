@@ -503,7 +503,7 @@ static const ProductMap products[] =
     {"_TZE200_fzo2pocs", "TS0601", "Zemismart", "Tuya_COVD ZM25TQ"},
     {"_TYST11_xu1rkty3", "u1rkty3", "Smart Home", "Tuya_COVD DT82LEMA-1.2N"},
     {"_TZE200_xuzcvlku", "TS0601", "Zemismart", "Tuya_COVD M515EGB"},
-    {"_TZ2000_rddyvrci", "TS0601", "Moes", "Tuya_COVD AM43-0.45/40-ES-EZ(TY)"},
+    {"_TZE200_rddyvrci", "TS0601", "Moes", "Tuya_COVD AM43-0.45/40-ES-EZ(TY)"},
     {"_TZE200_zah67ekd", "TS0601", "MoesHouse / Livolo", "Tuya_COVD AM43-0.45-40"},
     {"_TZE200_nogaemzt", "TS0601", "Tuya", "Tuya_COVD YS-MT750"},
     {"_TZE200_zpzndjez", "TS0601", "Tuya", "Tuya_COVD DS82"},
