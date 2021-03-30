@@ -1878,7 +1878,14 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
 
             if (sensorNode.name().isEmpty())
             {
-                sensorNode.setName(QString("Hue Tap %2").arg(sensorNode.id()));
+                if (sensorNode.modelId() == QLatin1String("FOHSWITCH"))
+                {
+                    sensorNode.setName(QString("FoH Switch %2").arg(sensorNode.id()));
+                }
+                else
+                {
+                    sensorNode.setName(QString("Hue Tap %2").arg(sensorNode.id()));
+                }
             }
 
             checkSensorGroup(&sensorNode);
