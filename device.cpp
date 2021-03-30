@@ -16,14 +16,12 @@
 #include <deconz.h>
 #include "device.h"
 #include "device_access_fn.h"
+#include "device_compat.h"
 #include "device_descriptions.h"
 #include "event.h"
 #include "zdp.h"
-#include "sensor.h"
-#include "light_node.h"
 
 // TODO move external declaration in de_web_plugin_private.h into utils.h
-int getFreeSensorId();
 QString generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId);
 
 // enable domain specific string literals
@@ -562,72 +560,6 @@ QString uniqueIdFromTemplate(const QStringList &templ, const quint64 extAddress)
     return {};
 }
 
-/*! V1 compatibility function to create SensorNodes based on sub-device description.
- */
-static Resource *DEV_InitSensorNodeFromDescription(Device *device, const DeviceDescription::SubDevice &sub, const QString &uniqueId)
-{
-    Sensor sensor;
-
-    sensor.fingerPrint() = sub.fingerPrint;
-    sensor.address().setExt(device->item(RAttrExtAddress)->toNumber());
-    sensor.address().setNwk(device->item(RAttrNwkAddress)->toNumber());
-    sensor.setModelId(device->item(RAttrModelId)->toString());
-    sensor.setType(DeviceDescriptions::instance()->constantToString(sub.type));
-    sensor.setUniqueId(uniqueId);
-    sensor.setNode(const_cast<deCONZ::Node*>(device->node()));
-    R_SetValue(&sensor, RConfigOn, true, ResourceItem::SourceApi);
-
-    QString friendlyName = sensor.type();
-    if (friendlyName.startsWith("ZHA") || friendlyName.startsWith("ZLL"))
-    {
-        friendlyName = friendlyName.mid(3);
-    }
-
-    sensor.setId(QString::number(getFreeSensorId()));
-    sensor.setName(QString("%1 %2").arg(friendlyName, sensor.id()));
-
-    sensor.setNeedSaveDatabase(true);
-    sensor.rx();
-
-    auto *r = DEV_AddResource(sensor);
-    Q_ASSERT(r);
-
-    device->addSubDevice(r);
-
-    return r;
-}
-
-/*! V1 compatibility function to create LightsNode based on sub-device description.
- */
-static Resource *DEV_InitLightNodeFromDescription(Device *device, const DeviceDescription::SubDevice &sub, const QString &uniqueId)
-{
-    LightNode lightNode;
-
-    lightNode.address().setExt(device->item(RAttrExtAddress)->toNumber());
-    lightNode.address().setNwk(device->item(RAttrNwkAddress)->toNumber());
-    lightNode.setModelId(device->item(RAttrModelId)->toString());
-    lightNode.setManufacturerName(device->item(RAttrManufacturerName)->toString());
-    lightNode.setManufacturerCode(device->node()->nodeDescriptor().manufacturerCode());
-    lightNode.setNode(const_cast<deCONZ::Node*>(device->node())); // TODO this is evil
-
-    lightNode.item(RAttrType)->setValue(DeviceDescriptions::instance()->constantToString(sub.type));
-    lightNode.setUniqueId(uniqueId);
-    lightNode.setNode(const_cast<deCONZ::Node*>(device->node()));
-
-    lightNode.setId(QString::number(getFreeSensorId()));
-    lightNode.setName(QString("%1 %2").arg(lightNode.type(), lightNode.id()));
-
-    lightNode.setNeedSaveDatabase(true);
-    lightNode.rx();
-
-    auto *r = DEV_AddResource(lightNode);
-    Q_ASSERT(r);
-
-    device->addSubDevice(r);
-
-    return r;
-}
-
 /*! Creates a ResourceItem if not exist, initialized with \p ddfItem content.
  */
 ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item &ddfItem, Resource *rsub)
@@ -675,19 +607,9 @@ static bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescriptio
         const auto uniqueId = uniqueIdFromTemplate(sub.uniqueId, device->item(RAttrExtAddress)->toNumber());
         Resource *rsub = DEV_GetSubDevice(device, nullptr, uniqueId);
 
-        if (rsub)
-        { }
-        else if (sub.restApi == QLatin1String("/sensors"))
+        if (!rsub)
         {
-            rsub = DEV_InitSensorNodeFromDescription(device, sub, uniqueId);
-        }
-        else if (sub.restApi == QLatin1String("/lights"))
-        {
-            rsub = DEV_InitLightNodeFromDescription(device, sub, uniqueId);
-        }
-        else
-        {
-            Q_ASSERT(nullptr); // TODO create dynamic Resource*
+            rsub = DEV_InitCompatNodeFromDescription(device, sub, uniqueId);
         }
 
         if (!rsub)

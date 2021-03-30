@@ -16,8 +16,7 @@
 
 class Event;
 class Device;
-class Sensor;
-class LightNode;
+
 using DeviceKey = uint64_t; //! uniqueId for an Device, MAC address for physical devices
 typedef void (*DeviceStateHandler)(Device *, const Event &);
 
@@ -143,13 +142,6 @@ Device *DEV_GetOrCreateDevice(QObject *parent, DeviceContainer &devices, DeviceK
     \param identifier - id | uniqueid | empty (for RConfig)
 */
 Resource *DEV_GetResource(const char *resource, const QString &identifier);
-
-/*! Overloads to add specific resources in higher layer.
-    Since Device class doesn't know anything about web plugin or testing code,
-    this is a free standing function which needs to be implemented in the higher layer.
-*/
-Resource *DEV_AddResource(const Sensor &sensor);
-Resource *DEV_AddResource(const LightNode &lightNode);
 
 bool DEV_TestManaged();
 
