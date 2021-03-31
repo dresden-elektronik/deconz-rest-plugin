@@ -2253,13 +2253,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 hasServerOnOff = true;
             }
             //Tuya black list
-            // _TYST11_ckud7u2l is valve with 2 cluster
-            // _TYST11_jeaxp72v same
-            // _TYST11_kfvq6avy same, _TZE200_kfvq6avy
-            // _TYST11_c88teujp same
-            // _TYST11_zuhszj9s same
-            // _TYST11_yw7cahqs same
-            // _TZE200_ywdxldoj same
+            //For exempleis valve with 2 cluster
             if (R_GetProductId(&lightNode).startsWith(QLatin1String("Tuya_THD")))
             {
                 hasServerOnOff = false;
