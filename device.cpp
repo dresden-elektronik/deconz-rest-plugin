@@ -97,6 +97,7 @@ public:
     size_t bindingIter = 0;
     bool mgmtBindSupported = false;
     bool managed = false; //! a managed device doesn't rely on legacy implementation of polling etc.
+    ZDP_Result zdpResult; //! keep track of a running ZDP request
 };
 
 
@@ -150,6 +151,11 @@ void DEV_InitStateHandler(Device *device, const Event &event)
     if (event.what() != RAttrLastSeen)
     {
         DBG_Printf(DBG_INFO, "DEV Init event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
+    }
+
+    if (event.what() == REventStateEnter)
+    {
+        device->d->zdpResult = { };
     }
 
     if (event.what() == REventPoll ||
@@ -231,7 +237,7 @@ void DEV_CheckItemChanges(Device *device, const Event &event)
  */
 void DEV_IdleStateHandler(Device *device, const Event &event)
 {   
-    if (event.what() == RAttrLastSeen /*|| event.what() == REventPoll*/)
+    if (event.what() == RAttrLastSeen || event.what() == REventPoll)
     {
          // don't print logs
     }
@@ -265,6 +271,8 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
  */
 void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
 {
+    DevicePrivate *d = device->d;
+
     if (event.what() == REventStateEnter)
     {
         if (!device->node()->nodeDescriptor().isNull())
@@ -278,13 +286,23 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
         }
         else
         {
-            auto zdpResult = ZDP_NodeDescriptorReq(device->item(RAttrNwkAddress)->toNumber(), deCONZ::ApsController::instance());
-            if (zdpResult.isEnqueued)
+            d->zdpResult = ZDP_NodeDescriptorReq(device->item(RAttrNwkAddress)->toNumber(), deCONZ::ApsController::instance());
+            if (d->zdpResult.isEnqueued)
             {
-
+                device->startStateTimer(MinMacPollRxOn);
             }
-
-            device->startStateTimer(MinMacPollRxOn);
+            else
+            {
+                device->setState(DEV_InitStateHandler);
+            }
+        }
+    }
+    else if (event.what() == REventApsConfirm)
+    {
+        Q_ASSERT(event.deviceKey() == device->key());
+        if (d->zdpResult.apsReqId == EventApsConfirmId(event) && EventApsConfirmStatus(event) != deCONZ::ApsSuccessStatus)
+        {
+            device->setState(DEV_InitStateHandler);
         }
     }
     else if (event.what() == REventNodeDescriptor) // received the node descriptor
@@ -304,6 +322,8 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
  */
 void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event)
 {
+    DevicePrivate *d = device->d;
+
     if (event.what() == REventStateEnter)
     {
         if (!device->node()->endpoints().empty())
@@ -317,8 +337,23 @@ void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event)
         }
         else
         {
-            ZDP_ActiveEndpointsReq(device->item(RAttrNwkAddress)->toNumber(), deCONZ::ApsController::instance());
-            device->startStateTimer(MinMacPollRxOn);
+            d->zdpResult = ZDP_ActiveEndpointsReq(device->item(RAttrNwkAddress)->toNumber(), deCONZ::ApsController::instance());
+            if (d->zdpResult.isEnqueued)
+            {
+                device->startStateTimer(MinMacPollRxOn);
+            }
+            else
+            {
+                device->setState(DEV_InitStateHandler);
+            }
+        }
+    }
+    else if (event.what() == REventApsConfirm)
+    {
+        Q_ASSERT(event.deviceKey() == device->key());
+        if (d->zdpResult.apsReqId == EventApsConfirmId(event) && EventApsConfirmStatus(event) != deCONZ::ApsSuccessStatus)
+        {
+            device->setState(DEV_InitStateHandler);
         }
     }
     else if (event.what() == REventActiveEndpoints)
@@ -338,6 +373,8 @@ void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event)
  */
 void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
 {
+    DevicePrivate *d = device->d;
+
     if (event.what() == REventStateEnter)
     {
         quint8 needFetchEp = 0x00;
@@ -363,8 +400,23 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
         }
         else
         {
-            ZDP_SimpleDescriptorReq(device->item(RAttrNwkAddress)->toNumber(), needFetchEp, deCONZ::ApsController::instance());
-            device->startStateTimer(MinMacPollRxOn);
+            d->zdpResult = ZDP_SimpleDescriptorReq(device->item(RAttrNwkAddress)->toNumber(), needFetchEp, deCONZ::ApsController::instance());
+            if (d->zdpResult.isEnqueued)
+            {
+                device->startStateTimer(MinMacPollRxOn);
+            }
+            else
+            {
+                device->setState(DEV_InitStateHandler);
+            }
+        }
+    }
+    else if (event.what() == REventApsConfirm)
+    {
+        Q_ASSERT(event.deviceKey() == device->key());
+        if (d->zdpResult.apsReqId == EventApsConfirmId(event) && EventApsConfirmStatus(event) != deCONZ::ApsSuccessStatus)
+        {
+            device->setState(DEV_InitStateHandler);
         }
     }
     else if (event.what() == REventSimpleDescriptor)
