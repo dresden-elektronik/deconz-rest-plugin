@@ -817,7 +817,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
-                    case 0x0114: // Valve state on / off
+                    case 0x0114: // Valve state report : on / off
                     {
                         bool onoff = false;
                         if (data == 1) { onoff = true; }
@@ -988,7 +988,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
-                    case 0x022c : // temperature calibration (offset)
+                    case 0x022c : // temperature calibration (offset in degree)
                     {
                         qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
                         ResourceItem *item = sensorNode->item(RConfigOffset);
@@ -1041,7 +1041,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
-                    case 0x0269: // Boost time or Heatpoint
+                    case 0x0269: // Boost time in second or Heatpoint
                     {
                         if (sensorNode->manufacturer().endsWith(QLatin1String("hn3negr")))
                         {
@@ -1059,7 +1059,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
-                    case 0x026D : // Valve position
+                    case 0x026D : // Valve position in %
                     {
                         quint8 valve = static_cast<qint8>(data & 0xFF);
                         bool on = valve > 3;
@@ -1147,7 +1147,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
-                    case 0x046a : // mode
+                    case 0x046a : // mode : normal/open/close
                     {
                         QString mode;
                         if (data == 0) { mode = QLatin1String("auto"); }
