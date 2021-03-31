@@ -21,6 +21,7 @@ const char *RGroups = "/groups";
 const char *RConfig = "/config";
 
 const char *REventAdded = "event/added";
+const char *REventApsConfirm = "event/aps.confirm";
 const char *REventAwake = "event/awake";
 const char *REventBindingTable = "event/binding.table";
 const char *REventBindingTick = "event/binding.tick";

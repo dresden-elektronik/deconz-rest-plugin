@@ -38,6 +38,7 @@ extern const char *RConfig;
 
 // resource events
 extern const char *REventAdded;
+extern const char *REventApsConfirm;
 extern const char *REventAwake;
 extern const char *REventBindingTable;
 extern const char *REventBindingTick;

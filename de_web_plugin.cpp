@@ -1426,6 +1426,12 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
 {
     pollManager->apsdeDataConfirm(conf);
 
+    if (conf.dstAddress().hasExt())
+    {
+        const int num = EventApsConfirmPack(conf.id(), conf.status());
+        enqueueEvent(Event(RDevices, REventApsConfirm, num, conf.dstAddress().ext()));
+    }
+
     std::list<TaskItem>::iterator i = runningTasks.begin();
     std::list<TaskItem>::iterator end = runningTasks.end();
 

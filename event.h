@@ -32,4 +32,22 @@ private:
     DeviceKey m_deviceKey = 0;
 };
 
+//! Unpacks APS confirm id.
+inline quint8 EventApsConfirmId(const Event &event)
+{
+    return event.num() >> 8 & 0xFF;
+}
+
+//! Unpacks APS confirm status.
+inline quint8 EventApsConfirmStatus(const Event &event)
+{
+    return event.num() & 0xFF;
+}
+
+//! Packs APS id and confirm status into an \c int used as `num` parameter for REventApsConfirm.
+inline int EventApsConfirmPack(quint8 id, quint8 status)
+{
+    return id << 8 | status;
+}
+
 #endif // EVENT_H
