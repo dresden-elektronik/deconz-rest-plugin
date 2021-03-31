@@ -488,6 +488,27 @@
 					<attribute id="0x0001" type="u8" name="Scene ID" required="m" showas="hex" default="0x00"></attribute>
 				</payload>
 			</command>
+      <command id="0x07" dir="recv" name="IKEA step" required="o" vendor="0x117c">
+        <description>Command sent by TRADFRI remote control on press left or right.  Set Direction to 1 for left or leave at 0 for right.  Leave the Unknown parameters at their default values.</description>
+        <payload>
+          <attribute id="0x0000" type="u8" name="Direction" required="m" default="0x0"></attribute>
+          <attribute id="0x0001" type="u8" name="Unknown" required="m" showas="hex" default="0x01"></attribute>
+          <attribute id="0x0002" type="u16" name="Unknown" required="m" showas="hex" default="0x000d"></attribute>
+        </payload>
+      </command>
+      <command id="0x08" dir="recv" name="IKEA move" required="o" vendor="0x117c">
+        <description>Command sent by TRADFRI remote control on hold left or right.  Set Direction to 1 for left or leave at 0 for right.  Leave the Unknown parameter at its default value.</description>
+        <payload>
+          <attribute id="0x0000" type="u8" name="Direction" required="m" default="0x0"></attribute>
+          <attribute id="0x0001" type="u16" name="Unknown" required="m" showas="hex" default="0x000d"></attribute>
+        </payload>
+      </command>
+      <command id="0x09" dir="recv" name="IKEA stop" required="o" vendor="0x117c">
+        <description>Command sent by TRADFRI remote control on release (after hold).  Leave the Unknown parameter at its default value.</description>
+        <payload>
+          <attribute id="0x0000" type="u16" name="Unknown" required="m" showas="hex" default="0x0000"></attribute>
+        </payload>
+      </command>
 		<!-- TODO -->
 		</server>
 		<client>
@@ -1471,8 +1492,50 @@ by the Poll Control Cluster Client.</description>
         </attribute-set>
         <attribute-set id="0x0020" description="Operational Settings Attribute Set">
           <attribute id="0x0020" name="Enable Logging" type="bool" default="0" access="rw" required="o"></attribute>
+          <attribute id="0x0021" name="Language" type="cstring" access="rw" required="o"></attribute>
+          <attribute id="0x0022" name="Led Setting" type="u8" default="0" access="rw" required="o">
+              <value name="Never use LED for signalization" value="0x00"></value>
+              <value name="Use LED signalization except for access allowed events" value="0x01"></value>
+              <value name="Use LED signalization for all events" value="0x02"></value>
+          </attribute>
+          <attribute id="0x0023" name="Auto Relock Time" type="u32" default="0" access="rw" required="o"></attribute>
+          <attribute id="0x0024" name="Sound Volume" type="u8" default="0" access="rw" required="o">
+              <value name="Silent Mode" value="0x00"></value>
+              <value name="Low Volume" value="0x01"></value>
+              <value name="Hight Volume" value="0x02"></value>
+          </attribute>
+          <attribute id="0x0025" name="Operating mode" type="enum8" default="0" access="rw" required="o">
+              <value name="Normal" value="0x00"></value>
+              <value name="Vacation" value="0x01"></value>
+              <value name="Privacy" value="0x02"></value>
+              <value name="No RF Lock/Unlock" value="0x03"></value>
+              <value name="Passage" value="0x04"></value>
+          </attribute>
+          <attribute id="0x0026" name="Supported operating mode" type="bmp16" default="0x0000" access="r" required="o">
+              <value name="Normal Mode Supported" value="0"></value>
+              <value name="Vacation Mode Supported" value="1"></value>
+              <value name="Privacy Mode Supported" value="2"></value>
+              <value name="No RF Lock or Unlock Mode Supported" value="3"></value>
+              <value name="Passage Mode Supported" value="4"></value>
+          </attribute>
+          <attribute id="0x0027" name="Default Configuration Register" type="bmp16" default="0x0000" access="r" required="o">
+              <value name="Enable Local Programming" value="0"></value>
+              <value name="Keypad Interface" value="1"></value>
+              <value name="RF Interface" value="2"></value>
+              <value name="Sound Volume attribute" value="5"></value>
+              <value name="Auto Relock Time attribute" value="6"></value>
+              <value name="Led Settings attribute" value="7"></value>
+          </attribute>
+          <attribute id="0x0028" name="Enable Local Programming" type="bool" default="0" access="rw" required="o"></attribute>
+          <attribute id="0x0029" name="Enable One TouchLocking" type="bool" default="0" access="rw" required="o"></attribute>
+          <attribute id="0x002A" name="Enable Inside Status LED" type="bool" default="0" access="rw" required="o"></attribute>
+          <attribute id="0x002B" name="Enable Privacy ModeButton" type="bool" default="0" access="rw" required="o"></attribute>
         </attribute-set>
         <attribute-set id="0x0030" description="Security Settings Attribute Set">
+          <attribute id="0x0030" name="Wrong Code Entry Limit" type="u8" default="0" access="r" required="o"></attribute>
+          <attribute id="0x0031" name="User Code Temporary Disable Time" type="u8" default="0" access="r" required="o"></attribute>
+          <attribute id="0x0032" name="Send PIN Over The Air" type="bool" default="0" access="rw" required="o"></attribute>
+          <attribute id="0x0033" name="Require PIN for RF Operation" type="bool" default="0" access="rw" required="o"></attribute>
           <attribute id="0x0034" name="Zigbee Security Level" type="enum8" default="0" access="r" required="o">
             <value name="Network Security" value="0x00"></value>
             <value name="APS Security" value="0x01"></value>
@@ -1524,6 +1587,16 @@ by the Poll Control Cluster Client.</description>
         <command id="0x01" dir="recv" name="Unlock Door" required="m">
           <description>This command causes the lock device to unlock the door.</description>
           <payload></payload>
+        </command>
+        <command id="0x02" dir="recv" name="Toggle Door" required="o">
+          <description>This command toggle the lock device.</description>
+          <payload></payload>
+        </command>
+        <command id="0x03" dir="recv" name="Unlock with timer" required="o">
+          <description>This command Unlock the lock device but with a timer.</description>
+          <payload>
+              <attribute id="0x0000" type="u16" name="Timeout" required="m"></attribute>
+          </payload>
         </command>
         <command id="0x04" dir="recv" name="Get Log Record" required="o">
           <description>Request a log record.</description>
@@ -3239,6 +3312,20 @@ devices can operate on either battery or mains power, and can have a wide variet
 				</attribute>
 				<attribute id="0x0308" name="Meter Serial Number" type="ostring" range="0,24" access="r" required="o"></attribute>
 				<!-- TODO -->
+			</attribute-set>
+			<attribute-set id="0x0300" description="Develco specific" mfcode="0x1015">
+				<attribute id="0x0300" name="Pulse Configuration" type="u16" access="rw" required="o" mfcode="0x1015"></attribute>
+				<attribute id="0x0301" name="Current Summation" type="u48" access="w" required="o" mfcode="0x1015"></attribute>
+				<attribute id="0x0302" name="Interface Mode" type="enum16" access="rw" required="o" mfcode="0x1015">
+					<value name="Pulse Counting on an Electricity Meter – Unit KWh" value="0x0000"></value>
+					<value name="Pulse Counting on a Gas Meter – Unit m3" value="0x0001"></value>
+					<value name="Pulse Counting on a Water Meter – Unit m3" value="0x0002"></value>
+					<value name="Kamstrup KMP Protocol" value="0x0100"></value>
+					<value name="Not Supported - Linky Protocol" value="0x0101"></value>
+					<value name="DLMS-COSEM - IEC62056-21 mod A" value="0x0102"></value>
+					<value name="P1 Dutch Standard – DSMR 2.3 Version" value="0x0103"></value>
+					<value name="P1 Dutch Standard – DSMR 4.0 Version" value="0x0104"></value>
+				</attribute>
 			</attribute-set>
 			<attribute-set id="0x0400" description="ESP Historical Consumption">
 				<attribute id="0x0400" name="Instantaneous Demand" type="s24" access="r" required="o"></attribute>

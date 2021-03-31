@@ -62,6 +62,7 @@ const char *RStateErrorCode = "state/errorcode";
 const char *RStateEventDuration = "state/eventduration";
 const char *RStateFire = "state/fire";
 const char *RStateFlag = "state/flag";
+const char *RStateLockState = "state/lockstate";
 const char *RStateFloorTemperature = "state/floortemperature";
 const char *RStateGesture = "state/gesture";
 const char *RStateHeating = "state/heating";
@@ -116,12 +117,13 @@ const QStringList RStateEffectValuesMueller({
 });
 
 const char *RConfigAlert = "config/alert";
+const char *RConfigLock = "config/lock";
 const char *RConfigBattery = "config/battery";
 const char *RConfigColorCapabilities = "config/colorcapabilities";
-const char *RConfigCtMin = "config/ctmin";
-const char *RConfigCtMax = "config/ctmax";
 const char *RConfigConfigured = "config/configured";
 const char *RConfigCoolSetpoint = "config/coolsetpoint";
+const char *RConfigCtMin = "config/ctmin";
+const char *RConfigCtMax = "config/ctmax";
 const char *RConfigDelay = "config/delay";
 const char *RConfigDeviceMode = "config/devicemode";
 const char *RConfigDisplayFlipped = "config/displayflipped";
@@ -132,17 +134,17 @@ const char *RConfigGroup = "config/group";
 const char *RConfigHeatSetpoint = "config/heatsetpoint";
 const char *RConfigHostFlags = "config/hostflags";
 const char *RConfigId = "config/id";
+const char *RConfigInterfaceMode = "config/interfacemode";
 const char *RConfigLastChangeAmount = "config/lastchange_amount";
 const char *RConfigLastChangeSource = "config/lastchange_source";
 const char *RConfigLastChangeTime = "config/lastchange_time";
 const char *RConfigLat = "config/lat";
 const char *RConfigLedIndication = "config/ledindication";
+const char *RConfigLevelMin = "config/levelmin";
 const char *RConfigLocalTime = "config/localtime";
 const char *RConfigLocked = "config/locked";
 const char *RConfigLong = "config/long";
-const char *RConfigLevelMin = "config/levelmin";
 const char *RConfigMode = "config/mode";
-const char *RConfigSetValve = "config/setvalve";
 const char *RConfigMountingMode = "config/mountingmode";
 const char *RConfigExternalTemperatureSensor = "config/externalsensortemp";
 const char *RConfigExternalWindowOpen = "config/externalwindowopen";
@@ -152,6 +154,7 @@ const char *RConfigPending = "config/pending";
 const char *RConfigPowerup = "config/powerup";
 const char *RConfigPowerOnCt = "config/poweronct";
 const char *RConfigPowerOnLevel = "config/poweronlevel";
+const char *RConfigPulseConfiguration = "config/pulseconfiguration";
 const char *RConfigPreset = "config/preset";
 const char *RConfigMelody = "config/melody";
 const char *RConfigVolume = "config/volume";
@@ -162,6 +165,7 @@ const char *RConfigSchedule = "config/schedule";
 const char *RConfigScheduleOn = "config/schedule_on";
 const char *RConfigSensitivity = "config/sensitivity";
 const char *RConfigSensitivityMax = "config/sensitivitymax";
+const char *RConfigSetValve = "config/setvalve";
 const char *RConfigSunriseOffset = "config/sunriseoffset";
 const char *RConfigSunsetOffset = "config/sunsetoffset";
 const char *RConfigSwingMode = "config/swingmode";
@@ -224,6 +228,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateAirQualityPpb));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAlarm));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateAlert));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateLockState));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAllOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateAngle));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAnyOn));
@@ -290,6 +295,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateY));
 
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigAlert));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigLock));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigBattery, 0, 100));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigColorCapabilities));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigCtMin));
@@ -306,6 +312,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigHeatSetpoint, 500, 3200));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RConfigHostFlags));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RConfigId));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigInterfaceMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigLastChangeAmount));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigLastChangeSource));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RConfigLastChangeTime));
@@ -324,6 +331,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RConfigPowerup));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigPowerOnLevel));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigPowerOnCt));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigPulseConfiguration));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigPreset));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigMelody));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigVolume));
@@ -471,8 +479,8 @@ static const ProductMap products[] =
     // --------------------
     // Tuya_THD : thermostat device using Tuya cluster
     // Tuya_COVD : covering device using Tuya cluster
-
-
+    // Tuya_RPT : Repeater
+    
     // Tuya Thermostat / TRV
     {"_TYST11_zuhszj9s", "uhszj9s", "HiHome", "Tuya_THD WZB-TRVL TRV"},
     {"_TYST11_KGbxAXL2", "GbxAXL2", "Saswell", "Tuya_THD SEA801-ZIGBEE TRV"},
@@ -502,6 +510,7 @@ static const ProductMap products[] =
     {"_TZE200_5zbp6j0u", "TS0601", "Tuya/Zemismart", "Tuya_COVD DT82LEMA-1.2N"},
     {"_TZE200_fdtjuw7u", "TS0601", "Yushun", "Tuya_COVD YS-MT750"},
     {"_TZE200_bqcqqjpb", "TS0601", "Yushun", "Tuya_COVD YS-MT750"},
+    {"_TZE200_nueqqe6k", "TS0601", "Zemismart", "Tuya_COVD M515EGB"},
 
     // Tuya covering not using tuya cluster but need reversing
     {"_TZ3000_egq7y6pr", "TS130F", "Lonsonho", "11830304 Switch"},
@@ -512,6 +521,7 @@ static const ProductMap products[] =
     // Other
     {"_TYST11_d0yu2xgi", "0yu2xgi", "NEO/Tuya", "NAS-AB02B0 Siren"},
     {"_TZE200_d0yu2xgi", "TS0601", "NEO/Tuya", "NAS-AB02B0 Siren"},
+    {"_TZ3000_m0vaazab", "TS0207", "Tuya", "Tuya_RPT Repeater"},
 
     {nullptr, nullptr, nullptr, nullptr}
 };
@@ -551,13 +561,15 @@ const QString R_GetProductId(Resource *resource)
     }
 
     const auto *manufacturerName = resource->item(RAttrManufacturerName);
-    const auto *modelId = resource->item(RAttrManufacturerName);
+    const auto *modelId = resource->item(RAttrModelId);
 
-    if (!manufacturerName || !modelId)
+    // Need manufacturerName
+    if (!manufacturerName)
     {
         return rInvalidString;
     }
-
+    
+    //Tuya don't need modelId
     if (isTuyaManufacturerName(manufacturerName->toString()))
     {
         // for Tuya devices match against manufacturer name
@@ -576,14 +588,14 @@ const QString R_GetProductId(Resource *resource)
             // manufacturer name is the most unique identifier for Tuya
             if (DBG_IsEnabled(DBG_INFO_L2))
             {
-                DBG_Printf(DBG_INFO_L2, "No Tuya productId entry found for manufacturername: %s, modelId: %s\n",
-                    qPrintable(manufacturerName->toString()), qPrintable(modelId->toString()));
+                DBG_Printf(DBG_INFO_L2, "No Tuya productId entry found for manufacturername: %s\n", qPrintable(manufacturerName->toString()));
             }
 
             return manufacturerName->toString();
         }
     }
-    else
+    
+    if (modelId)
     {
         return modelId->toString();
     }
@@ -598,34 +610,20 @@ ResourceItem::ResourceItem(const ResourceItem &other)
 }
 
 /*! Move constructor. */
-ResourceItem::ResourceItem(ResourceItem &&other) :
-    m_isPublic(other.m_isPublic),
-    m_flags(other.m_flags),
-    m_num(other.m_num),
-    m_numPrev(other.m_numPrev),
-    m_str(nullptr),
-    m_rid(other.m_rid),
-    m_lastSet(std::move(other.m_lastSet)),
-    m_lastChanged(std::move(other.m_lastChanged)),
-    m_rulesInvolved(std::move(other.m_rulesInvolved))
+ResourceItem::ResourceItem(ResourceItem &&other) noexcept
 {
-    if (other.m_str) // release
-    {
-        m_str = other.m_str;
-        other.m_str = nullptr;
-    }
-
-    other.m_rid = &rInvalidItemDescriptor;
+    *this = std::move(other);
 }
 
 /*! Destructor. */
-ResourceItem::~ResourceItem()
+ResourceItem::~ResourceItem() noexcept
 {
     if (m_str)
     {
         delete m_str;
         m_str = nullptr;
     }
+    m_rid = &rInvalidItemDescriptor;
 }
 
 /*! Returns true when a value has been set but not pushed upstream. */
@@ -687,7 +685,7 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
 }
 
 /*! Move assignment. */
-ResourceItem &ResourceItem::operator=(ResourceItem &&other)
+ResourceItem &ResourceItem::operator=(ResourceItem &&other) noexcept
 {
     // self assignment?
     if (this == &other)
@@ -1024,7 +1022,7 @@ void ResourceItem::inRule(int ruleHandle)
 }
 
 /*! Returns the rules handles in which the resource item is involved. */
-const std::vector<int> ResourceItem::rulesInvolved() const
+const std::vector<int> &ResourceItem::rulesInvolved() const
 {
     return m_rulesInvolved;
 }
@@ -1059,13 +1057,9 @@ Resource::Resource(const Resource &other) :
 }
 
 /*! Move constructor. */
-Resource::Resource(Resource &&other) :
-    lastStatePush(std::move(other.lastStatePush)),
-    lastAttrPush(std::move(other.lastAttrPush)),
-    m_prefix(other.m_prefix),
-    m_rItems(std::move(other.m_rItems))
+Resource::Resource(Resource &&other) noexcept
 {
-    other.m_prefix = RInvalidSuffix;
+    *this = std::move(other);
 }
 
 /*! Copy assignment. */
@@ -1082,7 +1076,7 @@ Resource &Resource::operator=(const Resource &other)
 }
 
 /*! Move assignment. */
-Resource &Resource::operator=(Resource &&other)
+Resource &Resource::operator=(Resource &&other) noexcept
 {
     if (this != &other)
     {

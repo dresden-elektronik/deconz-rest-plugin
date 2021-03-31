@@ -565,9 +565,10 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 }
                 else if (i->id() == IDENTIFY_CLUSTER_ID)
                 {
-                    if (manufacturerCode() == VENDOR_IKEA && deviceId == DEV_ID_RANGE_EXTENDER)
+                    if ((manufacturerCode() == VENDOR_IKEA && deviceId == DEV_ID_RANGE_EXTENDER) ||
+                        R_GetProductId(this) == QLatin1String("Tuya_RPT Repeater"))
                     {
-                        // the repeater has no on/off cluster but an led which supports identify
+                        // the ikea repeater has no on/off cluster but an led which supports identify
                         removeItem(RStateOn);
                         ltype = QLatin1String("Range extender");
                     }
@@ -622,7 +623,6 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                                                        ltype = QLatin1String("Warning device"); break;
             case DEV_ID_HA_WINDOW_COVERING_CONTROLLER: ltype = QLatin1String("Window covering controller"); break;
             case DEV_ID_HA_WINDOW_COVERING_DEVICE:     ltype = QLatin1String("Window covering device"); break;
-            // Danalock support. Add the device id to setHAEndPoint() to set the type to "Door lock".
             case DEV_ID_DOOR_LOCK:                     ltype = QLatin1String("Door Lock"); break;
             case DEV_ID_DOOR_LOCK_UNIT:                ltype = QLatin1String("Door Lock Unit"); break;
             
