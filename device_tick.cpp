@@ -123,15 +123,17 @@ static void DT_StateInit(DeviceTickPrivate *d, const Event &event)
  */
 static void DT_PollNextIdleDevice(DeviceTickPrivate *d)
 {
-    if (d->devices->empty())
+    const auto devCount = d->devices->size();
+
+    if (devCount == 0)
     {
         return;
     }
 
-    d->devIter %= d->devices->size();
-    Q_ASSERT(d->devIter < d->devices->size());
+    d->devIter %= devCount;
 
-    const Device *device = d->devices->at(d->devIter);
+    const auto &device = d->devices->at(d->devIter);
+    Q_ASSERT(device);
     emit d->q->eventNotify(Event(device->prefix(), REventPoll, 0, device->key()));
     d->devIter++;
 }

@@ -114,7 +114,7 @@ Q_SIGNALS:
     void eventNotify(const Event&); //! The device emits an event, which needs to be enqueued in a higher layer.
 };
 
-using DeviceContainer = std::vector<Device*>;
+using DeviceContainer = std::vector<std::unique_ptr<Device>>;
 
 /*! Returns a device for a given \p key.
 
