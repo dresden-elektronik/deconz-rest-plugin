@@ -323,6 +323,7 @@ using namespace deCONZ::literals;
 #define VENDOR_VISONIC              0x1011
 #define VENDOR_ATMEL                0x1014
 #define VENDOR_DEVELCO              0x1015
+#define VENDOR_YALE                 0x101D
 #define VENDOR_MAXSTREAM            0x101E // Used by Digi
 #define VENDOR_VANTAGE              0x1021
 #define VENDOR_LEGRAND              0x1021 // wrong name?
@@ -390,6 +391,7 @@ using namespace deCONZ::literals;
 #define VENDOR_KONKE                0x1268
 #define VENDOR_SHYUGJ_TECHNOLOGY    0x126A
 #define VENDOR_XIAOMI2              0x126E
+#define VENDOR_DATEK                0x1337
 #define VENDOR_OSRAM_STACK          0xBBAA
 #define VENDOR_C2DF                 0xC2DF
 #define VENDOR_PHILIO               0xFFA0
@@ -479,6 +481,7 @@ using namespace deCONZ::literals;
 #define J2000_EPOCH 1
 
 void getTime(quint32 *time, qint32 *tz, quint32 *dstStart, quint32 *dstEnd, qint32 *dstShift, quint32 *standardTime, quint32 *localTime, quint8 mode);
+int getFreeSensorId(); // TODO needs to be part of a Database class
 
 extern const quint64 macPrefixMask;
 
@@ -516,6 +519,7 @@ extern const quint64 samjinMacPrefix;
 extern const quint64 tiMacPrefix;
 extern const quint64 ubisysMacPrefix;
 extern const quint64 xalMacPrefix;
+extern const quint64 onestiPrefix;
 extern const quint64 develcoMacPrefix;
 extern const quint64 legrandMacPrefix;
 extern const quint64 profaluxMacPrefix;
@@ -1043,6 +1047,8 @@ public:
 
     DeRestPluginPrivate(QObject *parent = 0);
     ~DeRestPluginPrivate();
+
+    static DeRestPluginPrivate *instance();
 
     // REST API authorisation
     void initAuthentication();
@@ -1623,6 +1629,7 @@ public:
     void refreshDeviceDb(const deCONZ::Address &addr);
     void pushZdpDescriptorDb(quint64 extAddress, quint8 endpoint, quint16 type, const QByteArray &data);
     void pushZclValueDb(quint64 extAddress, quint8 endpoint, quint16 clusterId, quint16 attributeId, qint64 data);
+    bool dbIsOpen() const;
     void openDb();
     void readDb();
     void loadAuthFromDb();
@@ -1644,7 +1651,6 @@ public:
     void loadLightDataFromDb(LightNode *lightNode, QVariantList &ls, qint64 fromTime, int max);
     void loadAllGatewaysFromDb();
     int getFreeLightId();
-    int getFreeSensorId();
     void saveDb();
     void saveApiKey(QString apikey);
     void closeDb();
@@ -1655,13 +1661,11 @@ public:
 
     void checkConsistency();
 
-    sqlite3 *db;
     int ttlDataBaseConnection; // when idleTotalCounter becomes greater the DB will be closed
     int saveDatabaseItems;
     int saveDatabaseIdleTotalCounter;
     QString sqliteDatabaseName;
     std::vector<int> lightIds;
-    std::vector<int> sensorIds;
     std::vector<QString> dbQueryQueue;
     qint64 dbZclValueMaxAge;
     QTimer *databaseTimer;
