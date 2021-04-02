@@ -799,6 +799,44 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 else if (rid.suffix == RConfigTempThreshold || rid.suffix == RConfigHumiThreshold)
                 {
                 }
+                else if (rid.suffix == RConfigLock)
+                {
+                    bool ok;
+
+                    if (map[pi.key()].type() == QVariant::Bool)
+                    {
+                        const bool lock = map[pi.key()].toBool();
+                        if (lock)
+                        {
+                            ok = addTaskDoorLockUnlock(task, 0x00 /*Lock*/);
+                        }
+                        else
+                        {
+                            ok = addTaskDoorLockUnlock(task, 0x01 /*UnLock*/);
+                        }
+                        if (ok)
+                        {
+                            if (item->setValue(lock))
+                            {
+                                rspItemState[QString("/sensors/%1/config/lock").arg(id)] = map["lock"];
+                                rspItem["success"] = rspItemState;
+                                updated = true;
+                            }
+                        }
+                        else
+                        {
+                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/lock").arg(id), QString("Command error, %1, for parameter, lock").arg(map[pi.key()].toString())));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
+                        }
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/lock").arg(id), QString("invalid value, %1, for parameter, lock").arg(val.toString())));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
                 else if (item->setValue(val))
                 {
                     // TODO: Fix bug
@@ -1317,7 +1355,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         qint16 coolsetpoint = map[pi.key()].toInt(&ok);
 
-                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, 0x0011, deCONZ::Zcl16BitInt, coolsetpoint))
+                        if (ok && addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, 0x0011, deCONZ::Zcl16BitInt, coolsetpoint))
                         {
                             updated = true;
                         }
@@ -1409,9 +1447,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                     {
-                        QByteArray data = QByteArray("\x00", 1);
+                        QByteArray data;
                         QString modeSet = map[pi.key()].toString();
                         if (modeSet == "heat") { data = QByteArray("\x01", 1); }
+                        else if (modeSet == "off") { data = QByteArray("\x00", 1); }
                         else
                         {
                             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
@@ -1828,7 +1867,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             qint16 externalMeasurement = map[pi.key()].toInt(&ok);
 
-                            if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_DANFOSS, 0x4015, deCONZ::Zcl16BitInt, externalMeasurement))
+                            if (ok && addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_DANFOSS, 0x4015, deCONZ::Zcl16BitInt, externalMeasurement))
                             {
                                 updated = true;
                             }
@@ -2116,6 +2155,103 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                     return REQ_READY_SEND;
                                 }
                             }
+                        }
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
+            }
+            
+            //Special part for metering interfaces
+            if (sensor->type() == "ZHAConsumption")
+            {
+                if (rid.suffix == RConfigPulseConfiguration)
+                {
+                    if (map[pi.key()].type() == QVariant::Double)
+                    {
+                        if (sensor->modelId() == QLatin1String("ZHEMI101"))
+                        {
+                            const uint pulseConfiguration = map[pi.key()].toUInt(&ok);
+
+                            if (ok && pulseConfiguration <=  UINT16_MAX && addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0300, deCONZ::Zcl16BitUint, pulseConfiguration, VENDOR_DEVELCO))
+                            {
+                                updated = true;
+                            }
+                            else
+                            {
+                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                           QString("Could not set attribute")));
+                                rsp.httpStatus = HttpStatusBadRequest;
+                                return REQ_READY_SEND;
+                            }
+                        }
+                        else
+                        {
+                            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                       QString("parameter, %1, not available").arg(pi.key())));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
+                        }
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
+                else if (rid.suffix == RConfigInterfaceMode)
+                {
+                    if (map[pi.key()].type() == QVariant::Double)
+                    {
+                        if (sensor->modelId() == QLatin1String("ZHEMI101"))
+                        {
+                            const uint mode = map[pi.key()].toUInt(&ok);
+                            quint16 interfaceMode = 0;
+                            
+                            if (ok && mode == 1)      { interfaceMode = PULSE_COUNTING_ELECTRICITY; }
+                            else if (ok && mode == 2) { interfaceMode = PULSE_COUNTING_GAS; }
+                            else if (ok && mode == 3) { interfaceMode = PULSE_COUNTING_WATER; }
+                            else if (ok && mode == 4) { interfaceMode = KAMSTRUP_KMP; }
+                            else if (ok && mode == 5) { interfaceMode = LINKY; }
+                            else if (ok && mode == 6) { interfaceMode = DLMS_COSEM; }
+                            else if (ok && mode == 7) { interfaceMode = DSMR_23; }
+                            else if (ok && mode == 8) { interfaceMode = DSMR_40; }
+                            else
+                            {
+                                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                           QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
+                                rsp.httpStatus = HttpStatusBadRequest;
+                                return REQ_READY_SEND;
+                            }
+
+                            if (mode > 0 && mode < 9)
+                            {
+                                if (addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0302, deCONZ::Zcl16BitEnum, interfaceMode, VENDOR_DEVELCO))
+                                {
+                                    updated = true;
+                                }
+                                else
+                                {
+                                    rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                               QString("Could not set attribute")));
+                                    rsp.httpStatus = HttpStatusBadRequest;
+                                    return REQ_READY_SEND;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                       QString("parameter, %1, not available").arg(pi.key())));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
                         }
                     }
                     else
