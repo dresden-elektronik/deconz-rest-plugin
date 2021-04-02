@@ -723,7 +723,7 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
     m_readParameters = other.m_readParameters;
     m_writeParameters = other.m_writeParameters;
     m_clusterId = other.m_clusterId;
-    m_attributeId = other.m_attributeId;
+    m_attributes = other.m_attributes;
     m_endpoint = other.m_endpoint;
     m_num = other.m_num;
     m_numPrev = other.m_numPrev;
@@ -771,7 +771,7 @@ ResourceItem &ResourceItem::operator=(ResourceItem &&other) noexcept
     m_lastChanged = std::move(other.m_lastChanged);
     m_rulesInvolved = std::move(other.m_rulesInvolved);
     m_clusterId = other.m_clusterId;
-    m_attributeId = other.m_attributeId;
+    m_attributes = std::move(other.m_attributes);
     m_endpoint = other.m_endpoint;
     m_parseFunction = other.m_parseFunction;
     m_parseParameters = std::move(other.m_parseParameters);
@@ -1095,10 +1095,10 @@ QVariant ResourceItem::toVariant() const
     return QVariant();
 }
 
-void ResourceItem::setZclProperties(quint16 clusterId, quint16 attrId, quint8 endpoint)
+void ResourceItem::setZclProperties(quint16 clusterId, const std::vector<quint16> &attributes, quint8 endpoint)
 {
     m_clusterId = clusterId;
-    m_attributeId = attrId;
+    m_attributes = attributes;
     m_endpoint = endpoint;
 }
 

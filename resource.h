@@ -433,7 +433,7 @@ public:
     qint64 toNumberPrevious() const;
     bool toBool() const;
     QVariant toVariant() const;
-    void setZclProperties(quint16 clusterId, quint16 attrId, quint8 endpoint = 0xff);
+    void setZclProperties(quint16 clusterId, const std::vector<quint16> &attributes, quint8 endpoint = 0xff);
     bool setValue(const QString &val, ValueSource source = SourceUnknown);
     bool setValue(qint64 val, ValueSource source = SourceUnknown);
     bool setValue(const QVariant &val, ValueSource source = SourceUnknown);
@@ -446,7 +446,7 @@ public:
     bool isPublic() const;
     void setIsPublic(bool isPublic);
     quint16 clusterId() const { return m_clusterId; }
-    quint16 attributeId() const { return m_attributeId; }
+    const std::vector<quint16> &attributes() const { return m_attributes; }
     quint16 endpoint() const { return m_endpoint; }
     ParseFunction_t parseFunction() const { return m_parseFunction; }
     void setParseFunction(ParseFunction_t fn) { m_parseFunction = fn; }
@@ -475,7 +475,7 @@ private:
         To retreive the value from ZCL read/report commands.
     */
     quint16 m_clusterId = 0xFFFF;
-    quint16 m_attributeId = 0xFFFF;
+    std::vector<quint16> m_attributes;
     quint8 m_endpoint = 0xFF;
     ParseFunction_t m_parseFunction = nullptr;
     std::vector<QVariant> m_parseParameters;

@@ -6,5 +6,5 @@
 	"public": true,
 	"range": [0, 254],
 	"description": "The current brightness.",
-	"parse": ["parseGenericAttribute/4", 0, "0x0008", "0x0000", "Item.val = Attr.val"]
+	"parse": {"fn": "zcl", "ep": 0, "cl": "0x0008", "at": "0x0000", "eval": "Item.val = Attr.val"}
 }

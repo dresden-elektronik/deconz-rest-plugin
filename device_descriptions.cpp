@@ -254,6 +254,10 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
                 result.parseParameters.push_back(i.toVariant());
             }
         }
+        else if (parse.isObject())
+        {
+            result.parseParameters.push_back(parse.toVariant());
+        }
 
         const auto read = obj.value(QLatin1String("read"));
         if (read.isArray())
@@ -264,6 +268,10 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
                 result.readParameters.push_back(i.toVariant());
             }
         }
+        else if (read.isObject())
+        {
+            result.readParameters.push_back(read.toVariant());
+        }
 
         const auto write = obj.value(QLatin1String("write"));
         if (write.isArray())
@@ -273,6 +281,10 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
             {
                 result.writeParameters.push_back(i.toVariant());
             }
+        }
+        else if (write.isObject())
+        {
+            result.writeParameters.push_back(write.toVariant());
         }
 
         if (obj.contains(QLatin1String("default")))

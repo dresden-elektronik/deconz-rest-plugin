@@ -5,5 +5,5 @@
 	"access": "R",
 	"public": true,
 	"description": "Manufacturer name of the device.",
-	"parse": ["parseGenericAttribute/4", 255, "0x0000", "0x0004", "Item.val = Attr.val"]
+	"parse": {"fn": "zcl", "ep": 255, "cl": "0x0000", "at": "0x0004", "eval": "Item.val = Attr.val"}
 }

@@ -38,7 +38,7 @@
                 },
                 {
                     "name": "config/battery",
-                    "parse": ["parseGenericAttribute/4", 1, "0x0001", "0x0021", "$raw"],
+                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val"},
                     "awake": true
                 },
                 {

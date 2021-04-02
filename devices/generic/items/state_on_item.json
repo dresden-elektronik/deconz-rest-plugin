@@ -5,5 +5,5 @@
 	"access": "RW",
 	"public": true,
 	"description": "True when device is on; false when off.",
-	"parse": ["parseGenericAttribute/4", 0, "0x0006", "0x0000", "Item.val = Attr.val"]
+	"parse": {"fn": "zcl", "ep": 0, "cl": "0x0006", "at": "0x0000", "eval": "Item.val = Attr.val"}
 }
