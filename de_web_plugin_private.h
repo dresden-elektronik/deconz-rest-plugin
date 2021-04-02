@@ -391,6 +391,7 @@ using namespace deCONZ::literals;
 #define VENDOR_NIKO_NV              0x125F
 #define VENDOR_KONKE                0x1268
 #define VENDOR_SHYUGJ_TECHNOLOGY    0x126A
+#define VENDOR_XIAOMI2              0x126E
 #define VENDOR_DATEK                0x1337
 #define VENDOR_OSRAM_STACK          0xBBAA
 #define VENDOR_C2DF                 0xC2DF
