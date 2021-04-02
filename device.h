@@ -18,17 +18,6 @@ class Event;
 class Device;
 
 using DeviceKey = uint64_t; //! uniqueId for an Device, MAC address for physical devices
-typedef void (*DeviceStateHandler)(Device *, const Event &);
-
-void DEV_InitStateHandler(Device *device, const Event &event);
-void DEV_IdleStateHandler(Device *device, const Event &event);
-void DEV_NodeDescriptorStateHandler(Device *device, const Event &event);
-void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event);
-void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event);
-void DEV_BasicClusterStateHandler(Device *device, const Event &event);
-void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event);
-void DEV_BindingHandler(Device *device, const Event &event);
-void DEV_BindingTableVerifyHandler(Device *device, const Event &event);
 
 /*! Indexes in m_state[] array.
     Level 0   is the top level state
@@ -102,9 +91,6 @@ public:
     const deCONZ::Node *node() const;
     bool managed() const;
     void handleEvent(const Event &event, DEV_StateLevel level = StateLevel0);
-    void setState(DeviceStateHandler state, DEV_StateLevel level = StateLevel0);
-    void startStateTimer(int IntervalMs);
-    void stopStateTimer();
     void timerEvent(QTimerEvent *event) override;
     qint64 lastAwakeMs() const;
     bool reachable() const;
