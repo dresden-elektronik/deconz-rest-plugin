@@ -39,11 +39,11 @@
                 },
                 {
                     "name": "state/lift",
-                    "parse": ["parseGenericAttribute/4", 1, "0x0102", "0x0008", "$raw"]
+                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0102", "at": "0x0008", "eval": "Item.val = Attr.val"}
                 },
                 {
                     "name": "state/open",
-                    "parse": ["parseGenericAttribute/4", 1, "0x0102", "0x0008", "$raw < 100"]
+                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0102", "at": "0x0008", "eval": "Item.val = Attr.val < 100"}
                 },
                 {
                     "name": "state/reachable"
@@ -51,21 +51,18 @@
                 {
                     "name": "config/checkin",
                     "public": false,
-                    "default": 480,
-                    "parse": ["parseGenericAttribute/4", 1, "0x0020", "0x0000", "$raw"],
-                    "read": ["readGenericAttribute/4", 1, "0x0020", "0x0000", "0x0000"],
-                    "write": ["writeGenericAttribute/6", 1, "0x0020", "0x0000", "0x23", "0x0000", "$raw"]
+                    "default": 480
                 },
                 {
                     "name": "state/bri",
                     "description": "The lift state in earlier versions, use <code class=\"api-attribute\">lift</code> instead.",
-                    "parse": ["parseGenericAttribute/4", 1, "0x0102", "0x0008", "$raw * 254 / 100"],
+                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0102", "at": "0x0008", "eval": "Item.val = Attr.val * 254 / 100"},
                     "deprecated": "2020-04-08"
                 },
                 {
                     "name": "state/on",
                     "description": "The open state in earlier versions, use <code class=\"api-attribute\">open</code> instead.",
-                    "parse": ["parseGenericAttribute/4", 1, "0x0102", "0x0008", "$raw < 100"],
+                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0102", "at": "0x0008", "eval": "Item.val = Attr.val < 100"},
                     "deprecated": "2020-04-08"
                 }
             ],
@@ -122,7 +119,7 @@
                 },
                 {
                     "name": "state/battery",
-                    "parse": ["parseGenericAttribute/4", 1, "0x0001", "0x0021", "$raw"]
+                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val"}
                 },
                 {
                     "name": "state/lastupdated"
