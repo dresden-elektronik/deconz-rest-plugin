@@ -32,6 +32,7 @@ static bool DDF_ReadConstantsJson(const QString &path, std::map<QString,QString>
 static DeviceDescription::Item DDF_ReadItemFile(const QString &path);
 static std::vector<DeviceDescription> DDF_ReadDeviceFile(const QString &path);
 static DeviceDescription DDF_MergeGenericItems(const std::vector<DeviceDescription::Item> &genericItems, const DeviceDescription &ddf);
+DeviceDescription DDF_LoadScripts(const DeviceDescription &ddf);
 
 /*! Constructor. */
 DeviceDescriptions::DeviceDescriptions(QObject *parent) :
@@ -158,6 +159,7 @@ void DeviceDescriptions::readAll()
         for (auto &ddf : d->descriptions)
         {
             ddf = DDF_MergeGenericItems(d->genericItems, ddf);
+            ddf = DDF_LoadScripts(ddf);
         }
     }
 }
@@ -430,7 +432,7 @@ static QStringList DDF_ParseModelids(const QJsonObject &obj)
 /*! Parses an DDF JSON object.
     \returns DDF object, use DeviceDescription::isValid() to check for success.
  */
-static DeviceDescription DDF_ParseDeviceObject(const QJsonObject &obj)
+static DeviceDescription DDF_ParseDeviceObject(const QJsonObject &obj, const QString &path)
 {
     DeviceDescription result;
 
@@ -447,6 +449,7 @@ static DeviceDescription DDF_ParseDeviceObject(const QJsonObject &obj)
         return result;
     }
 
+    result.path = path;
     result.manufacturer = obj.value(QLatin1String("manufacturer")).toString();
     result.modelIds = DDF_ParseModelids(obj);
     result.product = obj.value(QLatin1String("product")).toString();
@@ -507,6 +510,67 @@ static DeviceDescription::Item DDF_ReadItemFile(const QString &path)
     return { };
 }
 
+QVariant DDF_ResolveParamScript1(const QVariant &param, const QString &path)
+{
+    auto result = param;
+
+    if (param.type() != QVariant::Map)
+    {
+        return result;
+    }
+
+    auto map = param.toMap();
+
+    if (map.contains("script"))
+    {
+        const auto script = map["script"].toString();
+
+        const QFileInfo fi(path);
+        QFile f(fi.canonicalPath() + "/" + script);
+
+        if (f.exists() && f.open(QFile::ReadOnly))
+        {
+            const auto content = f.readAll();
+            if (!content.isEmpty())
+            {
+                map["eval"] = content;
+                result = std::move(map);
+            }
+        }
+    }
+
+    return result;
+}
+
+std::vector<QVariant> DDF_ResolveParamScript(const std::vector<QVariant> &params, const QString &path)
+{
+    auto result = params;
+
+    for (auto &i : result)
+    {
+        i = DDF_ResolveParamScript1(i, path);
+    }
+
+    return result;
+}
+
+DeviceDescription DDF_LoadScripts(const DeviceDescription &ddf)
+{
+    auto result = ddf;
+
+    for (auto &sub : result.subDevices)
+    {
+        for (auto &item : sub.items)
+        {
+            item.parseParameters = DDF_ResolveParamScript(item.parseParameters, ddf.path);
+            item.readParameters = DDF_ResolveParamScript(item.readParameters, ddf.path);
+            item.writeParameters = DDF_ResolveParamScript(item.writeParameters, ddf.path);
+        }
+    }
+
+    return result;
+}
+
 /*! Reads a DDF file which may contain one or more device descriptions.
     \returns Vector of parsed DDF objects.
  */
@@ -537,7 +601,7 @@ static std::vector<DeviceDescription> DDF_ReadDeviceFile(const QString &path)
 
     if (doc.isObject())
     {
-        const auto ddf = DDF_ParseDeviceObject(doc.object());
+        const auto ddf = DDF_ParseDeviceObject(doc.object(), path);
         if (ddf.isValid())
         {
             result.push_back(ddf);
@@ -550,7 +614,7 @@ static std::vector<DeviceDescription> DDF_ReadDeviceFile(const QString &path)
         {
             if (i.isObject())
             {
-                const auto ddf = DDF_ParseDeviceObject(i.toObject());
+                const auto ddf = DDF_ParseDeviceObject(i.toObject(), path);
                 if (ddf.isValid())
                 {
                     result.push_back(ddf);

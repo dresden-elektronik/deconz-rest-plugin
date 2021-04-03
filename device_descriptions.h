@@ -48,6 +48,7 @@ public:
         SensorFingerprint fingerPrint;
     };
 
+    QString path;
     std::vector<SubDevice> subDevices;
 };
 
