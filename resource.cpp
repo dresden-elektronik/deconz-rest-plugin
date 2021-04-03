@@ -30,6 +30,7 @@ const char *REventDeviceAnnounce = "event/device.anounce";
 const char *REventPermitjoinEnabled = "event/permit.join.enabled";
 const char *REventPermitjoinDisabled = "event/permit.join.disabled";
 const char *REventPoll = "event/poll";
+const char *REventReloadDDF = "event/reload.ddf";
 const char *REventValidGroup = "event/validgroup";
 const char *REventCheckGroupAnyOn = "event/checkgroupanyon";
 const char *REventNodeDescriptor = "event/node.descriptor";

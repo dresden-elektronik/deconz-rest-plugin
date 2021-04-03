@@ -271,6 +271,11 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
     {
         d->setState(nullptr, StateLevel1);
     }
+    else if (event.what() == REventReloadDDF)
+    {
+        DeviceDescriptions::instance()->readAll(); // TODO this is rather brutal?
+        d->setState(DEV_GetDeviceDescriptionHandler);
+    }
     else if (event.resource() == device->prefix())
     {
         DBG_Printf(DBG_INFO, "DEV Idle event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
@@ -654,12 +659,37 @@ ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item &ddfIt
     {
         DBG_Printf(DBG_INFO, "sub-device: %s, create item: %s\n", qPrintable(uniqueId), ddfItem.descriptor.suffix);
         item = rsub->addItem(ddfItem.descriptor.type, ddfItem.descriptor.suffix);
-        Q_ASSERT(item);
+
+        if (!item)
+        {
+            return nullptr;
+        }
 
         if (ddfItem.defaultValue.isValid())
         {
             item->setValue(ddfItem.defaultValue);
         }
+    }
+
+    Q_ASSERT(item);
+
+    // check updates
+    item->setIsPublic(ddfItem.isPublic);
+
+    if (item->parseParameters() != ddfItem.parseParameters)
+    {
+        item->setParseFunction(nullptr);
+        item->setParseParameters(ddfItem.parseParameters);
+    }
+
+    if (item->readParameters() != ddfItem.readParameters)
+    {
+        item->setReadParameters(ddfItem.readParameters);
+    }
+
+    if (item->writeParameters() != ddfItem.writeParameters)
+    {
+        item->setWriteParameters(ddfItem.writeParameters);
     }
 
     return item;
@@ -710,10 +740,6 @@ static bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescriptio
                 continue;
             }
 
-            item->setParseParameters(ddfItem.parseParameters);
-            item->setReadParameters(ddfItem.readParameters);
-            item->setWriteParameters(ddfItem.writeParameters);
-
             if (item->descriptor().suffix == RConfigCheckin)
             {
                 StateChange stateChange(StateChange::StateWaitSync, SC_WriteZclAttribute, sub.uniqueId.at(1).toUInt());
@@ -727,7 +753,7 @@ static bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescriptio
     return subCount == description.subDevices.size();
 }
 
-/*! #6 This state checks if for the modelId a device description is available.
+/*! #6 This state checks if for the device a device description file (DDF) is available.
     In that case the device is initialised (or updated) based on the JSON description.
  */
 void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event)
@@ -736,18 +762,18 @@ void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event)
     {
         DevicePrivate *d = device->d;
         const auto modelId = device->item(RAttrModelId)->toString();
-        const auto description = DeviceDescriptions::instance()->get(device);
+        const auto ddf = DeviceDescriptions::instance()->get(device);
 
-        if (description.isValid())
+        if (ddf.isValid())
         {
-            DBG_Printf(DBG_INFO, "found device description for 0x%016llX, modelId: %s\n", device->key(), qPrintable(modelId));
+            DBG_Printf(DBG_INFO, "DEV found DDF for 0x%016llX, modelId: %s, path: %s\n", device->key(), qPrintable(modelId), qPrintable(ddf.path));
 
-            DEV_InitDeviceFromDescription(device, description);
+            DEV_InitDeviceFromDescription(device, ddf);
             d->setState(DEV_IdleStateHandler); // TODO
         }
         else
         {
-            DBG_Printf(DBG_INFO, "No device description for 0x%016llX, modelId: %s\n", device->key(), qPrintable(modelId));
+            DBG_Printf(DBG_INFO, "DEV no DDF for 0x%016llX, modelId: %s\n", device->key(), qPrintable(modelId));
             d->setState(DEV_IdleStateHandler);
         }
     }

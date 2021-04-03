@@ -48,6 +48,11 @@ int RestDevices::handleApi(const ApiRequest &req, ApiResponse &rsp)
     {
         return getDevice(req, rsp);
     }
+    // PUT /api/<apikey>/devices/<uniqueid>/ddf/reload
+    else if (req.path.size() == 6 && req.hdr.method() == QLatin1String("PUT") && req.path[4] == QLatin1String("ddf") && req.path[5] == QLatin1String("reload"))
+    {
+        return putDeviceReloadDDF(req, rsp);
+    }
     // PUT /api/<apikey>/devices/<uniqueid>/installcode
     else if ((req.path.size() == 5) && (req.hdr.method() == QLatin1String("PUT")) && (req.path[4] == QLatin1String("installcode")))
     {
@@ -283,6 +288,37 @@ int RestDevices::putDeviceInstallCode(const ApiRequest &req, ApiResponse &rsp)
     {
         rsp.list.append(plugin->errorToMap(ERR_MISSING_PARAMETER, QString("/devices/%1/installcode").arg(uniqueid), QString("missing parameters in body")));
         rsp.httpStatus = HttpStatusBadRequest;
+    }
+
+    return REQ_READY_SEND;
+}
+
+int RestDevices::putDeviceReloadDDF(const ApiRequest &req, ApiResponse &rsp)
+{
+    DBG_Assert(req.path.size() == 6);
+
+    rsp.httpStatus = HttpStatusOk;
+
+    auto uniqueId = req.path.at(3);
+    uniqueId.remove(QLatin1Char(':'));
+
+    bool ok = false;
+    const auto deviceKey = uniqueId.toULongLong(&ok, 16);
+
+    if (ok)
+    {
+        emit eventNotify(Event(RDevices, REventReloadDDF, 0, deviceKey));
+
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState["reload"] = req.path.at(3);
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+        rsp.httpStatus = HttpStatusOk;
+    }
+    else
+    {
+        // TODO
     }
 
     return REQ_READY_SEND;

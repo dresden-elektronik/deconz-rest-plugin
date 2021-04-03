@@ -47,6 +47,7 @@ extern const char *REventDeviceAnnounce;
 extern const char *REventPermitjoinEnabled;
 extern const char *REventPermitjoinDisabled;
 extern const char *REventPoll;
+extern const char *REventReloadDDF;
 extern const char *REventValidGroup;
 extern const char *REventCheckGroupAnyOn;
 extern const char *REventNodeDescriptor;

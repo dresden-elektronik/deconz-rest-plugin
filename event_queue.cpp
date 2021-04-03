@@ -16,7 +16,7 @@ void DeRestPluginPrivate::eventQueueTimerFired()
 {
     DBG_Assert(!eventQueue.empty());
 
-    Event &e = eventQueue.front();
+    const Event &e = eventQueue.front();
 
     if (e.resource() == RSensors)
     {
