@@ -336,6 +336,86 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
                     DBG_Printf(DBG_INFO, "failed to evaluate expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
                 }
             }
+        }
+    }
+
+    return result;
+}
+
+/*! Handle manufacturer specific Xiaomi ZCL attribute report commands to basic cluster.
+ */
+deCONZ::ZclAttribute parseXiaomiZclTag(const quint8 rtag, const deCONZ::ZclFrame &zclFrame)
+{
+    deCONZ::ZclAttribute result;
+
+    quint16 attrId = 0;
+    quint8 dataType = 0;
+    quint8 length = 0;
+
+    QDataStream stream(zclFrame.payload());
+    stream.setByteOrder(QDataStream::LittleEndian);
+    stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
+
+    while (attrId == 0 && !stream.atEnd())
+    {
+        quint16 a;
+        stream >> a;
+        stream >> dataType;
+
+        if (dataType == deCONZ::ZclCharacterString || dataType == deCONZ::ZclOctedString)
+        {
+            stream >> length;
+        }
+
+        if (a == 0xff01 && dataType == deCONZ::ZclCharacterString)
+        {
+            attrId = a;
+        }
+        else if (a == 0xff02 && dataType == 0x4c /*deCONZ::ZclStruct*/)
+        {
+//            attrId = a;
+        }
+        else if (a == 0x00f7 && dataType == deCONZ::ZclOctedString)
+        {
+            attrId = a;
+        }
+
+        if (dataType == deCONZ::ZclCharacterString && attrId != 0xff01)
+        {
+            for (; length > 0; length--) // skip string attribute
+            {
+                quint8 dummy;
+                stream >> dummy;
+            }
+        }
+    }
+
+    if (stream.atEnd() || attrId == 0)
+    {
+        return result;
+    }
+
+    while (!stream.atEnd())
+    {
+        quint8 tag = 0;
+
+        if (attrId == 0xff01 || attrId == 0x00f7)
+        {
+            stream >> tag;
+        }
+
+        stream >> dataType;
+
+        deCONZ::ZclAttribute atmp(tag, dataType, QLatin1String(""), deCONZ::ZclRead, true);
+
+        if (!atmp.readFromStream(stream))
+        {
+            return result;
+        }
+
+        if (tag == rtag)
+        {
+            result = atmp;
             break;
         }
     }
