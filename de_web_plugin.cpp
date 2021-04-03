@@ -19824,6 +19824,12 @@ Resource *DEV_AddResource(const Sensor &sensor)
 Resource *DEV_AddResource(const LightNode &lightNode)
 {
     plugin->nodes.push_back(lightNode);
+
+    if (!lightNode.name().isEmpty())
+    {
+        emit plugin->q_ptr->nodeUpdated(lightNode.address().ext(), QLatin1String("name"), lightNode.name());
+    }
+
     return &plugin->nodes.back();
 }
 
