@@ -29,6 +29,7 @@ public:
     {
     public:
         bool isValid() const { return !name.isEmpty() && descriptor.isValid(); }
+        bool isPublic = true;
         QString name;
         ResourceItemDescriptor descriptor;
         std::vector<QVariant> parseParameters;

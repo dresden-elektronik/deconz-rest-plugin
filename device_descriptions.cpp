@@ -251,6 +251,11 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
             }
         }
 
+        if (obj.contains(QLatin1String("public")))
+        {
+            result.isPublic = obj.value(QLatin1String("public")).toBool();
+        }
+
         const auto parse = obj.value(QLatin1String("parse"));
         if (parse.isArray())
         {
