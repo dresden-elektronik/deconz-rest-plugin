@@ -79,6 +79,10 @@ static Resource *DEV_InitLightNodeFromDescription(Device *device, const DeviceDe
     lightNode.setId(QString::number(getFreeSensorId()));
     lightNode.setName(QString("%1 %2").arg(lightNode.type(), lightNode.id()));
 
+    // remove some items which need to be specified via DDF
+    lightNode.removeItem(RStateOn);
+    lightNode.removeItem(RStateAlert);
+
     lightNode.setNeedSaveDatabase(true);
     lightNode.rx();
 
