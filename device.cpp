@@ -35,6 +35,7 @@ void DEV_BasicClusterStateHandler(Device *device, const Event &event);
 void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event);
 void DEV_BindingHandler(Device *device, const Event &event);
 void DEV_BindingTableVerifyHandler(Device *device, const Event &event);
+void DEV_DeadStateHandler(Device *device, const Event &event);
 
 // enable domain specific string literals
 using namespace deCONZ::literals;
@@ -195,8 +196,9 @@ void DEV_InitStateHandler(Device *device, const Event &event)
             device->item(RAttrExtAddress)->setValue(device->node()->address().ext());
             device->item(RAttrNwkAddress)->setValue(device->node()->address().nwk());
 
-            if (device->node()->nodeDescriptor().manufacturerCode_t() == 0x1135_mfcode && device->node()->address().nwk() == 0x0000)
+            if (device->node()->address().nwk() == 0x0000)
             {
+                d->setState(DEV_DeadStateHandler);
                 return; // ignore coordinaor for now
             }
 
@@ -209,6 +211,12 @@ void DEV_InitStateHandler(Device *device, const Event &event)
         else
         {
             DBG_Printf(DBG_INFO, "DEV Init no node found: 0x%016llX\n", event.deviceKey());
+
+            if ((device->key() & 0xffffffff00000000LLU) == 0)
+            {
+                d->setState(DEV_DeadStateHandler);
+                return; // ignore ZGP for now
+            }
         }
     }
 }
@@ -866,6 +874,18 @@ void DEV_BindingTableVerifyHandler(Device *device, const Event &event)
 
         d->bindingIter++;
         DEV_EnqueueEvent(device, REventBindingTick);
+    }
+}
+
+/*! Empty handler to stop processing of the device.
+ */
+void DEV_DeadStateHandler(Device *device, const Event &event)
+{
+    Q_UNUSED(device)
+
+    if (event.what() == REventStateEnter)
+    {
+        DBG_Printf(DBG_INFO, "DEV enter dead state 0x%016llX\n", event.deviceKey());
     }
 }
 
