@@ -108,6 +108,8 @@ void DeviceDescriptions::readAll()
 {
     Q_D(DeviceDescriptions);
 
+    DBG_MEASURE_START(DDF_ReadAllFiles);
+
     QDirIterator it(deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation) + QLatin1String("/devices"),
                     QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
 
@@ -162,6 +164,8 @@ void DeviceDescriptions::readAll()
             ddf = DDF_LoadScripts(ddf);
         }
     }
+
+    DBG_MEASURE_END(DDF_ReadAllFiles);
 }
 
 /*! Reads constants.json file and places them into \p constants map.
