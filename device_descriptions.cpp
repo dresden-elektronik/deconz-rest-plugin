@@ -118,10 +118,10 @@ void DeviceDescriptions::readAll()
     {
         it.next();
 
-        if (it.fileName() == QLatin1String("constants.json"))
+        if (it.filePath().endsWith(QLatin1String("generic/constants.json")))
         {
             std::map<QString,QString> constants;
-            if (DDF_ReadConstantsJson(deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation) + QLatin1String("/devices/generic/constants.json"), &d->constants))
+            if (DDF_ReadConstantsJson(it.filePath(), &constants))
             {
                 d->constants = constants;
             }
@@ -207,7 +207,7 @@ static bool DDF_ReadConstantsJson(const QString &path, std::map<QString,QString>
         }
     }
 
-    return false;
+    return !constants->empty();
 }
 
 /*! Parses an item object.
