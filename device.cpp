@@ -13,9 +13,10 @@
 #include <QTimerEvent>
 #include <array>
 #include <tuple>
-#include <deconz.h>
+#include <deconz/dbg_trace.h>
+#include <deconz/node.h>
 #include "device.h"
-#include "device_access_fn.h"
+// #include "device_access_fn.h"   already in resource.h
 #include "device_compat.h"
 #include "device_descriptions.h"
 #include "event.h"
@@ -97,6 +98,7 @@ public:
     void stopStateTimer();
 
     Device *q = nullptr; //! reference to public interface
+    deCONZ::ApsController *apsCtrl = nullptr; //! opaque instance pointer forwarded to external functions
 
     /*! sub-devices are not yet referenced via pointers since these may become dangling.
         This is a helper to query the actual sub-device Resource* on demand.
@@ -123,27 +125,6 @@ public:
     ZDP_Result zdpResult; //! keep track of a running ZDP request
     DA_ReadResult readResult; //! keep track of a running "read" request
 };
-
-
-/*! Returns deCONZ core node for a given \p extAddress.
- */
-const deCONZ::Node *DEV_GetCoreNode(uint64_t extAddress)
-{
-    int i = 0;
-    const deCONZ::Node *node = nullptr;
-    deCONZ::ApsController *ctrl = deCONZ::ApsController::instance();
-
-    while (ctrl->getNode(i, &node) == 0)
-    {
-        if (node->address().ext() == extAddress)
-        {
-            return node;
-        }
-        i++;
-    }
-
-    return nullptr;
-}
 
 void DEV_EnqueueEvent(Device *device, const char *event)
 {
@@ -228,6 +209,7 @@ void DEV_InitStateHandler(Device *device, const Event &event)
 
 void DEV_CheckItemChanges(Device *device, const Event &event)
 {
+    DevicePrivate *d = device->d;
     std::vector<Resource*> subDevices;
 
     if (event.what() == REventAwake || event.what() == REventPoll)
@@ -243,7 +225,6 @@ void DEV_CheckItemChanges(Device *device, const Event &event)
         }
     }
 
-
     for (auto *sub : subDevices)
     {
         if (sub && !sub->stateChanges().empty())
@@ -255,7 +236,7 @@ void DEV_CheckItemChanges(Device *device, const Event &event)
                 {
                     change.verifyItemChange(item);
                 }
-                change.tick(sub, deCONZ::ApsController::instance());
+                change.tick(sub, d->apsCtrl);
             }
 
             sub->cleanupStateChanges();
@@ -329,7 +310,7 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
         }
         else
         {
-            d->zdpResult = ZDP_NodeDescriptorReq(device->item(RAttrNwkAddress)->toNumber(), deCONZ::ApsController::instance());
+            d->zdpResult = ZDP_NodeDescriptorReq(device->item(RAttrNwkAddress)->toNumber(), d->apsCtrl);
             if (d->zdpResult.isEnqueued)
             {
                 d->startStateTimer(MinMacPollRxOn);
@@ -380,7 +361,7 @@ void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event)
         }
         else
         {
-            d->zdpResult = ZDP_ActiveEndpointsReq(device->item(RAttrNwkAddress)->toNumber(), deCONZ::ApsController::instance());
+            d->zdpResult = ZDP_ActiveEndpointsReq(device->item(RAttrNwkAddress)->toNumber(), d->apsCtrl);
             if (d->zdpResult.isEnqueued)
             {
                 d->startStateTimer(MinMacPollRxOn);
@@ -443,7 +424,7 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
         }
         else
         {
-            d->zdpResult = ZDP_SimpleDescriptorReq(device->item(RAttrNwkAddress)->toNumber(), needFetchEp, deCONZ::ApsController::instance());
+            d->zdpResult = ZDP_SimpleDescriptorReq(device->item(RAttrNwkAddress)->toNumber(), needFetchEp, d->apsCtrl);
             if (d->zdpResult.isEnqueued)
             {
                 d->startStateTimer(MinMacPollRxOn);
@@ -560,7 +541,7 @@ bool DEV_ZclRead(Device *device, ResourceItem *item, deCONZ::ZclClusterId_t clus
     }
     auto readFunction = DA_GetReadFunction(item->readParameters());
 
-    if (readFunction && readFunction(device, item, deCONZ::ApsController::instance(), &d->readResult))
+    if (readFunction && readFunction(device, item, d->apsCtrl, &d->readResult))
     {
         return d->readResult.isEnqueued;
     }
@@ -905,7 +886,7 @@ void DEV_PollIdleStateHandler(Device *device, const Event &event)
 
         auto fn = DA_GetReadFunction(item->readParameters());
 
-        if (fn && fn(resource, item, deCONZ::ApsController::instance(), &d->readResult))
+        if (fn && fn(resource, item, d->apsCtrl, &d->readResult))
         {
             if (d->readResult.isEnqueued)
             {
@@ -947,13 +928,14 @@ void DEV_DeadStateHandler(Device *device, const Event &event)
     }
 }
 
-Device::Device(DeviceKey key, QObject *parent) :
+Device::Device(DeviceKey key, deCONZ::ApsController *apsCtrl, QObject *parent) :
     QObject(parent),
     Resource(RDevices),
     d(new DevicePrivate)
 {
     Q_ASSERT(parent);
     d->q = this;
+    d->apsCtrl = apsCtrl;
     d->deviceKey = key;
     d->managed = DEV_TestManaged();
     connect(this, SIGNAL(eventNotify(Event)), parent, SLOT(enqueueEvent(Event)));
@@ -1119,15 +1101,16 @@ Device *DEV_GetDevice(DeviceContainer &devices, DeviceKey key)
     return nullptr;
 }
 
-Device *DEV_GetOrCreateDevice(QObject *parent, DeviceContainer &devices, DeviceKey key)
+Device *DEV_GetOrCreateDevice(QObject *parent, deCONZ::ApsController *apsCtrl, DeviceContainer &devices, DeviceKey key)
 {
     Q_ASSERT(key != 0);
+    Q_ASSERT(apsCtrl);
     auto d = std::find_if(devices.begin(), devices.end(),
                           [key](const std::unique_ptr<Device> &device) { return device->key() == key; });
 
     if (d == devices.end())
     {
-        devices.emplace_back(new Device(key, parent));
+        devices.emplace_back(new Device(key, apsCtrl, parent));
         return devices.back().get();
     }
 

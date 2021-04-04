@@ -17,6 +17,12 @@
 class Event;
 class Device;
 
+namespace deCONZ
+{
+    class ApsController;
+    class Node;
+}
+
 using DeviceKey = uint64_t; //! uniqueId for an Device, MAC address for physical devices
 
 /*! Indexes in m_state[] array.
@@ -85,7 +91,7 @@ public:
 
     Device() = delete;
     Device(const Device &) = delete;
-    explicit Device(DeviceKey key, QObject *parent = nullptr);
+    explicit Device(DeviceKey key, deCONZ::ApsController*apsCtrl, QObject *parent = nullptr);
     ~Device();
     void addSubDevice(Resource *sub);
     DeviceKey key() const;
@@ -121,7 +127,7 @@ Device *DEV_GetDevice(DeviceContainer &devices, DeviceKey key);
     \param devices - the container which contains the device
     \param key - unique identifier for a device (MAC address for physical devices)
  */
-Device *DEV_GetOrCreateDevice(QObject *parent, DeviceContainer &devices, DeviceKey key);
+Device *DEV_GetOrCreateDevice(QObject *parent, deCONZ::ApsController *apsCtrl, DeviceContainer &devices, DeviceKey key);
 
 /*! Returns \c Resource for a given \p identifier.
 
@@ -129,6 +135,10 @@ Device *DEV_GetOrCreateDevice(QObject *parent, DeviceContainer &devices, DeviceK
     \param identifier - id | uniqueid | empty (for RConfig)
 */
 Resource *DEV_GetResource(const char *resource, const QString &identifier);
+
+/*! Returns deCONZ core node for a given \p extAddress.
+ */
+const deCONZ::Node *DEV_GetCoreNode(uint64_t extAddress);
 
 bool DEV_TestManaged();
 

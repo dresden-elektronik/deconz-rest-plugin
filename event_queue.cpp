@@ -35,9 +35,11 @@ void DeRestPluginPrivate::eventQueueTimerFired()
 
     if (e.deviceKey() != 0)
     {
-        auto *device = DEV_GetOrCreateDevice(this, m_devices, e.deviceKey());
-        Q_ASSERT(device);
-        device->handleEvent(e);
+        auto *device = DEV_GetDevice(m_devices, e.deviceKey());
+        if (device)
+        {
+            device->handleEvent(e);
+        }
     }
 
     handleRuleEvent(e);

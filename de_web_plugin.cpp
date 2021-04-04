@@ -986,7 +986,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
 
     if (ind.srcAddress().hasExt())
     {
-        device = DEV_GetOrCreateDevice(this, m_devices, ind.srcAddress().ext());
+        device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), m_devices, ind.srcAddress().ext());
         Q_ASSERT(device);
     }
 
@@ -2098,7 +2098,7 @@ void DeRestPluginPrivate::handleMacDataRequest(const deCONZ::NodeEvent &event)
 
     if (event.node()->address().hasExt())
     {
-        auto *device = DEV_GetOrCreateDevice(this, m_devices, event.node()->address().ext());
+        auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), m_devices, event.node()->address().ext());
         Q_ASSERT(device);
         enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
     }
@@ -2188,7 +2188,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         return;
     }
 
-    auto *device = DEV_GetOrCreateDevice(this, m_devices, node->address().ext());
+    auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), m_devices, node->address().ext());
     Q_ASSERT(device);
 
     bool hasTuyaCluster = false;
@@ -3084,7 +3084,7 @@ void DeRestPluginPrivate::nodeZombieStateChanged(const deCONZ::Node *node)
     bool available = !node->isZombie();
 
     {
-        auto *device = DEV_GetOrCreateDevice(this, m_devices, node->address().ext());
+        auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), m_devices, node->address().ext());
         Q_ASSERT(device);
         ResourceItem *item = device->item(RStateReachable);
         if (item && item->toBool() != available)
@@ -5145,7 +5145,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         return;
     }
 
-    auto *device = DEV_GetOrCreateDevice(this, m_devices, node->address().ext());
+    auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), m_devices, node->address().ext());
     Q_ASSERT(device);
 
     if (fastProbeAddr.hasExt() && fastProbeAddr.ext() != node->address().ext())
@@ -6510,7 +6510,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         return;
     }
 
-    auto *device = DEV_GetOrCreateDevice(this, m_devices, node->address().ext());
+    auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), m_devices, node->address().ext());
 
     Sensor sensorNode;
     sensorNode.setMode(Sensor::ModeScenes);
@@ -12497,7 +12497,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     const DeviceKey deviceKey = ind.srcAddress().ext();
     if (ind.srcAddress().hasExt())
     {
-        device = DEV_GetOrCreateDevice(this, m_devices, deviceKey);
+        device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), m_devices, deviceKey);
         Q_ASSERT(device);
         enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
     }
@@ -15700,7 +15700,7 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
         }
     }
 
-    auto *device = DEV_GetOrCreateDevice(this, m_devices, ext);
+    auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), m_devices, ext);
     Q_ASSERT(device);
     enqueueEvent(Event(device->prefix(), REventDeviceAnnounce, int(macCapabilities), device->key()));
 
@@ -19831,6 +19831,26 @@ Resource *DEV_AddResource(const LightNode &lightNode)
     }
 
     return &plugin->nodes.back();
+}
+
+/*! Returns deCONZ core node for a given \p extAddress.
+ */
+const deCONZ::Node *DEV_GetCoreNode(uint64_t extAddress)
+{
+    int i = 0;
+    const deCONZ::Node *node = nullptr;
+    deCONZ::ApsController *ctrl = deCONZ::ApsController::instance();
+
+    while (ctrl->getNode(i, &node) == 0)
+    {
+        if (node->address().ext() == extAddress)
+        {
+            return node;
+        }
+        i++;
+    }
+
+    return nullptr;
 }
 
 void DeRestPluginPrivate::pollSwUpdateStateTimerFired()
