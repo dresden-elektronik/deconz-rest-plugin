@@ -2159,6 +2159,11 @@ void DeRestPluginPrivate::handleMacDataRequest(const deCONZ::NodeEvent &event)
  */
 void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 {
+    if (DEV_TestManaged())
+    {
+        return;
+    }
+
     DBG_Assert(node != nullptr);
     if (!node)
     {
@@ -3043,6 +3048,11 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
  */
 void DeRestPluginPrivate::updatedLightNodeEndpoint(const deCONZ::NodeEvent &event)
 {
+    if (DEV_TestManaged())
+    {
+        return;
+    }
+
     if (!event.node())
     {
         return;
@@ -3173,6 +3183,11 @@ void DeRestPluginPrivate::nodeZombieStateChanged(const deCONZ::Node *node)
  */
 LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
 {
+    if (DEV_TestManaged())
+    {
+        return nullptr;
+    }
+
     if (!event.node())
     {
         return nullptr;
@@ -5082,6 +5097,11 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
  */
 void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::NodeEvent *event)
 {
+    if (DEV_TestManaged())
+    {
+        return;
+    }
+
     DBG_Assert(node);
 
     if (!node)
@@ -7622,6 +7642,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
  */
 void DeRestPluginPrivate::checkUpdatedFingerPrint(const deCONZ::Node *node, quint8 endpoint, Sensor *sensorNode)
 {
+    if (DEV_TestManaged())
+    {
+        return;
+    }
+
     if (!node)
     {
         return;
