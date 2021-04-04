@@ -117,6 +117,7 @@ public:
     bool mgmtBindSupported = false;
     bool managed = false; //! a managed device doesn't rely on legacy implementation of polling etc.
     ZDP_Result zdpResult; //! keep track of a running ZDP request
+    DA_ReadResult readResult; //! keep track of a running "read" request
 };
 
 
@@ -523,6 +524,8 @@ bool DEV_ZclRead(Device *device, ResourceItem *item, deCONZ::ZclClusterId_t clus
     Q_ASSERT(device);
     Q_ASSERT(item);
 
+    DevicePrivate *d = device->d;
+
     if (!device->reachable())
     {
         DBG_Printf(DBG_INFO, "DEV not reachable, skip read %s: 0x%016llX\n", item->descriptor().suffix, device->key());
@@ -550,9 +553,9 @@ bool DEV_ZclRead(Device *device, ResourceItem *item, deCONZ::ZclClusterId_t clus
     }
     auto readFunction = DA_GetReadFunction(item->readParameters());
 
-    if (readFunction && readFunction(device, item, deCONZ::ApsController::instance()))
+    if (readFunction && readFunction(device, item, deCONZ::ApsController::instance(), &d->readResult))
     {
-        return true;
+        return d->readResult.isEnqueued;
     }
 
     return false;

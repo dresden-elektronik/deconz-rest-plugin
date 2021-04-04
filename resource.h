@@ -385,6 +385,7 @@ private:
     State m_state = StateCallFunction;
     StateChangeFunction_t m_changeFunction = nullptr; //! The function to send a respective ZCL command.
 
+    DA_ReadResult m_readResult;
     quint8 m_dstEndpoint;
 //    int m_stage = 0;
     int m_changeCalls = 0; //! Counts how often the change function was called (retries).

@@ -24,8 +24,15 @@ namespace deCONZ {
     class ZclFrame;
 }
 
+struct DA_ReadResult
+{
+    bool isEnqueued = false;
+    quint8 apsReqId = 0;
+    quint8 sequenceNumber = 0;
+};
+
 typedef bool (*ParseFunction_t)(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
-typedef bool (*ReadFunction_t)(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl);
+typedef bool (*ReadFunction_t)(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, DA_ReadResult *result);
 typedef bool (*WriteFunction_t)(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl);
 
 struct ParseFunction

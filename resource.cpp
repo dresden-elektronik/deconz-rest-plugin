@@ -1477,10 +1477,13 @@ StateChange::State StateChange::tick(Resource *r, deCONZ::ApsController *apsCtrl
         if (item && !item->readParameters().empty())
         {
             const auto fn = DA_GetReadFunction(item->readParameters());
-            if (fn && fn(rParent, item, apsCtrl))
+            if (fn && fn(rParent, item, apsCtrl, &m_readResult))
             {
-                m_stateTimer.start();
-                m_state = StateWaitSync;
+                if (m_readResult.isEnqueued)
+                {
+                    m_stateTimer.start();
+                    m_state = StateWaitSync;
+                }
             }
         }
     }

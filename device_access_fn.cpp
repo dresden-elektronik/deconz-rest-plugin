@@ -435,13 +435,15 @@ deCONZ::ZclAttribute parseXiaomiZclTag(const quint8 rtag, const deCONZ::ZclFrame
 
     Example: { "read": ["readGenericAttribute/4", 1, "0x0402", "0x0000", "0x110b"] }
  */
-bool readGenericAttribute4(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl)
+bool readGenericAttribute4(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, DA_ReadResult *result)
 {
-    bool result = false;
+    Q_ASSERT(result);
+    *result = {};
+
     Q_ASSERT(item->readParameters().size() == 5);
     if (item->readParameters().size() != 5)
     {
-        return result;
+        return false;
     }
 
     const auto *extAddr = r->item(RAttrExtAddress);
@@ -449,7 +451,7 @@ bool readGenericAttribute4(const Resource *r, const ResourceItem *item, deCONZ::
 
     if (!extAddr || !nwkAddr)
     {
-        return result;
+        return false;
     }
 
     bool ok;
@@ -460,7 +462,7 @@ bool readGenericAttribute4(const Resource *r, const ResourceItem *item, deCONZ::
 
     if (!ok)
     {
-        return result;
+        return false;
     }
 
     DBG_Printf(DBG_INFO, "readGenericAttribute/4, ep: 0x%02X, cl: 0x%04X, attr: 0x%04X, mfcode: 0x%04X\n", endpoint, clusterId, attributeId, manufacturerCode);
@@ -470,6 +472,8 @@ bool readGenericAttribute4(const Resource *r, const ResourceItem *item, deCONZ::
 
 //    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
     deCONZ::ApsDataRequest req;
+    result->apsReqId = req.id();
+
     req.setDstEndpoint(endpoint);
     req.setDstAddressMode(deCONZ::ApsExtAddress);
     req.dstAddress().setExt(extAddr->toNumber());
@@ -482,6 +486,8 @@ bool readGenericAttribute4(const Resource *r, const ResourceItem *item, deCONZ::
 
     zclFrame.setSequenceNumber(zclNextSequenceNumber());
     zclFrame.setCommandId(deCONZ::ZclReadAttributesId);
+
+    result->sequenceNumber = zclFrame.sequenceNumber();
 
     if (manufacturerCode)
     {
@@ -516,14 +522,14 @@ bool readGenericAttribute4(const Resource *r, const ResourceItem *item, deCONZ::
 
     if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
     {
-        result = true;
+        result->isEnqueued = true;
     }
     else
     {
 
     }
 
-    return result;
+    return result->isEnqueued;
 }
 
 /*! A generic function to read ZCL attributes.
@@ -538,29 +544,47 @@ bool readGenericAttribute4(const Resource *r, const ResourceItem *item, deCONZ::
 
     Example: { "read": {"fn": "zcl", "ep": 1, "cl": "0x0402", "at": "0x0000", "mf": "0x110b"} }
  */
-static bool readZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl)
+static bool readZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, DA_ReadResult *result)
 {
-    bool result = false;
+    Q_ASSERT(result);
+    *result = { };
 
     Q_ASSERT(item->readParameters().size() == 1);
     if (item->readParameters().size() != 1)
     {
-        return result;
+        return false;
     }
 
-    const auto *extAddr = r->item(RAttrExtAddress);
-    const auto *nwkAddr = r->item(RAttrNwkAddress);
+    auto *rTop = r->parentResource() ? r->parentResource() : r;
+
+    const auto *extAddr = rTop->item(RAttrExtAddress);
+    const auto *nwkAddr = rTop->item(RAttrNwkAddress);
 
     if (!extAddr || !nwkAddr)
     {
-        return result;
+        return false;
     }
 
-    const auto param = getZclParam(item->readParameters().front().toMap());
+    auto param = getZclParam(item->readParameters().front().toMap());
 
     if (!param.valid)
     {
-        return result;
+        return false;
+    }
+
+    if (param.endpoint == AutoEndpoint)
+    {
+        // hack to get endpoint. todo find better solution
+        auto ls = r->item(RAttrUniqueId)->toString().split('-', QString::SkipEmptyParts);
+        if (ls.size() >= 2)
+        {
+            bool ok = false;
+            uint ep = ls[1].toUInt(&ok, 10);
+            if (ok && ep < BroadcastEndpoint)
+            {
+                param.endpoint = ep;
+            }
+        }
     }
 
     DBG_Printf(DBG_INFO, "readZclAttribute, ep: 0x%02X, cl: 0x%04X, attr: 0x%04X, mfcode: 0x%04X\n",
@@ -569,6 +593,8 @@ static bool readZclAttribute(const Resource *r, const ResourceItem *item, deCONZ
 
 //    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
     deCONZ::ApsDataRequest req;
+    result->apsReqId = req.id();
+
     req.setDstEndpoint(param.endpoint);
     req.setDstAddressMode(deCONZ::ApsExtAddress);
     req.dstAddress().setExt(extAddr->toNumber());
@@ -581,6 +607,8 @@ static bool readZclAttribute(const Resource *r, const ResourceItem *item, deCONZ
 
     zclFrame.setSequenceNumber(zclNextSequenceNumber());
     zclFrame.setCommandId(deCONZ::ZclReadAttributesId);
+
+    result->sequenceNumber = zclFrame.sequenceNumber();
 
     if (param.manufacturerCode)
     {
@@ -615,10 +643,10 @@ static bool readZclAttribute(const Resource *r, const ResourceItem *item, deCONZ
 
     if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
     {
-        result = true;
+        result->isEnqueued = true;
     }
 
-    return result;
+    return result->isEnqueued;
 }
 
 /*! A generic function to write ZCL attributes.
