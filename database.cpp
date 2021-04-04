@@ -3706,6 +3706,13 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeString, RConfigFanMode);
                     sensor.addItem(DataTypeString, RConfigSwingMode);
                 }
+                else if (sensor.modelId() == QLatin1String("iTRV")) // Drayton Wiser Radiator Thermostat
+                {
+                    sensor.addItem(DataTypeUInt8, RStateValve);
+                    sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);
+                    sensor.addItem(DataTypeString, RConfigMode);
+                    sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
+                }
                 else if (sensor.modelId() == QLatin1String("TH1300ZB")) // sinope thermostat
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
