@@ -101,6 +101,7 @@ HEADERS  = bindings.h \
            device.h \
            device_access_fn.h \
            device_compat.h \
+           device_ddf_init.h \
            device_descriptions.h \
            device_js.h \
            device_js_wrappers.h \
@@ -139,6 +140,7 @@ SOURCES  = air_quality.cpp \
            device.cpp \
            device_access_fn.cpp \
            device_compat.cpp \
+           device_ddf_init.cpp \
            device_descriptions.cpp \
            device_js.cpp \
            device_js_wrappers.cpp \

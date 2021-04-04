@@ -16,6 +16,8 @@
 #include "resource.h"
 #include "sensor.h"
 
+class Event;
+
 class DeviceDescription
 {
 public:
@@ -68,12 +70,16 @@ public:
     static DeviceDescriptions *instance();
 
 public Q_SLOTS:
+    void handleEvent(const Event &event);
     void readAll();
 
 Q_SIGNALS:
+    void eventNotify(const Event&); //! Emitted \p Event needs to be enqueued in a higher layer.
     void loaded();
 
 private:
+    void handleDDFInitRequest(const Event &event);
+
     Q_DECLARE_PRIVATE_D(d_ptr2, DeviceDescriptions)
     DeviceDescriptionsPrivate *d_ptr2 = nullptr;
 };

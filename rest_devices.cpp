@@ -307,7 +307,7 @@ int RestDevices::putDeviceReloadDDF(const ApiRequest &req, ApiResponse &rsp)
 
     if (ok)
     {
-        emit eventNotify(Event(RDevices, REventReloadDDF, 0, deviceKey));
+        emit eventNotify(Event(RDevices, REventDDFReload, 0, deviceKey));
 
         QVariantMap rspItem;
         QVariantMap rspItemState;

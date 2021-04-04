@@ -14,8 +14,10 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
-#include <deconz.h>
+#include <deconz/dbg_trace.h>
+#include "device_ddf_init.h"
 #include "device_descriptions.h"
+#include "event.h"
 #include "resource.h"
 
 static DeviceDescriptions *_instance = nullptr;
@@ -58,6 +60,18 @@ DeviceDescriptions *DeviceDescriptions::instance()
 {
     Q_ASSERT(_instance);
     return _instance;
+}
+
+void DeviceDescriptions::handleEvent(const Event &event)
+{
+    if (event.what() == REventDDFInitRequest)
+    {
+        handleDDFInitRequest(event);
+    }
+    else if (event.what() == REventDDFReload)
+    {
+        readAll(); // todo read only device specific files?
+    }
 }
 
 /*! Get the DDF object for a \p resource.
@@ -166,6 +180,43 @@ void DeviceDescriptions::readAll()
     }
 
     DBG_MEASURE_END(DDF_ReadAllFiles);
+}
+
+/*! Tries to init a Device from an DDF file.
+
+    Currently this is done syncronously later on it will be async to not block
+    the main thread while loading DDF files.
+ */
+void DeviceDescriptions::handleDDFInitRequest(const Event &event)
+{
+    auto *resource = DEV_GetResource(RDevices, QString::number(event.deviceKey()));
+
+    int result = -1; // error
+
+    if (resource)
+    {
+        const auto ddf = get(resource);
+
+        if (ddf.isValid())
+        {
+
+            if (DEV_InitDeviceFromDescription(static_cast<Device*>(resource), ddf))
+            {
+                result = 1; // ok
+            }
+        }
+
+        if (result == 1)
+        {
+            DBG_Printf(DBG_INFO, "DEV found DDF for 0x%016llX, path: %s\n", event.deviceKey(), qPrintable(ddf.path));
+        }
+        else
+        {
+            DBG_Printf(DBG_INFO, "DEV no DDF for 0x%016llX, modelId: %s\n", event.deviceKey(), qPrintable(resource->item(RAttrModelId)->toString()));
+        }
+    }
+
+    emit eventNotify(Event(RDevices, REventDDFInitResponse, result, event.deviceKey()));
 }
 
 /*! Reads constants.json file and places them into \p constants map.

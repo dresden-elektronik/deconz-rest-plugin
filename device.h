@@ -109,9 +109,9 @@ Q_SIGNALS:
 
 using DeviceContainer = std::vector<std::unique_ptr<Device>>;
 
-/*! Returns a device for a given \p key.
+Resource *DEV_GetSubDevice(Device *device, const char *prefix, const QString &identifier);
 
-    This operation is very fast at constant cost O(1) no matter how many \p devices are present.
+/*! Returns a device for a given \p key.
 
     \param devices - the container which contains the device
     \param key - unique identifier for a device (MAC address for physical devices)
@@ -121,7 +121,6 @@ Device *DEV_GetDevice(DeviceContainer &devices, DeviceKey key);
 /*! Returns a device for a given \p key.
 
     If the device doesn't exist yet it will be created.
-    This operation is very fast at constant cost O(1) no matter how many \p devices are present.
 
     \param parent - must be DeRestPluginPrivate instance
     \param devices - the container which contains the device

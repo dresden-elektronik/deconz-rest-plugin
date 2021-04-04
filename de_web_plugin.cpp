@@ -661,6 +661,8 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     initResourceDescriptors();
 
     deviceDescriptions = new DeviceDescriptions(this);
+    connect(deviceDescriptions, &DeviceDescriptions::eventNotify, this, &DeRestPluginPrivate::enqueueEvent);
+    connect(this, &DeRestPluginPrivate::eventNotify, deviceDescriptions, &DeviceDescriptions::handleEvent);
     deviceDescriptions->readAll();
 
     connect(databaseTimer, SIGNAL(timeout()),
@@ -19816,6 +19818,10 @@ Resource *DeRestPluginPrivate::getResource(const char *resource, const QString &
     else if (resource == RLights)
     {
         return getLightNodeForId(id);
+    }
+    else if (resource == RDevices)
+    {
+        return DEV_GetDevice(m_devices, id.toULongLong());
     }
     else if (resource == RGroups && !id.isEmpty())
     {
