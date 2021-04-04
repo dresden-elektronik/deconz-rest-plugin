@@ -242,52 +242,6 @@ void DEV_CheckItemChanges(Device *device, const Event &event)
     }
 }
 
-/*! #7 In this state the device is operational and runs sub states
-    In parallel.
-
-    IdleState : Bindings | ItemChange
- */
-void DEV_IdleStateHandler(Device *device, const Event &event)
-{   
-    DevicePrivate *d = device->d;
-
-    if (event.what() == RAttrLastSeen || event.what() == REventPoll)
-    {
-         // don't print logs
-    }
-    else if (event.what() == REventStateEnter)
-    {
-//        d->setState(DEV_BindingHandler, StateLevel1);
-        d->setState(DEV_PollIdleStateHandler, StateLevel2);
-    }
-    else if (event.what() == REventStateLeave)
-    {
-        d->setState(nullptr, StateLevel1);
-        d->setState(nullptr, StateLevel2);
-    }
-    else if (event.what() == REventDDFReload)
-    {
-        d->setState(DEV_InitStateHandler);
-    }
-    else if (event.resource() == device->prefix())
-    {
-        DBG_Printf(DBG_INFO, "DEV Idle event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
-    }
-    else
-    {
-        DBG_Printf(DBG_INFO, "DEV Idle event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
-    }
-
-    DEV_CheckItemChanges(device, event);
-
-    // process parallel states
-    if (event.what() != REventStateEnter && event.what() != REventStateLeave)
-    {
-        device->handleEvent(event, StateLevel1);
-        device->handleEvent(event, StateLevel2);
-    }
-}
-
 /*! #2 This state checks that a valid NodeDescriptor is available.
  */
 void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
@@ -635,6 +589,52 @@ void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event)
         {
             d->setState(DEV_DeadStateHandler);
         }
+    }
+}
+
+/*! #7 In this state the device is operational and runs sub states
+    In parallel.
+
+    IdleState : Bindings | ItemChange
+ */
+void DEV_IdleStateHandler(Device *device, const Event &event)
+{
+    DevicePrivate *d = device->d;
+
+    if (event.what() == RAttrLastSeen || event.what() == REventPoll)
+    {
+         // don't print logs
+    }
+    else if (event.what() == REventStateEnter)
+    {
+//        d->setState(DEV_BindingHandler, StateLevel1);
+        d->setState(DEV_PollIdleStateHandler, StateLevel2);
+    }
+    else if (event.what() == REventStateLeave)
+    {
+        d->setState(nullptr, StateLevel1);
+        d->setState(nullptr, StateLevel2);
+    }
+    else if (event.what() == REventDDFReload)
+    {
+        d->setState(DEV_InitStateHandler);
+    }
+    else if (event.resource() == device->prefix())
+    {
+        DBG_Printf(DBG_INFO, "DEV Idle event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
+    }
+    else
+    {
+        DBG_Printf(DBG_INFO, "DEV Idle event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
+    }
+
+    DEV_CheckItemChanges(device, event);
+
+    // process parallel states
+    if (event.what() != REventStateEnter && event.what() != REventStateLeave)
+    {
+        device->handleEvent(event, StateLevel1);
+        device->handleEvent(event, StateLevel2);
     }
 }
 
