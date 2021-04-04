@@ -259,7 +259,7 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventStateEnter)
     {
-        d->setState(DEV_BindingHandler, StateLevel1);
+//        d->setState(DEV_BindingHandler, StateLevel1);
         d->setState(DEV_PollIdleStateHandler, StateLevel2);
     }
     else if (event.what() == REventStateLeave)
