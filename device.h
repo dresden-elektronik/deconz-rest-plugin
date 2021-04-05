@@ -32,7 +32,9 @@ using DeviceKey = uint64_t; //! uniqueId for an Device, MAC address for physical
 enum DEV_StateLevel {
     StateLevel0 = 0,
     StateLevel1 = 1,
-    StateLevel2 = 2
+    StateLevel2 = 2,
+
+    StateLevelMax
 };
 
 /*! \class Device

@@ -92,8 +92,8 @@ class DevicePrivate
 {
 public:
     void setState(DeviceStateHandler newState, DEV_StateLevel level = StateLevel0);
-    void startStateTimer(int IntervalMs);
-    void stopStateTimer();
+    void startStateTimer(int IntervalMs, DEV_StateLevel level);
+    void stopStateTimer(DEV_StateLevel level);
 
     Device *q = nullptr; //! reference to public interface
     deCONZ::ApsController *apsCtrl = nullptr; //! opaque instance pointer forwarded to external functions
@@ -110,9 +110,9 @@ public:
     /*! The currently active state handler function(s).
         Indexes >0 represent sub states of StateLevel0 running in parallel.
     */
-    std::array<DeviceStateHandler, 3> state{0};
+    std::array<DeviceStateHandler, StateLevelMax> state{0};
 
-    QBasicTimer timer; //! internal single shot timer
+    std::array<QBasicTimer, StateLevelMax> timer; //! internal single shot timer one for each state level
     QElapsedTimer awake; //! time to track when an end-device was last awake
     QElapsedTimer bindingVerify; //! time to track last binding table verification
     QElapsedTimer pollTimeout; //! time to track poll timeout
@@ -264,7 +264,7 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
             d->zdpResult = ZDP_NodeDescriptorReq(device->item(RAttrNwkAddress)->toNumber(), d->apsCtrl);
             if (d->zdpResult.isEnqueued)
             {
-                d->startStateTimer(MinMacPollRxOn);
+                d->startStateTimer(MinMacPollRxOn, StateLevel0);
             }
             else
             {
@@ -282,7 +282,7 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventNodeDescriptor) // received the node descriptor
     {
-        d->stopStateTimer();
+        d->stopStateTimer(StateLevel0);
         d->setState(DEV_InitStateHandler); // evaluate egain from state #1 init
         DEV_EnqueueEvent(device, REventAwake);
     }
@@ -315,7 +315,7 @@ void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event)
             d->zdpResult = ZDP_ActiveEndpointsReq(device->item(RAttrNwkAddress)->toNumber(), d->apsCtrl);
             if (d->zdpResult.isEnqueued)
             {
-                d->startStateTimer(MinMacPollRxOn);
+                d->startStateTimer(MinMacPollRxOn, StateLevel0);
             }
             else
             {
@@ -333,7 +333,7 @@ void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventActiveEndpoints)
     {
-        d->stopStateTimer();
+        d->stopStateTimer(StateLevel0);
         d->setState(DEV_InitStateHandler);
         DEV_EnqueueEvent(device, REventAwake);
     }
@@ -378,7 +378,7 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
             d->zdpResult = ZDP_SimpleDescriptorReq(device->item(RAttrNwkAddress)->toNumber(), needFetchEp, d->apsCtrl);
             if (d->zdpResult.isEnqueued)
             {
-                d->startStateTimer(MinMacPollRxOn);
+                d->startStateTimer(MinMacPollRxOn, StateLevel0);
             }
             else
             {
@@ -396,7 +396,7 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventSimpleDescriptor)
     {
-        d->stopStateTimer();
+        d->stopStateTimer(StateLevel0);
         d->setState(DEV_InitStateHandler);
         DEV_EnqueueEvent(device, REventAwake);
     }
@@ -533,7 +533,7 @@ void DEV_BasicClusterStateHandler(Device *device, const Event &event)
 
             if (DEV_ZclRead(device, device->item(it.suffix), it.clusterId, it.attrId))
             {
-                d->startStateTimer(MinMacPollRxOn);
+                d->startStateTimer(MinMacPollRxOn, StateLevel0);
                 return; // keep state and wait for REventStateTimeout or response
             }
 
@@ -554,7 +554,7 @@ void DEV_BasicClusterStateHandler(Device *device, const Event &event)
     else if (event.what() == RAttrManufacturerName || event.what() == RAttrModelId)
     {
         DBG_Printf(DBG_INFO, "DEV received %s: 0x%016llX\n", event.what(), device->key());
-        d->stopStateTimer();
+        d->stopStateTimer(StateLevel0);
         d->setState(DEV_InitStateHandler); // ok re-evaluate
         DEV_EnqueueEvent(device, REventAwake);
     }
@@ -809,8 +809,8 @@ Device::Device(DeviceKey key, deCONZ::ApsController *apsCtrl, QObject *parent) :
     d->setState(DEV_InitStateHandler);
 
     static int initTimer = 1000;
-    d->startStateTimer(initTimer);
-    initTimer += 300; // hack for the first round init
+    d->startStateTimer(initTimer, StateLevel0);
+    initTimer += 300; // hack for the first round init, so that each device will start 300ms later
 }
 
 Device::~Device()
@@ -892,22 +892,26 @@ void DevicePrivate::setState(DeviceStateHandler newState, DEV_StateLevel level)
     }
 }
 
-void DevicePrivate::startStateTimer(int IntervalMs)
+void DevicePrivate::startStateTimer(int IntervalMs, DEV_StateLevel level)
 {
-    timer.start(IntervalMs, q);
+    timer[level].start(IntervalMs, q);
 }
 
-void DevicePrivate::stopStateTimer()
+void DevicePrivate::stopStateTimer(DEV_StateLevel level)
 {
-    timer.stop();
+    timer[level].stop();
 }
 
 void Device::timerEvent(QTimerEvent *event)
 {
-    if (event->timerId() == d->timer.timerId())
+    for (int i = 0; i < StateLevelMax; i++)
     {
-        d->timer.stop(); // single shot
-        d->state[StateLevel0](this, Event(prefix(), REventStateTimeout, 0, key()));
+        if (event->timerId() == d->timer[i].timerId())
+        {
+            d->timer[i].stop(); // single shot
+            d->state[i](this, Event(prefix(), REventStateTimeout, i, key()));
+            break;
+        }
     }
 }
 
