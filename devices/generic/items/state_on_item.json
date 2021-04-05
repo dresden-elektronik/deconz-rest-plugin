@@ -6,5 +6,6 @@
 	"public": true,
 	"description": "True when device is on; false when off.",
 	"parse": {"fn": "zcl", "ep": 0, "cl": "0x0006", "at": "0x0000", "eval": "Item.val = Attr.val"},
-	"read": {"fn": "zcl", "ep": 0, "cl": "0x0006", "at": "0x0000"}
+	"read": {"fn": "zcl", "ep": 0, "cl": "0x0006", "at": "0x0000"},
+	"refresh.interval": 5
 }

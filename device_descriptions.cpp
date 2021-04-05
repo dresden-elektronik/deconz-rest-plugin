@@ -307,6 +307,11 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
             result.isPublic = obj.value(QLatin1String("public")).toBool();
         }
 
+        if (obj.contains(QLatin1String("refresh.interval")))
+        {
+            result.refreshInterval = obj.value(QLatin1String("refresh.interval")).toInt(0);
+        }
+
         const auto parse = obj.value(QLatin1String("parse"));
         if (parse.isArray())
         {
@@ -714,6 +719,10 @@ static DeviceDescription DDF_MergeGenericItems(const std::vector<DeviceDescripti
             if (item.descriptor.access == ResourceItemDescriptor::Access::Unknown)
             {
                 item.descriptor.access = genItem->descriptor.access;
+            }
+            if (item.refreshInterval < 0 && genItem->refreshInterval >= 0)
+            {
+                item.refreshInterval = genItem->refreshInterval;
             }
         }
     }

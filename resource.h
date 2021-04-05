@@ -437,6 +437,8 @@ public:
     qint64 toNumberPrevious() const;
     bool toBool() const;
     QVariant toVariant() const;
+    int refreshInterval() const;
+    void setRefreshInterval(int interval);
     void setZclProperties(quint16 clusterId, const std::vector<quint16> &attributes, quint8 endpoint = 0xff);
     bool setValue(const QString &val, ValueSource source = SourceUnknown);
     bool setValue(qint64 val, ValueSource source = SourceUnknown);
@@ -470,6 +472,7 @@ private:
     quint16 m_flags = 0; // bitmap of ResourceItem::ItemFlags
     qint64 m_num = 0;
     qint64 m_numPrev = 0;
+    int m_refreshInterval = 0;
     QString *m_str = nullptr;
     const ResourceItemDescriptor *m_rid = &rInvalidItemDescriptor;
     QDateTime m_lastSet;

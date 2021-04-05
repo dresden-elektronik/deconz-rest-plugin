@@ -76,6 +76,10 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
 
     // check updates
     item->setIsPublic(ddfItem.isPublic);
+    if (ddfItem.refreshInterval >= 0)
+    {
+        item->setRefreshInterval(ddfItem.refreshInterval);
+    }
 
     if (item->parseParameters() != ddfItem.parseParameters)
     {

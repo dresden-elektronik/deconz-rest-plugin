@@ -1098,6 +1098,16 @@ QVariant ResourceItem::toVariant() const
     return QVariant();
 }
 
+int ResourceItem::refreshInterval() const
+{
+    return m_refreshInterval;
+}
+
+void ResourceItem::setRefreshInterval(int interval)
+{
+    m_refreshInterval = interval;
+}
+
 void ResourceItem::setZclProperties(quint16 clusterId, const std::vector<quint16> &attributes, quint8 endpoint)
 {
     m_clusterId = clusterId;
