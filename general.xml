@@ -3637,6 +3637,15 @@ devices can operate on either battery or mains power, and can have a wide variet
       </server>
     </cluster>
 
+    <!-- Sunricher C4 -->
+    <cluster id="0xfc00" name="Device Setup" mfcode="0x1224">
+      <description>Sunricher-specific cluster.</description>
+      <server>
+        <attribute id="0x0000" type="array" name="Input Configurations" access="rw" required="m" mfcode="0x1224"/>
+        <attribute id="0x0001" type="array" name="Input Actions" access="rw" required="m" mfcode="0x1224"/>
+      </server>
+    </cluster>
+
 		<!-- Tuya -->
 		<cluster id="0xef00" name="Tuya specific Cluster" mfcode="0x1002">
 			<description>Tuya Specific clusters.</description>
