@@ -10,7 +10,6 @@
 
 #include "poll_manager.h"
 #include "de_web_plugin_private.h"
-#include "device_descriptions.h"
 
 /*! Constructor.
  */
@@ -73,12 +72,6 @@ void PollManager::poll(RestNodeBase *restNode, const QDateTime &tStart)
     else
     {
         return;
-    }
-
-    auto *device = DEV_GetDevice(plugin->m_devices, restNode->address().ext());
-    if (device)
-    {
-        plugin->enqueueEvent(Event(device->prefix(), REventPoll, 0, device->key()));
     }
 
     pitem.id = restNode->id();
