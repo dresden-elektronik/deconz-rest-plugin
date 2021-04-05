@@ -1681,6 +1681,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                             sensor->modelId().startsWith(QLatin1String("FB56-"))))    // Feibit devices
         {
             rq.minInterval = 3600;
+	    rq.maxInterval = 43200;
             rq.reportableChange8bit = 1;
         }
         else if (sensor && (sensor->modelId() == QLatin1String("HG06323") || // LIDL
