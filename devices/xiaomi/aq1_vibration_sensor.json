@@ -49,7 +49,7 @@
                 },
                 {
                     "name": "config/battery",
-                    "parse": {"fn": "parseXiaomiSpecial", "tag": "0x01", "idx": "0x02", "datatype": "0x21", "eval": "$raw", "script": "../script_test.js"},
+                    "parse": {"fn": "parseXiaomiSpecial", "tag": "0x01", "idx": "0x02", "datatype": "0x21", "eval": "Item.val = Attr.val"},
                     "awake": true
                 },
                 {
@@ -58,8 +58,8 @@
                 },
                 {
                     "name": "config/sensitivity",
-                    "parse": ["parseGenericAttribute/4", 1, "0x0000", "0xff0d", "$old == 0 ? $raw : $old"],
-                    "write": ["writeGenericAttribute/6", 1, "0x0000", "0xff0d", "0x20", "0x11F5", "$raw"],
+                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0xff0d", "eval": "Item.val == 0 ? Item.val = Attr.val : Item.val"},
+                    "write": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0xff0d",  "dt": "0x20", "mf": "0x11F5", "eval": "Item.val"},
                     "values": [
                         ["low", 21], ["medium", 11], ["high", 1]
                     ]
@@ -85,17 +85,17 @@
                 },
                 {
                     "name": "state/tiltangle",
-                    "parse": ["parseGenericAttribute/4", 1, "0x0101", "0x0503", "$raw"],
+                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0101", "at": "0x0503", "eval": "Item.val = Attr.val"},
                     "default": 0
                 },
                 {
                     "name": "state/vibration",
-                    "parse": ["parseGenericAttribute/4", 1, "0x0101", "0x0055", "$raw == 0x0001"],
+                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0101", "at": "0x0055", "eval": "Item.val = Attr.val == 1"},
                     "default": false
                 },
                 {
                     "name": "state/vibrationstrength",
-                    "parse": ["parseGenericAttribute/4", 1, "0x0101", "0x0505", "$raw >> 16"],
+                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0101", "at": "0x0505", "eval": "Item.val = Attr.val >> 16"},
                     "default": 0
                 },
                 {
