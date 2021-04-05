@@ -987,5 +987,6 @@ Device *DEV_GetOrCreateDevice(QObject *parent, deCONZ::ApsController *apsCtrl, D
  */
 bool DEV_TestManaged()
 {
-    return (deCONZ::appArgumentNumeric("--dev-test-managed", 0) > 0);
+    static bool managed = (deCONZ::appArgumentNumeric("--dev-test-managed", 0) > 0);
+    return managed;
 }
