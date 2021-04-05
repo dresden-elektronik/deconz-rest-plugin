@@ -4252,7 +4252,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
              sensor->modelId().startsWith(QLatin1String("TRADFRI SHORTCUT Button")) ||
              sensor->modelId().startsWith(QLatin1String("Remote Control N2")) ||
              sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
-             sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
+             // sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
              sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")))
     {
         checkReporting = true;
@@ -6209,7 +6209,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 checkSensorNodeReachable(sensor);
             }
         }
-        
+
         // ZHATemperature
         if (fpTemperatureSensor.hasInCluster(TEMPERATURE_MEASUREMENT_CLUSTER_ID))
         {
@@ -9895,7 +9895,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     QString str;
                                     bool dlLock;
-                                    
+
                                     if (ia->numericValue().u8 == 1)
                                     {
                                         str = QLatin1String("locked");
@@ -9931,7 +9931,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     if (item && item->toString() != str)
                                     {
                                         //DBG_Printf(DBG_INFO, "0x%016llX onOff %u --> %u\n", lightNode->address().ext(), (uint)item->toNumber(), on);
-    
+
                                         item->setValue(str);
                                         enqueueEvent(Event(RSensors, RStateLockState, i->id(), item));
                                         updated = true;
