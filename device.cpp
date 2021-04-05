@@ -20,6 +20,9 @@
 #include "event.h"
 #include "zdp.h"
 
+#define STATE_LEVEL_BINDING  StateLevel1
+#define STATE_LEVEL_POLL     StateLevel2
+
 // TODO move external declaration in de_web_plugin_private.h into utils.h
 QString generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId);
 
@@ -77,7 +80,7 @@ state Operating {
   ||
   state Scenes
   ||
-  state "..."
+  state "Polling"
 }
 
 
@@ -115,7 +118,6 @@ public:
     std::array<QBasicTimer, StateLevelMax> timer; //! internal single shot timer one for each state level
     QElapsedTimer awake; //! time to track when an end-device was last awake
     QElapsedTimer bindingVerify; //! time to track last binding table verification
-    QElapsedTimer pollTimeout; //! time to track poll timeout
     int pollItemIter = 0;
     size_t bindingIter = 0;
     bool mgmtBindSupported = false;
@@ -595,35 +597,29 @@ void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event)
 /*! #7 In this state the device is operational and runs sub states
     In parallel.
 
-    IdleState : Bindings | ItemChange
+    IdleState : Bindings | Polling | ItemChange
  */
 void DEV_IdleStateHandler(Device *device, const Event &event)
 {
     DevicePrivate *d = device->d;
 
-    if (event.what() == RAttrLastSeen || event.what() == REventPoll)
+    if (event.what() == REventStateEnter)
     {
-         // don't print logs
-    }
-    else if (event.what() == REventStateEnter)
-    {
-//        d->setState(DEV_BindingHandler, StateLevel1);
-        d->setState(DEV_PollIdleStateHandler, StateLevel2);
+//        d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
+        d->setState(DEV_PollIdleStateHandler, STATE_LEVEL_POLL);
+        return;
     }
     else if (event.what() == REventStateLeave)
     {
-        d->setState(nullptr, StateLevel1);
-        d->setState(nullptr, StateLevel2);
+//        d->setState(nullptr, STATE_LEVEL_BINDING);
+        d->setState(nullptr, STATE_LEVEL_POLL);
+        return;
     }
     else if (event.what() == REventDDFReload)
     {
         d->setState(DEV_InitStateHandler);
     }
-    else if (event.resource() == device->prefix())
-    {
-        DBG_Printf(DBG_INFO, "DEV Idle event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
-    }
-    else
+    else if (event.what() != RAttrLastSeen && event.what() != REventPoll)
     {
         DBG_Printf(DBG_INFO, "DEV Idle event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
     }
@@ -631,10 +627,9 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
     DEV_CheckItemChanges(device, event);
 
     // process parallel states
-    if (event.what() != REventStateEnter && event.what() != REventStateLeave)
+    for (int i = StateLevel1; i < StateLevelMax; i++)
     {
-        device->handleEvent(event, StateLevel1);
-        device->handleEvent(event, StateLevel2);
+        device->handleEvent(event, DEV_StateLevel(i));
     }
 }
 
@@ -691,7 +686,7 @@ void DEV_BindingHandler(Device *device, const Event &event)
     }
 
     d->bindingIter = 0;
-    d->setState(DEV_BindingTableVerifyHandler, StateLevel1);
+    d->setState(DEV_BindingTableVerifyHandler, STATE_LEVEL_BINDING);
     DEV_EnqueueEvent(device, REventBindingTick);
 }
 
@@ -706,7 +701,7 @@ void DEV_BindingTableVerifyHandler(Device *device, const Event &event)
     else if (d->bindingIter >= device->node()->bindingTable().size())
     {
         d->bindingVerify.start();
-        d->setState(DEV_BindingHandler, StateLevel1);
+        d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
     }
     else
     {
@@ -728,6 +723,33 @@ void DEV_BindingTableVerifyHandler(Device *device, const Event &event)
     }
 }
 
+struct PollItem
+{
+    explicit PollItem(const Resource *r, const ResourceItem *i) :
+        resource(r), item(i) {}
+    const Resource *resource = nullptr;
+    const ResourceItem *item = nullptr;
+};
+
+std::vector<PollItem> DEV_GetPollItems(Device *device)
+{
+    std::vector<PollItem> result;
+
+    for (const auto *r : device->subDevices())
+    {
+        for (int i = 0; i < r->itemCount(); i++)
+        {
+            const auto *item = r->itemForIndex(size_t(i));
+            if (!item->readParameters().empty())
+            {
+                result.emplace_back(PollItem{r, item});
+            }
+        }
+    }
+
+    return result;
+}
+
 void DEV_PollIdleStateHandler(Device *device, const Event &event)
 {
     DevicePrivate *d = device->d;
@@ -738,20 +760,21 @@ void DEV_PollIdleStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventPoll)
     {
-        const auto *resource = device->subDevices().front();
-        d->pollItemIter %= resource->itemCount();
+        const auto pollItems = DEV_GetPollItems(device);
 
-        const auto *item = resource->itemForIndex(d->pollItemIter);
+        d->pollItemIter %= pollItems.size();
+
+        const auto i = pollItems[d->pollItemIter];
         d->pollItemIter++;
 
-        auto fn = DA_GetReadFunction(item->readParameters());
+        auto fn = DA_GetReadFunction(i.item->readParameters());
 
-        if (fn && fn(resource, item, d->apsCtrl, &d->readResult))
+        if (fn && fn(i.resource, i.item, d->apsCtrl, &d->readResult))
         {
             if (d->readResult.isEnqueued)
             {
-                d->pollTimeout.start();
-                d->setState(DEV_PollBusyStateHandler, StateLevel2);
+                d->setState(DEV_PollBusyStateHandler, STATE_LEVEL_POLL);
+                d->startStateTimer(MinMacPollRxOn, STATE_LEVEL_POLL);
             }
         }
     }
@@ -765,14 +788,19 @@ void DEV_PollBusyStateHandler(Device *device, const Event &event)
     {
         DBG_Printf(DBG_INFO, "DEV Poll Busy enter %s/0x%016llX\n", event.resource(), event.deviceKey());
     }
+    else if (event.what() == REventStateLeave)
+    {
+        d->stopStateTimer(STATE_LEVEL_POLL);
+    }
     else if (event.what() == REventApsConfirm && EventApsConfirmId(event) == d->readResult.apsReqId)
     {
-        DBG_Printf(DBG_INFO, "DEV Poll Busy %s/0x%016llX APS confirm status: 0x%02X\n", event.resource(), event.deviceKey(), EventApsConfirmStatus(event));
-        d->setState(DEV_PollIdleStateHandler, StateLevel2);
+        DBG_Printf(DBG_INFO, "DEV Poll Busy %s/0x%016llX APS confirm status: 0x%02X\n",
+                   event.resource(), event.deviceKey(), EventApsConfirmStatus(event));
+        d->setState(DEV_PollIdleStateHandler, STATE_LEVEL_POLL);
     }
-    else if (event.what() == REventPoll && d->pollTimeout.elapsed() > 10000)
+    else if (event.what() == REventStateTimeout && event.num() == STATE_LEVEL_POLL)
     {
-        d->setState(DEV_PollIdleStateHandler, StateLevel2);
+        d->setState(DEV_PollIdleStateHandler, STATE_LEVEL_POLL);
     }
 }
 
@@ -899,7 +927,10 @@ void DevicePrivate::startStateTimer(int IntervalMs, DEV_StateLevel level)
 
 void DevicePrivate::stopStateTimer(DEV_StateLevel level)
 {
-    timer[level].stop();
+    if (timer[level].isActive())
+    {
+        timer[level].stop();
+    }
 }
 
 void Device::timerEvent(QTimerEvent *event)
