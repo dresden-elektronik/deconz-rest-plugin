@@ -1676,11 +1676,11 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (sensor && (sensor->modelId().startsWith(QLatin1String("ED-1001")) || // EcoDim switches
                             sensor->modelId().startsWith(QLatin1String("45127")) ||   // Namron switches
+			    sensor->modelId().startsWith(QLatin1String("S57003")) ||  // SLC switches
                             sensor->modelId().startsWith(QLatin1String("FNB56-")) ||  // Feibit devices
                             sensor->modelId().startsWith(QLatin1String("FB56-"))))    // Feibit devices
         {
             rq.minInterval = 3600;
-            rq.maxInterval = 43200;
             rq.reportableChange8bit = 1;
         }
         else if (sensor && (sensor->modelId() == QLatin1String("HG06323") || // LIDL
@@ -2929,6 +2929,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("SPW35Z")) ||
         // Namron
         sensor->modelId().startsWith(QLatin1String("45127")) ||
+	// SLC
+	sensor->modelId().startsWith(QLatin1String("S57003")) ||
         // Plugwise
         sensor->modelId().startsWith(QLatin1String("160-01")) ||
         // Feibit
@@ -3634,7 +3636,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(0x04);
     }
     else if (sensor->modelId().startsWith(QLatin1String("ED-1001")) ||
-             sensor->modelId().startsWith(QLatin1String("45127")))
+             sensor->modelId().startsWith(QLatin1String("45127")) ||
+	     sensor->modelId().startsWith(QLatin1String("S57003")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
