@@ -114,9 +114,6 @@ int RestDevices::getDevice(const ApiRequest &req, ApiResponse &rsp)
     }
 
     QVariantList subDevices;
-    QString modelid = device->item(RAttrModelId)->toString();
-    QString swversion;
-    QString manufacturer;
 
     for (const auto &sub : device->subDevices())
     {
