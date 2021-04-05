@@ -839,10 +839,6 @@ Device::Device(DeviceKey key, deCONZ::ApsController *apsCtrl, QObject *parent) :
     addItem(DataTypeString, RAttrModelId);
 
     d->setState(DEV_InitStateHandler);
-
-    static int initTimer = 1000;
-    d->startStateTimer(initTimer, StateLevel0);
-    initTimer += 300; // hack for the first round init, so that each device will start 300ms later
 }
 
 Device::~Device()
@@ -886,13 +882,19 @@ bool Device::managed() const
 
 void Device::handleEvent(const Event &event, DEV_StateLevel level)
 {
-    if (event.what() == REventAwake && level == StateLevel0)
+    if (event.what() == REventStateEnter || event.what() == REventStateLeave)
     {
-        d->awake.start();
+        Q_ASSERT(event.num() >= StateLevel0);
+        Q_ASSERT(event.num() < StateLevelMax);
+        d->state[event.num()](this, event);
     }
-
-    if (d->state[level])
+    else if (d->state[level])
     {
+        if (event.what() == REventAwake && level == StateLevel0)
+        {
+            d->awake.start();
+        }
+
         d->state[level](this, event);
     }
 }
@@ -910,16 +912,7 @@ void DevicePrivate::setState(DeviceStateHandler newState, DEV_StateLevel level)
 
         if (state[level])
         {
-            if (level == StateLevel0)
-            {
-                // invoke the handler in the next event loop iteration
-                emit q->eventNotify(Event(q->prefix(), REventStateEnter, level, q->key()));
-            }
-            else
-            {
-                // invoke sub-states directly
-                state[level](q, Event(q->prefix(), REventStateEnter, level, q->key()));
-            }
+            emit q->eventNotify(Event(q->prefix(), REventStateEnter, level, q->key()));
         }
     }
 }
