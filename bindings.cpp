@@ -2915,6 +2915,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // RGBgenie
         sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) ||
         sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")) ||
+        sensor->modelId().startsWith(QLatin1String("ZG2833PAC")) || // Sunricher C4
         // Embertec
         sensor->modelId().startsWith(QLatin1String("BQZ10-AU")) ||
         // ROBB Smarrt
@@ -3346,7 +3347,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             {
                 break;
             }
-            
+
             DBG_Printf(DBG_INFO_L2, "0x%016llX (%s) create binding for attribute reporting of cluster 0x%04X on endpoint 0x%02X\n",
                        sensor->address().ext(), qPrintable(sensor->modelId()), (*i), srcEndpoint);
 
@@ -3628,6 +3629,14 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
         clusters.push_back(SCENE_CLUSTER_ID);
+        srcEndpoints.push_back(0x01);
+        srcEndpoints.push_back(0x02);
+        srcEndpoints.push_back(0x03);
+        srcEndpoints.push_back(0x04);
+    }
+    else if (sensor->modelId().startsWith(QLatin1String("ZG2833PAC"))) // Sunricher C4
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
         srcEndpoints.push_back(0x01);
         srcEndpoints.push_back(0x02);
         srcEndpoints.push_back(0x03);
