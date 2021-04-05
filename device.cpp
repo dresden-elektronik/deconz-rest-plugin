@@ -163,6 +163,16 @@ void DEV_InitStateHandler(Device *device, const Event &event)
     if (event.what() == REventStateEnter)
     {
         d->zdpResult = { };
+
+        if (event.deviceKey() & 0x00212E0000000000LLU)
+        {
+            d->node = DEV_GetCoreNode(device->key());
+            if (d->node && d->node->address().nwk() == 0x0000)
+            {
+                d->setState(DEV_DeadStateHandler);
+                return; // ignore coordinaor for now
+            }
+        }
     }
 
     if (event.what() == REventPoll ||
@@ -181,12 +191,6 @@ void DEV_InitStateHandler(Device *device, const Event &event)
         {
             device->item(RAttrExtAddress)->setValue(device->node()->address().ext());
             device->item(RAttrNwkAddress)->setValue(device->node()->address().nwk());
-
-            if (device->node()->address().nwk() == 0x0000)
-            {
-                d->setState(DEV_DeadStateHandler);
-                return; // ignore coordinaor for now
-            }
 
             // got a node, jump to verification
             if (!device->node()->nodeDescriptor().isNull() || device->reachable())
