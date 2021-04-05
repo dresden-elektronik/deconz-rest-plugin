@@ -74,7 +74,6 @@
           "SENGLED",
           "ONOFF",
           "LEVEL_CONTROL",
-          "MULTISTATE_INPUT",
           "DOOR_LOCK",
           "WINDOW_COVERING",
           "COLOR_CONTROL",
