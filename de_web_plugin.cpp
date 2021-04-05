@@ -1001,7 +1001,9 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
     {
         if (!device->reachable())
         {
-            device->item(RStateReachable)->setValue(true);
+            auto *item = device->item(RStateReachable);
+            item->setValue(true);
+            enqueueEvent(Event(device->prefix(), item->descriptor().suffix, 0, device->key()));
         }
     }
 
