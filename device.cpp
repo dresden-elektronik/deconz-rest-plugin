@@ -38,6 +38,7 @@ void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event);
 void DEV_BindingHandler(Device *device, const Event &event);
 void DEV_BindingTableVerifyHandler(Device *device, const Event &event);
 void DEV_PollIdleStateHandler(Device *device, const Event &event);
+void DEV_PollNextStateHandler(Device *device, const Event &event);
 void DEV_PollBusyStateHandler(Device *device, const Event &event);
 void DEV_DeadStateHandler(Device *device, const Event &event);
 
@@ -91,6 +92,14 @@ Operating --> Init : Not Reachable
 
 constexpr int MinMacPollRxOn = 8000; // 7680 ms + some space for timeout
 
+struct PollItem
+{
+    explicit PollItem(const Resource *r, const ResourceItem *i) :
+        resource(r), item(i) {}
+    const Resource *resource = nullptr;
+    const ResourceItem *item = nullptr;
+};
+
 class DevicePrivate
 {
 public:
@@ -118,7 +127,7 @@ public:
     std::array<QBasicTimer, StateLevelMax> timer; //! internal single shot timer one for each state level
     QElapsedTimer awake; //! time to track when an end-device was last awake
     QElapsedTimer bindingVerify; //! time to track last binding table verification
-    int pollItemIter = 0;
+    std::vector<PollItem> pollItems; //! queue of items to poll
     size_t bindingIter = 0;
     bool mgmtBindSupported = false;
     bool managed = false; //! a managed device doesn't rely on legacy implementation of polling etc.
@@ -625,7 +634,7 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
     }
     else if (event.what() != RAttrLastSeen && event.what() != REventPoll)
     {
-        DBG_Printf(DBG_INFO, "DEV Idle event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
+        // DBG_Printf(DBG_INFO, "DEV Idle event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
     }
 
     DEV_CheckItemChanges(device, event);
@@ -727,33 +736,41 @@ void DEV_BindingTableVerifyHandler(Device *device, const Event &event)
     }
 }
 
-struct PollItem
-{
-    explicit PollItem(const Resource *r, const ResourceItem *i) :
-        resource(r), item(i) {}
-    const Resource *resource = nullptr;
-    const ResourceItem *item = nullptr;
-};
-
+/*! Returns all items wich are ready for polling.
+    The returned vector is reversed to use std::vector::pop_back() when processing the queue.
+ */
 std::vector<PollItem> DEV_GetPollItems(Device *device)
 {
     std::vector<PollItem> result;
+    const auto now = QDateTime::currentDateTime();
 
     for (const auto *r : device->subDevices())
     {
         for (int i = 0; i < r->itemCount(); i++)
         {
             const auto *item = r->itemForIndex(size_t(i));
-            if (!item->readParameters().empty())
+
+            if (item->readParameters().empty())
             {
-                result.emplace_back(PollItem{r, item});
+                continue;
             }
+
+            if (item->lastSet().isValid() && item->lastSet().secsTo(now) < item->refreshInterval())
+            {
+                continue;
+            }
+
+            result.emplace_back(PollItem{r, item});
         }
     }
 
+    std::reverse(result.begin(), result.end());
     return result;
 }
 
+/*! This state waits for REventPoll (and later REventPollForce).
+    It collects all poll worthy items in a queue and moves to the PollNext state.
+ */
 void DEV_PollIdleStateHandler(Device *device, const Event &event)
 {
     DevicePrivate *d = device->d;
@@ -764,33 +781,74 @@ void DEV_PollIdleStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventPoll)
     {
-        const auto pollItems = DEV_GetPollItems(device);
+        d->pollItems = DEV_GetPollItems(device);
 
-        d->pollItemIter %= pollItems.size();
-
-        const auto i = pollItems[d->pollItemIter];
-        d->pollItemIter++;
-
-        auto fn = DA_GetReadFunction(i.item->readParameters());
-
-        if (fn && fn(i.resource, i.item, d->apsCtrl, &d->readResult))
+        if (!d->pollItems.empty())
         {
-            if (d->readResult.isEnqueued)
-            {
-                d->setState(DEV_PollBusyStateHandler, STATE_LEVEL_POLL);
-                d->startStateTimer(MinMacPollRxOn, STATE_LEVEL_POLL);
-            }
+            d->setState(DEV_PollNextStateHandler, STATE_LEVEL_POLL);
+            return;
         }
     }
 }
 
+/*! This state processes the next PollItem and moves to the PollBusy state.
+    If no more items are in the queue it moves back to PollIdle state.
+ */
+void DEV_PollNextStateHandler(Device *device, const Event &event)
+{
+    DevicePrivate *d = device->d;
+
+    if (event.what() == REventStateEnter || event.what() == REventStateTimeout)
+    {
+        Q_ASSERT(event.num() == STATE_LEVEL_POLL); // TODO remove
+        if (d->pollItems.empty())
+        {
+            d->setState(DEV_PollIdleStateHandler, STATE_LEVEL_POLL);
+            return;
+        }
+
+        const auto &poll = d->pollItems.back();
+
+        auto fn = DA_GetReadFunction(poll.item->readParameters());
+
+        d->readResult = { };
+        if (fn)
+        {
+            fn(poll.resource, poll.item, d->apsCtrl, &d->readResult);
+        }
+        else
+        {
+            DBG_Printf(DBG_INFO, "DEV: Poll Next no read function for item: %s / 0x%016llX\n", poll.item->descriptor().suffix, device->key());
+            d->pollItems.pop_back();
+        }
+
+        if (d->readResult.isEnqueued)
+        {
+            d->setState(DEV_PollBusyStateHandler, STATE_LEVEL_POLL);
+        }
+        else
+        {
+            DBG_Printf(DBG_INFO, "DEV: Poll Next failed to enqueue read item: %s / 0x%016llX\n", poll.item->descriptor().suffix, device->key());
+            d->startStateTimer(MinMacPollRxOn, STATE_LEVEL_POLL); // try again
+        }
+    }
+    else if (event.what() == REventStateLeave)
+    {
+        d->stopStateTimer(STATE_LEVEL_POLL);
+    }
+}
+
+/*! This state waits for APS confirm or timeout for an ongoing poll request.
+    In any case it moves back to PollNext state.
+    If the request is successful the PollItem will be removed from the queue.
+ */
 void DEV_PollBusyStateHandler(Device *device, const Event &event)
 {
     DevicePrivate *d = device->d;
 
     if (event.what() == REventStateEnter)
     {
-        DBG_Printf(DBG_INFO, "DEV Poll Busy enter %s/0x%016llX\n", event.resource(), event.deviceKey());
+        d->startStateTimer(MinMacPollRxOn, STATE_LEVEL_POLL);
     }
     else if (event.what() == REventStateLeave)
     {
@@ -800,11 +858,18 @@ void DEV_PollBusyStateHandler(Device *device, const Event &event)
     {
         DBG_Printf(DBG_INFO, "DEV Poll Busy %s/0x%016llX APS confirm status: 0x%02X\n",
                    event.resource(), event.deviceKey(), EventApsConfirmStatus(event));
-        d->setState(DEV_PollIdleStateHandler, STATE_LEVEL_POLL);
+
+        if (EventApsConfirmStatus(event) == 0x00) // success
+        {
+            Q_ASSERT(!d->pollItems.empty());
+            d->pollItems.pop_back();
+        }
+        d->setState(DEV_PollNextStateHandler, STATE_LEVEL_POLL);
     }
-    else if (event.what() == REventStateTimeout && event.num() == STATE_LEVEL_POLL)
+    else if (event.what() == REventStateTimeout)
     {
-        d->setState(DEV_PollIdleStateHandler, STATE_LEVEL_POLL);
+        Q_ASSERT(event.num() == STATE_LEVEL_POLL); // TODO remove
+        d->setState(DEV_PollNextStateHandler, STATE_LEVEL_POLL);
     }
 }
 
