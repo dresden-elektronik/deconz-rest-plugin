@@ -4155,7 +4155,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     if (zclFrame.sequenceNumber() == sensor->previousSequenceNumber)
     {
         // useful in general but limit scope to known problematic devices
-        if (sensor->manufacturer().startsWith(QLatin1String("IKEA")) || isTuyaManufacturerName(sensor->manufacturer()))
+        if (isTuyaManufacturerName(sensor->manufacturer()))
         {
             // deCONZ doesn't always send ZCL Default Response to unicast commands, or they can get lost.
             // in this case some devices re-send the command multiple times
