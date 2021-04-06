@@ -18,6 +18,12 @@ CONFIG(release, debug|release) {
     LIBS += -L../../release
 }
 
+equals(QT_MAJOR_VERSION, 5):lessThan(QT_MINOR_VERSION, 15) {
+    DEFINES += SKIP_EMPTY_PARTS=QString::SkipEmptyParts
+} else {
+    DEFINES += SKIP_EMPTY_PARTS=Qt::SkipEmptyParts
+}
+
 greaterThan(QT_MAJOR_VERSION, 4) {
     QT += core gui widgets serialport
 
