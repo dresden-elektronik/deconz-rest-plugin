@@ -15,7 +15,16 @@
 
 class Resource;
 
+struct lidlDevice {
+    const char *zigbeeManufacturerName;
+    const char *zigbeeModelIdentifier;
+    const char *manufacturername;
+    const char *modelid;
+};
+
 const QString R_GetProductId(Resource *resource);
 bool isTuyaManufacturerName(const QString &manufacturer);
+bool isLidlDevice(const QString &zigbeeModelIdentifier, const QString &manufacturername);
+const lidlDevice *getLidlDevice(const QString &zigbeeManufacturerName);
 
 #endif // PRODUCT_MATCH_H
