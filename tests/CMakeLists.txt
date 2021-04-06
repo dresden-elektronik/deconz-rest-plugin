@@ -47,7 +47,7 @@ add_executable( 001-device
     ../device.cpp
     ../device_access_fn.cpp
     ../device_js.cpp
-    ../device_wrappers.cpp
+    ../device_js_wrappers.cpp
     ../event.cpp
     ../zdp.cpp
 )
