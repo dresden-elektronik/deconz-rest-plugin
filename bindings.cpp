@@ -2780,6 +2780,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("outlet")) ||
         // Axis
         sensor->modelId() == QLatin1String("Gear") ||
+        // Yookee
+        sensor->modelId() == QLatin1String("D10110") ||
         // Datek
         sensor->modelId() == QLatin1String("PoP") ||
         // Bitron
