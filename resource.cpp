@@ -1422,14 +1422,12 @@ StateChange::State StateChange::tick(Resource *r, deCONZ::ApsController *apsCtrl
     }
 
     auto rParent = r->parentResource() ? r->parentResource() : r;
-    auto *device = static_cast<Device*>(rParent);
 
-    Q_ASSERT(device);
     Q_ASSERT(rParent);
     Q_ASSERT(m_stateTimer.isValid());
     Q_ASSERT(m_changeTimer.isValid());
 
-    if (m_state == StateWaitSync && device->reachable())
+    if (m_state == StateWaitSync && rParent->item(RConfigReachable)->toBool())
     {
         if (m_stateTimer.elapsed() > m_stateTimeoutMs)
         {
