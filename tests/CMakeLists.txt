@@ -15,8 +15,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(DECONZ_INCLUDE_DIR ../../../../../deconz-lib/include)
 
-find_package(QT NAMES Qt5 COMPONENTS Core Gui SerialPort Widgets REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Gui SerialPort Widgets REQUIRED)
+find_package(QT NAMES Qt5 COMPONENTS Core Gui SerialPort Widgets Qml REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Gui SerialPort Widgets Qml REQUIRED)
 
 FetchContent_Declare(
   Catch2
@@ -29,6 +29,12 @@ add_compile_definitions(
     DECONZ_DLLSPEC=
 )
 
+if(QT_VERSION VERSION_LESS "5.15.0")
+    add_compile_definitions( SKIP_EMPTY_PARTS=QString::SkipEmptyParts )
+else()
+    add_compile_definitions( SKIP_EMPTY_PARTS=Qt::SkipEmptyParts )
+endif()
+
 # Hacky support for compiling the impl into a static lib
 add_library(Catch2WithMain 000-catch2-main.cpp)
 target_link_libraries(Catch2WithMain PUBLIC Catch2)
@@ -39,6 +45,10 @@ add_executable( 001-device
     001-device-1.cpp
     ../resource.cpp
     ../device.cpp
+    ../device_access_fn.cpp
+    ../device_js.cpp
+    ../device_wrappers.cpp
+    ../event.cpp
     ../zdp.cpp
 )
 
@@ -52,6 +62,7 @@ foreach( name ${TARGETS_TEST_CASES} )
         PRIVATE Qt${QT_VERSION_MAJOR}::Core
         PRIVATE Qt${QT_VERSION_MAJOR}::Gui
         PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
+        PRIVATE Qt${QT_VERSION_MAJOR}::Qml
         PRIVATE Catch2::Catch2
         PRIVATE Catch2::Catch2WithMain
         -ldeCONZ

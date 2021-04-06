@@ -123,7 +123,7 @@ bool parseGenericAttribute4(Resource *r, ResourceItem *item, const deCONZ::ApsDa
         if (endpoint == AutoEndpoint)
         {
             // hack to get endpoint. todo find better solution
-            auto ls = r->item(RAttrUniqueId)->toString().split('-', QString::SkipEmptyParts);
+            auto ls = r->item(RAttrUniqueId)->toString().split('-', SKIP_EMPTY_PARTS);
             if (ls.size() >= 2)
             {
                 bool ok = false;
@@ -257,7 +257,7 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
         if (param.endpoint == AutoEndpoint)
         {
             // hack to get endpoint. todo find better solution
-            auto ls = r->item(RAttrUniqueId)->toString().split('-', QString::SkipEmptyParts);
+            auto ls = r->item(RAttrUniqueId)->toString().split('-', SKIP_EMPTY_PARTS);
             if (ls.size() >= 2)
             {
                 bool ok = false;
@@ -575,7 +575,7 @@ static bool readZclAttribute(const Resource *r, const ResourceItem *item, deCONZ
     if (param.endpoint == AutoEndpoint)
     {
         // hack to get endpoint. todo find better solution
-        auto ls = r->item(RAttrUniqueId)->toString().split('-', QString::SkipEmptyParts);
+        auto ls = r->item(RAttrUniqueId)->toString().split('-', SKIP_EMPTY_PARTS);
         if (ls.size() >= 2)
         {
             bool ok = false;
