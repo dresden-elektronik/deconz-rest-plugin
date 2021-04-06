@@ -10,9 +10,8 @@
 
 #include <QString>
 
-#include "deconz.h"
+#include "deconz/dbg_trace.h"
 #include "resource.h"
-#include "tuya.h"
 
 const char *RSensors = "/sensors";
 const char *RLights = "/lights";
