@@ -130,6 +130,7 @@ HEADERS  = bindings.h \
            rule.h \
            scene.h \
            sensor.h \
+           state_change.h \
            tuya.h \
            websocket_server.h \
            zdp.h
@@ -192,6 +193,7 @@ SOURCES  = air_quality.cpp \
            rest_info.cpp \
            rest_capabilities.cpp \
            rule.cpp \
+           state_change.cpp \
            thermostat_ui_configuration.cpp \
            upnp.cpp \
            permitJoin.cpp \
