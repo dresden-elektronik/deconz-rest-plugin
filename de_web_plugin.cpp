@@ -41,6 +41,7 @@
 #include "json.h"
 #include "poll_control.h"
 #include "poll_manager.h"
+#include "product_match.h"
 #include "rest_devices.h"
 #include "read_files.h"
 #ifdef ARCH_ARM

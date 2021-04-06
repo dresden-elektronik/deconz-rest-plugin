@@ -17,6 +17,7 @@
 #include "deconz/dbg_trace.h"
 #include "gateway.h"
 #include "json.h"
+#include "product_match.h"
 
 static const char *pragmaUserVersion = "PRAGMA user_version";
 static const char *pragmaPageCount = "PRAGMA page_count";
