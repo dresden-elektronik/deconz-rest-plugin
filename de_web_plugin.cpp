@@ -1106,7 +1106,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                              sensorNode->modelId().startsWith(QLatin1String("ZGRC-KEY")) || // Sunricher remote
                              sensorNode->modelId().startsWith(QLatin1String("ED-1001")) || // EcoDim switches
                              sensorNode->modelId().startsWith(QLatin1String("45127")) || // Namron switches
-			     sensorNode->modelId().startsWith(QLatin1String("S57003")) || // SLC 4 ch remote switch
+                             sensorNode->modelId().startsWith(QLatin1String("S57003")) || // SLC 4 ch remote switch
                              sensorNode->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
                              sensorNode->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
                              sensorNode->modelId().startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote
