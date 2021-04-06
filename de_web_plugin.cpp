@@ -4155,7 +4155,10 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     if (zclFrame.sequenceNumber() == sensor->previousSequenceNumber)
     {
         // useful in general but limit scope to known problematic devices
-        if (isTuyaManufacturerName(sensor->manufacturer()))
+        if (isTuyaManufacturerName(sensor->manufacturer()) ||
+            // TODO "HG06323" can likely be removed after testing,
+            // since the device only sends group casts and we don't expect this to trigger.
+            sensor->modelId() == QLatin1String("HG06323"))
         {
             // deCONZ doesn't always send ZCL Default Response to unicast commands, or they can get lost.
             // in this case some devices re-send the command multiple times
