@@ -11,6 +11,13 @@
 #include "resource.h"
 #include "state_change.h"
 
+#define ONOFF_CLUSTER_ID      0x0006
+#define ONOFF_COMMAND_OFF     0x00
+#define ONOFF_COMMAND_ON      0x01
+#define ONOFF_COMMAND_OFF_WITH_EFFECT  0x040
+
+quint8 zclNextSequenceNumber(); // todo defined in de_web_plugin_private.h
+
 StateChange::StateChange(StateChange::State initialState, StateChangeFunction_t fn, quint8 dstEndpoint) :
     m_state(initialState),
     m_changeFunction(fn),
@@ -181,4 +188,142 @@ void StateChange::addParameter(const QString &name, const QVariant &value)
     }
 }
 
+/*! Calls the ZCL write function of item(s) to write target value(s).
 
+    \returns 0 - if the command has been enqueued, or a negative number on failure.
+ */
+int SC_WriteZclAttribute(const Resource *r, const StateChange *stateChange, deCONZ::ApsController *apsCtrl)
+{
+    Q_ASSERT(r);
+    Q_ASSERT(stateChange);
+    Q_ASSERT(apsCtrl);
+
+    int written = 0;
+
+    for (const auto &i : stateChange->items())
+    {
+        const auto *item = r->item(i.suffix);
+
+        if (!item)
+        {
+            return -1;
+        }
+
+        if (item->writeParameters().empty())
+        {
+            return -2;
+        }
+
+        const auto fn = DA_GetWriteFunction(item->writeParameters());
+
+        if (!fn)
+        {
+            return -3;
+        }
+
+        // create a copy since item is const
+        ResourceItem copy(item->descriptor());
+        copy.setWriteParameters(item->writeParameters());
+        copy.setValue(i.targetValue);
+
+        if (!fn(r, &copy, apsCtrl))
+        {
+            return -4;
+        }
+
+        written++;
+    }
+
+    return written > 0 ? 0 : -5;
+}
+
+/*! Sends a ZCL command to the on/off cluster.
+
+    StateChange::parameters() -> "cmd"
+
+        ONOFF_COMMAND_ON
+        ONOFF_COMMAND_OFF
+        ONOFF_COMMAND_OFF_WITH_EFFECT
+
+    \returns 0 - if the command has been enqueued, or a negative number on failure.
+ */
+int SC_SetOnOff(const Resource *r, const StateChange *stateChange, deCONZ::ApsController *apsCtrl)
+{
+    Q_ASSERT(r);
+    Q_ASSERT(stateChange);
+    Q_ASSERT(apsCtrl);
+
+    quint8 cmd = 0xff;
+
+    if (r->parentResource())
+    {
+        r = r->parentResource(); // Device* has nwk/ext address
+    }
+
+    for (const auto &i : stateChange->parameters())
+    {
+        if (i.name == QLatin1String("cmd"))
+        {
+            bool ok;
+            auto val =  i.value.toUInt(&ok);
+
+            if (ok && (val == ONOFF_COMMAND_ON || val == ONOFF_COMMAND_OFF || val == ONOFF_COMMAND_OFF_WITH_EFFECT))
+            {
+                cmd = static_cast<quint8>(val);
+            }
+            break;
+        }
+    }
+
+    if (cmd == 0xff)
+    {
+        return -1;
+    }
+
+    deCONZ::ApsDataRequest req;
+    deCONZ::ZclFrame zclFrame;
+
+    req.setClusterId(ONOFF_CLUSTER_ID);
+    req.setProfileId(HA_PROFILE_ID);
+    req.dstAddress().setNwk(r->item(RAttrNwkAddress)->toNumber());
+    req.dstAddress().setExt(r->item(RAttrExtAddress)->toNumber());
+    req.setDstAddressMode(deCONZ::ApsNwkAddress);
+    req.setDstEndpoint(stateChange->dstEndpoint());
+    req.setSrcEndpoint(0x01);
+
+    zclFrame.payload().clear();
+    zclFrame.setSequenceNumber(zclNextSequenceNumber());
+    zclFrame.setCommandId(cmd);
+    zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                             deCONZ::ZclFCDirectionClientToServer |
+                             deCONZ::ZclFCDisableDefaultResponse);
+
+
+    if (cmd == ONOFF_COMMAND_OFF_WITH_EFFECT)
+    {
+        const quint8 effect = 0;
+        const quint8 variant = 0;
+        QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        stream << effect;
+        stream << variant;
+    }
+//    else if (cmd == ONOFF_COMMAND_ON_WITH_TIMED_OFF)
+//    {
+//        const quint16 offWaitTime = 0;
+//        QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
+//        stream.setByteOrder(QDataStream::LittleEndian);
+//        // stream << (quint8)0x80; // 0x01 accept only when on --> no, 0x80 overwrite ontime (yes, non standard)
+//        stream << flags;
+//        stream << ontime;
+//        stream << offWaitTime;
+//    }
+
+    QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
+    stream.setByteOrder(QDataStream::LittleEndian);
+    zclFrame.writeToStream(stream);
+
+    DBG_Printf(DBG_INFO, "SC_SetOnOff()\n");
+
+    return apsCtrl->apsdeDataRequest(req) == deCONZ::Success ? 0 : -2;
+}
