@@ -53,6 +53,7 @@ static const ProductMap products[] =
     {"_TYST11_ckud7u2l", "kud7u2l", "Tuya", "Tuya_THD HY369 TRV"},
     {"_TZE200_ckud7u2l", "TS0601", "Tuya", "Tuya_THD HY369 TRV"},
     {"_TZE200_ywdxldoj", "TS0601", "MOES/tuya", "Tuya_THD HY368 TRV"},
+    {"_TZE200_fhn3negr", "TS0601", "MOES/tuya", "Tuya_THD MOES TRV"},
     {"_TZE200_aoclfnxz", "TS0601", "Moes", "Tuya_THD BTH-002 Thermostat"},
     {"_TYST11_jeaxp72v", "eaxp72v", "Essentials", "Tuya_THD Essentials TRV"},
     {"_TYST11_kfvq6avy", "fvq6avy", "Revolt", "Tuya_THD NX-4911-675 TRV"},
@@ -60,6 +61,7 @@ static const ProductMap products[] =
     {"_TYST11_zivfvd7h", "ivfvd7h", "Siterwell", "Tuya_THD GS361A-H04 TRV"},
     {"_TZE200_zivfvd7h", "TS0601", "Siterwell", "Tuya_THD GS361A-H04 TRV"},
     {"_TYST11_yw7cahqs", "w7cahqs", "Hama", "Tuya_THD Smart radiator TRV"},
+    {"_TZE200_cwnjrr72", "TS0601", "MOES", "Tuya_THD HY368 TRV"},
 
     // Tuya Covering
     {"_TYST11_wmcdj3aq", "mcdj3aq", "Zemismart", "Tuya_COVD ZM25TQ"},
@@ -67,6 +69,7 @@ static const ProductMap products[] =
     {"_TZE200_fzo2pocs", "TS0601", "Zemismart", "Tuya_COVD ZM25TQ"},
     {"_TYST11_xu1rkty3", "u1rkty3", "Smart Home", "Tuya_COVD DT82LEMA-1.2N"},
     {"_TZE200_xuzcvlku", "TS0601", "Zemismart", "Tuya_COVD M515EGB"},
+    {"_TZE200_rddyvrci", "TS0601", "Moes", "Tuya_COVD AM43-0.45/40-ES-EZ(TY)"},
     {"_TZE200_zah67ekd", "TS0601", "MoesHouse / Livolo", "Tuya_COVD AM43-0.45-40"},
     {"_TZE200_nogaemzt", "TS0601", "Tuya", "Tuya_COVD YS-MT750"},
     {"_TZE200_zpzndjez", "TS0601", "Tuya", "Tuya_COVD DS82"},
@@ -86,6 +89,10 @@ static const ProductMap products[] =
     {"_TYST11_d0yu2xgi", "0yu2xgi", "NEO/Tuya", "NAS-AB02B0 Siren"},
     {"_TZE200_d0yu2xgi", "TS0601", "NEO/Tuya", "NAS-AB02B0 Siren"},
     {"_TZ3000_m0vaazab", "TS0207", "Tuya", "Tuya_RPT Repeater"},
+
+     // Switch
+    {"_TZE200_dfxkcots", "TS0601", "Earda", "Tuya_DIMSWITCH Earda Dimmer"},
+    {"_TZE200_9i9dt8is", "TS0601", "Earda", "Tuya_DIMSWITCH EDM-1ZAA-EU"},
 
     {nullptr, nullptr, nullptr, nullptr}
 };
