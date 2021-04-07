@@ -27,6 +27,42 @@ struct ZclParam
     std::vector<quint16> attributes;
 };
 
+struct ParseFunction
+{
+    ParseFunction(const QString &_name, const int _arity, ParseFunction_t _fn) :
+        name(_name),
+        arity(_arity),
+        fn(_fn)
+    { }
+    QString name;
+    int arity = 0; // number of parameters given by the device description file
+    ParseFunction_t fn = nullptr;
+};
+
+struct ReadFunction
+{
+    ReadFunction(const QString &_name, const int _arity, ReadFunction_t _fn) :
+        name(_name),
+        arity(_arity),
+        fn(_fn)
+    { }
+    QString name;
+    int arity = 0; // number of parameters given by the device description file
+    ReadFunction_t fn = nullptr;
+};
+
+struct WriteFunction
+{
+    WriteFunction(const QString &_name, const int _arity, WriteFunction_t _fn) :
+        name(_name),
+        arity(_arity),
+        fn(_fn)
+    { }
+    QString name;
+    int arity = 0; // number of parameters given by the device description file
+    WriteFunction_t fn = nullptr;
+};
+
 quint8 zclNextSequenceNumber(); // todo defined in de_web_plugin_private.h
 
 /*! Helper to get an unsigned int from \p var which might be a number or string value.

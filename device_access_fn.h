@@ -35,42 +35,6 @@ typedef bool (*ParseFunction_t)(Resource *r, ResourceItem *item, const deCONZ::A
 typedef bool (*ReadFunction_t)(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, DA_ReadResult *result);
 typedef bool (*WriteFunction_t)(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl);
 
-struct ParseFunction
-{
-    ParseFunction(const QString &_name, const int _arity, ParseFunction_t _fn) :
-        name(_name),
-        arity(_arity),
-        fn(_fn)
-    { }
-    QString name;
-    int arity = 0; // number of parameters given by the device description file
-    ParseFunction_t fn = nullptr;
-};
-
-struct ReadFunction
-{
-    ReadFunction(const QString &_name, const int _arity, ReadFunction_t _fn) :
-        name(_name),
-        arity(_arity),
-        fn(_fn)
-    { }
-    QString name;
-    int arity = 0; // number of parameters given by the device description file
-    ReadFunction_t fn = nullptr;
-};
-
-struct WriteFunction
-{
-    WriteFunction(const QString &_name, const int _arity, WriteFunction_t _fn) :
-        name(_name),
-        arity(_arity),
-        fn(_fn)
-    { }
-    QString name;
-    int arity = 0; // number of parameters given by the device description file
-    WriteFunction_t fn = nullptr;
-};
-
 ParseFunction_t DA_GetParseFunction(const std::vector<QVariant> &params);
 ReadFunction_t DA_GetReadFunction(const std::vector<QVariant> &params);
 WriteFunction_t DA_GetWriteFunction(const std::vector<QVariant> &params);
