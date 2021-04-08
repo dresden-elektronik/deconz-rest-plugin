@@ -4095,14 +4095,31 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     }
     else if (sensor->modelId() == QLatin1String("HG06323")) // LIDL Remote Control
     {
-        // Probably needed because deCONZ doesn't send Default Response to unicast command.
-        if (zclFrame.sequenceNumber() == sensor->previousSequenceNumber)
-        {
-            return;
-        }
-        sensor->previousSequenceNumber = zclFrame.sequenceNumber();
         checkReporting = true;
     }
+
+    if (zclFrame.sequenceNumber() == sensor->previousSequenceNumber)
+    {
+        // useful in general but limit scope to known problematic devices
+        if (isTuyaManufacturerName(sensor->manufacturer()) ||
+            // TODO "HG06323" can likely be removed after testing,
+            // since the device only sends group casts and we don't expect this to trigger.
+            sensor->modelId() == QLatin1String("HG06323"))
+        {
+            // deCONZ doesn't always send ZCL Default Response to unicast commands, or they can get lost.
+            // in this case some devices re-send the command multiple times
+            DBG_Printf(DBG_INFO, "Discard duplicated zcl.cmd: 0x%02X, cluster: 0x%04X with zcl.seq: %u for %s / %s\n",
+                       zclFrame.commandId(), ind.clusterId(), zclFrame.sequenceNumber(), qPrintable(sensor->manufacturer()), qPrintable(sensor->modelId()));
+            return;
+        }
+        else // warn only
+        {
+            DBG_Printf(DBG_INFO, "Warning duplicated zcl.cmd: 0x%02X, cluster: 0x%04X with zcl.seq: %u for %s / %s\n",
+                       zclFrame.commandId(), ind.clusterId(), zclFrame.sequenceNumber(), qPrintable(sensor->manufacturer()), qPrintable(sensor->modelId()));
+        }
+    }
+
+    sensor->previousSequenceNumber = zclFrame.sequenceNumber();
 
     if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() != 0)
     {
