@@ -498,6 +498,9 @@ struct lidlDevice {
 
 static const lidlDevice lidlDevices[] = { // Sorted by zigbeeManufacturerName
     { "_TYZB01_bngwdjsr", "TS1001",  "LIDL Livarno Lux", "HG06323" }, // Remote Control
+    { "_TZ1800_ejwkn2h2", "TY0203",  "LIDL Silvercrest", "HG06336" }, // Contact sensor
+    { "_TZ1800_fcdjzz3s", "TY0202",  "LIDL Silvercrest", "HG06335" }, // Motion sensor
+    { "_TZ1800_ladpngdx", "TS0211",  "LIDL Silvercrest", "HG06668" }, // Door bell
     { "_TZ3000_1obwwnmq", "TS011F",  "LIDL Silvercrest", "HG06338" }, // Smart USB Extension Lead (EU)
     { "_TZ3000_49qchf10", "TS0502A", "LIDL Livarno Lux", "HG06492C" }, // CT Light (E27)
     { "_TZ3000_9cpuaca6", "TS0505A", "LIDL Livarno Lux", "14148906L" }, // Stimmungsleuchte
@@ -6929,6 +6932,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.setManufacturer(QLatin1String(device->manufacturername));
         sensorNode.setModelId(QLatin1String(device->modelid));
     }
+    else if (isTuyaManufacturerName(sensorNode.manufacturer())) // Leave Tuya manufacturer name as is
+    {
+    }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL)
     {
         sensorNode.setManufacturer("dresden elektronik");
@@ -7160,10 +7166,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("ELKO");
     }
-    else if ((modelId == QLatin1String("TY0202") || modelId == QLatin1String("TY0203") || modelId == QLatin1String("TS0211")) && node->nodeDescriptor().manufacturerCode() == VENDOR_HEIMAN)
-    {
-        sensorNode.setManufacturer(QLatin1String("SILVERCREST"));
-    }
     else if ( //node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER ||
              node->nodeDescriptor().manufacturerCode() == VENDOR_HEIMAN)
     {
@@ -7227,10 +7229,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_DEVELCO)
     {
         sensorNode.setManufacturer("Develco Products A/S");
-    }
-    else if (manufacturer.startsWith(QLatin1String("_TYZB01")))
-    {
-        sensorNode.setManufacturer("Tuya");
     }
     else if (sensorNode.manufacturer().startsWith(QLatin1String("TUYATEC")))
     {
