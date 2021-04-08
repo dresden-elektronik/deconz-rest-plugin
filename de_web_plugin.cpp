@@ -13529,24 +13529,14 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
     case deCONZ::NodeEvent::NodeDeselected:
         break;
 
-    case deCONZ::NodeEvent::NodeRemoved:
+    case deCONZ::NodeEvent::NodeRemoved: // deleted via GUI
     {
-        std::vector<LightNode>::iterator i = nodes.begin();
-        std::vector<LightNode>::iterator end = nodes.end();
-
-        for (; i != end; ++i)
+#if DECONZ_LIB_VERSION >= 0x011001
+        if (event.node() && event.node()->address().nwk() != 0x0000)
         {
-            if (i->address().ext() == event.node()->address().ext())
-            {
-                if (i->state() != LightNode::StateNormal)
-                {
-                    continue;
-                }
-
-                DBG_Printf(DBG_INFO, "LightNode removed %s\n", qPrintable(event.node()->address().toStringExt()));
-                nodeZombieStateChanged(event.node());
-            }
+            restDevices->deleteDevice(event.node()->address().ext());
         }
+#endif
     }
         break;
 

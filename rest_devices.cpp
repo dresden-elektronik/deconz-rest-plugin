@@ -58,6 +58,90 @@ int RestDevices::handleApi(const ApiRequest &req, ApiResponse &rsp)
     return REQ_NOT_HANDLED;
 }
 
+/*! Deletes a Sensor as a side effect it will be removed from the REST API
+    and a ZDP reset will be send if possible.
+ */
+bool deleteSensor(Sensor *sensor, DeRestPluginPrivate *plugin)
+{
+    if (sensor && plugin && sensor->deletedState() == Sensor::StateNormal)
+    {
+        sensor->setDeletedState(Sensor::StateDeleted);
+        sensor->setNeedSaveDatabase(true);
+        sensor->setResetRetryCount(10);
+
+        Event e(sensor->prefix(), REventDeleted, sensor->id());
+        plugin->enqueueEvent(e);
+        return true;
+    }
+
+    return false;
+}
+
+/*! Deletes a LightNode as a side effect it will be removed from the REST API
+    and a ZDP reset will be send if possible.
+ */
+bool deleteLight(LightNode *lightNode, DeRestPluginPrivate *plugin)
+{
+    if (lightNode && plugin && lightNode->state() == LightNode::StateNormal)
+    {
+        lightNode->setState(LightNode::StateDeleted);
+        lightNode->setResetRetryCount(10);
+        lightNode->setNeedSaveDatabase(true);
+
+        // delete all group membership from light (todo this is messy)
+        for (auto &group : lightNode->groups())
+        {
+            //delete Light from all scenes.
+            plugin->deleteLightFromScenes(lightNode->id(), group.id);
+
+            //delete Light from all groups
+            group.actions &= ~GroupInfo::ActionAddToGroup;
+            group.actions |= GroupInfo::ActionRemoveFromGroup;
+            if (group.state != GroupInfo::StateNotInGroup)
+            {
+                group.state = GroupInfo::StateNotInGroup;
+            }
+        }
+
+        Event e(lightNode->prefix(), REventDeleted, lightNode->id());
+        plugin->enqueueEvent(e);
+        return true;
+    }
+
+    return false;
+}
+
+/*! Deletes all resources related to a device from the REST API.
+ */
+bool RestDevices::deleteDevice(quint64 extAddr)
+{
+    int count = 0;
+
+    for (auto &sensor : plugin->sensors)
+    {
+        if (sensor.address().ext() == extAddr && deleteSensor(&sensor, plugin))
+        {
+            count++;
+        }
+    }
+
+    for (auto &lightNode : plugin->nodes)
+    {
+        if (lightNode.address().ext() == extAddr && deleteLight(&lightNode, plugin))
+        {
+            count++;
+        }
+    }
+
+    if (count > 0)
+    {
+        plugin->queSaveDb(DB_SENSORS | DB_LIGHTS | DB_GROUPS | DB_SCENES, DB_SHORT_SAVE_DELAY);
+        plugin->deleteDeviceDb(plugin->generateUniqueId(extAddr, 0, 0));
+    }
+
+    return count > 0;
+}
+
 /*! GET /api/<apikey>/devices
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
