@@ -17,6 +17,7 @@
 #include "deconz/dbg_trace.h"
 #include "gateway.h"
 #include "json.h"
+#include "product_match.h"
 
 static const char *pragmaUserVersion = "PRAGMA user_version";
 static const char *pragmaPageCount = "PRAGMA page_count";
@@ -3327,11 +3328,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     item->setValue(60); // presence should be reasonable for physical sensors
                 }
             }
-
-            if (sensor.modelId() == QLatin1String("TY0202"))
-            {
-                sensor.setManufacturer(QLatin1String("SILVERCREST"));
-            }
         }
         else if (sensor.type().endsWith(QLatin1String("Flag")))
         {
@@ -3359,11 +3355,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             item = sensor.addItem(DataTypeBool, RStateOpen);
             item->setValue(false);
-
-            if (sensor.modelId() == QLatin1String("TY0203"))
-            {
-                sensor.setManufacturer(QLatin1String("SILVERCREST"));
-            }
         }
         else if (sensor.type().endsWith(QLatin1String("DoorLock")))
         {

@@ -75,7 +75,6 @@
 #define TUYA_QUERY 0x02
 #define TUYA_TIME_SYNCHRONISATION 0x24
 
-bool isTuyaManufacturerName(const QString &manufacturer);
 bool UseTuyaCluster(const QString &manufacturer);
 
 #endif // TUYA_H
