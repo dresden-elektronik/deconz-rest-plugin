@@ -17,6 +17,7 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "json.h"
+#include "product_match.h"
 
 /*! Sensors REST API broker.
     \param req - request data

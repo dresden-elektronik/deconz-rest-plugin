@@ -41,6 +41,7 @@
 #include "json.h"
 #include "poll_control.h"
 #include "poll_manager.h"
+#include "product_match.h"
 #include "rest_devices.h"
 #include "read_files.h"
 #ifdef ARCH_ARM
@@ -489,61 +490,6 @@ static const SupportedDevice supportedDevices[] = {
 
     { 0, nullptr, 0 }
 };
-
-struct lidlDevice {
-    const char *zigbeeManufacturerName;
-    const char *zigbeeModelIdentifier;
-    const char *manufacturername;
-    const char *modelid;
-};
-
-static const lidlDevice lidlDevices[] = { // Sorted by zigbeeManufacturerName
-    { "_TYZB01_bngwdjsr", "TS1001",  "LIDL Livarno Lux", "HG06323" }, // Remote Control
-    { "_TZ3000_1obwwnmq", "TS011F",  "LIDL Silvercrest", "HG06338" }, // Smart USB Extension Lead (EU)
-    { "_TZ3000_49qchf10", "TS0502A", "LIDL Livarno Lux", "HG06492C" }, // CT Light (E27)
-    { "_TZ3000_9cpuaca6", "TS0505A", "LIDL Livarno Lux", "14148906L" }, // Stimmungsleuchte
-    { "_TZ3000_dbou1ap4", "TS0505A", "LIDL Livarno Lux", "HG06106C" }, // RGB Light (E27)
-    { "_TZ3000_el5kt5im", "TS0502A", "LIDL Livarno Lux", "HG06492A" }, // CT Light (GU10)
-    { "_TZ3000_gek6snaj", "TS0505A", "LIDL Livarno Lux", "14149506L" }, // Lichtleiste
-    { "_TZ3000_kdi2o9m6", "TS011F",  "LIDL Silvercrest", "HG06337" }, // Smart plug (EU)
-    { "_TZ3000_kdpxju99", "TS0505A", "LIDL Livarno Lux", "HG06106A" }, // RGB Light (GU10)
-    { "_TZ3000_oborybow", "TS0502A", "LIDL Livarno Lux", "HG06492B" }, // CT Light (E14)
-    { "_TZ3000_odygigth", "TS0505A", "LIDL Livarno Lux", "HG06106B" }, // RGB Light (E14)
-    { "_TZ3000_riwp3k79", "TS0505A", "LIDL Livarno Lux", "HG06104A" }, // LED Light Strip
-    { "_TZE200_s8gkrkxk", "TS0601",  "LIDL Livarno Lux", "HG06467" }, // Smart LED String Lights (EU)
-    { nullptr, nullptr, nullptr, nullptr }
-};
-
-static const lidlDevice *getLidlDevice(const QString &zigbeeManufacturerName)
-{
-    const lidlDevice *device = lidlDevices;
-
-    while (device->zigbeeManufacturerName != nullptr)
-    {
-        if (zigbeeManufacturerName == QLatin1String(device->zigbeeManufacturerName))
-        {
-            return device;
-        }
-        device++;
-    }
-    return nullptr;
-}
-
-static bool isLidlDevice(const QString &zigbeeModelIdentifier, const QString &manufacturername)
-{
-    const lidlDevice *device = lidlDevices;
-
-    while (device->zigbeeManufacturerName != nullptr)
-    {
-        if (zigbeeModelIdentifier == QLatin1String(device->zigbeeModelIdentifier) &&
-            manufacturername == QLatin1String(device->manufacturername))
-        {
-            return true;
-        }
-        device++;
-    }
-    return false;
-}
 
 int TaskItem::_taskCounter = 1; // static rolling taskcounter
 
@@ -4153,14 +4099,31 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     }
     else if (sensor->modelId() == QLatin1String("HG06323")) // LIDL Remote Control
     {
-        // Probably needed because deCONZ doesn't send Default Response to unicast command.
-        if (zclFrame.sequenceNumber() == sensor->previousSequenceNumber)
-        {
-            return;
-        }
-        sensor->previousSequenceNumber = zclFrame.sequenceNumber();
         checkReporting = true;
     }
+
+    if (zclFrame.sequenceNumber() == sensor->previousSequenceNumber)
+    {
+        // useful in general but limit scope to known problematic devices
+        if (isTuyaManufacturerName(sensor->manufacturer()) ||
+            // TODO "HG06323" can likely be removed after testing,
+            // since the device only sends group casts and we don't expect this to trigger.
+            sensor->modelId() == QLatin1String("HG06323"))
+        {
+            // deCONZ doesn't always send ZCL Default Response to unicast commands, or they can get lost.
+            // in this case some devices re-send the command multiple times
+            DBG_Printf(DBG_INFO, "Discard duplicated zcl.cmd: 0x%02X, cluster: 0x%04X with zcl.seq: %u for %s / %s\n",
+                       zclFrame.commandId(), ind.clusterId(), zclFrame.sequenceNumber(), qPrintable(sensor->manufacturer()), qPrintable(sensor->modelId()));
+            return;
+        }
+        else // warn only
+        {
+            DBG_Printf(DBG_INFO, "Warning duplicated zcl.cmd: 0x%02X, cluster: 0x%04X with zcl.seq: %u for %s / %s\n",
+                       zclFrame.commandId(), ind.clusterId(), zclFrame.sequenceNumber(), qPrintable(sensor->manufacturer()), qPrintable(sensor->modelId()));
+        }
+    }
+
+    sensor->previousSequenceNumber = zclFrame.sequenceNumber();
 
     if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() != 0)
     {
@@ -6935,6 +6898,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.setManufacturer(QLatin1String(device->manufacturername));
         sensorNode.setModelId(QLatin1String(device->modelid));
     }
+    else if (isTuyaManufacturerName(sensorNode.manufacturer())) // Leave Tuya manufacturer name as is
+    {
+    }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL)
     {
         sensorNode.setManufacturer("dresden elektronik");
@@ -7166,10 +7132,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("ELKO");
     }
-    else if ((modelId == QLatin1String("TY0202") || modelId == QLatin1String("TY0203") || modelId == QLatin1String("TS0211")) && node->nodeDescriptor().manufacturerCode() == VENDOR_HEIMAN)
-    {
-        sensorNode.setManufacturer(QLatin1String("SILVERCREST"));
-    }
     else if ( //node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER ||
              node->nodeDescriptor().manufacturerCode() == VENDOR_HEIMAN)
     {
@@ -7233,10 +7195,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_DEVELCO)
     {
         sensorNode.setManufacturer("Develco Products A/S");
-    }
-    else if (manufacturer.startsWith(QLatin1String("_TYZB01")))
-    {
-        sensorNode.setManufacturer("Tuya");
     }
     else if (sensorNode.manufacturer().startsWith(QLatin1String("TUYATEC")))
     {

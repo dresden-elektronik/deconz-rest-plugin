@@ -18,6 +18,12 @@ CONFIG(release, debug|release) {
     LIBS += -L../../release
 }
 
+equals(QT_MAJOR_VERSION, 5):lessThan(QT_MINOR_VERSION, 15) {
+    DEFINES += SKIP_EMPTY_PARTS=QString::SkipEmptyParts
+} else {
+    DEFINES += SKIP_EMPTY_PARTS=Qt::SkipEmptyParts
+}
+
 greaterThan(QT_MAJOR_VERSION, 4) {
     QT += core gui widgets serialport
 
@@ -108,6 +114,7 @@ HEADERS  = bindings.h \
            light_node.h \
            poll_control.h \
            poll_manager.h \
+           product_match.h \
            read_files.h \
            resource.h \
            resourcelinks.h \
@@ -150,6 +157,7 @@ SOURCES  = air_quality.cpp \
            light_node.cpp \
            poll_control.cpp \
            poll_manager.cpp \
+           product_match.cpp \
            read_files.cpp \
            resource.cpp \
            resourcelinks.cpp \
