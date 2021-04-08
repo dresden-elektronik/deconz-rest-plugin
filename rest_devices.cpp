@@ -69,8 +69,7 @@ bool deleteSensor(Sensor *sensor, DeRestPluginPrivate *plugin)
         sensor->setNeedSaveDatabase(true);
         sensor->setResetRetryCount(10);
 
-        Event e(sensor->prefix(), REventDeleted, sensor->id());
-        plugin->enqueueEvent(e);
+        plugin->enqueueEvent(Event(sensor->prefix(), REventDeleted, sensor->id()));
         return true;
     }
 
@@ -103,8 +102,7 @@ bool deleteLight(LightNode *lightNode, DeRestPluginPrivate *plugin)
             }
         }
 
-        Event e(lightNode->prefix(), REventDeleted, lightNode->id());
-        plugin->enqueueEvent(e);
+        plugin->enqueueEvent(Event(lightNode->prefix(), REventDeleted, lightNode->id()));
         return true;
     }
 
@@ -136,8 +134,10 @@ bool RestDevices::deleteDevice(quint64 extAddr)
     if (count > 0)
     {
         plugin->queSaveDb(DB_SENSORS | DB_LIGHTS | DB_GROUPS | DB_SCENES, DB_SHORT_SAVE_DELAY);
-        plugin->deleteDeviceDb(plugin->generateUniqueId(extAddr, 0, 0));
     }
+
+    // delete device entry, regardless if REST resources exists
+    plugin->deleteDeviceDb(plugin->generateUniqueId(extAddr, 0, 0));
 
     return count > 0;
 }
