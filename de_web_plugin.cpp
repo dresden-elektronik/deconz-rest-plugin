@@ -6875,6 +6875,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.setManufacturer(QLatin1String(device->manufacturername));
         sensorNode.setModelId(QLatin1String(device->modelid));
     }
+    else if (isTuyaManufacturerName(sensorNode.manufacturer())) // Leave Tuya manufacturer name as is
+    {
+    }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL)
     {
         sensorNode.setManufacturer("dresden elektronik");
@@ -7106,10 +7109,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("ELKO");
     }
-    else if ((modelId == QLatin1String("TY0202") || modelId == QLatin1String("TY0203") || modelId == QLatin1String("TS0211")) && node->nodeDescriptor().manufacturerCode() == VENDOR_HEIMAN)
-    {
-        sensorNode.setManufacturer(QLatin1String("SILVERCREST"));
-    }
     else if ( //node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER ||
              node->nodeDescriptor().manufacturerCode() == VENDOR_HEIMAN)
     {
@@ -7173,10 +7172,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_DEVELCO)
     {
         sensorNode.setManufacturer("Develco Products A/S");
-    }
-    else if (manufacturer.startsWith(QLatin1String("_TYZB01")))
-    {
-        sensorNode.setManufacturer("Tuya");
     }
     else if (sensorNode.manufacturer().startsWith(QLatin1String("TUYATEC")))
     {
