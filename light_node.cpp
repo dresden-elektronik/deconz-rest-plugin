@@ -9,6 +9,7 @@
  */
 
 #include "de_web_plugin_private.h"
+#include "product_match.h"
 
 /*! Constructor.
  */

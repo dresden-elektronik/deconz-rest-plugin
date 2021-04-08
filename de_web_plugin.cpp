@@ -41,6 +41,7 @@
 #include "json.h"
 #include "poll_control.h"
 #include "poll_manager.h"
+#include "product_match.h"
 #include "rest_devices.h"
 #include "read_files.h"
 #ifdef ARCH_ARM
@@ -488,64 +489,6 @@ static const SupportedDevice supportedDevices[] = {
 
     { 0, nullptr, 0 }
 };
-
-struct lidlDevice {
-    const char *zigbeeManufacturerName;
-    const char *zigbeeModelIdentifier;
-    const char *manufacturername;
-    const char *modelid;
-};
-
-static const lidlDevice lidlDevices[] = { // Sorted by zigbeeManufacturerName
-    { "_TYZB01_bngwdjsr", "TS1001",  "LIDL Livarno Lux", "HG06323" }, // Remote Control
-    { "_TZ1800_ejwkn2h2", "TY0203",  "LIDL Silvercrest", "HG06336" }, // Contact sensor
-    { "_TZ1800_fcdjzz3s", "TY0202",  "LIDL Silvercrest", "HG06335" }, // Motion sensor
-    { "_TZ1800_ladpngdx", "TS0211",  "LIDL Silvercrest", "HG06668" }, // Door bell
-    { "_TZ3000_1obwwnmq", "TS011F",  "LIDL Silvercrest", "HG06338" }, // Smart USB Extension Lead (EU)
-    { "_TZ3000_49qchf10", "TS0502A", "LIDL Livarno Lux", "HG06492C" }, // CT Light (E27)
-    { "_TZ3000_9cpuaca6", "TS0505A", "LIDL Livarno Lux", "14148906L" }, // Stimmungsleuchte
-    { "_TZ3000_dbou1ap4", "TS0505A", "LIDL Livarno Lux", "HG06106C" }, // RGB Light (E27)
-    { "_TZ3000_el5kt5im", "TS0502A", "LIDL Livarno Lux", "HG06492A" }, // CT Light (GU10)
-    { "_TZ3000_gek6snaj", "TS0505A", "LIDL Livarno Lux", "14149506L" }, // Lichtleiste
-    { "_TZ3000_kdi2o9m6", "TS011F",  "LIDL Silvercrest", "HG06337" }, // Smart plug (EU)
-    { "_TZ3000_kdpxju99", "TS0505A", "LIDL Livarno Lux", "HG06106A" }, // RGB Light (GU10)
-    { "_TZ3000_oborybow", "TS0502A", "LIDL Livarno Lux", "HG06492B" }, // CT Light (E14)
-    { "_TZ3000_odygigth", "TS0505A", "LIDL Livarno Lux", "HG06106B" }, // RGB Light (E14)
-    { "_TZ3000_riwp3k79", "TS0505A", "LIDL Livarno Lux", "HG06104A" }, // LED Light Strip
-    { "_TZE200_s8gkrkxk", "TS0601",  "LIDL Livarno Lux", "HG06467" }, // Smart LED String Lights (EU)
-    { nullptr, nullptr, nullptr, nullptr }
-};
-
-static const lidlDevice *getLidlDevice(const QString &zigbeeManufacturerName)
-{
-    const lidlDevice *device = lidlDevices;
-
-    while (device->zigbeeManufacturerName != nullptr)
-    {
-        if (zigbeeManufacturerName == QLatin1String(device->zigbeeManufacturerName))
-        {
-            return device;
-        }
-        device++;
-    }
-    return nullptr;
-}
-
-static bool isLidlDevice(const QString &zigbeeModelIdentifier, const QString &manufacturername)
-{
-    const lidlDevice *device = lidlDevices;
-
-    while (device->zigbeeManufacturerName != nullptr)
-    {
-        if (zigbeeModelIdentifier == QLatin1String(device->zigbeeModelIdentifier) &&
-            manufacturername == QLatin1String(device->manufacturername))
-        {
-            return true;
-        }
-        device++;
-    }
-    return false;
-}
 
 int TaskItem::_taskCounter = 1; // static rolling taskcounter
 

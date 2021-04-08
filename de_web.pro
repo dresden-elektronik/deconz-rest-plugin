@@ -114,6 +114,7 @@ HEADERS  = bindings.h \
            light_node.h \
            poll_control.h \
            poll_manager.h \
+           product_match.h \
            read_files.h \
            resource.h \
            resourcelinks.h \
@@ -156,6 +157,7 @@ SOURCES  = air_quality.cpp \
            light_node.cpp \
            poll_control.cpp \
            poll_manager.cpp \
+           product_match.cpp \
            read_files.cpp \
            resource.cpp \
            resourcelinks.cpp \
