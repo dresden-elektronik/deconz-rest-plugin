@@ -9,6 +9,7 @@
  */
 
 #include "de_web_plugin_private.h"
+#include "product_match.h"
 
 /*! Constructor.
  */
@@ -107,7 +108,7 @@ void LightNode::setManufacturerCode(uint16_t code)
         case VENDOR_UBISYS:  name = QLatin1String("ubisys"); break;
         case VENDOR_BUSCH_JAEGER:  name = QLatin1String("Busch-Jaeger"); break;
         //case VENDOR_EMBER:   // fall through
-        case VENDOR_HEIMAN:  name = QLatin1String("Heiman"); break;
+        //case VENDOR_HEIMAN:  name = QLatin1String("Heiman"); break;
         case VENDOR_KEEN_HOME: name = QLatin1String("Keen Home Inc"); break;
         case VENDOR_DANALOCK: name = QLatin1String("Danalock"); break;
         case VENDOR_SCHLAGE: name = QLatin1String("Schlage"); break;

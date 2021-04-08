@@ -43,6 +43,7 @@
 #include "json.h"
 #include "poll_control.h"
 #include "poll_manager.h"
+#include "product_match.h"
 #include "rest_devices.h"
 #include "read_files.h"
 #include "zdp.h"
@@ -491,61 +492,6 @@ static const SupportedDevice supportedDevices[] = {
 
     { 0, nullptr, 0 }
 };
-
-struct lidlDevice {
-    const char *zigbeeManufacturerName;
-    const char *zigbeeModelIdentifier;
-    const char *manufacturername;
-    const char *modelid;
-};
-
-static const lidlDevice lidlDevices[] = { // Sorted by zigbeeManufacturerName
-    { "_TYZB01_bngwdjsr", "TS1001",  "LIDL Livarno Lux", "HG06323" }, // Remote Control
-    { "_TZ3000_1obwwnmq", "TS011F",  "LIDL Silvercrest", "HG06338" }, // Smart USB Extension Lead (EU)
-    { "_TZ3000_49qchf10", "TS0502A", "LIDL Livarno Lux", "HG06492C" }, // CT Light (E27)
-    { "_TZ3000_9cpuaca6", "TS0505A", "LIDL Livarno Lux", "14148906L" }, // Stimmungsleuchte
-    { "_TZ3000_dbou1ap4", "TS0505A", "LIDL Livarno Lux", "HG06106C" }, // RGB Light (E27)
-    { "_TZ3000_el5kt5im", "TS0502A", "LIDL Livarno Lux", "HG06492A" }, // CT Light (GU10)
-    { "_TZ3000_gek6snaj", "TS0505A", "LIDL Livarno Lux", "14149506L" }, // Lichtleiste
-    { "_TZ3000_kdi2o9m6", "TS011F",  "LIDL Silvercrest", "HG06337" }, // Smart plug (EU)
-    { "_TZ3000_kdpxju99", "TS0505A", "LIDL Livarno Lux", "HG06106A" }, // RGB Light (GU10)
-    { "_TZ3000_oborybow", "TS0502A", "LIDL Livarno Lux", "HG06492B" }, // CT Light (E14)
-    { "_TZ3000_odygigth", "TS0505A", "LIDL Livarno Lux", "HG06106B" }, // RGB Light (E14)
-    { "_TZ3000_riwp3k79", "TS0505A", "LIDL Livarno Lux", "HG06104A" }, // LED Light Strip
-    { "_TZE200_s8gkrkxk", "TS0601",  "LIDL Livarno Lux", "HG06467" }, // Smart LED String Lights (EU)
-    { nullptr, nullptr, nullptr, nullptr }
-};
-
-static const lidlDevice *getLidlDevice(const QString &zigbeeManufacturerName)
-{
-    const lidlDevice *device = lidlDevices;
-
-    while (device->zigbeeManufacturerName != nullptr)
-    {
-        if (zigbeeManufacturerName == QLatin1String(device->zigbeeManufacturerName))
-        {
-            return device;
-        }
-        device++;
-    }
-    return nullptr;
-}
-
-static bool isLidlDevice(const QString &zigbeeModelIdentifier, const QString &manufacturername)
-{
-    const lidlDevice *device = lidlDevices;
-
-    while (device->zigbeeManufacturerName != nullptr)
-    {
-        if (zigbeeModelIdentifier == QLatin1String(device->zigbeeModelIdentifier) &&
-            manufacturername == QLatin1String(device->manufacturername))
-        {
-            return true;
-        }
-        device++;
-    }
-    return false;
-}
 
 int TaskItem::_taskCounter = 1; // static rolling taskcounter
 
@@ -1617,7 +1563,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
     {
         // Map the command to the mapped button and action.
         // PTM215ZE Friends of Hue switch.
-        quint32 buttonMapPTM215ZE[] = {
+        const quint32 buttonMapPTM215ZE[] = {
             0x12, S_BUTTON_1, S_BUTTON_ACTION_INITIAL_PRESS,
             0x13, S_BUTTON_1, S_BUTTON_ACTION_SHORT_RELEASED,
             0x14, S_BUTTON_2, S_BUTTON_ACTION_INITIAL_PRESS,
@@ -1628,8 +1574,28 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
             0x23, S_BUTTON_4, S_BUTTON_ACTION_SHORT_RELEASED,
             0
         };
+
+        // PTM216Z Friends of Hue switch.
+        // CommandId: 0x69 Push, 0x6A Release
+        // Buttons: 0000 0001 A0
+        //          0000 0010 A1
+        //          0000 0100 B0
+        //          0000 1000 B1
+        //          0001 0000 Energy Bar
+        const quint32 buttonMapPTM216Z[] = {
+            0x6908, S_BUTTON_1, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x6904, S_BUTTON_2, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x6902, S_BUTTON_3, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x6901, S_BUTTON_4, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x690A, S_BUTTON_5, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x6905, S_BUTTON_6, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x6906, S_BUTTON_7, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x6909, S_BUTTON_8, S_BUTTON_ACTION_INITIAL_PRESS,
+            0
+        };
+
         // Generic Friends of Hue switch.
-        quint32 buttonMapFOHSWITCH[] = {
+        const quint32 buttonMapFOHSWITCH[] = {
             0x10, S_BUTTON_1, S_BUTTON_ACTION_INITIAL_PRESS,
             0x14, S_BUTTON_1, S_BUTTON_ACTION_SHORT_RELEASED,
             0x11, S_BUTTON_2, S_BUTTON_ACTION_INITIAL_PRESS,
@@ -1646,13 +1612,21 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
             0xe0, S_BUTTON_7, S_BUTTON_ACTION_SHORT_RELEASED,
             0
         };
-        quint32* buttonMap = 0;
+
+        const quint32* buttonMap = 0;
         // Determine which button map to use.
         if (sensor->swVersion() == QLatin1String("PTM215ZE"))
         {
             buttonMap = buttonMapPTM215ZE;
         }
-        else {
+        else if (sensor->swVersion() == QLatin1String("PTM216Z") && !ind.payload().isEmpty())
+        {
+            btn <<= 8;
+            btn |= static_cast<quint32>(ind.payload()[0]) & 0xff; // actual buttons in payload
+            buttonMap = buttonMapPTM216Z;
+        }
+        else
+        {
             buttonMap = buttonMapFOHSWITCH;
         }
 
@@ -1666,6 +1640,13 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
                 btnAction = buttonMap[i + 2];
                 break;
             }
+        }
+
+        if (buttonMap == buttonMapPTM216Z && ind.gpdCommandId() == 0x6A)
+        {
+            // Release event has no button payload, use the former press event button
+            btnAction = S_BUTTON_ACTION_SHORT_RELEASED;
+            btnMapped = item->toNumber() & ~0x3; // without action
         }
 
         const QDateTime now = QDateTime::currentDateTime();
@@ -1682,7 +1663,6 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
         else if (btnAction == S_BUTTON_ACTION_SHORT_RELEASED)
         {
             sensor->durationDue = QDateTime(); // disable generation of x001 (hold)
-            btn = buttonMap[btn & 0x0f];
             const quint32 action = item->toNumber() & 0x03; // last action
 
             if (action == S_BUTTON_ACTION_HOLD || // hold already triggered -> long release
@@ -1789,6 +1769,8 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
     case deCONZ::GpCommandIdShortPress1Of1:
     case deCONZ::GpCommandIdShortPress1Of2:
     case deCONZ::GpCommandIdShortPress2Of2:
+    case 0x69: // TODO replace with enum in later version
+    case 0x6A:
     {
         gpProcessButtonEvent(ind);
     }
@@ -1952,6 +1934,26 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
                 sensorNode.setManufacturer("PhilipsFoH");
                 sensorNode.setSwVersion("1.0");
             }
+            else if (gpdDeviceId == GpDeviceIdGenericSwitch && options.byte == 0x85 && extOptions.byte == 0xF2 &&
+                     ind.payload().size() == 31 &&
+                     ind.payload()[27] == 0x10 /* application info */ &&
+                     ind.payload()[29] == 0x05 /* switch type 5 button*/)
+            {
+                // This matches PTM216Z but there is no real information in the frame about the manufacturer.
+                // https://www.enocean.com/en/products/enocean_modules_24ghz/ptm-216z/
+                // srcId: 0x01520396
+
+                // Ind.payload: 07 85 f2 e0 7d 56 d0 10 e7 70 c9 95 eb af 6d 58 ad 17 0a 63 c2 27 ae dc 00 00 00
+                // 10 Application info
+                // 02 Optional data length
+                // 05 Switch type: 5 buttons
+                // 08 Button that was pressed (B1)
+
+                // Does this switch work in the Philips Hue bridge?
+                sensorNode.setModelId("FOHSWITCH");
+                sensorNode.setManufacturer("PhilipsFoH");
+                sensorNode.setSwVersion("PTM216Z");
+            }
             else
             {
                 DBG_Printf(DBG_INFO, "unsupported green power device 0x%02X\n", gpdDeviceId);
@@ -1980,7 +1982,14 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
 
             if (sensorNode.name().isEmpty())
             {
-                sensorNode.setName(QString("Hue Tap %2").arg(sensorNode.id()));
+                if (sensorNode.modelId() == QLatin1String("FOHSWITCH"))
+                {
+                    sensorNode.setName(QString("FoH Switch %2").arg(sensorNode.id()));
+                }
+                else
+                {
+                    sensorNode.setName(QString("Hue Tap %2").arg(sensorNode.id()));
+                }
             }
 
             checkSensorGroup(&sensorNode);
@@ -4348,14 +4357,31 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     }
     else if (sensor->modelId() == QLatin1String("HG06323")) // LIDL Remote Control
     {
-        // Probably needed because deCONZ doesn't send Default Response to unicast command.
-        if (zclFrame.sequenceNumber() == sensor->previousSequenceNumber)
-        {
-            return;
-        }
-        sensor->previousSequenceNumber = zclFrame.sequenceNumber();
         checkReporting = true;
     }
+
+    if (zclFrame.sequenceNumber() == sensor->previousSequenceNumber)
+    {
+        // useful in general but limit scope to known problematic devices
+        if (isTuyaManufacturerName(sensor->manufacturer()) ||
+            // TODO "HG06323" can likely be removed after testing,
+            // since the device only sends group casts and we don't expect this to trigger.
+            sensor->modelId() == QLatin1String("HG06323"))
+        {
+            // deCONZ doesn't always send ZCL Default Response to unicast commands, or they can get lost.
+            // in this case some devices re-send the command multiple times
+            DBG_Printf(DBG_INFO, "Discard duplicated zcl.cmd: 0x%02X, cluster: 0x%04X with zcl.seq: %u for %s / %s\n",
+                       zclFrame.commandId(), ind.clusterId(), zclFrame.sequenceNumber(), qPrintable(sensor->manufacturer()), qPrintable(sensor->modelId()));
+            return;
+        }
+        else // warn only
+        {
+            DBG_Printf(DBG_INFO, "Warning duplicated zcl.cmd: 0x%02X, cluster: 0x%04X with zcl.seq: %u for %s / %s\n",
+                       zclFrame.commandId(), ind.clusterId(), zclFrame.sequenceNumber(), qPrintable(sensor->manufacturer()), qPrintable(sensor->modelId()));
+        }
+    }
+
+    sensor->previousSequenceNumber = zclFrame.sequenceNumber();
 
     if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() != 0)
     {
@@ -7138,6 +7164,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.setManufacturer(QLatin1String(lidlDevice->manufacturername));
         sensorNode.setModelId(QLatin1String(lidlDevice->modelid));
     }
+    else if (isTuyaManufacturerName(sensorNode.manufacturer())) // Leave Tuya manufacturer name as is
+    {
+    }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL)
     {
         sensorNode.setManufacturer("dresden elektronik");
@@ -7369,10 +7398,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("ELKO");
     }
-    else if ((modelId == QLatin1String("TY0202") || modelId == QLatin1String("TY0203") || modelId == QLatin1String("TS0211")) && node->nodeDescriptor().manufacturerCode() == VENDOR_HEIMAN)
-    {
-        sensorNode.setManufacturer(QLatin1String("SILVERCREST"));
-    }
     else if ( //node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER ||
              node->nodeDescriptor().manufacturerCode() == VENDOR_HEIMAN)
     {
@@ -7436,10 +7461,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_DEVELCO)
     {
         sensorNode.setManufacturer("Develco Products A/S");
-    }
-    else if (manufacturer.startsWith(QLatin1String("_TYZB01")))
-    {
-        sensorNode.setManufacturer("Tuya");
     }
     else if (sensorNode.manufacturer().startsWith(QLatin1String("TUYATEC")))
     {

@@ -9,8 +9,8 @@
  */
 
 #include "sensor.h"
-#include "tuya.h"
 #include "json.h"
+#include "product_match.h"
 
 /*! Returns a fingerprint as JSON string. */
 QString SensorFingerprint::toString() const
