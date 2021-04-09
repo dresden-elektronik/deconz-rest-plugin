@@ -15,9 +15,6 @@
             "uuid": ["$address.ext", "0x01"],
             "items": [
                 {
-                    "name": "attr/colorcapabilities"
-                },
-                {
                     "name": "attr/lastannounced"
                 },
                 {
@@ -40,6 +37,9 @@
                 },
                 {
                     "name": "attr/uniqueid"
+                },
+                {
+                    "name": "config/colorcapabilities"
                 },
                 {
                     "name": "config/ctmin"
