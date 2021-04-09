@@ -1,6 +1,6 @@
 {
 	"schema": "resourceitem1.schema.json",
-	"id": "attr/ctmax",
+	"id": "config/ctmax",
 	"datatype": "UInt16",
 	"access": "R",
 	"public": true,

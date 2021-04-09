@@ -18,12 +18,6 @@
                     "name": "attr/colorcapabilities"
                 },
                 {
-                    "name": "attr/ctmin"
-                },
-                {
-                    "name": "attr/ctmax"
-                },
-                {
                     "name": "attr/lastannounced"
                 },
                 {
@@ -46,6 +40,12 @@
                 },
                 {
                     "name": "attr/uniqueid"
+                },
+                {
+                    "name": "config/ctmin"
+                },
+                {
+                    "name": "config/ctmax"
                 },
                 {
                     "name": "state/on"

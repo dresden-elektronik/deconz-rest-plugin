@@ -1,6 +1,6 @@
 {
 	"schema": "resourceitem1.schema.json",
-	"id": "attr/ctmin",
+	"id": "config/ctmin",
 	"datatype": "UInt16",
 	"access": "R",
 	"public": true,
