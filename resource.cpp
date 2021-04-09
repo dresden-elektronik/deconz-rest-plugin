@@ -571,6 +571,7 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
     m_parseParameters = other.m_parseParameters;
     m_readParameters = other.m_readParameters;
     m_writeParameters = other.m_writeParameters;
+    m_refreshInterval = other.m_refreshInterval;
     m_clusterId = other.m_clusterId;
     m_attributes = other.m_attributes;
     m_endpoint = other.m_endpoint;
@@ -626,6 +627,7 @@ ResourceItem &ResourceItem::operator=(ResourceItem &&other) noexcept
     m_parseParameters = std::move(other.m_parseParameters);
     m_readParameters = std::move(other.m_readParameters);
     m_writeParameters = std::move(other.m_writeParameters);
+    m_refreshInterval = other.m_refreshInterval;
     other.m_rid = &rInvalidItemDescriptor;
 
     if (m_str)
