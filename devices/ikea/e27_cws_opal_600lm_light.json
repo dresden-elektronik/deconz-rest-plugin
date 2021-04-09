@@ -54,7 +54,10 @@
                     "name": "state/bri"
                 },
                 {
-                    "name": "state/xy"
+                    "name": "state/x"
+                },
+                {
+                    "name": "state/y"
                 },
                 {
                     "name": "state/hue"
@@ -68,8 +71,9 @@
                 {
                     "name": "state/colormode",
                     "values": [
-                        ["\"hs\"", "color temperature"]
-                    ]
+                        ["\"ct\"", "color temperature"]
+                    ],
+                    "default": "xy"
                 },
                 {
                     "name": "state/alert",
