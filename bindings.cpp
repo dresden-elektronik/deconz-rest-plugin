@@ -2493,6 +2493,10 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturerCode() == VENDOR_AXIS || lightNode->manufacturerCode() == VENDOR_MMB) // Axis shade
         {
         }
+        else if (lightNode->manufacturer() == QLatin1String("yookee") || // IDK if it s better use VENDOR_SI_LABS
+                 lightNode->manufacturer() == QLatin1String("yooksmart"))
+        {
+        }
         else if (lightNode->manufacturer() == QLatin1String("Sunricher"))
         {
         }
