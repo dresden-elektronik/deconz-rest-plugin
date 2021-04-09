@@ -57,7 +57,7 @@ unix:!macx {
 TEMPLATE        = lib
 CONFIG         += plugin \
                += debug_and_release \
-               += c++11 \
+               += c++14 \
                -= qtquickcompiler
 
 QT             += network qml
