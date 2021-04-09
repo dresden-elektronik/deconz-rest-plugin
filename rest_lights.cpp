@@ -1728,6 +1728,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             R_GetProductId(taskRef.lightNode) == QLatin1String("11830304 Switch") ||
             R_GetProductId(taskRef.lightNode) == QLatin1String("QS-Zigbee-C01 Module") ||
             R_GetProductId(taskRef.lightNode) == QLatin1String("Zigbee curtain switch") ||
+            taskRef.lightNode->modelId() == QLatin1String("D10110") ||
             taskRef.lightNode->modelId() == QLatin1String("Motor Controller"))
         {
             targetLiftZigBee = 100 - targetLift;
