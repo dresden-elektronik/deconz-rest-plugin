@@ -12151,7 +12151,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             // attrId = a;
             QString payloadHexStr = zclFrame.payload().toHex();
             DBG_Printf(DBG_INFO, "0x%016llX Xiaomi attribute 0xfff2: %s\n", ind.srcAddress().ext(), payloadHexStr);
-            
+
             const char *resourceItemToUpdate = NULL;
             const char *resourceItemToUpdate2 = NULL;
             quint8 uint8Param = UINT8_MAX;
@@ -12238,7 +12238,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 resourceItemToUpdate = RStateAqaraS1Switch1Icon;
                 {
                     quint8 textLength = length;
-                    textLength--;
+                    textLength-=2;
                     stream >> uint8Param;
 
                     // the string is probably utf8 or latin
@@ -12255,7 +12255,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 resourceItemToUpdate = RStateAqaraS1Switch2Icon;
                 {
                     quint8 textLength = length;
-                    textLength--;
+                    textLength-=2;
                     stream >> uint8Param;
 
                     // the string is probably utf8 or latin
@@ -12272,7 +12272,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 resourceItemToUpdate = RStateAqaraS1Switch3Icon;
                 {
                     quint8 textLength = length;
-                    textLength--;
+                    textLength-=2;
                     stream >> uint8Param;
 
                     // the string is probably utf8 or latin
