@@ -50,11 +50,13 @@ void DEV_DeadStateHandler(Device *device, const Event &event);
 using namespace deCONZ::literals;
 
 constexpr int MinMacPollRxOn = 8000; // 7680 ms + some space for timeout
+constexpr int MaxPollItemRetries = 3;
 
 struct PollItem
 {
     explicit PollItem(const Resource *r, const ResourceItem *i) :
         resource(r), item(i) {}
+    size_t retry = 0;
     const Resource *resource = nullptr;
     const ResourceItem *item = nullptr;
 };
@@ -750,6 +752,11 @@ void DEV_PollNextStateHandler(Device *device, const Event &event)
     if (event.what() == REventStateEnter || event.what() == REventStateTimeout)
     {
         Q_ASSERT(event.num() == STATE_LEVEL_POLL); // TODO remove
+        if (!device->reachable())
+        {
+            d->pollItems.clear();
+        }
+
         if (d->pollItems.empty())
         {
             d->setState(DEV_PollIdleStateHandler, STATE_LEVEL_POLL);
@@ -807,11 +814,21 @@ void DEV_PollBusyStateHandler(Device *device, const Event &event)
     {
         DBG_Printf(DBG_INFO, "DEV Poll Busy %s/0x%016llX APS confirm status: 0x%02X\n",
                    event.resource(), event.deviceKey(), EventApsConfirmStatus(event));
+        Q_ASSERT(!d->pollItems.empty());
 
         if (EventApsConfirmStatus(event) == 0x00) // success
         {
-            Q_ASSERT(!d->pollItems.empty());
             d->pollItems.pop_back();
+        }
+        else
+        {
+            auto &pollItem = d->pollItems.back();
+            pollItem.retry++;
+
+            if (pollItem.retry >= MaxPollItemRetries)
+            {
+                d->pollItems.pop_back();
+            }
         }
         d->setState(DEV_PollNextStateHandler, STATE_LEVEL_POLL);
     }
