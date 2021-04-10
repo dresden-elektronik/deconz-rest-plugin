@@ -12161,6 +12161,13 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             case 0xfff2:
                 resourceItemToUpdate = RStateAqaraS1PanelCommunication;
                 stringParam = zclFrame.payload().toHex();
+                {
+                    for (; length > 0; length--) // eat the data to avoid parsing it further...
+                    {
+                        quint8 dummy;
+                        stream >> dummy;
+                    }
+                }
                 break;
 
             case 0x0210:
@@ -12225,50 +12232,56 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             
             case 0x0223:
                 resourceItemToUpdate = RStateAqaraS1Switch1Icon;
-                quint8 length = 0;
-                stream >> length;
-                length--;
-                stream >> uint8Param;
+                {
+                    quint8 length = 0;
+                    stream >> length;
+                    length--;
+                    stream >> uint8Param;
 
-                // the string is probably utf8 or latin
-                QByteArray buffer(length, Qt::Uninitialized);
+                    // the string is probably utf8 or latin
+                    QByteArray buffer(length, Qt::Uninitialized);
 
-                stream.readRawData(buffer.data(), length);
-                QString string(buffer);
-                resourceItemToUpdate2 = RStateAqaraS1Switch1Text;
-                stringParam2 = string;
+                    stream.readRawData(buffer.data(), length);
+                    QString string(buffer);
+                    resourceItemToUpdate2 = RStateAqaraS1Switch1Text;
+                    stringParam2 = string;
+                }
                 break;
             
             case 0x0224:
                 resourceItemToUpdate = RStateAqaraS1Switch2Icon;
-                quint8 length = 0;
-                stream >> length;
-                length--;
-                stream >> uint8Param;
+                {
+                    quint8 length = 0;
+                    stream >> length;
+                    length--;
+                    stream >> uint8Param;
 
-                // the string is probably utf8 or latin
-                QByteArray buffer(length, Qt::Uninitialized);
+                    // the string is probably utf8 or latin
+                    QByteArray buffer(length, Qt::Uninitialized);
 
-                stream.readRawData(buffer.data(), length);
-                QString string(buffer);
-                resourceItemToUpdate2 = RStateAqaraS1Switch2Text;
-                stringParam2 = string;
+                    stream.readRawData(buffer.data(), length);
+                    QString string(buffer);
+                    resourceItemToUpdate2 = RStateAqaraS1Switch2Text;
+                    stringParam2 = string;
+                }
                 break;
             
             case 0x0225:
                 resourceItemToUpdate = RStateAqaraS1Switch3Icon;
-                quint8 length = 0;
-                stream >> length;
-                length--;
-                stream >> uint8Param;
+                {
+                    quint8 length = 0;
+                    stream >> length;
+                    length--;
+                    stream >> uint8Param;
 
-                // the string is probably utf8 or latin
-                QByteArray buffer(length, Qt::Uninitialized);
+                    // the string is probably utf8 or latin
+                    QByteArray buffer(length, Qt::Uninitialized);
 
-                stream.readRawData(buffer.data(), length);
-                QString string(buffer);
-                resourceItemToUpdate2 = RStateAqaraS1Switch3Text;
-                stringParam2 = string;
+                    stream.readRawData(buffer.data(), length);
+                    QString string(buffer);
+                    resourceItemToUpdate2 = RStateAqaraS1Switch3Text;
+                    stringParam2 = string;
+                }
                 break;
             
             case 0x0227:
