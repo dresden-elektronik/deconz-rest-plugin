@@ -28,6 +28,10 @@ QString generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId)
 
 typedef void (*DeviceStateHandler)(Device *, const Event &);
 
+/*! Device state machine description can be found in the wiki:
+
+       https://github.com/dresden-elektronik/deconz-rest-plugin-v2/wiki/Device-Class#state-machine
+*/
 void DEV_InitStateHandler(Device *device, const Event &event);
 void DEV_IdleStateHandler(Device *device, const Event &event);
 void DEV_NodeDescriptorStateHandler(Device *device, const Event &event);
@@ -44,51 +48,6 @@ void DEV_DeadStateHandler(Device *device, const Event &event);
 
 // enable domain specific string literals
 using namespace deCONZ::literals;
-
-/* PlantUML state chart
-
-@startuml
-hide empty description
-state Init
-state "Node Descriptor" as NodeDescriptor
-state Endpoints as "Endpoints"
-state "Simple Descriptors" as SimpleDescriptors
-state "Basic Cluster" as BasicCluster
-state "Get DDF" as GetDDF
-
-[*] --> Init
-Init --> NodeDescriptor : Reachable or\nHas node Descriptor
-
-NodeDescriptor --> Init : Error
-NodeDescriptor --> Endpoints : Has Node Descriptor
-
-Endpoints --> SimpleDescriptors : Has Active Endpoints
-Endpoints --> Init : Error
-
-SimpleDescriptors --> BasicCluster : Has Simple Descriptors
-SimpleDescriptors --> Init : Error
-
-BasicCluster --> GetDDF
-BasicCluster --> Init : Error
-note bottom of BasicCluster : read common attributes
-
-
-GetDDF --> Init : Not found
-GetDDF --> Operating : Has DDF
-
-state Operating {
-  state Bindings
-  ||
-  state Scenes
-  ||
-  state "Polling"
-}
-
-
-Operating --> Init : Not Reachable
-@enduml
-
-*/
 
 constexpr int MinMacPollRxOn = 8000; // 7680 ms + some space for timeout
 
