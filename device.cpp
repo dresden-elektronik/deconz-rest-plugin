@@ -632,6 +632,10 @@ void DEV_BindingHandler(Device *device, const Event &event)
         {
             DBG_Printf(DBG_INFO, "DEV Binding verify bindings %s/0x%016llX\n", event.resource(), event.deviceKey());
         }
+        else
+        {
+            return;
+        }
     }
     else if (event.what() == REventBindingTable)
     {
