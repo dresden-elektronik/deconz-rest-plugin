@@ -12236,11 +12236,12 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             
             case 0x0223:
                 resourceItemToUpdate = RStateAqaraS1Switch1Icon;
+                stream >> uint8Param;
+
                 resourceItemToUpdate2 = RStateAqaraS1Switch1Text;
                 {
                     quint8 textLength = length;
                     textLength--;
-                    stream >> uint8Param;
 
                     if (textLength > 0) {
                         // the string is probably utf8 or latin
@@ -12258,11 +12259,12 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             
             case 0x0224:
                 resourceItemToUpdate = RStateAqaraS1Switch2Icon;
+                stream >> uint8Param;
+
                 resourceItemToUpdate2 = RStateAqaraS1Switch2Text;
                 {
                     quint8 textLength = length;
                     textLength--;
-                    stream >> uint8Param;
 
                     if (textLength > 0) {
                         // the string is probably utf8 or latin
@@ -12280,11 +12282,12 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             
             case 0x0225:
                 resourceItemToUpdate = RStateAqaraS1Switch3Icon;
+                stream >> uint8Param;
+
                 resourceItemToUpdate2 = RStateAqaraS1Switch3Text;
                 {
                     quint8 textLength = length;
                     textLength--;
-                    stream >> uint8Param;
 
                     if (textLength > 0) {
                         // the string is probably utf8 or latin
