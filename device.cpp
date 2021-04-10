@@ -59,6 +59,13 @@ struct PollItem
     const ResourceItem *item = nullptr;
 };
 
+struct BindingContext
+{
+    QElapsedTimer bindingVerify; //! time to track last binding table verification
+    size_t bindingIter = 0;
+    bool mgmtBindSupported = false;
+};
+
 class DevicePrivate
 {
 public:
@@ -85,10 +92,8 @@ public:
 
     std::array<QBasicTimer, StateLevelMax> timer; //! internal single shot timer one for each state level
     QElapsedTimer awake; //! time to track when an end-device was last awake
-    QElapsedTimer bindingVerify; //! time to track last binding table verification
+    BindingContext binding; //! only used by binding sub state machine
     std::vector<PollItem> pollItems; //! queue of items to poll
-    size_t bindingIter = 0;
-    bool mgmtBindSupported = false;
     bool managed = false; //! a managed device doesn't rely on legacy implementation of polling etc.
     ZDP_Result zdpResult; //! keep track of a running ZDP request
     DA_ReadResult readResult; //! keep track of a running "read" request
@@ -621,7 +626,7 @@ void DEV_BindingHandler(Device *device, const Event &event)
 
     if (event.what() == REventPoll || event.what() == REventAwake)
     {
-        if (!d->bindingVerify.isValid() || d->bindingVerify.elapsed() > (1000 * 60 * 5))
+        if (!d->binding.bindingVerify.isValid() || d->binding.bindingVerify.elapsed() > (1000 * 60 * 5))
         {
             DBG_Printf(DBG_INFO, "DEV Binding verify bindings %s/0x%016llX\n", event.resource(), event.deviceKey());
         }
@@ -630,11 +635,11 @@ void DEV_BindingHandler(Device *device, const Event &event)
     {
         if (event.num() == deCONZ::ZdpSuccess)
         {
-            d->mgmtBindSupported = true;
+            d->binding.mgmtBindSupported = true;
         }
         else if (event.num() == deCONZ::ZdpNotSupported)
         {
-            d->mgmtBindSupported = false;
+            d->binding.mgmtBindSupported = false;
         }
     }
     else
@@ -642,7 +647,7 @@ void DEV_BindingHandler(Device *device, const Event &event)
         return;
     }
 
-    d->bindingIter = 0;
+    d->binding.bindingIter = 0;
     d->setState(DEV_BindingTableVerifyHandler, STATE_LEVEL_BINDING);
     DEV_EnqueueEvent(device, REventBindingTick);
 }
@@ -655,15 +660,15 @@ void DEV_BindingTableVerifyHandler(Device *device, const Event &event)
     {
 
     }
-    else if (d->bindingIter >= device->node()->bindingTable().size())
+    else if (d->binding.bindingIter >= device->node()->bindingTable().size())
     {
-        d->bindingVerify.start();
+        d->binding.bindingVerify.start();
         d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
     }
     else
     {
         const auto now = QDateTime::currentMSecsSinceEpoch();
-        const auto &bnd = *(device->node()->bindingTable().const_begin() + d->bindingIter);
+        const auto &bnd = *(device->node()->bindingTable().const_begin() + d->binding.bindingIter);
         const auto dt = bnd.confirmedMsSinceEpoch() > 0 ? (now - bnd.confirmedMsSinceEpoch()) / 1000: -1;
 
         if (bnd.dstAddressMode() == deCONZ::ApsExtAddress)
@@ -675,7 +680,7 @@ void DEV_BindingTableVerifyHandler(Device *device, const Event &event)
             DBG_Printf(DBG_INFO, "BND 0x%016llX cl: 0x%04X, dstAddrmode: %u, group: 0x%04X, dstEp: 0x%02X, dt: %lld seconds\n", bnd.srcAddress(), bnd.clusterId(), bnd.dstAddressMode(), bnd.dstAddress().group(), bnd.dstEndpoint(), dt);
         }
 
-        d->bindingIter++;
+        d->binding.bindingIter++;
         DEV_EnqueueEvent(device, REventBindingTick);
     }
 }
