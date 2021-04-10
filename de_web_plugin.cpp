@@ -12242,7 +12242,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                     textLength--;
                     stream >> uint8Param;
 
-                    if (textLength) {
+                    if (textLength > 0) {
                         // the string is probably utf8 or latin
                         QByteArray buffer(textLength, Qt::Uninitialized);
 
@@ -12264,7 +12264,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                     textLength--;
                     stream >> uint8Param;
 
-                    if (textLength) {
+                    if (textLength > 0) {
                         // the string is probably utf8 or latin
                         QByteArray buffer(textLength, Qt::Uninitialized);
 
@@ -12286,7 +12286,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                     textLength--;
                     stream >> uint8Param;
 
-                    if (textLength) {
+                    if (textLength > 0) {
                         // the string is probably utf8 or latin
                         QByteArray buffer(textLength, Qt::Uninitialized);
 
