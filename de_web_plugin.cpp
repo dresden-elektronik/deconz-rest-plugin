@@ -12238,11 +12238,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 resourceItemToUpdate = RStateAqaraS1Switch1Icon;
                 {
                     quint8 textLength = length;
-                    textLength-=2;
+                    textLength--;
                     stream >> uint8Param;
 
                     // the string is probably utf8 or latin
-                    QByteArray buffer(length, Qt::Uninitialized);
+                    QByteArray buffer(textLength, Qt::Uninitialized);
 
                     stream.readRawData(buffer.data(), textLength);
                     QString string(buffer);
@@ -12255,11 +12255,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 resourceItemToUpdate = RStateAqaraS1Switch2Icon;
                 {
                     quint8 textLength = length;
-                    textLength-=2;
+                    textLength--;
                     stream >> uint8Param;
 
                     // the string is probably utf8 or latin
-                    QByteArray buffer(length, Qt::Uninitialized);
+                    QByteArray buffer(textLength, Qt::Uninitialized);
 
                     stream.readRawData(buffer.data(), textLength);
                     QString string(buffer);
@@ -12272,11 +12272,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 resourceItemToUpdate = RStateAqaraS1Switch3Icon;
                 {
                     quint8 textLength = length;
-                    textLength-=2;
+                    textLength--;
                     stream >> uint8Param;
 
                     // the string is probably utf8 or latin
-                    QByteArray buffer(length, Qt::Uninitialized);
+                    QByteArray buffer(textLength, Qt::Uninitialized);
 
                     stream.readRawData(buffer.data(), textLength);
                     QString string(buffer);
