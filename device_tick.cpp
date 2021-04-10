@@ -134,7 +134,10 @@ static void DT_PollNextIdleDevice(DeviceTickPrivate *d)
 
     const auto &device = d->devices->at(d->devIter);
     Q_ASSERT(device);
-    emit d->q->eventNotify(Event(device->prefix(), REventPoll, 0, device->key()));
+    if (device->reachable())
+    {
+        emit d->q->eventNotify(Event(device->prefix(), REventPoll, 0, device->key()));
+    }
     d->devIter++;
 }
 
