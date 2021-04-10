@@ -2546,7 +2546,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 lightNode.addItem(DataTypeBool, RStateAqaraS1StandbyEnabled);
                 lightNode.addItem(DataTypeUInt8, RStateAqaraS1ScreenSaverStyle);
                 lightNode.addItem(DataTypeUInt8, RStateAqaraS1Theme);
-                lightNode.addItem(DataTypeInt32, RStateAqaraS1StandbyTime);
+                lightNode.addItem(DataTypeUInt32, RStateAqaraS1StandbyTime);
                 lightNode.addItem(DataTypeUInt8, RStateAqaraS1FontSize);
                 lightNode.addItem(DataTypeBool, RStateAqaraS1LCDAutoBrightnessEnabled);
                 lightNode.addItem(DataTypeUInt8, RStateAqaraS1Homepage);
