@@ -2550,12 +2550,15 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 lightNode.addItem(DataTypeUInt8, RStateAqaraS1FontSize);
                 lightNode.addItem(DataTypeBool, RStateAqaraS1LCDAutoBrightnessEnabled);
                 lightNode.addItem(DataTypeUInt8, RStateAqaraS1Homepage);
-                lightNode.addItem(DataTypeUInt8, RStateAqaraS1ScreenSaver);
+                lightNode.addItem(DataTypeBool, RStateAqaraS1ScreenSaverEnabled);
                 lightNode.addItem(DataTypeUInt8, RStateAqaraS1StandbyLCDBrightness);
                 lightNode.addItem(DataTypeUInt8, RStateAqaraS1Switch1Icon);
+                lightNode.addItem(DataTypeString, RStateAqaraS1Switch1Text);
                 lightNode.addItem(DataTypeUInt8, RStateAqaraS1Switch2Icon);
+                lightNode.addItem(DataTypeString, RStateAqaraS1Switch2Text);
                 lightNode.addItem(DataTypeUInt8, RStateAqaraS1Switch3Icon);
-                lightNode.addItem(DataTypeBool, RStateAqaraS1AutoUpdateFW);
+                lightNode.addItem(DataTypeString, RStateAqaraS1Switch3Text);
+                lightNode.addItem(DataTypeBool, RStateAqaraS1AutoUpdateFWEnabled);
                 lightNode.addItem(DataTypeUInt8, RStateAqaraS1SwitchesConfig);
                 lightNode.addItem(DataTypeUInt8, RStateAqaraS1Gestures);
             }
@@ -12146,6 +12149,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         else if ((a == 0xfff2 && dataType == deCONZ::ZclOctedString) || (a == 0x0210 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0211 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0212 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0213 && dataType == deCONZ::ZclBoolean) || (a == 0x0214 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0215 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0216 && dataType == deCONZ::Zcl32BitInt) || (a == 0x0217 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0218 && dataType == deCONZ::ZclBoolean) || (a == 0x0219 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0221 && dataType == deCONZ::ZclBoolean) || (a == 0x0222 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0223 && dataType == deCONZ::ZclOctedString) || (a == 0x0224 && dataType == deCONZ::ZclOctedString) || (a == 0x0225 && dataType == deCONZ::ZclOctedString) || (a == 0x0227 && dataType == deCONZ::ZclBoolean) || (a == 0x022b && dataType == deCONZ::Zcl8BitUint) || (a == 0x023c && dataType == deCONZ::Zcl8BitUint))
         {
             const char *resourceItemToUpdate = NULL;
+            const char *resourceItemToUpdate2 = NULL;
             quint8 uint8Param = UINT8_MAX;
             qint32 int32Param = INT32_MAX;
             quint8 boolParam = UINT8_MAX;
@@ -12209,8 +12213,8 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 break;
             
             case 0x0221:
-                resourceItemToUpdate = RStateAqaraS1ScreenSaver;
-                stream >> uint8Param;
+                resourceItemToUpdate = RStateAqaraS1ScreenSaverEnabled;
+                stream >> boolParam;
                 break;
             
             case 0x0222:
@@ -12237,7 +12241,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 break;
             
             case 0x0227:
-                resourceItemToUpdate = RStateAqaraS1AutoUpdateFW;
+                resourceItemToUpdate = RStateAqaraS1AutoUpdateFWEnabled;
                 stream >> boolParam;
                 break;
             
