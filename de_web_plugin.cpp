@@ -2540,6 +2540,24 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             // if (lightNode.modelId() == QLatin1String("lumi.switch.n4acn4"))
             {
                 lightNode.addItem(DataTypeString, RStateAqaraS1PanelCommunication);
+                lightNode.addItem(DataTypeUInt8, RStateAqaraS1Language);
+                lightNode.addItem(DataTypeUInt8, RStateAqaraS1LCDBrightness);
+                lightNode.addItem(DataTypeUInt8, RStateAqaraS1SoundVolume);
+                lightNode.addItem(DataTypeBool, RStateAqaraS1StandbyEnabled);
+                lightNode.addItem(DataTypeUInt8, RStateAqaraS1ScreenSaverStyle);
+                lightNode.addItem(DataTypeUInt8, RStateAqaraS1Theme);
+                lightNode.addItem(DataTypeInt32, RStateAqaraS1StandbyTime);
+                lightNode.addItem(DataTypeUInt8, RStateAqaraS1FontSize);
+                lightNode.addItem(DataTypeBool, RStateAqaraS1LCDAutoBrightnessEnabled);
+                lightNode.addItem(DataTypeUInt8, RStateAqaraS1Homepage);
+                lightNode.addItem(DataTypeUInt8, RStateAqaraS1ScreenSaver);
+                lightNode.addItem(DataTypeUInt8, RStateAqaraS1StandbyLCDBrightness);
+                lightNode.addItem(DataTypeUInt8, RStateAqaraS1Switch1Icon);
+                lightNode.addItem(DataTypeUInt8, RStateAqaraS1Switch2Icon);
+                lightNode.addItem(DataTypeUInt8, RStateAqaraS1Switch3Icon);
+                lightNode.addItem(DataTypeBool, RStateAqaraS1AutoUpdateFW);
+                lightNode.addItem(DataTypeUInt8, RStateAqaraS1SwitchesConfig);
+                lightNode.addItem(DataTypeUInt8, RStateAqaraS1Gestures);
             }
             
         }
@@ -12125,23 +12143,121 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             attrId = a;
         }
-        else if (a == 0xfff2 && dataType == deCONZ::ZclOctedString)
+        else if ((a == 0xfff2 && dataType == deCONZ::ZclOctedString) || (a == 0x0210 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0211 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0212 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0213 && dataType == deCONZ::ZclBoolean) || (a == 0x0214 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0215 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0216 && dataType == deCONZ::Zcl32BitInt) || (a == 0x0217 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0218 && dataType == deCONZ::ZclBoolean) || (a == 0x0219 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0221 && dataType == deCONZ::ZclBoolean) || (a == 0x0222 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0223 && dataType == deCONZ::ZclOctedString) || (a == 0x0224 && dataType == deCONZ::ZclOctedString) || (a == 0x0225 && dataType == deCONZ::ZclOctedString) || (a == 0x0227 && dataType == deCONZ::ZclBoolean) || (a == 0x022b && dataType == deCONZ::Zcl8BitUint) || (a == 0x023c && dataType == deCONZ::Zcl8BitUint))
         {
+            char *resourceItemToUpdate = NULL;
+            quint8 uint8Param = UINT8_MAX;
+            qint32 int32Param = INT32_MAX;
+            bool boolParam = false; // Maybe use uint8 with UINT8_MAX??
+            QString stringParam = NULL;
+
+            switch (a)
+            {
+            case 0xfff2:
+                resourceItemToUpdate = RStateAqaraS1PanelCommunication;
+                stringParam = zclFrame.payload().toHex();
+                break;
+
+            case: 0x0210:
+                resourceItemToUpdate = RStateAqaraS1Language;
+                stream >> uint8Param;
+                break;
+            
+            case: 0x0211:
+                resourceItemToUpdate = RStateAqaraS1LCDBrightness;
+                stream >> uint8Param;
+                break;
+            
+            case: 0x0212:
+                resourceItemToUpdate = RStateAqaraS1SoundVolume;
+                stream >> uint8Param;
+                break;
+            
+            case: 0x0213:
+                resourceItemToUpdate = RStateAqaraS1StandbyEnabled;
+                stream >> boolParam;
+                break;
+            
+            case: 0x0214:
+                resourceItemToUpdate = RStateAqaraS1ScreenSaverStyle;
+                stream >> uint8Param;
+                break;
+            
+            case: 0x0215:
+                resourceItemToUpdate = RStateAqaraS1Theme;
+                stream >> uint8Param;
+                break;
+            
+            case: 0x0216:
+                resourceItemToUpdate = RStateAqaraS1StandbyTime;
+                stream >> int32Param;
+                break;
+            
+            case: 0x0217:
+                resourceItemToUpdate = RStateAqaraS1FontSize;
+                stream >> uint8Param;
+                break;
+            
+            case: 0x0218:
+                resourceItemToUpdate = RStateAqaraS1LCDAutoBrightnessEnabled;
+                stream >> boolParam;
+                break;
+            
+            case: 0x0219:
+                resourceItemToUpdate = RStateAqaraS1Homepage;
+                stream >> uint8Param;
+                break;
+            
+            case: 0x0221:
+                resourceItemToUpdate = RStateAqaraS1ScreenSaver;
+                stream >> uint8Param;
+                break;
+            
+            case: 0x0222:
+                resourceItemToUpdate = RStateAqaraS1StandbyLCDBrightness;
+                stream >> uint8Param;
+                break;
+            
+            case: 0x0223:
+                resourceItemToUpdate = RStateAqaraS1Switch1Icon;
+                stream >> uint8Param;
+                // stream >> stringParam; // TODO: The name!!!
+                break;
+            
+            case: 0x0224:
+                resourceItemToUpdate = RStateAqaraS1Switch2Icon;
+                stream >> uint8Param;
+                // stream >> stringParam; // TODO: The name!!!
+                break;
+            
+            case: 0x0225:
+                resourceItemToUpdate = RStateAqaraS1Switch3Icon;
+                stream >> uint8Param;
+                // stream >> stringParam; // TODO: The name!!!
+                break;
+            
+            case: 0x0227:
+                resourceItemToUpdate = RStateAqaraS1AutoUpdateFW;
+                stream >> boolParam;
+                break;
+            
+            case: 0x022b:
+                resourceItemToUpdate = RStateAqaraS1SwitchesConfig;
+                stream >> uint8Param;
+                break;
+            
+            case: 0x023c:
+                resourceItemToUpdate = RStateAqaraS1Gestures;
+                stream >> uint8Param;
+                break;
+            
+            default:
+                break;
+            }
+            
             attrId = a;
-            // QString str = QString::fromUtf8(zclFrame.payload());
-            // QString DataAsString = QString(zclFrame.payload());
-            // char *data = zclFrame.payload().data();
-            // std::string string = zclFrame.payload().toStdString();
-            // QString str2 = QString::/*fromCString*/fromLatin1(data);
-            QString str3 = zclFrame.payload().toHex();
-            // DBG_Printf(DBG_INFO, "0x%016llX Xiaomi attribute %s\n", ind.srcAddress().ext(), str);
-            // DBG_Printf(DBG_INFO, "0x%016llX Xiaomi attribute 0x%02X\n", ind.srcAddress().ext(), data[0]);
-            // DBG_Printf(DBG_INFO, "0x%016llX Xiaomi attribute 0x%02X\n", ind.srcAddress().ext(), data[1]);
-            // DBG_Printf(DBG_INFO, "0x%016llX Xiaomi attribute 0x%02X\n", ind.srcAddress().ext(), string[0]);
-            // DBG_Printf(DBG_INFO, "0x%016llX Xiaomi attribute 0x%02X\n", ind.srcAddress().ext(), string[1]);
-            // DBG_Printf(DBG_INFO, "0x%016llX Xiaomi attribute %s\n", ind.srcAddress().ext(), DataAsString);
-            // DBG_Printf(DBG_INFO, "0x%016llX Xiaomi attribute %s\n", ind.srcAddress().ext(), str2);
-            DBG_Printf(DBG_INFO, "0x%016llX Xiaomi attribute 0xfff2: %s\n", ind.srcAddress().ext(), str3);
+            QString payloadHexStr = zclFrame.payload().toHex();
+            DBG_Printf(DBG_INFO, "0x%016llX Xiaomi attribute 0xfff2: %s\n", ind.srcAddress().ext(), payloadHexStr);
 
             for (LightNode &lightNode: nodes)
             {
@@ -12170,10 +12286,18 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
                 if (lightNode.modelId().startsWith(QLatin1String("lumi.switch.n4acn4")))
                 {
-                    item = lightNode.item(RStateAqaraS1PanelCommunication);
+                    item = lightNode.item(resourceItemToUpdate);
                     if (item)
                     {
-                        item->setValue(str3);
+                        if (stringParam) {
+                            item->setValue(stringParam);
+                        } else if (uint8Param) {
+                            item->setValue(uint8Param);
+                        } else if (int32Param) {
+                            item->setValue(int32Param);
+                        } else if (boolParam) {
+                            item->setValue(boolParam);
+                        }
                         enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
                     }
                 }

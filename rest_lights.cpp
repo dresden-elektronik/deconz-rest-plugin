@@ -243,6 +243,24 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         if      (item->descriptor().suffix == RStateOn) { state["on"] = item->toBool(); }
         else if (item->descriptor().suffix == RStateAlert) { state["alert"] = QLatin1String("none"); }
         else if (item->descriptor().suffix == RStateAqaraS1PanelCommunication) { state["aqara_s1_panel_communication"] = item->toString(); }
+        else if (item->descriptor().suffix == RStateAqaraS1Language) { state["aqara_s1_language"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RStateAqaraS1LCDBrightness) { state["aqara_s1_lcd_brightness"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RStateAqaraS1SoundVolume) { state["aqara_s1_sound_volume"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RStateAqaraS1StandbyEnabled) { state["aqara_s1_standby_enabled"] = item->toBool(); }
+        else if (item->descriptor().suffix == RStateAqaraS1ScreenSaverStyle) { state["aqara_s1_screen_saver_style"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RStateAqaraS1Theme) { state["aqara_s1_theme"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RStateAqaraS1StandbyTime) { state["aqara_s1_standby_time"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RStateAqaraS1FontSize) { state["aqara_s1_font_size"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RStateAqaraS1LCDAutoBrightnessEnabled) { state["aqara_s1_lcd_auto_brightness_enabled"] = item->toBool(); }
+        else if (item->descriptor().suffix == RStateAqaraS1Homepage) { state["aqara_s1_homepage"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RStateAqaraS1ScreenSaver) { state["aqara_s1_screen_saver"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RStateAqaraS1StandbyLCDBrightness) { state["aqara_s1_standby_lcd_brightness"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RStateAqaraS1Switch1Icon) { state["aqara_s1_switch1_icon"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RStateAqaraS1Switch2Icon) { state["aqara_s1_switch2_icon"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RStateAqaraS1Switch3Icon) { state["aqara_s1_switch3_icon"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RStateAqaraS1AutoUpdateFW) { state["aqara_s1_auto_update_fw"] = item->toBool(); }
+        else if (item->descriptor().suffix == RStateAqaraS1SwitchesConfig) { state["aqara_s1_switches_config"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RStateAqaraS1Gestures) { state["aqara_s1_gestures"] = item->toNumber(); }
         else if (item->descriptor().suffix == RStateBri) { state["bri"] = static_cast<double>(item->toNumber()); }
         else if (item->descriptor().suffix == RStateHue) { state["hue"] = static_cast<double>(item->toNumber()); }
         else if (item->descriptor().suffix == RStateSat) { state["sat"] = static_cast<double>(item->toNumber()); }
