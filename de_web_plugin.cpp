@@ -12148,7 +12148,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             const char *resourceItemToUpdate = NULL;
             quint8 uint8Param = UINT8_MAX;
             qint32 int32Param = INT32_MAX;
-            bool boolParam = false; // Maybe use uint8 with UINT8_MAX??
+            quint8 boolParam = UINT8_MAX;
             QString stringParam = NULL;
 
             switch (a)
@@ -12291,12 +12291,12 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                     {
                         if (stringParam != NULL) {
                             item->setValue(stringParam);
-                        } else if (uint8Param) {
+                        } else if (uint8Param != UINT8_MAX) {
                             item->setValue(uint8Param);
-                        } else if (int32Param) {
+                        } else if (int32Param != INT32_MAX) {
                             item->setValue(int32Param);
-                        } else if (boolParam) {
-                            item->setValue(boolParam);
+                        } else if (boolParam != UINT8_MAX) {
+                            item->setValue(boolParam == 0x01);
                         }
                         enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
                     }
