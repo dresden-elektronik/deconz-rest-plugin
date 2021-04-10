@@ -204,7 +204,7 @@ static void DT_PollNextJoiningDevice(DeviceTickPrivate *d)
     Q_ASSERT(d->devIter < d->joinDevices.size());
 
     const JoinDevice &device = d->joinDevices.at(d->devIter);
-    emit d->q->eventNotify(Event(RDevices, REventPoll, 0, device.deviceKey));
+    emit d->q->eventNotify(Event(RDevices, REventAwake, 0, device.deviceKey));
     d->devIter++;
 }
 
