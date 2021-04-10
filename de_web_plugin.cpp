@@ -12146,12 +12146,12 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             attrId = a;
         }
-        else if ((a == 0xfff2 && dataType == deCONZ::ZclOctedString) || (a == 0x0210 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0211 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0212 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0213 && dataType == deCONZ::ZclBoolean) || (a == 0x0214 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0215 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0216 && dataType == deCONZ::Zcl32BitInt) || (a == 0x0217 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0218 && dataType == deCONZ::ZclBoolean) || (a == 0x0219 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0221 && dataType == deCONZ::ZclBoolean) || (a == 0x0222 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0223 && dataType == deCONZ::ZclOctedString) || (a == 0x0224 && dataType == deCONZ::ZclOctedString) || (a == 0x0225 && dataType == deCONZ::ZclOctedString) || (a == 0x0227 && dataType == deCONZ::ZclBoolean) || (a == 0x022b && dataType == deCONZ::Zcl8BitUint) || (a == 0x023c && dataType == deCONZ::Zcl8BitUint))
+        else if ((a == 0xfff2 && dataType == deCONZ::ZclOctedString) || (a == 0x0210 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0211 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0212 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0213 && dataType == deCONZ::ZclBoolean) || (a == 0x0214 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0215 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0216 && dataType == deCONZ::Zcl32BitUint) || (a == 0x0217 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0218 && dataType == deCONZ::ZclBoolean) || (a == 0x0219 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0221 && dataType == deCONZ::ZclBoolean) || (a == 0x0222 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0223 && dataType == deCONZ::ZclOctedString) || (a == 0x0224 && dataType == deCONZ::ZclOctedString) || (a == 0x0225 && dataType == deCONZ::ZclOctedString) || (a == 0x0227 && dataType == deCONZ::ZclBoolean) || (a == 0x022b && dataType == deCONZ::Zcl8BitUint) || (a == 0x023c && dataType == deCONZ::Zcl8BitUint))
         {
             const char *resourceItemToUpdate = NULL;
             const char *resourceItemToUpdate2 = NULL;
             quint8 uint8Param = UINT8_MAX;
-            qint32 int32Param = INT32_MAX;
+            qint32 uint32Param = UINT32_MAX;
             quint8 boolParam = UINT8_MAX;
             QString stringParam = NULL;
 
@@ -12194,7 +12194,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             
             case 0x0216:
                 resourceItemToUpdate = RStateAqaraS1StandbyTime;
-                stream >> int32Param;
+                stream >> uint32Param;
                 break;
             
             case 0x0217:
@@ -12297,8 +12297,8 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                             item->setValue(stringParam);
                         } else if (uint8Param != UINT8_MAX) {
                             item->setValue(uint8Param);
-                        } else if (int32Param != INT32_MAX) {
-                            item->setValue(int32Param);
+                        } else if (uint32Param != UINT32_MAX) {
+                            item->setValue(uint32Param);
                         } else if (boolParam != UINT8_MAX) {
                             item->setValue(boolParam == 0x01);
                         }
