@@ -12148,6 +12148,10 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if ((a == 0xfff2 && dataType == deCONZ::ZclOctedString) || (a == 0x0210 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0211 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0212 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0213 && dataType == deCONZ::ZclBoolean) || (a == 0x0214 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0215 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0216 && dataType == deCONZ::Zcl32BitUint) || (a == 0x0217 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0218 && dataType == deCONZ::ZclBoolean) || (a == 0x0219 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0221 && dataType == deCONZ::ZclBoolean) || (a == 0x0222 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0223 && dataType == deCONZ::ZclOctedString) || (a == 0x0224 && dataType == deCONZ::ZclOctedString) || (a == 0x0225 && dataType == deCONZ::ZclOctedString) || (a == 0x0227 && dataType == deCONZ::ZclBoolean) || (a == 0x022b && dataType == deCONZ::Zcl8BitUint) || (a == 0x023c && dataType == deCONZ::Zcl8BitUint))
         {
+            // attrId = a;
+            QString payloadHexStr = zclFrame.payload().toHex();
+            DBG_Printf(DBG_INFO, "0x%016llX Xiaomi attribute 0xfff2: %s\n", ind.srcAddress().ext(), payloadHexStr);
+            
             const char *resourceItemToUpdate = NULL;
             const char *resourceItemToUpdate2 = NULL;
             quint8 uint8Param = UINT8_MAX;
@@ -12299,10 +12303,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             default:
                 break;
             }
-            
-            attrId = a;
-            QString payloadHexStr = zclFrame.payload().toHex();
-            DBG_Printf(DBG_INFO, "0x%016llX Xiaomi attribute 0xfff2: %s\n", ind.srcAddress().ext(), payloadHexStr);
 
             for (LightNode &lightNode: nodes)
             {
