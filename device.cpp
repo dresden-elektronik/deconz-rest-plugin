@@ -605,24 +605,9 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
     }
 }
 
-/*
+/*! Bindings sub state machien is described in:
 
-@startuml
-hide empty description
-
-[*] -> Binding
-Binding --> TableVerify : Start
-TableVerify --> Binding : Done
-TableVerify --> TableVerify : Ok, Next
-TableVerify --> AddBinding : Missing
-TableVerify --> ReadReportConfig : Stale Reports
-AddBinding --> ReadReportConfig : Ok
-AddBinding --> Binding : Error
-ReadReportConfig --> TableVerify : Error or Done
-ReadReportConfig --> ReadReportConfig : Ok, Next
-ReadReportConfig --> ConfigReporting : Not Found
-ConfigReporting --> ReadReportConfig : Error
-@enduml
+      https://github.com/dresden-elektronik/deconz-rest-plugin-v2/wiki/Device-Class#bindings-sub-state-machine
 */
 
 void DEV_BindingHandler(Device *device, const Event &event)
