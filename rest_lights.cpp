@@ -256,8 +256,11 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (item->descriptor().suffix == RStateAqaraS1ScreenSaverEnabled) { state["aqara_s1_screen_saver_enabled"] = item->toBool(); }
         else if (item->descriptor().suffix == RStateAqaraS1StandbyLCDBrightness) { state["aqara_s1_standby_lcd_brightness"] = item->toNumber(); }
         else if (item->descriptor().suffix == RStateAqaraS1Switch1Icon) { state["aqara_s1_switch1_icon"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RStateAqaraS1Switch1Text) { state["aqara_s1_switch1_text"] = item->toString(); }
         else if (item->descriptor().suffix == RStateAqaraS1Switch2Icon) { state["aqara_s1_switch2_icon"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RStateAqaraS1Switch2Text) { state["aqara_s1_switch2_text"] = item->toString(); }
         else if (item->descriptor().suffix == RStateAqaraS1Switch3Icon) { state["aqara_s1_switch3_icon"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RStateAqaraS1Switch3Text) { state["aqara_s1_switch3_text"] = item->toString(); }
         else if (item->descriptor().suffix == RStateAqaraS1AutoUpdateFWEnabled) { state["aqara_s1_auto_update_fw_enabled"] = item->toBool(); }
         else if (item->descriptor().suffix == RStateAqaraS1SwitchesConfig) { state["aqara_s1_switches_config"] = item->toNumber(); }
         else if (item->descriptor().suffix == RStateAqaraS1Gestures) { state["aqara_s1_gestures"] = item->toNumber(); }

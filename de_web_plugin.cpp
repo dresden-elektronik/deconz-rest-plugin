@@ -12233,15 +12233,14 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             case 0x0223:
                 resourceItemToUpdate = RStateAqaraS1Switch1Icon;
                 {
-                    quint8 length = 0;
-                    stream >> length;
-                    length--;
+                    quint8 textLength = length;
+                    textLength--;
                     stream >> uint8Param;
 
                     // the string is probably utf8 or latin
                     QByteArray buffer(length, Qt::Uninitialized);
 
-                    stream.readRawData(buffer.data(), length);
+                    stream.readRawData(buffer.data(), textLength);
                     QString string(buffer);
                     resourceItemToUpdate2 = RStateAqaraS1Switch1Text;
                     stringParam2 = string;
@@ -12251,15 +12250,14 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             case 0x0224:
                 resourceItemToUpdate = RStateAqaraS1Switch2Icon;
                 {
-                    quint8 length = 0;
-                    stream >> length;
-                    length--;
+                    quint8 textLength = length;
+                    textLength--;
                     stream >> uint8Param;
 
                     // the string is probably utf8 or latin
                     QByteArray buffer(length, Qt::Uninitialized);
 
-                    stream.readRawData(buffer.data(), length);
+                    stream.readRawData(buffer.data(), textLength);
                     QString string(buffer);
                     resourceItemToUpdate2 = RStateAqaraS1Switch2Text;
                     stringParam2 = string;
@@ -12269,15 +12267,14 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             case 0x0225:
                 resourceItemToUpdate = RStateAqaraS1Switch3Icon;
                 {
-                    quint8 length = 0;
-                    stream >> length;
-                    length--;
+                    quint8 textLength = length;
+                    textLength--;
                     stream >> uint8Param;
 
                     // the string is probably utf8 or latin
                     QByteArray buffer(length, Qt::Uninitialized);
 
-                    stream.readRawData(buffer.data(), length);
+                    stream.readRawData(buffer.data(), textLength);
                     QString string(buffer);
                     resourceItemToUpdate2 = RStateAqaraS1Switch3Text;
                     stringParam2 = string;
