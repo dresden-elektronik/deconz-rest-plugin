@@ -12154,6 +12154,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             quint32 uint32Param = UINT32_MAX;
             quint8 boolParam = UINT8_MAX;
             QString stringParam = NULL;
+            QString stringParam2 = NULL;
 
             switch (a)
             {
@@ -12224,20 +12225,50 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             
             case 0x0223:
                 resourceItemToUpdate = RStateAqaraS1Switch1Icon;
+                quint8 length = 0;
+                stream >> length;
+                length--;
                 stream >> uint8Param;
-                // stream >> stringParam; // TODO: The name!!!
+
+                // the string is probably utf8 or latin
+                QByteArray buffer(length, Qt::Uninitialized);
+
+                stream.readRawData(buffer.data(), length);
+                QString string(buffer);
+                resourceItemToUpdate2 = RStateAqaraS1Switch1Text;
+                stringParam2 = string;
                 break;
             
             case 0x0224:
                 resourceItemToUpdate = RStateAqaraS1Switch2Icon;
+                quint8 length = 0;
+                stream >> length;
+                length--;
                 stream >> uint8Param;
-                // stream >> stringParam; // TODO: The name!!!
+
+                // the string is probably utf8 or latin
+                QByteArray buffer(length, Qt::Uninitialized);
+
+                stream.readRawData(buffer.data(), length);
+                QString string(buffer);
+                resourceItemToUpdate2 = RStateAqaraS1Switch2Text;
+                stringParam2 = string;
                 break;
             
             case 0x0225:
                 resourceItemToUpdate = RStateAqaraS1Switch3Icon;
+                quint8 length = 0;
+                stream >> length;
+                length--;
                 stream >> uint8Param;
-                // stream >> stringParam; // TODO: The name!!!
+
+                // the string is probably utf8 or latin
+                QByteArray buffer(length, Qt::Uninitialized);
+
+                stream.readRawData(buffer.data(), length);
+                QString string(buffer);
+                resourceItemToUpdate2 = RStateAqaraS1Switch3Text;
+                stringParam2 = string;
                 break;
             
             case 0x0227:
@@ -12317,7 +12348,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 lightNode.setNeedSaveDatabase(true);
                 saveDatabaseItems |= DB_LIGHTS;
             }
-            return;
         }
 
         if (dataType == deCONZ::ZclCharacterString && attrId != 0xff01)
