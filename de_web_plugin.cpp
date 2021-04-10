@@ -12345,6 +12345,15 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                         }
                         enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
                     }
+                    if (resourceItemToUpdate2 != NULL && stringParam2 != NULL)
+                    {
+                        ResourceItem *item2 = lightNode.item(resourceItemToUpdate2);
+                        if (item2)
+                        {
+                            item2->setValue(stringParam2);
+                            enqueueEvent(Event(RLights, item2->descriptor().suffix, lightNode.id(), item2));
+                        }
+                    }
                 }
 
                 lightNode.rx();
