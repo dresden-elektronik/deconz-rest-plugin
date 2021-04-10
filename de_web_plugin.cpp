@@ -12145,7 +12145,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if ((a == 0xfff2 && dataType == deCONZ::ZclOctedString) || (a == 0x0210 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0211 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0212 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0213 && dataType == deCONZ::ZclBoolean) || (a == 0x0214 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0215 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0216 && dataType == deCONZ::Zcl32BitInt) || (a == 0x0217 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0218 && dataType == deCONZ::ZclBoolean) || (a == 0x0219 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0221 && dataType == deCONZ::ZclBoolean) || (a == 0x0222 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0223 && dataType == deCONZ::ZclOctedString) || (a == 0x0224 && dataType == deCONZ::ZclOctedString) || (a == 0x0225 && dataType == deCONZ::ZclOctedString) || (a == 0x0227 && dataType == deCONZ::ZclBoolean) || (a == 0x022b && dataType == deCONZ::Zcl8BitUint) || (a == 0x023c && dataType == deCONZ::Zcl8BitUint))
         {
-            char *resourceItemToUpdate = NULL;
+            const char *resourceItemToUpdate = NULL;
             quint8 uint8Param = UINT8_MAX;
             qint32 int32Param = INT32_MAX;
             bool boolParam = false; // Maybe use uint8 with UINT8_MAX??
@@ -12158,95 +12158,95 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 stringParam = zclFrame.payload().toHex();
                 break;
 
-            case: 0x0210:
+            case 0x0210:
                 resourceItemToUpdate = RStateAqaraS1Language;
                 stream >> uint8Param;
                 break;
             
-            case: 0x0211:
+            case 0x0211:
                 resourceItemToUpdate = RStateAqaraS1LCDBrightness;
                 stream >> uint8Param;
                 break;
             
-            case: 0x0212:
+            case 0x0212:
                 resourceItemToUpdate = RStateAqaraS1SoundVolume;
                 stream >> uint8Param;
                 break;
             
-            case: 0x0213:
+            case 0x0213:
                 resourceItemToUpdate = RStateAqaraS1StandbyEnabled;
                 stream >> boolParam;
                 break;
             
-            case: 0x0214:
+            case 0x0214:
                 resourceItemToUpdate = RStateAqaraS1ScreenSaverStyle;
                 stream >> uint8Param;
                 break;
             
-            case: 0x0215:
+            case 0x0215:
                 resourceItemToUpdate = RStateAqaraS1Theme;
                 stream >> uint8Param;
                 break;
             
-            case: 0x0216:
+            case 0x0216:
                 resourceItemToUpdate = RStateAqaraS1StandbyTime;
                 stream >> int32Param;
                 break;
             
-            case: 0x0217:
+            case 0x0217:
                 resourceItemToUpdate = RStateAqaraS1FontSize;
                 stream >> uint8Param;
                 break;
             
-            case: 0x0218:
+            case 0x0218:
                 resourceItemToUpdate = RStateAqaraS1LCDAutoBrightnessEnabled;
                 stream >> boolParam;
                 break;
             
-            case: 0x0219:
+            case 0x0219:
                 resourceItemToUpdate = RStateAqaraS1Homepage;
                 stream >> uint8Param;
                 break;
             
-            case: 0x0221:
+            case 0x0221:
                 resourceItemToUpdate = RStateAqaraS1ScreenSaver;
                 stream >> uint8Param;
                 break;
             
-            case: 0x0222:
+            case 0x0222:
                 resourceItemToUpdate = RStateAqaraS1StandbyLCDBrightness;
                 stream >> uint8Param;
                 break;
             
-            case: 0x0223:
+            case 0x0223:
                 resourceItemToUpdate = RStateAqaraS1Switch1Icon;
                 stream >> uint8Param;
                 // stream >> stringParam; // TODO: The name!!!
                 break;
             
-            case: 0x0224:
+            case 0x0224:
                 resourceItemToUpdate = RStateAqaraS1Switch2Icon;
                 stream >> uint8Param;
                 // stream >> stringParam; // TODO: The name!!!
                 break;
             
-            case: 0x0225:
+            case 0x0225:
                 resourceItemToUpdate = RStateAqaraS1Switch3Icon;
                 stream >> uint8Param;
                 // stream >> stringParam; // TODO: The name!!!
                 break;
             
-            case: 0x0227:
+            case 0x0227:
                 resourceItemToUpdate = RStateAqaraS1AutoUpdateFW;
                 stream >> boolParam;
                 break;
             
-            case: 0x022b:
+            case 0x022b:
                 resourceItemToUpdate = RStateAqaraS1SwitchesConfig;
                 stream >> uint8Param;
                 break;
             
-            case: 0x023c:
+            case 0x023c:
                 resourceItemToUpdate = RStateAqaraS1Gestures;
                 stream >> uint8Param;
                 break;
@@ -12289,7 +12289,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                     item = lightNode.item(resourceItemToUpdate);
                     if (item)
                     {
-                        if (stringParam) {
+                        if (stringParam != NULL) {
                             item->setValue(stringParam);
                         } else if (uint8Param) {
                             item->setValue(uint8Param);
