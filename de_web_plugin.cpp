@@ -12151,7 +12151,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             const char *resourceItemToUpdate = NULL;
             const char *resourceItemToUpdate2 = NULL;
             quint8 uint8Param = UINT8_MAX;
-            qint32 uint32Param = UINT32_MAX;
+            quint32 uint32Param = UINT32_MAX;
             quint8 boolParam = UINT8_MAX;
             QString stringParam = NULL;
 
