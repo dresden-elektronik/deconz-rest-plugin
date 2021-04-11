@@ -622,7 +622,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     }
     else if (taskRef.lightNode->modelId() == QLatin1String("lumi.switch.n4acn4"))
     {
-        QString inputString;
+        QString inputString = NULL;
         quint8 inputUint8Param = UINT8_MAX;
         quint32 inputUint32Param = UINT32_MAX;
 
@@ -635,6 +635,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
         for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
         {
+            valueOk = false;
             QString param = p.key();
             if (param == "aqara_s1_panel_communication" && taskRef.lightNode->item(RStateAqaraS1PanelCommunication))
             {
@@ -884,9 +885,13 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 {
                     rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/%2").arg(id).arg(param), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
                 }
-                // return REQ_READY_SEND;
             }
         }
+        if (paramOk)
+        {
+            return REQ_READY_SEND;
+        }
+        
     }
     
     
