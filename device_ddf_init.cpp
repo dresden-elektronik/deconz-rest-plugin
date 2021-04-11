@@ -12,6 +12,7 @@
 #include "device_compat.h"
 #include "device_descriptions.h"
 #include "device_ddf_init.h"
+#include "database.h"
 
 // TODO move external declaration in de_web_plugin_private.h into utils.h
 QString generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId);
@@ -155,6 +156,8 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &desc
                 rsub->addStateChange(stateChange);
             }
         }
+
+        DB_StoreSubDevice(rsub);
     }
 
     if (description.sleeper >= 0)

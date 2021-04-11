@@ -107,10 +107,6 @@ void DeRestPluginPrivate::checkDbUserVersion()
     }
     else if (userVersion == 8)
     {
-        updated = upgradeDbToUserVersion9();
-    }
-    else if (userVersion == 9)
-    {
         // latest version
     }
     else
@@ -512,27 +508,26 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion8()
 
        The 'resource_items' table references 'sub_devices' so that
        entries are deleted when the respective sub_devices entry is removed.
-       The rowid is used as foreign key for max performance.
        Each entry is unique and automatically replaced if already existing.
      */
 
     // create tables
     const char *sql[] = {
         "CREATE TABLE IF NOT EXISTS sub_devices ("
-        " uuid TEXT PRIMARY KEY ON CONFLICT IGNORE,"
+        " id INTEGER PRIMARY KEY,"
+        " uniqueid TEXT NOT NULL,"
         " device_id INTEGER REFERENCES devices(id) ON DELETE CASCADE,"
-        " timestamp INTEGER NOT NULL)",
+        " timestamp INTEGER NOT NULL,"
+        " UNIQUE(uniqueid) ON CONFLICT IGNORE)",
 
-#if 0 // disabled here, fixed in version 9
         "CREATE TABLE if NOT EXISTS resource_items ("
-        " sub_device_id INTEGER REFERENCES sub_devices(rowid) ON DELETE CASCADE,"
+        " sub_device_id TEXT REFERENCES sub_devices(id) ON DELETE CASCADE,"
         " item STRING NOT NULL,"
         " value NOT NULL," // can be any type
         " source STRING NOT NULL,"
         " timestamp INTEGER NOT NULL," // is the last set timestamp
         " PRIMARY KEY (sub_device_id, item) ON CONFLICT REPLACE"
         ")",
-#endif
         nullptr
     };
 
@@ -553,60 +548,6 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion8()
     }
 
     return setDbUserVersion(8);
-}
-
-/*! Upgrades database to user_version 9. */
-bool DeRestPluginPrivate::upgradeDbToUserVersion9()
-{
-    DBG_Printf(DBG_INFO, "DB upgrade to user_version 9\n");
-
-    /*
-       The 'sub_devices' table references 'devices' so that entries are
-       automatically deleted if the destination node is removed.
-       Inserting an entry with an existing uuid will automatically be ignored.
-
-       The 'resource_items' table references 'sub_devices' so that
-       entries are deleted when the respective sub_devices entry is removed.
-       Each entry is unique and automatically replaced if already existing.
-     */
-
-    // create tables
-    const char *sql[] = {
-        "CREATE TABLE IF NOT EXISTS sub_devices ("
-        " uuid TEXT PRIMARY KEY ON CONFLICT IGNORE,"
-        " device_id INTEGER REFERENCES devices(id) ON DELETE CASCADE,"
-        " timestamp INTEGER NOT NULL)",
-
-        "DROP TABLE IF EXISTS resource_items", // primary key used wrongly rowid in version 8 and caused a foreign key mismatch
-
-        "CREATE TABLE if NOT EXISTS resource_items ("
-        " sub_device_uuid TEXT REFERENCES sub_devices(uuid) ON DELETE CASCADE,"
-        " item STRING NOT NULL,"
-        " value NOT NULL," // can be any type
-        " source STRING NOT NULL,"
-        " timestamp INTEGER NOT NULL," // is the last set timestamp
-        " PRIMARY KEY (sub_device_uuid, item) ON CONFLICT REPLACE"
-        ")",
-        nullptr
-    };
-
-    for (int i = 0; sql[i] != nullptr; i++)
-    {
-        char *errmsg = nullptr;
-        int rc = sqlite3_exec(db, sql[i], nullptr, nullptr, &errmsg);
-
-        if (rc != SQLITE_OK)
-        {
-            if (errmsg)
-            {
-                DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d), line: %d\n", sql[i], errmsg, rc, __LINE__);
-                sqlite3_free(errmsg);
-            }
-            return false;
-        }
-    }
-
-    return setDbUserVersion(9);
 }
 
 #if DECONZ_LIB_VERSION >= 0x010E00
@@ -5886,4 +5827,40 @@ void DeRestPluginPrivate::saveDatabaseTimerFired()
 
         DBG_Assert(saveDatabaseItems == 0);
     }
+}
+
+bool DB_StoreSubDevice(const Resource *sub)
+{
+    DeRestPluginPrivate::instance()->openDb();
+    if (!db)
+    {
+        return false;
+    }
+
+    const Resource *rParent = sub->parentResource();
+    Q_ASSERT(rParent);
+
+    const auto sql = QString("INSERT INTO sub_devices (device_id,uniqueid,timestamp)"
+                             " SELECT id, '%1', %2"
+                             " FROM devices WHERE mac = '%3'")
+                             .arg(sub->item(RAttrUniqueId)->toString())
+                             .arg(QDateTime::currentMSecsSinceEpoch() / 1000)
+                             .arg(rParent->item(RAttrUniqueId)->toString());
+
+    char *errmsg = nullptr;
+
+    /* Execute SQL statement */
+    int rc = sqlite3_exec(db, qPrintable(sql), nullptr, nullptr, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", qPrintable(sql), errmsg, rc);
+            sqlite3_free(errmsg);
+        }
+    }
+
+    DeRestPluginPrivate::instance()->closeDb();
+    return true;
 }

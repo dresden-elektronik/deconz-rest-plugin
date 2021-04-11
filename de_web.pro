@@ -100,6 +100,7 @@ DEFINES += GW_DEFAULT_NAME=\\\"Phoscon-GW\\\"
 HEADERS  = bindings.h \
            connectivity.h \
            colorspace.h \
+           database.h \
            daylight.h \
            de_web_plugin.h \
            de_web_plugin_private.h \
