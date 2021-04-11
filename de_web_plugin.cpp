@@ -12362,13 +12362,13 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                     item = lightNode.item(resourceItemToUpdate);
                     if (item)
                     {
-                        if (stringParam != NULL) {
+                        if (dataType == deCONZ::ZclOctedString && stringParam != NULL) {
                             item->setValue(stringParam);
-                        } else if (uint8Param != UINT8_MAX) {
+                        } else if (dataType == deCONZ::Zcl8BitUint) {
                             item->setValue(uint8Param);
-                        } else if (uint32Param != UINT32_MAX) {
+                        } else if (dataType == deCONZ::Zcl32BitUint) {
                             item->setValue(uint32Param);
-                        } else if (boolParam != UINT8_MAX) {
+                        } else if (dataType == deCONZ::ZclBoolean) {
                             item->setValue(boolParam == 0x01);
                         }
                         enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));

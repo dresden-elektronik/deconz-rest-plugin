@@ -623,8 +623,15 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     else if (taskRef.lightNode->modelId() == QLatin1String("lumi.switch.n4acn4"))
     {
         QString inputString;
+        quint8 inputUint8Param = UINT8_MAX;
+        quint8 inputUint32Param = UINT32_MAX;
+
         bool paramOk = false;
         bool valueOk = false;
+        quint16 attr = UINT16_MAX;
+        quint8 type = UINT8_MAX;
+
+        const char *resoursePathForResponse = NULL;
 
         for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
         {
@@ -635,94 +642,238 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 if (map[param].type() == QVariant::String)
                 {
                     inputString = map[param].toString();
+                    attr = 0xfff2;
+                    type = deCONZ::ZclOctedString;
+                    resoursePathForResponse = RStateAqaraS1PanelCommunication;
                     valueOk = true;
                 }
             }
-        }
-
-        if (paramOk && valueOk)
-        {
-            DBG_Printf(DBG_INFO, "Xiaomi attribute 0xfff2: %s\n", qPrintable(inputString));
-
-            TaskItem task;
-
-            // // FIXME: The following low-level code is needed because ZclAttribute is broken for Zcl8BitEnum.
-
-            const quint16 cluster = XIAOMI_CLUSTER_ID;
-            const quint16 attr = 0xfff2;
-            const quint8 type = deCONZ::ZclOctedString;
-            const QByteArray value = QByteArray::fromHex(inputString.toLatin1());
-
-            task.taskType = TaskWriteAttribute;
-
-            task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-            task.req.setDstEndpoint(taskRef.lightNode->haEndpoint().endpoint());
-            task.req.setDstAddressMode(deCONZ::ApsExtAddress);
-            task.req.dstAddress() = taskRef.lightNode->address();
-            task.req.setClusterId(cluster);
-            task.req.setProfileId(HA_PROFILE_ID);
-            task.req.setSrcEndpoint(getSrcEndpoint(taskRef.lightNode, task.req));
-
-            task.zclFrame.setSequenceNumber(zclSeq++);
-            task.zclFrame.setCommandId(deCONZ::ZclWriteAttributesId);
-            
-            task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-                                          deCONZ::ZclFCManufacturerSpecific |
-                                          deCONZ::ZclFCDirectionClientToServer |
-                                          deCONZ::ZclFCDisableDefaultResponse);
-            task.zclFrame.setManufacturerCode(VENDOR_XIAOMI);
-
-            
-            // task.zclFrame.setManufacturerCode(VENDOR_XIAOMI);
-            // task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-            //                               deCONZ::ZclFCManufacturerSpecific |
-            //                               deCONZ::ZclFCDirectionClientToServer |
-            //                               deCONZ::ZclFCDisableDefaultResponse);
-
-            DBG_Printf(DBG_INFO, "write attribute of 0x%016llX ep: 0x%02X cluster: 0x%04X: 0x%04X\n", taskRef.lightNode->address().ext(), taskRef.lightNode->haEndpoint().endpoint(), cluster, attr);
-
-            { // payload
-                QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
-                stream.setByteOrder(QDataStream::LittleEndian);
-                stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
-
-                stream << attr;
-                stream << type;
-                stream.writeRawData(value.constData(),value.size());
-            }
-
-            { // ZCL frame
-                QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
-                stream.setByteOrder(QDataStream::LittleEndian);
-                task.zclFrame.writeToStream(stream);
-            }
-
-            ok = addTask(task);
-
-            // FIXME: Use following code once ZclAttribute has been fixed.
-            
-            // deCONZ::ZclAttribute attr(0xfff2, type, "S1 Communication", deCONZ::ZclReadWrite, true);
-            // attr.setValue(data);
-            // attr.readFromStream(ds);
-            // attr.setValue((QVariant)inputString);
-            // attr.setManufacturerCode(VENDOR_XIAOMI);
-            // ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), cluster, attr, VENDOR_XIAOMI);
-
-            if (ok)
+            else if ((param == "aqara_s1_language" && taskRef.lightNode->item(RStateAqaraS1Language)) || (param == "aqara_s1_lcd_brightness" && taskRef.lightNode->item(RStateAqaraS1LCDBrightness)) || (param == "aqara_s1_sound_volume" && taskRef.lightNode->item(RStateAqaraS1SoundVolume)) || (param == "aqara_s1_screen_saver_style" && taskRef.lightNode->item(RStateAqaraS1ScreenSaverStyle)) || (param == "aqara_s1_theme" && taskRef.lightNode->item(RStateAqaraS1Theme)) || (param == "aqara_s1_font_size" && taskRef.lightNode->item(RStateAqaraS1FontSize)) || (param == "aqara_s1_homepage" && taskRef.lightNode->item(RStateAqaraS1Homepage)) || (param == "aqara_s1_standby_lcd_brightness" && taskRef.lightNode->item(RStateAqaraS1StandbyLCDBrightness)) || (param == "aqara_s1_switches_config" && taskRef.lightNode->item(RStateAqaraS1SwitchesConfig)) || (param == "aqara_s1_gestures" && taskRef.lightNode->item(RStateAqaraS1Gestures)))
             {
-                QVariantMap rspItem;
-                QVariantMap rspItemState;
-                rspItemState[QString("/lights/%1/state/aqara_s1_panel_communication").arg(id)] = inputString;
-                rspItem["success"] = rspItemState;
-                rsp.list.append(rspItem);
-
-                taskRef.lightNode->setValue(RStateAqaraS1PanelCommunication, inputString);
+                paramOk = true;
+                if (map[param].type() == QVariant::Double)
+                {
+                    inputUint8Param = map[param].toUInt(&ok);
+                    if (ok)
+                    {
+                        type = deCONZ::Zcl8BitUint;
+                        valueOk = true;
+                        switch (param)
+                        {
+                        case "aqara_s1_language":
+                            attr = 0x0210;
+                            resoursePathForResponse = RStateAqaraS1Language;
+                            break;
+                        
+                        case "aqara_s1_lcd_brightness":
+                            attr = 0x0211;
+                            resoursePathForResponse = RStateAqaraS1LCDBrightness;
+                            break;
+                        
+                        case "aqara_s1_sound_volume":
+                            attr = 0x0212;
+                            resoursePathForResponse = RStateAqaraS1SoundVolume;
+                            break;
+                        
+                        case "aqara_s1_screen_saver_style":
+                            attr = 0x0214;
+                            resoursePathForResponse = RStateAqaraS1ScreenSaverStyle;
+                            break;
+                        
+                        case "aqara_s1_theme":
+                            attr = 0x0215;
+                            resoursePathForResponse = RStateAqaraS1Theme;
+                            break;
+                        
+                        case "aqara_s1_font_size":
+                            attr = 0x0217;
+                            resoursePathForResponse = RStateAqaraS1FontSize;
+                            break;
+                        
+                        case "aqara_s1_homepage":
+                            attr = 0x0219;
+                            resoursePathForResponse = RStateAqaraS1Homepage;
+                            break;
+                        
+                        case "aqara_s1_standby_lcd_brightness":
+                            attr = 0x0222;
+                            resoursePathForResponse = RStateAqaraS1StandbyLCDBrightness;
+                            break;
+                        
+                        case "aqara_s1_switches_config":
+                            attr = 0x022b;
+                            resoursePathForResponse = RStateAqaraS1SwitchesConfig;
+                            break;
+                        
+                        case "aqara_s1_gestures":
+                            attr = 0x023c;
+                            resoursePathForResponse = RStateAqaraS1Gestures;
+                            break;
+                        
+                        default:
+                            valueOk = false;
+                            break;
+                        }
+                    }
+                    
+                }
             }
-            else
+            else if ((param == "aqara_s1_standby_enabled" && taskRef.lightNode->item(RStateAqaraS1StandbyEnabled)) || (param == "aqara_s1_lcd_auto_brightness_enabled" && taskRef.lightNode->item(RStateAqaraS1LCDAutoBrightnessEnabled)) || (param == "aqara_s1_screen_saver_enabled" && taskRef.lightNode->item(RStateAqaraS1ScreenSaverEnabled)) || (param == "aqara_s1_auto_update_fw_enabled" && taskRef.lightNode->item(RStateAqaraS1AutoUpdateFWEnabled)))
             {
-                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/aqara_s1_panel_communication").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+                paramOk = true;
+                if (map[param].type() == QVariant::Bool)
+                {
+                    inputUint8Param = map[param].toBool() == true ? 0x01 : 0x00;
+                    type = deCONZ::ZclBoolean;
+                    valueOk = true;
+                    switch (param)
+                    {
+                    case "aqara_s1_standby_enabled":
+                        attr = 0x0213;
+                        resoursePathForResponse = RStateAqaraS1StandbyEnabled;
+                        break;
+                    
+                    case "aqara_s1_lcd_auto_brightness_enabled":
+                        attr = 0x0218;
+                        resoursePathForResponse = RStateAqaraS1LCDAutoBrightnessEnabled;
+                        break;
+                    
+                    case "aqara_s1_screen_saver_enabled":
+                        attr = 0x0221;
+                        resoursePathForResponse = RStateAqaraS1ScreenSaverEnabled;
+                        break;
+                    
+                    case "aqara_s1_auto_update_fw_enabled":
+                        attr = 0x0227;
+                        resoursePathForResponse = RStateAqaraS1AutoUpdateFWEnabled;
+                        break;
+                    
+                    default:
+                        valueOk = false;
+                        break;
+                    }
+                }
             }
-            return REQ_READY_SEND;
+            else if (param == "aqara_s1_standby_time" && taskRef.lightNode->item(RStateAqaraS1StandbyTime))
+            {
+                paramOk = true;
+                if (map[param].type() == QVariant::Double)
+                {
+                    inputUint32Param = map[param].toUInt(&ok);
+                    if (ok)
+                    {
+                        attr = 0x0216;
+                        type = deCONZ::Zcl32BitUint;
+                        resoursePathForResponse = RStateAqaraS1StandbyTime;
+                        valueOk = true;
+                    }
+                }
+            }
+            // TODO: Switches icons and names...
+            
+
+            if (paramOk && valueOk)
+            {
+                DBG_Printf(DBG_INFO, "Xiaomi attribute 0xfff2: %s\n", qPrintable(inputString));
+
+                TaskItem task;
+
+                // // FIXME: The following low-level code is needed because ZclAttribute is broken for Zcl8BitEnum.
+
+                const quint16 cluster = XIAOMI_CLUSTER_ID;
+
+                task.taskType = TaskWriteAttribute;
+
+                task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+                task.req.setDstEndpoint(taskRef.lightNode->haEndpoint().endpoint());
+                task.req.setDstAddressMode(deCONZ::ApsExtAddress);
+                task.req.dstAddress() = taskRef.lightNode->address();
+                task.req.setClusterId(cluster);
+                task.req.setProfileId(HA_PROFILE_ID);
+                task.req.setSrcEndpoint(getSrcEndpoint(taskRef.lightNode, task.req));
+
+                task.zclFrame.setSequenceNumber(zclSeq++);
+                task.zclFrame.setCommandId(deCONZ::ZclWriteAttributesId);
+                
+                task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                            deCONZ::ZclFCManufacturerSpecific |
+                                            deCONZ::ZclFCDirectionClientToServer |
+                                            deCONZ::ZclFCDisableDefaultResponse);
+                task.zclFrame.setManufacturerCode(VENDOR_XIAOMI);
+
+                
+                // task.zclFrame.setManufacturerCode(VENDOR_XIAOMI);
+                // task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                //                               deCONZ::ZclFCManufacturerSpecific |
+                //                               deCONZ::ZclFCDirectionClientToServer |
+                //                               deCONZ::ZclFCDisableDefaultResponse);
+
+                DBG_Printf(DBG_INFO, "write attribute of 0x%016llX ep: 0x%02X cluster: 0x%04X: 0x%04X\n", taskRef.lightNode->address().ext(), taskRef.lightNode->haEndpoint().endpoint(), cluster, attr);
+                
+                // payload
+                if (type == deCONZ::ZclOctedString) {
+                    const QByteArray value = QByteArray::fromHex(inputString.toLatin1());
+
+                    QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+                    stream.setByteOrder(QDataStream::LittleEndian);
+                    stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
+
+                    stream << attr;
+                    stream << type;
+                    stream.writeRawData(value.constData(), value.size());
+                }
+                else if (type == deCONZ::ZclBoolean || type == deCONZ::Zcl8BitUint) {
+                    QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+                    stream.setByteOrder(QDataStream::LittleEndian);
+                    stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
+
+                    stream << attr;
+                    stream << type;
+                    stream << inputUint8Param;
+                }
+                else if (type == deCONZ::Zcl32BitUint) {
+                    QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+                    stream.setByteOrder(QDataStream::LittleEndian);
+                    stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
+
+                    stream << attr;
+                    stream << type;
+                    stream << inputUint32Param;
+                }
+
+                { // ZCL frame
+                    QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+                    stream.setByteOrder(QDataStream::LittleEndian);
+                    task.zclFrame.writeToStream(stream);
+                }
+
+                ok = addTask(task);
+
+                // FIXME: Use following code once ZclAttribute has been fixed.
+                
+                // deCONZ::ZclAttribute attr(0xfff2, type, "S1 Communication", deCONZ::ZclReadWrite, true);
+                // attr.setValue(data);
+                // attr.readFromStream(ds);
+                // attr.setValue((QVariant)inputString);
+                // attr.setManufacturerCode(VENDOR_XIAOMI);
+                // ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), cluster, attr, VENDOR_XIAOMI);
+
+                if (ok)
+                {
+                    QVariantMap rspItem;
+                    QVariantMap rspItemState;
+                    rspItemState[QString("/lights/%1/state/%2").arg(id).arg(param)] = type == deCONZ::ZclOctedString ? inputString : type == deCONZ::ZclBoolean ? (inputUint8Param == 0x01) : type == deCONZ::Zcl8BitUint ? inputUint8Param : inputUint32Param;
+                    rspItem["success"] = rspItemState;
+                    rsp.list.append(rspItem);
+
+                    taskRef.lightNode->setValue(resoursePathForResponse, type == deCONZ::ZclOctedString ? inputString : type == deCONZ::ZclBoolean ? (inputUint8Param == 0x01) : type == deCONZ::Zcl8BitUint ? inputUint8Param : inputUint32Param);
+                }
+                else
+                {
+                    rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/%2").arg(id).arg(param), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+                }
+                // return REQ_READY_SEND;
+            }
         }
     }
     
