@@ -75,6 +75,12 @@ uint variantToUint(const QVariant &var, size_t max, bool *ok)
 {
     Q_ASSERT(ok);
     *ok = false;
+
+    if (var.isNull())
+    {
+        return 0;
+    }
+
     const auto val = var.toString().toUInt(ok, 0);
     *ok = *ok && val <= max;
 
@@ -125,132 +131,59 @@ static ZclParam getZclParam(const QVariantMap &param)
     return result;
 }
 
-/*! A generic function to parse ZCL values from read/report commands.
-    The item->parseParameters() is expected to contain 5 elements (given in the device description file).
-
-    ["parseGenericAttribute/4", endpoint, clusterId, attributeId, expression]
-
-    - endpoint, 0xff means any endpoint
-    - clusterId: string hex value
-    - attributeId: string hex value
-    - expression: Javascript expression to transform the raw value
-
-    Example: { "parse": ["parseGenericAttribute/4", 1, "0x0402", "0x0000", "$raw + $config/offset"] }
- */
-bool parseGenericAttribute4(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame)
+quint8 resolveAutoEndpoint(const Resource *r)
 {
-    bool result = false;
+    quint8 result = AutoEndpoint;
 
-    if (zclFrame.commandId() != deCONZ::ZclReadAttributesResponseId && zclFrame.commandId() != deCONZ::ZclReportAttributesId)
+    // hack to get endpoint. todo find better solution
+    const auto ls = r->item(RAttrUniqueId)->toString().split('-', SKIP_EMPTY_PARTS);
+    if (ls.size() >= 2)
     {
-        return result;
-    }
-
-    if (!item->parseFunction()) // init on first call
-    {
-        Q_ASSERT(item->parseParameters().size() == 5);
-        if (item->parseParameters().size() != 5)
+        bool ok = false;
+        uint ep = ls[1].toUInt(&ok, 10);
+        if (ok && ep < BroadcastEndpoint)
         {
-            return result;
-        }
-        bool ok;
-        auto endpoint = item->parseParameters().at(1).toString().toUInt(&ok, 0);
-
-        if (endpoint == AutoEndpoint)
-        {
-            // hack to get endpoint. todo find better solution
-            auto ls = r->item(RAttrUniqueId)->toString().split('-', SKIP_EMPTY_PARTS);
-            if (ls.size() >= 2)
-            {
-                bool ok = false;
-                uint ep = ls[1].toUInt(&ok, 10);
-                if (ok && ep < BroadcastEndpoint)
-                {
-                    endpoint = ep;
-                }
-            }
-        }
-
-        const auto clusterId = ok ? item->parseParameters().at(2).toString().toUInt(&ok, 0) : 0;
-        const auto attributeId = ok ? item->parseParameters().at(3).toString().toUInt(&ok, 0) : 0;
-
-        if (!ok)
-        {
-            return result;
-        }
-
-        item->setParseFunction(parseGenericAttribute4);
-        item->setZclProperties(clusterId, {quint16(attributeId)}, endpoint);
-    }
-
-    if (ind.clusterId() != item->clusterId() || zclFrame.payload().isEmpty())
-    {
-        return result;
-    }
-
-    if (item->endpoint() < BroadcastEndpoint && item->endpoint() != ind.srcEndpoint())
-    {
-        return result;
-    }
-
-    QDataStream stream(zclFrame.payload());
-    stream.setByteOrder(QDataStream::LittleEndian);
-
-    while (!stream.atEnd())
-    {
-        quint16 attrId;
-        quint8 status;
-        quint8 dataType;
-
-        stream >> attrId;
-
-        if (zclFrame.commandId() == deCONZ::ZclReadAttributesResponseId)
-        {
-            stream >> status;
-            if (status != deCONZ::ZclSuccessStatus)
-            {
-                continue;
-            }
-        }
-
-        stream >> dataType;
-        deCONZ::ZclAttribute attr(attrId, dataType, QLatin1String(""), deCONZ::ZclReadWrite, true);
-
-        if (!attr.readFromStream(stream))
-        {
-            break;
-        }
-
-        if (std::find(item->attributes().begin(), item->attributes().end(), attrId) != item->attributes().end())
-        {
-            const auto expr = item->parseParameters().back().toString();
-
-            if (!expr.isEmpty())
-            {
-                DeviceJs engine;
-                engine.setResource(r);
-                engine.setItem(item);
-                engine.setZclAttribute(attr);
-                engine.setZclFrame(zclFrame);
-                engine.setApsIndication(ind);
-
-                if (engine.evaluate(expr) == JsEvalResult::Ok)
-                {
-                    const auto res = engine.result();
-                    DBG_Printf(DBG_INFO, "expression: %s --> %s\n", qPrintable(expr), qPrintable(res.toString()));
-                    // item->setValue(res, ResourceItem::SourceDevice);
-                    result = true;
-                }
-                else
-                {
-                    DBG_Printf(DBG_INFO, "failed to evaluate expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
-                }
-            }
-            break;
+            result = ep;
         }
     }
 
     return result;
+}
+
+/*! Evaluates an items Javascript expression for a received attribute.
+ */
+bool evalZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, const deCONZ::ZclAttribute &attr)
+{
+    if (std::find(item->attributes().begin(), item->attributes().end(), attr.id()) == item->attributes().end())
+    {
+        return false;
+    }
+
+    Q_ASSERT(item->parseParameters().size() == 1);
+    const auto expr = item->parseParameters().front().toMap()["eval"].toString();
+
+    if (!expr.isEmpty())
+    {
+        DeviceJs engine;
+        engine.setResource(r);
+        engine.setItem(item);
+        engine.setZclAttribute(attr);
+        engine.setZclFrame(zclFrame);
+        engine.setApsIndication(ind);
+
+        if (engine.evaluate(expr) == JsEvalResult::Ok)
+        {
+            const auto res = engine.result();
+            DBG_Printf(DBG_INFO, "expression: %s --> %s\n", qPrintable(expr), qPrintable(res.toString()));
+            // item->setValue(res, ResourceItem::SourceDevice);
+            return true;
+        }
+        else
+        {
+            DBG_Printf(DBG_INFO, "failed to evaluate expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
+        }
+    }
+    return false;
 }
 
 /*! A generic function to parse ZCL values from read/report commands.
@@ -292,16 +225,11 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
 
         if (param.endpoint == AutoEndpoint)
         {
-            // hack to get endpoint. todo find better solution
-            auto ls = r->item(RAttrUniqueId)->toString().split('-', SKIP_EMPTY_PARTS);
-            if (ls.size() >= 2)
+            param.endpoint = resolveAutoEndpoint(r);
+
+            if (param.endpoint == AutoEndpoint)
             {
-                bool ok = false;
-                uint ep = ls[1].toUInt(&ok, 10);
-                if (ok && ep < BroadcastEndpoint)
-                {
-                    param.endpoint = ep;
-                }
+                return result;
             }
         }
 
@@ -347,38 +275,20 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
             break;
         }
 
-        if (std::find(item->attributes().begin(), item->attributes().end(), attrId) != item->attributes().end())
+        if (evalZclAttribute(r, item, ind, zclFrame, attr))
         {
-            const auto expr = item->parseParameters().front().toMap()["eval"].toString();
-
-            if (!expr.isEmpty())
-            {
-                DeviceJs engine;
-                engine.setResource(r);
-                engine.setItem(item);
-                engine.setZclAttribute(attr);
-                engine.setZclFrame(zclFrame);
-                engine.setApsIndication(ind);
-
-                if (engine.evaluate(expr) == JsEvalResult::Ok)
-                {
-                    const auto res = engine.result();
-                    DBG_Printf(DBG_INFO, "expression: %s --> %s\n", qPrintable(expr), qPrintable(res.toString()));
-                    // item->setValue(res, ResourceItem::SourceDevice);
-                    result = true;
-                }
-                else
-                {
-                    DBG_Printf(DBG_INFO, "failed to evaluate expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
-                }
-            }
+            result = true;
         }
     }
 
     return result;
 }
 
-/*! Handle manufacturer specific Xiaomi ZCL attribute report commands to basic cluster.
+/*! Extracts manufacturer specific Xiaomi ZCL attribute from report commands to basic cluster.
+
+    \param zclFrame - Contains the special report with attribute 0xff01, 0xff02 or 0x00f7.
+    \param rtag - The tag or struct index of the attribute to return.
+    \returns Parsed attribute, use attr.id() != 0xffff to check for valid result.
  */
 deCONZ::ZclAttribute parseXiaomiZclTag(const quint8 rtag, const deCONZ::ZclFrame &zclFrame)
 {
@@ -459,113 +369,98 @@ deCONZ::ZclAttribute parseXiaomiZclTag(const quint8 rtag, const deCONZ::ZclFrame
     return result;
 }
 
-/*! A generic function to read ZCL attributes.
-    The item->readParameters() is expected to contain 5 elements (given in the device description file).
+/*! A generic function to parse ZCL values from Xiaomi special report commands.
+    The item->parseParameters() is expected to be an object (given in the device description file).
 
-    ["readGenericAttribute/4", endpoint, clusterId, attributeId, manufacturerCode]
+    {"fn": "xiaomi:special", "ep": endpoint, "at": attributeId, "idx": index, "eval": expression}
 
-    - endpoint, 0xff means any endpoint
-    - clusterId: string hex value
-    - attributeId: string hex value
-    - manufacturerCode: must be set to 0x0000 for non manufacturer specific commands
+    - endpoint: (optional), 0xff means any endpoint (default: 0xff)
+    - attributeId: string hex value of 0xff01, 0xff02 or 0x00f7.
+    - index: string hex value representing the tag or index in the structure
+    - expression: Javascript expression to transform the raw value (as alternative "script" can be used to reference a external JS script file)
 
-    Example: { "read": ["readGenericAttribute/4", 1, "0x0402", "0x0000", "0x110b"] }
+    Example: { "parse": {"fn": "xiaomi:special", "at": "0xff01", "idx": "0x01", "eval": "Item.val = Attr.val" } }
  */
-bool readGenericAttribute4(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, DA_ReadResult *result)
+bool parseXiaomiSpecial(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame)
 {
-    Q_ASSERT(result);
-    *result = {};
+    bool result = false;
 
-    Q_ASSERT(item->readParameters().size() == 5);
-    if (item->readParameters().size() != 5)
+    if (zclFrame.commandId() != deCONZ::ZclReportAttributesId)
     {
-        return false;
+        return result;
     }
 
-    const auto *extAddr = r->item(RAttrExtAddress);
-    const auto *nwkAddr = r->item(RAttrNwkAddress);
-
-    if (!extAddr || !nwkAddr)
+    if (ind.clusterId() != 0x0000) // must be basic cluster
     {
-        return false;
+        return result;
     }
 
-    bool ok;
-    const auto endpoint = item->readParameters().at(1).toString().toUInt(&ok, 0);
-    const auto clusterId = ok ? item->readParameters().at(2).toString().toUInt(&ok, 0) : 0;
-    const auto attributeId = ok ? item->readParameters().at(3).toString().toUInt(&ok, 0) : 0;
-    const auto manufacturerCode = ok ? item->readParameters().at(4).toString().toUInt(&ok, 0) : 0;
-
-    if (!ok)
+    if (!item->parseFunction()) // init on first call
     {
-        return false;
-    }
-
-    DBG_Printf(DBG_INFO, "readGenericAttribute/4, ep: 0x%02X, cl: 0x%04X, attr: 0x%04X, mfcode: 0x%04X\n", endpoint, clusterId, attributeId, manufacturerCode);
-
-    const std::vector<quint16> attributes = { static_cast<quint16>(attributeId) };
-
-
-//    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-    deCONZ::ApsDataRequest req;
-    result->apsReqId = req.id();
-
-    req.setDstEndpoint(endpoint);
-    req.setDstAddressMode(deCONZ::ApsExtAddress);
-    req.dstAddress().setExt(extAddr->toNumber());
-    req.dstAddress().setNwk(nwkAddr->toNumber());
-    req.setClusterId(clusterId);
-    req.setProfileId(HA_PROFILE_ID);
-    req.setSrcEndpoint(0x01); // todo dynamic
-
-    deCONZ::ZclFrame zclFrame;
-
-    zclFrame.setSequenceNumber(zclNextSequenceNumber());
-    zclFrame.setCommandId(deCONZ::ZclReadAttributesId);
-
-    result->sequenceNumber = zclFrame.sequenceNumber();
-
-    if (manufacturerCode)
-    {
-        zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-                                      deCONZ::ZclFCManufacturerSpecific |
-                                      deCONZ::ZclFCDirectionClientToServer |
-                                      deCONZ::ZclFCDisableDefaultResponse);
-        zclFrame.setManufacturerCode(manufacturerCode);
-    }
-    else
-    {
-        zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-                                      deCONZ::ZclFCDirectionClientToServer |
-                                      deCONZ::ZclFCDisableDefaultResponse);
-    }
-
-    { // payload
-        QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
-        stream.setByteOrder(QDataStream::LittleEndian);
-
-        for (uint i = 0; i < attributes.size(); i++)
+        Q_ASSERT(item->parseParameters().size() == 1);
+        if (item->parseParameters().size() != 1)
         {
-            stream << attributes[i];
+            return result;
         }
+
+        const auto map = item->parseParameters().front().toMap();
+
+        bool ok = true;
+        ZclParam param;
+
+        param.endpoint = BroadcastEndpoint; // default
+        param.clusterId = 0x0000;
+
+        if (map.contains(QLatin1String("ep")))
+        {
+            param.endpoint = variantToUint(map["ep"], UINT8_MAX, &ok);
+        }
+        const auto at = ok ? variantToUint(map["at"], UINT16_MAX, &ok) : 0;
+        const auto idx = ok ? variantToUint(map["idx"], UINT16_MAX, &ok) : 0;
+
+        DBG_Assert(at == 0xff01 || at == 0xff02 || at == 0x00f7);
+        if (!ok)
+        {
+            return result;
+        }
+
+        param.attributes.push_back(at);
+        // keep tag/idx as second "attribute id"
+        param.attributes.push_back(idx);
+
+        if (param.endpoint == AutoEndpoint)
+        {
+            param.endpoint = resolveAutoEndpoint(r);
+
+            if (param.endpoint == AutoEndpoint)
+            {
+                return result;
+            }
+        }
+
+        item->setParseFunction(parseXiaomiSpecial);
+        item->setZclProperties(param.clusterId, param.attributes, param.endpoint);
     }
 
-    { // ZCL frame
-        QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
-        stream.setByteOrder(QDataStream::LittleEndian);
-        zclFrame.writeToStream(stream);
-    }
-
-    if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
+    if (ind.clusterId() != item->clusterId() || zclFrame.payload().isEmpty())
     {
-        result->isEnqueued = true;
+        return result;
     }
-    else
+
+    if (item->endpoint() < BroadcastEndpoint && item->endpoint() != ind.srcEndpoint())
     {
-
+        return result;
     }
 
-    return result->isEnqueued;
+    Q_ASSERT(item->attributes().size() == 2); // attribute id + tag/idx
+    const auto attr = parseXiaomiZclTag(item->attributes().back(), zclFrame);
+
+    if (evalZclAttribute(r, item, ind, zclFrame, attr))
+    {
+        result = true;
+    }
+
+    return result;
 }
 
 /*! A generic function to read ZCL attributes.
@@ -844,8 +739,8 @@ ParseFunction_t DA_GetParseFunction(const std::vector<QVariant> &params)
 
     const std::array<ParseFunction, 2> functions =
     {
-        ParseFunction("parseGenericAttribute/4", 4, parseGenericAttribute4),
-        ParseFunction("zcl", 1, parseZclAttribute)
+        ParseFunction("zcl", 1, parseZclAttribute),
+        ParseFunction("xiaomi:special", 1, parseXiaomiSpecial)
     };
 
     QString fnName;
@@ -879,9 +774,8 @@ ReadFunction_t DA_GetReadFunction(const std::vector<QVariant> &params)
 {
     ReadFunction_t result = nullptr;
 
-    const std::array<ReadFunction, 2> functions =
+    const std::array<ReadFunction, 1> functions =
     {
-        ReadFunction("readGenericAttribute/4", 4, readGenericAttribute4),
         ReadFunction("zcl", 1, readZclAttribute)
     };
 

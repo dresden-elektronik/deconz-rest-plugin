@@ -27,11 +27,6 @@ namespace deCONZ
 }
 
 /*
-    "parse": ["parseXiaomiSpecialAttribute/4", "0x01", "0x02", "0x21", "$raw"],
-    "parse": ["parseXiaomiSpecialAttribute/4", "0x03", "0x00", "0x28", "$raw"]
-    "parse": ["parseGenericAttribute/4", 1, "0x0000", "0xff0d", "$old == 0 ? $raw : $old"],
-    "write": ["writeGenericAttribute/6", 1, "0x0000", "0xff0d", "0x20", "0x11F5", "$raw"],
-
     # Javascript API
 
     This API can be used in expressions in "parse" and "write" functions.
