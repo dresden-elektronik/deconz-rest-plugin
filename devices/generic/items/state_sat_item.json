@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/sat",
+	"datatype": "UInt8",
+	"access": "RW",
+	"public": true,
+	"description": "The current color saturation."
+}

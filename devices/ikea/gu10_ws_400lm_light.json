@@ -15,18 +15,6 @@
             "uuid": ["$address.ext", "0x01"],
             "items": [
                 {
-                    "name": "attr/colorcapabilities",
-                    "default": 16
-                },
-                {
-                    "name": "attr/ctmin",
-                    "default": 250
-                },
-                {
-                    "name": "attr/ctmax",
-                    "default": 454
-                },
-                {
                     "name": "attr/lastannounced"
                 },
                 {
@@ -49,6 +37,18 @@
                 },
                 {
                     "name": "attr/uniqueid"
+                },
+                {
+                    "name": "config/colorcapabilities",
+                    "default": 16
+                },
+                {
+                    "name": "config/ctmin",
+                    "default": 250
+                },
+                {
+                    "name": "config/ctmax",
+                    "default": 454
                 },
                 {
                     "name": "state/on"

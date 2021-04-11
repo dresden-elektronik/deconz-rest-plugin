@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/hue",
+	"datatype": "UInt16",
+	"access": "RW",
+	"public": true,
+	"description": "The current color hue."
+}
