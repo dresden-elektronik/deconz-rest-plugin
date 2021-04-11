@@ -462,15 +462,27 @@ bool DEV_ZclRead(Device *device, ResourceItem *item, deCONZ::ZclClusterId_t clus
 
     if (item->readParameters().empty())
     {
-        item->setReadParameters({QLatin1String("readGenericAttribute/4"), sd->endpoint(), static_cast<quint16>(clusterId), static_cast<quint16>(attrId), 0x0000});
+        const QVariantMap read = {
+            { "fn", "zcl" },
+            { "ep", sd->endpoint() },
+            { "cl", QString::number(static_cast<quint16>(clusterId)) },
+            { "at", QString::number(static_cast<quint16>(attrId)) }
+        };
+        item->setReadParameters({read});
     }
+
     if (item->parseParameters().empty())
     {
-        item->setParseParameters({QLatin1String("parseGenericAttribute/4"), sd->endpoint(),
-                                  static_cast<quint16>(clusterId),
-                                  static_cast<quint16>(attrId),
-                                  "Item.val = Attr.val"});
+        const QVariantMap parse = {
+            { "fn", "zcl" },
+            { "ep", sd->endpoint() },
+            { "cl", QString::number(static_cast<quint16>(clusterId)) },
+            { "at", QString::number(static_cast<quint16>(attrId)) },
+            { "eval", "Item.val = Attr.val" }
+        };
+        item->setParseParameters({parse});
     }
+
     auto readFunction = DA_GetReadFunction(item->readParameters());
 
     if (readFunction && readFunction(device, item, d->apsCtrl, &d->readResult))
