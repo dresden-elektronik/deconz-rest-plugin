@@ -520,7 +520,7 @@ static DeviceDescription DDF_ParseDeviceObject(const QJsonObject &obj, const QSt
     }
 
     result.path = path;
-    result.manufacturer = obj.value(QLatin1String("manufacturer")).toString();
+    result.manufacturer = obj.value(QLatin1String("manufacturername")).toString();
     result.modelIds = DDF_ParseModelids(obj);
     result.product = obj.value(QLatin1String("product")).toString();
 
