@@ -12148,7 +12148,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             attrId = a;
         }
-        else if ((a == 0xfff2 && dataType == deCONZ::ZclOctedString) || (a == 0x0210 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0211 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0212 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0213 && dataType == deCONZ::ZclBoolean) || (a == 0x0214 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0215 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0216 && dataType == deCONZ::Zcl32BitUint) || (a == 0x0217 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0218 && dataType == deCONZ::ZclBoolean) || (a == 0x0219 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0221 && dataType == deCONZ::ZclBoolean) || (a == 0x0222 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0223 && dataType == deCONZ::ZclOctedString) || (a == 0x0224 && dataType == deCONZ::ZclOctedString) || (a == 0x0225 && dataType == deCONZ::ZclOctedString) || (a == 0x0227 && dataType == deCONZ::ZclBoolean) || (a == 0x022b && dataType == deCONZ::Zcl8BitUint) || (a == 0x023c && dataType == deCONZ::Zcl8BitUint))
+        else if ((a == 0xfff2 && dataType == deCONZ::ZclOctedString) || (a == 0x0201 && dataType == deCONZ::ZclBoolean) || (a == 0x0210 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0211 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0212 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0213 && dataType == deCONZ::ZclBoolean) || (a == 0x0214 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0215 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0216 && dataType == deCONZ::Zcl32BitUint) || (a == 0x0217 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0218 && dataType == deCONZ::ZclBoolean) || (a == 0x0219 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0221 && dataType == deCONZ::ZclBoolean) || (a == 0x0222 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0223 && dataType == deCONZ::ZclOctedString) || (a == 0x0224 && dataType == deCONZ::ZclOctedString) || (a == 0x0225 && dataType == deCONZ::ZclOctedString) || (a == 0x0227 && dataType == deCONZ::ZclBoolean) || (a == 0x022a && dataType == deCONZ::Zcl8BitUint) || (a == 0x022b && dataType == deCONZ::Zcl8BitUint) || (a == 0x023c && dataType == deCONZ::Zcl8BitUint))
         {
             // attrId = a;
             QString payloadHexStr = zclFrame.payload().toHex();
@@ -12164,6 +12164,14 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
             switch (a)
             {
+            case 0x0201:
+            case 0x022a:
+                {
+                    quint8 paramToEat = 0;
+                    stream >> paramToEat;
+                    continue;
+                }
+                break;
             case 0xfff2:
                 resourceItemToUpdate = RStateAqaraS1PanelCommunication;
                 stringParam = zclFrame.payload().toHex();
