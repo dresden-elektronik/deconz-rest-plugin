@@ -624,7 +624,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         QString inputString;
         quint8 inputUint8Param = UINT8_MAX;
-        quint8 inputUint32Param = UINT32_MAX;
+        quint32 inputUint32Param = UINT32_MAX;
 
         bool paramOk = false;
         bool valueOk = false;
