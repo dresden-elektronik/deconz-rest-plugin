@@ -336,6 +336,7 @@ using namespace deCONZ::literals;
 #define VENDOR_4_NOKS               0x1071
 #define VENDOR_BITRON               0x1071 // branded
 #define VENDOR_COMPUTIME            0x1078
+#define VENDOR_XFINITY              0x10EF // Xfinity
 #define VENDOR_AXIS                 0x1262 // Axis
 #define VENDOR_KWIKSET              0x1092
 #define VENDOR_MMB                  0x109a
@@ -838,7 +839,8 @@ enum TaskType
     TaskSyncTime = 40,
     TaskTuyaRequest = 41,
     TaskXmasLightStrip = 42,
-    TaskSimpleMetering = 43
+    TaskSimpleMetering = 43,
+    TaskIASACE = 44
 };
 
 enum XmasLightStripMode
@@ -1514,6 +1516,8 @@ public:
     bool addTaskWarning(TaskItem &task, uint8_t options, uint16_t duration);
     // Danalock support. To control the lock from the REST API, you need to create a new routine addTaskDoorLock() in zcl_tasks.cpp, cf. the addTaskWarning() I created to control the Siren.
     bool addTaskDoorLockUnlock(TaskItem &task, uint8_t cmd);
+    bool addTaskPanelStatusChanged(TaskItem &task, const QString &mode);
+    bool addTaskSendArmResponse(TaskItem &task, const QString &mode, quint8 sn);
     bool addTaskAddToGroup(TaskItem &task, uint16_t groupId);
     bool addTaskViewGroup(TaskItem &task, uint16_t groupId);
     bool addTaskRemoveFromGroup(TaskItem &task, uint16_t groupId);
@@ -1554,6 +1558,7 @@ public:
     bool sendIasZoneEnrollResponse(Sensor *sensor);
     bool sendIasZoneEnrollResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleIasAceClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void sendGetPanelStatusResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, quint8 PanelStatus, quint8 secs);
     void sendArmResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, quint8 armMode);
     void handleIndicationSearchSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     bool sendTuyaRequest(TaskItem &task, TaskType taskType, qint8 Dp_type, qint8 Dp_identifier, const QByteArray &data);
