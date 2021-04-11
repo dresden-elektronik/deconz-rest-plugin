@@ -753,10 +753,10 @@ ParseFunction_t DA_GetParseFunction(const std::vector<QVariant> &params)
         {
             fnName = params1["fn"].toString();
         }
-    }
-    else if (params.size() >= 1)
-    {
-        fnName = params.at(0).toString();
+        else
+        {
+            fnName = "zcl"; // default
+        }
     }
 
     for (const auto &pf : functions)
@@ -789,10 +789,10 @@ ReadFunction_t DA_GetReadFunction(const std::vector<QVariant> &params)
         {
             fnName = params1["fn"].toString();
         }
-    }
-    else if (params.size() >= 1)
-    {
-        fnName = params.at(0).toString();
+        else
+        {
+            fnName = "zcl"; // default
+        }
     }
 
     for (const auto &pf : functions)
