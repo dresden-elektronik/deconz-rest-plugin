@@ -7,9 +7,6 @@
     "product": "DJT11LM",
     "status": "Bronze",
     "md:known_issues": [ "xiaomi_known_issues1.md" ],
-    "awake": [
-        ["received/3", 1, "0x0000", "0xff01"]
-    ],
     "subdevices": [
         {
             "type": "$TYPE_VIBRATION_SENSOR",
@@ -30,7 +27,9 @@
                     "name": "attr/name"
                 },
                 {
-                    "name": "attr/swversion"
+                    "name": "attr/swversion",
+                    "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0006"},
+                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0006", "eval": "Item.val = Attr.val"}
                 },
                 {
                     "name": "attr/type"
@@ -49,15 +48,16 @@
                 },
                 {
                     "name": "config/battery",
-                    "parse": {"fn": "parseXiaomiSpecial", "tag": "0x01", "idx": "0x02", "datatype": "0x21", "eval": "Item.val = Attr.val"},
+                    "parse": {"fn": "xiaomi:special", "at": "0xff01", "idx": "0x01", "script": "xiaomi_battery.js"},
                     "awake": true
                 },
                 {
                     "name": "config/temperature",
-                    "parse": ["parseXiaomiSpecialAttribute/4", "0x03", "0x00", "0x28", "$raw"]
+                    "parse": {"fn": "xiaomi:special", "at": "0xff01", "idx": "0x03", "eval": "Item.val = Attr.val * 100"}
                 },
                 {
                     "name": "config/sensitivity",
+                    "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0xff0d", "mf": "0x11F5"},
                     "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0xff0d", "eval": "Item.val == 0 ? Item.val = Attr.val : Item.val"},
                     "write": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0xff0d",  "dt": "0x20", "mf": "0x11F5", "eval": "Item.val"},
                     "values": [
@@ -73,15 +73,13 @@
                 },
                 {
                     "name": "state/orientation_x",
-                    "parse": ["parseXiaomiVibration/0"]
+                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0101", "at": "0x0508", "script": "aq1_vibration_sensor_orientation.js"}
                 },
                 {
-                    "name": "state/orientation_y",
-                    "parse": ["parseXiaomiVibration/0"]
+                    "name": "state/orientation_y"
                 },
                 {
-                    "name": "state/orientation_z",
-                    "parse": ["parseXiaomiVibration/0"]
+                    "name": "state/orientation_z"
                 },
                 {
                     "name": "state/tiltangle",
@@ -90,7 +88,8 @@
                 },
                 {
                     "name": "state/vibration",
-                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0101", "at": "0x0055", "eval": "Item.val = Attr.val == 1"},
+                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0101", "at": "0x0055", "eval": "if (Attr.val == 1) { Item.val = true; }"},
+                    "comment": "TODO durationDue needs to be a ResourceItem",
                     "default": false
                 },
                 {
