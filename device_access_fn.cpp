@@ -506,16 +506,11 @@ static bool readZclAttribute(const Resource *r, const ResourceItem *item, deCONZ
 
     if (param.endpoint == AutoEndpoint)
     {
-        // hack to get endpoint. todo find better solution
-        auto ls = r->item(RAttrUniqueId)->toString().split('-', SKIP_EMPTY_PARTS);
-        if (ls.size() >= 2)
+        param.endpoint = resolveAutoEndpoint(r);
+
+        if (param.endpoint == AutoEndpoint)
         {
-            bool ok = false;
-            uint ep = ls[1].toUInt(&ok, 10);
-            if (ok && ep < BroadcastEndpoint)
-            {
-                param.endpoint = ep;
-            }
+            return false;
         }
     }
 
