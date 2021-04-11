@@ -12125,6 +12125,8 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             break;
         }
 
+        length = 0;
+
         quint16 a;
         stream >> a;
         stream >> dataType;
