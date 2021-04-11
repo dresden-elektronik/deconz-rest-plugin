@@ -12,7 +12,9 @@
 #define DATABASE_H
 
 class Resource;
+class ResourceItem;
 
-void DB_StoreSubDevice(const Resource *sub);
+bool DB_StoreSubDevice(const Resource *sub);
+bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item);
 
 #endif // DATABASE_H

@@ -34,6 +34,7 @@ static Resource *DEV_InitSensorNodeFromDescription(Device *device, const DeviceD
     sensor.address().setExt(device->item(RAttrExtAddress)->toNumber());
     sensor.address().setNwk(device->item(RAttrNwkAddress)->toNumber());
     sensor.setModelId(device->item(RAttrModelId)->toString());
+    sensor.setManufacturer(device->item(RAttrManufacturerName)->toString());
     sensor.setType(DeviceDescriptions::instance()->constantToString(sub.type));
     sensor.setUniqueId(uniqueId);
     sensor.setNode(const_cast<deCONZ::Node*>(device->node()));

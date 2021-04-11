@@ -5849,7 +5849,38 @@ bool DB_StoreSubDevice(const Resource *sub)
 
     char *errmsg = nullptr;
 
-    /* Execute SQL statement */
+    int rc = sqlite3_exec(db, qPrintable(sql), nullptr, nullptr, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", qPrintable(sql), errmsg, rc);
+            sqlite3_free(errmsg);
+        }
+    }
+
+    DeRestPluginPrivate::instance()->closeDb();
+    return true;
+}
+
+bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item)
+{
+     DeRestPluginPrivate::instance()->openDb();
+    if (!db)
+    {
+        return false;
+    }
+
+    const auto sql = QString("INSERT INTO resource_items (sub_device_id,item,value,source,timestamp)"
+                             " SELECT id, '%1', '%2', 'dev', %3"
+                             " FROM sub_devices WHERE uniqueid = '%4'")
+                             .arg(QLatin1String(item->descriptor().suffix), item->toVariant().toString())
+                             .arg(QDateTime::currentMSecsSinceEpoch() / 1000)
+                             .arg(sub->item(RAttrUniqueId)->toString());
+
+    char *errmsg = nullptr;
+
     int rc = sqlite3_exec(db, qPrintable(sql), nullptr, nullptr, &errmsg);
 
     if (rc != SQLITE_OK)

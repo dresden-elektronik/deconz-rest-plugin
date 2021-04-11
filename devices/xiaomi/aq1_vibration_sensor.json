@@ -63,7 +63,8 @@
                     "write": {"cl": "0x0000", "at": "0xff0d",  "dt": "0x20", "mf": "0x11F5", "eval": "Item.val"},
                     "values": [
                         ["low", 21], ["medium", 11], ["high", 1]
-                    ]
+                    ],
+                    "default": 1
                 },
                 {
                     "name": "config/sensitivitymax",

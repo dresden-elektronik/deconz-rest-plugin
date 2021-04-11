@@ -140,6 +140,11 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &desc
             mf->setValue(DeviceDescriptions::instance()->constantToString(description.manufacturer));
         }
 
+        DB_StoreSubDevice(rsub);
+
+        DB_StoreSubDeviceItem(rsub, rsub->item(RAttrManufacturerName));
+        DB_StoreSubDeviceItem(rsub, rsub->item(RAttrModelId));
+
         for (const auto &ddfItem : sub.items)
         {
             auto *item = DEV_InitDeviceDescriptionItem(ddfItem, rsub);
@@ -156,8 +161,6 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &desc
                 rsub->addStateChange(stateChange);
             }
         }
-
-        DB_StoreSubDevice(rsub);
     }
 
     if (description.sleeper >= 0)

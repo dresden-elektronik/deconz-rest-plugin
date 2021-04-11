@@ -34,6 +34,7 @@
 #include <queue>
 #include <cmath>
 #include "colorspace.h"
+#include "database.h"
 #include "device_descriptions.h"
 #include "device_tick.h"
 #include "de_web_plugin.h"
@@ -991,6 +992,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                     if (idItem && push)
                     {
                         enqueueEvent(Event(r->prefix(), item->descriptor().suffix, idItem->toString(), device->key()));
+                        DB_StoreSubDeviceItem(r, item);
                     }
                 }
                 else if (!parseFunction)
