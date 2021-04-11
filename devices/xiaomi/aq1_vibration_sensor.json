@@ -28,8 +28,8 @@
                 },
                 {
                     "name": "attr/swversion",
-                    "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0006"},
-                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0006", "eval": "Item.val = Attr.val"}
+                    "read": {"cl": "0x0000", "at": "0x0006"},
+                    "parse": {"cl": "0x0000", "at": "0x0006", "eval": "Item.val = Attr.val"}
                 },
                 {
                     "name": "attr/type"
@@ -57,9 +57,9 @@
                 },
                 {
                     "name": "config/sensitivity",
-                    "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0xff0d", "mf": "0x11F5"},
-                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0xff0d", "eval": "Item.val == 0 ? Item.val = Attr.val : Item.val"},
-                    "write": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0xff0d",  "dt": "0x20", "mf": "0x11F5", "eval": "Item.val"},
+                    "read": {"cl": "0x0000", "at": "0xff0d", "mf": "0x11F5"},
+                    "parse": {"cl": "0x0000", "at": "0xff0d", "eval": "Item.val == 0 ? Item.val = Attr.val : Item.val"},
+                    "write": {"cl": "0x0000", "at": "0xff0d",  "dt": "0x20", "mf": "0x11F5", "eval": "Item.val"},
                     "values": [
                         ["low", 21], ["medium", 11], ["high", 1]
                     ]
@@ -73,7 +73,7 @@
                 },
                 {
                     "name": "state/orientation_x",
-                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0101", "at": "0x0508", "script": "aq1_vibration_sensor_orientation.js"}
+                    "parse": {"cl": "0x0101", "at": "0x0508", "script": "aq1_vibration_sensor_orientation.js"}
                 },
                 {
                     "name": "state/orientation_y"
@@ -83,18 +83,18 @@
                 },
                 {
                     "name": "state/tiltangle",
-                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0101", "at": "0x0503", "eval": "Item.val = Attr.val"},
+                    "parse": {"cl": "0x0101", "at": "0x0503", "eval": "Item.val = Attr.val"},
                     "default": 0
                 },
                 {
                     "name": "state/vibration",
-                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0101", "at": "0x0055", "eval": "if (Attr.val == 1) { Item.val = true; }"},
+                    "parse": {"cl": "0x0101", "at": "0x0055", "eval": "if (Attr.val == 1) { Item.val = true; }"},
                     "comment": "TODO durationDue needs to be a ResourceItem",
                     "default": false
                 },
                 {
                     "name": "state/vibrationstrength",
-                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0101", "at": "0x0505", "eval": "Item.val = Attr.val >> 16"},
+                    "parse": {"cl": "0x0101", "at": "0x0505", "eval": "Item.val = Attr.val >> 16"},
                     "default": 0
                 },
                 {
