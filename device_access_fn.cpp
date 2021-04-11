@@ -104,7 +104,7 @@ static ZclParam getZclParam(const QVariantMap &param)
 
     bool ok = true;
 
-    result.endpoint = param.contains("ep") ? variantToUint(param["ep"], UINT8_MAX, &ok) : AutoEndpoint;
+    result.endpoint = param.contains("ep") ? variantToUint(param["ep"], UINT8_MAX, &ok) : quint8(AutoEndpoint);
     result.clusterId = ok ? variantToUint(param["cl"], UINT16_MAX, &ok) : 0;
     result.manufacturerCode = ok && param.contains("mf") ? variantToUint(param["mf"], UINT16_MAX, &ok) : 0;
 
