@@ -307,6 +307,11 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
             result.isPublic = obj.value(QLatin1String("public")).toBool();
         }
 
+        if (obj.contains(QLatin1String("awake")))
+        {
+            result.awake = obj.value(QLatin1String("awake")).toBool();
+        }
+
         if (obj.contains(QLatin1String("refresh.interval")))
         {
             result.refreshInterval = obj.value(QLatin1String("refresh.interval")).toInt(0);
@@ -518,6 +523,11 @@ static DeviceDescription DDF_ParseDeviceObject(const QJsonObject &obj, const QSt
     result.manufacturer = obj.value(QLatin1String("manufacturer")).toString();
     result.modelIds = DDF_ParseModelids(obj);
     result.product = obj.value(QLatin1String("product")).toString();
+
+    if (obj.contains(QLatin1String("sleeper")))
+    {
+        result.sleeper = obj.value(QLatin1String("sleeper")).toBool() ? 1 : 0;
+    }
 
     const auto keys = obj.keys();
     for (const auto &key : keys)

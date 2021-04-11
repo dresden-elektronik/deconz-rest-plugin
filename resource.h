@@ -71,6 +71,7 @@ extern const char *RAttrClass;
 extern const char *RAttrId;
 extern const char *RAttrUniqueId;
 extern const char *RAttrProductId;
+extern const char *RAttrSleeper;
 extern const char *RAttrSwVersion;
 extern const char *RAttrLastAnnounced;
 extern const char *RAttrLastSeen;
@@ -299,7 +300,8 @@ class ResourceItem
         FlagNeedPushSet     = 0x01, // set after a value has been set
         FlagNeedPushChange  = 0x02, // set when new value different than previous
         FlagPushOnSet       = 0x04, // events will be generated when item is set (even when value doesn't change)
-        FlagPushOnChange    = 0x08  // events will be generated only when item changes
+        FlagPushOnChange    = 0x08, // events will be generated only when item changes
+        FlagAwakeOnSet      = 0x10  // REventAwake will be generated when item is set after parse
     };
 
 public:
@@ -323,6 +325,8 @@ public:
     void setPushOnSet(bool enable);
     bool pushOnChange() const;
     void setPushOnChange(bool enable);
+    bool awake() const;
+    void setAwake(bool awake);
     const QString &toString() const;
     qint64 toNumber() const;
     qint64 toNumberPrevious() const;

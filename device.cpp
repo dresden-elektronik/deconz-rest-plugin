@@ -879,6 +879,7 @@ Device::Device(DeviceKey key, deCONZ::ApsController *apsCtrl, QObject *parent) :
     d->managed = DEV_TestManaged();
     connect(this, SIGNAL(eventNotify(Event)), parent, SLOT(enqueueEvent(Event)));
     addItem(DataTypeBool, RStateReachable);
+    addItem(DataTypeBool, RAttrSleeper);
     addItem(DataTypeUInt64, RAttrExtAddress);
     addItem(DataTypeUInt16, RAttrNwkAddress);
     addItem(DataTypeString, RAttrUniqueId)->setValue(generateUniqueId(key, 0, 0));

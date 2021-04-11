@@ -26,12 +26,14 @@ public:
     QStringList modelIds;
     QString manufacturer;
     QString product;
+    int sleeper = -1;
 
     class Item
     {
     public:
         bool isValid() const { return !name.isEmpty() && descriptor.isValid(); }
         bool isPublic = true;
+        bool awake = false;
         int refreshInterval = -1;
         QString name;
         ResourceItemDescriptor descriptor;

@@ -76,6 +76,8 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
 
     // check updates
     item->setIsPublic(ddfItem.isPublic);
+    item->setAwake(ddfItem.awake);
+
     if (ddfItem.refreshInterval >= 0)
     {
         item->setRefreshInterval(ddfItem.refreshInterval);
@@ -153,6 +155,11 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &desc
                 rsub->addStateChange(stateChange);
             }
         }
+    }
+
+    if (description.sleeper >= 0)
+    {
+        device->item(RAttrSleeper)->setValue(description.sleeper == 1);
     }
 
     return subCount == description.subDevices.size();

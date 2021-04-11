@@ -6,6 +6,7 @@
     "modelid": "lumi.vibration.aq1",
     "product": "DJT11LM",
     "status": "Bronze",
+    "sleeper": true,
     "md:known_issues": [ "xiaomi_known_issues1.md" ],
     "subdevices": [
         {

@@ -975,6 +975,11 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
 
                 if (parseFunction && parseFunction(r, item, ind, zclFrame))
                 {
+                    if (item->awake())
+                    {
+                        enqueueEvent(Event(RDevices, REventAwake, 0, device->key()));
+                    }
+
                     auto *idItem = r->item(RAttrId);
                     if (!idItem)
                     {
