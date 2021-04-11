@@ -658,61 +658,58 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                     {
                         type = deCONZ::Zcl8BitUint;
                         valueOk = true;
-                        switch (param)
+                        if (param == "aqara_s1_language")
                         {
-                        case "aqara_s1_language":
                             attr = 0x0210;
                             resoursePathForResponse = RStateAqaraS1Language;
-                            break;
-                        
-                        case "aqara_s1_lcd_brightness":
+                        }
+                        else if (param == "aqara_s1_lcd_brightness")
+                        {
                             attr = 0x0211;
                             resoursePathForResponse = RStateAqaraS1LCDBrightness;
-                            break;
-                        
-                        case "aqara_s1_sound_volume":
+                        }
+                        else if (param == "aqara_s1_sound_volume")
+                        {
                             attr = 0x0212;
                             resoursePathForResponse = RStateAqaraS1SoundVolume;
-                            break;
-                        
-                        case "aqara_s1_screen_saver_style":
+                        }
+                        else if (param == "aqara_s1_screen_saver_style")
+                        {
                             attr = 0x0214;
                             resoursePathForResponse = RStateAqaraS1ScreenSaverStyle;
-                            break;
-                        
-                        case "aqara_s1_theme":
+                        }
+                        else if (param == "aqara_s1_theme")
+                        {
                             attr = 0x0215;
                             resoursePathForResponse = RStateAqaraS1Theme;
-                            break;
-                        
-                        case "aqara_s1_font_size":
+                        }
+                        else if (param == "aqara_s1_font_size")
+                        {
                             attr = 0x0217;
                             resoursePathForResponse = RStateAqaraS1FontSize;
-                            break;
-                        
-                        case "aqara_s1_homepage":
+                        }
+                        else if (param == "aqara_s1_homepage")
+                        {
                             attr = 0x0219;
                             resoursePathForResponse = RStateAqaraS1Homepage;
-                            break;
-                        
-                        case "aqara_s1_standby_lcd_brightness":
+                        }
+                        else if (param == "aqara_s1_standby_lcd_brightness")
+                        {
                             attr = 0x0222;
                             resoursePathForResponse = RStateAqaraS1StandbyLCDBrightness;
-                            break;
-                        
-                        case "aqara_s1_switches_config":
+                        }
+                        else if (param == "aqara_s1_switches_config")
+                        {
                             attr = 0x022b;
                             resoursePathForResponse = RStateAqaraS1SwitchesConfig;
-                            break;
-                        
-                        case "aqara_s1_gestures":
+                        }
+                        else if (param == "aqara_s1_gestures")
+                        {
                             attr = 0x023c;
                             resoursePathForResponse = RStateAqaraS1Gestures;
-                            break;
-                        
-                        default:
+                        }
+                        else {
                             valueOk = false;
-                            break;
                         }
                     }
                     
@@ -726,31 +723,28 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                     inputUint8Param = map[param].toBool() == true ? 0x01 : 0x00;
                     type = deCONZ::ZclBoolean;
                     valueOk = true;
-                    switch (param)
+                    if (param == "aqara_s1_standby_enabled")
                     {
-                    case "aqara_s1_standby_enabled":
                         attr = 0x0213;
                         resoursePathForResponse = RStateAqaraS1StandbyEnabled;
-                        break;
-                    
-                    case "aqara_s1_lcd_auto_brightness_enabled":
+                    }
+                    else if (param == "aqara_s1_lcd_auto_brightness_enabled")
+                    {
                         attr = 0x0218;
                         resoursePathForResponse = RStateAqaraS1LCDAutoBrightnessEnabled;
-                        break;
-                    
-                    case "aqara_s1_screen_saver_enabled":
+                    }
+                    else if (param == "aqara_s1_screen_saver_enabled")
+                    {
                         attr = 0x0221;
                         resoursePathForResponse = RStateAqaraS1ScreenSaverEnabled;
-                        break;
-                    
-                    case "aqara_s1_auto_update_fw_enabled":
+                    }
+                    else if (param == "aqara_s1_auto_update_fw_enabled")
+                    {
                         attr = 0x0227;
                         resoursePathForResponse = RStateAqaraS1AutoUpdateFWEnabled;
-                        break;
-                    
-                    default:
+                    }
+                    else {
                         valueOk = false;
-                        break;
                     }
                 }
             }
@@ -862,11 +856,29 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 {
                     QVariantMap rspItem;
                     QVariantMap rspItemState;
-                    rspItemState[QString("/lights/%1/state/%2").arg(id).arg(param)] = type == deCONZ::ZclOctedString ? inputString : type == deCONZ::ZclBoolean ? (inputUint8Param == 0x01) : type == deCONZ::Zcl8BitUint ? inputUint8Param : inputUint32Param;
+                    if (type == deCONZ::ZclOctedString)
+                    {
+                        taskRef.lightNode->setValue(resoursePathForResponse, inputString);
+                        rspItemState[QString("/lights/%1/state/%2").arg(id).arg(param)] = inputString;
+                    }
+                    else if (type == deCONZ::ZclBoolean)
+                    {
+                        taskRef.lightNode->setValue(resoursePathForResponse, (inputUint8Param == 0x01));
+                        rspItemState[QString("/lights/%1/state/%2").arg(id).arg(param)] = (inputUint8Param == 0x01);
+                    }
+                    else if (type == deCONZ::Zcl8BitUint)
+                    {
+                        taskRef.lightNode->setValue(resoursePathForResponse, inputUint8Param);
+                        rspItemState[QString("/lights/%1/state/%2").arg(id).arg(param)] = inputUint8Param;
+                    }
+                    else
+                    {
+                        taskRef.lightNode->setValue(resoursePathForResponse, inputUint32Param);
+                        rspItemState[QString("/lights/%1/state/%2").arg(id).arg(param)] = inputUint32Param;
+                    }
+                    
                     rspItem["success"] = rspItemState;
                     rsp.list.append(rspItem);
-
-                    taskRef.lightNode->setValue(resoursePathForResponse, type == deCONZ::ZclOctedString ? inputString : type == deCONZ::ZclBoolean ? (inputUint8Param == 0x01) : type == deCONZ::Zcl8BitUint ? inputUint8Param : inputUint32Param);
                 }
                 else
                 {
