@@ -93,7 +93,7 @@ static ZclParam getZclParam(const QVariantMap &param)
 {
     ZclParam result;
 
-    if (param.contains("ep") && param.contains("cl") && param.contains("at"))
+    if (param.contains("cl") && param.contains("at"))
     {
 
     }
@@ -102,8 +102,9 @@ static ZclParam getZclParam(const QVariantMap &param)
         return result;
     }
 
-    bool ok = false;
-    result.endpoint = variantToUint(param["ep"], UINT8_MAX, &ok);
+    bool ok = true;
+
+    result.endpoint = param.contains("ep") ? variantToUint(param["ep"], UINT8_MAX, &ok) : AutoEndpoint;
     result.clusterId = ok ? variantToUint(param["cl"], UINT16_MAX, &ok) : 0;
     result.manufacturerCode = ok && param.contains("mf") ? variantToUint(param["mf"], UINT16_MAX, &ok) : 0;
 
@@ -191,7 +192,7 @@ bool evalZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndi
 
     {"fn": "zcl", "ep": endpoint, "cl": clusterId, "at": attributeId, "mf": manufacturerCode, "eval": expression}
 
-    - endpoint, 0xff means any endpoint
+    - endpoint: (optional) 255 means any endpoint, 0 means auto selected from the related resource, defaults to 0
     - clusterId: string hex value
     - attributeId: string hex value or array of string hex values
     - manufacturerCode: (optional) string hex value, defaults to "0x0000" for non manufacturer specific commands
