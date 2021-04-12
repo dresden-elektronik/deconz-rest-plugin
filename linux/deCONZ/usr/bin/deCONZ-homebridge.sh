@@ -167,8 +167,8 @@ function checkHomebridge {
 
 	#hostline used in config
 	local hostline="\"hosts\": [\"127.0.0.1\"],"
-	if [ ${hb_hue_version:2:2} -le 13 ]; then
-		if [ ${hb_hue_version:5:2} -lt 2 ]; then
+	if [ $(echo "$hb_hue_version" | cut -d'.' -f 2) -le 13 ]; then
+		if [ $(echo "$hb_hue_version" | cut -d'.' -f 3) -lt 2 ]; then
 			hostline="\"host\": \"127.0.0.1\","
 		fi
 	fi
