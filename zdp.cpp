@@ -36,7 +36,7 @@ ZDP_Result ZDP_NodeDescriptorReq(quint16 nwkAddress, deCONZ::ApsController *apsC
     apsReq.setProfileId(ZDP_PROFILE_ID);
     apsReq.setRadius(0);
     apsReq.setClusterId(ZDP_NODE_DESCRIPTOR_CLID);
-    apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+//    apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
 
     QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
     stream.setByteOrder(QDataStream::LittleEndian);
@@ -72,7 +72,7 @@ ZDP_Result ZDP_ActiveEndpointsReq(uint16_t nwkAddress, deCONZ::ApsController *ap
     apsReq.setProfileId(ZDP_PROFILE_ID);
     apsReq.setRadius(0);
     apsReq.setClusterId(ZDP_ACTIVE_ENDPOINTS_CLID);
-    apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+//    apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
 
     QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
     stream.setByteOrder(QDataStream::LittleEndian);
@@ -108,7 +108,7 @@ ZDP_Result ZDP_SimpleDescriptorReq(uint16_t nwkAddress, quint8 endpoint, deCONZ:
     apsReq.setProfileId(ZDP_PROFILE_ID);
     apsReq.setRadius(0);
     apsReq.setClusterId(ZDP_SIMPLE_DESCRIPTOR_CLID);
-    apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+//    apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
 
     QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
     stream.setByteOrder(QDataStream::LittleEndian);
