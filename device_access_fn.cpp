@@ -744,7 +744,9 @@ ParseFunction_t DA_GetParseFunction(const std::vector<QVariant> &params)
     if (params.size() == 1 && params.front().type() == QVariant::Map)
     {
         const auto params1 = params.front().toMap();
-        if (params1.contains("fn"))
+        if (params1.isEmpty())
+        {  }
+        else if (params1.contains("fn"))
         {
             fnName = params1["fn"].toString();
         }
@@ -780,7 +782,9 @@ ReadFunction_t DA_GetReadFunction(const std::vector<QVariant> &params)
     if (params.size() == 1 && params.front().type() == QVariant::Map)
     {
         const auto params1 = params.front().toMap();
-        if (params1.contains("fn"))
+        if (params1.isEmpty())
+        {  }
+        else if (params1.contains("fn"))
         {
             fnName = params1["fn"].toString();
         }
