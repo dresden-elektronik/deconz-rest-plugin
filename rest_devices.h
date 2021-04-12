@@ -31,6 +31,8 @@ public:
     explicit RestDevices(QObject *parent = nullptr);
     int handleApi(const ApiRequest &req, ApiResponse &rsp);
 
+    bool deleteDevice(quint64 extAddr);
+
 Q_SIGNALS:
     void eventNotify(const Event &);
 

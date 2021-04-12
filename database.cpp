@@ -5620,6 +5620,42 @@ void DeRestPluginPrivate::getZigbeeConfigDb(QVariantList &out)
     closeDb();
 }
 
+/*! Deletes a device from the database.
+
+    Due the foreign keys this affects the tables:
+    - device
+    - device_descriptors
+    - device_gui
+    - source_routes
+    - source_route_hops
+ */
+void DeRestPluginPrivate::deleteDeviceDb(const QString &uniqueId)
+{
+    DBG_Assert(!uniqueId.isEmpty());
+
+    openDb();
+    DBG_Assert(db);
+    if (!db)
+    {
+        return;
+    }
+
+    char *errmsg = nullptr;
+    const auto sql = QString("DELETE FROM devices WHERE mac = '%1'").arg(uniqueId);
+    int rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s, line: %d\n", qPrintable(sql), errmsg, __LINE__);
+            sqlite3_free(errmsg);
+        }
+    }
+
+    closeDb();
+}
+
 /*! Put working ZigBee configuration in database for later recovery or fail safe operations.
     - An entry is only added when different from last entry.
     - Entries are only added, never modified, this way errors or unwanted changes can be debugged.
