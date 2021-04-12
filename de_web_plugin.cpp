@@ -944,11 +944,11 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
         return;
     }
 
-    if (device->node() && device->node()->nodeDescriptor().receiverOnWhenIdle())
+    if (!device->item(RAttrSleeper)->toBool())
     {
-        if (!device->reachable())
+        auto *item = device->item(RStateReachable);
+        if (!item->toBool())
         {
-            auto *item = device->item(RStateReachable);
             item->setValue(true);
             enqueueEvent(Event(device->prefix(), item->descriptor().suffix, 0, device->key()));
         }
