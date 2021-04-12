@@ -1017,6 +1017,10 @@ bool Device::reachable() const
     {
         return item(RStateReachable)->toBool();
     }
+    else if (!item(RAttrSleeper)->toBool())
+    {
+        return item(RStateReachable)->toBool();
+    }
 
     return false;
 }
