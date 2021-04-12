@@ -58,6 +58,13 @@ JsEvalResult DeviceJs::evaluate(const QString &expr)
 void DeviceJs::setResource(Resource *r)
 {
     d->jsResource->r = r;
+    d->jsResource->cr = r;
+}
+
+void DeviceJs::setResource(const Resource *r)
+{
+    d->jsResource->r = nullptr;
+    d->jsResource->cr = r;
 }
 
 void DeviceJs::setApsIndication(const deCONZ::ApsDataIndication &ind)
@@ -78,6 +85,13 @@ void DeviceJs::setZclAttribute(const deCONZ::ZclAttribute &attr)
 void DeviceJs::setItem(ResourceItem *item)
 {
     d->jsItem->item = item;
+    d->jsItem->citem = item;
+}
+
+void DeviceJs::setItem(const ResourceItem *item)
+{
+    d->jsItem->item = nullptr;
+    d->jsItem->citem = item;
 }
 
 QVariant DeviceJs::result()

@@ -20,15 +20,21 @@ JsResource::JsResource(QJSEngine *parent) :
 QJSValue JsResource::item(const QString &suffix)
 {
     ResourceItemDescriptor rid;
-    if (r && getResourceItemDescriptor(suffix, rid))
+
+    if (!getResourceItemDescriptor(suffix, rid))
     {
-        auto it = r->item(rid.suffix);
-        if (it)
-        {
-            auto *ritem = new JsResourceItem(this);
-            ritem->item = it;
-            return static_cast<QJSEngine*>(parent())->newQObject(ritem);
-        }
+        return {};
+    }
+
+    ResourceItem *item = r ? r->item(rid.suffix) : nullptr;
+    const ResourceItem *citem = cr ? cr->item(rid.suffix) : nullptr;
+
+    if (item || citem)
+    {
+        auto *ritem = new JsResourceItem(this);
+        ritem->item = item;
+        ritem->citem = citem;
+        return static_cast<QJSEngine*>(parent())->newQObject(ritem);
     }
 
     return {};
@@ -51,35 +57,35 @@ JsResourceItem::~JsResourceItem()
 
 QVariant JsResourceItem::value() const
 {
-    if (!item)
+    if (!citem)
     {
         return {};
     }
 
-    const auto type = item->descriptor().type;
+    const auto type = citem->descriptor().type;
     if (type == DataTypeBool)
     {
-        return item->toBool();
+        return citem->toBool();
     }
 
     if (type == DataTypeString || type == DataTypeTime ||  type == DataTypeTimePattern)
     {
-        return item->toString();
+        return citem->toString();
     }
 
     if (type == DataTypeUInt8 || type == DataTypeUInt16 || type == DataTypeUInt32)
     {
-        return static_cast<quint32>(item->toNumber());
+        return static_cast<quint32>(citem->toNumber());
     }
 
     if (type == DataTypeInt8 || type == DataTypeInt16 || type == DataTypeInt32)
     {
-        return static_cast<qint32>(item->toNumber());
+        return static_cast<qint32>(citem->toNumber());
     }
 
     if (type == DataTypeInt64 || type == DataTypeUInt64)
     {
-        return QString::number(item->toNumber());
+        return QString::number(citem->toNumber());
     }
 
     return {};

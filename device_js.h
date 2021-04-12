@@ -91,10 +91,12 @@ public:
     ~DeviceJs();
     JsEvalResult evaluate(const QString &expr);
     void setResource(Resource *r);
+    void setResource(const Resource *r);
     void setApsIndication(const deCONZ::ApsDataIndication &ind);
     void setZclFrame(const deCONZ::ZclFrame &zclFrame);
     void setZclAttribute(const deCONZ::ZclAttribute &attr);
     void setItem(ResourceItem *item);
+    void setItem(const ResourceItem *item);
     QVariant result();
     void reset();
     QString errorString() const;

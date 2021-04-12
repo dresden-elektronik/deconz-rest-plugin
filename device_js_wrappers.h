@@ -32,6 +32,7 @@ Q_OBJECT
 
 public:
     Resource *r = nullptr;
+    const Resource *cr = nullptr;
 
     JsResource(QJSEngine *parent = nullptr);
 
@@ -47,6 +48,7 @@ class JsResourceItem : public QObject
 
 public:
     ResourceItem *item = nullptr;
+    const ResourceItem *citem = nullptr;
 
     JsResourceItem(QObject *parent = nullptr);
     ~JsResourceItem();
