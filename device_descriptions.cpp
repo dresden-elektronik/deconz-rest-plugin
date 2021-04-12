@@ -734,6 +734,11 @@ static DeviceDescription DDF_MergeGenericItems(const std::vector<DeviceDescripti
             {
                 item.refreshInterval = genItem->refreshInterval;
             }
+
+            if (!item.defaultValue.isValid() && genItem->defaultValue.isValid())
+            {
+                item.defaultValue = genItem->defaultValue;
+            }
         }
     }
 

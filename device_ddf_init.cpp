@@ -67,10 +67,11 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
             return nullptr;
         }
 
-        if (ddfItem.defaultValue.isValid())
-        {
-            item->setValue(ddfItem.defaultValue);
-        }
+    }
+
+    if (ddfItem.defaultValue.isValid() && !item->lastSet().isValid())
+    {
+        item->setValue(ddfItem.defaultValue);
     }
 
     Q_ASSERT(item);
