@@ -318,43 +318,19 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
         }
 
         const auto parse = obj.value(QLatin1String("parse"));
-        if (parse.isArray())
-        {
-            const auto arr = parse.toArray();
-            for (const auto &i : arr)
-            {
-                result.parseParameters.push_back(i.toVariant());
-            }
-        }
-        else if (parse.isObject())
+        if (parse.isObject())
         {
             result.parseParameters.push_back(parse.toVariant());
         }
 
         const auto read = obj.value(QLatin1String("read"));
-        if (read.isArray())
-        {
-            const auto arr = read.toArray();
-            for (const auto &i : arr)
-            {
-                result.readParameters.push_back(i.toVariant());
-            }
-        }
-        else if (read.isObject())
+        if (read.isObject())
         {
             result.readParameters.push_back(read.toVariant());
         }
 
         const auto write = obj.value(QLatin1String("write"));
-        if (write.isArray())
-        {
-            const auto arr = write.toArray();
-            for (const auto &i : arr)
-            {
-                result.writeParameters.push_back(i.toVariant());
-            }
-        }
-        else if (write.isObject())
+        if (write.isObject())
         {
             result.writeParameters.push_back(write.toVariant());
         }
