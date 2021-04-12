@@ -142,7 +142,7 @@ bool RestDevices::deleteDevice(quint64 extAddr)
     }
 
     // delete device entry, regardless if REST resources exists
-    plugin->deleteDeviceDb(plugin->generateUniqueId(extAddr, 0, 0));
+    plugin->deleteDeviceDb(generateUniqueId(extAddr, 0, 0));
 
     return count > 0;
 }
