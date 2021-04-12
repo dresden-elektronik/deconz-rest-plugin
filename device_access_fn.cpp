@@ -577,28 +577,28 @@ static bool readZclAttribute(const Resource *r, const ResourceItem *item, deCONZ
 }
 
 /*! A generic function to write ZCL attributes.
-    The item->writeParameters() is expected to contain 7 elements (given in the device description file).
+    The item->writeParameters() is expected to contain one object (given in the device description file).
 
-    ["writeGenericAttribute/6", endpoint, clusterId, attributeId, zclDataType, manufacturerCode, expression]
+    { "fn": "zcl", "ep": endpoint, "cl": clusterId, "at": attributeId, "dt": zclDataType, "mf": manufacturerCode, "eval": expression }
 
-    - endpoint: the destination endpoint
+    - endpoint: (optional) the destination endpoint
     - clusterId: string hex value
     - attributeId: string hex value
     - zclDataType: string hex value
     - manufacturerCode: must be set to 0x0000 for non manufacturer specific commands
     - expression: to transform the item value
 
-    Example: { "write": ["writeGenericAttribute/6", 1, "0x0020", "0x0000", "0x23", "0x0000", "$raw"] }
+    Example: "write": {"cl": "0x0000", "at": "0xff0d",  "dt": "0x20", "mf": "0x11F5", "eval": "Item.val"}
  */
-bool writeGenericAttribute6(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl)
+bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl)
 {
     Q_ASSERT(r);
     Q_ASSERT(item);
     Q_ASSERT(apsCtrl);
 
     bool result = false;
-    Q_ASSERT(item->writeParameters().size() == 7);
-    if (item->writeParameters().size() != 7)
+    Q_ASSERT(item->writeParameters().size() == 1);
+    if (item->writeParameters().size() != 1)
     {
         return result;
     }
@@ -612,46 +612,63 @@ bool writeGenericAttribute6(const Resource *r, const ResourceItem *item, deCONZ:
         return result;
     }
 
-    bool ok;
-    const auto endpoint = item->writeParameters().at(1).toString().toUInt(&ok, 0);
-    const auto clusterId = ok ? item->writeParameters().at(2).toString().toUInt(&ok, 0) : 0;
-    const auto attributeId = ok ? item->writeParameters().at(3).toString().toUInt(&ok, 0) : 0;
-    const auto dataType = ok ? item->writeParameters().at(4).toString().toUInt(&ok, 0) : 0;
-    const auto manufacturerCode = ok ? item->writeParameters().at(5).toString().toUInt(&ok, 0) : 0;
-    auto expr = item->writeParameters().back().toString();
+    const auto map = item->writeParameters().front().toMap();
+    ZclParam param = getZclParam(map);
 
-    if (!ok)
+    if (!param.valid)
     {
         return result;
     }
 
-    DBG_Printf(DBG_INFO, "writeGenericAttribute/6, ep: 0x%02X, cl: 0x%04X, attr: 0x%04X, type: 0x%02X, mfcode: 0x%04X, expr: %s\n", endpoint, clusterId, attributeId, dataType, manufacturerCode, qPrintable(expr));
+    if (param.endpoint == AutoEndpoint)
+    {
+        param.endpoint = resolveAutoEndpoint(r);
 
-    const std::vector<quint16> attributes = { static_cast<quint16>(attributeId) };
+        if (param.endpoint == AutoEndpoint)
+        {
+            return result;
+        }
+    }
+
+    if (!map.contains("dt") || !map.contains("eval"))
+    {
+        return result;
+    }
+
+    bool ok;
+    const auto dataType = variantToUint(map.value("dt"), UINT8_MAX, &ok);
+    const auto expr = map.value("eval").toString();
+
+    if (!ok || expr.isEmpty())
+    {
+        return result;
+    }
+
+    DBG_Printf(DBG_INFO, "writeZclAttribute, ep: 0x%02X, cl: 0x%04X, attr: 0x%04X, type: 0x%02X, mfcode: 0x%04X, expr: %s\n", param.endpoint, param.clusterId, param.attributes.front(), dataType, param.manufacturerCode, qPrintable(expr));
 
 
     deCONZ::ApsDataRequest req;
     deCONZ::ZclFrame zclFrame;
 
-    req.setDstEndpoint(endpoint);
+    req.setDstEndpoint(param.endpoint);
     req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
     req.setDstAddressMode(deCONZ::ApsNwkAddress);
     req.dstAddress().setNwk(nwkAddr->toNumber());
     req.dstAddress().setExt(extAddr->toNumber());
-    req.setClusterId(clusterId);
+    req.setClusterId(param.clusterId);
     req.setProfileId(HA_PROFILE_ID);
     req.setSrcEndpoint(1); // TODO
 
     zclFrame.setSequenceNumber(zclNextSequenceNumber());
     zclFrame.setCommandId(deCONZ::ZclWriteAttributesId);
 
-    if (manufacturerCode)
+    if (param.manufacturerCode)
     {
         zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
                                  deCONZ::ZclFCManufacturerSpecific |
                                  deCONZ::ZclFCDirectionClientToServer |
                                  deCONZ::ZclFCDisableDefaultResponse);
-        zclFrame.setManufacturerCode(manufacturerCode);
+        zclFrame.setManufacturerCode(param.manufacturerCode);
     }
     else
     {
@@ -661,49 +678,25 @@ bool writeGenericAttribute6(const Resource *r, const ResourceItem *item, deCONZ:
     }
 
     { // payload
-        deCONZ::ZclAttribute attribute(attributeId, dataType, QLatin1String(""), deCONZ::ZclReadWrite, true);
+        deCONZ::ZclAttribute attribute(param.attributes.front(), dataType, QLatin1String(""), deCONZ::ZclReadWrite, true);
 
-        if (expr == QLatin1String("$raw"))
+        if (!expr.isEmpty())
         {
-            attribute.setValue(item->toVariant());
-        }
-        else if (expr.contains(QLatin1String("$raw")) && dataType < deCONZ::ZclOctedString) // numeric data type
-        {
-            if ((dataType >= deCONZ::Zcl8BitData && dataType <= deCONZ::Zcl64BitUint)
-                    || dataType == deCONZ::Zcl8BitEnum || dataType == deCONZ::Zcl16BitEnum)
+            DeviceJs engine;
+            engine.setResource(r);
+            engine.setItem(item);
+
+            if (engine.evaluate(expr) == JsEvalResult::Ok)
             {
-                expr.replace("$raw", QString::number(item->toNumber()));
-            }
-            else if (dataType >= deCONZ::Zcl8BitInt && dataType <= deCONZ::Zcl64BitInt)
-            {
-                expr.replace("$raw", QString::number(item->toNumber()));
-            }
-            else if (dataType >= deCONZ::ZclSemiFloat && dataType <= deCONZ::ZclDoubleFloat)
-            {
-                Q_ASSERT(0); // TODO implement
+                const auto res = engine.result();
+                DBG_Printf(DBG_INFO, "expression: %s --> %s\n", qPrintable(expr), qPrintable(res.toString()));
+                attribute.setValue(res);
             }
             else
             {
+                DBG_Printf(DBG_INFO, "failed to evaluate expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
                 return result;
             }
-
-// TODO rewrite for DeviceJs
-//            QJSEngine engine;
-
-//            const auto res = engine.evaluate(expr);
-
-//            if (!res.isError())
-//            {
-//                DBG_Printf(DBG_INFO, "expression: %s = %.0f\n", qPrintable(expr), res.toNumber());
-//                attribute.setValue(res.toVariant());
-//            }
-//            else
-//            {
-//                DBG_Printf(DBG_INFO, "failed to evaluate expression: %s, err: %d\n", qPrintable(expr), res.errorType());
-//                return result;
-//            }
-
-            return result;
         }
 
         QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
@@ -756,11 +749,11 @@ ParseFunction_t DA_GetParseFunction(const std::vector<QVariant> &params)
         }
     }
 
-    for (const auto &pf : functions)
+    for (const auto &f : functions)
     {
-        if (pf.name == fnName)
+        if (f.name == fnName)
         {
-            result = pf.fn;
+            result = f.fn;
             break;
         }
     }
@@ -794,11 +787,11 @@ ReadFunction_t DA_GetReadFunction(const std::vector<QVariant> &params)
         }
     }
 
-    for (const auto &pf : functions)
+    for (const auto &f : functions)
     {
-        if (pf.name == fnName)
+        if (f.name == fnName)
         {
-            result = pf.fn;
+            result = f.fn;
             break;
         }
     }
@@ -812,19 +805,32 @@ WriteFunction_t DA_GetWriteFunction(const std::vector<QVariant> &params)
 
     const std::array<WriteFunction, 1> functions =
     {
-        WriteFunction("writeGenericAttribute/6", 6, writeGenericAttribute6)
+        WriteFunction("zcl", 1, writeZclAttribute)
     };
 
-    if (params.size() >= 1)
+    QString fnName;
+
+    if (params.size() == 1 && params.front().type() == QVariant::Map)
     {
-        const auto fnName = params.at(0).toString();
-        for (const auto &pf : functions)
+        const auto params1 = params.front().toMap();
+        if (params1.isEmpty())
+        {  }
+        else if (params1.contains("fn"))
         {
-            if (pf.name == fnName)
-            {
-                result = pf.fn;
-                break;
-            }
+            fnName = params1["fn"].toString();
+        }
+        else
+        {
+            fnName = "zcl"; // default
+        }
+    }
+
+    for (const auto &f : functions)
+    {
+        if (f.name == fnName)
+        {
+            result = f.fn;
+            break;
         }
     }
 

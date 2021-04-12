@@ -107,7 +107,7 @@ StateChange::State StateChange::tick(Resource *r, deCONZ::ApsController *apsCtrl
         if (item && !item->readParameters().empty())
         {
             const auto fn = DA_GetReadFunction(item->readParameters());
-            if (fn && fn(rParent, item, apsCtrl, &m_readResult))
+            if (fn && fn(r, item, apsCtrl, &m_readResult))
             {
                 if (m_readResult.isEnqueued)
                 {
