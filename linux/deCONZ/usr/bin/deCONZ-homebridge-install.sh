@@ -5,8 +5,7 @@ UPDATE_VERSION_HB_HUE="0.13.5"
 UPDATE_VERSION_HB_LIB="5.1.1"
 UPDATE_VERSION_NPM="6.14.12"
 UPDATE_VERSION_NODE="14.16.0"
-# use install name to install the specific node version via apt. Retrieve it via: apt-cache policy nodejs
-UPDATE_VERSION_NODE_INSTALL_NAME="12.18.4-1nodesource1"
+
 # when increasing major version of node adjust downoload link
 NODE_DOWNLOAD_LINK="https://deb.nodesource.com/setup_14.x"
 
