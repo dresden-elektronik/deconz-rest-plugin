@@ -47,7 +47,7 @@ StateChange::State StateChange::tick(Resource *r, deCONZ::ApsController *apsCtrl
     Q_ASSERT(m_stateTimer.isValid());
     Q_ASSERT(m_changeTimer.isValid());
 
-    if (m_state == StateWaitSync && rParent->item(RConfigReachable)->toBool())
+    if (m_state == StateWaitSync && rParent->item(RStateReachable)->toBool())
     {
         if (m_stateTimer.elapsed() > m_stateTimeoutMs)
         {
