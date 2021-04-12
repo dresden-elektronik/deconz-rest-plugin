@@ -596,13 +596,13 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
 
     if (event.what() == REventStateEnter)
     {
-//        d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
+        d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
         d->setState(DEV_PollIdleStateHandler, STATE_LEVEL_POLL);
         return;
     }
     else if (event.what() == REventStateLeave)
     {
-//        d->setState(nullptr, STATE_LEVEL_BINDING);
+        d->setState(nullptr, STATE_LEVEL_BINDING);
         d->setState(nullptr, STATE_LEVEL_POLL);
         return;
     }
