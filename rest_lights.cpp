@@ -713,7 +713,6 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                             valueOk = false;
                         }
                     }
-                    
                 }
             }
             else if ((param == "aqara_s1_standby_enabled" && taskRef.lightNode->item(RStateAqaraS1StandbyEnabled)) || (param == "aqara_s1_lcd_auto_brightness_enabled" && taskRef.lightNode->item(RStateAqaraS1LCDAutoBrightnessEnabled)) || (param == "aqara_s1_screen_saver_enabled" && taskRef.lightNode->item(RStateAqaraS1ScreenSaverEnabled)) || (param == "aqara_s1_auto_update_fw_enabled" && taskRef.lightNode->item(RStateAqaraS1AutoUpdateFWEnabled)))
