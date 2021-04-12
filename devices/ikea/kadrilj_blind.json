@@ -44,7 +44,9 @@
                 },
                 {
                     "name": "state/lift",
-                    "parse": {"cl": "0x0102", "at": "0x0008", "eval": "Item.val = Attr.val"}
+                    "parse": {"cl": "0x0102", "at": "0x0008", "eval": "Item.val = Attr.val"},
+                    "read": {"cl": "0x0102", "at": "0x0008"},
+                    "refresh.interval": 5
                 },
                 {
                     "name": "state/open",
@@ -57,29 +59,32 @@
                     "name": "state/bri",
                     "description": "The lift state in earlier versions, use <code class=\"api-attribute\">lift</code> instead.",
                     "parse": {"cl": "0x0102", "at": "0x0008", "eval": "Item.val = Attr.val * 254 / 100"},
+                    "read": {},
                     "deprecated": "2020-04-08"
                 },
                 {
                     "name": "state/on",
                     "description": "The open state in earlier versions, use <code class=\"api-attribute\">open</code> instead.",
-                    "parse": {"cl": "0x0102", "at": "0x0008", "eval": "Item.val = Attr.val < 100"},
+                    "parse": {"cl": "0x0102", "at": "0x0008", "eval": "Item.val = (Attr.val * 254 / 100) > 0"},
+                    "read": {},
                     "deprecated": "2020-04-08"
                 }
             ],
             "example":{
-                "lastannounced": "2020-12-11T16:57:04Z",
-                "lastseen": "2020-12-29T21:55Z",
+                "etag": "ec590d6e73342fb20fb284111522e48d",
+                "lastannounced": "2021-04-12T18:37:56Z",
+                "lastseen": "2021-04-12T18:47Z",
                 "manufacturername": "IKEA of Sweden",
                 "modelid": "KADRILJ roller blind",
-                "name": "Roller blind 1",
-                "state": {
-                    "bri": 0,
-                    "lift": 0,
-                    "on": false,
-                    "open": true,
+                "name": "Window covering device 4",
+                 "state": {
+                    "bri": 254,
+                    "lift": 100,
+                    "on": true,
+                    "open": false,
                     "reachable": true
                 },
-                "swversion": "20190311",
+                "swversion": "2.2.009",
                 "type": "Window covering device",
                 "uniqueid": "cc:cc:cc:ff:fe:b3:d9:e6-01"
             }
@@ -119,7 +124,9 @@
                 },
                 {
                     "name": "state/battery",
-                    "parse": {"cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val"}
+                    "parse": {"cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val"},
+                    "read": {"cl": "0x0001", "at": "0x0021"},
+                    "refresh.interval": 60
                 },
                 {
                     "name": "state/lastupdated"
