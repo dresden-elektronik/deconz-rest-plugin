@@ -106,6 +106,7 @@ void DeRestPluginPrivate::checkResetState()
         lastNodeAddressExt = 0;
     }
 
+    const auto now = QDateTime::currentDateTime();
     std::vector<Sensor>::iterator si = sensors.begin();
     std::vector<Sensor>::iterator si_end = sensors.end();
 
@@ -113,9 +114,9 @@ void DeRestPluginPrivate::checkResetState()
     {
         if (si->isAvailable() && si->resetRetryCount() > 0 && si->node())
         {
-            if (!si->node()->nodeDescriptor().receiverOnWhenIdle())
+            if (!si->node()->nodeDescriptor().receiverOnWhenIdle() && si->lastRx().secsTo(now) > 6)
             {
-                // not supported yet
+                // wait until awake
                 continue;
             }
 
