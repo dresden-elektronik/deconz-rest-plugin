@@ -722,6 +722,11 @@ std::vector<PollItem> DEV_GetPollItems(Device *device)
                 continue;
             }
 
+            if (item->readParameters().front().toMap().empty())
+            {
+                continue;
+            }
+
             if (item->lastSet().isValid() && item->lastSet().secsTo(now) < item->refreshInterval())
             {
                 continue;
@@ -779,7 +784,7 @@ void DEV_PollNextStateHandler(Device *device, const Event &event)
             return;
         }
 
-        const auto &poll = d->pollItems.back();
+        auto &poll = d->pollItems.back();
 
         auto fn = DA_GetReadFunction(poll.item->readParameters());
 
@@ -800,7 +805,13 @@ void DEV_PollNextStateHandler(Device *device, const Event &event)
         }
         else
         {
+            poll.retry++;
+
             DBG_Printf(DBG_INFO, "DEV: Poll Next failed to enqueue read item: %s / 0x%016llX\n", poll.item->descriptor().suffix, device->key());
+            if (poll.retry >= MaxPollItemRetries)
+            {
+                d->pollItems.pop_back();
+            }
             d->startStateTimer(MinMacPollRxOn, STATE_LEVEL_POLL); // try again
         }
     }
