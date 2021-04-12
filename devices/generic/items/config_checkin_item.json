@@ -8,5 +8,6 @@
 	"description": "Configures the check-in interval for the Poll Control cluster.",
     "parse": {"fn": "zcl", "ep": 0, "cl": "0x0020", "at": "0x0000", "eval": "Item.val = Attr.val"},
     "read": {"fn": "zcl", "ep": 0, "cl": "0x0020", "at": "0x0000"},
-    "write": {"fn": "zcl", "ep": 0, "cl": "0x0020", "at": "0x0000", "dt": "0x23", "eval": "Item.val"}
+    "write": {"fn": "zcl", "ep": 0, "cl": "0x0020", "at": "0x0000", "dt": "0x23", "eval": "Item.val"},
+    "refresh.interval": 3600
 }
