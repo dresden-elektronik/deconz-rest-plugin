@@ -154,13 +154,13 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &desc
                 continue;
             }
 
-            if (item->descriptor().suffix == RConfigCheckin)
-            {
-                StateChange stateChange(StateChange::StateWaitSync, SC_WriteZclAttribute, sub.uniqueId.at(1).toUInt());
-                stateChange.addTargetValue(RConfigCheckin, ddfItem.defaultValue);
-                stateChange.setChangeTimeoutMs(1000 * 60 * 60);
-                rsub->addStateChange(stateChange);
-            }
+//            if (item->descriptor().suffix == RConfigCheckin)
+//            {
+//                StateChange stateChange(StateChange::StateWaitSync, SC_WriteZclAttribute, sub.uniqueId.at(1).toUInt());
+//                stateChange.addTargetValue(RConfigCheckin, ddfItem.defaultValue);
+//                stateChange.setChangeTimeoutMs(1000 * 60 * 60);
+//                rsub->addStateChange(stateChange);
+//            }
         }
     }
 
