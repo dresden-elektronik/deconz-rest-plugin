@@ -472,7 +472,6 @@ void PollManager::pollTimerFired()
 
     size_t fresh = 0;
     const int reportWaitTime = 360;
-    const int reportWaitTimeXAL = 60 * 30;
 
     // check that cluster exists on endpoint
     if (clusterId != 0xffff)
@@ -509,20 +508,18 @@ void PollManager::pollTimerFired()
                                 }
 
                                 NodeValue &val = restNode->getZclValue(clusterId, attrId);
+                                quint16 maxInterval = val.maxInterval > 0 && val.maxInterval < 65535 ? (val.maxInterval * 3 / 2) : reportWaitTime;
 
+                                // This lines mean IKEA is never polled (or just once)?
                                 if (lightNode && lightNode->manufacturerCode() == VENDOR_IKEA && val.timestamp.isValid())
                                 {
                                     fresh++; // rely on reporting for ikea lights
                                 }
-                                else if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < reportWaitTime)
+                                // This should truely compensates missing reports and poll at startup until a report comes in, prevents unnecessary polling
+                                else if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < maxInterval)
                                 {
                                     fresh++;
                                 }
-                                else if (lightNode && lightNode->manufacturerCode() == VENDOR_XAL && val.timestamp.isValid() && val.timestamp.secsTo(now) < reportWaitTimeXAL)
-                                {
-                                    fresh++; // rely on reporting for XAL lights
-                                }
-
                             }
                         }
                     }
