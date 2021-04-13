@@ -599,6 +599,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     pollManager = new PollManager(this);
     restDevices = new RestDevices(this);
     connect(restDevices, &RestDevices::eventNotify, this, &DeRestPluginPrivate::enqueueEvent);
+    connect(this, &DeRestPluginPrivate::eventNotify, restDevices, &RestDevices::handleEvent);
 
     databaseTimer = new QTimer(this);
     databaseTimer->setSingleShot(true);

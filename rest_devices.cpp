@@ -144,7 +144,17 @@ bool RestDevices::deleteDevice(quint64 extAddr)
     // delete device entry, regardless if REST resources exists
     plugin->deleteDeviceDb(generateUniqueId(extAddr, 0, 0));
 
+    plugin->enqueueEvent(Event(RDevices, REventDeleted, 0, extAddr));
+
     return count > 0;
+}
+
+void RestDevices::handleEvent(const Event &event)
+{
+    if (event.resource() == RDevices && event.what() == REventDeleted)
+    {
+        DEV_RemoveDevice(plugin->m_devices, event.deviceKey());
+    }
 }
 
 /*! GET /api/<apikey>/devices

@@ -36,6 +36,9 @@ public:
 Q_SIGNALS:
     void eventNotify(const Event &);
 
+public Q_SLOTS:
+    void handleEvent(const Event &event);
+
 private:
     int getAllDevices(const ApiRequest &req, ApiResponse &rsp);
     int getDevice(const ApiRequest &req, ApiResponse &rsp);

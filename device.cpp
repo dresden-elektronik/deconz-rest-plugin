@@ -902,6 +902,11 @@ Device::Device(DeviceKey key, deCONZ::ApsController *apsCtrl, QObject *parent) :
 
 Device::~Device()
 {
+    for (auto *r : subDevices())
+    {
+        r->setParentResource(nullptr);
+    }
+
     Q_ASSERT(d);
     delete d;
     d = nullptr;
@@ -1072,6 +1077,18 @@ Device *DEV_GetOrCreateDevice(QObject *parent, deCONZ::ApsController *apsCtrl, D
     Q_ASSERT(d != devices.end());
 
     return d->get();
+}
+
+bool DEV_RemoveDevice(DeviceContainer &devices, DeviceKey key)
+{
+    const auto i = std::find_if(devices.cbegin(), devices.cend(),
+                          [key](const std::unique_ptr<Device> &device) { return device->key() == key; });
+    if (i != devices.cend())
+    {
+        devices.erase(i);
+    }
+
+    return false;
 }
 
 /*! Is used to test full Device control over: Device and sub-device creation, read, write, parse of Zigbee commands.
