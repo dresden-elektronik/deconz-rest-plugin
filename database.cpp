@@ -4922,11 +4922,10 @@ void DeRestPluginPrivate::saveDb()
 
             i->setNeedSaveDatabase(false);
 
-            /*
             if (i->state() == LightNode::StateDeleted)
             {
                 // delete LightNode from db (if exist)
-                QString sql = QString("DELETE FROM nodes WHERE id='%1'").arg(i->id());
+                const QString sql = QString("DELETE FROM nodes WHERE mac='%1'").arg(i->uniqueId());
 
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
@@ -4942,7 +4941,7 @@ void DeRestPluginPrivate::saveDb()
 
                 continue;
             }
-            */
+
 
             QString lightState((i->state() == LightNode::StateDeleted ? "deleted" : "normal"));
 
@@ -5352,11 +5351,10 @@ void DeRestPluginPrivate::saveDb()
 
             i->setNeedSaveDatabase(false);
 
-            /*
             if (i->deletedState() == Sensor::StateDeleted)
             {
                 // delete sensor from db (if exist)
-                QString sql = QString("DELETE FROM sensors WHERE sid='%1'").arg(sid);
+                const QString sql = QString("DELETE FROM sensors WHERE uniqueid='%1'").arg(i->uniqueId());
 
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
@@ -5372,7 +5370,7 @@ void DeRestPluginPrivate::saveDb()
 
                 continue;
             }
-            */
+
             QString stateJSON = i->stateToString();
             QString configJSON = i->configToString();
             QString fingerPrintJSON = i->fingerPrint().toString();
