@@ -47,16 +47,18 @@ namespace deCONZ
 
     ### Object Methods
 
-    R.item(suffix) --> gets Item object, for example the 'config.offset'
-    Item.val   -> ResourceItem value (read/write)
-    Attr.val   -> attribute value (read only)
+    R.item(suffix) -> gets Item object, for example the 'config.offset'
+    Item.val       -> ResourceItem value (read/write)
+    Item.name      -> ResourceItem name like 'state/on' (read only)
+    Attr.id        -> attribute id (number, read only)
+    Attr.dataType  -> attribute datatype (number, read only)
+    Attr.val       -> attribute value (read only)
 
     ### under consideration (not implemented)
     R.parent --> get the parent resource object (Device)
     R.subDevice(uniqueId) --> get another sub-device resource object
     Item.lastSet --> timestamp when item was last set
     Item.lastChanged --> timestamp when item was last changed
-    Attr.type --> attribute datatype
     ZclFrame.attr(id) --> Attr object (if the ZclFrame has multiple)
 
 
