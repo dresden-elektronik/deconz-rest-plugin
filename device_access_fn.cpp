@@ -596,12 +596,6 @@ bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsC
     Q_ASSERT(apsCtrl);
 
     bool result = false;
-    Q_ASSERT(!item->writeParameters().isNull());
-    if (item->writeParameters().isNull())
-    {
-        return result;
-    }
-
     const auto rParent = r->parentResource() ? r->parentResource() : r;
     const auto *extAddr = rParent->item(RAttrExtAddress);
     const auto *nwkAddr = rParent->item(RAttrNwkAddress);
@@ -644,7 +638,6 @@ bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsC
     }
 
     DBG_Printf(DBG_INFO, "writeZclAttribute, ep: 0x%02X, cl: 0x%04X, attr: 0x%04X, type: 0x%02X, mfcode: 0x%04X, expr: %s\n", param.endpoint, param.clusterId, param.attributes.front(), dataType, param.manufacturerCode, qPrintable(expr));
-
 
     deCONZ::ApsDataRequest req;
     deCONZ::ZclFrame zclFrame;
