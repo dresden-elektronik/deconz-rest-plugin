@@ -100,6 +100,16 @@ void JsResourceItem::setValue(const QVariant &val)
     }
 }
 
+QString JsResourceItem::name() const
+{
+    if (citem)
+    {
+        return QLatin1String(citem->descriptor().suffix);
+    }
+
+    return {};
+}
+
 JsZclAttribute::JsZclAttribute(QObject *parent) :
     QObject(parent)
 {
@@ -165,4 +175,24 @@ QVariant JsZclAttribute::value() const
     }
 
     return {};
+}
+
+int JsZclAttribute::id() const
+{
+    if (attr)
+    {
+        return attr->id();
+    }
+
+    return -1;
+}
+
+int JsZclAttribute::dataType() const
+{
+    if (attr)
+    {
+        return attr->dataType();
+    }
+
+    return -1;
 }

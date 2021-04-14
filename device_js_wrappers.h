@@ -45,6 +45,7 @@ class JsResourceItem : public QObject
     Q_OBJECT
 
     Q_PROPERTY(QVariant val READ value WRITE setValue NOTIFY valueChanged)
+    Q_PROPERTY(QString name READ name)
 
 public:
     ResourceItem *item = nullptr;
@@ -56,6 +57,7 @@ public:
 public Q_SLOTS:
     QVariant value() const;
     void setValue(const QVariant &val);
+    QString name() const;
 
 Q_SIGNALS:
     void valueChanged();
@@ -66,6 +68,8 @@ class JsZclAttribute : public QObject
     Q_OBJECT
 
     Q_PROPERTY(QVariant val READ value)
+    Q_PROPERTY(int id READ id)
+    Q_PROPERTY(int dataType READ dataType)
 
 public:
     const deCONZ::ZclAttribute *attr = nullptr;
@@ -74,6 +78,8 @@ public:
 
 public Q_SLOTS:
     QVariant value() const;
+    int id() const;
+    int dataType() const;
 };
 
 #endif // DEVICE_JS_WRAPPERS_H
