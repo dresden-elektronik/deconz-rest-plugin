@@ -80,7 +80,7 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
     item->setIsPublic(ddfItem.isPublic);
     item->setAwake(ddfItem.awake);
 
-    if (ddfItem.refreshInterval >= 0)
+    if (ddfItem.refreshInterval != DeviceDescription::Item::NoRefreshInterval)
     {
         item->setRefreshInterval(ddfItem.refreshInterval);
     }

@@ -31,10 +31,14 @@ public:
     class Item
     {
     public:
+        enum Constants {
+            NoRefreshInterval = -1
+        };
+
         bool isValid() const { return !name.isEmpty() && descriptor.isValid(); }
         bool isPublic = true;
         bool awake = false;
-        int refreshInterval = -1;
+        int refreshInterval = NoRefreshInterval;
         QString name;
         ResourceItemDescriptor descriptor;
         std::vector<QVariant> parseParameters;

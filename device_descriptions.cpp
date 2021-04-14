@@ -706,7 +706,7 @@ static DeviceDescription DDF_MergeGenericItems(const std::vector<DeviceDescripti
             {
                 item.descriptor.access = genItem->descriptor.access;
             }
-            if (item.refreshInterval < 0 && genItem->refreshInterval >= 0)
+            if (item.refreshInterval == DeviceDescription::Item::NoRefreshInterval && genItem->refreshInterval != item.refreshInterval)
             {
                 item.refreshInterval = genItem->refreshInterval;
             }
