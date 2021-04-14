@@ -964,7 +964,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
         {
             ResourceItem *item = r->itemForIndex(i);
             DBG_Assert(item);
-            if (item && !item->parseParameters().empty())
+            if (item && !item->parseParameters().isNull())
             {
                 ParseFunction_t parseFunction = item->parseFunction();
 
@@ -998,7 +998,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                 }
                 else if (!parseFunction)
                 {
-                    DBG_Printf(DBG_INFO, "parse function not found: %s\n", qPrintable(item->parseParameters().front().toString()));
+                    DBG_Printf(DBG_INFO, "parse function not found: %s\n", qPrintable(item->parseParameters().toString()));
                 }
             }
         }

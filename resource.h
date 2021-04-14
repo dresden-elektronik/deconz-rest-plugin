@@ -351,12 +351,12 @@ public:
     quint16 endpoint() const { return m_endpoint; }
     ParseFunction_t parseFunction() const { return m_parseFunction; }
     void setParseFunction(ParseFunction_t fn) { m_parseFunction = fn; }
-    const std::vector<QVariant> &parseParameters() const { return m_parseParameters; }
-    void setParseParameters(const std::vector<QVariant> &params);
-    const std::vector<QVariant> &readParameters() const { return m_readParameters; }
-    void setReadParameters(const std::vector<QVariant> &params);
-    const std::vector<QVariant> &writeParameters() const { return m_writeParameters; }
-    void setWriteParameters(const std::vector<QVariant> &params);
+    const QVariant &parseParameters() const { return m_parseParameters; }
+    void setParseParameters(const QVariant &params);
+    const QVariant &readParameters() const { return m_readParameters; }
+    void setReadParameters(const QVariant &params);
+    const QVariant &writeParameters() const { return m_writeParameters; }
+    void setWriteParameters(const QVariant &params);
     ValueSource valueSource() const { return m_valueSource; }
 
 private:
@@ -380,9 +380,9 @@ private:
     std::vector<quint16> m_attributes;
     quint8 m_endpoint = 0xFF;
     ParseFunction_t m_parseFunction = nullptr;
-    std::vector<QVariant> m_parseParameters;
-    std::vector<QVariant> m_readParameters;
-    std::vector<QVariant> m_writeParameters;
+    QVariant m_parseParameters;
+    QVariant m_readParameters;
+    QVariant m_writeParameters;
 };
 
 class Resource

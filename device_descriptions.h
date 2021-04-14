@@ -41,9 +41,9 @@ public:
         int refreshInterval = NoRefreshInterval;
         QString name;
         ResourceItemDescriptor descriptor;
-        std::vector<QVariant> parseParameters;
-        std::vector<QVariant> readParameters;
-        std::vector<QVariant> writeParameters;
+        QVariant parseParameters;
+        QVariant readParameters;
+        QVariant writeParameters;
         QVariant defaultValue;
     };
 

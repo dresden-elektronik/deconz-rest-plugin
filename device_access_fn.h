@@ -35,9 +35,9 @@ typedef bool (*ParseFunction_t)(Resource *r, ResourceItem *item, const deCONZ::A
 typedef bool (*ReadFunction_t)(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, DA_ReadResult *result);
 typedef bool (*WriteFunction_t)(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl);
 
-ParseFunction_t DA_GetParseFunction(const std::vector<QVariant> &params);
-ReadFunction_t DA_GetReadFunction(const std::vector<QVariant> &params);
-WriteFunction_t DA_GetWriteFunction(const std::vector<QVariant> &params);
+ParseFunction_t DA_GetParseFunction(const QVariant &params);
+ReadFunction_t DA_GetReadFunction(const QVariant &params);
+WriteFunction_t DA_GetWriteFunction(const QVariant &params);
 
 
 #endif // DEVICE_ACCESS_FN_H

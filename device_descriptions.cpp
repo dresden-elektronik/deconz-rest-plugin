@@ -320,19 +320,19 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
         const auto parse = obj.value(QLatin1String("parse"));
         if (parse.isObject())
         {
-            result.parseParameters.push_back(parse.toVariant());
+            result.parseParameters = parse.toVariant();
         }
 
         const auto read = obj.value(QLatin1String("read"));
         if (read.isObject())
         {
-            result.readParameters.push_back(read.toVariant());
+            result.readParameters = read.toVariant();
         }
 
         const auto write = obj.value(QLatin1String("write"));
         if (write.isObject())
         {
-            result.writeParameters.push_back(write.toVariant());
+            result.writeParameters = write.toVariant();
         }
 
         if (obj.contains(QLatin1String("default")))
@@ -561,7 +561,7 @@ static DeviceDescription::Item DDF_ReadItemFile(const QString &path)
     return { };
 }
 
-QVariant DDF_ResolveParamScript1(const QVariant &param, const QString &path)
+QVariant DDF_ResolveParamScript(const QVariant &param, const QString &path)
 {
     auto result = param;
 
@@ -588,18 +588,6 @@ QVariant DDF_ResolveParamScript1(const QVariant &param, const QString &path)
                 result = std::move(map);
             }
         }
-    }
-
-    return result;
-}
-
-std::vector<QVariant> DDF_ResolveParamScript(const std::vector<QVariant> &params, const QString &path)
-{
-    auto result = params;
-
-    for (auto &i : result)
-    {
-        i = DDF_ResolveParamScript1(i, path);
     }
 
     return result;
@@ -699,9 +687,9 @@ static DeviceDescription DDF_MergeGenericItems(const std::vector<DeviceDescripti
                 continue;
             }
 
-            if (item.parseParameters.empty()) { item.parseParameters = genItem->parseParameters; }
-            if (item.readParameters.empty()) { item.readParameters = genItem->readParameters; }
-            if (item.writeParameters.empty()) { item.writeParameters = genItem->writeParameters; }
+            if (item.parseParameters.isNull()) { item.parseParameters = genItem->parseParameters; }
+            if (item.readParameters.isNull()) { item.readParameters = genItem->readParameters; }
+            if (item.writeParameters.isNull()) { item.writeParameters = genItem->writeParameters; }
             if (item.descriptor.access == ResourceItemDescriptor::Access::Unknown)
             {
                 item.descriptor.access = genItem->descriptor.access;

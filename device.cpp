@@ -460,7 +460,7 @@ bool DEV_ZclRead(Device *device, ResourceItem *item, deCONZ::ZclClusterId_t clus
         return false;
     }
 
-    if (item->readParameters().empty())
+    if (item->readParameters().isNull())
     {
         const QVariantMap read = {
             { "fn", "zcl" },
@@ -471,7 +471,7 @@ bool DEV_ZclRead(Device *device, ResourceItem *item, deCONZ::ZclClusterId_t clus
         item->setReadParameters({read});
     }
 
-    if (item->parseParameters().empty())
+    if (item->parseParameters().isNull())
     {
         const QVariantMap parse = {
             { "fn", "zcl" },
@@ -717,12 +717,12 @@ std::vector<PollItem> DEV_GetPollItems(Device *device)
         {
             const auto *item = r->itemForIndex(size_t(i));
 
-            if (item->readParameters().empty())
+            if (item->readParameters().isNull())
             {
                 continue;
             }
 
-            if (item->readParameters().front().toMap().empty())
+            if (item->readParameters().toMap().empty())
             {
                 continue;
             }

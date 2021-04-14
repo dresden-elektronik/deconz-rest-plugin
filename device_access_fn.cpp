@@ -160,8 +160,7 @@ bool evalZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndi
         return false;
     }
 
-    Q_ASSERT(item->parseParameters().size() == 1);
-    const auto expr = item->parseParameters().front().toMap()["eval"].toString();
+    const auto expr = item->parseParameters().toMap()["eval"].toString();
 
     if (!expr.isEmpty())
     {
@@ -211,13 +210,13 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
 
     if (!item->parseFunction()) // init on first call
     {
-        Q_ASSERT(item->parseParameters().size() == 1);
-        if (item->parseParameters().size() != 1)
+        Q_ASSERT(!item->parseParameters().isNull());
+        if (item->parseParameters().isNull())
         {
             return result;
         }
 
-        ZclParam param = getZclParam(item->parseParameters().front().toMap());
+        ZclParam param = getZclParam(item->parseParameters().toMap());
 
         if (!param.valid)
         {
@@ -398,13 +397,13 @@ bool parseXiaomiSpecial(Resource *r, ResourceItem *item, const deCONZ::ApsDataIn
 
     if (!item->parseFunction()) // init on first call
     {
-        Q_ASSERT(item->parseParameters().size() == 1);
-        if (item->parseParameters().size() != 1)
+        Q_ASSERT(!item->parseParameters().isNull());
+        if (item->parseParameters().isNull())
         {
             return result;
         }
 
-        const auto map = item->parseParameters().front().toMap();
+        const auto map = item->parseParameters().toMap();
 
         bool ok = true;
         ZclParam param;
@@ -481,8 +480,8 @@ static bool readZclAttribute(const Resource *r, const ResourceItem *item, deCONZ
     Q_ASSERT(result);
     *result = { };
 
-    Q_ASSERT(item->readParameters().size() == 1);
-    if (item->readParameters().size() != 1)
+    Q_ASSERT(!item->readParameters().isNull());
+    if (item->readParameters().isNull())
     {
         return false;
     }
@@ -497,7 +496,7 @@ static bool readZclAttribute(const Resource *r, const ResourceItem *item, deCONZ
         return false;
     }
 
-    auto param = getZclParam(item->readParameters().front().toMap());
+    auto param = getZclParam(item->readParameters().toMap());
 
     if (!param.valid)
     {
@@ -597,8 +596,8 @@ bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsC
     Q_ASSERT(apsCtrl);
 
     bool result = false;
-    Q_ASSERT(item->writeParameters().size() == 1);
-    if (item->writeParameters().size() != 1)
+    Q_ASSERT(!item->writeParameters().isNull());
+    if (item->writeParameters().isNull())
     {
         return result;
     }
@@ -612,7 +611,7 @@ bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsC
         return result;
     }
 
-    const auto map = item->writeParameters().front().toMap();
+    const auto map = item->writeParameters().toMap();
     ZclParam param = getZclParam(map);
 
     if (!param.valid)
@@ -722,7 +721,7 @@ bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsC
     return result;
 }
 
-ParseFunction_t DA_GetParseFunction(const std::vector<QVariant> &params)
+ParseFunction_t DA_GetParseFunction(const QVariant &params)
 {
     ParseFunction_t result = nullptr;
 
@@ -734,9 +733,9 @@ ParseFunction_t DA_GetParseFunction(const std::vector<QVariant> &params)
 
     QString fnName;
 
-    if (params.size() == 1 && params.front().type() == QVariant::Map)
+    if (params.type() == QVariant::Map)
     {
-        const auto params1 = params.front().toMap();
+        const auto params1 = params.toMap();
         if (params1.isEmpty())
         {  }
         else if (params1.contains("fn"))
@@ -761,7 +760,7 @@ ParseFunction_t DA_GetParseFunction(const std::vector<QVariant> &params)
     return result;
 }
 
-ReadFunction_t DA_GetReadFunction(const std::vector<QVariant> &params)
+ReadFunction_t DA_GetReadFunction(const QVariant &params)
 {
     ReadFunction_t result = nullptr;
 
@@ -772,9 +771,9 @@ ReadFunction_t DA_GetReadFunction(const std::vector<QVariant> &params)
 
     QString fnName;
 
-    if (params.size() == 1 && params.front().type() == QVariant::Map)
+    if (params.type() == QVariant::Map)
     {
-        const auto params1 = params.front().toMap();
+        const auto params1 = params.toMap();
         if (params1.isEmpty())
         {  }
         else if (params1.contains("fn"))
@@ -799,7 +798,7 @@ ReadFunction_t DA_GetReadFunction(const std::vector<QVariant> &params)
     return result;
 }
 
-WriteFunction_t DA_GetWriteFunction(const std::vector<QVariant> &params)
+WriteFunction_t DA_GetWriteFunction(const QVariant &params)
 {
     WriteFunction_t result = nullptr;
 
@@ -810,9 +809,9 @@ WriteFunction_t DA_GetWriteFunction(const std::vector<QVariant> &params)
 
     QString fnName;
 
-    if (params.size() == 1 && params.front().type() == QVariant::Map)
+    if (params.type() == QVariant::Map)
     {
-        const auto params1 = params.front().toMap();
+        const auto params1 = params.toMap();
         if (params1.isEmpty())
         {  }
         else if (params1.contains("fn"))

@@ -104,7 +104,7 @@ StateChange::State StateChange::tick(Resource *r, deCONZ::ApsController *apsCtrl
         }
 
         m_state = StateFailed;
-        if (item && !item->readParameters().empty())
+        if (item && !item->readParameters().isNull())
         {
             const auto fn = DA_GetReadFunction(item->readParameters());
             if (fn && fn(r, item, apsCtrl, &m_readResult))
@@ -209,7 +209,7 @@ int SC_WriteZclAttribute(const Resource *r, const StateChange *stateChange, deCO
             return -1;
         }
 
-        if (item->writeParameters().empty())
+        if (item->writeParameters().isNull())
         {
             return -2;
         }

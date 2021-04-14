@@ -1014,17 +1014,17 @@ void ResourceItem::setIsPublic(bool isPublic)
     m_isPublic = isPublic;
 }
 
-void ResourceItem::setParseParameters(const std::vector<QVariant> &params)
+void ResourceItem::setParseParameters(const QVariant &params)
 {
     m_parseParameters = params;
 }
 
-void ResourceItem::setReadParameters(const std::vector<QVariant> &params)
+void ResourceItem::setReadParameters(const QVariant &params)
 {
     m_readParameters = params;
 }
 
-void ResourceItem::setWriteParameters(const std::vector<QVariant> &params)
+void ResourceItem::setWriteParameters(const QVariant &params)
 {
     m_writeParameters = params;
 }
