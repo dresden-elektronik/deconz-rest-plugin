@@ -907,6 +907,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
  */
 DeRestPluginPrivate::~DeRestPluginPrivate()
 {
+    plugin = nullptr;
     if (inetDiscoveryManager)
     {
         inetDiscoveryManager->deleteLater();
@@ -19860,7 +19861,12 @@ Resource *DeRestPluginPrivate::getResource(const char *resource, const QString &
 // Testing code uses a mocked implementation.
 Resource *DEV_GetResource(const char *resource, const QString &identifier)
 {
-    return plugin->getResource(resource, identifier);
+    if (plugin)
+    {
+        return plugin->getResource(resource, identifier);
+    }
+
+    return nullptr;
 }
 
 // Used by Device class when creating Sensors.
