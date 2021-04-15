@@ -16,5 +16,6 @@ class ResourceItem;
 
 bool DB_StoreSubDevice(const Resource *sub);
 bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item);
+bool DB_LoadSubDeviceItem(const Resource *sub, ResourceItem *item);
 
 #endif // DATABASE_H

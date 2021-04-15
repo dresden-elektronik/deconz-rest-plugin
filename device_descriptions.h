@@ -37,6 +37,7 @@ public:
 
         bool isValid() const { return !name.isEmpty() && descriptor.isValid(); }
         bool isPublic = true;
+        bool isStatic = false;
         bool awake = false;
         int refreshInterval = NoRefreshInterval;
         QString name;

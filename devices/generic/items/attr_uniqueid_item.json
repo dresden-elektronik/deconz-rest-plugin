@@ -4,5 +4,6 @@
 	"datatype": "String",
 	"access": "R",
 	"public": true,
-	"description": "Unique identifier of the resource."
+	"description": "Unique identifier of the resource.",
+	"static": true
 }

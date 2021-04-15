@@ -69,7 +69,11 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
 
     }
 
-    if (ddfItem.defaultValue.isValid() && !item->lastSet().isValid())
+    if (item->lastSet().isValid() && ddfItem.isStatic)
+    { }
+    else if (DB_LoadSubDeviceItem(rsub, item))
+    { }
+    else if (ddfItem.defaultValue.isValid())
     {
         item->setValue(ddfItem.defaultValue);
     }

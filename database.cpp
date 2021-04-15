@@ -5939,3 +5939,59 @@ bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item)
     DeRestPluginPrivate::instance()->closeDb();
     return true;
 }
+
+bool DB_LoadSubDeviceItem(const Resource *sub, ResourceItem *item)
+{
+    DeRestPluginPrivate::instance()->openDb();
+    if (!db)
+    {
+        return false;
+    }
+
+    const auto sql = QString("SELECT value,timestamp FROM resource_items"
+                             " WHERE sub_device_id = (SELECT id FROM sub_devices WHERE uniqueid = '%1')"
+                             " AND item = '%2'")
+                             .arg(sub->item(RAttrUniqueId)->toString(),
+                                  QLatin1String(item->descriptor().suffix));
+
+    struct _Result
+    {
+        bool loaded = false;
+        qint64 timestamp = 0;
+        QVariant value;
+    };
+
+    _Result result;
+
+    const auto callback = +[](void *user, int ncols, char **colval , char **) -> int
+    {
+        _Result *result = static_cast<_Result*>(user);
+        Q_ASSERT(result);
+        Q_ASSERT(ncols == 2);
+
+        result->value = QString(colval[0]);
+        result->timestamp = QString(colval[1]).toLongLong();
+        return 0;
+    };
+
+    char *errmsg = nullptr;
+    int rc = sqlite3_exec(db, qPrintable(sql), callback, &result, &errmsg);
+
+    if (errmsg)
+    {
+        DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", qPrintable(sql), errmsg, rc);
+        sqlite3_free(errmsg);
+    }
+
+    if (rc == SQLITE_OK && !result.value.isNull())
+    {
+        if (item->setValue(result.value))
+        {
+            item->setTimeStamps(QDateTime::fromMSecsSinceEpoch(result.timestamp * 1000));
+            result.loaded = true;
+        }
+    }
+
+    DeRestPluginPrivate::instance()->closeDb();
+    return result.loaded;
+}
