@@ -15,6 +15,7 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "deconz/dbg_trace.h"
+#include "device_descriptions.h"
 #include "gateway.h"
 #include "json.h"
 #include "product_match.h"
@@ -3127,6 +3128,15 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         quint16 clusterId = 0;
         quint8 endpoint = sensor.fingerPrint().endpoint;
         DBG_Printf(DBG_INFO_L2, "DB found sensor %s %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()));
+
+        {
+            const auto ddf = d->deviceDescriptions->get(&sensor);
+            if (ddf.isValid())
+            {
+                DBG_Printf(DBG_INFO, "DB skip loading sensor %s %s, handeled by DDF %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()), qPrintable(ddf.product));
+                return 0;
+            }
+        }
 
         if (!isClip && sensor.type() == QLatin1String("Daylight"))
         {
