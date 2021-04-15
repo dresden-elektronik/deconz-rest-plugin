@@ -1658,6 +1658,7 @@ public:
     void updateZigBeeConfigDb();
     void getLastZigBeeConfigDb(QString &out);
     void getZigbeeConfigDb(QVariantList &out);
+    void deleteDeviceDb(const QString &uniqueId);
 
     void checkConsistency();
 
