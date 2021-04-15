@@ -25,6 +25,12 @@
   #define DBG_ZGP DBG_INFO  // DBG_ZGP didn't exist before version v2.8.x
 #endif
 
+enum ZgpDeviceId
+{
+    GpDeviceIdOnOffSwitch = 0x02,
+    GpDeviceIdGenericSwitch = 0x07
+};
+
 using GpKey_t = std::array<unsigned char, GP_SECURITY_KEY_SIZE>;
 
 GpKey_t GP_DecryptSecurityKey(quint32 sourceID, const GpKey_t &securityKey);

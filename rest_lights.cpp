@@ -18,6 +18,7 @@
 #include "json.h"
 #include "connectivity.h"
 #include "colorspace.h"
+#include "product_match.h"
 
 /*! Lights REST API broker.
     \param req - request data
@@ -567,15 +568,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     }
     else if (UseTuyaCluster(taskRef.lightNode->manufacturer()))
     {
-        //window covering
-
-        if (taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq") ||
-            taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_xuzcvlku") ||
-            taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_wmcdj3aq") ||
-            taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_nogaemzt") ||
-            taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_zah67ekd") || // MoesHouse / Livolo Roller Blinds
-            taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_fzo2pocs") ||
-            taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3"))
+        //tuya window covering
+        if (R_GetProductId(taskRef.lightNode).startsWith(QLatin1String("Tuya_COVD")))
         {
             return setWindowCoveringState(req, rsp, taskRef, map);
         }
@@ -1562,13 +1556,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         cluster = ANALOG_OUTPUT_CLUSTER_ID;
     }
 
-    if (taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq") ||
-        taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_xuzcvlku") ||
-        taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_wmcdj3aq") ||
-        taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_nogaemzt") ||
-        taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_zah67ekd") || // MoesHouse / Livolo Roller Blinds
-        taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_fzo2pocs") ||
-        taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3"))
+    if (R_GetProductId(taskRef.lightNode).startsWith(QLatin1String("Tuya_COVD")))
     {
         cluster = TUYA_CLUSTER_ID;
     }
@@ -2394,10 +2382,10 @@ int DeRestPluginPrivate::setLightAttributes(const ApiRequest &req, ApiResponse &
         //taskRef.transitionTime = 4;
         //taskRef.onTime = 0;
 
-        QByteArray direction = QByteArray("\x01\x00", 2);
+        QByteArray direction = QByteArray("\x00", 1);
         if (map["reverse"].toBool())
         {
-            direction = QByteArray("\x01\x01", 2);
+            direction = QByteArray("\x01", 1);
         }
 
         if (sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_WORK_STATE, direction))

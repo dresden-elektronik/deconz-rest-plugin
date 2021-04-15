@@ -17,11 +17,14 @@
 #include "deconz/dbg_trace.h"
 #include "gateway.h"
 #include "json.h"
+#include "product_match.h"
 
 static const char *pragmaUserVersion = "PRAGMA user_version";
 static const char *pragmaPageCount = "PRAGMA page_count";
 static const char *pragmaPageSize = "PRAGMA page_size";
 static const char *pragmaFreeListCount = "PRAGMA freelist_count";
+
+static sqlite3 *db = nullptr; // TODO should be member of Database class
 
 struct DB_Callback {
   DeRestPluginPrivate *d = nullptr;
@@ -950,6 +953,11 @@ void DeRestPluginPrivate::pushZclValueDb(quint64 extAddress, quint8 endpoint, qu
     dbQueryQueue.push_back(sql);
 }
 
+bool DeRestPluginPrivate::dbIsOpen() const
+{
+    return db != nullptr;
+}
+
 /*! Opens/creates sqlite database.
  */
 void DeRestPluginPrivate::openDb()
@@ -967,7 +975,7 @@ void DeRestPluginPrivate::openDb()
     if (rc != SQLITE_OK) {
         // failed
         DBG_Printf(DBG_ERROR, "Can't open database: %s\n", sqlite3_errmsg(db));
-        db = 0;
+        db = nullptr;
         return;
     }
 
@@ -3132,7 +3140,12 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.fingerPrint().hasOutCluster(ONOFF_CLUSTER_ID))
             {
                 clusterId = clusterId ? clusterId : ONOFF_CLUSTER_ID;
-                if (!sensor.modelId().startsWith(QLatin1String("SYMFONISK")))
+                if (sensor.modelId().startsWith(QLatin1String("RDM00")) ||
+                    sensor.modelId().startsWith(QLatin1String("SYMFONISK")))
+                {
+                    // blacklisted
+                }
+                else
                 {
                     sensor.addItem(DataTypeString, RConfigGroup);
                 }
@@ -3166,6 +3179,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             else if (sensor.modelId().startsWith(QLatin1String("RWL02")) ||
                      sensor.modelId().startsWith(QLatin1String("ROM00")) ||
+                     sensor.modelId().startsWith(QLatin1String("RDM00")) ||
                      sensor.modelId().startsWith(QLatin1String("Z3-1BRL")))
             {
                 sensor.addItem(DataTypeUInt16, RStateEventDuration);
@@ -3314,11 +3328,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     item->setValue(60); // presence should be reasonable for physical sensors
                 }
             }
-
-            if (sensor.modelId() == QLatin1String("TY0202"))
-            {
-                sensor.setManufacturer(QLatin1String("SILVERCREST"));
-            }
         }
         else if (sensor.type().endsWith(QLatin1String("Flag")))
         {
@@ -3346,11 +3355,13 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             item = sensor.addItem(DataTypeBool, RStateOpen);
             item->setValue(false);
-
-            if (sensor.modelId() == QLatin1String("TY0203"))
-            {
-                sensor.setManufacturer(QLatin1String("SILVERCREST"));
-            }
+        }
+        else if (sensor.type().endsWith(QLatin1String("DoorLock")))
+        {
+            clusterId = clusterId ? clusterId : DOOR_LOCK_CLUSTER_ID;
+            
+            sensor.addItem(DataTypeString, RStateLockState);
+            sensor.addItem(DataTypeBool, RConfigLock);
         }
         else if (sensor.type().endsWith(QLatin1String("Alarm")))
         {
@@ -3360,16 +3371,16 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             item = sensor.addItem(DataTypeBool, RStateAlarm);
             item->setValue(false);
-            
+
             if (R_GetProductId(&sensor) == QLatin1String("NAS-AB02B0 Siren"))
-            {	
-                sensor.addItem(DataTypeUInt8, RConfigMelody);	
-                sensor.addItem(DataTypeString, RConfigPreset);	
-                sensor.addItem(DataTypeUInt8, RConfigVolume);	
-                sensor.addItem(DataTypeString, RConfigTempThreshold);	
-                sensor.addItem(DataTypeString, RConfigHumiThreshold);	
+            {
+                sensor.addItem(DataTypeUInt8, RConfigMelody);
+                sensor.addItem(DataTypeString, RConfigPreset);
+                sensor.addItem(DataTypeUInt8, RConfigVolume);
+                sensor.addItem(DataTypeString, RConfigTempThreshold);
+                sensor.addItem(DataTypeString, RConfigHumiThreshold);
             }
-            
+
         }
         else if (sensor.type().endsWith(QLatin1String("CarbonMonoxide")))
         {
@@ -3448,6 +3459,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 {
                     item = sensor.addItem(DataTypeInt16, RStatePower);
                     item->setValue(0);
+                }
+                if (sensor.modelId() == QLatin1String("ZHEMI101"))
+                {
+                    sensor.addItem(DataTypeUInt8, RConfigInterfaceMode)->setValue(1);
+                    sensor.addItem(DataTypeUInt16, RConfigPulseConfiguration)->setValue(1000);
                 }
             }
             else if (sensor.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
@@ -3703,7 +3719,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = POWER_CONFIGURATION_CLUSTER_ID;
             }
-            if (sensor.manufacturer() == QLatin1String("_TYST11_xu1rkty3"))
+            else if (sensor.fingerPrint().hasInCluster(TUYA_CLUSTER_ID))
             {
                 clusterId = TUYA_CLUSTER_ID;
             }
@@ -3726,7 +3742,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
         {
             clusterId = VENDOR_CLUSTER_ID;
-            endpoint = 2;
+            endpoint = (sensor.modelId() == QLatin1String("RWL022")) ? 1 : 2;
 
             if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
             {
@@ -3757,6 +3773,26 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.setNeedSaveDatabase(true);
             }
         }
+        else if (sensor.modelId().startsWith(QLatin1String("RDM00"))) // Hue wall switch module
+        {
+            clusterId = VENDOR_CLUSTER_ID;
+            endpoint = 1;
+
+            if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
+            {
+                sensor.fingerPrint().inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
+                sensor.setNeedSaveDatabase(true);
+            }
+
+            if (!sensor.fingerPrint().hasInCluster(VENDOR_CLUSTER_ID)) // for realtime button feedback
+            {
+                sensor.fingerPrint().inClusters.push_back(VENDOR_CLUSTER_ID);
+                sensor.setNeedSaveDatabase(true);
+            }
+            item = sensor.addItem(DataTypeString, RConfigDeviceMode);
+            item = sensor.addItem(DataTypeUInt16, RConfigPending);
+            item->setValue(0);
+        }
         else if (sensor.modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
         {
             if (!sensor.fingerPrint().hasInCluster(BASIC_CLUSTER_ID))
@@ -3773,7 +3809,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(R_ALERT_DEFAULT);
             item = sensor.addItem(DataTypeBool, RConfigLedIndication);
             item->setValue(false);
-            item = sensor.addItem(DataTypeUInt8, RConfigPending);
+            item = sensor.addItem(DataTypeUInt16, RConfigPending);
             item->setValue(0);
             item = sensor.addItem(DataTypeBool, RConfigUsertest);
             item->setValue(false);
@@ -3816,7 +3852,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item = sensor.addItem(DataTypeUInt8, RConfigSensitivity);
                 item = sensor.addItem(DataTypeUInt8, RConfigSensitivityMax);
                 item->setValue(0x15); // low
-                item = sensor.addItem(DataTypeUInt8, RConfigPending);
+                item = sensor.addItem(DataTypeUInt16, RConfigPending);
             }
 
             if (!sensor.item(RStateTemperature) &&
@@ -3834,7 +3870,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.modelId().endsWith(QLatin1String("86opcn01")))
             {
                 // Aqara Opple switches need to be configured to send proper button events
-                item = sensor.addItem(DataTypeUInt8, RConfigPending);
+                item = sensor.addItem(DataTypeUInt16, RConfigPending);
                 item->setValue(item->toNumber() | R_PENDING_MODE);
             }
         }
@@ -3873,7 +3909,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     item->setValue(false);
                 }
             }
-            item = sensor.addItem(DataTypeUInt8, RConfigPending);
+            item = sensor.addItem(DataTypeUInt16, RConfigPending);
             item->setValue(0);
             sensor.addItem(DataTypeUInt32, RConfigEnrolled)->setValue(IAS_STATE_INIT);
         }
@@ -4244,20 +4280,20 @@ static int sqliteGetAllSensorIdsCallback(void *user, int ncols, char **colval , 
         return 0;
     }
 
-    DeRestPluginPrivate *d = static_cast<DeRestPluginPrivate*>(user);
+    auto *sensorIds = static_cast<std::vector<int>*>(user);
 
     for (int i = 0; i < ncols; i++)
     {
         if (colval[i] && (colval[i][0] != '\0'))
         {
-            if (strcmp(colname[i], "id") == 0)
+            if (strcmp(colname[i], "sid") == 0)
             {
                 bool ok;
                 int id = QString(colval[i]).toInt(&ok);
 
                 if (ok)
                 {
-                    d->sensorIds.push_back(id);
+                    sensorIds->push_back(id);
                 }
             }
         }
@@ -4345,75 +4381,79 @@ static int sqliteLoadAllGatewaysCallback(void *user, int ncols, char **colval , 
 
 /*! Determines a unused id for a sensor.
  */
-int DeRestPluginPrivate::getFreeSensorId()
+int getFreeSensorId()
 {
-    int rc;
-    bool ok;
-    char *errmsg = 0;
+    DeRestPluginPrivate *plugin = DeRestPluginPrivate::instance();
 
-    DBG_Assert(db != 0);
+    DBG_Assert(plugin && plugin->dbIsOpen());
 
-    if (!db)
+    if (!plugin || !plugin->dbIsOpen())
     {
-        return 1;
+        DBG_Printf(DBG_ERROR, "DB getFreeSensorId() called with no valid db pointer\n");
+        return 1; // TODO, this is an error we should handle this. 1 is misleading
     }
 
-    sensorIds.clear();
+    std::vector<int> sensorIds(plugin->sensors.size());
 
-    { // append all ids from nodes known at runtime
-        std::vector<Sensor>::const_iterator i = sensors.begin();
-        std::vector<Sensor>::const_iterator end = sensors.end();
-        for (;i != end; ++i)
-        {
-            sensorIds.push_back(i->id().toUInt());
-        }
-    }
+    // collect all ids from nodes known at runtime
+    std::transform (plugin->sensors.cbegin(), plugin->sensors.cend(), sensorIds.begin(),
+        [](const Sensor&s) { return s.id().toInt(); }
+    );
 
-    // add all ids references in rules
-    for (const Rule &r : rules)
+    // add all ids referenced in rules of sensors which don't exist anymore -> to not consider these
+    for (const Rule &r : plugin->rules)
     {
         for (const RuleCondition &c : r.conditions())
         {
-            if (c.address().startsWith(QLatin1String("/sensors/")))
+            if (c.resource() == RSensors)
             {
-                uint id = c.id().toUInt(&ok);
-                if (ok && std::find(sensorIds.begin(), sensorIds.end(), id) == sensorIds.end())
+                bool ok;
+                const int sid = c.id().toInt(&ok);
+                if (ok && std::find(sensorIds.cbegin(), sensorIds.cend(), sid) == sensorIds.cend())
                 {
-                    sensorIds.push_back(id);
+                    sensorIds.push_back(sid);
                 }
             }
         }
     }
 
-    // append all ids from database (dublicates are ok here)
-    QString sql = QString("SELECT * FROM sensors");
+    // append all deleted ids from database (dublicates are ok here)
+    const char * sql = "SELECT sid FROM sensors WHERE deletedState = 'deleted'";
 
-    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
-    rc = sqlite3_exec(db, qPrintable(sql), sqliteGetAllSensorIdsCallback, this, &errmsg);
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", sql);
+    char *errmsg = nullptr;
+    int rc = sqlite3_exec(db, sql, sqliteGetAllSensorIdsCallback, &sensorIds, &errmsg);
 
     if (rc != SQLITE_OK)
     {
         if (errmsg)
         {
-            DBG_Printf(DBG_ERROR_L2, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
+            DBG_Printf(DBG_ERROR_L2, "sqlite3_exec %s, error: %s\n", sql, errmsg);
             sqlite3_free(errmsg);
         }
     }
 
-    int id = sensors.empty() ? 1 : static_cast<int>(sensors.size()); // 'append' only
-    while (id < 10000)
-    {
-        std::vector<int>::iterator result = std::find(sensorIds.begin(), sensorIds.end(), id);
+    std::sort(sensorIds.begin(), sensorIds.end());
 
-        // id not known?
+    // 'append' only, start with largest known id
+    // skip daylight sensor.id 1000 from earlier versions to keep id value low as possible
+    const auto startId = std::find_if(sensorIds.rbegin(), sensorIds.rend(), [](int sid) { return sid < 1000; });
+
+    int sid = (startId != sensorIds.rend()) ? *startId : 1;
+
+    while (sid < 10000)
+    {
+        const auto result = std::find(sensorIds.cbegin(), sensorIds.cend(), sid);
+
         if (result == sensorIds.end())
         {
-            return id;
+            return sid;
         }
-        id++;
+
+        sid++;
     }
 
-    return id;
+    return sid;
 }
 
 /*! Saves the current auth with apikey to the database.
@@ -5382,7 +5422,7 @@ void DeRestPluginPrivate::closeDb()
         int ret = sqlite3_close(db);
         if (ret == SQLITE_OK)
         {
-            db = 0;
+            db = nullptr;
 #ifdef Q_OS_LINUX
             QElapsedTimer measTimer;
             measTimer.restart();
@@ -5512,6 +5552,42 @@ void DeRestPluginPrivate::getZigbeeConfigDb(QVariantList &out)
 
     rc = sqlite3_finalize(res);
     DBG_Assert(rc == SQLITE_OK);
+
+    closeDb();
+}
+
+/*! Deletes a device from the database.
+
+    Due the foreign keys this affects the tables:
+    - device
+    - device_descriptors
+    - device_gui
+    - source_routes
+    - source_route_hops
+ */
+void DeRestPluginPrivate::deleteDeviceDb(const QString &uniqueId)
+{
+    DBG_Assert(!uniqueId.isEmpty());
+
+    openDb();
+    DBG_Assert(db);
+    if (!db)
+    {
+        return;
+    }
+
+    char *errmsg = nullptr;
+    const auto sql = QString("DELETE FROM devices WHERE mac = '%1'").arg(uniqueId);
+    int rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s, line: %d\n", qPrintable(sql), errmsg, __LINE__);
+            sqlite3_free(errmsg);
+        }
+    }
 
     closeDb();
 }

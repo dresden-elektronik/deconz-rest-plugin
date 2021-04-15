@@ -9,6 +9,7 @@
  */
 
 #include "de_web_plugin_private.h"
+#include "product_match.h"
 
 /*! Constructor.
  */
@@ -107,7 +108,7 @@ void LightNode::setManufacturerCode(uint16_t code)
         case VENDOR_UBISYS:  name = QLatin1String("ubisys"); break;
         case VENDOR_BUSCH_JAEGER:  name = QLatin1String("Busch-Jaeger"); break;
         //case VENDOR_EMBER:   // fall through
-        case VENDOR_HEIMAN:  name = QLatin1String("Heiman"); break;
+        //case VENDOR_HEIMAN:  name = QLatin1String("Heiman"); break;
         case VENDOR_KEEN_HOME: name = QLatin1String("Keen Home Inc"); break;
         case VENDOR_DANALOCK: name = QLatin1String("Danalock"); break;
         case VENDOR_SCHLAGE: name = QLatin1String("Schlage"); break;
@@ -475,9 +476,16 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                         {
                             addItem(DataTypeUInt16, RStateX);
                             addItem(DataTypeUInt16, RStateY);
-                            addItem(DataTypeString, RStateEffect)->setValue(RStateEffectValues[R_EFFECT_NONE]);
-                            addItem(DataTypeUInt16, RStateHue);
-                            addItem(DataTypeUInt8, RStateSat);
+                            if (manufacturer() == QLatin1String("LIDL Livarno Lux"))
+                            {
+                                removeItem(RConfigColorCapabilities);
+                            }
+                            else
+                            {
+                                addItem(DataTypeString, RStateEffect)->setValue(RStateEffectValues[R_EFFECT_NONE]);
+                                addItem(DataTypeUInt16, RStateHue);
+                                addItem(DataTypeUInt8, RStateSat);
+                            }
                         }
                         break;
                     default:
@@ -558,9 +566,10 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 }
                 else if (i->id() == IDENTIFY_CLUSTER_ID)
                 {
-                    if (manufacturerCode() == VENDOR_IKEA && deviceId == DEV_ID_RANGE_EXTENDER)
+                    if ((manufacturerCode() == VENDOR_IKEA && deviceId == DEV_ID_RANGE_EXTENDER) ||
+                        R_GetProductId(this) == QLatin1String("Tuya_RPT Repeater"))
                     {
-                        // the repeater has no on/off cluster but an led which supports identify
+                        // the ikea repeater has no on/off cluster but an led which supports identify
                         removeItem(RStateOn);
                         ltype = QLatin1String("Range extender");
                     }
@@ -615,7 +624,6 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                                                        ltype = QLatin1String("Warning device"); break;
             case DEV_ID_HA_WINDOW_COVERING_CONTROLLER: ltype = QLatin1String("Window covering controller"); break;
             case DEV_ID_HA_WINDOW_COVERING_DEVICE:     ltype = QLatin1String("Window covering device"); break;
-            // Danalock support. Add the device id to setHAEndPoint() to set the type to "Door lock".
             case DEV_ID_DOOR_LOCK:                     ltype = QLatin1String("Door Lock"); break;
             case DEV_ID_DOOR_LOCK_UNIT:                ltype = QLatin1String("Door Lock Unit"); break;
             

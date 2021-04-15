@@ -17,6 +17,7 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "json.h"
+#include "product_match.h"
 
 /*! Sensors REST API broker.
     \param req - request data
@@ -668,7 +669,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     qint16 offset = 0;
     QMap<quint16, quint32> attributeList;
     bool tholdUpdated = false;
-    uint8_t pendingMask = 0;
+    quint16 pendingMask = 0;
     QVariant var = Json::parse(req.content, ok);
     QVariantMap map = var.toMap();
     QVariantMap rspItem;
@@ -744,6 +745,16 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     offset -= item->toNumber();
                 }
 
+                if (rid.suffix == RConfigDeviceMode)
+                {
+                    if (RConfigDeviceModeValues.indexOf(val.toString()) < 0)
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/devicemode").arg(id), QString("invalid value, %1, for parameter, devicemode").arg(val.toString())));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
+
                 if (rid.suffix == RConfigAlert)
                 {
                     if (val == "none")
@@ -788,6 +799,44 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 //don't update value for those setting, let them be filled by the return from device
                 else if (rid.suffix == RConfigTempThreshold || rid.suffix == RConfigHumiThreshold)
                 {
+                }
+                else if (rid.suffix == RConfigLock)
+                {
+                    bool ok;
+
+                    if (map[pi.key()].type() == QVariant::Bool)
+                    {
+                        const bool lock = map[pi.key()].toBool();
+                        if (lock)
+                        {
+                            ok = addTaskDoorLockUnlock(task, 0x00 /*Lock*/);
+                        }
+                        else
+                        {
+                            ok = addTaskDoorLockUnlock(task, 0x01 /*UnLock*/);
+                        }
+                        if (ok)
+                        {
+                            if (item->setValue(lock))
+                            {
+                                rspItemState[QString("/sensors/%1/config/lock").arg(id)] = map["lock"];
+                                rspItem["success"] = rspItemState;
+                                updated = true;
+                            }
+                        }
+                        else
+                        {
+                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/lock").arg(id), QString("Command error, %1, for parameter, lock").arg(map[pi.key()].toString())));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
+                        }
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/lock").arg(id), QString("invalid value, %1, for parameter, lock").arg(val.toString())));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
                 }
                 else if (item->setValue(val))
                 {
@@ -844,6 +893,12 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             pendingMask |= R_PENDING_USERTEST;
                             sensor->enableRead(WRITE_USERTEST);
                             sensor->setNextReadTime(WRITE_USERTEST, QTime::currentTime());
+                        }
+                        else if (rid.suffix == RConfigDeviceMode)
+                        {
+                            pendingMask |= R_PENDING_DEVICEMODE;
+                            sensor->enableRead(WRITE_DEVICEMODE);
+                            sensor->setNextReadTime(WRITE_DEVICEMODE, QTime::currentTime());
                         }
                     }
 
@@ -1070,7 +1125,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                             sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_TRESHOLDTEMPMINI, datamin);
                             sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_TRESHOLDTEMPMAXI, datamax);
-                            
+
                             rspItemState[QString("/sensors/%1/config/temperaturethreshold").arg(id)] = map[pi.key()].toString();
                             rspItem["success"] = rspItemState;
                             rsp.list.append(rspItem);
@@ -1100,7 +1155,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                 }
             }
-            
+
             //Special part for thermostat
             if (sensor->type() == "ZHAThermostat")
             {
@@ -1220,7 +1275,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         // UPD 16-11-2020: Since there is no way to reckognize older and newer models correctly and a new firmware version is on its way this
                         //                 'fix' is changed to a more robust but ugly implementation by simply sending both codes to the device. One of the commands
                         //                 will be accepted while the other one will be refused. Let's hope this code can be removed in a future release.
-    
+
                         if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, 0x4003, deCONZ::Zcl16BitInt, heatsetpoint) &&
                             addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_NONE,   0x0012, deCONZ::Zcl16BitInt, heatsetpoint))
                         {
@@ -1274,10 +1329,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             dp = 0x10;
                             heatsetpoint = (int16_t)(heatsetpoint / 10);
                         }
-                        
+
                         data.append(static_cast<qint8>((heatsetpoint >> 8) & 0xff));
                         data.append(static_cast<qint8>(heatsetpoint & 0xff));
-                        
+
                         if (sendTuyaRequest(task, TaskThermostat , DP_TYPE_VALUE , dp, data))
                         {
                             updated = true;
@@ -1301,7 +1356,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         qint16 coolsetpoint = map[pi.key()].toInt(&ok);
 
-                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, 0x0011, deCONZ::Zcl16BitInt, coolsetpoint))
+                        if (ok && addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, 0x0011, deCONZ::Zcl16BitInt, coolsetpoint))
                         {
                             updated = true;
                         }
@@ -1393,9 +1448,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                     {
-                        QByteArray data = QByteArray("\x00", 1);
+                        QByteArray data;
                         QString modeSet = map[pi.key()].toString();
                         if (modeSet == "heat") { data = QByteArray("\x01", 1); }
+                        else if (modeSet == "off") { data = QByteArray("\x00", 1); }
                         else
                         {
                             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
@@ -1682,9 +1738,9 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             {
                                 data = QByteArray("\x01", 1);
                             }
-                            
+
                             qint8 dp = 0x07;
-                            
+
                             if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat") ||
                                 R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV"))
                             {
@@ -1812,7 +1868,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             qint16 externalMeasurement = map[pi.key()].toInt(&ok);
 
-                            if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_DANFOSS, 0x4015, deCONZ::Zcl16BitInt, externalMeasurement))
+                            if (ok && addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_DANFOSS, 0x4015, deCONZ::Zcl16BitInt, externalMeasurement))
                             {
                                 updated = true;
                             }
@@ -2111,6 +2167,103 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                 }
             }
+            
+            //Special part for metering interfaces
+            if (sensor->type() == "ZHAConsumption")
+            {
+                if (rid.suffix == RConfigPulseConfiguration)
+                {
+                    if (map[pi.key()].type() == QVariant::Double)
+                    {
+                        if (sensor->modelId() == QLatin1String("ZHEMI101"))
+                        {
+                            const uint pulseConfiguration = map[pi.key()].toUInt(&ok);
+
+                            if (ok && pulseConfiguration <=  UINT16_MAX && addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0300, deCONZ::Zcl16BitUint, pulseConfiguration, VENDOR_DEVELCO))
+                            {
+                                updated = true;
+                            }
+                            else
+                            {
+                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                           QString("Could not set attribute")));
+                                rsp.httpStatus = HttpStatusBadRequest;
+                                return REQ_READY_SEND;
+                            }
+                        }
+                        else
+                        {
+                            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                       QString("parameter, %1, not available").arg(pi.key())));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
+                        }
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
+                else if (rid.suffix == RConfigInterfaceMode)
+                {
+                    if (map[pi.key()].type() == QVariant::Double)
+                    {
+                        if (sensor->modelId() == QLatin1String("ZHEMI101"))
+                        {
+                            const uint mode = map[pi.key()].toUInt(&ok);
+                            quint16 interfaceMode = 0;
+                            
+                            if (ok && mode == 1)      { interfaceMode = PULSE_COUNTING_ELECTRICITY; }
+                            else if (ok && mode == 2) { interfaceMode = PULSE_COUNTING_GAS; }
+                            else if (ok && mode == 3) { interfaceMode = PULSE_COUNTING_WATER; }
+                            else if (ok && mode == 4) { interfaceMode = KAMSTRUP_KMP; }
+                            else if (ok && mode == 5) { interfaceMode = LINKY; }
+                            else if (ok && mode == 6) { interfaceMode = DLMS_COSEM; }
+                            else if (ok && mode == 7) { interfaceMode = DSMR_23; }
+                            else if (ok && mode == 8) { interfaceMode = DSMR_40; }
+                            else
+                            {
+                                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                           QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
+                                rsp.httpStatus = HttpStatusBadRequest;
+                                return REQ_READY_SEND;
+                            }
+
+                            if (mode > 0 && mode < 9)
+                            {
+                                if (addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0302, deCONZ::Zcl16BitEnum, interfaceMode, VENDOR_DEVELCO))
+                                {
+                                    updated = true;
+                                }
+                                else
+                                {
+                                    rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                               QString("Could not set attribute")));
+                                    rsp.httpStatus = HttpStatusBadRequest;
+                                    return REQ_READY_SEND;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                       QString("parameter, %1, not available").arg(pi.key())));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
+                        }
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
+            }
         }
 
         if (!item)
@@ -2238,9 +2391,11 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
         ResourceItem *item = sensor->item(RConfigPending);
         if (item)
         {
-            uint8_t mask = item->toNumber();
+            quint16 mask = item->toNumber();
             mask |= pendingMask;
             item->setValue(mask);
+            Event e(RSensors, RConfigPending, sensor->id(), item);
+            enqueueEvent(e);
         }
     }
 
@@ -2330,7 +2485,7 @@ int DeRestPluginPrivate::changeThermostatSchedule(const ApiRequest &req, ApiResp
     task.req.setDstEndpoint(sensor->fingerPrint().endpoint);
     task.req.setSrcEndpoint(getSrcEndpoint(sensor, task.req));
     task.req.setDstAddressMode(deCONZ::ApsExtAddress);
-    
+
     if (R_GetProductId(sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
         R_GetProductId(sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
         R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
@@ -2352,7 +2507,7 @@ int DeRestPluginPrivate::changeThermostatSchedule(const ApiRequest &req, ApiResp
     {
         ok2 = addTaskThermostatSetWeeklySchedule(task, weekdays, transitions);
     }
-    
+
     if (!ok2)
     {
         rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/schedule/%2").arg(id).arg(req.path[6]), QString("could not set schedule")));
@@ -2806,6 +2961,10 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
                 {
                     pending.append("usertest");
                 }
+                if (value & R_PENDING_DEVICEMODE)
+                {
+                    pending.append("devicemode");
+                }
                 config[key] = pending;
             }
             else if (rid.suffix == RConfigLastChangeSource)
@@ -3148,7 +3307,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                 {
                     const char *key = item->descriptor().suffix + 7;
 
-                    if (rid.suffix == RConfigPending || rid.suffix == RConfigHostFlags)
+                    if (rid.suffix == RConfigHostFlags)
                     {
                         continue;
                     }
@@ -3171,6 +3330,33 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                             QVariantMap schedule;
                             deserialiseThermostatSchedule(item->toString(), &schedule);
                             config[key] = schedule;
+                        }
+                        else if (rid.suffix == RConfigPending)
+                        {
+                            QVariantList pending;
+                            auto value = item->toNumber();
+
+                            if (value & R_PENDING_DELAY)
+                            {
+                                pending.append("delay");
+                            }
+                            if (value & R_PENDING_LEDINDICATION)
+                            {
+                                pending.append("ledindication");
+                            }
+                            if (value & R_PENDING_SENSITIVITY)
+                            {
+                                pending.append("sensitivity");
+                            }
+                            if (value & R_PENDING_USERTEST)
+                            {
+                                pending.append("usertest");
+                            }
+                            if (value & R_PENDING_DEVICEMODE)
+                            {
+                                pending.append("devicemode");
+                            }
+                            config[key] = pending;
                         }
                         else
                         {
