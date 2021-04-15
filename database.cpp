@@ -4858,11 +4858,11 @@ void DeRestPluginPrivate::saveDb()
 
             i->setNeedSaveDatabase(false);
 
-            /*
             if (i->state() == LightNode::StateDeleted)
             {
                 // delete LightNode from db (if exist)
-                QString sql = QString("DELETE FROM nodes WHERE id='%1'").arg(i->id());
+                QString sql = QString("DELETE FROM nodes WHERE mac='%1'").arg(i->uniqueId());
+                sql.append(QString("; DELETE FROM devices WHERE mac = '%1'").arg(generateUniqueId(i->address().ext(), 0, 0)));
 
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
@@ -4878,9 +4878,6 @@ void DeRestPluginPrivate::saveDb()
 
                 continue;
             }
-            */
-
-            QString lightState((i->state() == LightNode::StateDeleted ? "deleted" : "normal"));
 
             std::vector<GroupInfo>::const_iterator gi = i->groups().begin();
             std::vector<GroupInfo>::const_iterator gend = i->groups().end();
@@ -4894,6 +4891,7 @@ void DeRestPluginPrivate::saveDb()
                 }
             }
 
+            const QString lightState = "normal";
             QString ritems = i->resourceItemsToJson();
             QString sql = QString(QLatin1String("REPLACE INTO nodes (id, state, mac, name, groups, endpoint, modelid, manufacturername, swbuildid, ritems) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10')"))
                     .arg(i->id())
@@ -4906,11 +4904,6 @@ void DeRestPluginPrivate::saveDb()
                     .arg(i->manufacturer())
                     .arg(i->swBuildId())
                     .arg(ritems);
-
-            if (i->state() == LightNode::StateDeleted)
-            {
-                sql.append(QString("; DELETE FROM devices WHERE mac = '%1'").arg(generateUniqueId(i->address().ext(), 0, 0)));
-            }
 
             DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
             errmsg = NULL;
@@ -5288,11 +5281,11 @@ void DeRestPluginPrivate::saveDb()
 
             i->setNeedSaveDatabase(false);
 
-            /*
             if (i->deletedState() == Sensor::StateDeleted)
             {
                 // delete sensor from db (if exist)
-                QString sql = QString("DELETE FROM sensors WHERE sid='%1'").arg(sid);
+                QString sql = QString("DELETE FROM sensors WHERE uniqueid='%1'").arg(i->uniqueId());
+                sql.append(QString("; DELETE FROM devices WHERE mac = '%1'").arg(generateUniqueId(i->address().ext(), 0, 0)));
 
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
@@ -5308,11 +5301,11 @@ void DeRestPluginPrivate::saveDb()
 
                 continue;
             }
-            */
+
             QString stateJSON = i->stateToString();
             QString configJSON = i->configToString();
             QString fingerPrintJSON = i->fingerPrint().toString();
-            QString deletedState((i->deletedState() == Sensor::StateDeleted ? "deleted" : "normal"));
+            const QString deletedState = "normal";
 
             QString sql = QString(QLatin1String("REPLACE INTO sensors (sid, name, type, modelid, manufacturername, uniqueid, swversion, state, config, fingerprint, deletedState, mode) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10', '%11', '%12')"))
                     .arg(i->id())
@@ -5327,11 +5320,6 @@ void DeRestPluginPrivate::saveDb()
                     .arg(fingerPrintJSON)
                     .arg(deletedState)
                     .arg(QString::number(i->mode()));
-
-            if (i->deletedState() == Sensor::StateDeleted)
-            {
-                sql.append(QString("; DELETE FROM devices WHERE mac = '%1'").arg(generateUniqueId(i->address().ext(), 0, 0)));
-            }
 
             DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
             errmsg = NULL;
