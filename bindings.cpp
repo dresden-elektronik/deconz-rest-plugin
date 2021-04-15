@@ -3531,7 +3531,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         clusters.push_back(LEVEL_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
-    // IKEA SYMFONISK sound controller
+    // Sonoff
     else if (sensor->modelId().startsWith(QLatin1String("WB01")) ||
              sensor->modelId().startsWith(QLatin1String("WB-01")))
     {
