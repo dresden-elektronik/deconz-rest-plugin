@@ -750,6 +750,11 @@ bool ResourceItem::setValue(const QString &val, ValueSource source)
 {
     if (m_str)
     {
+        if (m_rid->type == DataTypeTime)
+        {
+            return setValue(QVariant(val), source);
+        }
+
         m_valueSource = source;
         m_lastSet = QDateTime::currentDateTime();
         m_flags |= FlagNeedPushSet;
@@ -840,7 +845,11 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
     {
         if (val.type() == QVariant::String)
         {
-            QDateTime dt = QDateTime::fromString(val.toString(), QLatin1String("yyyy-MM-ddTHH:mm:ss"));
+            const auto str = val.toString();
+            auto fmt = str.contains('.') ? QLatin1String("yyyy-MM-ddTHH:mm:ss.zzz")
+                                         : QLatin1String("yyyy-MM-ddTHH:mm:ss");
+            auto dt = QDateTime::fromString(str, fmt);
+            dt.setTimeSpec(Qt::UTC);
 
             if (dt.isValid())
             {
