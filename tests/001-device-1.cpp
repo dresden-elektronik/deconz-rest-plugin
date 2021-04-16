@@ -1,83 +1,54 @@
-#include <cstdlib>
 #include <QCoreApplication>
 #include "catch2/catch.hpp"
-#include "deconz/aps.h"
-#include "deconz/dbg_trace.h"
+#include "resource.h"
+#include "device_js/device_js.h"
 
-namespace deCONZ {
-  class Node;
-}
+int argc = 0;
+QCoreApplication app(argc, nullptr);
 
-class Resource;
-
-deCONZ::Node *DEV_GetCoreNode(unsigned long)
+TEST_CASE( "001: Basic Math", "[DeviceJs]" )
 {
-    return nullptr;
+    DeviceJs js;
+
+    REQUIRE(js.evaluate("1 + 2") == JsEvalResult::Ok);
+
+    REQUIRE(js.result().toInt() == 3);
+
 }
 
-quint8 zclNextSequenceNumber()
+TEST_CASE("002: ResourceItem DataTypeBool", "[ResourceItem]")
 {
-    static quint8 seq;
-    return ++seq;
-}
+    initResourceDescriptors();
 
-Resource *DEV_GetResource(char const*, QString const&)
-{
-    return nullptr;
-}
+    ResourceItemDescriptor rid;
 
-QString generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId)
-{
-    union _a
-    {
-        quint8 bytes[8];
-        quint64 mac;
-    } a;
-    a.mac = extAddress;
-    int ret = -1;
-    char buf[64];
+    REQUIRE(rid.suffix == RInvalidSuffix);
 
-    if (clusterId != 0 && endpoint != 0xf2)
-    {
-        ret = snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x-%02x-%04x",
-                    a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
-                    a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0],
-                    endpoint, clusterId);
+    getResourceItemDescriptor("state/on", rid);
 
-    }
-    else if (endpoint != 0)
-    {
-        ret = snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x-%02x",
-                    a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
-                    a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0],
-                    endpoint);
-    }
-    else
-    {
-        ret = snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
-                    a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
-                    a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0]);
-    }
-    Q_ASSERT(ret > 0);
-    Q_ASSERT(static_cast<size_t>(ret) < sizeof(buf));
+    REQUIRE(rid.suffix == RStateOn);
 
-    if (ret < 0 || static_cast<size_t>(ret) >= sizeof(buf))
-    {
-        DBG_Printf(DBG_ERROR, "failed to generate uuid, buffer too small\n");
-        Q_ASSERT(0);
-        return QString();
-    }
+    ResourceItem item(rid);
 
-    return QString::fromLatin1(buf);
-}
+    REQUIRE(item.descriptor().suffix == RStateOn);
+    REQUIRE(item.descriptor().type == DataTypeBool);
 
+    REQUIRE(item.lastSet().isValid() == false);
+    REQUIRE(item.lastChanged().isValid() ==  false);
+    REQUIRE(item.toBool() == false);
+    REQUIRE(item.toNumber() == 0);
+    REQUIRE(item.toVariant().toBool() == false);
+    REQUIRE(item.toString() == "");  // TODO
+    REQUIRE(item.toVariant().type() == QVariant::Invalid);
 
-int test1()
-{
-    deCONZ::ApsDataConfirm conf;
-    return conf.id();
-}
+    item.setValue(true);
 
-TEST_CASE( "2: Nothing here yet", "[multi-file:2]" ) {
-    REQUIRE(generateUniqueId(1,2,3) == "00:00:00:00:00:00:00:01-02-000r");
+    REQUIRE(item.lastSet().isValid() == true);
+    REQUIRE(item.lastChanged().isValid() ==  true);
+    REQUIRE(item.toBool() == true);
+    REQUIRE(item.toNumber() == 1);
+    REQUIRE(item.toVariant().toBool() == true);
+    REQUIRE(item.toVariant().type() == QVariant::Bool);
+    REQUIRE(item.toString() == "");  // TODO
+    REQUIRE(item.toVariant().toString() == "true");
 }
