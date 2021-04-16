@@ -793,7 +793,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 
                 if (switchIcon != UINT8_MAX && switchText != NULL) {
                     // Stitch it to a one octed string which includes the icon and the text...
-                    QString hexvalue = QString("%1").arg(switchIcon, 2, 16, QLatin1Char('0'));
+                    char[] switchIconStr = {switchIcon, \0};
+                    QString hexvalue = QString(switchIconStr);//QString("%1").arg(switchIcon, 2, 16, QLatin1Char('0'));
                     inputString = hexvalue + switchText;
                 }
                 else {
