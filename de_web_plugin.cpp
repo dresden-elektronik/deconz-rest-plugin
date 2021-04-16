@@ -2606,11 +2606,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             else if (!(searchLightsState == SearchLightsActive || permitJoinFlag))
             {
                 // don't add new light node when search is not active
-                // except Node Descriptor is known
-                if (node->nodeDescriptor().isNull())
-                {
-                    return;
-                }
+                return;
             }
 
             openDb();
