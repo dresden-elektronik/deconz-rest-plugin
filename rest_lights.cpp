@@ -623,6 +623,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     else if (taskRef.lightNode->modelId() == QLatin1String("lumi.switch.n4acn4"))
     {
         QString inputString = NULL;
+        QString stringToSaveOnLight = NULL;
         quint8 inputUint8Param = UINT8_MAX;
         quint32 inputUint32Param = UINT32_MAX;
 
@@ -632,6 +633,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         quint8 type = UINT8_MAX;
 
         const char *resoursePathForResponse = NULL;
+        const char *resoursePathForResponse2 = NULL;
 
         for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
         {
@@ -775,7 +777,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                     switchIcon = map[param].toUInt(&ok);
                     if (ok)
                     {
-                        switchText = taskRef.lightNode->item(RStateAqaraS1Switch1Text)->toString();
+                        inputUint8Param = switchIcon;
+                        switchText = taskRef.lightNode->item(param == "aqara_s1_switch1_text" ? RStateAqaraS1Switch1Text : param == "aqara_s1_switch2_text" ? RStateAqaraS1Switch2Text : RStateAqaraS1Switch3Text)->toString();
                         resoursePathForResponse = param == "aqara_s1_switch1_icon" ? RStateAqaraS1Switch1Icon : param == "aqara_s1_switch2_icon" ? RStateAqaraS1Switch2Icon : RStateAqaraS1Switch3Icon;
                         valueOk = true;
                     }
@@ -783,7 +786,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 else if ((param == "aqara_s1_switch1_text" || param == "aqara_s1_switch2_text" || param == "aqara_s1_switch3_text") && map[param].type() == QVariant::String)
                 {
                     switchText = map[param].toString();
-                    switchIcon = taskRef.lightNode->item(RStateAqaraS1Switch1Icon)->toNumber();
+                    stringToSaveOnLight = switchText;
+                    switchIcon = taskRef.lightNode->item(param == "aqara_s1_switch1_icon" ? RStateAqaraS1Switch1Icon : param == "aqara_s1_switch2_icon" ? RStateAqaraS1Switch2Icon : RStateAqaraS1Switch3Icon)->toNumber();
                     resoursePathForResponse = param == "aqara_s1_switch1_text" ? RStateAqaraS1Switch1Text : param == "aqara_s1_switch2_text" ? RStateAqaraS1Switch2Text : RStateAqaraS1Switch3Text;
                     valueOk = true;
                 }
@@ -791,13 +795,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 quint8 switchNumber = param[15].digitValue();
                 attr = 0x222 + switchNumber;
                 
-                if (switchIcon != UINT8_MAX && switchText != NULL) {
+                if (switchIcon > 0x00 && switchIcon <= 0x0b && switchText != NULL) {
                     // Stitch it to a one octed string which includes the icon and the text...
-                    char switchIconStr[] = {switchText.length() + 1, 1, '\0'};
-//                    char switchIconStr1[] = {switchText.length() + 1, switchIcon, '\0'};
-//                    QString hexvalue = QString("%1%1").arg(switchText + 1, 2, 16, QLatin1Char('0')).arg(switchIcon, 2, 16, QLatin1Char('0'));
+                    char switchIconStr[] = {switchText.length() + 1, switchIcon, '\0'};
                     QString hexvalue = QString(switchIconStr);
-//                    QString hexvalue1 = QString(switchIconStr);
                     inputString = hexvalue + switchText;
                     inputString = inputString.toLatin1().toHex();
                 }
@@ -898,8 +899,13 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                     QVariantMap rspItemState;
                     if (type == deCONZ::ZclOctedString)
                     {
-                        taskRef.lightNode->setValue(resoursePathForResponse, inputString);
-                        rspItemState[QString("/lights/%1/state/%2").arg(id).arg(param)] = inputString;
+                        if (inputUint8Param != UINT8_MAX && resoursePathForResponse2 != NULL) {
+                            taskRef.lightNode->setValue(resoursePathForResponse2, inputUint8Param);
+                        }
+                        else {
+                            taskRef.lightNode->setValue(resoursePathForResponse, stringToSaveOnLight != NULL ? stringToSaveOnLight : inputString);
+                        }
+                        rspItemState[QString("/lights/%1/state/%2").arg(id).arg(param)] = stringToSaveOnLight != NULL ? stringToSaveOnLight : inputString;
                     }
                     else if (type == deCONZ::ZclBoolean)
                     {
