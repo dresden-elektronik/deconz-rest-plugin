@@ -763,9 +763,44 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                     }
                 }
             }
-            // TODO: Switches icons and names...
+            else if (((param == "aqara_s1_switch1_icon" || param == "aqara_s1_switch1_text") && taskRef.lightNode->item(RStateAqaraS1Switch1Icon) && taskRef.lightNode->item(RStateAqaraS1Switch1Text)) || ((param == "aqara_s1_switch2_icon" || param == "aqara_s1_switch2_text") && taskRef.lightNode->item(RStateAqaraS1Switch2Icon) && taskRef.lightNode->item(RStateAqaraS1Switch2Text)) || ((param == "aqara_s1_switch3_icon" || param == "aqara_s1_switch3_text") && taskRef.lightNode->item(RStateAqaraS1Switch3Icon) && taskRef.lightNode->item(RStateAqaraS1Switch3Text)))
+            {
+                paramOk = true;
+                quint8 switchIcon = UINT8_MAX;
+                QString switchText = NULL;
+                type = deCONZ::ZclOctedString;
+                
+                if ((param == "aqara_s1_switch1_icon" || param == "aqara_s1_switch2_icon" || param == "aqara_s1_switch3_icon") && map[param].type() == QVariant::Double)
+                {
+                    switchIcon = map[param].toUInt(&ok);
+                    if (ok)
+                    {
+                        switchText = taskRef.lightNode->item(RStateAqaraS1Switch1Text)->toString();
+                        resoursePathForResponse = param == "aqara_s1_switch1_icon" ? RStateAqaraS1Switch1Icon : param == "aqara_s1_switch2_icon" ? RStateAqaraS1Switch2Icon : RStateAqaraS1Switch3Icon;
+                        valueOk = true;
+                    }
+                }
+                else if ((param == "aqara_s1_switch1_text" || param == "aqara_s1_switch2_text" || param == "aqara_s1_switch3_text") && map[param].type() == QVariant::String)
+                {
+                    switchText = map[param].toString();
+                    switchIcon = taskRef.lightNode->item(RStateAqaraS1Switch1Icon)->toNumber();
+                    resoursePathForResponse = param == "aqara_s1_switch1_text" ? RStateAqaraS1Switch1Text : param == "aqara_s1_switch2_text" ? RStateAqaraS1Switch2Text : RStateAqaraS1Switch3Text;
+                    valueOk = true;
+                }
+                
+                quint8 switchNumber = param[15].digitValue();
+                attr = 0x222 + switchNumber;
+                
+                if (switchIcon != UINT8_MAX && switchText != NULL) {
+                    // Stitch it to a one octed string which includes the icon and the text...
+                    QString hexvalue = QString("%1").arg(switchIcon, 2, 16, QLatin1Char('0'));
+                    inputString = hexvalue + switchText;
+                }
+                else {
+                    valueOk = false;
+                }
+            }
             
-
             if (paramOk && valueOk)
             {
                 DBG_Printf(DBG_INFO, "Xiaomi attribute 0xfff2: %s\n", qPrintable(inputString));
@@ -886,11 +921,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 }
             }
         }
+        
         if (paramOk)
         {
             return REQ_READY_SEND;
         }
-        
     }
     
     
