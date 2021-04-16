@@ -12160,7 +12160,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             quint32 uint32Param = UINT32_MAX;
             quint8 boolParam = UINT8_MAX;
             QString stringParam = NULL;
-            QString stringParam2 = NULL;
 
             switch (a)
             {
@@ -12245,10 +12244,10 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 break;
             
             case 0x0223:
-                resourceItemToUpdate = RStateAqaraS1Switch1Icon;
+                resourceItemToUpdate2 = RStateAqaraS1Switch1Icon;
                 stream >> uint8Param;
 
-                resourceItemToUpdate2 = RStateAqaraS1Switch1Text;
+                resourceItemToUpdate = RStateAqaraS1Switch1Text;
                 {
                     quint8 textLength = length;
                     textLength--;
@@ -12259,19 +12258,19 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
                         stream.readRawData(buffer.data(), textLength);
                         QString string(buffer);
-                        stringParam2 = string;
+                        stringParam = string;
                     }
                     else {
-                        stringParam2 = QString("");
+                        stringParam = QString("");
                     }
                 }
                 break;
             
             case 0x0224:
-                resourceItemToUpdate = RStateAqaraS1Switch2Icon;
+                resourceItemToUpdate2 = RStateAqaraS1Switch2Icon;
                 stream >> uint8Param;
 
-                resourceItemToUpdate2 = RStateAqaraS1Switch2Text;
+                resourceItemToUpdate = RStateAqaraS1Switch2Text;
                 {
                     quint8 textLength = length;
                     textLength--;
@@ -12282,19 +12281,19 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
                         stream.readRawData(buffer.data(), textLength);
                         QString string(buffer);
-                        stringParam2 = string;
+                        stringParam = string;
                     }
                     else {
-                        stringParam2 = QString("");
+                        stringParam = QString("");
                     }
                 }
                 break;
             
             case 0x0225:
-                resourceItemToUpdate = RStateAqaraS1Switch3Icon;
+                resourceItemToUpdate2 = RStateAqaraS1Switch3Icon;
                 stream >> uint8Param;
 
-                resourceItemToUpdate2 = RStateAqaraS1Switch3Text;
+                resourceItemToUpdate = RStateAqaraS1Switch3Text;
                 {
                     quint8 textLength = length;
                     textLength--;
@@ -12305,10 +12304,10 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
                         stream.readRawData(buffer.data(), textLength);
                         QString string(buffer);
-                        stringParam2 = string;
+                        stringParam = string;
                     }
                     else {
-                        stringParam2 = QString("");
+                        stringParam = QString("");
                     }
                 }
                 break;
@@ -12364,6 +12363,15 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                     {
                         if (dataType == deCONZ::ZclOctedString && stringParam != NULL) {
                             item->setValue(stringParam);
+                            if (resourceItemToUpdate2 != NULL && uint8Param != UINT8_MAX)
+                            {
+                                ResourceItem *item2 = lightNode.item(resourceItemToUpdate2);
+                                if (item2)
+                                {
+                                    item2->setValue(uint8Param);
+                                    enqueueEvent(Event(RLights, item2->descriptor().suffix, lightNode.id(), item2));
+                                }
+                            }
                         } else if (dataType == deCONZ::Zcl8BitUint) {
                             item->setValue(uint8Param);
                         } else if (dataType == deCONZ::Zcl32BitUint) {
@@ -12372,15 +12380,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                             item->setValue(boolParam == 0x01);
                         }
                         enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
-                    }
-                    if (resourceItemToUpdate2 != NULL && stringParam2 != NULL)
-                    {
-                        ResourceItem *item2 = lightNode.item(resourceItemToUpdate2);
-                        if (item2)
-                        {
-                            item2->setValue(stringParam2);
-                            enqueueEvent(Event(RLights, item2->descriptor().suffix, lightNode.id(), item2));
-                        }
                     }
                 }
 
