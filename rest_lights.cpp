@@ -778,7 +778,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                     if (ok)
                     {
                         inputUint8Param = switchIcon;
-                        switchText = taskRef.lightNode->item(param == "aqara_s1_switch1_text" ? RStateAqaraS1Switch1Text : param == "aqara_s1_switch2_text" ? RStateAqaraS1Switch2Text : RStateAqaraS1Switch3Text)->toString();
+                        switchText = taskRef.lightNode->item(param == "aqara_s1_switch1_icon" ? RStateAqaraS1Switch1Text : param == "aqara_s1_switch2_icon" ? RStateAqaraS1Switch2Text : RStateAqaraS1Switch3Text)->toString();
                         resoursePathForResponse = param == "aqara_s1_switch1_icon" ? RStateAqaraS1Switch1Icon : param == "aqara_s1_switch2_icon" ? RStateAqaraS1Switch2Icon : RStateAqaraS1Switch3Icon;
                         valueOk = true;
                     }
@@ -787,7 +787,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 {
                     switchText = map[param].toString();
                     stringToSaveOnLight = switchText;
-                    switchIcon = taskRef.lightNode->item(param == "aqara_s1_switch1_icon" ? RStateAqaraS1Switch1Icon : param == "aqara_s1_switch2_icon" ? RStateAqaraS1Switch2Icon : RStateAqaraS1Switch3Icon)->toNumber();
+                    switchIcon = taskRef.lightNode->item(param == "aqara_s1_switch1_text" ? RStateAqaraS1Switch1Icon : param == "aqara_s1_switch2_text" ? RStateAqaraS1Switch2Icon : RStateAqaraS1Switch3Icon)->toNumber();
                     resoursePathForResponse = param == "aqara_s1_switch1_text" ? RStateAqaraS1Switch1Text : param == "aqara_s1_switch2_text" ? RStateAqaraS1Switch2Text : RStateAqaraS1Switch3Text;
                     valueOk = true;
                 }
@@ -899,13 +899,14 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                     QVariantMap rspItemState;
                     if (type == deCONZ::ZclOctedString)
                     {
-                        if (inputUint8Param != UINT8_MAX && resoursePathForResponse2 != NULL) {
-                            taskRef.lightNode->setValue(resoursePathForResponse2, inputUint8Param);
+                        if (inputUint8Param != UINT8_MAX) {
+                            taskRef.lightNode->setValue(resoursePathForResponse, inputUint8Param);
+                            rspItemState[QString("/lights/%1/state/%2").arg(id).arg(param)] = inputUint8Param;
                         }
                         else {
                             taskRef.lightNode->setValue(resoursePathForResponse, stringToSaveOnLight != NULL ? stringToSaveOnLight : inputString);
+                            rspItemState[QString("/lights/%1/state/%2").arg(id).arg(param)] = stringToSaveOnLight != NULL ? stringToSaveOnLight : inputString;
                         }
-                        rspItemState[QString("/lights/%1/state/%2").arg(id).arg(param)] = stringToSaveOnLight != NULL ? stringToSaveOnLight : inputString;
                     }
                     else if (type == deCONZ::ZclBoolean)
                     {
