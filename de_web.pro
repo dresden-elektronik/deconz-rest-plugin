@@ -110,8 +110,8 @@ HEADERS  = bindings.h \
            device_compat.h \
            device_ddf_init.h \
            device_descriptions.h \
-           device_js.h \
-           device_js_wrappers.h \
+           device_js/device_js.h \
+           device_js/device_js_wrappers.h \
            device_tick.h \
            event.h \
            gateway.h \
@@ -151,8 +151,8 @@ SOURCES  = air_quality.cpp \
            device_compat.cpp \
            device_ddf_init.cpp \
            device_descriptions.cpp \
-           device_js.cpp \
-           device_js_wrappers.cpp \
+           device_js/device_js.cpp \
+           device_js/device_js_wrappers.cpp \
            device_setup.cpp \
            device_tick.cpp \
            diagnostics.cpp \
