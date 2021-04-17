@@ -153,6 +153,7 @@ void DEV_InitStateHandler(Device *device, const Event &event)
     if (event.what() == REventPoll ||
         event.what() == REventAwake ||
         event.what() == RConfigReachable ||
+        event.what() == RStateReachable ||
         event.what() == REventStateTimeout ||
         event.what() == RStateLastUpdated)
     {
