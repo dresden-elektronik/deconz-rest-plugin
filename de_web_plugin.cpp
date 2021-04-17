@@ -12361,7 +12361,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                         if (dataType == deCONZ::ZclOctedString && stringParam.isNull() != true) {
                             // This is just to make sure it will update the string to the saved string, since in QT "" == NULL and the value will not update. (Stupid???)
                             if (stringParam.length() == 0) {
-                                item->setValue(QLatin1String(" "));
+                                item->setValue(QString(" "));
                             }
                             item->setValue(stringParam);
                             if (resourceItemToUpdate2 != NULL && uint8Param != UINT8_MAX)
