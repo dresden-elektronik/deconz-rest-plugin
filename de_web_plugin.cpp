@@ -12358,9 +12358,9 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                     item = lightNode.item(resourceItemToUpdate);
                     if (item)
                     {
-                        if (dataType == deCONZ::ZclOctedString && stringParam != NULL) {
+                        if (dataType == deCONZ::ZclOctedString && stringParam.isNull() != true) {
                             item->setValue(stringParam);
-                            if (resourceItemToUpdate2 != NULL && uint8Param != UINT8_MAX)
+                            if (resourceItemToUpdate2.isNull() != true && uint8Param != UINT8_MAX)
                             {
                                 ResourceItem *item2 = lightNode.item(resourceItemToUpdate2);
                                 if (item2)

@@ -789,10 +789,6 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 else if ((param == "aqara_s1_switch1_text" || param == "aqara_s1_switch2_text" || param == "aqara_s1_switch3_text") && map[param].type() == QVariant::String)
                 {
                     switchText = map[param].toString();
-                    if (switchText == NULL) { // In case it is null or empty...
-                        switchText = QLatin1String("");
-                        DBG_Printf(DBG_INFO, "Xiaomi switchText for 0x%2x was null\n", attr);
-                    }
                     stringToSaveOnLight = switchText;
                     switchIcon = taskRef.lightNode->item(param == "aqara_s1_switch1_text" ? RStateAqaraS1Switch1Icon : param == "aqara_s1_switch2_text" ? RStateAqaraS1Switch2Icon : RStateAqaraS1Switch3Icon)->toNumber();
                     resoursePathForResponse = param == "aqara_s1_switch1_text" ? RStateAqaraS1Switch1Text : param == "aqara_s1_switch2_text" ? RStateAqaraS1Switch2Text : RStateAqaraS1Switch3Text;
@@ -800,7 +796,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                     DBG_Printf(DBG_INFO, "Xiaomi attribute 0x%2x: %s\n", attr, qPrintable(switchText));
                 }
                 
-                if (switchIcon > 0x00 && switchIcon <= 0x0b && switchText != NULL && switchText.length() < 255) {
+                if (switchIcon > 0x00 && switchIcon <= 0x0b && switchText.isNull() != true && switchText.length() < 255) {
                     // Stitch it to a one octed string which includes the icon and the text...
                     char switchIconStr[] = {(char)((quint8)switchText.length() + 1), switchIcon, '\0'};
                     QString hexvalue = QString(switchIconStr);
