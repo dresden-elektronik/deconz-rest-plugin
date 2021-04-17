@@ -3251,7 +3251,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
 
                         uint8_t cm = ia->numericValue().u8;
 
-                        if (lightNode->item(RStateHue) == nullptr && lightNode->item(RStateCt) != nullptr)
+                        if (lightNode->item(RStateHue) == nullptr && lightNode->item(RStateX) == nullptr && lightNode->item(RStateCt) != nullptr)
                         {
                             // OSRAM/LEDVANCE tunable white lights sometimes report hue and saturation, but only ct makes sense
                             cm = 2;
