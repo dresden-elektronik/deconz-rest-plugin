@@ -1,5 +1,4 @@
 #include "event.h"
-#include "deconz.h"
 #include "resource.h"
 
 /*! Constructor.
