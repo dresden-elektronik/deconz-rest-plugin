@@ -10,7 +10,7 @@
 
 #include "device.h"
 #include "device_access_fn.h"
-#include "device_js.h"
+#include "device_js/device_js.h"
 
 enum DA_Constants
 {
