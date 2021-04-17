@@ -21,7 +21,7 @@ add_executable(001-device 001-device-1.cpp)
 add_executable(101-resourceitem-dt-time 101-resourceitem-dt-time.cpp)
 
 target_link_libraries(001-device
-    PRIVATE device_js
+    PRIVATE device
     PRIVATE Catch2::Catch2
     PRIVATE Catch2::Catch2WithMain
 )

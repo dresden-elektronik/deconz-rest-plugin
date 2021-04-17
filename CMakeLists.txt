@@ -39,6 +39,8 @@ target_link_libraries(deconz_common
 
 add_subdirectory (resource)
 add_subdirectory (device_js)
+add_subdirectory (device)
+add_subdirectory (zdp)
 
 enable_testing()
 
