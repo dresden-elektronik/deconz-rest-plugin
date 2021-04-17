@@ -802,6 +802,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                     QString hexvalue = QString(switchIconStr);
                     inputString = hexvalue + switchText;
                     inputString = inputString.toLatin1().toHex();
+                    DBG_Printf(DBG_INFO, "Xiaomi attribute to write on 0x%2x: %s\n", attr, qPrintable(inputString));
                 }
                 else {
                     valueOk = false;
