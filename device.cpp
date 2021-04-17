@@ -545,6 +545,14 @@ void DEV_BasicClusterStateHandler(Device *device, const Event &event)
             d->setState(DEV_GetDeviceDescriptionHandler);
         }
     }
+    else if (event.what() == REventApsConfirm)
+    {
+        Q_ASSERT(event.deviceKey() == device->key());
+        if (d->readResult.apsReqId == EventApsConfirmId(event) && EventApsConfirmStatus(event) != deCONZ::ApsSuccessStatus)
+        {
+            d->setState(DEV_InitStateHandler);
+        }
+    }
     else if (event.what() == RAttrManufacturerName || event.what() == RAttrModelId)
     {
         DBG_Printf(DBG_INFO, "DEV received %s: 0x%016llX\n", event.what(), device->key());
