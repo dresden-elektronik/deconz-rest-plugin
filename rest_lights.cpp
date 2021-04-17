@@ -791,6 +791,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                     switchText = map[param].toString();
                     if (switchText == NULL) { // In case it is null or empty...
                         switchText = QLatin1String("");
+                        DBG_Printf(DBG_INFO, "Xiaomi switchText for 0x%2x was null\n", attr);
                     }
                     stringToSaveOnLight = switchText;
                     switchIcon = taskRef.lightNode->item(param == "aqara_s1_switch1_text" ? RStateAqaraS1Switch1Icon : param == "aqara_s1_switch2_text" ? RStateAqaraS1Switch2Icon : RStateAqaraS1Switch3Icon)->toNumber();
