@@ -12152,7 +12152,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             // attrId = a;
             QString payloadHexStr = zclFrame.payload().toHex();
-            DBG_Printf(DBG_INFO, "0x%016llX Xiaomi attribute 0xfff2: %s\n", ind.srcAddress().ext(), payloadHexStr);
+            DBG_Printf(DBG_INFO, "0x%016llX Xiaomi attribute 0x%2x: %s\n", ind.srcAddress().ext(), a, payloadHexStr);
 
             const char *resourceItemToUpdate = NULL;
             const char *resourceItemToUpdate2 = NULL;

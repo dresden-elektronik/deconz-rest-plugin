@@ -908,8 +908,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                             rspItemState[QString("/lights/%1/state/%2").arg(id).arg(param)] = inputUint8Param;
                         }
                         else {
-                            taskRef.lightNode->setValue(resoursePathForResponse, stringToSaveOnLight != NULL ? stringToSaveOnLight : inputString);
-                            rspItemState[QString("/lights/%1/state/%2").arg(id).arg(param)] = stringToSaveOnLight != NULL ? stringToSaveOnLight : inputString;
+                            taskRef.lightNode->setValue(resoursePathForResponse, stringToSaveOnLight.isNull() != true ? stringToSaveOnLight : inputString);
+                            rspItemState[QString("/lights/%1/state/%2").arg(id).arg(param)] = stringToSaveOnLight.isNull() != true ? stringToSaveOnLight : inputString;
                         }
                     }
                     else if (type == deCONZ::ZclBoolean)
