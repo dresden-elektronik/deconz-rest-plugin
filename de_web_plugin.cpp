@@ -12249,8 +12249,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
                 resourceItemToUpdate = RStateAqaraS1Switch1Text;
                 {
-                    quint8 textLength = length;
-                    textLength--;
+                    quint8 textLength = length - 1;
 
                     if (textLength > 0) {
                         // the string is probably utf8 or latin
@@ -12261,7 +12260,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                         stringParam = string;
                     }
                     else {
-                        stringParam = QString("");
+                        stringParam = QLatin1String("");
                     }
                 }
                 break;
@@ -12272,8 +12271,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
                 resourceItemToUpdate = RStateAqaraS1Switch2Text;
                 {
-                    quint8 textLength = length;
-                    textLength--;
+                    quint8 textLength = length - 1;
 
                     if (textLength > 0) {
                         // the string is probably utf8 or latin
@@ -12284,7 +12282,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                         stringParam = string;
                     }
                     else {
-                        stringParam = QString("");
+                        stringParam = QLatin1String("");
                     }
                 }
                 break;
@@ -12295,8 +12293,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
                 resourceItemToUpdate = RStateAqaraS1Switch3Text;
                 {
-                    quint8 textLength = length;
-                    textLength--;
+                    quint8 textLength = length - 1;
 
                     if (textLength > 0) {
                         // the string is probably utf8 or latin
@@ -12307,7 +12304,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                         stringParam = string;
                     }
                     else {
-                        stringParam = QString("");
+                        stringParam = QLatin1String("");
                     }
                 }
                 break;
