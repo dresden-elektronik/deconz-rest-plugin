@@ -789,6 +789,9 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 else if ((param == "aqara_s1_switch1_text" || param == "aqara_s1_switch2_text" || param == "aqara_s1_switch3_text") && map[param].type() == QVariant::String)
                 {
                     switchText = map[param].toString();
+                    if (switchText == NULL) { // In case it is null or empty...
+                        switchText = QLatin1String("");
+                    }
                     stringToSaveOnLight = switchText;
                     switchIcon = taskRef.lightNode->item(param == "aqara_s1_switch1_text" ? RStateAqaraS1Switch1Icon : param == "aqara_s1_switch2_text" ? RStateAqaraS1Switch2Icon : RStateAqaraS1Switch3Icon)->toNumber();
                     resoursePathForResponse = param == "aqara_s1_switch1_text" ? RStateAqaraS1Switch1Text : param == "aqara_s1_switch2_text" ? RStateAqaraS1Switch2Text : RStateAqaraS1Switch3Text;
