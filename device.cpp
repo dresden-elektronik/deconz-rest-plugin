@@ -888,7 +888,7 @@ Device::Device(DeviceKey key, deCONZ::ApsController *apsCtrl, QObject *parent) :
     d->apsCtrl = apsCtrl;
     d->deviceKey = key;
     d->managed = DEV_TestManaged();
-    connect(this, SIGNAL(eventNotify(Event)), parent, SLOT(enqueueEvent(Event)));
+
     addItem(DataTypeBool, RStateReachable);
     addItem(DataTypeBool, RAttrSleeper);
     addItem(DataTypeUInt64, RAttrExtAddress);
@@ -1071,6 +1071,7 @@ Device *DEV_GetOrCreateDevice(QObject *parent, deCONZ::ApsController *apsCtrl, D
     if (d == devices.end())
     {
         devices.emplace_back(new Device(key, apsCtrl, parent));
+        QObject::connect(devices.back().get(), SIGNAL(eventNotify(Event)), parent, SLOT(enqueueEvent(Event)));
         return devices.back().get();
     }
 
