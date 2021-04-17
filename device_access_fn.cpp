@@ -8,7 +8,7 @@
  *
  */
 
-#include "device.h"
+#include "resource.h"
 #include "device_access_fn.h"
 #include "device_js/device_js.h"
 
