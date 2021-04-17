@@ -12369,6 +12369,9 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                                 ResourceItem *item2 = lightNode.item(resourceItemToUpdate2);
                                 if (item2)
                                 {
+                                    if (uint8Param < 1 || uint8Param > 11) { // For now the switches icons is in this range...
+                                        uint8Param = 1;
+                                    }
                                     item2->setValue(uint8Param);
                                     enqueueEvent(Event(RLights, item2->descriptor().suffix, lightNode.id(), item2));
                                 }
