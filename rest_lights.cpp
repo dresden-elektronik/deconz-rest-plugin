@@ -649,6 +649,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                     type = deCONZ::ZclOctedString;
                     resoursePathForResponse = RStateAqaraS1PanelCommunication;
                     valueOk = true;
+                    DBG_Printf(DBG_INFO, "Xiaomi attribute 0xfff2: %s\n", qPrintable(inputString));
                 }
             }
             else if ((param == "aqara_s1_language" && taskRef.lightNode->item(RStateAqaraS1Language)) || (param == "aqara_s1_lcd_brightness" && taskRef.lightNode->item(RStateAqaraS1LCDBrightness)) || (param == "aqara_s1_sound_volume" && taskRef.lightNode->item(RStateAqaraS1SoundVolume)) || (param == "aqara_s1_screen_saver_style" && taskRef.lightNode->item(RStateAqaraS1ScreenSaverStyle)) || (param == "aqara_s1_theme" && taskRef.lightNode->item(RStateAqaraS1Theme)) || (param == "aqara_s1_font_size" && taskRef.lightNode->item(RStateAqaraS1FontSize)) || (param == "aqara_s1_homepage" && taskRef.lightNode->item(RStateAqaraS1Homepage)) || (param == "aqara_s1_standby_lcd_brightness" && taskRef.lightNode->item(RStateAqaraS1StandbyLCDBrightness)) || (param == "aqara_s1_switches_config" && taskRef.lightNode->item(RStateAqaraS1SwitchesConfig)) || (param == "aqara_s1_gestures" && taskRef.lightNode->item(RStateAqaraS1Gestures)))
@@ -772,6 +773,9 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 QString switchText = NULL;
                 type = deCONZ::ZclOctedString;
                 
+                quint8 switchNumber = param[15].digitValue();
+                attr = 0x222 + switchNumber;
+                
                 if ((param == "aqara_s1_switch1_icon" || param == "aqara_s1_switch2_icon" || param == "aqara_s1_switch3_icon") && map[param].type() == QVariant::Double)
                 {
                     switchIcon = map[param].toUInt(&ok);
@@ -790,14 +794,12 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                     switchIcon = taskRef.lightNode->item(param == "aqara_s1_switch1_text" ? RStateAqaraS1Switch1Icon : param == "aqara_s1_switch2_text" ? RStateAqaraS1Switch2Icon : RStateAqaraS1Switch3Icon)->toNumber();
                     resoursePathForResponse = param == "aqara_s1_switch1_text" ? RStateAqaraS1Switch1Text : param == "aqara_s1_switch2_text" ? RStateAqaraS1Switch2Text : RStateAqaraS1Switch3Text;
                     valueOk = true;
+                    DBG_Printf(DBG_INFO, "Xiaomi attribute 0x%2x: %s\n", attr, qPrintable(switchText));
                 }
                 
-                quint8 switchNumber = param[15].digitValue();
-                attr = 0x222 + switchNumber;
-                
-                if (switchIcon > 0x00 && switchIcon <= 0x0b && switchText != NULL) {
+                if (switchIcon > 0x00 && switchIcon <= 0x0b && switchText != NULL && switchText.length() < 255) {
                     // Stitch it to a one octed string which includes the icon and the text...
-                    char switchIconStr[] = {switchText.length() + 1, switchIcon, '\0'};
+                    char switchIconStr[] = {((quint8)switchText.length()) + 1, switchIcon, '\0'};
                     QString hexvalue = QString(switchIconStr);
                     inputString = hexvalue + switchText;
                     inputString = inputString.toLatin1().toHex();
@@ -809,8 +811,6 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             
             if (paramOk && valueOk)
             {
-                DBG_Printf(DBG_INFO, "Xiaomi attribute 0xfff2: %s\n", qPrintable(inputString));
-
                 TaskItem task;
 
                 // // FIXME: The following low-level code is needed because ZclAttribute is broken for Zcl8BitEnum.
