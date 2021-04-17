@@ -1,4 +1,13 @@
 #include <QCoreApplication>
+#include <memory>
+
+// string conversion so catch can print QString
+std::ostream& operator << ( std::ostream& os, const QString &str)
+{
+    os << str.toStdString();
+    return os;
+}
+
 #include "catch2/catch.hpp"
 #include "resource.h"
 #include "device_js/device_js.h"
@@ -8,14 +17,28 @@
 int argc = 0;
 QCoreApplication app(argc, nullptr);
 
+class MockDeviceparent : public QObject
+{
+public:
+
+};
+
 class MockNode: public deCONZ::Node
 {
+    std::vector<deCONZ::NodeNeighbor> m_neighbors;
+    deCONZ::BindingTable m_bindingTable;
 
+public:
+    deCONZ::CommonState state() const override { return deCONZ::IdleState; }
+    const std::vector<deCONZ::NodeNeighbor> &neighbors() const override { return m_neighbors; }
+    const deCONZ::BindingTable &bindingTable() const override { return m_bindingTable; }
 };
 
 class MockApsController: public deCONZ::ApsController
 {
 public:
+    std::vector<deCONZ::ApsDataRequest> apsReqQueue;
+
     MockApsController(QObject *parent = nullptr) :
         deCONZ::ApsController(parent)
     {  }
@@ -23,7 +46,12 @@ public:
     deCONZ::State networkState() override { return deCONZ::NotInNetwork; }
     int setNetworkState(deCONZ::State) override { return deCONZ::ErrorNotConnected; }
     int setPermitJoin(uint8_t) override { return deCONZ::ErrorNotConnected; }
-    int apsdeDataRequest(const deCONZ::ApsDataRequest&) override { return deCONZ::ErrorNotConnected; }
+    int apsdeDataRequest(const deCONZ::ApsDataRequest &req) override {
+        UNSCOPED_INFO("apsdeDataRequest() id: " << req.id() << " cluster: " << req.clusterId());
+        REQUIRE(req.asdu().size() > 0);
+        apsReqQueue.push_back(req);
+        return deCONZ::Success;
+    }
     int resolveAddress(deCONZ::Address&) override { return deCONZ::ErrorNotFound; }
     int getNode(int, const deCONZ::Node**) override { return -1; }
     bool updateNode(const deCONZ::Node &) override { return false; }
@@ -47,11 +75,22 @@ public:
 
 };
 
+static const DeviceKey DUT_deviceKey = 0x000000A;
+static const quint16 nwkAddress = 0xbeaf;
+
+static MockNode node0;
+static MockNode *coreNodePtr = nullptr;
+MockApsController apsCtrl;
+MockDeviceparent parent;
+
+std::unique_ptr<Device> device;
+
 const deCONZ::Node *DEV_GetCoreNode(uint64_t extAddr)
 {
-    INFO("DEV_GetCoreNode: " << std::hex << extAddr);
-    CHECK(extAddr == 10);
-    return nullptr;
+    REQUIRE(coreNodePtr != nullptr);
+    REQUIRE(extAddr == coreNodePtr->address().ext());
+
+    return coreNodePtr;
 }
 
 Resource *DEV_GetResource(const char *resource, const QString &identifier)
@@ -119,29 +158,357 @@ TEST_CASE( "001: Basic Math", "[DeviceJs]" )
 
 }
 
-TEST_CASE("001: ctor Device", "[Device]")
+void enqueueEvent(const Event &e)
+{
+    INFO("enqueueEvent, what: " << e.what() << " deviceKey: " << e.deviceKey());
+    CHECK(true);
+
+    device->handleEvent(e);
+}
+
+
+TEST_CASE("001: Device constructor", "[Device]")
 {
     initResourceDescriptors();
 
-    MockApsController apsCtrl;
-    QObject parent;
+    SECTION("Create new device with default ResourceItems")
+    {
+        device.reset(new Device(DUT_deviceKey, &apsCtrl, &parent));
 
-    DeviceKey deviceKey = 0x000000A;
+        QObject::connect(device.get(), &Device::eventNotify, enqueueEvent);
 
-    Device device(deviceKey, &apsCtrl, &parent);
+        REQUIRE(device->item(RStateReachable) != nullptr);
+        REQUIRE(device->item(RAttrSleeper) != nullptr);
+        REQUIRE(device->item(RAttrExtAddress) != nullptr);
+        REQUIRE(device->item(RAttrNwkAddress) != nullptr);
+        REQUIRE(device->item(RAttrUniqueId) != nullptr);
+        REQUIRE(device->item(RAttrManufacturerName) != nullptr);
+        REQUIRE(device->item(RAttrModelId) != nullptr);
 
-    REQUIRE(device.item(RStateReachable) != nullptr);
-    REQUIRE(device.item(RAttrSleeper) != nullptr);
-    REQUIRE(device.item(RAttrExtAddress) != nullptr);
-    REQUIRE(device.item(RAttrNwkAddress) != nullptr);
-    REQUIRE(device.item(RAttrUniqueId) != nullptr);
-    REQUIRE(device.item(RAttrManufacturerName) != nullptr);
-    REQUIRE(device.item(RAttrModelId) != nullptr);
+        REQUIRE(device->item(RAttrUniqueId)->toString() == "00:00:00:00:00:00:00:0a");
+    }
 
-    REQUIRE(device.item(RAttrUniqueId)->toString() == "00:00:00:00:00:00:00:0a");
+    SECTION("Assign deCONZ::Node ")
+    {
+        REQUIRE(device->node() == nullptr);
 
-    device.handleEvent(Event(RDevices, REventPoll, 0, deviceKey));
+        coreNodePtr = &node0;
+        coreNodePtr->address().setExt(DUT_deviceKey);
+        coreNodePtr->address().setNwk(nwkAddress);
+        device->handleEvent(Event(RDevices, REventPoll, 0, DUT_deviceKey));
 
+        REQUIRE(device->node() == coreNodePtr);
+        REQUIRE(device->item(RAttrExtAddress)->toNumber() == DUT_deviceKey);
+        REQUIRE(device->item(RAttrNwkAddress)->toNumber() == nwkAddress);
+        REQUIRE(device->node() == coreNodePtr);
+    }
+
+    SECTION("Update Device state/reachable")
+    {
+        REQUIRE(device->reachable() == false);
+        device->item(RStateReachable)->setValue(true);
+        REQUIRE(device->reachable() == true);
+    }
+}
+
+TEST_CASE("002: Node Descriptor", "[Device]")
+{
+    SECTION("Query node descriptor")
+    {
+        // presumly we are in init state with an empty node descriptor
+        REQUIRE(device->node()->nodeDescriptor().isNull() == true);
+
+        // poke processing
+        device->handleEvent(Event(RDevices, REventPoll, 0, DUT_deviceKey));
+
+        // node descriptor state should have been entered and queued a request to the device
+        REQUIRE(apsCtrl.apsReqQueue.size() == 1);
+        REQUIRE(apsCtrl.apsReqQueue.back().clusterId() == ZDP_NODE_DESCRIPTOR_CLID);
+    }
+
+    SECTION("Handle failed confirm")
+    {
+        device->handleEvent(Event(RDevices, REventApsConfirm, EventApsConfirmPack(apsCtrl.apsReqQueue.back().id(), deCONZ::ApsNoAckStatus), DUT_deviceKey));
+
+        // back in init state
+        // poke processing again
+        device->handleEvent(Event(RDevices, REventPoll, 0, DUT_deviceKey));
+
+        // node descriptor state entered again and queued another request
+        REQUIRE(apsCtrl.apsReqQueue.size() == 2);
+        REQUIRE(apsCtrl.apsReqQueue.back().clusterId() == ZDP_NODE_DESCRIPTOR_CLID);
+    }
+
+    SECTION("Handle timout on response")
+    {
+        device->handleEvent(Event(RDevices, REventStateTimeout, 0, DUT_deviceKey));
+
+        // back in init state
+        // poke processing again
+        device->handleEvent(Event(RDevices, REventPoll, 0, DUT_deviceKey));
+
+        // node descriptor state entered again and queued another request
+        REQUIRE(apsCtrl.apsReqQueue.size() == 3);
+        REQUIRE(apsCtrl.apsReqQueue.back().clusterId() == ZDP_NODE_DESCRIPTOR_CLID);
+
+        apsCtrl.apsReqQueue.clear();
+    }
+
+    SECTION("Handle node descriptor set event")
+    {
+        const auto raw = QByteArray::fromHex("02408037107f64000000640000");
+        QDataStream stream(raw);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        deCONZ::NodeDescriptor nd;
+        nd.readFromStream(stream);
+        REQUIRE(nd.isNull() == false);
+        coreNodePtr->setNodeDescriptor(nd);
+
+        device->handleEvent(Event(RDevices, REventNodeDescriptor, 0, DUT_deviceKey));
+    }
+}
+
+TEST_CASE("003: Active Endpoints", "[Device]")
+{
+    SECTION("Active endpoints state entered")
+    {
+        // after node descriptor has been set we reached active endpoints state
+        REQUIRE(device->node()->nodeDescriptor().isNull() == false);
+
+        // active endpoints state is entered and queued the request
+        REQUIRE(apsCtrl.apsReqQueue.size() == 1);
+        REQUIRE(apsCtrl.apsReqQueue.back().clusterId() == ZDP_ACTIVE_ENDPOINTS_CLID);
+    }
+
+    SECTION("Handle failed confirm")
+    {
+        device->handleEvent(Event(RDevices, REventApsConfirm, EventApsConfirmPack(apsCtrl.apsReqQueue.back().id(), deCONZ::ApsNoAckStatus), DUT_deviceKey));
+
+        // back in init state
+        // poke processing again
+        device->handleEvent(Event(RDevices, REventPoll, 0, DUT_deviceKey));
+
+        // active endpoints state entered again and queued another request
+        REQUIRE(apsCtrl.apsReqQueue.size() == 2);
+        REQUIRE(apsCtrl.apsReqQueue.back().clusterId() == ZDP_ACTIVE_ENDPOINTS_CLID);
+    }
+
+    SECTION("Handle timout on response")
+    {
+        device->handleEvent(Event(RDevices, REventStateTimeout, 0, DUT_deviceKey));
+
+        // back in init state
+        // poke processing again
+        device->handleEvent(Event(RDevices, REventPoll, 0, DUT_deviceKey));
+
+        // active endpoints state entered again and queued another request
+        REQUIRE(apsCtrl.apsReqQueue.size() == 3);
+        REQUIRE(apsCtrl.apsReqQueue.back().clusterId() == ZDP_ACTIVE_ENDPOINTS_CLID);
+
+        apsCtrl.apsReqQueue.clear();
+    }
+
+    SECTION("Handle active endpoints set event")
+    {
+        coreNodePtr->setActiveEndpoints({0x01, 0x02});
+        device->handleEvent(Event(RDevices, REventActiveEndpoints, 0, DUT_deviceKey));
+    }
+}
+
+TEST_CASE("004: Simple Descriptors", "[Device]")
+{
+    SECTION("Simple descriptors state entered")
+    {
+        // after active endpoints has been set we reached simple descriptors state
+        REQUIRE(device->node()->endpoints().empty() == false);
+
+        // simple descriptors state is entered and queued the request
+        REQUIRE(apsCtrl.apsReqQueue.size() == 1);
+        REQUIRE(apsCtrl.apsReqQueue.back().clusterId() == ZDP_SIMPLE_DESCRIPTOR_CLID);
+
+        REQUIRE(apsCtrl.apsReqQueue.back().asdu().size() == 4); // seq, nwk address, endpoint
+        REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(3) == 0x01); // first endpoint
+
+//        INFO("APS: " << apsCtrl.apsReqQueue.back().asdu().toHex().toStdString());
+//        CHECK(false);
+    }
+
+    SECTION("Handle failed confirm")
+    {
+        device->handleEvent(Event(RDevices, REventApsConfirm, EventApsConfirmPack(apsCtrl.apsReqQueue.back().id(), deCONZ::ApsNoAckStatus), DUT_deviceKey));
+
+        // back in init state
+        // poke processing again
+        device->handleEvent(Event(RDevices, REventPoll, 0, DUT_deviceKey));
+
+        // simple descriptors state entered again and queued another request
+        REQUIRE(apsCtrl.apsReqQueue.size() == 2);
+        REQUIRE(apsCtrl.apsReqQueue.back().clusterId() == ZDP_SIMPLE_DESCRIPTOR_CLID);
+    }
+
+    SECTION("Handle timout on response")
+    {
+        device->handleEvent(Event(RDevices, REventStateTimeout, 0, DUT_deviceKey));
+
+        // back in init state
+        // poke processing again
+        device->handleEvent(Event(RDevices, REventPoll, 0, DUT_deviceKey));
+
+        // simple descriptors state entered again and queued another request
+        REQUIRE(apsCtrl.apsReqQueue.size() == 3);
+        REQUIRE(apsCtrl.apsReqQueue.back().clusterId() == ZDP_SIMPLE_DESCRIPTOR_CLID);
+    }
+
+    SECTION("Handle first simple descriptor set event")
+    {
+        const auto raw = QByteArray::fromHex("0104010a000104000003001900010106000004000300050019000101");
+        QDataStream stream(raw);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        deCONZ::SimpleDescriptor sd;
+        sd.readFromStream(stream, device->node()->nodeDescriptor().manufacturerCode());
+        REQUIRE(sd.isValid() == true);
+        coreNodePtr->setSimpleDescriptor(sd);
+
+        apsCtrl.apsReqQueue.clear();
+
+        device->handleEvent(Event(RDevices, REventSimpleDescriptor, 0, DUT_deviceKey));
+
+        // simple descriptors state is entered and queued the request for second entpoint
+        REQUIRE(apsCtrl.apsReqQueue.size() == 1);
+        REQUIRE(apsCtrl.apsReqQueue.back().clusterId() == ZDP_SIMPLE_DESCRIPTOR_CLID);
+
+        REQUIRE(apsCtrl.apsReqQueue.back().asdu().size() == 4); // seq, nwk address, endpoint
+        REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(3) == 0x02); // second endpoint
+    }
+
+    SECTION("Handle second simple descriptor set event")
+    {
+        const auto raw = QByteArray::fromHex("0204010a000104000003001900010106000004000300050019000101");
+        QDataStream stream(raw);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        deCONZ::SimpleDescriptor sd;
+        sd.readFromStream(stream, device->node()->nodeDescriptor().manufacturerCode());
+        REQUIRE(sd.isValid() == true);
+        coreNodePtr->setSimpleDescriptor(sd);
+
+        apsCtrl.apsReqQueue.clear();
+
+        device->handleEvent(Event(RDevices, REventSimpleDescriptor, 0, DUT_deviceKey));
+    }
+}
+
+TEST_CASE("005: Basic Cluster manufacturer name", "[Device]")
+{
+    SECTION("Basic cluster state entered")
+    {
+        // after simple descriptors have been set we reached basic cluster state
+        REQUIRE(device->node()->simpleDescriptors().size() == 2);
+
+        REQUIRE(device->item(RAttrManufacturerName)->toString().isEmpty() == true);
+
+        // basic cluster state is entered and queued the request for manufacturer name
+        REQUIRE(apsCtrl.apsReqQueue.size() == 1);
+        REQUIRE(apsCtrl.apsReqQueue.back().clusterId() == 0x0000);
+        REQUIRE(apsCtrl.apsReqQueue.back().asdu().size() == 5); // ZCL read attributes
+        REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(3) == 0x04); // manufacturer name attribute (0x0004)
+        REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(4) == 0x00); // manufacturer name attribute
+    }
+
+    SECTION("Handle failed confirm")
+    {
+        device->handleEvent(Event(RDevices, REventApsConfirm, EventApsConfirmPack(apsCtrl.apsReqQueue.back().id(), deCONZ::ApsNoAckStatus), DUT_deviceKey));
+
+        // back in init state
+        // poke processing again
+        device->handleEvent(Event(RDevices, REventPoll, 0, DUT_deviceKey));
+
+        // basic cluster state entered again and queued another request
+        REQUIRE(apsCtrl.apsReqQueue.size() == 2);
+        REQUIRE(apsCtrl.apsReqQueue.back().clusterId() == 0x0000);
+        REQUIRE(apsCtrl.apsReqQueue.back().asdu().size() == 5); // ZCL read attributes
+        REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(3) == 0x04); // manufacturer name attribute (0x0004)
+        REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(4) == 0x00); // manufacturer name attribute
+    }
+
+    SECTION("Handle timout on response")
+    {
+        device->handleEvent(Event(RDevices, REventStateTimeout, 0, DUT_deviceKey));
+
+        // back in init state
+        // poke processing again
+        device->handleEvent(Event(RDevices, REventPoll, 0, DUT_deviceKey));
+
+        // basic cluster state entered again and queued another request
+        REQUIRE(apsCtrl.apsReqQueue.size() == 3);
+        REQUIRE(apsCtrl.apsReqQueue.back().clusterId() == 0x0000);
+        REQUIRE(apsCtrl.apsReqQueue.back().asdu().size() == 5); // ZCL read attributes
+        REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(3) == 0x04); // manufacturer name attribute (0x0004)
+        REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(4) == 0x00); // manufacturer name attribute
+    }
+
+    SECTION("Handle manufacturer name set event")
+    {
+        apsCtrl.apsReqQueue.clear();
+
+        device->item(RAttrManufacturerName)->setValue(QString("IKEA of Sweden"), ResourceItem::SourceDevice);
+        device->handleEvent(Event(RDevices, RAttrManufacturerName, 0, DUT_deviceKey));
+    }
+}
+
+TEST_CASE("006: Basic Cluster modelid", "[Device]")
+{
+    SECTION("Basic cluster state entered")
+    {
+        // after simple descriptors have been set we reached basic cluster state
+        REQUIRE(device->item(RAttrManufacturerName)->toString().isEmpty() == false);
+
+        // basic cluster state is entered and queued the request for manufacturer name
+        REQUIRE(apsCtrl.apsReqQueue.size() == 1);
+        REQUIRE(apsCtrl.apsReqQueue.back().clusterId() == 0x0000);
+        REQUIRE(apsCtrl.apsReqQueue.back().asdu().size() == 5); // ZCL read attributes
+        REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(3) == 0x05); // modelid attribute (0x0005)
+        REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(4) == 0x00); // modelid attribute
+    }
+
+    SECTION("Handle failed confirm")
+    {
+        device->handleEvent(Event(RDevices, REventApsConfirm, EventApsConfirmPack(apsCtrl.apsReqQueue.back().id(), deCONZ::ApsNoAckStatus), DUT_deviceKey));
+
+        // back in init state
+        // poke processing again
+        device->handleEvent(Event(RDevices, REventPoll, 0, DUT_deviceKey));
+
+        // basic cluster state entered again and queued another request
+        REQUIRE(apsCtrl.apsReqQueue.size() == 2);
+        REQUIRE(apsCtrl.apsReqQueue.back().clusterId() == 0x0000);
+        REQUIRE(apsCtrl.apsReqQueue.back().asdu().size() == 5); // ZCL read attributes
+        REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(3) == 0x05); // modelid attribute (0x0005)
+        REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(4) == 0x00); // modelid attribute
+    }
+
+    SECTION("Handle timout on response")
+    {
+        device->handleEvent(Event(RDevices, REventStateTimeout, 0, DUT_deviceKey));
+
+        // back in init state
+        // poke processing again
+        device->handleEvent(Event(RDevices, REventPoll, 0, DUT_deviceKey));
+
+        // basic cluster state entered again and queued another request
+        REQUIRE(apsCtrl.apsReqQueue.size() == 3);
+        REQUIRE(apsCtrl.apsReqQueue.back().clusterId() == 0x0000);
+        REQUIRE(apsCtrl.apsReqQueue.back().asdu().size() == 5); // ZCL read attributes
+        REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(3) == 0x05); // modelid attribute (0x0005)
+        REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(4) == 0x00); // modelid attribute
+    }
+
+    SECTION("Handle modelid set event")
+    {
+        apsCtrl.apsReqQueue.clear();
+
+        device->item(RAttrModelId)->setValue(QString("ACME"), ResourceItem::SourceDevice);
+        device->handleEvent(Event(RDevices, RAttrModelId, 0, DUT_deviceKey));
+    }
 }
 
 TEST_CASE("002: ResourceItem DataTypeBool", "[ResourceItem]")
