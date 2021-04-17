@@ -633,7 +633,6 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         quint8 type = UINT8_MAX;
 
         const char *resoursePathForResponse = NULL;
-        const char *resoursePathForResponse2 = NULL;
 
         for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
         {
@@ -799,7 +798,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 
                 if (switchIcon > 0x00 && switchIcon <= 0x0b && switchText != NULL && switchText.length() < 255) {
                     // Stitch it to a one octed string which includes the icon and the text...
-                    char switchIconStr[] = {((quint8)switchText.length()) + 1, switchIcon, '\0'};
+                    char switchIconStr[] = {(char)((quint8)switchText.length() + 1), switchIcon, '\0'};
                     QString hexvalue = QString(switchIconStr);
                     inputString = hexvalue + switchText;
                     inputString = inputString.toLatin1().toHex();
