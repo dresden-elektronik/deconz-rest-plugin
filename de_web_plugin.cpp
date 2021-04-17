@@ -2881,6 +2881,9 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
         lightNode->removeItem(RStateAlert);
         lightNode->removeItem(RStateX);
         lightNode->removeItem(RStateY);
+        lightNode->addItem(DataTypeUInt16, RStateHue);
+        lightNode->addItem(DataTypeUInt8, RStateSat);
+        lightNode->addItem(DataTypeString, RStateEffect)->setValue(RStateEffectValues[R_EFFECT_NONE]);
     }
 }
 
