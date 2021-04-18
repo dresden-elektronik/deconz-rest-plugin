@@ -44,6 +44,7 @@
 #include "product_match.h"
 #include "rest_devices.h"
 #include "read_files.h"
+#include "utils/utils.h"
 #ifdef ARCH_ARM
   #include <unistd.h>
   #include <sys/reboot.h>
@@ -114,6 +115,7 @@ const quint64 embertecMacPrefix   = 0x848e960000000000ULL;
 const quint64 silabsMacPrefix     = 0x90fd9f0000000000ULL;
 const quint64 zhejiangMacPrefix   = 0xb0ce180000000000ULL;
 const quint64 silabs7MacPrefix    = 0xbc33ac0000000000ULL;
+const quint64 dlinkMacPrefix      = 0xc4e90a0000000000ULL;
 const quint64 silabs2MacPrefix    = 0xcccccc0000000000ULL;
 const quint64 energyMiMacPrefix   = 0xd0cf5e0000000000ULL;
 const quint64 schlageMacPrefix    = 0xd0cf5e0000000000ULL;
@@ -149,6 +151,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_C2DF, "3300", emberMacPrefix }, // Centralite contact sensor
     { VENDOR_C2DF, "3320-L", emberMacPrefix }, // Centralite contact sensor
     { VENDOR_C2DF, "3315", emberMacPrefix }, // Centralite water sensor
+    { VENDOR_D_LINK, "DCH-B112", dlinkMacPrefix }, // D-Link DCH-B112 door/window sensor
     { VENDOR_NONE, "SD8SC_00.00.03.09TC", tiMacPrefix }, // Centralite smoke sensor
     { VENDOR_CENTRALITE, "3326-L", emberMacPrefix }, // Iris motion sensor v2
     { VENDOR_C2DF, "3326-L", emberMacPrefix }, // Iris motion sensor v2
@@ -2691,6 +2694,19 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             if (type)
             {
                 type->setValue(QString("Warning device"));
+            }
+            lightNode.setNeedSaveDatabase(true);
+        }
+        // dimmer switches
+        if (R_GetProductId(&lightNode).startsWith(QLatin1String("Tuya_DIMSWITCH")))
+        {
+            lightNode.addItem(DataTypeUInt8, RStateBri);
+            
+            ResourceItem *type = lightNode.item(RAttrType);
+            DBG_Assert(type);
+            if (type)
+            {
+                type->setValue(QString("Dimmable light"));
             }
             lightNode.setNeedSaveDatabase(true);
         }
@@ -5328,6 +5344,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId == QLatin1String("DS01") ||                                // Sonoff SNZB-04
                              modelId == QLatin1String("GMB-HAS-DW-B01") ||                      // GamaBit Ltd. Window/Door Sensor
                              modelId == QLatin1String("TY0203") ||                              // lidl / SilverCrest
+                             modelId == QLatin1String("DCH-B112") ||                            // D-Link door/window sensor
                              modelId == QLatin1String("RH3001"))                                // Tuya/Blitzwolf BW-IS2 door/window sensor
                     {
                         fpOpenCloseSensor.inClusters.push_back(ci->id());
@@ -18920,51 +18937,6 @@ uint8_t DeRestPluginPrivate::endpoint()
     }
 
     return 1;
-}
-
-QString DeRestPluginPrivate::generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId)
-{
-    union _a
-    {
-        quint8 bytes[8];
-        quint64 mac;
-    } a;
-    a.mac = extAddress;
-    int ret = -1;
-    char buf[64];
-
-    if (clusterId != 0 && endpoint != 0xf2)
-    {
-        ret = snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x-%02x-%04x",
-                    a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
-                    a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0],
-                    endpoint, clusterId);
-
-    }
-    else if (endpoint != 0)
-    {
-        ret = snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x-%02x",
-                    a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
-                    a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0],
-                    endpoint);
-    }
-    else
-    {
-        ret = snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
-                    a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
-                    a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0]);
-    }
-    Q_ASSERT(ret > 0);
-    Q_ASSERT(static_cast<size_t>(ret) < sizeof(buf));
-
-    if (ret < 0 || static_cast<size_t>(ret) >= sizeof(buf))
-    {
-        DBG_Printf(DBG_ERROR, "failed to generate uuid, buffer too small\n");
-        Q_ASSERT(0);
-        return QString();
-    }
-
-    return QString::fromLatin1(buf);
 }
 
 /*! Returns the name of this plugin.
