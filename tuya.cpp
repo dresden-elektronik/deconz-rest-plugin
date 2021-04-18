@@ -409,6 +409,14 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     case 0x0203: // position reached (more usefull I think)
                     {
                         quint8 lift = static_cast<quint8>(data);
+                        
+                        // Need reverse
+                        if (R_GetProductId(lightNode).startsWith(QLatin1String("Tuya_COVD YS-MT750")) ||
+                            R_GetProductId(lightNode).startsWith(QLatin1String("Tuya_COVD DS82")))
+                        {
+                            lift = 100 - lift;
+                        }
+                        
                         bool open = lift < 100;
                         lightNode->setValue(RStateLift, lift);
                         lightNode->setValue(RStateOpen, open);
