@@ -102,7 +102,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         return;
     }
     
-    const auto productId = R_GetProductId(&lightNode);
+    const auto productId = R_GetProductId(lightNode);
     
     // DBG_Printf(DBG_INFO, "Tuya debug 4 : Address 0x%016llX, Command 0x%02X, Payload %s\n", ind.srcAddress().ext(), zclFrame.commandId(), qPrintable(zclFrame.payload().toHex()));
 
