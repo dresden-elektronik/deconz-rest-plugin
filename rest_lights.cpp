@@ -2061,7 +2061,7 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
         QByteArray data;
 
         //Retreive Fake endpoint, and change button value
-        const auto ep ep = taskRef.lightNode->haEndpoint().endpoint();
+        const auto ep = taskRef.lightNode->haEndpoint().endpoint();
         if      (ep == 0x02) { button = DP_IDENTIFIER_BUTTON_2; }
         else if (ep == 0x03) { button = DP_IDENTIFIER_BUTTON_3; }
 
