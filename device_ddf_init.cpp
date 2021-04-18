@@ -13,9 +13,7 @@
 #include "device_descriptions.h"
 #include "device_ddf_init.h"
 #include "database.h"
-
-// TODO move external declaration in de_web_plugin_private.h into utils.h
-QString generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId);
+#include "utils/utils.h"
 
 static QString uniqueIdFromTemplate(const QStringList &templ, const quint64 extAddress)
 {

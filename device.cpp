@@ -18,13 +18,11 @@
 #include "device.h"
 #include "device_access_fn.h"
 #include "event.h"
+#include "utils/utils.h"
 #include "zdp.h"
 
 #define STATE_LEVEL_BINDING  StateLevel1
 #define STATE_LEVEL_POLL     StateLevel2
-
-// TODO move external declaration in de_web_plugin_private.h into utils.h
-QString generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId);
 
 typedef void (*DeviceStateHandler)(Device *, const Event &);
 
