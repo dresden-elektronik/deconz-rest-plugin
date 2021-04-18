@@ -1990,7 +1990,7 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
             if (map[p.key()].type() == QVariant::Double)
             {
                 targetBri = map["bri"].toUInt(&ok);
-                if (ok)
+                if (ok && targetBri <= 0xFF)
                 {
                     hasBri = true;
                 }
@@ -2020,25 +2020,29 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
             rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state").arg(id), QString("parameter, %1, not available").arg(p.key())));
         }
     }
+    
+    // Return direct if there is already error
+    if (!rsp.list.isEmpty())
+    {
+        rsp.httpStatus = HttpStatusBadRequest; 
+        return REQ_READY_SEND; 
+    }
 
     if (hasBri)
     {
-        if (targetBri <= 0xFF)
+        quint16 bri = targetBri * 1000 / 254;
+        QByteArray data = QByteArray("\x00\x00", 2);
+        data.append(static_cast<qint8>((bri >> 8) & 0xff));
+        data.append(static_cast<qint8>(bri & 0xff));
+        
+        if (R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_DIMSWITCH Earda Dimmer") ||
+            R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_DIMSWITCH EDM-1ZAA-EU"))
         {
-            quint16 bri = targetBri * 1000 / 254;
-            QByteArray data = QByteArray("\x00\x00", 2);
-            data.append(static_cast<qint8>((bri >> 8) & 0xff));
-            data.append(static_cast<qint8>(bri & 0xff));
-            
-            if (R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_DIMSWITCH Earda Dimmer") ||
-                R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_DIMSWITCH EDM-1ZAA-EU"))
-            {
-                ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_DIMMER_LEVEL_MODE2, data);
-            }
-            else
-            {
-                ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_DIMMER_LEVEL_MODE1, data);
-            }
+            ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_DIMMER_LEVEL_MODE2, data);
+        }
+        else
+        {
+            ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_DIMMER_LEVEL_MODE1, data);
         }
         
         if (ok)
@@ -2094,13 +2098,6 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
             rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
 
-    }
-
-    if (!hasOn && !hasBri)
-    {
-        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state").arg(id), QString("missing parameter or wrong format ")));
-        rsp.httpStatus = HttpStatusBadRequest;
-        return REQ_READY_SEND;
     }
 
     return REQ_READY_SEND;
