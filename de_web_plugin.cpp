@@ -2694,6 +2694,19 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             }
             lightNode.setNeedSaveDatabase(true);
         }
+        // dimmer switches
+        if (R_GetProductId(&lightNode).startsWith(QLatin1String("Tuya_DIMSWITCH")))
+        {
+            lightNode.addItem(DataTypeUInt8, RStateBri);
+            
+            ResourceItem *type = lightNode.item(RAttrType);
+            DBG_Assert(type);
+            if (type)
+            {
+                type->setValue(QString("Dimmable light"));
+            }
+            lightNode.setNeedSaveDatabase(true);
+        }
 
         // Tanslate Tuya ManufacturerName
         const lidlDevice *device = getLidlDevice(lightNode.manufacturer());
