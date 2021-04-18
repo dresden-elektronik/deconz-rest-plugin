@@ -73,6 +73,7 @@
 
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
+#include "product_match.h"
 
 int calibrationStep = 0;
 int operationalStatus = 0;

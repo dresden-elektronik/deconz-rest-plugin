@@ -41,6 +41,7 @@
 #include "json.h"
 #include "poll_control.h"
 #include "poll_manager.h"
+#include "product_match.h"
 #include "rest_devices.h"
 #include "read_files.h"
 #ifdef ARCH_ARM
@@ -77,6 +78,7 @@ const quint64 macPrefixMask       = 0xffffff0000000000ULL;
 const quint64 legrandMacPrefix    = 0x0004740000000000ULL;
 const quint64 dishMacPrefix       = 0x0008890000000000ULL;
 const quint64 ikeaMacPrefix       = 0x000b570000000000ULL;
+const quint64 danalockMacPrefix   = 0x000b570000000000ULL; // note: same as ikeaMacPrefix
 const quint64 emberMacPrefix      = 0x000d6f0000000000ULL;
 const quint64 instaMacPrefix      = 0x000f170000000000ULL;
 const quint64 tiMacPrefix         = 0x00124b0000000000ULL;
@@ -85,10 +87,10 @@ const quint64 boschMacPrefix      = 0x00155f0000000000ULL;
 const quint64 jennicMacPrefix     = 0x00158d0000000000ULL;
 const quint64 develcoMacPrefix    = 0x0015bc0000000000ULL;
 const quint64 philipsMacPrefix    = 0x0017880000000000ULL;
-const quint64 computimeMacPrefix  = 0x001e5e0000000000ULL;
-const quint64 celMacPrefix        = 0x0022a30000000000ULL; // California Eastern Laboratories
 const quint64 ubisysMacPrefix     = 0x001fee0000000000ULL;
+const quint64 computimeMacPrefix  = 0x001e5e0000000000ULL;
 const quint64 deMacPrefix         = 0x00212e0000000000ULL;
+const quint64 celMacPrefix        = 0x0022a30000000000ULL; // California Eastern Laboratories
 const quint64 keenhomeMacPrefix   = 0x0022a30000000000ULL;
 const quint64 zenMacPrefix        = 0x0024460000000000ULL;
 const quint64 heimanMacPrefix     = 0x0050430000000000ULL;
@@ -100,8 +102,9 @@ const quint64 profaluxMacPrefix   = 0x20918a0000000000ULL;
 const quint64 stMacPrefix         = 0x24fd5b0000000000ULL;
 const quint64 samjinMacPrefix     = 0x286d970000000000ULL;
 const quint64 sinopeMacPrefix     = 0x500b910000000000ULL;
-const quint64 silabs9MacPrefix    = 0x5c02720000000000ULL;
+const quint64 lumiMacPrefix       = 0x54ef440000000000ULL;
 const quint64 silabs6MacPrefix    = 0x588e810000000000ULL;
+const quint64 silabs9MacPrefix    = 0x5c02720000000000ULL;
 const quint64 silabs8MacPrefix    = 0x60a4230000000000ULL;
 const quint64 silabs4MacPrefix    = 0x680ae20000000000ULL;
 const quint64 ecozyMacPrefix      = 0x70b3d50000000000ULL;
@@ -112,15 +115,13 @@ const quint64 silabsMacPrefix     = 0x90fd9f0000000000ULL;
 const quint64 zhejiangMacPrefix   = 0xb0ce180000000000ULL;
 const quint64 silabs7MacPrefix    = 0xbc33ac0000000000ULL;
 const quint64 silabs2MacPrefix    = 0xcccccc0000000000ULL;
-const quint64 silabs3MacPrefix    = 0xec1bbd0000000000ULL;
 const quint64 energyMiMacPrefix   = 0xd0cf5e0000000000ULL;
+const quint64 schlageMacPrefix    = 0xd0cf5e0000000000ULL;
 const quint64 bjeMacPrefix        = 0xd85def0000000000ULL;
+const quint64 silabs3MacPrefix    = 0xec1bbd0000000000ULL;
 const quint64 onestiPrefix        = 0xf4ce360000000000ULL;
 const quint64 xalMacPrefix        = 0xf8f0050000000000ULL;
 const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
-// Danalock support
-const quint64 danalockMacPrefix   = 0x000b570000000000ULL; // note: same as ikeaMacPrefix
-const quint64 schlageMacPrefix    = 0xd0cf5e0000000000ULL;
 
 struct SupportedDevice {
     quint16 vendorId;
@@ -244,12 +245,14 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_XIAOMI, "lumi.remote.b486opcn01", xiaomiMacPrefix }, // Xiaomi Aqara Opple WXCJKG12LM
     { VENDOR_XIAOMI, "lumi.remote.b686opcn01", xiaomiMacPrefix }, // Xiaomi Aqara Opple WXCJKG13LM
     { VENDOR_XIAOMI, "lumi.sen_ill.mgl01", xiaomiMacPrefix }, // Xiaomi ZB3.0 light sensor
+    { VENDOR_XIAOMI2, "lumi.sen_ill.mgl01", lumiMacPrefix }, // Mi light detection sensor GZCGQ01LM
     { VENDOR_XIAOMI, "lumi.plug", xiaomiMacPrefix }, // Xiaomi smart plugs (router)
     { VENDOR_XIAOMI, "lumi.switch.b1naus01", xiaomiMacPrefix }, // Xiaomi Aqara ZB3.0 Smart Wall Switch Single Rocker WS-USC03
     // { VENDOR_XIAOMI, "lumi.curtain", jennicMacPrefix}, // Xiaomi curtain controller (router) - exposed only as light
     { VENDOR_XIAOMI, "lumi.curtain.hagl04", xiaomiMacPrefix}, // Xiaomi B1 curtain controller
     { VENDOR_XIAOMI, "lumi.sensor_magnet.agl02", xiaomiMacPrefix}, // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
     { VENDOR_XIAOMI, "lumi.flood.agl02", xiaomiMacPrefix}, // Xiaomi Aqara T1 water leak sensor SJCGQ12LM
+    { VENDOR_XIAOMI, "lumi.switch.n0agl1", lumiMacPrefix}, // Xiaomi Aqara Single Switch Module T1 (With Neutral)
     { VENDOR_UBISYS, "C4", ubisysMacPrefix },
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
     { VENDOR_UBISYS, "J1", ubisysMacPrefix },
@@ -486,61 +489,6 @@ static const SupportedDevice supportedDevices[] = {
 
     { 0, nullptr, 0 }
 };
-
-struct lidlDevice {
-    const char *zigbeeManufacturerName;
-    const char *zigbeeModelIdentifier;
-    const char *manufacturername;
-    const char *modelid;
-};
-
-static const lidlDevice lidlDevices[] = { // Sorted by zigbeeManufacturerName
-    { "_TYZB01_bngwdjsr", "TS1001",  "LIDL Livarno Lux", "HG06323" }, // Remote Control
-    { "_TZ3000_1obwwnmq", "TS011F",  "LIDL Silvercrest", "HG06338" }, // Smart USB Extension Lead (EU)
-    { "_TZ3000_49qchf10", "TS0502A", "LIDL Livarno Lux", "HG06492C" }, // CT Light (E27)
-    { "_TZ3000_9cpuaca6", "TS0505A", "LIDL Livarno Lux", "14148906L" }, // Stimmungsleuchte
-    { "_TZ3000_dbou1ap4", "TS0505A", "LIDL Livarno Lux", "HG06106C" }, // RGB Light (E27)
-    { "_TZ3000_el5kt5im", "TS0502A", "LIDL Livarno Lux", "HG06492A" }, // CT Light (GU10)
-    { "_TZ3000_gek6snaj", "TS0505A", "LIDL Livarno Lux", "14149506L" }, // Lichtleiste
-    { "_TZ3000_kdi2o9m6", "TS011F",  "LIDL Silvercrest", "HG06337" }, // Smart plug (EU)
-    { "_TZ3000_kdpxju99", "TS0505A", "LIDL Livarno Lux", "HG06106A" }, // RGB Light (GU10)
-    { "_TZ3000_oborybow", "TS0502A", "LIDL Livarno Lux", "HG06492B" }, // CT Light (E14)
-    { "_TZ3000_odygigth", "TS0505A", "LIDL Livarno Lux", "HG06106B" }, // RGB Light (E14)
-    { "_TZ3000_riwp3k79", "TS0505A", "LIDL Livarno Lux", "HG06104A" }, // LED Light Strip
-    { "_TZE200_s8gkrkxk", "TS0601",  "LIDL Livarno Lux", "HG06467" }, // Smart LED String Lights (EU)
-    { nullptr, nullptr, nullptr, nullptr }
-};
-
-static const lidlDevice *getLidlDevice(const QString &zigbeeManufacturerName)
-{
-    const lidlDevice *device = lidlDevices;
-
-    while (device->zigbeeManufacturerName != nullptr)
-    {
-        if (zigbeeManufacturerName == QLatin1String(device->zigbeeManufacturerName))
-        {
-            return device;
-        }
-        device++;
-    }
-    return nullptr;
-}
-
-static bool isLidlDevice(const QString &zigbeeModelIdentifier, const QString &manufacturername)
-{
-    const lidlDevice *device = lidlDevices;
-
-    while (device->zigbeeManufacturerName != nullptr)
-    {
-        if (zigbeeModelIdentifier == QLatin1String(device->zigbeeModelIdentifier) &&
-            manufacturername == QLatin1String(device->manufacturername))
-        {
-            return true;
-        }
-        device++;
-    }
-    return false;
-}
 
 int TaskItem::_taskCounter = 1; // static rolling taskcounter
 
@@ -1459,7 +1407,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
     {
         // Map the command to the mapped button and action.
         // PTM215ZE Friends of Hue switch.
-        quint32 buttonMapPTM215ZE[] = {
+        const quint32 buttonMapPTM215ZE[] = {
             0x12, S_BUTTON_1, S_BUTTON_ACTION_INITIAL_PRESS,
             0x13, S_BUTTON_1, S_BUTTON_ACTION_SHORT_RELEASED,
             0x14, S_BUTTON_2, S_BUTTON_ACTION_INITIAL_PRESS,
@@ -1470,8 +1418,28 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
             0x23, S_BUTTON_4, S_BUTTON_ACTION_SHORT_RELEASED,
             0
         };
+
+        // PTM216Z Friends of Hue switch.
+        // CommandId: 0x69 Push, 0x6A Release
+        // Buttons: 0000 0001 A0
+        //          0000 0010 A1
+        //          0000 0100 B0
+        //          0000 1000 B1
+        //          0001 0000 Energy Bar
+        const quint32 buttonMapPTM216Z[] = {
+            0x6908, S_BUTTON_1, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x6904, S_BUTTON_2, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x6902, S_BUTTON_3, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x6901, S_BUTTON_4, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x690A, S_BUTTON_5, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x6905, S_BUTTON_6, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x6906, S_BUTTON_7, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x6909, S_BUTTON_8, S_BUTTON_ACTION_INITIAL_PRESS,
+            0
+        };
+
         // Generic Friends of Hue switch.
-        quint32 buttonMapFOHSWITCH[] = {
+        const quint32 buttonMapFOHSWITCH[] = {
             0x10, S_BUTTON_1, S_BUTTON_ACTION_INITIAL_PRESS,
             0x14, S_BUTTON_1, S_BUTTON_ACTION_SHORT_RELEASED,
             0x11, S_BUTTON_2, S_BUTTON_ACTION_INITIAL_PRESS,
@@ -1488,13 +1456,21 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
             0xe0, S_BUTTON_7, S_BUTTON_ACTION_SHORT_RELEASED,
             0
         };
-        quint32* buttonMap = 0;
+
+        const quint32* buttonMap = 0;
         // Determine which button map to use.
         if (sensor->swVersion() == QLatin1String("PTM215ZE"))
         {
             buttonMap = buttonMapPTM215ZE;
         }
-        else {
+        else if (sensor->swVersion() == QLatin1String("PTM216Z") && !ind.payload().isEmpty())
+        {
+            btn <<= 8;
+            btn |= static_cast<quint32>(ind.payload()[0]) & 0xff; // actual buttons in payload
+            buttonMap = buttonMapPTM216Z;
+        }
+        else
+        {
             buttonMap = buttonMapFOHSWITCH;
         }
 
@@ -1508,6 +1484,13 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
                 btnAction = buttonMap[i + 2];
                 break;
             }
+        }
+
+        if (buttonMap == buttonMapPTM216Z && ind.gpdCommandId() == 0x6A)
+        {
+            // Release event has no button payload, use the former press event button
+            btnAction = S_BUTTON_ACTION_SHORT_RELEASED;
+            btnMapped = item->toNumber() & ~0x3; // without action
         }
 
         const QDateTime now = QDateTime::currentDateTime();
@@ -1524,7 +1507,6 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
         else if (btnAction == S_BUTTON_ACTION_SHORT_RELEASED)
         {
             sensor->durationDue = QDateTime(); // disable generation of x001 (hold)
-            btn = buttonMap[btn & 0x0f];
             const quint32 action = item->toNumber() & 0x03; // last action
 
             if (action == S_BUTTON_ACTION_HOLD || // hold already triggered -> long release
@@ -1631,6 +1613,8 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
     case deCONZ::GpCommandIdShortPress1Of1:
     case deCONZ::GpCommandIdShortPress1Of2:
     case deCONZ::GpCommandIdShortPress2Of2:
+    case 0x69: // TODO replace with enum in later version
+    case 0x6A:
     {
         gpProcessButtonEvent(ind);
     }
@@ -1794,6 +1778,26 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
                 sensorNode.setManufacturer("PhilipsFoH");
                 sensorNode.setSwVersion("1.0");
             }
+            else if (gpdDeviceId == GpDeviceIdGenericSwitch && options.byte == 0x85 && extOptions.byte == 0xF2 &&
+                     ind.payload().size() == 31 &&
+                     ind.payload()[27] == 0x10 /* application info */ &&
+                     ind.payload()[29] == 0x05 /* switch type 5 button*/)
+            {
+                // This matches PTM216Z but there is no real information in the frame about the manufacturer.
+                // https://www.enocean.com/en/products/enocean_modules_24ghz/ptm-216z/
+                // srcId: 0x01520396
+
+                // Ind.payload: 07 85 f2 e0 7d 56 d0 10 e7 70 c9 95 eb af 6d 58 ad 17 0a 63 c2 27 ae dc 00 00 00
+                // 10 Application info
+                // 02 Optional data length
+                // 05 Switch type: 5 buttons
+                // 08 Button that was pressed (B1)
+
+                // Does this switch work in the Philips Hue bridge?
+                sensorNode.setModelId("FOHSWITCH");
+                sensorNode.setManufacturer("PhilipsFoH");
+                sensorNode.setSwVersion("PTM216Z");
+            }
             else
             {
                 DBG_Printf(DBG_INFO, "unsupported green power device 0x%02X\n", gpdDeviceId);
@@ -1822,7 +1826,14 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
 
             if (sensorNode.name().isEmpty())
             {
-                sensorNode.setName(QString("Hue Tap %2").arg(sensorNode.id()));
+                if (sensorNode.modelId() == QLatin1String("FOHSWITCH"))
+                {
+                    sensorNode.setName(QString("FoH Switch %2").arg(sensorNode.id()));
+                }
+                else
+                {
+                    sensorNode.setName(QString("Hue Tap %2").arg(sensorNode.id()));
+                }
             }
 
             checkSensorGroup(&sensorNode);
@@ -4047,7 +4058,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
              sensor->modelId().startsWith(QLatin1String("TRADFRI SHORTCUT Button")) ||
              sensor->modelId().startsWith(QLatin1String("Remote Control N2")) ||
              sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
-             sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
+             // sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
              sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")))
     {
         checkReporting = true;
@@ -4141,14 +4152,31 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     }
     else if (sensor->modelId() == QLatin1String("HG06323")) // LIDL Remote Control
     {
-        // Probably needed because deCONZ doesn't send Default Response to unicast command.
-        if (zclFrame.sequenceNumber() == sensor->previousSequenceNumber)
-        {
-            return;
-        }
-        sensor->previousSequenceNumber = zclFrame.sequenceNumber();
         checkReporting = true;
     }
+
+    if (zclFrame.sequenceNumber() == sensor->previousSequenceNumber)
+    {
+        // useful in general but limit scope to known problematic devices
+        if (isTuyaManufacturerName(sensor->manufacturer()) ||
+            // TODO "HG06323" can likely be removed after testing,
+            // since the device only sends group casts and we don't expect this to trigger.
+            sensor->modelId() == QLatin1String("HG06323"))
+        {
+            // deCONZ doesn't always send ZCL Default Response to unicast commands, or they can get lost.
+            // in this case some devices re-send the command multiple times
+            DBG_Printf(DBG_INFO, "Discard duplicated zcl.cmd: 0x%02X, cluster: 0x%04X with zcl.seq: %u for %s / %s\n",
+                       zclFrame.commandId(), ind.clusterId(), zclFrame.sequenceNumber(), qPrintable(sensor->manufacturer()), qPrintable(sensor->modelId()));
+            return;
+        }
+        else // warn only
+        {
+            DBG_Printf(DBG_INFO, "Warning duplicated zcl.cmd: 0x%02X, cluster: 0x%04X with zcl.seq: %u for %s / %s\n",
+                       zclFrame.commandId(), ind.clusterId(), zclFrame.sequenceNumber(), qPrintable(sensor->manufacturer()), qPrintable(sensor->modelId()));
+        }
+    }
+
+    sensor->previousSequenceNumber = zclFrame.sequenceNumber();
 
     if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() != 0)
     {
@@ -5998,7 +6026,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 checkSensorNodeReachable(sensor);
             }
         }
-        
+
         // ZHATemperature
         if (fpTemperatureSensor.hasInCluster(TEMPERATURE_MEASUREMENT_CLUSTER_ID))
         {
@@ -6925,6 +6953,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.setManufacturer(QLatin1String(device->manufacturername));
         sensorNode.setModelId(QLatin1String(device->modelid));
     }
+    else if (isTuyaManufacturerName(sensorNode.manufacturer())) // Leave Tuya manufacturer name as is
+    {
+    }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL)
     {
         sensorNode.setManufacturer("dresden elektronik");
@@ -7156,10 +7187,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("ELKO");
     }
-    else if ((modelId == QLatin1String("TY0202") || modelId == QLatin1String("TY0203") || modelId == QLatin1String("TS0211")) && node->nodeDescriptor().manufacturerCode() == VENDOR_HEIMAN)
-    {
-        sensorNode.setManufacturer(QLatin1String("SILVERCREST"));
-    }
     else if ( //node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER ||
              node->nodeDescriptor().manufacturerCode() == VENDOR_HEIMAN)
     {
@@ -7223,10 +7250,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_DEVELCO)
     {
         sensorNode.setManufacturer("Develco Products A/S");
-    }
-    else if (manufacturer.startsWith(QLatin1String("_TYZB01")))
-    {
-        sensorNode.setManufacturer("Tuya");
     }
     else if (sensorNode.manufacturer().startsWith(QLatin1String("TUYATEC")))
     {
@@ -9674,7 +9697,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     QString str;
                                     bool dlLock;
-                                    
+
                                     if (ia->numericValue().u8 == 1)
                                     {
                                         str = QLatin1String("locked");
@@ -9710,7 +9733,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     if (item && item->toString() != str)
                                     {
                                         //DBG_Printf(DBG_INFO, "0x%016llX onOff %u --> %u\n", lightNode->address().ext(), (uint)item->toNumber(), on);
-    
+
                                         item->setValue(str);
                                         enqueueEvent(Event(RSensors, RStateLockState, i->id(), item));
                                         updated = true;
@@ -13567,24 +13590,14 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
     case deCONZ::NodeEvent::NodeDeselected:
         break;
 
-    case deCONZ::NodeEvent::NodeRemoved:
+    case deCONZ::NodeEvent::NodeRemoved: // deleted via GUI
     {
-        std::vector<LightNode>::iterator i = nodes.begin();
-        std::vector<LightNode>::iterator end = nodes.end();
-
-        for (; i != end; ++i)
+#if DECONZ_LIB_VERSION >= 0x011001
+        if (event.node() && event.node()->address().nwk() != 0x0000)
         {
-            if (i->address().ext() == event.node()->address().ext())
-            {
-                if (i->state() != LightNode::StateNormal)
-                {
-                    continue;
-                }
-
-                DBG_Printf(DBG_INFO, "LightNode removed %s\n", qPrintable(event.node()->address().toStringExt()));
-                nodeZombieStateChanged(event.node());
-            }
+            restDevices->deleteDevice(event.node()->address().ext());
         }
+#endif
     }
         break;
 
