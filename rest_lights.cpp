@@ -2002,7 +2002,7 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
             }
         }
 
-        else if (p.key() == "on") && taskRef.lightNode->item(RStateOn) )
+        else if (p.key() == "on" && taskRef.lightNode->item(RStateOn))
         {
             if (map[p.key()].type() == QVariant::Bool)
             {
