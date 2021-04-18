@@ -313,6 +313,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SUNRICHER, "Micro Smart Dimmer", silabs3MacPrefix }, // Sunricher SR-ZG9040A built-in dimmer
     { VENDOR_SUNRICHER, "ZG2835", silabs6MacPrefix }, // SR-ZG2835 Zigbee Rotary Switch
     { VENDOR_SUNRICHER, "ZGRC-TEUR-", emberMacPrefix }, // iluminize wall switch 511.524
+    { VENDOR_SUNRICHER, "ZG2833PAC", silabs3MacPrefix}, // Sunricher Zigbee Push-Button Coupler SR-ZG2833PAC-C4
     { VENDOR_JENNIC, "SPZB0001", jennicMacPrefix }, // Eurotronic thermostat
     { VENDOR_NONE, "RES001", tiMacPrefix }, // Hubitat environment sensor, see #1308
     { VENDOR_SINOPE, "WL4200S", sinopeMacPrefix}, // Sinope water sensor with wired remote sensor
@@ -381,6 +382,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_LDS, "ZB-ONOFFPlug-D0005", silabs2MacPrefix }, // Samsung SmartPlug 2019 (7A-PL-Z-J3)
     { VENDOR_LDS, "ZBT-DIMSwitch", silabs2MacPrefix }, // Linkind 1 key Remote Control / ZS23000178
     { VENDOR_LDS, "ZB-MotionSensor-D0003", silabsMacPrefix }, // Linkind motion sensor / ZS110040078
+    { VENDOR_LDS, "ZBT-DIMController-D0800", jennicMacPrefix }, // Mueller-Licht tint dimmer
     { VENDOR_PHYSICAL, "outletv4", stMacPrefix }, // Samsung SmartThings plug (IM6001-OTP)
     { VENDOR_EMBER, "RH3040", konkeMacPrefix }, // Tuyatec motion sensor
     { VENDOR_NONE, "RH3001", ikea2MacPrefix }, // Tuyatec door/window sensor
@@ -1052,6 +1054,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                              sensorNode->modelId().startsWith(QLatin1String("ICZB-RM")) || // icasa remote
                              sensorNode->modelId().startsWith(QLatin1String("ZGR904-S")) || // Envilar remote
                              sensorNode->modelId().startsWith(QLatin1String("ZGRC-KEY")) || // Sunricher remote
+                             sensorNode->modelId().startsWith(QLatin1String("ZG2833PAC")) || // Sunricher C4
                              sensorNode->modelId().startsWith(QLatin1String("ED-1001")) || // EcoDim switches
                              sensorNode->modelId().startsWith(QLatin1String("45127")) || // Namron switches
                              sensorNode->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
@@ -2895,6 +2898,9 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
         lightNode->removeItem(RStateAlert);
         lightNode->removeItem(RStateX);
         lightNode->removeItem(RStateY);
+        lightNode->addItem(DataTypeUInt16, RStateHue);
+        lightNode->addItem(DataTypeUInt8, RStateSat);
+        lightNode->addItem(DataTypeString, RStateEffect)->setValue(RStateEffectValues[R_EFFECT_NONE]);
     }
 }
 
@@ -3262,7 +3268,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
 
                         uint8_t cm = ia->numericValue().u8;
 
-                        if (lightNode->item(RStateHue) == nullptr && lightNode->item(RStateCt) != nullptr)
+                        if (lightNode->item(RStateHue) == nullptr && lightNode->item(RStateX) == nullptr && lightNode->item(RStateCt) != nullptr)
                         {
                             // OSRAM/LEDVANCE tunable white lights sometimes report hue and saturation, but only ct makes sense
                             cm = 2;
@@ -4135,7 +4141,9 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")) || // icasa remote
              sensor->modelId().startsWith(QLatin1String("ZGR904-S")) || // Envilar remote
              sensor->modelId().startsWith(QLatin1String("RGBGenie ZB-5")) || // RGBGenie remote control
-             sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")))        // RGBGenie ZB-5001
+             sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")) || // RGBGenie ZB-5001
+             sensor->modelId().startsWith(QLatin1String("ZG2833PAC"))) // Sunricher C4
+
     {
         checkReporting = true;
         checkClientCluster = true;
@@ -4262,6 +4270,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")) ||          // icasa remote
                  sensor->modelId().startsWith(QLatin1String("ZGR904-S")) ||         // Envilar remote
                  sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")) ||         // Sunricher remote
+                 sensor->modelId().startsWith(QLatin1String("ZG2833PAC")) ||        // Sunricher C4
                  sensor->modelId().startsWith(QLatin1String("ED-1001")) ||          // EcoDim switches
                  sensor->modelId().startsWith(QLatin1String("45127")) ||            // Namron switches
                  sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5001")) || // RGBGenie remote
@@ -5845,6 +5854,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("ICZB-RM")) ||  // icasa remote
                              modelId.startsWith(QLatin1String("ZGR904-S")) || // Envilar remote
                              modelId.startsWith(QLatin1String("ZGRC-KEY")) || // Sunricher remote
+                             modelId.startsWith(QLatin1String("ZG2833PAC")) || // Sunricher C4
                              modelId.startsWith(QLatin1String("ED-1001")) ||  // EcoDim switches
                              modelId.startsWith(QLatin1String("45127")))      // Namron switches
                     {
@@ -17086,6 +17096,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                  sensor->modelId() == QLatin1String("Remote toggle switch") || // Legrand switch module
                  sensor->modelId() == QLatin1String("Remote motion sensor") || // Legrand motion sensor
                  sensor->modelId() == QLatin1String("ZBT-CCTSwitch-D0001") || // LDS Remote
+                 sensor->modelId() == QLatin1String("ZBT-DIMController-D0800") || // Mueller-Licht tint dimmer
                  sensor->modelId() == QLatin1String("Shutters central remote switch")) // Legrand shutter switch
         {
             checkSensorGroup(sensor);
@@ -17151,7 +17162,8 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         }
         else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")) || // icasa remote
                  sensor->modelId().startsWith(QLatin1String("ZGR904-S")) || // Envilar remote
-                 sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")))  // Sunricher remote
+                 sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")) || // Sunricher remote
+                 sensor->modelId().startsWith(QLatin1String("ZG2833PAC"))) // Sunricher C4
         {
             quint8 lastEndpoint;
 

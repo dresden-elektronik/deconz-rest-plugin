@@ -2168,7 +2168,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                 }
             }
-            
+
             //Special part for metering interfaces
             if (sensor->type() == "ZHAConsumption")
             {
@@ -2216,7 +2216,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             const uint mode = map[pi.key()].toUInt(&ok);
                             quint16 interfaceMode = 0;
-                            
+
                             if (ok && mode == 1)      { interfaceMode = PULSE_COUNTING_ELECTRICITY; }
                             else if (ok && mode == 2) { interfaceMode = PULSE_COUNTING_GAS; }
                             else if (ok && mode == 3) { interfaceMode = PULSE_COUNTING_WATER; }
@@ -3772,6 +3772,9 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
         {
         }
         else if (existDevicesWithVendorCodeForMacPrefix(ext, VENDOR_UBISYS))
+        {
+        }
+        else if (existDevicesWithVendorCodeForMacPrefix(ext, VENDOR_SUNRICHER))
         {
         }
         else if (existDevicesWithVendorCodeForMacPrefix(ext, VENDOR_BOSCH))

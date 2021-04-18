@@ -2813,6 +2813,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("VOC_Sensor") ||
         // EDP-WITHUS
         sensor->modelId() == QLatin1String("ZB-SmartPlug-1.0.0") ||
+        sensor->modelId().startsWith(QLatin1String("ZBT-DIMController-D0800")) || // Mueller-Licht tint dimmer
         //Legrand
         sensor->modelId() == QLatin1String("Connected outlet") || //Legrand Plug
         sensor->modelId() == QLatin1String("Shutter switch with neutral") || //Legrand shutter switch
@@ -2916,6 +2917,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // RGBgenie
         sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) ||
         sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")) ||
+        sensor->modelId().startsWith(QLatin1String("ZG2833PAC")) || // Sunricher C4
         // Embertec
         sensor->modelId().startsWith(QLatin1String("BQZ10-AU")) ||
         // ROBB Smarrt
@@ -3349,7 +3351,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             {
                 break;
             }
-            
+
             DBG_Printf(DBG_INFO_L2, "0x%016llX (%s) create binding for attribute reporting of cluster 0x%04X on endpoint 0x%02X\n",
                        sensor->address().ext(), qPrintable(sensor->modelId()), (*i), srcEndpoint);
 
@@ -3636,6 +3638,14 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(0x03);
         srcEndpoints.push_back(0x04);
     }
+    else if (sensor->modelId().startsWith(QLatin1String("ZG2833PAC"))) // Sunricher C4
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        srcEndpoints.push_back(0x01);
+        srcEndpoints.push_back(0x02);
+        srcEndpoints.push_back(0x03);
+        srcEndpoints.push_back(0x04);
+    }
     else if (sensor->modelId().startsWith(QLatin1String("ED-1001")) ||
              sensor->modelId().startsWith(QLatin1String("45127")))
     {
@@ -3700,8 +3710,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         clusters.push_back(IAS_ACE_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
-    // RGBgenie remote control
-    else if (sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5")))
+    else if (sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) || // RGBgenie remote control
+             sensor->modelId().startsWith(QLatin1String("ZBT-DIMController-D0800"))) // Mueller-Licht tint dimmer
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
@@ -3867,6 +3877,7 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         sensor->modelId().startsWith(QLatin1String("Bell")) || // Sage doorbell sensor
         sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001")) || //LDS Remote
         sensor->modelId().startsWith(QLatin1String("ZBT-DIMSwitch")) || // Linkind 1 key Remote Control / ZS23000178
+        sensor->modelId().startsWith(QLatin1String("ZBT-DIMController-D0800")) || // Mueller-Licht tint dimmer
         sensor->modelId().startsWith(QLatin1String("ElkoDimmer")) || // Elko dimmer
         sensor->modelId().startsWith(QLatin1String("E1E-")) || // Sengled smart light switch
         sensor->modelId().startsWith(QLatin1String("ZG2835")) || // SR-ZG2835 Zigbee Rotary Switch
