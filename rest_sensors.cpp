@@ -1178,6 +1178,9 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_VALUE, 0x2c, data))
                         {
                             updated = true;
+                            
+                            rspItemState[QString("/sensor/%1/config/%2").arg(id).arg(rid.suffix)] = offset;
+                            rspItem["success"] = rspItemState;
                         }
                         else
                         {
@@ -1199,6 +1202,9 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_VALUE, 0x1b, data))
                         {
                             updated = true;
+                            
+                            rspItemState[QString("/sensor/%1/config/%2").arg(id).arg(rid.suffix)] = offset;
+                            rspItem["success"] = rspItemState;
                         }
                         else
                         {
@@ -1331,7 +1337,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD MOES TRV"))
                         {
                             ResourceItem *item2 = sensor->item(RConfigMode);
-                            if (item2->toString() == QLatin1String("heat"))
+                            if (item2 && item2->toString() == QLatin1String("heat"))
                             {
                                 dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_3;
                             }
@@ -1348,6 +1354,9 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         if (sendTuyaRequest(task, TaskThermostat , DP_TYPE_VALUE , dp, data))
                         {
                             updated = true;
+                            
+                            rspItemState[QString("/sensor/%1/config/%2").arg(id).arg(rid.suffix)] = heatsetpoint;
+                            rspItem["success"] = rspItemState;
                         }
                         else
                         {
@@ -1414,6 +1423,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             if (addTaskControlModeCmd(task, 0x00, mode))
                             {
                                 updated = true;
+                                
+                                rspItemState[QString("/sensor/%1/config/%2").arg(id).arg(rid.suffix)] = modeSet;
+                                rspItem["success"] = rspItemState;
+                            
                             }
                             else
                             {
@@ -1450,20 +1463,23 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             {
                                 if (modeSet == "off")
                                 {
-                                    sendTuyaRequest(task, TaskThermostat , DP_TYPE_ENUM, 0x02, data);
-                                    //sendTuyaRequest(task, TaskThermostat , DP_TYPE_VALUE, DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_4, QByteArray("\x00\x00\x00\x00", 4));
+                                    sendTuyaRequest(task, TaskThermostat , DP_TYPE_ENUM, DP_IDENTIFIER_THERMOSTAT_MODE_2, data);
                                 }
                                 else
                                 {
-                                    sendTuyaRequest(task, TaskThermostat , DP_TYPE_ENUM, 0x02, data);
+                                    sendTuyaRequest(task, TaskThermostat , DP_TYPE_ENUM, DP_IDENTIFIER_THERMOSTAT_MODE_2, data);
                                 }
                             }
                             else
                             {
-                                sendTuyaRequest(task, TaskThermostat , DP_TYPE_ENUM, 0x6a, data);
+                                sendTuyaRequest(task, TaskThermostat , DP_TYPE_ENUM, DP_IDENTIFIER_THERMOSTAT_MODE_1, data);
                             }
                             
                             updated = true;
+                            
+                            rspItemState[QString("/sensor/%1/config/%2").arg(id).arg(rid.suffix)] = modeSet;
+                            rspItem["success"] = rspItemState;
+                            
                         }
                         else
                         {
@@ -1490,6 +1506,9 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         if (sendTuyaRequest(task, TaskThermostat , DP_TYPE_BOOL, 0x01, data))
                         {
                             updated = true;
+                            
+                            rspItemState[QString("/sensor/%1/config/%2").arg(id).arg(rid.suffix)] = modeSet;
+                            rspItem["success"] = rspItemState;
                         }
                         else
                         {
@@ -1527,6 +1546,9 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         if (ok)
                         {
                             updated = true;
+                            
+                            rspItemState[QString("/sensor/%1/config/%2").arg(id).arg(rid.suffix)] = modeSet;
+                            rspItem["success"] = rspItemState;
                         }
                         else
                         {
@@ -1577,6 +1599,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                     if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0406, deCONZ::ZclBoolean, data))
                                     {
                                         updated = true;
+                                        
+                                        rspItemState[QString("/sensor/%1/config/%2").arg(id).arg(rid.suffix)] = mode;
+                                        rspItem["success"] = rspItemState;
+                            
                                     }
                                     else
                                     {

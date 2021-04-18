@@ -23,35 +23,6 @@
 
 // Value for dp_identifier (it s device dependent)
 //
-// Value for windows covering
-//-----------------------------------------------------
-// 0x01 	control         	enum 	open, stop, close, continue
-// 0x02 	percent_control 	value 	0-100% control
-// 0x03 	percent_state 	    value 	Report from motor about current percentage
-// 0x04 	control_back     	enum 	Configures motor direction (untested)
-// 0x05 	work_state       	enum 	Supposedly shows if motor is opening or closing, always 0 for me though
-// 0x06 	situation_set 	    enum 	Configures if 100% equals to fully closed or fully open (untested)
-// 0x07 	fault           	bitmap 	Anything but 0 means something went wrong (untested)
-
-// Value for switch
-//-------------------
-// 0x01 	Button 1
-// 0x02 	Button 2
-// 0x03 	Button 3
-// 0x04 	???
-// 0x0D     All buttons
-
-// Value for thermostat
-//---------------------
-// 0x04     Preset
-// 0x6C     Auto / Manu
-// 0x65     Manu / Off
-// 0x6E     Low battery
-// 0x02     Actual temperature
-// 0x03     Thermostat temperature
-// 0x14     Valve
-// 0x15     Battery level
-// 0x6A     Mode
 
 // Value For Various sensor
 // -------------------------
@@ -146,6 +117,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
     {
         return;
     }
+    
+    const auto productId = R_GetProductId(&lightNode);
     
     // DBG_Printf(DBG_INFO, "Tuya debug 4 : Address 0x%016llX, Command 0x%02X, Payload %s\n", ind.srcAddress().ext(), zclFrame.commandId(), qPrintable(zclFrame.payload().toHex()));
 
@@ -909,8 +882,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         if (item && item->toNumber() != temp)
                         {
                             item->setValue(temp);
-                            Event e(RSensors, RConfigHeatSetpoint, sensorNode->id(), item);
-                            enqueueEvent(e);
+                            enqueueEvent(Event(RSensors, RConfigHeatSetpoint, sensorNode->id(), item));
 
                         }
                     }
@@ -933,7 +905,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     {
                         qint16 temp = static_cast<qint16>(data & 0xFFFF) * 100;
                         
-                        if (sensorNode->manufacturer().endsWith(QLatin1String("hn3negr")))
+                        if (productId == "Tuya_THD MOES TRV")
                         {
                             temp = static_cast<qint16>(data & 0xFFFF) * 100 / 2;
                         }
@@ -998,9 +970,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     case 0x0266: // min temperature limit
                     {
                         //Can be Temperature for some device
-                        if (sensorNode->manufacturer().endsWith(QLatin1String("GbxAXL2")) ||
-                            sensorNode->manufacturer().endsWith(QLatin1String("uhszj9s")) ||
-                            sensorNode->manufacturer().endsWith(QLatin1String("88teujp")))
+                        if (productId == "Tuya_THD SEA801-ZIGBEE TRV" ||
+                            productId == "Tuya_THD WZB-TRVL TRV")
                         {
                             qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
                             ResourceItem *item = sensorNode->item(RStateTemperature);
@@ -1018,9 +989,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     case 0x0267: // max temperature limit
                     {
                         //can be setpoint for some device
-                        if (sensorNode->manufacturer().endsWith(QLatin1String("GbxAXL2")) ||
-                            sensorNode->manufacturer().endsWith(QLatin1String("uhszj9s")) ||
-                            sensorNode->manufacturer().endsWith(QLatin1String("88teujp")))
+                        if (productId == "Tuya_THD SEA801-ZIGBEE TRV" ||
+                            productId == "Tuya_THD WZB-TRVL TRV")
                         {
                             qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
                             ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
@@ -1037,7 +1007,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     break;
                     case 0x0269: // Boost time in second or Heatpoint
                     {
-                        if (sensorNode->manufacturer().endsWith(QLatin1String("hn3negr")))
+                        if (productId == "Tuya_THD MOES TRV")
                         {
                             qint16 temp = static_cast<qint16>(data & 0xFFFF) * 100 / 2;
    
@@ -1078,7 +1048,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     case 0x0402 : // preset for moe or mode
                     case 0x0403 : // preset for moe
                     {
-                        if (sensorNode->manufacturer().endsWith(QLatin1String("hn3negr")))
+                        if (productId == "Tuya_THD MOES TRV")
                         {
                             QString mode;
                             if (data == 0) { mode = QLatin1String("auto"); } //schedule
