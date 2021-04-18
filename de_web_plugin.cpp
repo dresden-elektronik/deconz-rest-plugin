@@ -78,8 +78,7 @@ const quint64 macPrefixMask       = 0xffffff0000000000ULL;
 // New mac prefixes can be checked here: https://wintelguy.com/index.pl
 const quint64 legrandMacPrefix    = 0x0004740000000000ULL;
 const quint64 dishMacPrefix       = 0x0008890000000000ULL;
-const quint64 ikeaMacPrefix       = 0x000b570000000000ULL;
-const quint64 danalockMacPrefix   = 0x000b570000000000ULL; // note: same as ikeaMacPrefix
+const quint64 silabs1MacPrefix    = 0x000b570000000000ULL;
 const quint64 emberMacPrefix      = 0x000d6f0000000000ULL;
 const quint64 instaMacPrefix      = 0x000f170000000000ULL;
 const quint64 tiMacPrefix         = 0x00124b0000000000ULL;
@@ -92,7 +91,6 @@ const quint64 ubisysMacPrefix     = 0x001fee0000000000ULL;
 const quint64 computimeMacPrefix  = 0x001e5e0000000000ULL;
 const quint64 deMacPrefix         = 0x00212e0000000000ULL;
 const quint64 celMacPrefix        = 0x0022a30000000000ULL; // California Eastern Laboratories
-const quint64 keenhomeMacPrefix   = 0x0022a30000000000ULL;
 const quint64 zenMacPrefix        = 0x0024460000000000ULL;
 const quint64 heimanMacPrefix     = 0x0050430000000000ULL;
 const quint64 davicomMacPrefix    = 0x00606e0000000000ULL;
@@ -182,16 +180,16 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_DDEL, "Scene Switch", deMacPrefix },
     { VENDOR_DDEL, "FLS-NB1", deMacPrefix },
     { VENDOR_DDEL, "FLS-NB2", deMacPrefix },
-    { VENDOR_IKEA, "TRADFRI remote control", ikeaMacPrefix },
+    { VENDOR_IKEA, "TRADFRI remote control", silabs1MacPrefix },
     { VENDOR_IKEA, "TRADFRI remote control", silabsMacPrefix },
     { VENDOR_IKEA, "TRADFRI remote control", silabs2MacPrefix },
-    { VENDOR_IKEA, "TRADFRI motion sensor", ikeaMacPrefix },
-    { VENDOR_IKEA, "TRADFRI wireless dimmer", ikeaMacPrefix },
-    { VENDOR_IKEA, "TRADFRI on/off switch", ikeaMacPrefix },
+    { VENDOR_IKEA, "TRADFRI motion sensor", silabs1MacPrefix },
+    { VENDOR_IKEA, "TRADFRI wireless dimmer", silabs1MacPrefix },
+    { VENDOR_IKEA, "TRADFRI on/off switch", silabs1MacPrefix },
     { VENDOR_IKEA, "TRADFRI SHORTCUT Button", silabs4MacPrefix },
-    { VENDOR_IKEA, "TRADFRI open/close remote", ikeaMacPrefix },
-    { VENDOR_IKEA, "FYRTUR", ikeaMacPrefix }, // smart blind
-    { VENDOR_IKEA, "KADRILJ", ikeaMacPrefix }, // smart blind
+    { VENDOR_IKEA, "TRADFRI open/close remote", silabs1MacPrefix },
+    { VENDOR_IKEA, "FYRTUR", silabs1MacPrefix }, // smart blind
+    { VENDOR_IKEA, "KADRILJ", silabs1MacPrefix }, // smart blind
     { VENDOR_IKEA, "KADRILJ", silabs4MacPrefix }, // smart blind
     { VENDOR_IKEA, "SYMFONISK", ikea2MacPrefix }, // sound controller
     { VENDOR_IKEA, "Remote Control N2", silabs4MacPrefix}, // STYRBAR
@@ -293,8 +291,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_HEIMAN, "RC-EF-3.0", silabs5MacPrefix }, // Heiman IAS ACE remote control
     { VENDOR_LUTRON, "LZL4BWHL01", lutronMacPrefix }, // Lutron LZL-4B-WH-L01 Connected Bulb Remote
     { VENDOR_LUTRON, "Z3-1BRL", lutronMacPrefix }, // Lutron Aurora Friends-of-Hue dimmer
-    { VENDOR_KEEN_HOME , "SV01-", keenhomeMacPrefix}, // Keen Home Vent
-    { VENDOR_KEEN_HOME , "SV02-", keenhomeMacPrefix}, // Keen Home Vent
+    { VENDOR_KEEN_HOME , "SV01-", celMacPrefix}, // Keen Home Vent
+    { VENDOR_KEEN_HOME , "SV02-", celMacPrefix}, // Keen Home Vent
     { VENDOR_INNR, "SP 120", jennicMacPrefix}, // innr smart plug
     { VENDOR_JENNIC, "VMS_ADUROLIGHT", jennicMacPrefix }, // Trust motion sensor ZPIR-8000
     { VENDOR_JENNIC, "CSW_ADUROLIGHT", jennicMacPrefix }, // Trust contact sensor ZMST-808
@@ -360,7 +358,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "e70f96b3773a4c9283c6862dbafb6a99", jennicMacPrefix }, // ORVIBO open/close sensor SM11
     { VENDOR_OSRAM_STACK, "SF20", heimanMacPrefix }, // ORVIBO SF20 smoke sensor
     // Danalock support
-    { VENDOR_DANALOCK, "V3", danalockMacPrefix}, // Danalock Smart Lock
+    { VENDOR_DANALOCK, "V3", silabs1MacPrefix}, // Danalock Smart Lock
     // Schlage support
     { VENDOR_SCHLAGE, "BE468", schlageMacPrefix}, // Schlage BE468 Smart Lock
     { VENDOR_HEIMAN, "SF21", emberMacPrefix }, // ORVIBO SF21 smoke sensor
