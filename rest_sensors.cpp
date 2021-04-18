@@ -18,6 +18,7 @@
 #include "de_web_plugin_private.h"
 #include "json.h"
 #include "product_match.h"
+#include "utils/utils.h"
 
 /*! Sensors REST API broker.
     \param req - request data
@@ -1320,9 +1321,9 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD MOES TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV"))
                     {
-                        QByteArray data = QByteArray("\x00\x00",2);
-                        qint8 dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT;
                         heatsetpoint = heatsetpoint / 10;
+                        QByteArray data = QByteArray("\x00\x00", 2);
+                        qint8 dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT;
 
                         if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                             R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||

@@ -91,6 +91,8 @@
 #define DP_IDENTIFIER_BUTTON_2 0x02
 #define DP_IDENTIFIER_BUTTON_3 0x03
 #define DP_IDENTIFIER_BUTTON_ALL 0x0D
+#define DP_IDENTIFIER_DIMMER_LEVEL_MODE1 0x03
+#define DP_IDENTIFIER_DIMMER_LEVEL_MODE2 0x02
 
 // Value for dp_identifier for siren
 //-----------------------------------
