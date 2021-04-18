@@ -344,6 +344,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_DEVELCO, "ZHMS101", develcoMacPrefix }, // Wattle (Develco) magnetic sensor
     { VENDOR_DEVELCO, "ZHEMI101", develcoMacPrefix }, // Wattle (Develco) External Meter Interface
     { VENDOR_DEVELCO, "MotionSensor51AU", develcoMacPrefix }, // Aurora (Develco) motion sensor
+    { VENDOR_DEVELCO, "Smart16ARelay51AU", develcoMacPrefix }, // Aurora (Develco) smart plug
     { VENDOR_DATEK_WIRLESS, "PoP", konkeMacPrefix }, // Apex Smart Plug
     { VENDOR_EMBER, "3AFE14010402000D", konkeMacPrefix }, // Konke Kit Pro-BS Motion Sensor
     { VENDOR_KONKE, "3AFE28010402000D", ikea2MacPrefix }, // Konke Kit Pro-BS Motion Sensor ver.2
@@ -9484,7 +9485,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("SMRZB-3")) ||  // Develco smart relay
                                         i->modelId().startsWith(QLatin1String("SMRZB-1")) ||  // Develco smart cable
                                         i->modelId().startsWith(QLatin1String("SKHMP30")) ||  // GS smart plug
-                                        i->modelId() == QLatin1String("PoP"))           // Apex Smart Plug
+                                        i->modelId() == QLatin1String("Smart16ARelay51AU") || // Aurora (Develco) smart plug
+                                        i->modelId() == QLatin1String("PoP"))                 // Apex Smart Plug
                                     {
                                         //voltage += 50; voltage /= 100; // 0.01V -> V
                                         voltage = static_cast<quint16>(round((double)voltage / 100.0)); // 0.01V -> V
@@ -9527,6 +9529,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("outlet")) ||   // Samsung SmartThings IM6001-OTP/IM6001-OTP01
                                         i->modelId() == QLatin1String("DoubleSocket50AU") ||  // Aurora
                                         i->modelId().startsWith(QLatin1String("SPLZB-1")) ||  // Develco smart plug
+                                        i->modelId() == QLatin1String("Smart16ARelay51AU") || // Aurora (Develco) smart plug
                                         i->modelId() == QLatin1String("RICI01") ||            // LifeControl Smart Plug
                                         i->modelId().startsWith(QLatin1String("SZ-ESW01")) || // Sercomm / Telstra smart plug
                                         i->modelId() == QLatin1String("TS0121") ||            // Tuya smart plug
