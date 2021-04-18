@@ -4817,15 +4817,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         ok = true;
                     }
                 }
-                else if (ind.clusterId() == COLOR_CLUSTER_ID &&
-                         (zclFrame.commandId() == 0x4c))  // step color temperature
-                {
-                    ok = false;
-                    if (zclFrame.payload().size() >= 1 && buttonMap.zclParam0 == zclFrame.payload().at(0)) // direction
-                    {
-                        ok = true;
-                    }
-                }
                 else if (ind.clusterId() == COLOR_CLUSTER_ID && (zclFrame.commandId() == 0x01 ))  // Move hue command
                 {
                     // Only used by Osram devices currently
@@ -4842,9 +4833,9 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
                 }
                 else if (ind.clusterId() == COLOR_CLUSTER_ID && 
-                    (zclFrame.commandId() == 0x05 || // Step Saturation
-                     zclFrame.commandId() == 0x4C) && // Step Color Temperature
-                     sensor->modelId().startsWith(QLatin1String("LXEK-5")))
+                        (zclFrame.commandId() == 0x05 || // Step Saturation
+                         zclFrame.commandId() == 0x02 || // Step Hue
+                         zclFrame.commandId() == 0x4C))  // Step Color Temperature
                 {
                     ok = false;
                     if (zclFrame.payload().size() >= 1 && buttonMap.zclParam0 == zclFrame.payload().at(0)) // direction
@@ -4852,14 +4843,16 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         sensor->previousDirection = zclFrame.payload().at(0);
                         ok = true;
                     }
+                    
                     if (zclFrame.payload().size() >= 3)
                     {
                         //First value is a quint8 for step mode : 0x00 UP and 0x01 DOWN
                         //The second one is step size
                         //The third value is a quint16 for transition
+                        
                         if (sensor->modelId().startsWith(QLatin1String("LXEK-5"))) // ADEO Lexman Télécommande (Leroy Merlin)
                         {
-                            //need to use stepsize too for this device
+                            //need to use step size too for this device
                             ok = true;
                             quint16 param = static_cast<quint16>(zclFrame.payload().at(0) & 0xff);
                             param <<= 8;
@@ -4869,16 +4862,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                                 ok = false;
                             }
                         }
-                    }
-                }
-                else if (ind.clusterId() == COLOR_CLUSTER_ID &&
-                        (zclFrame.commandId() == 0x02 || // Step Hue
-                         zclFrame.commandId() == 0x4C || // Step Color Temperature
-                         zclFrame.commandId() == 0x05)) // Step Saturation
-                {
-                    if (buttonMap.zclParam0 != pl0)
-                    {
-                        ok = false;
                     }
                 }
                 else if (ind.clusterId() == COLOR_CLUSTER_ID && zclFrame.commandId() == 0x47) // stop
