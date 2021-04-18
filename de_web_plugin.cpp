@@ -9405,17 +9405,17 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (item && power != -32768)
                                 {
-                                    if (i->modelId() == QLatin1String("SmartPlug") ||        // Heiman
-                                        i->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
-                                        i->modelId().startsWith(QLatin1String("ROB_200")) || // ROBB Smarrt micro dimmer
-                                        i->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
-                                        i->modelId().startsWith(QLatin1String("lumi.plug.maeu")) || // Xiaomi Aqara ZB3.0 smart plug
-                                        i->modelId() == QLatin1String("RICI01") ||           // LifeControl Smart Plug
-                                        i->modelId().startsWith(QLatin1String("outlet")) ||  // Samsung SmartThings IM6001-OTP/IM6001-OTP01
-                                        i->modelId() == QLatin1String("3200-Sgb") ||           // Samsung/Centralite smart outlet
-                                        i->modelId() == QLatin1String("3200-de") ||            // Samsung/Centralite smart outlet
-                                        i->modelId().startsWith(QLatin1String("lumi.switch.n0agl1"))) // Xiaomi Aqara Single Switch Module T1 (With Neutral)
-                                        i->modelId().startsWith(QLatin1String("lumi.switch.b1naus01"))) // Xiaomi ZB3.0 Smart Wall Switch
+                                    if (i->modelId() == QLatin1String("SmartPlug") ||                       // Heiman
+                                        i->modelId().startsWith(QLatin1String("SKHMP30")) ||                // GS smart plug
+                                        i->modelId().startsWith(QLatin1String("ROB_200")) ||                // ROBB Smarrt micro dimmer
+                                        i->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) ||     // Sunricher Micro Smart Dimmer
+                                        i->modelId().startsWith(QLatin1String("lumi.plug.maeu")) ||         // Xiaomi Aqara ZB3.0 smart plug
+                                        i->modelId() == QLatin1String("RICI01") ||                          // LifeControl Smart Plug
+                                        i->modelId().startsWith(QLatin1String("outlet")) ||                 // Samsung SmartThings IM6001-OTP/IM6001-OTP01
+                                        i->modelId() == QLatin1String("3200-Sgb") ||                        // Samsung/Centralite smart outlet
+                                        i->modelId() == QLatin1String("3200-de") ||                         // Samsung/Centralite smart outlet
+                                        i->modelId().startsWith(QLatin1String("lumi.switch.n0agl1")) ||     // Xiaomi Aqara Single Switch Module T1 (With Neutral)
+                                        i->modelId().startsWith(QLatin1String("lumi.switch.b1naus01")))     // Xiaomi ZB3.0 Smart Wall Switch
                                     {
                                         //power += 5; power /= 10; // 0.1W -> W
                                         power = static_cast<qint16>(round((double)power / 10.0)); // 0.1W -> W
