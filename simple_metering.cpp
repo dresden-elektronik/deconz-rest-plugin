@@ -1,23 +1,22 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 
-/*! Handle packets related to the ZCL Fan control cluster.
+/*! Handle packets related to the ZCL simple metering cluster.
     \param ind the APS level data indication containing the ZCL packet
     \param zclFrame the actual ZCL frame which holds the Thermostat cluster command or attribute
  */
-void DeRestPluginPrivate::handleFanControlClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint(), QLatin1String("ZHAThermostat"));
+    if (zclFrame.isDefaultResponse())
+    {
+        return;
+    }
+    
+    Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint(), QLatin1String("ZHAConsumption"));
 
     if (!sensor)
     {
-        DBG_Printf(DBG_INFO, "No thermostat sensor found for 0x%016llX, endpoint: 0x%02X\n", ind.srcAddress().ext(), ind.srcEndpoint());
-        return;
-    }
-
-    // Currently only intended for thermostats. Might change later...
-    if (sensor->type() != QLatin1String("ZHAThermostat"))
-    {
+        DBG_Printf(DBG_INFO, "No consumption sensor found for 0x%016llX, endpoint: 0x%02X\n", ind.srcAddress().ext(), ind.srcEndpoint());
         return;
     }
 
@@ -71,33 +70,49 @@ void DeRestPluginPrivate::handleFanControlClusterIndication(const deCONZ::ApsDat
 
             switch (attrId)
             {
-            case 0x0000: // Fan mode
+            case 0x0300: // Pulse Configuration
             {
-                if (sensor->modelId() == QLatin1String("AC201") ||     // Owon
-                    sensor->modelId() == QLatin1String("3157100") ||   // Centralite pearl
-                    sensor->modelId() == QLatin1String("Zen-01"))      // Zen
+                if (zclFrame.manufacturerCode() == VENDOR_DEVELCO && sensor->modelId() == QLatin1String("ZHEMI101"))
                 {
-                    qint8 mode = attr.numericValue().u8;
-                    QString modeSet;
+                    quint16 pulseConfiguration = attr.numericValue().u16;
 
-                    modeSet = QLatin1String("off");
-                    if ( mode == 0x00 ) { modeSet = QLatin1String("off"); }
-                    if ( mode == 0x01 ) { modeSet = QLatin1String("low"); }
-                    if ( mode == 0x02 ) { modeSet = QLatin1String("medium"); }
-                    if ( mode == 0x03 ) { modeSet = QLatin1String("high"); }
-                    if ( mode == 0x04 ) { modeSet = QLatin1String("on"); }
-                    if ( mode == 0x05 ) { modeSet = QLatin1String("auto"); }
-                    if ( mode == 0x06 ) { modeSet = QLatin1String("smart"); }
-
-                    item = sensor->item(RConfigFanMode);
-                    if (item && !item->toString().isEmpty() && item->toString() != modeSet)
+                    item = sensor->item(RConfigPulseConfiguration);
+                    if (item && item->toNumber() != pulseConfiguration)
                     {
-                        item->setValue(modeSet);
-                        enqueueEvent(Event(RSensors, RConfigFanMode, sensor->id(), item));
+                        item->setValue(pulseConfiguration);
+                        enqueueEvent(Event(RSensors, RConfigPulseConfiguration, sensor->id(), item));
                         configUpdated = true;
                     }
                 }
-                sensor->setZclValue(updateType, ind.srcEndpoint(), FAN_CONTROL_CLUSTER_ID, attrId, attr.numericValue());
+                sensor->setZclValue(updateType, ind.srcEndpoint(), METERING_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+
+            case 0x0302: // Interface Mode
+            {
+                if (zclFrame.manufacturerCode() == VENDOR_DEVELCO && sensor->modelId() == QLatin1String("ZHEMI101"))
+                {
+                    quint16 interfaceMode = attr.numericValue().u16;
+                    quint8 mode = 0;
+                    
+                    if      (interfaceMode == PULSE_COUNTING_ELECTRICITY)   { mode = 1; }
+                    else if (interfaceMode == PULSE_COUNTING_GAS)           { mode = 2; }
+                    else if (interfaceMode == PULSE_COUNTING_WATER)         { mode = 3; }
+                    else if (interfaceMode == KAMSTRUP_KMP)                 { mode = 4; }
+                    else if (interfaceMode == LINKY)                        { mode = 5; }
+                    else if (interfaceMode == DLMS_COSEM)                   { mode = 6; }
+                    else if (interfaceMode == DSMR_23)                      { mode = 7; }
+                    else if (interfaceMode == DSMR_40)                      { mode = 8; }
+                    
+                    item = sensor->item(RConfigInterfaceMode);
+                    if (item && item->toNumber() != mode && mode > 0 && mode < 9)
+                    {
+                        item->setValue(mode);
+                        enqueueEvent(Event(RSensors, RConfigInterfaceMode, sensor->id(), item));
+                        configUpdated = true;
+                    }
+                }
+                sensor->setZclValue(updateType, ind.srcEndpoint(), METERING_CLUSTER_ID, attrId, attr.numericValue());
             }
                 break;
 
@@ -121,7 +136,8 @@ void DeRestPluginPrivate::handleFanControlClusterIndication(const deCONZ::ApsDat
     }
 }
 
-/*! Write Attribute on fan control cluster.
+/*! Write Attribute on thermostat cluster.
+ *  Iterate over every day and get schedule for each day.
    \param task - the task item
    \param attrId
    \param attrType
@@ -129,17 +145,17 @@ void DeRestPluginPrivate::handleFanControlClusterIndication(const deCONZ::ApsDat
    \return true - on success
            false - on error
  */
-bool DeRestPluginPrivate::addTaskFanControlReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode)
+bool DeRestPluginPrivate::addTaskSimpleMeteringReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode)
 {
     if (readOrWriteCmd != deCONZ::ZclReadAttributesId && readOrWriteCmd != deCONZ::ZclWriteAttributesId)
     {
-        DBG_Printf(DBG_INFO, "Thermostat invalid parameter readOrWriteCmd %d\n", readOrWriteCmd);
+        DBG_Printf(DBG_INFO, "Invalid command for simple metering cluster %d\n", readOrWriteCmd);
         return false;
     }
 
-    task.taskType = TaskThermostat;
+    task.taskType = TaskSimpleMetering;
 
-    task.req.setClusterId(FAN_CONTROL_CLUSTER_ID);
+    task.req.setClusterId(METERING_CLUSTER_ID);
     task.req.setProfileId(HA_PROFILE_ID);
 
     task.zclFrame.payload().clear();
@@ -163,7 +179,7 @@ bool DeRestPluginPrivate::addTaskFanControlReadWriteAttribute(TaskItem &task, ui
     {
         stream << attrId;
         stream << attrType;
-
+        
         deCONZ::ZclAttribute attr(attrId, attrType, QLatin1String(""), deCONZ::ZclWrite, true);
         attr.setValue(QVariant(attrValue));
 

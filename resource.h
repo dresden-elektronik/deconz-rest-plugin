@@ -67,8 +67,8 @@ extern const char *RStateButtonEvent;
 extern const char *RStateCarbonMonoxide;
 extern const char *RStateColorMode;
 extern const char *RStateConsumption;
-extern const char *RStateCurrent;
 extern const char *RStateCt;
+extern const char *RStateCurrent;
 extern const char *RStateDark;
 extern const char *RStateDaylight;
 extern const char *RStateEffect;
@@ -76,6 +76,7 @@ extern const char *RStateErrorCode;
 extern const char *RStateEventDuration;
 extern const char *RStateFire;
 extern const char *RStateFlag;
+extern const char *RStateLockState;
 extern const char *RStateFloorTemperature;
 extern const char *RStateGesture;
 extern const char *RStateHeating;
@@ -123,13 +124,15 @@ extern const char *RStateX;
 extern const char *RStateY;
 
 extern const char *RConfigAlert;
+extern const char *RConfigLock;
 extern const char *RConfigBattery;
 extern const char *RConfigColorCapabilities;
-extern const char *RConfigCtMin;
-extern const char *RConfigCtMax;
 extern const char *RConfigConfigured;
 extern const char *RConfigCoolSetpoint;
+extern const char *RConfigCtMin;
+extern const char *RConfigCtMax;
 extern const char *RConfigDelay;
+extern const char *RConfigDeviceMode;
 extern const char *RConfigDisplayFlipped;
 extern const char *RConfigDuration;
 extern const char *RConfigEnrolled;
@@ -137,17 +140,17 @@ extern const char *RConfigFanMode;
 extern const char *RConfigGroup;
 extern const char *RConfigHeatSetpoint;
 extern const char *RConfigHostFlags;
+extern const char *RConfigId;
+extern const char *RConfigInterfaceMode;
 extern const char *RConfigLastChangeAmount;
 extern const char *RConfigLastChangeSource;
 extern const char *RConfigLastChangeTime;
-extern const char *RConfigId;
 extern const char *RConfigLat;
 extern const char *RConfigLedIndication;
+extern const char *RConfigLevelMin;
 extern const char *RConfigLocalTime;
 extern const char *RConfigLocked;
-extern const char *RConfigSetValve;
 extern const char *RConfigLong;
-extern const char *RConfigLevelMin;
 extern const char *RConfigMode;
 extern const char *RConfigMountingMode;
 extern const char *RConfigOffset;
@@ -156,6 +159,7 @@ extern const char *RConfigPending;
 extern const char *RConfigPowerup;
 extern const char *RConfigPowerOnCt;
 extern const char *RConfigPowerOnLevel;
+extern const char *RConfigPulseConfiguration;
 extern const char *RConfigPreset;
 extern const char *RConfigMelody;
 extern const char *RConfigTempThreshold;
@@ -166,6 +170,7 @@ extern const char *RConfigSchedule;
 extern const char *RConfigScheduleOn;
 extern const char *RConfigSensitivity;
 extern const char *RConfigSensitivityMax;
+extern const char *RConfigSetValve;
 extern const char *RConfigSunriseOffset;
 extern const char *RConfigSunsetOffset;
 extern const char *RConfigSwingMode;
@@ -212,6 +217,8 @@ extern const QStringList RStateEffectValuesMueller;
 #define R_EFFECT_NIGHTLIGHT         7
 extern const QStringList RConfigLastChangeSourceValues;
 
+extern const QStringList RConfigDeviceModeValues;
+
 #define R_PENDING_DELAY             (1 << 0)
 #define R_PENDING_LEDINDICATION     (1 << 1)
 #define R_PENDING_SENSITIVITY       (1 << 2)
@@ -221,6 +228,7 @@ extern const QStringList RConfigLastChangeSourceValues;
 #define R_PENDING_MODE              (1 << 6)
 #define R_PENDING_WRITE_POLL_CHECKIN_INTERVAL  (1 << 6)
 #define R_PENDING_SET_LONG_POLL_INTERVAL       (1 << 7)
+#define R_PENDING_DEVICEMODE        (1 << 8)
 
 // after device announce is received lights can be brought into a defined state
 // this might be useful for powerloss and OTA updates or simply providing a default power on configuration
@@ -262,11 +270,11 @@ class ResourceItem
 
 public:
     ResourceItem(const ResourceItem &other);
-    ResourceItem(ResourceItem &&other);
+    ResourceItem(ResourceItem &&other) noexcept;
     ResourceItem(const ResourceItemDescriptor &rid);
     ResourceItem &operator=(const ResourceItem &other);
-    ResourceItem &operator=(ResourceItem &&other);
-    ~ResourceItem();
+    ResourceItem &operator=(ResourceItem &&other) noexcept;
+    ~ResourceItem() noexcept;
     bool needPushSet() const;
     bool needPushChange() const;
     void clearNeedPush();
@@ -283,7 +291,7 @@ public:
     const QDateTime &lastChanged() const;
     void setTimeStamps(const QDateTime &t);
     void inRule(int ruleHandle);
-    const std::vector<int> rulesInvolved() const;
+    const std::vector<int> &rulesInvolved() const;
     bool isPublic() const;
     void setIsPublic(bool isPublic);
 
@@ -307,9 +315,9 @@ public:
     Resource(const char *prefix);
     ~Resource() = default;
     Resource(const Resource &other);
-    Resource(Resource &&other);
+    Resource(Resource &&other) noexcept;
     Resource &operator=(const Resource &other);
-    Resource &operator=(Resource &&other);
+    Resource &operator=(Resource &&other) noexcept;
     const char *prefix() const;
     ResourceItem *addItem(ApiDataType type, const char *suffix);
     void removeItem(const char *suffix);
@@ -339,6 +347,5 @@ bool R_SetFlags1(ResourceItem *item, qint64 flags, const char *strFlags);
 #define R_ClearFlags(item, flags) R_ClearFlags1(item, flags, #flags)
 bool R_ClearFlags1(ResourceItem *item, qint64 flags, const char *strFlags);
 bool R_HasFlags(const ResourceItem *item, qint64 flags);
-const QString R_GetProductId(Resource *resource);
 
 #endif // RESOURCE_H

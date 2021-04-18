@@ -13,7 +13,7 @@ jobs:
         with:
           stale-issue-message: 'As there has not been any response in 21 days, this issue has been automatically marked as stale. **At OP: Please either close this issue or keep it active**  It will be closed in 7 days if no further activity occurs.'
           stale-issue-label: 'stale'
-          exempt-issue-labels: 'To-Do,Backlog,Feature Request,Awaiting Merge,Announcement'
+          exempt-issue-labels: 'To-Do,Backlog,Feature Request,Awaiting Merge,Announcement,Confirmed Bug'
           days-before-stale: 21
           days-before-close: 7
           remove-stale-when-updated: true

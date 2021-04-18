@@ -9,6 +9,7 @@ assignees: ''
 
 <!--
   - Use this issue template as a question about the deCONZ REST-API.
+  - Make sure not to remove any headers and fill the template completely. If you remove the headers, the issue will be auto-closed.
   - If you want to report a bug for the Phoscon App, please head over to: https://github.com/dresden-elektronik/phoscon-app-beta
   - If you're unsure if the bug fits into this issue tracker, please ask for advise in our Discord chat: https://discord.gg/QFhTxqN
   - Please make sure sure you're running the latest version of deCONZ: https://github.com/dresden-elektronik/deconz-rest-plugin/releases

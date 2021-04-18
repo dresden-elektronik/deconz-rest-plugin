@@ -45,7 +45,9 @@
 //-----------------------------------
 #define DP_IDENTIFIER_CONTROL 0x01
 #define DP_IDENTIFIER_PERCENT_CONTROL 0x02
+#define DP_IDENTIFIER_POSITION_REACHED 0x03
 #define DP_IDENTIFIER_WORK_STATE 0x05
+#define DP_IDENTIFIER_POSITION_MOVING 0x07
 
 // Value for dp_identifier for switches
 //-----------------------------------
@@ -73,7 +75,6 @@
 #define TUYA_QUERY 0x02
 #define TUYA_TIME_SYNCHRONISATION 0x24
 
-bool isTuyaManufacturerName(const QString &manufacturer);
 bool UseTuyaCluster(const QString &manufacturer);
 
 #endif // TUYA_H
