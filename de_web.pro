@@ -124,6 +124,7 @@ HEADERS  = bindings.h \
            scene.h \
            sensor.h \
            tuya.h \
+           utils/utils.h \
            websocket_server.h
 
 SOURCES  = air_quality.cpp \
@@ -189,6 +190,7 @@ SOURCES  = air_quality.cpp \
            appliances.cpp \
            reset_device.cpp \
            rest_userparameter.cpp \
+           utils/utils.cpp \
            zcl_tasks.cpp \
            window_covering.cpp \
            websocket_server.cpp \
