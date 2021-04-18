@@ -27,8 +27,25 @@
 #define DP_TYPE_ENUM 0x04
 #define DP_TYPE_FAULT 0x05
 
-// Value for dp_identifier for sensor
-//-----------------------------------
+// Value for dp_identifier for different sensor
+//--------------------------------------------
+
+
+// Value for thermostat
+//---------------------
+
+// Value for thermostat
+//---------------------
+// 0x04     Preset
+// 0x6C     Auto / Manu
+// 0x65     Manu / Off
+// 0x6E     Low battery
+// 0x02     Actual temperature
+// 0x03     Thermostat temperature
+// 0x14     Valve
+// 0x15     Battery level
+// 0x6A     Mode
+
 #define DP_IDENTIFIER_WINDOW_OPEN 0x12
 #define DP_IDENTIFIER_WINDOW_OPEN2 0x08
 #define DP_IDENTIFIER_THERMOSTAT_SCHEDULE_1 0x65 // Moe thermostat W124 (4) + W002 (4) + W001 (4)
@@ -37,12 +54,31 @@
 #define DP_IDENTIFIER_THERMOSTAT_SCHEDULE_4 0x6D // Not finished
 
 #define DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT 0x02 // Heatsetpoint
-#define DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_2 0x67 // Heatsetpoint
-#define DP_IDENTIFIER_THERMOSTAT_VALVE 0x14 // Heatsetpoint
+#define DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_2 0x67 // Heatsetpoint for Moe
+#define DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_3 0x10 // Heatsetpoint for TRV_MOE mode heat
+#define DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_4 0x69 // Heatsetpoint for TRV_MOE mode auto
+#define DP_IDENTIFIER_THERMOSTAT_VALVE 0x14 // Valve
+#define DP_IDENTIFIER_THERMOSTAT_CHILDLOCK_1 0x07
+#define DP_IDENTIFIER_THERMOSTAT_CHILDLOCK_2 0x28
+#define DP_IDENTIFIER_THERMOSTAT_CHILDLOCK_3 0x1E // For Moe device
+
+#define DP_IDENTIFIER_THERMOSTAT_MODE_1 0x6A // mode
+#define DP_IDENTIFIER_THERMOSTAT_MODE_2 0x02 // mode for Moe device
 
 
 // Value for dp_identifier for covering
 //-----------------------------------
+
+// Value for windows covering
+//-----------------------------------------------------
+// 0x01 	control         	enum 	open, stop, close, continue
+// 0x02 	percent_control 	value 	0-100% control
+// 0x03 	percent_state 	    value 	Report from motor about current percentage
+// 0x04 	control_back     	enum 	Configures motor direction (untested)
+// 0x05 	work_state       	enum 	Supposedly shows if motor is opening or closing, always 0 for me though
+// 0x06 	situation_set 	    enum 	Configures if 100% equals to fully closed or fully open (untested)
+// 0x07 	fault           	bitmap 	Anything but 0 means something went wrong (untested)
+
 #define DP_IDENTIFIER_CONTROL 0x01
 #define DP_IDENTIFIER_PERCENT_CONTROL 0x02
 #define DP_IDENTIFIER_POSITION_REACHED 0x03
@@ -54,6 +90,9 @@
 #define DP_IDENTIFIER_BUTTON_1 0x01
 #define DP_IDENTIFIER_BUTTON_2 0x02
 #define DP_IDENTIFIER_BUTTON_3 0x03
+#define DP_IDENTIFIER_BUTTON_ALL 0x0D
+#define DP_IDENTIFIER_DIMMER_LEVEL_MODE1 0x03
+#define DP_IDENTIFIER_DIMMER_LEVEL_MODE2 0x02
 
 // Value for dp_identifier for siren
 //-----------------------------------
