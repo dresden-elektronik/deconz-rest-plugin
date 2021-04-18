@@ -18,6 +18,7 @@
 #include "json.h"
 #include "connectivity.h"
 #include "colorspace.h"
+#include "product_match.h"
 
 /*! Lights REST API broker.
     \param req - request data
