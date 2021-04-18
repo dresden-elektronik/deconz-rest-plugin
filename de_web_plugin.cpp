@@ -1015,11 +1015,17 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         }
 
         handleIndicationSearchSensors(ind, zclFrame);
+            
+        bool checkSensor = false;
 
-        if (ind.dstAddressMode() == deCONZ::ApsGroupAddress || ind.clusterId() == VENDOR_CLUSTER_ID || ind.clusterId() == IAS_ZONE_CLUSTER_ID ||
-            !(zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient) ||
-            (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId) ||
-            (ind.clusterId() == ADEO_CLUSTER_ID && zclFrame.manufacturerCode() == VENDOR_ADEO))
+        if      (ind.dstAddressMode() == deCONZ::ApsGroupAddress) { checkSensor = true; }
+        else if (ind.clusterId() == VENDOR_CLUSTER_ID) { checkSensor = true; }
+        else if (ind.clusterId() == IAS_ZONE_CLUSTER_ID) { checkSensor = true; }
+        else if ((zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient) == 0) { checkSensor = true; }
+        else if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId) { checkSensor = true; }
+        else if (ind.clusterId() == ADEO_CLUSTER_ID && zclFrame.manufacturerCode() == VENDOR_ADEO) { checkSensor = true; }
+
+        if (checkSensor)
         {
             Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
 
@@ -4586,9 +4592,9 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         {
                             //need to use stepsize too for this device
                             ok = true;
-                            quint16 param = (quint16)zclFrame.payload().at(0) & 0xff;
+                            quint16 param = static_cast<quint16>(zclFrame.payload().at(0) & 0xff);
                             param <<= 8;
-                            param |= (quint16)zclFrame.payload().at(1) & 0xff;
+                            param |= static_cast<quint16>(zclFrame.payload().at(1) & 0xff);
                             if (buttonMap.zclParam0 != param)
                             {
                                 ok = false;
@@ -4836,9 +4842,9 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
                 }
                 else if (ind.clusterId() == COLOR_CLUSTER_ID && 
-                        ((zclFrame.commandId() == 0x05 ) || // Step Saturation
-                        (zclFrame.commandId() == 0x4C )) && // Step Color Temperature
-                        sensor->modelId().startsWith(QLatin1String("LXEK-5")))
+                    (zclFrame.commandId() == 0x05 || // Step Saturation
+                     zclFrame.commandId() == 0x4C) && // Step Color Temperature
+                     sensor->modelId().startsWith(QLatin1String("LXEK-5")))
                 {
                     ok = false;
                     if (zclFrame.payload().size() >= 1 && buttonMap.zclParam0 == zclFrame.payload().at(0)) // direction
@@ -4855,9 +4861,9 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         {
                             //need to use stepsize too for this device
                             ok = true;
-                            quint16 param = (quint16)zclFrame.payload().at(0) & 0xff;
+                            quint16 param = static_cast<quint16>(zclFrame.payload().at(0) & 0xff);
                             param <<= 8;
-                            param |= (quint16)zclFrame.payload().at(1) & 0xff;
+                            param |= static_cast<quint16>(zclFrame.payload().at(1) & 0xff);
                             if (buttonMap.zclParam0 != param)
                             {
                                 ok = false;
@@ -4875,7 +4881,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         ok = false;
                     }
                 }
-                else if (ind.clusterId() == COLOR_CLUSTER_ID && (zclFrame.commandId() == 0x47)) // stop
+                else if (ind.clusterId() == COLOR_CLUSTER_ID && zclFrame.commandId() == 0x47) // stop
                 {
                     ok = false;
                     if (buttonMap.zclParam0 == sensor->previousDirection) // direction of previous step
@@ -4913,7 +4919,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     ok = false;
 
                     if (buttonMap.zclParam0 == zclFrame.payload().at(1))
-
                     {
                         ok = true;
                     }
