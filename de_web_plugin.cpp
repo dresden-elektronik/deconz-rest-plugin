@@ -363,7 +363,8 @@ static const SupportedDevice supportedDevices[] = {
     // Schlage support
     { VENDOR_SCHLAGE, "BE468", schlageMacPrefix}, // Schlage BE468 Smart Lock
     { VENDOR_HEIMAN, "SF21", emberMacPrefix }, // ORVIBO SF21 smoke sensor
-    { VENDOR_3A_SMART_HOME, "ST30 Temperature Sensor", jennicMacPrefix }, // Orvibo ST30 Temp/Humidity Sensor with diplay
+    { VENDOR_3A_SMART_HOME, "ST30 Temperature Sensor", jennicMacPrefix }, // Orvibo ST30 Temp/Humidity Sensor with display
+    { VENDOR_EMBER, "ST30 Temperature Sensor", silabs9MacPrefix }, // Orvibo ST30 Temp/Humidity Sensor with display (alternate)
     { VENDOR_HEIMAN, "358e4e3e03c644709905034dae81433e", emberMacPrefix }, // Orvibo Combustible Gas Sensor
     { VENDOR_LEGRAND, "Dimmer switch w/o neutral", legrandMacPrefix }, // Legrand Dimmer switch wired
     { VENDOR_LEGRAND, "Connected outlet", legrandMacPrefix }, // Legrand Plug
@@ -5119,7 +5120,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                                 {
                                     modelId = QLatin1String("SF21 smoke sensor");
                                 }
-                                else if (modelId == QLatin1String("898ca74409a740b28d5841661e72268d"))
+                                else if (modelId == QLatin1String("898ca74409a740b28d5841661e72268d") ||
+                                         modelId == QLatin1String("50938c4c3c0b4049923cd5afbc151bde"))
                                 {
                                     modelId = QLatin1String("ST30 Temperature Sensor");
                                 }
@@ -8811,7 +8813,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     str = QLatin1String("SF21 smoke sensor");
                                 }
-                                else if (str == QLatin1String("898ca74409a740b28d5841661e72268d"))
+                                else if (str == QLatin1String("898ca74409a740b28d5841661e72268d") ||
+                                         str == QLatin1String("50938c4c3c0b4049923cd5afbc151bde"))
                                 {
                                     str = QLatin1String("ST30 Temperature Sensor");
                                 }
