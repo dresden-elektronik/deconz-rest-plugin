@@ -521,7 +521,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         if (R_GetProductId(lightNode) == QLatin1String("Tuya_DIMSWITCH Earda Dimmer") ||
                             R_GetProductId(lightNode) == QLatin1String("Tuya_DIMSWITCH EDM-1ZAA-EU"))
                         {
-                            quint8 bri = static_cast<quint8>(data * 254 / 1000); // 0 to 1000 value
+                            const qint64 bri = data * 254 / 1000; // 0 to 1000 value
                             
                             ResourceItem *item = lightNode->item(RStateBri);
                             if (item && item->toNumber() != bri)
@@ -539,7 +539,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     {
                         if (R_GetProductId(lightNode) == QLatin1String("Tuya_DIMSWITCH Not model found yet"))
                         {
-                            quint8 bri = static_cast<quint8>(data * 254 / 1000); // 0 to 1000 value
+                            const qint64 bri = data * 254 / 1000; // 0 to 1000 value
                             
                             ResourceItem *item = lightNode->item(RStateBri);
                             if (item && item->toNumber() != bri)

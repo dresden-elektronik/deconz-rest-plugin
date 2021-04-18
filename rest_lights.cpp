@@ -1977,24 +1977,46 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
     bool targetOn = false;
     bool hasOn = false;
     bool hasBri = false;
-    qint16 targetBri = 0;
+    uint targetBri = 0;
     
     bool ok = false;
     
-    if (map.contains("bri") && R_GetProductId(taskRef.lightNode).startsWith(QLatin1String("Tuya_DIMSWITCH")))
+    //Parse all parameters
+    for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
     {
-        if (map["bri"].type() == QVariant::Double)
+        if (p.key() == "bri" && R_GetProductId(taskRef.lightNode).startsWith(QLatin1String("Tuya_DIMSWITCH")))
         {
-            hasBri = true;
-            targetBri = map["bri"].toUInt(&ok);
+            if (map[p.key()].type() == QVariant::Double)
+            {
+                targetBri = map["bri"].toUInt(&ok);
+                if (ok)
+                {
+                    hasBri = true;
+                }
+            }
+
+            if (!hasBri)
+            {
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1").arg(id), QString("invalid value, %1, for parameter, bri").arg(map["bri"].toString())));
+            }
         }
-    }
-    if (map.contains("on") && taskRef.lightNode->item(RStateOn) )
-    {
-        if (map["on"].type() == QVariant::Bool)
+
+        else if (p.key() == "on") && taskRef.lightNode->item(RStateOn) )
         {
-            hasOn = true;
-            targetOn = map["on"].toBool();
+            if (map[p.key()].type() == QVariant::Bool)
+            {
+                hasOn = true;
+                targetOn = map["on"].toBool();
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state").arg(id), QString("invalid value, %1, for parameter, on").arg(map["on"].toString())));
+            }
+        }
+
+        else
+        {
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state").arg(id), QString("parameter, %1, not available").arg(p.key().toString())));
         }
     }
 
@@ -2003,7 +2025,7 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
         if (targetBri <= 0xFF)
         {
             quint16 bri = targetBri * 1000 / 254;
-            QByteArray data = QByteArray("\x00\x00",2);
+            QByteArray data = QByteArray("\x00\x00", 2);
             data.append(static_cast<qint8>((bri >> 8) & 0xff));
             data.append(static_cast<qint8>(bri & 0xff));
             
@@ -2038,9 +2060,9 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
         QByteArray data;
 
         //Retreive Fake endpoint, and change button value
-        uint8_t ep = taskRef.lightNode->haEndpoint().endpoint();
-        if (ep == 0x02) { button = DP_IDENTIFIER_BUTTON_2; }
-        if (ep == 0x03) { button = DP_IDENTIFIER_BUTTON_3; }
+        const auto ep ep = taskRef.lightNode->haEndpoint().endpoint();
+        if      (ep == 0x02) { button = DP_IDENTIFIER_BUTTON_2; }
+        else if (ep == 0x03) { button = DP_IDENTIFIER_BUTTON_3; }
 
         //Use only the first endpoint for command
         taskRef.req.setDstEndpoint(0x01);
@@ -2049,11 +2071,11 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
 
         if (targetOn)
         {
-            data = QByteArray("\x01",1);
+            data = QByteArray("\x01", 1);
         }
         else
         {
-            data = QByteArray("\x00",1);
+            data = QByteArray("\x00", 1);
         }
 
         ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_BOOL, button, data);
@@ -2072,10 +2094,10 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
         }
 
     }
-    
+
     if (!hasOn && !hasBri)
     {
-        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state").arg(id), QString("parameter not available")));
+        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state").arg(id), QString("missing parameter or wrong format ")));
         rsp.httpStatus = HttpStatusBadRequest;
         return REQ_READY_SEND;
     }

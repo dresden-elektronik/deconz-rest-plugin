@@ -2688,11 +2688,11 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         {
             lightNode.addItem(DataTypeUInt8, RStateBri);
             
-            ResourceItem *Type = lightNode.item(RAttrType);
-            DBG_Assert(Type);
-            if (Type)
+            ResourceItem *type = lightNode.item(RAttrType);
+            DBG_Assert(type);
+            if (type)
             {
-                Type->setValue(QString("Dimmable light"));
+                type->setValue(QString("Dimmable light"));
             }
             lightNode.setNeedSaveDatabase(true);
         }
