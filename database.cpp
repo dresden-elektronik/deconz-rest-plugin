@@ -19,6 +19,7 @@
 #include "gateway.h"
 #include "json.h"
 #include "product_match.h"
+#include "utils/utils.h"
 
 static const char *pragmaUserVersion = "PRAGMA user_version";
 static const char *pragmaPageCount = "PRAGMA page_count";
@@ -4096,7 +4097,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (extAddr != 0)
         {
-            QString uid = generateUniqueId(extAddr, endpoint, clusterId);
+            const QString uid = generateUniqueId(extAddr, endpoint, clusterId);
 
             if (uid != sensor.uniqueId())
             {

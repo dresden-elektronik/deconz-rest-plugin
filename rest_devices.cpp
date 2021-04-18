@@ -17,6 +17,7 @@
 #include "de_web_plugin_private.h"
 #include "json.h"
 #include "rest_devices.h"
+#include "utils/utils.h"
 
 RestDevices::RestDevices(QObject *parent) :
     QObject(parent)
