@@ -17,12 +17,11 @@ ZCL_Result ZCL_ReadAttributes(const ZCL_Param &param, quint64 extAddress, quint1
 {
     ZCL_Result result;
 
-    DBG_Printf(DBG_INFO, "readZclAttribute, ep: 0x%02X, cl: 0x%04X, attr: 0x%04X, mfcode: 0x%04X\n",
-               param.endpoint, param.clusterId, param.attributes.front(), param.manufacturerCode);
 
 //    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
     deCONZ::ApsDataRequest req;
     result.apsReqId = req.id();
+
 
     req.setDstEndpoint(param.endpoint);
     req.setDstAddressMode(deCONZ::ApsExtAddress);
@@ -36,6 +35,9 @@ ZCL_Result ZCL_ReadAttributes(const ZCL_Param &param, quint64 extAddress, quint1
 
     zclFrame.setSequenceNumber(zclNextSequenceNumber());
     zclFrame.setCommandId(deCONZ::ZclReadAttributesId);
+
+    DBG_Printf(DBG_INFO, "ZCL read attr, ep: 0x%02X, cl: 0x%04X, attr: 0x%04X, mfcode: 0x%04X, aps.id: %u, zcl.seq: %u\n",
+               param.endpoint, param.clusterId, param.attributes.front(), param.manufacturerCode, req.id(), zclFrame.sequenceNumber());
 
     result.sequenceNumber = zclFrame.sequenceNumber();
 

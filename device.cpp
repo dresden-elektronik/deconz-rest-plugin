@@ -844,8 +844,8 @@ void DEV_PollBusyStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventApsConfirm && EventApsConfirmId(event) == d->readResult.apsReqId)
     {
-        DBG_Printf(DBG_INFO, "DEV Poll Busy %s/0x%016llX APS confirm status: 0x%02X\n",
-                   event.resource(), event.deviceKey(), EventApsConfirmStatus(event));
+        DBG_Printf(DBG_INFO, "DEV Poll Busy %s/0x%016llX APS-DATA.confirm id: %u, status: 0x%02X\n",
+                   event.resource(), event.deviceKey(), d->readResult.apsReqId, EventApsConfirmStatus(event));
         Q_ASSERT(!d->pollItems.empty());
 
         if (EventApsConfirmStatus(event) == 0x00) // success
