@@ -974,42 +974,49 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
         {
             ResourceItem *item = r->itemForIndex(i);
             DBG_Assert(item);
-            if (item && item->ddfItemHandle() != DeviceDescription::Item::InvalidItemHandle)
+            if (!item)
             {
-                ParseFunction_t parseFunction = item->parseFunction();
-                const auto &ddfItem = DDF_GetItem(item);
+                continue;
+            }
 
-                // First call
-                // Init the parse function. Later on this needs to be done by the device description loader.
-                if (!parseFunction && ddfItem.isValid())
+            ParseFunction_t parseFunction = item->parseFunction();
+            const auto &ddfItem = DDF_GetItem(item);
+
+            // First call
+            // Init the parse function. Later on this needs to be done by the device description loader.
+            if (!parseFunction && ddfItem.isValid())
+            {
+                parseFunction = DA_GetParseFunction(ddfItem.parseParameters);
+            }
+
+            if (!parseFunction)
+            {
+                if (!ddfItem.parseParameters.isNull())
                 {
-                    parseFunction = DA_GetParseFunction(ddfItem.parseParameters);
+                    DBG_Printf(DBG_INFO, "parse function for %s not found: %s\n", item->descriptor().suffix, qPrintable(ddfItem.parseParameters.toString()));
+                }
+                continue;
+            }
+
+            if (parseFunction(r, item, ind, zclFrame, ddfItem.parseParameters))
+            {
+                if (item->awake())
+                {
+                    enqueueEvent(Event(RDevices, REventAwake, 0, device->key()));
                 }
 
-                if (parseFunction && parseFunction(r, item, ind, zclFrame, ddfItem.parseParameters))
+                auto *idItem = r->item(RAttrId);
+                if (!idItem)
                 {
-                    if (item->awake())
-                    {
-                        enqueueEvent(Event(RDevices, REventAwake, 0, device->key()));
-                    }
-
-                    auto *idItem = r->item(RAttrId);
-                    if (!idItem)
-                    {
-                        idItem = r->item(RAttrUniqueId);
-                    }
-
-                    const bool push = item->pushOnSet() || (item->pushOnChange() && item->lastChanged() == item->lastSet());
-
-                    if (idItem && push)
-                    {
-                        enqueueEvent(Event(r->prefix(), item->descriptor().suffix, idItem->toString(), device->key()));
-                        DB_StoreSubDeviceItem(r, item);
-                    }
+                    idItem = r->item(RAttrUniqueId);
                 }
-                else if (!parseFunction)
+
+                const bool push = item->pushOnSet() || (item->pushOnChange() && item->lastChanged() == item->lastSet());
+
+                if (idItem && push)
                 {
-                    DBG_Printf(DBG_INFO, "parse function not found: %s\n", qPrintable(ddfItem.parseParameters.toString()));
+                    enqueueEvent(Event(r->prefix(), item->descriptor().suffix, idItem->toString(), device->key()));
+                    DB_StoreSubDeviceItem(r, item);
                 }
             }
         }
