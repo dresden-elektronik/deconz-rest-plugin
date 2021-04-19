@@ -50,4 +50,24 @@ inline int EventApsConfirmPack(quint8 id, quint8 status)
     return id << 8 | status;
 }
 
+//! Packs timer into an \c int used as `num` parameter for REventStartTimer and REventStopTimer.
+inline int EventTimerPack(int timerId, int timeoutMs)
+{
+    Q_ASSERT(timerId <= 0xFF);
+    Q_ASSERT(timeoutMs <= 0xFFFFFF);
+    return timerId << 24 | timeoutMs;
+}
+
+//! Unpacks timer id.
+inline int EventTimerId(const Event &event)
+{
+    return (event.num() >> 24) & 0xFF;
+}
+
+//! Unpacks timer timout.
+inline int EventTimerTimout(const Event &event)
+{
+    return event.num() & 0xFFFFFF;
+}
+
 #endif // EVENT_H

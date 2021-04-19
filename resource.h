@@ -55,6 +55,8 @@ extern const char *REventCheckGroupAnyOn;
 extern const char *REventNodeDescriptor;
 extern const char *REventActiveEndpoints;
 extern const char *REventSimpleDescriptor;
+extern const char *REventStartTimer;
+extern const char *REventStopTimer;
 extern const char *REventStateEnter;
 extern const char *REventStateLeave;
 extern const char *REventStateTimeout;

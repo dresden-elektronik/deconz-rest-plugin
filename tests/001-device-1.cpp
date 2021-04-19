@@ -1,4 +1,5 @@
 #include <QCoreApplication>
+#include <array>
 #include <memory>
 
 // string conversion so catch can print QString
@@ -183,10 +184,34 @@ TEST_CASE( "001: Basic Math", "[DeviceJs]" )
 
 }
 
+struct DeviceTimerObserver
+{
+    bool started = false;
+    int timeout = -1;
+};
+
+std::array<DeviceTimerObserver, StateLevelMax> devTimer;
+
+bool isTimer0Active()
+{
+    return devTimer[StateLevel0].started;
+}
+
 void enqueueEvent(const Event &e)
 {
-    INFO("enqueueEvent, what: " << e.what() << " deviceKey: " << e.deviceKey());
-    CHECK(true);
+//    INFO("enqueueEvent, what: " << e.what() << " deviceKey: " << e.deviceKey());
+//    CHECK(true);
+
+    if (e.what() == REventStartTimer || e.what() == REventStopTimer)
+    {
+        REQUIRE(EventTimerId(e) < StateLevelMax);
+        auto &t = devTimer[EventTimerId(e)];
+        t.started = e.what() == REventStartTimer;
+        t.timeout = EventTimerTimout(e);
+
+        INFO(e.what() << " timeout: " << t.timeout);
+        CHECK(true);
+    }
 
     device->handleEvent(e);
 }
@@ -211,6 +236,7 @@ TEST_CASE("001: Device constructor", "[Device]")
         REQUIRE(device->item(RAttrModelId) != nullptr);
 
         REQUIRE(device->item(RAttrUniqueId)->toString() == "00:00:00:00:00:00:00:0a");
+        REQUIRE(isTimer0Active() == false);
     }
 
     SECTION("Assign deCONZ::Node ")
@@ -226,6 +252,7 @@ TEST_CASE("001: Device constructor", "[Device]")
         REQUIRE(device->item(RAttrExtAddress)->toNumber() == DUT_deviceKey);
         REQUIRE(device->item(RAttrNwkAddress)->toNumber() == nwkAddress);
         REQUIRE(device->node() == coreNodePtr);
+        REQUIRE(isTimer0Active() == false);
     }
 
     SECTION("Update Device state/reachable")
@@ -249,11 +276,13 @@ TEST_CASE("002: Node Descriptor", "[Device]")
         // node descriptor state should have been entered and queued a request to the device
         REQUIRE(apsCtrl.apsReqQueue.size() == 1);
         REQUIRE(apsCtrl.apsReqQueue.back().clusterId() == ZDP_NODE_DESCRIPTOR_CLID);
+        REQUIRE(isTimer0Active() == true);
     }
 
     SECTION("Handle failed confirm")
     {
         device->handleEvent(Event(RDevices, REventApsConfirm, EventApsConfirmPack(apsCtrl.apsReqQueue.back().id(), deCONZ::ApsNoAckStatus), DUT_deviceKey));
+        REQUIRE(isTimer0Active() == false);
 
         // back in init state
         // poke processing again
@@ -262,11 +291,13 @@ TEST_CASE("002: Node Descriptor", "[Device]")
         // node descriptor state entered again and queued another request
         REQUIRE(apsCtrl.apsReqQueue.size() == 2);
         REQUIRE(apsCtrl.apsReqQueue.back().clusterId() == ZDP_NODE_DESCRIPTOR_CLID);
+        REQUIRE(isTimer0Active() == true);
     }
 
     SECTION("Handle timout on response")
     {
         device->handleEvent(Event(RDevices, REventStateTimeout, 0, DUT_deviceKey));
+        REQUIRE(isTimer0Active() == false);
 
         // back in init state
         // poke processing again
@@ -275,6 +306,7 @@ TEST_CASE("002: Node Descriptor", "[Device]")
         // node descriptor state entered again and queued another request
         REQUIRE(apsCtrl.apsReqQueue.size() == 3);
         REQUIRE(apsCtrl.apsReqQueue.back().clusterId() == ZDP_NODE_DESCRIPTOR_CLID);
+        REQUIRE(isTimer0Active() == true);
 
         apsCtrl.apsReqQueue.clear();
     }
@@ -303,11 +335,13 @@ TEST_CASE("003: Active Endpoints", "[Device]")
         // active endpoints state is entered and queued the request
         REQUIRE(apsCtrl.apsReqQueue.size() == 1);
         REQUIRE(apsCtrl.apsReqQueue.back().clusterId() == ZDP_ACTIVE_ENDPOINTS_CLID);
+        REQUIRE(isTimer0Active() == true);
     }
 
     SECTION("Handle failed confirm")
     {
         device->handleEvent(Event(RDevices, REventApsConfirm, EventApsConfirmPack(apsCtrl.apsReqQueue.back().id(), deCONZ::ApsNoAckStatus), DUT_deviceKey));
+        REQUIRE(isTimer0Active() == false);
 
         // back in init state
         // poke processing again
@@ -316,11 +350,13 @@ TEST_CASE("003: Active Endpoints", "[Device]")
         // active endpoints state entered again and queued another request
         REQUIRE(apsCtrl.apsReqQueue.size() == 2);
         REQUIRE(apsCtrl.apsReqQueue.back().clusterId() == ZDP_ACTIVE_ENDPOINTS_CLID);
+        REQUIRE(isTimer0Active() == true);
     }
 
     SECTION("Handle timout on response")
     {
         device->handleEvent(Event(RDevices, REventStateTimeout, 0, DUT_deviceKey));
+        REQUIRE(isTimer0Active() == false);
 
         // back in init state
         // poke processing again
@@ -329,6 +365,7 @@ TEST_CASE("003: Active Endpoints", "[Device]")
         // active endpoints state entered again and queued another request
         REQUIRE(apsCtrl.apsReqQueue.size() == 3);
         REQUIRE(apsCtrl.apsReqQueue.back().clusterId() == ZDP_ACTIVE_ENDPOINTS_CLID);
+        REQUIRE(isTimer0Active() == true);
 
         apsCtrl.apsReqQueue.clear();
     }
@@ -353,14 +390,13 @@ TEST_CASE("004: Simple Descriptors", "[Device]")
 
         REQUIRE(apsCtrl.apsReqQueue.back().asdu().size() == 4); // seq, nwk address, endpoint
         REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(3) == 0x01); // first endpoint
-
-//        INFO("APS: " << apsCtrl.apsReqQueue.back().asdu().toHex().toStdString());
-//        CHECK(false);
+        REQUIRE(isTimer0Active() == true);
     }
 
     SECTION("Handle failed confirm")
     {
         device->handleEvent(Event(RDevices, REventApsConfirm, EventApsConfirmPack(apsCtrl.apsReqQueue.back().id(), deCONZ::ApsNoAckStatus), DUT_deviceKey));
+        REQUIRE(isTimer0Active() == false);
 
         // back in init state
         // poke processing again
@@ -369,11 +405,13 @@ TEST_CASE("004: Simple Descriptors", "[Device]")
         // simple descriptors state entered again and queued another request
         REQUIRE(apsCtrl.apsReqQueue.size() == 2);
         REQUIRE(apsCtrl.apsReqQueue.back().clusterId() == ZDP_SIMPLE_DESCRIPTOR_CLID);
+        REQUIRE(isTimer0Active() == true);
     }
 
     SECTION("Handle timout on response")
     {
         device->handleEvent(Event(RDevices, REventStateTimeout, 0, DUT_deviceKey));
+        REQUIRE(isTimer0Active() == false);
 
         // back in init state
         // poke processing again
@@ -382,6 +420,7 @@ TEST_CASE("004: Simple Descriptors", "[Device]")
         // simple descriptors state entered again and queued another request
         REQUIRE(apsCtrl.apsReqQueue.size() == 3);
         REQUIRE(apsCtrl.apsReqQueue.back().clusterId() == ZDP_SIMPLE_DESCRIPTOR_CLID);
+        REQUIRE(isTimer0Active() == true);
     }
 
     SECTION("Handle first simple descriptor set event")
@@ -404,6 +443,7 @@ TEST_CASE("004: Simple Descriptors", "[Device]")
 
         REQUIRE(apsCtrl.apsReqQueue.back().asdu().size() == 4); // seq, nwk address, endpoint
         REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(3) == 0x02); // second endpoint
+        REQUIRE(isTimer0Active() == true);
     }
 
     SECTION("Handle second simple descriptor set event")
@@ -437,11 +477,13 @@ TEST_CASE("005: Basic Cluster manufacturer name", "[Device]")
         REQUIRE(apsCtrl.apsReqQueue.back().asdu().size() == 5); // ZCL read attributes
         REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(3) == 0x04); // manufacturer name attribute (0x0004)
         REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(4) == 0x00); // manufacturer name attribute
+        REQUIRE(isTimer0Active() == true);
     }
 
     SECTION("Handle failed confirm")
     {
         device->handleEvent(Event(RDevices, REventApsConfirm, EventApsConfirmPack(apsCtrl.apsReqQueue.back().id(), deCONZ::ApsNoAckStatus), DUT_deviceKey));
+        REQUIRE(isTimer0Active() == false);
 
         // back in init state
         // poke processing again
@@ -453,11 +495,13 @@ TEST_CASE("005: Basic Cluster manufacturer name", "[Device]")
         REQUIRE(apsCtrl.apsReqQueue.back().asdu().size() == 5); // ZCL read attributes
         REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(3) == 0x04); // manufacturer name attribute (0x0004)
         REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(4) == 0x00); // manufacturer name attribute
+        REQUIRE(isTimer0Active() == true);
     }
 
     SECTION("Handle timout on response")
     {
         device->handleEvent(Event(RDevices, REventStateTimeout, 0, DUT_deviceKey));
+        REQUIRE(isTimer0Active() == false);
 
         // back in init state
         // poke processing again
@@ -469,6 +513,7 @@ TEST_CASE("005: Basic Cluster manufacturer name", "[Device]")
         REQUIRE(apsCtrl.apsReqQueue.back().asdu().size() == 5); // ZCL read attributes
         REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(3) == 0x04); // manufacturer name attribute (0x0004)
         REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(4) == 0x00); // manufacturer name attribute
+        REQUIRE(isTimer0Active() == true);
     }
 
     SECTION("Handle manufacturer name set event")
@@ -493,11 +538,13 @@ TEST_CASE("006: Basic Cluster modelid", "[Device]")
         REQUIRE(apsCtrl.apsReqQueue.back().asdu().size() == 5); // ZCL read attributes
         REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(3) == 0x05); // modelid attribute (0x0005)
         REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(4) == 0x00); // modelid attribute
+        REQUIRE(isTimer0Active() == true);
     }
 
     SECTION("Handle failed confirm")
     {
         device->handleEvent(Event(RDevices, REventApsConfirm, EventApsConfirmPack(apsCtrl.apsReqQueue.back().id(), deCONZ::ApsNoAckStatus), DUT_deviceKey));
+        REQUIRE(isTimer0Active() == false);
 
         // back in init state
         // poke processing again
@@ -509,11 +556,13 @@ TEST_CASE("006: Basic Cluster modelid", "[Device]")
         REQUIRE(apsCtrl.apsReqQueue.back().asdu().size() == 5); // ZCL read attributes
         REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(3) == 0x05); // modelid attribute (0x0005)
         REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(4) == 0x00); // modelid attribute
+        REQUIRE(isTimer0Active() == true);
     }
 
     SECTION("Handle timout on response")
     {
         device->handleEvent(Event(RDevices, REventStateTimeout, 0, DUT_deviceKey));
+        REQUIRE(isTimer0Active() == false);
 
         // back in init state
         // poke processing again
@@ -525,6 +574,7 @@ TEST_CASE("006: Basic Cluster modelid", "[Device]")
         REQUIRE(apsCtrl.apsReqQueue.back().asdu().size() == 5); // ZCL read attributes
         REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(3) == 0x05); // modelid attribute (0x0005)
         REQUIRE(apsCtrl.apsReqQueue.back().asdu().at(4) == 0x00); // modelid attribute
+        REQUIRE(isTimer0Active() == true);
     }
 
     SECTION("Handle modelid set event")
@@ -533,6 +583,7 @@ TEST_CASE("006: Basic Cluster modelid", "[Device]")
 
         device->item(RAttrModelId)->setValue(QString("ACME"), ResourceItem::SourceDevice);
         device->handleEvent(Event(RDevices, RAttrModelId, 0, DUT_deviceKey));
+        REQUIRE(isTimer0Active() == false);
     }
 }
 

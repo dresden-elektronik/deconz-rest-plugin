@@ -255,6 +255,10 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
             }
         }
     }
+    else if (event.what() == REventStateLeave)
+    {
+        d->stopStateTimer(StateLevel0);
+    }
     else if (event.what() == REventApsConfirm)
     {
         Q_ASSERT(event.deviceKey() == device->key());
@@ -265,7 +269,6 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventNodeDescriptor) // received the node descriptor
     {
-        d->stopStateTimer(StateLevel0);
         d->setState(DEV_InitStateHandler); // evaluate egain from state #1 init
         DEV_EnqueueEvent(device, REventAwake);
     }
@@ -306,6 +309,10 @@ void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event)
             }
         }
     }
+    else if (event.what() == REventStateLeave)
+    {
+        d->stopStateTimer(StateLevel0);
+    }
     else if (event.what() == REventApsConfirm)
     {
         Q_ASSERT(event.deviceKey() == device->key());
@@ -316,7 +323,6 @@ void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventActiveEndpoints)
     {
-        d->stopStateTimer(StateLevel0);
         d->setState(DEV_InitStateHandler);
         DEV_EnqueueEvent(device, REventAwake);
     }
@@ -369,6 +375,10 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
             }
         }
     }
+    else if (event.what() == REventStateLeave)
+    {
+        d->stopStateTimer(StateLevel0);
+    }
     else if (event.what() == REventApsConfirm)
     {
         Q_ASSERT(event.deviceKey() == device->key());
@@ -379,7 +389,6 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventSimpleDescriptor)
     {
-        d->stopStateTimer(StateLevel0);
         d->setState(DEV_InitStateHandler);
         DEV_EnqueueEvent(device, REventAwake);
     }
@@ -528,6 +537,10 @@ void DEV_BasicClusterStateHandler(Device *device, const Event &event)
             d->setState(DEV_GetDeviceDescriptionHandler);
         }
     }
+    else if (event.what() == REventStateLeave)
+    {
+        d->stopStateTimer(StateLevel0);
+    }
     else if (event.what() == REventApsConfirm)
     {
         Q_ASSERT(event.deviceKey() == device->key());
@@ -539,7 +552,6 @@ void DEV_BasicClusterStateHandler(Device *device, const Event &event)
     else if (event.what() == RAttrManufacturerName || event.what() == RAttrModelId)
     {
         DBG_Printf(DBG_INFO, "DEV received %s: 0x%016llX\n", event.what(), device->key());
-        d->stopStateTimer(StateLevel0);
         d->setState(DEV_InitStateHandler); // ok re-evaluate
         DEV_EnqueueEvent(device, REventAwake);
     }
@@ -976,11 +988,13 @@ void DevicePrivate::setState(DeviceStateHandler newState, DEV_StateLevel level)
 
 void DevicePrivate::startStateTimer(int IntervalMs, DEV_StateLevel level)
 {
+    emit q->eventNotify(Event(q->prefix(), REventStartTimer, EventTimerPack(level, IntervalMs), q->key()));
     timer[level].start(IntervalMs, q);
 }
 
 void DevicePrivate::stopStateTimer(DEV_StateLevel level)
 {
+    emit q->eventNotify(Event(q->prefix(), REventStopTimer, EventTimerPack(level, 0), q->key()));
     if (timer[level].isActive())
     {
         timer[level].stop();
