@@ -16,6 +16,10 @@ add_library (device
     ../device.cpp
     ../device_access_fn.h
     ../device_access_fn.cpp
+    ../device_descriptions.h
+    ../device_descriptions.cpp
+    ../device_ddf_init.h
+    ../device_ddf_init.cpp
 )
 
 target_link_libraries(device
@@ -23,6 +27,7 @@ target_link_libraries(device
     PUBLIC device_js
     PUBLIC event
     PUBLIC resource
+    PUBLIC zcl
     PUBLIC zdp
 )
 

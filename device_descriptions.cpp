@@ -20,14 +20,43 @@
 #include "event.h"
 #include "resource.h"
 
+#define HND_MIN_LOAD_COUNTER 1
+#define HND_MAX_LOAD_COUNTER 15
+#define HND_MAX_DESCRIPTIONS 16383
+#define HND_MAX_ITEMS        1023
+#define HND_MAX_SUB_DEVS     15
+
+/*! \union ItemHandlePack
+
+    Packs location to an DDF item into a opaque 32-bit unsigned int handle.
+    The DDF item lookup complexity is O(1) via DDF_GetItem() function.
+ */
+union ItemHandlePack
+{
+    // 32-bit memory layout
+    // llll dddd dddd dddd ddss ssii iiii iiii
+    struct {
+        //! Max: 15, check for valid handle, for each DDF reload the counter is incremented (wraps to 0).
+        unsigned int loadCounter : 4;
+        unsigned int description : 14; //! Max: 16383, index into descriptions[].
+        unsigned int subDevice: 4;     //! Max: 15, index into description -> subdevices[]
+        unsigned int item : 10;        //! Max: 1023, index into subdevice -> items[]
+    };
+    quint32 handle;
+};
+
 static DeviceDescriptions *_instance = nullptr;
 
 class DeviceDescriptionsPrivate
 {
 public:
+    uint loadCounter = HND_MIN_LOAD_COUNTER;
     std::map<QString,QString> constants;
     std::vector<DeviceDescription::Item> genericItems;
     std::vector<DeviceDescription> descriptions;
+
+    DeviceDescription invalidDescription;
+    DeviceDescription::Item invalidItem;
 };
 
 static bool DDF_ReadConstantsJson(const QString &path, std::map<QString,QString> *constants);
@@ -77,12 +106,12 @@ void DeviceDescriptions::handleEvent(const Event &event)
 /*! Get the DDF object for a \p resource.
     \returns The DDF object, DeviceDescription::isValid() to check for success.
  */
-DeviceDescription DeviceDescriptions::get(const Resource *resource)
+const DeviceDescription &DeviceDescriptions::get(const Resource *resource) const
 {
     Q_ASSERT(resource);
     Q_ASSERT(resource->item(RAttrModelId));
 
-    Q_D(DeviceDescriptions);
+    Q_D(const DeviceDescriptions);
 
     const auto modelId = resource->item(RAttrModelId)->toString();
 
@@ -96,7 +125,7 @@ DeviceDescription DeviceDescriptions::get(const Resource *resource)
         return *i;
     }
 
-    return {};
+    return d->invalidDescription;
 }
 
 /*! Turns a string constant into it's value.
@@ -116,11 +145,117 @@ QString DeviceDescriptions::constantToString(const QString &constant) const
     return constant;
 }
 
+/*! Retrieves the DDF item for the given \p item.
+
+    If \p item has a valid DDF item handle the respective entry is returned.
+    Otherwise the generic item list is searched based on the item.suffix.
+
+    The returned entry can be check with DeviceDescription::Item::isValid().
+ */
+const DeviceDescription::Item &DDF_GetItem(const ResourceItem *item)
+{
+    Q_ASSERT(_instance);
+    return _instance->getItem(item);
+}
+
+/*! \see DDF_GetItem() description.
+ */
+const DeviceDescription::Item &DeviceDescriptions::getItem(const ResourceItem *item) const
+{
+    Q_D(const DeviceDescriptions);
+
+    ItemHandlePack h;
+    h.handle = item->ddfItemHandle(); // unpack
+
+    if (h.handle == DeviceDescription::Item::InvalidItemHandle)
+    {
+        return getGenericItem(item->descriptor().suffix);
+    }
+
+    if (h.loadCounter != d->loadCounter)
+    {
+        return d->invalidItem;
+    }
+
+    // Note: There are no further if conditions since at this point it's certain that a handle must be valid.
+
+    Q_ASSERT(h.description < d->descriptions.size());
+
+    const auto &ddf = d->descriptions[h.description];
+
+    Q_ASSERT(h.subDevice < ddf.subDevices.size());
+
+    const auto &sub = ddf.subDevices[h.subDevice];
+
+    Q_ASSERT(h.item < sub.items.size());
+
+    return sub.items[h.item];
+}
+
+const DeviceDescription::Item &DeviceDescriptions::getGenericItem(const char *suffix) const
+{
+    Q_D(const DeviceDescriptions);
+
+    for (const auto &item : d->genericItems)
+    {
+        if (item.name == QLatin1String(suffix))
+        {
+            return item;
+        }
+    }
+
+    return d->invalidItem;
+}
+
+/*! Updates all DDF item handles to point to correct location.
+    \p loadCounter - the current load counter.
+ */
+std::vector<DeviceDescription> DDF_UpdateItemHandles(const std::vector<DeviceDescription> &descriptions, uint loadCounter)
+{
+    auto result = descriptions;
+    Q_ASSERT(loadCounter >= HND_MIN_LOAD_COUNTER);
+    Q_ASSERT(loadCounter <= HND_MAX_LOAD_COUNTER);
+
+    ItemHandlePack handle;
+    handle.description = 0;
+    handle.loadCounter = loadCounter;
+
+    for (auto &ddf : result)
+    {
+        handle.subDevice = 0;
+        for (auto &sub : ddf.subDevices)
+        {
+            handle.item = 0;
+
+            for (auto &item : sub.items)
+            {
+                item.handle = handle.handle;
+                Q_ASSERT(handle.item < HND_MAX_ITEMS);
+                handle.item++;
+            }
+
+            Q_ASSERT(handle.subDevice < HND_MAX_SUB_DEVS);
+            handle.subDevice++;
+        }
+
+        Q_ASSERT(handle.description < HND_MAX_DESCRIPTIONS);
+        handle.description++;
+    }
+
+    return result;
+}
+
 /*! Reads all DDF related files.
  */
 void DeviceDescriptions::readAll()
 {
     Q_D(DeviceDescriptions);
+
+    d->loadCounter = (d->loadCounter + 1) % HND_MAX_LOAD_COUNTER;
+    if (d->loadCounter <= HND_MIN_LOAD_COUNTER)
+    {
+        d->loadCounter = HND_MIN_LOAD_COUNTER;
+    }
 
     DBG_MEASURE_START(DDF_ReadAllFiles);
 
@@ -170,7 +305,7 @@ void DeviceDescriptions::readAll()
 
     if (!descriptions.empty())
     {
-        d->descriptions = descriptions;
+        d->descriptions = DDF_UpdateItemHandles(descriptions, d->loadCounter);
 
         for (auto &ddf : d->descriptions)
         {

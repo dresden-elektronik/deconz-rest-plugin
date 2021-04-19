@@ -8,6 +8,7 @@
  *
  */
 
+#include "device_descriptions.h"
 #include "resource.h"
 #include "state_change.h"
 
@@ -104,10 +105,11 @@ StateChange::State StateChange::tick(Resource *r, deCONZ::ApsController *apsCtrl
         }
 
         m_state = StateFailed;
-        if (item && !item->readParameters().isNull())
+        if (item)
         {
-            const auto fn = DA_GetReadFunction(item->readParameters());
-            if (fn && fn(r, item, apsCtrl, &m_readResult))
+            const auto &ddfItem = DDF_GetItem(item);
+            const auto fn = DA_GetReadFunction(ddfItem.readParameters);
+            if (fn && ddfItem.isValid() && fn(r, item, apsCtrl, ddfItem.parseParameters, &m_readResult))
             {
                 if (m_readResult.isEnqueued)
                 {

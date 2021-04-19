@@ -60,6 +60,7 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
         DBG_Printf(DBG_INFO, "sub-device: %s, create item: %s\n", qPrintable(uniqueId), ddfItem.descriptor.suffix);
         item = rsub->addItem(ddfItem.descriptor.type, ddfItem.descriptor.suffix);
 
+        DBG_Assert(item);
         if (!item)
         {
             return nullptr;
@@ -76,6 +77,8 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
         item->setValue(ddfItem.defaultValue);
     }
 
+    item->setDdfItemHandle(ddfItem.handle);
+
     Q_ASSERT(item);
 
     // check updates
@@ -87,16 +90,7 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
         item->setRefreshInterval(ddfItem.refreshInterval);
     }
 
-    if (item->parseParameters() != ddfItem.parseParameters)
-    {
-        item->setParseFunction(nullptr);
-        item->setParseParameters(ddfItem.parseParameters);
-    }
-
-    if (item->readParameters() != ddfItem.readParameters)
-    {
-        item->setReadParameters(ddfItem.readParameters);
-    }
+    item->setParseFunction(nullptr);
 
     if (item->writeParameters() != ddfItem.writeParameters)
     {

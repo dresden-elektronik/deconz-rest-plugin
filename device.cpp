@@ -17,8 +17,10 @@
 #include <deconz/node.h>
 #include "device.h"
 #include "device_access_fn.h"
+#include "device_descriptions.h"
 #include "event.h"
 #include "utils/utils.h"
+#include "zcl/zcl.h"
 #include "zdp.h"
 
 #define STATE_LEVEL_BINDING  StateLevel1
@@ -52,11 +54,12 @@ constexpr int MaxPollItemRetries = 3;
 
 struct PollItem
 {
-    explicit PollItem(const Resource *r, const ResourceItem *i) :
-        resource(r), item(i) {}
+    explicit PollItem(const Resource *r, const ResourceItem *i, const QVariant &p) :
+        resource(r), item(i), readParameters(p) {}
     size_t retry = 0;
     const Resource *resource = nullptr;
     const ResourceItem *item = nullptr;
+    QVariant readParameters;
 };
 
 struct BindingContext
@@ -459,37 +462,19 @@ bool DEV_ZclRead(Device *device, ResourceItem *item, deCONZ::ZclClusterId_t clus
         return false;
     }
 
-    if (item->readParameters().isNull())
-    {
-        const QVariantMap read = {
-            { "fn", "zcl" },
-            { "ep", sd->endpoint() },
-            { "cl", QString::number(static_cast<quint16>(clusterId)) },
-            { "at", QString::number(static_cast<quint16>(attrId)) }
-        };
-        item->setReadParameters({read});
-    }
+    ZCL_Param param;
+    param.valid = true;
+    param.endpoint = sd->endpoint();
+    param.clusterId = static_cast<quint16>(clusterId);
+    param.attributes.push_back(static_cast<quint16>(attrId));
 
-    if (item->parseParameters().isNull())
-    {
-        const QVariantMap parse = {
-            { "fn", "zcl" },
-            { "ep", sd->endpoint() },
-            { "cl", QString::number(static_cast<quint16>(clusterId)) },
-            { "at", QString::number(static_cast<quint16>(attrId)) },
-            { "eval", "Item.val = Attr.val" }
-        };
-        item->setParseParameters({parse});
-    }
+    const auto zclResult = ZCL_ReadAttributes(param, device->item(RAttrExtAddress)->toNumber(), device->item(RAttrNwkAddress)->toNumber(), d->apsCtrl);
 
-    auto readFunction = DA_GetReadFunction(item->readParameters());
+    d->readResult.isEnqueued = zclResult.isEnqueued;
+    d->readResult.apsReqId = zclResult.apsReqId;
+    d->readResult.sequenceNumber = zclResult.sequenceNumber;
 
-    if (readFunction && readFunction(device, item, d->apsCtrl, &d->readResult))
-    {
-        return d->readResult.isEnqueued;
-    }
-
-    return false;
+    return d->readResult.isEnqueued;
 }
 
 /*! #5 This state reads all common basic cluster attributes needed to match a DDF,
@@ -724,22 +709,24 @@ std::vector<PollItem> DEV_GetPollItems(Device *device)
         {
             const auto *item = r->itemForIndex(size_t(i));
 
-            if (item->readParameters().isNull())
-            {
-                continue;
-            }
-
-            if (item->readParameters().toMap().empty())
-            {
-                continue;
-            }
-
             if (item->lastSet().isValid() && item->lastSet().secsTo(now) < item->refreshInterval())
             {
                 continue;
             }
 
-            result.emplace_back(PollItem{r, item});
+            const auto &ddfItem = DDF_GetItem(item);
+
+            if (ddfItem.readParameters.isNull())
+            {
+                continue;
+            }
+
+            if (ddfItem.readParameters.toMap().empty())
+            {
+                continue;
+            }
+
+            result.emplace_back(PollItem{r, item, ddfItem.readParameters});
         }
     }
 
@@ -792,13 +779,12 @@ void DEV_PollNextStateHandler(Device *device, const Event &event)
         }
 
         auto &poll = d->pollItems.back();
-
-        auto fn = DA_GetReadFunction(poll.item->readParameters());
+        auto fn = DA_GetReadFunction(poll.readParameters);
 
         d->readResult = { };
         if (fn)
         {
-            fn(poll.resource, poll.item, d->apsCtrl, &d->readResult);
+            fn(poll.resource, poll.item, d->apsCtrl, poll.readParameters, &d->readResult);
         }
         else
         {

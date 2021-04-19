@@ -31,13 +31,12 @@ struct DA_ReadResult
     quint8 sequenceNumber = 0;
 };
 
-typedef bool (*ParseFunction_t)(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
-typedef bool (*ReadFunction_t)(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, DA_ReadResult *result);
+typedef bool (*ParseFunction_t)(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, const QVariant &parseParameters);
+typedef bool (*ReadFunction_t)(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, const QVariant &readParameters, DA_ReadResult *result);
 typedef bool (*WriteFunction_t)(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl);
 
 ParseFunction_t DA_GetParseFunction(const QVariant &params);
 ReadFunction_t DA_GetReadFunction(const QVariant &params);
 WriteFunction_t DA_GetWriteFunction(const QVariant &params);
-
 
 #endif // DEVICE_ACCESS_FN_H

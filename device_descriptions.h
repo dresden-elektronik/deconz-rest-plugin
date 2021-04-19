@@ -31,11 +31,15 @@ public:
     class Item
     {
     public:
+        using Handle = quint32;
         enum Constants {
-            NoRefreshInterval = -1
+            NoRefreshInterval = -1,
+            InvalidItemHandle = 0
         };
 
         bool isValid() const { return !name.isEmpty() && descriptor.isValid(); }
+        Handle handle = InvalidItemHandle;
+
         bool isPublic = true;
         bool isStatic = false;
         bool awake = false;
@@ -72,8 +76,10 @@ class DeviceDescriptions : public QObject
 public:
     explicit DeviceDescriptions(QObject *parent = nullptr);
     ~DeviceDescriptions();
-    DeviceDescription get(const Resource *resource);
+    const DeviceDescription &get(const Resource *resource) const;
     QString constantToString(const QString &constant) const;
+
+    const DeviceDescription::Item &getItem(const ResourceItem *item) const;
 
     static DeviceDescriptions *instance();
 
@@ -86,10 +92,13 @@ Q_SIGNALS:
     void loaded();
 
 private:
+    const DeviceDescription::Item &getGenericItem(const char *suffix) const;
     void handleDDFInitRequest(const Event &event);
 
     Q_DECLARE_PRIVATE_D(d_ptr2, DeviceDescriptions)
     DeviceDescriptionsPrivate *d_ptr2 = nullptr;
 };
+
+const DeviceDescription::Item &DDF_GetItem(const ResourceItem *item);
 
 #endif // DEVICEDESCRIPTIONS_H

@@ -930,11 +930,15 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
 {
     deCONZ::ZclFrame zclFrame;
 
-    if ((ind.profileId() == HA_PROFILE_ID) || (ind.profileId() == ZLL_PROFILE_ID))
+    if (ind.profileId() == HA_PROFILE_ID || ind.profileId() == ZLL_PROFILE_ID)
     {
         QDataStream stream(ind.asdu());
         stream.setByteOrder(QDataStream::LittleEndian);
         zclFrame.readFromStream(stream);
+    }
+    else
+    {
+        return; // only ZCL for now
     }
 
     // Helper function until we have a proper Device class which hosts sub devices
@@ -970,18 +974,19 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
         {
             ResourceItem *item = r->itemForIndex(i);
             DBG_Assert(item);
-            if (item && !item->parseParameters().isNull())
+            if (item && item->ddfItemHandle() != DeviceDescription::Item::InvalidItemHandle)
             {
                 ParseFunction_t parseFunction = item->parseFunction();
+                const auto &ddfItem = DDF_GetItem(item);
 
                 // First call
                 // Init the parse function. Later on this needs to be done by the device description loader.
-                if (!parseFunction)
+                if (!parseFunction && ddfItem.isValid())
                 {
-                    parseFunction = DA_GetParseFunction(item->parseParameters());
+                    parseFunction = DA_GetParseFunction(ddfItem.parseParameters);
                 }
 
-                if (parseFunction && parseFunction(r, item, ind, zclFrame))
+                if (parseFunction && parseFunction(r, item, ind, zclFrame, ddfItem.parseParameters))
                 {
                     if (item->awake())
                     {
@@ -1004,7 +1009,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                 }
                 else if (!parseFunction)
                 {
-                    DBG_Printf(DBG_INFO, "parse function not found: %s\n", qPrintable(item->parseParameters().toString()));
+                    DBG_Printf(DBG_INFO, "parse function not found: %s\n", qPrintable(ddfItem.parseParameters.toString()));
                 }
             }
         }

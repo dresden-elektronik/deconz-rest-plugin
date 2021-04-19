@@ -587,8 +587,6 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
     m_isPublic = other.m_isPublic;
     m_flags = other.m_flags;
     m_parseFunction = other.m_parseFunction;
-    m_parseParameters = other.m_parseParameters;
-    m_readParameters = other.m_readParameters;
     m_writeParameters = other.m_writeParameters;
     m_refreshInterval = other.m_refreshInterval;
     m_clusterId = other.m_clusterId;
@@ -600,6 +598,7 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
     m_lastSet = other.m_lastSet;
     m_lastChanged = other.m_lastChanged;
     m_rulesInvolved = other.m_rulesInvolved;
+    m_ddfItemHandle = other.m_ddfItemHandle;
 
     if (other.m_str)
     {
@@ -643,10 +642,9 @@ ResourceItem &ResourceItem::operator=(ResourceItem &&other) noexcept
     m_attributes = std::move(other.m_attributes);
     m_endpoint = other.m_endpoint;
     m_parseFunction = other.m_parseFunction;
-    m_parseParameters = std::move(other.m_parseParameters);
-    m_readParameters = std::move(other.m_readParameters);
     m_writeParameters = std::move(other.m_writeParameters);
     m_refreshInterval = other.m_refreshInterval;
+    m_ddfItemHandle = other.m_ddfItemHandle;
     other.m_rid = &rInvalidItemDescriptor;
 
     if (m_str)
@@ -1021,16 +1019,6 @@ bool ResourceItem::isPublic() const
 void ResourceItem::setIsPublic(bool isPublic)
 {
     m_isPublic = isPublic;
-}
-
-void ResourceItem::setParseParameters(const QVariant &params)
-{
-    m_parseParameters = params;
-}
-
-void ResourceItem::setReadParameters(const QVariant &params)
-{
-    m_readParameters = params;
 }
 
 void ResourceItem::setWriteParameters(const QVariant &params)

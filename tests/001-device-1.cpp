@@ -12,6 +12,7 @@ std::ostream& operator << ( std::ostream& os, const QString &str)
 #include "resource.h"
 #include "device_js/device_js.h"
 #include "device.h"
+#include "device_descriptions.h"
 #include "event.h"
 
 int argc = 0;
@@ -84,6 +85,30 @@ MockApsController apsCtrl;
 MockDeviceparent parent;
 
 std::unique_ptr<Device> device;
+
+bool DB_StoreSubDevice(const Resource *sub)
+{
+    return sub != nullptr;
+}
+
+bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item)
+{
+    return sub && item;
+}
+
+bool DB_LoadSubDeviceItem(const Resource *sub, ResourceItem *item)
+{
+    return sub && item;
+}
+
+Resource *DEV_InitCompatNodeFromDescription(Device *device, const DeviceDescription::SubDevice &sub, const QString &uniqueId)
+{
+    Q_UNUSED(device)
+    Q_UNUSED(sub)
+    Q_UNUSED(uniqueId)
+
+    return nullptr;
+}
 
 const deCONZ::Node *DEV_GetCoreNode(uint64_t extAddr)
 {
