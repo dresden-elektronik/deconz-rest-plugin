@@ -236,6 +236,7 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
         if (!device->node()->nodeDescriptor().isNull())
         {
             DBG_Printf(DBG_INFO, "ZDP node descriptor verified: 0x%016llX\n", device->key());
+            device->item(RAttrSleeper)->setValue(!device->node()->nodeDescriptor().receiverOnWhenIdle()); // can be overwritten by DDF
             d->setState(DEV_ActiveEndpointsStateHandler);
         }
         else if (!device->reachable()) // can't be queried, go back to #1 init
