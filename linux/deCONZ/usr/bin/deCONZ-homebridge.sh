@@ -163,6 +163,15 @@ function checkHomebridge {
 	local HOMEBRIDGE=""
 	local IP_ADDRESS=""
 	local HOMEBRIDGE_PIN=""
+	local hb_hue_version=$(npm list -g homebridge-hue | grep homebridge-hue | cut -d@ -f2 | xargs)
+
+	#hostline used in config
+	local hostline="\"hosts\": [\"127.0.0.1\"],"
+	if [ $(echo "$hb_hue_version" | cut -d'.' -f 2) -le 13 ]; then
+		if [ $(echo "$hb_hue_version" | cut -d'.' -f 3) -lt 2 ]; then
+			hostline="\"host\": \"127.0.0.1\","
+		fi
+	fi
 
 	## get database config
 	params=( [0]="homebridge" [1]="ipaddress" [2]="homebridge-pin")
@@ -333,7 +342,9 @@ function checkHomebridge {
 
 	APIKEY="$SQL_RESULT"
 
-	# create config file if not exists
+	# if config file exists check if parameters are still valid
+	# to prevent this skript from overwrite config file set name parameter to something different then Phoscon Homebridge
+	# else create config file if not exists
 	if [[ -f /home/$MAINUSER/.homebridge/config.json ]]; then
 		# existing config found
 		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}found existing homebridge config.json"
@@ -375,6 +386,18 @@ function checkHomebridge {
 				sed -i "/\"pin\":/c\    \"pin\": \"${HB_PIN}\"" /home/$MAINUSER/.homebridge/config.json
 				updated=true
 			fi
+			# check if hostline is still correct
+			local hostline2="\"host\": \"127.0.0.1\""
+			if [[ $hostline == "\"hosts\": [\"127.0.0.1\"]," ]]; then
+                hostline2="\"hosts\": \[\"127.0.0.1\"\],"
+            fi
+            # hostline2 only needed for grep
+			if [ -z "$(cat /home/$MAINUSER/.homebridge/config.json | grep "$hostline2")" ]; then
+				# hostline is wrong format for this hb hue version
+				[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}update hostline format in config file for this hb hue version"
+				sed -i "/\"host/c\  $hostline" /home/$MAINUSER/.homebridge/config.json
+				updated=true
+			fi
 			if [[ $updated = true ]]; then
 				putHomebridgeUpdated "homebridge" "updated"
 			else
@@ -414,7 +437,7 @@ function checkHomebridge {
 \"platforms\": [
 {
   \"platform\": \"Hue\",
-  \"host\": \"127.0.0.1\",
+  ${hostline}
   \"users\": {
     \"${BRIDGEID}\": \"${APIKEY}\"
   },
