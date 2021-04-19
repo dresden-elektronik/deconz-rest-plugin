@@ -137,7 +137,7 @@ HEADERS  = bindings.h \
            utils/utils.h \
            websocket_server.h \
            zcl/zcl.h \
-           zdp.h
+           zdp/zdp.h
            
 
 SOURCES  = air_quality.cpp \
@@ -213,12 +213,12 @@ SOURCES  = air_quality.cpp \
            reset_device.cpp \
            rest_userparameter.cpp \
            utils/utils.cpp \
-           zcl/zcl.cpp \
-           zcl_tasks.cpp \
            window_covering.cpp \
            websocket_server.cpp \
-           xmas.cpp \
-           zdp.cpp
+           zcl/zcl.cpp \
+           zcl_tasks.cpp \
+           zdp/zdp.cpp \
+           xmas.cpp
 
 win32 {
 

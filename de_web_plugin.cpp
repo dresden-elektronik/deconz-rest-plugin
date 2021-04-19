@@ -48,7 +48,7 @@
 #include "rest_devices.h"
 #include "read_files.h"
 #include "utils/utils.h"
-#include "zdp.h"
+#include "zdp/zdp.h"
 #ifdef ARCH_ARM
   #include <unistd.h>
   #include <sys/reboot.h>

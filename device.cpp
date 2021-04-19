@@ -21,7 +21,7 @@
 #include "event.h"
 #include "utils/utils.h"
 #include "zcl/zcl.h"
-#include "zdp.h"
+#include "zdp/zdp.h"
 
 #define STATE_LEVEL_BINDING  StateLevel1
 #define STATE_LEVEL_POLL     StateLevel2
