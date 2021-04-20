@@ -14,6 +14,7 @@
 class Device;
 class DeviceDescription;
 
+bool DEV_InitDeviceBasic(Device *device);
 bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &description);
 
 #endif // DEVICE_DDF_INIT_H

@@ -35,6 +35,7 @@
 #include <cmath>
 #include "colorspace.h"
 #include "database.h"
+#include "device_ddf_init.h"
 #include "device_descriptions.h"
 #include "device_tick.h"
 #include "de_web_plugin.h"
@@ -13898,6 +13899,14 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         {
             refreshDeviceDb(event.node()->address());
         }
+
+        auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), m_devices, event.node()->address().ext());
+        Q_ASSERT(device);
+        if (device && DEV_InitDeviceBasic(device))
+        {
+            enqueueEvent(Event(device->prefix(), REventPoll, 0, device->key()));
+        }
+
         addLightNode(event.node());
         addSensorNode(event.node());
     }

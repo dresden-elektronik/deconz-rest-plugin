@@ -11,11 +11,24 @@
 #ifndef DATABASE_H
 #define DATABASE_H
 
+#include <QString>
+#include <QVariant>
+#include <vector>
+
 class Resource;
 class ResourceItem;
 
-bool DB_StoreSubDevice(const Resource *sub);
+
+struct DB_ResourceItem
+{
+    QString name;
+    QVariant value;
+    qint64 timestampMs = 0; // milliseconds since Epoch
+};
+
+bool DB_StoreSubDevice(const QString &parentUniqueId, const QString &uniqueId);
 bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item);
-bool DB_LoadSubDeviceItem(const Resource *sub, ResourceItem *item);
+std::vector<DB_ResourceItem> DB_LoadSubDeviceItemsOfDevice(const QString &deviceUniqueId);
+std::vector<DB_ResourceItem> DB_LoadSubDeviceItems(const QString &uniqueId);
 
 #endif // DATABASE_H

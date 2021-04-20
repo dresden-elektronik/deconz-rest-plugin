@@ -12,6 +12,7 @@
 #include <QStringBuilder>
 #include <QElapsedTimer>
 #include <unistd.h>
+#include "database.h"
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "deconz/dbg_trace.h"
@@ -5876,23 +5877,26 @@ void DeRestPluginPrivate::saveDatabaseTimerFired()
     }
 }
 
-bool DB_StoreSubDevice(const Resource *sub)
+bool DB_StoreSubDevice(const QString &parentUniqueId, const QString &uniqueId)
 {
+    if (parentUniqueId.isEmpty() || uniqueId.isEmpty())
+    {
+        return false;
+    }
+
     DeRestPluginPrivate::instance()->openDb();
+
     if (!db)
     {
         return false;
     }
 
-    const Resource *rParent = sub->parentResource();
-    Q_ASSERT(rParent);
-
     const auto sql = QString("INSERT INTO sub_devices (device_id,uniqueid,timestamp)"
                              " SELECT id, '%1', %2"
                              " FROM devices WHERE mac = '%3'")
-                             .arg(sub->item(RAttrUniqueId)->toString())
+                             .arg(uniqueId)
                              .arg(QDateTime::currentMSecsSinceEpoch() / 1000)
-                             .arg(rParent->item(RAttrUniqueId)->toString());
+                             .arg(parentUniqueId);
 
     char *errmsg = nullptr;
 
@@ -5943,42 +5947,43 @@ bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item)
     return true;
 }
 
-bool DB_LoadSubDeviceItem(const Resource *sub, ResourceItem *item)
+static int DB_LoadSubDeviceItemsCallback(void *user, int ncols, char **colval , char **)
 {
+    auto *result = static_cast<std::vector<DB_ResourceItem>*>(user);
+    Q_ASSERT(result);
+    Q_ASSERT(ncols == 3);
+
+    DB_ResourceItem ritem;
+
+    ritem.name = QString(colval[0]);
+    ritem.value = QString(colval[1]);
+    ritem.timestampMs = QString(colval[2]).toLongLong() * 1000;
+
+    if (!ritem.name.isEmpty() && !ritem.value.isNull())
+    {
+        result->push_back(std::move(ritem));
+    }
+    return 0;
+};
+
+std::vector<DB_ResourceItem> DB_LoadSubDeviceItemsOfDevice(const QString &deviceUniqueId)
+{
+    std::vector<DB_ResourceItem> result;
+
     DeRestPluginPrivate::instance()->openDb();
+
     if (!db)
     {
-        return false;
+        return result;
     }
 
-    const auto sql = QString("SELECT value,timestamp FROM resource_items"
-                             " WHERE sub_device_id = (SELECT id FROM sub_devices WHERE uniqueid = '%1')"
-                             " AND item = '%2'")
-                             .arg(sub->item(RAttrUniqueId)->toString(),
-                                  QLatin1String(item->descriptor().suffix));
+    const auto sql = QString("SELECT item,value,timestamp FROM resource_items"
+                             " WHERE sub_device_id = (SELECT id FROM sub_devices WHERE uniqueid LIKE '%1%')")
+                             .arg(deviceUniqueId);
 
-    struct _Result
-    {
-        bool loaded = false;
-        qint64 timestamp = 0;
-        QVariant value;
-    };
-
-    _Result result;
-
-    const auto callback = +[](void *user, int ncols, char **colval , char **) -> int
-    {
-        _Result *result = static_cast<_Result*>(user);
-        Q_ASSERT(result);
-        Q_ASSERT(ncols == 2);
-
-        result->value = QString(colval[0]);
-        result->timestamp = QString(colval[1]).toLongLong();
-        return 0;
-    };
 
     char *errmsg = nullptr;
-    int rc = sqlite3_exec(db, qPrintable(sql), callback, &result, &errmsg);
+    int rc = sqlite3_exec(db, qPrintable(sql), DB_LoadSubDeviceItemsCallback, &result, &errmsg);
 
     if (errmsg)
     {
@@ -5986,15 +5991,37 @@ bool DB_LoadSubDeviceItem(const Resource *sub, ResourceItem *item)
         sqlite3_free(errmsg);
     }
 
-    if (rc == SQLITE_OK && !result.value.isNull())
+    DeRestPluginPrivate::instance()->closeDb();
+
+    return result;
+}
+
+std::vector<DB_ResourceItem> DB_LoadSubDeviceItems(const QString &uniqueId)
+{
+    std::vector<DB_ResourceItem> result;
+
+    DeRestPluginPrivate::instance()->openDb();
+
+    if (!db)
     {
-        if (item->setValue(result.value))
-        {
-            item->setTimeStamps(QDateTime::fromMSecsSinceEpoch(result.timestamp * 1000));
-            result.loaded = true;
-        }
+        return result;
+    }
+
+    const auto sql = QString("SELECT item,value,timestamp FROM resource_items"
+                             " WHERE sub_device_id = (SELECT id FROM sub_devices WHERE uniqueid = '%1')")
+                             .arg(uniqueId);
+
+
+    char *errmsg = nullptr;
+    int rc = sqlite3_exec(db, qPrintable(sql), DB_LoadSubDeviceItemsCallback, &result, &errmsg);
+
+    if (errmsg)
+    {
+        DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", qPrintable(sql), errmsg, rc);
+        sqlite3_free(errmsg);
     }
 
     DeRestPluginPrivate::instance()->closeDb();
-    return result.loaded;
+
+    return result;
 }

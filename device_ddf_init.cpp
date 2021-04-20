@@ -43,7 +43,7 @@ static QString uniqueIdFromTemplate(const QStringList &templ, const quint64 extA
 
 /*! Creates a ResourceItem if not exist, initialized with \p ddfItem content.
  */
-static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item &ddfItem, Resource *rsub)
+static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item &ddfItem, const std::vector<DB_ResourceItem> &dbItems, Resource *rsub)
 {
     Q_ASSERT(rsub);
     Q_ASSERT(ddfItem.isValid());
@@ -65,21 +65,28 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
         {
             return nullptr;
         }
-
     }
+
+    Q_ASSERT(item);
+
+    const auto dbItem = std::find_if(dbItems.cbegin(), dbItems.cend(), [&ddfItem](const auto &dbItem)
+    {
+        return ddfItem.name == dbItem.name;
+    });
 
     if (item->lastSet().isValid() && ddfItem.isStatic)
     { }
-    else if (DB_LoadSubDeviceItem(rsub, item))
-    { }
+    else if (dbItem != dbItems.cend())
+    {
+        item->setValue(dbItem->value);
+        item->setTimeStamps(QDateTime::fromMSecsSinceEpoch(dbItem->timestampMs));
+    }
     else if (ddfItem.defaultValue.isValid())
     {
         item->setValue(ddfItem.defaultValue);
     }
 
     item->setDdfItemHandle(ddfItem.handle);
-
-    Q_ASSERT(item);
 
     // check updates
     item->setIsPublic(ddfItem.isPublic);
@@ -137,14 +144,16 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &desc
             mf->setValue(DeviceDescriptions::instance()->constantToString(description.manufacturer));
         }
 
-        DB_StoreSubDevice(rsub);
-
+        // TODO storing should be done else where, since this is init code
+        DB_StoreSubDevice(device->item(RAttrUniqueId)->toString(), uniqueId);
         DB_StoreSubDeviceItem(rsub, rsub->item(RAttrManufacturerName));
         DB_StoreSubDeviceItem(rsub, rsub->item(RAttrModelId));
 
+        const auto dbItems = DB_LoadSubDeviceItems(uniqueId);
+
         for (const auto &ddfItem : sub.items)
         {
-            auto *item = DEV_InitDeviceDescriptionItem(ddfItem, rsub);
+            auto *item = DEV_InitDeviceDescriptionItem(ddfItem, dbItems, rsub);
             if (!item)
             {
                 continue;
@@ -168,3 +177,32 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &desc
     return subCount == description.subDevices.size();
 }
 
+
+bool DEV_InitDeviceBasic(Device *device)
+{
+    const auto dbItems = DB_LoadSubDeviceItemsOfDevice(device->item(RAttrUniqueId)->toString());
+
+    size_t found = 0;
+    std::array<const char*, 2> poi = { RAttrManufacturerName, RAttrModelId };
+    for (const auto &dbItem : dbItems)
+    {
+        for (const char *suffix: poi)
+        {
+            if (dbItem.name != suffix)
+            {
+                continue;
+            }
+
+            auto *item = device->item(suffix);
+
+            if (item)
+            {
+                item->setValue(dbItem.value);
+                item->setTimeStamps(QDateTime::fromMSecsSinceEpoch(dbItem.timestampMs));
+                found++;
+            }
+        }
+    }
+
+    return found == poi.size();
+}
