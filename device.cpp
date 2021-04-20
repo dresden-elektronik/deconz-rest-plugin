@@ -827,12 +827,12 @@ void DEV_PollNextStateHandler(Device *device, const Event &event)
         }
 
         auto &poll = d->pollItems.back();
-        auto fn = DA_GetReadFunction(poll.readParameters);
+        const auto readFunction = DA_GetReadFunction(poll.readParameters);
 
         d->readResult = { };
-        if (fn)
+        if (readFunction)
         {
-            fn(poll.resource, poll.item, d->apsCtrl, poll.readParameters, &d->readResult);
+            d->readResult = readFunction(poll.resource, poll.item, d->apsCtrl, poll.readParameters);
         }
         else
         {

@@ -467,16 +467,16 @@ bool parseXiaomiSpecial(Resource *r, ResourceItem *item, const deCONZ::ApsDataIn
 
     Example: { "read": {"fn": "zcl", "ep": 1, "cl": "0x0402", "at": "0x0000", "mf": "0x110b"} }
  */
-static bool readZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, const QVariant &readParameters, DA_ReadResult *result)
+static DA_ReadResult readZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, const QVariant &readParameters)
 {
     Q_UNUSED(item)
-    Q_ASSERT(result);
-    *result = { };
+
+    DA_ReadResult result;
 
     Q_ASSERT(!readParameters.isNull());
     if (readParameters.isNull())
     {
-        return false;
+        return result;
     }
 
     auto *rTop = r->parentResource() ? r->parentResource() : r;
@@ -486,14 +486,14 @@ static bool readZclAttribute(const Resource *r, const ResourceItem *item, deCONZ
 
     if (!extAddr || !nwkAddr)
     {
-        return false;
+        return result;
     }
 
     auto param = getZclParam(readParameters.toMap());
 
     if (!param.valid)
     {
-        return false;
+        return result;
     }
 
     if (param.endpoint == AutoEndpoint)
@@ -502,17 +502,17 @@ static bool readZclAttribute(const Resource *r, const ResourceItem *item, deCONZ
 
         if (param.endpoint == AutoEndpoint)
         {
-            return false;
+            return result;
         }
     }
 
     const auto zclResult = ZCL_ReadAttributes(param, extAddr->toNumber(), nwkAddr->toNumber(), apsCtrl);
 
-    result->isEnqueued = zclResult.isEnqueued;
-    result->apsReqId = zclResult.apsReqId;
-    result->sequenceNumber = zclResult.sequenceNumber;
+    result.isEnqueued = zclResult.isEnqueued;
+    result.apsReqId = zclResult.apsReqId;
+    result.sequenceNumber = zclResult.sequenceNumber;
 
-    return result->isEnqueued;
+    return result;
 }
 
 /*! A generic function to write ZCL attributes.

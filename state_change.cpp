@@ -108,9 +108,11 @@ StateChange::State StateChange::tick(Resource *r, deCONZ::ApsController *apsCtrl
         if (item)
         {
             const auto &ddfItem = DDF_GetItem(item);
-            const auto fn = DA_GetReadFunction(ddfItem.readParameters);
-            if (fn && ddfItem.isValid() && fn(r, item, apsCtrl, ddfItem.parseParameters, &m_readResult))
+            const auto readFunction = DA_GetReadFunction(ddfItem.readParameters);
+            if (readFunction && ddfItem.isValid())
             {
+                m_readResult = readFunction(r, item, apsCtrl, ddfItem.parseParameters);
+
                 if (m_readResult.isEnqueued)
                 {
                     m_stateTimer.start();
