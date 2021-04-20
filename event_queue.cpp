@@ -15,52 +15,55 @@ void DeRestPluginPrivate::initEventQueue()
  */
 void DeRestPluginPrivate::eventQueueTimerFired()
 {
-    DBG_Assert(!eventQueue.empty());
+    int maxEvents = 10;
 
-    const Event &e = eventQueue.front();
+    while (maxEvents > 0 && !eventQueue.empty())
+    {
+        maxEvents--;
+        const Event &e = eventQueue.front();
 
-    if (e.resource() == RSensors)
-    {
-        handleSensorEvent(e);
-    }
-    else if (e.resource() == RLights)
-    {
-        handleLightEvent(e);
-    }
-    else if (e.resource() == RGroups)
-    {
-        handleGroupEvent(e);
-    }
-
-    emit eventNotify(e);
-
-    if (e.deviceKey() != 0)
-    {
-        auto *device = DEV_GetDevice(m_devices, e.deviceKey());
-        if (device)
+        if (e.resource() == RSensors)
         {
-            device->handleEvent(e);
-
+            handleSensorEvent(e);
+        }
+        else if (e.resource() == RLights)
+        {
+            handleLightEvent(e);
+        }
+        else if (e.resource() == RGroups)
+        {
+            handleGroupEvent(e);
         }
 
-        // hack to forward first sub device name to core to show it as node name
-        if (device && e.what() == REventDDFInitResponse && e.num() > 0)
+        emit eventNotify(e);
+
+        if (e.deviceKey() != 0)
         {
-            const auto subDevices = device->subDevices();
-            if (!subDevices.empty())
+            auto *device = DEV_GetDevice(m_devices, e.deviceKey());
+            if (device)
             {
-                const auto *i = subDevices.front()->item(RAttrName);
-                if (i && !i->toString().isEmpty())
+                device->handleEvent(e);
+            }
+
+            // hack to forward first sub device name to core to show it as node name
+            if (device && e.what() == REventDDFInitResponse && e.num() > 0)
+            {
+                const auto subDevices = device->subDevices();
+                if (!subDevices.empty())
                 {
-                    emit q_ptr->nodeUpdated(e.deviceKey(), QLatin1String("name"), i->toString());
+                    const auto *i = subDevices.front()->item(RAttrName);
+                    if (i && !i->toString().isEmpty())
+                    {
+                        emit q_ptr->nodeUpdated(e.deviceKey(), QLatin1String("name"), i->toString());
+                    }
                 }
             }
         }
+
+        handleRuleEvent(e);
+
+        eventQueue.pop_front();
     }
-
-    handleRuleEvent(e);
-
-    eventQueue.pop_front();
 
     if (!eventQueue.empty())
     {
