@@ -64,7 +64,8 @@
                     "values": [
                         ["low", 21], ["medium", 11], ["high", 1]
                     ],
-                    "default": 1
+                    "default": 1,
+                    "refresh.interval": 84000
                 },
                 {
                     "name": "config/sensitivitymax",
