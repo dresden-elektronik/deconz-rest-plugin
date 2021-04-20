@@ -50,6 +50,7 @@ void DEV_DeadStateHandler(Device *device, const Event &event);
 using namespace deCONZ::literals;
 
 constexpr int MinMacPollRxOn = 8000; // 7680 ms + some space for timeout
+constexpr int RxOnWhenIdleResponseTime = 2000; // Expect shorter response delay for rxOnWhenIdle devices
 constexpr int MaxPollItemRetries = 3;
 
 struct PollItem
@@ -75,6 +76,7 @@ public:
     void setState(DeviceStateHandler newState, DEV_StateLevel level = StateLevel0);
     void startStateTimer(int IntervalMs, DEV_StateLevel level);
     void stopStateTimer(DEV_StateLevel level);
+    bool hasRxOnWhenIdle() const;
 
     Device *q = nullptr; //! reference to public interface
     deCONZ::ApsController *apsCtrl = nullptr; //! opaque instance pointer forwarded to external functions
@@ -100,6 +102,8 @@ public:
     bool managed = false; //! a managed device doesn't rely on legacy implementation of polling etc.
     ZDP_Result zdpResult; //! keep track of a running ZDP request
     DA_ReadResult readResult; //! keep track of a running "read" request
+
+    int maxResponseTime = MinMacPollRxOn;
 };
 
 void DEV_EnqueueEvent(Device *device, const char *event)
@@ -236,7 +240,9 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
         if (!device->node()->nodeDescriptor().isNull())
         {
             DBG_Printf(DBG_INFO, "ZDP node descriptor verified: 0x%016llX\n", device->key());
-            device->item(RAttrSleeper)->setValue(!device->node()->nodeDescriptor().receiverOnWhenIdle()); // can be overwritten by DDF
+            d->maxResponseTime = d->hasRxOnWhenIdle() ? RxOnWhenIdleResponseTime
+                                                      : MinMacPollRxOn;
+            device->item(RAttrSleeper)->setValue(!d->hasRxOnWhenIdle()); // can be overwritten by DDF
             d->setState(DEV_ActiveEndpointsStateHandler);
         }
         else if (!device->reachable()) // can't be queried, go back to #1 init
@@ -262,10 +268,17 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventApsConfirm)
     {
-        Q_ASSERT(event.deviceKey() == device->key());
-        if (d->zdpResult.apsReqId == EventApsConfirmId(event) && EventApsConfirmStatus(event) != deCONZ::ApsSuccessStatus)
+        if (d->zdpResult.apsReqId == EventApsConfirmId(event))
         {
-            d->setState(DEV_InitStateHandler);
+            if (EventApsConfirmStatus(event) == deCONZ::ApsSuccessStatus)
+            {
+                d->stopStateTimer(StateLevel0);
+                d->startStateTimer(d->maxResponseTime, StateLevel0);
+            }
+            else
+            {
+                d->setState(DEV_InitStateHandler);
+            }
         }
     }
     else if (event.what() == REventNodeDescriptor) // received the node descriptor
@@ -316,10 +329,17 @@ void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventApsConfirm)
     {
-        Q_ASSERT(event.deviceKey() == device->key());
-        if (d->zdpResult.apsReqId == EventApsConfirmId(event) && EventApsConfirmStatus(event) != deCONZ::ApsSuccessStatus)
+        if (d->zdpResult.apsReqId == EventApsConfirmId(event))
         {
-            d->setState(DEV_InitStateHandler);
+            if (EventApsConfirmStatus(event) == deCONZ::ApsSuccessStatus)
+            {
+                d->stopStateTimer(StateLevel0);
+                d->startStateTimer(d->maxResponseTime, StateLevel0);
+            }
+            else
+            {
+                d->setState(DEV_InitStateHandler);
+            }
         }
     }
     else if (event.what() == REventActiveEndpoints)
@@ -382,10 +402,17 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventApsConfirm)
     {
-        Q_ASSERT(event.deviceKey() == device->key());
-        if (d->zdpResult.apsReqId == EventApsConfirmId(event) && EventApsConfirmStatus(event) != deCONZ::ApsSuccessStatus)
+        if (d->zdpResult.apsReqId == EventApsConfirmId(event))
         {
-            d->setState(DEV_InitStateHandler);
+            if (EventApsConfirmStatus(event) == deCONZ::ApsSuccessStatus)
+            {
+                d->stopStateTimer(StateLevel0);
+                d->startStateTimer(d->maxResponseTime, StateLevel0);
+            }
+            else
+            {
+                d->setState(DEV_InitStateHandler);
+            }
         }
     }
     else if (event.what() == REventSimpleDescriptor)
@@ -543,11 +570,18 @@ void DEV_BasicClusterStateHandler(Device *device, const Event &event)
         d->stopStateTimer(StateLevel0);
     }
     else if (event.what() == REventApsConfirm)
-    {
-        Q_ASSERT(event.deviceKey() == device->key());
-        if (d->readResult.apsReqId == EventApsConfirmId(event) && EventApsConfirmStatus(event) != deCONZ::ApsSuccessStatus)
+    {       
+        if (d->readResult.apsReqId == EventApsConfirmId(event))
         {
-            d->setState(DEV_InitStateHandler);
+            if (EventApsConfirmStatus(event) == deCONZ::ApsSuccessStatus)
+            {
+                d->stopStateTimer(StateLevel0);
+                d->startStateTimer(d->maxResponseTime, StateLevel0);
+            }
+            else
+            {
+                d->setState(DEV_InitStateHandler);
+            }
         }
     }
     else if (event.what() == RAttrManufacturerName || event.what() == RAttrModelId)
@@ -849,9 +883,10 @@ void DEV_PollBusyStateHandler(Device *device, const Event &event)
                    event.resource(), event.deviceKey(), d->readResult.apsReqId, EventApsConfirmStatus(event));
         Q_ASSERT(!d->pollItems.empty());
 
-        if (EventApsConfirmStatus(event) == 0x00) // success
+        if (EventApsConfirmStatus(event) == deCONZ::ApsSuccessStatus)
         {
-            d->pollItems.pop_back();
+            d->stopStateTimer(StateLevel0);
+            d->startStateTimer(d->maxResponseTime, StateLevel0);
         }
         else
         {
@@ -862,12 +897,22 @@ void DEV_PollBusyStateHandler(Device *device, const Event &event)
             {
                 d->pollItems.pop_back();
             }
+            d->setState(DEV_PollNextStateHandler, STATE_LEVEL_POLL);
         }
-        d->setState(DEV_PollNextStateHandler, STATE_LEVEL_POLL);
+    }
+    else if (event.what() == REventZclResponse)
+    {
+        if (d->readResult.sequenceNumber == EventZclSequenceNumber(event))
+        {
+            DBG_Printf(DBG_INFO, "DEV Poll Busy %s/0x%016llX ZCL response seq: %u, status: 0x%02X\n",
+                   event.resource(), event.deviceKey(), d->readResult.sequenceNumber, EventZclStatus(event));
+
+            d->pollItems.pop_back();
+            d->setState(DEV_PollNextStateHandler, STATE_LEVEL_POLL);
+        }
     }
     else if (event.what() == REventStateTimeout)
     {
-        Q_ASSERT(event.num() == STATE_LEVEL_POLL); // TODO remove
         d->setState(DEV_PollNextStateHandler, STATE_LEVEL_POLL);
     }
 }
@@ -1000,6 +1045,11 @@ void DevicePrivate::stopStateTimer(DEV_StateLevel level)
     {
         timer[level].stop();
     }
+}
+
+bool DevicePrivate::hasRxOnWhenIdle() const
+{
+    return q->node()->nodeDescriptor().receiverOnWhenIdle();
 }
 
 void Device::timerEvent(QTimerEvent *event)

@@ -930,17 +930,6 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
 {
     deCONZ::ZclFrame zclFrame;
 
-    if (ind.profileId() == HA_PROFILE_ID || ind.profileId() == ZLL_PROFILE_ID)
-    {
-        QDataStream stream(ind.asdu());
-        stream.setByteOrder(QDataStream::LittleEndian);
-        zclFrame.readFromStream(stream);
-    }
-    else
-    {
-        return; // only ZCL for now
-    }
-
     // Helper function until we have a proper Device class which hosts sub devices
     Device *device = nullptr;
 
@@ -963,6 +952,23 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
             item->setValue(true);
             enqueueEvent(Event(device->prefix(), item->descriptor().suffix, 0, device->key()));
         }
+    }
+
+    if (ind.profileId() == HA_PROFILE_ID || ind.profileId() == ZLL_PROFILE_ID)
+    {
+        QDataStream stream(ind.asdu());
+        stream.setByteOrder(QDataStream::LittleEndian);
+        zclFrame.readFromStream(stream);
+
+        if (zclFrame.commandId() == deCONZ::ZclReadAttributesResponseId && zclFrame.payload().size() >= 3)
+        {
+            const auto status = quint8(zclFrame.payload().at(2));
+            enqueueEvent(Event(device->prefix(), REventZclResponse, EventZclResponsePack(zclFrame.sequenceNumber(), status), device->key()));
+        }
+    }
+    else
+    {
+        return; // only ZCL for now
     }
 
     auto resources = device->subDevices();

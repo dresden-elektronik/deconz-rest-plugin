@@ -50,6 +50,24 @@ inline int EventApsConfirmPack(quint8 id, quint8 status)
     return id << 8 | status;
 }
 
+//! Unpacks Zcl sequence number.
+inline quint8 EventZclSequenceNumber(const Event &event)
+{
+    return event.num() >> 8 & 0xFF;
+}
+
+//! Unpacks ZCL command status.
+inline quint8 EventZclStatus(const Event &event)
+{
+    return event.num() & 0xFF;
+}
+
+//! Packs ZCL sequence number and command status into an \c int used as `num` parameter for REventZclResponse.
+inline int EventZclResponsePack(quint8 seq, quint8 status)
+{
+    return seq << 8 | status;
+}
+
 //! Packs timer into an \c int used as `num` parameter for REventStartTimer and REventStopTimer.
 inline int EventTimerPack(int timerId, int timeoutMs)
 {

@@ -61,6 +61,7 @@ extern const char *REventStateEnter;
 extern const char *REventStateLeave;
 extern const char *REventStateTimeout;
 extern const char *REventTick;
+extern const char *REventZclResponse;
 
 // resouce suffixes: state/buttonevent, config/on, ...
 extern const char *RInvalidSuffix;
