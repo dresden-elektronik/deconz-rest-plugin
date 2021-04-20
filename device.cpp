@@ -49,8 +49,9 @@ void DEV_DeadStateHandler(Device *device, const Event &event);
 // enable domain specific string literals
 using namespace deCONZ::literals;
 
-constexpr int MinMacPollRxOn = 8000; // 7680 ms + some space for timeout
 constexpr int RxOnWhenIdleResponseTime = 2000; // Expect shorter response delay for rxOnWhenIdle devices
+constexpr int RxOffWhenIdleResponseTime = 8000; // 7680 ms + some space for timeout
+constexpr int MaxConfirmTimeout = 20000; // If for some reason no APS-DATA.confirm is received (should almost never happen)
 constexpr int MaxPollItemRetries = 3;
 
 struct PollItem
@@ -103,7 +104,7 @@ public:
     ZDP_Result zdpResult; //! keep track of a running ZDP request
     DA_ReadResult readResult; //! keep track of a running "read" request
 
-    int maxResponseTime = MinMacPollRxOn;
+    int maxResponseTime = RxOffWhenIdleResponseTime;
 };
 
 void DEV_EnqueueEvent(Device *device, const char *event)
@@ -241,7 +242,7 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
         {
             DBG_Printf(DBG_INFO, "ZDP node descriptor verified: 0x%016llX\n", device->key());
             d->maxResponseTime = d->hasRxOnWhenIdle() ? RxOnWhenIdleResponseTime
-                                                      : MinMacPollRxOn;
+                                                      : RxOffWhenIdleResponseTime;
             device->item(RAttrSleeper)->setValue(!d->hasRxOnWhenIdle()); // can be overwritten by DDF
             d->setState(DEV_ActiveEndpointsStateHandler);
         }
@@ -254,7 +255,7 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
             d->zdpResult = ZDP_NodeDescriptorReq(device->item(RAttrNwkAddress)->toNumber(), d->apsCtrl);
             if (d->zdpResult.isEnqueued)
             {
-                d->startStateTimer(MinMacPollRxOn, StateLevel0);
+                d->startStateTimer(MaxConfirmTimeout, StateLevel0);
             }
             else
             {
@@ -315,7 +316,7 @@ void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event)
             d->zdpResult = ZDP_ActiveEndpointsReq(device->item(RAttrNwkAddress)->toNumber(), d->apsCtrl);
             if (d->zdpResult.isEnqueued)
             {
-                d->startStateTimer(MinMacPollRxOn, StateLevel0);
+                d->startStateTimer(MaxConfirmTimeout, StateLevel0);
             }
             else
             {
@@ -388,7 +389,7 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
             d->zdpResult = ZDP_SimpleDescriptorReq(device->item(RAttrNwkAddress)->toNumber(), needFetchEp, d->apsCtrl);
             if (d->zdpResult.isEnqueued)
             {
-                d->startStateTimer(MinMacPollRxOn, StateLevel0);
+                d->startStateTimer(MaxConfirmTimeout, StateLevel0);
             }
             else
             {
@@ -547,7 +548,7 @@ void DEV_BasicClusterStateHandler(Device *device, const Event &event)
 
             if (DEV_ZclRead(device, device->item(it.suffix), it.clusterId, it.attrId))
             {
-                d->startStateTimer(MinMacPollRxOn, StateLevel0);
+                d->startStateTimer(MaxConfirmTimeout, StateLevel0);
                 return; // keep state and wait for REventStateTimeout or response
             }
 
@@ -852,7 +853,7 @@ void DEV_PollNextStateHandler(Device *device, const Event &event)
             {
                 d->pollItems.pop_back();
             }
-            d->startStateTimer(MinMacPollRxOn, STATE_LEVEL_POLL); // try again
+            d->startStateTimer(d->maxResponseTime, STATE_LEVEL_POLL); // try again
         }
     }
     else if (event.what() == REventStateLeave)
@@ -871,7 +872,7 @@ void DEV_PollBusyStateHandler(Device *device, const Event &event)
 
     if (event.what() == REventStateEnter)
     {
-        d->startStateTimer(MinMacPollRxOn, STATE_LEVEL_POLL);
+        d->startStateTimer(MaxConfirmTimeout, STATE_LEVEL_POLL);
     }
     else if (event.what() == REventStateLeave)
     {
@@ -1072,7 +1073,7 @@ qint64 Device::lastAwakeMs() const
 
 bool Device::reachable() const
 {
-    if (lastAwakeMs() < MinMacPollRxOn)
+    if (lastAwakeMs() < RxOffWhenIdleResponseTime)
     {
         return true;
     }
