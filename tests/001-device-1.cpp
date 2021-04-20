@@ -11,10 +11,10 @@ std::ostream& operator << ( std::ostream& os, const QString &str)
 
 #include "catch2/catch.hpp"
 #include "resource.h"
-#include "device_js/device_js.h"
 #include "device.h"
 #include "device_descriptions.h"
 #include "event.h"
+#include "utils/utils.h"
 
 int argc = 0;
 QCoreApplication app(argc, nullptr);
@@ -124,64 +124,9 @@ Resource *DEV_GetResource(const char *resource, const QString &identifier)
     return nullptr;
 }
 
-QString generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId)
-{
-    union _a
-    {
-        quint8 bytes[8];
-        quint64 mac;
-    } a;
-    a.mac = extAddress;
-    int ret = -1;
-    char buf[64];
-
-    if (clusterId != 0 && endpoint != 0xf2)
-    {
-        ret = snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x-%02x-%04x",
-                    a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
-                    a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0],
-                    endpoint, clusterId);
-
-    }
-    else if (endpoint != 0)
-    {
-        ret = snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x-%02x",
-                    a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
-                    a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0],
-                    endpoint);
-    }
-    else
-    {
-        ret = snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
-                    a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
-                    a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0]);
-    }
-    Q_ASSERT(ret > 0);
-    Q_ASSERT(static_cast<size_t>(ret) < sizeof(buf));
-
-    if (ret < 0 || static_cast<size_t>(ret) >= sizeof(buf))
-    {
-        DBG_Printf(DBG_ERROR, "failed to generate uuid, buffer too small\n");
-        Q_ASSERT(0);
-        return QString();
-    }
-
-    return QString::fromLatin1(buf);
-}
-
 quint8 zclNextSequenceNumber()
 {
     return 0;
-}
-
-TEST_CASE( "001: Basic Math", "[DeviceJs]" )
-{
-    DeviceJs js;
-
-    REQUIRE(js.evaluate("1 + 2") == JsEvalResult::Ok);
-
-    REQUIRE(js.result().toInt() == 3);
-
 }
 
 struct DeviceTimerObserver
