@@ -18,6 +18,7 @@
 #include "gateway.h"
 #include "json.h"
 #include "product_match.h"
+#include "utils/utils.h"
 
 static const char *pragmaUserVersion = "PRAGMA user_version";
 static const char *pragmaPageCount = "PRAGMA page_count";
@@ -3561,6 +3562,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD MOES TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                 {
@@ -3586,6 +3588,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD MOES TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                 {
                     sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
@@ -4034,7 +4037,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (extAddr != 0)
         {
-            QString uid = d->generateUniqueId(extAddr, endpoint, clusterId);
+            const QString uid = generateUniqueId(extAddr, endpoint, clusterId);
 
             if (uid != sensor.uniqueId())
             {
@@ -5557,6 +5560,42 @@ void DeRestPluginPrivate::getZigbeeConfigDb(QVariantList &out)
 
     rc = sqlite3_finalize(res);
     DBG_Assert(rc == SQLITE_OK);
+
+    closeDb();
+}
+
+/*! Deletes a device from the database.
+
+    Due the foreign keys this affects the tables:
+    - device
+    - device_descriptors
+    - device_gui
+    - source_routes
+    - source_route_hops
+ */
+void DeRestPluginPrivate::deleteDeviceDb(const QString &uniqueId)
+{
+    DBG_Assert(!uniqueId.isEmpty());
+
+    openDb();
+    DBG_Assert(db);
+    if (!db)
+    {
+        return;
+    }
+
+    char *errmsg = nullptr;
+    const auto sql = QString("DELETE FROM devices WHERE mac = '%1'").arg(uniqueId);
+    int rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s, line: %d\n", qPrintable(sql), errmsg, __LINE__);
+            sqlite3_free(errmsg);
+        }
+    }
 
     closeDb();
 }

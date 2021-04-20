@@ -1729,6 +1729,8 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             R_GetProductId(taskRef.lightNode) == QLatin1String("11830304 Switch") ||
             R_GetProductId(taskRef.lightNode) == QLatin1String("QS-Zigbee-C01 Module") ||
             R_GetProductId(taskRef.lightNode) == QLatin1String("Zigbee curtain switch") ||
+            R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_COVD YS-MT750") ||
+            R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_COVD DS82") ||
             taskRef.lightNode->modelId() == QLatin1String("Motor Controller"))
         {
             targetLiftZigBee = 100 - targetLift;
@@ -1974,100 +1976,131 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
 int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map)
 {
     QString id = req.path[3];
+    
     bool targetOn = false;
-
-    if (map.contains("on"))
+    bool hasOn = false;
+    bool hasBri = false;
+    uint targetBri = 0;
+    
+    bool ok = false;
+    
+    //Parse all parameters
+    for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
     {
-        if (map["on"].type() == QVariant::Bool)
+        if (p.key() == "bri" && R_GetProductId(taskRef.lightNode).startsWith(QLatin1String("Tuya_DIMSWITCH")))
         {
-            bool ok = false;
-            qint8 button = DP_IDENTIFIER_BUTTON_1;
-            QByteArray data;
-
-            targetOn = map["on"].toBool();
-
-            //Retreive Fake endpoint, and change button value
-            uint8_t ep = taskRef.lightNode->haEndpoint().endpoint();
-            if (ep == 0x02) { button = DP_IDENTIFIER_BUTTON_2; }
-            if (ep == 0x03) { button = DP_IDENTIFIER_BUTTON_3; }
-
-            //Use only the first endpoint for command
-            taskRef.req.setDstEndpoint(0x01);
-
-            DBG_Printf(DBG_INFO, "Tuya debug 10: EP: %d ID : %s\n", ep, qPrintable(id));
-
-            if (targetOn)
+            if (map[p.key()].type() == QVariant::Double)
             {
-                data = QByteArray("\x01", 1);
+                targetBri = map["bri"].toUInt(&ok);
+                if (ok && targetBri <= 0xFF)
+                {
+                    hasBri = true;
+                }
+            }
+
+            if (!hasBri)
+            {
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1").arg(id), QString("invalid value, %1, for parameter, bri").arg(map["bri"].toString())));
+            }
+        }
+
+        else if (p.key() == "on" && taskRef.lightNode->item(RStateOn))
+        {
+            if (map[p.key()].type() == QVariant::Bool)
+            {
+                hasOn = true;
+                targetOn = map["on"].toBool();
             }
             else
             {
-                data = QByteArray("\x00", 1);
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state").arg(id), QString("invalid value, %1, for parameter, on").arg(map["on"].toString())));
             }
+        }
 
-            ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_BOOL, button, data);
+        else
+        {
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state").arg(id), QString("parameter, %1, not available").arg(p.key())));
+        }
+    }
+    
+    // Return direct if there is already error
+    if (!rsp.list.isEmpty())
+    {
+        rsp.httpStatus = HttpStatusBadRequest; 
+        return REQ_READY_SEND; 
+    }
 
-            if (ok)
-            {
-                QVariantMap rspItem;
-                QVariantMap rspItemState;
-                rspItemState[QString("/lights/%1/state/on").arg(id)] = targetOn;
-                rspItem["success"] = rspItemState;
-                rsp.list.append(rspItem);
-
-                //Not needed ?
-                //taskRef.lightNode->setValue(RStateOn, targetOn);
-            }
-            else
-            {
-                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
-            }
+    if (hasBri)
+    {
+        quint16 bri = targetBri * 1000 / 254;
+        QByteArray data = QByteArray("\x00\x00", 2);
+        data.append(static_cast<qint8>((bri >> 8) & 0xff));
+        data.append(static_cast<qint8>(bri & 0xff));
+        
+        if (R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_DIMSWITCH Earda Dimmer") ||
+            R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_DIMSWITCH EDM-1ZAA-EU"))
+        {
+            ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_DIMMER_LEVEL_MODE2, data);
         }
         else
         {
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state/on").arg(id), QString("parameter, not available")));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
+            ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_DIMMER_LEVEL_MODE1, data);
         }
-    }
-    else if (map.contains("alert"))
-    {
-        if (map["alert"].type() == QVariant::String)
+        
+        if (ok)
         {
-            QByteArray data("\x00", 1);
-
-            if (map["alert"].toString() == "lselect")
-            {
-                data = QByteArray("\x01",1);
-            }
-
-            if (sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_BOOL, DP_IDENTIFIER_ALARM, data))
-            {
-            }
-            else
-            {
-                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
-            }
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/bri").arg(id)] = targetBri;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
         }
         else
         {
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state/alert").arg(id), QString("parameter, not available")));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
     }
-    else
-    {
-        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state/on").arg(id), QString("parameter not available")));
-        rsp.httpStatus = HttpStatusBadRequest;
-        return REQ_READY_SEND;
-    }
 
-    //if (taskRef.lightNode)
-    //{
-    //    updateLightEtag(taskRef.lightNode);
-    //    rsp.etag = taskRef.lightNode->etag;
-    //}
+    if (hasOn)
+    {
+        qint8 button = DP_IDENTIFIER_BUTTON_1;
+        QByteArray data;
+
+        //Retreive Fake endpoint, and change button value
+        const auto ep = taskRef.lightNode->haEndpoint().endpoint();
+        if      (ep == 0x02) { button = DP_IDENTIFIER_BUTTON_2; }
+        else if (ep == 0x03) { button = DP_IDENTIFIER_BUTTON_3; }
+
+        //Use only the first endpoint for command
+        taskRef.req.setDstEndpoint(0x01);
+
+        DBG_Printf(DBG_INFO, "Tuya debug 10: EP: %d ID : %s\n", ep, qPrintable(id));
+
+        if (targetOn)
+        {
+            data = QByteArray("\x01", 1);
+        }
+        else
+        {
+            data = QByteArray("\x00", 1);
+        }
+
+        ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_BOOL, button, data);
+
+        if (ok)
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/on").arg(id)] = targetOn;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+        }
+
+    }
 
     return REQ_READY_SEND;
 }

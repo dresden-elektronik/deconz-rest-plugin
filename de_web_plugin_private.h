@@ -367,6 +367,7 @@ using namespace deCONZ::literals;
 #define VENDOR_INNR                 0x1166
 #define VENDOR_LDS                  0x1168 // Used by Samsung SmartPlug 2019
 #define VENDOR_PLUGWISE_BV          0x1172
+#define VENDOR_D_LINK               0x1175
 #define VENDOR_INSTA                0x117A
 #define VENDOR_IKEA                 0x117C
 #define VENDOR_3A_SMART_HOME        0x117E
@@ -488,13 +489,14 @@ extern const quint64 macPrefixMask;
 extern const quint64 celMacPrefix;
 extern const quint64 bjeMacPrefix;
 extern const quint64 davicomMacPrefix;
+extern const quint64 dlinkMacPrefix;
 extern const quint64 deMacPrefix;
 extern const quint64 emberMacPrefix;
 extern const quint64 embertecMacPrefix;
 extern const quint64 energyMiMacPrefix;
 extern const quint64 heimanMacPrefix;
 extern const quint64 zenMacPrefix;
-extern const quint64 ikeaMacPrefix;
+extern const quint64 silabs1MacPrefix;
 extern const quint64 ikea2MacPrefix;
 extern const quint64 silabsMacPrefix;
 extern const quint64 silabs2MacPrefix;
@@ -508,7 +510,6 @@ extern const quint64 silabs9MacPrefix;
 extern const quint64 instaMacPrefix;
 extern const quint64 boschMacPrefix;
 extern const quint64 jennicMacPrefix;
-extern const quint64 keenhomeMacPrefix;
 extern const quint64 lutronMacPrefix;
 extern const quint64 netvoxMacPrefix;
 extern const quint64 osramMacPrefix;
@@ -528,8 +529,6 @@ extern const quint64 computimeMacPrefix;
 extern const quint64 konkeMacPrefix;
 extern const quint64 ecozyMacPrefix;
 extern const quint64 zhejiangMacPrefix;
-// Danalock support
-extern const quint64 danalockMacPrefix;
 extern const quint64 schlageMacPrefix;
 
 inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
@@ -580,7 +579,7 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
             return prefix == deMacPrefix ||
                    prefix == silabs3MacPrefix;
         case VENDOR_IKEA:
-            return prefix == ikeaMacPrefix ||
+            return prefix == silabs1MacPrefix ||
                    prefix == silabsMacPrefix ||
                    prefix == silabs2MacPrefix ||
                    prefix == silabs4MacPrefix ||
@@ -600,7 +599,7 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
         case VENDOR_JENNIC:
             return prefix == jennicMacPrefix;
         case VENDOR_KEEN_HOME:
-            return prefix == keenhomeMacPrefix;
+            return prefix == celMacPrefix;
         case VENDOR_LGE:
             return prefix == emberMacPrefix;
         case VENDOR_LUTRON:
@@ -629,7 +628,7 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
         case VENDOR_SI_LABS:
             return prefix == silabsMacPrefix ||
                    prefix == energyMiMacPrefix ||
-                   prefix == ikeaMacPrefix; // belongs to SiLabs
+                   prefix == silabs1MacPrefix;
         case VENDOR_STELPRO:
             return prefix == xalMacPrefix;
         case VENDOR_UBISYS:
@@ -655,7 +654,7 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
         case VENDOR_COMPUTIME:
             return prefix == computimeMacPrefix;
         case VENDOR_DANALOCK:
-            return prefix == danalockMacPrefix;
+            return prefix == silabs1MacPrefix;
         case VENDOR_AXIS:
         case VENDOR_MMB:
             return prefix == zenMacPrefix;
@@ -663,6 +662,8 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
             return prefix == schlageMacPrefix;
         case VENDOR_ADUROLIGHT:
 	        return prefix == jennicMacPrefix;
+        case VENDOR_D_LINK:
+            return prefix == dlinkMacPrefix;
         default:
             return false;
     }
@@ -1492,7 +1493,6 @@ public:
     void pushClientForClose(QTcpSocket *sock, int closeTimeout, const QHttpRequestHeader &hdr);
 
     uint8_t endpoint();
-    QString generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId);
 
     // Task interface
     bool addTask(const TaskItem &task);
@@ -1658,6 +1658,7 @@ public:
     void updateZigBeeConfigDb();
     void getLastZigBeeConfigDb(QString &out);
     void getZigbeeConfigDb(QVariantList &out);
+    void deleteDeviceDb(const QString &uniqueId);
 
     void checkConsistency();
 
