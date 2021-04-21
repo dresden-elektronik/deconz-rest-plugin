@@ -11,6 +11,7 @@ std::ostream& operator << ( std::ostream& os, const QString &str)
 
 #include "catch2/catch.hpp"
 #include "resource.h"
+#include "database.h"
 #include "device.h"
 #include "device_descriptions.h"
 #include "event.h"
@@ -87,9 +88,9 @@ MockDeviceparent parent;
 
 std::unique_ptr<Device> device;
 
-bool DB_StoreSubDevice(const Resource *sub)
+bool DB_StoreSubDevice(const QString &parentUniqueId, const QString &uniqueId)
 {
-    return sub != nullptr;
+    return !parentUniqueId.isEmpty() && !uniqueId.isEmpty();
 }
 
 bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item)
@@ -101,6 +102,18 @@ bool DB_LoadSubDeviceItem(const Resource *sub, ResourceItem *item)
 {
     return sub && item;
 }
+
+
+std::vector<DB_ResourceItem> DB_LoadSubDeviceItemsOfDevice(const QString &/*deviceUniqueId*/)
+{
+    return {};
+}
+
+std::vector<DB_ResourceItem> DB_LoadSubDeviceItems(const QString &/*uniqueId*/)
+{
+    return {};
+}
+
 
 Resource *DEV_InitCompatNodeFromDescription(Device *device, const DeviceDescription::SubDevice &sub, const QString &uniqueId)
 {
