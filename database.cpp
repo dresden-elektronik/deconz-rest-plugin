@@ -3831,6 +3831,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeString, RConfigAlert);
             item->setValue(R_ALERT_DEFAULT);
         }
+        else if (((sensor.modelId() == QLatin1String("TS0211") && sensor.manufacturer() == QLatin1String("_TZ1800_ladpngdx")) ||
+                 (sensor.modelId() == QLatin1String("HG06668") && sensor.manufacturer() == QLatin1String("LIDL Silvercrest"))) &&
+                 sensor.type().endsWith(QLatin1String("Switch")))
+        {
+            sensor.setType(QLatin1String("ZHAAlarm"));
+            sensor.addItem(DataTypeBool, RStateAlarm)->setValue(false);
+            sensor.removeItem(RStateButtonEvent);
+        }
         else if (sensor.modelId() == QLatin1String("lumi.sensor_magnet.agl02") || // skip
                  sensor.modelId() == QLatin1String("lumi.flood.agl02"))
         {
