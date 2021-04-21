@@ -2698,7 +2698,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         if (R_GetProductId(&lightNode).startsWith(QLatin1String("Tuya_DIMSWITCH")))
         {
             lightNode.addItem(DataTypeUInt8, RStateBri);
-            
+
             ResourceItem *type = lightNode.item(RAttrType);
             DBG_Assert(type);
             if (type)
@@ -18642,7 +18642,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         }
         stream << "HTTP/1.1 " << HttpStatusOk << "\r\n";
         stream << "Content-Type: application/xml\r\n";
-        stream << "Content-Length:" << QString::number(d->descriptionXml.size()) << "\r\n";
+        stream << "Content-Length: " << QString::number(d->descriptionXml.size()) << "\r\n";
         stream << "Connection: close\r\n";
         stream << "\r\n";
         stream << d->descriptionXml.constData();
@@ -18794,7 +18794,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     stream << "HTTP/1.1 " << rsp.httpStatus << "\r\n";
     stream << "Access-Control-Allow-Origin: *\r\n";
     stream << "Content-Type: " << rsp.contentType << "\r\n";
-    stream << "Content-Length:" << QString::number(str.toUtf8().size()) << "\r\n";
+    stream << "Content-Length: " << QString::number(str.toUtf8().size()) << "\r\n";
 
     if (!rsp.hdrFields.empty())
     {
