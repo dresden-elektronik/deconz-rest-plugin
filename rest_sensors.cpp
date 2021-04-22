@@ -1584,7 +1584,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                              sensor->modelId().startsWith(QLatin1String("AC201")) ||        // OWON
                              sensor->modelId().startsWith(QLatin1String("Super TR")))       // ELKO
                     {
-
                         QString modeSet = map[pi.key()].toString();
                         quint8 mode = 0x00;
                         if (modeSet == "off") { mode = 0x00; }
@@ -2194,7 +2193,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                 }
                                 else
                                 {
-                                    rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                    rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                             QString("Could not set attribute")));
                                     rsp.httpStatus = HttpStatusBadRequest;
                                     return REQ_READY_SEND;
@@ -2202,7 +2201,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                             else
                             {
-                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                         QString("Could not set attribute")));
                                 rsp.httpStatus = HttpStatusBadRequest;
                                 return REQ_READY_SEND;
@@ -2212,7 +2211,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     else
                     {
                         rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
-                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
                         rsp.httpStatus = HttpStatusBadRequest;
                         return REQ_READY_SEND;
                     }
@@ -2255,6 +2254,50 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                     rsp.httpStatus = HttpStatusBadRequest;
                                     return REQ_READY_SEND;
                                 }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
+                else if (rid.suffix == RConfigControlSequence)
+                {
+                    if (map[pi.key()].type() == QVariant::Double)
+                    {
+                        const uint mode = map[pi.key()].toUInt(&ok);
+                        quint8 controlSequence = 0;
+
+                        if      (ok && mode == 1) { controlSequence = COOLING_ONLY; }
+                        else if (ok && mode == 2) { controlSequence = COOLING_WITH_REHEAT; }
+                        else if (ok && mode == 3) { controlSequence = HEATING_ONLY; }
+                        else if (ok && mode == 4) { controlSequence = HEATING_WITH_REHEAT; }
+                        else if (ok && mode == 5) { controlSequence = COOLING_AND_HEATING_4PIPES; }
+                        else if (ok && mode == 6) { controlSequence = COOLING_AND_HEATING_4PIPES_WITH_REHEAT; }
+                        else
+                        {
+                            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                       QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
+                        }
+
+                        if (controlSequence != 0)
+                        {
+                            if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x001B, deCONZ::Zcl8BitEnum, controlSequence))
+                            {
+                                updated = true;
+                            }
+                            else
+                            {
+                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                           QString("Could not set attribute")));
+                                rsp.httpStatus = HttpStatusBadRequest;
+                                return REQ_READY_SEND;
                             }
                         }
                     }

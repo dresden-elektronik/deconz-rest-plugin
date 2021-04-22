@@ -3560,6 +3560,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 else if (sensor.modelId() == QLatin1String("ZB-ONOFFPlug-D0005") ||
                          sensor.modelId() == QLatin1String("Plug-230V-ZB3.0") ||
                          sensor.modelId() == QLatin1String("lumi.switch.b1naus01") ||
+                         sensor.modelId() == QLatin1String("lumi.plug.maeu01") ||
                          sensor.modelId() == QLatin1String("lumi.switch.n0agl1") ||
                          sensor.manufacturer() == QLatin1String("Legrand"))
                 {
@@ -3625,7 +3626,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 if (sensor.modelId().startsWith(QLatin1String("SLR2")) ||   // Hive
                     sensor.modelId() == QLatin1String("SLR1b") ||           // Hive
                     sensor.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
-                    sensor.modelId() == QLatin1String("902010/32") ||       // Bitron
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
@@ -3707,6 +3707,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeBool, RConfigDisplayFlipped)->setValue(false);
                     sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                     sensor.addItem(DataTypeString, RConfigMode);
+                }
+                else if (sensor.modelId() == QLatin1String("902010/32"))  // Bitron
+                {
+                    sensor.addItem(DataTypeString, RConfigMode);
+                    sensor.addItem(DataTypeUInt8, RConfigControlSequence)->setValue(4);
+                    sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);
+                    sensor.addItem(DataTypeBool, RConfigScheduleOn)->setValue(false);
+                    sensor.addItem(DataTypeString, RConfigSchedule);
                 }
                 else if (sensor.modelId() == QLatin1String("Super TR"))   // ELKO
                 {
