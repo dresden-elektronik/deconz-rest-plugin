@@ -3560,6 +3560,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 else if (sensor.modelId() == QLatin1String("ZB-ONOFFPlug-D0005") ||
                          sensor.modelId() == QLatin1String("Plug-230V-ZB3.0") ||
                          sensor.modelId() == QLatin1String("lumi.switch.b1naus01") ||
+                         sensor.modelId() == QLatin1String("lumi.switch.n0agl1") ||
                          sensor.manufacturer() == QLatin1String("Legrand"))
                 {
                     hasVoltage = false;
@@ -3631,6 +3632,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD MOES TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                 {
                     sensor.addItem(DataTypeString, RConfigMode);
@@ -3638,6 +3640,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
                 if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV"))
@@ -3648,6 +3651,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
                 if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
@@ -3661,6 +3665,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
                 if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
@@ -3689,6 +3694,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV"))
                 {
                     sensor.addItem(DataTypeBool, RConfigWindowOpen)->setValue(false);
@@ -3772,6 +3778,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
                     sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
+                    sensor.addItem(DataTypeString, RConfigMode);
+                }
+                else if (sensor.modelId() == QLatin1String("ALCANTARA2 D1.00P1.01Z1.00")) // Alcantara 2 acova
+                {
+                    sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);
                     sensor.addItem(DataTypeString, RConfigMode);
                 }
                 else

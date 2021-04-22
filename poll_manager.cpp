@@ -277,17 +277,8 @@ void PollManager::pollTimerFired()
 
     if (suffix == RStateOn && lightNode)
     {
-        item = r->item(RAttrModelId);
-
-        if (UseTuyaCluster(lightNode->manufacturer()))
-        {
-            //Thoses devices haven't cluster 0006, and use Cluster specific
-        }
-        else
-        {
-            clusterId = ONOFF_CLUSTER_ID;
-            attributes.push_back(0x0000); // onOff
-        }
+        clusterId = ONOFF_CLUSTER_ID;
+        attributes.push_back(0x0000); // onOff
     }
     else if (suffix == RStateBri && isOn)
     {

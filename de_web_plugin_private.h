@@ -381,7 +381,7 @@ using namespace deCONZ::literals;
 #define VENDOR_CHINA_FIRE_SEC       0x1214
 #define VENDOR_MUELLER              0x121B // Used by Mueller Licht
 #define VENDOR_AURORA               0x121C // Used by Aurora Aone
-#define VENDOR_SUNRICHER            0x1224 // white label used by iCasa, Illuminize, Namron ...
+#define VENDOR_SUNRICHER            0x1224 // white label used by iCasa, Illuminize, Namron, SLC ...
 #define VENDOR_XAL                  0x122A
 #define VENDOR_ADUROLIGHT           0x122D
 #define VENDOR_THIRD_REALITY        0x1233
