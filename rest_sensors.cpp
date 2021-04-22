@@ -2175,41 +2175,30 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             const uint mode = map[pi.key()].toUInt(&ok);
                             quint16 interfaceMode = 0;
-                            quint8 availableModes = 0;
                             
-                            if(sensor->modelId() == QLatin1String("ZHEMI101"))
+                            if (!ok)
+                            { }
+                            if (sensor->modelId() == QLatin1String("ZHEMI101"))
                             {
-                                availableModes = 8;
-                                
-                                if      (ok && mode == 1) { interfaceMode = PULSE_COUNTING_ELECTRICITY; }
-                                else if (ok && mode == 2) { interfaceMode = PULSE_COUNTING_GAS; }
-                                else if (ok && mode == 3) { interfaceMode = PULSE_COUNTING_WATER; }
-                                else if (ok && mode == 4) { interfaceMode = KAMSTRUP_KMP; }
-                                else if (ok && mode == 5) { interfaceMode = LINKY; }
-                                else if (ok && mode == 6) { interfaceMode = DLMS_COSEM; }
-                                else if (ok && mode == 7) { interfaceMode = DSMR_23; }
-                                else if (ok && mode == 8) { interfaceMode = DSMR_40; }
+                                if      (mode == 1) { interfaceMode = PULSE_COUNTING_ELECTRICITY; }
+                                else if (mode == 2) { interfaceMode = PULSE_COUNTING_GAS; }
+                                else if (mode == 3) { interfaceMode = PULSE_COUNTING_WATER; }
+                                else if (mode == 4) { interfaceMode = KAMSTRUP_KMP; }
+                                else if (mode == 5) { interfaceMode = LINKY; }
+                                else if (mode == 6) { interfaceMode = DLMS_COSEM; }
+                                else if (mode == 7) { interfaceMode = DSMR_23; }
+                                else if (mode == 8) { interfaceMode = DSMR_40; }
                             }
                             else if (sensor->modelId().startsWith(QLatin1String("EMIZB-1")))
                             {
-                                availableModes = 5;
-                                
-                                if      (ok && mode == 1) { interfaceMode = NORWEGIAN_HAN; }
-                                else if (ok && mode == 2) { interfaceMode = NORWEGIAN_HAN_EXTRA_LOAD; }
-                                else if (ok && mode == 3) { interfaceMode = AIDON_METER; }
-                                else if (ok && mode == 4) { interfaceMode = KAIFA_KAMSTRUP_METERS; }
-                                else if (ok && mode == 5) { interfaceMode = AUTO_DETECT; }
+                                if      (mode == 1) { interfaceMode = NORWEGIAN_HAN; }
+                                else if (mode == 2) { interfaceMode = NORWEGIAN_HAN_EXTRA_LOAD; }
+                                else if (mode == 3) { interfaceMode = AIDON_METER; }
+                                else if (mode == 4) { interfaceMode = KAIFA_KAMSTRUP_METERS; }
+                                else if (mode == 5) { interfaceMode = AUTO_DETECT; }
                             }
                             
-                            if(interfaceMode == 0)
-                            {
-                                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
-                                                           QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
-                                rsp.httpStatus = HttpStatusBadRequest;
-                                return REQ_READY_SEND;
-                            }
-
-                            if (availableModes && mode > 0 && mode <= availableModes)
+                            if (interfaceMode != 0)
                             {
                                 if (addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0302, deCONZ::Zcl16BitEnum, interfaceMode, VENDOR_DEVELCO))
                                 {
@@ -2222,6 +2211,13 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                     rsp.httpStatus = HttpStatusBadRequest;
                                     return REQ_READY_SEND;
                                 }
+                            }
+                            else
+                            {
+                                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                           QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
+                                rsp.httpStatus = HttpStatusBadRequest;
+                                return REQ_READY_SEND;
                             }
                         }
                         else

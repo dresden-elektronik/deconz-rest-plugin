@@ -94,12 +94,9 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
                 {
                     quint16 interfaceMode = attr.numericValue().u16;
                     quint8 mode = 0;
-                    quint8 availableModes = 0;
                     
                     if(sensor->modelId() == QLatin1String("ZHEMI101"))
                     {
-                        availableModes = 8;
-                        
                         if      (interfaceMode == PULSE_COUNTING_ELECTRICITY)   { mode = 1; }
                         else if (interfaceMode == PULSE_COUNTING_GAS)           { mode = 2; }
                         else if (interfaceMode == PULSE_COUNTING_WATER)         { mode = 3; }
@@ -111,8 +108,6 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
                     ]
                     else if (sensor->modelId().startsWith(QLatin1String("EMIZB-1")))
                     {
-                        availableModes = 5;
-                        
                         if      (interfaceMode == NORWEGIAN_HAN)            { mode = 1; }
                         else if (interfaceMode == NORWEGIAN_HAN_EXTRA_LOAD) { mode = 2; }
                         else if (interfaceMode == AIDON_METER)              { mode = 3; }
@@ -121,7 +116,7 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
                     }
                     
                     item = sensor->item(RConfigInterfaceMode);
-                    if (item && availableModes && item->toNumber() != mode && mode > 0 && mode <= availableModes)
+                    if (item && mode != 0 && item->toNumber() != mode)
                     {
                         item->setValue(mode);
                         enqueueEvent(Event(RSensors, RConfigInterfaceMode, sensor->id(), item));
