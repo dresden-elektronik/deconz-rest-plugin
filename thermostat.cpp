@@ -483,6 +483,29 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             }
                 break;
 
+            case 0x001B: // Control Sequence of Operation
+            {
+                quint16 controlSequence = attr.numericValue().u16;
+                quint8 mode = 0;
+
+                if      (controlSequence == COOLING_ONLY)                           { mode = 1; }
+                else if (controlSequence == COOLING_WITH_REHEAT)                    { mode = 2; }
+                else if (controlSequence == HEATING_ONLY)                           { mode = 3; }
+                else if (controlSequence == HEATING_WITH_REHEAT)                    { mode = 4; }
+                else if (controlSequence == COOLING_AND_HEATING_4PIPES)             { mode = 5; }
+                else if (controlSequence == COOLING_AND_HEATING_4PIPES_WITH_REHEAT) { mode = 6; }
+
+                item = sensor->item(RConfigControlSequence);
+                if (item && item->toNumber() != mode && mode > 0 && mode <= 6)
+                {
+                    item->setValue(mode);
+                    enqueueEvent(Event(RSensors, RConfigControlSequence, sensor->id(), item));
+                    configUpdated = true;
+                }
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+
             case 0x001C: // System Mode
             {
                 if (sensor->modelId().startsWith(QLatin1String("SLR2")) ||   // Hive

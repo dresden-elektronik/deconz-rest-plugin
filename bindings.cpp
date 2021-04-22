@@ -1427,22 +1427,36 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.minInterval = 0;
             rq.maxInterval = 300;
             rq.reportableChange16bit = 10;
-
+            
             ConfigureReportingRequest rq2;
-            rq2.dataType = deCONZ::Zcl8BitUint;
-            rq2.attributeId = 0x0012;        // Occupied heating setpoint
+            rq2.dataType = deCONZ::Zcl16BitInt;
+            rq2.attributeId = 0x0011;        // Occupied cooling setpoint
             rq2.minInterval = 1;
             rq2.maxInterval = 600;
-            rq2.reportableChange8bit = 1;
+            rq2.reportableChange16bit = 50;
 
             ConfigureReportingRequest rq3;
-            rq3.dataType = deCONZ::Zcl8BitEnum;
-            rq3.attributeId = 0x001C;        // Thermostat mode
+            rq3.dataType = deCONZ::Zcl16BitInt;
+            rq3.attributeId = 0x0012;        // Occupied heating setpoint
             rq3.minInterval = 1;
             rq3.maxInterval = 600;
-            rq3.reportableChange8bit = 0xff;
+            rq3.reportableChange16bit = 50;
 
-            return sendConfigureReportingRequest(bt, {rq, rq2, rq3});
+            ConfigureReportingRequest rq4;
+            rq4.dataType = deCONZ::Zcl8BitEnum;
+            rq4.attributeId = 0x001B;        // Control Sequence of operation
+            rq4.minInterval = 1;
+            rq4.maxInterval = 600;
+            rq4.reportableChange8bit = 0xff;
+
+            ConfigureReportingRequest rq5;
+            rq5.dataType = deCONZ::Zcl8BitEnum;
+            rq5.attributeId = 0x001C;        // Thermostat mode
+            rq5.minInterval = 1;
+            rq5.maxInterval = 600;
+            rq5.reportableChange8bit = 0xff;
+
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5});
         }
         else if (sensor && sensor->modelId().startsWith(QLatin1String("TH112"))) // Sinope Thermostat TH1123ZB & TH1124ZB
         {
