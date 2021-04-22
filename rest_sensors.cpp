@@ -2130,7 +2130,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             return REQ_READY_SEND;
                         }
 
-                        if (mode > 0 && mode < 6)
+                        if (controlSequence != 0)
                         {
                             if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x001B, deCONZ::Zcl8BitEnum, controlSequence))
                             {
