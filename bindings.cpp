@@ -2950,6 +2950,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("FB56-")) ||
         // Niko
         sensor->modelId() == QLatin1String("Connected socket outlet") ||
+        sensor->modelId() == QLatin1String("Smart plug Zigbee PE") ||
         // Sage
         sensor->modelId() == QLatin1String("Bell") ||
         // Owon

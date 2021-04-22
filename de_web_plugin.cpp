@@ -464,6 +464,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_MUELLER, "ZBT-Remote-ALL-RGBW", jennicMacPrefix }, // Tint remote control
     { VENDOR_PLUGWISE_BV, "160-01", emberMacPrefix }, // Plugwise smart plug
     { VENDOR_NIKO_NV, "Connected socket outlet", konkeMacPrefix }, // Niko smart socket 170-33505
+    { VENDOR_NIKO_NV, "Smart plug Zigbee PE", silabs9MacPrefix }, // Niko Smart Plug 552-80699
     { VENDOR_ATMEL, "Bell", dishMacPrefix }, // Sage doorbell sensor
     { VENDOR_UNIVERSAL2, "4655BC0", emberMacPrefix }, // Ecolink contact sensor
     { VENDOR_NONE, "ZB-SmartPlug-1.0.0", tiMacPrefix }, // edp re:dy plug
@@ -9349,9 +9350,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     //consumption += 5; consumption /= 10; // 0.1 Wh -> Wh
                                     consumption = static_cast<quint64>(round((double)consumption / 10.0)); // 0.1 Wh -> Wh
                                 }
-                                else if (i->modelId() == QLatin1String("SP 120") ||            // innr
-                                         i->modelId() == QLatin1String("Plug-230V-ZB3.0") ||   // Immax
-                                         i->modelId() == QLatin1String("TS0121"))              // Tuya / Blitzwolf
+                                else if (i->modelId() == QLatin1String("SP 120") ||                 // innr
+                                         i->modelId() == QLatin1String("Plug-230V-ZB3.0") ||        // Immax
+                                         i->modelId() == QLatin1String("Smart plug Zigbee PE") ||   // Niko Smart Plug 552-80699
+                                         i->modelId() == QLatin1String("TS0121"))                   // Tuya / Blitzwolf
                                 {
                                     consumption *= 10; // 0.01 kWh = 10 Wh -> Wh
                                 }
