@@ -29,6 +29,15 @@ enum ApiDataType
     DataTypeTimePattern
 };
 
+struct R_Stats
+{
+    size_t toString = 0;
+    size_t toNumber = 0;
+    size_t item = 0;
+};
+
+extern R_Stats rStats;
+
 // resource prefixes: /devices, /lights, /sensors, ...
 extern const char *RDevices;
 extern const char *RSensors;

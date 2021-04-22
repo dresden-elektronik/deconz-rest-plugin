@@ -1067,6 +1067,9 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         return;
     }
 
+    DBG_Printf(DBG_INFO, "R stats, str: %u, num: %u, item: %u\n", rStats.toString, rStats.toNumber, rStats.item);
+    rStats = { };
+
     apsdeDataIndicationDevice(ind);
 
     if ((ind.profileId() == HA_PROFILE_ID) || (ind.profileId() == ZLL_PROFILE_ID))
