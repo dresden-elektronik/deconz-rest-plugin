@@ -1822,10 +1822,11 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.attributeId = 0x0000; // Curent Summation Delivered
         rq.minInterval = 1;
         rq.maxInterval = 300;
-        if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||      // Heiman
-                       sensor->modelId() == QLatin1String("SKHMP30-I1") ||     // GS smart plug
-                       sensor->modelId().startsWith(QLatin1String("E13-")) ||  // Sengled PAR38 Bulbs
-                       sensor->modelId() == QLatin1String("Connected socket outlet"))) // Niko smart socket
+        if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||               // Heiman
+                       sensor->modelId() == QLatin1String("SKHMP30-I1") ||              // GS smart plug
+                       sensor->modelId().startsWith(QLatin1String("E13-")) ||           // Sengled PAR38 Bulbs
+                       sensor->modelId().startsWith(QLatin1String("Z01-A19")) ||        // Sengled smart led
+                       sensor->modelId() == QLatin1String("Connected socket outlet")))  // Niko smart socket
         {
             rq.reportableChange48bit = 10; // 0.001 kWh (1 Wh)
         }
@@ -1849,10 +1850,11 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq2.attributeId = 0x0400; // Instantaneous Demand
         rq2.minInterval = 1;
         rq2.maxInterval = 300;
-        if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") || // Heiman
-                       sensor->modelId() == QLatin1String("902010/25") || // Bitron
-                       sensor->modelId() == QLatin1String("SKHMP30-I1") || // GS smart plug
-                       sensor->modelId() == QLatin1String("160-01")))     // Plugwise smart plug
+        if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||        // Heiman
+                       sensor->modelId() == QLatin1String("902010/25") ||        // Bitron
+                       sensor->modelId() == QLatin1String("SKHMP30-I1") ||       // GS smart plug
+                       sensor->modelId().startsWith(QLatin1String("Z01-A19")) || // Sengled smart led
+                       sensor->modelId() == QLatin1String("160-01")))            // Plugwise smart plug
         {
             rq2.reportableChange24bit = 10; // 1 W
         }
@@ -2906,6 +2908,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("E13-")) ||
         sensor->modelId().startsWith(QLatin1String("E1D-")) ||
         sensor->modelId().startsWith(QLatin1String("E1E-")) ||
+        sensor->modelId().startsWith(QLatin1String("Z01-A19")) ||
         // Linkind
         sensor->modelId() == QLatin1String("ZB-MotionSensor-D0003") ||
         // Immax

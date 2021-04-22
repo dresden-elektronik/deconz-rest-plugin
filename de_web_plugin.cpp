@@ -454,6 +454,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SENGLED_OPTOELEC, "E13-", zhejiangMacPrefix }, // Sengled PAR38 Bulbs
     { VENDOR_SENGLED_OPTOELEC, "E1D-", zhejiangMacPrefix }, // Sengled contact sensor
     { VENDOR_SENGLED_OPTOELEC, "E1E-", zhejiangMacPrefix }, // Sengled Smart Light Switch
+    { VENDOR_SENGLED_OPTOELEC, "Z01-A19", zhejiangMacPrefix }, // Sengled SMART LED Z01-A19NAE26
     { VENDOR_JENNIC, "Plug-230V-ZB3.0", silabs2MacPrefix }, // Immax NEO ZB3.0 smart plug
     { VENDOR_JENNIC, "4in1-Sensor-ZB3.0", emberMacPrefix }, // Immax NEO ZB3.0 4 in 1 sensor
     { VENDOR_JENNIC, "Keyfob-ZB3.0", emberMacPrefix }, // Immax Keyfob
@@ -9338,11 +9339,12 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 quint64 consumption = ia->numericValue().u64;
                                 ResourceItem *item = i->item(RStateConsumption);
 
-                                if (i->modelId() == QLatin1String("SmartPlug") ||        // Heiman
-                                    i->modelId().startsWith(QLatin1String("PSMP5_")) ||  // Climax
-                                    i->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
-                                    i->modelId().startsWith(QLatin1String("E13-")) ||    // Sengled PAR38 Bulbs
-                                    i->modelId() == QLatin1String("Connected socket outlet")) // Niko smart socket
+                                if (i->modelId() == QLatin1String("SmartPlug") ||               // Heiman
+                                    i->modelId().startsWith(QLatin1String("PSMP5_")) ||         // Climax
+                                    i->modelId().startsWith(QLatin1String("SKHMP30")) ||        // GS smart plug
+                                    i->modelId().startsWith(QLatin1String("E13-")) ||           // Sengled PAR38 Bulbs
+                                    i->modelId().startsWith(QLatin1String("Z01-A19")) ||        // Sengled smart led
+                                    i->modelId() == QLatin1String("Connected socket outlet"))   // Niko smart socket
                                 {
                                     //consumption += 5; consumption /= 10; // 0.1 Wh -> Wh
                                     consumption = static_cast<quint64>(round((double)consumption / 10.0)); // 0.1 Wh -> Wh
@@ -9384,11 +9386,12 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 qint32 power = ia->numericValue().s32;
                                 ResourceItem *item = i->item(RStatePower);
 
-                                if (i->modelId() == QLatin1String("SmartPlug") ||       // Heiman
-                                    i->modelId() == QLatin1String("902010/25") ||       // Bitron
-                                    i->modelId().startsWith(QLatin1String("PSMP5_")) || // Climax
-                                    i->modelId().startsWith(QLatin1String("SKHMP30")) ||// GS smart plug
-                                    i->modelId().startsWith(QLatin1String("160-01")))   // Plugwise smart plug
+                                if (i->modelId() == QLatin1String("SmartPlug") ||        // Heiman
+                                    i->modelId() == QLatin1String("902010/25") ||        // Bitron
+                                    i->modelId().startsWith(QLatin1String("Z01-A19")) || // Sengled smart led
+                                    i->modelId().startsWith(QLatin1String("PSMP5_")) ||  // Climax
+                                    i->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
+                                    i->modelId().startsWith(QLatin1String("160-01")))    // Plugwise smart plug
                                 {
                                     //power += 5; power /= 10; // 0.1 W -> W
                                     power = static_cast<qint32>(round((double)power / 10.0)); // 0.1W -> W
