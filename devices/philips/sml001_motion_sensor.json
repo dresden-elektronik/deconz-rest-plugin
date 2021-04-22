@@ -6,6 +6,7 @@
     "modelid": "SML001",
     "product": "SML001",
     "status": "Gold",
+    "sleeper": false,
     "md:known_issues": [ ],
     "subdevices": [
          {
@@ -46,7 +47,10 @@
                     "name": "config/delay"
                 },
                 {
-                    "name": "config/ledindication"
+                    "name": "config/ledindication",
+                    "read": {"cl": "0x0000", "at": "0x0033", "mf": "0x100b"},
+                    "parse": {"cl": "0x0000", "at": "0x0033", "eval": "Item.val = Attr.val"},
+                    "refresh.interval": 84000
                 },
                 {
                     "name": "config/on"
@@ -63,20 +67,27 @@
                         [0, "low"],
                         [1, "medium"],
                         [2, "high"]
-                    ]
+                    ],
+                    "read": {"cl": "0x0406", "at": "0x0030", "mf": "0x100b"},
+                    "parse": {"cl": "0x0406", "at": "0x0030", "eval": "Item.val == 0 ? Item.val = Attr.val : Item.val"},
+                    "refresh.interval": 84000
                 },
                 {
                     "name": "config/sensitivitymax",
                     "default": 2
                 },
                 {
-                    "name": "config/usertest"
+                    "name": "config/usertest",
+                    "read": {"cl": "0x0000", "at": "0x0032", "mf": "0x100b"},
+                    "parse": {"cl": "0x0000", "at": "0x0032", "eval": "Item.val = Attr.val"},
+                    "refresh.interval": 84000
                 },
                 {
                     "name": "state/lastupdated"
                 },
                 {
                     "name": "state/presence",
+                    "parse": {"cl": "0x0406", "at": "0x0000", "eval": "Item.val = Attr.val"},
                     "awake": true
                 }
             ],
@@ -174,6 +185,7 @@
                 },
                 {
                     "name": "state/lightlevel",
+                    "parse": {"cl": "0x0400", "at": "0x0000", "eval": "Item.val = Attr.val"},
                     "awake": true
                 },
                 {
@@ -267,6 +279,7 @@
                 },
                 {
                     "name": "state/temperature",
+                    "parse": {"cl": "0x0402", "at": "0x0000", "eval": "Item.val = Attr.val"},
                     "awake": true
                 }
             ],
