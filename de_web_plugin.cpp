@@ -6737,6 +6737,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                  (!modelId.startsWith(QLatin1String("ZB-ONOFFPlug-D0005"))) &&
                  (modelId != QLatin1String("Plug-230V-ZB3.0")) &&
                  (modelId != QLatin1String("lumi.switch.b1naus01")) &&
+                 (modelId != QLatin1String("lumi.plug.maeu01")) &&
                  (modelId != QLatin1String("lumi.switch.n0agl1")) &&
                  (node->nodeDescriptor().manufacturerCode() != VENDOR_LEGRAND) ) // OSRAM and Legrand plug don't have theses options
             {

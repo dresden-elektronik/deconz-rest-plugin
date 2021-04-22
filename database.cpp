@@ -3492,6 +3492,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 else if (sensor.modelId() == QLatin1String("ZB-ONOFFPlug-D0005") ||
                          sensor.modelId() == QLatin1String("Plug-230V-ZB3.0") ||
                          sensor.modelId() == QLatin1String("lumi.switch.b1naus01") ||
+                         sensor.modelId() == QLatin1String("lumi.plug.maeu01") ||
                          sensor.modelId() == QLatin1String("lumi.switch.n0agl1") ||
                          sensor.manufacturer() == QLatin1String("Legrand"))
                 {
