@@ -206,6 +206,8 @@ static std::vector<ResourceItemDescriptor> rItemDescriptors;
 static const QString rInvalidString; // is returned when string is asked but not available
 const ResourceItemDescriptor rInvalidItemDescriptor(DataTypeUnknown, RInvalidSuffix);
 
+R_Stats rStats;
+
 void initResourceDescriptors()
 {
     rPrefixes.clear();
@@ -583,6 +585,8 @@ ResourceItem::ResourceItem(const ResourceItemDescriptor &rid) :
 
 const QString &ResourceItem::toString() const
 {
+    rStats.toString++;
+
     if (m_rid->type == DataTypeString ||
         m_rid->type == DataTypeTimePattern)
     {
@@ -636,6 +640,7 @@ const QString &ResourceItem::toString() const
 
 qint64 ResourceItem::toNumber() const
 {
+    rStats.toNumber++;
     return m_num;
 }
 
@@ -986,6 +991,8 @@ void Resource::removeItem(const char *suffix)
 
 ResourceItem *Resource::item(const char *suffix)
 {
+    rStats.item++;
+
     for (size_t i = 0; i < m_rItems.size(); i++)
     {
         if (m_rItems[i].descriptor().suffix == suffix)
@@ -999,6 +1006,8 @@ ResourceItem *Resource::item(const char *suffix)
 
 const ResourceItem *Resource::item(const char *suffix) const
 {
+    rStats.item++;
+
     for (size_t i = 0; i < m_rItems.size(); i++)
     {
         if (m_rItems[i].descriptor().suffix == suffix)
