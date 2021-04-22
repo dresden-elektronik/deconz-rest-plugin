@@ -76,6 +76,7 @@ extern const char *RStateErrorCode;
 extern const char *RStateEventDuration;
 extern const char *RStateFire;
 extern const char *RStateFlag;
+extern const char *RStateLockState;
 extern const char *RStateFloorTemperature;
 extern const char *RStateGesture;
 extern const char *RStateHeating;
@@ -123,6 +124,7 @@ extern const char *RStateX;
 extern const char *RStateY;
 
 extern const char *RConfigAlert;
+extern const char *RConfigLock;
 extern const char *RConfigBattery;
 extern const char *RConfigColorCapabilities;
 extern const char *RConfigConfigured;
@@ -268,11 +270,11 @@ class ResourceItem
 
 public:
     ResourceItem(const ResourceItem &other);
-    ResourceItem(ResourceItem &&other);
+    ResourceItem(ResourceItem &&other) noexcept;
     ResourceItem(const ResourceItemDescriptor &rid);
     ResourceItem &operator=(const ResourceItem &other);
-    ResourceItem &operator=(ResourceItem &&other);
-    ~ResourceItem();
+    ResourceItem &operator=(ResourceItem &&other) noexcept;
+    ~ResourceItem() noexcept;
     bool needPushSet() const;
     bool needPushChange() const;
     void clearNeedPush();
@@ -289,7 +291,7 @@ public:
     const QDateTime &lastChanged() const;
     void setTimeStamps(const QDateTime &t);
     void inRule(int ruleHandle);
-    const std::vector<int> rulesInvolved() const;
+    const std::vector<int> &rulesInvolved() const;
     bool isPublic() const;
     void setIsPublic(bool isPublic);
 
@@ -313,9 +315,9 @@ public:
     Resource(const char *prefix);
     ~Resource() = default;
     Resource(const Resource &other);
-    Resource(Resource &&other);
+    Resource(Resource &&other) noexcept;
     Resource &operator=(const Resource &other);
-    Resource &operator=(Resource &&other);
+    Resource &operator=(Resource &&other) noexcept;
     const char *prefix() const;
     ResourceItem *addItem(ApiDataType type, const char *suffix);
     void removeItem(const char *suffix);
@@ -345,6 +347,5 @@ bool R_SetFlags1(ResourceItem *item, qint64 flags, const char *strFlags);
 #define R_ClearFlags(item, flags) R_ClearFlags1(item, flags, #flags)
 bool R_ClearFlags1(ResourceItem *item, qint64 flags, const char *strFlags);
 bool R_HasFlags(const ResourceItem *item, qint64 flags);
-const QString R_GetProductId(Resource *resource);
 
 #endif // RESOURCE_H
