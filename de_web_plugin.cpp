@@ -110,6 +110,7 @@ const quint64 ecozyMacPrefix      = 0x70b3d50000000000ULL;
 const quint64 osramMacPrefix      = 0x8418260000000000ULL;
 const quint64 silabs5MacPrefix    = 0x842e140000000000ULL;
 const quint64 embertecMacPrefix   = 0x848e960000000000ULL;
+const quint64 YooksmartMacPrefix  = 0x84fd270000000000ULL;
 const quint64 silabsMacPrefix     = 0x90fd9f0000000000ULL;
 const quint64 zhejiangMacPrefix   = 0xb0ce180000000000ULL;
 const quint64 silabs7MacPrefix    = 0xbc33ac0000000000ULL;
@@ -200,6 +201,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_INSTA, "WS_3f_G_1", instaMacPrefix },
     { VENDOR_AXIS, "Gear", zenMacPrefix },
     { VENDOR_MMB, "Gear", zenMacPrefix },
+    { VENDOR_SI_LABS, "D10110", konkeMacPrefix }, // Yoolax Blinds
+    { VENDOR_SI_LABS, "D10110", YooksmartMacPrefix }, // Yoolax Blinds
     { VENDOR_NYCE, "3011", emberMacPrefix }, // NYCE door/window sensor
     { VENDOR_NYCE, "3014", emberMacPrefix }, // NYCE garage door/tilt sensor
     { VENDOR_NYCE, "3041", emberMacPrefix }, // NYCE motion sensor
@@ -2031,6 +2034,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         node->nodeDescriptor().manufacturerCode() == VENDOR_THIRD_REALITY || // Third Reality smart light switch
         node->nodeDescriptor().manufacturerCode() == VENDOR_AXIS || // Axis shade
         node->nodeDescriptor().manufacturerCode() == VENDOR_MMB || // Axis shade
+        node->nodeDescriptor().manufacturerCode() == VENDOR_SI_LABS || // Yoolax Blinds
         // Danalock support. The vendor ID (0x115c) needs to defined and whitelisted, as it's battery operated
         node->nodeDescriptor().manufacturerCode() == VENDOR_DANALOCK || // Danalock Door Lock
         node->nodeDescriptor().manufacturerCode() == VENDOR_KWIKSET || // Kwikset 914 ZigBee smart lock
@@ -5224,6 +5228,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     }
                     if ((node->nodeDescriptor().manufacturerCode() == VENDOR_AXIS || node->nodeDescriptor().manufacturerCode() == VENDOR_MMB) &&
                         (modelId == QLatin1String("Gear")) && (i->endpoint() == 0x01))
+                    {
+                        fpBatterySensor.inClusters.push_back(ci->id());
+                    }
+                   if (node->nodeDescriptor().manufacturerCode() == VENDOR_SI_LABS &&
+                        modelId.startsWith(QLatin1String("D10110")))
                     {
                         fpBatterySensor.inClusters.push_back(ci->id());
                     }
