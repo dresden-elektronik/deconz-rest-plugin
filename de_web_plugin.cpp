@@ -9815,12 +9815,12 @@ Sensor *DeRestPluginPrivate::getSensorNodeForAddressEndpointAndCluster(const deC
     for (Sensor &sensor: sensors)
     {
         if (sensor.deletedState() != Sensor::StateNormal || !sensor.node())                             { continue; }
+        if (sensor.fingerPrint().endpoint != ep)                                                        { continue; }
         if (!isSameAddress(sensor.address(), addr))                                                     { continue; }
         if (sensor.fingerPrint().hasInCluster(cluster) || sensor.fingerPrint().hasOutCluster(cluster))  { }
         else                                                                                            { continue; }
 
-        if (sensor.fingerPrint().endpoint != ep)    { continue; }
-        else                                        { return &sensor; }
+        return &sensor;
     }
     return nullptr;
 }
