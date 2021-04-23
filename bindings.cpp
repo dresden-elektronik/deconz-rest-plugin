@@ -3008,6 +3008,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("PR412C") ||
         // D-Link
         sensor->modelId() == QLatin1String("DCH-B112") ||
+        sensor->modelId() == QLatin1String("DCH-B122") ||
         // Sonoff
         sensor->modelId() == QLatin1String("WB01") ||
         sensor->modelId() == QLatin1String("WB-01") ||
