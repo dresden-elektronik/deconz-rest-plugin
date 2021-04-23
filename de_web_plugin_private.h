@@ -261,6 +261,14 @@ using namespace deCONZ::literals;
 #define IAS_ZONE_TYPE_VIBRATION_SENSOR        0x002d
 #define IAS_ZONE_TYPE_WARNING_DEVICE          0x0225
 
+// Thermostat cluster, Control Sequence of Operation (0x001B)
+#define COOLING_ONLY                            0x00
+#define COOLING_WITH_REHEAT                     0x01
+#define HEATING_ONLY                            0x02
+#define HEATING_WITH_REHEAT                     0x03
+#define COOLING_AND_HEATING_4PIPES              0x04
+#define COOLING_AND_HEATING_4PIPES_WITH_REHEAT  0x05
+
 // IAS Setup states
 #define IAS_STATE_INIT                 0
 #define IAS_STATE_ENROLLED             1 // finished
@@ -282,6 +290,11 @@ using namespace deCONZ::literals;
 #define DLMS_COSEM                      0x0102
 #define DSMR_23                         0x0103
 #define DSMR_40                         0x0104
+#define NORWEGIAN_HAN                   0x0200
+#define NORWEGIAN_HAN_EXTRA_LOAD        0x0201
+#define AIDON_METER                     0x0202
+#define KAIFA_KAMSTRUP_METERS           0x0203
+#define AUTO_DETECT                     0x0204
 
 #ifndef DBG_IAS
   #define DBG_IAS DBG_INFO  // DBG_IAS didn't exist before version v2.10.x
@@ -380,7 +393,7 @@ using namespace deCONZ::literals;
 #define VENDOR_CHINA_FIRE_SEC       0x1214
 #define VENDOR_MUELLER              0x121B // Used by Mueller Licht
 #define VENDOR_AURORA               0x121C // Used by Aurora Aone
-#define VENDOR_SUNRICHER            0x1224 // white label used by iCasa, Illuminize, Namron ...
+#define VENDOR_SUNRICHER            0x1224 // white label used by iCasa, Illuminize, Namron, SLC ...
 #define VENDOR_XAL                  0x122A
 #define VENDOR_ADUROLIGHT           0x122D
 #define VENDOR_THIRD_REALITY        0x1233
@@ -1443,6 +1456,8 @@ public:
     void updateSensorNode(const deCONZ::NodeEvent &event);
     void updateSensorLightLevel(Sensor &sensor, quint16 measuredValue);
     bool isDeviceSupported(const deCONZ::Node *node, const QString &modelId);
+    bool isSameAddress(const deCONZ::Address &a, const deCONZ::Address &b);
+    Sensor *getSensorNodeForAddressEndpointAndCluster(const deCONZ::Address &addr, quint8 ep, quint16 cluster);
     Sensor *getSensorNodeForAddressAndEndpoint(const deCONZ::Address &addr, quint8 ep, const QString &type);
     Sensor *getSensorNodeForAddressAndEndpoint(const deCONZ::Address &addr, quint8 ep);
     Sensor *getSensorNodeForAddress(quint64 extAddr);

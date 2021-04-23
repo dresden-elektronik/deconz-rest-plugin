@@ -1427,22 +1427,36 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.minInterval = 0;
             rq.maxInterval = 300;
             rq.reportableChange16bit = 10;
-
+            
             ConfigureReportingRequest rq2;
-            rq2.dataType = deCONZ::Zcl8BitUint;
-            rq2.attributeId = 0x0012;        // Occupied heating setpoint
+            rq2.dataType = deCONZ::Zcl16BitInt;
+            rq2.attributeId = 0x0011;        // Occupied cooling setpoint
             rq2.minInterval = 1;
             rq2.maxInterval = 600;
-            rq2.reportableChange8bit = 1;
+            rq2.reportableChange16bit = 50;
 
             ConfigureReportingRequest rq3;
-            rq3.dataType = deCONZ::Zcl8BitEnum;
-            rq3.attributeId = 0x001C;        // Thermostat mode
+            rq3.dataType = deCONZ::Zcl16BitInt;
+            rq3.attributeId = 0x0012;        // Occupied heating setpoint
             rq3.minInterval = 1;
             rq3.maxInterval = 600;
-            rq3.reportableChange8bit = 0xff;
+            rq3.reportableChange16bit = 50;
 
-            return sendConfigureReportingRequest(bt, {rq, rq2, rq3});
+            ConfigureReportingRequest rq4;
+            rq4.dataType = deCONZ::Zcl8BitEnum;
+            rq4.attributeId = 0x001B;        // Control Sequence of operation
+            rq4.minInterval = 1;
+            rq4.maxInterval = 600;
+            rq4.reportableChange8bit = 0xff;
+
+            ConfigureReportingRequest rq5;
+            rq5.dataType = deCONZ::Zcl8BitEnum;
+            rq5.attributeId = 0x001C;        // Thermostat mode
+            rq5.minInterval = 1;
+            rq5.maxInterval = 600;
+            rq5.reportableChange8bit = 0xff;
+
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5});
         }
         else if (sensor && sensor->modelId().startsWith(QLatin1String("TH112"))) // Sinope Thermostat TH1123ZB & TH1124ZB
         {
@@ -1496,6 +1510,37 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq3.minInterval = 1;
             rq3.maxInterval = 43200;
             rq3.reportableChange16bit = 1;
+
+            ConfigureReportingRequest rq4;
+            rq4.dataType = deCONZ::Zcl8BitEnum;
+            rq4.attributeId = 0x001C;        // Thermostat mode
+            rq4.minInterval = 1;
+            rq4.maxInterval = 600;
+            rq4.reportableChange8bit = 0xff;
+
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
+        }
+        else if (sensor && sensor->modelId() == QLatin1String("ALCANTARA2 D1.00P1.01Z1.00")) // Alcantara 2 acova
+        {
+            rq.dataType = deCONZ::Zcl16BitInt;
+            rq.attributeId = 0x0000;         // Local Temperature
+            rq.minInterval = 1;
+            rq.maxInterval = 600;
+            rq.reportableChange16bit = 50;
+
+            ConfigureReportingRequest rq2;
+            rq2.dataType = deCONZ::Zcl16BitInt;
+            rq2.attributeId = 0x0011;        // Occupied cooling setpoint
+            rq2.minInterval = 1;
+            rq2.maxInterval = 600;
+            rq2.reportableChange16bit = 50;
+
+            ConfigureReportingRequest rq3;
+            rq3.dataType = deCONZ::Zcl16BitInt;
+            rq3.attributeId = 0x0012;        // Occupied heating setpoint
+            rq3.minInterval = 1;
+            rq3.maxInterval = 600;
+            rq3.reportableChange16bit = 50;
 
             ConfigureReportingRequest rq4;
             rq4.dataType = deCONZ::Zcl8BitEnum;
@@ -1677,6 +1722,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (sensor && (sensor->modelId().startsWith(QLatin1String("ED-1001")) || // EcoDim switches
                             sensor->modelId().startsWith(QLatin1String("45127")) ||   // Namron switches
+                            sensor->modelId().startsWith(QLatin1String("S57003")) ||  // SLC switches
                             sensor->modelId().startsWith(QLatin1String("FNB56-")) ||  // Feibit devices
                             sensor->modelId().startsWith(QLatin1String("FB56-"))))    // Feibit devices
         {
@@ -1822,10 +1868,11 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.attributeId = 0x0000; // Curent Summation Delivered
         rq.minInterval = 1;
         rq.maxInterval = 300;
-        if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||      // Heiman
-                       sensor->modelId() == QLatin1String("SKHMP30-I1") ||     // GS smart plug
-                       sensor->modelId().startsWith(QLatin1String("E13-")) ||  // Sengled PAR38 Bulbs
-                       sensor->modelId() == QLatin1String("Connected socket outlet"))) // Niko smart socket
+        if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||               // Heiman
+                       sensor->modelId() == QLatin1String("SKHMP30-I1") ||              // GS smart plug
+                       sensor->modelId().startsWith(QLatin1String("E13-")) ||           // Sengled PAR38 Bulbs
+                       sensor->modelId().startsWith(QLatin1String("Z01-A19")) ||        // Sengled smart led
+                       sensor->modelId() == QLatin1String("Connected socket outlet")))  // Niko smart socket
         {
             rq.reportableChange48bit = 10; // 0.001 kWh (1 Wh)
         }
@@ -1849,10 +1896,11 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq2.attributeId = 0x0400; // Instantaneous Demand
         rq2.minInterval = 1;
         rq2.maxInterval = 300;
-        if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") || // Heiman
-                       sensor->modelId() == QLatin1String("902010/25") || // Bitron
-                       sensor->modelId() == QLatin1String("SKHMP30-I1") || // GS smart plug
-                       sensor->modelId() == QLatin1String("160-01")))     // Plugwise smart plug
+        if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||        // Heiman
+                       sensor->modelId() == QLatin1String("902010/25") ||        // Bitron
+                       sensor->modelId() == QLatin1String("SKHMP30-I1") ||       // GS smart plug
+                       sensor->modelId().startsWith(QLatin1String("Z01-A19")) || // Sengled smart led
+                       sensor->modelId() == QLatin1String("160-01")))            // Plugwise smart plug
         {
             rq2.reportableChange24bit = 10; // 1 W
         }
@@ -1882,6 +1930,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                        sensor->modelId().startsWith(QLatin1String("ROB_200")) || // ROBB Smarrt micro dimmer
                        sensor->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
                        sensor->modelId().startsWith(QLatin1String("lumi.plug.maeu")) || // Xiaomi Aqara ZB3.0 smart plug
+                       sensor->modelId().startsWith(QLatin1String("lumi.switch.n0agl1")) || // Xiaomi Aqara Single Switch Module T1 (With Neutral)
                        sensor->modelId().startsWith(QLatin1String("lumi.switch.b1naus01")))) // Xiaomi ZB3.0 Smart Wall Switch
         {
             rq.reportableChange16bit = 10; // 1 W
@@ -2861,6 +2910,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().contains(QLatin1String("Zen-01")) ||
         // eCozy
         sensor->modelId() == QLatin1String("Thermostat") ||
+        // Alcantara
+        sensor->modelId() == QLatin1String("ALCANTARA2 D1.00P1.01Z1.00") ||
         // Stelpro
         sensor->modelId().contains(QLatin1String("ST218")) ||
         sensor->modelId().contains(QLatin1String("STZB402")) ||
@@ -2883,6 +2934,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("lumi.switch.b1naus01")) ||
         sensor->modelId() == QLatin1String("lumi.sensor_magnet.agl02") ||
         sensor->modelId() == QLatin1String("lumi.flood.agl02") ||
+        sensor->modelId() == QLatin1String("lumi.switch.n0agl1") ||
         // iris
         sensor->modelId().startsWith(QLatin1String("1116-S")) ||
         sensor->modelId().startsWith(QLatin1String("1117-S")) ||
@@ -2904,6 +2956,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("E13-")) ||
         sensor->modelId().startsWith(QLatin1String("E1D-")) ||
         sensor->modelId().startsWith(QLatin1String("E1E-")) ||
+        sensor->modelId().startsWith(QLatin1String("Z01-A19")) ||
         // Linkind
         sensor->modelId() == QLatin1String("ZB-MotionSensor-D0003") ||
         // Immax
@@ -2938,6 +2991,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("SPW35Z")) ||
         // Namron
         sensor->modelId().startsWith(QLatin1String("45127")) ||
+        // SLC
+        sensor->modelId().startsWith(QLatin1String("S57003")) ||
         // Plugwise
         sensor->modelId().startsWith(QLatin1String("160-01")) ||
         // Feibit
@@ -2945,6 +3000,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("FB56-")) ||
         // Niko
         sensor->modelId() == QLatin1String("Connected socket outlet") ||
+        sensor->modelId() == QLatin1String("Smart plug Zigbee PE") ||
         // Sage
         sensor->modelId() == QLatin1String("Bell") ||
         // Owon
@@ -2952,6 +3008,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("PR412C") ||
         // D-Link
         sensor->modelId() == QLatin1String("DCH-B112") ||
+        sensor->modelId() == QLatin1String("DCH-B122") ||
         // Sonoff
         sensor->modelId() == QLatin1String("WB01") ||
         sensor->modelId() == QLatin1String("WB-01") ||
@@ -3653,7 +3710,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(0x04);
     }
     else if (sensor->modelId().startsWith(QLatin1String("ED-1001")) ||
-             sensor->modelId().startsWith(QLatin1String("45127")))
+             sensor->modelId().startsWith(QLatin1String("45127")) ||
+             sensor->modelId().startsWith(QLatin1String("S57003")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);

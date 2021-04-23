@@ -1313,6 +1313,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
+                             R_GetProductId(sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
@@ -1441,6 +1442,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
+                             R_GetProductId(sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
@@ -1582,7 +1584,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                              sensor->modelId().startsWith(QLatin1String("AC201")) ||        // OWON
                              sensor->modelId().startsWith(QLatin1String("Super TR")))       // ELKO
                     {
-
                         QString modeSet = map[pi.key()].toString();
                         quint8 mode = 0x00;
                         if (modeSet == "off") { mode = 0x00; }
@@ -1732,6 +1733,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigPreset && (R_GetProductId(sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
                                                          R_GetProductId(sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
+                                                         R_GetProductId(sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                                                          R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
                                                          R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                                                          R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
@@ -1800,6 +1802,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
                             R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
                             R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
+                            R_GetProductId(sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                             R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                             R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat") ||
                             R_GetProductId(sensor) == QLatin1String("Tuya_THD MOES TRV") ||
@@ -2087,6 +2090,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigWindowOpen && (R_GetProductId(sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
                                                              R_GetProductId(sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
+                                                             R_GetProductId(sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                                                              R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
                                                              R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                                                              R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
@@ -2189,7 +2193,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                 }
                                 else
                                 {
-                                    rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                    rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                             QString("Could not set attribute")));
                                     rsp.httpStatus = HttpStatusBadRequest;
                                     return REQ_READY_SEND;
@@ -2197,7 +2201,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                             else
                             {
-                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                         QString("Could not set attribute")));
                                 rsp.httpStatus = HttpStatusBadRequest;
                                 return REQ_READY_SEND;
@@ -2207,7 +2211,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     else
                     {
                         rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
-                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
                         rsp.httpStatus = HttpStatusBadRequest;
                         return REQ_READY_SEND;
                     }
@@ -2250,6 +2254,50 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                     rsp.httpStatus = HttpStatusBadRequest;
                                     return REQ_READY_SEND;
                                 }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
+                else if (rid.suffix == RConfigControlSequence)
+                {
+                    if (map[pi.key()].type() == QVariant::Double)
+                    {
+                        const uint mode = map[pi.key()].toUInt(&ok);
+                        quint8 controlSequence = 0;
+
+                        if      (ok && mode == 1) { controlSequence = COOLING_ONLY; }
+                        else if (ok && mode == 2) { controlSequence = COOLING_WITH_REHEAT; }
+                        else if (ok && mode == 3) { controlSequence = HEATING_ONLY; }
+                        else if (ok && mode == 4) { controlSequence = HEATING_WITH_REHEAT; }
+                        else if (ok && mode == 5) { controlSequence = COOLING_AND_HEATING_4PIPES; }
+                        else if (ok && mode == 6) { controlSequence = COOLING_AND_HEATING_4PIPES_WITH_REHEAT; }
+                        else
+                        {
+                            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                       QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
+                        }
+
+                        if (controlSequence != 0)
+                        {
+                            if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x001B, deCONZ::Zcl8BitEnum, controlSequence))
+                            {
+                                updated = true;
+                            }
+                            else
+                            {
+                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                           QString("Could not set attribute")));
+                                rsp.httpStatus = HttpStatusBadRequest;
+                                return REQ_READY_SEND;
                             }
                         }
                     }
@@ -2306,28 +2354,34 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     if (map[pi.key()].type() == QVariant::Double)
                     {
-                        if (sensor->modelId() == QLatin1String("ZHEMI101"))
+                        if (sensor->modelId() == QLatin1String("ZHEMI101") || sensor->modelId().startsWith(QLatin1String("EMIZB-1")))
                         {
                             const uint mode = map[pi.key()].toUInt(&ok);
                             quint16 interfaceMode = 0;
-
-                            if (ok && mode == 1)      { interfaceMode = PULSE_COUNTING_ELECTRICITY; }
-                            else if (ok && mode == 2) { interfaceMode = PULSE_COUNTING_GAS; }
-                            else if (ok && mode == 3) { interfaceMode = PULSE_COUNTING_WATER; }
-                            else if (ok && mode == 4) { interfaceMode = KAMSTRUP_KMP; }
-                            else if (ok && mode == 5) { interfaceMode = LINKY; }
-                            else if (ok && mode == 6) { interfaceMode = DLMS_COSEM; }
-                            else if (ok && mode == 7) { interfaceMode = DSMR_23; }
-                            else if (ok && mode == 8) { interfaceMode = DSMR_40; }
-                            else
+                            
+                            if (!ok)
+                            { }
+                            if (sensor->modelId() == QLatin1String("ZHEMI101"))
                             {
-                                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
-                                                           QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
-                                rsp.httpStatus = HttpStatusBadRequest;
-                                return REQ_READY_SEND;
+                                if      (mode == 1) { interfaceMode = PULSE_COUNTING_ELECTRICITY; }
+                                else if (mode == 2) { interfaceMode = PULSE_COUNTING_GAS; }
+                                else if (mode == 3) { interfaceMode = PULSE_COUNTING_WATER; }
+                                else if (mode == 4) { interfaceMode = KAMSTRUP_KMP; }
+                                else if (mode == 5) { interfaceMode = LINKY; }
+                                else if (mode == 6) { interfaceMode = DLMS_COSEM; }
+                                else if (mode == 7) { interfaceMode = DSMR_23; }
+                                else if (mode == 8) { interfaceMode = DSMR_40; }
                             }
-
-                            if (mode > 0 && mode < 9)
+                            else if (sensor->modelId().startsWith(QLatin1String("EMIZB-1")))
+                            {
+                                if      (mode == 1) { interfaceMode = NORWEGIAN_HAN; }
+                                else if (mode == 2) { interfaceMode = NORWEGIAN_HAN_EXTRA_LOAD; }
+                                else if (mode == 3) { interfaceMode = AIDON_METER; }
+                                else if (mode == 4) { interfaceMode = KAIFA_KAMSTRUP_METERS; }
+                                else if (mode == 5) { interfaceMode = AUTO_DETECT; }
+                            }
+                            
+                            if (interfaceMode != 0)
                             {
                                 if (addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0302, deCONZ::Zcl16BitEnum, interfaceMode, VENDOR_DEVELCO))
                                 {
@@ -2340,6 +2394,13 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                     rsp.httpStatus = HttpStatusBadRequest;
                                     return REQ_READY_SEND;
                                 }
+                            }
+                            else
+                            {
+                                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                           QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
+                                rsp.httpStatus = HttpStatusBadRequest;
+                                return REQ_READY_SEND;
                             }
                         }
                         else
@@ -2583,6 +2644,7 @@ int DeRestPluginPrivate::changeThermostatSchedule(const ApiRequest &req, ApiResp
 
     if (R_GetProductId(sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
         R_GetProductId(sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
+        R_GetProductId(sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
         R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
         R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
         R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
