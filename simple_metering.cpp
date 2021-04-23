@@ -92,7 +92,7 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
             {
                 if (zclFrame.manufacturerCode() == VENDOR_DEVELCO)
                 {
-                    quint16 interfaceMode = attr.numericValue().u16;
+                    const quint16 interfaceMode = attr.numericValue().u16;
                     quint8 mode = 0;
                     
                     if(sensor->modelId() == QLatin1String("ZHEMI101"))
@@ -105,7 +105,7 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
                         else if (interfaceMode == DLMS_COSEM)                   { mode = 6; }
                         else if (interfaceMode == DSMR_23)                      { mode = 7; }
                         else if (interfaceMode == DSMR_40)                      { mode = 8; }
-                    ]
+                    }
                     else if (sensor->modelId().startsWith(QLatin1String("EMIZB-1")))
                     {
                         if      (interfaceMode == NORWEGIAN_HAN)            { mode = 1; }
