@@ -1,9 +1,14 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 
+#define CURRENT_SUMMATION_DELIVERED             0x0000
+#define PULSE_CONFIGURATION                     0x0300  // Develco specific
+#define INTERFACE_MODE                          0x0302  // Develco specific
+#define INSTANTANEOUS_DEMAND                    0x0400
+
 /*! Handle packets related to the ZCL simple metering cluster.
     \param ind the APS level data indication containing the ZCL packet
-    \param zclFrame the actual ZCL frame which holds the Thermostat cluster command or attribute
+    \param zclFrame the actual ZCL frame which holds the simple metering cluster command or attribute
  */
 void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
@@ -70,13 +75,56 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
 
             switch (attrId)
             {
-            case 0x0300: // Pulse Configuration
+            case CURRENT_SUMMATION_DELIVERED:
+            {
+                quint64 consumption = attr.numericValue().u64;
+                item = sensor->item(RStateConsumption);
+
+                if (sensor->modelId() == QLatin1String("SmartPlug") ||                      // Heiman
+                    sensor->modelId().startsWith(QLatin1String("PSMP5_")) ||                // Climax
+                    sensor->modelId().startsWith(QLatin1String("SKHMP30")) ||               // GS smart plug
+                    sensor->modelId().startsWith(QLatin1String("E13-")) ||                  // Sengled PAR38 Bulbs
+                    sensor->modelId().startsWith(QLatin1String("Z01-A19")) ||               // Sengled smart led
+                    sensor->modelId() == QLatin1String("Connected socket outlet"))          // Niko smart socket
+                {
+                    consumption = static_cast<quint64>(round((double)consumption / 10.0)); // 0.1 Wh -> Wh
+                }
+                else if (sensor->modelId() == QLatin1String("SP 120") ||                    // innr
+                         sensor->modelId() == QLatin1String("Plug-230V-ZB3.0") ||           // Immax
+                         sensor->modelId() == QLatin1String("Smart plug Zigbee PE") ||      // Niko Smart Plug 552-80699
+                         sensor->modelId() == QLatin1String("TS0121"))                      // Tuya / Blitzwolf
+                {
+                    consumption *= 10; // 0.01 kWh = 10 Wh -> Wh
+                }
+                else if (sensor->modelId().startsWith(QLatin1String("SZ-ESW01"))) // Sercomm / Telstra smart plug
+                {
+                    consumption = static_cast<quint64>(round((double)consumption / 1000.0)); // -> Wh
+                }
+                else if (sensor->modelId().startsWith(QLatin1String("ROB_200")) ||            // ROBB Smarrt micro dimmer
+                         sensor->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
+                         sensor->modelId().startsWith(QLatin1String("SPW35Z")))               // RT-RK OBLO SPW35ZD0 smart plug
+                {
+                    consumption = static_cast<quint64>(round((double)consumption / 3600.0)); // -> Wh
+                }
+
+                if (item && item->toNumber() != static_cast<qint64>(consumption))
+                {
+                    item->setValue(consumption); // in Wh (0.001 kWh)
+                    enqueueEvent(Event(RSensors, RStateConsumption, sensor->id(), item));
+                }
+
+                sensor->setZclValue(updateType, ind.srcEndpoint(), METERING_CLUSTER_ID, attrId, attr.numericValue());
+                stateUpdated = true;
+            }
+                break;
+
+            case PULSE_CONFIGURATION:
             {
                 if (zclFrame.manufacturerCode() == VENDOR_DEVELCO && sensor->modelId() == QLatin1String("ZHEMI101"))
                 {
                     quint16 pulseConfiguration = attr.numericValue().u16;
-
                     item = sensor->item(RConfigPulseConfiguration);
+
                     if (item && item->toNumber() != pulseConfiguration)
                     {
                         item->setValue(pulseConfiguration);
@@ -88,11 +136,12 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
             }
                 break;
 
-            case 0x0302: // Interface Mode
+            case INTERFACE_MODE:
             {
                 if (zclFrame.manufacturerCode() == VENDOR_DEVELCO)
                 {
                     const quint16 interfaceMode = attr.numericValue().u16;
+                    item = sensor->item(RConfigInterfaceMode);
                     quint8 mode = 0;
                     
                     if(sensor->modelId() == QLatin1String("ZHEMI101"))
@@ -115,7 +164,6 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
                         else if (interfaceMode == AUTO_DETECT)              { mode = 5; }                        
                     }
                     
-                    item = sensor->item(RConfigInterfaceMode);
                     if (item && mode != 0 && item->toNumber() != mode)
                     {
                         item->setValue(mode);
@@ -124,6 +172,36 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
                     }
                 }
                 sensor->setZclValue(updateType, ind.srcEndpoint(), METERING_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+
+            case INSTANTANEOUS_DEMAND:
+            {
+                qint32 power = attr.numericValue().s32;
+                item = sensor->item(RStatePower);
+
+                if (sensor->modelId() == QLatin1String("SmartPlug") ||                  // Heiman
+                    sensor->modelId() == QLatin1String("902010/25") ||                  // Bitron
+                    sensor->modelId().startsWith(QLatin1String("Z01-A19")) ||           // Sengled smart led
+                    sensor->modelId().startsWith(QLatin1String("PSMP5_")) ||            // Climax
+                    sensor->modelId().startsWith(QLatin1String("SKHMP30")) ||           // GS smart plug
+                    sensor->modelId().startsWith(QLatin1String("160-01")))              // Plugwise smart plug
+                {
+                    power = static_cast<qint32>(round((double)power / 10.0)); // 0.1W -> W
+                }
+                else if (sensor->modelId().startsWith(QLatin1String("SZ-ESW01")))       // Sercomm / Telstra smart plug
+                {
+                    power = static_cast<qint32>(round((double)power / 1000.0)); // -> W
+                }
+
+                if (item && item->toNumber() != power)
+                {
+                    item->setValue(power); // in W
+                    enqueueEvent(Event(RSensors, RStatePower, sensor->id(), item));
+                }
+
+                sensor->setZclValue(updateType, ind.srcEndpoint(), METERING_CLUSTER_ID, attrId, attr.numericValue());
+                stateUpdated = true;
             }
                 break;
 
