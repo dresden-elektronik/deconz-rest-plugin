@@ -347,6 +347,5 @@ bool R_SetFlags1(ResourceItem *item, qint64 flags, const char *strFlags);
 #define R_ClearFlags(item, flags) R_ClearFlags1(item, flags, #flags)
 bool R_ClearFlags1(ResourceItem *item, qint64 flags, const char *strFlags);
 bool R_HasFlags(const ResourceItem *item, qint64 flags);
-const QString R_GetProductId(Resource *resource);
 
 #endif // RESOURCE_H

@@ -144,11 +144,36 @@
 				<value name="Emergency mains and transfer switch" value="6"></value>
 				<value name="Mains (single phase) with battery backup" value="0x81"></value>
 			</attribute>
-			<attribute id="0x0008" name="Unknown 1" type="enum8" access="r" required="o" >
+			<attribute id="0x0008" name="Generic Device Class" type="enum8" default="0xff" access="r" required="o" >
 				<description>IKEA control outlet specific.</description>
+        <value name="Lighting" value="0"></value>
+        <value name="Unspecified" value="0xff"></value>
 			</attribute>
-			<attribute id="0x0009" name="Unknown 2" type="enum8" access="r" required="o" >
+			<attribute id="0x0009" name="Generic Device Type" type="enum8" default="0xff" access="r" required="o" >
 				<description>IKEA control outlet specific.</description>
+        <value name="Incandescent" value="0"></value>
+        <value name="Spotlight Halogen" value="1"></value>
+        <value name="Halogen Bulb" value="2"></value>
+        <value name="CFL" value="3"></value>
+        <value name="Linear Fluorencent" value="4"></value>
+        <value name="LED Bulb" value="5"></value>
+        <value name="Spotlight LED" value="6"></value>
+        <value name="LED Strip" value="7"></value>
+        <value name="LED Tube" value="8"></value>
+        <value name="Indoor Luminaire" value="9"></value>
+        <value name="Outdoor Luminaire" value="0x0a"></value>
+        <value name="Pendant Luminaire" value="0x0b"></value>
+        <value name="Floor Standing Luminaire" value="0x0c"></value>
+        <value name="Controller" value="0xe0"></value>
+        <value name="Wall Switch" value="0xe1"></value>
+        <value name="Portable Remote Controller" value="0xe2"></value>
+        <value name="Motion or Light Sensor" value="0xe3"></value>
+        <value name="Actuator" value="0xf0"></value>
+        <value name="Wall Socket" value="0xf1"></value>
+        <value name="Gateway or Bridge" value="0xf2"></value>
+        <value name="Plug-In Unit" value="0xf3"></value>
+        <value name="Retrofit Actuator" value="0xf4"></value>
+        <value name="Unspecified" value="0xff"></value>
 			</attribute>
 			<attribute id="0x000a" name="Product code" type="ostring" access="r" required="o" >
 				<description>As printed on the product.</description>
@@ -3609,6 +3634,15 @@ devices can operate on either battery or mains power, and can have a wide variet
             <attribute id="0x0000" type="u16" name="Duration" required="m"/>
           </payload>
         </command>
+      </server>
+    </cluster>
+
+    <!-- Sunricher C4 -->
+    <cluster id="0xfc00" name="Device Setup" mfcode="0x1224">
+      <description>Sunricher-specific cluster.</description>
+      <server>
+        <attribute id="0x0000" type="array" name="Input Configurations" access="rw" required="m" mfcode="0x1224"/>
+        <attribute id="0x0001" type="array" name="Input Actions" access="rw" required="m" mfcode="0x1224"/>
       </server>
     </cluster>
 

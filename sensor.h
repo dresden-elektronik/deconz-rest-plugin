@@ -150,7 +150,7 @@ public:
     uint8_t previousDirection;
     quint16 previousCt;
     QDateTime durationDue;
-    uint8_t previousSequenceNumber;
+    uint16_t previousSequenceNumber = 0xffff;
     uint8_t previousCommandId;
     
 

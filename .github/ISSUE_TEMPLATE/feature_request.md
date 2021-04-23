@@ -9,6 +9,7 @@ assignees: ''
 
 <!--
   - Use this issue template to request a feature in the deCONZ REST-API.
+  - Make sure not to remove any headers and fill the template completely. If you remove the headers, the issue will be auto-closed.
   - If you want to request a feature for the Phoscon App, please head over to: https://github.com/dresden-elektronik/phoscon-app-beta
   - If you're unsure if the request fits into this issue tracker, please ask for advise in our Discord chat: https://discord.gg/QFhTxqN
 -->
