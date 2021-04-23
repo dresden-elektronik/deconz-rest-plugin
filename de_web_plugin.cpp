@@ -6720,6 +6720,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.addItem(DataTypeUInt8, RConfigInterfaceMode)->setValue(1);
                 sensorNode.addItem(DataTypeUInt16, RConfigPulseConfiguration)->setValue(1000);
             }
+            if (modelId.startsWith(QLatin1String("EMIZB-1")))
+            {
+                sensorNode.addItem(DataTypeUInt8, RConfigInterfaceMode)->setValue(1);
+            }
         }
         else if (sensorNode.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
         {
