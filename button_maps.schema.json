@@ -79,7 +79,8 @@
           "WINDOW_COVERING",
           "COLOR_CONTROL",
           "IAS_ZONE",
-          "IAS_ACE"
+          "IAS_ACE",
+          "ADUROLIGHT"
         ]
     },
     "basic-commands": {
