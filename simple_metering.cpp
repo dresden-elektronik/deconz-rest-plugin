@@ -90,22 +90,33 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
 
             case 0x0302: // Interface Mode
             {
-                if (zclFrame.manufacturerCode() == VENDOR_DEVELCO && sensor->modelId() == QLatin1String("ZHEMI101"))
+                if (zclFrame.manufacturerCode() == VENDOR_DEVELCO)
                 {
-                    quint16 interfaceMode = attr.numericValue().u16;
+                    const quint16 interfaceMode = attr.numericValue().u16;
                     quint8 mode = 0;
                     
-                    if      (interfaceMode == PULSE_COUNTING_ELECTRICITY)   { mode = 1; }
-                    else if (interfaceMode == PULSE_COUNTING_GAS)           { mode = 2; }
-                    else if (interfaceMode == PULSE_COUNTING_WATER)         { mode = 3; }
-                    else if (interfaceMode == KAMSTRUP_KMP)                 { mode = 4; }
-                    else if (interfaceMode == LINKY)                        { mode = 5; }
-                    else if (interfaceMode == DLMS_COSEM)                   { mode = 6; }
-                    else if (interfaceMode == DSMR_23)                      { mode = 7; }
-                    else if (interfaceMode == DSMR_40)                      { mode = 8; }
+                    if(sensor->modelId() == QLatin1String("ZHEMI101"))
+                    {
+                        if      (interfaceMode == PULSE_COUNTING_ELECTRICITY)   { mode = 1; }
+                        else if (interfaceMode == PULSE_COUNTING_GAS)           { mode = 2; }
+                        else if (interfaceMode == PULSE_COUNTING_WATER)         { mode = 3; }
+                        else if (interfaceMode == KAMSTRUP_KMP)                 { mode = 4; }
+                        else if (interfaceMode == LINKY)                        { mode = 5; }
+                        else if (interfaceMode == DLMS_COSEM)                   { mode = 6; }
+                        else if (interfaceMode == DSMR_23)                      { mode = 7; }
+                        else if (interfaceMode == DSMR_40)                      { mode = 8; }
+                    }
+                    else if (sensor->modelId().startsWith(QLatin1String("EMIZB-1")))
+                    {
+                        if      (interfaceMode == NORWEGIAN_HAN)            { mode = 1; }
+                        else if (interfaceMode == NORWEGIAN_HAN_EXTRA_LOAD) { mode = 2; }
+                        else if (interfaceMode == AIDON_METER)              { mode = 3; }
+                        else if (interfaceMode == KAIFA_KAMSTRUP_METERS)    { mode = 4; }
+                        else if (interfaceMode == AUTO_DETECT)              { mode = 5; }                        
+                    }
                     
                     item = sensor->item(RConfigInterfaceMode);
-                    if (item && item->toNumber() != mode && mode > 0 && mode < 9)
+                    if (item && mode != 0 && item->toNumber() != mode)
                     {
                         item->setValue(mode);
                         enqueueEvent(Event(RSensors, RConfigInterfaceMode, sensor->id(), item));

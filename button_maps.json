@@ -883,7 +883,7 @@
         "sunricherCCTMap": {
             "vendor": "Sunricher",
             "doc": "CCT remote",
-            "modelids": [],
+            "modelids": ["ZGRC-KEY-002"],
             "map": [
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
@@ -895,6 +895,17 @@
                 [1, "0x01", "COLOR_CONTROL", "MOVE_COLOR_TEMPERATURE", "0x013C", "S_BUTTON_4", "S_BUTTON_ACTION_HOLD", "Move color temperature up"],
                 [1, "0x01", "COLOR_CONTROL", "MOVE_COLOR_TEMPERATURE", "0x033C", "S_BUTTON_4", "S_BUTTON_ACTION_HOLD", "Move color temperature down"],
                 [1, "0x01", "COLOR_CONTROL", "STOP_MOVE_STEP", "0", "S_BUTTON_4", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_"]
+            ]
+        },
+        "sunricherC4Map": {
+            "vendor": "Sunricher",
+            "doc": "Zigbee Push-Button Coupler SR-ZG2833PAC-C4",
+            "modelids": ["ZG2833PAC"],
+            "map": [
+                [1, "0x01", "ONOFF", "TOGGLE", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Toggle"],
+                [1, "0x02", "ONOFF", "TOGGLE", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Toggle"],
+                [1, "0x03", "ONOFF", "TOGGLE", "0", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Toggle"],
+                [1, "0x04", "ONOFF", "TOGGLE", "0", "S_BUTTON_4", "S_BUTTON_ACTION_SHORT_RELEASED", "Toggle"]
             ]
         },
         "rgbgenie5121Map": {
@@ -916,8 +927,8 @@
         },
         "sunricherMap": {
             "vendor": "Sunricher",
-            "doc": "Wireless switches from Sunricher, Namron and EcoDim",
-            "modelids": ["ED-10010", "ED-10011", "ED-10012", "ED-10013", "ED-10014", "ED-10015", "ZG2833K8_EU05", "ZG2835", "4512700", "4512701", "4512702", "4512703", "4512705", "4512714", "4512719", "4512720", "4512721", "4512722"],
+            "doc": "Wireless switches from Sunricher, Namron, SLC and EcoDim",
+            "modelids": ["ED-10010", "ED-10011", "ED-10012", "ED-10013", "ED-10014", "ED-10015", "ZG2833K8_EU05", "ZG2835", "4512700", "4512701", "4512702", "4512703", "4512705", "4512714", "4512719", "4512720", "4512721", "4512722", "S57003"],
             "map": [
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Move up (with on/off)"],
@@ -1195,6 +1206,29 @@
                 [1, "0x01", "COLOR_CONTROL", "MOVE_TO_COLOR_TEMPERATURE", "0x1D", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Temperature short"],
                 [1, "0x01", "COLOR_CONTROL", "MOVE_COLOR_TEMPERATURE", "0x00", "S_BUTTON_3", "S_BUTTON_ACTION_HOLD", "Temperature Long press"],
                 [1, "0x01", "COLOR_CONTROL", "MOVE_COLOR_TEMPERATURE", "0x01", "S_BUTTON_3", "S_BUTTON_ACTION_HOLD", "Temperature Long press 2"]
+            ]
+        },
+        "ZBT-DIMController-D0800Map": {
+            "vendor": "LDS",
+            "doc": "Mueller-Licht tint dimmer",
+            "modelids": ["ZBT-DIMController-D0800"],
+            "buttons": [
+                {"S_BUTTON_1": "On/Off"},
+                {"S_BUTTON_2": "DimUp"},
+                {"S_BUTTON_3": "DimDown"},
+                {"S_BUTTON_4": "Scene"}
+            ],
+            "map": [
+                [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
+                [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
+                [1, "0x01", "LEVEL_CONTROL", "STEP", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Step up"],
+                [1, "0x01", "LEVEL_CONTROL", "MOVE", "0", "S_BUTTON_2", "S_BUTTON_ACTION_HOLD", "Move up"],
+                [1, "0x01", "LEVEL_CONTROL", "STOP", "0", "S_BUTTON_2", "S_BUTTON_ACTION_LONG_RELEASED", "Stop"],
+                [1, "0x01", "LEVEL_CONTROL", "STEP", "1", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Step down"],
+                [1, "0x01", "LEVEL_CONTROL", "MOVE", "1", "S_BUTTON_3", "S_BUTTON_ACTION_HOLD", "Move down"],
+                [1, "0x01", "LEVEL_CONTROL", "STOP", "1", "S_BUTTON_3", "S_BUTTON_ACTION_LONG_RELEASED", "Stop"],
+                [1, "0x01", "SCENES", "RECALL_SCENE", "1", "S_BUTTON_4", "S_BUTTON_ACTION_SHORT_RELEASED", "Recall scene 1"],
+                [1, "0x01", "SCENES", "STORE_SCENE", "1", "S_BUTTON_4", "S_BUTTON_ACTION_LONG_RELEASED", "Store scene 1"]
             ]
         },
         "linkind1keyMap": {

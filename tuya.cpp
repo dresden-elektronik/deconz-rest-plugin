@@ -23,35 +23,6 @@
 
 // Value for dp_identifier (it s device dependent)
 //
-// Value for windows covering
-//-----------------------------------------------------
-// 0x01 	control         	enum 	open, stop, close, continue
-// 0x02 	percent_control 	value 	0-100% control
-// 0x03 	percent_state 	    value 	Report from motor about current percentage
-// 0x04 	control_back     	enum 	Configures motor direction (untested)
-// 0x05 	work_state       	enum 	Supposedly shows if motor is opening or closing, always 0 for me though
-// 0x06 	situation_set 	    enum 	Configures if 100% equals to fully closed or fully open (untested)
-// 0x07 	fault           	bitmap 	Anything but 0 means something went wrong (untested)
-
-// Value for switch
-//-------------------
-// 0x01 	Button 1
-// 0x02 	Button 2
-// 0x03 	Button 3
-// 0x04 	???
-// 0x0D     All buttons
-
-// Value for thermostat
-//---------------------
-// 0x04     Preset
-// 0x6C     Auto / Manu
-// 0x65     Manu / Off
-// 0x6E     Low battery
-// 0x02     Actual temperature
-// 0x03     Thermostat temperature
-// 0x14     Valve
-// 0x15     Battery level
-// 0x6A     Mode
 
 // Value For Various sensor
 // -------------------------
@@ -131,6 +102,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         return;
     }
     
+    const auto productId = R_GetProductId(lightNode);
+    
     // DBG_Printf(DBG_INFO, "Tuya debug 4 : Address 0x%016llX, Command 0x%02X, Payload %s\n", ind.srcAddress().ext(), zclFrame.commandId(), qPrintable(zclFrame.payload().toHex()));
 
     if (zclFrame.commandId() == TUYA_REQUEST)
@@ -142,8 +115,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         // 0x01 : TUYA_REPORTING > Used to inform of changes in its state.
         // 0x02 : TUYA_QUERY > Send after receiving a 0x00 command.
         
-        // Send default response
-        if (zclFrame.commandId() == TUYA_REPORTING && !(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
+        // Send default response, it seem at least 0x01 and 0x02 need defaut response
+        if ((zclFrame.commandId() == TUYA_REPORTING || zclFrame.commandId() == TUYA_QUERY)&& !(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
         {
             sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
         }
@@ -409,6 +382,14 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     case 0x0203: // position reached (more usefull I think)
                     {
                         quint8 lift = static_cast<quint8>(data);
+                        
+                        // Need reverse
+                        if (R_GetProductId(lightNode).startsWith(QLatin1String("Tuya_COVD YS-MT750")) ||
+                            R_GetProductId(lightNode).startsWith(QLatin1String("Tuya_COVD DS82")))
+                        {
+                            lift = 100 - lift;
+                        }
+                        
                         bool open = lift < 100;
                         lightNode->setValue(RStateLift, lift);
                         lightNode->setValue(RStateOpen, open);
@@ -450,9 +431,10 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             }
             else
             {
-                // Switch device 1/2/3 gangs
+                // Switch device 1/2/3 gangs or dimmer
                 switch (dp)
                 {
+                    // State
                     case 0x0101:
                     case 0x0102:
                     case 0x0103:
@@ -491,6 +473,44 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             {
                                 item->setValue(onoff);
                                 Event e(RLights, RStateOn, lightNode->id(), item);
+                                enqueueEvent(e);
+                                update = true;
+                            }
+                        }
+                    }
+                    break;
+                    
+                    // Dimmer level for mode 1
+                    case 0x0202:
+                    {
+                        if (R_GetProductId(lightNode) == QLatin1String("Tuya_DIMSWITCH Earda Dimmer") ||
+                            R_GetProductId(lightNode) == QLatin1String("Tuya_DIMSWITCH EDM-1ZAA-EU"))
+                        {
+                            const qint64 bri = data * 254 / 1000; // 0 to 1000 value
+                            
+                            ResourceItem *item = lightNode->item(RStateBri);
+                            if (item && item->toNumber() != bri)
+                            {
+                                item->setValue(bri);
+                                Event e(RLights, RStateBri, lightNode->id(), item);
+                                enqueueEvent(e);
+                                update = true;
+                            }
+                        }
+                    }
+                    break;
+                    // Dimmer level for mode 2
+                    case 0x0203:
+                    {
+                        if (R_GetProductId(lightNode) == QLatin1String("Tuya_DIMSWITCH Not model found yet"))
+                        {
+                            const qint64 bri = data * 254 / 1000; // 0 to 1000 value
+                            
+                            ResourceItem *item = lightNode->item(RStateBri);
+                            if (item && item->toNumber() != bri)
+                            {
+                                item->setValue(bri);
+                                Event e(RLights, RStateBri, lightNode->id(), item);
                                 enqueueEvent(e);
                                 update = true;
                             }
@@ -795,7 +815,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
-                    case 0x0114: // Valve state on / off
+                    case 0x0114: // Valve state report : on / off
                     {
                         bool onoff = false;
                         if (data == 1) { onoff = true; }
@@ -811,6 +831,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
+                    case 0x011E :
                     case 0x0128 : // Childlock status for moe
                     {
                         bool locked = (data == 0) ? false : true;
@@ -892,8 +913,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         if (item && item->toNumber() != temp)
                         {
                             item->setValue(temp);
-                            Event e(RSensors, RConfigHeatSetpoint, sensorNode->id(), item);
-                            enqueueEvent(e);
+                            enqueueEvent(Event(RSensors, RConfigHeatSetpoint, sensorNode->id(), item));
 
                         }
                     }
@@ -915,6 +935,12 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     case 0x0210: // Thermostat heatsetpoint for moe
                     {
                         qint16 temp = static_cast<qint16>(data & 0xFFFF) * 100;
+                        
+                        if (productId == "Tuya_THD MOES TRV")
+                        {
+                            temp = static_cast<qint16>(data & 0xFFFF) * 100 / 2;
+                        }
+                        
                         ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
 
                         if (item && item->toNumber() != temp)
@@ -959,7 +985,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
-                    case 0x022c : // temperature calibration (offset)
+                    case 0x022c : // temperature calibration (offset in degree)
                     {
                         qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
                         ResourceItem *item = sensorNode->item(RConfigOffset);
@@ -975,9 +1001,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     case 0x0266: // min temperature limit
                     {
                         //Can be Temperature for some device
-                        if (sensorNode->manufacturer().endsWith(QLatin1String("GbxAXL2")) ||
-                            sensorNode->manufacturer().endsWith(QLatin1String("uhszj9s")) ||
-                            sensorNode->manufacturer().endsWith(QLatin1String("88teujp")))
+                        if (productId == "Tuya_THD SEA801-ZIGBEE TRV" ||
+                            productId == "Tuya_THD WZB-TRVL TRV")
                         {
                             qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
                             ResourceItem *item = sensorNode->item(RStateTemperature);
@@ -995,9 +1020,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     case 0x0267: // max temperature limit
                     {
                         //can be setpoint for some device
-                        if (sensorNode->manufacturer().endsWith(QLatin1String("GbxAXL2")) ||
-                            sensorNode->manufacturer().endsWith(QLatin1String("uhszj9s")) ||
-                            sensorNode->manufacturer().endsWith(QLatin1String("88teujp")))
+                        if (productId == "Tuya_THD SEA801-ZIGBEE TRV" ||
+                            productId == "Tuya_THD WZB-TRVL TRV")
                         {
                             qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
                             ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
@@ -1012,11 +1036,25 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
-                    case 0x0269: // Boost time
+                    case 0x0269: // Boost time in second or Heatpoint
                     {
+                        if (productId == "Tuya_THD MOES TRV")
+                        {
+                            qint16 temp = static_cast<qint16>(data & 0xFFFF) * 100 / 2;
+   
+                            ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
+
+                            if (item && item->toNumber() != temp)
+                            {
+                                item->setValue(temp);
+                                Event e(RSensors, RConfigHeatSetpoint, sensorNode->id(), item);
+                                enqueueEvent(e);
+                                update = true;
+                            }
+                        }
                     }
                     break;
-                    case 0x026D : // Valve position
+                    case 0x026D : // Valve position in %
                     {
                         quint8 valve = static_cast<qint8>(data & 0xFF);
                         bool on = valve > 3;
@@ -1038,23 +1076,45 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
-                    case 0x0402 : // preset for moe
+                    case 0x0402 : // preset for moe or mode
                     case 0x0403 : // preset for moe
                     {
-                        QString preset;
-                        if (dp == 0x0402) { preset = QLatin1String("auto"); }
-                        else if (dp == 0x0403) { preset = QLatin1String("program"); }
+                        if (productId == "Tuya_THD MOES TRV")
+                        {
+                            QString mode;
+                            if (data == 0) { mode = QLatin1String("auto"); } //schedule
+                            else if (data == 1) { mode = QLatin1String("heat"); } //manual
+                            else if (data == 2) { mode = QLatin1String("off"); } //away
+                            else
+                            {
+                                return;
+                            }
+                            
+                            ResourceItem *item = sensorNode->item(RConfigMode);
+
+                            if (item && item->toString() != mode)
+                            {
+                                item->setValue(mode);
+                                enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                            }
+                        }
                         else
                         {
-                            return;
-                        }
+                            QString preset;
+                            if (dp == 0x0402) { preset = QLatin1String("auto"); }
+                            else if (dp == 0x0403) { preset = QLatin1String("program"); }
+                            else
+                            {
+                                return;
+                            }
 
-                        ResourceItem *item = sensorNode->item(RConfigPreset);
+                            ResourceItem *item = sensorNode->item(RConfigPreset);
 
-                        if (item && item->toString() != preset)
-                        {
-                            item->setValue(preset);
-                            enqueueEvent(Event(RSensors, RConfigPreset, sensorNode->id(), item));
+                            if (item && item->toString() != preset)
+                            {
+                                item->setValue(preset);
+                                enqueueEvent(Event(RSensors, RConfigPreset, sensorNode->id(), item));
+                            }
                         }
                     }
                     break;
@@ -1082,7 +1142,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
-                    case 0x046a : // mode
+                    case 0x046a : // mode : normal/open/close
                     {
                         QString mode;
                         if (data == 0) { mode = QLatin1String("auto"); }
