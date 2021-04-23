@@ -2322,9 +2322,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 hasServerOnOff = false;
             }
             //Battery covering
-            if (lightNode.manufacturer() == QLatin1String("_TZE200_wmcdj3aq") ||
-                lightNode.manufacturer() == QLatin1String("_TZE200_xuzcvlku") || // Zemismart Chain Roller Shades Driver M515EGB (TS0601)
-                lightNode.manufacturer() == QLatin1String("_TZE200_zah67ekd")) // MoesHouse / Livolo Roller Blinds
+            if (R_GetProductId(&lightNode).startsWith(QLatin1String("Tuya_COVD")))
             {
                 hasServerOnOff = true;
             }
@@ -5700,7 +5698,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
                     }
-                    if (manufacturer == QLatin1String("_TZE200_xuzcvlku"))
+                    if (manufacturer == QLatin1String("_TZE200_xuzcvlku") ||
+                        manufacturer == QLatin1String("_TZE200_rddyvrci"))
                     {
                         fpBatterySensor.inClusters.push_back(TUYA_CLUSTER_ID);
                     }
