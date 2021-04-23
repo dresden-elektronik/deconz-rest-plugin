@@ -4858,8 +4858,9 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     ResourceItem *item = sensor->item(RStateButtonEvent);
                     if (item)
                     {
-                        if (sensor->node()->nodeDescriptor().manufacturerCode() == VENDOR_PHILIPS ||
-                            sensor->node()->nodeDescriptor().manufacturerCode() == VENDOR_IKEA)
+                        if (sensor->node() &&
+                            (sensor->node()->nodeDescriptor().manufacturerCode() == VENDOR_PHILIPS ||
+                             sensor->node()->nodeDescriptor().manufacturerCode() == VENDOR_IKEA))
                         {
                         }
                         else if (item->toNumber() == buttonMap.button && ind.dstAddressMode() == deCONZ::ApsGroupAddress)
