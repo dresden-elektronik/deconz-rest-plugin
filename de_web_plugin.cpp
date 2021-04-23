@@ -939,6 +939,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             handleSimpleMeteringClusterIndication(ind, zclFrame);
             break;
 
+        case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
+            handleElectricalMeasurementClusterIndication(ind, zclFrame);
+            break;
+
         case IAS_ZONE_CLUSTER_ID:
             handleIasZoneClusterIndication(ind, zclFrame);
             break;
@@ -7814,7 +7818,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             case MULTISTATE_INPUT_CLUSTER_ID:
             case BINARY_INPUT_CLUSTER_ID:
             case METERING_CLUSTER_ID:
-            case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
             case DOOR_LOCK_CLUSTER_ID:
             case SAMJIN_CLUSTER_ID:
             case TIME_CLUSTER_ID:
@@ -9436,196 +9439,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (item)
                                 {
-                                    item->setValue(power); // in W
-                                    enqueueEvent(Event(RSensors, RStatePower, i->id(), item));
-                                    updated = true;
-                                }
-                            }
-                        }
-                        if (updated)
-                        {
-                            i->updateStateTimestamp();
-                            i->setNeedSaveDatabase(true);
-                            enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
-                            updateSensorEtag(&*i);
-                        }
-                    }
-                    else if (event.clusterId() == ELECTRICAL_MEASUREMENT_CLUSTER_ID)
-                    {
-                        bool updated = false;
-                        for (;ia != enda; ++ia)
-                        {
-                            if (std::find(event.attributeIds().begin(),
-                                          event.attributeIds().end(),
-                                          ia->id()) == event.attributeIds().end())
-                            {
-                                continue;
-                            }
-
-                            if (ia->id() == 0x050B) // Active power
-                            {
-                                if (updateType != NodeValue::UpdateInvalid)
-                                {
-                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
-                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().s16);
-                                }
-
-                                qint16 power = ia->numericValue().s16;
-                                ResourceItem *item = i->item(RStatePower);
-
-                                if (item && power != -32768)
-                                {
-                                    if (i->modelId() == QLatin1String("SmartPlug") ||                       // Heiman
-                                        i->modelId().startsWith(QLatin1String("SKHMP30")) ||                // GS smart plug
-                                        i->modelId().startsWith(QLatin1String("ROB_200")) ||                // ROBB Smarrt micro dimmer
-                                        i->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) ||     // Sunricher Micro Smart Dimmer
-                                        i->modelId().startsWith(QLatin1String("lumi.plug.maeu")) ||         // Xiaomi Aqara ZB3.0 smart plug
-                                        i->modelId() == QLatin1String("RICI01") ||                          // LifeControl Smart Plug
-                                        i->modelId().startsWith(QLatin1String("outlet")) ||                 // Samsung SmartThings IM6001-OTP/IM6001-OTP01
-                                        i->modelId() == QLatin1String("3200-Sgb") ||                        // Samsung/Centralite smart outlet
-                                        i->modelId() == QLatin1String("3200-de") ||                         // Samsung/Centralite smart outlet
-                                        i->modelId().startsWith(QLatin1String("lumi.switch.n0agl1")) ||     // Xiaomi Aqara Single Switch Module T1 (With Neutral)
-                                        i->modelId().startsWith(QLatin1String("lumi.switch.b1naus01")))     // Xiaomi ZB3.0 Smart Wall Switch
-                                    {
-                                        //power += 5; power /= 10; // 0.1W -> W
-                                        power = static_cast<qint16>(round((double)power / 10.0)); // 0.1W -> W
-                                    }
-                                    else if (i->modelId().startsWith(QLatin1String("Plug")) && i->manufacturer() == QLatin1String("OSRAM")) // OSRAM
-                                    {
-                                        power = power == 28000 ? 0 : power / 10;
-                                    }
-                                    else if (i->modelId().startsWith(QLatin1String("SZ-ESW01"))) // Sercomm / Telstra smart plug
-                                    {
-                                        //power *= 128; power /= 1000;
-                                        power = static_cast<qint16>(round(((double)power * 128) / 1000.0));
-                                    }
-                                    else if (i->modelId() == QLatin1String("Connected socket outlet")) // Niko smart socket
-                                    {
-                                        //power *= 1123; power /= 10000;
-                                        power = static_cast<qint16>(round(((double)power * 1123) / 10000.0));
-                                    }
-                                    else if (i->modelId().startsWith(QLatin1String("lumi.relay.c2acn"))) // Xiaomi relay
-                                    {
-                                        continue;   // Device seems to always report -1 via this cluster/attribute
-                                    }
-                                    item->setValue(power); // in W
-                                    enqueueEvent(Event(RSensors, RStatePower, i->id(), item));
-                                    updated = true;
-                                }
-                            }
-                            else if (ia->id() == 0x0505) // RMS Voltage
-                            {
-                                if (updateType != NodeValue::UpdateInvalid)
-                                {
-                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
-                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
-                                }
-
-                                quint16 voltage = ia->numericValue().u16;
-                                ResourceItem *item = i->item(RStateVoltage);
-
-                                if (item && voltage != 65535)
-                                {
-                                    if (i->modelId() == QLatin1String("SmartPlug") ||         // Heiman
-                                        i->modelId().startsWith(QLatin1String("SPLZB-1")) ||  // Develco smart plug
-                                        i->modelId().startsWith(QLatin1String("SMRZB-3")) ||  // Develco smart relay
-                                        i->modelId().startsWith(QLatin1String("SMRZB-1")) ||  // Develco smart cable
-                                        i->modelId().startsWith(QLatin1String("SKHMP30")) ||  // GS smart plug
-                                        i->modelId() == QLatin1String("Smart16ARelay51AU") || // Aurora (Develco) smart plug
-                                        i->modelId() == QLatin1String("PoP"))                 // Apex Smart Plug
-                                    {
-                                        //voltage += 50; voltage /= 100; // 0.01V -> V
-                                        voltage = static_cast<quint16>(round((double)voltage / 100.0)); // 0.01V -> V
-                                    }
-                                    else if (i->modelId() == QLatin1String("RICI01") ||           // LifeControl Smart Plug
-                                             i->modelId().startsWith(QLatin1String("outlet")) ||  // Samsung SmartThings IM6001-OTP/IM6001-OTP01
-                                             i->modelId().startsWith(QLatin1String("EMIZB-1")) || // Develco EMI
-                                             i->modelId().startsWith(QLatin1String("ROB_200")) || // ROBB Smarrt micro dimmer
-                                             i->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
-                                             i->modelId() == QLatin1String("Connected socket outlet") || // Niko smart socket
-                                             i->modelId().startsWith(QLatin1String("TH112"))) // Sinope Thermostats
-                                    {
-                                        //voltage /= 10; // 0.1V -> V
-                                        voltage = static_cast<quint16>(round((double)voltage / 10.0)); // 0.1V -> V
-                                    }
-                                    else if (i->modelId().startsWith(QLatin1String("SZ-ESW01"))) // Sercomm / Telstra smart plug
-                                    {
-                                        //voltage /= 125; // -> V
-                                        voltage = static_cast<quint16>(round((double)voltage / 125.0)); // -> V
-                                    }
-                                    item->setValue(voltage); // in V
-                                    enqueueEvent(Event(RSensors, RStateVoltage, i->id(), item));
-                                    updated = true;
-                                }
-                            }
-                            else if (ia->id() == 0x0508) // RMS Current
-                            {
-                                if (updateType != NodeValue::UpdateInvalid)
-                                {
-                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
-                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
-                                }
-
-                                quint16 current = ia->numericValue().u16;
-                                ResourceItem *item = i->item(RStateCurrent);
-
-                                if (item && current != 65535)
-                                {
-                                    if (i->modelId() == QLatin1String("SP 120") ||            // innr
-                                        i->modelId().startsWith(QLatin1String("outlet")) ||   // Samsung SmartThings IM6001-OTP/IM6001-OTP01
-                                        i->modelId() == QLatin1String("DoubleSocket50AU") ||  // Aurora
-                                        i->modelId().startsWith(QLatin1String("SPLZB-1")) ||  // Develco smart plug
-                                        i->modelId() == QLatin1String("Smart16ARelay51AU") || // Aurora (Develco) smart plug
-                                        i->modelId() == QLatin1String("RICI01") ||            // LifeControl Smart Plug
-                                        i->modelId().startsWith(QLatin1String("SZ-ESW01")) || // Sercomm / Telstra smart plug
-                                        i->modelId() == QLatin1String("TS0121") ||            // Tuya smart plug
-                                        i->modelId().startsWith(QLatin1String("ROB_200")) ||  // ROBB Smarrt micro dimmer
-                                        i->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
-                                        i->modelId() == QLatin1String("Connected socket outlet") || // Niko smart socket
-                                        i->modelId() == QLatin1String("SMRZB-1") || // Develco smart cable
-                                        i->modelId().startsWith(QLatin1String("S1")) || // Ubisys S1/S1-R
-                                        i->modelId().startsWith(QLatin1String("S2")) || // Ubisys S2/S2-R
-                                        i->modelId().startsWith(QLatin1String("J1")) || // Ubisys J1/J1-R
-                                        i->modelId().startsWith(QLatin1String("D1")))   // Ubisys D1/D1-R
-                                    {
-                                        // already in mA
-                                    }
-                                    else if (i->modelId() == QLatin1String("SmartPlug") ||        // Heiman
-                                             i->modelId().startsWith(QLatin1String("EMIZB-1")) || // Develco EMI
-                                             i->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
-                                             i->modelId() == QLatin1String("3200-Sgb") ||         // Samsung smart outlet
-                                             i->modelId() == QLatin1String("3200-de") ||          // Samsung smart outlet
-                                             i->modelId().startsWith(QLatin1String("SPW35Z")) ||  // RT-RK OBLO SPW35ZD0 smart plug
-                                             i->modelId() == QLatin1String("TH1300ZB"))           // Sinope thermostat
-                                    {
-                                        current *= 10; // 0.01A -> mA
-                                    }
-                                    else
-                                    {
-                                        current *= 1000; // A -> mA
-                                    }
-                                    item->setValue(current); // in mA
-                                    enqueueEvent(Event(RSensors, RStateCurrent, i->id(), item));
-                                    updated = true;
-                                }
-                            }
-                            else if (ia->id() == 0x050f) // Apparent power
-                            {
-                                if (updateType != NodeValue::UpdateInvalid)
-                                {
-                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
-                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
-                                }
-
-                                quint16 power = ia->numericValue().u16;
-                                ResourceItem *item = i->item(RStatePower);
-
-                                if (item && power != 65535)
-                                {
-                                    if (i->modelId() == QLatin1String("TH1300ZB")) // Sinope thermostat
-                                    {
-                                        power = static_cast<quint16>(round((double)power / 1000.0)); // -> W
-                                    }
                                     item->setValue(power); // in W
                                     enqueueEvent(Event(RSensors, RStatePower, i->id(), item));
                                     updated = true;
