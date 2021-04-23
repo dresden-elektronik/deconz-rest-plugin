@@ -240,6 +240,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.sensor_smoke", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_natgas", jennicMacPrefix }, // Xiaomi Mija (HonneyWell) gas detector
     { VENDOR_JENNIC, "lumi.relay.c", jennicMacPrefix }, // Xiaomi Aqara LLKZMK11LM
+    { VENDOR_JENNIC, "lumi.switch.b1lacn02", jennicMacPrefix }, // Xiaomi Aqara D1 1-gang (no neutral wire) QBKG21LM
+    { VENDOR_JENNIC, "lumi.switch.b2lacn02", jennicMacPrefix }, // Xiaomi Aqara D1 2-gang (no neutral wire) QBKG22LM
     { VENDOR_XIAOMI, "lumi.plug", jennicMacPrefix }, // Xiaomi smart plug (router)
     { VENDOR_XIAOMI, "lumi.ctrl_ln", jennicMacPrefix}, // Xiaomi Wall Switch (router)
     { VENDOR_XIAOMI, "lumi.plug.maeu01", xiaomiMacPrefix}, // Xiaomi Aqara outlet
@@ -1104,6 +1106,11 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                         // TODO Button maps should express one ZHASwitch is related to multiple endpoints.
                         //      Or search for one ZHASwitch resource inside sensors.
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x05);
+                    }
+                    else if ((ind.srcEndpoint() == 0x05 || ind.srcEndpoint() == 0x06) &&
+                            (sensorNode->modelId() == QLatin1String("lumi.switch.b1lacn02") || sensorNode->modelId() == QLatin1String("lumi.switch.b2lacn02")))
+                    {
+                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x04);
                     }
                     else
                     {
@@ -5635,6 +5642,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     else if ((modelId == QLatin1String("lumi.remote.b286acn01") ||
                               modelId == QLatin1String("lumi.remote.b286acn02"))
                              && i->endpoint() == 0x01)
+                    {
+                        fpSwitch.inClusters.push_back(ci->id());
+                    }
+                    else if ((modelId == QLatin1String("lumi.switch.b1lacn02") || modelId == QLatin1String("lumi.switch.b2lacn02")) && i->endpoint() == 0x04)
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
@@ -12737,7 +12748,9 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         quint8 stateOnOff = UINT8_MAX;
         ResourceItem *item;
 
-        if (lightNode.modelId().startsWith(QLatin1String("lumi.ctrl_neutral")))
+        if (lightNode.modelId().startsWith(QLatin1String("lumi.ctrl_neutral")) ||
+            lightNode.modelId() == QLatin1String("lumi.switch.b1lacn02") ||
+            lightNode.modelId() == QLatin1String("lumi.switch.b2lacn02"))
         {
             if (lightNode.haEndpoint().endpoint() == 0x02 && onOff != UINT8_MAX)
             {
