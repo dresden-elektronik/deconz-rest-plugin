@@ -604,6 +604,7 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
     m_lastChanged = other.m_lastChanged;
     m_rulesInvolved = other.m_rulesInvolved;
     m_ddfItemHandle = other.m_ddfItemHandle;
+    m_istr = other.m_istr;
 
     if (other.m_str)
     {
@@ -650,6 +651,7 @@ ResourceItem &ResourceItem::operator=(ResourceItem &&other) noexcept
     m_writeParameters = std::move(other.m_writeParameters);
     m_refreshInterval = other.m_refreshInterval;
     m_ddfItemHandle = other.m_ddfItemHandle;
+    m_istr = other.m_istr;
     other.m_rid = &rInvalidItemDescriptor;
 
     if (m_str)
@@ -754,6 +756,11 @@ bool ResourceItem::toBool() const
 
 bool ResourceItem::setValue(const QString &val, ValueSource source)
 {
+    if (m_rid->type == DataTypeString)
+    {
+        m_istr.setString(val.toUtf8().constData());
+    }
+
     if (m_str)
     {
         if (m_rid->type == DataTypeTime)

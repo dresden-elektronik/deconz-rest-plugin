@@ -5,7 +5,7 @@
 #include <QElapsedTimer>
 #include <vector>
 #include <deconz.h>
-
+#include "utils/rstring.h"
 #include "state_change.h"
 
 class QString;
@@ -304,6 +304,8 @@ public:
 class Resource;
 class ResourceItem;
 
+using ItemString = BufString<16>;
+
 extern const ResourceItemDescriptor rInvalidItemDescriptor;
 
 class ResourceItem
@@ -341,6 +343,7 @@ public:
     bool awake() const;
     void setAwake(bool awake);
     const QString &toString() const;
+    const ItemString &toItemString() const { return m_istr; }
     qint64 toNumber() const;
     qint64 toNumberPrevious() const;
     bool toBool() const;
@@ -373,11 +376,36 @@ public:
 private:
     ResourceItem() = delete;
 
+    /* New layout
+
+        quint16 flags;
+        quint16 m_ridHandle;
+        quint32 m_ddfItemHandle;
+        qint32 m_lastSet; // ms since epoch - FIX_OSSET
+        qint32 m_lastChanged; // ...
+
+        union {
+            struct {
+               quint32 strHandle;
+               char pad1[12];
+            };
+            struct {
+                qint64 num;
+                qint64 numPrevious;
+            };
+            ItemString istr;
+        };
+
+        // . 40 bytes
+     */
+
     ValueSource m_valueSource = SourceUnknown;
     bool m_isPublic = true;
     quint16 m_flags = 0; // bitmap of ResourceItem::ItemFlags
     qint64 m_num = 0;
     qint64 m_numPrev = 0;
+
+    ItemString m_istr;
     int m_refreshInterval = 0;
     QString *m_str = nullptr;
     const ResourceItemDescriptor *m_rid = &rInvalidItemDescriptor;

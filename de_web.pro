@@ -134,6 +134,7 @@ HEADERS  = bindings.h \
            sensor.h \
            state_change.h \
            tuya.h \
+           utils/rstring.h \
            utils/utils.h \
            websocket_server.h \
            zcl/zcl.h \
@@ -212,6 +213,7 @@ SOURCES  = air_quality.cpp \
            appliances.cpp \
            reset_device.cpp \
            rest_userparameter.cpp \
+           utils/rstring.cpp \
            utils/utils.cpp \
            window_covering.cpp \
            websocket_server.cpp \
