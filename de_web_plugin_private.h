@@ -291,6 +291,11 @@ using namespace deCONZ::literals;
 #define DLMS_COSEM                      0x0102
 #define DSMR_23                         0x0103
 #define DSMR_40                         0x0104
+#define NORWEGIAN_HAN                   0x0200
+#define NORWEGIAN_HAN_EXTRA_LOAD        0x0201
+#define AIDON_METER                     0x0202
+#define KAIFA_KAMSTRUP_METERS           0x0203
+#define AUTO_DETECT                     0x0204
 
 #ifndef DBG_IAS
   #define DBG_IAS DBG_INFO  // DBG_IAS didn't exist before version v2.10.x
@@ -492,6 +497,7 @@ using namespace deCONZ::literals;
 
 void getTime(quint32 *time, qint32 *tz, quint32 *dstStart, quint32 *dstEnd, qint32 *dstShift, quint32 *standardTime, quint32 *localTime, quint8 mode);
 int getFreeSensorId(); // TODO needs to be part of a Database class
+bool isSameAddress(const deCONZ::Address &a, const deCONZ::Address &b);
 
 extern const quint64 macPrefixMask;
 
@@ -1460,6 +1466,7 @@ public:
     void updateSensorNode(const deCONZ::NodeEvent &event);
     void updateSensorLightLevel(Sensor &sensor, quint16 measuredValue);
     bool isDeviceSupported(const deCONZ::Node *node, const QString &modelId);
+    Sensor *getSensorNodeForAddressEndpointAndCluster(const deCONZ::Address &addr, quint8 ep, quint16 cluster);
     Sensor *getSensorNodeForAddressAndEndpoint(const deCONZ::Address &addr, quint8 ep, const QString &type);
     Sensor *getSensorNodeForAddressAndEndpoint(const deCONZ::Address &addr, quint8 ep);
     Sensor *getSensorNodeForAddress(quint64 extAddr);
