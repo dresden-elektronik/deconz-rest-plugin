@@ -5706,6 +5706,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
                     }
                     if (manufacturer == QLatin1String("_TZE200_xuzcvlku") ||
+                        manufacturer == QLatin1String("_TZE200_zah67ekd") ||
                         manufacturer == QLatin1String("_TZE200_rddyvrci"))
                     {
                         fpBatterySensor.inClusters.push_back(TUYA_CLUSTER_ID);
