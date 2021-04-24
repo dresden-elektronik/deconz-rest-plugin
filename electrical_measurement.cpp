@@ -10,7 +10,7 @@
     \param ind the APS level data indication containing the ZCL packet
     \param zclFrame the actual ZCL frame which holds the electrical measurement cluster command or attribute
  */
-void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame)
 {
     if (zclFrame.isDefaultResponse())
     {
