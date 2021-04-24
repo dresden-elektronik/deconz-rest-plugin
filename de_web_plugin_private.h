@@ -496,6 +496,7 @@ using namespace deCONZ::literals;
 
 void getTime(quint32 *time, qint32 *tz, quint32 *dstStart, quint32 *dstEnd, qint32 *dstShift, quint32 *standardTime, quint32 *localTime, quint8 mode);
 int getFreeSensorId(); // TODO needs to be part of a Database class
+bool isSameAddress(const deCONZ::Address &a, const deCONZ::Address &b);
 
 extern const quint64 macPrefixMask;
 
@@ -1456,7 +1457,6 @@ public:
     void updateSensorNode(const deCONZ::NodeEvent &event);
     void updateSensorLightLevel(Sensor &sensor, quint16 measuredValue);
     bool isDeviceSupported(const deCONZ::Node *node, const QString &modelId);
-    bool isSameAddress(const deCONZ::Address &a, const deCONZ::Address &b);
     Sensor *getSensorNodeForAddressEndpointAndCluster(const deCONZ::Address &addr, quint8 ep, quint16 cluster);
     Sensor *getSensorNodeForAddressAndEndpoint(const deCONZ::Address &addr, quint8 ep, const QString &type);
     Sensor *getSensorNodeForAddressAndEndpoint(const deCONZ::Address &addr, quint8 ep);
