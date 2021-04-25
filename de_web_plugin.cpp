@@ -7829,7 +7829,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             case ANALOG_INPUT_CLUSTER_ID:
             case MULTISTATE_INPUT_CLUSTER_ID:
             case BINARY_INPUT_CLUSTER_ID:
-            case METERING_CLUSTER_ID:
             case DOOR_LOCK_CLUSTER_ID:
             case SAMJIN_CLUSTER_ID:
             case TIME_CLUSTER_ID:
@@ -9360,109 +9359,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 updateSensorEtag(&*i);
 
                             }
-                        }
-                    }
-                    else if (event.clusterId() == METERING_CLUSTER_ID)
-                    {
-                        bool updated = false;
-                        for (;ia != enda; ++ia)
-                        {
-                            if (std::find(event.attributeIds().begin(),
-                                          event.attributeIds().end(),
-                                          ia->id()) == event.attributeIds().end())
-                            {
-                                continue;
-                            }
-
-                            if (ia->id() == 0x0000) // Current Summation Delivered
-                            {
-                                if (updateType != NodeValue::UpdateInvalid)
-                                {
-                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
-                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u64);
-                                }
-
-                                quint64 consumption = ia->numericValue().u64;
-                                ResourceItem *item = i->item(RStateConsumption);
-
-                                if (i->modelId() == QLatin1String("SmartPlug") ||               // Heiman
-                                    i->modelId().startsWith(QLatin1String("PSMP5_")) ||         // Climax
-                                    i->modelId().startsWith(QLatin1String("SKHMP30")) ||        // GS smart plug
-                                    i->modelId().startsWith(QLatin1String("E13-")) ||           // Sengled PAR38 Bulbs
-                                    i->modelId().startsWith(QLatin1String("Z01-A19")) ||        // Sengled smart led
-                                    i->modelId() == QLatin1String("Connected socket outlet"))   // Niko smart socket
-                                {
-                                    //consumption += 5; consumption /= 10; // 0.1 Wh -> Wh
-                                    consumption = static_cast<quint64>(round((double)consumption / 10.0)); // 0.1 Wh -> Wh
-                                }
-                                else if (i->modelId() == QLatin1String("SP 120") ||                 // innr
-                                         i->modelId() == QLatin1String("Plug-230V-ZB3.0") ||        // Immax
-                                         i->modelId() == QLatin1String("Smart plug Zigbee PE") ||   // Niko Smart Plug 552-80699
-                                         i->modelId() == QLatin1String("TS0121"))                   // Tuya / Blitzwolf
-                                {
-                                    consumption *= 10; // 0.01 kWh = 10 Wh -> Wh
-                                }
-                                else if (i->modelId().startsWith(QLatin1String("SZ-ESW01"))) // Sercomm / Telstra smart plug
-                                {
-                                    //consumption /= 1000;
-                                    consumption = static_cast<quint64>(round((double)consumption / 1000.0)); // -> Wh
-                                }
-                                else if (i->modelId().startsWith(QLatin1String("ROB_200")) ||            // ROBB Smarrt micro dimmer
-                                         i->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
-                                         i->modelId().startsWith(QLatin1String("SPW35Z")))               // RT-RK OBLO SPW35ZD0 smart plug
-                                {
-                                    //consumption /= 3600;
-                                    consumption = static_cast<quint64>(round((double)consumption / 3600.0)); // -> Wh
-                                }
-
-                                if (item)
-                                {
-                                    item->setValue(consumption); // in Wh (0.001 kWh)
-                                    enqueueEvent(Event(RSensors, RStateConsumption, i->id(), item));
-                                    updated = true;
-                                }
-                            }
-                            else if (ia->id() == 0x0400) // Instantaneous Demand
-                            {
-                                if (updateType != NodeValue::UpdateInvalid)
-                                {
-                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
-                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().s32);
-                                }
-
-                                qint32 power = ia->numericValue().s32;
-                                ResourceItem *item = i->item(RStatePower);
-
-                                if (i->modelId() == QLatin1String("SmartPlug") ||        // Heiman
-                                    i->modelId() == QLatin1String("902010/25") ||        // Bitron
-                                    i->modelId().startsWith(QLatin1String("Z01-A19")) || // Sengled smart led
-                                    i->modelId().startsWith(QLatin1String("PSMP5_")) ||  // Climax
-                                    i->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
-                                    i->modelId().startsWith(QLatin1String("160-01")))    // Plugwise smart plug
-                                {
-                                    //power += 5; power /= 10; // 0.1 W -> W
-                                    power = static_cast<qint32>(round((double)power / 10.0)); // 0.1W -> W
-                                }
-                                else if (i->modelId().startsWith(QLatin1String("SZ-ESW01"))) // Sercomm / Telstra smart plug
-                                {
-                                    //power /= 1000;
-                                    power = static_cast<qint32>(round((double)power / 1000.0)); // -> W
-                                }
-
-                                if (item)
-                                {
-                                    item->setValue(power); // in W
-                                    enqueueEvent(Event(RSensors, RStatePower, i->id(), item));
-                                    updated = true;
-                                }
-                            }
-                        }
-                        if (updated)
-                        {
-                            i->updateStateTimestamp();
-                            i->setNeedSaveDatabase(true);
-                            enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
-                            updateSensorEtag(&*i);
                         }
                     }
                     else if (event.clusterId() == DOOR_LOCK_CLUSTER_ID) {
