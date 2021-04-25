@@ -10,7 +10,7 @@
     \param ind the APS level data indication containing the ZCL packet
     \param zclFrame the actual ZCL frame which holds the electrical measurement cluster command or attribute
  */
-void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame)
 {
     if (zclFrame.isDefaultResponse())
     {
@@ -42,6 +42,7 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
     // Read ZCL reporting and ZCL Read Attributes Response
     if (isReadAttr || isReporting)
     {
+        const auto modelId = sensor->modelId();
         const NodeValue::UpdateType updateType = isReadAttr ? NodeValue::UpdateByZclRead : NodeValue::UpdateByZclReport;
 
         bool configUpdated = false;
@@ -82,33 +83,33 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
 
                 if (item && power != -32768)
                 {
-                    if (sensor->modelId() == QLatin1String("SmartPlug") ||                              // Heiman
-                        sensor->modelId().startsWith(QLatin1String("SKHMP30")) ||                       // GS smart plug
-                        sensor->modelId().startsWith(QLatin1String("ROB_200")) ||                       // ROBB Smarrt micro dimmer
-                        sensor->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) ||            // Sunricher Micro Smart Dimmer
-                        sensor->modelId().startsWith(QLatin1String("lumi.plug.maeu")) ||                // Xiaomi Aqara ZB3.0 smart plug
-                        sensor->modelId() == QLatin1String("RICI01") ||                                 // LifeControl Smart Plug
-                        sensor->modelId().startsWith(QLatin1String("outlet")) ||                        // Samsung SmartThings IM6001-OTP/IM6001-OTP01
-                        sensor->modelId() == QLatin1String("3200-Sgb") ||                               // Samsung/Centralite smart outlet
-                        sensor->modelId() == QLatin1String("3200-de") ||                                // Samsung/Centralite smart outlet
-                        sensor->modelId().startsWith(QLatin1String("lumi.switch.n0agl1")) ||            // Xiaomi Aqara Single Switch Module T1 (With Neutral)
-                        sensor->modelId().startsWith(QLatin1String("lumi.switch.b1naus01")))            // Xiaomi ZB3.0 Smart Wall Switch
+                    if (modelId == QLatin1String("SmartPlug") ||                              // Heiman
+                        modelId.startsWith(QLatin1String("SKHMP30")) ||                       // GS smart plug
+                        modelId.startsWith(QLatin1String("ROB_200")) ||                       // ROBB Smarrt micro dimmer
+                        modelId.startsWith(QLatin1String("Micro Smart Dimmer")) ||            // Sunricher Micro Smart Dimmer
+                        modelId.startsWith(QLatin1String("lumi.plug.maeu")) ||                // Xiaomi Aqara ZB3.0 smart plug
+                        modelId == QLatin1String("RICI01") ||                                 // LifeControl Smart Plug
+                        modelId.startsWith(QLatin1String("outlet")) ||                        // Samsung SmartThings IM6001-OTP/IM6001-OTP01
+                        modelId == QLatin1String("3200-Sgb") ||                               // Samsung/Centralite smart outlet
+                        modelId == QLatin1String("3200-de") ||                                // Samsung/Centralite smart outlet
+                        modelId.startsWith(QLatin1String("lumi.switch.n0agl1")) ||            // Xiaomi Aqara Single Switch Module T1 (With Neutral)
+                        modelId.startsWith(QLatin1String("lumi.switch.b1naus01")))            // Xiaomi ZB3.0 Smart Wall Switch
                     {
                         power = static_cast<qint16>(round((double)power / 10.0)); // 0.1W -> W
                     }
-                    else if (sensor->modelId().startsWith(QLatin1String("Plug")) && sensor->manufacturer() == QLatin1String("OSRAM")) // OSRAM
+                    else if (modelId.startsWith(QLatin1String("Plug")) && sensor->manufacturer() == QLatin1String("OSRAM")) // OSRAM
                     {
                         power = power == 28000 ? 0 : power / 10;
                     }
-                    else if (sensor->modelId().startsWith(QLatin1String("SZ-ESW01")))                   // Sercomm / Telstra smart plug
+                    else if (modelId.startsWith(QLatin1String("SZ-ESW01")))                   // Sercomm / Telstra smart plug
                     {
                         power = static_cast<qint16>(round(((double)power * 128) / 1000.0));
                     }
-                    else if (sensor->modelId() == QLatin1String("Connected socket outlet"))             // Niko smart socket
+                    else if (modelId == QLatin1String("Connected socket outlet"))             // Niko smart socket
                     {
                         power = static_cast<qint16>(round(((double)power * 1123) / 10000.0));
                     }
-                    else if (sensor->modelId().startsWith(QLatin1String("lumi.relay.c2acn")))           // Xiaomi relay
+                    else if (modelId.startsWith(QLatin1String("lumi.relay.c2acn")))           // Xiaomi relay
                     {
                         continue;   // Device seems to always report -1 via this cluster/attribute
                     }
@@ -132,27 +133,27 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
 
                 if (item && voltage != 65535)
                 {
-                    if (sensor->modelId() == QLatin1String("SmartPlug") ||                                       // Heiman
-                        sensor->modelId().startsWith(QLatin1String("SPLZB-1")) ||                                // Develco smart plug
-                        sensor->modelId().startsWith(QLatin1String("SMRZB-3")) ||                                // Develco smart relay
-                        sensor->modelId().startsWith(QLatin1String("SMRZB-1")) ||                                // Develco smart cable
-                        sensor->modelId().startsWith(QLatin1String("SKHMP30")) ||                                // GS smart plug
-                        sensor->modelId() == QLatin1String("Smart16ARelay51AU") ||                               // Aurora (Develco) smart plug
-                        sensor->modelId() == QLatin1String("PoP"))                                               // Apex Smart Plug
+                    if (modelId == QLatin1String("SmartPlug") ||                                       // Heiman
+                        modelId.startsWith(QLatin1String("SPLZB-1")) ||                                // Develco smart plug
+                        modelId.startsWith(QLatin1String("SMRZB-3")) ||                                // Develco smart relay
+                        modelId.startsWith(QLatin1String("SMRZB-1")) ||                                // Develco smart cable
+                        modelId.startsWith(QLatin1String("SKHMP30")) ||                                // GS smart plug
+                        modelId == QLatin1String("Smart16ARelay51AU") ||                               // Aurora (Develco) smart plug
+                        modelId == QLatin1String("PoP"))                                               // Apex Smart Plug
                     {
                         voltage = static_cast<quint16>(round((double)voltage / 100.0)); // 0.01V -> V
                     }
-                    else if (sensor->modelId() == QLatin1String("RICI01") ||                                     // LifeControl Smart Plug
-                             sensor->modelId().startsWith(QLatin1String("outlet")) ||                            // Samsung SmartThings IM6001-OTP/IM6001-OTP01
-                             sensor->modelId().startsWith(QLatin1String("EMIZB-1")) ||                           // Develco EMI
-                             sensor->modelId().startsWith(QLatin1String("ROB_200")) ||                           // ROBB Smarrt micro dimmer
-                             sensor->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) ||                // Sunricher Micro Smart Dimmer
-                             sensor->modelId() == QLatin1String("Connected socket outlet") ||                    // Niko smart socket
-                             sensor->modelId().startsWith(QLatin1String("TH112")))                               // Sinope Thermostats
+                    else if (modelId == QLatin1String("RICI01") ||                                     // LifeControl Smart Plug
+                             modelId.startsWith(QLatin1String("outlet")) ||                            // Samsung SmartThings IM6001-OTP/IM6001-OTP01
+                             modelId.startsWith(QLatin1String("EMIZB-1")) ||                           // Develco EMI
+                             modelId.startsWith(QLatin1String("ROB_200")) ||                           // ROBB Smarrt micro dimmer
+                             modelId.startsWith(QLatin1String("Micro Smart Dimmer")) ||                // Sunricher Micro Smart Dimmer
+                             modelId == QLatin1String("Connected socket outlet") ||                    // Niko smart socket
+                             modelId.startsWith(QLatin1String("TH112")))                               // Sinope Thermostats
                     {
                         voltage = static_cast<quint16>(round((double)voltage / 10.0)); // 0.1V -> V
                     }
-                    else if (sensor->modelId().startsWith(QLatin1String("SZ-ESW01")))                            // Sercomm / Telstra smart plug
+                    else if (modelId.startsWith(QLatin1String("SZ-ESW01")))                            // Sercomm / Telstra smart plug
                     {
                         voltage = static_cast<quint16>(round((double)voltage / 125.0)); // -> V
                     }
@@ -176,32 +177,32 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
 
                 if (item && current != 65535)
                 {
-                    if (sensor->modelId() == QLatin1String("SP 120") ||                                     // innr
-                        sensor->modelId().startsWith(QLatin1String("outlet")) ||                            // Samsung SmartThings IM6001-OTP/IM6001-OTP01
-                        sensor->modelId() == QLatin1String("DoubleSocket50AU") ||                           // Aurora
-                        sensor->modelId().startsWith(QLatin1String("SPLZB-1")) ||                           // Develco smart plug
-                        sensor->modelId() == QLatin1String("Smart16ARelay51AU") ||                          // Aurora (Develco) smart plug
-                        sensor->modelId() == QLatin1String("RICI01") ||                                     // LifeControl Smart Plug
-                        sensor->modelId().startsWith(QLatin1String("SZ-ESW01")) ||                          // Sercomm / Telstra smart plug
-                        sensor->modelId() == QLatin1String("TS0121") ||                                     // Tuya smart plug
-                        sensor->modelId().startsWith(QLatin1String("ROB_200")) ||                           // ROBB Smarrt micro dimmer
-                        sensor->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) ||                // Sunricher Micro Smart Dimmer
-                        sensor->modelId() == QLatin1String("Connected socket outlet") ||                    // Niko smart socket
-                        sensor->modelId() == QLatin1String("SMRZB-1") ||                                    // Develco smart cable
-                        sensor->modelId().startsWith(QLatin1String("S1")) ||                                // Ubisys S1/S1-R
-                        sensor->modelId().startsWith(QLatin1String("S2")) ||                                // Ubisys S2/S2-R
-                        sensor->modelId().startsWith(QLatin1String("J1")) ||                                // Ubisys J1/J1-R
-                        sensor->modelId().startsWith(QLatin1String("D1")))                                  // Ubisys D1/D1-R
+                    if (modelId == QLatin1String("SP 120") ||                                     // innr
+                        modelId.startsWith(QLatin1String("outlet")) ||                            // Samsung SmartThings IM6001-OTP/IM6001-OTP01
+                        modelId == QLatin1String("DoubleSocket50AU") ||                           // Aurora
+                        modelId.startsWith(QLatin1String("SPLZB-1")) ||                           // Develco smart plug
+                        modelId == QLatin1String("Smart16ARelay51AU") ||                          // Aurora (Develco) smart plug
+                        modelId == QLatin1String("RICI01") ||                                     // LifeControl Smart Plug
+                        modelId.startsWith(QLatin1String("SZ-ESW01")) ||                          // Sercomm / Telstra smart plug
+                        modelId == QLatin1String("TS0121") ||                                     // Tuya smart plug
+                        modelId.startsWith(QLatin1String("ROB_200")) ||                           // ROBB Smarrt micro dimmer
+                        modelId.startsWith(QLatin1String("Micro Smart Dimmer")) ||                // Sunricher Micro Smart Dimmer
+                        modelId == QLatin1String("Connected socket outlet") ||                    // Niko smart socket
+                        modelId == QLatin1String("SMRZB-1") ||                                    // Develco smart cable
+                        modelId.startsWith(QLatin1String("S1")) ||                                // Ubisys S1/S1-R
+                        modelId.startsWith(QLatin1String("S2")) ||                                // Ubisys S2/S2-R
+                        modelId.startsWith(QLatin1String("J1")) ||                                // Ubisys J1/J1-R
+                        modelId.startsWith(QLatin1String("D1")))                                  // Ubisys D1/D1-R
                     {
                         // already in mA
                     }
-                    else if (sensor->modelId() == QLatin1String("SmartPlug") ||                             // Heiman
-                             sensor->modelId().startsWith(QLatin1String("EMIZB-1")) ||                      // Develco EMI
-                             sensor->modelId().startsWith(QLatin1String("SKHMP30")) ||                      // GS smart plug
-                             sensor->modelId() == QLatin1String("3200-Sgb") ||                              // Samsung smart outlet
-                             sensor->modelId() == QLatin1String("3200-de") ||                               // Samsung smart outlet
-                             sensor->modelId().startsWith(QLatin1String("SPW35Z")) ||                       // RT-RK OBLO SPW35ZD0 smart plug
-                             sensor->modelId() == QLatin1String("TH1300ZB"))                                // Sinope thermostat
+                    else if (modelId == QLatin1String("SmartPlug") ||                             // Heiman
+                             modelId.startsWith(QLatin1String("EMIZB-1")) ||                      // Develco EMI
+                             modelId.startsWith(QLatin1String("SKHMP30")) ||                      // GS smart plug
+                             modelId == QLatin1String("3200-Sgb") ||                              // Samsung smart outlet
+                             modelId == QLatin1String("3200-de") ||                               // Samsung smart outlet
+                             modelId.startsWith(QLatin1String("SPW35Z")) ||                       // RT-RK OBLO SPW35ZD0 smart plug
+                             modelId == QLatin1String("TH1300ZB"))                                // Sinope thermostat
                     {
                         current *= 10; // 0.01A -> mA
                     }
@@ -229,7 +230,7 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
 
                 if (item && power != 65535)
                 {
-                    if (sensor->modelId() == QLatin1String("TH1300ZB")) // Sinope thermostat
+                    if (modelId == QLatin1String("TH1300ZB")) // Sinope thermostat
                     {
                         power = static_cast<quint16>(round((double)power / 1000.0)); // -> W
                     }

@@ -2548,6 +2548,10 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturerCode() == VENDOR_AXIS || lightNode->manufacturerCode() == VENDOR_MMB) // Axis shade
         {
         }
+        else if (lightNode->manufacturer() == QLatin1String("yookee") || // IDK if it s better use VENDOR_SI_LABS
+                 lightNode->manufacturer() == QLatin1String("yooksmart"))
+        {
+        }
         else if (lightNode->manufacturer() == QLatin1String("Sunricher"))
         {
         }
@@ -2835,6 +2839,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("outlet")) ||
         // Axis
         sensor->modelId() == QLatin1String("Gear") ||
+        // Yookee
+        sensor->modelId() == QLatin1String("D10110") ||
         // Datek
         sensor->modelId() == QLatin1String("PoP") ||
         // Bitron
@@ -2924,6 +2930,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("TS0043")) || // to test
         sensor->modelId().startsWith(QLatin1String("TS0041")) ||
         sensor->modelId().startsWith(QLatin1String("TS0044")) ||
+        sensor->modelId().startsWith(QLatin1String("TS0222")) || // TYZB01 light sensor 
         // Tuyatec
         sensor->modelId().startsWith(QLatin1String("RH3040")) ||
         sensor->modelId().startsWith(QLatin1String("RH3001")) ||

@@ -164,9 +164,10 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
                 lightNode->setZclValue(updateType, ind.srcEndpoint(), WINDOW_COVERING_CLUSTER_ID, attrid, numericValue);
 
                 quint8 lift = attrValue;
-                // Reverse value for Xiaomi curtain 
-                if (lightNode->modelId().startsWith(QLatin1String("lumi.curtain")) || 
-                   (lightNode->modelId() == QLatin1String("Motor Controller")) )
+                // Reverse value for somes curtains
+                if (lightNode->modelId().startsWith(QLatin1String("lumi.curtain")) ||
+                    lightNode->modelId() == QLatin1String("D10110") ||
+                    lightNode->modelId() == QLatin1String("Motor Controller"))
                 {
                     lift = 100 - lift;
                 }

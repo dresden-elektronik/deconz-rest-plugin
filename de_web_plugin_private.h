@@ -537,6 +537,7 @@ extern const quint64 xalMacPrefix;
 extern const quint64 onestiPrefix;
 extern const quint64 develcoMacPrefix;
 extern const quint64 legrandMacPrefix;
+extern const quint64 YooksmartMacPrefix;
 extern const quint64 profaluxMacPrefix;
 extern const quint64 xiaomiMacPrefix;
 extern const quint64 computimeMacPrefix;
@@ -1615,7 +1616,7 @@ public:
     bool serialiseThermostatSchedule(const QVariantMap &schedule, QString *s);
     bool deserialiseThermostatSchedule(const QString &s, QVariantMap *schedule);
     void handleSimpleMeteringClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
-    void handleElectricalMeasurementClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleElectricalMeasurementClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
 
     // Modify node attributes
     void setAttributeOnOff(LightNode *lightNode);
