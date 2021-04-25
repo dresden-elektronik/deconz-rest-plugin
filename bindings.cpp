@@ -1333,6 +1333,44 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
             return sendConfigureReportingRequest(bt, {rq});
         }
+        else if (sensor && sensor->modelId() == QLatin1String("iTRV")) // Drayton Wiser Radiator Thermostat
+        {
+            rq.dataType = deCONZ::Zcl16BitInt;
+            rq.attributeId = 0x0000;         // Local Temperature
+            rq.minInterval = 1;
+            rq.maxInterval = 600;
+            rq.reportableChange16bit = 50;
+            
+            ConfigureReportingRequest rq2;
+            rq2.dataType = deCONZ::Zcl8BitUint;
+            rq2.attributeId = 0x0008;        // Pi heating demand
+            rq2.minInterval = 60;
+            rq2.maxInterval = 3600;
+            rq2.reportableChange8bit = 1;
+
+            ConfigureReportingRequest rq3;
+            rq3.dataType = deCONZ::Zcl16BitInt;
+            rq3.attributeId = 0x0011;        // Occupied cooling setpoint
+            rq3.minInterval = 1;
+            rq3.maxInterval = 600;
+            rq3.reportableChange16bit = 50;
+
+            ConfigureReportingRequest rq4;
+            rq4.dataType = deCONZ::Zcl16BitInt;
+            rq4.attributeId = 0x0012;        // Occupied heating setpoint
+            rq4.minInterval = 1;
+            rq4.maxInterval = 600;
+            rq4.reportableChange16bit = 50;
+
+            ConfigureReportingRequest rq5;
+            rq5.dataType = deCONZ::Zcl8BitEnum;
+            rq5.attributeId = 0x001C;        // Thermostat mode
+            rq5.minInterval = 1;
+            rq5.maxInterval = 600;
+            rq5.reportableChange8bit = 0xff;
+
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5});
+        }
         else if ( (sensor && sensor->modelId() == QLatin1String("eTRV0100")) || // Danfoss Ally
                   (sensor && sensor->modelId() == QLatin1String("TRV001")) )    // Hive TRV
         {
@@ -1589,6 +1627,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         else if (sensor && (sensor->modelId() == QLatin1String("SORB") ||               // Stelpro Orleans Fan
                             sensor->modelId() == QLatin1String("TH1300ZB") ||           // Sinope thermostat
                             sensor->modelId() == QLatin1String("PR412C") ||             // Owon thermostat
+                            sensor->modelId() == QLatin1String("iTRV") ||               // Drayton Wiser Radiator Thermostat
                             sensor->modelId().startsWith(QLatin1String("3157100")) ||   // Centralite pearl
                             sensor->modelId().startsWith(QLatin1String("STZB402"))))    // Stelpro baseboard thermostat
         {
@@ -2966,6 +3005,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("Z01-A19")) ||
         // Linkind
         sensor->modelId() == QLatin1String("ZB-MotionSensor-D0003") ||
+        // Drayton
+        sensor->modelId() == QLatin1String("iTRV") ||
         // Immax
         sensor->modelId() == QLatin1String("Plug-230V-ZB3.0") ||
         sensor->modelId() == QLatin1String("4in1-Sensor-ZB3.0") ||
