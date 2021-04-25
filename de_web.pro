@@ -192,6 +192,7 @@ SOURCES  = air_quality.cpp \
            reset_device.cpp \
            rest_userparameter.cpp \
            utils/utils.cpp \
+           xiaomi.cpp \
            zcl_tasks.cpp \
            window_covering.cpp \
            websocket_server.cpp \
