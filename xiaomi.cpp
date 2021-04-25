@@ -202,7 +202,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             }
             DBG_Printf(DBG_INFO, "\t64 lift %u (%u%%)\n", u8, lift);
             DBG_Printf(DBG_INFO, "\t64 smoke/gas density %u (0x%02X)\n", u8, u8);   // lumi.sensor_smoke/lumi.sensor_natgas
-            DBG_Printf(DBG_INFO, "\t64 on/off %u (0x%02X)\n", u8, u8);   // lumi.sensor_smoke/lumi.sensor_natgas
         }
         else if (tag == 0x64 && dataType == deCONZ::Zcl16BitInt)
         {
@@ -330,25 +329,13 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     }
 
     RestNodeBase *restNodePending = nullptr;
+    ResourceItem *item = nullptr;
     QString modelId;
 
     for (LightNode &lightNode: nodes)
     {
-        if (!lightNode.modelId().startsWith(QLatin1String("lumi.")))
-        {
-            continue;
-        }
-
-        if      (ind.srcAddress().hasExt() && lightNode.address().hasExt() &&
-                 ind.srcAddress().ext() == lightNode.address().ext())
-        { }
-        else if (ind.srcAddress().hasNwk() && lightNode.address().hasNwk() &&
-                 ind.srcAddress().nwk() == lightNode.address().nwk())
-        { }
-        else
-        {
-            continue;
-        }
+        if (!lightNode.modelId().startsWith(QLatin1String("lumi."))) { continue; }
+        if (!isSameAddress(lightNode.address(), ind.srcAddress()))   { continue; }
 
         quint8 stateOnOff = UINT8_MAX;
         ResourceItem *item;
@@ -443,26 +430,9 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
     for (Sensor &sensor : sensors)
     {
-        if (sensor.deletedState() != Sensor::StateNormal)
-        {
-            continue;
-        }
-
-        if (!sensor.modelId().startsWith(QLatin1String("lumi.")))
-        {
-            continue;
-        }
-
-        if      (ind.srcAddress().hasExt() && sensor.address().hasExt() &&
-                 ind.srcAddress().ext() == sensor.address().ext())
-        { }
-        else if (ind.srcAddress().hasNwk() && sensor.address().hasNwk() &&
-                 ind.srcAddress().nwk() == sensor.address().nwk())
-        { }
-        else
-        {
-            continue;
-        }
+        if (sensor.deletedState() != Sensor::StateNormal || !sensor.node()) { continue; }
+        if (!sensor.modelId().startsWith(QLatin1String("lumi.")))           { continue; }
+        if (!isSameAddress(sensor.address(), ind.srcAddress()))             { continue; }
 
         if (modelId.isEmpty())
         {
@@ -474,7 +444,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         restNodePending = &sensor; // remember one sensor for pending tasks
 
         {
-            ResourceItem *item = sensor.item(RConfigReachable);
+            item = sensor.item(RConfigReachable);
             if (item && !item->toBool())
             {
                 item->setValue(true);
@@ -485,7 +455,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
         if (battery != 0)
         {
-            ResourceItem *item = sensor.item(RConfigBattery);
+            item = sensor.item(RConfigBattery);
             // DBG_Assert(item != 0); // expected - no, lumi.ctrl_neutral2
             if (item)
             {
@@ -516,7 +486,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
         if (temperature != INT16_MIN)
         {
-            ResourceItem *item = sensor.item(RStateTemperature);
+            item = sensor.item(RStateTemperature);
             if (item)
             {
                 ResourceItem *item2 = sensor.item(RConfigOffset);
@@ -549,7 +519,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
         if (humidity != UINT16_MAX)
         {
-            ResourceItem *item = sensor.item(RStateHumidity);
+            item = sensor.item(RStateHumidity);
             if (item)
             {
                 ResourceItem *item2 = sensor.item(RConfigOffset);
@@ -567,20 +537,20 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
         if (pressure != INT16_MIN)
         {
-          ResourceItem *item = sensor.item(RStatePressure);
-          if (item)
-          {
-              item->setValue(pressure);
-              enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
-              sensor.updateStateTimestamp();
-              enqueueEvent(Event(RSensors, RStateLastUpdated, sensor.id()));
-              updated = true;
-          }
+            item = sensor.item(RStatePressure);
+            if (item)
+            {
+                item->setValue(pressure);
+                enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
+                sensor.updateStateTimestamp();
+                enqueueEvent(Event(RSensors, RStateLastUpdated, sensor.id()));
+                updated = true;
+            }
         }
 
         if (power != UINT32_MAX)
         {
-            ResourceItem *item = sensor.item(RStatePower);
+            item = sensor.item(RStatePower);
             if (item)
             {
                 item->setValue(power);
@@ -593,7 +563,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
         if (consumption != UINT32_MAX)
         {
-            ResourceItem *item = sensor.item(RStateConsumption);
+            item = sensor.item(RStateConsumption);
             if (item)
             {
                 item->setValue(consumption);
@@ -606,7 +576,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
         if (voltage != UINT32_MAX)
         {
-            ResourceItem *item = sensor.item(RStateVoltage);
+            item = sensor.item(RStateVoltage);
             if (item)
             {
                 item->setValue(voltage);
@@ -619,7 +589,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
         if (current != UINT32_MAX)
         {
-            ResourceItem *item = sensor.item(RStateCurrent);
+            item = sensor.item(RStateCurrent);
             if (item)
             {
                 item->setValue(current);
@@ -640,7 +610,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
         if (onOff != UINT8_MAX)
         {   // don't add, just update, useful since door/window and presence sensors otherwise only report on activation
-            ResourceItem *item = sensor.item(RStateOpen);
+            item = sensor.item(RStateOpen);
             item = item ? item : sensor.item(RStatePresence);
             // item = item ? item : sensor.item(RStateWater);  // lumi.sensor_wleak.aq1, ignore, value is not reliable
             if (attrId == 0xff02)
@@ -658,7 +628,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             }
             else if (sensor.modelId().startsWith(QLatin1String("lumi.sensor_wleak")))
             {
-               // only update state timestamp assuming last known value is valid
+                // only update state timestamp assuming last known value is valid
                 sensor.updateStateTimestamp();
                 enqueueEvent(Event(RSensors, RStateLastUpdated, sensor.id()));
                 updated = true;
@@ -673,7 +643,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             }
         }
 
-        ResourceItem *item = sensor.item(RAttrSwVersion);
+        item = sensor.item(RAttrSwVersion);
         if (item && dateCode.isEmpty() && !item->toString().isEmpty() && !item->toString().startsWith("3000"))
         {
             dateCode = item->toString();
@@ -699,15 +669,19 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
     Resource *r = dynamic_cast<Resource*>(restNodePending);
     DBG_Assert(r != nullptr);
+    
     if (!r)
     {
         return;
     }
+    
+    item = r->item(RAttrModelId);
 
-    if (modelId.endsWith(QLatin1String("86opcn01")))
+    if (item && item->toString().endsWith(QLatin1String("86opcn01")))
     {
-        auto *item = r->item(RConfigPending);
-        if (item && (item->toNumber() & R_PENDING_MODE))
+        auto *item2 = r->item(RConfigPending);
+        
+        if (item2 && (item2->toNumber() & R_PENDING_MODE))
         {
             // Aqara Opple switches need to be configured to send proper button events
             // send the magic word
@@ -715,7 +689,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             deCONZ::ZclAttribute attr(0x0009, deCONZ::Zcl8BitUint, QLatin1String("mode"), deCONZ::ZclReadWrite, false);
             attr.setValue(static_cast<quint64>(1));
             writeAttribute(restNodePending, 0x01, XIAOMI_CLUSTER_ID, attr, VENDOR_XIAOMI);
-            item->setValue(item->toNumber() & ~R_PENDING_MODE);
+            item2->setValue(item2->toNumber() & ~R_PENDING_MODE);
         }
     }
 
@@ -726,14 +700,14 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         return;
     }
 
-    ResourceItem *item = r->item(RAttrModelId);
     if (item && item->toString().startsWith(QLatin1String("lumi.vibration")))
     {
-        item = r->item(RConfigSensitivity);
         ResourceItem *item2 = r->item(RConfigPending);
+        ResourceItem *item3 = r->item(RConfigSensitivity);
         DBG_Assert(item2);
-        DBG_Assert(item);
-        if (!item->lastSet().isValid() || item2->toNumber() == 0)
+        DBG_Assert(item3);
+        
+        if (!item3->lastSet().isValid() || item2->toNumber() == 0)
         {
             if (readAttributes(restNodePending, ind.srcEndpoint(), BASIC_CLUSTER_ID, { 0xff0d }, VENDOR_XIAOMI))
             {
@@ -745,7 +719,8 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             if (item2 && item2->toNumber() & R_PENDING_SENSITIVITY)
             {
                 deCONZ::ZclAttribute attr(0xff0d, deCONZ::Zcl8BitUint, "sensitivity", deCONZ::ZclReadWrite, true);
-                attr.setValue(static_cast<quint64>(item->toNumber()));
+                attr.setValue(static_cast<quint64>(item3->toNumber()));
+                
                 if (writeAttribute(restNodePending, ind.srcEndpoint(), BASIC_CLUSTER_ID, attr, VENDOR_XIAOMI))
                 {
                     item2->setValue(item2->toNumber() & ~R_PENDING_SENSITIVITY);
