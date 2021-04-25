@@ -5276,8 +5276,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 case IAS_ZONE_CLUSTER_ID:
                 {
                     // Don't create ZHAalarm for thoses device using this cluster
-                    if (manufacturer.endsWith(QLatin1String("0yu2xgi")) ||
-                        manufacturer.endsWith(QLatin1String("mdqxxnn")))
+                    if (manufacturer.endsWith(QLatin1String("0yu2xgi")) || // Tuya siren
+                        manufacturer.endsWith(QLatin1String("mdqxxnn")))   // Tuya light sensor TYZB01
                     {
                     }
                     else if (modelId.startsWith(QLatin1String("CO_")) ||                   // Heiman CO sensor
