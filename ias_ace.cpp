@@ -96,7 +96,7 @@ void DeRestPluginPrivate::handleIasAceClusterIndication(const deCONZ::ApsDataInd
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
 
-    if ((zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient))
+    if (zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient)
     {
         return;
     }
@@ -118,8 +118,8 @@ void DeRestPluginPrivate::handleIasAceClusterIndication(const deCONZ::ApsDataInd
 
     if (zclFrame.commandId() == CMD_ARM)
     {
-        quint8 DesiredArmMode;
-        quint8 ReturnedArmMode;
+        quint8 desired_armmode;
+        quint8 returned_armmode;
         quint16 length = zclFrame.payload().size() - 2;
         QString code = QString("");
         QString armcommand;
@@ -129,14 +129,15 @@ void DeRestPluginPrivate::handleIasAceClusterIndication(const deCONZ::ApsDataInd
         quint8 dummy;
 
         //Arm Mode
-        stream >> DesiredArmMode;
+        stream >> desired_armmode;
         
-        if (DesiredArmMode > ArmModeList.size()) {
+        if (desired_armmode > ArmModeList.size())
+        {
             armcommand =  QString("unknow");
         }
         else
         {
-            armcommand =  ArmModeList[DesiredArmMode];
+            armcommand =  ArmModeList[desired_armmode];
         }
         
         // If there is code
@@ -161,7 +162,7 @@ void DeRestPluginPrivate::handleIasAceClusterIndication(const deCONZ::ApsDataInd
         //Zone ID
         stream >> zoneId;
         
-        DBG_Printf(DBG_IAS, "[IAS ACE] - Arm command received, arm mode: %d, code: %s, Zone id: %d\n", DesiredArmMode , qPrintable(code) ,zoneId);
+        DBG_Printf(DBG_IAS, "[IAS ACE] - Arm command received, arm mode: %d, code: %s, Zone id: %d\n", desired_armmode , qPrintable(code) ,zoneId);
         
         // Need to check code ?
         if (!code.isEmpty())
@@ -196,18 +197,18 @@ void DeRestPluginPrivate::handleIasAceClusterIndication(const deCONZ::ApsDataInd
         }
 
         // no code, always validate
-        ReturnedArmMode = DesiredArmMode;
+        returned_armmode = desired_armmode;
 
         // Update the API if field exist
         item = sensorNode->item(RConfigArmMode);
         if (item)
         {
-            if (ReturnedArmMode > ArmModeListReturn.size()) {
+            if (returned_armmode > ArmModeListReturn.size()) {
                 armcommand =  QString("unknow");
             }
             else
             {
-                armcommand =  ArmModeListReturn[ReturnedArmMode];
+                armcommand =  ArmModeListReturn[returned_armmode];
             }
             
             item->setValue(armcommand);
@@ -217,12 +218,12 @@ void DeRestPluginPrivate::handleIasAceClusterIndication(const deCONZ::ApsDataInd
         }
         
         //Can have strange result if not used, need more check
-        if (ReturnedArmMode > 0x03) {
+        if (returned_armmode > 0x03) {
             return;
         }
 
         //Send the request
-        sendArmResponse(ind, zclFrame, ReturnedArmMode);
+        sendArmResponse(ind, zclFrame, returned_armmode);
 
     }
     else if (zclFrame.commandId() == CMD_EMERGENCY)
@@ -408,19 +409,19 @@ bool DeRestPluginPrivate::addTaskPanelStatusChanged(TaskItem &task, const QStrin
     stream.setByteOrder(QDataStream::LittleEndian);
 
     //data
-    int PanelStatus = PanelStatusList.indexOf(mode);
+    int panelstatus = PanelStatusList.indexOf(mode);
     
     //Unknow mode ?
-    if (PanelStatus < 0)
+    if (panelstatus < 0)
     {
         return false;
     }
     
-    stream << static_cast<quint8>(PanelStatus);
+    stream << static_cast<quint8>(panelstatus);
     
     // The Seconds Remaining parameter SHALL be provided if the Panel Status parameter has a value of 0x04
     // (Exit delay) or 0x05 (Entry delay).
-    if (PanelStatus == 0x04 || PanelStatus == 0x05)
+    if (panelstatus == 0x04 || panelstatus == 0x05)
     {
         stream << (quint8) 0x05; // Seconds Remaining
     }
@@ -461,16 +462,16 @@ bool DeRestPluginPrivate::addTaskSendArmResponse(TaskItem &task, const QString &
     QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
     stream.setByteOrder(QDataStream::LittleEndian);
     
-    quint8 armMode;
+    quint8 armmode;
     
-    armMode = ArmModeListReturn.indexOf(mode);
-    if (armMode > ArmModeListReturn.size())
+    armmode = ArmModeListReturn.indexOf(mode);
+    if (armmode > ArmModeListReturn.size())
     {
         return false;
     }
 
     //data
-    stream << (quint8) armMode; // Alarm status
+    stream << (quint8) armmode; // Alarm status
 
     // ZCL frame
     {
