@@ -54,9 +54,9 @@ constexpr int RxOffWhenIdleResponseTime = 8000; // 7680 ms + some space for time
 constexpr int MaxConfirmTimeout = 20000; // If for some reason no APS-DATA.confirm is received (should almost never happen)
 constexpr int MaxPollItemRetries = 3;
 
-struct PollItem
+struct DEV_PollItem
 {
-    explicit PollItem(const Resource *r, const ResourceItem *i, const QVariant &p) :
+    explicit DEV_PollItem(const Resource *r, const ResourceItem *i, const QVariant &p) :
         resource(r), item(i), readParameters(p) {}
     size_t retry = 0;
     const Resource *resource = nullptr;
@@ -99,7 +99,7 @@ public:
     std::array<QBasicTimer, StateLevelMax> timer; //! internal single shot timer one for each state level
     QElapsedTimer awake; //! time to track when an end-device was last awake
     BindingContext binding; //! only used by binding sub state machine
-    std::vector<PollItem> pollItems; //! queue of items to poll
+    std::vector<DEV_PollItem> pollItems; //! queue of items to poll
     bool managed = false; //! a managed device doesn't rely on legacy implementation of polling etc.
     ZDP_Result zdpResult; //! keep track of a running ZDP request
     DA_ReadResult readResult; //! keep track of a running "read" request
@@ -746,9 +746,9 @@ void DEV_BindingTableVerifyHandler(Device *device, const Event &event)
 /*! Returns all items wich are ready for polling.
     The returned vector is reversed to use std::vector::pop_back() when processing the queue.
  */
-std::vector<PollItem> DEV_GetPollItems(Device *device)
+std::vector<DEV_PollItem> DEV_GetPollItems(Device *device)
 {
-    std::vector<PollItem> result;
+    std::vector<DEV_PollItem> result;
     const auto now = QDateTime::currentDateTime();
 
     for (const auto *r : device->subDevices())
@@ -774,7 +774,7 @@ std::vector<PollItem> DEV_GetPollItems(Device *device)
                 continue;
             }
 
-            result.emplace_back(PollItem{r, item, ddfItem.readParameters});
+            result.emplace_back(DEV_PollItem{r, item, ddfItem.readParameters});
         }
     }
 
@@ -805,7 +805,7 @@ void DEV_PollIdleStateHandler(Device *device, const Event &event)
     }
 }
 
-/*! This state processes the next PollItem and moves to the PollBusy state.
+/*! This state processes the next DEV_PollItem and moves to the PollBusy state.
     If no more items are in the queue it moves back to PollIdle state.
  */
 void DEV_PollNextStateHandler(Device *device, const Event &event)
@@ -864,7 +864,7 @@ void DEV_PollNextStateHandler(Device *device, const Event &event)
 
 /*! This state waits for APS confirm or timeout for an ongoing poll request.
     In any case it moves back to PollNext state.
-    If the request is successful the PollItem will be removed from the queue.
+    If the request is successful the DEV_PollItem will be removed from the queue.
  */
 void DEV_PollBusyStateHandler(Device *device, const Event &event)
 {
