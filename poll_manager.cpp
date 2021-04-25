@@ -510,11 +510,6 @@ void PollManager::pollTimerFired()
                                 NodeValue &val = restNode->getZclValue(clusterId, attrId);
                                 quint16 maxInterval = val.maxInterval > 0 && val.maxInterval < 65535 ? (val.maxInterval * 3 / 2) : reportWaitTime;
 
-                                // This lines mean IKEA is never polled (or just once)?
-                                if (lightNode && lightNode->manufacturerCode() == VENDOR_IKEA && val.timestamp.isValid())
-                                {
-                                    fresh++; // rely on reporting for ikea lights
-                                }
                                 // This should truely compensates missing reports and poll at startup until a report comes in, prevents unnecessary polling
                                 else if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < maxInterval)
                                 {
