@@ -537,6 +537,7 @@ extern const quint64 xalMacPrefix;
 extern const quint64 onestiPrefix;
 extern const quint64 develcoMacPrefix;
 extern const quint64 legrandMacPrefix;
+extern const quint64 YooksmartMacPrefix;
 extern const quint64 profaluxMacPrefix;
 extern const quint64 xiaomiMacPrefix;
 extern const quint64 computimeMacPrefix;
