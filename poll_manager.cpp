@@ -502,7 +502,7 @@ void PollManager::pollTimerFired()
                                 quint16 maxInterval = val.maxInterval > 0 && val.maxInterval < 65535 ? (val.maxInterval * 3 / 2) : reportWaitTime;
 
                                 // This should truely compensates missing reports and poll at startup until a report comes in, prevents unnecessary polling
-                                else if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < maxInterval)
+                                if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < maxInterval)
                                 {
                                     fresh++;
                                 }
