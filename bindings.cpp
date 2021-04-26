@@ -1798,6 +1798,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                  modelId.startsWith(QLatin1String("3300")) ||          // Centralite contatc sensor
                  modelId.startsWith(QLatin1String("3315")) ||
                  modelId.startsWith(QLatin1String("3157100")) ||
+                 modelId.startsWith(QLatin1String("URC4450BC0-X-R")) || // Xfinity Keypad XHK1-UE / URC4450BC0-X-R
                  modelId.startsWith(QLatin1String("4655BC0")))
         {
             rq.attributeId = 0x0020;   // battery voltage
@@ -3050,6 +3051,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("0x8035") ||
         // LIDL
         sensor->modelId() == QLatin1String("HG06323") ||
+        // Xfinity
+        sensor->modelId() == QLatin1String("URC4450BC0-X-R") ||
         // Eria
         sensor->modelId() == QLatin1String("Adurolight_NCC")
         )
@@ -3219,6 +3222,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId().startsWith(QLatin1String("3305-S")) ||
                      sensor->modelId().startsWith(QLatin1String("3157100")) ||
                      sensor->modelId().startsWith(QLatin1String("4655BC0")) ||
+                     sensor->modelId() == QLatin1String("URC4450BC0-X-R") || // Xfinity Keypad XHK1-UE
                      sensor->modelId() == QLatin1String("113D"))
             {
                 val = sensor->getZclValue(*i, 0x0020); // battery voltage
@@ -3790,6 +3794,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     else if (sensor->modelId().startsWith(QLatin1String("TS0215")) ||
              sensor->modelId().startsWith(QLatin1String("RC_V14")) ||
              sensor->modelId().startsWith(QLatin1String("RC-EM")) ||
+             sensor->modelId().startsWith(QLatin1String("URC4450BC0-X-R")) ||
              sensor->modelId().startsWith(QLatin1String("RC-EF-3.0")))
     {
         clusters.push_back(IAS_ACE_CLUSTER_ID);

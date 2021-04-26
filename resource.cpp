@@ -54,6 +54,7 @@ const char *RStateColorMode = "state/colormode";
 const char *RStateConsumption = "state/consumption";
 const char *RStateCurrent = "state/current";
 const char *RStateCt = "state/ct";
+const char *RStateAction = "state/action";
 const char *RStateDark = "state/dark";
 const char *RStateDaylight = "state/daylight";
 const char *RStateEffect = "state/effect";
@@ -115,6 +116,8 @@ const QStringList RStateEffectValuesMueller({
     "none", "colorloop", "sunset", "party", "worklight", "campfire", "romance", "nightlight"
 });
 
+const char *RConfigArmMode = "config/armed";
+const char *RConfigPanel = "config/panel";
 const char *RConfigAlert = "config/alert";
 const char *RConfigLock = "config/lock";
 const char *RConfigBattery = "config/battery";
@@ -237,6 +240,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt32, RStateButtonEvent));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateCarbonMonoxide));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateColorMode));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateAction));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt64, RStateConsumption));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateCurrent));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateCt));
@@ -295,6 +299,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateY));
 
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigAlert));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigPanel));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigLock));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigBattery, 0, 100));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigColorCapabilities));
@@ -321,6 +326,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigLedIndication));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RConfigLocalTime));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigLocked));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigArmMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigSetValve));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigLong));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigLevelMin));
