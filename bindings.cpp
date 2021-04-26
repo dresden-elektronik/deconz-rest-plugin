@@ -1876,7 +1876,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                  manufacturerCode == VENDOR_XAL)
         {
             rq.minInterval = 5;
-            rq.maxInterval = 3600;
+            rq.maxInterval = 1200;
         }
         else if (manufacturerCode == VENDOR_IKEA)
         {
@@ -2606,9 +2606,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
                     continue;
                 }
 
-                quint16 maxInterval = val.maxInterval > 0 && val.maxInterval < 65535 ? val.maxInterval : (10 * 60);
+                quint16 maxInterval = val.maxInterval > 0 && val.maxInterval < 65535 ? (val.maxInterval * 3 / 2) : (60 * 6);
 
-                if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < (maxInterval * 1.2))
+                if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < maxInterval)
                 {
                     bindingExists = true;
                     break;
@@ -3373,10 +3373,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             }
         }
 
-        quint16 maxInterval = (val.maxInterval > 0) ? (val.maxInterval * 3 / 2) : (60 * 45);
+        quint16 maxInterval = val.maxInterval > 0 && val.maxInterval < 65535 ? (val.maxInterval * 3 / 2) : (60 * 15);
 
-        if (val.timestampLastReport.isValid() &&
-            val.timestampLastReport.secsTo(now) < maxInterval) // got update in timely manner
+        if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < maxInterval) // got update in timely manner
         {
             DBG_Printf(DBG_INFO_L2, "binding for attribute reporting of ep: 0x%02X cluster 0x%04X seems to be active\n", val.endpoint, *i);
             continue;
