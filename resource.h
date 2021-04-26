@@ -131,6 +131,7 @@ extern const char *RConfigLock;
 extern const char *RConfigBattery;
 extern const char *RConfigColorCapabilities;
 extern const char *RConfigConfigured;
+extern const char *RConfigControlSequence;
 extern const char *RConfigCoolSetpoint;
 extern const char *RConfigCtMin;
 extern const char *RConfigCtMax;

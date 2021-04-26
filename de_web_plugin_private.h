@@ -261,6 +261,14 @@ using namespace deCONZ::literals;
 #define IAS_ZONE_TYPE_VIBRATION_SENSOR        0x002d
 #define IAS_ZONE_TYPE_WARNING_DEVICE          0x0225
 
+// Thermostat cluster, Control Sequence of Operation (0x001B)
+#define COOLING_ONLY                            0x00
+#define COOLING_WITH_REHEAT                     0x01
+#define HEATING_ONLY                            0x02
+#define HEATING_WITH_REHEAT                     0x03
+#define COOLING_AND_HEATING_4PIPES              0x04
+#define COOLING_AND_HEATING_4PIPES_WITH_REHEAT  0x05
+
 // IAS Setup states
 #define IAS_STATE_INIT                 0
 #define IAS_STATE_ENROLLED             1 // finished
@@ -282,6 +290,11 @@ using namespace deCONZ::literals;
 #define DLMS_COSEM                      0x0102
 #define DSMR_23                         0x0103
 #define DSMR_40                         0x0104
+#define NORWEGIAN_HAN                   0x0200
+#define NORWEGIAN_HAN_EXTRA_LOAD        0x0201
+#define AIDON_METER                     0x0202
+#define KAIFA_KAMSTRUP_METERS           0x0203
+#define AUTO_DETECT                     0x0204
 
 #ifndef DBG_IAS
   #define DBG_IAS DBG_INFO  // DBG_IAS didn't exist before version v2.10.x
@@ -333,6 +346,7 @@ using namespace deCONZ::literals;
 #define VENDOR_CLS                  0x104E
 #define VENDOR_CENTRALITE           0x104E // wrong name?
 #define VENDOR_SI_LABS              0x1049
+#define VENDOR_SCHNEIDER            0x105E
 #define VENDOR_4_NOKS               0x1071
 #define VENDOR_BITRON               0x1071 // branded
 #define VENDOR_COMPUTIME            0x1078
@@ -368,6 +382,7 @@ using namespace deCONZ::literals;
 #define VENDOR_INNR                 0x1166
 #define VENDOR_LDS                  0x1168 // Used by Samsung SmartPlug 2019
 #define VENDOR_PLUGWISE_BV          0x1172
+#define VENDOR_D_LINK               0x1175
 #define VENDOR_INSTA                0x117A
 #define VENDOR_IKEA                 0x117C
 #define VENDOR_3A_SMART_HOME        0x117E
@@ -380,7 +395,7 @@ using namespace deCONZ::literals;
 #define VENDOR_CHINA_FIRE_SEC       0x1214
 #define VENDOR_MUELLER              0x121B // Used by Mueller Licht
 #define VENDOR_AURORA               0x121C // Used by Aurora Aone
-#define VENDOR_SUNRICHER            0x1224 // white label used by iCasa, Illuminize, Namron ...
+#define VENDOR_SUNRICHER            0x1224 // white label used by iCasa, Illuminize, Namron, SLC ...
 #define VENDOR_XAL                  0x122A
 #define VENDOR_ADUROLIGHT           0x122D
 #define VENDOR_THIRD_REALITY        0x1233
@@ -483,19 +498,21 @@ using namespace deCONZ::literals;
 
 void getTime(quint32 *time, qint32 *tz, quint32 *dstStart, quint32 *dstEnd, qint32 *dstShift, quint32 *standardTime, quint32 *localTime, quint8 mode);
 int getFreeSensorId(); // TODO needs to be part of a Database class
+bool isSameAddress(const deCONZ::Address &a, const deCONZ::Address &b);
 
 extern const quint64 macPrefixMask;
 
 extern const quint64 celMacPrefix;
 extern const quint64 bjeMacPrefix;
 extern const quint64 davicomMacPrefix;
+extern const quint64 dlinkMacPrefix;
 extern const quint64 deMacPrefix;
 extern const quint64 emberMacPrefix;
 extern const quint64 embertecMacPrefix;
 extern const quint64 energyMiMacPrefix;
 extern const quint64 heimanMacPrefix;
 extern const quint64 zenMacPrefix;
-extern const quint64 ikeaMacPrefix;
+extern const quint64 silabs1MacPrefix;
 extern const quint64 ikea2MacPrefix;
 extern const quint64 silabsMacPrefix;
 extern const quint64 silabs2MacPrefix;
@@ -509,7 +526,6 @@ extern const quint64 silabs9MacPrefix;
 extern const quint64 instaMacPrefix;
 extern const quint64 boschMacPrefix;
 extern const quint64 jennicMacPrefix;
-extern const quint64 keenhomeMacPrefix;
 extern const quint64 lutronMacPrefix;
 extern const quint64 netvoxMacPrefix;
 extern const quint64 osramMacPrefix;
@@ -523,14 +539,13 @@ extern const quint64 xalMacPrefix;
 extern const quint64 onestiPrefix;
 extern const quint64 develcoMacPrefix;
 extern const quint64 legrandMacPrefix;
+extern const quint64 YooksmartMacPrefix;
 extern const quint64 profaluxMacPrefix;
 extern const quint64 xiaomiMacPrefix;
 extern const quint64 computimeMacPrefix;
 extern const quint64 konkeMacPrefix;
 extern const quint64 ecozyMacPrefix;
 extern const quint64 zhejiangMacPrefix;
-// Danalock support
-extern const quint64 danalockMacPrefix;
 extern const quint64 schlageMacPrefix;
 
 inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
@@ -581,7 +596,7 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
             return prefix == deMacPrefix ||
                    prefix == silabs3MacPrefix;
         case VENDOR_IKEA:
-            return prefix == ikeaMacPrefix ||
+            return prefix == silabs1MacPrefix ||
                    prefix == silabsMacPrefix ||
                    prefix == silabs2MacPrefix ||
                    prefix == silabs4MacPrefix ||
@@ -601,7 +616,7 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
         case VENDOR_JENNIC:
             return prefix == jennicMacPrefix;
         case VENDOR_KEEN_HOME:
-            return prefix == keenhomeMacPrefix;
+            return prefix == celMacPrefix;
         case VENDOR_LGE:
             return prefix == emberMacPrefix;
         case VENDOR_LUTRON:
@@ -630,7 +645,7 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
         case VENDOR_SI_LABS:
             return prefix == silabsMacPrefix ||
                    prefix == energyMiMacPrefix ||
-                   prefix == ikeaMacPrefix; // belongs to SiLabs
+                   prefix == silabs1MacPrefix;
         case VENDOR_STELPRO:
             return prefix == xalMacPrefix;
         case VENDOR_UBISYS:
@@ -656,7 +671,7 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
         case VENDOR_COMPUTIME:
             return prefix == computimeMacPrefix;
         case VENDOR_DANALOCK:
-            return prefix == danalockMacPrefix;
+            return prefix == silabs1MacPrefix;
         case VENDOR_AXIS:
         case VENDOR_MMB:
             return prefix == zenMacPrefix;
@@ -664,6 +679,8 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
             return prefix == schlageMacPrefix;
         case VENDOR_ADUROLIGHT:
 	        return prefix == jennicMacPrefix;
+        case VENDOR_D_LINK:
+            return prefix == dlinkMacPrefix;
         default:
             return false;
     }
@@ -1444,6 +1461,7 @@ public:
     void updateSensorNode(const deCONZ::NodeEvent &event);
     void updateSensorLightLevel(Sensor &sensor, quint16 measuredValue);
     bool isDeviceSupported(const deCONZ::Node *node, const QString &modelId);
+    Sensor *getSensorNodeForAddressEndpointAndCluster(const deCONZ::Address &addr, quint8 ep, quint16 cluster);
     Sensor *getSensorNodeForAddressAndEndpoint(const deCONZ::Address &addr, quint8 ep, const QString &type);
     Sensor *getSensorNodeForAddressAndEndpoint(const deCONZ::Address &addr, quint8 ep);
     Sensor *getSensorNodeForAddress(quint64 extAddr);
@@ -1494,7 +1512,6 @@ public:
     void pushClientForClose(QTcpSocket *sock, int closeTimeout, const QHttpRequestHeader &hdr);
 
     uint8_t endpoint();
-    QString generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId);
 
     // Task interface
     bool addTask(const TaskItem &task);
@@ -1604,7 +1621,8 @@ public:
     bool deserialiseThermostatTransitions(const QString &s, QVariantList *transitions);
     bool serialiseThermostatSchedule(const QVariantMap &schedule, QString *s);
     bool deserialiseThermostatSchedule(const QString &s, QVariantMap *schedule);
-    void handleSimpleMeteringClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleSimpleMeteringClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
+    void handleElectricalMeasurementClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
 
     // Modify node attributes
     void setAttributeOnOff(LightNode *lightNode);
@@ -1663,6 +1681,7 @@ public:
     void updateZigBeeConfigDb();
     void getLastZigBeeConfigDb(QString &out);
     void getZigbeeConfigDb(QVariantList &out);
+    void deleteDeviceDb(const QString &uniqueId);
 
     void checkConsistency();
 
