@@ -216,6 +216,7 @@ SOURCES  = air_quality.cpp \
            rest_userparameter.cpp \
            utils/rstring.cpp \
            utils/utils.cpp \
+           xiaomi.cpp \
            window_covering.cpp \
            websocket_server.cpp \
            zcl/zcl.cpp \
