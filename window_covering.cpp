@@ -155,8 +155,6 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
                     return;
             }
 
-            NodeValue::UpdateType updateType = NodeValue::UpdateByZclReport;
-
             if (attrid == 0x0008) // current CurrentPositionLiftPercentage 0-100
             {
                 // Update value in the GUI.
