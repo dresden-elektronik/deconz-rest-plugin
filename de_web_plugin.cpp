@@ -2922,7 +2922,8 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
         lightNode->addItem(DataTypeUInt8, RStateSat);
         lightNode->addItem(DataTypeString, RStateEffect)->setValue(RStateEffectValues[R_EFFECT_NONE]);
     }
-    else if (modelId == QLatin1String("KADRILJ roller blind"))
+    else if (modelId.startsWith(QLatin1String("KADRILJ")) ||
+             modelId.startsWith(QLatin1String("FYRTUR")))
     {
         item = lightNode->addItem(DataTypeBool, RAttrSleeper);
         if (item)
