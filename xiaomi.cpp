@@ -58,6 +58,17 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         return;
     }
 
+    Device *device = nullptr;
+    const DeviceKey deviceKey = ind.srcAddress().ext();
+    if (ind.srcAddress().hasExt())
+    {
+        device = DEV_GetDevice(m_devices, deviceKey);
+        if (device)
+        {
+            enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
+        }
+    }
+
     quint8 structIndex = 0; // only attribute id 0xff02
     quint16 structSize = 0; // only attribute id 0xff02
 
