@@ -2833,6 +2833,7 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
     }
 
     ResourceItem *item = nullptr;
+    const QString modelId = lightNode->modelId();
 
     if (lightNode->manufacturerCode() == VENDOR_LEDVANCE &&
             (lightNode->modelId() == QLatin1String("BR30 RGBW") ||
@@ -2920,6 +2921,15 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
         lightNode->addItem(DataTypeUInt16, RStateHue);
         lightNode->addItem(DataTypeUInt8, RStateSat);
         lightNode->addItem(DataTypeString, RStateEffect)->setValue(RStateEffectValues[R_EFFECT_NONE]);
+    }
+    else if (modelId == QLatin1String("KADRILJ roller blind"))
+    {
+        item = lightNode->addItem(DataTypeBool, RAttrSleeper);
+        if (item)
+        {
+            item->setValue(false);
+            item->setIsPublic(false);
+        }
     }
 }
 
