@@ -138,7 +138,6 @@ static void IAS_EnsureValidState(ResourceItem *itemIasState)
  */
 void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
 
@@ -627,39 +626,10 @@ bool DeRestPluginPrivate::sendIasZoneEnrollResponse(const deCONZ::ApsDataIndicat
     This handler can be called at any time, e.g. after receiving a command or from a timer.
     \param sensor - Sensor containing the IAS zone cluster
  */
-void DeRestPluginPrivate::checkIasEnrollmentStatus(Sensor *sensor2)
+void DeRestPluginPrivate::checkIasEnrollmentStatus(Sensor *sensor)
 { 
-    // Need to find the good sensor, the one that have the field for enrollment
-    Sensor *sensor = sensor2;
-    ResourceItem *itemIasState = nullptr;
-    ResourceItem *itemPending = nullptr;
-
-    for (auto &s : sensors)
-    {
-        if (!(s.address().ext() == sensor2->address().ext() &&
-              s.fingerPrint().endpoint == sensor2->fingerPrint().endpoint &&
-              s.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID) &&
-              s.deletedState() == Sensor::StateNormal))
-        {
-            continue;
-        }
-        
-        //check if the device have itemIasState and itemPending, because a device can have many sensor and not this field on all
-        itemIasState = s.item(RConfigEnrolled);
-        itemPending = s.item(RConfigPending);
-
-        if (!itemIasState || !itemPending)
-        {
-            continue;
-        }
-
-        sensor = &s;
-    }
-    
-    if (!sensor)
-    {
-        return;
-    }
+    ResourceItem *itemIasState = sensor->item(RConfigEnrolled); // holds per device IAS state variable
+    ResourceItem *itemPending = sensor->item(RConfigPending);
 
     if (!itemIasState || !itemPending)
     {

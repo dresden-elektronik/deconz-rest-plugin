@@ -392,7 +392,7 @@ void DeRestPluginPrivate::sendGetPanelStatusResponse(const deCONZ::ApsDataIndica
     }
 }
 
-bool DeRestPluginPrivate::addTaskPanelStatusChanged(TaskItem &task, const QString &mode)
+bool DeRestPluginPrivate::addTaskPanelStatusChanged(TaskItem &task, const QString &mode, bool sound)
 {
     task.taskType = TaskIASACE;
 
@@ -430,7 +430,14 @@ bool DeRestPluginPrivate::addTaskPanelStatusChanged(TaskItem &task, const QStrin
        stream << (quint8) 0x00; // Seconds Remaining 
     }
     
-    stream << (quint8) 0x01; // Audible Notification
+    if (sound)
+    {
+        stream << (quint8) 0x01; // Audible Notification
+    }
+    else
+    {
+        stream << (quint8) 0x00; // Audible Notification
+    }
     stream << (quint8) 0x00; // Alarm status
 
     // ZCL frame

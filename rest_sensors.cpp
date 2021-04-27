@@ -2350,7 +2350,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     if (map[pi.key()].type() == QVariant::String)
                     {
                         QString panelmode = map[pi.key()].toString();
-                        if (addTaskPanelStatusChanged(task, panelmode))
+                        if (addTaskPanelStatusChanged(task, panelmode, true))
                         {
                             // Update too RConfigPanel
                             ResourceItem *item2 = sensor->item(RConfigPanel);
