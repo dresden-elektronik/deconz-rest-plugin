@@ -592,7 +592,6 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
     m_isPublic = other.m_isPublic;
     m_flags = other.m_flags;
     m_parseFunction = other.m_parseFunction;
-    m_writeParameters = other.m_writeParameters;
     m_refreshInterval = other.m_refreshInterval;
     m_clusterId = other.m_clusterId;
     m_attributes = other.m_attributes;
@@ -648,7 +647,6 @@ ResourceItem &ResourceItem::operator=(ResourceItem &&other) noexcept
     m_attributes = std::move(other.m_attributes);
     m_endpoint = other.m_endpoint;
     m_parseFunction = other.m_parseFunction;
-    m_writeParameters = std::move(other.m_writeParameters);
     m_refreshInterval = other.m_refreshInterval;
     m_ddfItemHandle = other.m_ddfItemHandle;
     m_istr = other.m_istr;
@@ -1034,11 +1032,6 @@ bool ResourceItem::isPublic() const
 void ResourceItem::setIsPublic(bool isPublic)
 {
     m_isPublic = isPublic;
-}
-
-void ResourceItem::setWriteParameters(const QVariant &params)
-{
-    m_writeParameters = params;
 }
 
 /*! Initial main constructor. */

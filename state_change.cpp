@@ -213,12 +213,14 @@ int SC_WriteZclAttribute(const Resource *r, const StateChange *stateChange, deCO
             return -1;
         }
 
-        if (item->writeParameters().isNull())
+        const auto ddfItem = DDF_GetItem(item);
+
+        if (ddfItem.writeParameters.isNull())
         {
             return -2;
         }
 
-        const auto fn = DA_GetWriteFunction(item->writeParameters());
+        const auto fn = DA_GetWriteFunction(ddfItem.writeParameters);
 
         if (!fn)
         {
@@ -227,10 +229,9 @@ int SC_WriteZclAttribute(const Resource *r, const StateChange *stateChange, deCO
 
         // create a copy since item is const
         ResourceItem copy(item->descriptor());
-        copy.setWriteParameters(item->writeParameters());
         copy.setValue(i.targetValue);
 
-        if (!fn(r, &copy, apsCtrl))
+        if (!fn(r, &copy, apsCtrl, ddfItem.writeParameters))
         {
             return -4;
         }

@@ -516,7 +516,7 @@ static DA_ReadResult readZclAttribute(const Resource *r, const ResourceItem *ite
 }
 
 /*! A generic function to write ZCL attributes.
-    The item->writeParameters() is expected to contain one object (given in the device description file).
+    The \p writeParameters is expected to contain one object (given in the device description file).
 
     { "fn": "zcl", "ep": endpoint, "cl": clusterId, "at": attributeId, "dt": zclDataType, "mf": manufacturerCode, "eval": expression }
 
@@ -529,7 +529,7 @@ static DA_ReadResult readZclAttribute(const Resource *r, const ResourceItem *ite
 
     Example: "write": {"cl": "0x0000", "at": "0xff0d",  "dt": "0x20", "mf": "0x11F5", "eval": "Item.val"}
  */
-bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl)
+bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, const QVariant &writeParameters)
 {
     Q_ASSERT(r);
     Q_ASSERT(item);
@@ -545,7 +545,7 @@ bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsC
         return result;
     }
 
-    const auto map = item->writeParameters().toMap();
+    const auto map = writeParameters.toMap();
     ZCL_Param param = getZclParam(map);
 
     if (!param.valid)

@@ -33,7 +33,7 @@ struct DA_ReadResult
 
 typedef bool (*ParseFunction_t)(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, const QVariant &parseParameters);
 typedef DA_ReadResult (*ReadFunction_t)(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, const QVariant &readParameters);
-typedef bool (*WriteFunction_t)(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl);
+typedef bool (*WriteFunction_t)(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, const QVariant &writeParameters);
 
 ParseFunction_t DA_GetParseFunction(const QVariant &params);
 ReadFunction_t DA_GetReadFunction(const QVariant &params);

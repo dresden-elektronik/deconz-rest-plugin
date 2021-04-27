@@ -99,11 +99,6 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
 
     item->setParseFunction(nullptr);
 
-    if (item->writeParameters() != ddfItem.writeParameters)
-    {
-        item->setWriteParameters(ddfItem.writeParameters);
-    }
-
     return item;
 }
 

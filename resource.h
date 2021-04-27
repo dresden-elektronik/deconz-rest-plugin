@@ -367,8 +367,6 @@ public:
     quint16 endpoint() const { return m_endpoint; }
     ParseFunction_t parseFunction() const { return m_parseFunction; }
     void setParseFunction(ParseFunction_t fn) { m_parseFunction = fn; }
-    const QVariant &writeParameters() const { return m_writeParameters; }
-    void setWriteParameters(const QVariant &params);
     ValueSource valueSource() const { return m_valueSource; }
     void setDdfItemHandle(quint32 handle) { m_ddfItemHandle = handle; }
     quint32 ddfItemHandle() const { return m_ddfItemHandle; }
@@ -419,7 +417,6 @@ private:
     std::vector<quint16> m_attributes;
     quint8 m_endpoint = 0xFF;
     ParseFunction_t m_parseFunction = nullptr;
-    QVariant m_writeParameters;
     quint32 m_ddfItemHandle = 0; // invalid item handle
 };
 
