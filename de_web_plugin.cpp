@@ -954,7 +954,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         case IAS_ZONE_CLUSTER_ID:
             handleIasZoneClusterIndication(ind, zclFrame);
             break;
-            
+
         case IAS_ACE_CLUSTER_ID:
             handleIasAceClusterIndication(ind, zclFrame);
             break;
@@ -6010,7 +6010,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             fpSwitch.hasOutCluster(IAS_ACE_CLUSTER_ID) ||
             !fpSwitch.outClusters.empty())
         {
-            
             fpSwitch.endpoint = i->endpoint();
             fpSwitch.deviceId = i->deviceId();
             fpSwitch.profileId = i->profileId();

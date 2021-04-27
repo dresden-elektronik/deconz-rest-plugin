@@ -627,7 +627,7 @@ bool DeRestPluginPrivate::sendIasZoneEnrollResponse(const deCONZ::ApsDataIndicat
     \param sensor - Sensor containing the IAS zone cluster
  */
 void DeRestPluginPrivate::checkIasEnrollmentStatus(Sensor *sensor)
-{ 
+{
     ResourceItem *itemIasState = sensor->item(RConfigEnrolled); // holds per device IAS state variable
     ResourceItem *itemPending = sensor->item(RConfigPending);
 

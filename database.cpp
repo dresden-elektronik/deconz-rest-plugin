@@ -3171,7 +3171,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : IAS_ACE_CLUSTER_ID;
             }
-            
+
             item = sensor.addItem(DataTypeInt32, RStateButtonEvent);
             item->setValue(0);
 
