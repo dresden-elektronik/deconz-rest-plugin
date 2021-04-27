@@ -1,7 +1,7 @@
 #include <QDateTime>
 #include "catch2/catch.hpp"
 #include "resource.h"
-#include "utils/rstring.h"
+#include "utils/bufstring.h"
 
 TEST_CASE("101: ResourceItem DataTypeTime", "[ResourceItem]")
 {

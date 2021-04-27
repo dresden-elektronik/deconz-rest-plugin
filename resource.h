@@ -5,7 +5,7 @@
 #include <QElapsedTimer>
 #include <vector>
 #include <deconz.h>
-#include "utils/rstring.h"
+#include "utils/bufstring.h"
 #include "state_change.h"
 
 class QString;
