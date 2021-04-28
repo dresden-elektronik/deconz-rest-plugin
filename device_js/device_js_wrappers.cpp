@@ -50,7 +50,6 @@ JsResourceItem::~JsResourceItem()
 {
     if (item)
     {
-        DBG_Printf(DBG_INFO, "dtor %s\n", item->descriptor().suffix);
         item = nullptr;
     }
 }
@@ -95,7 +94,7 @@ void JsResourceItem::setValue(const QVariant &val)
 {
     if (item)
     {
-        DBG_Printf(DBG_INFO, "JsResourceItem.setValue(%s) = %s\n", item->descriptor().suffix, qPrintable(val.toString()));
+//        DBG_Printf(DBG_INFO, "JsResourceItem.setValue(%s) = %s\n", item->descriptor().suffix, qPrintable(val.toString()));
         item->setValue(val, ResourceItem::SourceDevice);
     }
 }
