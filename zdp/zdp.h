@@ -14,7 +14,31 @@
 namespace deCONZ
 {
     class ApsController;
+    class Binding;
 }
+
+class ZDP_Binding
+{
+public:
+    uint64_t srcExtAddress;
+
+    bool isValid() const { return (isUnicastBinding || isGroupBinding) && srcEndpoint != 0; }
+    union
+    {
+        uint16_t dstGroup;
+        uint64_t dstExtAddress;
+    };
+
+    uint16_t clusterId;
+    uint8_t srcEndpoint;
+    uint8_t dstEndpoint;
+    struct
+    {
+        unsigned int isGroupBinding : 1;
+        unsigned int isUnicastBinding : 1;
+        unsigned int pad : 6 + 24;
+    };
+};
 
 struct ZDP_Result
 {
@@ -32,5 +56,6 @@ struct ZDP_Result
 ZDP_Result ZDP_NodeDescriptorReq(uint16_t nwkAddress, deCONZ::ApsController *apsCtrl);
 ZDP_Result ZDP_ActiveEndpointsReq(uint16_t nwkAddress, deCONZ::ApsController *apsCtrl);
 ZDP_Result ZDP_SimpleDescriptorReq(uint16_t nwkAddress, uint8_t endpoint, deCONZ::ApsController *apsCtrl);
+ZDP_Result ZDP_BindReq(const deCONZ::Binding &bnd, deCONZ::ApsController *apsCtrl);
 
 #endif // ZDP_H
