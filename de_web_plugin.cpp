@@ -50,6 +50,7 @@
 #include "read_files.h"
 #include "utils/utils.h"
 #include "zdp/zdp.h"
+#include "zcl/zcl.h"
 #ifdef ARCH_ARM
   #include <unistd.h>
   #include <sys/reboot.h>
@@ -978,10 +979,41 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
             const auto status = quint8(zclFrame.payload().at(2));
             enqueueEvent(Event(device->prefix(), REventZclResponse, EventZclResponsePack(zclFrame.sequenceNumber(), status), device->key()));
         }
+        else if (zclFrame.commandId() == deCONZ::ZclConfigureReportingResponseId && zclFrame.payload().size() >= 1)
+        {
+            const auto status = quint8(zclFrame.payload().at(0));
+            enqueueEvent(Event(device->prefix(), REventZclResponse, EventZclResponsePack(zclFrame.sequenceNumber(), status), device->key()));
+        }
+        else if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReadReportingConfigResponseId)
+        {
+            const auto rsp = ZCL_ParseReadReportConfigurationRsp(ind, zclFrame);
+            enqueueEvent(Event(device->prefix(), REventZclReadReportConfigResponse, &rsp, sizeof(rsp), device->key()));
+        }
+    }
+    else if (ind.profileId() == ZDP_PROFILE_ID)
+    {
+        if (ind.clusterId() == ZDP_ACTIVE_ENDPOINTS_RSP_CLID)
+        {
+            enqueueEvent(Event(device->prefix(), REventActiveEndpoints, 0, device->key()));
+        }
+        else if (ind.clusterId() == ZDP_NODE_DESCRIPTOR_RSP_CLID)
+        {
+            enqueueEvent(Event(device->prefix(), REventNodeDescriptor, 0, device->key()));
+        }
+        else if (ind.clusterId() == ZDP_SIMPLE_DESCRIPTOR_RSP_CLID)
+        {
+            enqueueEvent(Event(device->prefix(), REventSimpleDescriptor, 0, device->key()));
+        }
+
+        if ((ind.clusterId() & 0x8000) != 0 && ind.asdu().size() >= 2)
+        {
+            enqueueEvent(Event(device->prefix(), REventZdpResponse, EventZdpResponsePack(ind.asdu().at(0), ind.asdu().at(1)), device->key()));
+        }
+        return;
     }
     else
     {
-        return; // only ZCL for now
+        return; // only ZCL and ZDP for now
     }
 
     auto resources = device->subDevices();
@@ -1043,18 +1075,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
 
     if (ind.profileId() == ZDP_PROFILE_ID)
     {
-        if (ind.clusterId() == ZDP_ACTIVE_ENDPOINTS_RSP_CLID)
-        {
-            enqueueEvent(Event(device->prefix(), REventActiveEndpoints, 0, device->key()));
-        }
-        else if (ind.clusterId() == ZDP_NODE_DESCRIPTOR_RSP_CLID)
-        {
-            enqueueEvent(Event(device->prefix(), REventNodeDescriptor, 0, device->key()));
-        }
-        else if (ind.clusterId() == ZDP_SIMPLE_DESCRIPTOR_RSP_CLID)
-        {
-            enqueueEvent(Event(device->prefix(), REventSimpleDescriptor, 0, device->key()));
-        }
+
     }
     else if (ind.clusterId() == POWER_CONFIGURATION_CLUSTER_ID) // genral assumption that the device is awake
     {

@@ -44,6 +44,8 @@ const char *REventStateLeave = "event/state.leave";
 const char *REventStateTimeout = "event/state.timeout";
 const char *REventTick = "event/tick";
 const char *REventZclResponse = "event/zcl.response";
+const char *REventZclReadReportConfigResponse = "event/zcl.read.report.config.response";
+const char *REventZdpResponse = "event/zdp.response";
 
 const char *RInvalidSuffix = "invalid/suffix";
 

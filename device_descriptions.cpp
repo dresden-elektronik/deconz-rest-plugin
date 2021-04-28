@@ -484,7 +484,7 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
 }
 
 /*! Parses a sub device in a DDF object "subdevices" array.
-    \returns The sub device object, use DeviceDescription::SubDevice::isValid() to check for sucess.
+    \returns The sub device object, use DeviceDescription::SubDevice::isValid() to check for success.
  */
 static DeviceDescription::SubDevice DDF_ParseSubDevice(const QJsonObject &obj)
 {
@@ -582,6 +582,155 @@ static DeviceDescription::SubDevice DDF_ParseSubDevice(const QJsonObject &obj)
     return result;
 }
 
+// {"at": "0x0021", "dt": "u8", "min": 5, "max": 3600, "change": 1 },
+
+/*! Parses a ZCL report in a DDF_Binding object "report" array.
+    \returns The ZCL report, use DDF_ZclReport::isValid() to check for success.
+ */
+static DDF_ZclReport DDF_ParseZclReport(const QJsonObject &obj)
+{
+    DDF_ZclReport result{};
+
+    // check required fields
+    if (!obj.contains(QLatin1String("at")) ||
+        !obj.contains(QLatin1String("dt")) ||
+        !obj.contains(QLatin1String("min")) ||
+        !obj.contains(QLatin1String("max")))
+    {
+        return {};
+    }
+
+    bool ok = false;
+    result.attributeId = obj.value(QLatin1String("at")).toString().toUShort(&ok, 0);
+
+    if (!ok)
+    {
+        return {};
+    }
+
+    {
+        auto dataType = obj.value(QLatin1String("dt")).toString().toUShort(&ok, 0);
+        if (!ok || dataType > 0xFF)
+        {
+            return {};
+        }
+        result.dataType = dataType;
+    }
+
+    {
+        const auto minInterval = obj.value(QLatin1String("min")).toInt(-1);
+
+        if (minInterval < 0 || minInterval > UINT16_MAX)
+        {
+            return {};
+        }
+
+        result.minInterval = minInterval;
+    }
+
+    {
+        const auto maxInterval = obj.value(QLatin1String("max")).toInt(-1);
+
+        if (maxInterval < 0 || maxInterval > UINT16_MAX)
+        {
+            return {};
+        }
+
+        result.maxInterval = maxInterval;
+    }
+
+    if (obj.contains(QLatin1String("change")))
+    {
+        result.reportableChange = obj.value(QLatin1String("change")).toString().toUInt(&ok, 0);
+
+        if (!ok)
+        {
+            return {};
+        }
+    }
+
+    result.valid = true;
+
+    return result;
+}
+
+/*! Parses a binding in a DDF object "bindings" array.
+    \returns The binding, use DDF_Binding::isValid() to check for success.
+ */
+static DDF_Binding DDF_ParseBinding(const QJsonObject &obj)
+{
+    DDF_Binding result{};
+
+    // check required fields
+    if (!obj.contains(QLatin1String("bind")) ||
+        !obj.contains(QLatin1String("src.ep")) ||
+        !obj.contains(QLatin1String("cl")))
+    {
+        return {};
+    }
+
+    const auto type = obj.value(QLatin1String("bind")).toString();
+
+    if (type == QLatin1String("unicast"))
+    {
+        result.isUnicastBinding = 1;
+    }
+    else
+    {
+        // TODO group cast
+        return {};
+    }
+
+    bool ok = false;
+    {
+        const auto srcEndpoint = obj.value(QLatin1String("src.ep")).toInt(-1);
+
+        if (srcEndpoint < 0 || srcEndpoint > UINT8_MAX)
+        {
+            return {};
+        }
+        result.srcEndpoint = srcEndpoint;
+    }
+
+    {
+        result.clusterId = obj.value(QLatin1String("cl")).toString().toUShort(&ok, 0);
+
+        if (!ok)
+        {
+            return {};
+        }
+    }
+
+    if (obj.contains(QLatin1String("dst.ep")))
+    {
+        const auto dstEndpoint = obj.value(QLatin1String("dst.ep")).toInt(-1);
+        if (dstEndpoint < 0 || dstEndpoint >= 255)
+        {
+            return {};
+        }
+        result.dstEndpoint = dstEndpoint;
+    }
+
+    const auto report = obj.value(QLatin1String("report"));
+    if (report.isArray())
+    {
+        const auto reportArr = report.toArray();
+        for (const auto &i : reportArr)
+        {
+            if (i.isObject())
+            {
+                const auto rep = DDF_ParseZclReport(i.toObject());
+                if (rep.isValid())
+                {
+                    result.reporting.push_back(rep);
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
 /*! Parses an model ids in DDF JSON object.
     The model id can be a string or array of strings.
     \returns List of parsed model ids.
@@ -658,6 +807,24 @@ static DeviceDescription DDF_ParseDeviceObject(const QJsonObject &obj, const QSt
             }
         }
     }
+
+    const auto bindings = obj.value(QLatin1String("bindings"));
+    if (bindings.isArray())
+    {
+        const auto bindingsArr = bindings.toArray();
+        for (const auto &i : bindingsArr)
+        {
+            if (i.isObject())
+            {
+                const auto bnd = DDF_ParseBinding(i.toObject());
+                if (bnd.isValid())
+                {
+                    result.bindings.push_back(bnd);
+                }
+            }
+        }
+    }
+
 
     return result;
 }

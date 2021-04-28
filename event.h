@@ -7,6 +7,8 @@
 class Resource;
 class ResourceItem;
 
+struct EventData;
+
 class Event
 {
 public:
@@ -14,6 +16,7 @@ public:
     Event(const char *resource, const char *what, const QString &id, ResourceItem *item, DeviceKey deviceKey = 0);
     Event(const char *resource, const char *what, const QString &id, DeviceKey deviceKey = 0);
     Event(const char *resource, const char *what, int num, DeviceKey deviceKey = 0);
+    Event(const char *resource, const char *what, const void *data, size_t size, DeviceKey deviceKey = 0);
 
     const char *resource() const { return m_resource; }
     const char *what() const { return m_what; }
@@ -22,14 +25,34 @@ public:
     int numPrevious() const { return m_numPrev; }
     DeviceKey deviceKey() const { return m_deviceKey; }
     void setDeviceKey(DeviceKey key) { m_deviceKey = key; }
+    bool hasData() const;
+    bool getData(void *dst, size_t size) const;
 
 private:
     const char *m_resource = nullptr;
     const char *m_what = nullptr;
     QString m_id;
-    int m_num = 0;
-    int m_numPrev = 0;
+    union
+    {
+        struct
+        {
+            int m_num = 0;
+            int m_numPrev = 0;
+        };
+
+        struct
+        {
+            quint16 m_dataIndex;
+            quint16 m_dataId;
+            quint16 m_dataSize;
+        };
+    };
     DeviceKey m_deviceKey = 0;
+    struct
+    {
+        unsigned char m_hasData : 1;
+        unsigned char _pad : 7;
+    };
 };
 
 //! Unpacks APS confirm id.
@@ -48,6 +71,24 @@ inline quint8 EventApsConfirmStatus(const Event &event)
 inline int EventApsConfirmPack(quint8 id, quint8 status)
 {
     return id << 8 | status;
+}
+
+//! Unpacks ZDP sequence number.
+inline quint8 EventZdpResponseSequenceNumber(const Event &event)
+{
+    return event.num() >> 8 & 0xFF;
+}
+
+//! Unpacks ZDP sequence number.
+inline quint8 EventZdpResponseStatus(const Event &event)
+{
+    return event.num() & 0xFF;
+}
+
+//! Packs APS id and confirm status into an \c int used as `num` parameter for REventApsConfirm.
+inline int EventZdpResponsePack(quint8 seq, quint8 status)
+{
+    return seq << 8 | status;
 }
 
 //! Unpacks Zcl sequence number.

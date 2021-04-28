@@ -16,6 +16,7 @@
 
 class Event;
 class Device;
+class DDF_Binding;
 
 namespace deCONZ
 {
@@ -104,6 +105,8 @@ public:
     qint64 lastAwakeMs() const;
     bool reachable() const;
     std::vector<Resource*> subDevices() const;
+    void clearBindings();
+    void addBinding(const DDF_Binding &bnd);
 
 Q_SIGNALS:
     void eventNotify(const Event&); //! The device emits an event, which needs to be enqueued in a higher layer.

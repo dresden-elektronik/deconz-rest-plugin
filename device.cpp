@@ -41,6 +41,10 @@ void DEV_BasicClusterStateHandler(Device *device, const Event &event);
 void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event);
 void DEV_BindingHandler(Device *device, const Event &event);
 void DEV_BindingTableVerifyHandler(Device *device, const Event &event);
+void DEV_CreatebindingHandler(Device *device, const Event &event);
+void DEV_ReadReportConfigurationHandler(Device *device, const Event &event);
+void DEV_ConfigureReportingHandler(Device *device, const Event &event);
+void DEV_BindingIdleHandler(Device *device, const Event &event);
 void DEV_PollIdleStateHandler(Device *device, const Event &event);
 void DEV_PollNextStateHandler(Device *device, const Event &event);
 void DEV_PollBusyStateHandler(Device *device, const Event &event);
@@ -51,7 +55,8 @@ using namespace deCONZ::literals;
 
 constexpr int RxOnWhenIdleResponseTime = 2000; // Expect shorter response delay for rxOnWhenIdle devices
 constexpr int RxOffWhenIdleResponseTime = 8000; // 7680 ms + some space for timeout
-constexpr int MaxConfirmTimeout = 20000; // If for some reason no APS-DATA.confirm is received (should almost never happen)
+constexpr int MaxConfirmTimeout = 20000; // If for some reason no APS-DATA.confirm is received (should almost
+constexpr int BindingAutoCheckInterval = 3600;
 constexpr int MaxPollItemRetries = 3;
 
 struct DEV_PollItem
@@ -66,9 +71,12 @@ struct DEV_PollItem
 
 struct BindingContext
 {
-    QElapsedTimer bindingVerify; //! time to track last binding table verification
     size_t bindingIter = 0;
+    size_t reportIter = 0;
     bool mgmtBindSupported = false;
+    std::vector<DDF_Binding> bindings;
+    ZCL_Result zclResult;
+    ZDP_Result zdpResult;
 };
 
 class DevicePrivate
@@ -677,17 +685,12 @@ void DEV_BindingHandler(Device *device, const Event &event)
     {
         DBG_Printf(DBG_INFO, "DEV Binding enter %s/0x%016llX\n", event.resource(), event.deviceKey());
     }
-
-    if (event.what() == REventPoll || event.what() == REventAwake)
+    else if (event.what() == REventPoll || event.what() == REventAwake)
     {
-        if (!d->binding.bindingVerify.isValid() || d->binding.bindingVerify.elapsed() > (1000 * 60 * 5))
-        {
-            DBG_Printf(DBG_INFO, "DEV Binding verify bindings %s/0x%016llX\n", event.resource(), event.deviceKey());
-        }
-        else
-        {
-            return;
-        }
+        DBG_Printf(DBG_INFO, "DEV Binding verify bindings %s/0x%016llX\n", event.resource(), event.deviceKey());
+        d->binding.bindingIter = 0;
+        d->setState(DEV_BindingTableVerifyHandler, STATE_LEVEL_BINDING);
+        DEV_EnqueueEvent(device, REventBindingTick);
     }
     else if (event.what() == REventBindingTable)
     {
@@ -700,14 +703,21 @@ void DEV_BindingHandler(Device *device, const Event &event)
             d->binding.mgmtBindSupported = false;
         }
     }
-    else
+}
+
+deCONZ::Binding DEV_ToCoreBinding(const DDF_Binding &bnd, quint64 srcAddress)
+{
+    if (bnd.isUnicastBinding)
     {
-        return;
+        return deCONZ::Binding(srcAddress, bnd.dstExtAddress, bnd.clusterId, bnd.srcEndpoint, bnd.dstEndpoint);
+    }
+    else if (bnd.isGroupBinding)
+    {
+        return deCONZ::Binding(srcAddress, bnd.dstGroup, bnd.clusterId, bnd.srcEndpoint);
     }
 
-    d->binding.bindingIter = 0;
-    d->setState(DEV_BindingTableVerifyHandler, STATE_LEVEL_BINDING);
-    DEV_EnqueueEvent(device, REventBindingTick);
+    Q_ASSERT(0);
+    return {};
 }
 
 void DEV_BindingTableVerifyHandler(Device *device, const Event &event)
@@ -718,30 +728,398 @@ void DEV_BindingTableVerifyHandler(Device *device, const Event &event)
     {
 
     }
-    else if (d->binding.bindingIter >= device->node()->bindingTable().size())
+    else if (d->binding.bindingIter >= d->binding.bindings.size())
     {
-        d->binding.bindingVerify.start();
-        d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
+        d->setState(DEV_BindingIdleHandler, STATE_LEVEL_BINDING);
     }
     else
     {
-        const auto now = QDateTime::currentMSecsSinceEpoch();
-        const auto &bnd = *(device->node()->bindingTable().const_begin() + d->binding.bindingIter);
-        const auto dt = bnd.confirmedMsSinceEpoch() > 0 ? (now - bnd.confirmedMsSinceEpoch()) / 1000: -1;
+        auto &ddfBinding = d->binding.bindings[d->binding.bindingIter];
 
-        if (bnd.dstAddressMode() == deCONZ::ApsExtAddress)
+        if (ddfBinding.dstExtAddress == 0)
         {
-            DBG_Printf(DBG_INFO, "BND 0x%016llX cl: 0x%04X, dstAddrmode: %u, dst: 0x%016llX, dstEp: 0x%02X, dt: %lld seconds\n", bnd.srcAddress(), bnd.clusterId(), bnd.dstAddressMode(), bnd.dstAddress().ext(), bnd.dstEndpoint(), dt);
-        }
-        else if (bnd.dstAddressMode() == deCONZ::ApsGroupAddress)
-        {
-            DBG_Printf(DBG_INFO, "BND 0x%016llX cl: 0x%04X, dstAddrmode: %u, group: 0x%04X, dstEp: 0x%02X, dt: %lld seconds\n", bnd.srcAddress(), bnd.clusterId(), bnd.dstAddressMode(), bnd.dstAddress().group(), bnd.dstEndpoint(), dt);
+            ddfBinding.dstExtAddress = d->apsCtrl->getParameter(deCONZ::ParamMacAddress);
+            DBG_Assert(ddfBinding.dstExtAddress != 0);
+
+            if (ddfBinding.dstExtAddress == 0)
+            {
+                d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
+                return;
+            }
         }
 
-        d->binding.bindingIter++;
-        DEV_EnqueueEvent(device, REventBindingTick);
+        const auto bindingTable = device->node()->bindingTable();
+        const auto bnd = DEV_ToCoreBinding(ddfBinding, d->deviceKey);
+
+        const auto i = std::find(bindingTable.const_begin(), bindingTable.const_end(), bnd);
+
+        bool needBind = false;
+
+        if (i == bindingTable.const_end())
+        {
+            needBind = true;
+        }
+        else
+        {
+            const auto now = QDateTime::currentMSecsSinceEpoch();
+            const auto dt = i->confirmedMsSinceEpoch() > 0 ? (now - i->confirmedMsSinceEpoch()) / 1000: -1;
+
+            if (i->dstAddressMode() == deCONZ::ApsExtAddress)
+            {
+                DBG_Printf(DBG_INFO, "BND 0x%016llX cl: 0x%04X, dstAddrmode: %u, dst: 0x%016llX, dstEp: 0x%02X, dt: %lld seconds\n",
+                           i->srcAddress(), i->clusterId(), i->dstAddressMode(), i->dstAddress().ext(), i->dstEndpoint(), dt);
+            }
+            else if (i->dstAddressMode() == deCONZ::ApsGroupAddress)
+            {
+                DBG_Printf(DBG_INFO, "BND 0x%016llX cl: 0x%04X, dstAddrmode: %u, group: 0x%04X, dstEp: 0x%02X, dt: %lld seconds\n",
+                           i->srcAddress(), i->clusterId(), i->dstAddressMode(), i->dstAddress().group(), i->dstEndpoint(), dt);
+            }
+
+            if (dt < 0 || dt > 1800) // TODO max value
+            {
+                needBind = true;
+            }
+        }
+
+        if (needBind)
+        {
+            d->setState(DEV_CreatebindingHandler, STATE_LEVEL_BINDING);
+        }
+        else
+        {
+            d->binding.reportIter = 0;
+            d->setState(DEV_ReadReportConfigurationHandler, STATE_LEVEL_BINDING);
+        }
     }
 }
+
+void DEV_CreatebindingHandler(Device *device, const Event &event)
+{
+    DevicePrivate *d = device->d;
+
+    if (event.what() == REventStateEnter)
+    {
+        const auto ddfBinding = d->binding.bindings[d->binding.bindingIter];
+        const auto bnd = DEV_ToCoreBinding(ddfBinding, d->deviceKey);
+
+        d->zdpResult = ZDP_BindReq(bnd, d->apsCtrl);
+
+        if (d->zdpResult.isEnqueued)
+        {
+            d->startStateTimer(MaxConfirmTimeout, STATE_LEVEL_BINDING);
+        }
+        else
+        {
+            d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
+        }
+    }
+    else if (event.what() == REventStateLeave)
+    {
+        d->stopStateTimer(STATE_LEVEL_BINDING);
+    }
+    else if (event.what() == REventApsConfirm)
+    {
+        if (d->zdpResult.apsReqId == EventApsConfirmId(event))
+        {
+            if (EventApsConfirmStatus(event) == deCONZ::ApsSuccessStatus)
+            {
+                d->stopStateTimer(STATE_LEVEL_BINDING);
+                d->startStateTimer(d->maxResponseTime, STATE_LEVEL_BINDING);
+            }
+            else
+            {
+                d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
+            }
+        }
+    }
+    else if (event.what() == REventZdpResponse)
+    {
+        if (EventZdpResponseSequenceNumber(event) == d->zdpResult.zdpSeq)
+        {
+            if (EventZdpResponseStatus(event) == deCONZ::ZdpSuccess)
+            {
+                d->binding.reportIter = 0;
+                d->setState(DEV_ReadReportConfigurationHandler, STATE_LEVEL_BINDING);
+            }
+            else
+            {
+                d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
+            }
+        }
+    }
+    else if (event.what() == REventStateTimeout)
+    {
+        DBG_Printf(DBG_INFO, "ZDP create binding timeout: 0x%016llX\n", device->key());
+        d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
+    }
+}
+
+static bool reportingConfigurationValid(const Device *device, const Event &event)
+{
+    DevicePrivate *d = device->d;
+    ZCL_ReadReportConfigurationRsp rsp{};
+
+    if (!event.getData(&rsp, sizeof(rsp)))
+    {
+        return false;
+    }
+
+    const auto &bnd = d->binding.bindings[d->binding.bindingIter];
+
+    size_t okCount = 0;
+
+    for (size_t i = 0; i < rsp.recordCount; i++)
+    {
+        const auto &record = rsp.records[i];
+
+        for (const auto &report : bnd.reporting)
+        {
+            if (record.status != deCONZ::ZclSuccessStatus) { continue; }
+            if (report.attributeId != record.attributeId) { continue; }
+            if (report.minInterval != record.minInterval) { continue; }
+            if (report.maxInterval != record.maxInterval) { continue; }
+            if (report.reportableChange != record.reportableChange) { continue; }
+
+            okCount++;
+
+            DBG_Printf(DBG_INFO, "ZCL report configuration cl: 0x%04X, at: 0x%04X OK 0x%016llX\n", rsp.clusterId, record.attributeId, device->key());
+        }
+    }
+
+    if (okCount == bnd.reporting.size())
+    {
+        DBG_Printf(DBG_INFO, "ZCL report configuration cl: 0x%04X verified 0x%016llX\n", rsp.clusterId, device->key());
+        return true;
+    }
+    else
+    {
+        DBG_Printf(DBG_INFO, "ZCL report configuration cl: 0x%04X needs update 0x%016llX\n", rsp.clusterId, device->key());
+        return false;
+    }
+}
+
+void DEV_ReadReportConfigurationHandler(Device *device, const Event &event)
+{
+    DevicePrivate *d = device->d;
+
+    if (event.what() == REventStateEnter)
+    {
+        const auto &bnd = d->binding.bindings[d->binding.bindingIter];
+
+        if (bnd.reporting.empty())
+        {
+            // process next binding
+            d->binding.bindingIter++;
+            d->setState(DEV_BindingTableVerifyHandler, STATE_LEVEL_BINDING);
+            DEV_EnqueueEvent(device, REventBindingTick);
+            return;
+        }
+
+        ZCL_ReadReportConfigurationParam param;
+
+        param.extAddress = device->item(RAttrExtAddress)->toNumber();
+        param.nwkAddress = device->item(RAttrNwkAddress)->toNumber();
+        param.clusterId = bnd.clusterId;
+        param.manufacturerCode = 0; // TODO
+        param.endpoint = bnd.srcEndpoint;
+
+        for (const auto &report : bnd.reporting)
+        {
+            ZCL_ReadReportConfigurationParam::Record record{};
+
+            record.attributeId = report.attributeId;
+            record.direction = report.direction;
+
+            param.records.push_back(record);
+        }
+
+        d->binding.zclResult = ZCL_ReadReportConfiguration(param, d->apsCtrl);
+
+        if (d->binding.zclResult.isEnqueued)
+        {
+            d->startStateTimer(MaxConfirmTimeout, STATE_LEVEL_BINDING);
+        }
+        else
+        {
+            d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
+        }
+    }
+    else if (event.what() == REventStateLeave)
+    {
+        d->stopStateTimer(STATE_LEVEL_BINDING);
+    }
+    else if (event.what() == REventApsConfirm)
+    {
+        if (d->binding.zclResult.apsReqId == EventApsConfirmId(event))
+        {
+            if (EventApsConfirmStatus(event) == deCONZ::ApsSuccessStatus)
+            {
+                d->stopStateTimer(STATE_LEVEL_BINDING);
+                d->startStateTimer(d->maxResponseTime, STATE_LEVEL_BINDING);
+            }
+            else
+            {
+                d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
+            }
+        }
+    }
+    else if (event.what() == REventZclReadReportConfigResponse)
+    {
+        if (reportingConfigurationValid(device, event))
+        {
+            // process next binding
+            d->binding.bindingIter++;
+            d->setState(DEV_BindingTableVerifyHandler, STATE_LEVEL_BINDING);
+            DEV_EnqueueEvent(device, REventBindingTick);
+        }
+        else
+        {
+            d->setState(DEV_ConfigureReportingHandler, STATE_LEVEL_BINDING); // TODO reconfigure
+        }
+    }
+    else if (event.what() == REventStateTimeout)
+    {
+        DBG_Printf(DBG_INFO, "ZCL read report configuration timeout: 0x%016llX\n", device->key());
+        d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
+    }
+}
+
+void DEV_ConfigureReportingHandler(Device *device, const Event &event)
+{
+    DevicePrivate *d = device->d;
+
+    if (event.what() == REventStateEnter)
+    {
+        const auto &bnd = d->binding.bindings[d->binding.bindingIter];
+        Q_ASSERT(!bnd.reporting.empty());
+
+        ZCL_ConfigureReportingParam param;
+
+        param.extAddress = device->item(RAttrExtAddress)->toNumber();
+        param.nwkAddress = device->item(RAttrNwkAddress)->toNumber();
+        param.clusterId = bnd.clusterId;
+        param.manufacturerCode = 0; // TODO
+        param.endpoint = bnd.srcEndpoint;
+
+        for (const auto &report : bnd.reporting)
+        {
+            ZCL_ConfigureReportingParam::Record record{};
+
+            record.attributeId = report.attributeId;
+            record.direction = report.direction;
+            record.dataType = report.dataType;
+            record.minInterval = report.minInterval;
+            record.maxInterval = report.maxInterval;
+            record.reportableChange = report.reportableChange;
+            record.timeout = 0; // TODO
+
+            param.records.push_back(record);
+        }
+
+        d->binding.zclResult = ZCL_ConfigureReporting(param, d->apsCtrl);
+
+        if (d->binding.zclResult.isEnqueued)
+        {
+            d->startStateTimer(MaxConfirmTimeout, STATE_LEVEL_BINDING);
+        }
+        else
+        {
+            d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
+        }
+    }
+    else if (event.what() == REventStateLeave)
+    {
+        d->stopStateTimer(STATE_LEVEL_BINDING);
+    }
+    else if (event.what() == REventApsConfirm)
+    {
+        if (d->binding.zclResult.apsReqId == EventApsConfirmId(event))
+        {
+            if (EventApsConfirmStatus(event) == deCONZ::ApsSuccessStatus)
+            {
+                d->stopStateTimer(STATE_LEVEL_BINDING);
+                d->startStateTimer(d->maxResponseTime, STATE_LEVEL_BINDING);
+            }
+            else
+            {
+                d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
+            }
+        }
+    }
+    else if (event.what() == REventZclResponse)
+    {
+        if (d->binding.zclResult.sequenceNumber == EventZclSequenceNumber(event))
+        {
+            DBG_Printf(DBG_INFO, "DEV configure reporting %s/0x%016llX ZCL response seq: %u, status: 0x%02X\n",
+                   event.resource(), event.deviceKey(), d->binding.zclResult.sequenceNumber, EventZclStatus(event));
+
+            if (EventZclStatus(event) == deCONZ::ZclSuccessStatus)
+            {
+                d->binding.bindingIter++;
+                d->setState(DEV_BindingTableVerifyHandler, STATE_LEVEL_BINDING);
+                DEV_EnqueueEvent(device, REventBindingTick);
+            }
+            else
+            {
+                d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
+            }
+        }
+    }
+    else if (event.what() == REventStateTimeout)
+    {
+        DBG_Printf(DBG_INFO, "ZCL configure reporting timeout: 0x%016llX\n", device->key());
+        d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
+    }
+}
+
+void DEV_BindingIdleHandler(Device *device, const Event &event)
+{
+    DevicePrivate *d = device->d;
+
+    if (event.what() == REventStateEnter)
+    {
+        DBG_Printf(DBG_INFO, "DEV Binding idle enter %s/0x%016llX\n", event.resource(), event.deviceKey());
+        d->startStateTimer(BindingAutoCheckInterval, STATE_LEVEL_BINDING);
+    }
+    else if (event.what() == REventStateLeave)
+    {
+        d->stopStateTimer(STATE_LEVEL_BINDING);
+    }
+}
+
+
+//void DEV_BindingTableVerifyHandler(Device *device, const Event &event)
+//{
+//    DevicePrivate *d = device->d;
+
+//    if (event.what() != REventBindingTick)
+//    {
+
+//    }
+//    else if (d->binding.bindingIter >= device->node()->bindingTable().size())
+//    {
+//        d->binding.bindingVerify.start();
+//        d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
+//    }
+//    else
+//    {
+//        const auto now = QDateTime::currentMSecsSinceEpoch();
+//        const auto &bnd = *(device->node()->bindingTable().const_begin() + d->binding.bindingIter);
+//        const auto dt = bnd.confirmedMsSinceEpoch() > 0 ? (now - bnd.confirmedMsSinceEpoch()) / 1000: -1;
+
+//        if (bnd.dstAddressMode() == deCONZ::ApsExtAddress)
+//        {
+//            DBG_Printf(DBG_INFO, "BND 0x%016llX cl: 0x%04X, dstAddrmode: %u, dst: 0x%016llX, dstEp: 0x%02X, dt: %lld seconds\n", bnd.srcAddress(), bnd.clusterId(), bnd.dstAddressMode(), bnd.dstAddress().ext(), bnd.dstEndpoint(), dt);
+//        }
+//        else if (bnd.dstAddressMode() == deCONZ::ApsGroupAddress)
+//        {
+//            DBG_Printf(DBG_INFO, "BND 0x%016llX cl: 0x%04X, dstAddrmode: %u, group: 0x%04X, dstEp: 0x%02X, dt: %lld seconds\n", bnd.srcAddress(), bnd.clusterId(), bnd.dstAddressMode(), bnd.dstAddress().group(), bnd.dstEndpoint(), dt);
+//        }
+
+//        d->binding.bindingIter++;
+//        DEV_EnqueueEvent(device, REventBindingTick);
+//    }
+//}
 
 /*! Returns all items wich are ready for polling.
     The returned vector is reversed to use std::vector::pop_back() when processing the queue.
@@ -887,7 +1265,7 @@ void DEV_PollBusyStateHandler(Device *device, const Event &event)
         if (EventApsConfirmStatus(event) == deCONZ::ApsSuccessStatus)
         {
             d->stopStateTimer(StateLevel0);
-            d->startStateTimer(d->maxResponseTime, StateLevel0);
+            d->startStateTimer(d->maxResponseTime, STATE_LEVEL_POLL);
         }
         else
         {
@@ -1105,6 +1483,22 @@ std::vector<Resource *> Device::subDevices() const
     }
 
     return result;
+}
+
+void Device::clearBindings()
+{
+    d->binding.bindings.clear();
+    if (d->state[STATE_LEVEL_BINDING])
+    {
+        d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
+    }
+}
+
+void Device::addBinding(const DDF_Binding &bnd)
+{
+    auto cpy = bnd;
+    cpy.dstEndpoint = 0x01; // todo query coordinator endpoint
+    d->binding.bindings.push_back(cpy);
 }
 
 Device *DEV_GetDevice(DeviceContainer &devices, DeviceKey key)

@@ -10,6 +10,7 @@
 
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
+#include "device.h"
 #include "utils/utils.h"
 
 #define MAX_ACTIVE_BINDING_TASKS 3
@@ -132,6 +133,12 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
     DBG_Assert(node != 0);
 
     if (!node || !node->node())
+    {
+        return false;
+    }
+
+    Device *device = DEV_GetDevice(m_devices, node->address().ext());
+    if (device && device->managed())
     {
         return false;
     }
@@ -452,6 +459,12 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
  */
 void DeRestPluginPrivate::handleZclConfigureReportingResponseIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
+    Device *device = DEV_GetDevice(m_devices, ind.srcAddress().ext());
+    if (device && device->managed())
+    {
+        return;
+    }
+
     QDateTime now = QDateTime::currentDateTime();
     std::vector<RestNodeBase*> allNodes;
     for (Sensor &s : sensors)
@@ -557,6 +570,12 @@ void DeRestPluginPrivate::handleZclConfigureReportingResponseIndication(const de
  */
 void DeRestPluginPrivate::handleBindAndUnbindRspIndication(const deCONZ::ApsDataIndication &ind)
 {
+    Device *device = DEV_GetDevice(m_devices, ind.srcAddress().ext());
+    if (device && device->managed())
+    {
+        return;
+    }
+
     QDataStream stream(ind.asdu());
     stream.setByteOrder(QDataStream::LittleEndian);
 
@@ -2427,6 +2446,12 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         }
     }
 
+    Device *device = DEV_GetDevice(m_devices, lightNode->address().ext());
+    if (device && device->managed())
+    {
+        return;
+    }
+
     BindingTask::Action action = BindingTask::ActionUnbind;
 
     // whitelist
@@ -2739,6 +2764,12 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
     }
 
     if (sensor->deletedState() != Sensor::StateNormal)
+    {
+        return false;
+    }
+
+    Device *device = DEV_GetDevice(m_devices, sensor->address().ext());
+    if (device && device->managed())
     {
         return false;
     }
@@ -3528,6 +3559,12 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
 
     if (searchSensorsState != SearchSensorsActive &&
         idleTotalCounter < (IDLE_READ_LIMIT + (60 * 15))) // wait for some input before fire bindings
+    {
+        return false;
+    }
+
+    Device *device = DEV_GetDevice(m_devices, sensor->address().ext());
+    if (device && device->managed())
     {
         return false;
     }

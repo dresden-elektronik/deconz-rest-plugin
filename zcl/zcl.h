@@ -14,6 +14,8 @@
 namespace deCONZ
 {
     class ApsController;
+    class ApsDataIndication;
+    class ZclFrame;
 }
 
 struct ZCL_Param
@@ -38,7 +40,77 @@ struct ZCL_Result
     }
 };
 
+struct ZCL_ReadReportConfigurationParam
+{
+    quint64 extAddress = 0;
+    quint16 nwkAddress = 0;
+    quint16 manufacturerCode = 0;
+    quint16 clusterId = 0;
+
+    struct Record
+    {
+        quint16 attributeId;
+        quint8 direction;
+        quint8 _pad;
+    };
+    quint8 endpoint = 0;
+    std::vector<Record> records;
+};
+
+struct ZCL_ConfigureReportingParam
+{
+    quint64 extAddress = 0;
+    quint16 nwkAddress = 0;
+    quint16 manufacturerCode = 0;
+    quint16 clusterId = 0;
+
+    struct Record
+    {
+        quint64 reportableChange;
+        quint16 attributeId;
+        quint16 minInterval;
+        quint16 maxInterval;
+        quint16 timeout;
+        quint8 direction;
+        quint8 dataType;
+        quint8 _pad;
+    };
+    quint8 endpoint = 0;
+    std::vector<Record> records;
+};
+
+struct ZCL_ReadReportConfigurationRsp
+{
+    enum { MaxRecords = 6 };
+    quint16 manufacturerCode = 0;
+    quint16 clusterId = 0;
+    quint8 sequenceNumber = 0;
+    quint8 endpoint = 0;
+    quint8 recordCount = 0;
+
+    struct Record
+    {
+        quint64 reportableChange;
+        quint16 attributeId;
+        quint16 minInterval;
+        quint16 maxInterval;
+        quint8 status;
+        quint8 direction;
+        quint8 dataType;
+        struct
+        {
+            unsigned char hasReportableChange : 1;
+            unsigned char hasMinMaxInterval : 1;
+            unsigned char _pad : 6;
+        };
+    };
+    Record records[MaxRecords];
+};
+
 quint8 zclNextSequenceNumber();
 ZCL_Result ZCL_ReadAttributes(const ZCL_Param &param, quint64 extAddress, quint16 nwkAddress, deCONZ::ApsController *apsCtrl);
+ZCL_Result ZCL_ReadReportConfiguration(const ZCL_ReadReportConfigurationParam &param, deCONZ::ApsController *apsCtrl);
+ZCL_Result ZCL_ConfigureReporting(const ZCL_ConfigureReportingParam &param, deCONZ::ApsController *apsCtrl);
+ZCL_ReadReportConfigurationRsp ZCL_ParseReadReportConfigurationRsp(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
 
 #endif // ZCL_H

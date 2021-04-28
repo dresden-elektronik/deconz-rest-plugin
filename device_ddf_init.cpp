@@ -169,6 +169,12 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &desc
         device->item(RAttrSleeper)->setValue(description.sleeper == 1);
     }
 
+    device->clearBindings();
+    for (const auto &bnd : description.bindings)
+    {
+        device->addBinding(bnd);
+    }
+
     return subCount == description.subDevices.size();
 }
 

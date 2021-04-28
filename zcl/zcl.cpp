@@ -13,9 +13,44 @@
 #include <deconz/zcl.h>
 #include "zcl.h"
 
+
+struct ZclDataType
+{
+    quint8 dataType;
+    char type; // 'A' analog 'D' discrete
+    quint8 size;
+};
+
+static ZclDataType _zclDataTypes[] = {
+    { deCONZ::Zcl8BitUint,    'A',  1 },
+    { deCONZ::Zcl16BitUint,   'A',  2 },
+    { deCONZ::Zcl24BitUint,   'A',  3 },
+    { deCONZ::Zcl32BitUint,   'A',  4 },
+    { deCONZ::Zcl40BitUint,   'A',  5 },
+    { deCONZ::Zcl48BitUint,   'A',  6 },
+    { deCONZ::Zcl56BitUint,   'A',  7 },
+    { deCONZ::Zcl64BitUint,   'A',  8 },
+    { deCONZ::Zcl8BitInt,     'A',  1 },
+    { deCONZ::Zcl16BitInt,    'A',  2 },
+    { deCONZ::Zcl24BitInt,    'A',  3 },
+    { deCONZ::Zcl32BitInt,    'A',  4 },
+    { deCONZ::Zcl40BitInt,    'A',  5 },
+    { deCONZ::Zcl48BitInt,    'A',  6 },
+    { deCONZ::Zcl56BitInt,    'A',  7 },
+    { deCONZ::Zcl64BitInt,    'A',  8 },
+    { deCONZ::ZclSingleFloat, 'A',  4 },
+    { deCONZ::ZclSemiFloat,   'A',  2 },
+    { deCONZ::ZclDoubleFloat, 'A',  8 },
+    { deCONZ::ZclTimeOfDay,   'A',  4 },
+    { deCONZ::ZclDate,        'A',  4 },
+    { deCONZ::ZclUtcTime,     'A',  4 },
+    { deCONZ::ZclNoData,       0,   0 }
+};
+
+
 ZCL_Result ZCL_ReadAttributes(const ZCL_Param &param, quint64 extAddress, quint16 nwkAddress, deCONZ::ApsController *apsCtrl)
 {
-    ZCL_Result result;
+    ZCL_Result result{};
 
 
 //    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
@@ -63,6 +98,238 @@ ZCL_Result ZCL_ReadAttributes(const ZCL_Param &param, quint64 extAddress, quint1
         for (const quint16 attrId : param.attributes)
         {
             stream << attrId;
+        }
+    }
+
+    { // ZCL frame
+        QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        zclFrame.writeToStream(stream);
+    }
+
+    if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
+    {
+        result.isEnqueued = true;
+    }
+
+    return result;
+}
+
+ZCL_Result ZCL_ReadReportConfiguration(const ZCL_ReadReportConfigurationParam &param, deCONZ::ApsController *apsCtrl)
+{
+    ZCL_Result result{};
+
+    deCONZ::ApsDataRequest req;
+    result.apsReqId = req.id();
+
+    req.setDstEndpoint(param.endpoint);
+    req.setDstAddressMode(deCONZ::ApsExtAddress);
+    req.dstAddress().setExt(param.extAddress);
+    req.dstAddress().setNwk(param.nwkAddress);
+    req.setClusterId(param.clusterId);
+    req.setProfileId(HA_PROFILE_ID);
+    req.setSrcEndpoint(0x01); // todo dynamic
+
+    deCONZ::ZclFrame zclFrame;
+
+    zclFrame.setSequenceNumber(zclNextSequenceNumber());
+    zclFrame.setCommandId(deCONZ::ZclReadReportingConfigId);
+
+    DBG_Printf(DBG_INFO, "ZCL read report config, ep: 0x%02X, cl: 0x%04X, mfcode: 0x%04X, aps.id: %u, zcl.seq: %u\n",
+               param.endpoint, param.clusterId, param.manufacturerCode, req.id(), zclFrame.sequenceNumber());
+
+    result.sequenceNumber = zclFrame.sequenceNumber();
+
+    if (param.manufacturerCode)
+    {
+        zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                      deCONZ::ZclFCManufacturerSpecific |
+                                      deCONZ::ZclFCDirectionClientToServer |
+                                      deCONZ::ZclFCDisableDefaultResponse);
+        zclFrame.setManufacturerCode(param.manufacturerCode);
+    }
+    else
+    {
+        zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                      deCONZ::ZclFCDirectionClientToServer |
+                                      deCONZ::ZclFCDisableDefaultResponse);
+    }
+
+    { // payload
+        QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        for (const auto &record : param.records)
+        {
+            stream << record.direction;
+            stream << record.attributeId;
+        }
+    }
+
+    { // ZCL frame
+        QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        zclFrame.writeToStream(stream);
+    }
+
+    if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
+    {
+        result.isEnqueued = true;
+    }
+
+    return result;
+}
+
+const ZclDataType *ZCL_GetDataType(deCONZ::ZclDataTypeId type)
+{
+    const auto *dt = &_zclDataTypes[0];
+    while (dt->dataType != deCONZ::ZclNoData)
+    {
+        if (dt->dataType == type)
+        {
+            break;
+        }
+        dt++;
+    }
+
+    return dt; // deCONZ::ZclNoData if not found
+}
+
+bool ZCL_IsDataTypeAnalog(deCONZ::ZclDataTypeId type)
+{
+    const auto *dt = ZCL_GetDataType(type);
+    return dt->type == 'A';
+}
+
+size_t ZCL_DataTypeSize(deCONZ::ZclDataTypeId type)
+{
+    const auto *dt = ZCL_GetDataType(type);
+    return dt->size;
+}
+
+ZCL_ReadReportConfigurationRsp ZCL_ParseReadReportConfigurationRsp(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame)
+{
+    ZCL_ReadReportConfigurationRsp result{};
+
+    result.sequenceNumber = zclFrame.sequenceNumber();
+    result.endpoint = ind.srcEndpoint();
+    result.clusterId = ind.clusterId();
+    result.manufacturerCode = zclFrame.manufacturerCode();
+
+    QDataStream stream(zclFrame.payload());
+    stream.setByteOrder(QDataStream::LittleEndian);
+
+    while (!stream.atEnd() && result.recordCount < ZCL_ReadReportConfigurationRsp::MaxRecords)
+    {
+        auto &record = result.records[result.recordCount];
+        result.recordCount++;
+
+        stream >> record.status;
+        stream >> record.direction;
+        stream >> record.attributeId;
+
+        if (record.status != deCONZ::ZclSuccessStatus)
+        {
+            // If the status field is not set to SUCCESS, all fields except the direction and attribute identifier fields SHALL be omitted.
+            continue;
+        }
+
+        stream >> record.dataType;
+        stream >> record.minInterval;
+        stream >> record.maxInterval;
+
+        if (ZCL_IsDataTypeAnalog(deCONZ::ZclDataTypeId(record.dataType)))
+        {
+            const auto size = ZCL_DataTypeSize(deCONZ::ZclDataTypeId(record.dataType));
+            Q_ASSERT(size <= 8);
+            if (size > 8)
+            {
+                break; // unsupported
+            }
+
+            for (size_t i = 0; i < size; i++)
+            {
+                quint8 tmp;
+                stream >> tmp;
+                record.reportableChange <<= 8;
+                record.reportableChange |= tmp;
+            }
+        }
+    }
+
+    return result;
+}
+
+ZCL_Result ZCL_ConfigureReporting(const ZCL_ConfigureReportingParam &param, deCONZ::ApsController *apsCtrl)
+{
+    ZCL_Result result{};
+
+    deCONZ::ApsDataRequest req;
+    result.apsReqId = req.id();
+
+    req.setDstEndpoint(param.endpoint);
+    req.setDstAddressMode(deCONZ::ApsExtAddress);
+    req.dstAddress().setExt(param.extAddress);
+    req.dstAddress().setNwk(param.nwkAddress);
+    req.setClusterId(param.clusterId);
+    req.setProfileId(HA_PROFILE_ID);
+    req.setSrcEndpoint(0x01); // todo dynamic
+
+    deCONZ::ZclFrame zclFrame;
+
+    zclFrame.setSequenceNumber(zclNextSequenceNumber());
+    zclFrame.setCommandId(deCONZ::ZclConfigureReportingId);
+
+    DBG_Printf(DBG_INFO, "ZCL configure reporting ep: 0x%02X, cl: 0x%04X, mfcode: 0x%04X, aps.id: %u, zcl.seq: %u\n",
+               param.endpoint, param.clusterId, param.manufacturerCode, req.id(), zclFrame.sequenceNumber());
+
+    result.sequenceNumber = zclFrame.sequenceNumber();
+
+    if (param.manufacturerCode)
+    {
+        zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                      deCONZ::ZclFCManufacturerSpecific |
+                                      deCONZ::ZclFCDirectionClientToServer |
+                                      deCONZ::ZclFCDisableDefaultResponse);
+        zclFrame.setManufacturerCode(param.manufacturerCode);
+    }
+    else
+    {
+        zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                      deCONZ::ZclFCDirectionClientToServer |
+                                      deCONZ::ZclFCDisableDefaultResponse);
+    }
+
+    { // payload
+        QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        for (const auto &record : param.records)
+        {
+            stream << record.direction;
+            stream << record.attributeId;
+            stream << record.dataType;
+            stream << record.minInterval;
+            stream << record.maxInterval;
+
+            if (ZCL_IsDataTypeAnalog(deCONZ::ZclDataTypeId(record.dataType)))
+            {
+                const auto size = ZCL_DataTypeSize(deCONZ::ZclDataTypeId(record.dataType));
+                Q_ASSERT(size <= 8);
+                if (size > 8)
+                {
+                    return result; // unsupported
+                }
+
+                auto reportableChange = record.reportableChange;
+                for (size_t i = 0; i < size; i++)
+                {
+                    stream << static_cast<quint8>(reportableChange & 0xff);
+                    reportableChange >>= 8;
+                }
+            }
+
+//            stream << record.timeout; // TODO?
         }
     }
 

@@ -18,6 +18,42 @@
 
 class Event;
 
+class DDF_ZclReport
+{
+public:
+    bool isValid() const { return valid; }
+    quint32 reportableChange;
+    quint16 attributeId;
+    quint16 minInterval;
+    quint16 maxInterval;
+    quint16 manufacturerCode;
+    quint8 direction;
+    quint8 dataType;
+    bool valid = false;
+};
+
+class DDF_Binding
+{
+public:
+    bool isValid() const { return (isUnicastBinding || isGroupBinding) && srcEndpoint != 0; }
+    union
+    {
+        quint16 dstGroup;
+        quint64 dstExtAddress;
+    };
+
+    quint16 clusterId;
+    quint8 srcEndpoint;
+    quint8 dstEndpoint;
+    struct
+    {
+        unsigned int isGroupBinding : 1;
+        unsigned int isUnicastBinding : 1;
+        unsigned int pad : 6 + 24;
+    };
+    std::vector<DDF_ZclReport> reporting;
+};
+
 class DeviceDescription
 {
 public:
@@ -65,6 +101,7 @@ public:
 
     QString path;
     std::vector<SubDevice> subDevices;
+    std::vector<DDF_Binding> bindings;
 };
 
 class DeviceDescriptionsPrivate;

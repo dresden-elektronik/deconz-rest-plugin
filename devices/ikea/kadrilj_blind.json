@@ -46,7 +46,7 @@
                     "name": "state/lift",
                     "parse": {"cl": "0x0102", "at": "0x0008", "eval": "Item.val = Attr.val"},
                     "read": {"cl": "0x0102", "at": "0x0008"},
-                    "refresh.interval": 5
+                    "refresh.interval": 700
                 },
                 {
                     "name": "state/open",
@@ -126,7 +126,7 @@
                     "name": "state/battery",
                     "parse": {"cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val"},
                     "read": {"cl": "0x0001", "at": "0x0021"},
-                    "refresh.interval": 60
+                    "refresh.interval": 1800
                 },
                 {
                     "name": "state/lastupdated"
@@ -151,11 +151,25 @@
             }
         }
     ],
-     "reporting": [
-        ["report/5", 1, "0x0001", "0x0021", 5, 3600],
-        ["report/5", 1, "0x0102", "0x0008", 1, 1800]
-    ],
     "bindings": [
-        ["bind/2", 1, "0x0020"]
+        {
+            "bind": "unicast",
+            "src.ep": 1,
+            "cl": "0x0001",
+            "report": [
+                {"at": "0x0021", "dt": "0x20", "min": 300, "max": 600, "change": "0x01" }
+            ]
+        },
+        {
+            "bind": "unicast", "src.ep": 1, "cl": "0x0020"
+        },
+        {
+            "bind": "unicast",
+            "src.ep": 1,
+            "cl": "0x0102",
+            "report": [
+                {"at": "0x0008", "dt": "0x20", "min": 1, "max": 600, "change": "0x01" }
+            ]
+        }
     ]
 }
