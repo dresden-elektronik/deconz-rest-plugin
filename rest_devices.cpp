@@ -15,6 +15,7 @@
 #include <QProcess>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
+#include "device_descriptions.h"
 #include "json.h"
 #include "rest_devices.h"
 #include "utils/utils.h"
@@ -208,6 +209,13 @@ int RestDevices::getDevice(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
+    const DeviceDescription ddf = plugin->deviceDescriptions->get(device);
+
+    if (ddf.isValid())
+    {
+        rsp.map["productid"] = ddf.product;
+    }
+
     QVariantList subDevices;
 
     for (const auto &sub : device->subDevices())
@@ -219,7 +227,8 @@ int RestDevices::getDevice(const ApiRequest &req, ApiResponse &rsp)
             auto *item = sub->itemForIndex(i);
             Q_ASSERT(item);
 
-            if (item->descriptor().suffix == RStateLastUpdated)
+            if (item->descriptor().suffix == RStateLastUpdated ||
+                item->descriptor().suffix == RAttrId)
             {
                 continue;
             }
@@ -237,7 +246,10 @@ int RestDevices::getDevice(const ApiRequest &req, ApiResponse &rsp)
                     item->descriptor().suffix == RAttrManufacturerName || item->descriptor().suffix == RAttrModelId ||
                     item->descriptor().suffix == RAttrSwVersion || item->descriptor().suffix == RAttrName)
                 {
-                    rsp.map[ls.at(1)] = item->toString(); // top level attribute
+                    if (!rsp.map.contains(ls.at(1)))
+                    {
+                        rsp.map[ls.at(1)] = item->toString(); // top level attribute
+                    }
                 }
                 else if (ls.at(0) == QLatin1String("attr"))
                 {
