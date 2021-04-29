@@ -56,7 +56,7 @@ using namespace deCONZ::literals;
 constexpr int RxOnWhenIdleResponseTime = 2000; // Expect shorter response delay for rxOnWhenIdle devices
 constexpr int RxOffWhenIdleResponseTime = 8000; // 7680 ms + some space for timeout
 constexpr int MaxConfirmTimeout = 20000; // If for some reason no APS-DATA.confirm is received (should almost
-constexpr int BindingAutoCheckInterval = 3600;
+constexpr int BindingAutoCheckInterval = 1000 * 60 * 60;
 constexpr int MaxPollItemRetries = 3;
 
 struct DEV_PollItem
@@ -1084,6 +1084,10 @@ void DEV_BindingIdleHandler(Device *device, const Event &event)
     else if (event.what() == REventStateLeave)
     {
         d->stopStateTimer(STATE_LEVEL_BINDING);
+    }
+    else if (event.what() == REventStateTimeout)
+    {
+        d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
     }
 }
 
