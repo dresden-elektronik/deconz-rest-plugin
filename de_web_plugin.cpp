@@ -3531,6 +3531,14 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         {
                             str = QLatin1String("CM10ZW");
                         }
+                        else if (str == QLatin1String("lumi.remote.cagl01")) // Xiaomi T1 Aqara cube, falsely creates a on/off light
+                        {
+                            // TODO remove this code when DDF is ready
+                            lightNode->setState(LightNode::StateDeleted);
+                            lightNode->setNeedSaveDatabase(true);
+                            queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
+                            break;
+                        }
 
                         if (item && !str.isEmpty() && str != item->toString())
                         {
