@@ -105,21 +105,22 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
     const auto productId = R_GetProductId(lightNode);
     
     // DBG_Printf(DBG_INFO, "Tuya debug 4 : Address 0x%016llX, Command 0x%02X, Payload %s\n", ind.srcAddress().ext(), zclFrame.commandId(), qPrintable(zclFrame.payload().toHex()));
+    
+    // Send default response, it seem at least 0x01 and 0x02 need defaut response
+    if ((zclFrame.commandId() == TUYA_REPORTING || zclFrame.commandId() == TUYA_QUERY)&& !(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
+    {
+        sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
+    }
 
     if (zclFrame.commandId() == TUYA_REQUEST)
     {
         // 0x00 : TUYA_REQUEST > Used to send command, so not used here
     }
-    else if (zclFrame.commandId() == TUYA_REPORTING || zclFrame.commandId() == TUYA_QUERY)
+    else if (zclFrame.commandId() == TUYA_REPORTING || zclFrame.commandId() == TUYA_QUERY || zclFrame.commandId() == TUYA_STATUS_SEARCH)
     {
         // 0x01 : TUYA_REPORTING > Used to inform of changes in its state.
         // 0x02 : TUYA_QUERY > Send after receiving a 0x00 command.
-        
-        // Send default response, it seem at least 0x01 and 0x02 need defaut response
-        if ((zclFrame.commandId() == TUYA_REPORTING || zclFrame.commandId() == TUYA_QUERY)&& !(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
-        {
-            sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
-        }
+        // 0x06 : TUYA_STATUS_SEARCH > kind of reporting.
 
         if (zclFrame.payload().size() < 7)
         {
@@ -1051,6 +1052,34 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                                 enqueueEvent(e);
                                 update = true;
                             }
+                        }
+                    }
+                    break;
+                    case 0x026B: // Temperature
+                    {
+                        qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
+                        ResourceItem *item = sensorNode->item(RStateTemperature);
+
+                        if (item && item->toNumber() != temp)
+                        {
+                            item->setValue(temp);
+                            Event e(RSensors, RStateTemperature, sensorNode->id(), item);
+                            enqueueEvent(e);
+                            update = true;
+                        }
+                    }
+                    break;
+                    case 0x026C: // Humidity
+                    {
+                        qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
+                        ResourceItem *item = sensorNode->item(RStateHumidity);
+
+                        if (item && item->toNumber() != temp)
+                        {
+                            item->setValue(temp);
+                            Event e(RSensors, RStateHumidity, sensorNode->id(), item);
+                            enqueueEvent(e);
+                            update = true;
                         }
                     }
                     break;
