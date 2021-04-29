@@ -277,17 +277,8 @@ void PollManager::pollTimerFired()
 
     if (suffix == RStateOn && lightNode)
     {
-        item = r->item(RAttrModelId);
-
-        if (UseTuyaCluster(lightNode->manufacturer()))
-        {
-            //Thoses devices haven't cluster 0006, and use Cluster specific
-        }
-        else
-        {
-            clusterId = ONOFF_CLUSTER_ID;
-            attributes.push_back(0x0000); // onOff
-        }
+        clusterId = ONOFF_CLUSTER_ID;
+        attributes.push_back(0x0000); // onOff
     }
     else if (suffix == RStateBri && isOn)
     {
@@ -472,7 +463,6 @@ void PollManager::pollTimerFired()
 
     size_t fresh = 0;
     const int reportWaitTime = 360;
-    const int reportWaitTimeXAL = 60 * 30;
 
     // check that cluster exists on endpoint
     if (clusterId != 0xffff)
@@ -509,20 +499,13 @@ void PollManager::pollTimerFired()
                                 }
 
                                 NodeValue &val = restNode->getZclValue(clusterId, attrId);
+                                quint16 maxInterval = val.maxInterval > 0 && val.maxInterval < 65535 ? (val.maxInterval * 3 / 2) : reportWaitTime;
 
-                                if (lightNode && lightNode->manufacturerCode() == VENDOR_IKEA && val.timestamp.isValid())
-                                {
-                                    fresh++; // rely on reporting for ikea lights
-                                }
-                                else if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < reportWaitTime)
+                                // This should truely compensates missing reports and poll at startup until a report comes in, prevents unnecessary polling
+                                if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < maxInterval)
                                 {
                                     fresh++;
                                 }
-                                else if (lightNode && lightNode->manufacturerCode() == VENDOR_XAL && val.timestamp.isValid() && val.timestamp.secsTo(now) < reportWaitTimeXAL)
-                                {
-                                    fresh++; // rely on reporting for XAL lights
-                                }
-
                             }
                         }
                     }

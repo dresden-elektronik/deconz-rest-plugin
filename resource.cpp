@@ -10,9 +10,8 @@
 
 #include <QString>
 
-#include "deconz.h"
+#include "deconz/dbg_trace.h"
 #include "resource.h"
-#include "tuya.h"
 
 const char *RSensors = "/sensors";
 const char *RLights = "/lights";
@@ -121,6 +120,7 @@ const char *RConfigLock = "config/lock";
 const char *RConfigBattery = "config/battery";
 const char *RConfigColorCapabilities = "config/colorcapabilities";
 const char *RConfigConfigured = "config/configured";
+const char *RConfigControlSequence = "config/controlsequence";
 const char *RConfigCoolSetpoint = "config/coolsetpoint";
 const char *RConfigCtMin = "config/ctmin";
 const char *RConfigCtMax = "config/ctmax";
@@ -301,6 +301,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigCtMin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigCtMax));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigConfigured));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigControlSequence));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigCoolSetpoint, 700, 3500));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigDelay));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigDeviceMode));
@@ -450,162 +451,6 @@ bool R_HasFlags(const ResourceItem *item, qint64 flags)
     return false;
 }
 
-/*! The product map is a helper to map Basic Cluster manufacturer name and modelid
-   to human readable product identifiers like marketing string or the model no. as printed on the product package.
-
-   In case of Tuya multiple entries may refer to the same device, so in matching code
-   it's best to match against the \c productId.
-
-   Example:
-
-   if (R_GetProductId(sensor) == QLatin1String("SEA801-ZIGBEE TRV"))
-   {
-   }
-
-   Note: this will later on be replaced with the data from DDF files.
-*/
-struct ProductMap
-{
-    const char *zmanufacturerName;
-    const char *zmodelId;
-    const char *manufacturer;
-    // a common product identifier even if multipe branded versions exist
-    const char *commonProductId;
-};
-
-static const ProductMap products[] =
-{
-    // Prefix signification
-    // --------------------
-    // Tuya_THD : thermostat device using Tuya cluster
-    // Tuya_COVD : covering device using Tuya cluster
-    // Tuya_RPT : Repeater
-    
-    // Tuya Thermostat / TRV
-    {"_TYST11_zuhszj9s", "uhszj9s", "HiHome", "Tuya_THD WZB-TRVL TRV"},
-    {"_TYST11_KGbxAXL2", "GbxAXL2", "Saswell", "Tuya_THD SEA801-ZIGBEE TRV"},
-    {"_TYST11_c88teujp", "88teujp", "Saswell", "Tuya_THD SEA801-ZIGBEE TRV"},
-    {"_TZE200_c88teujp", "TS0601", "Saswell", "Tuya_THD SEA801-ZIGBEE TRV"},
-    {"_TYST11_ckud7u2l", "kud7u2l", "Tuya", "Tuya_THD HY369 TRV"},
-    {"_TZE200_ckud7u2l", "TS0601", "Tuya", "Tuya_THD HY369 TRV"},
-    {"_TZE200_ywdxldoj", "TS0601", "MOES/tuya", "Tuya_THD HY368 TRV"},
-    {"_TZE200_aoclfnxz", "TS0601", "Moes", "Tuya_THD BTH-002 Thermostat"},
-    {"_TYST11_jeaxp72v", "eaxp72v", "Essentials", "Tuya_THD Essentials TRV"},
-    {"_TYST11_kfvq6avy", "fvq6avy", "Revolt", "Tuya_THD NX-4911-675 TRV"},
-    {"_TZE200_kfvq6avy", "TS0601", "Revolt", "Tuya_THD NX-4911-675 TRV"},
-    {"_TYST11_zivfvd7h", "ivfvd7h", "Siterwell", "Tuya_THD GS361A-H04 TRV"},
-    {"_TZE200_zivfvd7h", "TS0601", "Siterwell", "Tuya_THD GS361A-H04 TRV"},
-    {"_TYST11_yw7cahqs", "w7cahqs", "Hama", "Tuya_THD Smart radiator TRV"},
-
-    // Tuya Covering
-    {"_TYST11_wmcdj3aq", "mcdj3aq", "Zemismart", "Tuya_COVD ZM25TQ"},
-    {"_TZE200_wmcdj3aq", "TS0601", "Zemismart", "Tuya_COVD ZM25TQ"},
-    {"_TZE200_fzo2pocs", "TS0601", "Zemismart", "Tuya_COVD ZM25TQ"},
-    {"_TYST11_xu1rkty3", "u1rkty3", "Smart Home", "Tuya_COVD DT82LEMA-1.2N"},
-    {"_TZE200_xuzcvlku", "TS0601", "Zemismart", "Tuya_COVD M515EGB"},
-    {"_TZE200_zah67ekd", "TS0601", "MoesHouse / Livolo", "Tuya_COVD AM43-0.45-40"},
-    {"_TZE200_nogaemzt", "TS0601", "Tuya", "Tuya_COVD YS-MT750"},
-    {"_TZE200_zpzndjez", "TS0601", "Tuya", "Tuya_COVD DS82"},
-    {"_TZE200_cowvfni3", "TS0601", "Zemismart", "Tuya_COVD ZM79E-DT"},
-    {"_TZE200_5zbp6j0u", "TS0601", "Tuya/Zemismart", "Tuya_COVD DT82LEMA-1.2N"},
-    {"_TZE200_fdtjuw7u", "TS0601", "Yushun", "Tuya_COVD YS-MT750"},
-    {"_TZE200_bqcqqjpb", "TS0601", "Yushun", "Tuya_COVD YS-MT750"},
-    {"_TZE200_nueqqe6k", "TS0601", "Zemismart", "Tuya_COVD M515EGB"},
-
-    // Tuya covering not using tuya cluster but need reversing
-    {"_TZ3000_egq7y6pr", "TS130F", "Lonsonho", "11830304 Switch"},
-    {"_TZ3000_xzqbrqk1", "TS130F", "Lonsonho", "Zigbee curtain switch"}, // https://github.com/dresden-elektronik/deconz-rest-plugin/issues/3757#issuecomment-776201454
-    {"_TZ3000_ltiqubue", "TS130F", "Tuya", "Zigbee curtain switch"},
-    {"_TZ3000_vd43bbfq", "TS130F", "Tuya", "QS-Zigbee-C01 Module"}, // Curtain module QS-Zigbee-C01
-
-    // Other
-    {"_TYST11_d0yu2xgi", "0yu2xgi", "NEO/Tuya", "NAS-AB02B0 Siren"},
-    {"_TZE200_d0yu2xgi", "TS0601", "NEO/Tuya", "NAS-AB02B0 Siren"},
-    {"_TZ3000_m0vaazab", "TS0207", "Tuya", "Tuya_RPT Repeater"},
-
-    // Xiaomi
-    {"LUMI", "lumi.remote.cagl01", "Xiaomi", "Aqara T1 Cube"},
-
-    {nullptr, nullptr, nullptr, nullptr}
-};
-
-/*! Returns the product identifier for a matching Basic Cluster manufacturer name. */
-static QLatin1String productIdForManufacturerName(const QString &manufacturerName, const ProductMap *mapIter)
-{
-    Q_ASSERT(mapIter);
-
-    for (; mapIter->commonProductId != nullptr; mapIter++)
-    {
-        if (manufacturerName == QLatin1String(mapIter->zmanufacturerName))
-        {
-            return QLatin1String(mapIter->commonProductId);
-        }
-    }
-
-    return QLatin1String("");
-}
-
-/*! Returns the product identifier for a resource. */
-const QString R_GetProductId(Resource *resource)
-{
-    DBG_Assert(resource);
-
-
-    if (!resource)
-    {
-        return rInvalidString;
-    }
-
-    auto *productId = resource->item(RAttrProductId);
-
-    if (productId)
-    {
-        return productId->toString();
-    }
-
-    const auto *manufacturerName = resource->item(RAttrManufacturerName);
-    const auto *modelId = resource->item(RAttrModelId);
-
-    // Need manufacturerName
-    if (!manufacturerName)
-    {
-        return rInvalidString;
-    }
-    
-    //Tuya don't need modelId
-    if (isTuyaManufacturerName(manufacturerName->toString()))
-    {
-        // for Tuya devices match against manufacturer name
-        const auto productIdStr = productIdForManufacturerName(manufacturerName->toString(), products);
-        if (productIdStr.size() > 0)
-        {
-            productId = resource->addItem(DataTypeString, RAttrProductId);
-            DBG_Assert(productId);
-            productId->setValue(QString(productIdStr));
-            productId->setIsPublic(false); // not ready for public
-            return productId->toString();
-        }
-        else
-        {
-            // Fallback
-            // manufacturer name is the most unique identifier for Tuya
-            if (DBG_IsEnabled(DBG_INFO_L2))
-            {
-                DBG_Printf(DBG_INFO_L2, "No Tuya productId entry found for manufacturername: %s\n", qPrintable(manufacturerName->toString()));
-            }
-
-            return manufacturerName->toString();
-        }
-    }
-    
-    if (modelId)
-    {
-        return modelId->toString();
-    }
-
-    return rInvalidString;
-}
-
 /*! Copy constructor. */
 ResourceItem::ResourceItem(const ResourceItem &other)
 {
@@ -701,7 +546,7 @@ ResourceItem &ResourceItem::operator=(ResourceItem &&other) noexcept
     m_num = other.m_num;
     m_numPrev = other.m_numPrev;
     m_rid = other.m_rid;
-    m_lastSet = std::move(other.m_lastChanged);
+    m_lastSet = std::move(other.m_lastSet);
     m_lastChanged = std::move(other.m_lastChanged);
     m_rulesInvolved = std::move(other.m_rulesInvolved);
     other.m_rid = &rInvalidItemDescriptor;
