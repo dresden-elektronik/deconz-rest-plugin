@@ -41,7 +41,11 @@ void PollManager::poll(RestNodeBase *restNode, const QDateTime &tStart)
 
     if (!restNode->node()->nodeDescriptor().receiverOnWhenIdle())
     {
-        return;
+        auto *item = r->item(RAttrSleeper);
+        if (!item || item->toBool())
+        {
+            return;
+        }
     }
 
     LightNode *lightNode = nullptr;
@@ -88,6 +92,15 @@ void PollManager::poll(RestNodeBase *restNode, const QDateTime &tStart)
         {
             // limit queries during joining
             if (suffix == RAttrModelId || suffix == RAttrSwVersion)
+            {
+                pitem.items.push_back(suffix);
+            }
+        }
+        else if (lightNode && lightNode->type() == QLatin1String("Window covering device"))
+        {
+            if (suffix == RStateLift ||
+                suffix == RAttrModelId ||
+                suffix == RAttrSwVersion)
             {
                 pitem.items.push_back(suffix);
             }
@@ -403,6 +416,17 @@ void PollManager::pollTimerFired()
         attributes.push_back(0x050b); // Active Power
         attributes.push_back(0x0505); // RMS Voltage
         attributes.push_back(0x0508); // RMS Current
+    }
+    else if (suffix == RStateLift)
+    {
+        clusterId = WINDOW_COVERING_CLUSTER_ID;
+        attributes.push_back(0x0008); // Current Position Lift Percentage
+
+        NodeValue &val = restNode->getZclValue(clusterId, 0x0008);
+        if (val.isValid() && val.maxInterval == 0)
+        {
+            val.maxInterval = 10;
+        }
     }
     else if (suffix == RAttrModelId)
     {

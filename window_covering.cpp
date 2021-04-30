@@ -98,7 +98,7 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
         return;
     }
 
-    deCONZ::NumericUnion numericValue;
+    deCONZ::NumericUnion numericValue{};
     quint16 attrid = 0x0000;
     quint8 attrTypeId = 0x00;
     quint8 attrValue = 0x00;
@@ -116,6 +116,8 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
     {
         updateType = NodeValue::UpdateByZclReport;
     }
+
+    const QString modelId = lightNode->modelId();
 
     // Read ZCL reporting and ZCL Read Attributes Response
     if (updateType != NodeValue::UpdateInvalid)
@@ -155,8 +157,6 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
                     return;
             }
 
-            NodeValue::UpdateType updateType = NodeValue::UpdateByZclReport;
-
             if (attrid == 0x0008) // current CurrentPositionLiftPercentage 0-100
             {
                 // Update value in the GUI.
@@ -165,15 +165,15 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
 
                 quint8 lift = attrValue;
                 // Reverse value for somes curtains
-                if (lightNode->modelId().startsWith(QLatin1String("lumi.curtain")) ||
-                    lightNode->modelId() == QLatin1String("D10110") ||
-                    lightNode->modelId() == QLatin1String("Motor Controller"))
+                if (modelId.startsWith(QLatin1String("lumi.curtain")) ||
+                    modelId == QLatin1String("D10110") ||
+                    modelId == QLatin1String("Motor Controller"))
                 {
                     lift = 100 - lift;
                 }
                 // Reverse value for Legrand but only for old value
-                if ((lightNode->modelId() == QLatin1String("Shutter SW with level control")) ||
-                    (lightNode->modelId() == QLatin1String("Shutter switch with neutral")) )
+                else if (modelId == QLatin1String("Shutter SW with level control") ||
+                         modelId == QLatin1String("Shutter switch with neutral"))
                 {
                     bool bStatus = false;
                     uint nHex = lightNode->swBuildId().toUInt(&bStatus,16);
@@ -183,9 +183,9 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
                     }
                 }
                 // Reverse for some tuya covering
-                if ((R_GetProductId(lightNode) == QLatin1String("11830304 Switch")) ||
-                    (R_GetProductId(lightNode) == QLatin1String("Zigbee curtain switch")) ||
-                    (R_GetProductId(lightNode) == QLatin1String("QS-Zigbee-C01 Module")) )
+                else if (R_GetProductId(lightNode) == QLatin1String("11830304 Switch") ||
+                         R_GetProductId(lightNode) == QLatin1String("Zigbee curtain switch") ||
+                         R_GetProductId(lightNode) == QLatin1String("QS-Zigbee-C01 Module"))
                 {
                     lift = 100 - lift;
                 }

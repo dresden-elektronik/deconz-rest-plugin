@@ -33,6 +33,7 @@ const char *RAttrClass = "attr/class";
 const char *RAttrId = "attr/id";
 const char *RAttrUniqueId = "attr/uniqueid";
 const char *RAttrProductId = "attr/productid";
+const char *RAttrSleeper = "attr/sleeper";
 const char *RAttrSwVersion = "attr/swversion";
 const char *RAttrLastAnnounced = "attr/lastannounced";
 const char *RAttrLastSeen = "attr/lastseen";
@@ -220,6 +221,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrUniqueId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrProductId));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RAttrSleeper));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrSwVersion));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RAttrLastAnnounced));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RAttrLastSeen));
