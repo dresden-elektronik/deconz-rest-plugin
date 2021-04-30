@@ -987,7 +987,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
         else if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReadReportingConfigResponseId)
         {
             const auto rsp = ZCL_ParseReadReportConfigurationRsp(ind, zclFrame);
-            enqueueEvent(Event(device->prefix(), REventZclReadReportConfigResponse, &rsp, sizeof(rsp), device->key()));
+            enqueueEvent(EventWithData(device->prefix(), REventZclReadReportConfigResponse, rsp, device->key()));
         }
     }
     else if (ind.profileId() == ZDP_PROFILE_ID)

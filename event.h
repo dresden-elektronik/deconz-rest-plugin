@@ -16,6 +16,7 @@ public:
     Event(const char *resource, const char *what, const QString &id, ResourceItem *item, DeviceKey deviceKey = 0);
     Event(const char *resource, const char *what, const QString &id, DeviceKey deviceKey = 0);
     Event(const char *resource, const char *what, int num, DeviceKey deviceKey = 0);
+    //! Don't call following ctor directly use EventWithData() factory function.
     Event(const char *resource, const char *what, const void *data, size_t size, DeviceKey deviceKey = 0);
 
     const char *resource() const { return m_resource; }
@@ -54,6 +55,13 @@ private:
         unsigned char _pad : 7;
     };
 };
+
+template <typename D>
+Event EventWithData(const char *resource, const char *what, const D &data, DeviceKey deviceKey)
+{
+    static_assert (std::is_trivially_copyable<D>::value, "data needs to be trivially copyable");
+    return Event(resource, what, &data, sizeof(data), deviceKey);
+}
 
 //! Unpacks APS confirm id.
 inline quint8 EventApsConfirmId(const Event &event)
