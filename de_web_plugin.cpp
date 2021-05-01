@@ -6587,6 +6587,12 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.addItem(DataTypeInt16, RStateTemperature);
         item = sensorNode.addItem(DataTypeInt16, RConfigOffset);
         item->setValue(0);
+        
+        if (R_GetProductId(sensorNode).startsWith(QLatin1String("Tuya_SEN")))
+        {
+            item = sensorNode.addItem(DataTypeBool, RConfigReporting);
+        }
+        
     }
     else if (sensorNode.type().endsWith(QLatin1String("Humidity")))
     {
