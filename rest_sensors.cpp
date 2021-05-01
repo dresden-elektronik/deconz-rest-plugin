@@ -2589,106 +2589,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     return REQ_READY_SEND;
 }
 
-/*! PUT, POST /api/<apikey>/sensors/<id>/state/pin
-    \return REQ_READY_SEND
-            REQ_NOT_HANDLED
- */
-int DeRestPluginPrivate::changeDoorLockPin(const ApiRequest &req, ApiResponse &rsp)
-{
-    rsp.httpStatus = HttpStatusOk;
-    bool ok = true;
-    bool correct = false;
-    QVariantMap rspItem;
-
-    // Get the /sensors/id resource.
-    QString id = req.path[3];
-    Sensor *sensor = id.length() < MIN_UNIQUEID_LENGTH ? getSensorNodeForId(id) : getSensorNodeForUniqueId(id);
-    if (!sensor || (sensor->deletedState() == Sensor::StateDeleted))
-    {
-        rsp.httpStatus = HttpStatusNotFound;
-        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/sensors/%1").arg(id), QString("resource, /sensors/%1, not available").arg(id)));
-        return REQ_READY_SEND;
-    }
-
-    // Check that it has state/pin.
-    ResourceItem *item = sensor->item(RStatePin);
-    if (!item)
-    {
-        rsp.httpStatus = HttpStatusNotFound;
-        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/sensors/%1/state/pin").arg(id), QString("resource, /sensors/%1/state/pin, not available").arg(id)));
-        return REQ_READY_SEND;
-    }
-    
-    // Check value
-    quint16 userID = req.path[6].toUInt(&ok);
-    if (!ok)
-    {
-        rsp.httpStatus = HttpStatusNotFound;
-        rsp.list.append(errorToMap(ERR_INVALID_JSON, QString("/sensors/%1/state/pin").arg(id), QString("resource, /sensors/%1/state/pin, wrong User ID").arg(id)));
-        return REQ_READY_SEND;
-    }
-    
-    // Create task
-    TaskItem task;
-    task.req.dstAddress() = sensor->address();
-    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-    task.req.setDstEndpoint(sensor->fingerPrint().endpoint);
-    task.req.setSrcEndpoint(getSrcEndpoint(sensor, task.req));
-    task.req.setDstAddressMode(deCONZ::ApsExtAddress);
-    
-    QVariantMap map;
-
-    if (req.hdr.method() == "GET")
-    {        
-        if (!addTaskDoorLockPin(task, COMMAND_READ_PIN, userID, map))
-        {
-            rspItem["success"] = QString("/sensors/%1/state/pin get user %1").arg(id).arg(userID);
-            rsp.list.append(rspItem);
-            correct = true;
-        }
-    }
-    else if (req.hdr.method() == "PUT")
-    {
-        QVariant var = Json::parse(req.content, ok);
-        map = var.toMap();
-    
-        if (map.contains("status") && map.contains("type") && map.contains("code"))
-        {
-            if (!addTaskDoorLockPin(task, COMMAND_SET_PIN, userID, map))
-            {
-                rspItem["success"] = QString("/sensors/%1/state/pin put user %1").arg(id).arg(userID);
-                rsp.list.append(rspItem);
-                correct = true;
-            }
-        }
-    }
-    else if (req.hdr.method() == "DELETE")
-    {        
-        if (!addTaskDoorLockPin(task, COMMAND_CLEAR_PIN, userID, map))
-        {
-            rspItem["success"] = QString("/sensors/%1/state/pin d user %1").arg(id).arg(userID);
-            rsp.list.append(rspItem);
-            correct = true;
-        }
-    }
-    
-    if (!correct)
-    {
-        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/state/pin").arg(id), QString("parametre problems")));
-        rsp.httpStatus = HttpStatusBadRequest;
-        return REQ_READY_SEND;
-    }
-
-    if (req.sock)
-    {
-        userActivity();
-    }
-
-    processTasks();
-
-    return REQ_READY_SEND;
-}
-
 /*! POST, DELETE /api/<apikey>/sensors/<id>/config/schedule/Wbbb
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
@@ -3302,13 +3202,6 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
             else if (rid.suffix == RStateY)
             {
                 iy = item;
-            }
-            else if (rid.suffix == RStatePin)
-            {
-                QString pin = item->toString();
-                pin = pin.replace(QLatin1String("\\\""), QLatin1String("\""));
-                QVariant var = Json::parse(pin);
-                state[key] = var;//pin.toVariantMap();
             }
             else
             {
