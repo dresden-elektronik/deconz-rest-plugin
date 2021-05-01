@@ -3222,7 +3222,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(0);
             item = sensor.addItem(DataTypeInt16, RConfigOffset);
             item->setValue(0);
-            if (R_GetProductId(sensor).startsWith(QLatin1String("Tuya_SEN")))
+            if (R_GetProductId(&sensor).startsWith(QLatin1String("Tuya_SEN")))
             {
                 item = sensor.addItem(DataTypeBool, RConfigReporting);
             }
