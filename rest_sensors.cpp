@@ -89,11 +89,6 @@ int DeRestPluginPrivate::handleSensorsApi(const ApiRequest &req, ApiResponse &rs
     {
         return changeSensorState(req, rsp);
     }
-    // GET, PUT, DELETE /api/<apikey>/sensors/<id>/state/pin
-    else if ((req.path.size() == 6) && (req.hdr.method() == "PUT" || req.hdr.method() == "GET" || req.hdr.method() == "DELETE") && (req.path[4] == "state") && (req.path[5] == "pin"))
-    {
-        return changeDoorLockPin(req, rsp);
-    }
     // POST, DELETE /api/<apikey>/sensors/<id>/config/schedule/Wbbb
     else if ((req.path.size() == 7) && (req.hdr.method() == "POST" || req.hdr.method() == "DELETE") && (req.path[4] == "config") && (req.path[5] == "schedule"))
     {
