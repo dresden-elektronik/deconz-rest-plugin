@@ -6588,7 +6588,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         item = sensorNode.addItem(DataTypeInt16, RConfigOffset);
         item->setValue(0);
         
-        if (R_GetProductId(sensorNode).startsWith(QLatin1String("Tuya_SEN")))
+        if (R_GetProductId(&sensorNode).startsWith(QLatin1String("Tuya_SEN")))
         {
             item = sensorNode.addItem(DataTypeBool, RConfigReporting);
         }
