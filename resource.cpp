@@ -117,6 +117,7 @@ const QStringList RStateEffectValuesMueller({
 
 const char *RConfigAlert = "config/alert";
 const char *RConfigLock = "config/lock";
+const char *RConfigReporting = "config/reporting";
 const char *RConfigBattery = "config/battery";
 const char *RConfigColorCapabilities = "config/colorcapabilities";
 const char *RConfigConfigured = "config/configured";
@@ -296,6 +297,7 @@ void initResourceDescriptors()
 
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigAlert));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigLock));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigReporting));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigBattery, 0, 100));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigColorCapabilities));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigCtMin));
