@@ -941,18 +941,9 @@ DeRestPluginPrivate *DeRestPluginPrivate::instance()
     return plugin;
 }
 
-void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndication &ind)
+void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndication &ind, Device *device)
 {
     deCONZ::ZclFrame zclFrame;
-
-    // Helper function until we have a proper Device class which hosts sub devices
-    Device *device = nullptr;
-
-    if (ind.srcAddress().hasExt())
-    {
-        device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), m_devices, ind.srcAddress().ext());
-        Q_ASSERT(device);
-    }
 
     if (!device)
     {
@@ -1068,7 +1059,14 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                 if (idItem && push)
                 {
                     enqueueEvent(Event(r->prefix(), item->descriptor().suffix, idItem->toString(), device->key()));
-                    DB_StoreSubDeviceItem(r, item);
+                    if (item->lastChanged() != item->lastSet())
+                    {
+                        DB_StoreSubDeviceItem(r, item);
+                    }
+                }
+                else if (idItem)
+                {
+                    device->handleEvent(Event(r->prefix(), item->descriptor().suffix, idItem->toString(), device->key()));
                 }
             }
         }
@@ -1103,7 +1101,9 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         rStats = { };
     }
 
-    apsdeDataIndicationDevice(ind);
+    auto *device = DEV_GetDevice(m_devices, ind.srcAddress().ext());
+
+    apsdeDataIndicationDevice(ind, device);
 
     if ((ind.profileId() == HA_PROFILE_ID) || (ind.profileId() == ZLL_PROFILE_ID))
     {
@@ -1163,7 +1163,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         // case DE_CLUSTER_ID:
             if (zclFrame.manufacturerCode() == VENDOR_PHILIPS)
             {
-                handlePhilipsClusterIndication(ind, zclFrame);
+                handlePhilipsClusterIndication(ind, zclFrame, device);
             }
             else // Shouldn't we check for DE manufacturer code?
             {
@@ -3215,13 +3215,15 @@ void DeRestPluginPrivate::nodeZombieStateChanged(const deCONZ::Node *node)
     bool available = !node->isZombie();
 
     {
-        auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), m_devices, node->address().ext());
-        Q_ASSERT(device);
-        ResourceItem *item = device->item(RStateReachable);
-        if (item && item->toBool() != available)
+        auto *device = DEV_GetDevice(m_devices, node->address().ext());
+        if (device)
         {
-            item->setValue(available);
-            enqueueEvent({device->prefix(), item->descriptor().suffix, 0, device->key()});
+            ResourceItem *item = device->item(RStateReachable);
+            if (item && item->toBool() != available)
+            {
+                item->setValue(available);
+                enqueueEvent({device->prefix(), item->descriptor().suffix, 0, device->key()});
+            }
         }
     }
 
@@ -14644,9 +14646,14 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(const deCONZ::ApsDataIndi
     \param ind the APS level data indication containing the ZCL packet
     \param zclFrame the actual ZCL frame which holds the scene cluster reponse
  */
-void DeRestPluginPrivate::handlePhilipsClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+void DeRestPluginPrivate::handlePhilipsClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, Device *device)
 {
     if (zclFrame.isDefaultResponse() || zclFrame.manufacturerCode() != VENDOR_PHILIPS || zclFrame.commandId() != 0x00)
+    {
+        return;
+    }
+
+    if (device && device->managed())
     {
         return;
     }

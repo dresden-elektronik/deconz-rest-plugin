@@ -82,4 +82,22 @@ public Q_SLOTS:
     int dataType() const;
 };
 
+class JsZclFrame : public QObject
+{
+    Q_OBJECT
+
+    Q_PROPERTY(int cmd READ cmd)
+    Q_PROPERTY(int payloadSize READ payloadSize)
+
+public:
+    const deCONZ::ZclFrame *zclFrame = nullptr;
+
+    JsZclFrame(QObject *parent = nullptr);
+
+public Q_SLOTS:
+    int at(int i) const;
+    int cmd() const;
+    int payloadSize() const;
+};
+
 #endif // DEVICE_JS_WRAPPERS_H

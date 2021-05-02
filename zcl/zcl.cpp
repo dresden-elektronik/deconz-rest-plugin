@@ -57,7 +57,6 @@ ZCL_Result ZCL_ReadAttributes(const ZCL_Param &param, quint64 extAddress, quint1
     deCONZ::ApsDataRequest req;
     result.apsReqId = req.id();
 
-
     req.setDstEndpoint(param.endpoint);
     req.setDstAddressMode(deCONZ::ApsExtAddress);
     req.dstAddress().setExt(extAddress);
@@ -95,9 +94,9 @@ ZCL_Result ZCL_ReadAttributes(const ZCL_Param &param, quint64 extAddress, quint1
         QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
         stream.setByteOrder(QDataStream::LittleEndian);
 
-        for (const quint16 attrId : param.attributes)
+        for (size_t i = 0; i < param.attributeCount; i++)
         {
-            stream << attrId;
+            stream << param.attributes[i];
         }
     }
 

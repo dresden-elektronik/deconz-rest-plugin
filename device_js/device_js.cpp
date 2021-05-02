@@ -21,6 +21,7 @@ public:
     QJSValue result;
     JsResource *jsResource = nullptr;
     JsZclAttribute *jsZclAttribute = nullptr;
+    JsZclFrame *jsZclFrame = nullptr;
     JsResourceItem *jsItem = nullptr;
 };
 
@@ -36,6 +37,10 @@ DeviceJs::DeviceJs() :
     d->jsZclAttribute = new JsZclAttribute(&d->engine);
     auto jsAttr = d->engine.newQObject(d->jsZclAttribute);
     d->engine.globalObject().setProperty("Attr", jsAttr);
+
+    d->jsZclFrame = new JsZclFrame(&d->engine);
+    auto jsZclFrame = d->engine.newQObject(d->jsZclFrame);
+    d->engine.globalObject().setProperty("ZclFrame", jsZclFrame);
 
     d->jsItem = new JsResourceItem(&d->engine);
     auto jsItem = d->engine.newQObject(d->jsItem);
@@ -74,7 +79,7 @@ void DeviceJs::setApsIndication(const deCONZ::ApsDataIndication &ind)
 
 void DeviceJs::setZclFrame(const deCONZ::ZclFrame &zclFrame)
 {
-    Q_UNUSED(zclFrame)
+    d->jsZclFrame->zclFrame = &zclFrame;
 }
 
 void DeviceJs::setZclAttribute(const deCONZ::ZclAttribute &attr)
@@ -103,6 +108,7 @@ void DeviceJs::reset()
 {
     d->jsResource->r = nullptr;
     d->jsZclAttribute->attr = nullptr;
+    d->jsZclFrame->zclFrame = nullptr;
     d->engine.collectGarbage();
 }
 

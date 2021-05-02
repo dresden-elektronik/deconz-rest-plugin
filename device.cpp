@@ -508,11 +508,12 @@ bool DEV_ZclRead(Device *device, ResourceItem *item, deCONZ::ZclClusterId_t clus
         return false;
     }
 
-    ZCL_Param param;
-    param.valid = true;
+    ZCL_Param param{};
+    param.valid = 1;
     param.endpoint = sd->endpoint();
     param.clusterId = static_cast<quint16>(clusterId);
-    param.attributes.push_back(static_cast<quint16>(attrId));
+    param.attributes[0] = static_cast<quint16>(attrId);
+    param.attributeCount = 1;
 
     const auto zclResult = ZCL_ReadAttributes(param, device->item(RAttrExtAddress)->toNumber(), device->item(RAttrNwkAddress)->toNumber(), d->apsCtrl);
 

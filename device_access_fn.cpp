@@ -83,13 +83,9 @@ uint variantToUint(const QVariant &var, size_t max, bool *ok)
  */
 static ZCL_Param getZclParam(const QVariantMap &param)
 {
-    ZCL_Param result;
+    ZCL_Param result{};
 
-    if (param.contains("cl") && param.contains("at"))
-    {
-
-    }
-    else
+    if (!param.contains(QLatin1String("cl")))
     {
         return result;
     }
@@ -100,27 +96,52 @@ static ZCL_Param getZclParam(const QVariantMap &param)
     result.clusterId = ok ? variantToUint(param["cl"], UINT16_MAX, &ok) : 0;
     result.manufacturerCode = ok && param.contains("mf") ? variantToUint(param["mf"], UINT16_MAX, &ok) : 0;
 
-    QVariantList attrArr;
-    if (param["at"].type() == QVariant::List)
+    if (param.contains(QLatin1String("cmd"))) // optional
     {
-        attrArr = param["at"].toList();
+        result.commandId = variantToUint(param["cmd"], UINT8_MAX, &ok);
+        result.hasCommandId = ok ? 1 : 0;
     }
-    else if (param["at"].type() == QVariant::String)
+    else
     {
-        attrArr.push_back(param["at"]);
+        result.hasCommandId = 0;
     }
 
-    const QVariantList &arr = attrArr; // get rid of detached Qt container warning
-    for (const auto &at : arr)
+    result.attributeCount = 0;
+    const auto attr = param[QLatin1String("at")]; // optional
+
+    if (!ok)
+    { }
+    else if (attr.type() == QVariant::String)
     {
-        ok = ok && at.type() == QVariant::String;
-        if (ok)
+        result.attributes[result.attributeCount] = variantToUint(attr, UINT16_MAX, &ok);
+        result.attributeCount = 1;
+    }
+    else if (attr.type() == QVariant::List)
+    {
+        const auto arr = attr.toList();
+        for (const auto &at : arr)
         {
-            result.attributes.push_back(variantToUint(at, UINT16_MAX, &ok));
+            if (result.attributeCount == ZCL_Param::MaxAttributes)
+            {
+                break;
+            }
+
+            if (ok && at.type() == QVariant::String)
+            {
+                result.attributes[result.attributeCount] = variantToUint(at, UINT16_MAX, &ok);
+                result.attributeCount++;
+            }
         }
+
+        ok = result.attributeCount == size_t(arr.size());
+    }
+    else if (param["eval"].toString().contains("Attr")) // guard against missing "at"
+    {
+        ok = false;
     }
 
-    result.valid = ok && !result.attributes.empty();
+    result.valid = ok;
+
     return result;
 }
 
@@ -147,7 +168,19 @@ quint8 resolveAutoEndpoint(const Resource *r)
  */
 bool evalZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, const deCONZ::ZclAttribute &attr, const QVariant &parseParameters)
 {
-    if (std::find(item->attributes().begin(), item->attributes().end(), attr.id()) == item->attributes().end())
+    bool ok = false;
+    const auto &zclParam = item->zclParam();
+
+    for (size_t i = 0; i < zclParam.attributeCount; i++)
+    {
+        if (zclParam.attributes[i] == attr.id())
+        {
+            ok = true;
+            break;
+        }
+    }
+
+    if (!ok)
     {
         return false;
     }
@@ -178,6 +211,34 @@ bool evalZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndi
     return false;
 }
 
+/*! Evaluates an items Javascript expression for a received attribute.
+ */
+bool evalZclFrame(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, const QVariant &parseParameters)
+{
+    const auto expr = parseParameters.toMap()["eval"].toString();
+
+    if (!expr.isEmpty())
+    {
+        DeviceJs engine;
+        engine.setResource(r);
+        engine.setItem(item);
+        engine.setZclFrame(zclFrame);
+        engine.setApsIndication(ind);
+
+        if (engine.evaluate(expr) == JsEvalResult::Ok)
+        {
+            const auto res = engine.result();
+            DBG_Printf(DBG_INFO, "expression: %s --> %s\n", qPrintable(expr), qPrintable(res.toString()));
+            return true;
+        }
+        else
+        {
+            DBG_Printf(DBG_INFO, "failed to evaluate expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
+        }
+    }
+    return false;
+}
+
 /*! A generic function to parse ZCL values from read/report commands.
     The item->parseParameters() is expected to be an object (given in the device description file).
 
@@ -195,11 +256,6 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
 {
     bool result = false;
 
-    if (zclFrame.commandId() != deCONZ::ZclReadAttributesResponseId && zclFrame.commandId() != deCONZ::ZclReportAttributesId)
-    {
-        return result;
-    }
-
     if (!item->parseFunction()) // init on first call
     {
         Q_ASSERT(!parseParameters.isNull());
@@ -210,7 +266,22 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
 
         ZCL_Param param = getZclParam(parseParameters.toMap());
 
+        Q_ASSERT(param.valid);
         if (!param.valid)
+        {
+            return result;
+        }
+
+        if (param.hasCommandId && param.commandId != zclFrame.commandId())
+        {
+            return result;
+        }
+        else if (!param.hasCommandId && zclFrame.commandId() != deCONZ::ZclReadAttributesResponseId && zclFrame.commandId() != deCONZ::ZclReportAttributesId)
+        {
+            return result;
+        }
+
+        if (param.manufacturerCode != zclFrame.manufacturerCode())
         {
             return result;
         }
@@ -226,16 +297,27 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
         }
 
         item->setParseFunction(parseZclAttribute);
-        item->setZclProperties(param.clusterId, param.attributes, param.endpoint);
+        item->setZclProperties(param);
     }
 
-    if (ind.clusterId() != item->clusterId() || zclFrame.payload().isEmpty())
+    const auto &zclParam = item->zclParam();
+
+    if (ind.clusterId() != zclParam.clusterId || zclFrame.payload().isEmpty())
     {
         return result;
     }
 
-    if (item->endpoint() < BroadcastEndpoint && item->endpoint() != ind.srcEndpoint())
+    if (zclParam.endpoint < BroadcastEndpoint && zclParam.endpoint != ind.srcEndpoint())
     {
+        return result;
+    }
+
+    if (zclParam.attributeCount == 0) // attributes are optional
+    {
+        if (evalZclFrame(r, item, ind, zclFrame, parseParameters))
+        {
+            result = true;
+        }
         return result;
     }
 
@@ -416,9 +498,10 @@ bool parseXiaomiSpecial(Resource *r, ResourceItem *item, const deCONZ::ApsDataIn
             return result;
         }
 
-        param.attributes.push_back(at);
+        param.attributeCount = 2;
+        param.attributes[0] = at;
         // keep tag/idx as second "attribute id"
-        param.attributes.push_back(idx);
+        param.attributes[1] = idx;
 
         if (param.endpoint == AutoEndpoint)
         {
@@ -431,21 +514,23 @@ bool parseXiaomiSpecial(Resource *r, ResourceItem *item, const deCONZ::ApsDataIn
         }
 
         item->setParseFunction(parseXiaomiSpecial);
-        item->setZclProperties(param.clusterId, param.attributes, param.endpoint);
+        item->setZclProperties(param);
     }
 
-    if (ind.clusterId() != item->clusterId() || zclFrame.payload().isEmpty())
+    const auto &zclParam = item->zclParam();
+
+    if (ind.clusterId() != zclParam.clusterId || zclFrame.payload().isEmpty())
     {
         return result;
     }
 
-    if (item->endpoint() < BroadcastEndpoint && item->endpoint() != ind.srcEndpoint())
+    if (zclParam.endpoint < BroadcastEndpoint && zclParam.endpoint != ind.srcEndpoint())
     {
         return result;
     }
 
-    Q_ASSERT(item->attributes().size() == 2); // attribute id + tag/idx
-    const auto attr = parseXiaomiZclTag(item->attributes().back(), zclFrame);
+    Q_ASSERT(zclParam.attributeCount == 2); // attribute id + tag/idx
+    const auto attr = parseXiaomiZclTag(zclParam.attributes[1], zclFrame);
 
     if (evalZclAttribute(r, item, ind, zclFrame, attr, parseParameters))
     {
@@ -553,6 +638,11 @@ bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsC
         return result;
     }
 
+    if (param.attributeCount != 1)
+    {
+        return result;
+    }
+
     if (param.endpoint == AutoEndpoint)
     {
         param.endpoint = resolveAutoEndpoint(r);
@@ -610,7 +700,7 @@ bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsC
     }
 
     { // payload
-        deCONZ::ZclAttribute attribute(param.attributes.front(), dataType, QLatin1String(""), deCONZ::ZclReadWrite, true);
+        deCONZ::ZclAttribute attribute(param.attributes[0], dataType, QLatin1String(""), deCONZ::ZclReadWrite, true);
 
         if (!expr.isEmpty())
         {

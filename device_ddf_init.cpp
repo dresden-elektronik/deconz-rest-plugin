@@ -154,6 +154,18 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &desc
                 continue;
             }
 
+            if (!ddfItem.defaultValue.isNull() && !ddfItem.writeParameters.isNull())
+            {
+                const auto writeFunction = ddfItem.writeParameters.toMap()["fn"].toString();
+                if (writeFunction.isEmpty() || writeFunction == QLatin1String("zcl"))
+                {
+                    StateChange stateChange(StateChange::StateWaitSync, SC_WriteZclAttribute, sub.uniqueId.at(1).toUInt());
+                    stateChange.addTargetValue(item->descriptor().suffix, item->toVariant());
+                    stateChange.setChangeTimeoutMs(1000 * 60 * 60);
+                    rsub->addStateChange(stateChange);
+                }
+            }
+
 //            if (item->descriptor().suffix == RConfigCheckin)
 //            {
 //                StateChange stateChange(StateChange::StateWaitSync, SC_WriteZclAttribute, sub.uniqueId.at(1).toUInt());

@@ -11,6 +11,9 @@
 #ifndef ZCL_H
 #define ZCL_H
 
+#include <array>
+#include <cstdint>
+
 namespace deCONZ
 {
     class ApsController;
@@ -20,11 +23,19 @@ namespace deCONZ
 
 struct ZCL_Param
 {
-    bool valid = false;
-    quint8 endpoint = 0;
-    quint16 clusterId = 0;
-    quint16 manufacturerCode = 0;
-    std::vector<quint16> attributes;
+    enum Constants { MaxAttributes = 4 };
+    std::array<uint16_t, MaxAttributes> attributes;
+    uint16_t clusterId = 0;
+    uint16_t manufacturerCode = 0;
+    uint8_t endpoint = 0;
+    uint8_t commandId = 0;
+    struct {
+        uint8_t valid : 1;
+        uint8_t hasCommandId : 1;
+        uint8_t attributeCount : 3;
+        uint8_t _pad0 : 3;
+    };
+    uint8_t _pad1;
 };
 
 struct ZCL_Result

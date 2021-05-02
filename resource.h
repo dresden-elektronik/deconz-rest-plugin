@@ -7,6 +7,7 @@
 #include <deconz.h>
 #include "utils/bufstring.h"
 #include "state_change.h"
+#include "zcl/zcl.h"
 
 class QString;
 class QVariant;
@@ -165,6 +166,7 @@ extern const char *RStateX;
 extern const char *RStateY;
 
 extern const char *RConfigAlert;
+extern const char *RConfigAllowTouchlink;
 extern const char *RConfigLock;
 extern const char *RConfigBattery;
 extern const char *RConfigColorCapabilities;
@@ -352,7 +354,7 @@ public:
     QVariant toVariant() const;
     int refreshInterval() const;
     void setRefreshInterval(int interval);
-    void setZclProperties(quint16 clusterId, const std::vector<quint16> &attributes, quint8 endpoint = 0xff);
+    void setZclProperties(const ZCL_Param &param) { m_zclParam = param; }
     bool setValue(const QString &val, ValueSource source = SourceUnknown);
     bool setValue(qint64 val, ValueSource source = SourceUnknown);
     bool setValue(const QVariant &val, ValueSource source = SourceUnknown);
@@ -364,9 +366,7 @@ public:
     const std::vector<int> &rulesInvolved() const;
     bool isPublic() const;
     void setIsPublic(bool isPublic);
-    quint16 clusterId() const { return m_clusterId; }
-    const std::vector<quint16> &attributes() const { return m_attributes; }
-    quint16 endpoint() const { return m_endpoint; }
+    const ZCL_Param zclParam() const { return m_zclParam; }
     ParseFunction_t parseFunction() const { return m_parseFunction; }
     void setParseFunction(ParseFunction_t fn) { m_parseFunction = fn; }
     ValueSource valueSource() const { return m_valueSource; }
@@ -412,12 +412,7 @@ private:
     QDateTime m_lastSet;
     QDateTime m_lastChanged;
     std::vector<int> m_rulesInvolved; // the rules a resource item is trigger
-    /*! The clusterId, attributeId and endpoint values are used by the parse function
-        To retreive the value from ZCL read/report commands.
-    */
-    quint16 m_clusterId = 0xFFFF;
-    std::vector<quint16> m_attributes;
-    quint8 m_endpoint = 0xFF;
+    ZCL_Param m_zclParam{};
     ParseFunction_t m_parseFunction = nullptr;
     quint32 m_ddfItemHandle = 0; // invalid item handle
 };

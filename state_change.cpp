@@ -42,13 +42,10 @@ StateChange::State StateChange::tick(Resource *r, deCONZ::ApsController *apsCtrl
         return m_state;
     }
 
-    auto rParent = r->parentResource() ? r->parentResource() : r;
-
-    Q_ASSERT(rParent);
     Q_ASSERT(m_stateTimer.isValid());
     Q_ASSERT(m_changeTimer.isValid());
 
-    if (m_state == StateWaitSync && rParent->item(RStateReachable)->toBool())
+    if (m_state == StateWaitSync)
     {
         if (m_stateTimer.elapsed() > m_stateTimeoutMs)
         {

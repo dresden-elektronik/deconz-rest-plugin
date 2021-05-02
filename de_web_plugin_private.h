@@ -1289,7 +1289,7 @@ public Q_SLOTS:
     Resource *getResource(const char *resource, const QString &id = QString());
     void announceUpnp();
     void upnpReadyRead();
-    void apsdeDataIndicationDevice(const deCONZ::ApsDataIndication &ind);
+    void apsdeDataIndicationDevice(const deCONZ::ApsDataIndication &ind, Device *device);
     void apsdeDataIndication(const deCONZ::ApsDataIndication &ind);
     void apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf);
     void gpDataIndication(const deCONZ::GpDataIndication &ind);
@@ -1612,7 +1612,7 @@ public:
     void sendTimeClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleBasicClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendBasicClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    void handlePhilipsClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handlePhilipsClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, Device *device);
     void handleTuyaClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclAttributeReportIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclConfigureReportingResponseIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);

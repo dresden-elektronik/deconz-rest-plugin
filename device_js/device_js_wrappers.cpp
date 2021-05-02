@@ -195,3 +195,38 @@ int JsZclAttribute::dataType() const
 
     return -1;
 }
+
+JsZclFrame::JsZclFrame(QObject *parent) :
+    QObject(parent)
+{
+
+}
+
+int JsZclFrame::at(int i) const
+{
+    if (zclFrame && i >= 0 && i < zclFrame->payload().size())
+    {
+        return zclFrame->payload().at(i);
+    }
+
+    return 0;
+}
+
+int JsZclFrame::cmd() const
+{
+    if (zclFrame)
+    {
+        return zclFrame->commandId();
+    }
+
+    return -1;
+}
+
+int JsZclFrame::payloadSize() const
+{
+    if (zclFrame)
+    {
+        return zclFrame->payload().size();
+    }
+    return 0;
+}

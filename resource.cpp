@@ -144,6 +144,7 @@ const QStringList RStateEffectValuesMueller({
 });
 
 const char *RConfigAlert = "config/alert";
+const char *RConfigAllowTouchlink = "config/allowtouchlink";
 const char *RConfigLock = "config/lock";
 const char *RConfigBattery = "config/battery";
 const char *RConfigColorCapabilities = "config/colorcapabilities";
@@ -330,6 +331,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateY));
 
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigAlert));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigAllowTouchlink));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigLock));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigBattery, 0, 100));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigColorCapabilities));
@@ -595,9 +597,7 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
     m_flags = other.m_flags;
     m_parseFunction = other.m_parseFunction;
     m_refreshInterval = other.m_refreshInterval;
-    m_clusterId = other.m_clusterId;
-    m_attributes = other.m_attributes;
-    m_endpoint = other.m_endpoint;
+    m_zclParam = other.m_zclParam;
     m_num = other.m_num;
     m_numPrev = other.m_numPrev;
     m_rid = other.m_rid;
@@ -645,9 +645,7 @@ ResourceItem &ResourceItem::operator=(ResourceItem &&other) noexcept
     m_lastSet = std::move(other.m_lastSet);
     m_lastChanged = std::move(other.m_lastChanged);
     m_rulesInvolved = std::move(other.m_rulesInvolved);
-    m_clusterId = other.m_clusterId;
-    m_attributes = std::move(other.m_attributes);
-    m_endpoint = other.m_endpoint;
+    m_zclParam = other.m_zclParam;
     m_parseFunction = other.m_parseFunction;
     m_refreshInterval = other.m_refreshInterval;
     m_ddfItemHandle = other.m_ddfItemHandle;
@@ -995,13 +993,6 @@ int ResourceItem::refreshInterval() const
 void ResourceItem::setRefreshInterval(int interval)
 {
     m_refreshInterval = interval;
-}
-
-void ResourceItem::setZclProperties(quint16 clusterId, const std::vector<quint16> &attributes, quint8 endpoint)
-{
-    m_clusterId = clusterId;
-    m_attributes = attributes;
-    m_endpoint = endpoint;
 }
 
 /*! Marks the resource item as involved in a rule. */
