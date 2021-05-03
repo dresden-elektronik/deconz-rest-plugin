@@ -4300,7 +4300,7 @@ static int sqliteGetAllLightIdsCallback(void *user, int ncols, char **colval , c
         return 0;
     }
 
-    DeRestPluginPrivate *d = static_cast<DeRestPluginPrivate*>(user);
+    std::vector<int> *lightIds = static_cast<std::vector<int>*>(user);
 
     for (int i = 0; i < ncols; i++)
     {
@@ -4313,7 +4313,7 @@ static int sqliteGetAllLightIdsCallback(void *user, int ncols, char **colval , c
 
                 if (ok)
                 {
-                    d->lightIds.push_back(id);
+                    lightIds->push_back(id);
                 }
             }
         }
@@ -4324,23 +4324,23 @@ static int sqliteGetAllLightIdsCallback(void *user, int ncols, char **colval , c
 
 /*! Determines a unused id for a light.
  */
-int DeRestPluginPrivate::getFreeLightId()
+int getFreeLightId()
 {
-    int rc;
-    char *errmsg = 0;
+    DeRestPluginPrivate *plugin = DeRestPluginPrivate::instance();
 
-    DBG_Assert(db != 0);
+    DBG_Assert(plugin && plugin->dbIsOpen());
 
-    if (!db)
+    if (!plugin || !plugin->dbIsOpen())
     {
-        return 1;
+        DBG_Printf(DBG_ERROR, "DB getFreeSensorId() called with no valid db pointer\n");
+        return 1; // TODO, this is an error we should handle this. 1 is misleading
     }
 
-    lightIds.clear();
+    std::vector<int> lightIds(plugin->nodes.size());
 
     { // append all ids from nodes known at runtime
-        std::vector<LightNode>::const_iterator i = nodes.begin();
-        std::vector<LightNode>::const_iterator end = nodes.end();
+        std::vector<LightNode>::const_iterator i = plugin->nodes.begin();
+        std::vector<LightNode>::const_iterator end = plugin->nodes.end();
         for (;i != end; ++i)
         {
             lightIds.push_back(i->id().toUInt());
@@ -4348,10 +4348,11 @@ int DeRestPluginPrivate::getFreeLightId()
     }
 
     // append all ids from database (dublicates are ok here)
-    QString sql = QString("SELECT * FROM nodes");
+    const auto sql = QString("SELECT * FROM nodes");
 
     DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
-    rc = sqlite3_exec(db, qPrintable(sql), sqliteGetAllLightIdsCallback, this, &errmsg);
+    char *errmsg = nullptr;
+    int rc = sqlite3_exec(db, qPrintable(sql), sqliteGetAllLightIdsCallback, &lightIds, &errmsg);
 
     if (rc != SQLITE_OK)
     {
@@ -4365,7 +4366,7 @@ int DeRestPluginPrivate::getFreeLightId()
     int id = 1;
     while (1)
     {
-        std::vector<int>::iterator result = std::find(lightIds.begin(), lightIds.end(), id);
+        const auto result = std::find(lightIds.begin(), lightIds.end(), id);
 
         // id not known?
         if (result == lightIds.end())
