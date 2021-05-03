@@ -28,7 +28,10 @@ struct DB_ResourceItem
 
 bool DB_StoreSubDevice(const QString &parentUniqueId, const QString &uniqueId);
 bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item);
+bool DB_StoreSubDeviceItems(const Resource *sub);
 std::vector<DB_ResourceItem> DB_LoadSubDeviceItemsOfDevice(const QString &deviceUniqueId);
 std::vector<DB_ResourceItem> DB_LoadSubDeviceItems(const QString &uniqueId);
+
+
 
 #endif // DATABASE_H

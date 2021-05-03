@@ -17756,6 +17756,15 @@ void DeRestPlugin::appAboutToQuit()
         d->saveDatabaseItems |= (DB_SENSORS | DB_RULES | DB_LIGHTS);
         d->openDb();
         d->saveDb();
+
+        for (const auto &dev : d->m_devices)
+        {
+            for (const auto *sub : dev->subDevices())
+            {
+                DB_StoreSubDeviceItems(sub);
+            }
+        }
+
         d->ttlDataBaseConnection = 0;
         d->closeDb();
 

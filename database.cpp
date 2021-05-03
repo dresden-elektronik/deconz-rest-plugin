@@ -5945,6 +5945,11 @@ bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item)
         return false;
     }
 
+    if (!item->lastSet().isValid())
+    {
+        return false;
+    }
+
     const auto sql = QString("INSERT INTO resource_items (sub_device_id,item,value,source,timestamp)"
                              " SELECT id, '%1', '%2', 'dev', %3"
                              " FROM sub_devices WHERE uniqueid = '%4'")
@@ -6046,4 +6051,16 @@ std::vector<DB_ResourceItem> DB_LoadSubDeviceItems(const QString &uniqueId)
     DeRestPluginPrivate::instance()->closeDb();
 
     return result;
+}
+
+bool DB_StoreSubDeviceItems(const Resource *sub)
+{
+    for (int i = 0; i < sub->itemCount(); i++)
+    {
+        auto *item = sub->itemForIndex(size_t(i));
+        Q_ASSERT(item);
+        DB_StoreSubDeviceItem(sub, item);
+    }
+
+    return true;
 }
