@@ -15,6 +15,7 @@
 #include "light_node.h"
 
 int getFreeSensorId();
+int getFreeLightId();
 
 /*! Overloads to add specific resources in higher layer.
     Since Device class doesn't know anything about web plugin or testing code,
@@ -66,6 +67,20 @@ static Resource *DEV_InitLightNodeFromDescription(Device *device, const DeviceDe
 {
     LightNode lightNode;
 
+    {
+        const auto ls = uniqueId.split('-', SKIP_EMPTY_PARTS);
+        if (ls.size() >= 2 && device->node())
+        {
+            bool ok;
+            const uint ep = ls[1].toUInt(&ok, 16);
+            deCONZ::SimpleDescriptor sd;
+            if (device->node()->copySimpleDescriptor(ep, &sd) == 0)
+            {
+                lightNode.setHaEndpoint(sd);
+            }
+        }
+    }
+
     lightNode.address().setExt(device->item(RAttrExtAddress)->toNumber());
     lightNode.address().setNwk(device->item(RAttrNwkAddress)->toNumber());
     lightNode.setModelId(device->item(RAttrModelId)->toString());
@@ -77,11 +92,13 @@ static Resource *DEV_InitLightNodeFromDescription(Device *device, const DeviceDe
     lightNode.setUniqueId(uniqueId);
     lightNode.setNode(const_cast<deCONZ::Node*>(device->node()));
 
-    lightNode.setId(QString::number(getFreeSensorId()));
+    lightNode.setId(QString::number(getFreeLightId()));
     lightNode.setName(QString("%1 %2").arg(lightNode.type(), lightNode.id()));
 
     // remove some items which need to be specified via DDF
     lightNode.removeItem(RStateOn);
+    lightNode.removeItem(RStateHue);
+    lightNode.removeItem(RStateSat);
     lightNode.removeItem(RStateAlert);
 
     lightNode.setNeedSaveDatabase(true);
