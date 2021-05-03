@@ -1092,40 +1092,6 @@ void DEV_BindingIdleHandler(Device *device, const Event &event)
     }
 }
 
-
-//void DEV_BindingTableVerifyHandler(Device *device, const Event &event)
-//{
-//    DevicePrivate *d = device->d;
-
-//    if (event.what() != REventBindingTick)
-//    {
-
-//    }
-//    else if (d->binding.bindingIter >= device->node()->bindingTable().size())
-//    {
-//        d->binding.bindingVerify.start();
-//        d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
-//    }
-//    else
-//    {
-//        const auto now = QDateTime::currentMSecsSinceEpoch();
-//        const auto &bnd = *(device->node()->bindingTable().const_begin() + d->binding.bindingIter);
-//        const auto dt = bnd.confirmedMsSinceEpoch() > 0 ? (now - bnd.confirmedMsSinceEpoch()) / 1000: -1;
-
-//        if (bnd.dstAddressMode() == deCONZ::ApsExtAddress)
-//        {
-//            DBG_Printf(DBG_INFO, "BND 0x%016llX cl: 0x%04X, dstAddrmode: %u, dst: 0x%016llX, dstEp: 0x%02X, dt: %lld seconds\n", bnd.srcAddress(), bnd.clusterId(), bnd.dstAddressMode(), bnd.dstAddress().ext(), bnd.dstEndpoint(), dt);
-//        }
-//        else if (bnd.dstAddressMode() == deCONZ::ApsGroupAddress)
-//        {
-//            DBG_Printf(DBG_INFO, "BND 0x%016llX cl: 0x%04X, dstAddrmode: %u, group: 0x%04X, dstEp: 0x%02X, dt: %lld seconds\n", bnd.srcAddress(), bnd.clusterId(), bnd.dstAddressMode(), bnd.dstAddress().group(), bnd.dstEndpoint(), dt);
-//        }
-
-//        d->binding.bindingIter++;
-//        DEV_EnqueueEvent(device, REventBindingTick);
-//    }
-//}
-
 /*! Returns all items wich are ready for polling.
     The returned vector is reversed to use std::vector::pop_back() when processing the queue.
  */
