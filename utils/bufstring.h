@@ -22,24 +22,24 @@ constexpr size_t BufStringOverHead = 2; // length + null termintor
 template <size_t Size>
 class BufString
 {
-    char buf[Size] = { };
+    char buf[Size]{ };
 
     static_assert (Size <= (255 + BufStringOverHead), "Size too large");
 
 public:
-    BufString()
+    constexpr BufString()
     { clear(); }
 
-    BufString(const char *str) :
+    constexpr BufString(const char *str) :
         BufString()
     { setString(str, strlen(str)); }
 
-    bool setString(const char *str)
+    constexpr bool setString(const char *str)
     {
         return setString(str, strlen(str));
     }
 
-    bool setString(const char *str, const size_t len)
+    constexpr bool setString(const char *str, const size_t len)
     {
         if (len > maxSize())
         {
@@ -55,20 +55,34 @@ public:
         return true;
     }
 
-    void clear()
+    constexpr void clear()
     {
         buf[0] = 0;
         buf[1] = '\0';
     }
 
-    const char *c_str() const { return &buf[1]; };
-    bool empty() const { return size() == 0; }
-    size_t size() const { return buf[0]; }
+    constexpr const char *c_str() const { return &buf[1]; };
+    constexpr bool empty() const { return size() == 0; }
+    constexpr size_t size() const { return buf[0]; }
     constexpr size_t maxSize() const { return Size - BufStringOverHead; }
-    size_t capacity() const { return maxSize() - size(); }
+    constexpr size_t capacity() const { return maxSize() - size(); }
 
     operator QString () const { return QString::fromUtf8(c_str(), int(size())); }
     operator QLatin1String () const { return QLatin1String(c_str(), int(size())); }
+
+    inline bool operator==(const BufString &rhs) const
+    {
+        const auto sz = size() + 1; // first byte is length
+        for (uint8_t i = 0; i < sz; ++i)
+        {
+            if (buf[i] != rhs.buf[i])
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     bool startsWith(const QLatin1String &str) const
     {
