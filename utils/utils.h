@@ -15,4 +15,17 @@
 
 QString generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId);
 
+template <typename K, typename Cont>
+decltype(auto) getMappedValue(const K &key, const Cont &cont)
+{
+    typename Cont::value_type ret{};
+    const auto res = std::find_if(cont.cbegin(), cont.cend(), [&key](const auto &i){ return i.key == key; });
+    if (res != cont.cend())
+    {
+        ret = *res;
+    }
+
+    return ret;
+}
+
 #endif // UTILS_H
