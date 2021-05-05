@@ -121,8 +121,6 @@ private:
 
     DA_ReadResult m_readResult;
     quint8 m_dstEndpoint;
-//    int m_stage = 0;
-    int m_changeCalls = 0; //! Counts how often the change function was called (retries).
     int m_stateTimeoutMs = 1000 * 5; //! Inner timeout for states.
     int m_changeTimeoutMs = 1000 * 180; //! Max. duration for the whole change.
     QElapsedTimer m_stateTimer;

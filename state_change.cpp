@@ -77,7 +77,6 @@ StateChange::State StateChange::tick(Resource *r, deCONZ::ApsController *apsCtrl
         if (m_changeFunction(r, this, apsCtrl) == 0)
         {
             m_stateTimer.start();
-            m_changeCalls++;
 
             for (auto &i : m_items)
             {
