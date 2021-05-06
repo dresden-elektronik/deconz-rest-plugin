@@ -12,46 +12,22 @@
 #include <QDir>
 #include <QFile>
 #include <QProcess>
+#include <stack>
 #include <deconz.h>
 #include "backup.h"
 #include "json.h"
 
 #define EXT_PROCESS_TIMEOUT 10000
 
-static bool cleanupTemporaryFiles1(const QString &path)
+using TmpFiles = std::array<const char*, 3>;
+
+static bool cleanupTemporaryFiles(const QString &path, const TmpFiles &files)
 {
-    const std::array<QLatin1String, 3> files1 = {
-        QLatin1String{"/deCONZ.conf"},
-        QLatin1String{"/deCONZ.tar"},
-        QLatin1String{"/deCONZ.tar.gz"}
-    };
-
-    for (const auto &f : files1)
+    for (const auto &f : files)
     {
-        const QString filePath = path + f;
-        if (QFile::exists(filePath))
-        {
-            if (!QFile::remove(filePath))
-            {
-                DBG_Printf(DBG_ERROR, "backup: failed to remove temporary file %s\n", qPrintable(filePath));
-                return false;
-            }
-        }
-    }
+        if (!f) { continue; } // some elements can be nullptr
 
-    return true;
-}
-
-static bool cleanupTemporaryFiles2(const QString &path)
-{
-    const std::array<QLatin1String, 2> files1 = {
-        QLatin1String{"/deCONZ.conf"},
-        QLatin1String{"/deCONZ.tar"}
-    };
-
-    for (const auto &f : files1)
-    {
-        const QString filePath = path + f;
+        const QString filePath = path + QLatin1String(f);
         if (QFile::exists(filePath))
         {
             if (!QFile::remove(filePath))
@@ -77,7 +53,7 @@ bool BAK_ExportConfiguration(deCONZ::ApsController *apsCtrl)
     const QString path = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation);
 
     // cleanup older files
-    if (!cleanupTemporaryFiles1(path))
+    if (!cleanupTemporaryFiles(path, { "/deCONZ.conf", "/deCONZ.tar", "/deCONZ.tar.gz" }))
     {
         return false;
     }
@@ -283,7 +259,7 @@ bool BAK_ExportConfiguration(deCONZ::ApsController *apsCtrl)
     }
 
     //cleanup
-    if (!cleanupTemporaryFiles2(path))
+    if (!cleanupTemporaryFiles(path, { "/deCONZ.conf", "/deCONZ.tar" }))
     {
         return false;
     }
@@ -302,8 +278,7 @@ bool BAK_ImportConfiguration(deCONZ::ApsController *apsCtrl)
 
     const QString path = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation);
 
-    // cleanup old files
-    if (!cleanupTemporaryFiles2(path))
+    if (!cleanupTemporaryFiles(path, { "/deCONZ.conf", "/deCONZ.tar" }))
     {
         return false;
     }
@@ -393,7 +368,7 @@ bool BAK_ImportConfiguration(deCONZ::ApsController *apsCtrl)
         }
     }
 
-    cleanupTemporaryFiles1(path);
+    cleanupTemporaryFiles(path, { "/deCONZ.conf", "/deCONZ.tar", "/deCONZ.tar.gz" });
 
     const std::array<const char*, 14> requiredFields = {
         "deviceType", "panId", "extPanId", "apsUseExtPanId", "macAddress", "staticNwkAddress",
