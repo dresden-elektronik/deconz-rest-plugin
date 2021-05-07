@@ -1511,7 +1511,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else
         {
-            const quint8 cmd = taskRef.lightNode->manufacturerCode() == VENDOR_PHILIPS // FIXME: use light capabilities
+            const quint16 manufacturerCode = taskRef.lightNode->manufacturerCode();
+            const quint8 cmd = (manufacturerCode == VENDOR_PHILIPS || manufacturerCode == VENDOR_IKEA)
                     ? ONOFF_COMMAND_OFF_WITH_EFFECT
                     : ONOFF_COMMAND_OFF;
             ok = addTaskSetOnOff(task, cmd, 0, 0);
