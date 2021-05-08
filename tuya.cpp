@@ -104,7 +104,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
     
     const auto productId = R_GetProductId(lightNode);
     
-    DBG_Printf(DBG_INFO, "Tuya debug 3 : Address 0x%016llX, Command 0x%02X, Payload %s\n", ind.srcAddress().ext(), zclFrame.commandId(), qPrintable(zclFrame.payload().toHex()));
+    DBG_Printf(DBG_INFO, "Tuya debug 3 : Address 0x%016llX, Endpoint 0x%02X, Command 0x%02X, Payload %s\n", ind.srcAddress().ext(), ind.srcEndpoint(), zclFrame.commandId(), qPrintable(zclFrame.payload().toHex()));
     
     // Send default response, it seem at least 0x01 and 0x02 need defaut response
     if ((zclFrame.commandId() == TUYA_REPORTING || zclFrame.commandId() == TUYA_QUERY)&& !(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
@@ -348,6 +348,28 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 {
                     sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint(), QLatin1String("ZHAAlarm"));
                 }
+                break;
+            }
+        }
+
+        //Some device have sensor created on other endpoint and other cluster but are using the endpoint 0x01 and the cluster 0xEF00
+        if (sensorNode && R_GetProductId(sensorNode) == QLatin1String("Tuya_SEN Multi-sensor"))
+        {
+            switch (dp)
+            {
+                //temperature
+                case 0x026B:
+                {
+                    sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x02, QLatin1String("ZHATemperature"));
+                }
+                break;
+                //Humidity
+                case 0x026C:
+                {
+                    sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x02, QLatin1String("ZHAHumidity"));
+                }
+                break;
+                default:
                 break;
             }
         }
