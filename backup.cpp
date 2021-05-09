@@ -523,7 +523,7 @@ bool BAK_ResetConfiguration(deCONZ::ApsController *apsCtrl, bool resetGW, bool d
 
     if (resetGW)
     {
-        qsrand(QDateTime::currentSecsSinceEpoch());
+        qsrand(QDateTime::currentMSecsSinceEpoch());
         uint8_t deviceType = deCONZ::Coordinator;
         uint16_t panId = qrand();
         quint64 apsUseExtPanId = 0x0000000000000000;
