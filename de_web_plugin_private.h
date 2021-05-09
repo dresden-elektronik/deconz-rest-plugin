@@ -478,7 +478,7 @@ using namespace deCONZ::literals;
 
 #define DB_HUGE_SAVE_DELAY  (60 * 60 * 1000) // 60 minutes
 #define DB_LONG_SAVE_DELAY  (15 * 60 * 1000) // 15 minutes
-#define DB_SHORT_SAVE_DELAY (5 *  1 * 1000) // 5 seconds
+#define DB_SHORT_SAVE_DELAY (1 *  60 * 1000) // 1 minute
 
 #define DB_CONNECTION_TTL (60 * 15) // 15 minutes
 
