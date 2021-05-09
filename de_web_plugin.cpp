@@ -6007,9 +6007,17 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         }
 
         // Add clusters used, but not exposed to sensors
-        if (modelId == QLatin1String("TRADFRI remote control"))
+        if (modelId == QLatin1String("TRADFRI remote control") || modelId == QLatin1String("Remote Control N2"))
         {
             fpSwitch.outClusters.push_back(SCENE_CLUSTER_ID);
+        }
+        else if (modelId == QLatin1String("Adurolight_NCC"))
+        {
+            fpSwitch.outClusters.push_back(ADUROLIGHT_CLUSTER_ID);
+        }
+        else if (modelId == QLatin1String("E1E-G7F"))
+        {
+            fpSwitch.outClusters.push_back(SENGLED_CLUSTER_ID);
         }
 
         if (!isDeviceSupported(node, modelId))
