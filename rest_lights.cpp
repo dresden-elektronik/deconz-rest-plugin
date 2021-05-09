@@ -1903,7 +1903,14 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
 
         if (cluster == TUYA_CLUSTER_ID)
         {
-            if (targetOpen)
+            // Reverse side for open/close command
+            bool targetOpen2 = targetOpen;
+            if (R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_COVD M515EGB"))
+            {
+                targetOpen2 = !targetOpen;
+            }
+
+            if (targetOpen2)
             {
                 ok = sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_CONTROL, QByteArray("\x02", 1));
             }
