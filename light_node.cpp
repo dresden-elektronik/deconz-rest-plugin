@@ -239,6 +239,19 @@ bool LightNode::isColorLoopActive() const
     return m_colorLoopActive;
 }
 
+bool LightNode::supportsColorLoop() const
+{
+    const auto *colorCapabilities = item(RConfigColorCapabilities);
+
+    if (colorCapabilities)
+    {
+        const quint16 colorLoopCap = COLOR_CAP_ENHANCED_HUE | COLOR_CAP_COLORLOOP;
+        return (colorCapabilities->toNumber() & colorLoopCap) == colorLoopCap;
+    }
+
+    return false;
+}
+
 /*! Sets the nodes color loop speed state.
     \param colorLoopActive whereever the color loop is active
  */
