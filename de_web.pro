@@ -98,6 +98,7 @@ DEFINES += GW_MIN_DERFUSB23E0X_FW_VERSION=0x22030300
 DEFINES += GW_DEFAULT_NAME=\\\"Phoscon-GW\\\"
 
 HEADERS  = bindings.h \
+           backup.h \
            connectivity.h \
            colorspace.h \
            daylight.h \
@@ -129,6 +130,7 @@ HEADERS  = bindings.h \
 
 SOURCES  = air_quality.cpp \
            authorisation.cpp \
+           backup.cpp \
            bindings.cpp \
            change_channel.cpp \
            connectivity.cpp \
