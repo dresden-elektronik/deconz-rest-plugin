@@ -90,7 +90,6 @@ using namespace deCONZ::literals;
 #define MAX_UNLOCK_GATEWAY_TIME 600
 #define MAX_RECOVER_ENTRY_AGE 600
 #define PERMIT_JOIN_SEND_INTERVAL (1000 * 1800)
-#define EXT_PROCESS_TIMEOUT 10000
 #define SET_ENDPOINTCONFIG_DURATION (1000 * 16) // time deCONZ needs to update Endpoints
 #define OTA_LOW_PRIORITY_TIME (60 * 2)
 #define CHECK_SENSOR_FAST_ROUNDS 3
@@ -480,7 +479,7 @@ using namespace deCONZ::literals;
 
 #define DB_HUGE_SAVE_DELAY  (60 * 60 * 1000) // 60 minutes
 #define DB_LONG_SAVE_DELAY  (15 * 60 * 1000) // 15 minutes
-#define DB_SHORT_SAVE_DELAY (5 *  1 * 1000) // 5 seconds
+#define DB_SHORT_SAVE_DELAY (1 *  60 * 1000) // 1 minute
 
 #define DB_CONNECTION_TTL (60 * 15) // 15 minutes
 
@@ -1275,13 +1274,7 @@ public:
     void initResetDeviceApi();
 
     //Timezone
-    // std::string getTimezone();
     QVariantList getTimezones();
-
-    //Export/Import/Reset Configuration
-    bool exportConfiguration();
-    bool importConfiguration();
-    bool resetConfiguration(bool resetGW, bool deleteDB);
 
 Q_SIGNALS:
     void eventNotify(const Event&);
