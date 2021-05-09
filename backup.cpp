@@ -143,8 +143,8 @@ bool BAK_ExportConfiguration(deCONZ::ApsController *apsCtrl)
         QProcess archProcess;
 
 #ifdef Q_OS_WIN
+        const QString appPath = qApp->applicationDirPath();
         {
-            const QString appPath = qApp->applicationDirPath();
             if (!QFile::exists(appPath + "/7za.exe"))
             {
                 DBG_Printf(DBG_INFO, "7z not found: %s\n", qPrintable(appPath + "/7za.exe"));
@@ -242,9 +242,9 @@ bool BAK_ExportConfiguration(deCONZ::ApsController *apsCtrl)
         {
             QProcess zipProcess;
 #ifdef Q_OS_WIN
+            QStringList args;
+            QString cmd = appPath + "/7za.exe";
 
-            cmd = appPath + "/7za.exe";
-            args.clear();
             args.append("a");
             args.append(path + "/deCONZ.tar.gz");
             args.append(path + "/deCONZ.tar");
@@ -323,7 +323,7 @@ bool BAK_ImportConfiguration(deCONZ::ApsController *apsCtrl)
         args.append("-y");
         args.append(path + "/deCONZ.tar.gz");
         args.append("-o" + path);
-        archProcess.>start(cmd, args);
+        archProcess.start(cmd, args);
 #endif
 #ifdef Q_OS_LINUX
         archProcess.start("gzip -df " + path + "/deCONZ.tar.gz");
