@@ -2318,11 +2318,8 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 hasServerOnOff = true;
             }
             //Tuya white list
-            // _TYST11_wmcdj3aq is covering with cluster 0x0006
-            // _TYST11_xu1rkty3 is covering with only 2 clusters
-            // _TYST11_d0yu2xgi siren with only 2 clusters
-            if (lightNode.manufacturer() == QLatin1String("_TYST11_xu1rkty3") ||
-                R_GetProductId(&lightNode) == QLatin1String("NAS-AB02B0 Siren"))
+            if (lightNode.manufacturer() == QLatin1String("_TYST11_xu1rkty3") ||  //Covering with only 2 clusters
+                R_GetProductId(&lightNode) == QLatin1String("NAS-AB02B0 Siren")) // Tuya Siren
             {
                 hasServerOnOff = true;
             }
@@ -2342,8 +2339,8 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             {
                 hasServerOnOff = false;
             }
-            //Battery covering
-            if (R_GetProductId(&lightNode).startsWith(QLatin1String("Tuya_COVD")))
+            if (R_GetProductId(&lightNode).startsWith(QLatin1String("Tuya_COVD")) || //Battery covering
+                R_GetProductId(&lightNode) == QLatin1String("NAS-AB02B0 Siren"))     // Tuya siren
             {
                 hasServerOnOff = true;
             }
