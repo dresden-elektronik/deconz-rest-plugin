@@ -104,10 +104,10 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
     
     const auto productId = R_GetProductId(lightNode);
     
-    DBG_Printf(DBG_INFO, "Tuya debug 3 : Address 0x%016llX, Endpoint 0x%02X, Command 0x%02X, Payload %s\n", ind.srcAddress().ext(), ind.srcEndpoint(), zclFrame.commandId(), qPrintable(zclFrame.payload().toHex()));
+    DBG_Printf(DBG_INFO_L2, "Tuya debug Request : Address 0x%016llX, Endpoint 0x%02X, Command 0x%02X, Payload %s\n", ind.srcAddress().ext(), ind.srcEndpoint(), zclFrame.commandId(), qPrintable(zclFrame.payload().toHex()));
     
     // Send default response, it seem at least 0x01 and 0x02 need defaut response
-    if ((zclFrame.commandId() == TUYA_REPORTING || zclFrame.commandId() == TUYA_QUERY)&& !(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
+    if ((zclFrame.commandId() == TUYA_REPORTING || zclFrame.commandId() == TUYA_QUERY) && !(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
     {
         sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
     }
