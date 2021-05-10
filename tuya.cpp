@@ -654,7 +654,9 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     case 0x026C : // max alarm temperature threshold
                     {
                         qint8 min = static_cast<qint8>(data & 0xFF);
-                        ResourceItem *item = sensorNode->item(RConfigTempThreshold);
+                        // Hack to get the code compiled quick and dirty
+                        // ResourceItem *item = sensorNode->item(RConfigTempThreshold);
+                        ResourceItem *item = sensorNode->item(RConfigTempMaxThreshold);
 
                         if (item)
                         {
@@ -684,7 +686,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             DBG_Printf(DBG_INFO, "Tuya debug 34 : %s\n", qPrintable(valuesList.join(',')));
                             
                             item->setValue(valuesList.join(','));
-                            Event e(RSensors, RConfigTempThreshold, sensorNode->id(), item);
+                            Event e(RSensors, RConfigTempMaxThreshold, sensorNode->id(), item);
                             enqueueEvent(e);
                             
                             update = true;
@@ -695,7 +697,9 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     case 0x026E : // max alarm humidity threshold
                     {
                         qint8 min = static_cast<qint8>(data & 0xFF);
-                        ResourceItem *item = sensorNode->item(RConfigHumiThreshold);
+                        // Hack to get the code compiled quick and dirty
+                        // ResourceItem *item = sensorNode->item(RConfigHumiThreshold);
+                        ResourceItem *item = sensorNode->item(RConfigHumiMaxThreshold);
 
                         if (item)
                         {
@@ -721,7 +725,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             if (dp == 0x026E) { valuesList[1] = QString::number(min); }
                             
                             item->setValue(valuesList.join(','));
-                            Event e(RSensors, RConfigHumiThreshold, sensorNode->id(), item);
+                            Event e(RSensors, RConfigHumiMaxThreshold, sensorNode->id(), item);
                             enqueueEvent(e);
                             
                             update = true;

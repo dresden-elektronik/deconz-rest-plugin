@@ -12,7 +12,37 @@
 #define UTILS_H
 
 #include <QString>
+#include <QVariant>
+#include <array>
+
+struct KeyValMap {
+    QLatin1String key;
+    quint8 value;
+    };
+    
+struct KeyValMapInt {
+    quint8 key;
+    quint16 value;
+    };
+
+struct KeyValMapTuyaSingle {
+    QLatin1String key;
+    char value[1];
+    };
 
 QString generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId);
+
+template <typename K, typename Cont>
+decltype(auto) getMappedValue2(const K &key, const Cont &cont)
+{
+    typename Cont::value_type ret{};
+    const auto res = std::find_if(cont.cbegin(), cont.cend(), [&key](const auto &i){ return i.key == key; });
+    if (res != cont.cend())
+    {
+        ret = *res;
+    }
+
+    return ret;
+}
 
 #endif // UTILS_H
