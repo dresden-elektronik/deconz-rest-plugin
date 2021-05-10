@@ -1040,8 +1040,6 @@ public:
 class TcpClient
 {
 public:
-    QHttpRequestHeader hdr;
-    QDateTime created;
     int closeTimeout; // close socket in n seconds
     QTcpSocket *sock;
 };
@@ -1500,7 +1498,7 @@ public:
     void checkIasEnrollmentStatus(Sensor*);
     void processIasZoneStatus(Sensor *sensor, quint16 zoneStatus, NodeValue::UpdateType updateType);
 
-    void pushClientForClose(QTcpSocket *sock, int closeTimeout, const QHttpRequestHeader &hdr);
+    void pushClientForClose(QTcpSocket *sock, int closeTimeout);
 
     uint8_t endpoint();
 
