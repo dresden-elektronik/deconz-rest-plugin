@@ -18063,19 +18063,31 @@ uint8_t DeRestPluginPrivate::endpoint()
         return haEndpoint;
     }
 
+    if (!apsCtrl)
+    {
+        return 1;
+    }
+
     const deCONZ::Node *node;
 
-    if (apsCtrl && apsCtrl->getNode(0, &node) == 0)
+    const auto coordMac = apsCtrl->getParameter(deCONZ::ParamMacAddress);
+
+    int i = 0;
+    while (apsCtrl->getNode(i, &node) == 0)
     {
-        std::vector<uint8_t> eps = node->endpoints();
+        i++;
 
-        std::vector<uint8_t>::const_iterator i = eps.begin();
-        std::vector<uint8_t>::const_iterator end = eps.end();
+        if (node->address().ext() != coordMac)
+        {
+            continue;
+        }
 
-        for (; i != end; ++i)
+        const auto eps = node->endpoints();
+
+        for (quint8 ep : eps)
         {
             deCONZ::SimpleDescriptor sd;
-            if (node->copySimpleDescriptor(*i, &sd) == 0)
+            if (node->copySimpleDescriptor(ep, &sd) == 0)
             {
                 if (sd.profileId() == HA_PROFILE_ID)
                 {
