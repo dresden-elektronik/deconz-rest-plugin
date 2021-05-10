@@ -17629,26 +17629,13 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
 {
     QString content;
     QTextStream stream(sock);
-    QHttpRequestHeader hdrmod(hdr);
 
     stream.setCodec(QTextCodec::codecForName("UTF-8"));
     d->pushClientForClose(sock, 60, hdr);
 
-    if (hdrmod.path().startsWith(QLatin1String("/api")))
-    {
-        // some clients send /api123 instead of /api/123
-        // correct the path here
-        if (hdrmod.path().length() > 4 && hdrmod.path().at(4) != '/')
-        {
-            QString urlpath = hdrmod.url().toString();
-            urlpath.insert(4, '/');
-            hdrmod.setRequest(hdrmod.method(), urlpath);
-        }
-    }
-
     if (DBG_IsEnabled(DBG_HTTP))
     {
-        DBG_Printf(DBG_HTTP, "HTTP API %s %s - %s\n", qPrintable(hdr.method()), qPrintable(hdrmod.url().toString()), qPrintable(sock->peerAddress().toString()));
+        DBG_Printf(DBG_HTTP, "HTTP API %s %s - %s\n", qPrintable(hdr.method()), qPrintable(hdr.url().toString()), qPrintable(sock->peerAddress().toString()));
     }
 
     if(hdr.hasKey(QLatin1String("Content-Type")) &&
@@ -17677,8 +17664,8 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         }
     }
 
-    QStringList path = hdrmod.path().split(QLatin1String("/"), QString::SkipEmptyParts);
-    ApiRequest req(hdrmod, path, sock, content);
+    QStringList path = hdr.path().split(QLatin1String("/"), QString::SkipEmptyParts);
+    ApiRequest req(hdr, path, sock, content);
     req.mode = d->gwHueMode ? ApiModeHue : ApiModeNormal;
 
     ApiResponse rsp;
