@@ -1117,9 +1117,9 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
     checkRfConnectState();
 
     // handle ETag
-    if (req.hdr.hasKey("If-None-Match"))
+    if (req.hdr.hasKey(QLatin1String("If-None-Match")))
     {
-        QString etag = req.hdr.value("If-None-Match");
+        QString etag = req.hdr.value(QLatin1String("If-None-Match"));
 
         if (gwConfigEtag == etag)
         {
@@ -1278,9 +1278,9 @@ int DeRestPluginPrivate::getConfig(const ApiRequest &req, ApiResponse &rsp)
     checkRfConnectState();
 
     // handle ETag
-    if (req.hdr.hasKey("If-None-Match"))
+    if (req.hdr.hasKey(QLatin1String("If-None-Match")))
     {
-        QString etag = req.hdr.value("If-None-Match");
+        QString etag = req.hdr.value(QLatin1String("If-None-Match"));
 
         if (gwConfigEtag == etag)
         {
@@ -1305,9 +1305,9 @@ int DeRestPluginPrivate::getBasicConfig(const ApiRequest &req, ApiResponse &rsp)
     checkRfConnectState();
 
     // handle ETag
-    if (req.hdr.hasKey("If-None-Match"))
+    if (req.hdr.hasKey(QLatin1String("If-None-Match")))
     {
-        QString etag = req.hdr.value("If-None-Match");
+        QString etag = req.hdr.value(QLatin1String("If-None-Match"));
 
         if (gwConfigEtag == etag)
         {
@@ -1319,9 +1319,9 @@ int DeRestPluginPrivate::getBasicConfig(const ApiRequest &req, ApiResponse &rsp)
     basicConfigToMap(req, rsp.map);
 
     // include devicename attribute in web based requests
-    if (!apsCtrl->getParameter(deCONZ::ParamDeviceName).isEmpty() && req.hdr.hasKey("User-Agent"))
+    if (!apsCtrl->getParameter(deCONZ::ParamDeviceName).isEmpty() && req.hdr.hasKey(QLatin1String("User-Agent")))
     {
-        const QString ua = req.hdr.value("User-Agent");
+        const QString ua = req.hdr.value(QLatin1String("User-Agent"));
         if (ua.startsWith(QLatin1String("Mozilla"))) // all browser UA start with Mozilla/5.0
         {
             rsp.map["devicename"] = apsCtrl->getParameter(deCONZ::ParamDeviceName);
