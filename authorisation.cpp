@@ -79,7 +79,9 @@ bool DeRestPluginPrivate::allowedToCreateApikey(const ApiRequest &req, ApiRespon
 {
     if (req.hdr.hasKey(QLatin1String("Authorization")))
     {
-        QStringList ls = req.hdr.value(QLatin1String("Authorization")).split(' ');
+        const QString auth(req.hdr.value(QLatin1String("Authorization")));
+        const QStringList ls = auth.split(' ');
+
         if ((ls.size() > 1) && ls[0] == "Basic")
         {
             QString enc = encryptString(ls[1]);
