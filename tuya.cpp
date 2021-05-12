@@ -102,7 +102,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         return;
     }
     
-    const auto productId;
+    const QString productId;
     if (lightNode)
     {
         productId = R_GetProductId(lightNode);
