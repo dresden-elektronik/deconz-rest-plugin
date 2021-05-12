@@ -416,7 +416,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "w7cahqs", silabs8MacPrefix }, // hama Smart Radiator Thermostat
     { VENDOR_EMBER, "TS0601", silabs7MacPrefix }, // Tuya Smart TRV HY369 Thermostatic Radiator Valve
     { VENDOR_EMBER, "TS0601", silabs5MacPrefix }, // MOES Zigbee Radiator Actuator HY368 / Moes Tuya Thermostat BTH-002
-    //{ VENDOR_EMBER, "TS0601", silabs10MacPrefix }, // H36530 TRV
     { VENDOR_EMBER, "TS0207", silabs3MacPrefix }, // Tuya water leak sensor
     { VENDOR_NONE, "TS0202", silabs4MacPrefix }, // Tuya presence sensor
     { VENDOR_EMBER, "TS0202", ikea2MacPrefix }, // Tuya multi sensor
