@@ -527,22 +527,22 @@ static ApiVersion getAcceptHeaderApiVersion(const QString &hdrValue)
 
     static const struct {
         ApiVersion version;
-        const char *str;
+        QLatin1String str;
     } versions[] = {
         // ordered by largest version
-        {ApiVersion_2_DDEL,   "application/vnd.ddel.v2"},
-        {ApiVersion_1_1_DDEL, "application/vnd.ddel.v1.1"},
-        {ApiVersion_1_1_DDEL, "vnd.ddel.v1.1"}, // backward compatibility
-        {ApiVersion_1_DDEL,   "application/vnd.ddel.v1"},
-        {ApiVersion_1_DDEL,   "vnd.ddel.v1"},   // backward compatibility
-        {ApiVersion_1, nullptr}
+        {ApiVersion_2_DDEL,   QLatin1String("application/vnd.ddel.v2")},
+        {ApiVersion_1_1_DDEL, QLatin1String("application/vnd.ddel.v1.1")},
+        {ApiVersion_1_1_DDEL, QLatin1String("vnd.ddel.v1.1")}, // backward compatibility
+        {ApiVersion_1_DDEL,   QLatin1String("application/vnd.ddel.v1")},
+        {ApiVersion_1_DDEL,   QLatin1String("vnd.ddel.v1")},   // backward compatibility
+        {ApiVersion_1,        QLatin1String() }
     };
 
     const auto ls = hdrValue.split(QLatin1Char(','), QString::SkipEmptyParts);
 
-    for (int i = 0; versions[i].str != nullptr; i++)
+    for (int i = 0; !versions[i].str.isEmpty(); i++)
     {
-        if (ls.contains(QLatin1String(versions[i].str)))
+        if (ls.contains(versions[i].str))
         {
             result = versions[i].version;
             break;
@@ -555,9 +555,10 @@ static ApiVersion getAcceptHeaderApiVersion(const QString &hdrValue)
 ApiRequest::ApiRequest(const QHttpRequestHeader &h, const QStringList &p, QTcpSocket *s, const QString &c) :
     hdr(h), path(p), sock(s), content(c), version(ApiVersion_1), auth(ApiAuthNone), mode(ApiModeNormal)
 {
-    if (hdr.hasKey(QLatin1String("Accept")) && hdr.value(QLatin1String("Accept")).contains(QLatin1String("vnd.ddel")))
+    const auto accept = hdr.value(QLatin1String("Accept"));
+    if (accept.size() > 4) // rule out */*
     {
-        version = getAcceptHeaderApiVersion(hdr.value(QLatin1String("Accept")));
+        version = getAcceptHeaderApiVersion(accept);
     }
 }
 
