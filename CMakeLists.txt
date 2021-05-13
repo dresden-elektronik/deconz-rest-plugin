@@ -11,7 +11,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(DECONZ_INCLUDE_DIR ../../../../deconz-lib/include)
+set(DECONZ_INCLUDE_DIR /usr/local/include)
 
 find_package(QT NAMES Qt5 COMPONENTS Core Gui SerialPort Widgets Qml REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Gui SerialPort Widgets Qml REQUIRED)
@@ -28,13 +28,13 @@ endif()
 
 add_library(deconz_common INTERFACE)
 target_include_directories(deconz_common INTERFACE ${DECONZ_INCLUDE_DIR})
-
+target_link_directories(deconz_common INTERFACE /usr/local/lib)
 target_link_libraries(deconz_common
         INTERFACE Qt${QT_VERSION_MAJOR}::Core
         INTERFACE Qt${QT_VERSION_MAJOR}::Gui
         INTERFACE Qt${QT_VERSION_MAJOR}::Widgets
         INTERFACE Qt${QT_VERSION_MAJOR}::Qml
-        -ldeCONZ
+        deCONZ.so
 )
 
 add_subdirectory (resource)
