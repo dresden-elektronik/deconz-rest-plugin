@@ -24,6 +24,7 @@
 #include <deconz.h>
 #include "resource.h"
 #include "daylight.h"
+#include "doorlock.h"
 #include "event.h"
 #include "green_power.h"
 #include "resource.h"
@@ -401,6 +402,7 @@ using namespace deCONZ::literals;
 #define VENDOR_HANGZHOU_IMAGIC      0x123B
 #define VENDOR_SAMJIN               0x1241
 #define VENDOR_DANFOSS              0x1246
+#define VENDOR_YUNDING              0x125A
 #define VENDOR_NIKO_NV              0x125F
 #define VENDOR_KONKE                0x1268
 #define VENDOR_SHYUGJ_TECHNOLOGY    0x126A
@@ -1196,6 +1198,7 @@ public:
     int deleteSensor(const ApiRequest &req, ApiResponse &rsp);
     int changeSensorConfig(const ApiRequest &req, ApiResponse &rsp);
     int changeSensorState(const ApiRequest &req, ApiResponse &rsp);
+    int changeDoorLockPin(const ApiRequest &req, ApiResponse &rsp);
     int changeThermostatSchedule(const ApiRequest &req, ApiResponse &rsp);
     int createSensor(const ApiRequest &req, ApiResponse &rsp);
     int getGroupIdentifiers(const ApiRequest &req, ApiResponse &rsp);
@@ -1524,6 +1527,7 @@ public:
     bool addTaskWarning(TaskItem &task, uint8_t options, uint16_t duration);
     // Danalock support. To control the lock from the REST API, you need to create a new routine addTaskDoorLock() in zcl_tasks.cpp, cf. the addTaskWarning() I created to control the Siren.
     bool addTaskDoorLockUnlock(TaskItem &task, uint8_t cmd);
+    bool addTaskDoorLockPin(TaskItem &task, quint8 command, quint16 userID, QVariantMap map);
     bool addTaskAddToGroup(TaskItem &task, uint16_t groupId);
     bool addTaskViewGroup(TaskItem &task, uint16_t groupId);
     bool addTaskRemoveFromGroup(TaskItem &task, uint16_t groupId);

@@ -117,6 +117,7 @@ HEADERS  = bindings.h \
            poll_manager.h \
            product_match.h \
            read_files.h \
+           doorlock.h \
            resource.h \
            resourcelinks.h \
            rest_devices.h \
@@ -144,6 +145,7 @@ SOURCES  = air_quality.cpp \
            de_web_widget.cpp \
            de_otau.cpp \
            electrical_measurement.cpp \
+           doorlock.cpp \
            event.cpp \
            event_queue.cpp \
            fan_control.cpp \

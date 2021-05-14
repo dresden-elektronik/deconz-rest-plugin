@@ -2081,13 +2081,20 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     }
     else if (bt.binding.clusterId == DOOR_LOCK_CLUSTER_ID)
     {
-        rq.dataType = deCONZ::Zcl8BitEnum;;
+        rq.dataType = deCONZ::Zcl8BitEnum;
         rq.attributeId = 0x0000; // Current Lock Position
         rq.minInterval = 1;
         rq.maxInterval = 300;
         //rq.reportableChange8bit = 1;
+        
+        ConfigureReportingRequest rq2;
+        rq2.dataType = deCONZ::Zcl8BitEnum;
+        rq2.attributeId = 0x0003; // Door state
+        rq2.minInterval = 1;
+        rq2.maxInterval = 300;
+        //rq2.reportableChange8bit = 1;
 
-        return sendConfigureReportingRequest(bt, {rq});
+        return sendConfigureReportingRequest(bt, {rq, rq2});
     }
     else if (bt.binding.clusterId == FAN_CONTROL_CLUSTER_ID)
     {
@@ -2555,6 +2562,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturerCode() == VENDOR_YALE)
         {
         }
+        else if (lightNode->manufacturerCode() == VENDOR_YUNDING)
+        {
+        }
         else if (lightNode->manufacturer() == QLatin1String("NIKO NV"))
         {
         }
@@ -2772,6 +2782,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("YRD226/246 TSDB") ||
         sensor->modelId() == QLatin1String("YRD220/240 TSDB") ||
         sensor->modelId() == QLatin1String("easyCodeTouch_v1") ||
+        // Yunding
+        sensor->modelId() == QLatin1String("Ford") || // Wyze Door Lock
+        // Home Control AS
+        sensor->modelId() == QLatin1String("HC-SLM-1") ||
         // ubisys
         sensor->modelId().startsWith(QLatin1String("C4")) ||
         sensor->modelId().startsWith(QLatin1String("D1")) ||
