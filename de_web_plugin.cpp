@@ -525,26 +525,29 @@ static ApiVersion getAcceptHeaderApiVersion(const QString &hdrValue)
 {
     ApiVersion result = { ApiVersion_1 };
 
-    static const struct {
+    struct ApiVersionMap {
         ApiVersion version;
         QLatin1String str;
-    } versions[] = {
-        // ordered by largest version
-        {ApiVersion_2_DDEL,   QLatin1String("application/vnd.ddel.v2")},
-        {ApiVersion_1_1_DDEL, QLatin1String("application/vnd.ddel.v1.1")},
-        {ApiVersion_1_1_DDEL, QLatin1String("vnd.ddel.v1.1")}, // backward compatibility
-        {ApiVersion_1_DDEL,   QLatin1String("application/vnd.ddel.v1")},
-        {ApiVersion_1_DDEL,   QLatin1String("vnd.ddel.v1")},   // backward compatibility
-        {ApiVersion_1,        QLatin1String() }
+    };
+
+    static const std::array<ApiVersionMap, 5> versions = {
+        {
+            // ordered by largest version
+            { ApiVersion_2_DDEL,   QLatin1String("application/vnd.ddel.v2") },
+            { ApiVersion_1_1_DDEL, QLatin1String("application/vnd.ddel.v1.1") },
+            { ApiVersion_1_1_DDEL, QLatin1String("vnd.ddel.v1.1") }, // backward compatibility
+            { ApiVersion_1_DDEL,   QLatin1String("application/vnd.ddel.v1") },
+            { ApiVersion_1_DDEL,   QLatin1String("vnd.ddel.v1") }   // backward compatibility
+        }
     };
 
     const auto ls = hdrValue.split(QLatin1Char(','), QString::SkipEmptyParts);
 
-    for (int i = 0; versions[i].str.size() > 0; i++)
+    for (const auto &version : versions)
     {
-        if (ls.contains(versions[i].str))
+        if (ls.contains(version.str))
         {
-            result = versions[i].version;
+            result = version.version;
             break;
         }
     }
