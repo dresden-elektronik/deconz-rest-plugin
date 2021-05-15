@@ -90,8 +90,9 @@ public:
     const QDateTime &lastRx() const;
     void rx();
 
-private:
+protected:
     deCONZ::Node *m_node;
+private:
     deCONZ::Address m_addr;
     QString m_id;
     QString m_uid;
@@ -108,5 +109,7 @@ private:
     std::vector<NodeValue> m_values;
     QTime m_invalidTime;
 };
+
+const deCONZ::SimpleDescriptor *getSimpleDescriptor(const deCONZ::Node *node, quint8 ep);
 
 #endif // REST_NODE_BASE_H
