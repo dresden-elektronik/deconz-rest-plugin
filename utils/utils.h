@@ -15,21 +15,6 @@
 #include <QVariant>
 #include <array>
 
-struct KeyValMap {
-    QLatin1String key;
-    quint8 value;
-    };
-    
-struct KeyValMapInt {
-    quint8 key;
-    quint16 value;
-    };
-
-struct KeyValMapTuyaSingle {
-    QLatin1String key;
-    char value[1];
-    };
-
 QString generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId);
 
 template <typename K, typename Cont>

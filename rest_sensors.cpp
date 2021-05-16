@@ -20,12 +20,6 @@
 #include "product_match.h"
 #include "utils/utils.h"
 
-static const std::array<KeyValMap, 3> RConfigAlertValues = { { {QLatin1String("none"), 0}, {QLatin1String("select"), 2}, {QLatin1String("lselect"), 15} } };
-
-//static const std::array<KeyStringValBarrayMap, 7> RConfigPresetValuesTuya1 = { { {QLatin1String("holiday"), "\x00"}, {QLatin1String("auto"), "\x01"}, {QLatin1String("manual"), "\x01"}, {QLatin1String("comfort"), "\x01"}, {QLatin1String("eco"), 0x04}, {QLatin1String("boost"), 0x05}, {QLatin1String("complex"), 0x06} } };
-
-
-
 /*! Sensors REST API broker.
     \param req - request data
     \param rsp - response data
@@ -718,6 +712,21 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     //check invalid parameter
     QVariantMap::const_iterator pi = map.begin();
     QVariantMap::const_iterator pend = map.end();
+    
+    struct KeyValMap {
+        QLatin1String key;
+        quint8 value;
+        };
+        
+    struct KeyValMapInt {
+        quint8 key;
+        quint16 value;
+        };
+
+    struct KeyValMapTuyaSingle {
+        QLatin1String key;
+        char value[1];
+        };
 
     for (; pi != pend; ++pi)
     {
@@ -748,8 +757,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 QVariant val = map[pi.key()];
                 bool invalidValue = false;
                 bool datatypeValid = false;
-
-                DBG_Printf(DBG_INFO, "[RF] Parameter: %s, Value: %s, Type: %s\n", qPrintable(rid.suffix), qPrintable(val.toString()), val.typeName());
 
                 QString stringValue;
                 bool boolValue = false;
@@ -893,11 +900,12 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigAlert) // String
                 {
+                    const std::array<KeyValMap, 3> RConfigAlertValues = { { {QLatin1String("none"), 0}, {QLatin1String("select"), 2}, {QLatin1String("lselect"), 15} } };
+                    
                     const auto match = getMappedValue2(stringValue, RConfigAlertValues);
 
                     if (!match.key.isEmpty())
                     {
-                        DBG_Printf(DBG_INFO, "[RF] Alert2: %u\n", match.value);
                         task.identifyTime = match.value;
 
                         task.taskType = TaskIdentify;
@@ -938,46 +946,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     if (sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_VOLUME, data))
                     {
                         updated = true;
-                    }
-                }
-                else if (rid.suffix == RConfigPreset)
-                {
-                    static const std::array<KeyValMap, 4> RConfigPresetValues = { { {QLatin1String("both"), 0}, {QLatin1String("humidity"), 0}, {QLatin1String("temperature"), 0},
-                                                                                  {QLatin1String("off"), 0} } };
-
-                    const auto match = getMappedValue2(stringValue, RConfigPresetValues);
-
-                    if (!match.key.isEmpty())
-                    {
-                        QByteArray data1;
-                        QByteArray data2;
-                        quint8 dpIdentifier1 = DP_IDENTIFIER_TEMPERATURE_ALARM;
-                        quint8 dpIdentifier2 = DP_IDENTIFIER_HUMIDITY_ALARM;
-
-                        if (match.key == QLatin1String("both"))
-                        {
-                            data1 = data2 = QByteArray("\x01", 1);
-                        }
-                        else if (match.key == QLatin1String("humidity"))
-                        {
-                            data1 = QByteArray("\x00", 1);
-                            data2 = QByteArray("\x01", 1);
-                        }
-                        else if (match.key == QLatin1String("temperature"))
-                        {
-                            data1 = QByteArray("\x01", 1);
-                            data2 = QByteArray("\x00", 1);
-                        }
-                        else if (match.key == QLatin1String("off"))
-                        {
-                            data1 = data2 = QByteArray("\x00", 1);
-                        }
-
-                        if (sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_BOOL, dpIdentifier1, data1) &&
-                            sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_BOOL, dpIdentifier2, data2))
-                        {
-                            updated = true;
-                        }
                     }
                 }
                 else if (rid.suffix == RConfigTempMinThreshold || rid.suffix == RConfigTempMaxThreshold || rid.suffix == RConfigHumiMinThreshold || rid.suffix == RConfigHumiMaxThreshold) // Signed integer, really???
@@ -1403,6 +1371,47 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                         }
                     }
+                    else if (R_GetProductId(sensor) == QLatin1String("NAS-AB02B0 Siren"))
+                    {
+                        const std::array<KeyValMap, 4> RConfigPresetValuesTuya3 = { { {QLatin1String("both"), 0}, {QLatin1String("humidity"), 0}, {QLatin1String("temperature"), 0},
+                                                                                 {QLatin1String("off"), 0} } };
+
+                        const auto match = getMappedValue2(stringValue, RConfigPresetValuesTuya3);
+
+                        if (!match.key.isEmpty())
+                        {
+                            QByteArray data1;
+                            QByteArray data2;
+                            quint8 dpIdentifier1 = DP_IDENTIFIER_TEMPERATURE_ALARM;
+                            quint8 dpIdentifier2 = DP_IDENTIFIER_HUMIDITY_ALARM;
+
+                            if (match.key == QLatin1String("both"))
+                            {
+                                data1 = data2 = QByteArray("\x01", 1);
+                            }
+                            else if (match.key == QLatin1String("humidity"))
+                            {
+                                data1 = QByteArray("\x00", 1);
+                                data2 = QByteArray("\x01", 1);
+                            }
+                            else if (match.key == QLatin1String("temperature"))
+                            {
+                                data1 = QByteArray("\x01", 1);
+                                data2 = QByteArray("\x00", 1);
+                            }
+                            else if (match.key == QLatin1String("off"))
+                            {
+                                data1 = data2 = QByteArray("\x00", 1);
+                            }
+
+                            if (sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_BOOL, dpIdentifier1, data1) &&
+                                sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_BOOL, dpIdentifier2, data2))
+                            {
+                                updated = true;
+                            }
+                        }
+                    }
+                    
                 }
                 else if (rid.suffix == RConfigLocked) // Boolean
                 {
