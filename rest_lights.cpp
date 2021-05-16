@@ -107,9 +107,9 @@ int DeRestPluginPrivate::getAllLights(const ApiRequest &req, ApiResponse &rsp)
     rsp.httpStatus = HttpStatusOk;
 
     // handle ETag
-    if (req.hdr.hasKey("If-None-Match"))
+    if (req.hdr.hasKey(QLatin1String("If-None-Match")))
     {
-        QString etag = req.hdr.value("If-None-Match");
+        QString etag = req.hdr.value(QLatin1String("If-None-Match"));
 
         if (gwLightsEtag == etag)
         {
@@ -337,7 +337,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         {
             QVariantMap links;
             QVariantMap self;
-            self["href"] = QString("%1/%2").arg(req.hdr.url().path()).arg(lightNode->uniqueId());
+            self["href"] = QString("%1/%2").arg(req.hdr.path()).arg(lightNode->uniqueId());
             links["self"] = self;
             map["_links"] = links;
         }
@@ -431,49 +431,10 @@ int DeRestPluginPrivate::getLightState(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    // handle request to force query light state
-    if (req.hdr.hasKey("Query-State"))
-    {
-        bool enabled = false;
-        int diff = idleTotalCounter - lightNode->lastRead(READ_ON_OFF);
-        QString attrs = req.hdr.value("Query-State");
-
-        // only read if time since last read is not too short
-        if (diff > 3)
-        {
-            if (attrs.contains("on"))
-            {
-                lightNode->enableRead(READ_ON_OFF);
-                lightNode->setLastRead(READ_ON_OFF, idleTotalCounter);
-                enabled = true;
-            }
-
-            if (attrs.contains("bri"))
-            {
-                lightNode->enableRead(READ_LEVEL);
-                lightNode->setLastRead(READ_LEVEL, idleTotalCounter);
-                enabled = true;
-            }
-
-            if (attrs.contains("color") && lightNode->hasColor())
-            {
-                lightNode->enableRead(READ_COLOR);
-                lightNode->setLastRead(READ_COLOR, idleTotalCounter);
-                enabled = true;
-            }
-        }
-
-        if (enabled)
-        {
-            DBG_Printf(DBG_INFO, "Force read the attributes %s, for node %s\n", qPrintable(attrs), qPrintable(lightNode->address().toStringExt()));
-            processZclAttributes(lightNode);
-        }
-    }
-
     // handle ETag
-    if (req.hdr.hasKey("If-None-Match"))
+    if (req.hdr.hasKey(QLatin1String("If-None-Match")))
     {
-        QString etag = req.hdr.value("If-None-Match");
+        QString etag = req.hdr.value(QLatin1String("If-None-Match"));
 
         if (lightNode->etag == etag)
         {

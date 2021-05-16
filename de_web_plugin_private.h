@@ -521,6 +521,7 @@ extern const quint64 silabs6MacPrefix;
 extern const quint64 silabs7MacPrefix;
 extern const quint64 silabs8MacPrefix;
 extern const quint64 silabs9MacPrefix;
+extern const quint64 silabs10MacPrefix;
 extern const quint64 instaMacPrefix;
 extern const quint64 boschMacPrefix;
 extern const quint64 jennicMacPrefix;
@@ -587,6 +588,7 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
                    prefix == konkeMacPrefix ||
                    prefix == silabs3MacPrefix ||
                    prefix == silabs5MacPrefix ||
+                   prefix == silabs10MacPrefix ||
                    prefix == silabs7MacPrefix;
         case VENDOR_EMBERTEC:
             return prefix == embertecMacPrefix;
@@ -1040,8 +1042,6 @@ public:
 class TcpClient
 {
 public:
-    QHttpRequestHeader hdr;
-    QDateTime created;
     int closeTimeout; // close socket in n seconds
     QTcpSocket *sock;
 };
@@ -1500,7 +1500,7 @@ public:
     void checkIasEnrollmentStatus(Sensor*);
     void processIasZoneStatus(Sensor *sensor, quint16 zoneStatus, NodeValue::UpdateType updateType);
 
-    void pushClientForClose(QTcpSocket *sock, int closeTimeout, const QHttpRequestHeader &hdr);
+    void pushClientForClose(QTcpSocket *sock, int closeTimeout);
 
     uint8_t endpoint();
 
