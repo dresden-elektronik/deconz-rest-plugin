@@ -436,8 +436,9 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
             case 0x0010: // Local Temperature Calibration (offset in 0.1 °C steps, from -2,5 °C to +2,5 °C)
             {
-                qint8 config = attr.numericValue().s8 * 10;
+                qint16 config = attr.numericValue().s8 * 10;
                 item = sensor->item(RConfigOffset);
+                
                 if (item && item->toNumber() != config)
                 {
                     item->setValue(config);
@@ -790,6 +791,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                     quint8 windowmode = attr.numericValue().u8;
                     QString windowmode_set;
 
+                    if ( windowmode == 0x00 ) { windowmode_set = QString("Quarantine"); }
                     if ( windowmode == 0x01 ) { windowmode_set = QString("Closed"); }
                     if ( windowmode == 0x02 ) { windowmode_set = QString("Hold"); }
                     if ( windowmode == 0x03 ) { windowmode_set = QString("Open"); }
@@ -958,6 +960,21 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                             configUpdated = true;
                         }
                     }
+                }
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+
+            case 0x404B: // Regulation SetPoint Offset (offset in 0.1 °C steps, from -2,5 °C to +2,5 °C)
+            {
+                qint16 config = attr.numericValue().s8 * 10;
+                item = sensor->item(RConfigOffset);
+
+                if (item && item->toNumber() != config)
+                {
+                    item->setValue(config);
+                    enqueueEvent(Event(RSensors, RConfigOffset, sensor->id(), item));
+                    configUpdated = true;
                 }
                 sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
             }
