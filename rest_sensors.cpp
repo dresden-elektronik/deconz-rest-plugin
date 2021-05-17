@@ -1793,13 +1793,20 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     return REQ_READY_SEND;
                 }
             }
-            else // invalid
+            else // Resource item not found for the device
             {
                 rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                            QString("parameter, %1, not available").arg(pi.key())));
                 rsp.httpStatus = HttpStatusBadRequest;
                 return REQ_READY_SEND;
             }
+        }
+        else // Non-existing resource item
+        {
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                       QString("parameter, %1, not available").arg(pi.key())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
         }
     }
 
