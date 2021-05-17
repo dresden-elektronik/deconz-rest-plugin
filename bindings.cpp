@@ -1900,6 +1900,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.maxInterval = 300;
         if (modelId == QLatin1String("SmartPlug") ||               // Heiman
             modelId == QLatin1String("SKHMP30-I1") ||              // GS smart plug
+            modelId == QLatin1String("SP2610ZB") ||                // Sinope smart in-wall outlet
             modelId.startsWith(QLatin1String("E13-")) ||           // Sengled PAR38 Bulbs
             modelId.startsWith(QLatin1String("Z01-A19")) ||        // Sengled smart led
             modelId == QLatin1String("Connected socket outlet"))   // Niko smart socket
@@ -1929,6 +1930,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         if (modelId == QLatin1String("SmartPlug") ||        // Heiman
             modelId == QLatin1String("902010/25") ||        // Bitron
             modelId == QLatin1String("SKHMP30-I1") ||       // GS smart plug
+            modelId == QLatin1String("SP2610ZB") ||         // Sinope smart in-wall outlet
             modelId.startsWith(QLatin1String("Z01-A19")) || // Sengled smart led
             modelId == QLatin1String("160-01"))             // Plugwise smart plug
         {
@@ -1955,6 +1957,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             modelId == QLatin1String("SKHMP30-I1") ||                  // GS smart plug
             modelId == QLatin1String("SZ-ESW01-AU") ||                 // Sercomm / Telstra smart plug
             modelId == QLatin1String("Connected socket outlet") ||     // Niko smart socket
+            modelId == QLatin1String("SP2610ZB") ||                    // Sinope smart in-wall outlet
             modelId.startsWith(QLatin1String("ROB_200")) ||            // ROBB Smarrt micro dimmer
             modelId.startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
             modelId.startsWith(QLatin1String("lumi.plug.maeu")) ||     // Xiaomi Aqara ZB3.0 smart plug
@@ -1978,6 +1981,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             modelId == QLatin1String("SKHMP30-I1") ||          // GS smart plug
             modelId == QLatin1String("SMRZB-1") ||             // Develco smart cable
             modelId == QLatin1String("Smart16ARelay51AU") ||   // Aurora (Develco) smart plug
+            modelId == QLatin1String("SP2610ZB") ||            // Sinope smart in-wall outlet
             modelId.startsWith(QLatin1String("SPLZB-1")))      // Develco smart plug
         {
             rq2.reportableChange16bit = 100; // 1 V
@@ -2018,6 +2022,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         else if (modelId == QLatin1String("SmartPlug") ||        // Heiman
                  modelId.startsWith(QLatin1String("EMIZB-1")) || // Develco EMI
                  modelId == QLatin1String("SKHMP30-I1") ||       // GS smart plug
+                 modelId == QLatin1String("SP2610ZB") ||         // Sinope smart in-wall outlet
                  modelId.startsWith(QLatin1String("SPW35Z")) ||  // RT-RK OBLO SPW35ZD0 smart plug
                  modelId == QLatin1String("TH1300ZB"))           // Sinope thermostat
         {
@@ -2881,6 +2886,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("WL4200")) || // water leak sensor
         sensor->modelId().startsWith(QLatin1String("TH112")) || // thermostat
         sensor->modelId().startsWith(QLatin1String("TH1300ZB")) || // thermostat
+        sensor->modelId().startsWith(QLatin1String("SP2610ZB")) || // smart in-wall outlet
         //LifeControl smart plug
         sensor->modelId() == QLatin1String("RICI01") ||
         //LifeControl enviroment sensor
