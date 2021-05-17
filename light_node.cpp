@@ -366,7 +366,14 @@ void LightNode::rx()
  */
 const deCONZ::SimpleDescriptor &LightNode::haEndpoint() const
 {
-    return m_haEndpoint;
+    const auto *sd = m_haEndpoint < 255 ? getSimpleDescriptor(m_node, m_haEndpoint) : nullptr;
+    if (sd)
+    {
+        return *sd;
+    }
+
+    static deCONZ::SimpleDescriptor invalidEndpoint; // TODO hack
+    return invalidEndpoint;
 }
 
 /*! Sets the lights HA endpoint descriptor.
@@ -375,8 +382,8 @@ const deCONZ::SimpleDescriptor &LightNode::haEndpoint() const
 void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
 {
     bool isWindowCovering = false;
-    bool isInitialized = m_haEndpoint.isValid();
-    m_haEndpoint = endpoint;
+    bool isInitialized = m_haEndpoint < 255;
+    m_haEndpoint = endpoint.endpoint();
 
     // check if std otau cluster present in endpoint
     if (otauClusterId() == 0)
