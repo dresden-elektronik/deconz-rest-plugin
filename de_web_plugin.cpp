@@ -505,6 +505,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "TS1001", silabs5MacPrefix }, // LIDL Livarno Lux Remote Control HG06323
     { VENDOR_EMBER, "TS1001", silabs7MacPrefix }, // LIDL Livarno Lux Remote Control HG06323
     { VENDOR_XFINITY, "URC4450BC0-X-R", emberMacPrefix }, // Xfinity Keypad XHK1-UE / URC4450BC0-X-R
+    { VENDOR_CENTRALITE, "3405-L", emberMacPrefix }, // IRIS 3405-L Keypad
 
     { 0, nullptr, 0 }
 };
@@ -4192,6 +4193,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
              sensor->modelId().startsWith(QLatin1String("RC 110")) || // innr remote
              sensor->modelId().startsWith(QLatin1String("RC_V14")) || // Heiman remote
              sensor->modelId().startsWith(QLatin1String("URC4450BC0-X-R")) || // Xfinity Keypad XHK1-UE
+             sensor->modelId().startsWith(QLatin1String("3405-L")) || // IRIS 3405-L Keypad
              sensor->modelId().startsWith(QLatin1String("RC-EM")))   // Heiman remote
     {
         checkClientCluster = true;
@@ -5389,7 +5391,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         manufacturer.endsWith(QLatin1String("mdqxxnn")))   // Tuya light sensor TYZB01
                     {
                     }
-                    else if (modelId == QLatin1String("URC4450BC0-X-R"))
+                    else if (modelId == QLatin1String("URC4450BC0-X-R") ||
+                             modelId == QLatin1String("3405-L"))
                     {
                         fpAncillaryControlSensor.inClusters.push_back(ci->id());
                         fpPresenceSensor.inClusters.push_back(ci->id());
@@ -5987,7 +5990,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpSwitch.outClusters.push_back(ci->id());
                     }
-                    if (modelId == QLatin1String("URC4450BC0-X-R"))
+                    if (modelId == QLatin1String("URC4450BC0-X-R") ||
+                        modelId == QLatin1String("3405-L"))
                     {
                         fpAncillaryControlSensor.outClusters.push_back(ci->id());
                         fpPresenceSensor.outClusters.push_back(ci->id());
@@ -7450,6 +7454,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     // Only use the ZHAAncillaryControl sensor if present for enrollement, but only enabled for one device ATM
     if ((clusterId == IAS_ZONE_CLUSTER_ID || (clusterId == IAS_ACE_CLUSTER_ID && sensorNode.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))) &&
         (modelId != QLatin1String("URC4450BC0-X-R") ||
+         modelId != QLatin1String("3405-L") ||
         (sensorNode.type().endsWith(QLatin1String("AncillaryControl")) || !sensorNode.fingerPrint().hasOutCluster(IAS_ACE_CLUSTER_ID))))
     {
         if (modelId == QLatin1String("button") ||
@@ -8215,6 +8220,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().startsWith(QLatin1String("SZ-WTD02N_CAR")) || // Sercomm water sensor
                                     i->modelId().startsWith(QLatin1String("GZ-PIR02"))   || // Sercomm motion sensor
                                     i->modelId().startsWith(QLatin1String("URC4450BC0-X-R"))   || // Xfinity Keypad XHK1-UE
+                                    i->modelId().startsWith(QLatin1String("3405-L"))   || // IRIS 3405-L Keypad
                                     i->modelId().startsWith(QLatin1String("Tripper")) || // Quirky Tripper (Sercomm) open/close
                                     i->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
                                     i->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote

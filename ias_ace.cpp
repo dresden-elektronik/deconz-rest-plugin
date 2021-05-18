@@ -264,7 +264,8 @@ void DeRestPluginPrivate::handleIasAceClusterIndication(const deCONZ::ApsDataInd
         sendGetPanelStatusResponse(ind, zclFrame, PanelStatus, 0x00);
         
         //Update too the presence detection, this device have one, triger when you move front of it
-        if (sensorNode->modelId() == QLatin1String("URC4450BC0-X-R"))
+        if (sensorNode->modelId() == QLatin1String("URC4450BC0-X-R") ||
+            sensorNode->modelId() == QLatin1String("3405-L"))
         {
             Sensor *sensor2 = nullptr;
             sensor2 = getSensorNodeForAddressAndEndpoint(sensorNode->address(), sensorNode->fingerPrint().endpoint, QLatin1String("ZHAPresence"));
