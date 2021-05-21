@@ -518,15 +518,15 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                     qint8 mode = attr.numericValue().s8;
                     QString mode_set;
 
-                    mode_set = QString("off");
-                    if ( mode == 0x01 ) { mode_set = QString("auto"); }
-                    if ( mode == 0x03 ) { mode_set = QString("cool"); }
-                    if ( mode == 0x04 ) { mode_set = QString("heat"); }
-                    if ( mode == 0x05 ) { mode_set = QString("emergency heating"); }
-                    if ( mode == 0x06 ) { mode_set = QString("precooling"); }
-                    if ( mode == 0x07 ) { mode_set = QString("fan only"); }
-                    if ( mode == 0x08 ) { mode_set = QString("dry"); }
-                    if ( mode == 0x09 ) { mode_set = QString("sleep"); }
+                    mode_set = QLatin1String("off");
+                    if ( mode == 0x01 ) { mode_set = QLatin1String("auto"); }
+                    else if ( mode == 0x03 ) { mode_set = QLatin1String("cool"); }
+                    else if ( mode == 0x04 ) { mode_set = QLatin1String("heat"); }
+                    else if ( mode == 0x05 ) { mode_set = QLatin1String("emergency heating"); }
+                    else if ( mode == 0x06 ) { mode_set = QLatin1String("precooling"); }
+                    else if ( mode == 0x07 ) { mode_set = QLatin1String("fan only"); }
+                    else if ( mode == 0x08 ) { mode_set = QLatin1String("dry"); }
+                    else if ( mode == 0x09 ) { mode_set = QLatin1String("sleep"); }
 
                     item = sensor->item(RConfigMode);
                     if (item && !item->toString().isEmpty() && item->toString() != mode_set)
@@ -641,7 +641,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 QString modeSet;
 
                 modeSet = QLatin1String("fully closed");
-                if ( mode == 0x01 ) { modeSet = QLatin1String("fully closed"); }
+                if      ( mode == 0x01 ) { modeSet = QLatin1String("fully closed"); }
                 else if ( mode == 0x02 ) { modeSet = QLatin1String("fully open"); }
                 else if ( mode == 0x03 ) { modeSet = QLatin1String("quarter open"); }
                 else if ( mode == 0x04 ) { modeSet = QLatin1String("half open"); }
@@ -666,9 +666,9 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                     quint8 mode = attr.numericValue().u8;
                     QString mode_set;
 
-                    if ( mode == 0x00 ) { mode_set = QString("air sensor"); }
-                    if ( mode == 0x01 ) { mode_set = QString("floor sensor"); }
-                    if ( mode == 0x03 ) { mode_set = QString("floor protection"); }
+                    if ( mode == 0x00 ) { mode_set = QLatin1String("air sensor"); }
+                    else if ( mode == 0x01 ) { mode_set = QLatin1String("floor sensor"); }
+                    else if ( mode == 0x03 ) { mode_set = QLatin1String("floor protection"); }
 
                     item = sensor->item(RConfigTemperatureMeasurement);
 
@@ -703,8 +703,8 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
                     // Set config/mode to have an adequate representation based on this attribute
                     QString mode_set;
-                    if ( on == false ) { mode_set = QString("off"); }
-                    if ( on == true ) { mode_set = QString("heat"); }
+                    if ( on == false ) { mode_set = QLatin1String("off"); }
+                    if ( on == true )  { mode_set = QLatin1String("heat"); }
 
                     item = sensor->item(RConfigMode);
                     if (item && !item->toString().isEmpty() && item->toString() != mode_set)
@@ -791,11 +791,11 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                     quint8 windowmode = attr.numericValue().u8;
                     QString windowmode_set;
 
-                    if ( windowmode == 0x00 ) { windowmode_set = QString("Quarantine"); }
-                    if ( windowmode == 0x01 ) { windowmode_set = QString("Closed"); }
-                    if ( windowmode == 0x02 ) { windowmode_set = QString("Hold"); }
-                    if ( windowmode == 0x03 ) { windowmode_set = QString("Open"); }
-                    if ( windowmode == 0x04 ) { windowmode_set = QString("Open (external), closed (internal)"); }
+                    if      ( windowmode == 0x00 ) { windowmode_set = QLatin1String("Quarantine"); }
+                    else if ( windowmode == 0x01 ) { windowmode_set = QLatin1String("Closed"); }
+                    else if ( windowmode == 0x02 ) { windowmode_set = QLatin1String("Hold"); }
+                    else if ( windowmode == 0x03 ) { windowmode_set = QLatin1String("Open"); }
+                    else if ( windowmode == 0x04 ) { windowmode_set = QLatin1String("Open (external), closed (internal)"); }
 
                     item = sensor->item(RStateWindowOpen);
                     if (item && updateType == NodeValue::UpdateByZclReport)
