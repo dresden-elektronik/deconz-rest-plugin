@@ -1218,8 +1218,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (ok && (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001")))
                     {
-                        if      (offset <= -25) { offset = -25; }
-                        else if (offset >= 25)  { offset = 25; }
+                        if      (offset < -25) { offset = -25; }
+                        else if (offset > 25)  { offset = 25; }
                         
                         if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_DANFOSS, 0x404B, deCONZ::Zcl8BitInt, offset))
                         {
@@ -1235,8 +1235,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (ok)
                     {
-                        if      (offset <= -25) { offset = -25; }
-                        else if (offset >= 25)  { offset = 25; }
+                        if      (offset < -25) { offset = -25; }
+                        else if (offset > 25)  { offset = 25; }
                         
                         if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0010, deCONZ::Zcl8BitInt, offset))
                         {
