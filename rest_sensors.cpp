@@ -1216,22 +1216,42 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             return REQ_READY_SEND;
                         }
                     }
-                    else
+                    else if (ok && (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001")))
                     {
-                        if (ok && addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0010, deCONZ::Zcl8BitInt, offset))
+                        if      (offset < -25) { offset = -25; }
+                        else if (offset > 25)  { offset = 25; }
+                        
+                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_DANFOSS, 0x404B, deCONZ::Zcl8BitInt, offset))
                         {
-                            rspItemState[QString("set %1").arg(rid.suffix)] = offset;
-                            rspItem["success"] = rspItemState;
+                            updated = true;
                         }
                         else
                         {
-                            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/%2").arg(id).arg(rid.suffix), QString("could not set attribute")));
+                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                       QString("Could not set attribute")));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
+                        }
+                    }
+                    else if (ok)
+                    {
+                        if      (offset < -25) { offset = -25; }
+                        else if (offset > 25)  { offset = 25; }
+                        
+                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0010, deCONZ::Zcl8BitInt, offset))
+                        {
+                            updated = true;
+                        }
+                        else
+                        {
+                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                       QString("Could not set attribute")));
                             rsp.httpStatus = HttpStatusBadRequest;
                             return REQ_READY_SEND;
                         }
                     }
                 }
-                if (rid.suffix == RConfigScheduleOn)
+                else if (rid.suffix == RConfigScheduleOn)
                 {
                     bool onoff = map[pi.key()].toBool();
                     bool ok = false;
