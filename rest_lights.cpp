@@ -345,7 +345,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         {
             QVariantMap links;
             QVariantMap self;
-            self["href"] = QString("%1/%2").arg(req.hdr.url().path()).arg(lightNode->uniqueId());
+            self["href"] = QString("%1/%2").arg(req.hdr.path()).arg(lightNode->uniqueId());
             links["self"] = self;
             map["_links"] = links;
         }
