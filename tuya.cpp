@@ -102,7 +102,15 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         return;
     }
     
-    const auto productId = R_GetProductId(lightNode);
+    QString productId;
+    if (lightNode)
+    {
+        productId = R_GetProductId(lightNode);
+    }
+    else
+    {
+        productId = R_GetProductId(sensorNode);
+    }
     
     DBG_Printf(DBG_INFO_L2, "Tuya debug Request : Address 0x%016llX, Endpoint 0x%02X, Command 0x%02X, Payload %s\n", ind.srcAddress().ext(), ind.srcEndpoint(), zclFrame.commandId(), qPrintable(zclFrame.payload().toHex()));
     
@@ -313,7 +321,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             {
                 lightNode = nullptr;
             }
-            if (R_GetProductId(sensorNode) == QLatin1String("NAS-AB02B0 Siren"))
+            if (productId == QLatin1String("NAS-AB02B0 Siren"))
             {
                 if (dp == 0x0168) // Siren alarm
                 {
@@ -327,7 +335,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         }
 
         //Some device are more than 1 sensors for the same endpoint, so trying to take the good one
-        if (sensorNode && R_GetProductId(sensorNode) == QLatin1String("NAS-AB02B0 Siren"))
+        if (sensorNode && productId == QLatin1String("NAS-AB02B0 Siren"))
         {
             switch (dp)
             {
@@ -377,7 +385,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         if (lightNode)
         {
             //Window covering ?
-            if (R_GetProductId(lightNode).startsWith(QLatin1String("Tuya_COVD")))
+            if (productId.startsWith(QLatin1String("Tuya_COVD")))
             {
 
                 switch (dp)
@@ -407,8 +415,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         quint8 lift = static_cast<quint8>(data);
                         
                         // Need reverse
-                        if (R_GetProductId(lightNode).startsWith(QLatin1String("Tuya_COVD YS-MT750")) ||
-                            R_GetProductId(lightNode).startsWith(QLatin1String("Tuya_COVD DS82")))
+                        if (productId.startsWith(QLatin1String("Tuya_COVD YS-MT750")) ||
+                            productId.startsWith(QLatin1String("Tuya_COVD DS82")))
                         {
                             lift = 100 - lift;
                         }
@@ -436,7 +444,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 }
             }
             //siren
-            else if (R_GetProductId(lightNode) == QLatin1String("NAS-AB02B0 Siren"))
+            else if (productId == QLatin1String("NAS-AB02B0 Siren"))
             {
                 if (dp == 0x0168)
                 {
@@ -506,8 +514,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     // Dimmer level for mode 1
                     case 0x0202:
                     {
-                        if (R_GetProductId(lightNode) == QLatin1String("Tuya_DIMSWITCH Earda Dimmer") ||
-                            R_GetProductId(lightNode) == QLatin1String("Tuya_DIMSWITCH EDM-1ZAA-EU"))
+                        if (productId == QLatin1String("Tuya_DIMSWITCH Earda Dimmer") ||
+                            productId == QLatin1String("Tuya_DIMSWITCH EDM-1ZAA-EU"))
                         {
                             const qint64 bri = data * 254 / 1000; // 0 to 1000 value
                             
@@ -525,7 +533,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     // Dimmer level for mode 2
                     case 0x0203:
                     {
-                        if (R_GetProductId(lightNode) == QLatin1String("Tuya_DIMSWITCH Not model found yet"))
+                        if (productId == QLatin1String("Tuya_DIMSWITCH Not model found yet"))
                         {
                             const qint64 bri = data * 254 / 1000; // 0 to 1000 value
                             
@@ -550,7 +558,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         else if (sensorNode)
         {
             //Special part just for siren
-            if (R_GetProductId(sensorNode) == QLatin1String("NAS-AB02B0 Siren")) //siren
+            if (productId == QLatin1String("NAS-AB02B0 Siren")) //siren
             {
                 switch (dp)
                 {
