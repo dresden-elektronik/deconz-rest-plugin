@@ -731,16 +731,19 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     for (; pi != pend; ++pi)
     {
         ResourceItemDescriptor rid;
-        ResourceItem *item = 0;
+        ResourceItem *item = nullptr;
         if (getResourceItemDescriptor(QString("config/%1").arg(pi.key()), rid))
         {
-            if (!isClip && (rid.suffix == RConfigBattery || rid.suffix == RConfigReachable))
+            // Changing these values of zigbee sensors is not allowed, read-only.
+            if (rid.suffix == RConfigPending || rid.suffix == RConfigSensitivityMax || rid.suffix == RConfigHostFlags || rid.suffix == RConfigLastChangeAmount ||
+                rid.suffix == RConfigLastChangeSource || rid.suffix == RConfigLastChangeTime || rid.suffix == RConfigEnrolled || rid.suffix == RConfigOn ||
+                rid.suffix == RConfigLat || rid.suffix == RConfigLong ||
+                (!isClip && (rid.suffix == RConfigBattery || rid.suffix == RConfigReachable)))
             {
-                // changing battery or reachable of zigbee sensors is not allowed, trigger error
-            }
-            else if (rid.suffix == RConfigPending || rid.suffix == RConfigSensitivityMax || rid.suffix == RConfigHostFlags)
-            {
-                // pending and sensitivitymax are read-only
+                rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIEABLE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                           QString("parameter, %1, not modifiable").arg(pi.key())));
+                rsp.httpStatus = HttpStatusBadRequest;
+                return REQ_READY_SEND;
             }
             //else if (rid.suffix == RConfigDuration && sensor->modelId() == QLatin1String("TRADFRI motion sensor"))
             //{
@@ -857,7 +860,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         pendingMask |= R_PENDING_DEVICEMODE;
                         sensor->enableRead(WRITE_DEVICEMODE);
                         sensor->setNextReadTime(WRITE_DEVICEMODE, QTime::currentTime());
-
                         updated = true;
                     }
                 }
@@ -865,38 +867,49 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     tholdUpdated = true;
                 }
-                else if (rid.suffix == RConfigDelay && sensor->modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
+                else if (rid.suffix == RConfigDelay)
                 {
-                    pendingMask |= R_PENDING_DELAY;
-                    sensor->enableRead(WRITE_DELAY);
-                    sensor->setNextReadTime(WRITE_DELAY, QTime::currentTime());
+                    if (sensor->modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
+                    {
+                        pendingMask |= R_PENDING_DELAY;
+                        sensor->enableRead(WRITE_DELAY);
+                        sensor->setNextReadTime(WRITE_DELAY, QTime::currentTime());
+                    }
+                    updated = true;
                 }
-                else if (rid.suffix == RConfigDuration && sensor->modelId().startsWith(QLatin1String("FLS-NB")))
+                else if (rid.suffix == RConfigDuration)
                 {
-                    DBG_Printf(DBG_INFO, "Force read of occupaction delay for sensor %s\n", qPrintable(sensor->address().toStringExt()));
-                    sensor->enableRead(READ_OCCUPANCY_CONFIG);
-                    sensor->setNextReadTime(READ_OCCUPANCY_CONFIG, queryTime.addSecs(1));
-                    queryTime = queryTime.addSecs(1);
-                    Q_Q(DeRestPlugin);
-                    q->startZclAttributeTimer(0);
+                    if (sensor->modelId().startsWith(QLatin1String("FLS-NB")))
+                    {
+                        DBG_Printf(DBG_INFO, "Force read of occupaction delay for sensor %s\n", qPrintable(sensor->address().toStringExt()));
+                        sensor->enableRead(READ_OCCUPANCY_CONFIG);
+                        sensor->setNextReadTime(READ_OCCUPANCY_CONFIG, queryTime.addSecs(1));
+                        queryTime = queryTime.addSecs(1);
+                        Q_Q(DeRestPlugin);
+                        q->startZclAttributeTimer(0);
+                    }
+                    updated = true;
                 }
                 else if (rid.suffix == RConfigLedIndication)
                 {
                     pendingMask |= R_PENDING_LEDINDICATION;
                     sensor->enableRead(WRITE_LEDINDICATION);
                     sensor->setNextReadTime(WRITE_LEDINDICATION, QTime::currentTime());
+                    updated = true;
                 }
                 else if (rid.suffix == RConfigSensitivity)
                 {
                     pendingMask |= R_PENDING_SENSITIVITY;
                     sensor->enableRead(WRITE_SENSITIVITY);
                     sensor->setNextReadTime(WRITE_SENSITIVITY, QTime::currentTime());
+                    updated = true;
                 }
                 else if (rid.suffix == RConfigUsertest)
                 {
                     pendingMask |= R_PENDING_USERTEST;
                     sensor->enableRead(WRITE_USERTEST);
                     sensor->setNextReadTime(WRITE_USERTEST, QTime::currentTime());
+                    updated = true;
                 }
                 else if (rid.suffix == RConfigAlert) // String
                 {
@@ -1031,6 +1044,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     else
                     {
                         offsetUpdated = true;   // Consider offset only for temperature and humidity cluster
+                        updated = true;
                     }
                 }
                 else if (rid.suffix == RConfigScheduleOn) // Boolean
@@ -1063,12 +1077,12 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             {
                                 ResourceItem *item = sensor->item(RConfigHostFlags);
                                 hostFlags = item->toNumber();
+
+                                hostFlags &= ~0x04; // clear `boost` flag
+                                hostFlags |=  0x10; // set `disable off` flag
+
+                                updated = true;
                             }
-
-                            hostFlags &= ~0x04; // clear `boost` flag
-                            hostFlags |=  0x10; // set `disable off` flag
-
-                            updated = true;
                         }
                     }
                     else if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001"))
@@ -1248,21 +1262,26 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             ResourceItem *item = sensor->item(RConfigHostFlags);
                             hostFlags = item->toNumber();
-                        }
 
-                        if (stringValue == QLatin1String("off"))
-                        {
-                            hostFlags |= 0x000020; // set enable off
-                            hostFlags &= 0xffffeb; // clear boost, clear disable off
-                        }
-                        else if (stringValue == QLatin1String("heat"))
-                        {
-                            hostFlags |= 0x000014; // set boost, set disable off
-                        }
-                        else if (stringValue == QLatin1String("auto"))
-                        {
-                            hostFlags &= 0xfffffb; // clear boost
-                            hostFlags |= 0x000010; // set disable off
+                            if (stringValue == QLatin1String("off"))
+                            {
+                                hostFlags |= 0x000020; // set enable off
+                                hostFlags &= 0xffffeb; // clear boost, clear disable off
+                            }
+                            else if (stringValue == QLatin1String("heat"))
+                            {
+                                hostFlags |= 0x000014; // set boost, set disable off
+                            }
+                            else if (stringValue == QLatin1String("auto"))
+                            {
+                                hostFlags &= 0xfffffb; // clear boost
+                                hostFlags |= 0x000010; // set disable off
+                            }
+
+                            if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, 0x4008, deCONZ::Zcl24BitUint, hostFlags))
+                            {
+                                updated = true;
+                            }
                         }
                     }
                     else
@@ -1316,6 +1335,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                     updated = true;
                                 }
                             }
+                        }
+                        else if (isClip)
+                        {
+                            updated = true;
                         }
                     }
                 }
@@ -1459,10 +1482,15 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             ResourceItem *item = sensor->item(RConfigHostFlags);
                             hostFlags = item->toNumber();
-                        }
 
-                        if (boolValue) { hostFlags |= 0x000080; } // set locked
-                        else           { hostFlags &= 0xffff6f; } // clear locked, clear disable off
+                            if (boolValue) { hostFlags |= 0x000080; } // set locked
+                            else           { hostFlags &= 0xffff6f; } // clear locked, clear disable off
+
+                            if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, 0x4008, deCONZ::Zcl24BitUint, hostFlags))
+                            {
+                                updated = true;
+                            }
+                        }
                     }
                     else
                     {
@@ -1491,10 +1519,15 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             ResourceItem *item = sensor->item(RConfigHostFlags);
                             hostFlags = item->toNumber();
-                        }
 
-                        if (boolValue) { hostFlags |= 0x000002; } // set flipped
-                        else           { hostFlags &= 0xffffed; } // clear flipped, clear disable off
+                            if (boolValue) { hostFlags |= 0x000002; } // set flipped
+                            else           { hostFlags &= 0xffffed; } // clear flipped, clear disable off
+
+                            if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, 0x4008, deCONZ::Zcl24BitUint, hostFlags))
+                            {
+                                updated = true;
+                            }
+                        }
                     }
                 }
                 else if (rid.suffix == RConfigMountingMode) // Boolean
@@ -1793,7 +1826,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     return REQ_READY_SEND;
                 }
             }
-            else // Resource item not found for the device
+            else // Not available
             {
                 rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                            QString("parameter, %1, not available").arg(pi.key())));
@@ -1801,25 +1834,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 return REQ_READY_SEND;
             }
         }
-        else // Non-existing resource item
+        else // Not modifiable
         {
             rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                        QString("parameter, %1, not available").arg(pi.key())));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
-        }
-    }
-
-    //Make Thermostat Tasks
-    if (hostFlags != 0 && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit)
-    {
-        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, 0x4008, deCONZ::Zcl24BitUint, hostFlags))
-        {
-            updated = true;
-        }
-        else
-        {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/hostflags"), QString("could not set attribute")));
             rsp.httpStatus = HttpStatusBadRequest;
             return REQ_READY_SEND;
         }
