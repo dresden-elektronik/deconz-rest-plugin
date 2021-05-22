@@ -388,7 +388,14 @@ void LightNode::rx()
  */
 const deCONZ::SimpleDescriptor &LightNode::haEndpoint() const
 {
-    return m_haEndpoint;
+    const auto *sd = m_haEndpoint < 255 ? getSimpleDescriptor(m_node, m_haEndpoint) : nullptr;
+    if (sd)
+    {
+        return *sd;
+    }
+
+    static deCONZ::SimpleDescriptor invalidEndpoint; // TODO hack
+    return invalidEndpoint;
 }
 
 /*! Sets the lights HA endpoint descriptor.
@@ -397,14 +404,14 @@ const deCONZ::SimpleDescriptor &LightNode::haEndpoint() const
 void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
 {
     bool isWindowCovering = false;
-    bool isInitialized = m_haEndpoint.isValid();
-    m_haEndpoint = endpoint;
+    bool isInitialized = m_haEndpoint < 255;
+    m_haEndpoint = endpoint.endpoint();
 
     // check if std otau cluster present in endpoint
     if (otauClusterId() == 0)
     {
-        QList<deCONZ::ZclCluster>::const_iterator it = endpoint.outClusters().constBegin();
-        QList<deCONZ::ZclCluster>::const_iterator end = endpoint.outClusters().constEnd();
+        auto it = endpoint.outClusters().cbegin();
+        const auto end = endpoint.outClusters().cend();
 
         for (; it != end; ++it)
         {
@@ -432,12 +439,12 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
     // initial setup
     if (!isInitialized)
     {
-        quint16 deviceId = haEndpoint().deviceId();
+        quint16 deviceId = endpoint.deviceId();
         QString ltype = QLatin1String("Unknown");
 
         {
-            QList<deCONZ::ZclCluster>::const_iterator i = endpoint.inClusters().constBegin();
-            QList<deCONZ::ZclCluster>::const_iterator end = endpoint.inClusters().constEnd();
+            auto i = endpoint.inClusters().cbegin();
+            const auto end = endpoint.inClusters().cend();
 
             for (; i != end; ++i)
             {
@@ -534,9 +541,9 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 {
                     if (modelId() != QLatin1String("lumi.light.aqcn02"))
                     {
-                        QList<deCONZ::ZclCluster>::const_iterator ic = haEndpoint().inClusters().constBegin();
-                        std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
-                        std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
+                        auto ic = endpoint.inClusters().cbegin();
+                        auto ia = ic->attributes().cbegin();
+                        const auto enda = ic->attributes().cend();
                         isWindowCovering = true;
                         bool hasLift = true; // set default to lift
                         bool hasTilt = false;
@@ -615,7 +622,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             }
         }
 
-        if (haEndpoint().profileId() == HA_PROFILE_ID)
+        if (endpoint.profileId() == HA_PROFILE_ID)
         {
 
             if ((manufacturerCode() == VENDOR_LEGRAND) && isWindowCovering)
@@ -673,7 +680,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 break;
             }
         }
-        else if (haEndpoint().profileId() == ZLL_PROFILE_ID)
+        else if (endpoint.profileId() == ZLL_PROFILE_ID)
         {
             switch (deviceId)
             {
@@ -692,7 +699,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 break;
             }
         }
-        else if (haEndpoint().profileId() == DIN_PROFILE_ID)
+        else if (endpoint.profileId() == DIN_PROFILE_ID)
         {
             switch (deviceId)
             {
