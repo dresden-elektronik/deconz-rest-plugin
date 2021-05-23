@@ -1115,6 +1115,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                         (sensorNode->manufacturer() == QLatin1String("_TZ3000_adkvzooy")) ||
                         (sensorNode->manufacturer() == QLatin1String("_TZ3000_arfwfgoa")) ||
                         (sensorNode->manufacturer() == QLatin1String("_TZ3000_a7ouggvs")) ||
+                        (sensorNode->manufacturer() == QLatin1String("_TZ3000_dfgbtub0")) ||
                         (sensorNode->manufacturer() == QLatin1String("_TZ3000_xabckq1v")) ||
                         (sensorNode->manufacturer() == QLatin1String("_TYZB02_keyjqthh")))
                     {
@@ -2371,6 +2372,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 lightNode.manufacturer() == QLatin1String("_TZ3000_owgcnkrh") ||
                 lightNode.manufacturer() == QLatin1String("_TZ3000_arfwfgoa") ||
                 lightNode.manufacturer() == QLatin1String("_TYZB02_keyjqthh") ||
+                lightNode.manufacturer() == QLatin1String("_TZ3000_dfgbtub0") ||
                 lightNode.manufacturer() == QLatin1String("_TZ3000_xabckq1v") ||
                 lightNode.manufacturer() == QLatin1String("_TZ3000_a7ouggvs"))
             {
@@ -5372,6 +5374,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              manufacturer == QLatin1String("_TZ3000_adkvzooy") ||
                              manufacturer == QLatin1String("_TZ3000_arfwfgoa") ||
                              manufacturer == QLatin1String("_TYZB02_keyjqthh") ||
+                             manufacturer == QLatin1String("_TZ3000_dfgbtub0") ||
                              manufacturer == QLatin1String("_TZ3000_xabckq1v") ||
                              manufacturer == QLatin1String("_TZ3000_a7ouggvs"))
                     {
@@ -7016,7 +7019,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 // Supported with Danfoss firmware version 1.08
                 sensorNode.addItem(DataTypeBool, RConfigScheduleOn)->setValue(false);
                 sensorNode.addItem(DataTypeString, RConfigSchedule);
-                sensorNode.addItem(DataTypeInt16, RConfigExternalTemperatureSensor);
+                sensorNode.addItem(DataTypeInt16, RConfigExternalTemperatureSensor)->setValue(0);
                 sensorNode.addItem(DataTypeBool, RConfigExternalWindowOpen)->setValue(false);
             }
             else if (modelId == QLatin1String("AC201")) // OWON AC201 Thermostat
