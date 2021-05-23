@@ -239,6 +239,9 @@
     <attribute-set id="0x4000" description="Müller Licht specific" mfcode="0x121b">
 			<attribute id="0x4005" name="Scene" type="u8" access="rw" required="o" mfcode="0x121b"></attribute>
 		</attribute-set>
+		<attribute-set id="0x5000" description="ID Lock specific" mfcode="0x1337">
+			<attribute id="0x5000" name="Lock fw" type="cstring" access="r" required="m" mfcode="0x1337" />
+		</attribute-set>
 		<attribute-set id="0x8000" description="Develco Specific" mfcode="0x1015">
 			<attribute id="0x8000" name="Primary SW Version" type="ostring" access="r" required="m" mfcode="0x1015"></attribute>
 			<attribute id="0x8010" name="Primary Bootloader SW Version" type="ostring" access="r" required="m" mfcode="0x1015"></attribute>
@@ -1505,6 +1508,14 @@ by the Poll Control Cluster Client.</description>
             <value name="Door Furniture" value="0x0A"></value>
           </attribute>
           <attribute id="0x0002" name="Actuator enabled" type="bool" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Door state" type="enum8" access="r" required="m">
+            <value name="Open" value="0x00"/>
+            <value name="Closed" value="0x01"/>
+            <value name="Error jammed" value="0x02"/>
+            <value name="Error forced open" value="0x03"/>
+            <value name="Error unspecified" value="0x04"/>
+            <value name="Undefined" value="0xff"/>
+          </attribute>
         </attribute-set>
         <attribute-set id="0x0010" description="User, PIN, Schedule Information Attribute Set">
           <attribute id="0x0010" name="Number Of Log Records Supported" type="u16" default="0" access="r" required="o"></attribute>
@@ -1514,6 +1525,8 @@ by the Poll Control Cluster Client.</description>
           <attribute id="0x0014" name="Number Of WeekDay Schedules Supported Per User" type="u8" default="0" access="r" required="o"></attribute>
           <attribute id="0x0015" name="Number Of Year Day Schedules Supported Per User" type="u8" default="0" access="r" required="o"></attribute>
           <attribute id="0x0016" name="Number Of Holiday Schedules Supported" type="u8" default="0" access="r" required="o"></attribute>
+          <attribute id="0x0017" name="Max PIN length" type="u8" access="r" required="o"/>
+          <attribute id="0x0018" name="Min PIN length" type="u8" access="r" required="o"/>									  
         </attribute-set>
         <attribute-set id="0x0020" description="Operational Settings Attribute Set">
           <attribute id="0x0020" name="Enable Logging" type="bool" default="0" access="rw" required="o"></attribute>
@@ -1605,6 +1618,38 @@ by the Poll Control Cluster Client.</description>
           <attribute id="0x0505" name="Vibration Strength" type="u32" showas="hex" access="r" required="o"></attribute>
           <attribute id="0x0508" name="Orientation" type="u48" showas="hex" access="r" required="o"></attribute>
         </attribute-set>
+        <attribute-set id="0x4000" description="ID Lock special" mfcode="0x1337">
+          <attribute id="0x4000" name="Master PIN mode" type="bool" access="rw" required="m" mfcode="0x1337"/>
+          <attribute id="0x4001" name="RFID Enabled" type="bool" access="rw" required="m" mfcode="0x1337"/>
+          <attribute id="0x4002" name="Hinge mode" type="bool" access="rw" required="m" mfcode="0x1337"/>
+          <attribute id="0x4003" name="Service PIN mode" type="u8" access="rw" required="m" mfcode="0x1337">
+            <value name="Deactivated" value="0x00"/>
+            <value name="1x use" value="0x01"/>
+            <value name="2x uses" value="0x02"/>
+            <value name="5x uses" value="0x03"/>
+            <value name="10x uses" value="0x04"/>
+            <value name="Random PIN 1x use" value="0x05"/>
+            <value name="Random PIN 24 hours" value="0x06"/>
+            <value name="Always valid" value="0x07"/>
+            <value name="12 hours" value="0x08"/>
+            <value name="24 hours" value="0x09"/>
+          </attribute>
+          <attribute id="0x4004" name="Lock mode" type="u8" access="rw" required="m" mfcode="0x1337">
+            <value name="Auto lock OFF/Away mode OFF" value="0x00"/>
+            <value name="Auto lock ON/Away mode OFF" value="0x01"/>
+            <value name="Auto lock OFF/Away mode ON" value="0x02"/>
+            <value name="Auto lock ON/Away mode ON" value="0x03"/>
+          </attribute>
+          <attribute id="0x4005" name="Relock enabled" type="bool" access="rw" required="m" mfcode="0x1337"/>
+          <attribute id="0x4006" name="Audio volume" type="u8" access="rw" required="m" mfcode="0x1337">
+            <value name="Volume off" value="0x00"/>
+            <value name="1" value="0x01"/>
+            <value name="2" value="0x02"/>
+            <value name="3" value="0x03"/>
+            <value name="4" value="0x04"/>
+            <value name="5" value="0x05"/>
+          </attribute>
+        </attribute-set>
         <command id="0x00" dir="recv" name="Lock Door" required="m">
           <description>This command causes the lock device to lock the door.</description>
           <payload></payload>
@@ -1643,6 +1688,85 @@ by the Poll Control Cluster Client.</description>
           <attribute id="0x0004" type="u8" name="Event ID/Alarm Code" required="m"></attribute>
           <attribute id="0x0005" type="u16" name="User ID" required="m"></attribute>
           <attribute id="0x0006" type="cstring" name="PIN" required="m"></attribute>
+          </payload>
+        </command>
+        <command id="0x05" dir="recv" name="Set PIN code" required="o">
+          <description>Set PIN-code for user. User ID is between 0 and [# of PIN Users Supported Attribute]</description>
+          <payload>
+            <attribute id="0x0000" type="u16" name="User ID" required="m"></attribute>
+            <attribute id="0x0001" type="u8" name="User Status" required="o">
+              <value name="Occupied/Enabled" value="1" />
+              <value name="Occupied/Disabled" value="3" />
+            </attribute>
+            <attribute id="0x0002" type="enum8" name="User Type" required="o">
+              <value name="Unrestricted" value="0"/>
+              <value name="Year Day Schedule User" value="1"/>
+              <value name="Week Day Schedule User" value="2"/>
+              <value name="Master User" value="3"/>
+              <value name="Non Access User" value="4"/>
+              <value name="Not Supported" value="0xff"/>
+            </attribute>
+            <attribute id="0x0003" type="ostring" name="Code" required="m"></attribute>
+          </payload>
+        </command>
+        <command id="0x05" dir="send" name="Set PIN code response" required="o">
+          <description>Status</description>
+          <payload>
+            <attribute id="0x0000" type="u8" name="Status" required="m">
+              <value name="Success" value="0" />
+              <value name="Fail" value="1" />
+              <value name="Memory full" value="2" />
+              <value name="Duplicate code error" value="3" />
+            </attribute>
+          </payload>
+        </command>
+        <command id="0x06" dir="recv" name="Get PIN code" required="o">
+          <description>Get PIN code for user. User ID is between 0 and [# of PIN Users Supported Attribute]</description>
+          <payload>
+            <attribute id="0x0000" type="u16" name="User ID" required="m"></attribute>
+          </payload>
+        </command>
+        <command id="0x06" dir="send" name="Get PIN code response" required="o">
+          <description>Returns PIN-code for user.</description>
+          <payload>
+            <attribute id="0x0000" type="u16" name="User ID" required="m"></attribute>
+            <attribute id="0x0001" type="u8" name="User Status" required="o"></attribute>
+            <attribute id="0x0002" type="enum8" name="User Type" required="o">
+              <value name="Unrestricted" value="0"/>
+              <value name="Year Day Schedule User" value="1"/>
+              <value name="Week Day Schedule User" value="2"/>
+              <value name="Master User" value="3"/>
+              <value name="Non Access User" value="4"/>
+              <value name="Not Supported" value="0xff"/>
+            </attribute>
+            <attribute id="0x0003" type="ostring" name="Code" required="m"></attribute>
+          </payload>
+        </command>
+        <command id="0x07" dir="recv" name="Clear PIN code" required="o">
+          <description>Clear PIN code for user. User ID is between 0 and [# of PIN Users Supported Attribute]</description>
+          <payload>
+            <attribute id="0x0000" type="u16" name="User ID" required="m"></attribute>
+          </payload>
+        </command>
+        <command id="0x07" dir="send" name="Clear PIN code response" required="o">
+          <description>Status</description>
+          <payload>
+            <attribute id="0x0000" type="u8" name="Status" required="m">
+              <value name="Success" value="0" />
+              <value name="General failure" value="1" />
+            </attribute>
+          </payload>
+        </command>
+        <command id="0x08" dir="recv" name="Clear all PIN codes" required="o">
+          <description>Clear all registred PIN codes.</description>
+        </command>
+        <command id="0x08" dir="send" name="Clear all PIN codes response" required="o">
+          <description>Status</description>
+          <payload>
+            <attribute id="0x0000" type="u8" name="Status" required="m">
+              <value name="Success" value="0" />
+              <value name="General failure" value="1" />
+            </attribute>
           </payload>
         </command>
         <command id="0x20" dir="send" name="Operationg Event Notification" required="o">

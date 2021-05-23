@@ -17,6 +17,12 @@
 #include "rest_node_base.h"
 #include "group_info.h"
 
+#define COLOR_CAP_HUE_SAT         (1 << 0)
+#define COLOR_CAP_ENHANCED_HUE    (1 << 1)
+#define COLOR_CAP_COLORLOOP       (1 << 2)
+#define COLOR_CAP_XY              (1 << 3)
+#define COLOR_CAP_CT              (1 << 4)
+
 /*! \class LightNode
 
     Represents a HA or ZLL based light.
@@ -53,6 +59,7 @@ public:
     bool hasColor() const;
     void setColorLoopActive(bool colorLoopActive);
     bool isColorLoopActive() const;
+    bool supportsColorLoop() const;
     void setColorLoopSpeed(uint8_t speed);
     uint8_t colorLoopSpeed() const;
     void didSetValue(ResourceItem *i);

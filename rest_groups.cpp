@@ -114,9 +114,9 @@ int DeRestPluginPrivate::getAllGroups(const ApiRequest &req, ApiResponse &rsp)
     rsp.httpStatus = HttpStatusOk;
 
     // handle ETag
-    if (req.hdr.hasKey("If-None-Match"))
+    if (req.hdr.hasKey(QLatin1String("If-None-Match")))
     {
-        QString etag = req.hdr.value("If-None-Match");
+        QString etag = req.hdr.value(QLatin1String("If-None-Match"));
 
         if (gwGroupsEtag == etag)
         {
@@ -384,9 +384,9 @@ int DeRestPluginPrivate::getGroupAttributes(const ApiRequest &req, ApiResponse &
     }
 
     // handle ETag
-    if (req.hdr.hasKey("If-None-Match"))
+    if (req.hdr.hasKey(QLatin1String("If-None-Match")))
     {
-        QString etag = req.hdr.value("If-None-Match");
+        QString etag = req.hdr.value(QLatin1String("If-None-Match"));
 
         if (group->etag == etag)
         {
@@ -2701,6 +2701,181 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
     return REQ_READY_SEND;
 }
 
+/*! Scenes for IKEA lights with state.on = false don't work.
+    This functions sends a OFF_WITH_EFFECT command which forces the light to turn off (normal off doesn't work).
+    TODO remove when IKEA has fixed the bug in firmware.
+*/
+static void ikeaTurnLightOffInSceneHack(DeRestPluginPrivate *d, LightNode *lightNode)
+{
+    TaskItem task;
+    task.lightNode = lightNode;
+    task.req.dstAddress() = task.lightNode->address();
+    task.req.setDstEndpoint(task.lightNode->haEndpoint().endpoint());
+    task.req.setSrcEndpoint(d->getSrcEndpoint(task.lightNode, task.req));
+    task.req.setDstAddressMode(deCONZ::ApsExtAddress);
+    d->addTaskSetOnOff(task, ONOFF_COMMAND_OFF_WITH_EFFECT, 0, 0);
+}
+
+/*! Checks the lights states in a scene:
+    - Creates unicast tasks for colorloop turn on/off
+    - Creates unicast tasks for IKEA lights which are off in a scene -> hack.
+    - Sets group.on according to the light states
+ */
+static void recallSceneCheckGroupChanges(DeRestPluginPrivate *d, Group *group, Scene *scene)
+{
+    bool groupOn = false;
+    bool groupOnChanged = false;
+    bool groupBriChanged = false;
+    bool groupHueSatChanged = false;
+    bool groupCtChanged = false;
+    bool groupColorModeChanged = false;
+
+    auto ls = scene->lights().cbegin();
+    const auto lsend = scene->lights().cend();
+
+    for (; ls != lsend; ++ls)
+    {
+        LightNode *lightNode = d->getLightNodeForId(ls->lid());
+
+        if (!lightNode || lightNode->state() != LightNode::StateNormal || !lightNode->isAvailable())
+        {
+            continue;
+        }
+
+        bool changed = false;
+
+        if (ls->on())
+        {
+            groupOn = true;
+        }
+        else if (lightNode->manufacturerCode() == VENDOR_IKEA)
+        {
+            ikeaTurnLightOffInSceneHack(d, lightNode);
+        }
+
+        {
+            const bool supportsColorLoop = lightNode->supportsColorLoop();
+            const bool colorLoopActive = ls->on() && supportsColorLoop && ls->colorloopActive();
+            if (supportsColorLoop && lightNode->isColorLoopActive() != colorLoopActive)
+            {
+                // this is called in rare cases to turn colorloop on/off for supported lights
+                TaskItem task2;
+                task2.lightNode = lightNode;
+                task2.req.dstAddress() = task2.lightNode->address();
+                //task2.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+                task2.req.setDstEndpoint(task2.lightNode->haEndpoint().endpoint());
+                task2.req.setSrcEndpoint(d->getSrcEndpoint(task2.lightNode, task2.req));
+                task2.req.setDstAddressMode(deCONZ::ApsExtAddress);
+
+                lightNode->setColorLoopActive(colorLoopActive);
+
+                if (lightNode->isColorLoopActive())
+                {
+                    lightNode->setColorLoopSpeed(ls->colorloopTime());
+                }
+
+                d->addTaskSetColorLoop(task2, colorLoopActive, ls->colorloopTime());
+                changed = true;
+            }
+        }
+
+        // TODO the following is fake, better let ZCL reporting and Poll manager let this figure out?!
+
+        ResourceItem *item = lightNode->item(RStateOn);
+        if (item && item->toBool() != ls->on())
+        {
+            item->setValue(ls->on());
+            d->enqueueEvent(Event(RLights, RStateOn, lightNode->id(), item));
+            changed = true;
+            groupOnChanged = true;
+        }
+
+        item = lightNode->item(RStateBri);
+        if (item && ls->bri() != item->toNumber())
+        {
+            item->setValue(ls->bri());
+            d->enqueueEvent(Event(RLights, RStateBri, lightNode->id(), item));
+            changed = true;
+            groupBriChanged = true;
+        }
+
+        item = lightNode->item(RStateColorMode);
+        if (item)
+        {
+            if (ls->colorMode() != item->toString())
+            {
+                item->setValue(ls->colorMode());
+                d->enqueueEvent(Event(RLights, RStateColorMode, lightNode->id()));
+                changed = true;
+                groupColorModeChanged = true;
+            }
+
+            if (ls->colorMode() == QLatin1String("xy"))
+            {
+                item = lightNode->item(RStateX);
+                if (item && ls->x() != item->toNumber())
+                {
+                    item->setValue(ls->x());
+                    d->enqueueEvent(Event(RLights, RStateX, lightNode->id(), item));
+                    changed = true;
+                }
+                item = lightNode->item(RStateY);
+                if (item && ls->y() != item->toNumber())
+                {
+                    item->setValue(ls->y());
+                    d->enqueueEvent(Event(RLights, RStateY, lightNode->id(), item));
+                    changed = true;
+                }
+            }
+            else if(ls->colorMode() == QLatin1String("ct"))
+            {
+                item = lightNode->item(RStateCt);
+                if (item && ls->colorTemperature() != item->toNumber())
+                {
+                    item->setValue(ls->colorTemperature());
+                    d->enqueueEvent(Event(RLights, RStateCt, lightNode->id(), item));
+                    changed = true;
+                    groupCtChanged = true;
+                }
+            }
+            else if (ls->colorMode() == QLatin1String("hs"))
+            {
+                item = lightNode->item(RStateHue);
+                if (item && ls->enhancedHue() != item->toNumber())
+                {
+                    item->setValue(ls->enhancedHue());
+                    d->enqueueEvent(Event(RLights, RStateHue, lightNode->id(), item));
+                    changed = true;
+                    groupHueSatChanged = true;
+                }
+
+                item = lightNode->item(RStateSat);
+                if (item && ls->saturation() != item->toNumber())
+                {
+                    item->setValue(ls->saturation());
+                    d->enqueueEvent(Event(RLights, RStateSat, lightNode->id(), item));
+                    changed = true;
+                    groupHueSatChanged = true;
+                }
+            }
+        }
+
+        if (changed)
+        {
+            d->updateLightEtag(lightNode);
+        }
+    }
+
+    if (groupOnChanged || groupBriChanged || groupHueSatChanged || groupCtChanged || groupColorModeChanged)
+    {
+        if (groupOn && !group->isOn())
+        {
+            group->setIsOn(true);
+            d->updateGroupEtag(group);
+        }
+    }
+}
+
 /*! PUT /api/<apikey>/groups/<group_id>/scenes/<scene_id>/recall
     PUT /api/<apikey>/groups/<group_id>/scenes/next/recall
     PUT /api/<apikey>/groups/<group_id>/scenes/prev/recall
@@ -2737,7 +2912,7 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
     }
 
     // check if scene exists
-    Scene *scene = 0;
+    Scene *scene = nullptr;
     uint8_t sceneId = 0;
     ok = false;
     if (sid == QLatin1String("next") || sid == QLatin1String("prev"))
@@ -2799,50 +2974,13 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
         sceneId = sid.toUInt(&ok);
     }
 
-    scene = ok ? group->getScene(sceneId) : 0;
+    scene = ok ? group->getScene(sceneId) : nullptr;
 
     if (!scene || (scene->state != Scene::StateNormal))
     {
         rsp.httpStatus = HttpStatusNotFound;
         rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/groups/%1/scenes/%2").arg(gid).arg(sid), QString("resource, /groups/%1/scenes/%2, not available").arg(gid).arg(sid)));
         return REQ_READY_SEND;
-    }
-
-    bool groupOn = false;
-    std::vector<LightState>::const_iterator ls = scene->lights().begin();
-    std::vector<LightState>::const_iterator lsend = scene->lights().end();
-
-    for (; ls != lsend; ++ls)
-    {
-        LightNode *lightNode = getLightNodeForId(ls->lid());
-
-        if (lightNode && lightNode->isAvailable() && lightNode->state() == LightNode::StateNormal)
-        {
-            if (ls->on())
-            {
-                groupOn = true;
-            }
-
-            if (lightNode->hasColor())
-            {
-                if (!ls->colorloopActive() && lightNode->isColorLoopActive() != ls->colorloopActive())
-                {
-                    //stop colorloop if scene was saved without colorloop (Osram don't stop colorloop if another scene is called)
-                    TaskItem task2;
-                    task2.lightNode = lightNode;
-                    task2.req.dstAddress() = task2.lightNode->address();
-                    task2.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-                    task2.req.setDstEndpoint(task2.lightNode->haEndpoint().endpoint());
-                    task2.req.setSrcEndpoint(getSrcEndpoint(task2.lightNode, task2.req));
-                    task2.req.setDstAddressMode(deCONZ::ApsExtAddress);
-
-                    lightNode->setColorLoopActive(false);
-                    addTaskSetColorLoop(task2, false, 15);
-                    updateLightEtag(lightNode);
-                }
-            }
-
-        }
     }
 
     if (!callScene(group, sceneId))
@@ -2853,7 +2991,7 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
     }
 
     {
-        QString scid = QString::number(sceneId);
+        const QString scid = QString::number(sceneId);
         ResourceItem *item = group->item(RActionScene);
         if (item && item->toString() != scid)
         {
@@ -2864,143 +3002,7 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
-    bool groupOnChanged = false;
-    bool groupBriChanged = false;
-    bool groupHueSatChanged = false;
-    bool groupCtChanged = false;
-    bool groupColorModeChanged = false;
-
-    //turn on colorloop if scene was saved with colorloop (FLS don't save colorloop at device)
-    ls = scene->lights().begin();
-    lsend = scene->lights().end();
-
-    for (; ls != lsend; ++ls)
-    {
-        LightNode *lightNode = getLightNodeForId(ls->lid());
-
-        if (lightNode && lightNode->isAvailable() && lightNode->state() == LightNode::StateNormal)
-        {
-            bool changed = false;
-
-            if (lightNode->hasColor() && ls->colorloopActive() && lightNode->isColorLoopActive() != ls->colorloopActive())
-            {
-                TaskItem task2;
-                task2.lightNode = lightNode;
-                task2.req.dstAddress() = task2.lightNode->address();
-                task2.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-                task2.req.setDstEndpoint(task2.lightNode->haEndpoint().endpoint());
-                task2.req.setSrcEndpoint(getSrcEndpoint(task2.lightNode, task2.req));
-                task2.req.setDstAddressMode(deCONZ::ApsExtAddress);
-
-                lightNode->setColorLoopActive(true);
-                lightNode->setColorLoopSpeed(ls->colorloopTime());
-                addTaskSetColorLoop(task2, true, ls->colorloopTime());
-                changed = true;
-            }
-
-// #if 0 // TODO let pollManger handle updates
-            ResourceItem *item = lightNode->item(RStateOn);
-            if (item && item->toBool() != ls->on())
-            {
-                item->setValue(ls->on());
-                Event e(RLights, RStateOn, lightNode->id(), item);
-                enqueueEvent(e);
-                changed = true;
-                groupOnChanged = true;
-            }
-
-            item = lightNode->item(RStateBri);
-            if (item && ls->bri() != item->toNumber())
-            {
-                item->setValue(ls->bri());
-                Event e(RLights, RStateBri, lightNode->id(), item);
-                enqueueEvent(e);
-                changed = true;
-                groupBriChanged = true;
-            }
-
-            item = lightNode->item(RStateColorMode);
-            if (item)
-            {
-                if (ls->colorMode() != item->toString())
-                {
-                    item->setValue(ls->colorMode());
-                    Event e(RLights, RStateColorMode, lightNode->id());
-                    enqueueEvent(e);
-                    changed = true;
-                    groupColorModeChanged = true;
-                }
-
-                if (ls->colorMode() == QLatin1String("xy"))
-                {
-                    item = lightNode->item(RStateX);
-                    if (item && ls->x() != item->toNumber())
-                    {
-                        item->setValue(ls->x());
-                        Event e(RLights, RStateX, lightNode->id(), item);
-                        enqueueEvent(e);
-                        changed = true;
-                    }
-                    item = lightNode->item(RStateY);
-                    if (item && ls->y() != item->toNumber())
-                    {
-                        item->setValue(ls->y());
-                        Event e(RLights, RStateY, lightNode->id(), item);
-                        enqueueEvent(e);
-                        changed = true;
-                    }
-                }
-                else if(ls->colorMode() == QLatin1String("ct"))
-                {
-                    item = lightNode->item(RStateCt);
-                    if (item && ls->colorTemperature() != item->toNumber())
-                    {
-                        item->setValue(ls->colorTemperature());
-                        Event e(RLights, RStateCt, lightNode->id(), item);
-                        enqueueEvent(e);
-                        changed = true;
-                        groupCtChanged = true;
-                    }
-                }
-                else if (ls->colorMode() == QLatin1String("hs"))
-                {
-                    item = lightNode->item(RStateHue);
-                    if (item && ls->enhancedHue() != item->toNumber())
-                    {
-                        item->setValue(ls->enhancedHue());
-                        Event e(RLights, RStateHue, lightNode->id(), item);
-                        enqueueEvent(e);
-                        changed = true;
-                        groupHueSatChanged = true;
-                    }
-
-                    item = lightNode->item(RStateSat);
-                    if (item && ls->saturation() != item->toNumber())
-                    {
-                        item->setValue(ls->saturation());
-                        Event e(RLights, RStateSat, lightNode->id(), item);
-                        enqueueEvent(e);
-                        changed = true;
-                        groupHueSatChanged = true;
-                    }
-                }
-            }
-// #endif
-            if (changed)
-            {
-                updateLightEtag(lightNode);
-            }
-        }
-    }
-    if (groupOnChanged || groupBriChanged || groupHueSatChanged || groupCtChanged || groupColorModeChanged)
-    {
-        if (groupOn && !group->isOn())
-        {
-            group->setIsOn(true);
-            updateGroupEtag(group);
-        }
-        // recalc other group parameter in webapp
-    }
+    recallSceneCheckGroupChanges(this, group, scene);
 
     updateEtag(gwConfigEtag);
 

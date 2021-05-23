@@ -79,7 +79,7 @@ GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.11.01\\\"
+DEFINES += GW_SW_VERSION=\\\"2.11.05\\\"
 DEFINES += GW_SW_DATE=$$GIT_COMMIT_DATE
 DEFINES += GW_API_VERSION=\\\"1.16.0\\\"
 DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
@@ -98,6 +98,7 @@ DEFINES += GW_MIN_DERFUSB23E0X_FW_VERSION=0x22030300
 DEFINES += GW_DEFAULT_NAME=\\\"Phoscon-GW\\\"
 
 HEADERS  = bindings.h \
+           backup.h \
            connectivity.h \
            colorspace.h \
            daylight.h \
@@ -129,6 +130,7 @@ HEADERS  = bindings.h \
 
 SOURCES  = air_quality.cpp \
            authorisation.cpp \
+           backup.cpp \
            bindings.cpp \
            change_channel.cpp \
            connectivity.cpp \
@@ -141,6 +143,7 @@ SOURCES  = air_quality.cpp \
            de_web_plugin.cpp \
            de_web_widget.cpp \
            de_otau.cpp \
+           electrical_measurement.cpp \
            event.cpp \
            event_queue.cpp \
            fan_control.cpp \
@@ -191,6 +194,7 @@ SOURCES  = air_quality.cpp \
            reset_device.cpp \
            rest_userparameter.cpp \
            utils/utils.cpp \
+           xiaomi.cpp \
            zcl_tasks.cpp \
            window_covering.cpp \
            websocket_server.cpp \

@@ -1351,7 +1351,7 @@ void DeRestPluginPrivate::scheduleTimerFired()
             }
 
             QHttpRequestHeader hdr(method, address);
-            QStringList path = hdr.path().split('/', QString::SkipEmptyParts);
+            QStringList path = QString(hdr.path()).split('/', QString::SkipEmptyParts);
 
             ApiRequest req(hdr, path, nullptr, content);
             ApiResponse rsp; // dummy
