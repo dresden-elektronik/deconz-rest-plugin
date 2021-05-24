@@ -73,3 +73,69 @@ QString generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId)
     return QString::fromLatin1(buf);
 }
 
+/*! Returnes an index >= 0 if \p needle is in \p haystack or -1 if not found.
+
+    The strings aren't required to be '\0' terminated.
+ */
+int indexOf(QLatin1String haystack, QLatin1String needle)
+{
+    if (needle.size() == 0 || haystack.size() == 0)
+    {
+        return -1;
+    }
+
+    for (int i = 0; i < haystack.size(); i++)
+    {
+        if (needle.size() > haystack.size() - i)
+        {
+            return -1;
+        }
+
+        int match = 0;
+        for (int j = i, n = 0; j < haystack.size() && n < needle.size(); j++, n++)
+        {
+            if (haystack.data()[j] != needle.data()[n])
+            {
+                break;
+            }
+            match++;
+        }
+
+        if (match == needle.size())
+        {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+/*! Returnes true if \p needle is in \p haystack.
+
+    The strings aren't required to be '\0' terminated.
+ */
+bool contains(QLatin1String haystack, QLatin1String needle)
+{
+    return indexOf(haystack, needle) >= 0;
+}
+
+// Tests for contains(QLatin1String, QLatin1String)
+// const char *haystack = "abc";
+
+// Q_ASSERT(contains(QLatin1String("Content-Type: form-data; foobar"), QLatin1String("form-data")) == true);
+// Q_ASSERT(contains(QLatin1String("form-data; barbaz"), QLatin1String("nop-data")) == false);
+// Q_ASSERT(contains(QLatin1String(haystack, 3), QLatin1String("abc")) == true);
+// Q_ASSERT(contains(QLatin1String(haystack, 3), QLatin1String("bc")) == true);
+// Q_ASSERT(contains(QLatin1String(haystack, 3), QLatin1String("c")) == true);
+// Q_ASSERT(contains(QLatin1String(haystack, 2), QLatin1String("abc")) == false);
+// Q_ASSERT(contains(QLatin1String(haystack, 3), QLatin1String("")) == false);
+// Q_ASSERT(contains(QLatin1String(), QLatin1String("")) == false);
+
+/*! Returnes true if \p str starts with \p needle.
+
+    The strings aren't required to be '\0' terminated.
+ */
+bool startsWith(QLatin1String str, QLatin1String needle)
+{
+    return indexOf(str, needle) == 0;
+}
