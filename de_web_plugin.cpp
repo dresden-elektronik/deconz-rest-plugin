@@ -411,6 +411,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "TS0043", silabs8MacPrefix }, // Tuya wireless switch
     { VENDOR_EMBER, "TS0043", silabs7MacPrefix }, // Tuya wireless switch
     { VENDOR_EMBER, "TS0044", silabs9MacPrefix }, // Tuya wireless switch
+    { VENDOR_EMBER, "TS004F", silabs8MacPrefix }, // Tuya wireless switch
     { VENDOR_NONE, "kud7u2l", silabs3MacPrefix }, // Tuya Smart TRV HY369 Thermostatic Radiator Valve
     { VENDOR_NONE, "GbxAXL2", silabs3MacPrefix }, // Another Tuya Smart TRV Thermostatic Radiator Valve
     { VENDOR_NONE, "w7cahqs", silabs8MacPrefix }, // hama Smart Radiator Thermostat
@@ -1115,6 +1116,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                         (sensorNode->manufacturer() == QLatin1String("_TZ3000_arfwfgoa")) ||
                         (sensorNode->manufacturer() == QLatin1String("_TZ3000_a7ouggvs")) ||
                         (sensorNode->manufacturer() == QLatin1String("_TZ3000_dfgbtub0")) ||
+                        (sensorNode->manufacturer() == QLatin1String("_TZ3000_xabckq1v")) ||
                         (sensorNode->manufacturer() == QLatin1String("_TYZB02_keyjqthh")))
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
@@ -2371,6 +2373,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 lightNode.manufacturer() == QLatin1String("_TZ3000_arfwfgoa") ||
                 lightNode.manufacturer() == QLatin1String("_TYZB02_keyjqthh") ||
                 lightNode.manufacturer() == QLatin1String("_TZ3000_dfgbtub0") ||
+                lightNode.manufacturer() == QLatin1String("_TZ3000_xabckq1v") ||
                 lightNode.manufacturer() == QLatin1String("_TZ3000_a7ouggvs"))
             {
                 hasServerOnOff = false;
@@ -5372,6 +5375,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              manufacturer == QLatin1String("_TZ3000_arfwfgoa") ||
                              manufacturer == QLatin1String("_TYZB02_keyjqthh") ||
                              manufacturer == QLatin1String("_TZ3000_dfgbtub0") ||
+                             manufacturer == QLatin1String("_TZ3000_xabckq1v") ||
                              manufacturer == QLatin1String("_TZ3000_a7ouggvs"))
                     {
                         //Making the device only for endpoint 0x01
