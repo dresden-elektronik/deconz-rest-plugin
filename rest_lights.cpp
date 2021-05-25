@@ -18,6 +18,7 @@
 #include "json.h"
 #include "connectivity.h"
 #include "colorspace.h"
+#include "product_match.h"
 
 /*! Lights REST API broker.
     \param req - request data
@@ -111,9 +112,9 @@ int DeRestPluginPrivate::getAllLights(const ApiRequest &req, ApiResponse &rsp)
     rsp.httpStatus = HttpStatusOk;
 
     // handle ETag
-    if (req.hdr.hasKey("If-None-Match"))
+    if (req.hdr.hasKey(QLatin1String("If-None-Match")))
     {
-        QString etag = req.hdr.value("If-None-Match");
+        QString etag = req.hdr.value(QLatin1String("If-None-Match"));
 
         if (gwLightsEtag == etag)
         {
@@ -363,7 +364,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         {
             QVariantMap links;
             QVariantMap self;
-            self["href"] = QString("%1/%2").arg(req.hdr.url().path()).arg(lightNode->uniqueId());
+            self["href"] = QString("%1/%2").arg(req.hdr.path()).arg(lightNode->uniqueId());
             links["self"] = self;
             map["_links"] = links;
         }
@@ -457,49 +458,10 @@ int DeRestPluginPrivate::getLightState(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    // handle request to force query light state
-    if (req.hdr.hasKey("Query-State"))
-    {
-        bool enabled = false;
-        int diff = idleTotalCounter - lightNode->lastRead(READ_ON_OFF);
-        QString attrs = req.hdr.value("Query-State");
-
-        // only read if time since last read is not too short
-        if (diff > 3)
-        {
-            if (attrs.contains("on"))
-            {
-                lightNode->enableRead(READ_ON_OFF);
-                lightNode->setLastRead(READ_ON_OFF, idleTotalCounter);
-                enabled = true;
-            }
-
-            if (attrs.contains("bri"))
-            {
-                lightNode->enableRead(READ_LEVEL);
-                lightNode->setLastRead(READ_LEVEL, idleTotalCounter);
-                enabled = true;
-            }
-
-            if (attrs.contains("color") && lightNode->hasColor())
-            {
-                lightNode->enableRead(READ_COLOR);
-                lightNode->setLastRead(READ_COLOR, idleTotalCounter);
-                enabled = true;
-            }
-        }
-
-        if (enabled)
-        {
-            DBG_Printf(DBG_INFO, "Force read the attributes %s, for node %s\n", qPrintable(attrs), qPrintable(lightNode->address().toStringExt()));
-            processZclAttributes(lightNode);
-        }
-    }
-
     // handle ETag
-    if (req.hdr.hasKey("If-None-Match"))
+    if (req.hdr.hasKey(QLatin1String("If-None-Match")))
     {
-        QString etag = req.hdr.value("If-None-Match");
+        QString etag = req.hdr.value(QLatin1String("If-None-Match"));
 
         if (lightNode->etag == etag)
         {
@@ -594,15 +556,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     }
     else if (UseTuyaCluster(taskRef.lightNode->manufacturer()))
     {
-        //window covering
-
-        if (taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq") ||
-            taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_xuzcvlku") ||
-            taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_wmcdj3aq") ||
-            taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_nogaemzt") ||
-            taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_zah67ekd") || // MoesHouse / Livolo Roller Blinds
-            taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_fzo2pocs") ||
-            taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3"))
+        //tuya window covering
+        if (R_GetProductId(taskRef.lightNode).startsWith(QLatin1String("Tuya_COVD")))
         {
             return setWindowCoveringState(req, rsp, taskRef, map);
         }
@@ -1872,7 +1827,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else
         {
-            const quint8 cmd = taskRef.lightNode->manufacturerCode() == VENDOR_PHILIPS // FIXME: use light capabilities
+            const quint16 manufacturerCode = taskRef.lightNode->manufacturerCode();
+            const quint8 cmd = (manufacturerCode == VENDOR_PHILIPS || manufacturerCode == VENDOR_IKEA)
                     ? ONOFF_COMMAND_OFF_WITH_EFFECT
                     : ONOFF_COMMAND_OFF;
             ok = addTaskSetOnOff(task, cmd, 0, 0);
@@ -1917,13 +1873,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         cluster = ANALOG_OUTPUT_CLUSTER_ID;
     }
 
-    if (taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq") ||
-        taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_xuzcvlku") ||
-        taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_wmcdj3aq") ||
-        taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_nogaemzt") ||
-        taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_zah67ekd") || // MoesHouse / Livolo Roller Blinds
-        taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_fzo2pocs") ||
-        taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3"))
+    if (R_GetProductId(taskRef.lightNode).startsWith(QLatin1String("Tuya_COVD")))
     {
         cluster = TUYA_CLUSTER_ID;
     }
@@ -2096,6 +2046,9 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             R_GetProductId(taskRef.lightNode) == QLatin1String("11830304 Switch") ||
             R_GetProductId(taskRef.lightNode) == QLatin1String("QS-Zigbee-C01 Module") ||
             R_GetProductId(taskRef.lightNode) == QLatin1String("Zigbee curtain switch") ||
+            R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_COVD YS-MT750") ||
+            R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_COVD DS82") ||
+            taskRef.lightNode->modelId() == QLatin1String("D10110") ||
             taskRef.lightNode->modelId() == QLatin1String("Motor Controller"))
         {
             targetLiftZigBee = 100 - targetLift;
@@ -2267,7 +2220,14 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
 
         if (cluster == TUYA_CLUSTER_ID)
         {
-            if (targetOpen)
+            // Reverse side for open/close command
+            bool targetOpen2 = targetOpen;
+            if (R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_COVD M515EGB"))
+            {
+                targetOpen2 = !targetOpen;
+            }
+
+            if (targetOpen2)
             {
                 ok = sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_CONTROL, QByteArray("\x02", 1));
             }
@@ -2341,100 +2301,163 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
 int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map)
 {
     QString id = req.path[3];
+    
     bool targetOn = false;
-
-    if (map.contains("on"))
+    bool hasOn = false;
+    bool hasBri = false;
+    bool hasAlert = false;
+    uint targetBri = 0;
+    
+    bool ok = false;
+    
+    //Parse all parameters
+    for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
     {
-        if (map["on"].type() == QVariant::Bool)
+        if (p.key() == "bri" && R_GetProductId(taskRef.lightNode).startsWith(QLatin1String("Tuya_DIMSWITCH")))
         {
-            bool ok = false;
-            qint8 button = DP_IDENTIFIER_BUTTON_1;
-            QByteArray data;
-
-            targetOn = map["on"].toBool();
-
-            //Retreive Fake endpoint, and change button value
-            uint8_t ep = taskRef.lightNode->haEndpoint().endpoint();
-            if (ep == 0x02) { button = DP_IDENTIFIER_BUTTON_2; }
-            if (ep == 0x03) { button = DP_IDENTIFIER_BUTTON_3; }
-
-            //Use only the first endpoint for command
-            taskRef.req.setDstEndpoint(0x01);
-
-            DBG_Printf(DBG_INFO, "Tuya debug 10: EP: %d ID : %s\n", ep, qPrintable(id));
-
-            if (targetOn)
+            if (map[p.key()].type() == QVariant::Double)
             {
-                data = QByteArray("\x01", 1);
+                targetBri = map["bri"].toUInt(&ok);
+                if (ok && targetBri <= 0xFF)
+                {
+                    hasBri = true;
+                }
+            }
+
+            if (!hasBri)
+            {
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1").arg(id), QString("invalid value, %1, for parameter, bri").arg(map["bri"].toString())));
+            }
+        }
+
+        else if (p.key() == "on" && taskRef.lightNode->item(RStateOn))
+        {
+            if (map[p.key()].type() == QVariant::Bool)
+            {
+                hasOn = true;
+                targetOn = map["on"].toBool();
             }
             else
             {
-                data = QByteArray("\x00", 1);
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state").arg(id), QString("invalid value, %1, for parameter, on").arg(map["on"].toString())));
             }
+        }
+        
+        else if (p.key() == "alert")	
+        {	
+            if (map[p.key()].type() == QVariant::String)	
+            {	
+                hasAlert = true;	
+            }	
+        }
 
-            ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_BOOL, button, data);
+        else
+        {
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state").arg(id), QString("parameter, %1, not available").arg(p.key())));
+        }
+    }
+    
+    // Return direct if there is already error
+    if (!rsp.list.isEmpty())
+    {
+        rsp.httpStatus = HttpStatusBadRequest; 
+        return REQ_READY_SEND; 
+    }
 
-            if (ok)
-            {
-                QVariantMap rspItem;
-                QVariantMap rspItemState;
-                rspItemState[QString("/lights/%1/state/on").arg(id)] = targetOn;
-                rspItem["success"] = rspItemState;
-                rsp.list.append(rspItem);
-
-                //Not needed ?
-                //taskRef.lightNode->setValue(RStateOn, targetOn);
-            }
-            else
-            {
-                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
-            }
+    if (hasBri)
+    {
+        quint16 bri = targetBri * 1000 / 254;
+        QByteArray data = QByteArray("\x00\x00", 2);
+        data.append(static_cast<qint8>((bri >> 8) & 0xff));
+        data.append(static_cast<qint8>(bri & 0xff));
+        
+        if (R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_DIMSWITCH Earda Dimmer") ||
+            R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_DIMSWITCH EDM-1ZAA-EU"))
+        {
+            ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_DIMMER_LEVEL_MODE2, data);
         }
         else
         {
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state/on").arg(id), QString("parameter, not available")));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
+            ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_DIMMER_LEVEL_MODE1, data);
         }
-    }
-    else if (map.contains("alert"))
-    {
-        if (map["alert"].type() == QVariant::String)
+        
+        if (ok)
         {
-            QByteArray data("\x00", 1);
-
-            if (map["alert"].toString() == "lselect")
-            {
-                data = QByteArray("\x01",1);
-            }
-
-            if (sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_BOOL, DP_IDENTIFIER_ALARM, data))
-            {
-            }
-            else
-            {
-                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
-            }
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/bri").arg(id)] = targetBri;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
         }
         else
         {
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state/alert").arg(id), QString("parameter, not available")));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
     }
-    else
-    {
-        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state/on").arg(id), QString("parameter not available")));
-        rsp.httpStatus = HttpStatusBadRequest;
-        return REQ_READY_SEND;
-    }
 
-    //if (taskRef.lightNode)
-    //{
-    //    updateLightEtag(taskRef.lightNode);
-    //    rsp.etag = taskRef.lightNode->etag;
-    //}
+    if (hasOn)
+    {
+        qint8 button = DP_IDENTIFIER_BUTTON_1;
+        QByteArray data;
+
+        //Retreive Fake endpoint, and change button value
+        const auto ep = taskRef.lightNode->haEndpoint().endpoint();
+        if      (ep == 0x02) { button = DP_IDENTIFIER_BUTTON_2; }
+        else if (ep == 0x03) { button = DP_IDENTIFIER_BUTTON_3; }
+
+        //Use only the first endpoint for command
+        taskRef.req.setDstEndpoint(0x01);
+
+        DBG_Printf(DBG_INFO, "Tuya debug 10: EP: %d ID : %s\n", ep, qPrintable(id));
+
+        if (targetOn)
+        {
+            data = QByteArray("\x01", 1);
+        }
+        else
+        {
+            data = QByteArray("\x00", 1);
+        }
+
+        ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_BOOL, button, data);
+
+        if (ok)
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/on").arg(id)] = targetOn;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+        }
+
+    }
+    
+    if (hasAlert)	
+    {	
+        QByteArray data("\x00", 1);	
+    
+        if (map["alert"].toString() == "lselect")	
+        {	
+            data = QByteArray("\x01",1);	
+        }	
+    
+        if (sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_BOOL, DP_IDENTIFIER_ALARM, data))	
+        {	
+            QVariantMap rspItem;	
+            QVariantMap rspItemState;	
+            rspItemState[QString("/lights/%1/state/alert").arg(id)] = map["alert"].toString();	
+            rspItem["success"] = rspItemState;	
+            rsp.list.append(rspItem);	
+        }	
+        else	
+        {	
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));	
+        }	
+    }
 
     return REQ_READY_SEND;
 }
@@ -2749,10 +2772,10 @@ int DeRestPluginPrivate::setLightAttributes(const ApiRequest &req, ApiResponse &
         //taskRef.transitionTime = 4;
         //taskRef.onTime = 0;
 
-        QByteArray direction = QByteArray("\x01\x00", 2);
+        QByteArray direction = QByteArray("\x00", 1);
         if (map["reverse"].toBool())
         {
-            direction = QByteArray("\x01\x01", 2);
+            direction = QByteArray("\x01", 1);
         }
 
         if (sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_WORK_STATE, direction))

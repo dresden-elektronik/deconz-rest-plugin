@@ -795,6 +795,11 @@ bool DeRestPluginPrivate::addTaskSetColorLoop(TaskItem &task, bool colorLoopActi
 
     if (task.lightNode)
     {
+        if (!task.lightNode->supportsColorLoop())
+        {
+            return false;
+        }
+
         task.lightNode->setColorLoopActive(colorLoopActive);
         task.lightNode->setColorLoopSpeed(speed);
         if (colorLoopActive)

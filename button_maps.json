@@ -278,6 +278,31 @@
                 [3, "0x01", "SCENES", "IKEA_STOP_CT", "0", "S_BUTTON_5", "S_BUTTON_ACTION_LONG_RELEASED", "Stop ct warmer"]
             ]
         },
+        "ikeaStyrbarMap": {
+            "vendor": "IKEA",
+            "doc": "STYRBAR remote",
+            "modelids": ["Remote Control N2"],
+            "buttons": [
+                {"S_BUTTON_1": "Top dimm up button"},
+                {"S_BUTTON_2": "Bottom dimm down button"},
+                {"S_BUTTON_3": "Left arrow button"},
+                {"S_BUTTON_4": "Right arrow button"}
+            ],
+            "map": [
+                [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
+                [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Move up (with on/off)"],
+                [1, "0x01", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_ (with on/off)"],
+                [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
+                [1, "0x01", "LEVEL_CONTROL", "MOVE", "1", "S_BUTTON_2", "S_BUTTON_ACTION_HOLD", "Move down"],
+                [1, "0x01", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "1", "S_BUTTON_2", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_ (with on/off)"],
+                [1, "0x01", "SCENES", "IKEA_STEP_CT", "1", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Step ct colder"],
+                [1, "0x01", "SCENES", "IKEA_MOVE_CT", "1", "S_BUTTON_3", "S_BUTTON_ACTION_HOLD", "Move ct colder"],
+                [1, "0x01", "SCENES", "IKEA_STOP_CT", "1", "S_BUTTON_3", "S_BUTTON_ACTION_LONG_RELEASED", "Stop ct colder"],
+                [1, "0x01", "SCENES", "IKEA_STEP_CT", "0", "S_BUTTON_4", "S_BUTTON_ACTION_SHORT_RELEASED", "Step ct warmer"],
+                [1, "0x01", "SCENES", "IKEA_MOVE_CT", "0", "S_BUTTON_4", "S_BUTTON_ACTION_HOLD", "Move ct warmer"],
+                [1, "0x01", "SCENES", "IKEA_STOP_CT", "0", "S_BUTTON_4", "S_BUTTON_ACTION_LONG_RELEASED", "Stop ct warmer"]
+            ]
+        },
         "osramMiniRemoteMap": {
             "vendor": "OSRAM",
             "doc": "Lightify Switch Mini",
@@ -366,7 +391,12 @@
                 [4, "0x01", "LEVEL_CONTROL", "MOVE", "1", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Move down"],
                 [4, "0x01", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "1", "0", "0", "Stop_ down (with on/off)"],
                 [4, "0x01", "LEVEL_CONTROL", "MOVE_TO_LEVEL_WITH_ON_OFF", "0", "S_BUTTON_4", "S_BUTTON_ACTION_SHORT_RELEASED", "Move to level 0 (with on/off)"],
-                [4, "0x01", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "0", "0", "0", "Stop_ up (with on/off)"]
+                [1, "0x01", "LEVEL_CONTROL", "MOVE_TO_LEVEL_WITH_ON_OFF", "0xFF", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Move to level 255 (with on/off)"],
+                [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Move up (with on/off)"],
+                [1, "0x01", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_ up (with on/off)"],
+                [1, "0x01", "LEVEL_CONTROL", "MOVE_TO_LEVEL_WITH_ON_OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Move to level 0 (with on/off)"],
+                [1, "0x01", "LEVEL_CONTROL", "MOVE", "1", "S_BUTTON_2", "S_BUTTON_ACTION_HOLD", "Move down"],
+                [1, "0x01", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "1", "S_BUTTON_2", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_ down (with on/off)"]
             ]
         },
         "ikeaMotionSensorMap": {
@@ -537,6 +567,22 @@
                 [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
                 [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Hold"],
                 [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "255", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Long released"]
+            ]
+        },
+        "xiaomiSwitchBx1acn02Map": {
+            "vendor": "Xiaomi",
+            "doc": "Xiaomi Aqara D1 1-gang QBKG21LM and 2-gang QBKG22LM",
+            "modelids": ["lumi.switch.b1lacn02", "lumi.switch.b2lacn02"],
+            "map": [
+                [1, "0x04", "ONOFF", "ATTRIBUTE_REPORT", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
+                [1, "0x04", "ONOFF", "ATTRIBUTE_REPORT", "1", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Long press"],
+                [1, "0x04", "ONOFF", "ATTRIBUTE_REPORT", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x05", "ONOFF", "ATTRIBUTE_REPORT", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
+                [1, "0x05", "ONOFF", "ATTRIBUTE_REPORT", "1", "S_BUTTON_2", "S_BUTTON_ACTION_LONG_RELEASED", "Long press"],
+                [1, "0x05", "ONOFF", "ATTRIBUTE_REPORT", "2", "S_BUTTON_2", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x06", "ONOFF", "ATTRIBUTE_REPORT", "0", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
+                [1, "0x06", "ONOFF", "ATTRIBUTE_REPORT", "1", "S_BUTTON_3", "S_BUTTON_ACTION_LONG_RELEASED", "Long press"],
+                [1, "0x06", "ONOFF", "ATTRIBUTE_REPORT", "2", "S_BUTTON_3", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"]
             ]
         },
         "xiaomiSwitchAq2Map": {
@@ -810,7 +856,7 @@
         "icasaRemoteMap": {
             "vendor": "iCasa",
             "doc": "Remotes",
-            "modelids": ["ICZB-RM11S", "ZGRC-KEY-012", "ZGRC-KEY-013", "RGBgenie ZB-5001"],
+            "modelids": ["ICZB-RM11S", "ZGRC-KEY-012", "ZGRC-KEY-013", "RGBgenie ZB-5001", "RGBgenie ZB-5004"],
             "map": [
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "1", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Move down (with on/off)"],
@@ -853,7 +899,7 @@
         "sunricherCCTMap": {
             "vendor": "Sunricher",
             "doc": "CCT remote",
-            "modelids": [],
+            "modelids": ["ZGRC-KEY-002"],
             "map": [
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
@@ -865,6 +911,17 @@
                 [1, "0x01", "COLOR_CONTROL", "MOVE_COLOR_TEMPERATURE", "0x013C", "S_BUTTON_4", "S_BUTTON_ACTION_HOLD", "Move color temperature up"],
                 [1, "0x01", "COLOR_CONTROL", "MOVE_COLOR_TEMPERATURE", "0x033C", "S_BUTTON_4", "S_BUTTON_ACTION_HOLD", "Move color temperature down"],
                 [1, "0x01", "COLOR_CONTROL", "STOP_MOVE_STEP", "0", "S_BUTTON_4", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_"]
+            ]
+        },
+        "sunricherC4Map": {
+            "vendor": "Sunricher",
+            "doc": "Zigbee Push-Button Coupler SR-ZG2833PAC-C4",
+            "modelids": ["ZG2833PAC"],
+            "map": [
+                [1, "0x01", "ONOFF", "TOGGLE", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Toggle"],
+                [1, "0x02", "ONOFF", "TOGGLE", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Toggle"],
+                [1, "0x03", "ONOFF", "TOGGLE", "0", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Toggle"],
+                [1, "0x04", "ONOFF", "TOGGLE", "0", "S_BUTTON_4", "S_BUTTON_ACTION_SHORT_RELEASED", "Toggle"]
             ]
         },
         "rgbgenie5121Map": {
@@ -886,8 +943,8 @@
         },
         "sunricherMap": {
             "vendor": "Sunricher",
-            "doc": "Wireless switches from Sunricher, Namron and EcoDim",
-            "modelids": ["ED-10010", "ED-10011", "ED-10012", "ED-10013", "ED-10014", "ED-10015", "ZG2833K8_EU05", "ZG2835", "4512700", "4512701", "4512702", "4512703", "4512705", "4512714", "4512719", "4512720", "4512721", "4512722"],
+            "doc": "Wireless switches from Sunricher, Namron, SLC and EcoDim",
+            "modelids": ["ED-10010", "ED-10011", "ED-10012", "ED-10013", "ED-10014", "ED-10015", "ZG2833K8_EU05", "ZG2835", "4512700", "4512701", "4512702", "4512703", "4512705", "4512714", "4512719", "4512720", "4512721", "4512722", "4512729", "S57003"],
             "map": [
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Move up (with on/off)"],
@@ -918,7 +975,7 @@
         "Tuya3gangMap": {
             "vendor": "Tuya",
             "doc": "3-gang remote",
-            "modelids": ["_TZ3000_bi6lpsew", "_TZ3400_keyjhapk", "_TYZB02_key8kk7r", "_TZ3400_keyjqthh", "_TZ3400_key8kk7r", "_TZ3000_vp6clf9d", "_TYZB02_keyjqthh", "_TZ3000_peszejy7", "_TZ3000_qzjcsmar", "_TZ3000_owgcnkrh", "_TZ3000_adkvzooy", "_TZ3000_arfwfgoa"],
+            "modelids": ["_TZ3000_bi6lpsew", "_TZ3400_keyjhapk", "_TYZB02_key8kk7r", "_TZ3400_keyjqthh", "_TZ3400_key8kk7r", "_TZ3000_vp6clf9d", "_TYZB02_keyjqthh", "_TZ3000_peszejy7", "_TZ3000_qzjcsmar", "_TZ3000_owgcnkrh", "_TZ3000_adkvzooy", "_TZ3000_arfwfgoa", "_TZ3000_a7ouggvs", "_TZ3000_rrjr1q0u", "_TZ3000_abci1hiu"],
             "map": [
                 [1, "0x01", "ONOFF", "0xfd", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "B1 short"],
                 [1, "0x01", "ONOFF", "0xfd", "1", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "B1 double"],
@@ -1001,7 +1058,21 @@
                 [1, "0x06", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_6", "S_BUTTON_ACTION_SHORT_RELEASED", "Color cold press"],
                 [1, "0x06", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_6", "S_BUTTON_ACTION_DOUBLE_PRESS", "Color cold double press"],
                 [1, "0x06", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "3", "S_BUTTON_6", "S_BUTTON_ACTION_TREBLE_PRESS", "Color cold triple press"],
-                [1, "0x06", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0xFF", "S_BUTTON_6", "S_BUTTON_ACTION_LONG_RELEASED", "Color cold long released"]
+                [1, "0x06", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0xFF", "S_BUTTON_6", "S_BUTTON_ACTION_LONG_RELEASED", "Color cold long released"],
+                [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Off press"],
+                [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "On press"],
+                [1, "0x01", "LEVEL_CONTROL", "STEP", "1", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Dim down press"],
+                [1, "0x01", "LEVEL_CONTROL", "MOVE", "1", "S_BUTTON_3", "S_BUTTON_ACTION_HOLD", "Dim down hold"],
+                [1, "0x01", "LEVEL_CONTROL", "STOP", "1", "S_BUTTON_3", "S_BUTTON_ACTION_LONG_RELEASED", "Dim down long released"],
+                [1, "0x01", "LEVEL_CONTROL", "STEP", "0", "S_BUTTON_4", "S_BUTTON_ACTION_SHORT_RELEASED", "Dim up press"],
+                [1, "0x01", "LEVEL_CONTROL", "MOVE", "0", "S_BUTTON_4", "S_BUTTON_ACTION_HOLD", "Dim up hold"],
+                [1, "0x01", "LEVEL_CONTROL", "STOP", "0", "S_BUTTON_4", "S_BUTTON_ACTION_LONG_RELEASED", "Dim up long released"],
+                [1, "0x01", "COLOR_CONTROL", "STEP_COLOR_TEMPERATURE", "1", "S_BUTTON_5", "S_BUTTON_ACTION_SHORT_RELEASED", "Color warm press"],
+                [1, "0x01", "COLOR_CONTROL", "MOVE_COLOR_TEMPERATURE", "0x010F", "S_BUTTON_5", "S_BUTTON_ACTION_HOLD", "Color warm hold"],
+                [1, "0x01", "COLOR_CONTROL", "MOVE_COLOR_TEMPERATURE", "0x100F", "S_BUTTON_5", "S_BUTTON_ACTION_LONG_RELEASED", "Color warm long released"],
+                [1, "0x01", "COLOR_CONTROL", "STEP_COLOR_TEMPERATURE", "3", "S_BUTTON_6", "S_BUTTON_ACTION_SHORT_RELEASED", "Color cold press"],
+                [1, "0x01", "COLOR_CONTROL", "MOVE_COLOR_TEMPERATURE", "0x030F", "S_BUTTON_6", "S_BUTTON_ACTION_HOLD", "Color cold hold"],
+                [1, "0x01", "COLOR_CONTROL", "MOVE_COLOR_TEMPERATURE", "0x300F", "S_BUTTON_6", "S_BUTTON_ACTION_LONG_RELEASED", "Color cold long released"]
             ]
         },
         "legrandShutterSwitchRemote": {
@@ -1049,7 +1120,7 @@
         "rcv14Map": {
             "vendor": "Heiman",
             "doc": "Smart controller HS1RC-M and HS1RC-E",
-            "modelids": ["RC_V14", "RC-EM"],
+            "modelids": ["RC_V14", "RC-EM", "RC-EF-3.0"],
             "map": [
                 [1, "0x01", "IAS_ACE", "ARM", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Arm day/home zones only"],
                 [1, "0x01", "IAS_ACE", "ARM", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Disarm"],
@@ -1151,6 +1222,29 @@
                 [1, "0x01", "COLOR_CONTROL", "MOVE_TO_COLOR_TEMPERATURE", "0x1D", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Temperature short"],
                 [1, "0x01", "COLOR_CONTROL", "MOVE_COLOR_TEMPERATURE", "0x00", "S_BUTTON_3", "S_BUTTON_ACTION_HOLD", "Temperature Long press"],
                 [1, "0x01", "COLOR_CONTROL", "MOVE_COLOR_TEMPERATURE", "0x01", "S_BUTTON_3", "S_BUTTON_ACTION_HOLD", "Temperature Long press 2"]
+            ]
+        },
+        "ZBT-DIMController-D0800Map": {
+            "vendor": "LDS",
+            "doc": "Mueller-Licht tint dimmer",
+            "modelids": ["ZBT-DIMController-D0800"],
+            "buttons": [
+                {"S_BUTTON_1": "On/Off"},
+                {"S_BUTTON_2": "DimUp"},
+                {"S_BUTTON_3": "DimDown"},
+                {"S_BUTTON_4": "Scene"}
+            ],
+            "map": [
+                [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
+                [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
+                [1, "0x01", "LEVEL_CONTROL", "STEP", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Step up"],
+                [1, "0x01", "LEVEL_CONTROL", "MOVE", "0", "S_BUTTON_2", "S_BUTTON_ACTION_HOLD", "Move up"],
+                [1, "0x01", "LEVEL_CONTROL", "STOP", "0", "S_BUTTON_2", "S_BUTTON_ACTION_LONG_RELEASED", "Stop"],
+                [1, "0x01", "LEVEL_CONTROL", "STEP", "1", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Step down"],
+                [1, "0x01", "LEVEL_CONTROL", "MOVE", "1", "S_BUTTON_3", "S_BUTTON_ACTION_HOLD", "Move down"],
+                [1, "0x01", "LEVEL_CONTROL", "STOP", "1", "S_BUTTON_3", "S_BUTTON_ACTION_LONG_RELEASED", "Stop"],
+                [1, "0x01", "SCENES", "RECALL_SCENE", "1", "S_BUTTON_4", "S_BUTTON_ACTION_SHORT_RELEASED", "Recall scene 1"],
+                [1, "0x01", "SCENES", "STORE_SCENE", "1", "S_BUTTON_4", "S_BUTTON_ACTION_LONG_RELEASED", "Store scene 1"]
             ]
         },
         "linkind1keyMap": {

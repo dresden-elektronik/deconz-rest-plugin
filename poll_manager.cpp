@@ -41,7 +41,11 @@ void PollManager::poll(RestNodeBase *restNode, const QDateTime &tStart)
 
     if (!restNode->node()->nodeDescriptor().receiverOnWhenIdle())
     {
-        return;
+        auto *item = r->item(RAttrSleeper);
+        if (!item || item->toBool())
+        {
+            return;
+        }
     }
 
     LightNode *lightNode = nullptr;
@@ -88,6 +92,15 @@ void PollManager::poll(RestNodeBase *restNode, const QDateTime &tStart)
         {
             // limit queries during joining
             if (suffix == RAttrModelId || suffix == RAttrSwVersion)
+            {
+                pitem.items.push_back(suffix);
+            }
+        }
+        else if (lightNode && lightNode->type() == QLatin1String("Window covering device"))
+        {
+            if (suffix == RStateLift ||
+                suffix == RAttrModelId ||
+                suffix == RAttrSwVersion)
             {
                 pitem.items.push_back(suffix);
             }
@@ -277,17 +290,8 @@ void PollManager::pollTimerFired()
 
     if (suffix == RStateOn && lightNode)
     {
-        item = r->item(RAttrModelId);
-
-        if (UseTuyaCluster(lightNode->manufacturer()))
-        {
-            //Thoses devices haven't cluster 0006, and use Cluster specific
-        }
-        else
-        {
-            clusterId = ONOFF_CLUSTER_ID;
-            attributes.push_back(0x0000); // onOff
-        }
+        clusterId = ONOFF_CLUSTER_ID;
+        attributes.push_back(0x0000); // onOff
     }
     else if (suffix == RStateBri && isOn)
     {
@@ -413,6 +417,17 @@ void PollManager::pollTimerFired()
         attributes.push_back(0x0505); // RMS Voltage
         attributes.push_back(0x0508); // RMS Current
     }
+    else if (suffix == RStateLift)
+    {
+        clusterId = WINDOW_COVERING_CLUSTER_ID;
+        attributes.push_back(0x0008); // Current Position Lift Percentage
+
+        NodeValue &val = restNode->getZclValue(clusterId, 0x0008);
+        if (val.isValid() && val.maxInterval == 0)
+        {
+            val.maxInterval = 10;
+        }
+    }
     else if (suffix == RAttrModelId)
     {
         item = r->item(RAttrModelId);
@@ -472,7 +487,6 @@ void PollManager::pollTimerFired()
 
     size_t fresh = 0;
     const int reportWaitTime = 360;
-    const int reportWaitTimeXAL = 60 * 30;
 
     // check that cluster exists on endpoint
     if (clusterId != 0xffff)
@@ -509,20 +523,13 @@ void PollManager::pollTimerFired()
                                 }
 
                                 NodeValue &val = restNode->getZclValue(clusterId, attrId);
+                                quint16 maxInterval = val.maxInterval > 0 && val.maxInterval < 65535 ? (val.maxInterval * 3 / 2) : reportWaitTime;
 
-                                if (lightNode && lightNode->manufacturerCode() == VENDOR_IKEA && val.timestamp.isValid())
-                                {
-                                    fresh++; // rely on reporting for ikea lights
-                                }
-                                else if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < reportWaitTime)
+                                // This should truely compensates missing reports and poll at startup until a report comes in, prevents unnecessary polling
+                                if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < maxInterval)
                                 {
                                     fresh++;
                                 }
-                                else if (lightNode && lightNode->manufacturerCode() == VENDOR_XAL && val.timestamp.isValid() && val.timestamp.secsTo(now) < reportWaitTimeXAL)
-                                {
-                                    fresh++; // rely on reporting for XAL lights
-                                }
-
                             }
                         }
                     }

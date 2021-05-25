@@ -460,8 +460,8 @@ void DeRestPluginPrivate::networkWatchdogTimerFired()
 
     if (channel != gwZigbeeChannel)
     {
-        needCheck = true;
-        DBG_Printf(DBG_INFO, "channel is %u but should be %u, start channel change\n", channel, gwZigbeeChannel);
+        gwZigbeeChannel = channel;
+        saveDatabaseItems |= DB_CONFIG;
     }
     else if (deviceType == deCONZ::Coordinator)
     {

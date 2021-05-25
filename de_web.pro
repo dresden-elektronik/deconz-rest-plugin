@@ -18,6 +18,12 @@ CONFIG(release, debug|release) {
     LIBS += -L../../release
 }
 
+equals(QT_MAJOR_VERSION, 5):lessThan(QT_MINOR_VERSION, 15) {
+    DEFINES += SKIP_EMPTY_PARTS=QString::SkipEmptyParts
+} else {
+    DEFINES += SKIP_EMPTY_PARTS=Qt::SkipEmptyParts
+}
+
 greaterThan(QT_MAJOR_VERSION, 4) {
     QT += core gui widgets serialport
 
@@ -51,7 +57,7 @@ unix:!macx {
 TEMPLATE        = lib
 CONFIG         += plugin \
                += debug_and_release \
-               += c++11 \
+               += c++14 \
                -= qtquickcompiler
 
 QT             += network
@@ -73,7 +79,7 @@ GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.10.04\\\"
+DEFINES += GW_SW_VERSION=\\\"2.11.05\\\"
 DEFINES += GW_SW_DATE=$$GIT_COMMIT_DATE
 DEFINES += GW_API_VERSION=\\\"1.16.0\\\"
 DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
@@ -92,6 +98,7 @@ DEFINES += GW_MIN_DERFUSB23E0X_FW_VERSION=0x22030300
 DEFINES += GW_DEFAULT_NAME=\\\"Phoscon-GW\\\"
 
 HEADERS  = bindings.h \
+           backup.h \
            connectivity.h \
            colorspace.h \
            daylight.h \
@@ -108,6 +115,7 @@ HEADERS  = bindings.h \
            light_node.h \
            poll_control.h \
            poll_manager.h \
+           product_match.h \
            read_files.h \
            resource.h \
            resourcelinks.h \
@@ -117,10 +125,12 @@ HEADERS  = bindings.h \
            scene.h \
            sensor.h \
            tuya.h \
+           utils/utils.h \
            websocket_server.h
 
 SOURCES  = air_quality.cpp \
            authorisation.cpp \
+           backup.cpp \
            bindings.cpp \
            change_channel.cpp \
            connectivity.cpp \
@@ -133,6 +143,7 @@ SOURCES  = air_quality.cpp \
            de_web_plugin.cpp \
            de_web_widget.cpp \
            de_otau.cpp \
+           electrical_measurement.cpp \
            event.cpp \
            event_queue.cpp \
            fan_control.cpp \
@@ -150,6 +161,7 @@ SOURCES  = air_quality.cpp \
            light_node.cpp \
            poll_control.cpp \
            poll_manager.cpp \
+           product_match.cpp \
            read_files.cpp \
            resource.cpp \
            resourcelinks.cpp \
@@ -173,6 +185,7 @@ SOURCES  = air_quality.cpp \
            permitJoin.cpp \
            scene.cpp \
            sensor.cpp \
+           simple_metering.cpp \
            thermostat.cpp \
            time.cpp \
            tuya.cpp \
@@ -180,6 +193,8 @@ SOURCES  = air_quality.cpp \
            appliances.cpp \
            reset_device.cpp \
            rest_userparameter.cpp \
+           utils/utils.cpp \
+           xiaomi.cpp \
            zcl_tasks.cpp \
            window_covering.cpp \
            websocket_server.cpp \
