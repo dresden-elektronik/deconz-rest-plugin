@@ -22,6 +22,7 @@ add_executable(101-resourceitem-dt-time 101-resourceitem-dt-time.cpp)
 add_executable(201-device-js 201-device-js.cpp)
 add_executable(301-utils-mappedval 301-utils-mappedval.cpp)
 add_executable(302-http-header 302-http-header.cpp)
+add_executable(303-timeref 303-timeref.cpp)
 
 target_link_libraries(001-device
     PRIVATE device
@@ -55,9 +56,16 @@ target_link_libraries(302-http-header
     PRIVATE Catch2::Catch2WithMain
 )
 
+target_link_libraries(303-timeref
+    PRIVATE device
+    PRIVATE Catch2::Catch2
+    PRIVATE Catch2::Catch2WithMain
+)
+
 
 add_test(001-device 001-device)
 add_test(101-resourceitem-dt-time 101-resourceitem-dt-time)
 add_test(201-device-js 201-device-js)
 add_test(301-utils-mappedval 301-utils-mappedval)
 add_test(302-http-header 301-http-header)
+add_test(303-timeref 303-timeref)
