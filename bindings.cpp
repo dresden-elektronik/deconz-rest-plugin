@@ -3072,7 +3072,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Iris
         sensor->modelId() == QLatin1String("3405-L") ||
         // Eria
-        sensor->modelId() == QLatin1String("Adurolight_NCC")
+        sensor->modelId() == QLatin1String("Adurolight_NCC") ||
+        sensor->modelId() == QLatin1String("AD-SmartPlug3001")
         )
     {
         deviceSupported = true;
