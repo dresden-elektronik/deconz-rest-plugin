@@ -3051,7 +3051,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // LIDL
         sensor->modelId() == QLatin1String("HG06323") ||
         // Eria
-        sensor->modelId() == QLatin1String("Adurolight_NCC")
+        sensor->modelId() == QLatin1String("Adurolight_NCC") ||
+        sensor->modelId() == QLatin1String("AD-SmartPlug3001")
         )
     {
         deviceSupported = true;
