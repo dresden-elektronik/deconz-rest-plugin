@@ -34,23 +34,18 @@ RestDevices::RestDevices(QObject *parent) :
  */
 int RestDevices::handleApi(const ApiRequest &req, ApiResponse &rsp)
 {
-    if (req.path[2] != QLatin1String("devices"))
-    {
-        return REQ_NOT_HANDLED;
-    }
-
     // GET /api/<apikey>/devices
-    if ((req.path.size() == 3) && (req.hdr.method() == QLatin1String("GET")))
+    if (req.hdr.pathComponentsCount() == 3 && req.hdr.httpMethod() == HttpGet)
     {
         return getAllDevices(req, rsp);
     }
     // GET /api/<apikey>/devices/<uniqueid>
-    else if ((req.path.size() == 4) && (req.hdr.method() == QLatin1String("GET")))
+    else if (req.hdr.pathComponentsCount() == 4 && req.hdr.httpMethod() == HttpGet)
     {
         return getDevice(req, rsp);
     }
     // PUT /api/<apikey>/devices/<uniqueid>/installcode
-    else if ((req.path.size() == 5) && (req.hdr.method() == QLatin1String("PUT")) && (req.path[4] == QLatin1String("installcode")))
+    else if (req.hdr.pathComponentsCount() == 5 && req.hdr.httpMethod() == HttpPut && req.hdr.pathAt(4) == QLatin1String("installcode"))
     {
         return putDeviceInstallCode(req, rsp);
     }
