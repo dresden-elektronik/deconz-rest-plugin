@@ -14,6 +14,9 @@
 #include <QString>
 
 QString generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId);
+bool startsWith(QLatin1String str, QLatin1String needle);
+int indexOf(QLatin1String haystack, QLatin1String needle);
+bool contains(QLatin1String haystack, QLatin1String needle);
 
 template <typename K, typename Cont>
 decltype(auto) getMappedValue(const K &key, const Cont &cont)

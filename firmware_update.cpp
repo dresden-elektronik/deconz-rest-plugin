@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2021 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -336,7 +336,6 @@ void DeRestPluginPrivate::queryFirmwareVersion()
     const quint8 devConnected = apsCtrl->getParameter(deCONZ::ParamDeviceConnected);
     quint32 fwVersion = apsCtrl->getParameter(deCONZ::ParamFirmwareVersion);
 
-#if DECONZ_LIB_VERSION >= 0x010A00
     if (fwUpdateFile.isEmpty() && fwVersion == 0 && idleTotalCounter > (IDLE_READ_LIMIT + 10))
     {
         if (fwDeviceName == QLatin1String("ConBee II"))
@@ -344,7 +343,6 @@ void DeRestPluginPrivate::queryFirmwareVersion()
             fwVersion = FW_ONLY_R21_BOOTLOADER;
         }
     }
-#endif
 
     // does the update file exist?
     // todo if the fwVersion is 0, make a guess on which firmware file to select based on device enumerator
@@ -541,25 +539,27 @@ void DeRestPluginPrivate::queryFirmwareVersion()
  */
 void DeRestPluginPrivate::checkFirmwareDevices()
 {
-    deCONZ::DeviceEnumerator devEnumerator;
-
     fwProcessArgs.clear();
 
-    devEnumerator.listSerialPorts();
-    const std::vector<deCONZ::DeviceEntry> &availPorts = devEnumerator.getList();
+    const quint8 devConnected = apsCtrl->getParameter(deCONZ::ParamDeviceConnected);
+    deCONZ::DeviceEnumerator *devEnumerator = deCONZ::DeviceEnumerator::instance();
 
-    std::vector<deCONZ::DeviceEntry>::const_iterator i = availPorts.begin();
-    std::vector<deCONZ::DeviceEntry>::const_iterator end = availPorts.end();
+    if (devConnected == 0)
+    {
+        devEnumerator->listSerialPorts();
+    }
+
+    const std::vector<deCONZ::DeviceEntry> &availPorts = devEnumerator->getList();
+
+    auto i = availPorts.cbegin();
+    const auto end = availPorts.cend();
 
     int raspBeeCount = 0;
     int usbDongleCount = 0;
-    const quint8 devConnected = apsCtrl->getParameter(deCONZ::ParamDeviceConnected);
     QString ttyPath;
     QString serialNumber;
 
-#if DECONZ_LIB_VERSION >= 0x010A00
     ttyPath = apsCtrl->getParameter(deCONZ::ParamDevicePath);
-#endif
 
     for (; i != end; ++i)
     {
@@ -587,7 +587,6 @@ void DeRestPluginPrivate::checkFirmwareDevices()
         }
     }
 
-#if DECONZ_LIB_VERSION >= 0x010A00
     if (devConnected > 0 && !ttyPath.isEmpty())
     {
         if (!serialNumber.isEmpty())
@@ -599,9 +598,7 @@ void DeRestPluginPrivate::checkFirmwareDevices()
             fwProcessArgs << "-d" << ttyPath; // GCFFlasher >= 3.x
         }
     }
-    else
-#endif
-    if (usbDongleCount > 1)
+    else if (usbDongleCount > 1)
     {
         DBG_Printf(DBG_INFO_L2, "GW firmware update too many USB devices connected, abort\n");
     }
