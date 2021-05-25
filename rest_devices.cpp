@@ -192,10 +192,8 @@ int RestDevices::getDevice(const ApiRequest &req, ApiResponse &rsp)
 
     for (const Sensor &s : plugin->sensors)
     {
-        if (s.uniqueId().indexOf(uniqueid) != 0)
-        {
-            continue;
-        }
+        if (s.uniqueId().indexOf(uniqueid) != 0) { continue; }
+        if (s.type().startsWith(QLatin1String("CLIP"))) { continue; }
 
         if (manufacturer.isEmpty() && !s.manufacturer().isEmpty()) { manufacturer = s.manufacturer(); }
         if (modelid.isEmpty() && !s.modelId().isEmpty()) { modelid = s.modelId(); }
