@@ -20,6 +20,31 @@
 #include "product_match.h"
 #include "utils/utils.h"
 
+// Thermostat
+#define LOCAL_TEMPERATURE_CALIBRATION           0x0010
+#define OCCUPIED_COOLING_SETPOINT               0x0011
+#define OCCUPIED_HEATING_SETPOINT               0x0012
+#define CONTROL_SEQUENCE_OF_OPERATION           0x001B
+#define SYSTEM_MODE                             0x001C
+#define THERMOSTAT_PROGRAMMING_OPERATION_MODE   0x0025
+#define AC_LOUVER_POSITION                      0x0045
+#define TEMPERATURE_MEASUREMENT                 0x0403 // ELKO specific
+#define DEVICE_ON                               0x0406 // ELKO specific
+#define CHILD_LOCK                              0x0413 // ELKO specific
+#define CURRENT_TEMPERATURE_SETPOINT            0x4003 // Eurotronic specific
+#define EXTERNAL_OPEN_WINDOW_DETECTED           0x4003 // Danfoss specific
+#define HOST_FLAGS                              0x4008 // Eurotronic specific
+#define EXTERNAL_MEASUREMENT                    0x4015 // Danfoss specific
+#define REGULATION_SETPOINT_OFFSET              0x404B // Danfoss specific
+
+// Thermostat UI
+#define KEYPAD_LOCKOUT                          0x0001
+#define VIEWING_DIRECTION                       0x4000 // Danfoss specific
+
+// Simple metering
+#define PULSE_CONFIGURATION                     0x0300  // Develco specific
+#define INTERFACE_MODE                          0x0302  // Develco specific
+
 /*! Sensors REST API broker.
     \param req - request data
     \param rsp - response data
@@ -664,7 +689,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     QString id = req.path[3];
     Sensor *sensor = id.length() < MIN_UNIQUEID_LENGTH ? getSensorNodeForId(id) : getSensorNodeForUniqueId(id);
     bool ok;
-    bool updated = false;
+    bool updated;
     quint32 hostFlags = 0;
     bool offsetUpdated = false;
     qint16 offset = 0;
@@ -737,8 +762,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
             // Changing these values of zigbee sensors is not allowed, read-only.
             if (rid.suffix == RConfigPending || rid.suffix == RConfigSensitivityMax || rid.suffix == RConfigHostFlags || rid.suffix == RConfigLastChangeAmount ||
                 rid.suffix == RConfigLastChangeSource || rid.suffix == RConfigLastChangeTime || rid.suffix == RConfigEnrolled || rid.suffix == RConfigOn ||
-                rid.suffix == RConfigLat || rid.suffix == RConfigLong ||
-                (!isClip && (rid.suffix == RConfigBattery || rid.suffix == RConfigReachable)))
+                rid.suffix == RConfigLat || rid.suffix == RConfigLong || (!isClip && (rid.suffix == RConfigBattery || rid.suffix == RConfigReachable)))
             {
                 rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIEABLE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                            QString("parameter, %1, not modifiable").arg(pi.key())));
@@ -760,12 +784,12 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 QVariant val = map[pi.key()];
                 bool invalidValue = false;
                 bool datatypeValid = false;
-
                 QString stringValue;
                 bool boolValue = false;
                 int intValue = 0;
                 uint uintValue = 0;
                 long long realValue = 0.0;
+                updated = false;
 
                 switch (rid.type)
                 {
@@ -853,7 +877,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     return REQ_READY_SEND;
                 }
 
-                if (rid.suffix == RConfigDeviceMode)
+                if (rid.suffix == RConfigDeviceMode) // String
                 {
                     if (RConfigDeviceModeValues.indexOf(val.toString()) >= 0)
                     {
@@ -863,11 +887,12 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         updated = true;
                     }
                 }
-                else if (rid.suffix == RConfigTholdDark || rid.suffix == RConfigTholdOffset)
+                else if (rid.suffix == RConfigTholdDark || rid.suffix == RConfigTholdOffset) // Unsigned integer
                 {
                     tholdUpdated = true;
+                    updated = true;
                 }
-                else if (rid.suffix == RConfigDelay)
+                else if (rid.suffix == RConfigDelay) // Unsigned integer
                 {
                     if (sensor->modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
                     {
@@ -877,7 +902,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     updated = true;
                 }
-                else if (rid.suffix == RConfigDuration)
+                else if (rid.suffix == RConfigDuration) // Unsigned integer
                 {
                     if (sensor->modelId().startsWith(QLatin1String("FLS-NB")))
                     {
@@ -890,21 +915,21 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     updated = true;
                 }
-                else if (rid.suffix == RConfigLedIndication)
+                else if (rid.suffix == RConfigLedIndication) // Boolean
                 {
                     pendingMask |= R_PENDING_LEDINDICATION;
                     sensor->enableRead(WRITE_LEDINDICATION);
                     sensor->setNextReadTime(WRITE_LEDINDICATION, QTime::currentTime());
                     updated = true;
                 }
-                else if (rid.suffix == RConfigSensitivity)
+                else if (rid.suffix == RConfigSensitivity) // Unsigned integer
                 {
                     pendingMask |= R_PENDING_SENSITIVITY;
                     sensor->enableRead(WRITE_SENSITIVITY);
                     sensor->setNextReadTime(WRITE_SENSITIVITY, QTime::currentTime());
                     updated = true;
                 }
-                else if (rid.suffix == RConfigUsertest)
+                else if (rid.suffix == RConfigUsertest) // Boolean
                 {
                     pendingMask |= R_PENDING_USERTEST;
                     sensor->enableRead(WRITE_USERTEST);
@@ -1027,16 +1052,16 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001"))
                     {
-                        if      (intValue <= -25 || intValue >= 25) { invalidValue = true; }
-                        else if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_DANFOSS, 0x404B, deCONZ::Zcl8BitInt, intValue))
+                        if      (intValue < -25 || intValue > 25) { invalidValue = true; }
+                        else if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_DANFOSS, REGULATION_SETPOINT_OFFSET, deCONZ::Zcl8BitInt, intValue))
                         {
                             updated = true;
                         }
                     }
                     else if (sensor->type() == "ZHAThermostat")
                     {
-                        if      (intValue <= -25 || intValue >= 25) { invalidValue = true; }
-                        else if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0010, deCONZ::Zcl8BitInt, intValue))
+                        if      (intValue < -25 || intValue > 25) { invalidValue = true; }
+                        else if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, LOCAL_TEMPERATURE_CALIBRATION, deCONZ::Zcl8BitInt, intValue))
                         {
                             updated = true;
                         }
@@ -1051,7 +1076,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     if (sensor->modelId() == QLatin1String("Thermostat")) { boolValue ^= boolValue; } // eCozy, flip true and false
 
-                    if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0025, deCONZ::Zcl8BitBitMap, boolValue))
+                    if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, THERMOSTAT_PROGRAMMING_OPERATION_MODE, deCONZ::Zcl8BitBitMap, boolValue))
                     {
                         updated = true;
                     }
@@ -1068,8 +1093,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         //                 'fix' is changed to a more robust but ugly implementation by simply sending both codes to the device. One of the commands
                         //                 will be accepted while the other one will be refused. Let's hope this code can be removed in a future release.
 
-                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, 0x4003, deCONZ::Zcl16BitInt, intValue) &&
-                            addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_NONE,   0x0012, deCONZ::Zcl16BitInt, intValue))
+                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, CURRENT_TEMPERATURE_SETPOINT, deCONZ::Zcl16BitInt, intValue) &&
+                            addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_NONE,   OCCUPIED_HEATING_SETPOINT, deCONZ::Zcl16BitInt, intValue))
                         {
                             // Setting the heat setpoint disables off/boost modes, but this is not reported back by the thermostat.
                             // Hence, the off/boost flags will be removed here to reflect the actual operating state.
@@ -1144,7 +1169,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else
                     {
-                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, 0x0012, deCONZ::Zcl16BitInt, intValue))
+                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, OCCUPIED_HEATING_SETPOINT, deCONZ::Zcl16BitInt, intValue))
                         {
                             updated = true;
                         }
@@ -1152,7 +1177,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigCoolSetpoint) // Signed integer
                 {
-                    if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, 0x0011, deCONZ::Zcl16BitInt, intValue))
+                    if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, OCCUPIED_COOLING_SETPOINT, deCONZ::Zcl16BitInt, intValue))
                     {
                         updated = true;
                     }
@@ -1278,7 +1303,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                 hostFlags |= 0x000010; // set disable off
                             }
 
-                            if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, 0x4008, deCONZ::Zcl24BitUint, hostFlags))
+                            if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, HOST_FLAGS, deCONZ::Zcl24BitUint, hostFlags))
                             {
                                 updated = true;
                             }
@@ -1301,7 +1326,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                 {
                                     bool data = match.value == 0x00 ? false : true;
 
-                                    if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, 0x0406, deCONZ::ZclBoolean, data))
+                                    if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, DEVICE_ON, deCONZ::ZclBoolean, data))
                                     {
                                         updated = true;
                                     }
@@ -1330,7 +1355,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                              }
                             else
                             {
-                                if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, 0x001C, deCONZ::Zcl8BitEnum, uintValue))
+                                if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, SYSTEM_MODE, deCONZ::Zcl8BitEnum, uintValue))
                                 {
                                     updated = true;
                                 }
@@ -1471,7 +1496,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (sensor->modelId() == QLatin1String("Super TR"))
                     {
-                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0413, deCONZ::ZclBoolean, boolValue))
+                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, CHILD_LOCK, deCONZ::ZclBoolean, boolValue))
                         {
                             updated = true;
                         }
@@ -1486,7 +1511,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             if (boolValue) { hostFlags |= 0x000080; } // set locked
                             else           { hostFlags &= 0xffff6f; } // clear locked, clear disable off
 
-                            if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, 0x4008, deCONZ::Zcl24BitUint, hostFlags))
+                            if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, HOST_FLAGS, deCONZ::Zcl24BitUint, hostFlags))
                             {
                                 updated = true;
                             }
@@ -1496,7 +1521,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         uintValue = boolValue; // Use integer representation
 
-                        if (addTaskThermostatUiConfigurationReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0001, deCONZ::Zcl8BitEnum, uintValue))
+                        if (addTaskThermostatUiConfigurationReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, KEYPAD_LOCKOUT, deCONZ::Zcl8BitEnum, uintValue))
                         {
                             updated = true;
                         }
@@ -1508,7 +1533,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         uintValue = boolValue;
 
-                        if (addTaskThermostatUiConfigurationReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x4000, deCONZ::Zcl8BitEnum, uintValue, VENDOR_DANFOSS))
+                        if (addTaskThermostatUiConfigurationReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VIEWING_DIRECTION, deCONZ::Zcl8BitEnum, uintValue, VENDOR_DANFOSS))
                         {
                             updated = true;
                         }
@@ -1523,7 +1548,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             if (boolValue) { hostFlags |= 0x000002; } // set flipped
                             else           { hostFlags &= 0xffffed; } // clear flipped, clear disable off
 
-                            if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, 0x4008, deCONZ::Zcl24BitUint, hostFlags))
+                            if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, HOST_FLAGS, deCONZ::Zcl24BitUint, hostFlags))
                             {
                                 updated = true;
                             }
@@ -1541,14 +1566,14 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigExternalTemperatureSensor) // Signed integer
                 {
-                    if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_DANFOSS, 0x4015, deCONZ::Zcl16BitInt, intValue))
+                    if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_DANFOSS, EXTERNAL_MEASUREMENT, deCONZ::Zcl16BitInt, intValue))
                     {
                         updated = true;
                     }
                 }
                 else if (rid.suffix == RConfigExternalWindowOpen) // Boolean
                 {
-                    if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_DANFOSS, 0x4003, deCONZ::ZclBoolean, boolValue))
+                    if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_DANFOSS, EXTERNAL_OPEN_WINDOW_DETECTED, deCONZ::ZclBoolean, boolValue))
                     {
                         updated = true;
                     }
@@ -1578,7 +1603,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                         if (!match.key.isEmpty())
                         {
-                            if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0403, deCONZ::Zcl8BitEnum, match.value))
+                            if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, TEMPERATURE_MEASUREMENT, deCONZ::Zcl8BitEnum, match.value))
                             {
                                 updated = true;
                             }
@@ -1612,7 +1637,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                     if (!match.key.isEmpty())
                     {
-                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, 0x0045, deCONZ::Zcl8BitEnum, match.value))
+                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, AC_LOUVER_POSITION, deCONZ::Zcl8BitEnum, match.value))
                         {
                             updated = true;
                         }
@@ -1642,7 +1667,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                     if (match.key)
                     {
-                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x001B, deCONZ::Zcl8BitEnum, match.value))
+                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, CONTROL_SEQUENCE_OF_OPERATION, deCONZ::Zcl8BitEnum, match.value))
                         {
                             updated = true;
                         }
@@ -1651,7 +1676,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 else if (rid.suffix == RConfigPulseConfiguration) // Unsigned integer
                 {
                     if (uintValue <= UINT16_MAX &&
-                        addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0300, deCONZ::Zcl16BitUint, uintValue, VENDOR_DEVELCO))
+                        addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, PULSE_CONFIGURATION, deCONZ::Zcl16BitUint, uintValue, VENDOR_DEVELCO))
                     {
                         updated = true;
                     }
@@ -1687,7 +1712,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                     if (data != 0xFFFF)
                     {
-                        if (addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0302, deCONZ::Zcl16BitEnum, data, VENDOR_DEVELCO))
+                        if (addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, INTERFACE_MODE, deCONZ::Zcl16BitEnum, data, VENDOR_DEVELCO))
                         {
                             updated = true;
                         }
@@ -1708,7 +1733,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     checkSensorBindingsForClientClusters(sensor);
                     continue;
                 }
-                else if (QString(rid.suffix).startsWith("config/ubisys_j1_"))
+                else if (QString(rid.suffix).startsWith("config/ubisys_j1_")) // Unsigned integer
                 {
                     uint16_t mfrCode = VENDOR_UBISYS;
                     uint16_t attrId;
@@ -1815,8 +1840,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         Event e(RSensors, rid.suffix, id, item);
                         enqueueEvent(e);
                     }
-
-                    updated = false;
                 }
                 else
                 {
