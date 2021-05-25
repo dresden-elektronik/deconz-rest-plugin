@@ -30,7 +30,7 @@ Installation
 ============
 
 ##### Supported platforms
-* Raspbian Jessie, Stretch and Buster
+* Raspbian ~~Jessie~~, Stretch and Buster
 * Ubuntu Xenial, Bionic and Focal Fossa (AMD64)
 * Windows 7 and 10
 
