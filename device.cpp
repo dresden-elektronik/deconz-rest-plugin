@@ -762,8 +762,8 @@ void DEV_BindingTableVerifyHandler(Device *device, const Event &event)
         }
         else
         {
-            const auto now = QDateTime::currentMSecsSinceEpoch();
-            const auto dt = i->confirmedMsSinceEpoch() > 0 ? (now - i->confirmedMsSinceEpoch()) / 1000: -1;
+            const auto now = deCONZ::steadyTimeRef();
+            const auto dt = isValid(bnd.confirmedTimeRef()) ? (now - i->confirmedTimeRef()).val / 1000: -1;
 
             if (i->dstAddressMode() == deCONZ::ApsExtAddress)
             {
