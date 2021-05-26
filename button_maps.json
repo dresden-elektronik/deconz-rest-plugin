@@ -1372,15 +1372,6 @@
                 [1, "0x01", "ADUROLIGHT", "COMMAND_0", "0x0002", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Dim down"],
                 [1, "0x01", "ADUROLIGHT", "COMMAND_0", "0x0003", "S_BUTTON_4", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"]
             ]
-        },
-        "aduroSmartEriaMap": {
-            "vendor": "AduroSmart Eria Manufacturing",
-            "doc": "AduroSmart Eria Smart Plug",
-            "modelids": ["AD-SmartPlug3001"],
-            "map": [
-                [1, "0x01", "ADUROLIGHT", "COMMAND_0", "0x0000", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
-                [1, "0x01", "ADUROLIGHT", "COMMAND_0", "0x0001", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"]
-            ]
         }
     }
 }
