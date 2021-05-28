@@ -26,5 +26,6 @@ const QString R_GetProductId(Resource *resource);
 bool isTuyaManufacturerName(const QString &manufacturer);
 bool isLidlDevice(const QString &zigbeeModelIdentifier, const QString &manufacturername);
 const lidlDevice *getLidlDevice(const QString &zigbeeManufacturerName);
+uint productHash(const Resource *r);
 
 #endif // PRODUCT_MATCH_H
