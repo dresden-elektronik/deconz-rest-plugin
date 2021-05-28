@@ -1,10 +1,6 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
-
-#define CURRENT_SUMMATION_DELIVERED             0x0000
-#define PULSE_CONFIGURATION                     0x0300  // Develco specific
-#define INTERFACE_MODE                          0x0302  // Develco specific
-#define INSTANTANEOUS_DEMAND                    0x0400
+#include "simple_metering.h"
 
 /*! Handle packets related to the ZCL simple metering cluster.
     \param ind the APS level data indication containing the ZCL packet

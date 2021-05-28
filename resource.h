@@ -245,18 +245,21 @@ class  ResourceItemDescriptor
 public:
     ResourceItemDescriptor() :
         type(DataTypeUnknown),
+        qVariantType(QVariant::Invalid),
         suffix(RInvalidSuffix),
         validMin(0),
         validMax(0) { }
 
-    ResourceItemDescriptor(ApiDataType t, const char *s, qint64 min = 0, qint64 max = 0) :
+    ResourceItemDescriptor(ApiDataType t, QVariant::Type v, const char *s, qint64 min = 0, qint64 max = 0) :
         type(t),
+        qVariantType(v),
         suffix(s),
         validMin(min),
         validMax(max) { }
 
     bool isValid() const { return (type != DataTypeUnknown && suffix); }
     ApiDataType type;
+    QVariant::Type qVariantType;
     const char *suffix;
     qint64 validMin;
     qint64 validMax;
