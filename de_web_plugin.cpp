@@ -17819,7 +17819,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
             {
                 ret = d->getFullState(req, rsp);
             }
-            else if (path[2] == QLatin1String("devices"))
+            else if (hdr.pathAt(2) == QLatin1String("devices"))
             {
                 ret = d->restDevices->handleApi(req, rsp);
             }
