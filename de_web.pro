@@ -99,6 +99,7 @@ DEFINES += GW_DEFAULT_NAME=\\\"Phoscon-GW\\\"
 
 HEADERS  = bindings.h \
            backup.h \
+           button_maps.h \
            connectivity.h \
            colorspace.h \
            database.h \
@@ -146,6 +147,7 @@ SOURCES  = air_quality.cpp \
            authorisation.cpp \
            backup.cpp \
            bindings.cpp \
+           button_maps.cpp \
            change_channel.cpp \
            connectivity.cpp \
            colorspace.cpp \

@@ -243,3 +243,21 @@ bool isLidlDevice(const QString &zigbeeModelIdentifier, const QString &manufactu
     }
     return false;
 }
+
+uint productHash(const Resource *r)
+{
+    if (!r || !r->item(RAttrManufacturerName) || !r->item(RAttrModelId))
+    {
+        return 0;
+    }
+
+    if (isTuyaManufacturerName(r->item(RAttrManufacturerName)->toString()))
+    {
+        // for Tuya devices use manufacturer name as modelid
+        return qHash(r->item(RAttrManufacturerName)->toString());
+    }
+    else
+    {
+        return qHash(r->item(RAttrModelId)->toString());
+    }
+}

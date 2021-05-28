@@ -1693,10 +1693,11 @@ public:
     QString emptyString;
 
     // JSON support
-    QMap<QString, std::vector<Sensor::ButtonMap>> buttonMapData;
+    std::vector<ButtonMeta> buttonMeta;
+    std::vector<ButtonMap> buttonMaps;
     QMap<QString, quint16> btnMapClusters;
     QMap<QString, QMap<QString, quint16>> btnMapClusterCommands;
-    QMap<QString, QString> buttonMapForModelId;
+    std::vector<ButtonProduct> buttonProductMap;
 
     // gateways
     std::vector<Gateway*> gateways;

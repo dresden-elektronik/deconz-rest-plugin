@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2020 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2021 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -538,38 +538,4 @@ SensorFingerprint &Sensor::fingerPrint()
 const SensorFingerprint &Sensor::fingerPrint() const
 {
     return m_fingerPrint;
-}
-
-const std::vector<Sensor::ButtonMap> Sensor::buttonMap(const QMap<QString, std::vector<Sensor::ButtonMap>> &buttonMapData, QMap<QString, QString> &buttonMapForModelId)
-{
-    if (m_buttonMap.empty())
-    {
-        QString modelid;
-
-        if (isTuyaManufacturerName(item(RAttrManufacturerName)->toString()))
-        {
-            // for Tuya devices use manufacturer name as modelid
-            modelid = item(RAttrManufacturerName)->toString();
-        }
-        else
-        {
-            modelid = item(RAttrModelId)->toString();
-        }
-
-        for (auto i = buttonMapForModelId.constBegin(); i != buttonMapForModelId.constEnd(); ++i)
-        {
-            if (i.key().isEmpty())
-            {
-                continue;
-            }
-
-            if (modelid == i.key())
-            {
-                m_buttonMap = buttonMapData.value(i.value());
-                break;
-            }
-        }
-    }
-
-    return m_buttonMap;
 }

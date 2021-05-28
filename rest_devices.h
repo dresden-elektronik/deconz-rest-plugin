@@ -48,4 +48,8 @@ private:
     DeRestPluginPrivate *plugin = nullptr;
 };
 
+// Resource Introspection (RIS)
+int RIS_GetDeviceIntrospect(const ApiRequest &req, ApiResponse &rsp);
+int RIS_GetDeviceItemIntrospect(const ApiRequest &req, ApiResponse &rsp);
+
 #endif // REST_DEVICES_H
