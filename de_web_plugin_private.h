@@ -56,7 +56,7 @@ using namespace deCONZ::literals;
 #define ERR_MISSING_PARAMETER          5
 #define ERR_PARAMETER_NOT_AVAILABLE    6
 #define ERR_INVALID_VALUE              7
-#define ERR_PARAMETER_NOT_MODIFIEABLE  8
+#define ERR_PARAMETER_NOT_MODIFIABLE   8
 #define ERR_TOO_MANY_ITEMS             11
 #define ERR_DUPLICATE_EXIST            100 // de extension
 #define ERR_NOT_ALLOWED_SENSOR_TYPE    501

@@ -731,7 +731,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 rid.suffix == RConfigLastChangeSource || rid.suffix == RConfigLastChangeTime || rid.suffix == RConfigEnrolled || rid.suffix == RConfigOn ||
                 (!isClip && (rid.suffix == RConfigBattery || rid.suffix == RConfigReachable)))
             {
-                rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIEABLE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                            QString("parameter, %1, not modifiable").arg(pi.key())));
                 continue;
             }
