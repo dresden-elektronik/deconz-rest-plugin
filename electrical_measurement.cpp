@@ -192,7 +192,8 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                         modelId.startsWith(QLatin1String("S1")) ||                                // Ubisys S1/S1-R
                         modelId.startsWith(QLatin1String("S2")) ||                                // Ubisys S2/S2-R
                         modelId.startsWith(QLatin1String("J1")) ||                                // Ubisys J1/J1-R
-                        modelId.startsWith(QLatin1String("D1")))                                  // Ubisys D1/D1-R
+                        modelId.startsWith(QLatin1String("D1")) ||                                // Ubisys D1/D1-R
+                        modelId == QLatin1String("RM3250ZB"))                                     // Sinope RM3250ZB Smart Controller 
                     {
                         // already in mA
                     }
@@ -202,7 +203,9 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                              modelId == QLatin1String("3200-Sgb") ||                              // Samsung smart outlet
                              modelId == QLatin1String("3200-de") ||                               // Samsung smart outlet
                              modelId.startsWith(QLatin1String("SPW35Z")) ||                       // RT-RK OBLO SPW35ZD0 smart plug
-                             modelId == QLatin1String("TH1300ZB"))                                // Sinope thermostat
+                             modelId == QLatin1String("TH1300ZB") ||                              // Sinope thermostat
+                             modelId == QLatin1String("SP2600ZB") ||                              // Sinope Smart Plug
+                             modelId == QLatin1String("SP2610ZB"))                                // Sinope Smart Wall Plug
                     {
                         current *= 10; // 0.01A -> mA
                     }
