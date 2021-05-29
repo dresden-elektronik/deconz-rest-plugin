@@ -659,41 +659,28 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     }
                     break;
                     case 0x026B : // min alarm temperature threshold
-                    case 0x026C : // max alarm temperature threshold
                     {
                         qint8 min = static_cast<qint8>(data & 0xFF);
-                        // Hack to get the code compiled quick and dirty
-                        // ResourceItem *item = sensorNode->item(RConfigTempThreshold);
+                        ResourceItem *item = sensorNode->item(RConfigTempMinThreshold);
+
+                        if (item && item->toNumber() != min)
+                        {
+                            item->setValue(min);
+                            Event e(RSensors, RConfigTempMinThreshold, sensorNode->id(), item);
+                            enqueueEvent(e);
+                            
+                            update = true;
+                        }
+                    }
+                    break;
+                    case 0x026C : // max alarm temperature threshold
+                    {
+                        qint8 max = static_cast<qint8>(data & 0xFF);
                         ResourceItem *item = sensorNode->item(RConfigTempMaxThreshold);
 
-                        if (item)
+                        if (item && item->toNumber() != max)
                         {
-                            QString values;
-                            
-                            if (item->toString().isEmpty())
-                            {
-                                values = QString("0,0");
-                            }
-                            else
-                            {
-                                values = item->toString();
-                            }
-                            
-                            QStringList valuesList = values.split(",");
-                            if (valuesList.size() != 2)
-                            {
-                                valuesList = QStringList();
-                                valuesList << "0" << "0" ;
-                            }
-
-                            DBG_Printf(DBG_INFO, "Tuya debug 33 : %s\n", qPrintable(valuesList.join(',')));
-                            
-                            if (dp == 0x026B) { valuesList[0] = QString::number(min); }
-                            if (dp == 0x026C) { valuesList[1] = QString::number(min); }
-                            
-                            DBG_Printf(DBG_INFO, "Tuya debug 34 : %s\n", qPrintable(valuesList.join(',')));
-                            
-                            item->setValue(valuesList.join(','));
+                            item->setValue(max);
                             Event e(RSensors, RConfigTempMaxThreshold, sensorNode->id(), item);
                             enqueueEvent(e);
                             
@@ -702,37 +689,28 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     }
                     break;
                     case 0x026D : // min alarm humidity threshold
-                    case 0x026E : // max alarm humidity threshold
                     {
                         qint8 min = static_cast<qint8>(data & 0xFF);
-                        // Hack to get the code compiled quick and dirty
-                        // ResourceItem *item = sensorNode->item(RConfigHumiThreshold);
+                        ResourceItem *item = sensorNode->item(RConfigHumiMinThreshold);
+
+                        if (item && item->toNumber() != min)
+                        {
+                            item->setValue(min);
+                            Event e(RSensors, RConfigHumiMinThreshold, sensorNode->id(), item);
+                            enqueueEvent(e);
+                            
+                            update = true;
+                        }
+                    }
+                    break;
+                    case 0x026E : // max alarm humidity threshold
+                    {
+                        qint8 max = static_cast<qint8>(data & 0xFF);
                         ResourceItem *item = sensorNode->item(RConfigHumiMaxThreshold);
 
-                        if (item)
+                        if (item && item->toNumber() != max)
                         {
-                            QString values;
-                            
-                            if (item->toString().isEmpty())
-                            {
-                                values = QString("0,0");
-                            }
-                            else
-                            {
-                                values = item->toString();
-                            }
-                            
-                            QStringList valuesList = values.split(",");
-                            if (valuesList.size() != 2)
-                            {
-                                valuesList = QStringList();
-                                valuesList << "0" << "0";
-                            }
-                            
-                            if (dp == 0x026D) { valuesList[0] = QString::number(min); }
-                            if (dp == 0x026E) { valuesList[1] = QString::number(min); }
-                            
-                            item->setValue(valuesList.join(','));
+                            item->setValue(max);
                             Event e(RSensors, RConfigHumiMaxThreshold, sensorNode->id(), item);
                             enqueueEvent(e);
                             
