@@ -875,6 +875,9 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigMelody) // Unigned integer
                 {
+                    if (data.uinteger > 18) { data.uinteger = 18; }
+                    if (data.uinteger < 1) { data.uinteger = 1; }
+                    
                     QByteArray tuyaData;
                     tuyaData.append(static_cast<qint8>(data.uinteger & 0xff));
 
@@ -895,7 +898,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         updated = true;
                     }
                 }
-                else if (rid.suffix == RConfigTempMinThreshold || rid.suffix == RConfigTempMaxThreshold || rid.suffix == RConfigHumiMinThreshold || rid.suffix == RConfigHumiMaxThreshold) // Signed integer, really???
+                else if (rid.suffix == RConfigTempMinThreshold || rid.suffix == RConfigTempMaxThreshold || rid.suffix == RConfigHumiMinThreshold || rid.suffix == RConfigHumiMaxThreshold)
+                // Use signed, a temperature can be negative, but untested.
                 {
                     QByteArray tuyaData = QByteArray("\x00\x00\x00",3);
                     tuyaData.append(static_cast<qint8>(data.integer));
