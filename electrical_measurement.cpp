@@ -93,7 +93,9 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                         modelId == QLatin1String("3200-Sgb") ||                               // Samsung/Centralite smart outlet
                         modelId == QLatin1String("3200-de") ||                                // Samsung/Centralite smart outlet
                         modelId.startsWith(QLatin1String("lumi.switch.n0agl1")) ||            // Xiaomi Aqara Single Switch Module T1 (With Neutral)
-                        modelId.startsWith(QLatin1String("lumi.switch.b1naus01")))            // Xiaomi ZB3.0 Smart Wall Switch
+                        modelId.startsWith(QLatin1String("lumi.switch.b1naus01")) ||          // Xiaomi ZB3.0 Smart Wall Switch
+                        modelId == QLatin1String("SP2600ZB") ||                               // Sinope Smart Plug
+                        modelId == QLatin1String("SP2610ZB"))                                 // Sinope Smart Wall Plug
                     {
                         power = static_cast<qint16>(round((double)power / 10.0)); // 0.1W -> W
                     }
@@ -139,7 +141,9 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                         modelId.startsWith(QLatin1String("SMRZB-1")) ||                                // Develco smart cable
                         modelId.startsWith(QLatin1String("SKHMP30")) ||                                // GS smart plug
                         modelId == QLatin1String("Smart16ARelay51AU") ||                               // Aurora (Develco) smart plug
-                        modelId == QLatin1String("PoP"))                                               // Apex Smart Plug
+                        modelId == QLatin1String("PoP") ||                                             // Apex Smart Plug
+                        modelId == QLatin1String("SP2600ZB") ||                                        // Sinope Smart Plug
+                        modelId == QLatin1String("SP2610ZB"))                                          // Sinope Smart Wall Plug
                     {
                         voltage = static_cast<quint16>(round((double)voltage / 100.0)); // 0.01V -> V
                     }
