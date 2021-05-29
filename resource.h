@@ -2,6 +2,7 @@
 #define RESOURCE_H
 
 #include <QDateTime>
+#include <QVariant>
 #include <vector>
 
 class QString;

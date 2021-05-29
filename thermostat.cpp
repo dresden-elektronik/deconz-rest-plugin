@@ -89,6 +89,7 @@
 #include <QJsonDocument>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
+#include "thermostat.h"
 
 /*! Covert Zigbee weekdays bitmap to ISO or v.v.
  */
