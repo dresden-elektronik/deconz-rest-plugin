@@ -835,7 +835,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
-                    case 0x0165: // off / on > [off = off, on = heat]
+                    case 0x0165: // off / on > [off = off, on = heat] for Saswell devices
                     {
                         QString mode;
                         if      (data == 0) { mode = QLatin1String("off"); }
@@ -854,7 +854,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
-                    case 0x016A: // Away mode
+                    case 0x016A: // Away mode for Saswell
                     {
                         //bool away = false;
                         //if (data == 1) { away = true; }
@@ -1132,7 +1132,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
-                    case 0x046a : // mode : normal/open/close
+                    case 0x046a : // Force mode : normal/open/close
                     {
                         QString mode;
                         if (data == 0) { mode = QLatin1String("auto"); }
