@@ -98,7 +98,7 @@ void DeRestPluginPrivate::handleIasAceClusterIndication(const deCONZ::ApsDataInd
 
     if (!(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
     {
-        sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
+        sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus, false);
     }
 }
 
