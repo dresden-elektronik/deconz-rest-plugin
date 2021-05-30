@@ -1755,6 +1755,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         else if (modelId.startsWith(QLatin1String("ED-1001")) || // EcoDim switches
                  modelId.startsWith(QLatin1String("45127")) ||   // Namron switches
                  modelId.startsWith(QLatin1String("S57003")) ||  // SLC switches
+                 modelId == QLatin1String("CCT593011_AS") ||     // LK Wiser Temperature and Humidity Sensor
                  modelId.startsWith(QLatin1String("FNB56-")) ||  // Feibit devices
                  modelId.startsWith(QLatin1String("FB56-")))     // Feibit devices
         {
@@ -2981,6 +2982,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("ZB-MotionSensor-D0003") ||
         // Drayton
         sensor->modelId() == QLatin1String("iTRV") ||
+        // LK Wiser
+        sensor->modelId() == QLatin1String("CCT593011_AS") ||
         // Immax
         sensor->modelId() == QLatin1String("Plug-230V-ZB3.0") ||
         sensor->modelId() == QLatin1String("4in1-Sensor-ZB3.0") ||
