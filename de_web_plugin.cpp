@@ -6803,6 +6803,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 (modelId != QLatin1String("Plug-230V-ZB3.0")) &&
                 (modelId != QLatin1String("lumi.switch.b1naus01")) &&
                 (modelId != QLatin1String("Connected socket outlet")) &&
+                (modelId != QLatin1String("AD-SmartPlug3001")) &&
                 (!modelId.startsWith(QLatin1String("SPW35Z"))))
             {
                 item = sensorNode.addItem(DataTypeInt16, RStatePower);
