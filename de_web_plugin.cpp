@@ -4608,7 +4608,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         }
                     }
                 }
-                else if (ind.clusterId() == ONOFF_CLUSTER_ID && sensor->manufacturer() == QLatin1String("IKEA of Sweden") && sensor->previousCommandId == 0x09)
+                else if (ind.clusterId() == ONOFF_CLUSTER_ID && sensor->modelId() == QLatin1String("Remote Control N2") && sensor->previousCommandId == 0x09)
                 {
                     ok = false;
                 }
