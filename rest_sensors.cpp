@@ -862,7 +862,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             offsetUpdated = true;
                             offset += item->toNumber();
                         }
-                        else if (rid.suffix == RConfigDelay && sensor->modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
+                        else if (rid.suffix == RConfigDelay && (sensor->modelId().startsWith(QLatin1String("SML00")) || // Hue motion sensor
+                                                                sensor->modelId().startsWith(QLatin1String("MOSZB-1"))))// Develco/frient motion sensor
                         {
                             pendingMask |= R_PENDING_DELAY;
                             sensor->enableRead(WRITE_DELAY);
