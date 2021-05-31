@@ -12255,10 +12255,15 @@ void DeRestPluginPrivate::sendZclDefaultResponse(const deCONZ::ApsDataIndication
     deCONZ::ZclFrame outZclFrame;
     outZclFrame.setSequenceNumber(zclFrame.sequenceNumber());
     outZclFrame.setCommandId(deCONZ::ZclDefaultResponseId);
-    outZclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-                             deCONZ::ZclFCDirectionClientToServer |
-                             deCONZ::ZclFCDisableDefaultResponse);
-
+    
+    if (zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient)
+    {
+        outZclFrame.setFrameControl(deCONZ::ZclFCProfileCommand | deCONZ::ZclFCDirectionClientToServer | deCONZ::ZclFCDisableDefaultResponse);
+    }
+    else
+    {
+        outZclFrame.setFrameControl(deCONZ::ZclFCProfileCommand | deCONZ::ZclFCDirectionServerToClient | deCONZ::ZclFCDisableDefaultResponse);
+    }
 
     if (zclFrame.manufacturerCode_t() != 0x0000_mfcode)
     {
