@@ -12238,7 +12238,7 @@ void DeRestPluginPrivate::queuePollNode(RestNodeBase *node)
     pollNodes.push_back(pollItem);
 }
 
-void DeRestPluginPrivate::sendZclDefaultResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, quint8 status, bool clientToServer)
+void DeRestPluginPrivate::sendZclDefaultResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, quint8 status)
 {
    deCONZ::ApsDataRequest apsReq;
 
@@ -12255,9 +12255,10 @@ void DeRestPluginPrivate::sendZclDefaultResponse(const deCONZ::ApsDataIndication
     deCONZ::ZclFrame outZclFrame;
     outZclFrame.setSequenceNumber(zclFrame.sequenceNumber());
     outZclFrame.setCommandId(deCONZ::ZclDefaultResponseId);
-    
-    if (clientToServer) { outZclFrame.setFrameControl(deCONZ::ZclFCProfileCommand | deCONZ::ZclFCDirectionClientToServer | deCONZ::ZclFCDisableDefaultResponse); }
-    else                { outZclFrame.setFrameControl(deCONZ::ZclFCProfileCommand | deCONZ::ZclFCDirectionServerToClient | deCONZ::ZclFCDisableDefaultResponse); }
+    outZclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                             deCONZ::ZclFCDirectionClientToServer |
+                             deCONZ::ZclFCDisableDefaultResponse);
+
 
     if (zclFrame.manufacturerCode_t() != 0x0000_mfcode)
     {
