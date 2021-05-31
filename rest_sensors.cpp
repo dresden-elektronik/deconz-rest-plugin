@@ -3348,8 +3348,8 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         sensorCheckFast = CHECK_SENSOR_FAST_ROUNDS;
     }
 
-    // push sensor state updates through websocket
-    if (strncmp(e.what(), "state/", 6) == 0)
+    // push sensor state updates through websocket, but only if config/on = true
+    if (strncmp(e.what(), "state/", 6) == 0  && sensor->item(RConfigOn)->toBool())
     {
         ResourceItem *item = sensor->item(e.what());
         if (item && item->isPublic())
