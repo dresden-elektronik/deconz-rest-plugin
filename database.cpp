@@ -5982,20 +5982,27 @@ static int DB_LoadSubDeviceItemsCallback(void *user, int ncols, char **colval , 
 
     DB_ResourceItem ritem;
 
-    ritem.name = QString(colval[0]);
+    ritem.name = colval[0];
     ritem.value = QString(colval[1]);
     ritem.timestampMs = QString(colval[2]).toLongLong() * 1000;
 
-    if (!ritem.name.isEmpty() && !ritem.value.isNull())
+    if (!ritem.name.empty() && !ritem.value.isNull())
     {
         result->push_back(std::move(ritem));
     }
     return 0;
 };
 
-std::vector<DB_ResourceItem> DB_LoadSubDeviceItemsOfDevice(const QString &deviceUniqueId)
+std::vector<DB_ResourceItem> DB_LoadSubDeviceItemsOfDevice(QLatin1String deviceUniqueId)
 {
+    assert(deviceUniqueId.size() == 23); // 64 bit uniqueId with : after each byte
+
     std::vector<DB_ResourceItem> result;
+
+    if (deviceUniqueId.size() != 23)
+    {
+        return result;
+    }
 
     DeRestPluginPrivate::instance()->openDb();
 
@@ -6004,18 +6011,22 @@ std::vector<DB_ResourceItem> DB_LoadSubDeviceItemsOfDevice(const QString &device
         return result;
     }
 
-    const auto sql = QString("SELECT item,value,timestamp FROM resource_items"
-                             " WHERE sub_device_id = (SELECT id FROM sub_devices WHERE uniqueid LIKE '%1%')")
-                             .arg(deviceUniqueId);
+    char sql[160];
 
-
-    char *errmsg = nullptr;
-    int rc = sqlite3_exec(db, qPrintable(sql), DB_LoadSubDeviceItemsCallback, &result, &errmsg);
-
-    if (errmsg)
+    int ret = snprintf(sql, sizeof(sql), "SELECT item,value,timestamp FROM resource_items"
+                                 " WHERE sub_device_id = (SELECT id FROM sub_devices WHERE uniqueid LIKE '%%%s%%')",
+                                 deviceUniqueId.data());
+    assert(size_t(ret) < sizeof(sql));
+    if (size_t(ret) < sizeof(sql))
     {
-        DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", qPrintable(sql), errmsg, rc);
-        sqlite3_free(errmsg);
+        char *errmsg = nullptr;
+        int rc = sqlite3_exec(db, sql, DB_LoadSubDeviceItemsCallback, &result, &errmsg);
+
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sql, errmsg, rc);
+            sqlite3_free(errmsg);
+        }
     }
 
     DeRestPluginPrivate::instance()->closeDb();
@@ -6023,9 +6034,15 @@ std::vector<DB_ResourceItem> DB_LoadSubDeviceItemsOfDevice(const QString &device
     return result;
 }
 
-std::vector<DB_ResourceItem> DB_LoadSubDeviceItems(const QString &uniqueId)
+std::vector<DB_ResourceItem> DB_LoadSubDeviceItems(QLatin1String uniqueId)
 {
     std::vector<DB_ResourceItem> result;
+
+    assert(uniqueId.size() <= 64);
+    if (uniqueId.size() > 64)
+    {
+        return result;
+    }
 
     DeRestPluginPrivate::instance()->openDb();
 
@@ -6034,18 +6051,23 @@ std::vector<DB_ResourceItem> DB_LoadSubDeviceItems(const QString &uniqueId)
         return result;
     }
 
-    const auto sql = QString("SELECT item,value,timestamp FROM resource_items"
-                             " WHERE sub_device_id = (SELECT id FROM sub_devices WHERE uniqueid = '%1')")
-                             .arg(uniqueId);
+    char sql[160];
 
+    int ret = snprintf(sql, sizeof(sql), "SELECT item,value,timestamp FROM resource_items"
+                                         " WHERE sub_device_id = (SELECT id FROM sub_devices WHERE uniqueid = '%s')",
+                                         uniqueId.data());
 
-    char *errmsg = nullptr;
-    int rc = sqlite3_exec(db, qPrintable(sql), DB_LoadSubDeviceItemsCallback, &result, &errmsg);
-
-    if (errmsg)
+    assert(size_t(ret) < sizeof(sql));
+    if (size_t(ret) < sizeof(sql))
     {
-        DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", qPrintable(sql), errmsg, rc);
-        sqlite3_free(errmsg);
+        char *errmsg = nullptr;
+        int rc = sqlite3_exec(db, qPrintable(sql), DB_LoadSubDeviceItemsCallback, &result, &errmsg);
+
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sql, errmsg, rc);
+            sqlite3_free(errmsg);
+        }
     }
 
     DeRestPluginPrivate::instance()->closeDb();
@@ -6063,4 +6085,91 @@ bool DB_StoreSubDeviceItems(const Resource *sub)
     }
 
     return true;
+}
+
+static int DB_LoadLegacyValueCallback(void *user, int ncols, char **colval , char **)
+{
+    auto *result = static_cast<DB_LegacyItem*>(user);
+    Q_ASSERT(result);
+    Q_ASSERT(ncols == 1);
+
+    result->value.setString(colval[0]);
+
+    return 0;
+};
+
+bool DB_LoadLegacySensorValue(DB_LegacyItem *litem)
+{
+    bool result = false;
+    DeRestPluginPrivate::instance()->openDb();
+
+    if (!db)
+    {
+        return result;
+    }
+
+    litem->value.clear();
+
+    char sql[120];
+
+    int ret = snprintf(sql, sizeof(sql), "SELECT %s FROM sensors WHERE uniqueid = '%s'",
+                       litem->column.c_str(), litem->uniqueId.c_str());
+
+    assert(size_t(ret) < sizeof(sql));
+    if (size_t(ret) < sizeof(sql))
+    {
+        char *errmsg = nullptr;
+        int rc = sqlite3_exec(db, sql, DB_LoadLegacyValueCallback, litem, &errmsg);
+
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sql, errmsg, rc);
+            sqlite3_free(errmsg);
+        }
+        else
+        {
+            result = !litem->value.empty();
+        }
+    }
+
+    DeRestPluginPrivate::instance()->closeDb();
+
+    return result;
+}
+
+bool DB_LoadLegacyLightValue(DB_LegacyItem *litem)
+{
+    bool result = false;
+    DeRestPluginPrivate::instance()->openDb();
+
+    if (!db)
+    {
+        return result;
+    }
+
+    litem->value.clear();
+
+    char sql[120];
+
+    int ret = snprintf(sql, sizeof(sql), "SELECT %s FROM nodes WHERE mac = '%s'", litem->column .c_str(), litem->uniqueId.c_str());
+    assert(size_t(ret) < sizeof(sql));
+    if (size_t(ret) < sizeof(sql))
+    {
+        char *errmsg = nullptr;
+        int rc = sqlite3_exec(db, sql, DB_LoadLegacyValueCallback, litem, &errmsg);
+
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sql, errmsg, rc);
+            sqlite3_free(errmsg);
+        }
+        else
+        {
+            result = !litem->value.empty();
+        }
+    }
+
+    DeRestPluginPrivate::instance()->closeDb();
+
+    return result;
 }

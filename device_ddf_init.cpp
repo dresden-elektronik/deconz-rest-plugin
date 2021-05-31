@@ -49,15 +49,16 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
     Q_ASSERT(ddfItem.isValid());
 
     auto *item = rsub->item(ddfItem.descriptor.suffix);
-    const auto uniqueId = rsub->item(RAttrUniqueId)->toString();
+    const char *uniqueId = rsub->item(RAttrUniqueId)->toCString();
+    Q_ASSERT(uniqueId);
 
     if (item)
     {
-        DBG_Printf(DBG_INFO, "sub-device: %s, has item: %s\n", qPrintable(uniqueId), ddfItem.descriptor.suffix);
+        DBG_Printf(DBG_INFO, "sub-device: %s, has item: %s\n", uniqueId, ddfItem.descriptor.suffix);
     }
     else
     {
-        DBG_Printf(DBG_INFO, "sub-device: %s, create item: %s\n", qPrintable(uniqueId), ddfItem.descriptor.suffix);
+        DBG_Printf(DBG_INFO, "sub-device: %s, create item: %s\n", uniqueId, ddfItem.descriptor.suffix);
         item = rsub->addItem(ddfItem.descriptor.type, ddfItem.descriptor.suffix);
 
         DBG_Assert(item);
@@ -134,17 +135,17 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &desc
         subCount++;
 
         auto *mf = rsub->item(RAttrManufacturerName);
-        if (mf && mf->toString().isEmpty())
+        if (mf && mf->toLatin1String().isEmpty())
         {
             mf->setValue(DeviceDescriptions::instance()->constantToString(description.manufacturer));
         }
 
         // TODO storing should be done else where, since this is init code
-        DB_StoreSubDevice(device->item(RAttrUniqueId)->toString(), uniqueId);
+        DB_StoreSubDevice(device->item(RAttrUniqueId)->toLatin1String(), uniqueId);
         DB_StoreSubDeviceItem(rsub, rsub->item(RAttrManufacturerName));
         DB_StoreSubDeviceItem(rsub, rsub->item(RAttrModelId));
 
-        const auto dbItems = DB_LoadSubDeviceItems(uniqueId);
+        const auto dbItems = DB_LoadSubDeviceItems(rsub->item(RAttrUniqueId)->toLatin1String());
 
         for (const auto &ddfItem : sub.items)
         {
@@ -193,7 +194,7 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &desc
 
 bool DEV_InitDeviceBasic(Device *device)
 {
-    const auto dbItems = DB_LoadSubDeviceItemsOfDevice(device->item(RAttrUniqueId)->toString());
+    const auto dbItems = DB_LoadSubDeviceItemsOfDevice(device->item(RAttrUniqueId)->toLatin1String());
 
     size_t found = 0;
     std::array<const char*, 2> poi = { RAttrManufacturerName, RAttrModelId };

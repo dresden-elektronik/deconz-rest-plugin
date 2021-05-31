@@ -73,14 +73,14 @@ public:
             InvalidItemHandle = 0
         };
 
-        bool isValid() const { return !name.isEmpty() && descriptor.isValid(); }
+        bool isValid() const { return !name.empty() && descriptor.isValid(); }
         Handle handle = InvalidItemHandle;
 
         bool isPublic = true;
         bool isStatic = false;
         bool awake = false;
         int refreshInterval = NoRefreshInterval;
-        QString name;
+        BufString<64> name;  // todo global cache
         ResourceItemDescriptor descriptor;
         QVariant parseParameters;
         QVariant readParameters;

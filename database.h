@@ -11,9 +11,11 @@
 #ifndef DATABASE_H
 #define DATABASE_H
 
+#include <cstddef>
 #include <QString>
 #include <QVariant>
 #include <vector>
+#include <utils/bufstring.h>
 
 class Resource;
 class ResourceItem;
@@ -21,17 +23,26 @@ class ResourceItem;
 
 struct DB_ResourceItem
 {
-    QString name;
+    BufString<64> name;
     QVariant value;
     qint64 timestampMs = 0; // milliseconds since Epoch
+};
+
+struct DB_LegacyItem
+{
+    BufString<32> column;
+    BufString<64> uniqueId;
+
+    BufString<128> value;
 };
 
 bool DB_StoreSubDevice(const QString &parentUniqueId, const QString &uniqueId);
 bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item);
 bool DB_StoreSubDeviceItems(const Resource *sub);
-std::vector<DB_ResourceItem> DB_LoadSubDeviceItemsOfDevice(const QString &deviceUniqueId);
-std::vector<DB_ResourceItem> DB_LoadSubDeviceItems(const QString &uniqueId);
-
+std::vector<DB_ResourceItem> DB_LoadSubDeviceItemsOfDevice(QLatin1String deviceUniqueId);
+std::vector<DB_ResourceItem> DB_LoadSubDeviceItems(QLatin1String uniqueId);
+bool DB_LoadLegacySensorValue(DB_LegacyItem *litem);
+bool DB_LoadLegacyLightValue(DB_LegacyItem *litem);
 
 
 #endif // DATABASE_H

@@ -259,7 +259,7 @@ void DeviceDescriptions::readAll()
 
     DBG_MEASURE_START(DDF_ReadAllFiles);
 
-    QDirIterator it(deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation) + QLatin1String("/devices"),
+    QDirIterator it(deCONZ::getStorageLocation(deCONZ::DdfLocation),
                     QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
 
     std::vector<DeviceDescription> descriptions;
@@ -409,14 +409,14 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
 
     if (obj.contains(QLatin1String("name")))
     {
-        result.name = obj.value(QLatin1String("name")).toString();
+        result.name = obj.value(QLatin1String("name")).toString().toUtf8().constData();
     }
     else if (obj.contains(QLatin1String("id"))) // generic/item TODO align name/id?
     {
-        result.name = obj.value(QLatin1String("id")).toString();
+        result.name = obj.value(QLatin1String("id")).toString().toUtf8().constData();
     }
 
-    if (result.name.isEmpty())
+    if (result.name.empty())
     {
 
     }

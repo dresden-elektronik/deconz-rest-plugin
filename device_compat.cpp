@@ -8,6 +8,8 @@
  *
  */
 
+#include <memory>
+#include "database.h"
 #include "device.h"
 #include "device_compat.h"
 #include "resource.h"
@@ -34,21 +36,45 @@ static Resource *DEV_InitSensorNodeFromDescription(Device *device, const DeviceD
     sensor.fingerPrint() = sub.fingerPrint;
     sensor.address().setExt(device->item(RAttrExtAddress)->toNumber());
     sensor.address().setNwk(device->item(RAttrNwkAddress)->toNumber());
-    sensor.setModelId(device->item(RAttrModelId)->toString());
-    sensor.setManufacturer(device->item(RAttrManufacturerName)->toString());
+    sensor.setModelId(device->item(RAttrModelId)->toCString());
+    sensor.setManufacturer(device->item(RAttrManufacturerName)->toCString());
     sensor.setType(DeviceDescriptions::instance()->constantToString(sub.type));
     sensor.setUniqueId(uniqueId);
     sensor.setNode(const_cast<deCONZ::Node*>(device->node()));
     R_SetValue(&sensor, RConfigOn, true, ResourceItem::SourceApi);
 
-    QString friendlyName = sensor.type();
-    if (friendlyName.startsWith("ZHA") || friendlyName.startsWith("ZLL"))
+    auto dbItem = std::make_unique<DB_LegacyItem>();
+    dbItem->uniqueId = sensor.item(RAttrUniqueId)->toCString();
+
     {
-        friendlyName = friendlyName.mid(3);
+        dbItem->column = "sid";
+
+        if (DB_LoadLegacySensorValue(dbItem.get()))
+        {
+            sensor.setId(toLatin1String(dbItem->value));
+        }
+        else
+        {
+            sensor.setId(QString::number(getFreeSensorId()));
+        }
     }
 
-    sensor.setId(QString::number(getFreeSensorId()));
-    sensor.setName(QString("%1 %2").arg(friendlyName, sensor.id()));
+    {
+        dbItem->column = "name";
+        if (DB_LoadLegacySensorValue(dbItem.get()))
+        {
+            sensor.setName(dbItem->value.c_str());
+        }
+        else
+        {
+            QString friendlyName = sensor.type();
+            if (friendlyName.startsWith("ZHA") || friendlyName.startsWith("ZLL"))
+            {
+                friendlyName = friendlyName.mid(3);
+            }
+            sensor.setName(QString("%1 %2").arg(friendlyName, sensor.id()));
+        }
+    }
 
     sensor.setNeedSaveDatabase(true);
     sensor.rx();
@@ -83,8 +109,8 @@ static Resource *DEV_InitLightNodeFromDescription(Device *device, const DeviceDe
 
     lightNode.address().setExt(device->item(RAttrExtAddress)->toNumber());
     lightNode.address().setNwk(device->item(RAttrNwkAddress)->toNumber());
-    lightNode.setModelId(device->item(RAttrModelId)->toString());
-    lightNode.setManufacturerName(device->item(RAttrManufacturerName)->toString());
+    lightNode.setModelId(device->item(RAttrModelId)->toCString());
+    lightNode.setManufacturerName(device->item(RAttrManufacturerName)->toCString());
     lightNode.setManufacturerCode(device->node()->nodeDescriptor().manufacturerCode());
     lightNode.setNode(const_cast<deCONZ::Node*>(device->node())); // TODO this is evil
 
@@ -92,8 +118,33 @@ static Resource *DEV_InitLightNodeFromDescription(Device *device, const DeviceDe
     lightNode.setUniqueId(uniqueId);
     lightNode.setNode(const_cast<deCONZ::Node*>(device->node()));
 
-    lightNode.setId(QString::number(getFreeLightId()));
-    lightNode.setName(QString("%1 %2").arg(lightNode.type(), lightNode.id()));
+    auto dbItem = std::make_unique<DB_LegacyItem>();
+    dbItem->uniqueId = lightNode.item(RAttrUniqueId)->toCString();
+
+    {
+        dbItem->column = "id";
+
+        if (DB_LoadLegacyLightValue(dbItem.get()))
+        {
+            lightNode.setId(toLatin1String(dbItem->value));
+        }
+        else
+        {
+            lightNode.setId(QString::number(getFreeLightId()));
+        }
+    }
+
+    {
+        dbItem->column = "name";
+        if (DB_LoadLegacyLightValue(dbItem.get()))
+        {
+            lightNode.setName(dbItem->value.c_str());
+        }
+        else
+        {
+            lightNode.setName(QString("%1 %2").arg(lightNode.type(), lightNode.id()));
+        }
+    }
 
     // remove some items which need to be specified via DDF
     lightNode.removeItem(RStateOn);
