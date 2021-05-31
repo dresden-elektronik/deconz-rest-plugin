@@ -137,6 +137,7 @@ HEADERS  = bindings.h \
            state_change.h \
            tuya.h \
            utils/bufstring.h \
+           utils/stringcache.h \
            utils/utils.h \
            websocket_server.h \
            zcl/zcl.h \
@@ -219,6 +220,7 @@ SOURCES  = air_quality.cpp \
            reset_device.cpp \
            rest_userparameter.cpp \
            utils/bufstring.cpp \
+           utils/stringcache.cpp \
            utils/utils.cpp \
            xiaomi.cpp \
            window_covering.cpp \

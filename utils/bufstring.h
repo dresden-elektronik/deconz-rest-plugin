@@ -45,8 +45,14 @@ public:
     { clear(); }
 
     constexpr BufString(const char *str) :
+        BufString(str, strlen(str))
+    { }
+
+    constexpr BufString(const char *str, const size_t len) :
         BufString()
-    { setString(str, strlen(str)); }
+    {
+        setString(str, len);
+    }
 
     constexpr const BufStringBase *base() const { return &base_; }
 
@@ -218,9 +224,15 @@ public:
     constexpr size_t size() const { return m_size; }
     constexpr size_t capacity() const { return NElements - m_size; }
 
-    BufStringCacheHandle put(const BufString<Size> &str)
+    BufStringCacheHandle put(const char *str, size_t length)
     {
-        BufStringCacheHandle hnd;
+        BufStringCacheHandle hnd{};
+
+        if (length > maxStringSize())
+        {
+            return hnd;
+        }
+
         hnd.cacheId = cacheId();
         hnd.index = NElements; // Invalid;
         hnd.maxSize = Size;
@@ -241,7 +253,7 @@ public:
 #endif
         if (m_size < NElements)
         {
-            memcpy(&m_strings[m_size], &str, sizeof (str));
+            m_strings[m_size].setString(str, length);
             hnd.index = m_size;
             hnd.base = m_strings[m_size].base();
             m_size++;

@@ -10,7 +10,8 @@
 
 #include <QString>
 
-#include "deconz/dbg_trace.h"
+#include <deconz/dbg_trace.h>
+#include <utils/stringcache.h>
 #include "resource.h"
 
 const char *RDevices = "/devices";
@@ -495,6 +496,22 @@ ResourceItem::ResourceItem(const ResourceItem &other)
     *this = other;
 }
 
+bool ResourceItem::setItemString(const QString &str)
+{
+    const auto utf8 = str.toUtf8();
+
+    if (utf8.size() <= int(m_istr.maxSize()))
+    {
+        m_istr.setString(utf8.constData());
+        m_strHandle = {};
+        return true;
+    }
+
+    m_strHandle =  GlobalStringCache()->put(utf8.constData(), size_t(utf8.size()), StringCache::Immutable);
+
+    return isValid(m_strHandle);
+}
+
 /*! Move constructor. */
 ResourceItem::ResourceItem(ResourceItem &&other) noexcept
 {
@@ -606,6 +623,7 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
     m_rulesInvolved = other.m_rulesInvolved;
     m_ddfItemHandle = other.m_ddfItemHandle;
     m_istr = other.m_istr;
+    m_strHandle = other.m_strHandle;
 
     if (other.m_str)
     {
@@ -650,6 +668,7 @@ ResourceItem &ResourceItem::operator=(ResourceItem &&other) noexcept
     m_refreshInterval = other.m_refreshInterval;
     m_ddfItemHandle = other.m_ddfItemHandle;
     m_istr = other.m_istr;
+    m_strHandle = other.m_strHandle;
     other.m_rid = &rInvalidItemDescriptor;
 
     if (m_str)
@@ -736,6 +755,30 @@ const QString &ResourceItem::toString() const
     return rInvalidString;
 }
 
+QLatin1String ResourceItem::toLatin1String() const
+{
+    if (!isValid(m_strHandle))
+    {
+        return m_istr;
+    }
+    else if (m_strHandle.base->length > 0)
+    {
+        return QLatin1String(&m_strHandle.base->buf[0], m_strHandle.base->length);
+    }
+
+    return QLatin1String();
+}
+
+const char *ResourceItem::toCString() const
+{
+    if (isValid(m_strHandle))
+    {
+        return &m_strHandle.base->buf[0];
+    }
+
+    return m_istr.c_str();
+}
+
 qint64 ResourceItem::toNumber() const
 {
     rStats.toNumber++;
@@ -756,7 +799,7 @@ bool ResourceItem::setValue(const QString &val, ValueSource source)
 {
     if (m_rid->type == DataTypeString)
     {
-        m_istr.setString(val.toUtf8().constData());
+        setItemString(val);
     }
 
     if (m_str)
@@ -829,9 +872,11 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
         {
             m_lastSet = now;
             m_flags |= FlagNeedPushSet;
-            if (*m_str != val.toString().trimmed())
+            const auto str = val.toString().trimmed();
+            setItemString(str);
+            if (*m_str != str)
             {
-                *m_str = val.toString().trimmed();
+                *m_str = str;
                 m_lastChanged = m_lastSet;
                 m_flags |= FlagNeedPushChange;
             }

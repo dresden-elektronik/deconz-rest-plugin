@@ -347,7 +347,8 @@ public:
     bool awake() const;
     void setAwake(bool awake);
     const QString &toString() const;
-    const ItemString &toItemString() const { return m_istr; }
+    QLatin1String toLatin1String() const;
+    const char *toCString() const;
     qint64 toNumber() const;
     qint64 toNumberPrevious() const;
     bool toBool() const;
@@ -375,6 +376,7 @@ public:
 
 private:
     ResourceItem() = delete;
+    bool setItemString(const QString &str);
 
     /* New layout
 
@@ -383,18 +385,9 @@ private:
         quint32 m_ddfItemHandle;
         qint32 m_lastSet; // ms since epoch - FIX_OSSET
         qint32 m_lastChanged; // ...
-
-        union {
-            struct {
-               quint32 strHandle;
-               char pad1[12];
-            };
-            struct {
-                qint64 num;
-                qint64 numPrevious;
-            };
-            ItemString istr;
-        };
+        qint64 num;
+        qint64 numPrevious;
+        ItemString istr;
 
         // . 40 bytes
      */
@@ -405,7 +398,8 @@ private:
     qint64 m_num = 0;
     qint64 m_numPrev = 0;
 
-    ItemString m_istr;
+    BufStringCacheHandle m_strHandle; // for strings which don't fit into \c m_istr
+    ItemString m_istr; // internal embedded small string
     int m_refreshInterval = 0;
     QString *m_str = nullptr;
     const ResourceItemDescriptor *m_rid = &rInvalidItemDescriptor;
