@@ -8,21 +8,35 @@
  *
  */
 
-#ifndef BufString_H
-#define BufString_H
+#ifndef BUF_STRING_H
+#define BUF_STRING_H
 
 #include <QString>
 #include <cstddef>
 #include <cstring>
-
-class QString;
+#include <cassert>
 
 constexpr size_t BufStringOverHead = 2; // length + null termintor
 
+/*! The data part in each BufString starts with \c BufStringBase.
+    This allows embeddeding in handles pointing to arbitrary size BufStings.
+ */
+struct BufStringBase
+{
+    uint8_t length;
+    char buf[1];
+};
+
+/*! A fixed size zero allocation string buffer.
+ */
 template <size_t Size>
 class BufString
 {
-    char buf[Size]{ };
+    union
+    {
+        BufStringBase base_;
+        char buf[Size]{ };
+    };
 
     static_assert (Size <= (255 + BufStringOverHead), "Size too large");
 
@@ -34,6 +48,8 @@ public:
         BufString()
     { setString(str, strlen(str)); }
 
+    constexpr const BufStringBase *base() const { return &base_; }
+
     constexpr bool setString(const char *str)
     {
         return setString(str, strlen(str));
@@ -41,6 +57,9 @@ public:
 
     constexpr bool setString(const char *str, const size_t len)
     {
+#ifdef QT_DEBUG
+        assert(len <= maxSize());
+#endif
         if (len > maxSize())
         {
             return false;
@@ -70,18 +89,26 @@ public:
     operator QString () const { return QString::fromUtf8(c_str(), int(size())); }
     operator QLatin1String () const { return QLatin1String(c_str(), int(size())); }
 
-    inline bool operator==(const BufString &rhs) const
+    template<size_t U>
+    constexpr bool operator==(const BufString<U> &rhs) const
     {
         const auto sz = size() + 1; // first byte is length
+
         for (uint8_t i = 0; i < sz; ++i)
         {
-            if (buf[i] != rhs.buf[i])
+            if (buf[i] != rhs.base()->buf[i])
             {
                 return false;
             }
         }
 
         return true;
+    }
+
+    constexpr BufString &operator=(const char *str)
+    {
+        setString(str);
+        return *this;
     }
 
     bool startsWith(const QLatin1String &str) const
@@ -97,7 +124,7 @@ public:
     {
         if (str.size() <= size())
         {
-            const QString q = *this;
+            const QString q(c_str());
             return q.startsWith(str);
         }
         return false;
@@ -152,5 +179,90 @@ bool operator!=(const BufString<Size> &lhs, const char *rhs)
     return !(lhs == rhs);
 }
 
+template <size_t Size>
+inline QLatin1String toLatin1String(const BufString<Size> &str)
+{
+    return QLatin1String(str.c_str(), int(str.size()));
+}
 
-#endif // BufString_H
+/*! Lightweight handle into a \c BufStringCache.
+
+    The string can be accessed read only via \c base pointer.
+ */
+struct BufStringCacheHandle
+{
+    const BufStringBase *base = nullptr;
+    uint16_t cacheId = 0;
+    uint16_t index = 0;
+    uint16_t maxSize = 0;
+};
+
+/*! Returns true if handle points to a valid string cache entry.
+ */
+inline bool isValid(BufStringCacheHandle hnd)
+{
+    return hnd.cacheId != 0 && hnd.base != nullptr;
+}
+
+/*! A cache for BufStrings with deduplication.
+ */
+template <size_t Size, size_t NElements>
+class BufStringCache
+{
+    size_t m_size = 0;
+    BufString<Size> m_strings[NElements];
+
+public:
+    constexpr uint16_t cacheId() const { return Size ^ NElements; }
+    constexpr size_t maxStringSize() const { return Size - BufStringOverHead; }
+    constexpr size_t size() const { return m_size; }
+    constexpr size_t capacity() const { return NElements - m_size; }
+
+    BufStringCacheHandle put(const BufString<Size> &str)
+    {
+        BufStringCacheHandle hnd;
+        hnd.cacheId = cacheId();
+        hnd.index = NElements; // Invalid;
+        hnd.maxSize = Size;
+
+        // check duplicates
+        for (size_t i = 0; i < m_size; i++)
+        {
+            if (m_strings[i] == str)
+            {
+                hnd.index = i;
+                hnd.base = m_strings[i].base();
+                return hnd;
+            }
+        }
+
+#ifdef QT_DEBUG
+        assert(m_size < NElements);
+#endif
+        if (m_size < NElements)
+        {
+            memcpy(&m_strings[m_size], &str, sizeof (str));
+            hnd.index = m_size;
+            hnd.base = m_strings[m_size].base();
+            m_size++;
+        }
+
+        return hnd;
+    }
+
+    constexpr const BufString<Size> &get(BufStringCacheHandle hnd) const
+    {
+#ifdef QT_DEBUG
+        assert(hnd.cacheId == cacheId());
+        assert(hnd.index < NElements);
+#endif
+        if (hnd.index < NElements)
+        {
+            return m_strings[hnd.index];
+        }
+
+        return m_strings[0];
+    }
+};
+
+#endif // BUF_STRING_H
