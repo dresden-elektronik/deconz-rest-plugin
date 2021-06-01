@@ -857,12 +857,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                     if (!match.key.isEmpty())
                     {
-                        task.identifyTime = match.value;
-
                         task.taskType = TaskIdentify;
                         taskToLocalData(task);
 
-                        if (addTaskIdentify(task, task.identifyTime))
+                        if (addTaskIdentify(task, match.value))
                         {
                             updated = true;
                         }
@@ -922,7 +920,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigOffset) // Signed integer
                 {
-                    //intValue /= 10;
                     data.integer = data.integer / 10;
 
                     if ((R_GetProductId(sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
@@ -1235,28 +1232,28 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                             else if (sensor->modelId().startsWith(QLatin1String("SLR2")) ||
                                      sensor->modelId() == QLatin1String("SLR1b"))
-                             {
-                                 // Change automatically the Setpoint Hold
-                                 // Add a timer for Boost mode
-                                 if      (match.value == 0x00) { attributeList.insert(0x0023, (quint32)0x00); }
-                                 else if (match.value == 0x04) { attributeList.insert(0x0023, (quint32)0x01); }
-                                 else if (match.value == 0x05)
-                                 {
-                                     attributeList.insert(0x0023, (quint32)0x01);
-                                     attributeList.insert(0x0026, (quint32)0x003C);
-                                 }
+                            {
+                                // Change automatically the Setpoint Hold
+                                // Add a timer for Boost mode
+                                if      (match.value == 0x00) { attributeList.insert(THERM_ATTRID_TEMPERATURE_SETPOINT_HOLD, (quint32)0x00); }
+                                else if (match.value == 0x04) { attributeList.insert(THERM_ATTRID_TEMPERATURE_SETPOINT_HOLD, (quint32)0x01); }
+                                else if (match.value == 0x05)
+                                {
+                                    attributeList.insert(THERM_ATTRID_TEMPERATURE_SETPOINT_HOLD, (quint32)0x01);
+                                    attributeList.insert(THERM_ATTRID_TEMPERATURE_SETPOINT_HOLD_DURATION, (quint32)0x003C);
+                                }
 
-                                 if (!attributeList.isEmpty())
-                                 {
-                                     if (addTaskThermostatWriteAttributeList(task, 0, attributeList))
-                                     {
-                                         updated = true;
-                                     }
-                                 }
-                             }
+                                if (!attributeList.isEmpty())
+                                {
+                                    if (addTaskThermostatWriteAttributeList(task, 0, attributeList))
+                                    {
+                                     updated = true;
+                                    }
+                                }
+                            }
                             else
                             {
-                                if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, THERM_ATTRID_SYSTEM_MODE, deCONZ::Zcl8BitEnum, data.uinteger))
+                                if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, THERM_ATTRID_SYSTEM_MODE, deCONZ::Zcl8BitEnum, match.value))
                                 {
                                     updated = true;
                                 }
@@ -1407,7 +1404,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         data.uinteger = data.boolean; // Use integer representation
 
-                        if (addTaskThermostatUiConfigurationReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, THERM_UI_ATTRID_KEYPAD_LOCKOUT, deCONZ::Zcl8BitEnum, data.uinteger, 0x0000))
+                        if (addTaskThermostatUiConfigurationReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, THERM_UI_ATTRID_KEYPAD_LOCKOUT, deCONZ::Zcl8BitEnum, data.uinteger))
                         {
                             updated = true;
                         }
@@ -1531,7 +1528,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigControlSequence) // Unsigned integer
                 {
-                    const auto match = matchKeyValue(data.string, RConfigControlSequenceValues);
+                    const auto match = matchKeyValue(data.uinteger, RConfigControlSequenceValues);
 
                     if (match.key)
                     {
@@ -1551,15 +1548,16 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigInterfaceMode) // Unsigned integer
                 {
-                    data.uinteger = 0xFFFF;
-
-                    if (sensor->modelId().startsWith(QLatin1String("EMIZB-1")))
+                    if (sensor->modelId().startsWith(QLatin1String("ZHEMI101")))
                     {
                         const auto match = matchKeyValue(data.uinteger, RConfigInterfaceModeValuesZHEMI);
 
                         if (match.key)
                         {
-                            data.uinteger = match.value;
+                            if (addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, METERING_ATTRID_INTERFACE_MODE, deCONZ::Zcl16BitEnum, match.value, VENDOR_DEVELCO))
+                            {
+                                updated = true;
+                            }
                         }
                     }
                     else if (sensor->modelId().startsWith(QLatin1String("EMIZB-1")))
@@ -1568,15 +1566,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                         if (match.key)
                         {
-                            data.uinteger = match.value;
-                        }
-                    }
-
-                    if (data.uinteger != 0xFFFF)
-                    {
-                        if (addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, METERING_ATTRID_INTERFACE_MODE, deCONZ::Zcl16BitEnum, data.uinteger, VENDOR_DEVELCO))
-                        {
-                            updated = true;
+                            if (addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, METERING_ATTRID_INTERFACE_MODE, deCONZ::Zcl16BitEnum, match.value, VENDOR_DEVELCO))
+                            {
+                                updated = true;
+                            }
                         }
                     }
                 }

@@ -9,6 +9,8 @@
 #define THERM_ATTRID_OCCUPIED_HEATING_SETPOINT               0x0012
 #define THERM_ATTRID_CONTROL_SEQUENCE_OF_OPERATION           0x001B
 #define THERM_ATTRID_SYSTEM_MODE                             0x001C
+#define THERM_ATTRID_TEMPERATURE_SETPOINT_HOLD               0x0023
+#define THERM_ATTRID_TEMPERATURE_SETPOINT_HOLD_DURATION      0x0024
 #define THERM_ATTRID_THERMOSTAT_PROGRAMMING_OPERATION_MODE   0x0025
 #define THERM_ATTRID_AC_LOUVER_POSITION                      0x0045
 #define THERM_ATTRID_TEMPERATURE_MEASUREMENT                 0x0403 // ELKO specific
@@ -21,7 +23,7 @@
 #define THERM_ATTRID_EXTERNAL_MEASUREMENT                    0x4015 // Danfoss specific
 #define THERM_ATTRID_REGULATION_SETPOINT_OFFSET              0x404B // Danfoss specific
 
-// Thermostat cluster, Control Sequence of Operation (0x001B)
+// Values for attribute Control Sequence of Operation (0x001B)
 #define COOLING_ONLY                            0x00
 #define COOLING_WITH_REHEAT                     0x01
 #define HEATING_ONLY                            0x02

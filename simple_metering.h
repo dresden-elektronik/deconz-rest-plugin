@@ -9,7 +9,7 @@
 #define METERING_ATTRID_INTERFACE_MODE                          0x0302  // Develco specific
 #define METERING_ATTRID_INSTANTANEOUS_DEMAND                    0x0400
 
-// Develco interface modes, manufacturer specific
+// Values for attribute Interface Mode (0x0302), Develco specific
 #define PULSE_COUNTING_ELECTRICITY      0x0000
 #define PULSE_COUNTING_GAS              0x0001
 #define PULSE_COUNTING_WATER            0x0002
