@@ -1,14 +1,13 @@
 #ifndef SIMPLE_METERING_H
 #define SIMPLE_METERING_H
 
-#include <QString>
-#include <array>
 #include "utils/utils.h"
 
-#define CURRENT_SUMMATION_DELIVERED             0x0000
-#define PULSE_CONFIGURATION                     0x0300  // Develco specific
-#define INTERFACE_MODE                          0x0302  // Develco specific
-#define INSTANTANEOUS_DEMAND                    0x0400
+//Attribute IDs
+#define METERING_ATTRID_CURRENT_SUMMATION_DELIVERED             0x0000
+#define METERING_ATTRID_PULSE_CONFIGURATION                     0x0300  // Develco specific
+#define METERING_ATTRID_INTERFACE_MODE                          0x0302  // Develco specific
+#define METERING_ATTRID_INSTANTANEOUS_DEMAND                    0x0400
 
 // Develco interface modes, manufacturer specific
 #define PULSE_COUNTING_ELECTRICITY      0x0000
@@ -25,10 +24,7 @@
 #define KAIFA_KAMSTRUP_METERS           0x0203
 #define AUTO_DETECT                     0x0204
 
-static const std::array<KeyValMapInt, 8> RConfigInterfaceModeValuesZHEMI = { { {1, PULSE_COUNTING_ELECTRICITY}, {2, PULSE_COUNTING_GAS}, {3, PULSE_COUNTING_WATER},
-                                                                               {4, KAMSTRUP_KMP}, {5, LINKY}, {6, DLMS_COSEM}, {7, DSMR_23}, {8, DSMR_40} } };
-
-static const std::array<KeyValMapInt, 5> RConfigInterfaceModeValuesEMIZB = { { {1, NORWEGIAN_HAN}, {2, NORWEGIAN_HAN_EXTRA_LOAD}, {3, AIDON_METER},
-                                                                               {4, KAIFA_KAMSTRUP_METERS}, {5, AUTO_DETECT} } };
+extern const std::array<KeyValMapInt, 8> RConfigInterfaceModeValuesZHEMI;
+extern const std::array<KeyValMapInt, 5> RConfigInterfaceModeValuesEMIZB;
 
 #endif // SIMPLE_METERING_H
