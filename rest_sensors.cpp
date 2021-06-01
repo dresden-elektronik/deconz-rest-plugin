@@ -678,8 +678,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     quint16 pendingMask = 0;
     QVariant var = Json::parse(req.content, ok);
     QVariantMap map = var.toMap();
-    QVariantMap rspItem;
-    QVariantMap rspItemState;
 
 //    QRegExp latitude("^\\d{3,3}\\.\\d{4,4}(W|E)$");
 //    QRegExp longitude("^\\d{3,3}\\.\\d{4,4}(N|S)$");
@@ -1678,8 +1676,11 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     if (item->setValue(val))
                     {
+                        QVariantMap rspItem;
+                        QVariantMap rspItemState;
                         rspItemState[QString("/sensors/%1/config/%2").arg(id).arg(pi.key())] = val;
                         rspItem[QLatin1String("success")] = rspItemState;
+                        rsp.list.append(rspItem);
                         Event e(RSensors, rid.suffix, id, item);
                         enqueueEvent(e);
                     }
@@ -1798,7 +1799,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
         }
     }
 
-    rsp.list.append(rspItem);
     updateSensorEtag(sensor);
 
     if (save)
