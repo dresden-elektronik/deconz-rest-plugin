@@ -17760,7 +17760,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
             {
                 start += 4;
                 // after file content the boundary ends with:
-                int end = data.indexOf("\r\n-----------", start);
+                int end = data.indexOf("\r\n------", start);
 
                 if (end != -1 && start < end)
                 {
