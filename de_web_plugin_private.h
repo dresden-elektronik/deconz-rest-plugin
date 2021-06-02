@@ -1018,8 +1018,9 @@ public:
 
     Helper to simplify HTTP REST request handling.
  */
-struct ApiResponse
+class ApiResponse
 {
+public:
     QString etag;
     const char *httpStatus;
     const char *contentType;
