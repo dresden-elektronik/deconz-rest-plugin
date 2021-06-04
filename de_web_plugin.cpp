@@ -6661,9 +6661,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         
         if (R_GetProductId(&sensorNode).startsWith(QLatin1String("Tuya_SEN")))
         {
-            item = sensorNode.addItem(DataTypeBool, RConfigReporting);
+            // Enable reporting in "blind mode"
+            sendTuyaRequest(sensorNode.address(), 0x01, DP_TYPE_BOOL, DP_IDENTIFIER_REPORTING, QByteArray("\x01", 1));
         }
-        
     }
     else if (sensorNode.type().endsWith(QLatin1String("Humidity")))
     {

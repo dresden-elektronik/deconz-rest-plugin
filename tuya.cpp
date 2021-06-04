@@ -113,7 +113,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
     }
     
     DBG_Printf(DBG_INFO_L2, "Tuya debug Request : Address 0x%016llX, Endpoint 0x%02X, Command 0x%02X, Payload %s\n", ind.srcAddress().ext(), ind.srcEndpoint(), zclFrame.commandId(), qPrintable(zclFrame.payload().toHex()));
-    
+
     // Send default response, it seem at least 0x01 and 0x02 need defaut response
     if ((zclFrame.commandId() == TUYA_REPORTING || zclFrame.commandId() == TUYA_QUERY) && !(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
     {
@@ -938,18 +938,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     break;
                     case 0x0170: // Reporting
                     {
-                        bool reporting = false;
-                        if (data == 1) { reporting = true; }
-
-                        ResourceItem *item = sensorNode->item(RConfigReporting);
-
-                        if (item && item->toBool() != reporting)
-                        {
-                            item->setValue(reporting);
-                            Event e(RSensors, RConfigReporting, sensorNode->id(), item);
-                            enqueueEvent(e);
-                            update = true;
-                        }
+                        DBG_Printf(DBG_INFO, "Tuya device 0x%016llX reporting status state : %ld\n", ind.srcAddress().ext(), data);
                     }
                     break;
                     case 0x0202: // Thermostat heatsetpoint
@@ -1391,12 +1380,25 @@ bool DeRestPluginPrivate::sendTuyaRequestThermostatSetWeeklySchedule(TaskItem &t
     return sendTuyaRequest(taskRef, TaskThermostat, DP_TYPE_RAW, Dp_identifier, data);
 }
 
+bool DeRestPluginPrivate::sendTuyaRequest(deCONZ::Address srcAddress, quint8 srcEndpoint, qint8 Dp_type, qint8 Dp_identifier, const QByteArray &data)
+{
+    TaskItem task;
+
+    task.req.dstAddress() = srcAddress;
+    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+    task.req.setDstAddressMode(deCONZ::ApsExtAddress);
+    task.req.setDstEndpoint(srcEndpoint);
+    task.req.setSrcEndpoint(endpoint());
+
+    return sendTuyaRequest(task, TaskTuyaRequest, Dp_type, Dp_identifier, data);
+}
+
 //
 // Tuya Devices
 //
 bool DeRestPluginPrivate::sendTuyaRequest(TaskItem &taskRef, TaskType taskType, qint8 Dp_type, qint8 Dp_identifier, const QByteArray &data)
 {
-    DBG_Printf(DBG_INFO, "Send Tuya request: Dp_type: 0x%02X, Dp_identifier 0x%02X, data: %s\n", Dp_type, Dp_identifier, qPrintable(data.toHex()));
+    DBG_Printf(DBG_INFO, "Send Tuya request 0x%016llX : Dp_type: 0x%02X, Dp_identifier 0x%02X, data: %s\n", taskRef.req.dstAddress(), Dp_type, Dp_identifier, qPrintable(data.toHex()));
     
     const quint8 seq = zclSeq++;
 
