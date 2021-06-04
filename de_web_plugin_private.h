@@ -1869,6 +1869,10 @@ public:
     // schedules
     QTimer *scheduleTimer;
     std::vector<Schedule> schedules;
+    TaskItem taskScheduleTimer;
+
+    // window covering
+    TaskItem calibrationTask;
 
     // webhooks
     QNetworkAccessManager *webhookManager = nullptr;
