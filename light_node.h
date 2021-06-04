@@ -94,7 +94,7 @@ private:
     std::vector<GroupInfo> m_groups;
     bool m_colorLoopActive;
     uint8_t m_colorLoopSpeed;
-    deCONZ::SimpleDescriptor m_haEndpoint;
+    quint8 m_haEndpoint = 255;
     uint8_t m_groupCount;
     uint8_t m_sceneCapacity;
 };

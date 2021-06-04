@@ -2578,8 +2578,8 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         return;
     }
 
-    QList<deCONZ::ZclCluster>::const_iterator i = lightNode->haEndpoint().inClusters().begin();
-    QList<deCONZ::ZclCluster>::const_iterator end = lightNode->haEndpoint().inClusters().end();
+    auto i = lightNode->haEndpoint().inClusters().begin();
+    const auto end = lightNode->haEndpoint().inClusters().end();
 
     int tasksAdded = 0;
     QDateTime now = QDateTime::currentDateTime();
@@ -3390,16 +3390,14 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         quint8 srcEndpoint = sensor->fingerPrint().endpoint;
 
         {  // some clusters might not be on fingerprint endpoint (power configuration), search in other simple descriptors
-            deCONZ::SimpleDescriptor *sd= sensor->node()->getSimpleDescriptor(srcEndpoint);
+            deCONZ::SimpleDescriptor *sd = sensor->node()->getSimpleDescriptor(srcEndpoint);
             if (!sd || !sd->cluster(*i, deCONZ::ServerCluster))
             {
-                for (int j = 0; j < sensor->node()->simpleDescriptors().size(); j++)
+                for (auto &sd2 : sensor->node()->simpleDescriptors())
                 {
-                    sd = &sensor->node()->simpleDescriptors()[j];
-
-                    if (sd && sd->cluster(*i, deCONZ::ServerCluster))
+                    if (sd2.cluster(*i, deCONZ::ServerCluster))
                     {
-                        srcEndpoint = sd->endpoint();
+                        srcEndpoint = sd2.endpoint();
                         break;
                     }
                 }

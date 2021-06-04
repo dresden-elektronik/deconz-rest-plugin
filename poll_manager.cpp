@@ -492,10 +492,10 @@ void PollManager::pollTimerFired()
     if (clusterId != 0xffff)
     {
         bool found = false;
-        deCONZ::SimpleDescriptor sd;
-        if (restNode->node()->copySimpleDescriptor(pitem.endpoint, &sd) == 0)
+        const deCONZ::SimpleDescriptor *sd = getSimpleDescriptor(restNode->node(), pitem.endpoint);
+        if (sd)
         {
-            for (const auto &cl : sd.inClusters())  // Loop through clusters
+            for (const auto &cl : sd->inClusters())  // Loop through clusters
             {
                 if (cl.id() == clusterId)
                 {

@@ -79,7 +79,7 @@ GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.11.05\\\"
+DEFINES += GW_SW_VERSION=\\\"2.12.00\\\"
 DEFINES += GW_SW_DATE=$$GIT_COMMIT_DATE
 DEFINES += GW_API_VERSION=\\\"1.16.0\\\"
 DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
@@ -99,6 +99,7 @@ DEFINES += GW_DEFAULT_NAME=\\\"Phoscon-GW\\\"
 
 HEADERS  = bindings.h \
            backup.h \
+           button_maps.h \
            connectivity.h \
            colorspace.h \
            daylight.h \
@@ -132,6 +133,7 @@ SOURCES  = air_quality.cpp \
            authorisation.cpp \
            backup.cpp \
            bindings.cpp \
+           button_maps.cpp \
            change_channel.cpp \
            connectivity.cpp \
            colorspace.cpp \

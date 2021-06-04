@@ -975,7 +975,7 @@
         "Tuya3gangMap": {
             "vendor": "Tuya",
             "doc": "3-gang remote",
-            "modelids": ["_TZ3000_bi6lpsew", "_TZ3400_keyjhapk", "_TYZB02_key8kk7r", "_TZ3400_keyjqthh", "_TZ3400_key8kk7r", "_TZ3000_vp6clf9d", "_TYZB02_keyjqthh", "_TZ3000_peszejy7", "_TZ3000_qzjcsmar", "_TZ3000_owgcnkrh", "_TZ3000_adkvzooy", "_TZ3000_arfwfgoa", "_TZ3000_a7ouggvs", "_TZ3000_rrjr1q0u", "_TZ3000_abci1hiu"],
+            "modelids": ["_TZ3000_bi6lpsew", "_TZ3400_keyjhapk", "_TYZB02_key8kk7r", "_TZ3400_keyjqthh", "_TZ3400_key8kk7r", "_TZ3000_vp6clf9d", "_TYZB02_keyjqthh", "_TZ3000_peszejy7", "_TZ3000_qzjcsmar", "_TZ3000_owgcnkrh", "_TZ3000_adkvzooy", "_TZ3000_arfwfgoa", "_TZ3000_a7ouggvs", "_TZ3000_rrjr1q0u", "_TZ3000_abci1hiu", "_TZ3000_dfgbtub0", "_TZ3000_xabckq1v"],
             "map": [
                 [1, "0x01", "ONOFF", "0xfd", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "B1 short"],
                 [1, "0x01", "ONOFF", "0xfd", "1", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "B1 double"],
@@ -1121,6 +1121,17 @@
             "vendor": "Heiman",
             "doc": "Smart controller HS1RC-M and HS1RC-E",
             "modelids": ["RC_V14", "RC-EM", "RC-EF-3.0"],
+            "map": [
+                [1, "0x01", "IAS_ACE", "ARM", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Arm day/home zones only"],
+                [1, "0x01", "IAS_ACE", "ARM", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Disarm"],
+                [1, "0x01", "IAS_ACE", "EMERGENCY", "0", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Emergency"],
+                [1, "0x01", "IAS_ACE", "ARM", "3", "S_BUTTON_4", "S_BUTTON_ACTION_SHORT_RELEASED", "Arm all zones"]
+            ]
+        },
+        "immaxKeyfobMap": {
+            "vendor": "Immax",
+            "doc": "Smart Keyfob 07046L",
+            "modelids": ["Keyfob-ZB3.0"],
             "map": [
                 [1, "0x01", "IAS_ACE", "ARM", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Arm day/home zones only"],
                 [1, "0x01", "IAS_ACE", "ARM", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Disarm"],
