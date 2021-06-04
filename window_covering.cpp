@@ -77,7 +77,6 @@
 
 int calibrationStep = 0;
 int operationalStatus = 0;
-TaskItem calibrationTask;
 
 /*! Handle packets related to the ZCL Window Covering cluster.
     \param ind the APS level data indication containing the ZCL packet
