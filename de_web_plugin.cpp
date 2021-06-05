@@ -522,7 +522,7 @@ int TaskItem::_taskCounter = 1; // static rolling taskcounter
         Accept: vnd.ddel.v2                --> ApiVersion_2_DDEL
         Accept: vnd.ddel.v1,vnd.ddel.v2    --> ApiVersion_2_DDEL
  */
-static ApiVersion getAcceptHeaderApiVersion(const QString &hdrValue)
+static ApiVersion getAcceptHeaderApiVersion(const QLatin1String &hdrValue)
 {
     ApiVersion result = { ApiVersion_1 };
 
@@ -542,11 +542,9 @@ static ApiVersion getAcceptHeaderApiVersion(const QString &hdrValue)
         }
     };
 
-    const auto ls = hdrValue.split(QLatin1Char(','), QString::SkipEmptyParts);
-
     for (const auto &version : versions)
     {
-        if (ls.contains(version.str))
+        if (contains(hdrValue, version.str))
         {
             result = version.version;
             break;
