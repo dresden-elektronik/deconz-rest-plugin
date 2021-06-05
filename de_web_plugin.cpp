@@ -109,6 +109,7 @@ const quint64 silabs4MacPrefix    = 0x680ae20000000000ULL;
 const quint64 ecozyMacPrefix      = 0x70b3d50000000000ULL;
 const quint64 osramMacPrefix      = 0x8418260000000000ULL;
 const quint64 silabs5MacPrefix    = 0x842e140000000000ULL;
+const quint64 silabs10MacPrefix    = 0x8471270000000000ULL;
 const quint64 embertecMacPrefix   = 0x848e960000000000ULL;
 const quint64 YooksmartMacPrefix  = 0x84fd270000000000ULL;
 const quint64 silabsMacPrefix     = 0x90fd9f0000000000ULL;
@@ -410,6 +411,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "TS0043", silabs8MacPrefix }, // Tuya wireless switch
     { VENDOR_EMBER, "TS0043", silabs7MacPrefix }, // Tuya wireless switch
     { VENDOR_EMBER, "TS0044", silabs9MacPrefix }, // Tuya wireless switch
+    { VENDOR_EMBER, "TS004F", silabs8MacPrefix }, // Tuya wireless switch
     { VENDOR_NONE, "kud7u2l", silabs3MacPrefix }, // Tuya Smart TRV HY369 Thermostatic Radiator Valve
     { VENDOR_NONE, "GbxAXL2", silabs3MacPrefix }, // Another Tuya Smart TRV Thermostatic Radiator Valve
     { VENDOR_NONE, "w7cahqs", silabs8MacPrefix }, // hama Smart Radiator Thermostat
@@ -526,26 +528,29 @@ static ApiVersion getAcceptHeaderApiVersion(const QString &hdrValue)
 {
     ApiVersion result = { ApiVersion_1 };
 
-    static const struct {
+    struct ApiVersionMap {
         ApiVersion version;
-        const char *str;
-    } versions[] = {
-        // ordered by largest version
-        {ApiVersion_2_DDEL,   "application/vnd.ddel.v2"},
-        {ApiVersion_1_1_DDEL, "application/vnd.ddel.v1.1"},
-        {ApiVersion_1_1_DDEL, "vnd.ddel.v1.1"}, // backward compatibility
-        {ApiVersion_1_DDEL,   "application/vnd.ddel.v1"},
-        {ApiVersion_1_DDEL,   "vnd.ddel.v1"},   // backward compatibility
-        {ApiVersion_1, nullptr}
+        QLatin1String str;
+    };
+
+    static const std::array<ApiVersionMap, 5> versions = {
+        {
+            // ordered by largest version
+            { ApiVersion_2_DDEL,   QLatin1String("application/vnd.ddel.v2") },
+            { ApiVersion_1_1_DDEL, QLatin1String("application/vnd.ddel.v1.1") },
+            { ApiVersion_1_1_DDEL, QLatin1String("vnd.ddel.v1.1") }, // backward compatibility
+            { ApiVersion_1_DDEL,   QLatin1String("application/vnd.ddel.v1") },
+            { ApiVersion_1_DDEL,   QLatin1String("vnd.ddel.v1") }   // backward compatibility
+        }
     };
 
     const auto ls = hdrValue.split(QLatin1Char(','), QString::SkipEmptyParts);
 
-    for (int i = 0; versions[i].str != nullptr; i++)
+    for (const auto &version : versions)
     {
-        if (ls.contains(QLatin1String(versions[i].str)))
+        if (ls.contains(version.str))
         {
-            result = versions[i].version;
+            result = version.version;
             break;
         }
     }
@@ -556,9 +561,10 @@ static ApiVersion getAcceptHeaderApiVersion(const QString &hdrValue)
 ApiRequest::ApiRequest(const QHttpRequestHeader &h, const QStringList &p, QTcpSocket *s, const QString &c) :
     hdr(h), path(p), sock(s), content(c), version(ApiVersion_1), auth(ApiAuthNone), mode(ApiModeNormal)
 {
-    if (hdr.hasKey(QLatin1String("Accept")) && hdr.value(QLatin1String("Accept")).contains(QLatin1String("vnd.ddel")))
+    const auto accept = hdr.value(QLatin1String("Accept"));
+    if (accept.size() > 4) // rule out */*
     {
-        version = getAcceptHeaderApiVersion(hdr.value(QLatin1String("Accept")));
+        version = getAcceptHeaderApiVersion(accept);
     }
 }
 
@@ -864,14 +870,15 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
         }
 
         QStringList requiredJsonObjects = {"buttons", "buttonActions", "clusters", "commands", "maps"};
-        QJsonDocument buttonMaps = readButtonMapJson(path);
+        QJsonDocument buttonMapsDoc = readButtonMapJson(path);
 
-        if (checkRootLevelObjectsJson(buttonMaps, requiredJsonObjects))
+        if (checkRootLevelObjectsJson(buttonMapsDoc, requiredJsonObjects))
         {
-            btnMapClusters = loadButtonMapClustersJson(buttonMaps);
-            btnMapClusterCommands = loadButtonMapCommadsJson(buttonMaps);
-            buttonMapForModelId = loadButtonMapModelIdsJson(buttonMaps);
-            buttonMapData = loadButtonMapsJson(buttonMaps, btnMapClusters, btnMapClusterCommands);
+            btnMapClusters = loadButtonMapClustersJson(buttonMapsDoc);
+            btnMapClusterCommands = loadButtonMapCommadsJson(buttonMapsDoc);
+            buttonMaps = loadButtonMapsJson(buttonMapsDoc, btnMapClusters, btnMapClusterCommands);
+            buttonMeta = loadButtonMetaJson(buttonMapsDoc, buttonMaps);
+            buttonProductMap = loadButtonMapModelIdsJson(buttonMapsDoc, buttonMaps);
             break; // only load once
         }
     }
@@ -1111,6 +1118,8 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                         (sensorNode->manufacturer() == QLatin1String("_TZ3000_adkvzooy")) ||
                         (sensorNode->manufacturer() == QLatin1String("_TZ3000_arfwfgoa")) ||
                         (sensorNode->manufacturer() == QLatin1String("_TZ3000_a7ouggvs")) ||
+                        (sensorNode->manufacturer() == QLatin1String("_TZ3000_dfgbtub0")) ||
+                        (sensorNode->manufacturer() == QLatin1String("_TZ3000_xabckq1v")) ||
                         (sensorNode->manufacturer() == QLatin1String("_TYZB02_keyjqthh")))
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
@@ -1128,7 +1137,13 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                     }
                     else
                     {
-                        sensorNode = 0; // not supported
+                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
+
+                        if (sensorNode)
+                        {
+                            DBG_Printf(DBG_INFO_L2, "[WARNING] - Missing cluster in sensor fingerprint: 0x%016llX - 0x%04X (%s), endpoint: 0x%02X, cluster: 0x%04X, payload: %s, zclSeq: %u\n",
+                                        ind.srcAddress().ext(), ind.srcAddress().nwk(), qPrintable(sensorNode->modelId()), ind.srcEndpoint(), ind.clusterId(), qPrintable(zclFrame.payload().toHex().toUpper()), zclFrame.sequenceNumber());
+                        }
                     }
                 }
             }
@@ -2076,7 +2091,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     QString manufacturer;
 
     //Make 2 fakes device for tuya switches
-    if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER && !node->simpleDescriptors().isEmpty())
+    if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER && !node->simpleDescriptors().empty())
     {
         const deCONZ::SimpleDescriptor *sd = &node->simpleDescriptors()[0];
         bool hasColorCluster = false;
@@ -2087,7 +2102,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         )
         {
 
-            for (int c = 0; c < sd->inClusters().size(); c++)
+            for (size_t c = 0; c < sd->inClusters().size(); c++)
             {
                 if (sd->inClusters()[c].id() == TUYA_CLUSTER_ID) { hasTuyaCluster = true; }
                 if (sd->inClusters()[c].id() == COLOR_CLUSTER_ID) { hasColorCluster = true; }
@@ -2117,14 +2132,14 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 //remove useless cluster
                 if (false)
                 {
-					QList<deCONZ::ZclCluster> &cl = sd1.inClusters();
+                    auto &cl = sd1.inClusters();
 					cl.clear();
 
 					for (const deCONZ::ZclCluster &cl2 : sd2.inClusters())
 					{
 						if (cl2.id() == TUYA_CLUSTER_ID)
 						{
-							cl.append(cl2);
+                            cl.push_back(cl2);
 						}
 					}
 			    }
@@ -2139,8 +2154,8 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         }
     }
 
-    QList<deCONZ::SimpleDescriptor>::const_iterator i = node->simpleDescriptors().constBegin();
-    QList<deCONZ::SimpleDescriptor>::const_iterator end = node->simpleDescriptors().constEnd();
+    auto i = node->simpleDescriptors().cbegin();
+    const auto end = node->simpleDescriptors().cend();
 
     for (;i != end; ++i)
     {
@@ -2149,7 +2164,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         bool hasServerColor = false;
         bool hasIASWDCluster = false;
 
-        for (int c = 0; c < i->inClusters().size(); c++)
+        for (size_t c = 0; c < i->inClusters().size(); c++)
         {
             if      (i->inClusters()[c].id() == ONOFF_CLUSTER_ID) { hasServerOnOff = true; }
             else if (i->inClusters()[c].id() == LEVEL_CLUSTER_ID) { hasServerLevel = true; }
@@ -2320,11 +2335,8 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 hasServerOnOff = true;
             }
             //Tuya white list
-            // _TYST11_wmcdj3aq is covering with cluster 0x0006
-            // _TYST11_xu1rkty3 is covering with only 2 clusters
-            // _TYST11_d0yu2xgi siren with only 2 clusters
-            if (lightNode.manufacturer() == QLatin1String("_TYST11_xu1rkty3") ||
-                R_GetProductId(&lightNode) == QLatin1String("NAS-AB02B0 Siren"))
+            if (lightNode.manufacturer() == QLatin1String("_TYST11_xu1rkty3") ||  //Covering with only 2 clusters
+                R_GetProductId(&lightNode) == QLatin1String("NAS-AB02B0 Siren")) // Tuya Siren
             {
                 hasServerOnOff = true;
             }
@@ -2344,8 +2356,8 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             {
                 hasServerOnOff = false;
             }
-            //Battery covering
-            if (R_GetProductId(&lightNode).startsWith(QLatin1String("Tuya_COVD")))
+            if (R_GetProductId(&lightNode).startsWith(QLatin1String("Tuya_COVD")) || //Battery covering
+                R_GetProductId(&lightNode) == QLatin1String("NAS-AB02B0 Siren"))     // Tuya siren
             {
                 hasServerOnOff = true;
             }
@@ -2363,13 +2375,15 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 lightNode.manufacturer() == QLatin1String("_TZ3000_owgcnkrh") ||
                 lightNode.manufacturer() == QLatin1String("_TZ3000_arfwfgoa") ||
                 lightNode.manufacturer() == QLatin1String("_TYZB02_keyjqthh") ||
+                lightNode.manufacturer() == QLatin1String("_TZ3000_dfgbtub0") ||
+                lightNode.manufacturer() == QLatin1String("_TZ3000_xabckq1v") ||
                 lightNode.manufacturer() == QLatin1String("_TZ3000_a7ouggvs"))
             {
                 hasServerOnOff = false;
             }
         }
 
-        if (!i->inClusters().isEmpty())
+        if (!i->inClusters().empty())
         {
             if (i->profileId() == HA_PROFILE_ID)
             {
@@ -3107,8 +3121,8 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
         return lightNode;
     }
 
-    QList<deCONZ::SimpleDescriptor>::const_iterator i = event.node()->simpleDescriptors().constBegin();
-    QList<deCONZ::SimpleDescriptor>::const_iterator end = event.node()->simpleDescriptors().constEnd();
+    auto i = event.node()->simpleDescriptors().cbegin();
+    const auto end = event.node()->simpleDescriptors().cend();
 
     for (;i != end; ++i)
     {
@@ -3117,7 +3131,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
             continue;
         }
 
-        if (i->inClusters().isEmpty())
+        if (i->inClusters().empty())
         {
             continue;
         }
@@ -3194,8 +3208,8 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
         // copy whole endpoint as reference
         lightNode->setHaEndpoint(*i);
 
-        QList<deCONZ::ZclCluster>::const_iterator ic = lightNode->haEndpoint().inClusters().constBegin();
-        QList<deCONZ::ZclCluster>::const_iterator endc = lightNode->haEndpoint().inClusters().constEnd();
+        auto ic = lightNode->haEndpoint().inClusters().cbegin();
+        const auto endc = lightNode->haEndpoint().inClusters().cend();
 
         NodeValue::UpdateType updateType = NodeValue::UpdateInvalid;
         if (event.event() == deCONZ::NodeEvent::UpdatedClusterDataZclRead)
@@ -4003,7 +4017,22 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
     bool checkReporting = false;
     bool checkClientCluster = false;
-    const std::vector<Sensor::ButtonMap> buttonMapVec = sensor->buttonMap(buttonMapData, buttonMapForModelId);
+
+    const ButtonMap *buttonMap = nullptr;
+
+    if (!isValid(sensor->buttonMapRef())) // TODO sensor.hasButtonMap()
+    {
+        buttonMap = BM_ButtonMapForProduct(productHash(sensor), buttonMaps, buttonProductMap);
+        if (buttonMap)
+        {
+            sensor->setButtonMapRef(buttonMap->buttonMapRef);
+        }
+    }
+    else
+    {
+        buttonMap = BM_ButtonMapForRef(sensor->buttonMapRef(), buttonMaps);
+    }
+
     QString cluster = "0x" + QString("%1").arg(ind.clusterId(), 4, 16, QLatin1Char('0')).toUpper();
     QString cmd = "0x" + QString("%1").arg(zclFrame.commandId(), 2, 16, QLatin1Char('0')).toUpper();
     QString addressMode;
@@ -4023,7 +4052,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         if (!temp.empty() && !temp.key(zclFrame.commandId()).isEmpty()) { cmd = temp.key(zclFrame.commandId()) + " (" + cmd + ")"; }
     }
 
-    if (buttonMapVec.empty())
+    if (!buttonMap || buttonMap->buttons.empty())
     {
         DBG_Printf(DBG_INFO, "[INFO] - No button map for: %s%s, endpoint: 0x%02X, cluster: %s, command: %s, payload: %s, zclSeq: %u\n",
             qPrintable(sensor->modelId()), qPrintable(addressMode), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), qPrintable(zclPayload), zclFrame.sequenceNumber());
@@ -4253,7 +4282,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
     if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() != 0)
     {
-        QStringList gids;
         ResourceItem *item = sensor->addItem(DataTypeString, RConfigGroup);
 
         quint16 groupId = ind.dstAddress().group();
@@ -4273,18 +4301,19 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             }
         }
 
-        QString gid = QString::number(groupId);
+        QStringList gids;
+        const QString gid = QString::number(groupId);
 
         if (item)
         {
             gids = item->toString().split(',');
         }
 
-        if (sensor->manufacturer() == QLatin1String("ubisys"))
+        if (!item) // should always be non null, this check is here to keep static analizer happy
         {
-            // TODO
+
         }
-        if (sensor->modelId().startsWith(QLatin1String("RC 110"))) // innr remote
+        else if (sensor->modelId().startsWith(QLatin1String("RC 110"))) // innr remote
         {
             // 7 controller endpoints: 0x01, 0x03, 0x04, ..., 0x08
             if (gids.length() != 7)
@@ -4426,7 +4455,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     }
 
     bool ok = false;
-    for (const auto &buttonMap : buttonMapVec)
+    for (const auto &buttonMap : buttonMap->buttons)
     {
         if (buttonMap.mode != Sensor::ModeNone && !ok)
         {
@@ -5069,8 +5098,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
     // check for new sensors
     QString modelId;
     QString manufacturer;
-    QList<deCONZ::SimpleDescriptor>::const_iterator i = node->simpleDescriptors().constBegin();
-    QList<deCONZ::SimpleDescriptor>::const_iterator end = node->simpleDescriptors().constEnd();
+    auto i = node->simpleDescriptors().cbegin();
+    const auto end = node->simpleDescriptors().cend();
 
     // Trust and iHorn specific
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC && modelId.isEmpty() && i != end)
@@ -5131,8 +5160,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         SensorFingerprint fpAncillaryControlSensor;
 
         {   // scan server clusters of endpoint
-            QList<deCONZ::ZclCluster>::const_iterator ci = i->inClusters().constBegin();
-            QList<deCONZ::ZclCluster>::const_iterator cend = i->inClusters().constEnd();
+            auto ci = i->inClusters().cbegin();
+            const auto cend = i->inClusters().cend();
             for (; ci != cend; ++ci)
             {
                 switch (ci->id())
@@ -5367,6 +5396,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              manufacturer == QLatin1String("_TZ3000_adkvzooy") ||
                              manufacturer == QLatin1String("_TZ3000_arfwfgoa") ||
                              manufacturer == QLatin1String("_TYZB02_keyjqthh") ||
+                             manufacturer == QLatin1String("_TZ3000_dfgbtub0") ||
+                             manufacturer == QLatin1String("_TZ3000_xabckq1v") ||
                              manufacturer == QLatin1String("_TZ3000_a7ouggvs"))
                     {
                         //Making the device only for endpoint 0x01
@@ -5914,8 +5945,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         }
 
         {   // scan client clusters of endpoint
-            QList<deCONZ::ZclCluster>::const_iterator ci = i->outClusters().constBegin();
-            QList<deCONZ::ZclCluster>::const_iterator cend = i->outClusters().constEnd();
+            auto ci = i->outClusters().cbegin();
+            const auto cend = i->outClusters().cend();
             for (; ci != cend; ++ci)
             {
                 switch (ci->id())
@@ -6020,6 +6051,20 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     modelId = lightNode->modelId();
                 }
             }
+        }
+
+        // Add clusters used, but not exposed to sensors
+        if (modelId == QLatin1String("TRADFRI remote control") || modelId == QLatin1String("Remote Control N2"))
+        {
+            fpSwitch.outClusters.push_back(SCENE_CLUSTER_ID);
+        }
+        else if (modelId == QLatin1String("Adurolight_NCC"))
+        {
+            fpSwitch.outClusters.push_back(ADUROLIGHT_CLUSTER_ID);
+        }
+        else if (modelId == QLatin1String("E1E-G7F"))
+        {
+            fpSwitch.outClusters.push_back(SENGLED_CLUSTER_ID);
         }
 
         if (!isDeviceSupported(node, modelId))
@@ -7042,7 +7087,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 // Supported with Danfoss firmware version 1.08
                 sensorNode.addItem(DataTypeBool, RConfigScheduleOn)->setValue(false);
                 sensorNode.addItem(DataTypeString, RConfigSchedule);
-                sensorNode.addItem(DataTypeInt16, RConfigExternalTemperatureSensor);
+                sensorNode.addItem(DataTypeInt16, RConfigExternalTemperatureSensor)->setValue(0);
                 sensorNode.addItem(DataTypeBool, RConfigExternalWindowOpen)->setValue(false);
             }
             else if (modelId == QLatin1String("AC201")) // OWON AC201 Thermostat
@@ -7200,10 +7245,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         }
         else if (node->endpoints().size() >= 2)
         {
-            deCONZ::SimpleDescriptor sd;
-
             // has light endpoint?
-            if (node->copySimpleDescriptor(0x12, &sd) == 0)
+            const deCONZ::SimpleDescriptor *sd = getSimpleDescriptor(node, 0x12);
+            if (sd)
             {
                 sensorNode.setMode(Sensor::ModeDimmer);
             }
@@ -7650,8 +7694,8 @@ void DeRestPluginPrivate::checkUpdatedFingerPrint(const deCONZ::Node *node, quin
         return;
     }
 
-    deCONZ::SimpleDescriptor sd;
-    if (node->copySimpleDescriptor(endpoint, &sd) != 0)
+    const deCONZ::SimpleDescriptor *sd = getSimpleDescriptor(node, endpoint);
+    if (!sd)
     {
         return;
     }
@@ -7687,7 +7731,9 @@ void DeRestPluginPrivate::checkUpdatedFingerPrint(const deCONZ::Node *node, quin
 
             for (size_t c = 0; !update && c < fp.inClusters.size(); c++)
             {
-                if (sd.cluster(fp.inClusters[c], deCONZ::ServerCluster))
+                quint16 cl = fp.inClusters[c];
+                if (std::find_if(sd->inClusters().cbegin(), sd->inClusters().cend(), [cl](const auto &inCluster){ return inCluster.id() == cl; }
+                                 ) != sd->inClusters().cend())
                 {
                     update = true;
                     break;
@@ -7696,7 +7742,9 @@ void DeRestPluginPrivate::checkUpdatedFingerPrint(const deCONZ::Node *node, quin
 
             for (size_t c = 0; !update && c < fp.outClusters.size(); c++)
             {
-                if (sd.cluster(fp.outClusters[c], deCONZ::ClientCluster))
+                quint16 cl = fp.outClusters[c];
+                if (std::find_if(sd->outClusters().cbegin(), sd->outClusters().cend(), [cl](const auto &outCluster){ return outCluster.id() == cl; }
+                                 ) != sd->inClusters().cend())
                 {
                     update = true;
                     break;
@@ -7714,8 +7762,8 @@ void DeRestPluginPrivate::checkUpdatedFingerPrint(const deCONZ::Node *node, quin
 
             DBG_Printf(DBG_INFO, "change 0x%016llX finger print ep: 0x%02X --> 0x%02X\n", i->address().ext(), fp.endpoint, endpoint);
 
-            fp.endpoint = sd.endpoint();
-            fp.profileId = sd.profileId();
+            fp.endpoint = sd->endpoint();
+            fp.profileId = sd->profileId();
 
             updateSensorEtag(&*i);
             i->setUniqueId(generateUniqueId(i->address().ext(), fp.endpoint, clusterId));
@@ -8016,11 +8064,11 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             }
         }
 
-        deCONZ::SimpleDescriptor sd;
-        if (event.node()->copySimpleDescriptor(event.endpoint(), &sd) == 0)
+        const deCONZ::SimpleDescriptor *sd = getSimpleDescriptor(event.node(), event.endpoint());
+        if (sd)
         {
-            QList<deCONZ::ZclCluster>::const_iterator ic = sd.inClusters().constBegin();
-            QList<deCONZ::ZclCluster>::const_iterator endc = sd.inClusters().constEnd();
+            auto ic = sd->inClusters().cbegin();
+            const auto endc = sd->inClusters().cend();
 
             for (; ic != endc; ++ic)
             {
@@ -10354,8 +10402,8 @@ deCONZ::ZclCluster *DeRestPluginPrivate::getInCluster(deCONZ::Node *node, uint8_
 
     if (sd)
     {
-        QList<deCONZ::ZclCluster>::iterator i = sd->inClusters().begin();
-        QList<deCONZ::ZclCluster>::iterator end = sd->inClusters().end();
+        auto i = sd->inClusters().begin();
+        auto end = sd->inClusters().end();
 
         for (; i != end; ++i)
         {
@@ -10699,7 +10747,7 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         return false;
     }
 
-    if (sensorNode->node()->simpleDescriptors().isEmpty())
+    if (sensorNode->node()->simpleDescriptors().empty())
     {
         return false;
     }
@@ -11353,7 +11401,7 @@ bool DeRestPluginPrivate::readSceneAttributes(LightNode *lightNode, uint16_t gro
     task.taskType = TaskViewScene;
     task.lightNode = lightNode;
 
-    task.req.setSendDelay(3); // delay a bit to let store scene finish
+    task.req.setSendDelay(3000); // delay a bit to let store scene finish
 //    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
     task.req.setDstEndpoint(lightNode->haEndpoint().endpoint());
     task.req.setDstAddressMode(deCONZ::ApsExtAddress);
@@ -12266,10 +12314,15 @@ void DeRestPluginPrivate::sendZclDefaultResponse(const deCONZ::ApsDataIndication
     deCONZ::ZclFrame outZclFrame;
     outZclFrame.setSequenceNumber(zclFrame.sequenceNumber());
     outZclFrame.setCommandId(deCONZ::ZclDefaultResponseId);
-    outZclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-                             deCONZ::ZclFCDirectionClientToServer |
-                             deCONZ::ZclFCDisableDefaultResponse);
-
+    
+    if (zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient)
+    {
+        outZclFrame.setFrameControl(deCONZ::ZclFCProfileCommand | deCONZ::ZclFCDirectionClientToServer | deCONZ::ZclFCDisableDefaultResponse);
+    }
+    else
+    {
+        outZclFrame.setFrameControl(deCONZ::ZclFCProfileCommand | deCONZ::ZclFCDirectionServerToClient | deCONZ::ZclFCDisableDefaultResponse);
+    }
 
     if (zclFrame.manufacturerCode_t() != 0x0000_mfcode)
     {
@@ -12449,7 +12502,7 @@ bool DeRestPluginPrivate::flsNbMaintenance(LightNode *lightNode)
     \param sock the client socket
     \param closeTimeout timeout in seconds then the socket should be closed
  */
-void DeRestPluginPrivate::pushClientForClose(QTcpSocket *sock, int closeTimeout, const QHttpRequestHeader &hdr)
+void DeRestPluginPrivate::pushClientForClose(QTcpSocket *sock, int closeTimeout)
 {
     std::vector<TcpClient>::iterator i = openClients.begin();
     std::vector<TcpClient>::iterator end = openClients.end();
@@ -12461,11 +12514,9 @@ void DeRestPluginPrivate::pushClientForClose(QTcpSocket *sock, int closeTimeout,
             // update
             if (i->closeTimeout > 0)
             {
-                i->hdr = hdr;
                 if (i->closeTimeout < closeTimeout)
                 {
                     i->closeTimeout = closeTimeout;
-                    //DBG_Printf(DBG_INFO, "refresh socket %s : %u %s\n", qPrintable(sock->peerAddress().toString()), sock->peerPort(), qPrintable(hdr.path()));
                 }
             }
             return;
@@ -12473,8 +12524,6 @@ void DeRestPluginPrivate::pushClientForClose(QTcpSocket *sock, int closeTimeout,
     }
 
     TcpClient client;
-    client.hdr = hdr;
-    client.created = QDateTime::currentDateTime();
     client.sock = sock;
     client.closeTimeout = closeTimeout;
 
@@ -12860,8 +12909,8 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         {
             return;
         }
-        deCONZ::SimpleDescriptor sd;
-        if (event.node()->copySimpleDescriptor(event.endpoint(), &sd) != 0)
+        const deCONZ::SimpleDescriptor *sd = getSimpleDescriptor(event.node(), event.endpoint());
+        if (!sd)
         {
             return;
         }
@@ -12869,10 +12918,10 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         QByteArray data;
         QDataStream stream(&data, QIODevice::WriteOnly);
         stream.setByteOrder(QDataStream::LittleEndian);
-        sd.writeToStream(stream);
-        if (!data.isEmpty() && sd.deviceId() != 0xffff)
+        sd->writeToStream(stream);
+        if (!data.isEmpty() && sd->deviceId() != 0xffff)
         {
-            pushZdpDescriptorDb(event.node()->address().ext(), sd.endpoint(), ZDP_SIMPLE_DESCRIPTOR_CLID, data);
+            pushZdpDescriptorDb(event.node()->address().ext(), sd->endpoint(), ZDP_SIMPLE_DESCRIPTOR_CLID, data);
         }
     }
         break;
@@ -15765,9 +15814,8 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             {
                 ep = node->endpoints()[i]; // search
 
-                for (int j = 0; j < node->simpleDescriptors().size(); j++)
+                for (const auto &sd : node->simpleDescriptors())
                 {
-                    const deCONZ::SimpleDescriptor &sd = node->simpleDescriptors()[j];
                     if (sd.endpoint() == ep && sd.deviceId() != 0xffff)
                     {
                         ep = 0;
@@ -16821,7 +16869,6 @@ DeRestPlugin::DeRestPlugin(QObject *parent) :
 {
     d = new DeRestPluginPrivate(this);
     d->q_ptr = this;
-    m_state = StateOff;
     m_w = 0;
     m_idleTimer = new QTimer(this);
     m_idleTimer->setSingleShot(false);
@@ -17648,11 +17695,11 @@ QDialog *DeRestPlugin::createDialog()
  */
 bool DeRestPlugin::isHttpTarget(const QHttpRequestHeader &hdr)
 {
-    if (hdr.path().startsWith(QLatin1String("/api")))
+    if (hdr.pathAt(0) == QLatin1String("api"))
     {
         return true;
     }
-    else if (hdr.path().startsWith(QLatin1String("/description.xml")))
+    else if (hdr.pathAt(0) == QLatin1String("description.xml"))
     {
         if (!d->descriptionXml.isEmpty())
         {
@@ -17673,43 +17720,20 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
 {
     QString content;
     QTextStream stream(sock);
-    QHttpRequestHeader hdrmod(hdr);
 
     stream.setCodec(QTextCodec::codecForName("UTF-8"));
-    d->pushClientForClose(sock, 60, hdr);
-
-    if (m_state == StateOff)
-    {
-        if (d->apsCtrl && (d->apsCtrl->networkState() == deCONZ::InNetwork))
-        {
-            m_state = StateIdle;
-        }
-    }
-
-    if (hdrmod.path().startsWith(QLatin1String("/api")))
-    {
-        // some clients send /api123 instead of /api/123
-        // correct the path here
-        if (hdrmod.path().length() > 4 && hdrmod.path().at(4) != '/')
-        {
-            QString urlpath = hdrmod.url().toString();
-            urlpath.insert(4, '/');
-            hdrmod.setRequest(hdrmod.method(), urlpath);
-        }
-    }
+    d->pushClientForClose(sock, 60);
 
     if (DBG_IsEnabled(DBG_HTTP))
     {
-        DBG_Printf(DBG_HTTP, "HTTP API %s %s - %s\n", qPrintable(hdr.method()), qPrintable(hdrmod.url().toString()), qPrintable(sock->peerAddress().toString()));
+        DBG_Printf(DBG_HTTP, "HTTP API %s %s - %s\n", qPrintable(hdr.method()), qPrintable(hdr.url()), qPrintable(sock->peerAddress().toString()));
     }
 
-    if(hdr.hasKey(QLatin1String("Content-Type")) &&
-       hdr.value(QLatin1String("Content-Type")).startsWith(QLatin1String("multipart/form-data")))
+    if (hdr.httpMethod() == HttpPost && hdr.hasKey(QLatin1String("Content-Type")) &&
+       contains(hdr.value(QLatin1String("Content-Type")), QLatin1String("multipart/form-data")))
     {
-        if (DBG_IsEnabled(DBG_HTTP))
-        {
-            DBG_Printf(DBG_HTTP, "Binary Data: \t%s\n", qPrintable(content));
-        }
+        // handle later as fileupload
+        DBG_Printf(DBG_HTTP, "form data\n");
     }
     else if (!stream.atEnd())
     {
@@ -17729,8 +17753,8 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         }
     }
 
-    QStringList path = hdrmod.path().split(QLatin1String("/"), QString::SkipEmptyParts);
-    ApiRequest req(hdrmod, path, sock, content);
+    QStringList path = QString(hdr.path()).split(QLatin1String("/"), QString::SkipEmptyParts);
+    ApiRequest req(hdr, path, sock, content);
     req.mode = d->gwHueMode ? ApiModeHue : ApiModeNormal;
 
     ApiResponse rsp;
@@ -17769,35 +17793,56 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         return 0;
     }
 
-    else if (req.hdr.method() == QLatin1String("POST") && path.size() == 2 && path[1] == QLatin1String("fileupload"))
+    else if (hdr.httpMethod() == HttpPost && hdr.pathComponentsCount() == 2 && hdr.pathAt(1) == QLatin1String("fileupload"))
     {
-        QString path = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation);
-        QString filename = path + "/deCONZ.tar.gz";
+        const QString filename = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation) + "/deCONZ.tar.gz";
 
         QFile file(filename);
+
         if (file.exists())
         {
             file.remove();
         }
-        if ( file.open(QIODevice::ReadWrite) )
+
+        const char *rspStatus = HttpStatusOk;
+        if (file.open(QIODevice::ReadWrite))
         {
             QByteArray data;
             while (sock->bytesAvailable())
             {
-                data = sock->readAll();
+                data += sock->readAll();
             }
-            //
-            // cut off header of data
-            // first 4 lines and last 2 lines of data are header-data
-            QList<QByteArray> list = data.split('\n');
-            for (int i = 4; i < list.size()-2; i++)
+
+            // multipart header ends with two empty lines
+            int start = data.indexOf("\r\n\r\n");
+
+            if (start != -1)
             {
-                file.write(list[i]+"\n");
+                start += 4;
+                // after file content the boundary ends with:
+                int end = data.indexOf("\r\n------", start);
+
+                if (end != -1 && start < end)
+                {
+                    file.write(&data.constData()[start], end - start);
+                    file.close();
+                }
+                else
+                {
+                    DBG_Printf(DBG_ERROR, "Failed to detect file upload end boundary\n");
+                    rspStatus = HttpStatusBadRequest;
+                    file.close();
+                    file.remove();
+                }
             }
-            file.close();
+            else
+            {
+                DBG_Printf(DBG_ERROR, "Failed to detect file upload start boundary\n");
+                rspStatus = HttpStatusBadRequest;
+            }
         }
 
-        stream << "HTTP/1.1 200 OK\r\n";
+        stream << "HTTP/1.1 " << rspStatus << "\r\n";
         stream << "Content-type: text/html\r\n";
         stream << "Content-Length: 0\r\n";
         stream << "Access-Control-Max-Age: 0\r\n";
@@ -17808,8 +17853,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         stream.flush();
         return 0;
     }
-
-    else if (hdr.path().startsWith(QLatin1String("/description.xml")) && (hdr.method() == QLatin1String("GET")))
+    else if (req.path.size() == 1 && req.path[0] == QLatin1String("description.xml") && hdr.method() == QLatin1String("GET"))
     {
         rsp.httpStatus = HttpStatusOk;
         rsp.contentType = HttpContentHtml;
@@ -17829,7 +17873,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         return 0;
     }
 
-    else if (req.path[0] == QLatin1String("api"))
+    else if (!req.path.isEmpty() && req.path[0] == QLatin1String("api"))
     {
         bool resourceExist = true;
 
@@ -17840,7 +17884,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
             {
                 ret = d->getFullState(req, rsp);
             }
-            else if (path[2] == QLatin1String("devices"))
+            else if (hdr.pathAt(2) == QLatin1String("devices"))
             {
                 ret = d->restDevices->handleApi(req, rsp);
             }
@@ -18106,23 +18150,35 @@ uint8_t DeRestPluginPrivate::endpoint()
         return haEndpoint;
     }
 
+    if (!apsCtrl)
+    {
+        return 1;
+    }
+
     const deCONZ::Node *node;
 
-    if (apsCtrl && apsCtrl->getNode(0, &node) == 0)
+    const auto coordMac = apsCtrl->getParameter(deCONZ::ParamMacAddress);
+
+    int i = 0;
+    while (apsCtrl->getNode(i, &node) == 0)
     {
-        std::vector<uint8_t> eps = node->endpoints();
+        i++;
 
-        std::vector<uint8_t>::const_iterator i = eps.begin();
-        std::vector<uint8_t>::const_iterator end = eps.end();
-
-        for (; i != end; ++i)
+        if (node->address().ext() != coordMac)
         {
-            deCONZ::SimpleDescriptor sd;
-            if (node->copySimpleDescriptor(*i, &sd) == 0)
+            continue;
+        }
+
+        const auto eps = node->endpoints();
+
+        for (quint8 ep : eps)
+        {
+            const deCONZ::SimpleDescriptor *sd = getSimpleDescriptor(node, ep);
+            if (sd)
             {
-                if (sd.profileId() == HA_PROFILE_ID)
+                if (sd->profileId() == HA_PROFILE_ID)
                 {
-                    haEndpoint = sd.endpoint();
+                    haEndpoint = ep;
                     return haEndpoint;
                 }
             }
@@ -18137,667 +18193,6 @@ uint8_t DeRestPluginPrivate::endpoint()
 const char *DeRestPlugin::name()
 {
     return "REST API Plugin";
-}
-
-/*! Export the deCONZ network settings to a file.
- */
-bool DeRestPluginPrivate::exportConfiguration()
-{
-    if (!apsCtrl)
-    {
-        return false;
-    }
-
-    if (!isInNetwork())
-    {
-        DBG_Printf(DBG_ERROR, "backup: failed to export - ZigBee network is down\n");
-        return false;
-    }
-
-    ttlDataBaseConnection = 0;
-    closeDb();
-
-    if (dbIsOpen())
-    {
-        DBG_Printf(DBG_ERROR, "backup: failed to export - database busy\n");
-        return false; // might be busy
-    }
-
-    uint8_t deviceType = apsCtrl->getParameter(deCONZ::ParamDeviceType);
-    uint16_t panId = apsCtrl->getParameter(deCONZ::ParamPANID);
-    quint64 extPanId = apsCtrl->getParameter(deCONZ::ParamExtendedPANID);
-    quint64 apsUseExtPanId = apsCtrl->getParameter(deCONZ::ParamApsUseExtendedPANID);
-    uint64_t macAddress = apsCtrl->getParameter(deCONZ::ParamMacAddress);
-    uint16_t nwkAddress = apsCtrl->getParameter(deCONZ::ParamNwkAddress);
-    uint8_t apsAck = apsCtrl->getParameter(deCONZ::ParamApsAck);
-    uint8_t staticNwkAddress = apsCtrl->getParameter(deCONZ::ParamStaticNwkAddress);
-    // uint32_t channelMask = apsCtrl->getParameter(deCONZ::ParamChannelMask);
-    uint8_t curChannel = apsCtrl->getParameter(deCONZ::ParamCurrentChannel);
-    uint8_t otauActive = apsCtrl->getParameter(deCONZ::ParamOtauActive);
-    uint8_t securityMode = apsCtrl->getParameter(deCONZ::ParamSecurityMode);
-    quint64 tcAddress = apsCtrl->getParameter(deCONZ::ParamTrustCenterAddress);
-    QByteArray networkKey = apsCtrl->getParameter(deCONZ::ParamNetworkKey);
-    QByteArray tcLinkKey = apsCtrl->getParameter(deCONZ::ParamTrustCenterLinkKey);
-    uint8_t nwkUpdateId = apsCtrl->getParameter(deCONZ::ParamNetworkUpdateId);
-    QVariantMap endpoint1 = apsCtrl->getParameter(deCONZ::ParamHAEndpoint, 0);
-    QVariantMap endpoint2 = apsCtrl->getParameter(deCONZ::ParamHAEndpoint, 1);
-
-    // simple checks to prevent invalid config export
-    if (deviceType != deCONZ::Coordinator) { return false; }
-    if (securityMode != 3) { return false; } // High - No master but TC link key
-    if (nwkAddress != 0x0000) { return  false; }
-    if (panId == 0) { return  false; }
-    if (macAddress == 0) { return  false; }
-    if (tcAddress == 0) { return  false; }
-    if (curChannel < 11 || curChannel > 26) { return  false; }
-
-    QVariantMap map;
-    map["deviceType"] = deviceType;
-    map["panId"] = QString("0x%1").arg(QString::number(panId,16));
-    map["extPanId"] = QString("0x%1").arg(QString::number(extPanId,16));
-    map["apsUseExtPanId"] = QString("0x%1").arg(QString::number(apsUseExtPanId,16));
-    map["macAddress"] = QString("0x%1").arg(QString::number(macAddress,16));
-    map["staticNwkAddress"] = (staticNwkAddress == 0) ? false : true;
-    map["nwkAddress"] = QString("0x%1").arg(QString::number(nwkAddress,16));
-    map["apsAck"] = (apsAck == 0) ? false : true;
-    //map["channelMask"] = channelMask;
-    map["curChannel"] = curChannel;
-    map["otauactive"] = otauActive;
-    map["securityMode"] = securityMode;
-    map["tcAddress"] = QString("0x%1").arg(QString::number(tcAddress,16));
-    map["networkKey"] = networkKey.toHex();
-    map["tcLinkKey"] = tcLinkKey.toHex();
-    map["nwkUpdateId"] = nwkUpdateId;
-    map["endpoint1"] = endpoint1;
-    map["endpoint2"] = endpoint2;
-    map["deconzVersion"] = QString(GW_SW_VERSION).replace(QChar('.'), "");
-
-    bool ok = true;
-    QString saveString = Json::serialize(map, ok);
-
-    DBG_Assert(ok);
-    if (!ok)
-    {
-        return false;
-    }
-
-    const QString path = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation);
-
-    // cleanup older files
-    const std::vector<const char*> files1 = { "/deCONZ.conf", "/deCONZ.tar", "/deCONZ.tar.gz" };
-    for (const char *f : files1)
-    {
-        const QString filePath = path + f;
-        if (QFile::exists(filePath))
-        {
-            if (QFile::remove(filePath))
-            {
-                DBG_Printf(DBG_INFO, "backup: removed temporary file %s\n", qPrintable(filePath));
-            }
-            else
-            {
-                DBG_Printf(DBG_ERROR, "backup: failed to remove temporary file %s\n", qPrintable(filePath));
-                return false;
-            }
-        }
-    }
-
-    { // put config as JSON object in file
-        QFile configFile(path + "/deCONZ.conf");
-        if (configFile.open(QIODevice::ReadWrite))
-        {
-            QTextStream stream(&configFile);
-            stream << saveString << endl;
-            configFile.close();
-        }
-    }
-
-    if (QFile::exists(path + "/deCONZ.conf"))
-    {
-        //create .tar
-        QProcess *archProcess = new QProcess(this);
-
-#ifdef Q_OS_WIN
-        QString appPath = qApp->applicationDirPath();
-        if (!QFile::exists(appPath + "/7za.exe"))
-        {
-            DBG_Printf(DBG_INFO, "7z not found: %s\n", qPrintable(appPath + "/7za.exe"));
-            return false;
-        }
-        QString cmd = appPath + "/7za.exe";
-        QStringList args;
-        args.append("a");
-        args.append(path + "/deCONZ.tar");
-        args.append(path + "/deCONZ.conf");
-        args.append(path + "/zll.db");
-        args.append(path + "/session.default");
-        archProcess->start(cmd, args);
-#endif
-
-#ifdef Q_OS_LINUX
-        // clean up old homebridge backup files
-        QStringList filters;
-        filters << "AccessoryInfo*";
-        filters << "IdentifierCache*";
-
-         QDir appDir(path);
-         QStringList files = appDir.entryList(filters);
-
-         for (QString f : files)
-         {
-             const QString filePath = path + "/" + f;
-             if (QFile::exists(filePath))
-             {
-                 if (QFile::remove(filePath))
-                 {
-                     DBG_Printf(DBG_INFO, "backup: removed temporary homebridge file %s\n", qPrintable(filePath));
-                 }
-                 else
-                 {
-                     DBG_Printf(DBG_ERROR, "backup: failed to remove temporary homebridge file %s\n", qPrintable(filePath));
-                     return false;
-                 }
-             }
-         }
-
-        // backup homebridge files
-        const QString homebridgePersistPath = "/home/pi/.homebridge/persist"; // TODO: get mainuser
-
-        QString FirstFileName ="";
-        QString SecondFileName ="";
-
-        QDir dir(homebridgePersistPath);
-        if (dir.exists())
-        {
-            QStringList files = dir.entryList(filters);
-
-            if (files.size() > 0)
-            {
-                FirstFileName = files.at(0);
-                DBG_Printf(DBG_INFO, "copy file: %s to backup directory\n", qPrintable(FirstFileName));
-                QFile accessoryFile(homebridgePersistPath + "/" + FirstFileName);
-                if (!accessoryFile.copy(path + "/" + FirstFileName))
-                {
-                    DBG_Printf(DBG_INFO, "copy file: %s failed. Do not include it in backup\n", qPrintable(FirstFileName));
-                    FirstFileName = "";
-                    return false;
-                }
-
-            }
-            if (files.size() > 1)
-            {
-                SecondFileName = files.at(1);
-                DBG_Printf(DBG_INFO, "copy file: %s to backup directory\n", qPrintable(SecondFileName));
-                QFile IdentifierFile(homebridgePersistPath + "/" + SecondFileName);
-                if (!IdentifierFile.copy(path + "/" + SecondFileName))
-                {
-                    DBG_Printf(DBG_INFO, "copy file: %s failed. Do not include it in backup\n", qPrintable(SecondFileName));
-                    SecondFileName = "";
-                    return false;
-                }
-            }
-        }
-
-        // add homebridge-install logfiles to archive
-        QString logfilesDirectories = "";
-        QDir homebridgeInstallLogDir(path + "/homebridge-install-logfiles");
-        if (homebridgeInstallLogDir.exists())
-        {
-            logfilesDirectories += QLatin1String("homebridge-install-logfiles");
-        }
-
-        archProcess->start("tar -cf " + path + "/deCONZ.tar -C " + path + " deCONZ.conf zll.db session.default " + FirstFileName + " " + SecondFileName + " " + logfilesDirectories);
-#endif
-        archProcess->waitForFinished(EXT_PROCESS_TIMEOUT);
-        DBG_Printf(DBG_INFO, "%s\n", qPrintable(archProcess->readAllStandardOutput()));
-        archProcess->deleteLater();
-        archProcess = nullptr;
-
-        //create .tar.gz
-        QProcess *zipProcess = new QProcess(this);
-#ifdef Q_OS_WIN
-
-        cmd = appPath + "/7za.exe";
-        args.clear();
-        args.append("a");
-        args.append(path + "/deCONZ.tar.gz");
-        args.append(path + "/deCONZ.tar");
-        zipProcess->start(cmd, args);
-#endif
-#ifdef Q_OS_LINUX
-        zipProcess->start("gzip -k -f " + path + "/deCONZ.tar");
-#endif
-        zipProcess->waitForFinished(EXT_PROCESS_TIMEOUT);
-        DBG_Printf(DBG_INFO, "%s\n", qPrintable(zipProcess->readAllStandardOutput()));
-        zipProcess->deleteLater();
-        zipProcess = nullptr;
-    }
-
-    //cleanup
-    const std::vector<const char*> files2 = { "/deCONZ.conf", "/deCONZ.tar" };
-    for (const char *f : files2)
-    {
-        const QString filePath = path + f;
-        if (QFile::exists(filePath))
-        {
-            if (QFile::remove(filePath))
-            {
-                DBG_Printf(DBG_INFO, "backup: removed temporary file %s\n", qPrintable(filePath));
-            }
-            else
-            {
-                DBG_Printf(DBG_ERROR, "backup: failed to remove temporary file %s\n", qPrintable(filePath));
-            }
-        }
-        else
-        {
-            DBG_Printf(DBG_ERROR, "backup: temporary file %s doesn't exist\n", qPrintable(filePath));
-            ok = false; // these files must exist
-        }
-    }
-
-    return ok;
-}
-
-/*! Import the deCONZ network settings from a file.
- */
-bool DeRestPluginPrivate::importConfiguration()
-{
-    if (!apsCtrl)
-    {
-        return false;
-    }
-
-    // prevent overwrite database with content of current memory
-    // will be reset after application soft restart
-    ttlDataBaseConnection = 0;
-    saveDatabaseItems |= DB_NOSAVE;
-    closeDb();
-
-    if (dbIsOpen())
-    {
-        DBG_Printf(DBG_ERROR, "backup: failed to import - database busy\n");
-        return false; // database might be busy
-    }
-
-    const QString path = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation);
-
-    // cleanup old files
-    const std::vector<const char*> files1 = { "/deCONZ.conf", "/deCONZ.tar" };
-    for (const char *f : files1)
-    {
-        const QString filePath = path + f;
-        if (QFile::exists(filePath))
-        {
-            if (QFile::remove(filePath))
-            {
-                DBG_Printf(DBG_INFO, "backup: removed temporary file %s\n", qPrintable(filePath));
-            }
-            else
-            {
-                DBG_Printf(DBG_ERROR, "backup: failed to remove temporary file %s\n", qPrintable(filePath));
-                return false;
-            }
-        }
-    }
-
-#ifdef Q_OS_LINUX
-    // clean up old homebridge backup files
-    QStringList filters;
-    filters << "AccessoryInfo*";
-    filters << "IdentifierCache*";
-
-     QDir appDir(path);
-     QStringList files = appDir.entryList(filters);
-
-     for (QString f : files)
-     {
-         const QString filePath = path + "/" + f;
-         if (QFile::exists(filePath))
-         {
-             if (QFile::remove(filePath))
-             {
-                 DBG_Printf(DBG_INFO, "backup: removed temporary homebridge file %s\n", qPrintable(filePath));
-             }
-             else
-             {
-                 DBG_Printf(DBG_ERROR, "backup: failed to remove temporary homebridge file %s\n", qPrintable(filePath));
-                 return false;
-             }
-         }
-     }
- #endif
-
-    if (QFile::exists(path + QLatin1String("/deCONZ.tar.gz")))
-    {
-        // decompress .tar.gz
-        QProcess *archProcess = new QProcess(this);
-
-#ifdef Q_OS_WIN
-        QString appPath = qApp->applicationDirPath();
-        QString cmd = appPath + "/7za.exe";
-        QStringList args;
-        args.append("e");
-        args.append("-y");
-        args.append(path + "/deCONZ.tar.gz");
-        args.append("-o" + path);
-        archProcess->start(cmd, args);
-#endif
-#ifdef Q_OS_LINUX
-        archProcess->start("gzip -df " + path + "/deCONZ.tar.gz");
-#endif
-        archProcess->waitForFinished(EXT_PROCESS_TIMEOUT);
-        DBG_Printf(DBG_INFO, "%s\n", qPrintable(archProcess->readAllStandardOutput()));
-        archProcess->deleteLater();
-        archProcess = nullptr;
-    }
-
-    if (QFile::exists(path + QLatin1String("/deCONZ.tar")))
-    {
-        // unpack .tar
-        QProcess *zipProcess = new QProcess(this);
-#ifdef Q_OS_WIN
-        QString appPath = qApp->applicationDirPath();
-        QString cmd = appPath + "/7za.exe";
-        QStringList args;
-        args.append("e");
-        args.append("-y");
-        args.append(path + "/deCONZ.tar");
-        args.append("-o" + path);
-        zipProcess->start(cmd, args);
-#endif
-#ifdef Q_OS_LINUX
-        zipProcess->start("tar -xf " + path + "/deCONZ.tar -C " + path);
-#endif
-        zipProcess->waitForFinished(EXT_PROCESS_TIMEOUT);
-        DBG_Printf(DBG_INFO, "%s\n", qPrintable(zipProcess->readAllStandardOutput()));
-        zipProcess->deleteLater();
-        zipProcess = nullptr;
-    }
-
-    bool ok = false;
-    QVariantMap map;
-    QFile file(path + QLatin1String("/deCONZ.conf"));
-    if (file.open(QIODevice::ReadOnly))
-    {
-        const QString json = file.readAll();
-        QVariant var = Json::parse(json, ok);
-        if (ok)
-        {
-            map = var.toMap();
-        }
-    }
-
-    const std::vector<const char*> requiredFields = {
-        "deviceType", "panId", "extPanId", "apsUseExtPanId", "macAddress", "staticNwkAddress",
-        "nwkAddress", "apsAck", "curChannel", "tcAddress", "securityMode", "networkKey", "tcLinkKey",
-        "nwkUpdateId"
-    };
-
-    for (const auto *key : requiredFields)
-    {
-        if (!map.contains(QLatin1String(key)))
-        {
-            ok = false;
-            break;
-        }
-    }
-
-    if (ok) // all fields present
-    {
-        uint8_t deviceType = ok ? map["deviceType"].toUInt(&ok) : 0;
-        if (ok && deviceType != deCONZ::Coordinator) { ok = false; } // only coordinator supported currently
-
-        uint16_t panId =  ok ? map["panId"].toString().toUShort(&ok, 16) : 0;
-        if (ok && panId == 0) { ok = false; }
-
-        quint64 extPanId =  ok ? map["extPanId"].toString().toULongLong(&ok, 16) : 0;
-        if (ok && extPanId == 0) { ok = false; }
-
-        quint64 apsUseExtPanId = ok ? map["apsUseExtPanId"].toString().toULongLong(&ok, 16) : 1;
-        if (ok && apsUseExtPanId != 0) { ok = false; } // must be zero
-
-        quint64 curMacAddress = apsCtrl->getParameter(deCONZ::ParamMacAddress);
-        quint64 macAddress =  ok ? map["macAddress"].toString().toULongLong(&ok, 16) : 0;
-        if (ok && macAddress == 0) { ok = false; }
-
-        uint8_t staticNwkAddress = map["staticNwkAddress"].toBool() ? 1 : 0;
-        uint16_t nwkAddress = map["nwkAddress"].toString().toUInt(&ok, 16);
-        if (ok && nwkAddress != 0x0000) { ok = false; } // coordinator
-
-        uint8_t apsAck = map["apsAck"].toBool() ? 1 : 0;
-        //map["channelMask"] = channelMask;
-        uint8_t curChannel = ok ? map["curChannel"].toUInt(&ok) : 0;
-        if (ok && (curChannel < 11 || curChannel > 26)) { ok = false; }
-
-        if (ok && map.contains("otauactive"))
-        {
-            uint8_t otauActive = map["otauactive"].toUInt();
-            apsCtrl->setParameter(deCONZ::ParamOtauActive, otauActive);
-        }
-        uint8_t securityMode = ok ? map["securityMode"].toUInt(&ok) : 0;
-        if (ok && securityMode != 3)
-        {
-            // auto correct, has been seen as 0..2
-            securityMode = 3; // High - No Master but TC Link key
-        }
-
-        quint64 tcAddress =  ok ? map["tcAddress"].toString().toULongLong(&ok, 16) : 0;
-        if (ok && tcAddress != macAddress)
-        {
-            tcAddress = macAddress; // auto correct
-        }
-        QByteArray nwkKey = QByteArray::fromHex(map["networkKey"].toByteArray());
-
-        if (map["tcLinkKey"].toString() != QLatin1String("5a6967426565416c6c69616e63653039"))
-        {
-            // auto correct
-            map["tcLinkKey"] = QLatin1String("5a6967426565416c6c69616e63653039"); // HA default TC link key
-        }
-
-        QByteArray tcLinkKey = QByteArray::fromHex(map["tcLinkKey"].toByteArray());
-
-        uint8_t currentNwkUpdateId = apsCtrl->getParameter(deCONZ::ParamNetworkUpdateId);
-        uint8_t nwkUpdateId = ok ? map["nwkUpdateId"].toUInt(&ok) : 0;
-
-        if (ok) // TODO as alternative load network configuration from zll.db file
-        {
-            apsCtrl->setParameter(deCONZ::ParamDeviceType, deviceType);
-            apsCtrl->setParameter(deCONZ::ParamPredefinedPanId, 1);
-            apsCtrl->setParameter(deCONZ::ParamPANID, panId);
-            apsCtrl->setParameter(deCONZ::ParamExtendedPANID, extPanId);
-            apsCtrl->setParameter(deCONZ::ParamApsUseExtendedPANID, apsUseExtPanId);
-            if (curMacAddress != macAddress)
-            {
-                apsCtrl->setParameter(deCONZ::ParamCustomMacAddress, 1);
-            }
-            apsCtrl->setParameter(deCONZ::ParamMacAddress, macAddress);
-            apsCtrl->setParameter(deCONZ::ParamStaticNwkAddress, staticNwkAddress);
-            apsCtrl->setParameter(deCONZ::ParamNwkAddress, nwkAddress);
-            apsCtrl->setParameter(deCONZ::ParamApsAck, apsAck);
-            // channelMask
-            apsCtrl->setParameter(deCONZ::ParamCurrentChannel, curChannel);
-            apsCtrl->setParameter(deCONZ::ParamSecurityMode, securityMode);
-            apsCtrl->setParameter(deCONZ::ParamTrustCenterAddress, tcAddress);
-            apsCtrl->setParameter(deCONZ::ParamNetworkKey, nwkKey);
-            apsCtrl->setParameter(deCONZ::ParamTrustCenterLinkKey, tcLinkKey);
-            if (currentNwkUpdateId < nwkUpdateId)
-            {
-                apsCtrl->setParameter(deCONZ::ParamNetworkUpdateId, nwkUpdateId);
-            }
-
-            // HA endpoint
-            QVariantMap endpoint1;
-            endpoint1["endpoint"] = QLatin1String("0x01");
-            endpoint1["profileId"] = QLatin1String("0x0104");
-            endpoint1["deviceId"] = QLatin1String("0x05");
-            endpoint1["deviceVersion"] = QLatin1String("0x01");
-            endpoint1["inClusters"] = QVariantList({ "0x0019", "0x000A"});
-            endpoint1["outClusters"] = QVariantList({ "0x0500"});
-            endpoint1["index"] = static_cast<double>(0);
-
-            // green power endpoint
-            QVariantMap endpoint2;
-            endpoint2["endpoint"] = QLatin1String("0xf2");
-            endpoint2["profileId"] = QLatin1String("0xA1E0");
-            endpoint2["deviceId"] = QLatin1String("0x0064");
-            endpoint2["deviceVersion"] = QLatin1String("0x01");
-            endpoint2["inClusters"] = QVariantList();
-            endpoint2["outClusters"] = QVariantList({ "0x0021"});
-            endpoint2["index"] = static_cast<double>(1);
-
-            apsCtrl->setParameter(deCONZ::ParamHAEndpoint, endpoint1);
-            apsCtrl->setParameter(deCONZ::ParamHAEndpoint, endpoint2);
-
-            if (gwZigbeeChannel != curChannel)
-            {
-                gwZigbeeChannel = curChannel;
-                saveDatabaseItems |= DB_CONFIG;
-            }
-        }
-    }
-
-    //cleanup
-    const std::vector<const char*> files2 = { "/deCONZ.conf", "/deCONZ.tar", "/deCONZ.targ.gz" };
-    for (const char *f : files2)
-    {
-        const QString filePath = path + f;
-        if (QFile::exists(filePath))
-        {
-            if (QFile::remove(filePath))
-            {
-                DBG_Printf(DBG_INFO, "backup: removed temporary file %s\n", qPrintable(filePath));
-            }
-            else
-            {
-                DBG_Printf(DBG_ERROR, "backup: failed to remove temporary file %s\n", qPrintable(filePath));
-            }
-        }
-    }
-
-    return ok;
-}
-
-/*! Reset the deCONZ network settings and/or delete database.
- */
-bool DeRestPluginPrivate::resetConfiguration(bool resetGW, bool deleteDB)
-{
-    if (!apsCtrl)
-    {
-        return false;
-    }
-
-    // prevent overwrite database with content of current memory
-    // will be reset after application soft restart
-    ttlDataBaseConnection = 0;
-    saveDatabaseItems |= DB_NOSAVE;
-    closeDb();
-
-    if (dbIsOpen())
-    {
-        DBG_Printf(DBG_ERROR, "backup: failed to import - database busy\n");
-        return false; // database might be busy
-    }
-
-    if (resetGW)
-    {
-        qsrand(QDateTime::currentDateTime().toTime_t());
-        uint8_t deviceType = deCONZ::Coordinator;
-        uint16_t panId = qrand();
-        quint64 apsUseExtPanId = 0x0000000000000000;
-        uint16_t nwkAddress = 0x0000;
-        //uint32_t channelMask = 33554432; // 25
-        uint8_t curChannel = 11;
-        gwZigbeeChannel = 11;
-        uint8_t securityMode = 3;
-        // TODO: original macAddress
-        quint64 macAddress = apsCtrl->getParameter(deCONZ::ParamMacAddress);
-
-        if (macAddress == 0)
-        {
-            return false;
-        }
-
-        QByteArray nwkKey1 = QByteArray::number(qrand(), 16);
-        QByteArray nwkKey2 = QByteArray::number(qrand(), 16);
-        QByteArray nwkKey3 = QByteArray::number(qrand(), 16);
-        QByteArray nwkKey4 = QByteArray::number(qrand(), 16);
-
-        QByteArray nwkKey = nwkKey1.append(nwkKey2).append(nwkKey3).append(nwkKey4);
-        nwkKey.resize(16);
-
-        QByteArray tcLinkKey = QByteArray::fromHex("5a6967426565416c6c69616e63653039");
-        uint8_t nwkUpdateId = 1;
-
-        apsCtrl->setParameter(deCONZ::ParamDeviceType, deviceType);
-        apsCtrl->setParameter(deCONZ::ParamPredefinedPanId, 1);
-        apsCtrl->setParameter(deCONZ::ParamPANID, panId);
-        apsCtrl->setParameter(deCONZ::ParamApsUseExtendedPANID, apsUseExtPanId);
-        apsCtrl->setParameter(deCONZ::ParamExtendedPANID, macAddress);
-        apsCtrl->setParameter(deCONZ::ParamApsAck, 0);
-        apsCtrl->setParameter(deCONZ::ParamNwkAddress, nwkAddress);
-        //apsCtrl->setParameter(deCONZ::ParamChannelMask, channelMask);
-        apsCtrl->setParameter(deCONZ::ParamCurrentChannel, curChannel);
-        apsCtrl->setParameter(deCONZ::ParamSecurityMode, securityMode);
-        apsCtrl->setParameter(deCONZ::ParamTrustCenterAddress, macAddress);
-        apsCtrl->setParameter(deCONZ::ParamNetworkKey, nwkKey);
-        apsCtrl->setParameter(deCONZ::ParamTrustCenterLinkKey, tcLinkKey);
-        apsCtrl->setParameter(deCONZ::ParamNetworkUpdateId, nwkUpdateId);
-        apsCtrl->setParameter(deCONZ::ParamOtauActive, 1);
-
-        // reset endpoints
-        QVariantMap epData;
-
-        epData["index"] = 0;
-        epData["endpoint"] = "0x1";
-        epData["profileId"] = "0x104";
-        epData["deviceId"] = "0x5";
-        epData["deviceVersion"] = "0x1";
-        epData["inClusters"] = QVariantList({ "0x0019", "0x000a" });
-        epData["outClusters"] = QVariantList({ "0x0500" });
-        apsCtrl->setParameter(deCONZ::ParamHAEndpoint, epData);
-
-        epData.clear();
-        epData["index"] = 1;
-        epData["endpoint"] = "0xF2";
-        epData["profileId"] = "0xA1E0";
-        epData["deviceId"] = "0x0064";
-        epData["deviceVersion"] = "0x1";
-        epData["outClusters"] = QVariantList({ "0x0021" });
-        apsCtrl->setParameter(deCONZ::ParamHAEndpoint, epData);
-    }
-
-    if (deleteDB)
-    {
-        QString path = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation);
-        QString filename = path + "/zll.db";
-
-        QFile file(filename);
-        if (file.exists())
-        {
-            QDateTime now = QDateTime::currentDateTime();
-            QString newFilename = path + "zll_" + now.toString(Qt::ISODate) + ".bak";
-            if (QFile::copy(filename, newFilename))
-            {
-                DBG_Printf(DBG_INFO, "db backup success\n");
-            }
-            else
-            {
-                DBG_Printf(DBG_INFO, "db backup failed\n");
-            }
-
-            if (file.remove())
-            {
-                DBG_Printf(DBG_INFO, "db deleted %s\n", qPrintable(file.fileName()));
-            }
-            else
-            {
-                DBG_Printf(DBG_INFO, "db failed to delete %s\n", qPrintable(file.fileName()));
-            }
-        }
-    }
-
-    return true;
 }
 
 Resource *DeRestPluginPrivate::getResource(const char *resource, const QString &id)

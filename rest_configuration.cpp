@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2021 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <QProcess>
+#include "backup.h"
 #include "gateway.h"
 #ifdef Q_OS_LINUX
   #include <unistd.h>
@@ -1116,9 +1117,9 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
     checkRfConnectState();
 
     // handle ETag
-    if (req.hdr.hasKey("If-None-Match"))
+    if (req.hdr.hasKey(QLatin1String("If-None-Match")))
     {
-        QString etag = req.hdr.value("If-None-Match");
+        QString etag = req.hdr.value(QLatin1String("If-None-Match"));
 
         if (gwConfigEtag == etag)
         {
@@ -1277,9 +1278,9 @@ int DeRestPluginPrivate::getConfig(const ApiRequest &req, ApiResponse &rsp)
     checkRfConnectState();
 
     // handle ETag
-    if (req.hdr.hasKey("If-None-Match"))
+    if (req.hdr.hasKey(QLatin1String("If-None-Match")))
     {
-        QString etag = req.hdr.value("If-None-Match");
+        QString etag = req.hdr.value(QLatin1String("If-None-Match"));
 
         if (gwConfigEtag == etag)
         {
@@ -1304,9 +1305,9 @@ int DeRestPluginPrivate::getBasicConfig(const ApiRequest &req, ApiResponse &rsp)
     checkRfConnectState();
 
     // handle ETag
-    if (req.hdr.hasKey("If-None-Match"))
+    if (req.hdr.hasKey(QLatin1String("If-None-Match")))
     {
-        QString etag = req.hdr.value("If-None-Match");
+        QString etag = req.hdr.value(QLatin1String("If-None-Match"));
 
         if (gwConfigEtag == etag)
         {
@@ -1318,9 +1319,9 @@ int DeRestPluginPrivate::getBasicConfig(const ApiRequest &req, ApiResponse &rsp)
     basicConfigToMap(req, rsp.map);
 
     // include devicename attribute in web based requests
-    if (!apsCtrl->getParameter(deCONZ::ParamDeviceName).isEmpty() && req.hdr.hasKey("User-Agent"))
+    if (!apsCtrl->getParameter(deCONZ::ParamDeviceName).isEmpty() && req.hdr.hasKey(QLatin1String("User-Agent")))
     {
-        const QString ua = req.hdr.value("User-Agent");
+        const QString ua = req.hdr.value(QLatin1String("User-Agent"));
         if (ua.startsWith(QLatin1String("Mozilla"))) // all browser UA start with Mozilla/5.0
         {
             rsp.map["devicename"] = apsCtrl->getParameter(deCONZ::ParamDeviceName);
@@ -2392,7 +2393,25 @@ int DeRestPluginPrivate::updateFirmware(const ApiRequest &req, ApiResponse &rsp)
 int DeRestPluginPrivate::exportConfig(const ApiRequest &req, ApiResponse &rsp)
 {
     Q_UNUSED(req)
-    if (exportConfiguration())
+
+    if (!isInNetwork())
+    {
+        DBG_Printf(DBG_ERROR, "backup: failed to export - ZigBee network is down\n");
+        rsp.httpStatus = HttpStatusServiceUnavailable;
+        return REQ_READY_SEND;
+    }
+
+    ttlDataBaseConnection = 0;
+    closeDb();
+
+    if (dbIsOpen())
+    {
+        DBG_Printf(DBG_ERROR, "backup: failed to export - database busy\n");
+        rsp.httpStatus = HttpStatusServiceUnavailable;
+        return REQ_READY_SEND;
+    }
+
+    if (BAK_ExportConfiguration(deCONZ::ApsController::instance()))
     {
         rsp.httpStatus = HttpStatusOk;
         QVariantMap rspItem;
@@ -2415,8 +2434,20 @@ int DeRestPluginPrivate::exportConfig(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::importConfig(const ApiRequest &req, ApiResponse &rsp)
 {
+    // prevent overwrite database with content of current memory
+    // will be reset after application soft restart
+    ttlDataBaseConnection = 0;
+    saveDatabaseItems |= DB_NOSAVE;
+    closeDb();
 
-    if (importConfiguration())
+    if (dbIsOpen())
+    {
+        DBG_Printf(DBG_ERROR, "backup: failed to import - database busy\n");
+        rsp.httpStatus = HttpStatusServiceUnavailable;
+        return REQ_READY_SEND;
+    }
+
+    if (BAK_ImportConfiguration(deCONZ::ApsController::instance()))
     {
         openDb();
         saveApiKey(req.apikey());
@@ -2436,6 +2467,12 @@ int DeRestPluginPrivate::importConfig(const ApiRequest &req, ApiResponse &rsp)
                 this, SLOT(restartAppTimerFired()));
         restartTimer->start(SET_ENDPOINTCONFIG_DURATION);
 
+        auto curChannel = apsCtrl->getParameter(deCONZ::ParamCurrentChannel);
+        if (gwZigbeeChannel != curChannel)
+        {
+            gwZigbeeChannel = curChannel;
+            saveDatabaseItems |= DB_CONFIG;
+        }
     }
     else
     {
@@ -2487,7 +2524,20 @@ int DeRestPluginPrivate::resetConfig(const ApiRequest &req, ApiResponse &rsp)
     resetGW = map["resetGW"].toBool();
     deleteDB = map["deleteDB"].toBool();
 
-    if (resetConfiguration(resetGW, deleteDB))
+    // prevent overwrite database with content of current memory
+    // will be reset after application soft restart
+    ttlDataBaseConnection = 0;
+    saveDatabaseItems |= DB_NOSAVE;
+    closeDb();
+
+    if (dbIsOpen())
+    {
+        DBG_Printf(DBG_ERROR, "backup: failed to import - database busy\n");
+        rsp.httpStatus = HttpStatusServiceUnavailable;
+        return REQ_READY_SEND;
+    }
+
+    if (BAK_ResetConfiguration(deCONZ::ApsController::instance(), resetGW, deleteDB))
     {
         rsp.httpStatus = HttpStatusOk;
         QVariantMap rspItem;
@@ -2498,13 +2548,14 @@ int DeRestPluginPrivate::resetConfig(const ApiRequest &req, ApiResponse &rsp)
         //wait some seconds that deCONZ can finish Enpoint config,
         //then restart app to apply network config (only on raspbee gw)
 
+        gwZigbeeChannel = apsCtrl->getParameter(deCONZ::ParamCurrentChannel);
+        saveDatabaseItems |= DB_CONFIG;
         needRestartApp = true;
         QTimer *restartTimer = new QTimer(this);
         restartTimer->setSingleShot(true);
         connect(restartTimer, SIGNAL(timeout()),
                 this, SLOT(restartAppTimerFired()));
         restartTimer->start(SET_ENDPOINTCONFIG_DURATION);
-
     }
     else
     {

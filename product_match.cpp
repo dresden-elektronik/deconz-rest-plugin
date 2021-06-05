@@ -61,6 +61,7 @@ static const ProductMap products[] =
     {"_TYST11_zivfvd7h", "ivfvd7h", "Siterwell", "Tuya_THD GS361A-H04 TRV"},
     {"_TZE200_zivfvd7h", "TS0601", "Siterwell", "Tuya_THD GS361A-H04 TRV"},
     {"_TYST11_yw7cahqs", "w7cahqs", "Hama", "Tuya_THD Smart radiator TRV"},
+    {"_TZE200_yw7cahqs", "TS0601", "Hama", "Tuya_THD Smart radiator TRV"},
     {"_TZE200_cwnjrr72", "TS0601", "MOES", "Tuya_THD HY368 TRV"},
 
     // Tuya Covering
@@ -241,4 +242,22 @@ bool isLidlDevice(const QString &zigbeeModelIdentifier, const QString &manufactu
         device++;
     }
     return false;
+}
+
+uint productHash(const Resource *r)
+{
+    if (!r || !r->item(RAttrManufacturerName) || !r->item(RAttrModelId))
+    {
+        return 0;
+    }
+
+    if (isTuyaManufacturerName(r->item(RAttrManufacturerName)->toString()))
+    {
+        // for Tuya devices use manufacturer name as modelid
+        return qHash(r->item(RAttrManufacturerName)->toString());
+    }
+    else
+    {
+        return qHash(r->item(RAttrModelId)->toString());
+    }
 }
