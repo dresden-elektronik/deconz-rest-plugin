@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2021 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <QProcess>
+#include "backup.h"
 #include "gateway.h"
 #ifdef Q_OS_LINUX
   #include <unistd.h>
@@ -93,7 +94,8 @@ void DeRestPluginPrivate::initConfig()
     gwIPAddress = "127.0.0.1";
     gwPort = (apsCtrl ? apsCtrl->getParameter(deCONZ::ParamHttpPort) : static_cast<quint16>(deCONZ::appArgumentNumeric("--http-port", 80)));
     gwNetMask = "255.0.0.0";
-    gwLANBridgeId = (deCONZ::appArgumentNumeric("--lan-bridgeid", 0) == 1);
+    gwHueMode = (deCONZ::appArgumentNumeric("--hue-mode", 0) == 1);
+    gwLANBridgeId = (deCONZ::appArgumentNumeric("--lan-bridgeid", 0) == 1) || gwHueMode;
     gwBridgeId = "0000000000000000";
     gwAllowLocal = (deCONZ::appArgumentNumeric("--allow-local", 1) == 1);
     gwConfig["websocketport"] = 443;
@@ -380,7 +382,7 @@ void DeRestPluginPrivate::initNetworkInfo()
                 QString mac = i->hardwareAddress().toLower();
                 gwMAC = mac;
                 if (gwLANBridgeId) {
-                    gwBridgeId = mac.mid(0,2) + mac.mid(3,2) + mac.mid(6,2) + "fffe" + mac.mid(9,2) + mac.mid(12,2) + mac.mid(15,2);
+                    gwBridgeId = (mac.mid(0,2) + mac.mid(3,2) + mac.mid(6,2) + "fffe" + mac.mid(9,2) + mac.mid(12,2) + mac.mid(15,2)).toUpper();
                     if (!gwConfig.contains("bridgeid") || gwConfig["bridgeid"] != gwBridgeId)
                     {
                         DBG_Printf(DBG_INFO, "Set bridgeid to %s\n", qPrintable(gwBridgeId));
@@ -900,7 +902,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     QDateTime datetime = QDateTime::currentDateTimeUtc();
     QDateTime localtime = QDateTime::currentDateTime();
 
-    basicConfigToMap(map);
+    basicConfigToMap(req, map);
     map["ipaddress"] = gwIPAddress;
     map["netmask"] = gwNetMask;
 
@@ -918,7 +920,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         }
     }
 
-    if (req.apiVersion() == ApiVersion_1_DDEL)
+    if (req.apiVersion() >= ApiVersion_1_DDEL)
     {
         map["permitjoin"] = static_cast<double>(gwPermitJoinDuration);
         map["permitjoinfull"] = static_cast<double>(gwPermitJoinResend);
@@ -988,12 +990,6 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     }
     else
     {
-        if (req.mode != ApiModeNormal)
-        {
-            map["swversion"] = QLatin1String("1940042020");
-            map["apiversion"] = QLatin1String("1.40.0");
-            map["modelid"] = QLatin1String("BSB002");
-        }
         devicetypes["bridge"] = false;
         devicetypes["lights"] = QVariantList();
         devicetypes["sensors"] = QVariantList();
@@ -1009,7 +1005,10 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         portalstate["outgoing"] = false;
         portalstate["communication"] = QLatin1String("disconnected");
         map["portalstate"] = portalstate;
+        internetservices["internet"] = QLatin1String("connected");
         internetservices["remoteaccess"] = QLatin1String("disconnected");
+        internetservices["time"] = QLatin1String("connected");
+        internetservices["swupdate"] = QLatin1String("connected");
         map["internetservices"] = internetservices;
         backup["status"] = QLatin1String("idle");
         backup["errorcode"] = 0;
@@ -1022,12 +1021,10 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     swupdate2["bridge"] = bridge;
     swupdate2["checkforupdate"] = false;
     swupdate2["state"] = gwSwUpdateState;
-    swupdate2["install"] = false;
     autoinstall["updatetime"] = "";
     autoinstall["on"] = false;
     swupdate2["autoinstall"] = autoinstall;
     swupdate2["lastchange"] = "";
-    swupdate2["lastinstall"] = "";
     map["swupdate2"] = swupdate2;
 
     map["fwversion"] = gwFirmwareVersion;
@@ -1057,6 +1054,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     map["networkopenduration"] = gwNetworkOpenDuration;
     map["timeformat"] = gwTimeFormat;
     map["whitelist"] = whitelist;
+    map["lightlastseeninterval"] = gwLightLastSeenInterval;
     map["linkbutton"] = gwLinkButton;
     map["portalservices"] = false;
     map["websocketport"] = static_cast<double>(gwConfig["websocketport"].toUInt());
@@ -1079,19 +1077,29 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
 
 /*! Puts all parameters in a map for later JSON serialization.
  */
-void DeRestPluginPrivate::basicConfigToMap(QVariantMap &map)
+void DeRestPluginPrivate::basicConfigToMap(const ApiRequest &req, QVariantMap &map)
 {
     map["name"] = gwName;
-    map["datastoreversion"] = QLatin1String("93");
-    const QStringList versions = QString(GW_SW_VERSION).split('.');
-    const QString swversion = QString("%1.%2.%3").arg(versions[0].toInt()).arg(versions[1].toInt()).arg(versions[2].toInt());
-    map["swversion"] = swversion;
-    map["apiversion"] = QString(GW_API_VERSION);
+    if (req.mode == ApiModeNormal)
+    {
+        map["modelid"] = QLatin1String("deCONZ");
+        const QStringList versions = QString(GW_SW_VERSION).split('.');
+        const QString swversion = QString("%1.%2.%3").arg(versions[0].toInt()).arg(versions[1].toInt()).arg(versions[2].toInt());
+        map["swversion"] = swversion;
+        map["apiversion"] = QString(GW_API_VERSION);
+        map["datastoreversion"] = QLatin1String("93");
+    } 
+    else
+    {
+        map["modelid"] = QLatin1String("BSB002");
+        map["swversion"] = QLatin1String("1942135050");
+        map["apiversion"] = QLatin1String("1.42.0");
+        map["datastoreversion"] = QLatin1String("98");
+    }
     map["mac"] = gwMAC;
     map["bridgeid"] = gwBridgeId;
     map["factorynew"] = false;
     map["replacesbridgeid"] = QVariant();
-    map["modelid"] = QLatin1String("deCONZ");
     map["starterkitid"] = QLatin1String("");
 
     if (!apsCtrl->getParameter(deCONZ::ParamDeviceName).isEmpty())
@@ -1109,9 +1117,9 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
     checkRfConnectState();
 
     // handle ETag
-    if (req.hdr.hasKey("If-None-Match"))
+    if (req.hdr.hasKey(QLatin1String("If-None-Match")))
     {
-        QString etag = req.hdr.value("If-None-Match");
+        QString etag = req.hdr.value(QLatin1String("If-None-Match"));
 
         if (gwConfigEtag == etag)
         {
@@ -1270,9 +1278,9 @@ int DeRestPluginPrivate::getConfig(const ApiRequest &req, ApiResponse &rsp)
     checkRfConnectState();
 
     // handle ETag
-    if (req.hdr.hasKey("If-None-Match"))
+    if (req.hdr.hasKey(QLatin1String("If-None-Match")))
     {
-        QString etag = req.hdr.value("If-None-Match");
+        QString etag = req.hdr.value(QLatin1String("If-None-Match"));
 
         if (gwConfigEtag == etag)
         {
@@ -1297,9 +1305,9 @@ int DeRestPluginPrivate::getBasicConfig(const ApiRequest &req, ApiResponse &rsp)
     checkRfConnectState();
 
     // handle ETag
-    if (req.hdr.hasKey("If-None-Match"))
+    if (req.hdr.hasKey(QLatin1String("If-None-Match")))
     {
-        QString etag = req.hdr.value("If-None-Match");
+        QString etag = req.hdr.value(QLatin1String("If-None-Match"));
 
         if (gwConfigEtag == etag)
         {
@@ -1308,12 +1316,12 @@ int DeRestPluginPrivate::getBasicConfig(const ApiRequest &req, ApiResponse &rsp)
             return REQ_READY_SEND;
         }
     }
-    basicConfigToMap(rsp.map);
+    basicConfigToMap(req, rsp.map);
 
     // include devicename attribute in web based requests
-    if (!apsCtrl->getParameter(deCONZ::ParamDeviceName).isEmpty() && req.hdr.hasKey("User-Agent"))
+    if (!apsCtrl->getParameter(deCONZ::ParamDeviceName).isEmpty() && req.hdr.hasKey(QLatin1String("User-Agent")))
     {
-        const QString ua = req.hdr.value("User-Agent");
+        const QString ua = req.hdr.value(QLatin1String("User-Agent"));
         if (ua.startsWith(QLatin1String("Mozilla"))) // all browser UA start with Mozilla/5.0
         {
             rsp.map["devicename"] = apsCtrl->getParameter(deCONZ::ParamDeviceName);
@@ -2173,6 +2181,29 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);
     }
+    if (map.contains("lightlastseeninterval")) // optional
+    {
+        int lightLastSeen = map["lightlastseeninterval"].toInt(&ok);
+        if (!ok || lightLastSeen <= 0 || lightLastSeen > 65535)
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/lightlastseeninterval"), QString("invalid value, %1, for parameter, lightlastseeninterval").arg(map["lightlastseeninterval"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+
+        if (gwLightLastSeenInterval != lightLastSeen)
+        {
+            gwLightLastSeenInterval = lightLastSeen;
+            queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+            changed = true;
+        }
+
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState["/config/lightlastseeninterval"] = lightLastSeen;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+    }
 
     if (changed)
     {
@@ -2362,7 +2393,25 @@ int DeRestPluginPrivate::updateFirmware(const ApiRequest &req, ApiResponse &rsp)
 int DeRestPluginPrivate::exportConfig(const ApiRequest &req, ApiResponse &rsp)
 {
     Q_UNUSED(req)
-    if (exportConfiguration())
+
+    if (!isInNetwork())
+    {
+        DBG_Printf(DBG_ERROR, "backup: failed to export - ZigBee network is down\n");
+        rsp.httpStatus = HttpStatusServiceUnavailable;
+        return REQ_READY_SEND;
+    }
+
+    ttlDataBaseConnection = 0;
+    closeDb();
+
+    if (dbIsOpen())
+    {
+        DBG_Printf(DBG_ERROR, "backup: failed to export - database busy\n");
+        rsp.httpStatus = HttpStatusServiceUnavailable;
+        return REQ_READY_SEND;
+    }
+
+    if (BAK_ExportConfiguration(deCONZ::ApsController::instance()))
     {
         rsp.httpStatus = HttpStatusOk;
         QVariantMap rspItem;
@@ -2385,8 +2434,20 @@ int DeRestPluginPrivate::exportConfig(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::importConfig(const ApiRequest &req, ApiResponse &rsp)
 {
+    // prevent overwrite database with content of current memory
+    // will be reset after application soft restart
+    ttlDataBaseConnection = 0;
+    saveDatabaseItems |= DB_NOSAVE;
+    closeDb();
 
-    if (importConfiguration())
+    if (dbIsOpen())
+    {
+        DBG_Printf(DBG_ERROR, "backup: failed to import - database busy\n");
+        rsp.httpStatus = HttpStatusServiceUnavailable;
+        return REQ_READY_SEND;
+    }
+
+    if (BAK_ImportConfiguration(deCONZ::ApsController::instance()))
     {
         openDb();
         saveApiKey(req.apikey());
@@ -2406,6 +2467,12 @@ int DeRestPluginPrivate::importConfig(const ApiRequest &req, ApiResponse &rsp)
                 this, SLOT(restartAppTimerFired()));
         restartTimer->start(SET_ENDPOINTCONFIG_DURATION);
 
+        auto curChannel = apsCtrl->getParameter(deCONZ::ParamCurrentChannel);
+        if (gwZigbeeChannel != curChannel)
+        {
+            gwZigbeeChannel = curChannel;
+            saveDatabaseItems |= DB_CONFIG;
+        }
     }
     else
     {
@@ -2457,7 +2524,20 @@ int DeRestPluginPrivate::resetConfig(const ApiRequest &req, ApiResponse &rsp)
     resetGW = map["resetGW"].toBool();
     deleteDB = map["deleteDB"].toBool();
 
-    if (resetConfiguration(resetGW, deleteDB))
+    // prevent overwrite database with content of current memory
+    // will be reset after application soft restart
+    ttlDataBaseConnection = 0;
+    saveDatabaseItems |= DB_NOSAVE;
+    closeDb();
+
+    if (dbIsOpen())
+    {
+        DBG_Printf(DBG_ERROR, "backup: failed to import - database busy\n");
+        rsp.httpStatus = HttpStatusServiceUnavailable;
+        return REQ_READY_SEND;
+    }
+
+    if (BAK_ResetConfiguration(deCONZ::ApsController::instance(), resetGW, deleteDB))
     {
         rsp.httpStatus = HttpStatusOk;
         QVariantMap rspItem;
@@ -2468,13 +2548,14 @@ int DeRestPluginPrivate::resetConfig(const ApiRequest &req, ApiResponse &rsp)
         //wait some seconds that deCONZ can finish Enpoint config,
         //then restart app to apply network config (only on raspbee gw)
 
+        gwZigbeeChannel = apsCtrl->getParameter(deCONZ::ParamCurrentChannel);
+        saveDatabaseItems |= DB_CONFIG;
         needRestartApp = true;
         QTimer *restartTimer = new QTimer(this);
         restartTimer->setSingleShot(true);
         connect(restartTimer, SIGNAL(timeout()),
                 this, SLOT(restartAppTimerFired()));
         restartTimer->start(SET_ENDPOINTCONFIG_DURATION);
-
     }
     else
     {
@@ -3675,9 +3756,12 @@ size_t DeRestPluginPrivate::calcDaylightOffsets(Sensor *daylightSensor, size_t i
         return iter;
     }
 
-    for (;iter < sensors.size(); iter++)
+    QElapsedTimer t; // don't block too long
+    t.start();
+    while (iter < sensors.size() && t.elapsed() < 3)
     {
         Sensor &s = sensors[iter];
+        iter++;
 
         if (s.type() != QLatin1String("CLIPDaylightOffset"))
         {
@@ -3705,11 +3789,16 @@ size_t DeRestPluginPrivate::calcDaylightOffsets(Sensor *daylightSensor, size_t i
         }
         else if (mode->toString() == QLatin1String("fix"))
         {
-            auto dt = QDateTime::fromString(localTime->toString(), QLatin1String("yyyy-MM-ddTHH:mm:ss"));
+            auto dt = QDateTime::fromMSecsSinceEpoch(localTime->toNumber());
+            const auto today = QDate::currentDate();
+            if (dt.date() != today)
+            {
+                dt.setDate(today);
+            }
             tref = dt.toMSecsSinceEpoch();
         }
 
-        if (tref != localTime->toNumber())
+        if (tref > 0 && tref != localTime->toNumber())
         {
             localTime->setValue(tref);
             s.updateStateTimestamp();

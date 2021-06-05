@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2020 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2021 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -10,6 +10,7 @@
 
 #include "sensor.h"
 #include "json.h"
+#include "product_match.h"
 
 /*! Returns a fingerprint as JSON string. */
 QString SensorFingerprint::toString() const
@@ -155,7 +156,6 @@ Sensor::Sensor() :
 {
     QDateTime now = QDateTime::currentDateTime();
     lastStatePush = now;
-    lastConfigPush = now;
     durationDue = QDateTime();
 
     // common sensor items
@@ -538,34 +538,4 @@ SensorFingerprint &Sensor::fingerPrint()
 const SensorFingerprint &Sensor::fingerPrint() const
 {
     return m_fingerPrint;
-}
-
-const std::vector<Sensor::ButtonMap> Sensor::buttonMap(const QMap<QString, std::vector<Sensor::ButtonMap>> &buttonMapData, QMap<QString, QString> &buttonMapForModelId)
-{
-    if (m_buttonMap.empty())
-    {
-        const QString &modelid = item(RAttrModelId)->toString();
-        const QString &manufacturer = item(RAttrManufacturerName)->toString();
-
-        for (auto i = buttonMapForModelId.constBegin(); i != buttonMapForModelId.constEnd(); ++i)
-        {
-            if (modelid.startsWith(QString(i.key())))
-            {
-                m_buttonMap = buttonMapData.value(i.value());
-            }
-        }
-        // Workaround for Tuya without usable modelid
-        if ((manufacturer == QLatin1String("_TZ3000_bi6lpsew")) ||  // can't use model id but manufacture name is device specific
-            (manufacturer == QLatin1String("_TZ3400_keyjhapk")) ||
-            (manufacturer == QLatin1String("_TYZB02_key8kk7r")) ||
-            (manufacturer == QLatin1String("_TZ3400_keyjqthh")) ||
-            (manufacturer == QLatin1String("_TZ3400_key8kk7r")) ||
-            (manufacturer == QLatin1String("_TZ3000_vp6clf9d")) ||
-            (manufacturer == QLatin1String("_TYZB02_keyjqthh")))
-        {
-            m_buttonMap = buttonMapData.value("Tuya3gangMap");
-        }
-    }
-
-    return m_buttonMap;
 }

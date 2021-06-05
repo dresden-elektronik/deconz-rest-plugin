@@ -292,15 +292,13 @@ void DeRestPluginPrivate::updateThermostatSchedule(Sensor *sensor, quint8 newWee
     }
     item->setValue(s);
     enqueueEvent(Event(RSensors, RConfigSchedule, sensor->id(), item));
-    updateEtag(sensor->etag);
-    updateEtag(gwConfigEtag);
+    updateSensorEtag(&*sensor);
     sensor->setNeedSaveDatabase(true);
     queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
 }
 
 
 // static const QStringList weekday({"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Away"});
-static TaskItem taskScheduleTimer;
 static int dayofweekTimer = 0;
 
 /*! Handle packets related to the ZCL Thermostat cluster.
@@ -313,7 +311,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
     if (!sensor)
     {
-        DBG_Printf(DBG_INFO, "No thermostat sensor found for 0x%016llX, endpoint: 0x%08X\n", ind.srcAddress().ext(), ind.srcEndpoint());
+        DBG_Printf(DBG_INFO, "No thermostat sensor found for 0x%016llX, endpoint: 0x%02X\n", ind.srcAddress().ext(), ind.srcEndpoint());
         return;
     }
 
@@ -437,8 +435,9 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
             case 0x0010: // Local Temperature Calibration (offset in 0.1 °C steps, from -2,5 °C to +2,5 °C)
             {
-                qint8 config = attr.numericValue().s8 * 10;
+                qint16 config = attr.numericValue().s8 * 10;
                 item = sensor->item(RConfigOffset);
+                
                 if (item && item->toNumber() != config)
                 {
                     item->setValue(config);
@@ -484,6 +483,29 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             }
                 break;
 
+            case 0x001B: // Control Sequence of Operation
+            {
+                quint16 controlSequence = attr.numericValue().u16;
+                quint8 mode = 0;
+
+                if      (controlSequence == COOLING_ONLY)                           { mode = 1; }
+                else if (controlSequence == COOLING_WITH_REHEAT)                    { mode = 2; }
+                else if (controlSequence == HEATING_ONLY)                           { mode = 3; }
+                else if (controlSequence == HEATING_WITH_REHEAT)                    { mode = 4; }
+                else if (controlSequence == COOLING_AND_HEATING_4PIPES)             { mode = 5; }
+                else if (controlSequence == COOLING_AND_HEATING_4PIPES_WITH_REHEAT) { mode = 6; }
+
+                item = sensor->item(RConfigControlSequence);
+                if (item && item->toNumber() != mode && mode > 0 && mode <= 6)
+                {
+                    item->setValue(mode);
+                    enqueueEvent(Event(RSensors, RConfigControlSequence, sensor->id(), item));
+                    configUpdated = true;
+                }
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+
             case 0x001C: // System Mode
             {
                 if (sensor->modelId().startsWith(QLatin1String("SLR2")) ||   // Hive
@@ -493,22 +515,22 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                     sensor->modelId().startsWith(QLatin1String("AC201")))    // OWON
                 {
                     qint8 mode = attr.numericValue().s8;
-                    QString mode_set;
+                    QString modeSet;
 
-                    mode_set = QString("off");
-                    if ( mode == 0x01 ) { mode_set = QString("auto"); }
-                    if ( mode == 0x03 ) { mode_set = QString("cool"); }
-                    if ( mode == 0x04 ) { mode_set = QString("heat"); }
-                    if ( mode == 0x05 ) { mode_set = QString("emergency heating"); }
-                    if ( mode == 0x06 ) { mode_set = QString("precooling"); }
-                    if ( mode == 0x07 ) { mode_set = QString("fan only"); }
-                    if ( mode == 0x08 ) { mode_set = QString("dry"); }
-                    if ( mode == 0x09 ) { mode_set = QString("sleep"); }
+                    if      (mode == 0x01) { modeSet = QLatin1String("auto"); }
+                    else if (mode == 0x03) { modeSet = QLatin1String("cool"); }
+                    else if (mode == 0x04) { modeSet = QLatin1String("heat"); }
+                    else if (mode == 0x05) { modeSet = QLatin1String("emergency heating"); }
+                    else if (mode == 0x06) { modeSet = QLatin1String("precooling"); }
+                    else if (mode == 0x07) { modeSet = QLatin1String("fan only"); }
+                    else if (mode == 0x08) { modeSet = QLatin1String("dry"); }
+                    else if (mode == 0x09) { modeSet = QLatin1String("sleep"); }
+                    else                   { modeSet = QLatin1String("off"); }
 
                     item = sensor->item(RConfigMode);
-                    if (item && !item->toString().isEmpty() && item->toString() != mode_set)
+                    if (item && !item->toString().isEmpty() && item->toString() != modeSet)
                     {
-                        item->setValue(mode_set);
+                        item->setValue(modeSet);
                         enqueueEvent(Event(RSensors, RConfigMode, sensor->id(), item));
                         configUpdated = true;
                     }
@@ -599,6 +621,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
             case 0x0032: // Setpoint Change Timestamp
             {
+                const QDateTime epoch = QDateTime(QDate(2000, 1, 1), QTime(0, 0), Qt::UTC);
                 QDateTime time = epoch.addSecs(attr.numericValue().u32 - QDateTime::currentDateTime().offsetFromUtc());
                 item = sensor->item(RConfigLastChangeTime);
                 if (item) // && item->toVariant().toDateTime().toMSecsSinceEpoch() != time.toMSecsSinceEpoch())
@@ -616,12 +639,12 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 qint8 mode = attr.numericValue().s8;
                 QString modeSet;
 
-                modeSet = QLatin1String("fully closed");
-                if ( mode == 0x01 ) { modeSet = QLatin1String("fully closed"); }
-                else if ( mode == 0x02 ) { modeSet = QLatin1String("fully open"); }
-                else if ( mode == 0x03 ) { modeSet = QLatin1String("quarter open"); }
-                else if ( mode == 0x04 ) { modeSet = QLatin1String("half open"); }
-                else if ( mode == 0x05 ) { modeSet = QLatin1String("three quarters open"); }
+                if      (mode == 0x01) { modeSet = QLatin1String("fully closed"); }
+                else if (mode == 0x02) { modeSet = QLatin1String("fully open"); }
+                else if (mode == 0x03) { modeSet = QLatin1String("quarter open"); }
+                else if (mode == 0x04) { modeSet = QLatin1String("half open"); }
+                else if (mode == 0x05) { modeSet = QLatin1String("three quarters open"); }
+                else                   { modeSet = QLatin1String("fully closed"); }
 
                 item = sensor->item(RConfigSwingMode);
                 if (item && !item->toString().isEmpty() && item->toString() != modeSet)
@@ -640,17 +663,17 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 if (sensor->modelId().startsWith(QLatin1String("Super TR"))) // ELKO
                 {
                     quint8 mode = attr.numericValue().u8;
-                    QString mode_set;
+                    QString modeset;
 
-                    if ( mode == 0x00 ) { mode_set = QString("air sensor"); }
-                    if ( mode == 0x01 ) { mode_set = QString("floor sensor"); }
-                    if ( mode == 0x03 ) { mode_set = QString("floor protection"); }
+                    if      (mode == 0x00) { modeset = QLatin1String("air sensor"); }
+                    else if (mode == 0x01) { modeset = QLatin1String("floor sensor"); }
+                    else if (mode == 0x03) { modeset = QLatin1String("floor protection"); }
 
                     item = sensor->item(RConfigTemperatureMeasurement);
 
-                    if (item && item->toString() != mode_set)
+                    if (item && item->toString() != modeset)
                     {
-                        item->setValue(mode_set);
+                        item->setValue(modeset);
                         enqueueEvent(Event(RSensors, RConfigTemperatureMeasurement, sensor->id(), item));
                         configUpdated = true;
                     }
@@ -678,14 +701,14 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                     }
 
                     // Set config/mode to have an adequate representation based on this attribute
-                    QString mode_set;
-                    if ( on == false ) { mode_set = QString("off"); }
-                    if ( on == true ) { mode_set = QString("heat"); }
+                    QString modeset;
+                    if (on == true)  { modeset = QLatin1String("heat"); }
+                    else             { modeset = QLatin1String("off"); }
 
                     item = sensor->item(RConfigMode);
-                    if (item && !item->toString().isEmpty() && item->toString() != mode_set)
+                    if (item && !item->toString().isEmpty() && item->toString() != modeset)
                     {
-                        item->setValue(mode_set);
+                        item->setValue(modeset);
                         enqueueEvent(Event(RSensors, RConfigMode, sensor->id(), item));
                         configUpdated = true;
                     }
@@ -722,6 +745,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 {
                     bool enabled = attr.numericValue().u8 > 0 ? true : false;
                     item = sensor->item(RConfigLocked);
+                    
                     if (item && item->toBool() != enabled)
                     {
                         item->setValue(enabled);
@@ -765,21 +789,22 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 else if (zclFrame.manufacturerCode() == VENDOR_DANFOSS)
                 {
                     quint8 windowmode = attr.numericValue().u8;
-                    QString windowmode_set;
+                    QString windowmodeSet;
 
-                    if ( windowmode == 0x01 ) { windowmode_set = QString("Closed"); }
-                    if ( windowmode == 0x02 ) { windowmode_set = QString("Hold"); }
-                    if ( windowmode == 0x03 ) { windowmode_set = QString("Open"); }
-                    if ( windowmode == 0x04 ) { windowmode_set = QString("Open (external), closed (internal)"); }
+                    if      (windowmode == 0x00) { windowmodeSet = QLatin1String("Quarantine"); }
+                    else if (windowmode == 0x01) { windowmodeSet = QLatin1String("Closed"); }
+                    else if (windowmode == 0x02) { windowmodeSet = QLatin1String("Hold"); }
+                    else if (windowmode == 0x03) { windowmodeSet = QLatin1String("Open"); }
+                    else if (windowmode == 0x04) { windowmodeSet = QLatin1String("Open (external), closed (internal)"); }
 
                     item = sensor->item(RStateWindowOpen);
                     if (item && updateType == NodeValue::UpdateByZclReport)
                     {
                         stateUpdated = true;
                     }
-                    if (item && item->toString() != windowmode_set)
+                    if (item && item->toString() != windowmodeSet)
                     {
-                        item->setValue(windowmode_set);
+                        item->setValue(windowmodeSet);
                         enqueueEvent(Event(RSensors, RStateWindowOpen, sensor->id(), item));
                         stateUpdated = true;
                     }
@@ -793,18 +818,18 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             {
                 if (zclFrame.manufacturerCode() == VENDOR_JENNIC)
                 {
-
                 }
             }
                 sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
                 break;
 
-            case 0x4003: // Current temperature set point
-            {   // this will be reported when manually changing the temperature
+            case 0x4003:
+            {   // Current temperature set point - this will be reported when manually changing the temperature
                 if (zclFrame.manufacturerCode() == VENDOR_JENNIC && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
                 {
                     qint16 heatSetpoint = attr.numericValue().s16;
                     item = sensor->item(RConfigHeatSetpoint);
+                    
                     if (item)
                     {
                         if (updateType == NodeValue::UpdateByZclReport)
@@ -819,6 +844,22 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                         }
                     }
                 }
+
+                // External Window Open signal
+                if (zclFrame.manufacturerCode() == VENDOR_DANFOSS && (sensor->modelId() == QLatin1String("eTRV0100") ||
+                                                                      sensor->modelId() == QLatin1String("TRV001")))
+                {
+                    bool enabled = attr.numericValue().u8 > 0 ? true : false;
+                    item = sensor->item(RConfigExternalWindowOpen);
+                    
+                    if (item && item->toBool() != enabled)
+                    {
+                        item->setValue(enabled);
+                        enqueueEvent(Event(RSensors, RConfigExternalWindowOpen, sensor->id(), item));
+                        configUpdated = true;
+                    }
+                }
+                
                 sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
             }
                 break;
@@ -900,6 +941,77 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             }
                 break;
 
+            case 0x4015: // External Measured Room Sensor
+            {
+                if (zclFrame.manufacturerCode() == VENDOR_DANFOSS && (sensor->modelId() == QLatin1String("eTRV0100") ||
+                                                                      sensor->modelId() == QLatin1String("TRV001")))
+                {
+                    qint16 externalMeasurement = attr.numericValue().s16;
+                    item = sensor->item(RConfigExternalTemperatureSensor);
+                    if (item)
+                    {
+                        if (updateType == NodeValue::UpdateByZclReport)
+                        {
+                            configUpdated = true;
+                        }
+                        if (item->toNumber() != externalMeasurement)
+                        {
+                            item->setValue(externalMeasurement);
+                            enqueueEvent(Event(RSensors, RConfigExternalTemperatureSensor, sensor->id(), item));
+                            configUpdated = true;
+                        }
+                    }
+                }
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+
+            case 0x404B: // Regulation SetPoint Offset (offset in 0.1 °C steps, from -2,5 °C to +2,5 °C)
+            {
+                qint16 config = attr.numericValue().s8 * 10;
+                item = sensor->item(RConfigOffset);
+
+                if (item && item->toNumber() != config)
+                {
+                    item->setValue(config);
+                    enqueueEvent(Event(RSensors, RConfigOffset, sensor->id(), item));
+                    configUpdated = true;
+                }
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+
+            // Manufacturer Specific for Danfoss Icon Floor Heating Controller
+            case 0x4110:  // Danfoss Output Status
+            {
+                if (sensor->modelId() == QLatin1String("0x8020") || // Danfoss RT24V Display thermostat
+                    sensor->modelId() == QLatin1String("0x8021") || // Danfoss RT24V Display thermostat with floor sensor
+                    sensor->modelId() == QLatin1String("0x8030") || // Danfoss RTbattery Display thermostat
+                    sensor->modelId() == QLatin1String("0x8031") || // Danfoss RTbattery Display thermostat with infrared
+                    sensor->modelId() == QLatin1String("0x8034") || // Danfoss RTbattery Dial thermostat
+                    sensor->modelId() == QLatin1String("0x8035"))   // Danfoss RTbattery Dial thermostat with infrared
+                {
+                    quint8 outputStatus = attr.numericValue().u8;
+                    bool on = outputStatus > 0;
+                    item = sensor->item(RStateOn);
+                    if (item)
+                    {
+                        if (updateType == NodeValue::UpdateByZclReport)
+                        {
+                            stateUpdated = true;
+                        }
+                        if (item->toBool() != on)
+                        {
+                            item->setValue(on);
+                            enqueueEvent(Event(RSensors, RStateOn, sensor->id(), item));
+                            stateUpdated = true;
+                        }
+                    }
+                }
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+
             default:
                 break;
             }
@@ -913,8 +1025,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
         if (configUpdated || stateUpdated)
         {
-            updateEtag(sensor->etag);
-            updateEtag(gwConfigEtag);
+            updateSensorEtag(&*sensor);
             sensor->setNeedSaveDatabase(true);
             queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
         }
@@ -1013,9 +1124,9 @@ bool DeRestPluginPrivate::addTaskThermostatCmd(TaskItem &task, uint16_t mfrCode,
     {
         // no payload
     }
-    else if (cmd == 0x40) // Hive manufacture command
+    else if (cmd == 0x40) // Danfoss/Hive manufacturer command
     {
-        stream << (qint8) 0x01;  // ???
+        stream << (qint8) 0x01;       // Large valve movement
         stream << (qint16) setpoint;  // temperature
     }
     else
@@ -1167,26 +1278,15 @@ bool DeRestPluginPrivate::addTaskThermostatReadWriteAttribute(TaskItem &task, ui
     QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
     stream.setByteOrder(QDataStream::LittleEndian);
 
-    stream << (quint16) attrId;
-
     if (readOrWriteCmd == deCONZ::ZclWriteAttributesId)
     {
-        stream << (quint8) attrType;
-        if (attrType == deCONZ::Zcl8BitEnum || attrType == deCONZ::Zcl8BitInt || attrType == deCONZ::Zcl8BitBitMap || attrType == deCONZ::ZclBoolean)
-        {
-            stream << (quint8) attrValue;
-        }
-        else if (attrType == deCONZ::Zcl16BitInt || attrType == deCONZ::Zcl16BitBitMap)
-        {
-            stream << (quint16) attrValue;
-        }
-        else if (attrType == deCONZ::Zcl24BitUint)
-        {
-            stream << (qint8) (attrValue & 0xFF);
-            stream << (qint8) ((attrValue >> 8) & 0xFF);
-            stream << (qint8) ((attrValue >> 16) & 0xFF);
-        }
-        else
+        stream << attrId;
+        stream << attrType;
+
+        deCONZ::ZclAttribute attr(attrId, attrType, QLatin1String(""), deCONZ::ZclWrite, true);
+        attr.setValue(QVariant(attrValue));
+
+        if (!attr.writeToStream(stream))
         {
             return false;
         }

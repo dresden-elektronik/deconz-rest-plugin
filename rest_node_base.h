@@ -96,8 +96,9 @@ public:
     bool debugAll() const;
     void setDebugAll(bool allEnabled);
 
-private:
+protected:
     deCONZ::Node *m_node;
+private:
     deCONZ::Address m_addr;
     QString m_id;
     QString m_uid;
@@ -117,5 +118,7 @@ private:
     bool m_debugNode;
     bool m_debugAll;
 };
+
+const deCONZ::SimpleDescriptor *getSimpleDescriptor(const deCONZ::Node *node, quint8 ep);
 
 #endif // REST_NODE_BASE_H

@@ -409,6 +409,24 @@ void RestNodeBase::rx()
     m_lastRx = QDateTime::currentDateTime();
 }
 
+const deCONZ::SimpleDescriptor *getSimpleDescriptor(const deCONZ::Node *node, quint8 ep)
+{
+    if (!node)
+    {
+        return nullptr;
+    }
+
+    const auto i = std::find_if(node->simpleDescriptors().cbegin(), node->simpleDescriptors().cend(),
+                                [ep](const auto &sd){ return sd.endpoint() == ep; });
+
+    if (i != node->simpleDescriptors().cend())
+    {
+        return &*i;
+    }
+
+    return nullptr;
+}
+
 uint64_t RestNodeBase::extv2() const
 {
     return m_node->address().ext();

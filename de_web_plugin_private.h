@@ -40,6 +40,9 @@
 #include "websocket_server.h"
 #include "tuya.h"
 
+// enable domain specific string literals
+using namespace deCONZ::literals;
+
 #if defined(Q_OS_LINUX) && !defined(Q_PROCESSOR_X86)
   // Workaround to detect ARM and AARCH64 in older Qt versions.
   #define ARCH_ARM
@@ -68,11 +71,13 @@
 
 #define ERR_LINK_BUTTON_NOT_PRESSED    101
 #define ERR_DEVICE_OFF                 201
+#define ERR_DEVICE_NOT_REACHABLE       202
 #define ERR_BRIDGE_GROUP_TABLE_FULL    301
 #define ERR_DEVICE_GROUP_TABLE_FULL    302
 
 #define ERR_DEVICE_SCENES_TABLE_FULL   402 // de extension
 
+#define IDLE_TIMER_INTERVAL 1000
 #define IDLE_LIMIT 30
 #define IDLE_READ_LIMIT 120
 #define IDLE_USER_LIMIT 20
@@ -84,7 +89,6 @@
 #define MAX_UNLOCK_GATEWAY_TIME 600
 #define MAX_RECOVER_ENTRY_AGE 600
 #define PERMIT_JOIN_SEND_INTERVAL (1000 * 1800)
-#define EXT_PROCESS_TIMEOUT 10000
 #define SET_ENDPOINTCONFIG_DURATION (1000 * 16) // time deCONZ needs to update Endpoints
 #define OTA_LOW_PRIORITY_TIME (60 * 2)
 #define CHECK_SENSOR_FAST_ROUNDS 3
@@ -132,8 +136,9 @@
 #define DEV_ID_HA_WINDOW_COVERING_DEVICE    0x0202 // Window Covering Device
 #define DEV_ID_HA_WINDOW_COVERING_CONTROLLER 0x0203 // Window Covering Controller
 
-// Danalock support
+// Door lock device
 #define DEV_ID_DOOR_LOCK                    0x000a // Door Lock
+#define DEV_ID_DOOR_LOCK_UNIT               0x000b // Door Lock controller
 
 //
 #define DEV_ID_IAS_ZONE                     0x0402 // IAS Zone
@@ -209,7 +214,11 @@
 #define VENDOR_CLUSTER_ID                     0xFC00
 #define UBISYS_DEVICE_SETUP_CLUSTER_ID        0xFC00
 #define SAMJIN_CLUSTER_ID                     0xFC02
+#define DEVELCO_AIR_QUALITY_CLUSTER_ID        0xFC03
+#define SENGLED_CLUSTER_ID                    0xFC10
 #define LEGRAND_CONTROL_CLUSTER_ID            0xFC40
+#define XIAOMI_CLUSTER_ID                     0xFCC0
+#define ADUROLIGHT_CLUSTER_ID                 0xFCCC
 #define XAL_CLUSTER_ID                        0xFCCE
 #define BOSCH_AIR_QUALITY_CLUSTER_ID          quint16(0xFDEF)
 
@@ -238,6 +247,8 @@
 #define WINDOW_COVERING_COMMAND_GOTO_LIFT_PCT 0x05
 #define WINDOW_COVERING_COMMAND_GOTO_TILT_PCT 0x08
 
+#define MULTI_STATE_INPUT_PRESENT_VALUE_ATTRIBUTE_ID quint16(0x0055)
+
 
 // IAS Zone Types
 #define IAS_ZONE_TYPE_STANDARD_CIE            0x0000
@@ -248,6 +259,45 @@
 #define IAS_ZONE_TYPE_CARBON_MONOXIDE_SENSOR  0x002b
 #define IAS_ZONE_TYPE_VIBRATION_SENSOR        0x002d
 #define IAS_ZONE_TYPE_WARNING_DEVICE          0x0225
+
+// Thermostat cluster, Control Sequence of Operation (0x001B)
+#define COOLING_ONLY                            0x00
+#define COOLING_WITH_REHEAT                     0x01
+#define HEATING_ONLY                            0x02
+#define HEATING_WITH_REHEAT                     0x03
+#define COOLING_AND_HEATING_4PIPES              0x04
+#define COOLING_AND_HEATING_4PIPES_WITH_REHEAT  0x05
+
+// IAS Setup states
+#define IAS_STATE_INIT                 0
+#define IAS_STATE_ENROLLED             1 // finished
+#define IAS_STATE_READ                 2
+#define IAS_STATE_WAIT_READ            3
+#define IAS_STATE_WRITE_CIE_ADDR       4
+#define IAS_STATE_WAIT_WRITE_CIE_ADDR  5
+#define IAS_STATE_DELAY_ENROLL         6
+#define IAS_STATE_ENROLL               7
+#define IAS_STATE_WAIT_ENROLL          8
+#define IAS_STATE_MAX                  9 // invalid
+
+// Develco interface modes, manufacturer specific
+#define PULSE_COUNTING_ELECTRICITY      0x0000
+#define PULSE_COUNTING_GAS              0x0001
+#define PULSE_COUNTING_WATER            0x0002
+#define KAMSTRUP_KMP                    0x0100
+#define LINKY                           0x0101
+#define DLMS_COSEM                      0x0102
+#define DSMR_23                         0x0103
+#define DSMR_40                         0x0104
+#define NORWEGIAN_HAN                   0x0200
+#define NORWEGIAN_HAN_EXTRA_LOAD        0x0201
+#define AIDON_METER                     0x0202
+#define KAIFA_KAMSTRUP_METERS           0x0203
+#define AUTO_DETECT                     0x0204
+
+#ifndef DBG_IAS
+  #define DBG_IAS DBG_INFO  // DBG_IAS didn't exist before version v2.10.x
+#endif
 
 // read and write flags
 #define READ_MODEL_ID          (1 << 0)
@@ -272,6 +322,7 @@
 #define READ_TIME              (1 << 19)
 #define WRITE_TIME             (1 << 20)
 #define READ_THERMOSTAT_SCHEDULE (1 << 21)
+#define WRITE_DEVICEMODE       (1 << 22)
 
 #define READ_MODEL_ID_INTERVAL   (60 * 60) // s
 #define READ_SWBUILD_ID_INTERVAL (60 * 60) // s
@@ -284,6 +335,7 @@
 #define VENDOR_VISONIC              0x1011
 #define VENDOR_ATMEL                0x1014
 #define VENDOR_DEVELCO              0x1015
+#define VENDOR_YALE                 0x101D
 #define VENDOR_MAXSTREAM            0x101E // Used by Digi
 #define VENDOR_VANTAGE              0x1021
 #define VENDOR_LEGRAND              0x1021 // wrong name?
@@ -293,6 +345,7 @@
 #define VENDOR_CLS                  0x104E
 #define VENDOR_CENTRALITE           0x104E // wrong name?
 #define VENDOR_SI_LABS              0x1049
+#define VENDOR_SCHNEIDER            0x105E
 #define VENDOR_4_NOKS               0x1071
 #define VENDOR_BITRON               0x1071 // branded
 #define VENDOR_COMPUTIME            0x1078
@@ -303,6 +356,7 @@
 #define VENDOR_NYCE                 0x10B9
 #define VENDOR_UNIVERSAL2           0x10EF
 #define VENDOR_UBISYS               0x10F2
+#define VENDOR_DATEK_WIRLESS        0x1337
 #define VENDOR_DANALOCK             0x115C
 #define VENDOR_SCHLAGE              0x1236 // Used by Schlage Locks
 #define VENDOR_BEGA                 0x1105
@@ -326,6 +380,7 @@
 #define VENDOR_INNR                 0x1166
 #define VENDOR_LDS                  0x1168 // Used by Samsung SmartPlug 2019
 #define VENDOR_PLUGWISE_BV          0x1172
+#define VENDOR_D_LINK               0x1175
 #define VENDOR_INSTA                0x117A
 #define VENDOR_IKEA                 0x117C
 #define VENDOR_3A_SMART_HOME        0x117E
@@ -338,8 +393,9 @@
 #define VENDOR_CHINA_FIRE_SEC       0x1214
 #define VENDOR_MUELLER              0x121B // Used by Mueller Licht
 #define VENDOR_AURORA               0x121C // Used by Aurora Aone
-#define VENDOR_SUNRICHER            0x1224 // white label used by iCasa, Illuminize, Namron ...
+#define VENDOR_SUNRICHER            0x1224 // white label used by iCasa, Illuminize, Namron, SLC ...
 #define VENDOR_XAL                  0x122A
+#define VENDOR_ADUROLIGHT           0x122D
 #define VENDOR_THIRD_REALITY        0x1233
 #define VENDOR_DSR                  0x1234
 #define VENDOR_HANGZHOU_IMAGIC      0x123B
@@ -348,10 +404,11 @@
 #define VENDOR_NIKO_NV              0x125F
 #define VENDOR_KONKE                0x1268
 #define VENDOR_SHYUGJ_TECHNOLOGY    0x126A
+#define VENDOR_XIAOMI2              0x126E
+#define VENDOR_DATEK                0x1337
 #define VENDOR_OSRAM_STACK          0xBBAA
 #define VENDOR_C2DF                 0xC2DF
 #define VENDOR_PHILIO               0xFFA0
-#define VENDOR_ADUROLIGHT           0x122D
 
 #define ANNOUNCE_INTERVAL 45 // minutes default announce interval
 
@@ -421,7 +478,7 @@
 
 #define DB_HUGE_SAVE_DELAY  (60 * 60 * 1000) // 60 minutes
 #define DB_LONG_SAVE_DELAY  (15 * 60 * 1000) // 15 minutes
-#define DB_SHORT_SAVE_DELAY (5 *  1 * 1000) // 5 seconds
+#define DB_SHORT_SAVE_DELAY (1 *  60 * 1000) // 1 minute
 
 #define DB_CONNECTION_TTL (60 * 15) // 15 minutes
 
@@ -433,18 +490,27 @@
 #define RECONNECT_CHECK_DELAY  5000
 #define RECONNECT_NOW          100
 
+//Epoch mode
+#define UNIX_EPOCH 0
+#define J2000_EPOCH 1
+
+void getTime(quint32 *time, qint32 *tz, quint32 *dstStart, quint32 *dstEnd, qint32 *dstShift, quint32 *standardTime, quint32 *localTime, quint8 mode);
+int getFreeSensorId(); // TODO needs to be part of a Database class
+bool isSameAddress(const deCONZ::Address &a, const deCONZ::Address &b);
+
 extern const quint64 macPrefixMask;
 
 extern const quint64 celMacPrefix;
 extern const quint64 bjeMacPrefix;
 extern const quint64 davicomMacPrefix;
+extern const quint64 dlinkMacPrefix;
 extern const quint64 deMacPrefix;
 extern const quint64 emberMacPrefix;
 extern const quint64 embertecMacPrefix;
 extern const quint64 energyMiMacPrefix;
 extern const quint64 heimanMacPrefix;
 extern const quint64 zenMacPrefix;
-extern const quint64 ikeaMacPrefix;
+extern const quint64 silabs1MacPrefix;
 extern const quint64 ikea2MacPrefix;
 extern const quint64 silabsMacPrefix;
 extern const quint64 silabs2MacPrefix;
@@ -455,10 +521,10 @@ extern const quint64 silabs6MacPrefix;
 extern const quint64 silabs7MacPrefix;
 extern const quint64 silabs8MacPrefix;
 extern const quint64 silabs9MacPrefix;
+extern const quint64 silabs10MacPrefix;
 extern const quint64 instaMacPrefix;
 extern const quint64 boschMacPrefix;
 extern const quint64 jennicMacPrefix;
-extern const quint64 keenhomeMacPrefix;
 extern const quint64 lutronMacPrefix;
 extern const quint64 netvoxMacPrefix;
 extern const quint64 osramMacPrefix;
@@ -469,19 +535,17 @@ extern const quint64 samjinMacPrefix;
 extern const quint64 tiMacPrefix;
 extern const quint64 ubisysMacPrefix;
 extern const quint64 xalMacPrefix;
+extern const quint64 onestiPrefix;
 extern const quint64 develcoMacPrefix;
 extern const quint64 legrandMacPrefix;
+extern const quint64 YooksmartMacPrefix;
 extern const quint64 profaluxMacPrefix;
 extern const quint64 xiaomiMacPrefix;
 extern const quint64 computimeMacPrefix;
 extern const quint64 konkeMacPrefix;
 extern const quint64 ecozyMacPrefix;
 extern const quint64 zhejiangMacPrefix;
-// Danalock support
-extern const quint64 danalockMacPrefix;
 extern const quint64 schlageMacPrefix;
-
-extern const QDateTime epoch;
 
 inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
 {
@@ -524,6 +588,7 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
                    prefix == konkeMacPrefix ||
                    prefix == silabs3MacPrefix ||
                    prefix == silabs5MacPrefix ||
+                   prefix == silabs10MacPrefix ||
                    prefix == silabs7MacPrefix;
         case VENDOR_EMBERTEC:
             return prefix == embertecMacPrefix;
@@ -531,7 +596,7 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
             return prefix == deMacPrefix ||
                    prefix == silabs3MacPrefix;
         case VENDOR_IKEA:
-            return prefix == ikeaMacPrefix ||
+            return prefix == silabs1MacPrefix ||
                    prefix == silabsMacPrefix ||
                    prefix == silabs2MacPrefix ||
                    prefix == silabs4MacPrefix ||
@@ -551,7 +616,7 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
         case VENDOR_JENNIC:
             return prefix == jennicMacPrefix;
         case VENDOR_KEEN_HOME:
-            return prefix == keenhomeMacPrefix;
+            return prefix == celMacPrefix;
         case VENDOR_LGE:
             return prefix == emberMacPrefix;
         case VENDOR_LUTRON:
@@ -580,7 +645,7 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
         case VENDOR_SI_LABS:
             return prefix == silabsMacPrefix ||
                    prefix == energyMiMacPrefix ||
-                   prefix == ikeaMacPrefix; // belongs to SiLabs
+                   prefix == silabs1MacPrefix;
         case VENDOR_STELPRO:
             return prefix == xalMacPrefix;
         case VENDOR_UBISYS:
@@ -606,7 +671,7 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
         case VENDOR_COMPUTIME:
             return prefix == computimeMacPrefix;
         case VENDOR_DANALOCK:
-            return prefix == danalockMacPrefix;
+            return prefix == silabs1MacPrefix;
         case VENDOR_AXIS:
         case VENDOR_MMB:
             return prefix == zenMacPrefix;
@@ -614,6 +679,8 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
             return prefix == schlageMacPrefix;
         case VENDOR_ADUROLIGHT:
 	        return prefix == jennicMacPrefix;
+        case VENDOR_D_LINK:
+            return prefix == dlinkMacPrefix;
         default:
             return false;
     }
@@ -787,7 +854,36 @@ enum TaskType
     TaskDoorLock = 38,
     TaskDoorUnlock = 39,
     TaskSyncTime = 40,
-    TaskTuyaRequest = 41
+    TaskTuyaRequest = 41,
+    TaskXmasLightStrip = 42,
+    TaskSimpleMetering = 43
+};
+
+enum XmasLightStripMode
+{
+    ModeWhite = 0,
+    ModeColour = 1,
+    ModeEffect = 2
+};
+
+enum XmasLightStripEffect
+{
+    EffectSteady = 0x00,
+    EffectSnow = 0x01,
+    EffectRainbow = 0x02,
+    EffectSnake = 0x03,
+    EffectTwinkle = 0x04,
+    EffectFireworks = 0x05,
+    EffectFlag = 0x06,
+    EffectWaves = 0x07,
+    EffectUpdown = 0x08,
+    EffectVintage = 0x09,
+    EffectFading = 0x0a,
+    EffectCollide = 0x0b,
+    EffectStrobe = 0x0c,
+    EffectSparkles = 0x0d,
+    EffectCarnaval = 0x0e,
+    EffectGlow = 0x0f
 };
 
 struct TaskItem
@@ -876,8 +972,10 @@ public:
 
 enum ApiVersion
 {
-    ApiVersion_1,      //!< common version 1.0
-    ApiVersion_1_DDEL  //!< version 1.0, "Accept: application/vnd.ddel.v1"
+    ApiVersion_1,        //!< common version 1.0
+    ApiVersion_1_DDEL,   //!< version 1.0, "Accept: application/vnd.ddel.v1"
+    ApiVersion_1_1_DDEL, //!< version 1.1, "Accept: application/vnd.ddel.v1.1"
+    ApiVersion_2_DDEL,   //!< version 2.0, "Accept: application/vnd.ddel.v2"
 };
 
 enum ApiAuthorisation
@@ -920,8 +1018,9 @@ public:
 
     Helper to simplify HTTP REST request handling.
  */
-struct ApiResponse
+class ApiResponse
 {
+public:
     QString etag;
     const char *httpStatus;
     const char *contentType;
@@ -944,8 +1043,6 @@ public:
 class TcpClient
 {
 public:
-    QHttpRequestHeader hdr;
-    QDateTime created;
     int closeTimeout; // close socket in n seconds
     QTcpSocket *sock;
 };
@@ -967,6 +1064,8 @@ public:
 
     DeRestPluginPrivate(QObject *parent = 0);
     ~DeRestPluginPrivate();
+
+    static DeRestPluginPrivate *instance();
 
     // REST API authorisation
     void initAuthentication();
@@ -1015,7 +1114,7 @@ public:
     int putHomebridgeUpdated(const ApiRequest &req, ApiResponse &rsp);
 
     void configToMap(const ApiRequest &req, QVariantMap &map);
-    void basicConfigToMap(QVariantMap &map);
+    void basicConfigToMap(const ApiRequest &req, QVariantMap &map);
 
     // REST API userparameter
     int handleUserparameterApi(const ApiRequest &req, ApiResponse &rsp);
@@ -1170,13 +1269,7 @@ public:
     void initResetDeviceApi();
 
     //Timezone
-    // std::string getTimezone();
     QVariantList getTimezones();
-
-    //Export/Import/Reset Configuration
-    bool exportConfiguration();
-    bool importConfiguration();
-    bool resetConfiguration(bool resetGW, bool deleteDB);
 
 public Q_SLOTS:
     Resource *getResource(const char *resource, const QString &id = QString());
@@ -1362,6 +1455,7 @@ public:
     void updateSensorNode(const deCONZ::NodeEvent &event);
     void updateSensorLightLevel(Sensor &sensor, quint16 measuredValue);
     bool isDeviceSupported(const deCONZ::Node *node, const QString &modelId);
+    Sensor *getSensorNodeForAddressEndpointAndCluster(const deCONZ::Address &addr, quint8 ep, quint16 cluster);
     Sensor *getSensorNodeForAddressAndEndpoint(const deCONZ::Address &addr, quint8 ep, const QString &type);
     Sensor *getSensorNodeForAddressAndEndpoint(const deCONZ::Address &addr, quint8 ep);
     Sensor *getSensorNodeForAddress(quint64 extAddr);
@@ -1405,13 +1499,13 @@ public:
     bool flsNbMaintenance(LightNode *lightNode);
     bool pushState(QString json, QTcpSocket *sock);
     void patchNodeDescriptor(const deCONZ::ApsDataIndication &ind);
-    void writeIasCieAddress(Sensor*);
+    bool writeIasCieAddress(Sensor*);
     void checkIasEnrollmentStatus(Sensor*);
+    void processIasZoneStatus(Sensor *sensor, quint16 zoneStatus, NodeValue::UpdateType updateType);
 
-    void pushClientForClose(QTcpSocket *sock, int closeTimeout, const QHttpRequestHeader &hdr);
+    void pushClientForClose(QTcpSocket *sock, int closeTimeout);
 
     uint8_t endpoint();
-    QString generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId);
 
     // Task interface
     bool addTask(const TaskItem &task);
@@ -1454,17 +1548,31 @@ public:
     bool addTaskSyncTime(Sensor *sensor);
     bool addTaskThermostatUiConfigurationReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode=0);
     bool addTaskFanControlReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode=0);
+    bool addTaskSimpleMeteringReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode=0);
+
+    // Merry Christmas!
+    bool isXmasLightStrip(LightNode *lightNode);
+    bool addTaskXmasLightStripOn(TaskItem &task, bool on);
+    bool addTaskXmasLightStripMode(TaskItem &task, XmasLightStripMode mode);
+    bool addTaskXmasLightStripWhite(TaskItem &task, quint8 bri);
+    bool addTaskXmasLightStripColour(TaskItem &task, quint16 hue, quint8 sat, quint8 bri);
+    bool addTaskXmasLightStripEffect(TaskItem &task, XmasLightStripEffect effect, quint8 speed, QList<QList<quint8>> &colours);
+    int setXmasLightStripState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
 
     void handleGroupClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleSceneClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleOnOffClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleClusterIndicationGateways(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleIasZoneClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    void sendIasZoneEnrollResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    bool sendIasZoneEnrollResponse(Sensor *sensor);
+    bool sendIasZoneEnrollResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleIasAceClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void sendArmResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, quint8 armMode);
     void handleIndicationSearchSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    bool SendTuyaRequest(TaskItem &task, TaskType taskType , qint8 Dp_type, qint8 Dp_identifier , QByteArray data );
+    bool sendTuyaRequest(TaskItem &task, TaskType taskType, qint8 Dp_type, qint8 Dp_identifier, const QByteArray &data);
+    bool sendTuyaCommand(const deCONZ::ApsDataIndication &ind, qint8 commandId, const QByteArray &data);
     void handleCommissioningClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    bool SendTuyaRequestThermostatSetWeeklySchedule(TaskItem &taskRef, quint8 weekdays , QString transitions , qint8 Dp_identifier);
+    bool sendTuyaRequestThermostatSetWeeklySchedule(TaskItem &taskRef, quint8 weekdays, const QString &transitions, qint8 Dp_identifier);
     void handleZdpIndication(const deCONZ::ApsDataIndication &ind);
     bool handleMgmtBindRspConfirm(const deCONZ::ApsDataConfirm &conf);
     void handleDeviceAnnceIndication(const deCONZ::ApsDataIndication &ind);
@@ -1487,6 +1595,7 @@ public:
     void handleTimeClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleDiagnosticsClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleFanControlClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleIdentifyClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendTimeClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleBasicClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendBasicClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
@@ -1503,6 +1612,8 @@ public:
     bool deserialiseThermostatTransitions(const QString &s, QVariantList *transitions);
     bool serialiseThermostatSchedule(const QVariantMap &schedule, QString *s);
     bool deserialiseThermostatSchedule(const QString &s, QVariantMap *schedule);
+    void handleSimpleMeteringClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
+    void handleElectricalMeasurementClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
 
     // Modify node attributes
     void setAttributeOnOff(LightNode *lightNode);
@@ -1532,6 +1643,7 @@ public:
     void refreshDeviceDb(const deCONZ::Address &addr);
     void pushZdpDescriptorDb(quint64 extAddress, quint8 endpoint, quint16 type, const QByteArray &data);
     void pushZclValueDb(quint64 extAddress, quint8 endpoint, quint16 clusterId, quint16 attributeId, qint64 data);
+    bool dbIsOpen() const;
     void openDb();
     void readDb();
     void loadAuthFromDb();
@@ -1553,7 +1665,6 @@ public:
     void loadLightDataFromDb(LightNode *lightNode, QVariantList &ls, qint64 fromTime, int max);
     void loadAllGatewaysFromDb();
     int getFreeLightId();
-    int getFreeSensorId();
     void saveDb();
     void saveApiKey(QString apikey);
     void closeDb();
@@ -1561,26 +1672,26 @@ public:
     void updateZigBeeConfigDb();
     void getLastZigBeeConfigDb(QString &out);
     void getZigbeeConfigDb(QVariantList &out);
+    void deleteDeviceDb(const QString &uniqueId);
 
     void checkConsistency();
 
-    sqlite3 *db;
     int ttlDataBaseConnection; // when idleTotalCounter becomes greater the DB will be closed
     int saveDatabaseItems;
     int saveDatabaseIdleTotalCounter;
     QString sqliteDatabaseName;
     std::vector<int> lightIds;
-    std::vector<int> sensorIds;
     std::vector<QString> dbQueryQueue;
     qint64 dbZclValueMaxAge;
     QTimer *databaseTimer;
     QString emptyString;
 
     // JSON support
-    QMap<QString, std::vector<Sensor::ButtonMap>> buttonMapData;
+    std::vector<ButtonMeta> buttonMeta;
+    std::vector<ButtonMap> buttonMaps;
     QMap<QString, quint16> btnMapClusters;
     QMap<QString, QMap<QString, quint16>> btnMapClusterCommands;
-    QMap<QString, QString> buttonMapForModelId;
+    std::vector<ButtonProduct> buttonProductMap;
 
     // gateways
     std::vector<Gateway*> gateways;
@@ -1618,6 +1729,7 @@ public:
     QString gwWifiEth0;
     QString gwWifiWlan0;
     QVariantList gwWifiAvailable;
+    int gwLightLastSeenInterval; // Intervall to throttle lastseen updates
     enum WifiState {
         WifiStateInitMgmt,
         WifiStateIdle
@@ -1659,6 +1771,7 @@ public:
     QString gwHomebridgeUpdateVersion;
     bool gwHomebridgeUpdate;
     QString gwName;
+    bool gwHueMode;
     bool gwLANBridgeId;
     QString gwBridgeId;
     QString gwUuid;
@@ -1758,6 +1871,10 @@ public:
     // schedules
     QTimer *scheduleTimer;
     std::vector<Schedule> schedules;
+    TaskItem taskScheduleTimer;
+
+    // window covering
+    TaskItem calibrationTask;
 
     // webhooks
     QNetworkAccessManager *webhookManager = nullptr;
@@ -1939,6 +2056,7 @@ public:
     QString lastLightsScan;
 
     SearchSensorsState searchSensorsState;
+    size_t searchSensorGppPairCounter = 0;
     deCONZ::Address fastProbeAddr;
     std::vector<deCONZ::ApsDataIndication> fastProbeIndications;
     QVariantMap searchSensorsResult;
@@ -1969,6 +2087,7 @@ public:
     QTime queryTime;
     deCONZ::ApsController *apsCtrl;
     uint groupTaskNodeIter; // Iterates through nodes array
+    QElapsedTimer idleTimer;
     int idleTotalCounter; // sys timer
     int idleLimit;
     int idleUpdateZigBeeConf; //

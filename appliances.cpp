@@ -27,21 +27,20 @@ void DeRestPluginPrivate::handleApplianceAlertClusterIndication(const deCONZ::Ap
     
     if (zclFrame.commandId() == CMD_ALERTS_NOTIFICATION && zclFrame.isClusterCommand())
     {
+        // Specific to leakSMART water sensor V2
+        Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint(), QLatin1String("ZHAWater"));
+
+        if (!sensor)
+        {
+            DBG_Printf(DBG_INFO, "No water leak sensor found for 0x%016llX, endpoint: 0x%02X\n", ind.srcAddress().ext(), ind.srcEndpoint());
+            return;
+        }
+
         quint8 alertsCount;      // Count is just 4 Bits but doesn't matter right now
         quint16 alertsStructure; // 24 Bit long, but 16 suffice
 
         stream >> alertsCount;
         stream >> alertsStructure;
-        
-        // Specific to leakSMART water sensor V2
-        // Should be more generic
-        SensorFingerprint fp;
-        fp.endpoint = 0x01;
-        fp.deviceId = 0x0302;
-        fp.profileId = 0x0104;
-        fp.inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
-        fp.inClusters.push_back(APPLIANCE_EVENTS_AND_ALERTS_CLUSTER_ID);
-        Sensor *sensor = getSensorNodeForFingerPrint(ind.srcAddress().ext(), fp, "ZHAWater");
         
         ResourceItem *item = sensor ? sensor->item(RStateWater) : nullptr;
 

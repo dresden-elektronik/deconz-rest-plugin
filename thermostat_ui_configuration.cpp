@@ -7,16 +7,11 @@
  */
 void DeRestPluginPrivate::handleThermostatUiConfigurationClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
+    Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint(), QLatin1String("ZHAThermostat"));
 
     if (!sensor)
     {
-        DBG_Printf(DBG_INFO, "No thermostat sensor found for 0x%016llX, endpoint: 0x%08X\n", ind.srcAddress().ext(), ind.srcEndpoint());
-        return;
-    }
-
-    if (sensor->type() != QLatin1String("ZHAThermostat"))
-    {
+        DBG_Printf(DBG_INFO, "No thermostat sensor found for 0x%016llX, endpoint: 0x%02X\n", ind.srcAddress().ext(), ind.srcEndpoint());
         return;
     }
 
@@ -116,8 +111,7 @@ void DeRestPluginPrivate::handleThermostatUiConfigurationClusterIndication(const
 
         if (configUpdated || stateUpdated)
         {
-            updateEtag(sensor->etag);
-            updateEtag(gwConfigEtag);
+            updateSensorEtag(&*sensor);
             sensor->setNeedSaveDatabase(true);
             queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
         }
@@ -162,26 +156,15 @@ bool DeRestPluginPrivate::addTaskThermostatUiConfigurationReadWriteAttribute(Tas
     QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
     stream.setByteOrder(QDataStream::LittleEndian);
 
-    stream << (quint16) attrId;
-
     if (readOrWriteCmd == deCONZ::ZclWriteAttributesId)
     {
-        stream << (quint8) attrType;
-        if (attrType == deCONZ::Zcl8BitEnum || attrType == deCONZ::Zcl8BitInt || attrType == deCONZ::Zcl8BitBitMap)
-        {
-            stream << (quint8) attrValue;
-        }
-        else if (attrType == deCONZ::Zcl16BitInt || attrType == deCONZ::Zcl16BitBitMap)
-        {
-            stream << (quint16) attrValue;
-        }
-        else if (attrType == deCONZ::Zcl24BitUint)
-        {
-            stream << (qint8) (attrValue & 0xFF);
-            stream << (qint8) ((attrValue >> 8) & 0xFF);
-            stream << (qint8) ((attrValue >> 16) & 0xFF);
-        }
-        else
+        stream << attrId;
+        stream << attrType;
+
+        deCONZ::ZclAttribute attr(attrId, attrType, QLatin1String(""), deCONZ::ZclWrite, true);
+        attr.setValue(QVariant(attrValue));
+
+        if (!attr.writeToStream(stream))
         {
             return false;
         }

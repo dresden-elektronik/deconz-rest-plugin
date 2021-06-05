@@ -18,6 +18,12 @@ CONFIG(release, debug|release) {
     LIBS += -L../../release
 }
 
+equals(QT_MAJOR_VERSION, 5):lessThan(QT_MINOR_VERSION, 15) {
+    DEFINES += SKIP_EMPTY_PARTS=QString::SkipEmptyParts
+} else {
+    DEFINES += SKIP_EMPTY_PARTS=Qt::SkipEmptyParts
+}
+
 greaterThan(QT_MAJOR_VERSION, 4) {
     QT += core gui widgets serialport
 
@@ -38,8 +44,16 @@ contains(QMAKE_SPEC_T,.*linux.*) {
 
     packagesExist(openssl) {
         DEFINES += HAS_OPENSSL
-        PKGCONFIG += openssl
+        #PKGCONFIG += openssl
     }
+}
+
+macx {
+    DEFINES += QT_NO_DEPRECATED_WARNINGS
+    CONFIG+=sdk_no_version_check
+
+    LIBS += -lsqlite3
+    DEFINES += HAS_SQLITE3
 }
 
 unix:LIBS +=  -L../.. -ldeCONZ
@@ -51,7 +65,7 @@ unix:!macx {
 TEMPLATE        = lib
 CONFIG         += plugin \
                += debug_and_release \
-               += c++11 \
+               += c++14 \
                -= qtquickcompiler
 
 QT             += network
@@ -73,7 +87,7 @@ GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.06.00\\\"
+DEFINES += GW_SW_VERSION=\\\"2.12.00\\\"
 DEFINES += GW_SW_DATE=$$GIT_COMMIT_DATE
 DEFINES += GW_API_VERSION=\\\"1.16.0\\\"
 DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
@@ -92,6 +106,8 @@ DEFINES += GW_MIN_DERFUSB23E0X_FW_VERSION=0x22030300
 DEFINES += GW_DEFAULT_NAME=\\\"Phoscon-GW\\\"
 
 HEADERS  = bindings.h \
+           backup.h \
+           button_maps.h \
            connectivity.h \
            colorspace.h \
            daylight.h \
@@ -108,6 +124,7 @@ HEADERS  = bindings.h \
            light_node.h \
            poll_control.h \
            poll_manager.h \
+           product_match.h \
            read_files.h \
            resource.h \
            resourcelinks.h \
@@ -117,11 +134,14 @@ HEADERS  = bindings.h \
            scene.h \
            sensor.h \
            tuya.h \
+           utils/utils.h \
            websocket_server.h
 
 SOURCES  = air_quality.cpp \
            authorisation.cpp \
+           backup.cpp \
            bindings.cpp \
+           button_maps.cpp \
            change_channel.cpp \
            connectivity.cpp \
            colorspace.cpp \
@@ -133,6 +153,7 @@ SOURCES  = air_quality.cpp \
            de_web_plugin.cpp \
            de_web_widget.cpp \
            de_otau.cpp \
+           electrical_measurement.cpp \
            event.cpp \
            event_queue.cpp \
            fan_control.cpp \
@@ -143,11 +164,14 @@ SOURCES  = air_quality.cpp \
            group.cpp \
            group_info.cpp \
            gw_uuid.cpp \
+           ias_ace.cpp \
            ias_zone.cpp \
+           identify.cpp \
            json.cpp \
            light_node.cpp \
            poll_control.cpp \
            poll_manager.cpp \
+           product_match.cpp \
            read_files.cpp \
            resource.cpp \
            resourcelinks.cpp \
@@ -171,6 +195,7 @@ SOURCES  = air_quality.cpp \
            permitJoin.cpp \
            scene.cpp \
            sensor.cpp \
+           simple_metering.cpp \
            thermostat.cpp \
            time.cpp \
            tuya.cpp \
@@ -179,17 +204,33 @@ SOURCES  = air_quality.cpp \
            debug.cpp \
            reset_device.cpp \
            rest_userparameter.cpp \
+           utils/utils.cpp \
+           xiaomi.cpp \
            zcl_tasks.cpp \
            window_covering.cpp \
-           websocket_server.cpp
+           websocket_server.cpp \
+           xmas.cpp
 
 win32 {
+
+    OPENSSL_PATH = E:/Qt/Tools/OpenSSL/Win_x86
+
+    exists($$OPENSSL_PATH) {
+        message(OpenSLL detected $$OPENSSL_PATH)
+
+        #LIBS += -L$$OPENSSL_PATH/bin \
+        #     -llibcrypto-1_1 \
+        #     -llibssl-1_1
+        INCLUDEPATH += $$OPENSSL_PATH/include
+        DEFINES += HAS_OPENSSL
+    }
 
     LIBS += \
          -L../.. \
          -L$${PWD}/../../../lib/sqlite-dll-win32-x86-3240000 \
          -ldeCONZ1 \
          -lsqlite3
+
     INCLUDEPATH += $${PWD}/../../../lib/sqlite-amalgamation-3240000
     CONFIG += dll
 }

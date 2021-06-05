@@ -1,3 +1,4 @@
+#include <QLibrary>
 #include <array>
 #ifdef HAS_OPENSSL
 #include <openssl/aes.h>
@@ -8,6 +9,7 @@
 
 // this code is based on
 // https://github.com/Smanar/Zigbee_firmware/blob/master/Encryption.cpp
+#define OPEN_SSL_VERSION_MIN 0x10100000
 
 #define AES_KEYLENGTH 128
 #define AES_BLOCK_SIZE 16
@@ -41,25 +43,70 @@ GpKey_t GP_DecryptSecurityKey(quint32 sourceID, const GpKey_t &securityKey)
 
     nonce[12] = 0x05;
 
+#ifdef Q_OS_WIN
+    QLibrary libCrypto(QLatin1String("libcrypto-1_1.dll"));
+    QLibrary libSsl(QLatin1String("libssl-1_1.dll"));
+#else
+    QLibrary libCrypto(QLatin1String("crypto"));
+    QLibrary libSsl(QLatin1String("ssl"));
+#endif
+
+    if (!libCrypto.load() || !libSsl.load())
+    {
+        DBG_Printf(DBG_INFO, "OpenSSl library for ZGP encryption not found\n");
+        return result;
+    }
+
+    unsigned long openSslVersion = 0;
+
+    auto _OpenSSL_version_num = reinterpret_cast<unsigned long (*)(void)>(libCrypto.resolve("OpenSSL_version_num"));
+    const auto _EVP_CIPHER_CTX_new = reinterpret_cast<EVP_CIPHER_CTX*(*)(void)>(libCrypto.resolve("EVP_CIPHER_CTX_new"));
+    const auto _EVP_EncryptInit_ex = reinterpret_cast<int (*)(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *cipher, ENGINE *impl, const unsigned char *key, const unsigned char *iv)>(libCrypto.resolve("EVP_EncryptInit_ex"));
+    const auto _EVP_CIPHER_CTX_ctrl = reinterpret_cast<int (*)(EVP_CIPHER_CTX *ctx, int type, int arg, void *ptr)>(libCrypto.resolve("EVP_CIPHER_CTX_ctrl"));
+    const auto _EVP_EncryptUpdate = reinterpret_cast<int (*)(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl, const unsigned char *in, int inl)>(libCrypto.resolve("EVP_EncryptUpdate"));
+    const auto _EVP_CIPHER_CTX_free = reinterpret_cast<void (*)(EVP_CIPHER_CTX *c)>(libCrypto.resolve("EVP_CIPHER_CTX_free"));
+    const auto _EVP_aes_128_ccm  = reinterpret_cast<const EVP_CIPHER *(*)(void)>(libCrypto.resolve("EVP_aes_128_ccm"));
+
+    if (_OpenSSL_version_num)
+    {
+        openSslVersion = _OpenSSL_version_num();
+    }
+
+    if (openSslVersion >= OPEN_SSL_VERSION_MIN &&
+            _EVP_CIPHER_CTX_new &&
+            _EVP_EncryptInit_ex &&
+            _EVP_CIPHER_CTX_ctrl &&
+            _EVP_EncryptUpdate &&
+            _EVP_CIPHER_CTX_free &&
+            _EVP_aes_128_ccm)
+    {
+        DBG_Printf(DBG_INFO, "OpenSSl version 0x%08X loaded\n", openSslVersion);
+    }
+    else
+    {
+        DBG_Printf(DBG_INFO, "OpenSSl library version 0x%08X for ZGP encryption resolve symbols failed\n", openSslVersion);
+        return result;
+    }
+
     // buffers for encryption and decryption
     constexpr size_t encryptLength = ((GP_SECURITY_KEY_SIZE + AES_BLOCK_SIZE) / AES_BLOCK_SIZE) * AES_BLOCK_SIZE;
     std::array<unsigned char, encryptLength> encryptBuf = { 0 };
 
-    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+    EVP_CIPHER_CTX *ctx = _EVP_CIPHER_CTX_new();
     int outlen = 0;
 
     /* Set cipher type and mode */
-    EVP_EncryptInit_ex(ctx, EVP_aes_128_ccm(), NULL, NULL, NULL);
+    _EVP_EncryptInit_ex(ctx, _EVP_aes_128_ccm(), nullptr, nullptr, nullptr);
 
     /* Set nonce length if default 96 bits is not appropriate */
-    EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_IVLEN, sizeof(nonce), NULL);
+    _EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_IVLEN, sizeof(nonce), nullptr);
 
     /* Initialise key and IV */
-    EVP_EncryptInit_ex(ctx, NULL, NULL, defaultTCLinkKey, nonce);
+    _EVP_EncryptInit_ex(ctx, nullptr, nullptr, defaultTCLinkKey, nonce);
 
     /* Encrypt plaintext: can only be called once */
-    EVP_EncryptUpdate(ctx, encryptBuf.data(), &outlen, securityKey.data(), static_cast<int>(securityKey.size()));
-    EVP_CIPHER_CTX_free(ctx);
+    _EVP_EncryptUpdate(ctx, encryptBuf.data(), &outlen, securityKey.data(), static_cast<int>(securityKey.size()));
+    _EVP_CIPHER_CTX_free(ctx);
 
     std::copy(encryptBuf.begin(), encryptBuf.begin() + result.size(), result.begin());
 
@@ -124,12 +171,12 @@ bool GP_SendProxyCommissioningMode(deCONZ::ApsController *apsCtrl, quint8 zclSeq
 
 /*! Send Pair command to GP proxy device.
  */
-bool GP_SendPairing(quint32 gpdSrcId, quint16 sinkGroupId, quint8 deviceId, quint32 frameCounter, const GpKey_t &key, deCONZ::ApsController *apsCtrl, quint8 zclSeqNo)
+bool GP_SendPairing(quint32 gpdSrcId, quint16 sinkGroupId, quint8 deviceId, quint32 frameCounter, const GpKey_t &key, deCONZ::ApsController *apsCtrl, quint8 zclSeqNo, quint16 gppShortAddress)
 {
     deCONZ::ApsDataRequest req;
 
     req.setDstAddressMode(deCONZ::ApsNwkAddress);
-    req.dstAddress().setNwk(deCONZ::BroadcastRouters);
+    req.dstAddress().setNwk(gppShortAddress);
     req.setProfileId(GP_PROFILE_ID);
     req.setClusterId(GREEN_POWER_CLUSTER_ID);
     req.setDstEndpoint(GREEN_POWER_ENDPOINT);
@@ -198,10 +245,10 @@ bool GP_SendPairing(quint32 gpdSrcId, quint16 sinkGroupId, quint8 deviceId, quin
     // broadcast
     if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
     {
-        DBG_Printf(DBG_INFO, "send GP pairing\n");
+        DBG_Printf(DBG_INFO, "send GP pairing to 0x%04X\n", gppShortAddress);
         return true;
     }
 
-    DBG_Printf(DBG_INFO, "send GP pairing\n");
+    DBG_Printf(DBG_INFO, "send GP pairing to 0x%04X failed\n", gppShortAddress);
     return false;
 }

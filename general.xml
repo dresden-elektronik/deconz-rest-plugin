@@ -144,11 +144,36 @@
 				<value name="Emergency mains and transfer switch" value="6"></value>
 				<value name="Mains (single phase) with battery backup" value="0x81"></value>
 			</attribute>
-			<attribute id="0x0008" name="Unknown 1" type="enum8" access="r" required="o" >
+			<attribute id="0x0008" name="Generic Device Class" type="enum8" default="0xff" access="r" required="o" >
 				<description>IKEA control outlet specific.</description>
+        <value name="Lighting" value="0"></value>
+        <value name="Unspecified" value="0xff"></value>
 			</attribute>
-			<attribute id="0x0009" name="Unknown 2" type="enum8" access="r" required="o" >
+			<attribute id="0x0009" name="Generic Device Type" type="enum8" default="0xff" access="r" required="o" >
 				<description>IKEA control outlet specific.</description>
+        <value name="Incandescent" value="0"></value>
+        <value name="Spotlight Halogen" value="1"></value>
+        <value name="Halogen Bulb" value="2"></value>
+        <value name="CFL" value="3"></value>
+        <value name="Linear Fluorencent" value="4"></value>
+        <value name="LED Bulb" value="5"></value>
+        <value name="Spotlight LED" value="6"></value>
+        <value name="LED Strip" value="7"></value>
+        <value name="LED Tube" value="8"></value>
+        <value name="Indoor Luminaire" value="9"></value>
+        <value name="Outdoor Luminaire" value="0x0a"></value>
+        <value name="Pendant Luminaire" value="0x0b"></value>
+        <value name="Floor Standing Luminaire" value="0x0c"></value>
+        <value name="Controller" value="0xe0"></value>
+        <value name="Wall Switch" value="0xe1"></value>
+        <value name="Portable Remote Controller" value="0xe2"></value>
+        <value name="Motion or Light Sensor" value="0xe3"></value>
+        <value name="Actuator" value="0xf0"></value>
+        <value name="Wall Socket" value="0xf1"></value>
+        <value name="Gateway or Bridge" value="0xf2"></value>
+        <value name="Plug-In Unit" value="0xf3"></value>
+        <value name="Retrofit Actuator" value="0xf4"></value>
+        <value name="Unspecified" value="0xff"></value>
 			</attribute>
 			<attribute id="0x000a" name="Product code" type="ostring" access="r" required="o" >
 				<description>As printed on the product.</description>
@@ -196,6 +221,12 @@
 			</attribute>
 			<attribute id="0x0032" name="Usertest" type="bool" default="0" access="rw" required="o" mfcode="0x100b"></attribute>
 			<attribute id="0x0033" name="LED Indication" type="bool" default="0" access="rw" required="o" mfcode="0x100b"></attribute>
+      <attribute id="0x0034" name="Device Mode" type="enum8" default="0" access="rw" required="o" mfcode="0x100b">
+        <value name="Single Rocker" value="0"></value>
+        <value name="Single Push Button" value="1"></value>
+        <value name="Dual Rocker" value="2"></value>
+        <value name="Dual Push Button" value="3"></value>
+      </attribute>
 		</attribute-set>
 		<attribute-set id="0x4000" description="Manufacturer specific" mfcode="0x1037">
 			<attribute id="0x4001" name="128-Bit security key" type="seckey" access="r" required="m" mfcode="0x1037"></attribute>
@@ -207,6 +238,9 @@
 		</attribute-set>
     <attribute-set id="0x4000" description="Müller Licht specific" mfcode="0x121b">
 			<attribute id="0x4005" name="Scene" type="u8" access="rw" required="o" mfcode="0x121b"></attribute>
+		</attribute-set>
+		<attribute-set id="0x5000" description="ID Lock specific" mfcode="0x1337">
+			<attribute id="0x5000" name="Lock fw" type="cstring" access="r" required="m" mfcode="0x1337" />
 		</attribute-set>
 		<attribute-set id="0x8000" description="Develco Specific" mfcode="0x1015">
 			<attribute id="0x8000" name="Primary SW Version" type="ostring" access="r" required="m" mfcode="0x1015"></attribute>
@@ -221,7 +255,7 @@
 		<client>
 		</client>
 	</cluster>
-	<cluster id="0001" name="Power Configuration">
+	<cluster id="0x0001" name="Power Configuration">
 		<description>Attributes for determining more detailed information about a device’s power source(s), and for configuring under/over voltage alarms.</description>
 		<server>
 		<attribute-set id="0x0000" description="Mains Information">
@@ -339,14 +373,14 @@
 					</command>
 		</client>
 	</cluster>
-	<cluster id="0004" name="Groups">
+	<cluster id="0x0004" name="Groups">
 	<description>Attributes and commands for group configuration and manipulation.</description>
 		<server>
 			<attribute id="0000" name="Name Support" type="bmp8" range="x0000000" access="r" required="m">
 				<value name="Name Support" value="7"></value>
 			</attribute>
 			<attribute id="0x0001" name="IKEA Scene" type="u32" access="rw" required="m" showas="hex" mfcode="0x117c">
-				
+
 			</attribute>
 			<command id="00" dir="recv" name="Add group" required="m" response="0x00">
 				<description>Add a group to the device.</description>
@@ -418,7 +452,7 @@
 			</command>
 		</client>
 	</cluster>
-	<cluster id="0005" name="Scenes">
+	<cluster id="0x0005" name="Scenes">
 	<description>Attributes and commands for scene configuration and manipulation.</description>
 		<server>
 			<attribute id="0x0000" name="Scene Count" type="u8" range="0x00-0xff" access="r" required="m" showas="hex" default="0x00"></attribute>
@@ -482,6 +516,27 @@
 					<attribute id="0x0001" type="u8" name="Scene ID" required="m" showas="hex" default="0x00"></attribute>
 				</payload>
 			</command>
+      <command id="0x07" dir="recv" name="IKEA step" required="o" vendor="0x117c">
+        <description>Command sent by TRADFRI remote control on press left or right.  Set Direction to 1 for left or leave at 0 for right.  Leave the Unknown parameters at their default values.</description>
+        <payload>
+          <attribute id="0x0000" type="u8" name="Direction" required="m" default="0x0"></attribute>
+          <attribute id="0x0001" type="u8" name="Unknown" required="m" showas="hex" default="0x01"></attribute>
+          <attribute id="0x0002" type="u16" name="Unknown" required="m" showas="hex" default="0x000d"></attribute>
+        </payload>
+      </command>
+      <command id="0x08" dir="recv" name="IKEA move" required="o" vendor="0x117c">
+        <description>Command sent by TRADFRI remote control on hold left or right.  Set Direction to 1 for left or leave at 0 for right.  Leave the Unknown parameter at its default value.</description>
+        <payload>
+          <attribute id="0x0000" type="u8" name="Direction" required="m" default="0x0"></attribute>
+          <attribute id="0x0001" type="u16" name="Unknown" required="m" showas="hex" default="0x000d"></attribute>
+        </payload>
+      </command>
+      <command id="0x09" dir="recv" name="IKEA stop" required="o" vendor="0x117c">
+        <description>Command sent by TRADFRI remote control on release (after hold).  Leave the Unknown parameter at its default value.</description>
+        <payload>
+          <attribute id="0x0000" type="u16" name="Unknown" required="m" showas="hex" default="0x0000"></attribute>
+        </payload>
+      </command>
 		<!-- TODO -->
 		</server>
 		<client>
@@ -547,7 +602,7 @@
 		<!-- TODO -->
 		</client>
 	</cluster>
-	<cluster id="0006" name="On/Off">
+	<cluster id="0x0006" name="On/Off">
 		<description>Attributes and commands for switching devices between 'On' and 'Off' states.</description>
 		<server>
         <attribute-set id="0x0000" description="OnOff state">
@@ -629,7 +684,7 @@
 		<client>
 		</client>
 	</cluster>
-	<cluster id="de06" name="RGB Color">
+	<cluster id="0xde06" name="RGB Color">
 		<description>Attributes and commands for setting devices light color. The color is specified in the RGB range from 0 - 255.</description>
 		<server>
 			<attribute id="0000" name="CurrentColorSet" type="u32" access="r" default="0" required="m" showas="hex">
@@ -708,7 +763,7 @@
 			</attribute>
 			<attribute id = "0x000f" name="Unknown" type="bmp8" access="rw" required="o">
 				<description>IKEA specific.</description>
-			</attribute>			
+			</attribute>
 			<attribute id="0x4000" name="PowerOn Level" type="u8" access="rw" required="o">
 			</attribute>
 			<command id="0x00" dir="recv" name="Move to Level" required="m">
@@ -820,7 +875,7 @@
 		<client>
 		</client>
 	</cluster>
-	<cluster id="000b" name="Location">
+	<cluster id="0x000b" name="Location">
         <description>Measure distance between devices.</description>
 		<server>
 			<command id="0x40" dir="recv" name="Distance measure" required="m" response="0x40" showas="hex">
@@ -855,7 +910,7 @@
             <attribute id="0x0045" name="Min Present Value" type="float" required="o" access="rw"></attribute>
 			<attribute id="0x0051" name="Out of service" type="bool" required="m" access="rw" default="0"></attribute>
 			<attribute id="0x0055" name="Present value" type="float" required="m" access="rw" default="0"></attribute>
-            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0">
+            <attribute id="0x0067" name="Reliability" type="enum8" required="o" access="rw" default="0">
                 <value name="No fault detected" value="0"></value>
                 <value name="No sensor" value="1"></value>
                 <value name="Over range" value="2"></value>
@@ -890,7 +945,7 @@
             <attribute id="0x0045" name="Min Present Value" type="float" required="o" access="rw"></attribute>
             <attribute id="0x0051" name="Out of service" type="bool" required="m" access="rw" default="0"></attribute>
             <attribute id="0x0055" name="Present value" type="float" required="m" access="rw" default="0"></attribute>
-            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0">
+            <attribute id="0x0067" name="Reliability" type="enum8" required="o" access="rw" default="0">
                 <value name="No fault detected" value="0"></value>
                 <value name="No sensor" value="1"></value>
                 <value name="Over range" value="2"></value>
@@ -918,13 +973,13 @@
         <client>
         </client>
     </cluster>
-	<cluster id="000e" name="Analog Value (Basic)">
+	<cluster id="0x000e" name="Analog Value (Basic)">
 	<description>An interface for setting an analog value, typically used as a control system parameter, and accessing various characteristics of that value.</description>
         <server>
             <attribute id="0x001c" name="Description" type="cstring" required="o" access="rw"></attribute>
             <attribute id="0x0051" name="Out of service" type="bool" required="m" access="rw" default="0"></attribute>
             <attribute id="0x0055" name="Present value" type="float" required="m" access="rw" default="0"></attribute>
-            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0">
+            <attribute id="0x0067" name="Reliability" type="enum8" required="o" access="rw" default="0">
                 <value name="No fault detected" value="0"></value>
                 <value name="No sensor" value="1"></value>
                 <value name="Over range" value="2"></value>
@@ -950,7 +1005,7 @@
         <client>
         </client>
 	</cluster>
-	<cluster id="000f" name="Binary Input (Basic)">
+	<cluster id="0x000f" name="Binary Input (Basic)">
 		<description>The Binary Input (Basic) cluster provides an interface for reading the value of a binary measurement and accessing various characteristics of that measurement. The cluster is typically used to implement a sensor that measures a two-state physical quantity.</description>
 		<server>
 			<attribute id="0x0004" name="Active Text" type="cstring" required="o" access="rw" default=""></attribute>
@@ -962,7 +1017,7 @@
                 <value name="Reverse" value="1"></value>
 			</attribute>
             <attribute id="0x0055" name="Present Value" type="bool" default="0" access="rw" required="m"></attribute>
-			<attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0">
+			<attribute id="0x0067" name="Reliability" type="enum8" required="o" access="rw" default="0">
                 <value name="No fault detected" value="0"></value>
                 <value name="No sensor" value="1"></value>
                 <value name="Over range" value="2"></value>
@@ -986,7 +1041,7 @@
 		<client>
 		</client>
 	</cluster>
-	<cluster id="0010" name="Binary Output (Basic)">
+	<cluster id="0x0010" name="Binary Output (Basic)">
 	<description>The Binary Output (Basic) cluster provides an interface for setting the value of a binary output, and accessing various characteristics of that value.</description>
         <server>
             <attribute id="0x0004" name="Active Text" type="cstring" required="o" access="rw" default=""></attribute>
@@ -1000,7 +1055,7 @@
                 <value name="Reverse" value="1"></value>
             </attribute>
             <attribute id="0x0055" name="Present value" type="bool" required="m" access="rw"></attribute>
-            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0">
+            <attribute id="0x0067" name="Reliability" type="enum8" required="o" access="rw" default="0">
                 <value name="No fault detected" value="0"></value>
                 <value name="No sensor" value="1"></value>
                 <value name="Over range" value="2"></value>
@@ -1028,7 +1083,7 @@
         <client>
         </client>
 	</cluster>
-	<cluster id="0011" name="Binary Value (Basic)">
+	<cluster id="0x0011" name="Binary Value (Basic)">
 	<description>The Binary Value (Basic) cluster provides an interface for setting a binary value, typically used as a control system parameter, and accessing various characteristics of that value.</description>
         <server>
             <attribute id="0x0004" name="Active Text" type="cstring" required="o" access="rw" default=""></attribute>
@@ -1038,7 +1093,7 @@
             <attribute id="0x0043" name="Min On Time" type="u32" required="o" access="rw" default="0xffffffff"></attribute>
             <attribute id="0x0051" name="Out of service" type="bool" required="m" access="rw" default="0"></attribute>
             <attribute id="0x0055" name="Present value" type="bool" required="m" access="rw"></attribute>
-            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0">
+            <attribute id="0x0067" name="Reliability" type="enum8" required="o" access="rw" default="0">
                 <value name="No fault detected" value="0"></value>
                 <value name="No sensor" value="1"></value>
                 <value name="Over range" value="2"></value>
@@ -1070,7 +1125,7 @@
             <attribute id="0x004a" type="u16" name="Number of states" required="m" access="rw" default="0"></attribute>
 			<attribute id="0x0051" type="bool" name="Out of service" required="m" access="rw" default="0"></attribute>
 			<attribute id="0x0055" type="u16" name="Present value" required="m" access="rw" default="0"></attribute>
-            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0">
+            <attribute id="0x0067" name="Reliability" type="enum8" required="o" access="rw" default="0">
                 <value name="No fault detected" value="0"></value>
                 <value name="No sensor" value="1"></value>
                 <value name="Over range" value="2"></value>
@@ -1094,14 +1149,14 @@
         <client>
         </client>
 	</cluster>
-	<cluster id="0013" name="Multistate Output (Basic)">
+	<cluster id="0x0013" name="Multistate Output (Basic)">
   	<description>The Multistate Output (Basic) cluster provides an interface for setting the value of an output that can take one of a number of discrete values, and accessing characteristics of that value.</description>
         <server>
             <attribute id="0x001c" name="Description" type="cstring" required="o" access="rw" default=""></attribute>
             <attribute id="0x004a" type="u16" name="Number of states" required="m" access="rw" default="0"></attribute>
             <attribute id="0x0051" type="bool" name="Out of service" required="m" access="rw" default="0"></attribute>
             <attribute id="0x0055" type="u16" name="Present value" required="m" access="rw" default="0"></attribute>
-            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0">
+            <attribute id="0x0067" name="Reliability" type="enum8" required="o" access="rw" default="0">
                 <value name="No fault detected" value="0"></value>
                 <value name="No sensor" value="1"></value>
                 <value name="Over range" value="2"></value>
@@ -1126,14 +1181,14 @@
         <client>
         </client>
 	</cluster>
-	<cluster id="0014" name="Multistate Value (Basic)">
+	<cluster id="0x0014" name="Multistate Value (Basic)">
 	<description>The Multistate Value (Basic) cluster provides an interface for setting a multistate value, typically used as a control system parameter, and accessing characteristics of that value.</description>
         <server>
             <attribute id="0x001c" name="Description" type="cstring" required="o" access="rw" default=""></attribute>
             <attribute id="0x004a" type="u16" name="Number of states" required="m" access="rw" default="0"></attribute>
             <attribute id="0x0051" type="bool" name="Out of service" required="m" access="rw" default="0"></attribute>
             <attribute id="0x0055" type="u16" name="Present value" required="m" access="rw" default="0"></attribute>
-            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0">
+            <attribute id="0x0067" name="Reliability" type="enum8" required="o" access="rw" default="0">
                 <value name="No fault detected" value="0"></value>
                 <value name="No sensor" value="1"></value>
                 <value name="Over range" value="2"></value>
@@ -1158,7 +1213,7 @@
         <client>
         </client>
 	</cluster>
-	<cluster id="0015" name="Commissioning">
+	<cluster id="0x0015" name="Commissioning">
 	<description>Attributes and commands for commissioning and managing a ZigBee device.</description>
 		<server>
 			<!-- TODO -->
@@ -1294,7 +1349,7 @@
 			</command>
 		</client>
 		</cluster>
-		<cluster id="0019" name="OTAU">
+		<cluster id="0x0019" name="OTAU">
 			<description>Over the air upgrade.</description>
 			<client>
 				<attribute id="0x0000" name="Upgrade server" type="uid" default="0" access="rw" required="m"></attribute>
@@ -1390,7 +1445,7 @@ by the Poll Control Cluster Client.</description>
 				</command>
 			</server>
 		</cluster>
-		<cluster id="0800" name="Key Establishment">
+		<cluster id="0x0800" name="Key Establishment">
 			<description></description>
 			<client></client>
 			<server></server>
@@ -1398,11 +1453,11 @@ by the Poll Control Cluster Client.</description>
 		</cluster>
 	</domain>
 	<domain name="Closures" low_bound="0100" high_bound="01ff" description="The closures functional domain contains clusters and information to build devices in the closure domain, e.g. shade controllers.">
-		<cluster id="0100" name="Shade Configuration">
+		<cluster id="0x0100" name="Shade Configuration">
 			<description></description>
 			<!-- TODO -->
 		</cluster>
-    <cluster id="0100" name="Shade Configuration">
+    <cluster id="0x0100" name="Shade Configuration">
       <description>The shade configuration cluster provides an interface for reading information about a shade, and configuring its open and closed limits.</description>
       <client>
       </client>
@@ -1453,6 +1508,14 @@ by the Poll Control Cluster Client.</description>
             <value name="Door Furniture" value="0x0A"></value>
           </attribute>
           <attribute id="0x0002" name="Actuator enabled" type="bool" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Door state" type="enum8" access="r" required="m">
+            <value name="Open" value="0x00"/>
+            <value name="Closed" value="0x01"/>
+            <value name="Error jammed" value="0x02"/>
+            <value name="Error forced open" value="0x03"/>
+            <value name="Error unspecified" value="0x04"/>
+            <value name="Undefined" value="0xff"/>
+          </attribute>
         </attribute-set>
         <attribute-set id="0x0010" description="User, PIN, Schedule Information Attribute Set">
           <attribute id="0x0010" name="Number Of Log Records Supported" type="u16" default="0" access="r" required="o"></attribute>
@@ -1462,11 +1525,55 @@ by the Poll Control Cluster Client.</description>
           <attribute id="0x0014" name="Number Of WeekDay Schedules Supported Per User" type="u8" default="0" access="r" required="o"></attribute>
           <attribute id="0x0015" name="Number Of Year Day Schedules Supported Per User" type="u8" default="0" access="r" required="o"></attribute>
           <attribute id="0x0016" name="Number Of Holiday Schedules Supported" type="u8" default="0" access="r" required="o"></attribute>
+          <attribute id="0x0017" name="Max PIN length" type="u8" access="r" required="o"/>
+          <attribute id="0x0018" name="Min PIN length" type="u8" access="r" required="o"/>									  
         </attribute-set>
         <attribute-set id="0x0020" description="Operational Settings Attribute Set">
           <attribute id="0x0020" name="Enable Logging" type="bool" default="0" access="rw" required="o"></attribute>
+          <attribute id="0x0021" name="Language" type="cstring" access="rw" required="o"></attribute>
+          <attribute id="0x0022" name="Led Setting" type="u8" default="0" access="rw" required="o">
+              <value name="Never use LED for signalization" value="0x00"></value>
+              <value name="Use LED signalization except for access allowed events" value="0x01"></value>
+              <value name="Use LED signalization for all events" value="0x02"></value>
+          </attribute>
+          <attribute id="0x0023" name="Auto Relock Time" type="u32" default="0" access="rw" required="o"></attribute>
+          <attribute id="0x0024" name="Sound Volume" type="u8" default="0" access="rw" required="o">
+              <value name="Silent Mode" value="0x00"></value>
+              <value name="Low Volume" value="0x01"></value>
+              <value name="Hight Volume" value="0x02"></value>
+          </attribute>
+          <attribute id="0x0025" name="Operating mode" type="enum8" default="0" access="rw" required="o">
+              <value name="Normal" value="0x00"></value>
+              <value name="Vacation" value="0x01"></value>
+              <value name="Privacy" value="0x02"></value>
+              <value name="No RF Lock/Unlock" value="0x03"></value>
+              <value name="Passage" value="0x04"></value>
+          </attribute>
+          <attribute id="0x0026" name="Supported operating mode" type="bmp16" default="0x0000" access="r" required="o">
+              <value name="Normal Mode Supported" value="0"></value>
+              <value name="Vacation Mode Supported" value="1"></value>
+              <value name="Privacy Mode Supported" value="2"></value>
+              <value name="No RF Lock or Unlock Mode Supported" value="3"></value>
+              <value name="Passage Mode Supported" value="4"></value>
+          </attribute>
+          <attribute id="0x0027" name="Default Configuration Register" type="bmp16" default="0x0000" access="r" required="o">
+              <value name="Enable Local Programming" value="0"></value>
+              <value name="Keypad Interface" value="1"></value>
+              <value name="RF Interface" value="2"></value>
+              <value name="Sound Volume attribute" value="5"></value>
+              <value name="Auto Relock Time attribute" value="6"></value>
+              <value name="Led Settings attribute" value="7"></value>
+          </attribute>
+          <attribute id="0x0028" name="Enable Local Programming" type="bool" default="0" access="rw" required="o"></attribute>
+          <attribute id="0x0029" name="Enable One TouchLocking" type="bool" default="0" access="rw" required="o"></attribute>
+          <attribute id="0x002A" name="Enable Inside Status LED" type="bool" default="0" access="rw" required="o"></attribute>
+          <attribute id="0x002B" name="Enable Privacy ModeButton" type="bool" default="0" access="rw" required="o"></attribute>
         </attribute-set>
         <attribute-set id="0x0030" description="Security Settings Attribute Set">
+          <attribute id="0x0030" name="Wrong Code Entry Limit" type="u8" default="0" access="r" required="o"></attribute>
+          <attribute id="0x0031" name="User Code Temporary Disable Time" type="u8" default="0" access="r" required="o"></attribute>
+          <attribute id="0x0032" name="Send PIN Over The Air" type="bool" default="0" access="rw" required="o"></attribute>
+          <attribute id="0x0033" name="Require PIN for RF Operation" type="bool" default="0" access="rw" required="o"></attribute>
           <attribute id="0x0034" name="Zigbee Security Level" type="enum8" default="0" access="r" required="o">
             <value name="Network Security" value="0x00"></value>
             <value name="APS Security" value="0x01"></value>
@@ -1511,6 +1618,38 @@ by the Poll Control Cluster Client.</description>
           <attribute id="0x0505" name="Vibration Strength" type="u32" showas="hex" access="r" required="o"></attribute>
           <attribute id="0x0508" name="Orientation" type="u48" showas="hex" access="r" required="o"></attribute>
         </attribute-set>
+        <attribute-set id="0x4000" description="ID Lock special" mfcode="0x1337">
+          <attribute id="0x4000" name="Master PIN mode" type="bool" access="rw" required="m" mfcode="0x1337"/>
+          <attribute id="0x4001" name="RFID Enabled" type="bool" access="rw" required="m" mfcode="0x1337"/>
+          <attribute id="0x4002" name="Hinge mode" type="bool" access="rw" required="m" mfcode="0x1337"/>
+          <attribute id="0x4003" name="Service PIN mode" type="u8" access="rw" required="m" mfcode="0x1337">
+            <value name="Deactivated" value="0x00"/>
+            <value name="1x use" value="0x01"/>
+            <value name="2x uses" value="0x02"/>
+            <value name="5x uses" value="0x03"/>
+            <value name="10x uses" value="0x04"/>
+            <value name="Random PIN 1x use" value="0x05"/>
+            <value name="Random PIN 24 hours" value="0x06"/>
+            <value name="Always valid" value="0x07"/>
+            <value name="12 hours" value="0x08"/>
+            <value name="24 hours" value="0x09"/>
+          </attribute>
+          <attribute id="0x4004" name="Lock mode" type="u8" access="rw" required="m" mfcode="0x1337">
+            <value name="Auto lock OFF/Away mode OFF" value="0x00"/>
+            <value name="Auto lock ON/Away mode OFF" value="0x01"/>
+            <value name="Auto lock OFF/Away mode ON" value="0x02"/>
+            <value name="Auto lock ON/Away mode ON" value="0x03"/>
+          </attribute>
+          <attribute id="0x4005" name="Relock enabled" type="bool" access="rw" required="m" mfcode="0x1337"/>
+          <attribute id="0x4006" name="Audio volume" type="u8" access="rw" required="m" mfcode="0x1337">
+            <value name="Volume off" value="0x00"/>
+            <value name="1" value="0x01"/>
+            <value name="2" value="0x02"/>
+            <value name="3" value="0x03"/>
+            <value name="4" value="0x04"/>
+            <value name="5" value="0x05"/>
+          </attribute>
+        </attribute-set>
         <command id="0x00" dir="recv" name="Lock Door" required="m">
           <description>This command causes the lock device to lock the door.</description>
           <payload></payload>
@@ -1518,6 +1657,16 @@ by the Poll Control Cluster Client.</description>
         <command id="0x01" dir="recv" name="Unlock Door" required="m">
           <description>This command causes the lock device to unlock the door.</description>
           <payload></payload>
+        </command>
+        <command id="0x02" dir="recv" name="Toggle Door" required="o">
+          <description>This command toggle the lock device.</description>
+          <payload></payload>
+        </command>
+        <command id="0x03" dir="recv" name="Unlock with timer" required="o">
+          <description>This command Unlock the lock device but with a timer.</description>
+          <payload>
+              <attribute id="0x0000" type="u16" name="Timeout" required="m"></attribute>
+          </payload>
         </command>
         <command id="0x04" dir="recv" name="Get Log Record" required="o">
           <description>Request a log record.</description>
@@ -1539,6 +1688,85 @@ by the Poll Control Cluster Client.</description>
           <attribute id="0x0004" type="u8" name="Event ID/Alarm Code" required="m"></attribute>
           <attribute id="0x0005" type="u16" name="User ID" required="m"></attribute>
           <attribute id="0x0006" type="cstring" name="PIN" required="m"></attribute>
+          </payload>
+        </command>
+        <command id="0x05" dir="recv" name="Set PIN code" required="o">
+          <description>Set PIN-code for user. User ID is between 0 and [# of PIN Users Supported Attribute]</description>
+          <payload>
+            <attribute id="0x0000" type="u16" name="User ID" required="m"></attribute>
+            <attribute id="0x0001" type="u8" name="User Status" required="o">
+              <value name="Occupied/Enabled" value="1" />
+              <value name="Occupied/Disabled" value="3" />
+            </attribute>
+            <attribute id="0x0002" type="enum8" name="User Type" required="o">
+              <value name="Unrestricted" value="0"/>
+              <value name="Year Day Schedule User" value="1"/>
+              <value name="Week Day Schedule User" value="2"/>
+              <value name="Master User" value="3"/>
+              <value name="Non Access User" value="4"/>
+              <value name="Not Supported" value="0xff"/>
+            </attribute>
+            <attribute id="0x0003" type="ostring" name="Code" required="m"></attribute>
+          </payload>
+        </command>
+        <command id="0x05" dir="send" name="Set PIN code response" required="o">
+          <description>Status</description>
+          <payload>
+            <attribute id="0x0000" type="u8" name="Status" required="m">
+              <value name="Success" value="0" />
+              <value name="Fail" value="1" />
+              <value name="Memory full" value="2" />
+              <value name="Duplicate code error" value="3" />
+            </attribute>
+          </payload>
+        </command>
+        <command id="0x06" dir="recv" name="Get PIN code" required="o">
+          <description>Get PIN code for user. User ID is between 0 and [# of PIN Users Supported Attribute]</description>
+          <payload>
+            <attribute id="0x0000" type="u16" name="User ID" required="m"></attribute>
+          </payload>
+        </command>
+        <command id="0x06" dir="send" name="Get PIN code response" required="o">
+          <description>Returns PIN-code for user.</description>
+          <payload>
+            <attribute id="0x0000" type="u16" name="User ID" required="m"></attribute>
+            <attribute id="0x0001" type="u8" name="User Status" required="o"></attribute>
+            <attribute id="0x0002" type="enum8" name="User Type" required="o">
+              <value name="Unrestricted" value="0"/>
+              <value name="Year Day Schedule User" value="1"/>
+              <value name="Week Day Schedule User" value="2"/>
+              <value name="Master User" value="3"/>
+              <value name="Non Access User" value="4"/>
+              <value name="Not Supported" value="0xff"/>
+            </attribute>
+            <attribute id="0x0003" type="ostring" name="Code" required="m"></attribute>
+          </payload>
+        </command>
+        <command id="0x07" dir="recv" name="Clear PIN code" required="o">
+          <description>Clear PIN code for user. User ID is between 0 and [# of PIN Users Supported Attribute]</description>
+          <payload>
+            <attribute id="0x0000" type="u16" name="User ID" required="m"></attribute>
+          </payload>
+        </command>
+        <command id="0x07" dir="send" name="Clear PIN code response" required="o">
+          <description>Status</description>
+          <payload>
+            <attribute id="0x0000" type="u8" name="Status" required="m">
+              <value name="Success" value="0" />
+              <value name="General failure" value="1" />
+            </attribute>
+          </payload>
+        </command>
+        <command id="0x08" dir="recv" name="Clear all PIN codes" required="o">
+          <description>Clear all registred PIN codes.</description>
+        </command>
+        <command id="0x08" dir="send" name="Clear all PIN codes response" required="o">
+          <description>Status</description>
+          <payload>
+            <attribute id="0x0000" type="u8" name="Status" required="m">
+              <value name="Success" value="0" />
+              <value name="General failure" value="1" />
+            </attribute>
           </payload>
         </command>
         <command id="0x20" dir="send" name="Operationg Event Notification" required="o">
@@ -1606,11 +1834,11 @@ by the Poll Control Cluster Client.</description>
           <attribute id="0x0019" name="Intermediate Setpoints – Tilt" type="ostring" default="1,0x0000" access="rw" required="o"></attribute>
         </attribute-set>
         <attribute-set id="0xf001" description="Tuya Window Covering Setting">
-			<attribute id="0xf001" name="Calibration" type="enum8" default="0" required="m" access="r">
+			<attribute id="0xf001" name="Calibration" type="enum8" default="0" required="m" access="rw">
 				<value name="Start" value="0"></value>
 				<value name="End" value="1"></value>
 			</attribute>
-			<attribute id="0xf002" name="Motor Reversal" type="enum8" default="0" required="m" access="r">
+			<attribute id="0xf002" name="Motor Reversal" type="enum8" default="0" required="m" access="rw">
 				<value name="Off" value="0"></value>
 				<value name="On" value="1"></value>
 			</attribute>
@@ -1720,7 +1948,7 @@ by the Poll Control Cluster Client.</description>
 						<value name="Saturday" value="6"></value>
 					</attribute>
 					<attribute id="0x0021" name="Number of Weekly Transitions" type="u8" range="0x00,0xff" access="r" required="o"></attribute>
-					<attribute id="0x0022" name="Number of Dail Transitions" type="u8" range="0x00,0xff" access="r" required="o"></attribute>
+					<attribute id="0x0022" name="Number of Daily Transitions" type="u8" range="0x00,0xff" access="r" required="o"></attribute>
 					<attribute id="0x0023" name="Temperature Setpoint Hold" type="enum8" default="0x00" access="rw" required="o">
 						<value name="Setpoint Hold Off" value="0"></value>
 						<value name="Setpoint Hold On" value="1"></value>
@@ -1852,15 +2080,15 @@ Note: It does not clear or delete previous weekly schedule programming configura
 
 		<!-- Danfoss manufacturer specific -->
 		<attribute-set id="0x4000" description="Danfoss specific" mfcode="0x1246">
-			<attribute id="0x4000" name="eTRV Open Window Detection" type="enum8" default="0x00" access="r" required="m" mfcode="0x1246">
+			<attribute id="0x4000" name="eTRV Open Window Detection" type="enum8" default="0x00" access="r" required="o" mfcode="0x1246">
 				<value name="Quarantine" value="0x00"></value>
 				<value name="Closed" value="0x01"></value>
 				<value name="Hold" value="0x02"></value>
 				<value name="Open" value="0x03"></value>
 				<value name="Windows open from external, but detected closed" value="0x04"></value>
 			</attribute>
-			<attribute id="0x4003" name="External Open Window Detected" type="bool" default="0x00" access="rw" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x4010" name="Exercise day of week" type="enum8" default="0x04" access="rw" required="m" mfcode="0x1246">
+			<attribute id="0x4003" name="External Open Window Detected" type="bool" default="0x00" access="rw" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4010" name="Exercise day of week" type="enum8" default="0x04" access="rw" required="o" mfcode="0x1246">
 				<value name="Sunday" value="0x00"></value>
 				<value name="Monday" value="0x01"></value>
 				<value name="Tuesday" value="0x02"></value>
@@ -1870,26 +2098,48 @@ Note: It does not clear or delete previous weekly schedule programming configura
 				<value name="Saturday" value="0x06"></value>
 				<value name="Undefined" value="0x07"></value>
 			</attribute>
-			<attribute id="0x4011" name="Exercise trigger time" type="u16" default="660" access="rw" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x4012" name="Mounting mode active" type="bool" default="0x01" access="r" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x4013" name="Mounting mode control" type="bool" access="rw" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x4014" name="eTRV Orientation" type="bool" default="0x00" access="rw" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x4015" name="External Measured Room Sensor" type="s16" access="r" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x4016" name="Unknown" type="bool" access="rw" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x4020" name="Control algorithm scale factor" type="u8" default="1" access="rw" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x4030" name="Heat Available" type="bool" default="0x01" access="rw" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x4031" name="Heat Supply Request " type="bool" access="r" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x4032" name="Unknown" type="bool" access="rw" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x4040" name="Unknown" type="s16" access="rw" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x404A" name="Unknown" type="s16" access="r" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x404B" name="Unknown" type="s8" access="rw" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x404C" name="Calibration" type="enum8" default="0x00" access="rw" required="m" mfcode="0x1246">
+			<attribute id="0x4011" name="Exercise trigger time" type="u16" default="660" access="rw" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4012" name="Mounting mode active" type="bool" default="0x01" access="r" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4013" name="Mounting mode control" type="bool" access="rw" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4014" name="eTRV Orientation" type="bool" default="0x00" access="rw" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4015" name="External Measured Room Sensor" type="s16" access="rw" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4016" name="Radiator Covered" type="bool" access="w" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4020" name="Control Algorithm Scale Factor" type="u8" default="1" access="rw" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4030" name="Heat Available" type="bool" default="0x00" access="rw" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4031" name="Heat Supply Request " type="bool" default="0x00" access="r" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4032" name="Load Balancing Enabled" type="bool" default="0x01" access="rw" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4040" name="Load Radiator Room Mean" type="s16" access="rw" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x404A" name="Load Estimate (Radiator)" type="s16" access="r" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x404B" name="Regulation SetPoint Offset" type="s8" default="0x00" access="rw" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x404C" name="Adaptation Run Control" type="enum8" default="0x00" access="rw" required="o" mfcode="0x1246">
 				<value name="Idle" value="0x00"></value>
-				<value name="Start" value="0x01"></value>
-				<value name="Stop" value="0x02"></value>
+				<value name="Initiate Adaptation Run" value="0x01"></value>
+				<value name="Cancel Adaptation Run" value="0x02"></value>
 			</attribute>
-			<attribute id="0x404D" name="Unknown" type="bmp8" access="rw" required="m" mfcode="0x1246"></attribute>
-			<attribute id="0x404E" name="Unknown" type="bmp8" access="rw" required="m" mfcode="0x1246"></attribute>
+			<attribute id="0x404D" name="Adaptation Run Status" type="bmp8" default="0x00" access="r" required="o" mfcode="0x1246">
+				<value name="Adaptation Run in Progress" value="0"></value>
+				<value name="OP Found" value="1"></value>
+				<value name="OP Lost" value="2"></value>
+			</attribute>
+			<attribute id="0x404E" name="Adaptation Run Settings" type="bmp8" default="0x00" access="rw" required="o" mfcode="0x1246">
+				<value name="Default" value="0"></value>
+				<value name="Automatic Adaptation Run Enabled" value="1"></value>
+			</attribute>
+			<attribute id="0x404F" name="Preheat Status" type="bool" default="0x00" access="r" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4050" name="Preheat Time" type="u32" access="r" required="o" mfcode="0x1246"></attribute>
+			<attribute id="0x4051" name="Window Open Feature On" type="bool" default="0x01" access="rw" required="o" mfcode="0x1246"></attribute>
+		</attribute-set>
+
+		<!-- Sinope manufacturer specific -->
+		<attribute-set id="0x0400" description="Sinope specific" mfcode="0x119c">
+			<attribute id="0x0400" name="Occupancy" type="enum8" access="rw" required="m" mfcode="0x119c">
+				<value name="Unoccupied" value="0x00"></value>
+				<value name="Occupied" value="0x01"></value>
+			</attribute>
+			<attribute id="0x0402" name="Backlight" type="enum8" access="rw" required="m" mfcode="0x119c">
+				<value name="On demand" value="0x00"></value>
+				<value name="Sensing" value="0x01"></value>
+			</attribute>
 		</attribute-set>
 
 		<!-- Stelpro manufacturer specific -->
@@ -1897,6 +2147,32 @@ Note: It does not clear or delete previous weekly schedule programming configura
 			<attribute id="0x4001" name="Outdoor temp" type="s16" access="rw" required="m" mfcode="0x1185"></attribute>
 			<attribute id="0x401C" name="System mode" type="enum8" access="rw" required="m"></attribute>
 		</attribute-set>
+
+        <!-- Danfoss manufacturer specific -->
+        <attribute-set id="0x4100" description="Danfoss specific" mfcode="0x1246">
+            <attribute id="0x4100" name="Room Status Code" type="enum16" default="0x0000" access="r" required="o" mfcode="0x1246">
+                <value name="No Error" value="0x0000"></value>
+                <value name="Missing RT" value="0x0101"></value>
+                <value name="RT Touch Error" value="0x0201"></value>
+                <value name="Floor Sensor Short Circuit" value="0x0401"></value>
+                <value name="Floor Sensor Disconnected" value="0x0801"></value>
+            </attribute>
+            <attribute id="0x4110" name="Output Status" type="enum8" default="0x00" access="r" required="o" mfcode="0x1246">
+                <value name="Inactive" value="0x00"></value>
+                <value name="Active" value="0x01"></value>
+            </attribute>
+            <attribute id="0x4120" name="Room Floor Sensor Mode" type="enum8" default="0x00" access="r" required="o" mfcode="0x1246">
+                <value name="Comfort Mode" value="0x00"></value>
+                <value name="Floor Sensor Mode" value="0x01"></value>
+                <value name="Dual Mode" value="0x02"></value>
+            </attribute>
+            <attribute id="0x4121" name="Floor Minimum Setpoint" type="s16" default="0x0708" access="rw" required="o" mfcode="0x1246"></attribute>
+            <attribute id="0x4121" name="Floor Maximum Setpoint" type="s16" default="0x0DAC" access="rw" required="o" mfcode="0x1246"></attribute>
+            <attribute id="0x4130" name="Schedule Type Used" type="enum8" default="0x00" access="rw" required="o" mfcode="0x1246">
+                <value name="Regular Schedule" value="0x00"></value>
+                <value name="Vacation Schedule" value="0x01"></value>
+            </attribute>
+        </attribute-set>
 
 		<command id="0x00" dir="recv" name="Setpoint Raise/Lower" required="m">
 			<description>This command increases (or decreases) the setpoint(s) by amount, in steps of 0.1°C.</description>
@@ -2039,7 +2315,7 @@ Note: It does not clear or delete previous weekly schedule programming configura
         </command>
 			</client>
 		</cluster>
-		<cluster id="0202" name="Fan Control">
+		<cluster id="0x0202" name="Fan Control">
 			<description>This cluster specifies an interface to control the speed of a fan as part of a heating / cooling system.</description>
 			<server>
 				<attribute id="0x0000" name="Fan Mode" type="enum8" access="rw" default="0x05" required="m">
@@ -2062,11 +2338,11 @@ Note: It does not clear or delete previous weekly schedule programming configura
 			<client>
 			</client>
 		</cluster>
-		<cluster id="0203" name="Dehumidification Control">
+		<cluster id="0x0203" name="Dehumidification Control">
 			<description>dfdf</description>
 			<!-- TODO -->
 		</cluster>
-		<cluster id="0204" name="Thermostat User Interface Configuration">
+		<cluster id="0x0204" name="Thermostat User Interface Configuration">
 			<description>This cluster provides an interface to allow configuration of the user interface for a thermostat, or a thermostat
 controller device, that supports a keypad and LCD screen.</description>
 			<server>
@@ -2106,7 +2382,7 @@ controller device, that supports a keypad and LCD screen.</description>
 	</cluster>
 	</domain>
 	<domain name="Lighting" low_bound="0300" high_bound="03ff" description="The lighting functional domain contains clusters and information to build devices in the lighting domain, e.g. ballast units.">
-	<cluster id="0300" name="Color control">
+	<cluster id="0x0300" name="Color control">
 		<description>Attributes and commands for controlling the color properties of a color-capable light.</description>
 		<server>
 			<attribute-set id="0x0000" description="Color Information">
@@ -2563,6 +2839,9 @@ controller device, that supports a keypad and LCD screen.</description>
 					<attribute id="0x0011" name="PIR Unoccupied To Occupied Delay" type="u16" range="0x00,0xfffe" access="rw" required="o" default="0x00">
 						<description>The PIRUnoccupiedToOccupiedDelay attribute is 16-bits in length and specifies the time delay, in seconds, before the PIR sensor changes to its unoccupied state when the sensed area becomes occupied.</description>
 					</attribute>
+					<attribute id="0x0012" name="PIR Unoccupied To Occupied Threshold" type="u8" range="0x01,0xfe" access="rw" required="o" default="0x01">
+						<description>The PIRUnoccupiedToOccupiedThreshold attribute is 8 bits in length and specifies the number of movement detection events that must occur in the period PIRUnoccupiedToOccupiedDelay, before the PIR sensor changes to its occupied state.</description>
+					</attribute>
 				</attribute-set>
 				<attribute-set id="0x0020" description="Ultrasonic configuration">
 					<attribute id="0x0020" name="Ultrasonic Occupied To Unoccupied Delay" type="u8" range="0x00,0xfe" access="rw" required="o" default="0x00">
@@ -2577,9 +2856,9 @@ controller device, that supports a keypad and LCD screen.</description>
 					<attribute id="0x0031" name="Sensitivity max." type="u8" default="0" access="rw" required="o" mfcode="0x100b"></attribute>
 				</attribute-set>
 				<attribute-set id="0xfc00" description="Develco Specific" mfcode="0x1015">
-					<attribute id="0xfc00" name="ArmThreshold_MinTemperature" type="sint16" access="rw" range="0x954d,0x7ffe" required="m" mfcode="0x1015"></attribute>
-					<attribute id="0xfc01" name="ArmThreshold_MaxTemperature" type="sint16" access="rw" range="0x954d,0x7ffe" required="m" mfcode="0x1015"></attribute>
-					<attribute id="0xfc02" name="Target Level" type="uint16" access="rw" range="0x0002,0xfffd" required="m" mfcode="0x1015"></attribute>
+					<attribute id="0xfc00" name="ArmThreshold_MinTemperature" type="s16" access="rw" range="0x954d,0x7ffe" required="m" mfcode="0x1015"></attribute>
+					<attribute id="0xfc01" name="ArmThreshold_MaxTemperature" type="s16" access="rw" range="0x954d,0x7ffe" required="m" mfcode="0x1015"></attribute>
+					<attribute id="0xfc02" name="Target Level" type="u16" access="rw" range="0x0002,0xfffd" required="m" mfcode="0x1015"></attribute>
 				</attribute-set>
 			</server>
 			<client>
@@ -3064,7 +3343,7 @@ controller device, that supports a keypad and LCD screen.</description>
 	<domain name="Protocol interfaces" low_bound="0600" high_bound="06ff" description="The protocol interfaces functional domain contains clusters and information to build devices to interface to other protocols, e.g. BACnet.">
 	</domain>
 	<domain name="Smart energy" low_bound="0700" high_bound="07ff" description="TODO Smart Energy Description">
-		<cluster id="0700" name="Price">
+		<cluster id="0x0700" name="Price">
 			<description>The Price Cluster provides the mechanism for communicating Gas, Energy, or Water pricing information within the premise. This pricing information is distributed to the ESP from either the utilities or from regional energy providers.</description>
 			<server>
 				<attribute id="0000" name="Tier1 Price Label" type="ostring" access="rw" required="o" range="0,12" default="Tier1"></attribute>
@@ -3091,7 +3370,7 @@ controller device, that supports a keypad and LCD screen.</description>
 			<!-- TODO -->
 			</client>
 		</cluster>
-		<cluster id="0701" name="Demand Response and Load Control">
+		<cluster id="0x0701" name="Demand Response and Load Control">
 			<description>This cluster provides an interface to the functionality of Smart Energy Demand Response and Load Control. Devices targeted by this cluster include thermostats and devices that support load control.</description>
 		<client>
 		<attribute id="0000" name="Utility Enrolment Group" type="u8" access="rw" default="0" range="0x00,0xff" required="m"></attribute>
@@ -3103,7 +3382,7 @@ controller device, that supports a keypad and LCD screen.</description>
 		<!-- TODO -->
 		</server>
 		</cluster>
-		<cluster id="0702" name="Simple Metering">
+		<cluster id="0x0702" name="Simple Metering">
 			<description>The Simple Metering Cluster provides a mechanism to retrieve usage information from Electric, Gas, Water, and potentially Thermal metering devices. These
 devices can operate on either battery or mains power, and can have a wide variety of sophistication.</description>
 			<server>
@@ -3183,6 +3462,20 @@ devices can operate on either battery or mains power, and can have a wide variet
 				<attribute id="0x0308" name="Meter Serial Number" type="ostring" range="0,24" access="r" required="o"></attribute>
 				<!-- TODO -->
 			</attribute-set>
+			<attribute-set id="0x0300" description="Develco specific" mfcode="0x1015">
+				<attribute id="0x0300" name="Pulse Configuration" type="u16" access="rw" required="o" mfcode="0x1015"></attribute>
+				<attribute id="0x0301" name="Current Summation" type="u48" access="w" required="o" mfcode="0x1015"></attribute>
+				<attribute id="0x0302" name="Interface Mode" type="enum16" access="rw" required="o" mfcode="0x1015">
+					<value name="Pulse Counting on an Electricity Meter – Unit KWh" value="0x0000"></value>
+					<value name="Pulse Counting on a Gas Meter – Unit m3" value="0x0001"></value>
+					<value name="Pulse Counting on a Water Meter – Unit m3" value="0x0002"></value>
+					<value name="Kamstrup KMP Protocol" value="0x0100"></value>
+					<value name="Not Supported - Linky Protocol" value="0x0101"></value>
+					<value name="DLMS-COSEM - IEC62056-21 mod A" value="0x0102"></value>
+					<value name="P1 Dutch Standard – DSMR 2.3 Version" value="0x0103"></value>
+					<value name="P1 Dutch Standard – DSMR 4.0 Version" value="0x0104"></value>
+				</attribute>
+			</attribute-set>
 			<attribute-set id="0x0400" description="ESP Historical Consumption">
 				<attribute id="0x0400" name="Instantaneous Demand" type="s24" access="r" required="o"></attribute>
 			</attribute-set>
@@ -3246,7 +3539,7 @@ devices can operate on either battery or mains power, and can have a wide variet
 			<!-- TODO -->
 			</client>
 		</cluster>
-		<cluster id="0703" name="Message">
+		<cluster id="0x0703" name="Message">
 			<description>This cluster provides an interface for passing text messages between ZigBee devices.</description>
 			<server>
 			</server>
@@ -3254,7 +3547,7 @@ devices can operate on either battery or mains power, and can have a wide variet
 			</client>
 			<!-- TODO -->
 		</cluster>
-		<cluster id="0704" name="Smart Energy Tunneling (Complex Metering)">
+		<cluster id="0x0704" name="Smart Energy Tunneling (Complex Metering)">
 			<description>The tunneling cluster provides an interface for tunneling protocols.</description>
 			<server>
 				<attribute id="0000" name="Close Tunnel Timeout" type="u16" range="0x0001,0xFFFF" default="0xFFFF" access="r" required="m"></attribute>
@@ -3263,14 +3556,14 @@ devices can operate on either battery or mains power, and can have a wide variet
 			</client>
 			<!-- TODO -->
 		</cluster>
-		<cluster id="0705" name="Prepayment">
+		<cluster id="0x0705" name="Prepayment">
 			<description></description>
 			<!-- TODO -->
 		</cluster>
 	</domain>
 
     <domain name="Appliances" low_bound="0b00" high_bound="0b03" description="The Appliance clusters are typically used in ZigBee appliance management.">
-		<cluster id="001b" name="Appliance Control">
+		<cluster id="0x001b" name="Appliance Control">
 			<description>The Appliance Control cluster provides an interface to remotely control and to program household appliances. Example of control is Start, Stop and Pause commands.</description>
 			<server>
 			<!-- TODO -->
@@ -3279,7 +3572,7 @@ devices can operate on either battery or mains power, and can have a wide variet
 			<!-- TODO -->
 			</client>
 		</cluster>
-        <cluster id="0b01" name="Appliance Identification">
+        <cluster id="0x0b01" name="Appliance Identification">
 			<description>Attributes and commands for determining basic information about a device and setting user device information. The Appliance Identification Cluster is a transposition of EN50523 "Identify Product" functional block.</description>
 			<server>
 			<!-- TODO -->
@@ -3288,7 +3581,7 @@ devices can operate on either battery or mains power, and can have a wide variet
 			<!-- TODO -->
 			</client>
 		</cluster>
-        <cluster id="0b02" name="Appliance Events and Alerts">
+        <cluster id="0x0b02" name="Appliance Events and Alerts">
 			<description>Attributes and commands for transmitting or notifying the occurrence of an event, such as "temperature reached" and of an alert such as alarm, fault or warning. It is based on the "Signal event" syntax of EN50523 and completed where necessary.</description>
 			<server>
                 <command id="0x00" dir="recv" name="Get Alerts" required="m">
@@ -3299,7 +3592,7 @@ devices can operate on either battery or mains power, and can have a wide variet
 			<!-- TODO -->
 			</client>
 		</cluster>
-        <cluster id="0b03" name="Appliance Statistics">
+        <cluster id="0x0b03" name="Appliance Statistics">
 			<description>The Appliance Statistics provides a mechanism for transmitting appliance statistics to a collection unit (gateway). The statistics can be in format of data logs.</description>
 			<server>
 			<!-- TODO -->
@@ -3443,6 +3736,40 @@ devices can operate on either battery or mains power, and can have a wide variet
 			</client>
 		</cluster>
 
+    <!-- Hue -->
+    <cluster id="0xfc00" name="Hue" mfcode="0x100b">
+      <description>Hue-specific cluster.</description>
+      <server>
+        <command id="0x00" dir="send" name="Button Action Notification" required="m">
+          <payload>
+            <attribute id="0x0000" type="u16" name="Button" required="m"/>
+            <attribute id="0x0001" type="enum8" name="Type" required="m">
+              <value name="Push" value="0x00"/>
+              <value name="Rotary" value="0x01"/>
+            </attribute>
+            <attribute id="0x0002" type="u8" name="" showas="hex" required="m"/>
+            <attribute id="0x0003" type="enum8" name="Action" required="m">
+              <value name="Press" value="0x00"/>
+              <value name="Hold" value="0x01"/>
+              <value name="Release" value="0x02"/>
+              <value name="Long Release" value="0x03"/>
+            </attribute>
+            <attribute id="0x0004" type="u8" name="" showas="hex" required="m"/>
+            <attribute id="0x0000" type="u16" name="Duration" required="m"/>
+          </payload>
+        </command>
+      </server>
+    </cluster>
+
+    <!-- Sunricher C4 -->
+    <cluster id="0xfc00" name="Device Setup" mfcode="0x1224">
+      <description>Sunricher-specific cluster.</description>
+      <server>
+        <attribute id="0x0000" type="array" name="Input Configurations" access="rw" required="m" mfcode="0x1224"/>
+        <attribute id="0x0001" type="array" name="Input Actions" access="rw" required="m" mfcode="0x1224"/>
+      </server>
+    </cluster>
+
 		<!-- Tuya -->
 		<cluster id="0xef00" name="Tuya specific Cluster" mfcode="0x1002">
 			<description>Tuya Specific clusters.</description>
@@ -3497,9 +3824,9 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 				<description>Set fil pilote mode</description>
 				<payload>
 					<attribute id="0x0000" type="enum8" name="Mode" required="m" default="0x00">
-						<value name="Confort" value="0x00"></value>
-						<value name="Confort -1" value="0x01"></value>
-						<value name="Confort -2" value="0x02"></value>
+						<value name="Comfort" value="0x00"></value>
+						<value name="Comfort -1" value="0x01"></value>
+						<value name="Comfort -2" value="0x02"></value>
 						<value name="Eco" value="0x03"></value>
 						<value name="Hors-Gel" value="0x04"></value>
 						<value name="Off" value="0x05"></value>
@@ -3509,9 +3836,9 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 
 			<attribute id="0x0000" type="enum8" name="Mode" default="0x00" access="r" required="m">
 				<description>Heating mode</description>
-					<value name="Confort" value="0x00"></value>
-					<value name="Confort -1" value="0x01"></value>
-					<value name="Confort -2" value="0x02"></value>
+					<value name="Comfort" value="0x00"></value>
+					<value name="Comfort -1" value="0x01"></value>
+					<value name="Comfort -2" value="0x02"></value>
 					<value name="Eco" value="0x03"></value>
 					<value name="Hors-Gel" value="0x04"></value>
 					<value name="Off" value="0x05"></value>
@@ -3640,7 +3967,7 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 				<attribute id="0x0010" name="Unknown 1" type="u8" access="rw" required="m" showas="hex" mfcode="0x117c">
 					<description></description>
 				</attribute>
-				<attribute id="0xfffd" name="Unknown 2" type="u16" required="m" access="rw" showas="hex" mfcode="0x117c">
+				<attribute id="0xfffd" name="Cluster Revision" type="u16" required="m" access="rw" showas="hex" mfcode="0x117c">
 					<description></description>
 				</attribute>
 			</server>
@@ -3650,27 +3977,80 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 
 		<!-- LUMI -->
 		<cluster id="0xfcc0" name="Lumi specific" mfcode="0x115f">
-			<description>Lumi specific attributes.</description>
+			<description>Lumi specific attributes.
+
+Note - Aqara Opple switches have 2 modes of operation (0x0009): Switch all devices (0), event based switching (1).
+Child lock off: 0 - false, 1 - true
+Report Consumer Connected: 1 - false, 0 - true
+Attribute 0x0205 has range between 1 and 50 only</description>
 			<server>
+				<attribute id="0x0002" name="Power Outages" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0003" name="Unknown" type="enum8" mfcode="0x115f" access="r" required="m"> </attribute>
+					<value name="0" value="0x00"></value>
+					<value name="1" value="0x01"></value>
+					<value name="2" value="0x02"></value>
+					<value name="3" value="0x03"></value>
+					<value name="4" value="0x04"></value>
+				<attribute id="0x0006" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0007" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0008" name="Unknown (write only)" type="ostring" mfcode="0x115f" access="w" required="m"> </attribute>
+				<attribute id="0x0009" name="Opple switch mode" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x00f3" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
-				<attribute id="0x00f5" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00f5" name="Unknown" type="u32" mfcode="0x115f" access="r" required="m"> </attribute>
 				<attribute id="0x00f6" name="Reporting Interval" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x00fa" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x00fc" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x00fe" name="Serial Number" type="cstring" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x00ff" name="Unknown (write only)" type="ostring" mfcode="0x115f" access="w" required="m"> </attribute>
-				<attribute id="0x0100" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
-				<attribute id="0x0200" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0100" name="Unknown" type="u8" mfcode="0x115f" access="r" required="m"> </attribute>
+				<attribute id="0x0200" name="Child lock off" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0201" name="Restore Power on Outage" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0202" name="Auto-off after 20m below Threshold" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
-				<attribute id="0x0203" name="Device LED off" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0203" name="Device LED off (9pm-9am)" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0204" name="Min. Power Change for Report (W)" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0205" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0206" name="Power Threshold for Auto-off" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
-				<attribute id="0x0207" name="Consumer connected" type="bool" mfcode="0x115f" access="r" required="m"> </attribute>
+				<attribute id="0x0207" name="Consumer Connected" type="bool" mfcode="0x115f" access="r" required="m"> </attribute>
 				<attribute id="0x020b" name="Max. Load Exceeded at (W)" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
-				<attribute id="0xf000" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
-				<attribute id="0xfffd" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0xf000" name="Report Consumer Connected" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0xfffd" name="Cluster Revision" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
+			</server>
+			<client>
+			</client>
+		</cluster>
+
+		<!-- SINOPE -->
+		<cluster id="0xff01" name="Sinope specific" mfcode="0x119c">
+			<description>Sinope specific attributes.
+
+Outdoor Temp to Display Timeout: set 30 for 'off' and 10800 for 'on'</description>
+			<server>
+				<attribute id="0x0010" name="Outdoor Temp on Display" type="s16" mfcode="0x119c" access="rw" required="m"> </attribute>
+				<attribute id="0x0011" name="Outdoor Temp on Display Timeout" type="u16" mfcode="0x119c" access="rw" required="m"> </attribute>
+				<attribute id="0x0020" name="Current Time on Display" type="u32" mfcode="0x119c" access="rw" required="m"> </attribute>
+				<attribute id="0x0105" name="Floor Control Mode" type="enum8" mfcode="0x119c" access="rw" required="m">
+					<value name="Ambient" value="0x01"></value>
+					<value name="Floor" value="0x02"></value>
+				</attribute>
+				<attribute id="0x0108" name="Ambient Max Heat Setpoint Limit" type="s16" mfcode="0x119c" access="rw" required="m"> </attribute>
+				<attribute id="0x0109" name="Floor Min Heat Setpoint Limit" type="s16" mfcode="0x119c" access="rw" required="m"> </attribute>
+				<attribute id="0x0110" name="Floor Max Heat Setpoint Limit" type="s16" mfcode="0x119c" access="rw" required="m"> </attribute>
+				<attribute id="0x0111" name="Temperature Sensor" type="enum8" mfcode="0x119c" access="rw" required="m">
+					<value name="10k" value="0x00"></value>
+					<value name="12k" value="0x01"></value>
+				</attribute>
+				<attribute id="0x0112" name="Floor Limit Status" type="enum8" mfcode="0x119c" access="r" required="m">
+					<value name="Off" value="0x00"></value>
+					<value name="On" value="0x01"></value>
+				</attribute>
+				<attribute id="0x0114" name="Time Format on Display" type="enum8" mfcode="0x119c" access="rw" required="m">
+					<value name="24h" value="0x00"></value>
+					<value name="12h" value="0x01"></value>
+				</attribute>
+				<attribute id="0x0115" name="GFCi Status" type="enum8" mfcode="0x119c" access="r" required="m">
+					<value name="Off" value="0x00"></value>
+					<value name="On" value="0x01"></value>
+				</attribute>
 			</server>
 			<client>
 			</client>
@@ -3687,7 +4067,7 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 				<attribute id="0x0013" name="Unknown" type="u32" mfcode="0x1166" access="rw" required="m"> </attribute>
 				<attribute id="0x0014" name="Unknown" type="u32" mfcode="0x1166" access="rw" required="m"> </attribute>
 				<attribute id="0x0015" name="Unknown" type="u32" mfcode="0x1166" access="rw" required="m"> </attribute>
-				<attribute id="0xfffd" name="Unknown" type="u16" mfcode="0x1166" access="r" required="m"> </attribute>
+				<attribute id="0xfffd" name="Cluster Revision" type="u16" mfcode="0x1166" access="r" required="m"> </attribute>
 			</server>
 			<client>
 			</client>
@@ -3701,7 +4081,7 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 				<attribute id="0x0011" name="Turned on (total)" type="u32" mfcode="0x1037" access="r" required="m"> </attribute>
 				<attribute id="0x0012" name="Consumption since turned on" type="u32" mfcode="0x1037" access="r" required="m"> </attribute>
 				<attribute id="0x0013" name="Unknown" type="u32" mfcode="0x1037" access="rw" required="m"> </attribute>
-				<attribute id="0xfffd" name="Unknown" type="u16" mfcode="0x1037" access="r" required="m"> </attribute>
+				<attribute id="0xfffd" name="Cluster Revision" type="u16" mfcode="0x1037" access="r" required="m"> </attribute>
 			</server>
 			<client>
 			</client>
@@ -3787,14 +4167,20 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 
 		<!-- NIKO -->
 		<cluster id="0xfc00" name="Niko specific" mfcode="0x125f">
-			<description>Niko specific attributes.</description>
+			<description>Niko specific attributes.
+
+LED color: 0 - off, 255 - white, 65280 - blue, 16711680 - red
+Child lock on: 0, Child lock off: 1
+LED on: 1, LED off: 0
+0x0300: Switches permission to write either to 0x0202 (1) or to 0x0302 (0)
+Writing 1 to 0x0202 and 0x0302 makes 0x0300 writable. Then writing 1 to 0x0300 sets 0x0300 bitmap from 0x11 to 0x12, but block all other writes to 0x03XX attributes.</description>
 			<server>
 				<attribute id="0x0000" name="Unknown" type="bmp8" mfcode="0x125f" access="rw" required="m"> </attribute>
-				<attribute id="0x0100" name="Unknown" type="u24" mfcode="0x125f" access="rw" required="m"> </attribute>
-				<attribute id="0x0101" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0100" name="LED color" type="u24" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0101" name="Child lock" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
 				<attribute id="0x0102" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
 				<attribute id="0x0103" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
-				<attribute id="0x0104" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0104" name="LED on/off" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
 				<attribute id="0x0200" name="Connected to power since" type="u32" mfcode="0x125f" access="r" required="m"> </attribute>
 				<attribute id="0x0201" name="Unknown" type="u48" mfcode="0x125f" access="rw" required="m"> </attribute>
 				<attribute id="0x0202" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
@@ -3822,7 +4208,46 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 				<attribute id="0x0508" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
 				<attribute id="0x0600" name="Unknown" type="seckey" mfcode="0x125f" access="rw" required="m"> </attribute>
 				<attribute id="0x0601" name="Unknown" type="seckey" mfcode="0x125f" access="rw" required="m"> </attribute>
-				<attribute id="0xFFFD" name="Unknown" type="u16" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0xFFFD" name="Cluster Revision" type="u16" mfcode="0x125f" access="rw" required="m"> </attribute>
+			</server>
+			<client>
+			</client>
+		</cluster>
+
+		<!-- DATEK -->
+		<cluster id="0xfee1" name="Datek on/off configuration" mfcode="0x1337">
+			<description>Datek on/off configuration attributes.</description>
+			<server>
+				<attribute id="0x0000" name="Off if offline" type="u8" mfcode="0x1337" access="rw" required="m"> </attribute>
+				<attribute id="0x0001" name="Frost guard temperature" type="u8" mfcode="0x1337" access="rw" required="m"> </attribute>
+				<attribute id="0x0002" name="Frost guard temperature hysteresis" type="u8" mfcode="0x1337" access="rw" required="m"> </attribute>
+				<attribute id="0x0003" name="Frost guard mins between change" type="u8" mfcode="0x1337" access="rw" required="m"> </attribute>
+				<attribute id="0x0004" name="On time" type="u16" mfcode="0x1337" access="rw" required="m"> </attribute>
+				<attribute id="0x0010" name="On/off configuration mode" type="enum8" mfcode="0x1337" access="rw" required="m">
+					<value name="Off" value="0x00"></value>
+					<value name="On" value="0x01"></value>
+				</attribute>
+				<attribute id="0xFFFD" name="Cluster revision" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
+			</server>
+			<client>
+			</client>
+		</cluster>
+		<cluster id="0xfeed" name="Datek diagnostics" mfcode="0x1337">
+			<description>Datek diagnostics cluster attributes.</description>
+			<server>
+				<attribute id="0x0000" name="Last reset info" type="u8" mfcode="0x1337" access="r" required="m"> </attribute>
+				<attribute id="0x0001" name="Last extended reset info" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
+				<attribute id="0x0002" name="Reboot counter" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
+				<attribute id="0x0003" name="Last hop LQI" type="u8" mfcode="0x1337" access="r" required="m"> </attribute>
+				<attribute id="0x0004" name="Last hop RSSI" type="s8" mfcode="0x1337" access="r" required="m"> </attribute>
+				<attribute id="0x0005" name="Tx power" type="s8" mfcode="0x1337" access="r" required="m"> </attribute>
+				<attribute id="0x0010" name="Button 0 click counter" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
+				<attribute id="0x0020" name="Button 0 ms click counter" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
+				<attribute id="0x0100" name="Electrical measurement avg" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
+				<attribute id="0x0101" name="Electrical measurement raw" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
+				<attribute id="0x0102" name="Electrical measurement noise w load" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
+				<attribute id="0x0103" name="Electrical measurement noise w/o load" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
+				<attribute id="0xFFFD" name="Cluster revision" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
 			</server>
 			<client>
 			</client>

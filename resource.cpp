@@ -10,7 +10,7 @@
 
 #include <QString>
 
-#include "deconz.h"
+#include "deconz/dbg_trace.h"
 #include "resource.h"
 
 const char *RSensors = "/sensors";
@@ -32,6 +32,8 @@ const char *RAttrType = "attr/type";
 const char *RAttrClass = "attr/class";
 const char *RAttrId = "attr/id";
 const char *RAttrUniqueId = "attr/uniqueid";
+const char *RAttrProductId = "attr/productid";
+const char *RAttrSleeper = "attr/sleeper";
 const char *RAttrSwVersion = "attr/swversion";
 const char *RAttrLastAnnounced = "attr/lastannounced";
 const char *RAttrLastSeen = "attr/lastseen";
@@ -60,6 +62,7 @@ const char *RStateErrorCode = "state/errorcode";
 const char *RStateEventDuration = "state/eventduration";
 const char *RStateFire = "state/fire";
 const char *RStateFlag = "state/flag";
+const char *RStateLockState = "state/lockstate";
 const char *RStateFloorTemperature = "state/floortemperature";
 const char *RStateGesture = "state/gesture";
 const char *RStateHeating = "state/heating";
@@ -94,6 +97,7 @@ const char *RStateSunset = "state/sunset";
 const char *RStateUtc = "state/utc";
 const char *RStateTampered = "state/tampered";
 const char *RStateTemperature = "state/temperature";
+const char *RStateTest = "state/test";
 const char *RStateTilt = "state/tilt";
 const char *RStateTiltAngle = "state/tiltangle";
 const char *RStateValve = "state/valve";
@@ -113,45 +117,57 @@ const QStringList RStateEffectValuesMueller({
 });
 
 const char *RConfigAlert = "config/alert";
+const char *RConfigLock = "config/lock";
 const char *RConfigBattery = "config/battery";
 const char *RConfigColorCapabilities = "config/colorcapabilities";
+const char *RConfigConfigured = "config/configured";
+const char *RConfigControlSequence = "config/controlsequence";
+const char *RConfigCoolSetpoint = "config/coolsetpoint";
 const char *RConfigCtMin = "config/ctmin";
 const char *RConfigCtMax = "config/ctmax";
-const char *RConfigConfigured = "config/configured";
-const char *RConfigCoolSetpoint = "config/coolsetpoint";
 const char *RConfigDebug = "config/debug";
 const char *RConfigDelay = "config/delay";
+const char *RConfigDeviceMode = "config/devicemode";
 const char *RConfigDisplayFlipped = "config/displayflipped";
 const char *RConfigDuration = "config/duration";
+const char *RConfigEnrolled = "config/enrolled";
 const char *RConfigFanMode = "config/fanmode";
 const char *RConfigGroup = "config/group";
 const char *RConfigHeatSetpoint = "config/heatsetpoint";
 const char *RConfigHostFlags = "config/hostflags";
 const char *RConfigId = "config/id";
+const char *RConfigInterfaceMode = "config/interfacemode";
 const char *RConfigLastChangeAmount = "config/lastchange_amount";
 const char *RConfigLastChangeSource = "config/lastchange_source";
 const char *RConfigLastChangeTime = "config/lastchange_time";
 const char *RConfigLat = "config/lat";
 const char *RConfigLedIndication = "config/ledindication";
+const char *RConfigLevelMin = "config/levelmin";
 const char *RConfigLocalTime = "config/localtime";
 const char *RConfigLocked = "config/locked";
 const char *RConfigLong = "config/long";
-const char *RConfigLevelMin = "config/levelmin";
 const char *RConfigMode = "config/mode";
-const char *RConfigSetValve = "config/setvalve";
 const char *RConfigMountingMode = "config/mountingmode";
+const char *RConfigExternalTemperatureSensor = "config/externalsensortemp";
+const char *RConfigExternalWindowOpen = "config/externalwindowopen";
 const char *RConfigOffset = "config/offset";
 const char *RConfigOn = "config/on";
 const char *RConfigPending = "config/pending";
 const char *RConfigPowerup = "config/powerup";
 const char *RConfigPowerOnCt = "config/poweronct";
 const char *RConfigPowerOnLevel = "config/poweronlevel";
+const char *RConfigPulseConfiguration = "config/pulseconfiguration";
 const char *RConfigPreset = "config/preset";
+const char *RConfigMelody = "config/melody";
+const char *RConfigVolume = "config/volume";
+const char *RConfigTempThreshold = "config/temperaturethreshold";
+const char *RConfigHumiThreshold = "config/humiditythreshold";
 const char *RConfigReachable = "config/reachable";
 const char *RConfigSchedule = "config/schedule";
 const char *RConfigScheduleOn = "config/schedule_on";
 const char *RConfigSensitivity = "config/sensitivity";
 const char *RConfigSensitivityMax = "config/sensitivitymax";
+const char *RConfigSetValve = "config/setvalve";
 const char *RConfigSunriseOffset = "config/sunriseoffset";
 const char *RConfigSunsetOffset = "config/sunsetoffset";
 const char *RConfigSwingMode = "config/swingmode";
@@ -179,6 +195,10 @@ const char *RConfigUbisysJ1AdditionalSteps = "config/ubisys_j1_additionalsteps";
 const char *RConfigUbisysJ1InactivePowerThreshold = "config/ubisys_j1_inactivepowerthreshold";
 const char *RConfigUbisysJ1StartupSteps = "config/ubisys_j1_startupsteps";
 
+const QStringList RConfigDeviceModeValues({
+    "singlerocker", "singlepushbutton", "dualrocker", "dualpushbutton"
+});
+
 const QStringList RConfigLastChangeSourceValues({
     "manual", "schedule", "zigbee"
 });
@@ -201,6 +221,8 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrClass));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrUniqueId));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrProductId));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RAttrSleeper));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrSwVersion));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RAttrLastAnnounced));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RAttrLastSeen));
@@ -209,6 +231,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateAirQualityPpb));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAlarm));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateAlert));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateLockState));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAllOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateAngle));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAnyOn));
@@ -222,7 +245,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateCt));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateDark));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateDaylight));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateEffect));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateEffect));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateErrorCode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateEventDuration));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateFire));
@@ -261,6 +284,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RStateSunset));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateTampered));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RStateTemperature, -27315, 32767));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateTest));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateTilt, 0, 100));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateTiltAngle));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RStateUtc));
@@ -274,21 +298,26 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateY));
 
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigAlert));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigLock));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigBattery, 0, 100));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigColorCapabilities));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigCtMin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigCtMax));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigConfigured));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigControlSequence));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigCoolSetpoint, 700, 3500));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigDebug));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigDelay));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigDeviceMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigDisplayFlipped));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigDuration));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RConfigEnrolled));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigFanMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigGroup));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigHeatSetpoint, 500, 3200));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RConfigHostFlags));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RConfigId));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigInterfaceMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigLastChangeAmount));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigLastChangeSource));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RConfigLastChangeTime));
@@ -303,11 +332,16 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigMountingMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigOffset, INT16_MIN, INT16_MAX));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigOn));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigPending));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigPending));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RConfigPowerup));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigPowerOnLevel));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigPowerOnCt));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigPulseConfiguration));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigPreset));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigMelody));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigVolume));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigTempThreshold));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigHumiThreshold));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigReachable));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigSchedule));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigScheduleOn));
@@ -324,6 +358,8 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigUsertest));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigWindowCoveringType));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigWindowOpen));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigExternalTemperatureSensor));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigExternalWindowOpen));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigUbisysJ1Mode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigUbisysJ1WindowCoveringType));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigUbisysJ1ConfigurationAndStatus));
@@ -364,6 +400,61 @@ bool getResourceItemDescriptor(const QString &str, ResourceItemDescriptor &descr
     return false;
 }
 
+/*! Clears \p flags in \p item which must be a numeric value item.
+    The macro is used to print the flag defines as human readable.
+ */
+bool R_ClearFlags1(ResourceItem *item, qint64 flags, const char *strFlags)
+{
+    DBG_Assert(item);
+
+    if (item)
+    {
+        const auto old = item->toNumber();
+        if ((old & flags) != 0)
+        {
+            DBG_Printf(DBG_INFO_L2, "[INFO_L2] - Clear %s flags %s (0x%016llX) in 0x%016llX  --> 0x%016llX\n",
+                       item->descriptor().suffix, strFlags, flags, item->toNumber(), old & ~flags);
+            item->setValue(item->toNumber() & ~flags);
+            return true;
+        }
+    }
+    return false;
+}
+
+/*! Sets \p flags in \p item which must be a numeric value item.
+    The macro is used to print the flag defines as human readable.
+ */
+bool R_SetFlags1(ResourceItem *item, qint64 flags, const char *strFlags)
+{
+    DBG_Assert(item);
+
+    if (item)
+    {
+        const auto old = item->toNumber();
+        if ((old & flags) != flags)
+        {
+            DBG_Printf(DBG_INFO_L2, "[INFO_L2] - Set %s flags %s (0x%016llX) in 0x%016llX --> 0x%016llX\n",
+                       item->descriptor().suffix, strFlags, flags, item->toNumber(), old | flags);
+            item->setValue(item->toNumber() | flags);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool R_HasFlags(const ResourceItem *item, qint64 flags)
+{
+    DBG_Assert(item);
+
+    if (item)
+    {
+        return (item->toNumber() & flags) == flags;
+    }
+
+    return false;
+}
+
 /*! Copy constructor. */
 ResourceItem::ResourceItem(const ResourceItem &other)
 {
@@ -371,33 +462,40 @@ ResourceItem::ResourceItem(const ResourceItem &other)
 }
 
 /*! Move constructor. */
-ResourceItem::ResourceItem(ResourceItem &&other) :
-    m_isPublic(other.m_isPublic),
-    m_num(other.m_num),
-    m_numPrev(other.m_numPrev),
-    m_str(nullptr),
-    m_rid(other.m_rid),
-    m_lastSet(std::move(other.m_lastSet)),
-    m_lastChanged(std::move(other.m_lastChanged)),
-    m_rulesInvolved(std::move(other.m_rulesInvolved))
+ResourceItem::ResourceItem(ResourceItem &&other) noexcept
 {
-    if (other.m_str) // release
-    {
-        m_str = other.m_str;
-        other.m_str = nullptr;
-    }
-
-    other.m_rid = &rInvalidItemDescriptor;
+    *this = std::move(other);
 }
 
 /*! Destructor. */
-ResourceItem::~ResourceItem()
+ResourceItem::~ResourceItem() noexcept
 {
     if (m_str)
     {
         delete m_str;
         m_str = nullptr;
     }
+    m_rid = &rInvalidItemDescriptor;
+}
+
+/*! Returns true when a value has been set but not pushed upstream. */
+bool ResourceItem::needPushSet() const
+{
+    return (m_flags & FlagNeedPushSet) > 0;
+}
+
+/*! Returns true when a value has been set and is different from previous
+    but not pushed upstream.
+ */
+bool ResourceItem::needPushChange() const
+{
+    return (m_flags & FlagNeedPushChange) > 0;
+}
+
+/*! Clears set and changed push flags, called after value has been pushed to upstream. */
+void ResourceItem::clearNeedPush()
+{
+    m_flags &= ~static_cast<quint16>(FlagNeedPushSet | FlagNeedPushChange);
 }
 
 /*! Copy assignment. */
@@ -410,6 +508,7 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
     }
 
     m_isPublic = other.m_isPublic;
+    m_flags = other.m_flags;
     m_num = other.m_num;
     m_numPrev = other.m_numPrev;
     m_rid = other.m_rid;
@@ -438,7 +537,7 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
 }
 
 /*! Move assignment. */
-ResourceItem &ResourceItem::operator=(ResourceItem &&other)
+ResourceItem &ResourceItem::operator=(ResourceItem &&other) noexcept
 {
     // self assignment?
     if (this == &other)
@@ -447,10 +546,11 @@ ResourceItem &ResourceItem::operator=(ResourceItem &&other)
     }
 
     m_isPublic = other.m_isPublic;
+    m_flags = other.m_flags;
     m_num = other.m_num;
     m_numPrev = other.m_numPrev;
     m_rid = other.m_rid;
-    m_lastSet = std::move(other.m_lastChanged);
+    m_lastSet = std::move(other.m_lastSet);
     m_lastChanged = std::move(other.m_lastChanged);
     m_rulesInvolved = std::move(other.m_rulesInvolved);
     other.m_rid = &rInvalidItemDescriptor;
@@ -534,10 +634,6 @@ const QString &ResourceItem::toString() const
             return *m_str;
         }
     }
-    else if (m_rid->suffix == RStateEffect)
-    {
-        return RStateEffectValuesMueller[m_num];
-    }
 
     return rInvalidString;
 }
@@ -562,10 +658,12 @@ bool ResourceItem::setValue(const QString &val)
     if (m_str)
     {
         m_lastSet = QDateTime::currentDateTime();
+        m_flags |= FlagNeedPushSet;
         if (*m_str != val)
         {
             *m_str = val;
             m_lastChanged = m_lastSet;
+            m_flags |= FlagNeedPushChange;
         }
         return true;
     }
@@ -586,11 +684,13 @@ bool ResourceItem::setValue(qint64 val)
 
     m_lastSet = QDateTime::currentDateTime();
     m_numPrev = m_num;
+    m_flags |= FlagNeedPushSet;
 
     if (m_num != val)
     {
         m_num = val;
         m_lastChanged = m_lastSet;
+        m_flags |= FlagNeedPushChange;
     }
 
     return true;
@@ -614,10 +714,12 @@ bool ResourceItem::setValue(const QVariant &val)
         if (m_str)
         {
             m_lastSet = now;
+            m_flags |= FlagNeedPushSet;
             if (*m_str != val.toString())
             {
                 *m_str = val.toString();
                 m_lastChanged = m_lastSet;
+                m_flags |= FlagNeedPushChange;
             }
             return true;
         }
@@ -626,11 +728,13 @@ bool ResourceItem::setValue(const QVariant &val)
     {
         m_lastSet = now;
         m_numPrev = m_num;
+        m_flags |= FlagNeedPushSet;
 
         if (m_num != val.toBool())
         {
             m_num = val.toBool();
             m_lastChanged = m_lastSet;
+            m_flags |= FlagNeedPushChange;
         }
         return true;
     }
@@ -644,11 +748,13 @@ bool ResourceItem::setValue(const QVariant &val)
             {
                 m_lastSet = now;
                 m_numPrev = m_num;
+                m_flags |= FlagNeedPushSet;
 
                 if (m_num != dt.toMSecsSinceEpoch())
                 {
                     m_num = dt.toMSecsSinceEpoch();
                     m_lastChanged = m_lastSet;
+                    m_flags |= FlagNeedPushChange;
                 }
                 return true;
             }
@@ -657,11 +763,13 @@ bool ResourceItem::setValue(const QVariant &val)
         {
             m_lastSet = now;
             m_numPrev = m_num;
+            m_flags |= FlagNeedPushSet;
 
             if (m_num != val.toDateTime().toMSecsSinceEpoch())
             {
                 m_num = val.toDateTime().toMSecsSinceEpoch();
                 m_lastChanged = m_lastSet;
+                m_flags |= FlagNeedPushChange;
             }
             return true;
         }
@@ -682,11 +790,13 @@ bool ResourceItem::setValue(const QVariant &val)
 
             m_lastSet = now;
             m_numPrev = m_num;
+            m_flags |= FlagNeedPushSet;
 
             if (m_num != n)
             {
                 m_num = n;
                 m_lastChanged = m_lastSet;
+                m_flags |= FlagNeedPushChange;
             }
             return true;
         }
@@ -764,7 +874,7 @@ void ResourceItem::inRule(int ruleHandle)
 }
 
 /*! Returns the rules handles in which the resource item is involved. */
-const std::vector<int> ResourceItem::rulesInvolved() const
+const std::vector<int> &ResourceItem::rulesInvolved() const
 {
     return m_rulesInvolved;
 }
@@ -799,13 +909,9 @@ Resource::Resource(const Resource &other) :
 }
 
 /*! Move constructor. */
-Resource::Resource(Resource &&other) :
-    lastStatePush(std::move(other.lastStatePush)),
-    lastAttrPush(std::move(other.lastAttrPush)),
-    m_prefix(other.m_prefix),
-    m_rItems(std::move(other.m_rItems))
+Resource::Resource(Resource &&other) noexcept
 {
-    other.m_prefix = RInvalidSuffix;
+    *this = std::move(other);
 }
 
 /*! Copy assignment. */
@@ -822,7 +928,7 @@ Resource &Resource::operator=(const Resource &other)
 }
 
 /*! Move assignment. */
-Resource &Resource::operator=(Resource &&other)
+Resource &Resource::operator=(Resource &&other) noexcept
 {
     if (this != &other)
     {
