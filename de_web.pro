@@ -114,6 +114,7 @@ HEADERS  = bindings.h \
            de_web_plugin.h \
            de_web_plugin_private.h \
            de_web_widget.h \
+           debug.h \
            event.h \
            gateway.h \
            gateway_scanner.h \
