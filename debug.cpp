@@ -11,11 +11,11 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataRequest &req)
 //                        req.profileId(), req.clusterId(), req.dstEndpoint());
     //DBG_Printf(DBG_INFO_L2, "[REQUEST] - 0x%016llX (0x%04X) - Request ASDU: %s\n", req.dstAddress().ext(), req.dstAddress().nwk(), qPrintable(req.asdu().toHex()));
 
-    QString init = QLatin1String("[REQUEST] - 0x") + QString("%1").arg(req.dstAddress().ext(), 16, 16, QLatin1Char('0')).toUpper() + QLatin1String(" (0x") +
-                   QString("%1").arg(req.dstAddress().nwk(), 4, 16, QLatin1Char('0')).toUpper() +  QLatin1String(") - Profile: 0x") +
-                   QString("%1").arg(req.profileId(), 4, 16, QLatin1Char('0')).toUpper() + QLatin1String(", Cluster: 0x") +
-                   QString("%1").arg(req.clusterId(), 4, 16, QLatin1Char('0')).toUpper() + QLatin1String(", EP: 0x") +
-                   QString("%1").arg(req.dstEndpoint(), 2, 16, QLatin1Char('0')).toUpper() + QLatin1String(", DstAddrMode: ") + QString("%1").arg(req.dstAddressMode(), 2, 16, QLatin1Char('0')).toUpper();
+    QString apsData = QLatin1String("[REQUEST] - 0x") + QString("%1").arg(req.dstAddress().ext(), 16, 16, QLatin1Char('0')).toUpper() + QLatin1String(" (0x") +
+                      QString("%1").arg(req.dstAddress().nwk(), 4, 16, QLatin1Char('0')).toUpper() +  QLatin1String(") - Profile: 0x") +
+                      QString("%1").arg(req.profileId(), 4, 16, QLatin1Char('0')).toUpper() + QLatin1String(", Cluster: 0x") +
+                      QString("%1").arg(req.clusterId(), 4, 16, QLatin1Char('0')).toUpper() + QLatin1String(", EP: 0x") +
+                      QString("%1").arg(req.dstEndpoint(), 2, 16, QLatin1Char('0')).toUpper() + QLatin1String(", DstAddrMode: ") + QString("%1").arg(req.dstAddressMode(), 2, 16, QLatin1Char('0')).toUpper();
 
     if (req.profileId() == ZDP_PROFILE_ID)
     {
@@ -34,8 +34,8 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataRequest &req)
                 stream >> seq;
                 stream >> nwk;
 
-                DBG_Printf(DBG_INFO_L2, "[REQUEST] - 0x%016llX (0x%04X) - %s (0x%02X) - Sequence no.: %d, NWK: 0x%04X\n",
-                            req.dstAddress().ext(), req.dstAddress().nwk(), qUtf8Printable(matchCl.value), matchCl.key, seq, nwk);
+                DBG_Printf(DBG_INFO_L2, "%s, %s (0x%04X) - Sequence no.: %d, NWK: 0x%04X\n",
+                            qPrintable(apsData), qUtf8Printable(matchCl.value), matchCl.key, seq, nwk);
             }
                 break;
 
@@ -50,8 +50,8 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataRequest &req)
                 stream >> nwk;
                 stream >> ep;
 
-                DBG_Printf(DBG_INFO_L2, "[REQUEST] - 0x%016llX (0x%04X) - %s (0x%02X) - Sequence no.: %d, NWK: 0x%04X, Endpoint: %02X\n",
-                            req.dstAddress().ext(), req.dstAddress().nwk(), qUtf8Printable(matchCl.value), matchCl.key, seq, nwk, ep);
+                DBG_Printf(DBG_INFO_L2, "%s, %s (0x%04X) - Sequence no.: %d, NWK: 0x%04X, Endpoint: %02X\n",
+                            qPrintable(apsData), qUtf8Printable(matchCl.value), matchCl.key, seq, nwk, ep);
             }
                 break;
 
@@ -63,8 +63,8 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataRequest &req)
                 stream >> seq;
                 stream >> nwk;
 
-                DBG_Printf(DBG_INFO_L2, "[REQUEST] - 0x%016llX (0x%04X) - %s (0x%02X) - Sequence no.: %d, NWK: 0x%04X\n",
-                            req.dstAddress().ext(), req.dstAddress().nwk(), qUtf8Printable(matchCl.value), matchCl.key, seq, nwk);
+                DBG_Printf(DBG_INFO_L2, "%s, %s (0x%04X) - Sequence no.: %d, NWK: 0x%04X\n",
+                            qPrintable(apsData), qUtf8Printable(matchCl.value), matchCl.key, seq, nwk);
             }
                 break;
 
@@ -94,8 +94,8 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataRequest &req)
                     quint16 dstGroup;
                     stream >> dstGroup;
 
-                    DBG_Printf(DBG_INFO_L2, "[REQUEST] - 0x%016llX (0x%04X) - %s (0x%02X) - Sequence no.: %d, SrcExt: 0x%016llX, srcEp: %02X, srcCluster: 0x%04X, adrMode: %02X, dstGroup: 0x%04X\n",
-                            req.dstAddress().ext(), req.dstAddress().nwk(), qUtf8Printable(matchCl.value), matchCl.key, seq, srcIeee, srcEp, srcCluster, adrMode, dstGroup);
+                    DBG_Printf(DBG_INFO_L2, "%s, %s (0x%04X) - Sequence no.: %d, SrcExt: 0x%016llX, srcEp: %02X, srcCluster: 0x%04X, adrMode: %02X, dstGroup: 0x%04X\n",
+                            qPrintable(apsData), qUtf8Printable(matchCl.value), matchCl.key, seq, srcIeee, srcEp, srcCluster, adrMode, dstGroup);
                 }
                 else if (req.asdu().size() >= 22 && req.asdu().size() <= 24)
                 {
@@ -109,8 +109,8 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataRequest &req)
                         stream >> dstCluster;
                     }
 
-                    DBG_Printf(DBG_INFO_L2, "[REQUEST] - 0x%016llX (0x%04X) - %s (0x%02X) - Sequence no.: %d, srcExt: 0x%016llX, srcEp: %02X, srcCluster: 0x%04X, adrMode: %02X, dstExt: 0x%016llX, dstEp: %02X, dstCluster: 0x%04X\n",
-                            req.dstAddress().ext(), req.dstAddress().nwk(), qUtf8Printable(matchCl.value), matchCl.key, seq, srcIeee, srcEp, srcCluster, adrMode, dstIeee, dstEp, dstCluster);
+                    DBG_Printf(DBG_INFO_L2, "%s, %s (0x%04X) - Sequence no.: %d, srcExt: 0x%016llX, srcEp: %02X, srcCluster: 0x%04X, adrMode: %02X, dstExt: 0x%016llX, dstEp: %02X, dstCluster: 0x%04X\n",
+                            qPrintable(apsData), qUtf8Printable(matchCl.value), matchCl.key, seq, srcIeee, srcEp, srcCluster, adrMode, dstIeee, dstEp, dstCluster);
                 }
             }
                 break;
@@ -124,8 +124,8 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataRequest &req)
                 stream >> status;
                 // Potentially following data is not yet picked up here
 
-                DBG_Printf(DBG_INFO_L2, "[NEWDEBUG] - 0x%016llX (%04X) - %s (0x%02X) - Sequence no.: %d, Status: 0x%02X\n",
-                            req.dstAddress().ext(), req.dstAddress().nwk(), seq, status);*/
+                DBG_Printf(DBG_INFO_L2, "%s, %s (0x%02X) - Sequence no.: %d, Status: 0x%02X\n",
+                            qPrintable(apsData), seq, status);*/
             }
                 break;
 
@@ -154,51 +154,51 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataRequest &req)
             {
                 case deCONZ::ZclGeneralCommandId::ZclReadAttributesId:
                 {
-                    dbgReadAttributes(zclFrame, matchCmd, init);
+                    dbgReadAttributes(zclFrame, matchCmd, apsData);
                 }
                     break;
 
                 case deCONZ::ZclGeneralCommandId::ZclWriteAttributesId:
                 {
-                    dbgWriteAttributes(zclFrame, matchCmd, init);
+                    dbgWriteAttributes(zclFrame, matchCmd, apsData);
                 }
                     break;
 
                 case deCONZ::ZclGeneralCommandId::ZclReadReportingConfigId:
                 {
-                    dbgReadReportingConfig(zclFrame, matchCmd, init);
+                    dbgReadReportingConfig(zclFrame, matchCmd, apsData);
                 }
                     break;
 
                 case deCONZ::ZclGeneralCommandId::ZclConfigureReportingId:
                 {
-                    dbgConfigureReporting(zclFrame, matchCmd, init);
+                    dbgConfigureReporting(zclFrame, matchCmd, apsData);
                 }
                     break;
 
                 case deCONZ::ZclGeneralCommandId::ZclReadAttributesResponseId:
                 case deCONZ::ZclGeneralCommandId::ZclReportAttributesId:
                 {
-                    dbgReportAttributesAndReadAttributesRsp(zclFrame, matchCmd, init);
+                    dbgReportAttributesAndReadAttributesRsp(zclFrame, matchCmd, apsData);
                     //dbgReportAttributesAndReadAttributesRsp2(req.dstAddressMod, zclFrame, matchCmd);
                 }
                     break;
 
                 case deCONZ::ZclGeneralCommandId::ZclWriteAttributesResponseId:
                 {
-                    dbgWriteAttributes(zclFrame, matchCmd, init);
+                    dbgWriteAttributes(zclFrame, matchCmd, apsData);
                 }
                     break;
 
                 case deCONZ::ZclGeneralCommandId::ZclReadReportingConfigResponseId:
                 {
-                    dbgReadReportingConfigRsp(zclFrame, matchCmd, init);
+                    dbgReadReportingConfigRsp(zclFrame, matchCmd, apsData);
                 }
                     break;
 
                 case deCONZ::ZclGeneralCommandId::ZclConfigureReportingResponseId:
                 {
-                    dbgConfigureReportingRsp(zclFrame, matchCmd, init);
+                    dbgConfigureReportingRsp(zclFrame, matchCmd, apsData);
                 }
                     break;
 
@@ -214,9 +214,11 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataRequest &req)
 //                                        req.dstAddress().ext(), req.dstAddress().nwk(), qUtf8Printable(matchCmd.key), matchCmd.value, zclFrame.sequenceNumber(), zclFrame.manufacturerCode(),
 //                                        zclFrame.payload().size(), qPrintable(zclFrame.payload().toHex().toUpper()));
 
-                DBG_Printf(DBG_INFO_L2, "%s %s (0x%02X) - Sequence no.: %d, Mfc: 0x%04X, PL-Size: %u, ZCL-Payload: 0x%s\n",
-                                    qPrintable(init), qUtf8Printable(matchCmd.key), matchCmd.value, zclFrame.sequenceNumber(), zclFrame.manufacturerCode(),
-                                    zclFrame.payload().size(), qPrintable(zclFrame.payload().toHex().toUpper()));
+                    dbgRareGeneralCommand(zclFrame, matchCmd, apsData);
+
+//                    DBG_Printf(DBG_INFO_L2, "%s %s (0x%02X) - Sequence no.: %d, Mfc: 0x%04X, PL-Size: %u, ZCL-Payload: 0x%s\n",
+//                                    qPrintable(apsData), qUtf8Printable(matchCmd.key), matchCmd.value, zclFrame.sequenceNumber(), zclFrame.manufacturerCode(),
+//                                    zclFrame.payload().size(), qPrintable(zclFrame.payload().toHex().toUpper()));
                 }
                     break;
 
@@ -230,9 +232,11 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataRequest &req)
 //                                req.dstAddress().ext(), req.dstAddress().nwk(), zclFrame.commandId(), zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), zclFrame.payload().size(),
 //                                qPrintable(zclFrame.payload().toHex().toUpper()));
 
-            DBG_Printf(DBG_INFO_L2, "%s, Cluster command: %02X, SeqNo.: %d, Mfc: 0x%04X, PL-Size: %u, ZCL-Payload: 0x%s\n",
-                                qPrintable(init), zclFrame.commandId(), zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), zclFrame.payload().size(),
-                                qPrintable(zclFrame.payload().toHex().toUpper()));
+            dbgClusterCommand(zclFrame, apsData);
+
+//            DBG_Printf(DBG_INFO_L2, "%s, Cluster command: %02X, SeqNo.: %d, Mfc: 0x%04X, PL-Size: %u, ZCL-Payload: 0x%s\n",
+//                                qPrintable(apsData), zclFrame.commandId(), zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), zclFrame.payload().size(),
+//                                qPrintable(zclFrame.payload().toHex().toUpper()));
         }
     }
 }
@@ -248,23 +252,24 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
 //    DBG_Printf(DBG_INFO_L2, "[INDICATION] - 0x%016llX (0x%04X) - Indication for Profile: 0x%04X, Cluster: 0x%04X, Endpoint: %d, Status: 0x%02X\n", ind.srcAddress().ext(), ind.srcAddress().nwk(),
 //                        ind.profileId(), ind.clusterId(), ind.srcEndpoint(), ind.status());
 
-    QString init = QLatin1String("[INDICATION] - 0x") + QString("%1").arg(ind.srcAddress().ext(), 16, 16, QLatin1Char('0')).toUpper() + QLatin1String(" (0x") +
+    QString apsData = QLatin1String("[INDICATION] - 0x") + QString("%1").arg(ind.srcAddress().ext(), 16, 16, QLatin1Char('0')).toUpper() + QLatin1String(" (0x") +
                    QString("%1").arg(ind.srcAddress().nwk(), 4, 16, QLatin1Char('0')).toUpper() +  QLatin1String(") - Profile: 0x") +
                    QString("%1").arg(ind.profileId(), 4, 16, QLatin1Char('0')).toUpper() + QLatin1String(", Cluster: 0x") +
                    QString("%1").arg(ind.clusterId(), 4, 16, QLatin1Char('0')).toUpper() + QLatin1String(", EP: 0x") +
-                   QString("%1").arg(ind.srcEndpoint(), 4, 16, QLatin1Char('0')).toUpper();
+                   QString("%1").arg(ind.srcEndpoint(), 2, 16, QLatin1Char('0')).toUpper();
 
     if (ind.dstAddress().isNwkUnicast())
     {
-        init += ", Unicast to: 0x" + QString("%1").arg(ind.dstAddress().nwk(), 4, 16, QLatin1Char('0')).toUpper();
+        apsData += ", Unicast to: 0x" + QString("%1").arg(ind.dstAddress().nwk(), 4, 16, QLatin1Char('0')).toUpper();
+        apsData += ", DstAddrMode: " + QString("%1").arg(ind.dstAddressMode(), 2, 16, QLatin1Char('0')).toUpper();
     }
     else if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
     {
-        init += ", Broadcast to: 0x" + QString("%1").arg(ind.dstAddress().group(), 4, 16, QLatin1Char('0')).toUpper();
+        apsData += ", Broadcast to: 0x" + QString("%1").arg(ind.dstAddress().group(), 4, 16, QLatin1Char('0')).toUpper();
     }
     else
     {
-        init += ", DstAddrMode: " + QString("%1").arg(ind.dstAddressMode(), 2, 16, QLatin1Char('0')).toUpper();
+        apsData += ", DstAddrMode: " + QString("%1").arg(ind.dstAddressMode(), 2, 16, QLatin1Char('0')).toUpper();
     }
 
 
@@ -297,8 +302,8 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
 
                 nd.readFromStream(stream);
 
-                DBG_Printf(DBG_INFO_L2, "[INDICATION] - 0x%016llX (0x%04X) - %s (0x%02X) - Sequence no.: %d, Node descriptor: 0x%s\n",
-                            ind.srcAddress().ext(), ind.srcAddress().nwk(), qUtf8Printable(matchCl.value), matchCl.key, seq, qPrintable(nd.toByteArray().toHex()));
+                DBG_Printf(DBG_INFO_L2, "%s, %s (0x%04X) - Sequence no.: %d, Node descriptor: 0x%s\n",
+                            qUtf8Printable(apsData), qUtf8Printable(matchCl.value), matchCl.key, seq, qPrintable(nd.toByteArray().toHex()));
             }
                 break;
 
@@ -353,8 +358,8 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
 
 //                DBG_Printf(DBG_INFO_L2, "[INDICATION] - 0x%016llX (0x%04X) - Received simple descriptor response - Sequence no.: %d\n",
 //                            ind.srcAddress().ext(), ind.srcAddress().nwk(), seq);
-                DBG_Printf(DBG_INFO_L2, "[INDICATION] - 0x%016llX (0x%04X) - %s (0x%02X) - Sequence no.: %d, Ep: %02X, Profile: 0x%04X, DeviceID: 0x%04X, Input clusters: %s, Output clusters: %s\n",
-                            ind.srcAddress().ext(), ind.srcAddress().nwk(), qUtf8Printable(matchCl.value), matchCl.key, seq, ep, profile, appDevice, qUtf8Printable(inClusters), qUtf8Printable(outClusters));
+                DBG_Printf(DBG_INFO_L2, "%s, %s (0x%04X) - Sequence no.: %d, Ep: %02X, Profile: 0x%04X, DeviceID: 0x%04X, Input clusters: %s, Output clusters: %s\n",
+                            qUtf8Printable(apsData), qUtf8Printable(matchCl.value), matchCl.key, seq, ep, profile, appDevice, qUtf8Printable(inClusters), qUtf8Printable(outClusters));
             }
                 break;
 
@@ -383,8 +388,8 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
 
                 endpoints = endpoints.left(endpoints.lastIndexOf(QChar(',')));   // Strip everything after the last comma, for beauty
 
-                DBG_Printf(DBG_INFO_L2, "[INDICATION] - 0x%016llX (0x%04X) - %s (0x%02X) - Sequence no.: %d, Active endpoints: %s\n",
-                            ind.srcAddress().ext(), ind.srcAddress().nwk(), qUtf8Printable(matchCl.value), matchCl.key, seq, qUtf8Printable(endpoints));
+                DBG_Printf(DBG_INFO_L2, "%s, %s (0x%04X) - Sequence no.: %d, Active endpoints: %s\n",
+                            qUtf8Printable(apsData), qUtf8Printable(matchCl.value), matchCl.key, seq, qUtf8Printable(endpoints));
             }
                 break;
 
@@ -428,8 +433,8 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
 
                 outClusters = outClusters.left(outClusters.lastIndexOf(QChar(',')));    // Strip everything after the last comma, for beauty
 
-                DBG_Printf(DBG_INFO_L2, "[INDICATION] - 0x%016llX (0x%04X) - %s (0x%02X) - Sequence no.: %d, Profile: 0x%04X, Input clusters: %s, Output clusters: %s\n\n",
-                        ind.srcAddress().ext(), ind.srcAddress().nwk(), qUtf8Printable(matchCl.value), matchCl.key, seq, profile, qUtf8Printable(inClusters), qUtf8Printable(outClusters));
+                DBG_Printf(DBG_INFO_L2, "%s, %s (0x%04X) - Sequence no.: %d, Profile: 0x%04X, Input clusters: %s, Output clusters: %s\n\n",
+                        qUtf8Printable(apsData), qUtf8Printable(matchCl.value), matchCl.key, seq, profile, qUtf8Printable(inClusters), qUtf8Printable(outClusters));
 
             }
                 break;
@@ -447,8 +452,8 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
                 stream >> ieee;
                 stream >> macCapabilities;
 
-                DBG_Printf(DBG_INFO_L2, "[INDICATION] - 0x%016llX (0x%04X) - %s (0x%02X) - Sequence no.: %d, MAC capabilities: 0x%02X\n",
-                            ind.srcAddress().ext(), ind.srcAddress().nwk(), qUtf8Printable(matchCl.value), matchCl.key, seq, macCapabilities);
+                DBG_Printf(DBG_INFO_L2, "%s, %s (0x%04X) - Sequence no.: %d, MAC capabilities: 0x%02X\n",
+                            qUtf8Printable(apsData), qUtf8Printable(matchCl.value), matchCl.key, seq, macCapabilities);
             }
                 break;
 
@@ -465,8 +470,8 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
                 stream >> reqType;
                 stream >> idx;
 
-                DBG_Printf(DBG_INFO_L2, "[INDICATION] - 0x%016llX (0x%04X) - %s (0x%02X) - Sequence no.: %d\n",
-                            ind.srcAddress().ext(), ind.srcAddress().nwk(), qUtf8Printable(matchCl.value), matchCl.key, seq);
+                DBG_Printf(DBG_INFO_L2, "%s, %s (0x%04X) - Sequence no.: %d\n",
+                            qUtf8Printable(apsData), qUtf8Printable(matchCl.value), matchCl.key, seq);
             }
                 break;
 
@@ -485,8 +490,8 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
                 stream >> idx;
 
 
-                DBG_Printf(DBG_INFO_L2, "[INDICATION] - 0x%016llX (0x%04X) - %s (0x%02X) - Sequence no.: %d\n",
-                            ind.srcAddress().ext(), ind.srcAddress().nwk(), qUtf8Printable(matchCl.value), matchCl.key, seq);
+                DBG_Printf(DBG_INFO_L2, "%s, %s (0x%04X) - Sequence no.: %d\n",
+                            qUtf8Printable(apsData), qUtf8Printable(matchCl.value), matchCl.key, seq);
             }
                 break;
 
@@ -504,8 +509,8 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
                 stream >> startIndex;
                 stream >> listCount;
 
-                DBG_Printf(DBG_INFO_L2, "[INDICATION] - 0x%016llX (0x%04X) - %s (0x%02X) - Sequence no.: %d\n",
-                            ind.srcAddress().ext(), ind.srcAddress().nwk(), qUtf8Printable(matchCl.value), matchCl.key, seq);
+                DBG_Printf(DBG_INFO_L2, "%s, %s (0x%04X) - Sequence no.: %d\n",
+                            qUtf8Printable(apsData), qUtf8Printable(matchCl.value), matchCl.key, seq);
             }
                 break;
 
@@ -520,8 +525,8 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
 
                 const auto match = matchKeyFromMap1(status, zclStatusCodes);
 
-                DBG_Printf(DBG_INFO_L2, "[INDICATION] - 0x%016llX (0x%04X) - %s (0x%02X) - Sequence no.: %d, Status: %s\n",
-                            ind.srcAddress().ext(), ind.srcAddress().nwk(), qUtf8Printable(matchCl.value), matchCl.key, seq, qUtf8Printable(match.value));
+                DBG_Printf(DBG_INFO_L2, "%s, %s (0x%04X) - Sequence no.: %d, Status: %s\n",
+                            qUtf8Printable(apsData), qUtf8Printable(matchCl.value), matchCl.key, seq, qUtf8Printable(match.value));
             }
                 break;
 
@@ -535,8 +540,8 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
 
                 const auto match = matchKeyFromMap1(status, zclStatusCodes);
 
-                DBG_Printf(DBG_INFO_L2, "[INDICATION] - 0x%016llX (0x%04X) - %s (0x%02X) - Sequence no.: %d, Status: %s\n",
-                            ind.srcAddress().ext(), ind.srcAddress().nwk(), qUtf8Printable(matchCl.value), matchCl.key, seq, qUtf8Printable(match.value));
+                DBG_Printf(DBG_INFO_L2, "%s, %s (0x%04X) - Sequence no.: %d, Status: %s\n",
+                            qUtf8Printable(apsData), qUtf8Printable(matchCl.value), matchCl.key, seq, qUtf8Printable(match.value));
             }
                 break;
 
@@ -550,8 +555,8 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
 
                 const auto match = matchKeyFromMap1(status, zclStatusCodes);
 
-                DBG_Printf(DBG_INFO_L2, "[INDICATION] - 0x%016llX (0x%04X) - %s (0x%02X) - Sequence no.: %d, Status: %s\n",
-                            ind.srcAddress().ext(), ind.srcAddress().nwk(), qUtf8Printable(matchCl.value), matchCl.key, seq, qUtf8Printable(match.value));
+                DBG_Printf(DBG_INFO_L2, "%s, %s (0x%04X) - Sequence no.: %d, Status: %s\n",
+                            qUtf8Printable(apsData), qUtf8Printable(matchCl.value), matchCl.key, seq, qUtf8Printable(match.value));
             }
                 break;
 
@@ -563,8 +568,8 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
                 stream >> seq;
                 stream >> status;
 
-                DBG_Printf(DBG_INFO_L2, "[INDICATION] - 0x%016llX (0x%04X) - %s (0x%02X) - Sequence no.: %d, Status: 0x%02X\n",
-                            ind.srcAddress().ext(), ind.srcAddress().nwk(), qUtf8Printable(matchCl.value), matchCl.key, seq);
+                DBG_Printf(DBG_INFO_L2, "%s, %s (0x%04X) - Sequence no.: %d, Status: 0x%02X\n",
+                            qUtf8Printable(apsData), qUtf8Printable(matchCl.value), matchCl.key, seq);
             }
                 break;
 
@@ -597,49 +602,49 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
                 case deCONZ::ZclGeneralCommandId::ZclReadAttributesResponseId:
                 case deCONZ::ZclGeneralCommandId::ZclReportAttributesId:
                 {
-                    dbgReportAttributesAndReadAttributesRsp(zclFrame, matchCmd, init);
+                    dbgReportAttributesAndReadAttributesRsp(zclFrame, matchCmd, apsData);
                 }
                     break;
 
                 case deCONZ::ZclGeneralCommandId::ZclConfigureReportingResponseId:
                 {
-                    dbgConfigureReportingRsp(zclFrame, matchCmd, init);
+                    dbgConfigureReportingRsp(zclFrame, matchCmd, apsData);
                 }
                     break;
 
                 case deCONZ::ZclGeneralCommandId::ZclReadReportingConfigResponseId:
                 {
-                    dbgReadReportingConfigRsp(zclFrame, matchCmd, init);
+                    dbgReadReportingConfigRsp(zclFrame, matchCmd, apsData);
                 }
                     break;
 
                 case deCONZ::ZclGeneralCommandId::ZclWriteAttributesResponseId:
                 {
-                    dbgWriteAttributesRsp(zclFrame, matchCmd, init);
+                    dbgWriteAttributesRsp(zclFrame, matchCmd, apsData);
                 }
                     break;
 
                 case deCONZ::ZclGeneralCommandId::ZclReadAttributesId:
                 {
-                    dbgReadAttributes(zclFrame, matchCmd, init);
+                    dbgReadAttributes(zclFrame, matchCmd, apsData);
                 }
                     break;
 
                 case deCONZ::ZclGeneralCommandId::ZclConfigureReportingId:
                 {
-                    dbgConfigureReporting(zclFrame, matchCmd, init);
+                    dbgConfigureReporting(zclFrame, matchCmd, apsData);
                 }
                 break;
 
                 case deCONZ::ZclGeneralCommandId::ZclReadReportingConfigId:
                 {
-                    dbgReadReportingConfig(zclFrame, matchCmd, init);
+                    dbgReadReportingConfig(zclFrame, matchCmd, apsData);
                 }
                     break;
 
                 case deCONZ::ZclGeneralCommandId::ZclWriteAttributesId:
                 {
-                    dbgWriteAttributes(zclFrame, matchCmd, init);
+                    dbgWriteAttributes(zclFrame, matchCmd, apsData);
                 }
                     break;
 
@@ -654,9 +659,12 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
 //                    DBG_Printf(DBG_INFO_L2, "[INDICATION] - 0x%016llX (0x%04X) - %s (0x%02X) - Sequence no.: %d, Mfc: 0x%04X, Status: 0x%02X, PL-Size: %u, ZCL-Payload: 0x%s\n",
 //                            ind.srcAddress().ext(), ind.srcAddress().nwk(), qUtf8Printable(matchCmd.key), matchCmd.value, zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), zclFrame.defaultResponseStatus(),
 //                            zclFrame.payload().size(), qPrintable(zclFrame.payload().toHex().toUpper()));
-                    DBG_Printf(DBG_INFO_L2, "%s, %s (0x%02X), SeqNo.: %d, Mfc: 0x%04X, Status: 0x%02X, PL-Size: %u, ZCL-Payload: 0x%s\n",
-                            qUtf8Printable(init), qUtf8Printable(matchCmd.key), matchCmd.value, zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), zclFrame.defaultResponseStatus(),
-                            zclFrame.payload().size(), qPrintable(zclFrame.payload().toHex().toUpper()));
+
+                    dbgRareGeneralCommand(zclFrame, matchCmd, apsData);
+
+//                    DBG_Printf(DBG_INFO_L2, "%s, %s (0x%02X), SeqNo.: %d, Mfc: 0x%04X, Status: 0x%02X, PL-Size: %u, ZCL-Payload: 0x%s\n",
+//                            qUtf8Printable(apsData), qUtf8Printable(matchCmd.key), matchCmd.value, zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), zclFrame.defaultResponseStatus(),
+//                            zclFrame.payload().size(), qPrintable(zclFrame.payload().toHex().toUpper()));
                 }
                     break;
 
@@ -670,19 +678,49 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
 //                    ind.srcAddress().ext(), ind.srcAddress().nwk(), zclFrame.commandId(), zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), zclFrame.defaultResponseStatus(), zclFrame.payload().size(),
 //                    qPrintable(zclFrame.payload().toHex().toUpper()));
 
-            DBG_Printf(DBG_INFO_L2, "%s, Cluster command: 0x%02X, SeqNo.: %d, Mfc: 0x%04X, Status: 0x%02X, PL-Size: %u, ZCL-Payload: 0x%s\n",
-                    qUtf8Printable(init), zclFrame.commandId(), zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), zclFrame.defaultResponseStatus(), zclFrame.payload().size(),
-                    qPrintable(zclFrame.payload().toHex().toUpper()));
+            dbgClusterCommand(zclFrame, apsData);
+
+//            DBG_Printf(DBG_INFO_L2, "%s, Cluster command: 0x%02X, SeqNo.: %d, Mfc: 0x%04X, Status: 0x%02X, PL-Size: %u, ZCL-Payload: 0x%s\n",
+//                    qUtf8Printable(apsData), zclFrame.commandId(), zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), zclFrame.defaultResponseStatus(), zclFrame.payload().size(),
+//                    qPrintable(zclFrame.payload().toHex().toUpper()));
         }
     }
 }
 
-void dbgWriteAttributes(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &init)
+void dbgRareGeneralCommand(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &apsData)
+{
+    QString data;
+
+    data += apsData + QLatin1String(", ") + matchCmd.key + QLatin1String(" (0x") + QString("%1").arg(matchCmd.value, 2, 16, QLatin1Char('0')).toUpper() +
+            QLatin1String("), SeqNo.: ") + QString::number(zclFrame.sequenceNumber()) + QLatin1String(", Mfc: 0x") +
+            QString("%1").arg(zclFrame.manufacturerCode(), 4, 16, QLatin1Char('0')).toUpper() + QLatin1String(", PL-Size: ") +
+            QString::number(zclFrame.payload().size()) + QLatin1String(", ZCL-Payload: 0x") + QString(zclFrame.payload().toHex().toUpper());
+
+    printDebugMessage(data);
+}
+
+void dbgClusterCommand(const deCONZ::ZclFrame &zclFrame, const QString &apsData)
+{
+    QString data;
+
+    data += apsData + QLatin1String(", Cluster command: 0x") + QString("%1").arg(zclFrame.commandId(), 2, 16, QLatin1Char('0')).toUpper() +
+            QLatin1String(", SeqNo.: ") + QString::number(zclFrame.sequenceNumber()) + QLatin1String(", Mfc: 0x") +
+            QString("%1").arg(zclFrame.manufacturerCode(), 4, 16, QLatin1Char('0')).toUpper() + QLatin1String(", PL-Size: ") +
+            QString::number(zclFrame.payload().size()) + QLatin1String(", ZCL-Payload: 0x") + QString(zclFrame.payload().toHex().toUpper());
+
+    printDebugMessage(data);
+}
+
+void dbgWriteAttributes(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &apsData)
 {
     QString data;
 
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
+
+    data += apsData + QLatin1String(", ") + matchCmd.key + QLatin1String(" (0x") + QString("%1").arg(matchCmd.value, 2, 16, QLatin1Char('0')).toUpper() +
+            QLatin1String("), SeqNo.: ") + QString::number(zclFrame.sequenceNumber()) + QLatin1String(", Mfc: 0x") +
+            QString("%1").arg(zclFrame.manufacturerCode(), 4, 16, QLatin1Char('0')).toUpper();
 
     while (!stream.atEnd())
     {
@@ -707,16 +745,22 @@ void dbgWriteAttributes(const deCONZ::ZclFrame &zclFrame, const KeyValMap &match
         data += QLatin1String(", Value: ") + attr.toVariant().toString() + QLatin1String(" (0x") + attr.toVariant().toString().toUpper() + QLatin1String(")");
     }
 
-    DBG_Printf(DBG_INFO_L2, "%s, %s (0x%02X), SeqNo.: %d, Mfc: 0x%04X%s\n",
-            qUtf8Printable(init), qUtf8Printable(matchCmd.key), matchCmd.value, zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), qUtf8Printable(data));
+    printDebugMessage(data);
+
+//    DBG_Printf(DBG_INFO_L2, "%s, %s (0x%02X), SeqNo.: %d, Mfc: 0x%04X%s\n",
+//            qUtf8Printable(apsData), qUtf8Printable(matchCmd.key), matchCmd.value, zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), qUtf8Printable(data));
 }
 
-void dbgWriteAttributesRsp(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &init)
+void dbgWriteAttributesRsp(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &apsData)
 {
     QString data;
 
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
+
+    data += apsData + QLatin1String(", ") + matchCmd.key + QLatin1String(" (0x") + QString("%1").arg(matchCmd.value, 2, 16, QLatin1Char('0')).toUpper() +
+            QLatin1String("), SeqNo.: ") + QString::number(zclFrame.sequenceNumber()) + QLatin1String(", Mfc: 0x") +
+            QString("%1").arg(zclFrame.manufacturerCode(), 4, 16, QLatin1Char('0')).toUpper();
 
     while (!stream.atEnd())
     {
@@ -739,16 +783,22 @@ void dbgWriteAttributesRsp(const deCONZ::ZclFrame &zclFrame, const KeyValMap &ma
         }
     }
 
-    DBG_Printf(DBG_INFO_L2, "%s, %s (0x%02X), SeqNo.: %d, Mfc: 0x%04X%s\n",
-            qUtf8Printable(init), qUtf8Printable(matchCmd.key), matchCmd.value, zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), qUtf8Printable(data));
+    printDebugMessage(data);
+
+//    DBG_Printf(DBG_INFO_L2, "%s, %s (0x%02X), SeqNo.: %d, Mfc: 0x%04X%s\n",
+//            qUtf8Printable(apsData), qUtf8Printable(matchCmd.key), matchCmd.value, zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), qUtf8Printable(data));
 }
 
-void dbgReportAttributesAndReadAttributesRsp(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &init)
+void dbgReportAttributesAndReadAttributesRsp(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &apsData)
 {
     QString data;
 
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
+
+    data += apsData + QLatin1String(", ") + matchCmd.key + QLatin1String(" (0x") + QString("%1").arg(matchCmd.value, 2, 16, QLatin1Char('0')).toUpper() +
+            QLatin1String("), SeqNo.: ") + QString::number(zclFrame.sequenceNumber()) + QLatin1String(", Mfc: 0x") +
+            QString("%1").arg(zclFrame.manufacturerCode(), 4, 16, QLatin1Char('0')).toUpper();
 
     while (!stream.atEnd())
     {
@@ -812,16 +862,24 @@ void dbgReportAttributesAndReadAttributesRsp(const deCONZ::ZclFrame &zclFrame, c
         }
     }
 
-    DBG_Printf(DBG_INFO_L2, "%s, %s (0x%02X), SeqNo.: %d, Mfc: 0x%04X%s\n",
-            qUtf8Printable(init), qUtf8Printable(matchCmd.key), matchCmd.value, zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), qUtf8Printable(data));
+    printDebugMessage(data);
+
+//    DBG_Printf(DBG_INFO_L2, "%s, %s (0x%02X), SeqNo.: %d, Mfc: 0x%04X%s\n",
+//            qUtf8Printable(apsData), qUtf8Printable(matchCmd.key), matchCmd.value, zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), qUtf8Printable(data));
 }
 
-void dbgReadAttributes(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &init)
+void dbgReadAttributes(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &apsData)
 {
-    QString data = QLatin1String(", Attributes: ");
+    QString data;
 
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
+
+    data += apsData + QLatin1String(", ") + matchCmd.key + QLatin1String(" (0x") + QString("%1").arg(matchCmd.value, 2, 16, QLatin1Char('0')).toUpper() +
+            QLatin1String("), SeqNo.: ") + QString::number(zclFrame.sequenceNumber()) + QLatin1String(", Mfc: 0x") +
+            QString("%1").arg(zclFrame.manufacturerCode(), 4, 16, QLatin1Char('0')).toUpper();
+
+    data += QLatin1String(", Attributes: ");
 
     while (!stream.atEnd())
     {
@@ -833,16 +891,22 @@ void dbgReadAttributes(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchC
         data += QLatin1String(", ");
     }
 
-    DBG_Printf(DBG_INFO_L2, "%s, %s (0x%02X), SeqNo.: %d, Mfc: 0x%04X%s\n",
-                qUtf8Printable(init), qUtf8Printable(matchCmd.key), matchCmd.value, zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), qUtf8Printable(data));
+    printDebugMessage(data);
+
+//    DBG_Printf(DBG_INFO_L2, "%s, %s (0x%02X), SeqNo.: %d, Mfc: 0x%04X%s\n",
+//                qUtf8Printable(apsData), qUtf8Printable(matchCmd.key), matchCmd.value, zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), qUtf8Printable(data));
 }
 
-void dbgReadReportingConfig(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &init)
+void dbgReadReportingConfig(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &apsData)
 {
     QString data;
 
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
+
+    data += apsData + QLatin1String(", ") + matchCmd.key + QLatin1String(" (0x") + QString("%1").arg(matchCmd.value, 2, 16, QLatin1Char('0')).toUpper() +
+            QLatin1String("), SeqNo.: ") + QString::number(zclFrame.sequenceNumber()) + QLatin1String(", Mfc: 0x") +
+            QString("%1").arg(zclFrame.manufacturerCode(), 4, 16, QLatin1Char('0')).toUpper();
 
     while (!stream.atEnd())
     {
@@ -856,16 +920,22 @@ void dbgReadReportingConfig(const deCONZ::ZclFrame &zclFrame, const KeyValMap &m
         data += QLatin1String(", Attr: 0x") + QString("%1").arg(attributeId, 4, 16, QLatin1Char('0')).toUpper();
     }
 
-    DBG_Printf(DBG_INFO_L2, "%s, %s (0x%02X), SeqNo.: %d, Mfc: 0x%04X%s\n",
-                qUtf8Printable(init), qUtf8Printable(matchCmd.key), matchCmd.value, zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), qUtf8Printable(data));
+    printDebugMessage(data);
+
+//    DBG_Printf(DBG_INFO_L2, "%s, %s (0x%02X), SeqNo.: %d, Mfc: 0x%04X%s\n",
+//                qUtf8Printable(apsData), qUtf8Printable(matchCmd.key), matchCmd.value, zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), qUtf8Printable(data));
 }
 
-void dbgReadReportingConfigRsp(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &init)
+void dbgReadReportingConfigRsp(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &apsData)
 {
     QString data;
 
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
+
+    data += apsData + QLatin1String(", ") + matchCmd.key + QLatin1String(" (0x") + QString("%1").arg(matchCmd.value, 2, 16, QLatin1Char('0')).toUpper() +
+            QLatin1String("), SeqNo.: ") + QString::number(zclFrame.sequenceNumber()) + QLatin1String(", Mfc: 0x") +
+            QString("%1").arg(zclFrame.manufacturerCode(), 4, 16, QLatin1Char('0')).toUpper();
 
     while (!stream.atEnd())
     {
@@ -912,16 +982,22 @@ void dbgReadReportingConfigRsp(const deCONZ::ZclFrame &zclFrame, const KeyValMap
         }
     }
 
-    DBG_Printf(DBG_INFO_L2, "%s, %s (0x%02X), SeqNo.: %d, Mfc: 0x%04X%s\n",
-            qUtf8Printable(init), qUtf8Printable(matchCmd.key), matchCmd.value, zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), qUtf8Printable(data));
+    printDebugMessage(data);
+
+//    DBG_Printf(DBG_INFO_L2, "%s, %s (0x%02X), SeqNo.: %d, Mfc: 0x%04X%s\n",
+//            qUtf8Printable(apsData), qUtf8Printable(matchCmd.key), matchCmd.value, zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), qUtf8Printable(data));
 }
 
-void dbgConfigureReporting(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &init)
+void dbgConfigureReporting(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &apsData)
 {
     QString data;
 
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
+
+    data += apsData + QLatin1String(", ") + matchCmd.key + QLatin1String(" (0x") + QString("%1").arg(matchCmd.value, 2, 16, QLatin1Char('0')).toUpper() +
+            QLatin1String("), SeqNo.: ") + QString::number(zclFrame.sequenceNumber()) + QLatin1String(", Mfc: 0x") +
+            QString("%1").arg(zclFrame.manufacturerCode(), 4, 16, QLatin1Char('0')).toUpper();
 
     while (!stream.atEnd())
     {
@@ -956,16 +1032,22 @@ void dbgConfigureReporting(const deCONZ::ZclFrame &zclFrame, const KeyValMap &ma
         data += QLatin1String(", Change: ") + QString::number(attr.reportableChange().s64);
     }
 
-    DBG_Printf(DBG_INFO_L2, "%s, %s (0x%02X), SeqNo.: %d, Mfc: 0x%04X%s\n",
-                qUtf8Printable(init), qUtf8Printable(matchCmd.key), matchCmd.value, zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), qUtf8Printable(data));
+    printDebugMessage(data);
+
+//    DBG_Printf(DBG_INFO_L2, "%s, %s (0x%02X), SeqNo.: %d, Mfc: 0x%04X%s\n",
+//                qUtf8Printable(apsData), qUtf8Printable(matchCmd.key), matchCmd.value, zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), qUtf8Printable(data));
 }
 
-void dbgConfigureReportingRsp(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &init)
+void dbgConfigureReportingRsp(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &apsData)
 {
     QString data;
 
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
+
+    data += apsData + QLatin1String(", ") + matchCmd.key + QLatin1String(" (0x") + QString("%1").arg(matchCmd.value, 2, 16, QLatin1Char('0')).toUpper() +
+            QLatin1String("), SeqNo.: ") + QString::number(zclFrame.sequenceNumber()) + QLatin1String(", Mfc: 0x") +
+            QString("%1").arg(zclFrame.manufacturerCode(), 4, 16, QLatin1Char('0')).toUpper();
 
     while (!stream.atEnd())
     {
@@ -990,6 +1072,13 @@ void dbgConfigureReportingRsp(const deCONZ::ZclFrame &zclFrame, const KeyValMap 
         }
     }
 
-    DBG_Printf(DBG_INFO_L2, "%s, %s (0x%02X), SeqNo.: %d, Mfc: 0x%04X%s\n",
-            qUtf8Printable(init), qUtf8Printable(matchCmd.key), matchCmd.value, zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), qUtf8Printable(data));
+    printDebugMessage(data);
+
+//    DBG_Printf(DBG_INFO_L2, "%s, %s (0x%02X), SeqNo.: %d, Mfc: 0x%04X%s\n",
+//            qUtf8Printable(apsData), qUtf8Printable(matchCmd.key), matchCmd.value, zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), qUtf8Printable(data));
+}
+
+void printDebugMessage(const QString &debugMessage)
+{
+    DBG_Printf(DBG_INFO_L2, "%s\n", qUtf8Printable(debugMessage));
 }

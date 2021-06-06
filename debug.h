@@ -111,14 +111,17 @@ const std::array<KeyValMap3, 38> zdpCluster = { { {0x0000, QLatin1String("ZDP_NW
                                                     {0x8036, QLatin1String("ZDP_MGMT_PERMIT_JOINING_RSP_CLID")},
                                                     {0x8038, QLatin1String("ZDP_MGMT_NWK_UPDATE_RSP_CLID")} } };
 
-void dbgWriteAttributes(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &init);
-void dbgWriteAttributesRsp(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &init);
-void dbgReportAttributesAndReadAttributesRsp(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &init);
-void dbgReadAttributes(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &init);
-void dbgReadReportingConfig(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &init);
-void dbgReadReportingConfigRsp(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &init);
-void dbgConfigureReporting(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &init);
-void dbgConfigureReportingRsp(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &init);
+void dbgRareGeneralCommand(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &apsData);
+void dbgClusterCommand(const deCONZ::ZclFrame &zclFrame, const QString &apsData);
+void dbgWriteAttributes(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &apsData);
+void dbgWriteAttributesRsp(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &apsData);
+void dbgReportAttributesAndReadAttributesRsp(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &apsData);
+void dbgReadAttributes(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &apsData);
+void dbgReadReportingConfig(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &apsData);
+void dbgReadReportingConfigRsp(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &apsData);
+void dbgConfigureReporting(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &apsData);
+void dbgConfigureReportingRsp(const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd, const QString &apsData);
+void printDebugMessage(const QString &debugMessage);
 
 //void dbgReportAttributesAndReadAttributesRsp2(deCONZ::ApsAddressMode adrMode, const deCONZ::ZclFrame &zclFrame, const KeyValMap &matchCmd);
 
