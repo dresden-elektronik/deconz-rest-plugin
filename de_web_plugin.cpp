@@ -17704,9 +17704,9 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     d->authorise(req, rsp);
 
      // general response to a OPTIONS HTTP method
-    if (req.hdr.method() == QLatin1String("OPTIONS"))
+    if (req.hdr.httpMethod() == HttpOptions)
     {
-        QString origin('*');
+        QLatin1String origin("*");
         if (hdr.hasKey(QLatin1String("Origin")))
         {
             origin = hdr.value(QLatin1String("Origin"));
@@ -17791,7 +17791,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         stream.flush();
         return 0;
     }
-    else if (req.path.size() == 1 && req.path[0] == QLatin1String("description.xml") && hdr.method() == QLatin1String("GET"))
+    else if (hdr.pathComponentsCount() == 1 && hdr.pathAt(0) == QLatin1String("description.xml") && hdr.httpMethod() == HttpGet)
     {
         rsp.httpStatus = HttpStatusOk;
         rsp.contentType = HttpContentHtml;
@@ -17811,72 +17811,81 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         return 0;
     }
 
-    else if (!req.path.isEmpty() && req.path[0] == QLatin1String("api"))
+    else if (hdr.pathComponentsCount() > 0 && hdr.pathAt(0) == QLatin1String("api"))
     {
         bool resourceExist = true;
 
-        if ((req.path.size() >= 2) && (req.auth == ApiAuthFull || req.auth == ApiAuthInternal))
+        if (hdr.pathComponentsCount() >= 2 && (req.auth == ApiAuthFull || req.auth == ApiAuthInternal))
         {
             // GET /api/<apikey>
-            if ((req.path.size() == 2) && (req.hdr.method() == QLatin1String("GET")))
+            if (hdr.pathComponentsCount() == 2 && req.hdr.httpMethod() == HttpGet)
             {
                 ret = d->getFullState(req, rsp);
             }
-            else if (hdr.pathAt(2) == QLatin1String("devices"))
+            else if (hdr.pathComponentsCount() >= 3)
             {
-                ret = d->restDevices->handleApi(req, rsp);
-            }
-            else if (path[2] == QLatin1String("lights"))
-            {
-                ret = d->handleLightsApi(req, rsp);
-            }
-            else if (path[2] == QLatin1String("groups"))
-            {
-                ret = d->handleGroupsApi(req, rsp);
-            }
-            else if (path[2] == QLatin1String("schedules"))
-            {
-                ret = d->handleSchedulesApi(req, rsp);
-            }
-            else if (path[2] == QLatin1String("scenes"))
-            {
-                ret = d->handleScenesApi(req, rsp);
-            }
-            else if (path[2] == QLatin1String("sensors"))
-            {
-                ret = d->handleSensorsApi(req, rsp);
-            }
-            else if (path[2] == QLatin1String("rules"))
-            {
-                ret = d->handleRulesApi(req, rsp);
-            }
-            else if (path[2] == QLatin1String("config"))
-            {
-                ret = d->handleConfigFullApi(req, rsp);
-            }
-            else if (path[2] == QLatin1String("info"))
-            {
-                ret = d->handleInfoApi(req, rsp);
-            }
-            else if (path[2] == QLatin1String("resourcelinks"))
-            {
-                ret = d->handleResourcelinksApi(req, rsp);
-            }
-            else if (path[2] == QLatin1String("capabilities"))
-            {
-                ret = d->handleCapabilitiesApi(req, rsp);
-            }
-            else if (path[2] == QLatin1String("touchlink"))
-            {
-                ret = d->handleTouchlinkApi(req, rsp);
-            }
-            else if (path[2] == QLatin1String("userparameter"))
-            {
-                ret = d->handleUserparameterApi(req, rsp);
-            }
-            else if (path[2] == QLatin1String("gateways"))
-            {
-                ret = d->handleGatewaysApi(req, rsp);
+                const QLatin1String apiModule = hdr.pathAt(2);
+
+                if (apiModule == QLatin1String("devices"))
+                {
+                    ret = d->restDevices->handleApi(req, rsp);
+                }
+                else if (apiModule == QLatin1String("lights"))
+                {
+                    ret = d->handleLightsApi(req, rsp);
+                }
+                else if (apiModule == QLatin1String("groups"))
+                {
+                    ret = d->handleGroupsApi(req, rsp);
+                }
+                else if (apiModule == QLatin1String("schedules"))
+                {
+                    ret = d->handleSchedulesApi(req, rsp);
+                }
+                else if (apiModule == QLatin1String("scenes"))
+                {
+                    ret = d->handleScenesApi(req, rsp);
+                }
+                else if (apiModule == QLatin1String("sensors"))
+                {
+                    ret = d->handleSensorsApi(req, rsp);
+                }
+                else if (apiModule == QLatin1String("rules"))
+                {
+                    ret = d->handleRulesApi(req, rsp);
+                }
+                else if (apiModule == QLatin1String("config"))
+                {
+                    ret = d->handleConfigFullApi(req, rsp);
+                }
+                else if (apiModule == QLatin1String("info"))
+                {
+                    ret = d->handleInfoApi(req, rsp);
+                }
+                else if (apiModule == QLatin1String("resourcelinks"))
+                {
+                    ret = d->handleResourcelinksApi(req, rsp);
+                }
+                else if (apiModule == QLatin1String("capabilities"))
+                {
+                    ret = d->handleCapabilitiesApi(req, rsp);
+                }
+                else if (apiModule == QLatin1String("touchlink"))
+                {
+                    ret = d->handleTouchlinkApi(req, rsp);
+                }
+                else if (apiModule == QLatin1String("userparameter"))
+                {
+                    ret = d->handleUserparameterApi(req, rsp);
+                }
+                else if (apiModule == QLatin1String("gateways"))
+                {
+                    ret = d->handleGatewaysApi(req, rsp);
+                }
+                else
+                {
+                    resourceExist = false;
+                }
             }
             else
             {
@@ -17888,7 +17897,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
             ret = d->handleConfigBasicApi(req, rsp);
         }
 
-        if ((ret == REQ_NOT_HANDLED) && (req.auth == ApiAuthLocal || req.auth == ApiAuthInternal || req.auth == ApiAuthFull))
+        if (ret == REQ_NOT_HANDLED && (req.auth == ApiAuthLocal || req.auth == ApiAuthInternal || req.auth == ApiAuthFull))
         {
             ret = d->handleConfigLocalApi(req, rsp);
         }
@@ -17899,7 +17908,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
             const QString resource = "/" + ls.join('/');
             if (req.auth == ApiAuthFull || req.auth == ApiAuthInternal)
             {
-                if (resourceExist && req.hdr.method() == QLatin1String("GET"))
+                if (resourceExist && req.hdr.httpMethod() == HttpGet)
                 {
                     rsp.list.append(d->errorToMap(ERR_RESOURCE_NOT_AVAILABLE, resource, "resource, " + resource + ", not available"));
                 }
