@@ -333,7 +333,6 @@ void DeRestPluginPrivate::updateThermostatSchedule(Sensor *sensor, quint8 newWee
 
 
 // static const QStringList weekday({"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Away"});
-static TaskItem taskScheduleTimer;
 static int dayofweekTimer = 0;
 
 /*! Handle packets related to the ZCL Thermostat cluster.

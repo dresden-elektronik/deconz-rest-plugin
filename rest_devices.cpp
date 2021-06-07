@@ -395,8 +395,9 @@ QVariantMap RIS_IntrospectButtonEventItem(const ResourceItemDescriptor &rid, con
 */
 bool RIS_ResourceItemDescriptorFromHeader(const QHttpRequestHeader &hdr, ResourceItemDescriptor *rid)
 {
+    const auto last = hdr.pathAt(hdr.pathComponentsCount() - 2);
     const char *beg = hdr.pathAt(4).data();
-    const char *end = hdr.pathAt(hdr.pathComponentsCount() - 2).end();
+    const char *end = last.data() + last.size();
 
     if (beg && end && beg < end)
     {

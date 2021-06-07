@@ -3276,7 +3276,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : OCCUPANCY_SENSING_CLUSTER_ID;
                 if (sensor.modelId().startsWith(QLatin1String("FLS")) ||
-                    sensor.modelId().startsWith(QLatin1String("SML00")))
+                    sensor.modelId().startsWith(QLatin1String("SML00")) ||
+                    sensor.modelId().startsWith(QLatin1String("MOSZB-1")))
                 {
                     // TODO write and recover min/max to db
                     deCONZ::NumericUnion dummy;
@@ -3313,6 +3314,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item->setValue(0);
                 item = sensor.addItem(DataTypeUInt8, RConfigSensitivityMax);
                 item->setValue(R_SENSITIVITY_MAX_DEFAULT);
+            }
+            else if (sensor.modelId().startsWith(QLatin1String("MOSZB-1")) && clusterId == OCCUPANCY_SENSING_CLUSTER_ID) // Develco/frient motion sensor
+            {
+                sensor.addItem(DataTypeUInt16, RConfigDelay)->setValue(0);
+                sensor.addItem(DataTypeUInt16, RConfigPending)->setValue(0);
             }
             else
             {

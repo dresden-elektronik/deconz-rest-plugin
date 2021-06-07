@@ -48,6 +48,14 @@ contains(QMAKE_SPEC_T,.*linux.*) {
     }
 }
 
+macx {
+    DEFINES += QT_NO_DEPRECATED_WARNINGS
+    CONFIG+=sdk_no_version_check
+
+    LIBS += -lsqlite3
+    DEFINES += HAS_SQLITE3
+}
+
 unix:LIBS +=  -L../.. -ldeCONZ
 
 unix:!macx {
