@@ -500,15 +500,10 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
 {
-    QString id = req.path[3];
-    Sensor *sensor = id.length() < MIN_UNIQUEID_LENGTH ? getSensorNodeForId(id) : getSensorNodeForUniqueId(id);
-    QString name;
+    const QLatin1String id = req.hdr.pathAt(3);
+    Sensor *sensor = id.size() < MIN_UNIQUEID_LENGTH ? getSensorNodeForId(id) : getSensorNodeForUniqueId(id);
     bool ok;
-    bool error = false;
-    QVariant var = Json::parse(req.content, ok);
-    QVariantMap map = var.toMap();
-    QVariantMap rspItem;
-    QVariantMap rspItemState;
+    const QVariantMap map = Json::parse(req.content, ok).toMap();
 
     rsp.httpStatus = HttpStatusOk;
 
@@ -531,65 +526,52 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
         userActivity();
     }
 
-    //check invalid parameter
-    QVariantMap::const_iterator pi = map.begin();
-    QVariantMap::const_iterator pend = map.end();
+    {   //check invalid parameter
+        auto pi = map.cbegin();
+        const auto pend = map.cend();
 
-    for (; pi != pend; ++pi)
-    {
-        if (!((pi.key() == QLatin1String("name")) || (pi.key() == QLatin1String("modelid")) || (pi.key() == QLatin1String("swversion"))
-             || (pi.key() == QLatin1String("type"))  || (pi.key() == QLatin1String("uniqueid"))  || (pi.key() == QLatin1String("manufacturername"))
-             || (pi.key() == QLatin1String("state"))  || (pi.key() == QLatin1String("config"))
-             || (pi.key() == QLatin1String("mode") && (sensor->modelId() == QLatin1String("Lighting Switch") || sensor->modelId().startsWith(QLatin1String("SYMFONISK"))))))
+        const std::array<QLatin1String, 3> modifiableAttributes { QLatin1String("name"), QLatin1String("mode"), QLatin1String("config") };
+
+        for (; pi != pend; ++pi)
         {
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1").arg(pi.key()), QString("parameter, %1, not available").arg(pi.key())));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
+            const auto i = std::find_if(modifiableAttributes.cbegin(), modifiableAttributes.cend(), [&pi](const auto attr){ return pi.key() == attr; });
+
+            if (i == modifiableAttributes.cend())
+            {
+                ResourceItemDescriptor rid;
+
+                if (getResourceItemDescriptor(QString("attr/%1").arg(pi.key()), rid))
+                {
+                    rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/sensors/%1/%2").arg(id, pi.key()), QString("parameter, %1, not modifiable").arg(pi.key())));
+                    rsp.httpStatus = HttpStatusBadRequest;
+                    return REQ_READY_SEND;
+                }
+
+                rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/%2").arg(id, pi.key()), QString("parameter, %1, not available").arg(pi.key())));
+                rsp.httpStatus = HttpStatusBadRequest;
+                return REQ_READY_SEND;
+            }
+
+            // TODO further checks and clarification.
+            // 'mode' is only available for ZHASwitch sensors and refers to 'attr/mode' (but there is no ResourceItem for it).
+            // Consider moving this to 'config/mode' or 'config/devicemode'?
+            if (pi.key() == QLatin1String("mode") && !sensor->modelId().startsWith(QLatin1String("SYMFONISK")))
+            {
+                rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/sensors/%1/%2").arg(id, pi.key()), QString("parameter, %1, not modifiable").arg(pi.key())));
+                rsp.httpStatus = HttpStatusBadRequest;
+                return REQ_READY_SEND;
+            }
         }
     }
 
-    if (map.contains(QLatin1String("modelid")))
-    {
-        error = true;
-        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QLatin1String("/sensors/modelid"), QLatin1String("parameter, modelid, not modifiable")));
-    }
-    if (map.contains(QLatin1String("swversion")))
-    {
-        error = true;
-        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QLatin1String("/sensors/swversion"), QLatin1String("parameter, swversion, not modifiable")));
-    }
-    if (map.contains(QLatin1String("type")))
-    {
-        error = true;
-        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QLatin1String("/sensors/type"), QLatin1String("parameter, type, not modifiable")));
-    }
-    if (map.contains(QLatin1String("uniqueid")))
-    {
-        error = true;
-        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QLatin1String("/sensors/uniqueid"), QLatin1String("parameter, uniqueid, not modifiable")));
-    }
-    if (map.contains(QLatin1String("manufacturername")))
-    {
-        error = true;
-        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QLatin1String("/sensors/manufacturername"), QLatin1String("parameter, manufacturername, not modifiable")));
-    }
-    if (map.contains(QLatin1String("state")))
-    {
-        error = true;
-        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QLatin1String("/sensors/state"), QLatin1String("parameter, state, not modifiable")));
-    }
-
-    if (error)
-    {
-        rsp.httpStatus = HttpStatusBadRequest;
-        return REQ_READY_SEND;
-    }
+    QVariantMap rspItem;
+    QVariantMap rspItemState;
 
     if (map.contains(QLatin1String("name"))) // optional
     {
-        name = map[QLatin1String("name")].toString().trimmed();
+        const QString name = map[QLatin1String("name")].toString().trimmed();
 
-        if ((map[QLatin1String("name")].type() == QVariant::String) && !(name.isEmpty()) && (name.size() <= MAX_SENSOR_NAME_LENGTH))
+        if (map[QLatin1String("name")].type() == QVariant::String && !name.isEmpty() && name.size() <= MAX_SENSOR_NAME_LENGTH)
         {
             if (sensor->name() != name)
             {
@@ -598,8 +580,7 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
                 queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
                 updateSensorEtag(sensor);
 
-                Event e(RSensors, RAttrName, sensor->id(), sensor->item(RAttrName));
-                enqueueEvent(e);
+                enqueueEvent(Event(RSensors, RAttrName, sensor->id(), sensor->item(RAttrName)));
             }
             if (!sensor->type().startsWith(QLatin1String("CLIP")))
             {
@@ -620,9 +601,8 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
     {
         Sensor::SensorMode mode = (Sensor::SensorMode)map[QLatin1String("mode")].toUInt(&ok);
 
-        if (ok && (map[QLatin1String("mode")].type() == QVariant::Double)
-            && ((sensor->modelId() == QLatin1String("Lighting Switch") && (mode == Sensor::ModeScenes || mode == Sensor::ModeTwoGroups || mode == Sensor::ModeColorTemperature))
-                || (sensor->modelId().startsWith(QLatin1String("SYMFONISK")) && (mode == Sensor::ModeScenes || mode == Sensor::ModeDimmer))))
+        if (ok && map[QLatin1String("mode")].type() == QVariant::Double
+            && sensor->modelId().startsWith(QLatin1String("SYMFONISK")) && (mode == Sensor::ModeScenes || mode == Sensor::ModeDimmer))
         {
             if (sensor->mode() != mode)
             {
@@ -646,6 +626,7 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
+    // TODO this appears to be a hack, check with REST API clients if this is used at all and consider removal
     if (map.contains(QLatin1String("config"))) // optional
     {
         QStringList path = req.path;
@@ -713,8 +694,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     task.req.setDstAddressMode(deCONZ::ApsExtAddress);
 
     //check invalid parameter
-    QVariantMap::const_iterator pi = map.begin();
-    QVariantMap::const_iterator pend = map.end();
+    auto pi = map.cbegin();
+    const auto pend = map.cend();
 
     for (; pi != pend; ++pi)
     {
