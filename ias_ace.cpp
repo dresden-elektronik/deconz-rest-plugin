@@ -50,7 +50,7 @@ void DeRestPluginPrivate::handleIasAceClusterIndication(const deCONZ::ApsDataInd
 
         stream >> armMode;
 
-        if (zclFrame.payload().length() == 6)
+        if (zclFrame.payload().length() == 3)
         {
             quint8 codeTemp;
             stream >> codeTemp;     // 0 for keyfobs or other devices not supporting any codes
