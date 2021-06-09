@@ -748,7 +748,20 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             enqueueEvent(Event(RSensors, RConfigMelody, sensorNode->id(), item));
                             update = true;
                         }
-                        
+                    }
+                    break;
+                    case 0x0467 : // duration
+                    {
+                        quint16 duration = static_cast<qint16>(data & 0xFFFF);
+
+                        ResourceItem *item = sensorNode->item(RConfigDuration);
+
+                        if (item && item->toNumber() != duration)
+                        {
+                            item->setValue(duration);
+                            enqueueEvent(Event(RSensors, RConfigDuration, sensorNode->id(), item));
+                            update = true;
+                        }
                     }
                     break;
                     case 0x0474 : // volume

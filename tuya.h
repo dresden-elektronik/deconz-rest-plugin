@@ -97,6 +97,7 @@
 // Value for dp_identifier for siren
 //-----------------------------------
 #define DP_IDENTIFIER_MELODY 0x66
+#define DP_IDENTIFIER_DURATION 0x67
 #define DP_IDENTIFIER_ALARM 0x68
 #define DP_IDENTIFIER_TRESHOLDTEMPMINI 0x6B
 #define DP_IDENTIFIER_TRESHOLDTEMPMAXI 0x6C

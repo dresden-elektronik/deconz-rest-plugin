@@ -3383,6 +3383,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (R_GetProductId(&sensor) == QLatin1String("NAS-AB02B0 Siren"))
             {
                 sensor.addItem(DataTypeUInt8, RConfigMelody);
+                sensor.addItem(DataTypeUInt16, RConfigDuration);
                 sensor.addItem(DataTypeString, RConfigPreset);
                 sensor.addItem(DataTypeUInt8, RConfigVolume);
                 sensor.addItem(DataTypeString, RConfigTempThreshold);

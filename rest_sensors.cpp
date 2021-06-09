@@ -1068,6 +1068,19 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         updated = true;
                     }
                 }
+                if (rid.suffix == RConfigDuration)
+                {
+                    uint16_t duration = map[pi.key()].toUInt(&ok);
+
+                    QByteArray data = QByteArray("\x00\x00", 2);
+                    data.append(static_cast<qint8>((duration >> 8) & 0xff));
+                    data.append(static_cast<qint8>(duration & 0xff));
+
+                    if (sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_DURATION, data))
+                    {
+                        updated = true;
+                    }
+                }
                 else if (rid.suffix == RConfigVolume)
                 {
                     int16_t volume = map[pi.key()].toUInt(&ok);

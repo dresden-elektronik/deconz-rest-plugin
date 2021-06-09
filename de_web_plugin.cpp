@@ -6750,6 +6750,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         if (R_GetProductId(&sensorNode) == QLatin1String("NAS-AB02B0 Siren"))
         {
             sensorNode.addItem(DataTypeUInt8, RConfigMelody);
+            sensorNode.addItem(DataTypeUInt16, RConfigDuration);
             sensorNode.addItem(DataTypeString, RConfigPreset);
             sensorNode.addItem(DataTypeUInt8, RConfigVolume);
             sensorNode.addItem(DataTypeString, RConfigTempThreshold);
