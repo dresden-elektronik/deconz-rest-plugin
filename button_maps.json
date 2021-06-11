@@ -1342,6 +1342,17 @@
             ]
 
         },
+        "lidlDoorbellMap": {
+            "vendor": "LIDL Silvercrest",
+            "doc": "Lidl / Silvercrest doorbell (_TZ1800_ladpngdx)",
+            "modelids": ["HG06668"],
+            "buttons": [
+                {"S_BUTTON_1": "Action button"}
+            ],
+            "map": [
+                [1, "0x01", "IAS_ZONE", "STATUS_CHANGE", "0x05", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Ring"]
+            ]
+        },
         "sengledMap": {
             "vendor": "Sengled",
             "doc": "Sengled Smart Light Switch",
@@ -1356,7 +1367,6 @@
                 [1, "0x01", "SENGLED", "COMMAND_0", "7", "S_BUTTON_4", "S_BUTTON_ACTION_DOUBLE_PRESS", "Off (double press)"],
                 [1, "0x01", "SENGLED", "COMMAND_0", "8", "S_BUTTON_4", "S_BUTTON_ACTION_LONG_RELEASED", "Off (long press)"]
             ]
-
         },
         "elkoMap": {
             "vendor": "ELKO",
