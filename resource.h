@@ -57,6 +57,8 @@ extern const char *RActionScene;
 
 extern const char *RStateAirQuality;
 extern const char *RStateAirQualityPpb;
+extern const char *RStateAirQualityCO2Ppm;
+extern const char *RStateAirQualityHCHOmgm3;
 extern const char *RStateAlarm;
 extern const char *RStateAlert;
 extern const char *RStateAllOn;
