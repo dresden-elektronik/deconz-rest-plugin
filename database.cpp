@@ -3234,6 +3234,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : DEVELCO_AIR_QUALITY_CLUSTER_ID;
             }
+            else if (sensor.fingerPrint().hasInCluster(TUYA_CLUSTER_ID))  // Tuya smart air box
+            {
+                clusterId = clusterId ? clusterId : TUYA_CLUSTER_ID;
+            }
             item = sensor.addItem(DataTypeString, RStateAirQuality);
             item = sensor.addItem(DataTypeUInt16, RStateAirQualityPpb);
         }

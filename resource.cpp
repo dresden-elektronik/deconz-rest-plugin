@@ -42,6 +42,8 @@ const char *RActionScene = "action/scene";
 
 const char *RStateAirQuality = "state/airquality";
 const char *RStateAirQualityPpb = "state/airqualityppb";
+const char *RStateAirQualityHCHOmgm3 = "state/airqualityhchomgm3";
+const char *RStateAirQualityCO2Ppm = "state/airqualityco2ppm";
 const char *RStateAlarm = "state/alarm";
 const char *RStateAlert = "state/alert";
 const char *RStateAllOn = "state/all_on";
@@ -228,6 +230,8 @@ void initResourceDescriptors()
 
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateAirQuality));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateAirQualityPpb));
+	rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateAirQualityCO2Ppm));
+	rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateAirQualityHCHOmgm3));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAlarm));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateAlert));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateLockState));
