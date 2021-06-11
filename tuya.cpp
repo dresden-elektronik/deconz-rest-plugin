@@ -728,33 +728,24 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
 					break;
+					
 					case 0x0202: //CO2
                     {
-						
                         qint16 voc = static_cast<qint16>(data & 0xFFFF);
                         ResourceItem *item = aqsensorco2->item(RStateAirQualityCO2Ppm);
 						
-						
-						
 						if (item && item->toNumber() != voc)	
-                        {
-							
+                        {	
                             item->setValue(voc);
                             Event e(RSensors, RStateAirQualityCO2Ppm, aqsensorco2->id(), item);
                             enqueueEvent(e);
-                            update = true;
-							
+                            update = true;	
                         }
-						
-						
                     }
                     break;
 					
-					
-					
 					case 0x0216: //VOC
                     {
-						
                         qint16 voc = static_cast<qint16>(data & 0xFFFF) * 100;
                         ResourceItem *item = aqsensor->item(RStateAirQualityPpb);
                         if (item && item->toNumber() != voc)
@@ -763,10 +754,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             Event e(RSensors, RStateAirQualityPpb, aqsensor->id(), item);
                             enqueueEvent(e);
                             update = true;
-                        }
-						
-						
-						
+                        }	
                     }
                     break;
 					
@@ -782,11 +770,9 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             enqueueEvent(e);
                             update = true;
                         }
-						
-						
-					    
                     }
                     break;
+					
                     case 0x026B : // min alarm temperature threshold
                     case 0x026C : // max alarm temperature threshold
                     {

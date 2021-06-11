@@ -7189,25 +7189,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     }
 	else if (sensorNode.type().endsWith(QLatin1String("AirQualityCO2")))
     {
-        //if (sensorNode.fingerPrint().hasInCluster(TUYA_CLUSTER_ID))
-        //{
-            clusterId = TUYA_CLUSTER_ID;
-            item = sensorNode.addItem(DataTypeString, RStateAirQuality);
-            item = sensorNode.addItem(DataTypeUInt16, RStateAirQualityCO2Ppm);
-        //}
-
-        
+		clusterId = TUYA_CLUSTER_ID;
+		item = sensorNode.addItem(DataTypeUInt16, RStateAirQualityCO2Ppm);
     }
 	else if (sensorNode.type().endsWith(QLatin1String("AirQualityHCHO")))
     {
-        //if (sensorNode.fingerPrint().hasInCluster(TUYA_CLUSTER_ID))
-        //{
-            clusterId = TUYA_CLUSTER_ID;
-            item = sensorNode.addItem(DataTypeString, RStateAirQuality);
-            item = sensorNode.addItem(DataTypeUInt16, RStateAirQualityHCHOmgm3);
-        //}
-
-        
+        clusterId = TUYA_CLUSTER_ID;
+		item = sensorNode.addItem(DataTypeUInt16, RStateAirQualityHCHOmgm3);     
     }
 
     const lidlDevice *device = getLidlDevice(manufacturer);

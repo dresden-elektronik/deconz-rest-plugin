@@ -3241,6 +3241,16 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeString, RStateAirQuality);
             item = sensor.addItem(DataTypeUInt16, RStateAirQualityPpb);
         }
+		else if (sensor.type().endsWith(QLatin1String("AirQualityCO2")))
+        {
+            clusterId = clusterId ? clusterId : TUYA_CLUSTER_ID;
+            item = sensor.addItem(DataTypeUInt16, RStateAirQualityCO2Ppm);
+        }
+		else if (sensor.type().endsWith(QLatin1String("AirQualityHCHO")))
+        {
+            clusterId = clusterId ? clusterId : TUYA_CLUSTER_ID;
+            item = sensor.addItem(DataTypeUInt16, RStateAirQualityHCHOmgm3);
+        }
         else if (sensor.type().endsWith(QLatin1String("Spectral")))
         {
             if (sensor.fingerPrint().hasInCluster(VENDOR_CLUSTER_ID))
