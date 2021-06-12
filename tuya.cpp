@@ -992,6 +992,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     {
                         //Can be Temperature for some device
                         if (productId == "Tuya_THD SEA801-ZIGBEE TRV" ||
+                            productId == "Tuya_THD Smart radiator TRV" ||
                             productId == "Tuya_THD WZB-TRVL TRV")
                         {
                             qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
@@ -1011,6 +1012,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     {
                         //can be setpoint for some device
                         if (productId == "Tuya_THD SEA801-ZIGBEE TRV" ||
+                            productId == "Tuya_THD Smart radiator TRV" ||
                             productId == "Tuya_THD WZB-TRVL TRV")
                         {
                             qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
