@@ -3385,8 +3385,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.addItem(DataTypeUInt8, RConfigMelody);
                 sensor.addItem(DataTypeString, RConfigPreset);
                 sensor.addItem(DataTypeUInt8, RConfigVolume);
-                sensor.addItem(DataTypeString, RConfigTempThreshold);
-                sensor.addItem(DataTypeString, RConfigHumiThreshold);
+                sensor.addItem(DataTypeInt8, RConfigTempMaxThreshold);
+                sensor.addItem(DataTypeInt8, RConfigTempMinThreshold);
+                sensor.addItem(DataTypeInt8, RConfigHumiMaxThreshold);
+                sensor.addItem(DataTypeInt8, RConfigHumiMinThreshold);
             }
 
         }
@@ -3537,8 +3539,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(30);
             item = sensor.addItem(DataTypeInt8, RConfigSunsetOffset);
             item->setValue(-30);
-            sensor.addItem(DataTypeString, RConfigLat);
-            sensor.addItem(DataTypeString, RConfigLong);
+            sensor.addItem(DataTypeString, RConfigLat)->setIsPublic(false);
+            sensor.addItem(DataTypeString, RConfigLong)->setIsPublic(false);
             sensor.addItem(DataTypeBool, RStateDaylight);
             sensor.addItem(DataTypeBool, RStateDark);
             sensor.addItem(DataTypeInt32, RStateStatus);
@@ -3646,7 +3648,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 if (sensor.modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
-                    sensor.addItem(DataTypeUInt32, RConfigHostFlags); // hidden
+                    sensor.addItem(DataTypeUInt32, RConfigHostFlags)->setIsPublic(false);
                     sensor.addItem(DataTypeBool, RConfigDisplayFlipped)->setValue(false);
                     sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                     sensor.addItem(DataTypeString, RConfigMode);
