@@ -950,6 +950,11 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.minInterval = 300;
             rq.maxInterval = 3600;
         }
+        else if (sensor && sensor->type() == QLatin1String("ZHASwitch") && modelId == QLatin1String("button"))
+        {
+            rq.minInterval = 65535; // Disable reporting so devices must not be reset to not have it
+            rq.maxInterval = 65535; // configured at all. Should be changed in future to explicitly exclude device from reporting.
+        }
         else
         {
             rq.minInterval = 300;
