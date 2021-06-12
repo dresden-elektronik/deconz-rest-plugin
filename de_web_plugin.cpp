@@ -490,6 +490,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "DS01", tiMacPrefix }, // Sonoff SNZB-04
     { VENDOR_SCHNEIDER, "CCT592011_AS", emberMacPrefix }, // LK Wiser Water Leak Sensor
     { VENDOR_SCHNEIDER, "iTRV", silabs3MacPrefix }, // Drayton Wiser Radiator Thermostat
+    { VENDOR_SCHNEIDER, "CCT593011_AS", emberMacPrefix }, // LK Wiser Temperature and Humidity Sensor
     { VENDOR_DANFOSS, "eTRV0100", silabs2MacPrefix }, // Danfoss Ally thermostat
     { VENDOR_DANFOSS, "0x8020", silabs6MacPrefix }, // Danfoss RT24V Display thermostat
     { VENDOR_DANFOSS, "0x8021", silabs6MacPrefix }, // Danfoss RT24V Display thermostat with floor sensor
@@ -523,7 +524,7 @@ int TaskItem::_taskCounter = 1; // static rolling taskcounter
         Accept: vnd.ddel.v2                --> ApiVersion_2_DDEL
         Accept: vnd.ddel.v1,vnd.ddel.v2    --> ApiVersion_2_DDEL
  */
-static ApiVersion getAcceptHeaderApiVersion(const QString &hdrValue)
+static ApiVersion getAcceptHeaderApiVersion(const QLatin1String &hdrValue)
 {
     ApiVersion result = { ApiVersion_1 };
 
@@ -543,11 +544,9 @@ static ApiVersion getAcceptHeaderApiVersion(const QString &hdrValue)
         }
     };
 
-    const auto ls = hdrValue.split(QLatin1Char(','), QString::SkipEmptyParts);
-
     for (const auto &version : versions)
     {
-        if (ls.contains(version.str))
+        if (contains(hdrValue, version.str))
         {
             result = version.version;
             break;
@@ -6697,20 +6696,29 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = ONOFF_CLUSTER_ID;
         }
-        item = sensorNode.addItem(DataTypeBool, RStatePresence);
-        item->setValue(false);
-        item = sensorNode.addItem(DataTypeUInt16, RConfigDuration);
-        if (modelId.startsWith(QLatin1String("tagv4"))) // SmartThings Arrival sensor
+        sensorNode.addItem(DataTypeBool, RStatePresence)->setValue(false);
+
+        if (modelId.startsWith(QLatin1String("MOSZB-1")) && clusterId == OCCUPANCY_SENSING_CLUSTER_ID)
         {
-            item->setValue(310); // Sensor will be configured to report every 5 minutes
-        }
-        else if (modelId.startsWith(QLatin1String("lumi.sensor_motion"))) // reporting under motion varies between 60 - 90 seconds
-        {
-            item->setValue(90);
+            sensorNode.addItem(DataTypeUInt16, RConfigDelay)->setValue(0);
+            sensorNode.addItem(DataTypeUInt16, RConfigPending)->setValue(0);
         }
         else
         {
-            item->setValue(60); // default 60 seconds
+            item = sensorNode.addItem(DataTypeUInt16, RConfigDuration);
+
+            if (modelId.startsWith(QLatin1String("tagv4"))) // SmartThings Arrival sensor
+            {
+                item->setValue(310); // Sensor will be configured to report every 5 minutes
+            }
+            else if (modelId.startsWith(QLatin1String("lumi.sensor_motion"))) // reporting under motion varies between 60 - 90 seconds
+            {
+                item->setValue(90);
+            }
+            else
+            {
+                item->setValue(60); // default 60 seconds
+            }
         }
     }
     else if (sensorNode.type().endsWith(QLatin1String("OpenClose")))
@@ -6747,8 +6755,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             sensorNode.addItem(DataTypeUInt8, RConfigMelody);
             sensorNode.addItem(DataTypeString, RConfigPreset);
             sensorNode.addItem(DataTypeUInt8, RConfigVolume);
-            sensorNode.addItem(DataTypeString, RConfigTempThreshold);
-            sensorNode.addItem(DataTypeString, RConfigHumiThreshold);
+            sensorNode.addItem(DataTypeInt8, RConfigTempMaxThreshold);
+            sensorNode.addItem(DataTypeInt8, RConfigTempMinThreshold);
+            sensorNode.addItem(DataTypeInt8, RConfigHumiMaxThreshold);
+            sensorNode.addItem(DataTypeInt8, RConfigHumiMinThreshold);
         }
     }
     else if (sensorNode.type().endsWith(QLatin1String("CarbonMonoxide")))
@@ -6968,7 +6978,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             if (modelId.startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
-                sensorNode.addItem(DataTypeUInt32, RConfigHostFlags); // hidden
+                sensorNode.addItem(DataTypeUInt32, RConfigHostFlags)->setIsPublic(false);
                 sensorNode.addItem(DataTypeBool, RConfigDisplayFlipped)->setValue(false);
                 sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                 sensorNode.addItem(DataTypeString, RConfigMode);
@@ -8079,6 +8089,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
                                         i->modelId() == QLatin1String("CCT592011_AS") || // LK Wiser Water Leak Sensor
                                         i->modelId().startsWith(QLatin1String("iTRV")) || // Drayton Wiser Radiator Thermostat
+                                        i->modelId() == QLatin1String("CCT593011_AS") || // LK Wiser Temperature and Humidity Sensor
                                         i->modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
                                         i->modelId().startsWith(QLatin1String("SV02-")) || // Keen Home vent
                                         i->modelId().startsWith(QLatin1String("45127")) || // Namron 1/2/4-ch remote controller
@@ -8128,6 +8139,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
                                         i->modelId() == QLatin1String("CCT592011_AS") || // LK Wiser Water Leak Sensor
                                         i->modelId().startsWith(QLatin1String("iTRV")) || // Drayton Wiser Radiator Thermostat
+                                        i->modelId() == QLatin1String("CCT593011_AS") || // LK Wiser Temperature and Humidity Sensor
                                         i->modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
                                         i->modelId().startsWith(QLatin1String("SV02-")) || // Keen Home vent
                                         i->modelId().startsWith(QLatin1String("45127")) || // Namron 1/2/4-ch remote controller
@@ -10872,6 +10884,7 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
                 // mask &= ~R_PENDING_LEDINDICATION;
                 // item->setValue(mask);
                 // sensorNode->clearRead(WRITE_LEDINDICATION);
+                sensorNode->setNextReadTime(WRITE_LEDINDICATION, tNow.addSecs(7200));
                 processed++;
             }
         }
@@ -10900,6 +10913,7 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
                 // mask &= ~R_PENDING_SENSITIVITY;
                 // item->setValue(mask);
                 // sensorNode->clearRead(WRITE_SENSITIVITY);
+                sensorNode->setNextReadTime(WRITE_SENSITIVITY, tNow.addSecs(7200));
                 processed++;
             }
         }
@@ -10928,6 +10942,7 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
                 // mask &= ~R_PENDING_USERTEST;
                 // item->setValue(mask);
                 // sensorNode->clearRead(WRITE_USERTEST);
+                sensorNode->setNextReadTime(WRITE_USERTEST, tNow.addSecs(7200));
                 processed++;
             }
         }
@@ -10957,6 +10972,7 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
                 // mask &= ~R_PENDING_DEVICEMODE;
                 // item->setValue(mask);
                 // sensorNode->clearRead(WRITE_DEVICEMODE);
+                sensorNode->setNextReadTime(WRITE_DEVICEMODE, tNow.addSecs(7200));
                 processed++;
             }
         }
@@ -12259,10 +12275,15 @@ void DeRestPluginPrivate::sendZclDefaultResponse(const deCONZ::ApsDataIndication
     deCONZ::ZclFrame outZclFrame;
     outZclFrame.setSequenceNumber(zclFrame.sequenceNumber());
     outZclFrame.setCommandId(deCONZ::ZclDefaultResponseId);
-    outZclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-                             deCONZ::ZclFCDirectionClientToServer |
-                             deCONZ::ZclFCDisableDefaultResponse);
-
+    
+    if (zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient)
+    {
+        outZclFrame.setFrameControl(deCONZ::ZclFCProfileCommand | deCONZ::ZclFCDirectionClientToServer | deCONZ::ZclFCDisableDefaultResponse);
+    }
+    else
+    {
+        outZclFrame.setFrameControl(deCONZ::ZclFCProfileCommand | deCONZ::ZclFCDirectionServerToClient | deCONZ::ZclFCDisableDefaultResponse);
+    }
 
     if (zclFrame.manufacturerCode_t() != 0x0000_mfcode)
     {
@@ -17759,7 +17780,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
             {
                 start += 4;
                 // after file content the boundary ends with:
-                int end = data.indexOf("\r\n-----------", start);
+                int end = data.indexOf("\r\n------", start);
 
                 if (end != -1 && start < end)
                 {

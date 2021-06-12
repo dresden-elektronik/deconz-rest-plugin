@@ -48,6 +48,14 @@ contains(QMAKE_SPEC_T,.*linux.*) {
     }
 }
 
+macx {
+    DEFINES += QT_NO_DEPRECATED_WARNINGS
+    CONFIG+=sdk_no_version_check
+
+    LIBS += -lsqlite3
+    DEFINES += HAS_SQLITE3
+}
+
 unix:LIBS +=  -L../.. -ldeCONZ
 
 unix:!macx {
@@ -107,6 +115,7 @@ HEADERS  = bindings.h \
            de_web_plugin_private.h \
            de_web_widget.h \
            event.h \
+           fan_control.h \
            gateway.h \
            gateway_scanner.h \
            green_power.h \
@@ -125,6 +134,9 @@ HEADERS  = bindings.h \
            rule.h \
            scene.h \
            sensor.h \
+           simple_metering.h \
+           thermostat.h \
+           thermostat_ui_configuration.h \
            tuya.h \
            utils/utils.h \
            websocket_server.h
