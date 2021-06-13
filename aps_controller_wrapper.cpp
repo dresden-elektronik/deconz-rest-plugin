@@ -21,7 +21,7 @@ using namespace deCONZ::literals;
 //! Sends a ZCL Default Response based on parameters from the request in \p ind and \p zclFrame.
 static bool ZCL_SendDefaultResponse(deCONZ::ApsController *apsCtrl, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, quint8 status)
 {
-   deCONZ::ApsDataRequest apsReq;
+    deCONZ::ApsDataRequest apsReq;
 
     // ZDP Header
     apsReq.dstAddress() = ind.srcAddress();
@@ -68,7 +68,7 @@ static bool ZCL_SendDefaultResponse(deCONZ::ApsController *apsCtrl, const deCONZ
     return apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success;
 }
 
-//! Returnes true if \p zclFrame requires a ZCL Default Response.
+//! Returns true if \p zclFrame requires a ZCL Default Response.
 static bool ZCL_NeedDefaultResponse(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame)
 {
     if (ind.dstAddressMode() == deCONZ::ApsNwkAddress) // only respond to unicast
@@ -82,7 +82,7 @@ static bool ZCL_NeedDefaultResponse(const deCONZ::ApsDataIndication &ind, const 
     return false;
 }
 
-//! Returnes true if \p req contains a specific or ZCL Default Response for \p indZclFrame.
+//! Returns true if \p req contains a specific or ZCL Default Response for \p indZclFrame.
 static bool ZCL_IsResponse(const deCONZ::ZclFrame &indZclFrame, const deCONZ::ApsDataRequest &req)
 {
     if (req.asdu().size() < 3) // need at least frame control | seqno | command id
@@ -113,7 +113,7 @@ static bool ZCL_IsResponse(const deCONZ::ZclFrame &indZclFrame, const deCONZ::Ap
         }
 
         // Request and response command ids can differ, match for sequence number _should_ be fine.
-        // If we see false positives, mappings needs to be created on per cluster base.
+        // If we see false positives, mappings need to be created on per cluster base.
         return true;
     }
 
@@ -172,7 +172,7 @@ ZclDefaultResponder::~ZclDefaultResponder()
     }
 }
 
-/*! During life time checks if \req is a response to the contained request.
+/*! During life time checks if \p req is a response to the contained request.
  */
 void ZclDefaultResponder::checkApsdeDataRequest(const deCONZ::ApsDataRequest &req)
 {
