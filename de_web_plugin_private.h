@@ -411,7 +411,7 @@ using namespace deCONZ::literals;
 // string lengths
 #define MAX_GROUP_NAME_LENGTH 32
 #define MAX_SCENE_NAME_LENGTH 32
-#define MAX_RULE_NAME_LENGTH 32
+#define MAX_RULE_NAME_LENGTH 64
 #define MAX_SENSOR_NAME_LENGTH 32
 
 // REST API return codes
