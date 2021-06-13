@@ -175,7 +175,7 @@ void DeRestPluginPrivate::sendBasicClusterResponse(const deCONZ::ApsDataIndicati
         outZclFrame.writeToStream(stream);
     }
 
-    if (apsCtrl && apsCtrl->apsdeDataRequest(req) != deCONZ::Success)
+    if (apsCtrlWrapper.apsdeDataRequest(req) != deCONZ::Success)
     {
         DBG_Printf(DBG_INFO, "Basic failed to send reponse\n");
     }

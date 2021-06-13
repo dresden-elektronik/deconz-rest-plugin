@@ -582,7 +582,8 @@ QString ApiRequest::apikey() const
     \param parent - the main plugin
  */
 DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
-    QObject(parent)
+    QObject(parent),
+    apsCtrlWrapper(deCONZ::ApsController::instance())
 {
     plugin = this;
 
@@ -638,8 +639,6 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     connect(fastProbeTimer, SIGNAL(timeout()), this, SLOT(delayedFastEnddeviceProbe()));
 
     apsCtrl = deCONZ::ApsController::instance();
-    DBG_Assert(apsCtrl != 0);
-
     apsCtrl->setParameter(deCONZ::ParamOtauActive, 0);
 
     // starttime reference counts from here
@@ -912,10 +911,11 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         return;
     }
 
+    deCONZ::ZclFrame zclFrame;
+    ZclDefaultResponder zclDefaultResponder(&apsCtrlWrapper, ind, zclFrame);
+
     if ((ind.profileId() == HA_PROFILE_ID) || (ind.profileId() == ZLL_PROFILE_ID))
     {
-        deCONZ::ZclFrame zclFrame;
-
         {
             QDataStream stream(ind.asdu());
             stream.setByteOrder(QDataStream::LittleEndian);
@@ -1202,7 +1202,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             stream << zclSeq++;
             stream << ind.srcAddress().nwk();
 
-            apsCtrl->apsdeDataRequest(apsReq);  // Fire and forget
+            apsCtrlWrapper.apsdeDataRequest(apsReq);  // Fire and forget
 
             handleNodeDescriptorResponseIndication(ind);
             handleIndicationSearchSensors(ind, zclFrame);
@@ -10005,33 +10005,6 @@ Sensor *DeRestPluginPrivate::getSensorNodeForAddressAndEndpoint(const deCONZ::Ad
 
 }
 
-/*! Compare addresses where either NWK or MAC address might not be known.
-    \returns true if both adresses have same MAC address (strong guaranty).
-    \returns true if at least one of the addresses doesn't have MAC but the NWK addresses are equal.
-    \returns false otherwise.
-*/
-bool isSameAddress(const deCONZ::Address &a, const deCONZ::Address &b)
-{
-    if (a.hasExt() && b.hasExt())
-    {
-        // nested if statement, so the NWK check won't be made if both MAC addresses are known
-        if (a.ext() != b.ext()) 
-        {
-             return false;
-        }
-    }
-    else  if (a.hasNwk() && b.hasNwk())
-    {
-       if (a.nwk() != b.nwk())
-       {
-            return false;
-       }
-    }
-    else { return false; }
-
-    return true;
-}
-
 /*! Returns the first Sensor for its given \p Address and \p Endpoint and \p Cluster or nullptr if not found.
  */
 Sensor *DeRestPluginPrivate::getSensorNodeForAddressEndpointAndCluster(const deCONZ::Address &addr, quint8 ep, quint16 cluster)
@@ -10326,9 +10299,9 @@ deCONZ::Node *DeRestPluginPrivate::getNodeForAddress(uint64_t extAddr)
     int i = 0;
     const deCONZ::Node *node;
 
-    DBG_Assert(apsCtrl != 0);
+    DBG_Assert(apsCtrl != nullptr);
 
-    if (apsCtrl == 0)
+    if (apsCtrl == nullptr)
     {
         return 0;
     }
@@ -10411,9 +10384,8 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         return false;
     }
 
-    deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
-    DBG_Assert(apsCtrl != 0);
-    if (apsCtrl && (apsCtrl->getParameter(deCONZ::ParamAutoPollingActive) == 0))
+    DBG_Assert(apsCtrl != nullptr);
+    if (apsCtrl && apsCtrl->getParameter(deCONZ::ParamAutoPollingActive) == 0)
     {
         return false;
     }
@@ -10708,13 +10680,6 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
     {
         return false;
     }
-
-//    deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
-//    DBG_Assert(apsCtrl != 0);
-//    if (apsCtrl && (apsCtrl->getParameter(deCONZ::ParamAutoPollingActive) == 0))
-//    {
-//        return false;
-//    }
 
     QTime tNow = QTime::currentTime();
 
@@ -12146,7 +12111,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
     if (!(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
     {
         checkReporting = true;
-        sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
     }
     else if (existDevicesWithVendorCodeForMacPrefix(ind.srcAddress(), VENDOR_PHILIPS) ||
             macPrefix == tiMacPrefix ||
@@ -12256,58 +12220,6 @@ void DeRestPluginPrivate::queuePollNode(RestNodeBase *node)
     }
 
     pollNodes.push_back(pollItem);
-}
-
-void DeRestPluginPrivate::sendZclDefaultResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, quint8 status)
-{
-   deCONZ::ApsDataRequest apsReq;
-
-    // ZDP Header
-    apsReq.dstAddress() = ind.srcAddress();
-    apsReq.setDstAddressMode(ind.srcAddressMode());
-    apsReq.setDstEndpoint(ind.srcEndpoint());
-    apsReq.setSrcEndpoint(ind.dstEndpoint());
-    apsReq.setProfileId(ind.profileId());
-    apsReq.setRadius(0);
-    apsReq.setClusterId(ind.clusterId());
-    //apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-
-    deCONZ::ZclFrame outZclFrame;
-    outZclFrame.setSequenceNumber(zclFrame.sequenceNumber());
-    outZclFrame.setCommandId(deCONZ::ZclDefaultResponseId);
-    
-    if (zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient)
-    {
-        outZclFrame.setFrameControl(deCONZ::ZclFCProfileCommand | deCONZ::ZclFCDirectionClientToServer | deCONZ::ZclFCDisableDefaultResponse);
-    }
-    else
-    {
-        outZclFrame.setFrameControl(deCONZ::ZclFCProfileCommand | deCONZ::ZclFCDirectionServerToClient | deCONZ::ZclFCDisableDefaultResponse);
-    }
-
-    if (zclFrame.manufacturerCode_t() != 0x0000_mfcode)
-    {
-        outZclFrame.setFrameControl(outZclFrame.frameControl() | deCONZ::ZclFCManufacturerSpecific);
-        outZclFrame.setManufacturerCode(zclFrame.manufacturerCode_t());
-    }
-
-    { // ZCL payload
-        QDataStream stream(&outZclFrame.payload(), QIODevice::WriteOnly);
-        stream.setByteOrder(QDataStream::LittleEndian);
-        stream << zclFrame.commandId();
-        stream << status;
-    }
-
-    { // ZCL frame
-        QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
-        stream.setByteOrder(QDataStream::LittleEndian);
-        outZclFrame.writeToStream(stream);
-    }
-
-    if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
-    {
-        queryTime = queryTime.addSecs(1);
-    }
 }
 
 /*! Stores on/off and bri of a light so that the state can be recovered after powercycle/powerloss.
@@ -12717,7 +12629,7 @@ void DeRestPluginPrivate::processTasks()
                     if (!group->sendTime.isValid() || (diff <= 0) || (diff > gwGroupSendDelay))
                     {
                         i->sendTime = idleTotalCounter;
-                        if (apsCtrl->apsdeDataRequest(i->req) == deCONZ::Success)
+                        if (apsCtrlWrapper.apsdeDataRequest(i->req) == deCONZ::Success)
                         {
                             group->sendTime = now;
                             if (pushRunning)
@@ -12753,7 +12665,7 @@ void DeRestPluginPrivate::processTasks()
                 {
 
                     i->sendTime = idleTotalCounter;
-                    int ret = apsCtrl->apsdeDataRequest(i->req);
+                    int ret = apsCtrlWrapper.apsdeDataRequest(i->req);
 
                     if (ret == deCONZ::Success)
                     {
@@ -15028,7 +14940,7 @@ void DeRestPluginPrivate::handleIeeeAddressReqIndication(const deCONZ::ApsDataIn
         stream << (quint8)0; // start index
     }
 
-    if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
+    if (apsCtrlWrapper.apsdeDataRequest(req) == deCONZ::Success)
     {
 
     }
@@ -15091,7 +15003,7 @@ void DeRestPluginPrivate::handleNwkAddressReqIndication(const deCONZ::ApsDataInd
         stream << (quint8)0; // start index
     }
 
-    if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
+    if (apsCtrlWrapper.apsdeDataRequest(req) == deCONZ::Success)
     {
 
     }
@@ -15721,9 +15633,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             stream << zclSeq++;
             stream << sc->address.nwk();
 
-            deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
-
-            if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+            if (apsCtrlWrapper.apsdeDataRequest(apsReq) == deCONZ::Success)
             {
                 queryTime = queryTime.addSecs(5);
                 sc->timeout.restart();
@@ -15755,9 +15665,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             stream << zclSeq++;
             stream << sc->address.nwk();
 
-            deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
-
-            if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+            if (apsCtrlWrapper.apsdeDataRequest(apsReq) == deCONZ::Success)
             {
                 queryTime = queryTime.addSecs(5);
                 sc->timeout.restart();
@@ -15805,9 +15713,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                     stream << sc->address.nwk();
                     stream << ep;
 
-                    deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
-
-                    if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+                    if (apsCtrlWrapper.apsdeDataRequest(apsReq) == deCONZ::Success)
                     {
                         queryTime = queryTime.addSecs(1);
                         sc->timeout.restart();
@@ -15935,9 +15841,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                     zclFrame.writeToStream(stream);
                 }
 
-                deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
-
-                if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+                if (apsCtrlWrapper.apsdeDataRequest(apsReq) == deCONZ::Success)
                 {
                     queryTime = queryTime.addSecs(1);
                     sc->timeout.restart();
@@ -16080,10 +15984,8 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                     zclFrame.writeToStream(stream);
                 }
 
-                deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
 
-                if (!zclFrame.payload().isEmpty() &&
-                        apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+                if (!zclFrame.payload().isEmpty() && apsCtrlWrapper.apsdeDataRequest(apsReq) == deCONZ::Success)
                 {
                     queryTime = queryTime.addSecs(1);
                     sc->timeout.restart();
@@ -17579,6 +17481,7 @@ void DeRestPlugin::appAboutToQuit()
         d->closeDb();
 
         d->apsCtrl = nullptr;
+        d->apsCtrlWrapper = {nullptr};
     }
 }
 
@@ -18459,7 +18362,7 @@ void DeRestPluginPrivate::startReconnectNetwork(int delay)
  */
 void DeRestPluginPrivate::reconnectNetwork()
 {
-    if (networkState != ReconnectNetwork)
+    if (!apsCtrl || networkState != ReconnectNetwork)
     {
         return;
     }

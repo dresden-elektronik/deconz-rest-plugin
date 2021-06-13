@@ -106,6 +106,7 @@ DEFINES += GW_MIN_DERFUSB23E0X_FW_VERSION=0x22030300
 DEFINES += GW_DEFAULT_NAME=\\\"Phoscon-GW\\\"
 
 HEADERS  = bindings.h \
+           aps_controller_wrapper.h \
            backup.h \
            button_maps.h \
            connectivity.h \
@@ -142,6 +143,7 @@ HEADERS  = bindings.h \
            websocket_server.h
 
 SOURCES  = air_quality.cpp \
+           aps_controller_wrapper.cpp \
            authorisation.cpp \
            backup.cpp \
            bindings.cpp \

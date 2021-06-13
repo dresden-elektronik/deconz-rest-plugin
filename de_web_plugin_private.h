@@ -22,6 +22,7 @@
 #endif
 #include <sqlite3.h>
 #include <deconz.h>
+#include "aps_controller_wrapper.h"
 #include "resource.h"
 #include "daylight.h"
 #include "event.h"
@@ -472,7 +473,6 @@ using namespace deCONZ::literals;
 
 void getTime(quint32 *time, qint32 *tz, quint32 *dstStart, quint32 *dstEnd, qint32 *dstShift, quint32 *standardTime, quint32 *localTime, quint8 mode);
 int getFreeSensorId(); // TODO needs to be part of a Database class
-bool isSameAddress(const deCONZ::Address &a, const deCONZ::Address &b);
 
 extern const quint64 macPrefixMask;
 
@@ -1577,7 +1577,6 @@ public:
     void handleTuyaClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclAttributeReportIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclConfigureReportingResponseIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    void sendZclDefaultResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, quint8 status);
     void taskToLocalData(const TaskItem &task);
     void handleZclAttributeReportIndicationXiaomiSpecial(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void queuePollNode(RestNodeBase *node);
@@ -2059,7 +2058,8 @@ public:
     // general
     ApiConfig config;
     QTime queryTime;
-    deCONZ::ApsController *apsCtrl;
+    ApsControllerWrapper apsCtrlWrapper;
+    deCONZ::ApsController *apsCtrl = nullptr;
     uint groupTaskNodeIter; // Iterates through nodes array
     QElapsedTimer idleTimer;
     int idleTotalCounter; // sys timer

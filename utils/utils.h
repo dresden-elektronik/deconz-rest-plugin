@@ -16,6 +16,10 @@
 #include <array>
 #include "resource.h"
 
+namespace deCONZ {
+    class Address;
+}
+
 struct KeyMap {
     QLatin1String key;
     };
@@ -49,6 +53,7 @@ bool startsWith(QLatin1String str, QLatin1String needle);
 int indexOf(QLatin1String haystack, QLatin1String needle);
 bool contains(QLatin1String haystack, QLatin1String needle);
 RestData verifyRestData(const ResourceItemDescriptor &rid, const QVariant &val);
+bool isSameAddress(const deCONZ::Address &a, const deCONZ::Address &b);
 
 template <typename K, typename Cont>
 decltype(auto) matchKeyValue(const K &key, const Cont &cont)

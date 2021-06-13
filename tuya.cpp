@@ -123,12 +123,6 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         // 0x01 : TUYA_REPORTING > Used to inform of changes in its state.
         // 0x02 : TUYA_QUERY > Send after receiving a 0x00 command.
         
-        // Send default response, it seem at least 0x01 and 0x02 need defaut response
-        if ((zclFrame.commandId() == TUYA_REPORTING || zclFrame.commandId() == TUYA_QUERY)&& !(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
-        {
-            sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
-        }
-
         if (zclFrame.payload().size() < 7)
         {
             DBG_Printf(DBG_INFO, "Tuya : Payload too short\n");
