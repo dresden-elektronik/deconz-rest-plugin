@@ -835,7 +835,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     
                     const auto match = matchKeyValue(data.string, RConfigAlertValues);
 
-                    if (!match.key.isEmpty())
+                    if (isValid(match))
                     {
                         task.taskType = TaskIdentify;
                         taskToLocalData(task);
@@ -1081,7 +1081,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         const auto match = matchKeyValue(data.string, RConfigModeLegrandValues);
 
-                        if (!match.key.isEmpty())
+                        if (isValid(match))
                         {
                             if (addTaskControlModeCmd(task, 0x00, match.value))
                             {
@@ -1099,7 +1099,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         const auto match = matchKeyValue(data.string, RConfigModeValuesTuya1);
 
-                        if (!match.key.isEmpty())
+                        if (isValid(match))
                         {
                             QByteArray tuyaData = QByteArray::fromRawData(match.value, 1);
                             quint8 dpIdentifier = DP_IDENTIFIER_THERMOSTAT_MODE_1;
@@ -1119,7 +1119,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         const auto match = matchKeyValue(data.string, RConfigModeValuesTuya2);
 
-                        if (!match.key.isEmpty())
+                        if (isValid(match))
                         {
                             QByteArray tuyaData = QByteArray::fromRawData(match.value, 1);
 
@@ -1134,7 +1134,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         const auto match = matchKeyValue(data.string, RConfigModeValuesTuya2);
 
-                        if (!match.key.isEmpty())
+                        if (isValid(match))
                         {
                             if (match.key == QLatin1String("off"))
                             {
@@ -1168,7 +1168,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         const auto match = matchKeyValue(data.string, RConfigModeValuesEurotronic);
 
-                        if (!match.key.isEmpty())
+                        if (isValid(match))
                         {
                             if (match.key == QLatin1String("off"))
                             {
@@ -1195,7 +1195,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         const auto match = matchKeyValue(data.string, RConfigModeValues);
 
-                        if (!match.key.isEmpty())
+                        if (isValid(match))
                         {
                             if (sensor->modelId() == QLatin1String("Super TR")) // Set device on/off state through mode via device specific attribute
                             {
@@ -1257,7 +1257,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         const auto match = matchKeyValue(data.string, RConfigPresetValuesTuya);
 
-                        if (!match.key.isEmpty())
+                        if (isValid(match))
                         {
                             QByteArray tuyaData = QByteArray::fromRawData(match.value, 1);
 
@@ -1271,7 +1271,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         const auto match = matchKeyValue(data.string, RConfigPresetValuesTuya2);
 
-                        if (!match.key.isEmpty())
+                        if (isValid(match))
                         {
                             if (match.key == QLatin1String("auto"))
                             {
@@ -1295,7 +1295,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         const auto match = matchKeyValue(data.string, RConfigPresetValuesTuya3);
 
-                        if (!match.key.isEmpty())
+                        if (isValid(match))
                         {
                             QByteArray tuyaData1;
                             QByteArray tuyaData2;
@@ -1455,7 +1455,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         const auto match = matchKeyValue(data.string, RConfigTemperatureMeasurementValues);
 
-                        if (!match.key.isEmpty())
+                        if (isValid(match))
                         {
                             if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, THERM_ATTRID_TEMPERATURE_MEASUREMENT, deCONZ::Zcl8BitEnum, match.value))
                             {
@@ -1486,7 +1486,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     const auto match = matchKeyValue(data.string, RConfigSwingModeValues);
 
-                    if (!match.key.isEmpty())
+                    if (isValid(match))
                     {
                         if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, THERM_ATTRID_AC_LOUVER_POSITION, deCONZ::Zcl8BitEnum, match.value))
                         {
@@ -1498,7 +1498,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     const auto match = matchKeyValue(data.string, RConfigFanModeValues);
 
-                    if (!match.key.isEmpty())
+                    if (isValid(match))
                     {
                         if (addTaskFanControlReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, FAN_CTRL_ATTRID_FAN_MODE, deCONZ::Zcl8BitEnum, match.value))
                         {
