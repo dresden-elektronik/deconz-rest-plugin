@@ -76,7 +76,7 @@ void DeRestPluginPrivate::handleAirQualityClusterIndication(const deCONZ::ApsDat
             case 0x4004:
             {
                 // Bosch air quality sensor
-                if (ind.clusterId() == BOSCH_AIR_QUALITY_CLUSTER_ID && sensor->manufacturer() == QLatin1String("BOSCH") && sensor->modelId() == QLatin1String("AIR"))
+                if (ind.clusterId() == BOSCH_AIR_QUALITY_CLUSTER_ID && sensor->modelId() == QLatin1String("AIR"))
                 {
                     levelPpb = attr.numericValue().u16;
                 }
