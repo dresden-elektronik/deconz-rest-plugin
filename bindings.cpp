@@ -447,12 +447,6 @@ void DeRestPluginPrivate::handleZclConfigureReportingResponseIndication(const de
         allNodes.push_back(&l);
     }
 
-    // send DefaultResponse if not disabled
-    if (!(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
-    {
-        sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
-    }
-
     for (RestNodeBase * restNode : allNodes)
     {
         if (restNode->address().ext() != ind.srcAddress().ext())
@@ -670,7 +664,7 @@ bool DeRestPluginPrivate::sendBindRequest(BindingTask &bt)
         return false;
     }
 
-    if (apsCtrl && (apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success))
+    if (apsCtrlWrapper.apsdeDataRequest(apsReq) == deCONZ::Success)
     {
         return true;
     }
@@ -827,7 +821,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
     }
 
 
-    if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+    if (apsCtrlWrapper.apsdeDataRequest(apsReq) == deCONZ::Success)
     {
         queryTime = queryTime.addSecs(1);
         return true;
@@ -4418,11 +4412,10 @@ void DeRestPluginPrivate::processUbisysC4Configuration(Sensor *sensor)
     stream.setByteOrder(QDataStream::LittleEndian);
     zclFrame.writeToStream(stream);
 
-    if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
+    if (apsCtrlWrapper.apsdeDataRequest(req) == deCONZ::Success)
     {
 
     }
-
 }
 
 /*! Process binding related tasks queue every one second. */
@@ -5048,7 +5041,7 @@ void DeRestPluginPrivate::bindingTableReaderTimerFired()
             stream << i->index;
 
             // send
-            if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+            if (apsCtrlWrapper.apsdeDataRequest(apsReq) == deCONZ::Success)
             {
                 DBG_Printf(DBG_ZDP, "Mgmt_Bind_req id: %d to 0x%016llX send\n", i->apsReq.id(), i->apsReq.dstAddress().ext());
                 i->time.start();

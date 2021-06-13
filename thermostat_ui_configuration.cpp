@@ -117,11 +117,6 @@ void DeRestPluginPrivate::handleThermostatUiConfigurationClusterIndication(const
             queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
         }
     }
-
-    if (!(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
-    {
-        sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
-    }
 }
 
 /*! Write Attribute on thermostat ui configuration cluster.

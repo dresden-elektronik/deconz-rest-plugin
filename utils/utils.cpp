@@ -8,6 +8,7 @@
  *
  */
 
+#include <deconz/aps.h>
 #include <deconz/dbg_trace.h>
 #include "utils.h"
 #include "resource.h"
@@ -210,4 +211,31 @@ RestData verifyRestData(const ResourceItemDescriptor &rid, const QVariant &val)
     {
         return data;
     }
+}
+
+/*! Compare addresses where either NWK or MAC address might not be known.
+    \returns true if both adresses have same MAC address (strong guaranty).
+    \returns true if at least one of the addresses doesn't have MAC but the NWK addresses are equal.
+    \returns false otherwise.
+*/
+bool isSameAddress(const deCONZ::Address &a, const deCONZ::Address &b)
+{
+    if (a.hasExt() && b.hasExt())
+    {
+        // nested if statement, so the NWK check won't be made if both MAC addresses are known
+        if (a.ext() != b.ext())
+        {
+             return false;
+        }
+    }
+    else  if (a.hasNwk() && b.hasNwk())
+    {
+       if (a.nwk() != b.nwk())
+       {
+            return false;
+       }
+    }
+    else { return false; }
+
+    return true;
 }

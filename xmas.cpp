@@ -4,6 +4,7 @@
  */
 
 #include "de_web_plugin_private.h"
+#include "utils/utils.h"
 
 #define TUYA_COMMAND_SET 0x00
 
