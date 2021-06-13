@@ -144,7 +144,8 @@ ZclDefaultResponder::ZclDefaultResponder(ApsControllerWrapper *apsCtrlWrapper, c
     m_ind(ind),
     m_zclFrame(zclFrame)
 {
-    if (m_ind.profileId() != ZDP_PROFILE_ID)
+    // ZCL only and ignore OTA commands as these are handled by the OTA plugin
+    if (m_ind.profileId() != ZDP_PROFILE_ID && m_ind.clusterId() != 0x0019)
     {
         m_apsCtrlWrapper->registerZclDefaultResponder(this);
         m_state = State::Watch;
