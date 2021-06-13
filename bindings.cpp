@@ -2950,6 +2950,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("TS0041")) ||
         sensor->modelId().startsWith(QLatin1String("TS0044")) ||
         sensor->modelId().startsWith(QLatin1String("TS0222")) || // TYZB01 light sensor 
+        sensor->modelId().startsWith(QLatin1String("TS004F")) || // 4 Gang Tuya ZigBee Wireless 12 Scene Switch
         // Tuyatec
         sensor->modelId().startsWith(QLatin1String("RH3040")) ||
         sensor->modelId().startsWith(QLatin1String("RH3001")) ||
@@ -3802,6 +3803,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
     else if (sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) || // RGBgenie remote control
+             sensor->manufacturer() == QLatin1String("_TZ3000_xabckq1v") || // 4 Gang Tuya ZigBee Wireless 12 Scene Switch
              sensor->modelId().startsWith(QLatin1String("ZBT-DIMController-D0800"))) // Mueller-Licht tint dimmer
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
