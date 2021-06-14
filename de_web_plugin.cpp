@@ -506,6 +506,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_DSR, "easyCodeTouch_v1", onestiPrefix }, // EasyAccess EasyCodeTouch
     { VENDOR_EMBER, "TS1001", silabs5MacPrefix }, // LIDL Livarno Lux Remote Control HG06323
     { VENDOR_EMBER, "TS1001", silabs7MacPrefix }, // LIDL Livarno Lux Remote Control HG06323
+    { VENDOR_XIAOYAN, "TERNCY-SD01", emberMacPrefix }, // Terncy Smart Dial SD01
 
     { 0, nullptr, 0 }
 };
@@ -1034,6 +1035,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             DBG_Printf(DBG_INFO, "Door lock debug 0x%016llX, data 0x%08X \n", ind.srcAddress().ext(), zclFrame.commandId() );
             break;
 
+        case ADUROLIGHT_CLUSTER_ID:
+            handleManufacturerSpecificFcccClusterIndication(ind, zclFrame);
+            break;
+
         default:
         {
         }
@@ -1042,7 +1047,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         handleIndicationSearchSensors(ind, zclFrame);
 
-        if (ind.dstAddressMode() == deCONZ::ApsGroupAddress || ind.clusterId() == VENDOR_CLUSTER_ID || ind.clusterId() == IAS_ZONE_CLUSTER_ID ||
+        if (ind.dstAddressMode() == deCONZ::ApsGroupAddress || ind.clusterId() == VENDOR_CLUSTER_ID || ind.clusterId() == IAS_ZONE_CLUSTER_ID || ind.clusterId() == ADUROLIGHT_CLUSTER_ID ||
             !(zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient) ||
             (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId))
         {
@@ -4539,6 +4544,21 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                             ok = buttonMap.zclParam0 == value;
                         }
                     }
+                    else if (attrId == FCCC_ATTRID_ROTATION_ANGLE && ind.clusterId() == ADUROLIGHT_CLUSTER_ID && sensor->modelId() == QLatin1String("TERNCY-SD01"))
+                    {
+                        qint16 value;
+                        stream >> value;
+                        ok = false;
+
+                        if (value > 0)
+                        {
+                            ok = buttonMap.zclParam0 == 0; // Rotate clockwise
+                        }
+                        else
+                        {
+                            ok = buttonMap.zclParam0 == 1; // Rotate counter-clockwise
+                        }
+                    }
                 }
                 else if (zclFrame.isProfileWideCommand() &&
                          zclFrame.commandId() == deCONZ::ZclWriteAttributesId &&
@@ -4914,6 +4934,10 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     {
                         ok = true;
                     }
+                    else if (buttonMap.zclParam0 == zclFrame.payload().at(0) && zclFrame.payload().size() == 1 && zclFrame.manufacturerCode() == VENDOR_XIAOYAN)
+                    {
+                        ok = true;
+                    }
                 }
 
                 if (ok && buttonMap.button != 0)
@@ -5193,17 +5217,24 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                                 {
                                     modelId = QLatin1String("ST30 Temperature Sensor");
                                 }
-                                //This device have model ID but not manufacture name
-                                if (modelId == QLatin1String("PST03A-v2.2.5"))
+                                else if (modelId == QLatin1String("PST03A-v2.2.5")) // Device doesn't have a manufacturer name
                                 {
                                     manufacturer = QLatin1String("Philio");
+                                }
+                                else if (modelId == QLatin1String("TERNCY-SD01")) // Device doesn't have a manufacturer name
+                                {
+                                    manufacturer = QLatin1String("TERNCY");
                                 }
                             }
                         }
                     }
 
                     fpSwitch.inClusters.push_back(ci->id());
-                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_PHILIPS)
+                    if (manufacturer == QLatin1String("TERNCY") && modelId == QLatin1String("TERNCY-SD01"))
+                    {
+                        fpSwitch.inClusters.push_back(ADUROLIGHT_CLUSTER_ID);
+                    }
+                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_PHILIPS)
                     {
                         fpPresenceSensor.inClusters.push_back(ci->id());
                         fpLightSensor.inClusters.push_back(ci->id());
@@ -6057,6 +6088,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             fpSwitch.hasInCluster(MULTISTATE_INPUT_CLUSTER_ID) ||
             fpSwitch.hasInCluster(DOOR_LOCK_CLUSTER_ID) ||
             fpSwitch.hasInCluster(IAS_ZONE_CLUSTER_ID) ||
+            fpSwitch.hasInCluster(ADUROLIGHT_CLUSTER_ID) ||
             fpSwitch.hasOutCluster(IAS_ACE_CLUSTER_ID) ||
             !fpSwitch.outClusters.empty())
         {
@@ -6612,7 +6644,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             sensorNode.addItem(DataTypeUInt16, RStateX);
             sensorNode.addItem(DataTypeUInt16, RStateY);
-            sensorNode.addItem(DataTypeUInt16, RStateAngle);
+            sensorNode.addItem(DataTypeInt16, RStateAngle);
+        }
+        else if (modelId == QLatin1String("TERNCY-SD01"))
+        {
+            clusterId = ADUROLIGHT_CLUSTER_ID;
+            sensorNode.addItem(DataTypeInt16, RStateAngle);
+            sensorNode.addItem(DataTypeUInt16, RStateEventDuration);
         }
     }
     else if (sensorNode.type().endsWith(QLatin1String("LightLevel")))
@@ -8091,7 +8129,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("VOC_Sensor")) || // LifeControl Enviroment sensor
                                         i->modelId().startsWith(QLatin1String("TY0203")) || // SilverCrest / lidl
                                         i->modelId().startsWith(QLatin1String("TY0202")) || // SilverCrest / lidl
-                                        i->modelId().startsWith(QLatin1String("ZG2835"))) // SR-ZG2835 Zigbee Rotary Switch
+                                        i->modelId().startsWith(QLatin1String("ZG2835")) || // SR-ZG2835 Zigbee Rotary Switch
+                                        i->modelId() == QLatin1String("TERNCY-SD01"))       // TERNCY smart button
                                     {
                                         bat = ia->numericValue().u8;
                                     }
@@ -8137,7 +8176,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("S57003")) || // SLC 4-ch remote controller
                                         i->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) || // RGBgenie remote control
                                         i->modelId().startsWith(QLatin1String("VOC_Sensor")) || // LifeControl Enviroment sensor
-                                        i->modelId().startsWith(QLatin1String("ZG2835"))) // SR-ZG2835 Zigbee Rotary Switch
+                                        i->modelId().startsWith(QLatin1String("ZG2835")) ||     // SR-ZG2835 Zigbee Rotary Switch
+                                        i->modelId() == QLatin1String("TERNCY-SD01"))           // TERNCY smart button
                                     {
                                         bat = ia->numericValue().u8;
                                     }

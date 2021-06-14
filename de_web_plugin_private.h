@@ -394,6 +394,7 @@ using namespace deCONZ::literals;
 #define VENDOR_MUELLER              0x121B // Used by Mueller Licht
 #define VENDOR_AURORA               0x121C // Used by Aurora Aone
 #define VENDOR_SUNRICHER            0x1224 // white label used by iCasa, Illuminize, Namron, SLC ...
+#define VENDOR_XIAOYAN              0x1228
 #define VENDOR_XAL                  0x122A
 #define VENDOR_ADUROLIGHT           0x122D
 #define VENDOR_THIRD_REALITY        0x1233
@@ -1612,6 +1613,7 @@ public:
     bool deserialiseThermostatSchedule(const QString &s, QVariantMap *schedule);
     void handleSimpleMeteringClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
     void handleElectricalMeasurementClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
+    void handleManufacturerSpecificFcccClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
 
     // Modify node attributes
     void setAttributeOnOff(LightNode *lightNode);
