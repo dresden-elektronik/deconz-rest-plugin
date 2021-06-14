@@ -2946,6 +2946,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("TS0044")) ||
         sensor->modelId().startsWith(QLatin1String("TS0222")) || // TYZB01 light sensor 
         sensor->modelId().startsWith(QLatin1String("TS004F")) || // 4 Gang Tuya ZigBee Wireless 12 Scene Switch
+        sensor->modelId().startsWith(QLatin1String("TS0210")) || // Tuya Zigbee Smart Vibration Sensor
         // Tuyatec
         sensor->modelId().startsWith(QLatin1String("RH3040")) ||
         sensor->modelId().startsWith(QLatin1String("RH3001")) ||
