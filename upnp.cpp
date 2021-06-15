@@ -48,7 +48,11 @@ void DeRestPluginPrivate::initUpnpDiscovery()
 /*! Replaces description_in.xml template with dynamic content. */
 void DeRestPluginPrivate::initDescriptionXml()
 {
-    deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
+    if (!apsCtrl)
+    {
+        return;
+    }
+
     QString serverRoot = apsCtrl->getParameter(deCONZ::ParamHttpRoot);
 
     if (!serverRoot.isEmpty())

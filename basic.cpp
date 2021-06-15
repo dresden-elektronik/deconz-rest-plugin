@@ -79,9 +79,22 @@ void DeRestPluginPrivate::sendBasicClusterResponse(const deCONZ::ApsDataIndicati
                 break;
 
             case 0x0001: // Application Version
+            {
                 stream << code;
                 stream << (quint8) deCONZ::Zcl8BitUint;
-                stream << (quint8) 0x00;
+
+                Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
+                if (sensor && sensor->modelId() == QLatin1String("TRADFRI remote control"))
+                {
+                    // Since firmware version 2.3.014 when the large middle button is pressed the remote reads this attribute.
+                    // If it isn't 17 as reported by earlier remote firmware, the left/right buttons don't send hold and long press commands anymore.
+                    stream << quint8(17);
+                }
+                else
+                {
+                    stream << quint8(0x00);
+                }
+            }
                 break;
 
             case 0x0002: // Stack Version
@@ -175,7 +188,7 @@ void DeRestPluginPrivate::sendBasicClusterResponse(const deCONZ::ApsDataIndicati
         outZclFrame.writeToStream(stream);
     }
 
-    if (apsCtrl && apsCtrl->apsdeDataRequest(req) != deCONZ::Success)
+    if (apsCtrlWrapper.apsdeDataRequest(req) != deCONZ::Success)
     {
         DBG_Printf(DBG_INFO, "Basic failed to send reponse\n");
     }
