@@ -232,11 +232,11 @@ win32 {
 
     LIBS += \
          -L../.. \
-         -L$${PWD}/../../../lib/sqlite-dll-win32-x86-3240000 \
+         -L$${PWD}/../../../lib/sqlite-dll-win32-x86-3270200 \
          -ldeCONZ1 \
          -lsqlite3
 
-    INCLUDEPATH += $${PWD}/../../../lib/sqlite-amalgamation-3240000
+    INCLUDEPATH += $${PWD}/../../../lib/sqlite-amalgamation-3270200
     CONFIG += dll
 }
 
