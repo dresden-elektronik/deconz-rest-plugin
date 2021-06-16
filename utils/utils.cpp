@@ -239,3 +239,17 @@ bool isSameAddress(const deCONZ::Address &a, const deCONZ::Address &b)
 
     return true;
 }
+
+QString getAirQualityString(quint32 levelPpb)
+{
+    QString airquality;
+
+    if (levelPpb <= 65)                      { airquality = QLatin1String("excellent"); }
+    if (levelPpb > 65 && levelPpb <= 220)    { airquality = QLatin1String("good"); }
+    if (levelPpb > 220 && levelPpb <= 660)   { airquality = QLatin1String("moderate"); }
+    if (levelPpb > 660 && levelPpb <= 2200)  { airquality = QLatin1String("poor"); }
+    if (levelPpb > 2200 && levelPpb <= 5500) { airquality = QLatin1String("unhealthy"); }
+    if (levelPpb > 5500 )                    { airquality = QLatin1String("out of scale"); }
+
+    return airquality;
+}

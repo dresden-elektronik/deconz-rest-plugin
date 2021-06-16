@@ -1794,6 +1794,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                  modelId == QLatin1String("TS0202") || // Tuya sensor
                  modelId == QLatin1String("3AFE14010402000D") || // Konke presence sensor
                  modelId == QLatin1String("3AFE28010402000D") || // Konke presence sensor
+                 modelId == QLatin1String("lumi.airmonitor.acn01") || // Xiaomi Aqara TVOC Air Quality Monitor
                  modelId.startsWith(QLatin1String("GZ-PIR02")) ||          // Sercomm motion sensor
                  modelId.startsWith(QLatin1String("SZ-WTD02N_CAR")) ||     // Sercomm water sensor
                  modelId.startsWith(QLatin1String("3300")) ||          // Centralite contatc sensor
@@ -2957,6 +2958,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("lumi.sensor_magnet.agl02") ||
         sensor->modelId() == QLatin1String("lumi.flood.agl02") ||
         sensor->modelId() == QLatin1String("lumi.switch.n0agl1") ||
+        sensor->modelId() == QLatin1String("lumi.airmonitor.acn01") ||
         // iris
         sensor->modelId().startsWith(QLatin1String("1116-S")) ||
         sensor->modelId().startsWith(QLatin1String("1117-S")) ||
@@ -3204,6 +3206,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId() == QLatin1String("MotionSensor51AU") ||
                      sensor->modelId() == QLatin1String("Zen-01") ||
                      sensor->modelId() == QLatin1String("ISW-ZPR1-WP13") ||
+                     sensor->modelId() == QLatin1String("lumi.airmonitor.acn01") ||
                      sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
                      sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
                      sensor->modelId().startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote

@@ -8209,6 +8209,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId() == QLatin1String("Remote motion sensor") || // Legrand motion sensor
                                     i->modelId() == QLatin1String("lumi.sensor_magnet.agl02") || // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
                                     i->modelId() == QLatin1String("lumi.flood.agl02") ||         // Xiaomi Aqara T1 water leak sensor SJCGQ12LM
+                                    i->modelId() == QLatin1String("lumi.airmonitor.acn01") ||    // Xiaomi Aqara TVOC Air Quality Monitor VOCKQJK11LM
                                     i->modelId() == QLatin1String("Zen-01") ||           // Zen thermostat
                                     i->modelId() == QLatin1String("Thermostat") ||       // eCozy thermostat
                                     i->modelId() == QLatin1String("Motion Sensor-A") ||  // Osram motion sensor
@@ -9326,6 +9327,23 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         }
                                         updateSensorEtag(&*i);
                                     }
+                                }
+                                else if (i->modelId() == QLatin1String("lumi.airmonitor.acn01"))
+                                {
+                                    QString airQuality = getAirQualityString(ia->numericValue().u32);
+                                    
+                                    ResourceItem *item = i->item(RStateAirQuality);
+                    
+                                    if (item && item->toString() != airQuality)
+                                    {
+                                        item->setValue(airQuality);
+                                        i->updateStateTimestamp();
+                                        i->setNeedSaveDatabase(true);
+                                        enqueueEvent(Event(RSensors, RStateAirQuality, i->id(), item));
+                                        enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
+
+                                    }
+                                    updateSensorEtag(&*i);
                                 }
                             }
                         }
