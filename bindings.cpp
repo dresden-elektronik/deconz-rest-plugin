@@ -1756,6 +1756,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                  modelId == QLatin1String("CCT592011_AS") ||     // LK Wiser Water Leak Sensor
                  modelId.startsWith(QLatin1String("S57003")) ||  // SLC switches
                  modelId == QLatin1String("CCT593011_AS") ||     // LK Wiser Temperature and Humidity Sensor
+                 modelId == QLatin1String("ZB-DoorSensor-D0003") || // Linkind Door/Window Sensor
                  modelId.startsWith(QLatin1String("FNB56-")) ||  // Feibit devices
                  modelId.startsWith(QLatin1String("FB56-")))     // Feibit devices
         {
@@ -2981,6 +2982,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("Z01-A19")) ||
         // Linkind
         sensor->modelId() == QLatin1String("ZB-MotionSensor-D0003") ||
+        sensor->modelId() == QLatin1String("ZB-DoorSensor-D0003") ||
         // Drayton
         sensor->modelId() == QLatin1String("iTRV") ||
         // LK Wiser
