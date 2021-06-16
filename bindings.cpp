@@ -3053,6 +3053,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("0x8031") ||
         sensor->modelId() == QLatin1String("0x8034") ||
         sensor->modelId() == QLatin1String("0x8035") ||
+        // Swann
+        sensor->modelId() == QLatin1String("SWO-MOS1PA") ||
         // LIDL
         sensor->modelId() == QLatin1String("HG06323") ||
         // Eria
