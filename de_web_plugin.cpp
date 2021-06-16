@@ -387,6 +387,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_LEGRAND, "DIN power consumption module", legrandMacPrefix }, // Legrand DIN power consumption module
     { VENDOR_LEGRAND, "Teleruptor", legrandMacPrefix }, // Legrand Teleruptor
     { VENDOR_LEGRAND, "Contactor", legrandMacPrefix }, // Legrand Contactor
+    { VENDOR_LEGRAND, "Pocket Remote", legrandMacPrefix }, // Legrand wireless 4 x scene remote
     { VENDOR_NETVOX, "Z809AE3R", netvoxMacPrefix }, // Netvox smartplug
     { VENDOR_LDS, "ZB-ONOFFPlug-D0005", silabs2MacPrefix }, // Samsung SmartPlug 2019 (7A-PL-Z-J3)
     { VENDOR_LDS, "ZBT-DIMSwitch", silabs2MacPrefix }, // Linkind 1 key Remote Control / ZS23000178
@@ -4182,6 +4183,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
              sensor->modelId() == QLatin1String("Double gangs remote switch") || //Legrand micro module
              sensor->modelId() == QLatin1String("Shutters central remote switch") || // legrand shutter switch
              sensor->modelId() == QLatin1String("Remote motion sensor") || // legrand motion sensor
+             sensor->modelId() == QLatin1String("Pocket remote") || // legrand 4x scene remote
              sensor->modelId() == QLatin1String("Remote toggle switch")) // legrand switch simple and double
     {
         checkReporting = true;
@@ -7555,6 +7557,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 //This device make a Rejoin every time, you trigger it, it's the only moment where you can read attribute.
                 if (sensorNode.modelId() == QLatin1String("Remote switch") ||
                     sensorNode.modelId() == QLatin1String("Shutters central remote switch") ||
+                    sensorNode.modelId() == QLatin1String("Pocket remote") ||
                     sensorNode.modelId() == QLatin1String("Double gangs remote switch") )
                 {
                     //Ask for battery but only every day max
@@ -8190,6 +8193,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().startsWith(QLatin1String("multiv4")) ||// SmartThings multi sensor 2016
                                     i->modelId().startsWith(QLatin1String("3305-S")) ||  // SmartThings 2014 motion sensor
                                     i->modelId() == QLatin1String("Remote switch") ||    // Legrand switch
+                                    i->modelId() == QLatin1String("Pocket remote") ||    // Legrand wireless switch scene x 4
                                     i->modelId() == QLatin1String("Double gangs remote switch") ||    // Legrand switch double
                                     i->modelId() == QLatin1String("Shutters central remote switch") || // Legrand switch module
                                     i->modelId() == QLatin1String("Remote toggle switch") || // Legrand shutter switch
@@ -16187,6 +16191,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                  sensor->modelId() == QLatin1String("Double gangs remote switch") || // Legrand switch double
                  sensor->modelId() == QLatin1String("Remote toggle switch") || // Legrand switch module
                  sensor->modelId() == QLatin1String("Remote motion sensor") || // Legrand motion sensor
+                 sensor->modelId() == QLatin1String("Pocket remote") || // Legrand remote scene x 4
                  sensor->modelId() == QLatin1String("ZBT-CCTSwitch-D0001") || // LDS Remote
                  sensor->modelId() == QLatin1String("ZBT-DIMController-D0800") || // Mueller-Licht tint dimmer
                  sensor->modelId() == QLatin1String("Shutters central remote switch")) // Legrand shutter switch
