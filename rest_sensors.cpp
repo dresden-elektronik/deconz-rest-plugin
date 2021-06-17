@@ -846,15 +846,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
                 }
-
-                rsp.list.append(rspItem);
-                return REQ_READY_SEND;
-            }
-
-            //special part for tuya siren
-            if (R_GetProductId(sensor) == QLatin1String("NAS-AB02B0 Siren"))
-            {
-                if (rid.suffix == RConfigLock) // Boolean
+                else if (rid.suffix == RConfigLock) // Boolean
                 {
                     data.boolean ^= data.boolean;     // Flip bool value as 0 means lock and 1 means unlock
 
