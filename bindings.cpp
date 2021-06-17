@@ -447,12 +447,6 @@ void DeRestPluginPrivate::handleZclConfigureReportingResponseIndication(const de
         allNodes.push_back(&l);
     }
 
-    // send DefaultResponse if not disabled
-    if (!(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
-    {
-        sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
-    }
-
     for (RestNodeBase * restNode : allNodes)
     {
         if (restNode->address().ext() != ind.srcAddress().ext())
@@ -670,7 +664,7 @@ bool DeRestPluginPrivate::sendBindRequest(BindingTask &bt)
         return false;
     }
 
-    if (apsCtrl && (apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success))
+    if (apsCtrlWrapper.apsdeDataRequest(apsReq) == deCONZ::Success)
     {
         return true;
     }
@@ -827,7 +821,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
     }
 
 
-    if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+    if (apsCtrlWrapper.apsdeDataRequest(apsReq) == deCONZ::Success)
     {
         queryTime = queryTime.addSecs(1);
         return true;
@@ -949,6 +943,11 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             // Only configure periodic reports, as events are already sent though zone status change notification commands
             rq.minInterval = 300;
             rq.maxInterval = 3600;
+        }
+        else if (sensor && sensor->type() == QLatin1String("ZHASwitch") && modelId == QLatin1String("button"))
+        {
+            rq.minInterval = 65535; // Disable reporting so devices must not be reset to not have it
+            rq.maxInterval = 65535; // configured at all. Should be changed in future to explicitly exclude device from reporting.
         }
         else
         {
@@ -1754,7 +1753,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (modelId.startsWith(QLatin1String("ED-1001")) || // EcoDim switches
                  modelId.startsWith(QLatin1String("45127")) ||   // Namron switches
+                 modelId == QLatin1String("CCT592011_AS") ||     // LK Wiser Water Leak Sensor
                  modelId.startsWith(QLatin1String("S57003")) ||  // SLC switches
+                 modelId == QLatin1String("CCT593011_AS") ||     // LK Wiser Temperature and Humidity Sensor
                  modelId.startsWith(QLatin1String("FNB56-")) ||  // Feibit devices
                  modelId.startsWith(QLatin1String("FB56-")))     // Feibit devices
         {
@@ -2944,6 +2945,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("TS0041")) ||
         sensor->modelId().startsWith(QLatin1String("TS0044")) ||
         sensor->modelId().startsWith(QLatin1String("TS0222")) || // TYZB01 light sensor 
+        sensor->modelId().startsWith(QLatin1String("TS004F")) || // 4 Gang Tuya ZigBee Wireless 12 Scene Switch
         // Tuyatec
         sensor->modelId().startsWith(QLatin1String("RH3040")) ||
         sensor->modelId().startsWith(QLatin1String("RH3001")) ||
@@ -2981,6 +2983,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("ZB-MotionSensor-D0003") ||
         // Drayton
         sensor->modelId() == QLatin1String("iTRV") ||
+        // LK Wiser
+        sensor->modelId() == QLatin1String("CCT592011_AS") ||
+        sensor->modelId() == QLatin1String("CCT593011_AS") ||
         // Immax
         sensor->modelId() == QLatin1String("Plug-230V-ZB3.0") ||
         sensor->modelId() == QLatin1String("4in1-Sensor-ZB3.0") ||
@@ -3794,6 +3799,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
     else if (sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) || // RGBgenie remote control
+             sensor->manufacturer() == QLatin1String("_TZ3000_xabckq1v") || // 4 Gang Tuya ZigBee Wireless 12 Scene Switch
              sensor->modelId().startsWith(QLatin1String("ZBT-DIMController-D0800"))) // Mueller-Licht tint dimmer
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
@@ -4406,11 +4412,10 @@ void DeRestPluginPrivate::processUbisysC4Configuration(Sensor *sensor)
     stream.setByteOrder(QDataStream::LittleEndian);
     zclFrame.writeToStream(stream);
 
-    if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
+    if (apsCtrlWrapper.apsdeDataRequest(req) == deCONZ::Success)
     {
 
     }
-
 }
 
 /*! Process binding related tasks queue every one second. */
@@ -5036,7 +5041,7 @@ void DeRestPluginPrivate::bindingTableReaderTimerFired()
             stream << i->index;
 
             // send
-            if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+            if (apsCtrlWrapper.apsdeDataRequest(apsReq) == deCONZ::Success)
             {
                 DBG_Printf(DBG_ZDP, "Mgmt_Bind_req id: %d to 0x%016llX send\n", i->apsReq.id(), i->apsReq.dstAddress().ext());
                 i->time.start();

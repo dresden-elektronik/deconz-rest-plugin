@@ -12,6 +12,7 @@
 #include <QDir>
 #include <QFile>
 #include <QProcess>
+#include <array>
 #include <stack>
 #include <deconz.h>
 #include "backup.h"
