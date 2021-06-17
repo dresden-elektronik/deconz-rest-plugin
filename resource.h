@@ -126,7 +126,6 @@ extern const char *RStateY;
 
 extern const char *RConfigAlert;
 extern const char *RConfigLock;
-extern const char *RConfigReporting;
 extern const char *RConfigBattery;
 extern const char *RConfigColorCapabilities;
 extern const char *RConfigConfigured;

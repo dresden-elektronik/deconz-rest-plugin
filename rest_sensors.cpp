@@ -1051,26 +1051,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 rsp.list.append(rspItem);
                 return REQ_READY_SEND;
             }
-            
-            //special part for sensor
-            if (R_GetProductId(sensor).startsWith(QLatin1String("Tuya_SEN")))
-            {
-                if (rid.suffix == RConfigReporting)
-                {
-                    bool onoff = map[pi.key()].toBool();
-
-                    QByteArray data = QByteArray("\x00", 1);
-                    if (onoff)
-                    {
-                        data = QByteArray("\x01", 1);
-                    }
-
-                    if (sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_BOOL, DP_IDENTIFIER_REPORTING, data))
-                    {
-                        updated = true;
-                    }
-                }
-            }
 
             //special part for tuya siren
             if (R_GetProductId(sensor) == QLatin1String("NAS-AB02B0 Siren"))
