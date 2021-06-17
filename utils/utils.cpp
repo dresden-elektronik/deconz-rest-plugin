@@ -8,8 +8,10 @@
  *
  */
 
+#include <deconz/aps.h>
 #include <deconz/dbg_trace.h>
 #include "utils.h"
+#include "resource.h"
 
 /*! Generates a new uniqueid in various formats based on the input parameters.
 
@@ -138,4 +140,102 @@ bool contains(QLatin1String haystack, QLatin1String needle)
 bool startsWith(QLatin1String str, QLatin1String needle)
 {
     return indexOf(str, needle) == 0;
+}
+
+RestData verifyRestData(const ResourceItemDescriptor &rid, const QVariant &val)
+{
+    bool ok;
+    RestData data;
+
+    if (rid.qVariantType == val.type())
+    {
+        if (rid.type == DataTypeUInt8 || rid.type == DataTypeUInt16 || rid.type == DataTypeUInt32 || rid.type == DataTypeUInt64)
+        {
+            auto uintValue = val.toUInt(&ok);
+            if (ok)
+            {
+                data.uinteger = uintValue;
+                data.valid = true;
+                return data;
+            }
+            else
+            {
+                return data;
+            }
+        }
+        else if (rid.type == DataTypeString || rid.type == DataTypeTime || rid.type == DataTypeTimePattern)
+        {
+            if (!val.toString().isEmpty())
+            {
+                data.string = val.toString();
+                data.valid = true;
+                return data;
+            }
+            else
+            {
+                return data;
+            }
+        }
+        else if (rid.type == DataTypeBool)
+        {
+            data.boolean = val.toBool();
+            data.valid = true;
+            return data;
+        }
+        else if (rid.type == DataTypeInt8 || rid.type == DataTypeInt16 || rid.type == DataTypeInt32 || rid.type == DataTypeInt64)
+        {
+            auto intValue = val.toInt(&ok);
+            if (ok)
+            {
+                data.integer = intValue;
+                data.valid = true;
+                return data;
+            }
+            else
+            {
+                return data;
+            }
+        }
+        else if (rid.type == DataTypeReal)
+        {
+            data.real = val.toReal();
+            data.valid = true;
+            return data;
+        }
+        else
+        {
+            return data;
+        }
+    }
+    else
+    {
+        return data;
+    }
+}
+
+/*! Compare addresses where either NWK or MAC address might not be known.
+    \returns true if both adresses have same MAC address (strong guaranty).
+    \returns true if at least one of the addresses doesn't have MAC but the NWK addresses are equal.
+    \returns false otherwise.
+*/
+bool isSameAddress(const deCONZ::Address &a, const deCONZ::Address &b)
+{
+    if (a.hasExt() && b.hasExt())
+    {
+        // nested if statement, so the NWK check won't be made if both MAC addresses are known
+        if (a.ext() != b.ext())
+        {
+             return false;
+        }
+    }
+    else  if (a.hasNwk() && b.hasNwk())
+    {
+       if (a.nwk() != b.nwk())
+       {
+            return false;
+       }
+    }
+    else { return false; }
+
+    return true;
 }

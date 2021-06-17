@@ -89,7 +89,7 @@ void DeRestPluginPrivate::checkResetState()
                 //                    flags |= 0x80; // rejoin
                 stream << flags; // flags
 
-                if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
+                if (apsCtrlWrapper.apsdeDataRequest(req) == deCONZ::Success)
                 {
                     resetDeviceApsRequestId = req.id();
                     resetDeviceState = ResetWaitConfirm;
@@ -153,7 +153,7 @@ void DeRestPluginPrivate::checkResetState()
                 //                    flags |= 0x80; // rejoin
                 stream << flags; // flags
 
-                if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
+                if (apsCtrlWrapper.apsdeDataRequest(req) == deCONZ::Success)
                 {
                     resetDeviceApsRequestId = req.id();
                     resetDeviceState = ResetWaitConfirm;

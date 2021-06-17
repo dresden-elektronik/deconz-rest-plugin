@@ -195,7 +195,7 @@ void DeRestPluginPrivate::otauSendStdNotify(LightNode *node)
         zclFrame.writeToStream(stream);
     }
 
-    if (apsCtrl && apsCtrl->apsdeDataRequest(req) != deCONZ::Success)
+    if (apsCtrlWrapper.apsdeDataRequest(req) != deCONZ::Success)
     {
         DBG_Printf(DBG_INFO, "otau failed to send image notify request\n");
     }
