@@ -118,7 +118,6 @@ const QStringList RStateEffectValuesMueller({
 
 const char *RConfigAlert = "config/alert";
 const char *RConfigLock = "config/lock";
-const char *RConfigReporting = "config/reporting";
 const char *RConfigBattery = "config/battery";
 const char *RConfigColorCapabilities = "config/colorcapabilities";
 const char *RConfigConfigured = "config/configured";
