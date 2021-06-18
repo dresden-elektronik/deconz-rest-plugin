@@ -397,12 +397,6 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
 
         checkIasEnrollmentStatus(sensor);
     }
-
-    // Allow clearing the alarm bit for Develco devices
-    if (!(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
-    {
-        sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
-    }
 }
 
 /*! Processes the received IAS zone status value.
@@ -561,7 +555,7 @@ bool DeRestPluginPrivate::sendIasZoneEnrollResponse(Sensor *sensor)
 
     DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Send Zone Enroll Response, zcl.seq: %u\n", sensor->address().ext(), outZclFrame.sequenceNumber());
 
-    if (apsCtrl && apsCtrl->apsdeDataRequest(req) != deCONZ::Success)
+    if (apsCtrlWrapper.apsdeDataRequest(req) != deCONZ::Success)
     {
         DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Failed sending Zone Enroll Response\n", sensor->address().ext());
         return false;
@@ -612,7 +606,7 @@ bool DeRestPluginPrivate::sendIasZoneEnrollResponse(const deCONZ::ApsDataIndicat
 
     DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Send Zone Enroll Response, zcl.seq: %u\n", ind.srcAddress().ext(), zclFrame.sequenceNumber());
 
-    if (apsCtrl && apsCtrl->apsdeDataRequest(req) != deCONZ::Success)
+    if (apsCtrlWrapper.apsdeDataRequest(req) != deCONZ::Success)
     {
         DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Failed sending Zone Enroll Response\n", ind.srcAddress().ext());
         return false;

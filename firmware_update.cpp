@@ -30,10 +30,14 @@
  */
 void DeRestPluginPrivate::initFirmwareUpdate()
 {
+    if (!apsCtrl)
+    {
+        return;
+    }
+
     fwProcess = nullptr;
     fwUpdateState = FW_Idle;
 
-    Q_ASSERT(apsCtrl);
     apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, deCONZ::FirmwareUpdateIdle);
 
     fwUpdateStartedByUser = false;
@@ -306,7 +310,6 @@ void DeRestPluginPrivate::firmwareUpdateTimerFired()
  */
 void DeRestPluginPrivate::queryFirmwareVersion()
 {
-    Q_ASSERT(apsCtrl);
     if (!apsCtrl)
     {
         return;

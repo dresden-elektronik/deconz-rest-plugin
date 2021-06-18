@@ -101,12 +101,6 @@ void DeRestPluginPrivate::handleIasAceClusterIndication(const deCONZ::ApsDataInd
         return;
     }
     
-    //Defaut response
-    if (!(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
-    {
-        sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
-    }
-    
     Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint(), QLatin1String("ZHAAncillaryControl"));
     if (!sensorNode)
     {
@@ -303,7 +297,6 @@ void DeRestPluginPrivate::handleIasAceClusterIndication(const deCONZ::ApsDataInd
         sensorNode->setNeedSaveDatabase(true);
         queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
     }
-
 }
 
 void DeRestPluginPrivate::sendArmResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, quint8 armMode)
@@ -387,7 +380,7 @@ void DeRestPluginPrivate::sendGetPanelStatusResponse(const deCONZ::ApsDataIndica
         outZclFrame.writeToStream(stream);
     }
 
-    if (apsCtrl && apsCtrl->apsdeDataRequest(req) != deCONZ::Success)
+    if (apsCtrlWrapper.apsdeDataRequest(req) != deCONZ::Success)
     {
         DBG_Printf(DBG_IAS, "[IAS ACE] - Failed to send IAS ACE get panel reponse.\n");
     }

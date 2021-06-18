@@ -22,6 +22,7 @@
 #endif
 #include <sqlite3.h>
 #include <deconz.h>
+#include "aps_controller_wrapper.h"
 #include "resource.h"
 #include "daylight.h"
 #include "event.h"
@@ -56,7 +57,7 @@ using namespace deCONZ::literals;
 #define ERR_MISSING_PARAMETER          5
 #define ERR_PARAMETER_NOT_AVAILABLE    6
 #define ERR_INVALID_VALUE              7
-#define ERR_PARAMETER_NOT_MODIFIEABLE  8
+#define ERR_PARAMETER_NOT_MODIFIABLE   8
 #define ERR_TOO_MANY_ITEMS             11
 #define ERR_DUPLICATE_EXIST            100 // de extension
 #define ERR_NOT_ALLOWED_SENSOR_TYPE    501
@@ -249,7 +250,6 @@ using namespace deCONZ::literals;
 
 #define MULTI_STATE_INPUT_PRESENT_VALUE_ATTRIBUTE_ID quint16(0x0055)
 
-
 // IAS Zone Types
 #define IAS_ZONE_TYPE_STANDARD_CIE            0x0000
 #define IAS_ZONE_TYPE_MOTION_SENSOR           0x000d
@@ -259,14 +259,6 @@ using namespace deCONZ::literals;
 #define IAS_ZONE_TYPE_CARBON_MONOXIDE_SENSOR  0x002b
 #define IAS_ZONE_TYPE_VIBRATION_SENSOR        0x002d
 #define IAS_ZONE_TYPE_WARNING_DEVICE          0x0225
-
-// Thermostat cluster, Control Sequence of Operation (0x001B)
-#define COOLING_ONLY                            0x00
-#define COOLING_WITH_REHEAT                     0x01
-#define HEATING_ONLY                            0x02
-#define HEATING_WITH_REHEAT                     0x03
-#define COOLING_AND_HEATING_4PIPES              0x04
-#define COOLING_AND_HEATING_4PIPES_WITH_REHEAT  0x05
 
 // IAS Setup states
 #define IAS_STATE_INIT                 0
@@ -279,21 +271,6 @@ using namespace deCONZ::literals;
 #define IAS_STATE_ENROLL               7
 #define IAS_STATE_WAIT_ENROLL          8
 #define IAS_STATE_MAX                  9 // invalid
-
-// Develco interface modes, manufacturer specific
-#define PULSE_COUNTING_ELECTRICITY      0x0000
-#define PULSE_COUNTING_GAS              0x0001
-#define PULSE_COUNTING_WATER            0x0002
-#define KAMSTRUP_KMP                    0x0100
-#define LINKY                           0x0101
-#define DLMS_COSEM                      0x0102
-#define DSMR_23                         0x0103
-#define DSMR_40                         0x0104
-#define NORWEGIAN_HAN                   0x0200
-#define NORWEGIAN_HAN_EXTRA_LOAD        0x0201
-#define AIDON_METER                     0x0202
-#define KAIFA_KAMSTRUP_METERS           0x0203
-#define AUTO_DETECT                     0x0204
 
 #ifndef DBG_IAS
   #define DBG_IAS DBG_INFO  // DBG_IAS didn't exist before version v2.10.x
@@ -436,7 +413,7 @@ using namespace deCONZ::literals;
 // string lengths
 #define MAX_GROUP_NAME_LENGTH 32
 #define MAX_SCENE_NAME_LENGTH 32
-#define MAX_RULE_NAME_LENGTH 32
+#define MAX_RULE_NAME_LENGTH 64
 #define MAX_SENSOR_NAME_LENGTH 32
 
 // REST API return codes
@@ -497,7 +474,6 @@ using namespace deCONZ::literals;
 
 void getTime(quint32 *time, qint32 *tz, quint32 *dstStart, quint32 *dstEnd, qint32 *dstShift, quint32 *standardTime, quint32 *localTime, quint8 mode);
 int getFreeSensorId(); // TODO needs to be part of a Database class
-bool isSameAddress(const deCONZ::Address &a, const deCONZ::Address &b);
 
 extern const quint64 macPrefixMask;
 
@@ -1606,7 +1582,6 @@ public:
     void handleTuyaClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclAttributeReportIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclConfigureReportingResponseIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    void sendZclDefaultResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, quint8 status);
     void taskToLocalData(const TaskItem &task);
     void handleZclAttributeReportIndicationXiaomiSpecial(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void queuePollNode(RestNodeBase *node);
@@ -2088,7 +2063,8 @@ public:
     // general
     ApiConfig config;
     QTime queryTime;
-    deCONZ::ApsController *apsCtrl;
+    ApsControllerWrapper apsCtrlWrapper;
+    deCONZ::ApsController *apsCtrl = nullptr;
     uint groupTaskNodeIter; // Iterates through nodes array
     QElapsedTimer idleTimer;
     int idleTotalCounter; // sys timer

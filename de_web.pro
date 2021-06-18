@@ -87,7 +87,7 @@ GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.12.00\\\"
+DEFINES += GW_SW_VERSION=\\\"2.12.01\\\"
 DEFINES += GW_SW_DATE=$$GIT_COMMIT_DATE
 DEFINES += GW_API_VERSION=\\\"1.16.0\\\"
 DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
@@ -106,6 +106,7 @@ DEFINES += GW_MIN_DERFUSB23E0X_FW_VERSION=0x22030300
 DEFINES += GW_DEFAULT_NAME=\\\"Phoscon-GW\\\"
 
 HEADERS  = bindings.h \
+           aps_controller_wrapper.h \
            backup.h \
            button_maps.h \
            connectivity.h \
@@ -115,6 +116,7 @@ HEADERS  = bindings.h \
            de_web_plugin_private.h \
            de_web_widget.h \
            event.h \
+           fan_control.h \
            gateway.h \
            gateway_scanner.h \
            green_power.h \
@@ -133,11 +135,15 @@ HEADERS  = bindings.h \
            rule.h \
            scene.h \
            sensor.h \
+           simple_metering.h \
+           thermostat.h \
+           thermostat_ui_configuration.h \
            tuya.h \
            utils/utils.h \
            websocket_server.h
 
 SOURCES  = air_quality.cpp \
+           aps_controller_wrapper.cpp \
            authorisation.cpp \
            backup.cpp \
            bindings.cpp \
@@ -226,11 +232,11 @@ win32 {
 
     LIBS += \
          -L../.. \
-         -L$${PWD}/../../../lib/sqlite-dll-win32-x86-3240000 \
+         -L$${PWD}/../../../lib/sqlite-dll-win32-x86-3270200 \
          -ldeCONZ1 \
          -lsqlite3
 
-    INCLUDEPATH += $${PWD}/../../../lib/sqlite-amalgamation-3240000
+    INCLUDEPATH += $${PWD}/../../../lib/sqlite-amalgamation-3270200
     CONFIG += dll
 }
 
