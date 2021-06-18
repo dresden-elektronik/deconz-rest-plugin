@@ -123,6 +123,7 @@ HEADERS  = bindings.h \
            group.h \
            group_info.h \
            json.h \
+           ias_ace.h \
            light_node.h \
            poll_control.h \
            poll_manager.h \

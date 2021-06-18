@@ -19,6 +19,7 @@
 #include "json.h"
 #include "product_match.h"
 #include "fan_control.h"
+#include "ias_ace.h"
 #include "simple_metering.h"
 #include "thermostat.h"
 #include "thermostat_ui_configuration.h"
@@ -1566,7 +1567,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             sn = static_cast<quint8>(item->toNumber());
                         }
                       
-                        if (addTaskSendArmResponse(task, match.value, sn))
+                        if (addTaskSendArmResponse(task, match.key, sn))
                         {
                             updated = true;
                         }
@@ -1578,7 +1579,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                     if (isValid(match))
                     {
-                        if (addTaskPanelStatusChanged(task, match.value, true))
+                        if (addTaskPanelStatusChanged(task, match.key, true))
                         {
                             // Update too RConfigPanel
                             ResourceItem *item2 = sensor->item(RConfigPanel);

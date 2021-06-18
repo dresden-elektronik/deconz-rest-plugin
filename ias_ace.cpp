@@ -3,6 +3,7 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "json.h"
+#include "ias_ace.h"
 
 // server send
 #define CMD_ARM_RESPONSE 0x00
@@ -73,6 +74,13 @@
 // 0x01 Default sound
 // 0x80-0xff Manufacturer specific
 
+const std::array<KeyMap, 7> RConfigArmModeValues = { { {QLatin1String("disarmed")}, {QLatin1String("armed_stay")}, {QLatin1String("armed_night")}, {QLatin1String("armed_away")},
+                                                        {QLatin1String("invalid_code")}, {QLatin1String("not_ready")}, {QLatin1String("already_disarmed")} } };
+
+
+const std::array<KeyMap, 11> RConfigPanelValues = { { {QLatin1String("disarmed")}, {QLatin1String("armed_stay")}, {QLatin1String("armed_night")}, {QLatin1String("armed_away")},
+                                                       {QLatin1String("exit_delay")}, {QLatin1String("entry_delay")}, {QLatin1String("not_ready_to_arm")}}, {QLatin1String("in_alarm")},
+                                                       {QLatin1String("arming_stay")}, {QLatin1String("arming_night")}, {QLatin1String("arming_away")}};
 
 const QStringList PanelStatusList({
     "disarmed","armed_stay","armed_night","armed_away","exit_delay","entry_delay","not_ready_to_arm","in_alarm","arming_stay","arming_night","arming_away"
