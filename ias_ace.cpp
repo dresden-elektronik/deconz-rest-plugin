@@ -57,7 +57,7 @@ const std::array<KeyMap, 7> RConfigArmModeValues = { { {QLatin1String("disarmed"
 
 
 const std::array<KeyMap, 11> RConfigPanelValues = { { {QLatin1String("disarmed")}, {QLatin1String("armed_stay")}, {QLatin1String("armed_night")}, {QLatin1String("armed_away")},
-                                                      {QLatin1String("exit_delay")}, {QLatin1String("entry_delay")}, {QLatin1String("not_ready_to_arm")}}, {QLatin1String("in_alarm")},
+                                                      {QLatin1String("exit_delay")}, {QLatin1String("entry_delay")}, {QLatin1String("not_ready_to_arm")}, {QLatin1String("in_alarm")},
                                                       {QLatin1String("arming_stay")}, {QLatin1String("arming_night")}, {QLatin1String("arming_away")} } };
 
 const QStringList PanelStatusList({
