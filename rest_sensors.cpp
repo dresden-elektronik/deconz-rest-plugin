@@ -1583,7 +1583,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             // Update too RConfigPanel
                             ResourceItem *item2 = sensor->item(RConfigPanel);
-                            item2->setValue(panelmode);
+                            item2->setValue(match.key);
                             enqueueEvent(Event(RSensors, RConfigPanel, sensor->id(), item2));
                             // And clear RStateAction
                             item2 = sensor->item(RStateAction);
