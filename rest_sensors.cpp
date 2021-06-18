@@ -1553,6 +1553,46 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
                 }
+                else if (rid.suffix == RConfigArmMode) // String
+                {
+                    const auto match = matchKeyValue(data.string, RConfigArmModeValues);
+
+                    if (isValid(match))
+                    {
+                        quint8 sn = 0x00;
+                        item = sensor->item(RConfigHostFlags);
+                        if (item)
+                        {
+                            sn = static_cast<quint8>(item->toNumber());
+                        }
+                      
+                        if (addTaskSendArmResponse(task, match.value, sn))
+                        {
+                            updated = true;
+                        }
+                    }
+                }
+                else if (rid.suffix == RConfigPanel) // String
+                {
+                    const auto match = matchKeyValue(data.string, RConfigPanelValues);
+
+                    if (isValid(match))
+                    {
+                        if (addTaskPanelStatusChanged(task, match.value, true))
+                        {
+                            // Update too RConfigPanel
+                            ResourceItem *item2 = sensor->item(RConfigPanel);
+                            item2->setValue(panelmode);
+                            enqueueEvent(Event(RSensors, RConfigPanel, sensor->id(), item2));
+                            // And clear RStateAction
+                            item2 = sensor->item(RStateAction);
+                            item2->setValue(QString(""));
+                            enqueueEvent(Event(RSensors, RStateAction, sensor->id(), item2));
+
+                            updated = true;
+                        }
+                    }
+                }
                 else if (rid.suffix == RConfigWindowCoveringType) // Unsigned integer
                 {
                     if (sensor->modelId().startsWith(QLatin1String("J1")))
@@ -3055,6 +3095,10 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                         enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
                         updateSensorEtag(sensor);
                     }
+                }
+                else if (sensor->type().endsWith(QLatin1String("AncillaryControl")))
+                {
+                    DBG_Printf(DBG_IAS, "[IAS ACE] - Reseting counter\n");
                 }
 
                 sensor->durationDue = QDateTime();

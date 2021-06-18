@@ -145,6 +145,8 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
     {
         return;
     }
+    
+    DBG_Printf(DBG_IAS, "[IAS ZONE] - Address 0x%016llX, Payload %s, Command 0x%02X\n", ind.srcAddress().ext(), qPrintable(zclFrame.payload().toHex()), zclFrame.commandId());
 
     // during setup the IAS Zone type will be read
     // start to proceed discovery here
@@ -157,6 +159,8 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
     }
 
     Sensor *sensor = nullptr;
+    ResourceItem *itemIasState = nullptr;
+    ResourceItem *itemPending = nullptr;
 
     for (auto &s : sensors)
     {
@@ -167,9 +171,21 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
         {
             continue;
         }
+        
+        //check if the device have itemIasState and itemPending, because a device can have many sensor and not this field on all
+        itemIasState = s.item(RConfigEnrolled);
+        itemPending = s.item(RConfigPending);
+
+        if (!itemIasState || !itemPending)
+        {
+            continue;
+        }
 
         sensor = &s;
     }
+
+    DBG_Assert(itemIasState);
+    DBG_Assert(itemPending);
 
     if (!sensor)
     {
@@ -179,17 +195,6 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
 
     sensor->rx(); // mark rx here so that Read Attributes will work early on
     sensor->incrementRxCounter();
-
-    ResourceItem *itemIasState = sensor->item(RConfigEnrolled);
-    ResourceItem *itemPending = sensor->item(RConfigPending);
-
-    DBG_Assert(itemIasState);
-    DBG_Assert(itemPending);
-
-    if (!itemIasState || !itemPending)
-    {
-        return; // all IAS devices should have this
-    }
 
     IAS_EnsureValidState(itemIasState);
 
@@ -218,9 +223,6 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
     if (isReadAttr || isReporting)
     {
         const NodeValue::UpdateType updateType = isReadAttr ? NodeValue::UpdateByZclRead : NodeValue::UpdateByZclReport;
-
-        bool configUpdated = false;
-        bool stateUpdated = false;
 
         if (isReadAttr)
         {
@@ -286,7 +288,7 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
                     const quint16 zoneStatus = attr.numericValue().u16;   // might be reported or received via CMD_STATUS_CHANGE_NOTIFICATION
 
                     processIasZoneStatus(sensor, zoneStatus, updateType);
-                    stateUpdated = true;
+
                 }
                     break;
 
@@ -335,20 +337,6 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
             }
         }
 
-        if (stateUpdated)
-        {
-            sensor->updateStateTimestamp();
-            enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
-        }
-
-        if (configUpdated || stateUpdated)
-        {
-            updateEtag(sensor->etag);
-            updateEtag(gwConfigEtag);
-            sensor->setNeedSaveDatabase(true);
-            queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
-        }
-
         checkIasEnrollmentStatus(sensor);
     }
 
@@ -367,13 +355,6 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
         DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Status Change, status: 0x%04X, zoneId: %u, delay: %u\n", sensor->address().ext(), zoneStatus, zoneId, delay);
 
         processIasZoneStatus(sensor, zoneStatus, NodeValue::UpdateByZclReport);
-
-        sensor->updateStateTimestamp();
-        enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
-        updateEtag(sensor->etag);
-        updateEtag(gwConfigEtag);
-        sensor->setNeedSaveDatabase(true);
-        queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
         
         checkIasEnrollmentStatus(sensor);
     }
@@ -425,6 +406,32 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
  */
 void DeRestPluginPrivate::processIasZoneStatus(Sensor *sensor, quint16 zoneStatus, NodeValue::UpdateType updateType)
 {
+    ResourceItem *item2;
+
+    // Valid for all devices type
+    item2 = sensor->item(RStateLowBattery);
+    if (item2)
+    {
+        bool battery = (zoneStatus & STATUS_BATTERY) ? true : false;
+        item2->setValue(battery);
+        enqueueEvent(Event(RSensors, RStateLowBattery, sensor->id(), item2));
+    }
+
+    item2 = sensor->item(RStateTampered);
+    if (item2)
+    {
+        bool tamper = (zoneStatus & STATUS_TAMPER) ? true : false;
+        item2->setValue(tamper);
+        enqueueEvent(Event(RSensors, RStateTampered, sensor->id(), item2));
+    }
+    
+    item2 = sensor->item(RConfigReachable);
+    if (item2 && !item2->toBool())
+    {
+        item2->setValue(true);
+        enqueueEvent(Event(RSensors, RConfigReachable, sensor->id(), item2));
+    }
+    
     const char *attr = nullptr;
     if (sensor->type() == QLatin1String("ZHAAlarm"))
     {
@@ -467,22 +474,6 @@ void DeRestPluginPrivate::processIasZoneStatus(Sensor *sensor, quint16 zoneStatu
         item->setValue(alarm);
         enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor->id(), item));
 
-        ResourceItem *item2 = sensor->item(RStateLowBattery);
-        if (item2)
-        {
-            bool battery = (zoneStatus & STATUS_BATTERY) ? true : false;
-            item2->setValue(battery);
-            enqueueEvent(Event(RSensors, RStateLowBattery, sensor->id(), item2));
-        }
-
-        item2 = sensor->item(RStateTampered);
-        if (item2)
-        {
-            bool tamper = (zoneStatus & STATUS_TAMPER) ? true : false;
-            item2->setValue(tamper);
-            enqueueEvent(Event(RSensors, RStateTampered, sensor->id(), item2));
-        }
-
         item2 = sensor->item(RStateTest);
         if (item2)
         {
@@ -495,15 +486,9 @@ void DeRestPluginPrivate::processIasZoneStatus(Sensor *sensor, quint16 zoneStatu
         num.u16 = zoneStatus;
         sensor->setZclValue(updateType, sensor->fingerPrint().endpoint, IAS_ZONE_CLUSTER_ID, IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID, num);
 
-        item2 = sensor->item(RConfigReachable);
-        if (item2 && !item2->toBool())
-        {
-            item2->setValue(true);
-            enqueueEvent(Event(RSensors, RConfigReachable, sensor->id(), item2));
-        }
-
         if (alarm && item->descriptor().suffix == RStatePresence)
-        {   // prepare to automatically set presence to false
+        {
+            // prepare to automatically set presence to false
             NodeValue &val = sensor->getZclValue(IAS_ZONE_CLUSTER_ID, IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID);
 
             item2 = sensor->item(RConfigDuration);
@@ -517,6 +502,15 @@ void DeRestPluginPrivate::processIasZoneStatus(Sensor *sensor, quint16 zoneStatu
             }
         }
     }
+    
+    sensor->updateStateTimestamp();
+    enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
+
+    updateEtag(sensor->etag);
+    updateEtag(gwConfigEtag);
+    sensor->setNeedSaveDatabase(true);
+    queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
+    
 }
 
 /*! Sends IAS Zone enroll response to IAS Zone server.
@@ -643,7 +637,7 @@ void DeRestPluginPrivate::checkIasEnrollmentStatus(Sensor *sensor)
 
     if (iasState == IAS_STATE_ENROLLED)
     {
-        DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Sensor is enrolled.\n", sensor->address().ext());
+        DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Sensor (%s) is enrolled.\n", sensor->address().ext(), qPrintable(sensor->type()));
         return; // already enrolled nothing todo
     }
 
@@ -750,7 +744,7 @@ void DeRestPluginPrivate::checkIasEnrollmentStatus(Sensor *sensor)
             }
             else
             {
-                DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Sensor enrollment pending... since %d seconds.\n", sensor->address().ext(), static_cast<int>(dt));
+                DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Sensor (%s) enrollment pending... since %d seconds.\n", sensor->address().ext(), qPrintable(sensor->type()), static_cast<int>(dt));
             }
         }
     }

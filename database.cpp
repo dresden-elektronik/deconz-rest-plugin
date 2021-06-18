@@ -3171,6 +3171,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : IAS_ACE_CLUSTER_ID;
             }
+
             item = sensor.addItem(DataTypeInt32, RStateButtonEvent);
             item->setValue(0);
 
@@ -3192,6 +3193,15 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.addItem(DataTypeUInt16, RStateY);
                 sensor.addItem(DataTypeUInt16, RStateAngle);
             }
+        }
+        else if (sensor.type().endsWith(QLatin1String("AncillaryControl")))
+        {
+            clusterId = IAS_ACE_CLUSTER_ID;
+            sensor.addItem(DataTypeString, RConfigArmMode);
+            sensor.addItem(DataTypeString, RStateAction);
+            sensor.addItem(DataTypeUInt32, RConfigHostFlags); // hidden
+            sensor.addItem(DataTypeString, RConfigPanel)->setValue(QString("disarmed"));
+            sensor.addItem(DataTypeBool, RStateTampered)->setValue(false);
         }
         else if (sensor.type().endsWith(QLatin1String("LightLevel")))
         {
@@ -3922,7 +3932,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(R_ALERT_DEFAULT);
         }
 
-        if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
+        //Only use the ZHAAncillaryControl sensor if present for enrollement, but only enabled for one device ATM
+        if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID) &&
+           (sensor.modelId() != QLatin1String("URC4450BC0-X-R") ||
+            sensor.modelId() != QLatin1String("3405-L") ||
+           (sensor.type().endsWith(QLatin1String("AncillaryControl")) || !sensor.fingerPrint().hasOutCluster(IAS_ACE_CLUSTER_ID))))
         {
             if (sensor.modelId() == QLatin1String("button") ||
                 sensor.modelId().startsWith(QLatin1String("multi")) ||
@@ -3951,8 +3965,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     item->setValue(false);
                 }
             }
-            item = sensor.addItem(DataTypeUInt16, RConfigPending);
-            item->setValue(0);
+            sensor.addItem(DataTypeUInt16, RConfigPending)->setValue(0);
             sensor.addItem(DataTypeUInt32, RConfigEnrolled)->setValue(IAS_STATE_INIT);
         }
 
