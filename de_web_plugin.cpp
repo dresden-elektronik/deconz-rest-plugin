@@ -6050,6 +6050,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
         if (!isDeviceSupported(node, modelId))
         {
+            DBG_Printf(DBG_INFO, "Unsupported device\n");
             continue;
         }
 
@@ -15876,6 +15877,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         {
             if (!modelId.isEmpty() && !isDeviceSupported(node, modelId))
             {
+                DBG_Printf(DBG_INFO, "Unsupported device\n");
                 return;
             }
 
