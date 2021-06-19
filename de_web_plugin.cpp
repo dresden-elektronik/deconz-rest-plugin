@@ -387,7 +387,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_LEGRAND, "DIN power consumption module", legrandMacPrefix }, // Legrand DIN power consumption module
     { VENDOR_LEGRAND, "Teleruptor", legrandMacPrefix }, // Legrand Teleruptor
     { VENDOR_LEGRAND, "Contactor", legrandMacPrefix }, // Legrand Contactor
-    { VENDOR_LEGRAND, "Pocket Remote", legrandMacPrefix }, // Legrand wireless 4 x scene remote
+    { VENDOR_LEGRAND, "Pocket remote", legrandMacPrefix }, // Legrand wireless 4 x scene remote
     { VENDOR_NETVOX, "Z809AE3R", netvoxMacPrefix }, // Netvox smartplug
     { VENDOR_LDS, "ZB-ONOFFPlug-D0005", silabs2MacPrefix }, // Samsung SmartPlug 2019 (7A-PL-Z-J3)
     { VENDOR_LDS, "ZBT-DIMSwitch", silabs2MacPrefix }, // Linkind 1 key Remote Control / ZS23000178
