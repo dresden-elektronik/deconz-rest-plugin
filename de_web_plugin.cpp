@@ -4017,19 +4017,19 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     bool checkReporting = false;
     bool checkClientCluster = false;
 
-    const ButtonMap *buttonMap = nullptr;
+    const ButtonMap *buttonMapEntry = nullptr;
 
     if (!isValid(sensor->buttonMapRef())) // TODO sensor.hasButtonMap()
     {
-        buttonMap = BM_ButtonMapForProduct(productHash(sensor), buttonMaps, buttonProductMap);
-        if (buttonMap)
+        buttonMapEntry = BM_ButtonMapForProduct(productHash(sensor), buttonMaps, buttonProductMap);
+        if (buttonMapEntry)
         {
-            sensor->setButtonMapRef(buttonMap->buttonMapRef);
+            sensor->setButtonMapRef(buttonMapEntry->buttonMapRef);
         }
     }
     else
     {
-        buttonMap = BM_ButtonMapForRef(sensor->buttonMapRef(), buttonMaps);
+        buttonMapEntry = BM_ButtonMapForRef(sensor->buttonMapRef(), buttonMaps);
     }
 
     QString cluster = "0x" + QString("%1").arg(ind.clusterId(), 4, 16, QLatin1Char('0')).toUpper();
@@ -4051,7 +4051,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         if (!temp.empty() && !temp.key(zclFrame.commandId()).isEmpty()) { cmd = temp.key(zclFrame.commandId()) + " (" + cmd + ")"; }
     }
 
-    if (!buttonMap || buttonMap->buttons.empty())
+    if (!buttonMapEntry || buttonMapEntry->buttons.empty())
     {
         DBG_Printf(DBG_INFO, "[INFO] - No button map for: %s%s, endpoint: 0x%02X, cluster: %s, command: %s, payload: %s, zclSeq: %u\n",
             qPrintable(sensor->modelId()), qPrintable(addressMode), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), qPrintable(zclPayload), zclFrame.sequenceNumber());
@@ -4452,7 +4452,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     }
 
     bool ok = false;
-    for (const auto &buttonMap : buttonMap->buttons)
+    for (const auto &buttonMap : buttonMapEntry->buttons)
     {
         if (buttonMap.mode != Sensor::ModeNone && !ok)
         {

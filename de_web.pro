@@ -87,7 +87,7 @@ GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.12.00\\\"
+DEFINES += GW_SW_VERSION=\\\"2.12.01\\\"
 DEFINES += GW_SW_DATE=$$GIT_COMMIT_DATE
 DEFINES += GW_API_VERSION=\\\"1.16.0\\\"
 DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
@@ -232,11 +232,11 @@ win32 {
 
     LIBS += \
          -L../.. \
-         -L$${PWD}/../../../lib/sqlite-dll-win32-x86-3240000 \
+         -L$${PWD}/../../../lib/sqlite-dll-win32-x86-3270200 \
          -ldeCONZ1 \
          -lsqlite3
 
-    INCLUDEPATH += $${PWD}/../../../lib/sqlite-amalgamation-3240000
+    INCLUDEPATH += $${PWD}/../../../lib/sqlite-amalgamation-3270200
     CONFIG += dll
 }
 

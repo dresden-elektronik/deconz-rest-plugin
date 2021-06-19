@@ -20,26 +20,31 @@ namespace deCONZ {
     class Address;
 }
 
-struct KeyMap {
+struct KeyMap
+{
     QLatin1String key;
-    };
+};
 
-struct KeyValMap {
+struct KeyValMap
+{
     QLatin1String key;
     quint8 value;
-    };
+};
 
-struct KeyValMapInt {
-    quint8 key;
-    quint16 value;
-    };
+struct KeyValMapInt
+{
+    quint8 key = 0;
+    quint16 value = 0;
+};
 
-struct KeyValMapTuyaSingle {
+struct KeyValMapTuyaSingle
+{
     QLatin1String key;
     char value[1];
-    };
+};
 
-struct RestData {
+struct RestData
+{
     bool boolean;
     int integer;
     uint uinteger;
@@ -58,11 +63,16 @@ bool isSameAddress(const deCONZ::Address &a, const deCONZ::Address &b);
 inline bool isValid(const KeyMap &entry) { return entry.key.size() != 0; }
 inline bool isValid(const KeyValMap &entry) { return entry.key.size() != 0; }
 inline bool isValid(const KeyValMapTuyaSingle &entry) { return entry.key.size() != 0; }
+// following is needed for GCC versions < 7
+constexpr KeyMap invalidValue(KeyMap) { return KeyMap{QLatin1String("")}; }
+constexpr KeyValMap invalidValue(KeyValMap) { return KeyValMap{QLatin1String(""), 0 }; }
+constexpr KeyValMapInt invalidValue(KeyValMapInt) { return KeyValMapInt{ 0, 0 }; }
+constexpr KeyValMapTuyaSingle invalidValue(KeyValMapTuyaSingle) { return KeyValMapTuyaSingle{QLatin1String(""), {0} }; }
 
-template <typename K, typename Cont>
+template <typename K, typename Cont, typename V = typename Cont::value_type>
 decltype(auto) matchKeyValue(const K &key, const Cont &cont)
 {
-    typename Cont::value_type ret{};
+    V ret = invalidValue(ret);
     const auto res = std::find_if(cont.cbegin(), cont.cend(), [&key](const auto &i){ return i.key == key; });
     if (res != cont.cend())
     {
