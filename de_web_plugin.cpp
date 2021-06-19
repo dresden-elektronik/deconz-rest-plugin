@@ -423,7 +423,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "0yu2xgi", silabs5MacPrefix }, // Tuya siren
     { VENDOR_EMBER, "TS0601", silabs9MacPrefix }, // Tuya siren
     { VENDOR_EMBER, "TS0222", silabs9MacPrefix }, // TYZB01 light sensor
-    { VENDOR_EMBER, "TS0210", YooksmartMacPrefix }, // Tuya Zigbee Smart Vibration Sensor
     { VENDOR_NONE, "eaxp72v", ikea2MacPrefix }, // Tuya TRV Wesmartify Thermostat Essentials Premium
     { VENDOR_NONE, "88teujp", silabs8MacPrefix }, // SEA802-Zigbee
     { VENDOR_NONE, "uhszj9s", silabs8MacPrefix }, // HiHome WZB-TRVL
@@ -5511,8 +5510,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpAlarmSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelId == QLatin1String("GMB-HAS-VB-B01") || // GamaBit Ltd. Vibration Sensor
-                             manufacturer.endsWith(QLatin1String("zv6oleo"))) // Tuya Zigbee Smart Vibration Sensor
+                    else if (modelId == QLatin1String("GMB-HAS-VB-B01"))                // GamaBit Ltd. Vibration Sensor
                     {
                         fpVibrationSensor.inClusters.push_back(ci->id());
                     }
