@@ -15788,6 +15788,10 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                         {
                             dateCode = attr.toString();
                             dateCodeAvailable = attr.isAvailable(); // might become false after first read
+                            if (dateCode.isEmpty())
+                            {
+                                dateCodeAvailable = false;
+                            }
                         }
                         else if (attr.id() == 0x4000 && swBuildId.isEmpty())
                         {
