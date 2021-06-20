@@ -15793,6 +15793,10 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                         {
                             swBuildId = attr.toString();
                             swBuildIdAvailable = attr.isAvailable(); // might become false after first read
+                            if (swBuildId.isEmpty())
+                            {
+                                swBuildIdAvailable = false;
+                            }
                         }
                         else
                         {
