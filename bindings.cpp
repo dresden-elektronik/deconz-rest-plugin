@@ -1706,7 +1706,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     {
         // Thoses device use only Attribute 0x0000 for tension and 0x001 for frequency
         if (modelId == QLatin1String("SLP2") ||
-            modelId == QLatin1String("SLP2b"))
+            modelId == QLatin1String("SLP2b") ||
+            modelId == QLatin1String("lumi.remote.b28ac1")) // Preserve defaults: 3. 7200, 1
         {
             return false;
         }
@@ -2955,6 +2956,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("lumi.sensor_magnet.agl02") ||
         sensor->modelId() == QLatin1String("lumi.flood.agl02") ||
         sensor->modelId() == QLatin1String("lumi.switch.n0agl1") ||
+        sensor->modelId() == QLatin1String("lumi.remote.b28ac1") ||
         // iris
         sensor->modelId().startsWith(QLatin1String("1116-S")) ||
         sensor->modelId().startsWith(QLatin1String("1117-S")) ||

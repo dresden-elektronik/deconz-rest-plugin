@@ -546,6 +546,7 @@ extern const quint64 konkeMacPrefix;
 extern const quint64 ecozyMacPrefix;
 extern const quint64 zhejiangMacPrefix;
 extern const quint64 schlageMacPrefix;
+extern const quint64 lumiMacPrefix;
 
 inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
 {
@@ -553,7 +554,8 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
     switch (vendor) {
         case VENDOR_XIAOMI:
             return prefix == jennicMacPrefix ||
-                   prefix == xiaomiMacPrefix;
+                   prefix == xiaomiMacPrefix ||
+                   prefix == lumiMacPrefix;
         case VENDOR_SINOPE:
             return prefix == sinopeMacPrefix;
         case VENDOR_HEIMAN:

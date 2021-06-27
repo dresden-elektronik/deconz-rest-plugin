@@ -3979,9 +3979,10 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 		<cluster id="0xfcc0" name="Lumi specific" mfcode="0x115f">
 			<description>Lumi specific attributes.
 
-Note - Aqara Opple switches have 2 modes of operation (0x0009): Switch all devices (0), event based switching (1).
+Switch mode: 1 - event based switching, 2 - zigbee group switching, 3 - Xiaomi specific switching
 Child lock off: 0 - false, 1 - true
 Report Consumer Connected: 1 - false, 0 - true
+Multiclick mode: 1 - false, 2 - true
 Attribute 0x0205 has range between 1 and 50 only</description>
 			<server>
 				<attribute id="0x0002" name="Power Outages" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
@@ -3994,7 +3995,7 @@ Attribute 0x0205 has range between 1 and 50 only</description>
 				<attribute id="0x0006" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0007" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0008" name="Unknown (write only)" type="ostring" mfcode="0x115f" access="w" required="m"> </attribute>
-				<attribute id="0x0009" name="Opple switch mode" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0009" name="Switch mode" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x00f3" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x00f5" name="Unknown" type="u32" mfcode="0x115f" access="r" required="m"> </attribute>
 				<attribute id="0x00f6" name="Reporting Interval" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
@@ -4003,6 +4004,7 @@ Attribute 0x0205 has range between 1 and 50 only</description>
 				<attribute id="0x00fe" name="Serial Number" type="cstring" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x00ff" name="Unknown (write only)" type="ostring" mfcode="0x115f" access="w" required="m"> </attribute>
 				<attribute id="0x0100" name="Unknown" type="u8" mfcode="0x115f" access="r" required="m"> </attribute>
+                <attribute id="0x0125" name="Multiclick mode" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0200" name="Child lock off" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0201" name="Restore Power on Outage" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0202" name="Auto-off after 20m below Threshold" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
