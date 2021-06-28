@@ -9858,7 +9858,7 @@ Sensor *DeRestPluginPrivate::getSensorNodeForAddress(const deCONZ::Address &addr
 {
     for (Sensor &sensor: sensors)
     {
-        if (sensor.deletedState() != Sensor::StateNormal || !sensor.node()) { continue; }
+        if (sensor.deletedState() != Sensor::StateNormal)                   { continue; }
         if (!isSameAddress(sensor.address(), addr))                         { continue; }
 
         return &sensor;
@@ -9874,8 +9874,8 @@ Sensor *DeRestPluginPrivate::getSensorNodeForAddressAndEndpoint(const deCONZ::Ad
     {
         if (sensor.deletedState() != Sensor::StateNormal || !sensor.node()) { continue; }
         if (sensor.fingerPrint().endpoint != ep)                            { continue; }
-        if (!isSameAddress(sensor.address(), addr))                         { continue; }
         if (sensor.type() != type)                                          { continue; }
+        if (!isSameAddress(sensor.address(), addr))                         { continue; }
 
         return &sensor;
     }
