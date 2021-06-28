@@ -1705,8 +1705,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     {
         // Thoses device use only Attribute 0x0000 for tension and 0x001 for frequency
         if (modelId == QLatin1String("SLP2") ||
-            modelId == QLatin1String("SLP2b") ||
-            modelId == QLatin1String("lumi.remote.b28ac1")) // Preserve defaults: 3. 7200, 1
+            modelId == QLatin1String("SLP2b"))
         {
             return false;
         }
@@ -1839,6 +1838,13 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.minInterval = 30;
             rq.maxInterval = 21600;
             rq.reportableChange8bit = 10;
+        }
+        else if (modelId == QLatin1String("lumi.remote.b28ac1")) // Aqara Wireless Remote Switch H1 (Double Rocker)
+        {
+            rq.attributeId = 0x0020;   // battery voltage
+            rq.minInterval = 3;
+            rq.maxInterval = 3600;
+            rq.reportableChange8bit = 1;
         }
         else
         {
