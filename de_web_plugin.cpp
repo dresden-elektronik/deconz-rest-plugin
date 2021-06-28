@@ -8089,9 +8089,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("ED-1001")) || // EcoDim wireless switches
                                         i->modelId().startsWith(QLatin1String("ZGRC-KEY")) || //  Sunricher wireless CCT remote
                                         i->modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
-                                        i->modelId() == QLatin1String("CCT592011_AS") || // LK Wiser Water Leak Sensor
                                         i->modelId().startsWith(QLatin1String("iTRV")) || // Drayton Wiser Radiator Thermostat
-                                        i->modelId() == QLatin1String("CCT593011_AS") || // LK Wiser Temperature and Humidity Sensor
                                         i->modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
                                         i->modelId().startsWith(QLatin1String("SV02-")) || // Keen Home vent
                                         i->modelId().startsWith(QLatin1String("45127")) || // Namron 1/2/4-ch remote controller
@@ -8139,9 +8137,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("ED-1001")) || // EcoDim wireless switches
                                         i->modelId().startsWith(QLatin1String("ZGRC-KEY")) || // Sunricher wireless CCT remote
                                         i->modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
-                                        i->modelId() == QLatin1String("CCT592011_AS") || // LK Wiser Water Leak Sensor
                                         i->modelId().startsWith(QLatin1String("iTRV")) || // Drayton Wiser Radiator Thermostat
-                                        i->modelId() == QLatin1String("CCT593011_AS") || // LK Wiser Temperature and Humidity Sensor
                                         i->modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
                                         i->modelId().startsWith(QLatin1String("SV02-")) || // Keen Home vent
                                         i->modelId().startsWith(QLatin1String("45127")) || // Namron 1/2/4-ch remote controller
