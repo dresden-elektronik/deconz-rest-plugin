@@ -1376,7 +1376,7 @@ bool DeRestPluginPrivate::sendTuyaRequest(deCONZ::Address srcAddress, quint8 src
 //
 bool DeRestPluginPrivate::sendTuyaRequest(TaskItem &taskRef, TaskType taskType, qint8 Dp_type, qint8 Dp_identifier, const QByteArray &data)
 {
-    DBG_Printf(DBG_INFO, "Send Tuya request 0x%016llX : Dp_type: 0x%02X, Dp_identifier 0x%02X, data: %s\n", taskRef.req.dstAddress(), Dp_type, Dp_identifier, qPrintable(data.toHex()));
+    DBG_Printf(DBG_INFO, "Send Tuya request 0x%016llX : Dp_type: 0x%02X, Dp_identifier 0x%02X, data: %s\n", taskRef.req.dstAddress().ext(), Dp_type, Dp_identifier, qPrintable(data.toHex()));
     
     const quint8 seq = zclSeq++;
 
