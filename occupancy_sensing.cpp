@@ -34,7 +34,7 @@ void DeRestPluginPrivate::handleOccupancySensingClusterIndication(const deCONZ::
     {
         isReadAttr = true;
     }
-    if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId)
+    else if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId)
     {
         isReporting = true;
     }
