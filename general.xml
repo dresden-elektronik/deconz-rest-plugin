@@ -1953,7 +1953,7 @@ by the Poll Control Cluster Client.</description>
 						<value name="Setpoint Hold Off" value="0"></value>
 						<value name="Setpoint Hold On" value="1"></value>
 					</attribute>
-					<attribute id="0x0024" name="Temperature Setpoint Hold Duration" type="u8" range="0x05a0,0xffff" default="0xffff" access="rw" required="o"></attribute>
+					<attribute id="0x0024" name="Temperature Setpoint Hold Duration" type="u16" range="0x05a0,0xffff" default="0xffff" access="rw" required="o"></attribute>
 					<attribute id="0x0025" name="Thermostat Programming Operation Mode" type="bmp8" default="0" access="rw" required="o">
 						<value name="Simple/setpoint mode" value="0">
 							<description>0 – This mode means the thermostat setpoint is altered only by manual
@@ -3954,6 +3954,25 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 			<description>LEDVANCE manufacturer-specific cluster to set power-on defaults.</description>
 			<server>
 				<command id="0x01" dir="recv" name="Store Power-On Defaults" required="o">
+				</command>
+			</server>
+			<client>
+			</client>
+		</cluster>
+
+		<!-- E-Wand -->
+		<cluster id="0xfc10" name="E-Wand specific" mfcode="0x1263">
+			<description>E-Wand manufacturer specific window covering configuration.</description>
+			<server>
+				<command id="0x23" dir="recv" name="Set Direction" required="o">
+					<description></description>
+					<payload>
+						<attribute id="0x0000" type="enum8" name="Mode" required="m" default="0x00">
+							<value name="Standard" value="0x00"></value>
+							<value name="Reversed" value="0x01"></value>
+							<value name="Toggle" value="0x02"></value>
+						</attribute>
+					</payload>
 				</command>
 			</server>
 			<client>
