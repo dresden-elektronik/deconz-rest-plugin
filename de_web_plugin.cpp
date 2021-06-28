@@ -488,6 +488,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "66666", tiMacPrefix }, // Sonoff SNZB-03
     { VENDOR_NONE, "TH01", tiMacPrefix }, // Sonoff SNZB-02
     { VENDOR_NONE, "DS01", tiMacPrefix }, // Sonoff SNZB-04
+    { VENDOR_SCHNEIDER, "CCT591011_AS", emberMacPrefix }, // LK Wiser Door / Window Sensor
     { VENDOR_SCHNEIDER, "CCT592011_AS", emberMacPrefix }, // LK Wiser Water Leak Sensor
     { VENDOR_SCHNEIDER, "iTRV", silabs3MacPrefix }, // Drayton Wiser Radiator Thermostat
     { VENDOR_SCHNEIDER, "CCT593011_AS", emberMacPrefix }, // LK Wiser Temperature and Humidity Sensor
@@ -5400,6 +5401,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("ZHMS101")) ||                    // Wattle (Develco) door/window sensor
                              modelId.startsWith(QLatin1String("4655BC0")) ||                    // Ecolink contact sensor
                              modelId.startsWith(QLatin1String("3300")) ||                       // Centralite contact sensor
+                             modelId == QLatin1String("CCT591011_AS") ||                        // LK Wiser Door / Window Sensor
                              modelId == QLatin1String("lumi.sensor_magnet.agl02") ||            // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
                              modelId == QLatin1String("E1D-G73") ||                             // Sengled contact sensor
                              modelId == QLatin1String("DS01") ||                                // Sonoff SNZB-04
