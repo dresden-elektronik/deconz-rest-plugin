@@ -967,7 +967,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else
                     {
-                        offsetUpdated = true;   // Consider offset only for temperature and humidity cluster
+                        offsetUpdated = true;   // Consider offset only for temperature, humidity, and pressure cluster
                         updated = true;
                     }
                 }
@@ -1983,7 +1983,7 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
             if (item)
             {
                 QVariant val = map[pi.key()];
-                if (rid.suffix == RStateTemperature || rid.suffix == RStateHumidity)
+                if (rid.suffix == RStateTemperature || rid.suffix == RStateHumidity || rid.suffix == RStatePressure)
                 {
                     ResourceItem *item2 = sensor->item(RConfigOffset);
                     if (item2 && item2->toNumber() != 0) {

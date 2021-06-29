@@ -489,9 +489,11 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "66666", tiMacPrefix }, // Sonoff SNZB-03
     { VENDOR_NONE, "TH01", tiMacPrefix }, // Sonoff SNZB-02
     { VENDOR_NONE, "DS01", tiMacPrefix }, // Sonoff SNZB-04
+    { VENDOR_SCHNEIDER, "CCT591011_AS", emberMacPrefix }, // LK Wiser Door / Window Sensor
     { VENDOR_SCHNEIDER, "CCT592011_AS", emberMacPrefix }, // LK Wiser Water Leak Sensor
     { VENDOR_SCHNEIDER, "iTRV", silabs3MacPrefix }, // Drayton Wiser Radiator Thermostat
     { VENDOR_SCHNEIDER, "CCT593011_AS", emberMacPrefix }, // LK Wiser Temperature and Humidity Sensor
+    { VENDOR_SCHNEIDER, "CCT595011_AS", emberMacPrefix }, // LK Wiser Motion Sensor
     { VENDOR_DANFOSS, "eTRV0100", silabs2MacPrefix }, // Danfoss Ally thermostat
     { VENDOR_DANFOSS, "0x8020", silabs6MacPrefix }, // Danfoss RT24V Display thermostat
     { VENDOR_DANFOSS, "0x8021", silabs6MacPrefix }, // Danfoss RT24V Display thermostat with floor sensor
@@ -3692,46 +3694,14 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
  */
 LightNode *DeRestPluginPrivate::getLightNodeForAddress(const deCONZ::Address &addr, quint8 endpoint)
 {
-    std::vector<LightNode>::iterator i = nodes.begin();
-    std::vector<LightNode>::iterator end = nodes.end();
-
-    if (addr.hasExt())
+    for (LightNode &light: nodes)
     {
-        for (; i != end; ++i)
-        {
-            if (i->state() != LightNode::StateNormal)
-            {
-                continue;
-            }
+        if (light.state() != LightNode::StateNormal || !light.node())   { continue; }
+        if (light.haEndpoint().endpoint() != endpoint && endpoint != 0) { continue; }
+        if (!isSameAddress(light.address(), addr))                      { continue; }
 
-            if (i->address().ext() == addr.ext())
-            {
-                if ((endpoint == 0) || (endpoint == i->haEndpoint().endpoint()))
-                {
-                    return &(*i);
-                }
-            }
-        }
+        return &light;
     }
-    else if (addr.hasNwk())
-    {
-        for (; i != end; ++i)
-        {
-            if (i->state() != LightNode::StateNormal)
-            {
-                continue;
-            }
-
-            if (i->address().nwk() == addr.nwk())
-            {
-                if ((endpoint == 0) || (endpoint == i->haEndpoint().endpoint()))
-                {
-                    return &(*i);
-                }
-            }
-        }
-    }
-
     return nullptr;
 }
 
@@ -4017,19 +3987,19 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     bool checkReporting = false;
     bool checkClientCluster = false;
 
-    const ButtonMap *buttonMap = nullptr;
+    const ButtonMap *buttonMapEntry = nullptr;
 
     if (!isValid(sensor->buttonMapRef())) // TODO sensor.hasButtonMap()
     {
-        buttonMap = BM_ButtonMapForProduct(productHash(sensor), buttonMaps, buttonProductMap);
-        if (buttonMap)
+        buttonMapEntry = BM_ButtonMapForProduct(productHash(sensor), buttonMaps, buttonProductMap);
+        if (buttonMapEntry)
         {
-            sensor->setButtonMapRef(buttonMap->buttonMapRef);
+            sensor->setButtonMapRef(buttonMapEntry->buttonMapRef);
         }
     }
     else
     {
-        buttonMap = BM_ButtonMapForRef(sensor->buttonMapRef(), buttonMaps);
+        buttonMapEntry = BM_ButtonMapForRef(sensor->buttonMapRef(), buttonMaps);
     }
 
     QString cluster = "0x" + QString("%1").arg(ind.clusterId(), 4, 16, QLatin1Char('0')).toUpper();
@@ -4051,7 +4021,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         if (!temp.empty() && !temp.key(zclFrame.commandId()).isEmpty()) { cmd = temp.key(zclFrame.commandId()) + " (" + cmd + ")"; }
     }
 
-    if (!buttonMap || buttonMap->buttons.empty())
+    if (!buttonMapEntry || buttonMapEntry->buttons.empty())
     {
         DBG_Printf(DBG_INFO, "[INFO] - No button map for: %s%s, endpoint: 0x%02X, cluster: %s, command: %s, payload: %s, zclSeq: %u\n",
             qPrintable(sensor->modelId()), qPrintable(addressMode), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), qPrintable(zclPayload), zclFrame.sequenceNumber());
@@ -4453,7 +4423,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     }
 
     bool ok = false;
-    for (const auto &buttonMap : buttonMap->buttons)
+    for (const auto &buttonMap : buttonMapEntry->buttons)
     {
         if (buttonMap.mode != Sensor::ModeNone && !ok)
         {
@@ -5448,6 +5418,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("ZHMS101")) ||                    // Wattle (Develco) door/window sensor
                              modelId.startsWith(QLatin1String("4655BC0")) ||                    // Ecolink contact sensor
                              modelId.startsWith(QLatin1String("3300")) ||                       // Centralite contact sensor
+                             modelId == QLatin1String("CCT591011_AS") ||                        // LK Wiser Door / Window Sensor
                              modelId == QLatin1String("lumi.sensor_magnet.agl02") ||            // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
                              modelId == QLatin1String("E1D-G73") ||                             // Sengled contact sensor
                              modelId == QLatin1String("DS01") ||                                // Sonoff SNZB-04
@@ -5465,6 +5436,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId == QLatin1String("motion") ||                    // Samjin motion sensor
                              modelId == QLatin1String("ZB-MotionSensor-D0003") ||     // Linkind motion sensor
                              modelId == QLatin1String("3041") ||                      // NYCE motion sensor
+                             modelId == QLatin1String("CCT595011_AS") ||              // LK Wiser Motion Sensor
                              modelId.startsWith(QLatin1String("902010/22")) ||        // Bitron motion sensor
                              modelId.startsWith(QLatin1String("SN10ZW")) ||           // ORVIBO motion sensor
                              modelId.startsWith(QLatin1String("MOSZB-1")) ||          // Develco motion sensor
@@ -5526,7 +5498,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpAlarmSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelId == QLatin1String("GMB-HAS-VB-B01")) // GamaBit Ltd. Vibration Sensor
+                    else if (modelId == QLatin1String("GMB-HAS-VB-B01"))                // GamaBit Ltd. Vibration Sensor
                     {
                         fpVibrationSensor.inClusters.push_back(ci->id());
                     }
@@ -6698,6 +6670,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             clusterId = PRESSURE_MEASUREMENT_CLUSTER_ID;
         }
         sensorNode.addItem(DataTypeInt16, RStatePressure);
+        item = sensorNode.addItem(DataTypeInt16, RConfigOffset);
+        item->setValue(0);
     }
     else if (sensorNode.type().endsWith(QLatin1String("Presence")))
     {
@@ -8109,9 +8083,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("ED-1001")) || // EcoDim wireless switches
                                         i->modelId().startsWith(QLatin1String("ZGRC-KEY")) || //  Sunricher wireless CCT remote
                                         i->modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
-                                        i->modelId() == QLatin1String("CCT592011_AS") || // LK Wiser Water Leak Sensor
                                         i->modelId().startsWith(QLatin1String("iTRV")) || // Drayton Wiser Radiator Thermostat
-                                        i->modelId() == QLatin1String("CCT593011_AS") || // LK Wiser Temperature and Humidity Sensor
                                         i->modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
                                         i->modelId().startsWith(QLatin1String("SV02-")) || // Keen Home vent
                                         i->modelId().startsWith(QLatin1String("45127")) || // Namron 1/2/4-ch remote controller
@@ -8159,9 +8131,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("ED-1001")) || // EcoDim wireless switches
                                         i->modelId().startsWith(QLatin1String("ZGRC-KEY")) || // Sunricher wireless CCT remote
                                         i->modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
-                                        i->modelId() == QLatin1String("CCT592011_AS") || // LK Wiser Water Leak Sensor
                                         i->modelId().startsWith(QLatin1String("iTRV")) || // Drayton Wiser Radiator Thermostat
-                                        i->modelId() == QLatin1String("CCT593011_AS") || // LK Wiser Temperature and Humidity Sensor
                                         i->modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
                                         i->modelId().startsWith(QLatin1String("SV02-")) || // Keen Home vent
                                         i->modelId().startsWith(QLatin1String("45127")) || // Namron 1/2/4-ch remote controller
@@ -8556,6 +8526,12 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (item)
                                 {
+                                    ResourceItem *item2 = i->item(RConfigOffset);
+                                    if (item2 && item2->toNumber() != 0)
+                                    {
+                                        pressure += item2->toNumber();
+                                    }
+                                    
                                     item->setValue(pressure);
                                     i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
@@ -9927,47 +9903,14 @@ Sensor *DeRestPluginPrivate::getSensorNodeForAddress(quint64 extAddr)
  */
 Sensor *DeRestPluginPrivate::getSensorNodeForAddress(const deCONZ::Address &addr)
 {
-    std::vector<Sensor>::iterator i = sensors.begin();
-    std::vector<Sensor>::iterator end = sensors.end();
-
-    if (addr.hasExt())
+    for (Sensor &sensor: sensors)
     {
-        for (; i != end; ++i)
-        {
-            if (i->address().ext() == addr.ext() && i->deletedState() != Sensor::StateDeleted)
-            {
-                return &(*i);
-            }
-        }
+        if (sensor.deletedState() != Sensor::StateNormal)                   { continue; }
+        if (!isSameAddress(sensor.address(), addr))                         { continue; }
 
-        for (i = sensors.begin(); i != end; ++i)
-        {
-            if (i->address().ext() == addr.ext())
-            {
-                return &(*i);
-            }
-        }
+        return &sensor;
     }
-    else if (addr.hasNwk())
-    {
-        for (; i != end; ++i)
-        {
-            if (i->address().nwk() == addr.nwk() && i->deletedState() != Sensor::StateDeleted)
-            {
-                return &(*i);
-            }
-        }
-
-        for (i = sensors.begin(); i != end; ++i)
-        {
-            if (i->address().nwk() == addr.nwk())
-            {
-                return &(*i);
-            }
-        }
-    }
-
-    return 0;
+    return nullptr;
 }
 
 /*! Returns the first Sensor for its given \p Address and \p Endpoint and \p Type or 0 if not found.
@@ -9976,21 +9919,12 @@ Sensor *DeRestPluginPrivate::getSensorNodeForAddressAndEndpoint(const deCONZ::Ad
 {
     for (Sensor &sensor: sensors)
     {
-        if (sensor.deletedState() != Sensor::StateNormal || !sensor.node() ||
-            sensor.fingerPrint().endpoint != ep || sensor.type() != type)
-        {
-            continue;
-        }
-        if (sensor.address().hasNwk() && addr.hasNwk() &&
-            sensor.address().nwk() == addr.nwk())
-        {
-            return &sensor;
-        }
-        if (sensor.address().hasExt() && addr.hasExt() &&
-            sensor.address().ext() == addr.ext())
-        {
-            return &sensor;
-        }
+        if (sensor.deletedState() != Sensor::StateNormal || !sensor.node()) { continue; }
+        if (sensor.fingerPrint().endpoint != ep)                            { continue; }
+        if (sensor.type() != type)                                          { continue; }
+        if (!isSameAddress(sensor.address(), addr))                         { continue; }
+
+        return &sensor;
     }
     return nullptr;
 }
@@ -10000,32 +9934,15 @@ Sensor *DeRestPluginPrivate::getSensorNodeForAddressAndEndpoint(const deCONZ::Ad
  */
 Sensor *DeRestPluginPrivate::getSensorNodeForAddressAndEndpoint(const deCONZ::Address &addr, quint8 ep)
 {
-    std::vector<Sensor>::iterator i = sensors.begin();
-    std::vector<Sensor>::iterator end = sensors.end();
-
-    if (addr.hasExt())
+    for (Sensor &sensor: sensors)
     {
-        for (; i != end; ++i)
-        {
-            if (i->address().ext() == addr.ext() && ep == i->fingerPrint().endpoint && i->deletedState() != Sensor::StateDeleted)
-            {
-                return &(*i);
-            }
-        }
-    }
-    else if (addr.hasNwk())
-    {
-        for (i = sensors.begin(); i != end; ++i)
-        {
-            if (i->address().nwk() == addr.nwk() && ep == i->fingerPrint().endpoint && i->deletedState() != Sensor::StateDeleted)
-            {
-                return &(*i);
-            }
-        }
-    }
+        if (sensor.deletedState() != Sensor::StateNormal || !sensor.node()) { continue; }
+        if (sensor.fingerPrint().endpoint != ep)                            { continue; }
+        if (!isSameAddress(sensor.address(), addr))                         { continue; }
 
-    return 0;
-
+        return &sensor;
+    }
+    return nullptr;
 }
 
 /*! Returns the first Sensor for its given \p Address and \p Endpoint and \p Cluster or nullptr if not found.

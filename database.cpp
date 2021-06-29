@@ -3273,6 +3273,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             item = sensor.addItem(DataTypeInt16, RStatePressure);
             item->setValue(0);
+            item = sensor.addItem(DataTypeInt16, RConfigOffset);
+            item->setValue(0);
         }
         else if (sensor.type().endsWith(QLatin1String("Presence")))
         {
