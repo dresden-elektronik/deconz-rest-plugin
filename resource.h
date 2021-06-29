@@ -414,6 +414,18 @@ private:
 class Resource
 {
 public:
+    struct Handle
+    {
+        uint hash = 0;     // qHash(uniqueid)
+        quint16 index = 0; // index in container
+        // 'D' device
+        // 'G' group
+        // 'L' LightNode
+        // 'S' Sensor
+        char type = 0;
+        quint8 reserved = 0;
+    };
+
     Resource(const char *prefix);
     ~Resource() = default;
     Resource(const Resource &other);
@@ -440,9 +452,12 @@ public:
     Resource *parentResource() { return m_parent; }
     const Resource *parentResource() const { return m_parent; }
     void setParentResource(Resource *parent) { m_parent = parent; }
+    Handle handle() const noexcept { return m_handle; }
+    void setHandle(Handle handle) { m_handle = handle; }
 
 private:
     Resource() = delete;
+    Handle m_handle{};
     const char *m_prefix = nullptr;
     Resource *m_parent = nullptr;
     std::vector<ResourceItem> m_rItems;
@@ -532,5 +547,9 @@ bool R_SetValueEventOnSet(Resource *r, const char *suffix, const V &val, Resourc
 
     return result;
 }
+
+Resource::Handle R_CreateResourceHandle(const Resource *r, size_t containerIndex);
+inline bool isValid(Resource::Handle hnd) { return hnd.hash != 0 && hnd.index < UINT16_MAX && hnd.type != 0; }
+inline bool operator==(Resource::Handle a, Resource::Handle b) { return a.hash == b.hash && a.type == b.type; }
 
 #endif // RESOURCE_H

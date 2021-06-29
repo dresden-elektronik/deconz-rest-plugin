@@ -2099,6 +2099,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             updateSensorEtag(&sensorNode);
 
             sensorNode.setNeedSaveDatabase(true);
+            sensorNode.setHandle(R_CreateResourceHandle(&sensorNode, sensors.size()));
             sensors.push_back(sensorNode);
 
             Event e(RSensors, REventAdded, sensorNode.id());
@@ -7844,6 +7845,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else
     {
         DBG_Printf(DBG_INFO, "SensorNode %s: %s added\n", qPrintable(sensorNode.id()), qPrintable(sensorNode.name()));
+        sensorNode.setHandle(R_CreateResourceHandle(&sensorNode, sensors.size()));
         sensors.push_back(sensorNode);
         sensor2 = &sensors.back();
         updateSensorEtag(sensor2);
@@ -18430,12 +18432,59 @@ Resource *DEV_GetResource(const char *resource, const QString &identifier)
     return nullptr;
 }
 
+// Used by Device class when querying resources.
+// Testing code uses a mocked implementation.
+Resource *DEV_GetResource(Resource::Handle hnd)
+{
+    Resource *result = nullptr;
+    if (plugin)
+    {
+        if (hnd.type == 's')
+        {
+            if (hnd.index < plugin->sensors.size())
+            {
+                result = &plugin->sensors[hnd.index];
+            }
+        }
+        else if (hnd.type == 'l')
+        {
+            if (hnd.index < plugin->nodes.size())
+            {
+                result = &plugin->nodes[hnd.index];
+            }
+        }
+        else if (hnd.type == 'd')
+        {
+            if (hnd.index < plugin->m_devices.size())
+            {
+                result = plugin->m_devices[hnd.index].get();
+            }
+        }
+    }
+
+    if (result && result->handle().hash != hnd.hash)
+    {
+        result = nullptr;
+        Q_ASSERT(0);
+    }
+
+    return result;
+}
+
 // Used by Device class when creating Sensors.
 // Testing code uses a mocked implementation.
 Resource *DEV_AddResource(const Sensor &sensor)
 {
     plugin->sensors.push_back(sensor);
-    return &plugin->sensors.back();
+    auto &s = plugin->sensors.back();
+    s.setHandle(R_CreateResourceHandle(&s, plugin->sensors.size() - 1));
+
+    if (!s.name().isEmpty())
+    {
+        emit plugin->q_ptr->nodeUpdated(s.address().ext(), QLatin1String("name"), s.name());
+    }
+
+    return &s;
 }
 
 // Used by Device class when creating LightNodes.
@@ -18443,13 +18492,15 @@ Resource *DEV_AddResource(const Sensor &sensor)
 Resource *DEV_AddResource(const LightNode &lightNode)
 {
     plugin->nodes.push_back(lightNode);
+    auto &l = plugin->nodes.back();
+    l.setHandle(R_CreateResourceHandle(&l, plugin->nodes.size() - 1));
 
     if (!lightNode.name().isEmpty())
     {
         emit plugin->q_ptr->nodeUpdated(lightNode.address().ext(), QLatin1String("name"), lightNode.name());
     }
 
-    return &plugin->nodes.back();
+    return &l;
 }
 
 /*! Returns deCONZ core node for a given \p extAddress.

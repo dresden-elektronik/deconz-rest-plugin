@@ -4210,6 +4210,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
                 sensor.address().setExt(extAddr);
                 // append to cache if not already known
+                sensor.setHandle(R_CreateResourceHandle(&sensor, d->sensors.size()));
                 d->sensors.push_back(sensor);
                 d->updateSensorEtag(&d->sensors.back());
 

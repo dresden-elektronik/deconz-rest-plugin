@@ -1083,6 +1083,7 @@ Resource::Resource(const char *prefix) :
 Resource::Resource(const Resource &other) :
     lastStatePush(other.lastStatePush),
     lastAttrPush(other.lastAttrPush),
+    m_handle(other.m_handle),
     m_prefix(other.m_prefix),
     m_parent(other.m_parent),
     m_rItems(other.m_rItems)
@@ -1102,6 +1103,7 @@ Resource &Resource::operator=(const Resource &other)
     {
         lastStatePush = other.lastStatePush;
         lastAttrPush = other.lastAttrPush;
+        m_handle = other.m_handle;
         m_prefix = other.m_prefix;
         m_parent = other.m_parent;
         m_rItems = other.m_rItems;
@@ -1116,6 +1118,7 @@ Resource &Resource::operator=(Resource &&other) noexcept
     {
         lastStatePush = std::move(other.lastStatePush);
         lastAttrPush = std::move(other.lastAttrPush);
+        m_handle = other.m_handle;
         m_prefix = other.m_prefix;
         m_parent = other.m_parent;
         m_rItems = std::move(other.m_rItems);
@@ -1314,4 +1317,22 @@ void Resource::cleanupStateChanges()
             break;
         }
     }
+}
+
+/*! Creates a unique Resource handle.
+ */
+Resource::Handle R_CreateResourceHandle(const Resource *r, size_t containerIndex)
+{
+    Q_ASSERT(r->prefix() != nullptr);
+    Q_ASSERT(!r->item(RAttrUniqueId)->toString().isEmpty());
+
+    Resource::Handle result;
+    result.hash = qHash(r->item(RAttrUniqueId)->toString());
+    result.index = containerIndex;
+    result.type = r->prefix()[1];
+
+    Q_ASSERT(result.type == 's' || result.type == 'l' || result.type == 'd' || result.type == 'g');
+    Q_ASSERT(isValid(result));
+
+    return result;
 }

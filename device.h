@@ -104,7 +104,7 @@ public:
     void timerEvent(QTimerEvent *event) override;
     qint64 lastAwakeMs() const;
     bool reachable() const;
-    std::vector<Resource*> subDevices() const;
+    const std::vector<Resource *> &subDevices();
     void clearBindings();
     void addBinding(const DDF_Binding &bnd);
 
@@ -146,6 +146,7 @@ bool DEV_RemoveDevice(DeviceContainer &devices, DeviceKey key);
     \param identifier - id | uniqueid | empty (for RConfig)
 */
 Resource *DEV_GetResource(const char *resource, const QString &identifier);
+Resource *DEV_GetResource(Resource::Handle hnd);
 
 /*! Returns deCONZ core node for a given \p extAddress.
  */

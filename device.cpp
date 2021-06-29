@@ -58,6 +58,7 @@ constexpr int RxOffWhenIdleResponseTime = 8000; // 7680 ms + some space for time
 constexpr int MaxConfirmTimeout = 20000; // If for some reason no APS-DATA.confirm is received (should almost
 constexpr int BindingAutoCheckInterval = 1000 * 60 * 60;
 constexpr int MaxPollItemRetries = 3;
+constexpr int MaxSubResources = 8;
 
 struct DEV_PollItem
 {
@@ -91,11 +92,10 @@ public:
     deCONZ::ApsController *apsCtrl = nullptr; //! opaque instance pointer forwarded to external functions
 
     /*! sub-devices are not yet referenced via pointers since these may become dangling.
-        This is a helper to query the actual sub-device Resource* on demand.
-
-        {uniqueid, (RSensors | RLights)}
+        This is a helper to query the actual sub-device Resource* on demand via Resource::Handle.
     */
-    std::vector<std::tuple<QString, const char*>> subDevices;
+    std::array<Resource::Handle, MaxSubResources> subResourceHandles;
+    std::vector<Resource*> subResources;
     const deCONZ::Node *node = nullptr; //! a reference to the deCONZ core node
     DeviceKey deviceKey = 0; //! for physical devices this is the MAC address
 
@@ -1317,17 +1317,30 @@ void Device::addSubDevice(Resource *sub)
 {
     Q_ASSERT(sub);
     Q_ASSERT(sub->item(RAttrUniqueId));
-    const auto uniqueId = sub->item(RAttrUniqueId)->toString();
 
     sub->setParentResource(this);
 
-    for (const auto &s : d->subDevices)
+    Q_ASSERT(isValid(sub->handle()));
+
+    for (auto &hnd : d->subResourceHandles)
     {
-        if (std::get<0>(s) == uniqueId)
-            return; // already registered
+        if (hnd == sub->handle())
+        {
+            hnd = sub->handle(); // refresh (index might be changed)
+            return;
+        }
     }
 
-    d->subDevices.push_back({uniqueId, sub->prefix()});
+    for (auto &hnd : d->subResourceHandles)
+    {
+        if (!isValid(hnd))
+        {
+            hnd = sub->handle();
+            return;
+        }
+    }
+
+    Q_ASSERT(0); // too many sub resources, todo raise limit
 }
 
 DeviceKey Device::key() const
@@ -1438,22 +1451,27 @@ bool Device::reachable() const
     return false;
 }
 
-std::vector<Resource *> Device::subDevices() const
+const std::vector<Resource *> &Device::subDevices()
 {
-    std::vector<Resource *> result;
-
     // temp hack to get valid sub device pointers
-    for (const auto &sub : d->subDevices)
+    d->subResources.clear();
+
+    for (const auto hnd : d->subResourceHandles)
     {
-        auto *r = DEV_GetResource(std::get<1>(sub), std::get<0>(sub));
+        if (!isValid(hnd))
+        {
+            continue;
+        }
+
+        auto *r = DEV_GetResource(hnd);
 
         if (r)
         {
-            result.push_back(r);
+            d->subResources.push_back(r);
         }
     }
 
-    return result;
+    return d->subResources;
 }
 
 void Device::clearBindings()
