@@ -3,6 +3,7 @@
 
 #include <QDateTime>
 #include <QElapsedTimer>
+#include <QVariant>
 #include <vector>
 #include <deconz.h>
 #include "utils/bufstring.h"
@@ -207,8 +208,10 @@ extern const char *RConfigPowerOnLevel;
 extern const char *RConfigPulseConfiguration;
 extern const char *RConfigPreset;
 extern const char *RConfigMelody;
-extern const char *RConfigTempThreshold;
-extern const char *RConfigHumiThreshold;
+extern const char *RConfigTempMaxThreshold;
+extern const char *RConfigTempMinThreshold;
+extern const char *RConfigHumiMaxThreshold;
+extern const char *RConfigHumiMinThreshold;
 extern const char *RConfigVolume;
 extern const char *RConfigReachable;
 extern const char *RConfigSchedule;
@@ -291,8 +294,9 @@ class  ResourceItemDescriptor
 public:
     enum class Access { Unknown, ReadWrite, ReadOnly };
     ResourceItemDescriptor() = default;
-    ResourceItemDescriptor(ApiDataType t, const char *s, qint64 min = 0, qint64 max = 0) :
+    ResourceItemDescriptor(ApiDataType t, QVariant::Type v, const char *s, qint64 min = 0, qint64 max = 0) :
         type(t),
+        qVariantType(v),
         suffix(s),
         validMin(min),
         validMax(max) { }
@@ -300,6 +304,7 @@ public:
     bool isValid() const { return (type != DataTypeUnknown && suffix); }
     Access access = Access::Unknown;
     ApiDataType type = DataTypeUnknown;
+    QVariant::Type qVariantType = QVariant::Invalid;
     const char *suffix = RInvalidSuffix;
     qint64 validMin = 0;
     qint64 validMax = 0;

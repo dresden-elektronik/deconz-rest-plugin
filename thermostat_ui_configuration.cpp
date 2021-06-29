@@ -1,5 +1,6 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
+#include "thermostat_ui_configuration.h"
 
 /*! Handle packets related to the ZCL Thermostat UI Configration cluster.
     \param ind the APS level data indication containing the ZCL packet
@@ -65,7 +66,7 @@ void DeRestPluginPrivate::handleThermostatUiConfigurationClusterIndication(const
 
             switch (attrId)
             {
-            case 0x0001: // Keypad Lockout
+            case THERM_UI_ATTRID_KEYPAD_LOCKOUT:
             {
                 bool locked = attr.numericValue().u8 > 0 ? true : false;
                 item = sensor->item(RConfigLocked);
@@ -80,7 +81,7 @@ void DeRestPluginPrivate::handleThermostatUiConfigurationClusterIndication(const
             }
                 break;
 
-            case 0x4000: // Viewing Direction
+            case THERM_UI_ATTRID_VIEWING_DIRECTION:
             {
                 if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001"))
                 {
@@ -162,6 +163,7 @@ bool DeRestPluginPrivate::addTaskThermostatUiConfigurationReadWriteAttribute(Tas
         stream << attrType;
 
         deCONZ::ZclAttribute attr(attrId, attrType, QLatin1String(""), deCONZ::ZclWrite, true);
+
         attr.setValue(QVariant(attrValue));
 
         if (!attr.writeToStream(stream))

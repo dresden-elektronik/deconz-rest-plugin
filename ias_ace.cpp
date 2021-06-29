@@ -50,7 +50,7 @@ void DeRestPluginPrivate::handleIasAceClusterIndication(const deCONZ::ApsDataInd
 
         stream >> armMode;
 
-        if (zclFrame.payload().length() == 6)
+        if (zclFrame.payload().length() == 3)
         {
             quint8 codeTemp;
             stream >> codeTemp;     // 0 for keyfobs or other devices not supporting any codes
@@ -94,11 +94,6 @@ void DeRestPluginPrivate::handleIasAceClusterIndication(const deCONZ::ApsDataInd
     }
     else if (zclFrame.commandId() == CMD_GET_ZONE_STATUS)
     {
-    }
-
-    if (!(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
-    {
-        sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
     }
 }
 
@@ -152,7 +147,7 @@ void DeRestPluginPrivate::sendArmResponse(const deCONZ::ApsDataIndication &ind, 
         outZclFrame.writeToStream(stream);
     }
 
-    if (apsCtrl && apsCtrl->apsdeDataRequest(req) != deCONZ::Success)
+    if (apsCtrlWrapper.apsdeDataRequest(req) != deCONZ::Success)
     {
         DBG_Printf(DBG_INFO_L2, "[IAS ACE] - Failed to send IAS ACE arm reponse.\n");
     }

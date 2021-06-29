@@ -1,5 +1,9 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
+#include "fan_control.h"
+
+const std::array<KeyValMap, 7> RConfigFanModeValues = { { {QLatin1String("off"), 0}, {QLatin1String("low"), 1}, {QLatin1String("medium"), 2}, {QLatin1String("high"), 3},
+                                                                 {QLatin1String("on"), 4}, {QLatin1String("auto"), 5}, {QLatin1String("smart"), 6}} };
 
 /*! Handle packets related to the ZCL Fan control cluster.
     \param ind the APS level data indication containing the ZCL packet
@@ -71,7 +75,7 @@ void DeRestPluginPrivate::handleFanControlClusterIndication(const deCONZ::ApsDat
 
             switch (attrId)
             {
-            case 0x0000: // Fan mode
+            case FAN_CTRL_ATTRID_FAN_MODE:
             {
                 if (sensor->modelId() == QLatin1String("AC201") ||     // Owon
                     sensor->modelId() == QLatin1String("3157100") ||   // Centralite pearl

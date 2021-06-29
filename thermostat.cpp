@@ -89,6 +89,40 @@
 #include <QJsonDocument>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
+#include "thermostat.h"
+
+const std::array<KeyValMap, 6> RConfigModeLegrandValues = { { {QLatin1String("confort"), 0}, {QLatin1String("confort-1"), 1}, {QLatin1String("confort-2"), 2},
+                                                              {QLatin1String("eco"), 3}, {QLatin1String("hors gel"), 4}, {QLatin1String("off"), 5} } };
+
+const std::array<KeyValMapTuyaSingle, 3> RConfigModeValuesTuya1 = { { {QLatin1String("auto"), {0x00}}, {QLatin1String("heat"), {0x01}}, {QLatin1String("off"), {0x02}} } };
+
+const std::array<KeyValMapTuyaSingle, 2> RConfigModeValuesTuya2 = { { {QLatin1String("off"), {0x00}}, {QLatin1String("heat"), {0x01}} } };
+
+const std::array<KeyValMap, 9> RConfigModeValues = { { {QLatin1String("off"), 0}, {QLatin1String("auto"), 1}, {QLatin1String("cool"), 3}, {QLatin1String("heat"), 4},
+                                                              {QLatin1String("emergency heating"), 5}, {QLatin1String("precooling"), 6}, {QLatin1String("fan only"), 7},
+                                                              {QLatin1String("dry"), 8}, {QLatin1String("sleep"), 9} } };
+
+const std::array<KeyValMapTuyaSingle, 7> RConfigPresetValuesTuya = { { {QLatin1String("holiday"), {0x00}}, {QLatin1String("auto"), {0x01}}, {QLatin1String("manual"), {0x02}},
+                                                                              {QLatin1String("comfort"), {0x04}}, {QLatin1String("eco"), {0x05}}, {QLatin1String("boost"), {0x06}},
+                                                                              {QLatin1String("complex"), {0x07}} } };
+
+const std::array<KeyMap, 2> RConfigPresetValuesTuya2 = { { {QLatin1String("auto")}, {QLatin1String("program")} } };
+
+const std::array<KeyMap, 4> RConfigPresetValuesTuya3 = { { {QLatin1String("both")}, {QLatin1String("humidity")}, {QLatin1String("temperature")}, {QLatin1String("off")} } };
+
+const std::array<KeyValMap, 3> RConfigTemperatureMeasurementValues = { { {QLatin1String("air sensor"), 0}, {QLatin1String("floor sensor"), 1},
+                                                                                {QLatin1String("floor protection"), 3} } };
+
+const std::array<KeyValMap, 5> RConfigSwingModeValues = { { {QLatin1String("fully closed"), 1}, {QLatin1String("fully open"), 2}, {QLatin1String("quarter open"), 3},
+                                                                   {QLatin1String("half open"), 4}, {QLatin1String("three quarters open"), 5} } };
+
+const std::array<KeyValMapInt, 6> RConfigControlSequenceValues = { { {1, COOLING_ONLY}, {2, COOLING_WITH_REHEAT}, {3, HEATING_ONLY}, {4, HEATING_WITH_REHEAT},
+                                                                            {5, COOLING_AND_HEATING_4PIPES}, {6, COOLING_AND_HEATING_4PIPES_WITH_REHEAT} } };
+
+const std::array<KeyMap, 3> RConfigModeValuesEurotronic = { { {QLatin1String("off")}, {QLatin1String("heat")}, {QLatin1String("auto")} } };
+
+const std::array<KeyValMap, 5> RStateWindowOpenValuesDanfoss = { { {QLatin1String("Quarantine"), 0}, {QLatin1String("Closed"), 1}, {QLatin1String("Hold"), 2},
+                                                                   {QLatin1String("Open"), 3}, {QLatin1String("Open (external), closed (internal)"), 4} } };
 
 /*! Covert Zigbee weekdays bitmap to ISO or v.v.
  */
