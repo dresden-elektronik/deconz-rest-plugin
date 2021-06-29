@@ -387,6 +387,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_LEGRAND, "DIN power consumption module", legrandMacPrefix }, // Legrand DIN power consumption module
     { VENDOR_LEGRAND, "Teleruptor", legrandMacPrefix }, // Legrand Teleruptor
     { VENDOR_LEGRAND, "Contactor", legrandMacPrefix }, // Legrand Contactor
+    { VENDOR_LEGRAND, "Pocket remote", legrandMacPrefix }, // Legrand wireless 4 x scene remote
     { VENDOR_NETVOX, "Z809AE3R", netvoxMacPrefix }, // Netvox smartplug
     { VENDOR_LDS, "ZB-ONOFFPlug-D0005", silabs2MacPrefix }, // Samsung SmartPlug 2019 (7A-PL-Z-J3)
     { VENDOR_LDS, "ZBT-DIMSwitch", silabs2MacPrefix }, // Linkind 1 key Remote Control / ZS23000178
@@ -422,7 +423,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "TS0202", ikea2MacPrefix }, // Tuya multi sensor
     { VENDOR_NONE, "0yu2xgi", silabs5MacPrefix }, // Tuya siren
     { VENDOR_EMBER, "TS0601", silabs9MacPrefix }, // Tuya siren
-    { VENDOR_EMBER, "TS0222", silabs9MacPrefix }, // TYZB01 light sensor 
+    { VENDOR_EMBER, "TS0222", silabs9MacPrefix }, // TYZB01 light sensor
     { VENDOR_NONE, "eaxp72v", ikea2MacPrefix }, // Tuya TRV Wesmartify Thermostat Essentials Premium
     { VENDOR_NONE, "88teujp", silabs8MacPrefix }, // SEA802-Zigbee
     { VENDOR_NONE, "uhszj9s", silabs8MacPrefix }, // HiHome WZB-TRVL
@@ -4151,6 +4152,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
              sensor->modelId() == QLatin1String("Double gangs remote switch") || //Legrand micro module
              sensor->modelId() == QLatin1String("Shutters central remote switch") || // legrand shutter switch
              sensor->modelId() == QLatin1String("Remote motion sensor") || // legrand motion sensor
+             sensor->modelId() == QLatin1String("Pocket remote") || // legrand 4x scene remote
              sensor->modelId() == QLatin1String("Remote toggle switch")) // legrand switch simple and double
     {
         checkReporting = true;
@@ -4535,10 +4537,24 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 }
                 else if (ind.clusterId() == SCENE_CLUSTER_ID && zclFrame.commandId() == 0x05) // recall scene
                 {
-                    ok = false; // payload: groupId, sceneId
-                    if (zclFrame.payload().size() >= 3 && buttonMap.zclParam0 == zclFrame.payload().at(2))
+                    ok = false; // payload: groupId (uint16) , sceneId (uint8)
+                    if (zclFrame.payload().size() >= 3)
                     {
-                        ok = true;
+                        // This device use same sceneID but different groupID : EDFF010000 ECFF010000 EBFF010000 EAFF010000
+                        if (sensor->modelId() == QLatin1String("Pocket remote"))
+                        {
+                            if (buttonMap.zclParam0 == zclFrame.payload().at(0))
+                            {
+                                ok = true;
+                            }
+                        }
+                        else
+                        {
+                            if (buttonMap.zclParam0 == zclFrame.payload().at(2))
+                            {
+                                ok = true;
+                            }
+                        }
                     }
                 }
                 else if (ind.clusterId() == SCENE_CLUSTER_ID && zclFrame.commandId() == 0x04) // store scene
@@ -6020,6 +6036,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
         if (!isDeviceSupported(node, modelId))
         {
+            DBG_Printf(DBG_INFO, "Unsupported device : %s\n", qPrintable(modelId));
             continue;
         }
 
@@ -6567,6 +6584,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         else if (sensorNode.fingerPrint().hasOutCluster(IAS_ACE_CLUSTER_ID))
         {
             clusterId = IAS_ACE_CLUSTER_ID;
+        }
+        else if (sensorNode.fingerPrint().hasOutCluster(SCENE_CLUSTER_ID))
+        {
+            clusterId = SCENE_CLUSTER_ID;
         }
         sensorNode.addItem(DataTypeInt32, RStateButtonEvent);
 
@@ -7527,6 +7548,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 //This device make a Rejoin every time, you trigger it, it's the only moment where you can read attribute.
                 if (sensorNode.modelId() == QLatin1String("Remote switch") ||
                     sensorNode.modelId() == QLatin1String("Shutters central remote switch") ||
+                    sensorNode.modelId() == QLatin1String("Pocket remote") ||
                     sensorNode.modelId() == QLatin1String("Double gangs remote switch") )
                 {
                     //Ask for battery but only every day max
@@ -8158,6 +8180,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().startsWith(QLatin1String("multiv4")) ||// SmartThings multi sensor 2016
                                     i->modelId().startsWith(QLatin1String("3305-S")) ||  // SmartThings 2014 motion sensor
                                     i->modelId() == QLatin1String("Remote switch") ||    // Legrand switch
+                                    i->modelId() == QLatin1String("Pocket remote") ||    // Legrand wireless switch scene x 4
                                     i->modelId() == QLatin1String("Double gangs remote switch") ||    // Legrand switch double
                                     i->modelId() == QLatin1String("Shutters central remote switch") || // Legrand switch module
                                     i->modelId() == QLatin1String("Remote toggle switch") || // Legrand shutter switch
@@ -15686,11 +15709,19 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                         {
                             dateCode = attr.toString();
                             dateCodeAvailable = attr.isAvailable(); // might become false after first read
+                            if (dateCode.isEmpty())
+                            {
+                                dateCodeAvailable = false;
+                            }
                         }
                         else if (attr.id() == 0x4000 && swBuildId.isEmpty())
                         {
                             swBuildId = attr.toString();
                             swBuildIdAvailable = attr.isAvailable(); // might become false after first read
+                            if (swBuildId.isEmpty())
+                            {
+                                swBuildIdAvailable = false;
+                            }
                         }
                         else
                         {
@@ -15789,6 +15820,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         {
             if (!modelId.isEmpty() && !isDeviceSupported(node, modelId))
             {
+                DBG_Printf(DBG_INFO, "Unsupported device : %s\n", qPrintable(modelId));
                 return;
             }
 
@@ -16102,6 +16134,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                  sensor->modelId() == QLatin1String("Double gangs remote switch") || // Legrand switch double
                  sensor->modelId() == QLatin1String("Remote toggle switch") || // Legrand switch module
                  sensor->modelId() == QLatin1String("Remote motion sensor") || // Legrand motion sensor
+                 sensor->modelId() == QLatin1String("Pocket remote") || // Legrand remote scene x 4
                  sensor->modelId() == QLatin1String("ZBT-CCTSwitch-D0001") || // LDS Remote
                  sensor->modelId() == QLatin1String("ZBT-DIMController-D0800") || // Mueller-Licht tint dimmer
                  sensor->modelId() == QLatin1String("Shutters central remote switch")) // Legrand shutter switch
