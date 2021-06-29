@@ -1,21 +1,21 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 
-#define FCCC_ATTRID_ROTATION_ANGLE      0x001B
-#define FCCC_ATTRID_DURATION            0x001A
+#define XIAOYAN_ATTRID_ROTATION_ANGLE      0x001B
+#define XIAOYAN_ATTRID_DURATION            0x001A
 
-/*! Handle packets related to the manufacturer specific FCCC cluster.
+/*! Handle packets related to the Xiaoyan FCCC cluster.
     \param ind the APS level data indication containing the ZCL packet
-    \param zclFrame the actual ZCL frame which holds the manufacturer specific FCCC cluster command or attribute
+    \param zclFrame the actual ZCL frame which holds the Xiaoyan FCCC cluster command or attribute
  */
-void DeRestPluginPrivate::handleManufacturerSpecificFcccClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+void DeRestPluginPrivate::handleXiaoyanClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
     if (zclFrame.isDefaultResponse())
     {
         return;
     }
 
-    Sensor *sensor = getSensorNodeForAddressEndpointAndCluster(ind.srcAddress(), ind.srcEndpoint(), ADUROLIGHT_CLUSTER_ID );
+    Sensor *sensor = getSensorNodeForAddressEndpointAndCluster(ind.srcAddress(), ind.srcEndpoint(), XIAOYAN_CLUSTER_ID );
 
     if (!sensor)
     {
@@ -73,7 +73,7 @@ void DeRestPluginPrivate::handleManufacturerSpecificFcccClusterIndication(const 
 
             switch (attrId)
             {
-            case FCCC_ATTRID_DURATION:
+            case XIAOYAN_ATTRID_DURATION:
             {
                 quint16 duration = attr.numericValue().u16; // TERNCY-SD01
                 item = sensor->item(RStateEventDuration);
@@ -85,11 +85,11 @@ void DeRestPluginPrivate::handleManufacturerSpecificFcccClusterIndication(const 
                     stateUpdated = true;
                 }
 
-                sensor->setZclValue(updateType, ind.srcEndpoint(), ADUROLIGHT_CLUSTER_ID, FCCC_ATTRID_DURATION, attr.numericValue());
+                sensor->setZclValue(updateType, ind.srcEndpoint(), XIAOYAN_CLUSTER_ID, XIAOYAN_ATTRID_DURATION, attr.numericValue());
             }
                 break;
 
-            case FCCC_ATTRID_ROTATION_ANGLE:
+            case XIAOYAN_ATTRID_ROTATION_ANGLE:
             {
                 qint16 angle = attr.numericValue().s16; // TERNCY-SD01
                 item = sensor->item(RStateAngle);
@@ -101,7 +101,7 @@ void DeRestPluginPrivate::handleManufacturerSpecificFcccClusterIndication(const 
                     stateUpdated = true;
                 }
 
-                sensor->setZclValue(updateType, ind.srcEndpoint(), ADUROLIGHT_CLUSTER_ID, FCCC_ATTRID_ROTATION_ANGLE, attr.numericValue());
+                sensor->setZclValue(updateType, ind.srcEndpoint(), XIAOYAN_CLUSTER_ID, XIAOYAN_ATTRID_ROTATION_ANGLE, attr.numericValue());
             }
                 break;
 

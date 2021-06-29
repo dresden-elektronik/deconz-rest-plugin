@@ -169,7 +169,7 @@ SOURCES  = air_quality.cpp \
            identify.cpp \
            json.cpp \
            light_node.cpp \
-           mfspecific_cluster_fccc.cpp \
+           mfspecific_cluster_xiaoyan.cpp \
            poll_control.cpp \
            poll_manager.cpp \
            product_match.cpp \

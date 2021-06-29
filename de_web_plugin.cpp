@@ -1035,8 +1035,8 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             DBG_Printf(DBG_INFO, "Door lock debug 0x%016llX, data 0x%08X \n", ind.srcAddress().ext(), zclFrame.commandId() );
             break;
 
-        case ADUROLIGHT_CLUSTER_ID:
-            handleManufacturerSpecificFcccClusterIndication(ind, zclFrame);
+        case XIAOYAN_CLUSTER_ID:
+            handleXiaoyanClusterIndication(ind, zclFrame);
             break;
 
         default:
@@ -1047,7 +1047,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         handleIndicationSearchSensors(ind, zclFrame);
 
-        if (ind.dstAddressMode() == deCONZ::ApsGroupAddress || ind.clusterId() == VENDOR_CLUSTER_ID || ind.clusterId() == IAS_ZONE_CLUSTER_ID || ind.clusterId() == ADUROLIGHT_CLUSTER_ID ||
+        if (ind.dstAddressMode() == deCONZ::ApsGroupAddress || ind.clusterId() == VENDOR_CLUSTER_ID || ind.clusterId() == IAS_ZONE_CLUSTER_ID || zclFrame.manufacturerCode() == VENDOR_XIAOYAN ||
             !(zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient) ||
             (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId))
         {
@@ -4544,7 +4544,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                             ok = buttonMap.zclParam0 == value;
                         }
                     }
-                    else if (attrId == FCCC_ATTRID_ROTATION_ANGLE && ind.clusterId() == ADUROLIGHT_CLUSTER_ID && sensor->modelId() == QLatin1String("TERNCY-SD01"))
+                    else if (attrId == XIAOYAN_ATTRID_ROTATION_ANGLE && ind.clusterId() == XIAOYAN_CLUSTER_ID && sensor->modelId() == QLatin1String("TERNCY-SD01"))
                     {
                         qint16 value;
                         stream >> value;
@@ -4926,7 +4926,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         ok = true;
                     }
                 }
-                else if (ind.clusterId() == ADUROLIGHT_CLUSTER_ID)
+                else if (ind.clusterId() == ADUROLIGHT_CLUSTER_ID || ind.clusterId() == XIAOYAN_CLUSTER_ID)
                 {
                     ok = false;
 
@@ -5232,7 +5232,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     fpSwitch.inClusters.push_back(ci->id());
                     if (manufacturer == QLatin1String("TERNCY") && modelId == QLatin1String("TERNCY-SD01"))
                     {
-                        fpSwitch.inClusters.push_back(ADUROLIGHT_CLUSTER_ID);
+                        fpSwitch.inClusters.push_back(XIAOYAN_CLUSTER_ID);
                     }
                     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_PHILIPS)
                     {
@@ -6088,7 +6088,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             fpSwitch.hasInCluster(MULTISTATE_INPUT_CLUSTER_ID) ||
             fpSwitch.hasInCluster(DOOR_LOCK_CLUSTER_ID) ||
             fpSwitch.hasInCluster(IAS_ZONE_CLUSTER_ID) ||
-            fpSwitch.hasInCluster(ADUROLIGHT_CLUSTER_ID) ||
+            fpSwitch.hasInCluster(XIAOYAN_CLUSTER_ID) ||
             fpSwitch.hasOutCluster(IAS_ACE_CLUSTER_ID) ||
             !fpSwitch.outClusters.empty())
         {
@@ -6648,7 +6648,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         }
         else if (modelId == QLatin1String("TERNCY-SD01"))
         {
-            clusterId = ADUROLIGHT_CLUSTER_ID;
+            clusterId = XIAOYAN_CLUSTER_ID;
             sensorNode.addItem(DataTypeInt16, RStateAngle);
             sensorNode.addItem(DataTypeUInt16, RStateEventDuration);
         }

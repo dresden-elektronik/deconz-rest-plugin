@@ -55,7 +55,8 @@
         "IAS_ZONE": 1280,
         "IAS_ACE": 1281,
         "SENGLED": 64528,
-        "ADUROLIGHT": 64716
+        "ADUROLIGHT": 64716,
+        "XIAOYAN": 64716
 	},
 	"commands": {
         "DOOR_LOCK": {
@@ -121,6 +122,9 @@
             "COMMAND_0": 0
         },
         "ADUROLIGHT": {
+            "COMMAND_0": 0
+        },
+        "XIAOYAN": {
             "COMMAND_0": 0,
             "ATTRIBUTE_REPORT": 10,
             "COMMAND_20": 20
@@ -1396,13 +1400,13 @@
                 {"S_BUTTON_1": "Action button"}
             ],
             "map": [
-                [1, "0x01", "ADUROLIGHT", "COMMAND_0", "0x0001", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Single press"],
-                [1, "0x01", "ADUROLIGHT", "COMMAND_0", "0x0002", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
-                [1, "0x01", "ADUROLIGHT", "COMMAND_0", "0x0003", "S_BUTTON_1", "S_BUTTON_ACTION_TREBLE_PRESS", "Tripple press"],
-                [1, "0x01", "ADUROLIGHT", "COMMAND_0", "0x0004", "S_BUTTON_1", "S_BUTTON_ACTION_QUADRUPLE_PRESS", "Quadruple press"],
-                [1, "0x01", "ADUROLIGHT", "COMMAND_20", "0x01", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Long press"],
-                [1, "0x01", "ADUROLIGHT", "ATTRIBUTE_REPORT", "0x00", "S_BUTTON_1", "S_BUTTON_ACTION_ROTATE_CLOCKWISE", "Rotate clockwise"],
-                [1, "0x01", "ADUROLIGHT", "ATTRIBUTE_REPORT", "0x01", "S_BUTTON_1", "S_BUTTON_ACTION_ROTATE_COUNTER_CLOCKWISE", "Rotate counter-clockwise"]
+                [1, "0x01", "XIAOYAN", "COMMAND_0", "0x0001", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Single press"],
+                [1, "0x01", "XIAOYAN", "COMMAND_0", "0x0002", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x01", "XIAOYAN", "COMMAND_0", "0x0003", "S_BUTTON_1", "S_BUTTON_ACTION_TREBLE_PRESS", "Tripple press"],
+                [1, "0x01", "XIAOYAN", "COMMAND_0", "0x0004", "S_BUTTON_1", "S_BUTTON_ACTION_QUADRUPLE_PRESS", "Quadruple press"],
+                [1, "0x01", "XIAOYAN", "COMMAND_20", "0x01", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Long press"],
+                [1, "0x01", "XIAOYAN", "ATTRIBUTE_REPORT", "0x00", "S_BUTTON_1", "S_BUTTON_ACTION_ROTATE_CLOCKWISE", "Rotate clockwise"],
+                [1, "0x01", "XIAOYAN", "ATTRIBUTE_REPORT", "0x01", "S_BUTTON_1", "S_BUTTON_ACTION_ROTATE_COUNTER_CLOCKWISE", "Rotate counter-clockwise"]
             ]
         }
     }
