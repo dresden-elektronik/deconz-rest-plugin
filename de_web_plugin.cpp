@@ -1038,6 +1038,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             DBG_Printf(DBG_INFO, "Door lock debug 0x%016llX, data 0x%08X \n", ind.srcAddress().ext(), zclFrame.commandId() );
             break;
 
+        case OCCUPANCY_SENSING_CLUSTER_ID:
+            handleOccupancySensingClusterIndication(ind, zclFrame);
+            break;
+
         default:
         {
         }
@@ -7907,7 +7911,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
             case RELATIVE_HUMIDITY_CLUSTER_ID:
             case PRESSURE_MEASUREMENT_CLUSTER_ID:
-            case OCCUPANCY_SENSING_CLUSTER_ID:
             case POWER_CONFIGURATION_CLUSTER_ID:
             case BASIC_CLUSTER_ID:
             case ONOFF_CLUSTER_ID:
@@ -8515,207 +8518,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     Event e(RSensors, RStatePressure, i->id(), item);
                                     enqueueEvent(e);
                                     enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
-                                }
-
-                                updateSensorEtag(&*i);
-                            }
-                        }
-                    }
-                    else if (event.clusterId() == OCCUPANCY_SENSING_CLUSTER_ID)
-                    {
-                        for (;ia != enda; ++ia)
-                        {
-                            if (std::find(event.attributeIds().begin(),
-                                          event.attributeIds().end(),
-                                          ia->id()) == event.attributeIds().end())
-                            {
-                                continue;
-                            }
-
-                            if (ia->id() == 0x0000) // occupied state
-                            {
-                                if (updateType != NodeValue::UpdateInvalid)
-                                {
-                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), 0x0000, ia->numericValue());
-                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
-                                }
-
-                                const NodeValue &val = i->getZclValue(event.clusterId(), 0x0000);
-
-                                ResourceItem *item = i->item(RStatePresence);
-
-                                if (item)
-                                {
-                                    item->setValue(ia->numericValue().u8);
-                                    i->updateStateTimestamp();
-                                    i->setNeedSaveDatabase(true);
-                                    Event e(RSensors, RStatePresence, i->id(), item);
-                                    enqueueEvent(e);
-                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
-
-                                    // prepare to automatically set presence to false
-                                    if (item->toBool())
-                                    {
-                                        if (val.clusterId == event.clusterId() && val.maxInterval > 0 &&
-                                            updateType == NodeValue::UpdateByZclReport)
-                                        {
-                                            // prevent setting presence back to false, when report.maxInterval > config.duration
-                                            i->durationDue = item->lastSet().addSecs(val.maxInterval);
-                                        }
-                                        else
-                                        {
-                                            ResourceItem *item2 = i->item(RConfigDuration);
-                                            if (item2 && item2->toNumber() > 0)
-                                            {
-                                                i->durationDue = item->lastSet().addSecs(item2->toNumber());
-                                            }
-                                        }
-                                    }
-                                }
-                                updateSensorEtag(&*i);
-
-                            }
-                            else if ((i->modelId().startsWith(QLatin1String("FLS-NB")) ||
-                                      i->modelId() == QLatin1String("LG IP65 HMS"))
-                                     && ia->id() == 0x0010) // occupied to unoccupied delay
-                            {
-                                if (updateType != NodeValue::UpdateInvalid)
-                                {
-                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
-                                }
-
-                                quint16 duration = ia->numericValue().u16;
-                                ResourceItem *item = i->item(RConfigDuration);
-
-                                if (!item)
-                                {
-                                    item = i->addItem(DataTypeUInt16, RConfigDuration);
-                                }
-
-                                if (item && item->toNumber() != duration)
-                                {
-                                    Event e(RSensors, RConfigDuration, i->id(), item);
-                                    enqueueEvent(e);
-
-                                    if (item->toNumber() <= 0)
-                                    {
-                                        DBG_Printf(DBG_INFO, "got occupied to unoccupied delay %u\n", ia->numericValue().u16);
-                                        item->setValue(duration);
-                                        i->setNeedSaveDatabase(true);
-                                        updateSensorEtag(&*i);
-                                    }
-                                    else
-                                    {
-                                        DBG_Printf(DBG_INFO, "occupied to unoccupied delay is %u should be %u, force rewrite\n", ia->numericValue().u16, (quint16)item->toNumber());
-                                        if (!i->mustRead(WRITE_OCCUPANCY_CONFIG))
-                                        {
-                                            i->enableRead(WRITE_OCCUPANCY_CONFIG);
-                                            i->setNextReadTime(WRITE_OCCUPANCY_CONFIG, queryTime);
-                                            queryTime = queryTime.addSecs(1);
-                                        }
-
-                                        if (!i->mustRead(READ_OCCUPANCY_CONFIG))
-                                        {
-                                            i->enableRead(READ_OCCUPANCY_CONFIG);
-                                            i->setNextReadTime(READ_OCCUPANCY_CONFIG, queryTime);
-                                            queryTime = queryTime.addSecs(5);
-                                        }
-                                        Q_Q(DeRestPlugin);
-                                        q->startZclAttributeTimer(checkZclAttributesDelay);
-                                    }
-                                }
-                            }
-                            else if (ia->id() == 0x0010) // occupied to unoccupied delay
-                            {
-                                if (updateType != NodeValue::UpdateInvalid)
-                                {
-                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
-                                }
-
-                                quint16 delay = ia->numericValue().u16;
-                                ResourceItem *item = i->item(RConfigDelay);
-
-                                if (item && item->toNumber() != delay)
-                                {
-                                    item->setValue(delay);
-                                    i->setNeedSaveDatabase(true);
-                                    Event e(RSensors, RConfigDelay, i->id(), item);
-                                    enqueueEvent(e);
-                                }
-
-                                if (i->mustRead(WRITE_DELAY))
-                                {
-                                    ResourceItem *item = i->item(RConfigPending);
-                                    if (item)
-                                    {
-                                        quint16 mask = item->toNumber();
-                                        mask &= ~R_PENDING_DELAY;
-                                        item->setValue(mask);
-                                        Event e(RSensors, RConfigPending, i->id(), item);
-                                        enqueueEvent(e);
-                                    }
-                                    i->clearRead(WRITE_DELAY);
-                                }
-
-                                updateSensorEtag(&*i);
-                            }
-                            else if (ia->id() == 0x0030) // sensitivity
-                            {
-                                if (updateType != NodeValue::UpdateInvalid)
-                                {
-                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
-                                    NodeValue &val = i->getZclValue(event.clusterId(), ia->id());
-                                    // allow proper binding checks
-                                    if (val.minInterval == 0 || val.maxInterval == 0)
-                                    {
-                                        val.minInterval = 5;      // value used by Hue bridge
-                                        val.maxInterval = 7200;   // value used by Hue bridge
-                                    }
-                                }
-
-                                quint8 sensitivity = ia->numericValue().u8;
-                                ResourceItem *item = i->item(RConfigSensitivity);
-
-                                if (item && item->toNumber() != sensitivity)
-                                {
-                                    item->setValue(sensitivity);
-                                    i->setNeedSaveDatabase(true);
-                                    Event e(RSensors, RConfigSensitivity, i->id(), item);
-                                    enqueueEvent(e);
-                                }
-
-                                if (i->mustRead(WRITE_SENSITIVITY))
-                                {
-                                    ResourceItem *item = i->item(RConfigPending);
-                                    if (item)
-                                    {
-                                        quint16 mask = item->toNumber();
-                                        mask &= ~R_PENDING_SENSITIVITY;
-                                        item->setValue(mask);
-                                        Event e(RSensors, RConfigPending, i->id(), item);
-                                        enqueueEvent(e);
-                                    }
-                                    i->clearRead(WRITE_SENSITIVITY);
-                                }
-
-                                updateSensorEtag(&*i);
-                            }
-                            else if (ia->id() == 0x0031) // sensitivitymax
-                            {
-                                if (updateType != NodeValue::UpdateInvalid)
-                                {
-                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
-                                }
-
-                                quint8 sensitivitymax = ia->numericValue().u8;
-                                ResourceItem *item = i->item(RConfigSensitivityMax);
-
-                                if (item && item->toNumber() != sensitivitymax)
-                                {
-                                    item->setValue(sensitivitymax);
-                                    i->setNeedSaveDatabase(true);
-                                    Event e(RSensors, RConfigSensitivityMax, i->id(), item);
-                                    enqueueEvent(e);
                                 }
 
                                 updateSensorEtag(&*i);
