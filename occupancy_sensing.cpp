@@ -29,14 +29,13 @@ void DeRestPluginPrivate::handleOccupancySensingClusterIndication(const deCONZ::
     stream.setByteOrder(QDataStream::LittleEndian);
 
     bool isReadAttr = false;
-    bool isReporting = false;
+
     if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReadAttributesResponseId)
     {
         isReadAttr = true;
     }
     else if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId)
     {
-        isReporting = true;
     }
     else
     {
@@ -116,6 +115,7 @@ void DeRestPluginPrivate::handleOccupancySensingClusterIndication(const deCONZ::
         {
             if (sensor->modelId().startsWith(QLatin1String("FLS-NB")) || sensor->modelId() == QLatin1String("LG IP65 HMS"))
             {
+                // TODO this if branch needs to be refactored or better removed later on
                 quint16 duration = attr.numericValue().u16;
                 item = sensor->item(RConfigDuration);
 
@@ -147,11 +147,9 @@ void DeRestPluginPrivate::handleOccupancySensingClusterIndication(const deCONZ::
                             sensor->setNextReadTime(READ_OCCUPANCY_CONFIG, queryTime);
                             queryTime = queryTime.addSecs(5);
                         }
-                        //Q_Q(DeRestPlugin);
-                        //q->startZclAttributeTimer(q->checkZclAttributesDelay);
 
                         Q_Q(DeRestPlugin);
-                        q->startZclAttributeTimer(checkZclAttributesDelay);
+                        q->startZclAttributeTimer(750);
                     }
                 }
             }
