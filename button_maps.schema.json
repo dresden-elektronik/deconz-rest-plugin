@@ -84,7 +84,7 @@
         ]
     },
     "adurolight-commands": {
-      "enum": [ "ATTRIBUTE_REPORT", "COMMAND_0", "COMMAND_20",  ]
+      "enum": [ "ATTRIBUTE_REPORT", "COMMAND_0", "COMMAND_20" ]
     },
     "basic-commands": {
       "enum": [ "0x02" ]
