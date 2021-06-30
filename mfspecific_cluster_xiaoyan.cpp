@@ -1,8 +1,6 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
-
-#define XIAOYAN_ATTRID_ROTATION_ANGLE      0x001B
-#define XIAOYAN_ATTRID_DURATION            0x001A
+#include "mfspecific_cluster_xiaoyan.h"
 
 /*! Handle packets related to the Xiaoyan FCCC cluster.
     \param ind the APS level data indication containing the ZCL packet
