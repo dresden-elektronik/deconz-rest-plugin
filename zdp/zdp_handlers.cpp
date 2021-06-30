@@ -422,3 +422,90 @@ void DeRestPluginPrivate::handleNwkAddressReqIndication(const deCONZ::ApsDataInd
 
     }
 }
+
+/*! Patch Node Descriptor if fields are invalid.
+    \param ind a ZDP NodeDescriptor_rsp
+ */
+void DeRestPluginPrivate::patchNodeDescriptor(const deCONZ::ApsDataIndication &ind)
+{
+    quint16 nwk = 0xffff;
+    deCONZ::NodeDescriptor nd;
+
+    {
+        quint8 seq;
+        quint8 status = ZDP_NO_DESCRIPTOR;
+        QDataStream stream(ind.asdu());
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        stream >> seq;
+        stream >> status;
+        stream >> nwk;
+
+        nd.readFromStream(stream);
+
+        if (stream.status() != QDataStream::Ok)
+        {
+            return;
+        }
+
+        if (nwk == 0x0000)
+        {
+            return; // skip the coordinator
+        }
+
+        if (status != ZDP_SUCCESS || nd.isNull())
+        {
+            return;
+        }
+    }
+
+    enum { UpdatedMacCapabilities = 0x01, UpdatedManufacturerCode = 0x02 };
+
+    int i = 0;
+    const deCONZ::Node *node;
+    while (apsCtrl->getNode(i, &node) == 0)
+    {
+        i++;
+        if (nwk != node->address().nwk() || !node->address().hasExt())
+        {
+            continue;
+        }
+
+        int updated = 0;
+
+        // Not having 'allocate address' 0x80 is valid but currently expected for all devices
+        if (!nd.macCapabilities().testFlag(deCONZ::MacAllocateAddress))
+        {
+            auto macCap = nd.macCapabilities();
+            macCap.setFlag(deCONZ::MacAllocateAddress);
+            nd.setMacCapabilities(macCap);
+            updated |= UpdatedMacCapabilities;
+        }
+
+        // Fix incorrect manufacturer code for older Develco devices
+        if ((node->address().ext() & develcoMacPrefix) == develcoMacPrefix && nd.manufacturerCode() == 0x0000)
+        {
+            nd.setManufacturerCode(VENDOR_DEVELCO);
+            updated |= UpdatedManufacturerCode;
+        }
+
+        if (updated && (node->nodeDescriptor().macCapabilities() != nd.macCapabilities() ||
+                        node->nodeDescriptor().manufacturerCode() != nd.manufacturerCode()))
+        {
+            if (updated & UpdatedMacCapabilities)
+            {
+                DBG_Printf(DBG_INFO, "[ND] 0x%016llX add 'allocate address' flag (0x80) to MAC capabilities\n", node->address().ext());
+            }
+
+            if (updated & UpdatedManufacturerCode)
+            {
+                DBG_Printf(DBG_INFO, "[ND] 0x%016llX update manufacturer code: 0x%04X\n", node->address().ext(), nd.manufacturerCode());
+            }
+
+            const_cast<deCONZ::Node*>(node)->setNodeDescriptor(nd);
+            pushZdpDescriptorDb(node->address().ext(), ZDO_ENDPOINT, ZDP_NODE_DESCRIPTOR_CLID, node->nodeDescriptor().toByteArray());
+        }
+
+        break;
+    }
+}
