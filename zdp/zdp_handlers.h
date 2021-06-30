@@ -12,4 +12,11 @@
 #define ZDP_HANDLERS_H
 
 
+namespace deCONZ {
+    class ApsController;
+    class ApsDataIndication;
+}
+
+void ZDP_HandleNodeDescriptorRequest(const deCONZ::ApsDataIndication &ind, deCONZ::ApsController *apsCtrl);
+
 #endif // ZDP_HANDLERS_H

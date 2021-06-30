@@ -10,6 +10,7 @@
 
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
+#include "utils/utils.h"
 #include "zdp_handlers.h"
 
 /*! Handle the case that a node (re)joins the network.
@@ -248,6 +249,126 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
         deCONZ::ZclFrame zclFrame; // dummy
         handleIndicationSearchSensors(ind, zclFrame);
     }
+}
+
+struct MapMfCode
+{
+    quint64 macPrefix;
+    quint16 mfcode;
+    /* Bits 9-15. These bits indicate the revision of the ZigBee Pro Core specification that the running stack is implemented to. Prior
+       to revision 21 of the specification these bits were reserved and thus set to 0. A stack that is compliant to revision 22
+       would set these bits to 22 (0010110b). A stack shall indicate the revision of the specification it is compliant to by
+       setting these bits.
+
+       0x0000  Reserved  prior Rev. 21
+       0x2A00  (21 << 9) Rev. 21
+       0x2C00  (22 << 9) Rev. 22
+    */
+    quint16 serverMask;
+};
+
+static const std::array<MapMfCode, 3> mapMfCode = {
+    {
+        { 0x04cf8c0000000000ULL, 0x115F, 0x0040}, // Xiaomi
+        { 0x54ef440000000000ULL, 0x115F, 0x0040}  // Xiaomi
+    }
+};
+
+/*! Sends a Node Descriptor response.
+
+    Sends modified Manufacturer Code and Server Mask for some devices.
+
+    \param ind - a ZDP NodeDescriptor_req
+    \param apsCtrl - APS controller instance
+ */
+void ZDP_HandleNodeDescriptorRequest(const deCONZ::ApsDataIndication &ind, deCONZ::ApsController *apsCtrl)
+{
+    if (!apsCtrl)
+    {
+        return;
+    }
+
+    const deCONZ::Node *self = getCoreNode(apsCtrl->getParameter(deCONZ::ParamMacAddress), apsCtrl);
+
+    if (!self)
+    {
+        return;
+    }
+
+    quint8 seq;
+    quint16 nwkAddr;
+
+    {
+        QDataStream stream(ind.asdu());
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        stream >> seq;
+        stream >> nwkAddr;
+
+        if (stream.status() != QDataStream::Ok)
+        {
+            return;
+        }
+    }
+
+    if (nwkAddr != self->address().nwk())
+    {
+        return;
+    }
+
+    quint16 mfCode = VENDOR_DDEL;
+    quint16 serverMask = 0x0040; // compatible with stack revisions below version 21
+    QByteArray ndRaw;
+
+    if (!self->nodeDescriptor().isNull())
+    {
+        ndRaw = self->nodeDescriptor().toByteArray();
+        serverMask = static_cast<quint16>(self->nodeDescriptor().serverMask()) & 0xFFFF;
+    }
+    else // fallback if not known
+    {
+        ndRaw = QByteArray("\x10\x40\x0f\x35\x11\x47\x2b\x00\x40\x00\x2b\x00\x00", 13);
+    }
+
+    auto i = std::find_if(mapMfCode.cbegin(), mapMfCode.cend(), [&ind](const auto &entry) {
+        return (ind.srcAddress().ext() & entry.macPrefix) == entry.macPrefix;
+    });
+
+    if (i != mapMfCode.cend())
+    {
+        mfCode = i->mfcode;
+        serverMask = i->serverMask;
+    }
+
+    {   // change manufacturer code and server mask if needed
+        QDataStream stream(&ndRaw, QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        stream.device()->seek(3);
+        stream << mfCode;
+        stream.device()->seek(8);
+        stream << serverMask;
+    }
+
+    deCONZ::ApsDataRequest req;
+
+    req.setProfileId(ZDP_PROFILE_ID);
+    req.setSrcEndpoint(ZDO_ENDPOINT);
+    req.setDstEndpoint(ZDO_ENDPOINT);
+    req.setClusterId(ZDP_NODE_DESCRIPTOR_RSP_CLID);
+    req.setDstAddressMode(deCONZ::ApsNwkAddress);
+    req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+    req.dstAddress() = ind.srcAddress();
+
+    QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
+    stream.setByteOrder(QDataStream::LittleEndian);
+
+    stream << seq;
+    stream << quint8(ZDP_SUCCESS);
+    stream << nwkAddr;
+    stream.writeRawData(ndRaw.constData(), ndRaw.size());
+
+    if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success) { }
 }
 
 /*! Handle node descriptor response.
