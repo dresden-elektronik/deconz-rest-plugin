@@ -169,6 +169,14 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
                 Event e(si->prefix(), RConfigReachable, si->id(), item);
                 enqueueEvent(e);
             }
+            
+            item = si->item(RConfigEnrolled); // holds per device IAS state variable
+
+            if (item)
+            {
+                item->setValue(IAS_STATE_INIT);
+            }
+            
             checkSensorGroup(&*si);
             checkSensorBindingsForAttributeReporting(&*si);
             checkSensorBindingsForClientClusters(&*si);
