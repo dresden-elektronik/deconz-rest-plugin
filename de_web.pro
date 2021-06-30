@@ -176,6 +176,7 @@ SOURCES  = air_quality.cpp \
            identify.cpp \
            json.cpp \
            light_node.cpp \
+           mfspecific_cluster_xiaoyan.cpp \
            occupancy_sensing.cpp \
            poll_control.cpp \
            poll_manager.cpp \
