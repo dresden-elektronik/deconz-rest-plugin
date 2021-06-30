@@ -414,3 +414,111 @@ void DeRestPluginPrivate::handleNwkAddressReqIndication(const deCONZ::ApsDataInd
 
     }
 }
+
+/*! Patch invalid node descriptors resulting from mac capabilities of 0x00.
+    \param ind a ZDP NodeDescriptor_rsp
+ */
+void DeRestPluginPrivate::patchNodeDescriptor(const deCONZ::ApsDataIndication &ind)
+{
+    int i = 0;
+    quint16 nwk;
+    const deCONZ::Node *node;
+    deCONZ::NodeDescriptor nd;
+
+    {
+        quint8 seq;
+        quint8 status;
+
+        QDataStream stream(ind.asdu());
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        stream >> seq;
+        stream >> status;
+        stream >> nwk;
+
+        nd.readFromStream(stream);
+    }
+
+    while (apsCtrl->getNode(i, &node) == 0)
+    {
+        if(nwk == node->address().nwk() && node->address().nwk() != 0)      // Skip the coordinator
+        {
+            DBG_Printf(DBG_INFO_L2, "[ND] NWK: 0x%04X\n", node->address().nwk());
+            DBG_Printf(DBG_INFO_L2, "[ND] Ext: %s\n", qPrintable(node->address().toStringExt()));
+            DBG_Printf(DBG_INFO_L2, "[ND] Current node descriptor: 0x%s\n", qPrintable(node->nodeDescriptor().toByteArray().toHex()));
+            DBG_Printf(DBG_INFO_L2, "[ND] Checking node...\n");
+
+            if(node->nodeDescriptor().isNull() || node->nodeDescriptor().toByteArray() != nd.toByteArray())
+            {
+                deCONZ::Node *patchableNode = const_cast<deCONZ::Node*>(&*node);
+                deCONZ::NodeDescriptor &patchableNd = const_cast<deCONZ::NodeDescriptor&>(nd);
+
+                if(node->nodeDescriptor().isNull())                 // Check current node descriptor
+                {
+                    DBG_Printf(DBG_INFO_L2, "[ND] Current node descriptor is NULL...\n");
+                    DBG_Printf(DBG_INFO_L2, "[ND] Checking validity of received node descriptor...\n");
+                }
+                else if(node->nodeDescriptor().toByteArray() != nd.toByteArray())
+                {
+                    DBG_Printf(DBG_INFO_L2, "[ND] Current node descriptor deviates from the received...\n");
+                }
+                DBG_Printf(DBG_INFO_L2, "[ND] Received node descriptor: 0x%s\n", qPrintable(nd.toByteArray().toHex()));
+
+                if(qPrintable(nd.toByteArray().toHex()) == 0)       // Check received node descriptor
+                {
+                    // Sanity check, do nothing
+                }
+                else
+                {
+                    int j = 0;
+
+                    if(nd.macCapabilities() == 0)       // This already results in an invalid node descriptor
+                    {
+                        DBG_Printf(DBG_INFO_L2, "[ND] Received node descriptor is invalid due to mac capabilities being 0\n");
+                        DBG_Printf(DBG_INFO_L2, "[ND] Updating mac capabilities to 0x80...\n");
+                        patchableNd.setMacCapabilities(deCONZ::MacCapability::MacAllocateAddress);
+                        j++;
+                    }
+
+                    // Also fix incorrect manufacturer code for older Develco devices
+                    if(node->address().toStringExt().mid(2).startsWith("0015bc", Qt::CaseInsensitive) && nd.manufacturerCode() == 0x0000)
+                    {
+                        patchableNd.setManufacturerCode(4117);  // MFC: 0x1015
+                        j++;
+                    }
+
+                    if(j > 0)
+                    {
+                        if(!patchableNd.isNull() && node->nodeDescriptor().toByteArray() == patchableNd.toByteArray())
+                        {
+                            DBG_Printf(DBG_INFO_L2, "[ND] Node descriptor seems to have been already patched. All good, nothing to do...\n");
+                        }
+                        else if(!patchableNd.isNull())
+                        {
+                            DBG_Printf(DBG_INFO_L2, "[ND] Node descriptor is now valid, patching 0x%s\n", qPrintable(patchableNd.toByteArray().toHex()));
+                            patchableNode->setNodeDescriptor(patchableNd);
+                            DBG_Printf(DBG_INFO_L2, "[ND] Updating node cache and database\n");
+                            apsCtrl->updateNode(*patchableNode);
+                            DBG_Printf(DBG_INFO_L2, "[ND] new MFC: 0x%004X\n", node->nodeDescriptor().manufacturerCode());
+                            pushZdpDescriptorDb(node->address().ext(), ZDO_ENDPOINT, ZDP_NODE_DESCRIPTOR_CLID, node->nodeDescriptor().toByteArray());
+                        }
+                        else
+                        {
+                            DBG_Printf(DBG_INFO_L2, "[ND] Node descriptor patch skipped due to invalid new node descriptor\n");
+                        }
+                    }
+                    else
+                    {
+                        DBG_Printf(DBG_INFO_L2, "[ND] Node descriptor patch skipped due to other reasons\n", node->nodeDescriptor().manufacturerCode());
+                    }
+                }
+            }
+            else
+            {
+                DBG_Printf(DBG_INFO_L2, "[ND] All good, nothing to do...\n");
+
+            }
+        }
+        i++;
+    }
+}
