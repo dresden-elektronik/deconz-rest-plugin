@@ -1,10 +1,12 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
+#include "simple_metering.h"
 
-#define CURRENT_SUMMATION_DELIVERED             0x0000
-#define PULSE_CONFIGURATION                     0x0300  // Develco specific
-#define INTERFACE_MODE                          0x0302  // Develco specific
-#define INSTANTANEOUS_DEMAND                    0x0400
+const std::array<KeyValMapInt, 8> RConfigInterfaceModeValuesZHEMI = { { {1, PULSE_COUNTING_ELECTRICITY}, {2, PULSE_COUNTING_GAS}, {3, PULSE_COUNTING_WATER},
+                                                                               {4, KAMSTRUP_KMP}, {5, LINKY}, {6, DLMS_COSEM}, {7, DSMR_23}, {8, DSMR_40} } };
+
+const std::array<KeyValMapInt, 5> RConfigInterfaceModeValuesEMIZB = { { {1, NORWEGIAN_HAN}, {2, NORWEGIAN_HAN_EXTRA_LOAD}, {3, AIDON_METER},
+                                                                               {4, KAIFA_KAMSTRUP_METERS}, {5, AUTO_DETECT} } };
 
 /*! Handle packets related to the ZCL simple metering cluster.
     \param ind the APS level data indication containing the ZCL packet
@@ -76,7 +78,7 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
 
             switch (attrId)
             {
-            case CURRENT_SUMMATION_DELIVERED:
+            case METERING_ATTRID_CURRENT_SUMMATION_DELIVERED:
             {
                 quint64 consumption = attr.numericValue().u64;
                 item = sensor->item(RStateConsumption);
@@ -119,7 +121,7 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
             }
                 break;
 
-            case PULSE_CONFIGURATION:
+            case METERING_ATTRID_PULSE_CONFIGURATION:
             {
                 if (zclFrame.manufacturerCode() == VENDOR_DEVELCO && modelId == QLatin1String("ZHEMI101"))
                 {
@@ -137,7 +139,7 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
             }
                 break;
 
-            case INTERFACE_MODE:
+            case METERING_ATTRID_INTERFACE_MODE:
             {
                 if (zclFrame.manufacturerCode() == VENDOR_DEVELCO)
                 {
@@ -176,7 +178,7 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
             }
                 break;
 
-            case INSTANTANEOUS_DEMAND:
+            case METERING_ATTRID_INSTANTANEOUS_DEMAND:
             {
                 qint32 power = attr.numericValue().s32;
                 item = sensor->item(RStatePower);

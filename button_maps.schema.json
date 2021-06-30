@@ -84,6 +84,9 @@
           "XIAOYAN"
         ]
     },
+    "adurolight-commands": {
+      "enum": [ "ATTRIBUTE_REPORT", "COMMAND_0", "COMMAND_20" ]
+    },
     "basic-commands": {
       "enum": [ "0x02" ]
     },
@@ -148,6 +151,7 @@
         },
         {
           "anyOf": [
+            { "$ref": "#/definitions/adurolight-commands" },
             { "$ref": "#/definitions/basic-commands" },
             { "$ref": "#/definitions/onoff-commands" },
             { "$ref": "#/definitions/level-commands" },

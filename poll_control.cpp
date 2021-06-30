@@ -172,7 +172,7 @@ bool DeRestPluginPrivate::checkPollControlClusterTask(Sensor *sensor)
              outZclFrame.writeToStream(stream);
          }
 
-         if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+         if (apsCtrlWrapper.apsdeDataRequest(apsReq) == deCONZ::Success)
          {
              item->setValue(item->toNumber() & ~R_PENDING_SET_LONG_POLL_INTERVAL);
              return true;

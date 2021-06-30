@@ -445,7 +445,7 @@ int DeRestPluginPrivate::createRule(const ApiRequest &req, ApiResponse &rsp)
                 rsp.httpStatus = HttpStatusBadRequest;
                 return REQ_READY_SEND;
             }
-            
+
             QVariantMap rspItem;
             QVariantMap rspItemState;
 
@@ -1256,7 +1256,7 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
 
         if (!item->lastSet().isValid()) { return false; }
 
-        if (resource->prefix() == RSensors)
+        if (resource->prefix() == RSensors && c->suffix() != RConfigOn)
         {
             // don't trigger rule if sensor is disabled
             ResourceItem *item2 = resource->item(RConfigOn);
