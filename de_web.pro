@@ -124,6 +124,7 @@ HEADERS  = bindings.h \
            group_info.h \
            json.h \
            light_node.h \
+           mfspecific_cluster_xiaoyan.h \
            poll_control.h \
            poll_manager.h \
            product_match.h \
@@ -140,7 +141,8 @@ HEADERS  = bindings.h \
            thermostat_ui_configuration.h \
            tuya.h \
            utils/utils.h \
-           websocket_server.h
+           websocket_server.h \
+           zdp/zdp_handlers.h
 
 SOURCES  = air_quality.cpp \
            aps_controller_wrapper.cpp \
@@ -175,6 +177,8 @@ SOURCES  = air_quality.cpp \
            identify.cpp \
            json.cpp \
            light_node.cpp \
+           mfspecific_cluster_xiaoyan.cpp \
+           occupancy_sensing.cpp \
            poll_control.cpp \
            poll_manager.cpp \
            product_match.cpp \
@@ -214,7 +218,8 @@ SOURCES  = air_quality.cpp \
            zcl_tasks.cpp \
            window_covering.cpp \
            websocket_server.cpp \
-           xmas.cpp
+           xmas.cpp \
+           zdp/zdp_handlers.cpp
 
 win32 {
 

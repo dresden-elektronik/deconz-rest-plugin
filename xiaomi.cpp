@@ -541,6 +541,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             item = sensor.item(RStatePressure);
             if (item)
             {
+                ResourceItem *item2 = sensor.item(RConfigOffset);
+                if (item2 && item2->toNumber() != 0)
+                {
+                    pressure += item2->toNumber();
+                }
                 item->setValue(pressure);
                 enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
                 sensor.updateStateTimestamp();
