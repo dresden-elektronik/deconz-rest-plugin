@@ -1193,6 +1193,12 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
     {
         switch (ind.clusterId())
         {
+        case ZDP_NODE_DESCRIPTOR_CLID:
+        {
+            ZDP_HandleNodeDescriptorRequest(ind, apsCtrl);
+        }
+            break;
+
         case ZDP_NODE_DESCRIPTOR_RSP_CLID:
         {
             // Safeguard to issue a 2nd active endpoint request in case the first one got MIA

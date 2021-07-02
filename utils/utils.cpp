@@ -9,7 +9,9 @@
  */
 
 #include <deconz/aps.h>
+#include <deconz/aps_controller.h>
 #include <deconz/dbg_trace.h>
+#include <deconz/node.h>
 #include "utils.h"
 #include "resource.h"
 
@@ -238,4 +240,26 @@ bool isSameAddress(const deCONZ::Address &a, const deCONZ::Address &b)
     else { return false; }
 
     return true;
+}
+
+const deCONZ::Node *getCoreNode(quint64 extAddress, deCONZ::ApsController *apsCtrl)
+{
+    DBG_Assert(apsCtrl);
+
+    if (apsCtrl && extAddress != 0)
+    {
+        int i = 0;
+        const deCONZ::Node *node = nullptr;
+
+        while (apsCtrl->getNode(i, &node) == 0)
+        {
+            if (node->address().ext() == extAddress)
+            {
+                return node;
+            }
+            i++;
+        }
+    }
+
+    return nullptr;
 }
