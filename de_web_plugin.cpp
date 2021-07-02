@@ -472,6 +472,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SENGLED_OPTOELEC, "Z01-A19", zhejiangMacPrefix }, // Sengled SMART LED Z01-A19NAE26
     { VENDOR_JENNIC, "Plug-230V-ZB3.0", silabs2MacPrefix }, // Immax NEO ZB3.0 smart plug
     { VENDOR_JENNIC, "4in1-Sensor-ZB3.0", emberMacPrefix }, // Immax NEO ZB3.0 4 in 1 sensor
+    { VENDOR_JENNIC, "DoorWindow-Sensor-ZB3.0", emberMacPrefix }, // Immax NEO ZB3.0 window/door sensor 07045L
     { VENDOR_JENNIC, "Keyfob-ZB3.0", emberMacPrefix }, // Immax Keyfob
     { VENDOR_WAXMAN, "leakSMART Water Sensor V2", celMacPrefix }, // WAXMAN LeakSMART v2
     { VENDOR_PHILIO, "PST03A-v2.2.5", emberMacPrefix }, // Philio pst03-a
@@ -5446,6 +5447,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId == QLatin1String("lumi.sensor_magnet.agl02") ||            // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
                              modelId == QLatin1String("E1D-G73") ||                             // Sengled contact sensor
                              modelId == QLatin1String("DS01") ||                                // Sonoff SNZB-04
+                             modelId == QLatin1String("DoorWindow-Sensor-ZB3.0") ||             // Immax NEO ZB3.0 window/door sensor
                              modelId == QLatin1String("GMB-HAS-DW-B01") ||                      // GamaBit Ltd. Window/Door Sensor
                              modelId == QLatin1String("TY0203") ||                              // lidl / SilverCrest
                              modelId == QLatin1String("DCH-B112") ||                            // D-Link door/window sensor
