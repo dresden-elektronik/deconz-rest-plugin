@@ -7,6 +7,17 @@
 #include "read_files.h"
 #include "sensor.h"
 
+#define MAX_BUTTON_CHARACTER_LENGTH                    11
+#define MAX_BUTTON_VALUE                               32000
+#define MAX_BUTTON_ACTION_CHARACTER_LENGTH             40
+#define MAX_BUTTON_ACTION_VALUE                        64
+#define MAX_CLUSTER_CHARACTER_LENGTH                   20
+#define MAX_CLUSTER_VALUE                              0xFFFF
+#define MAX_COMMAND_CHARACTER_LENGTH                   28
+#define MAX_COMMAND_VALUE                              0xFF
+#define MAX_MODELID_CHARACTER_LENGTH                   32
+#define MAX_DESCRIPTION_CHARACTER_LENGTH               40
+
 QJsonDocument readButtonMapJson(const QString &path)
 {
     QFile file;
@@ -69,12 +80,12 @@ QMap<QString, quint16> loadButtonMapClustersJson(const QJsonDocument &buttonMaps
     {
         ++counter;
 
-        if (i.key().isNull() || i.key().isEmpty() || i.key().length() > 20)
+        if (i.key().isNull() || i.key().isEmpty() || i.key().length() > MAX_CLUSTER_CHARACTER_LENGTH)
         {
             DBG_Printf(DBG_INFO, "[ERROR] - Key #%d for object 'clusters' is no string or too long. Skipping entry...\n", counter);
             continue;
         }
-        else if (!i.value().isDouble() || i.value().toDouble() > 65535)
+        else if (!i.value().isDouble() || i.value().toDouble() > MAX_CLUSTER_VALUE)
         {
             DBG_Printf(DBG_INFO, "[ERROR] - Value #%d for object 'clusters' is no number or too large. Skipping entry...\n", counter);
             continue;
@@ -98,7 +109,7 @@ QMap<QString, QMap<QString, quint16>> loadButtonMapCommadsJson(const QJsonDocume
     {
         ++counter;
 
-        if (i.key().isNull() || i.key().isEmpty() || i.key().length() > 20)
+        if (i.key().isNull() || i.key().isEmpty() || i.key().length() > MAX_CLUSTER_CHARACTER_LENGTH)
         {
             DBG_Printf(DBG_INFO, "[ERROR] - Key #%d for object 'commands' is no string or too long. Skipping entry...\n", counter);
             continue;
@@ -119,12 +130,12 @@ QMap<QString, QMap<QString, quint16>> loadButtonMapCommadsJson(const QJsonDocume
             {
                 ++counter2;
 
-                if (i.key().isNull() || i.key().isEmpty() || i.key().length() > 28)
+                if (i.key().isNull() || i.key().isEmpty() || i.key().length() > MAX_COMMAND_CHARACTER_LENGTH)
                 {
                     DBG_Printf(DBG_INFO, "[ERROR] - Key #%d for object '%s' is no string or too long. Skipping entry...\n", counter2, qPrintable(commandsObjName));
                     continue;
                 }
-                else if (!i.value().isDouble() || i.value().toDouble() > 0xFF)       // FIXME: value might be too small
+                else if (!i.value().isDouble() || i.value().toDouble() > MAX_COMMAND_VALUE)       // FIXME: value might be too small
                 {
                     DBG_Printf(DBG_INFO, "[ERROR] - Value #%d for object '%s' is no number or too large. Skipping entry...\n", counter2, qPrintable(commandsObjName));
                     continue;
@@ -174,12 +185,12 @@ std::vector<ButtonProduct> loadButtonMapModelIdsJson(const QJsonDocument &button
                 {
                     const QString modelId = j->toString();
 
-                    if (j->isString() && !modelId.isEmpty() && modelId.size() <= 32)
+                    if (j->isString() && !modelId.isEmpty() && modelId.size() <= MAX_MODELID_CHARACTER_LENGTH)
                     {
                         item.productHash = qHash(modelId);
                         result.push_back(item);
                     }
-                    else if (j->isString() && modelId.size() > 32)
+                    else if (j->isString() && modelId.size() > MAX_MODELID_CHARACTER_LENGTH)
                     {
                         DBG_Printf(DBG_INFO, "[ERROR] - Entry of 'modelids', button map '%s' in JSON file is too long. Skipping entry...\n", qPrintable(buttonMapName));
                         continue;
@@ -226,12 +237,12 @@ std::vector<ButtonMap> loadButtonMapsJson(const QJsonDocument &buttonMaps, const
         {
             ++counter;
 
-            if (i.key().isNull() || i.key().isEmpty() || i.key().length() > 11)
+            if (i.key().isNull() || i.key().isEmpty() || i.key().length() > MAX_BUTTON_CHARACTER_LENGTH)
             {
                 DBG_Printf(DBG_INFO, "[ERROR] - Key #%d for object 'buttons' is no string or too long. Skipping entry...\n", counter);
                 continue;
             }
-            else if (!i.value().isDouble() || i.value().toDouble() > 32000)
+            else if (!i.value().isDouble() || i.value().toDouble() > MAX_BUTTON_VALUE)
             {
                 DBG_Printf(DBG_INFO, "[ERROR] - Value #%d for object 'buttons' is no number or too large. Skipping entry...\n", counter);
                 continue;
@@ -250,12 +261,12 @@ std::vector<ButtonMap> loadButtonMapsJson(const QJsonDocument &buttonMaps, const
         {
             ++counter;
 
-            if (i.key().isNull() || i.key().isEmpty() || i.key().length() > 33)
+            if (i.key().isNull() || i.key().isEmpty() || i.key().length() > MAX_BUTTON_ACTION_CHARACTER_LENGTH)
             {
                 DBG_Printf(DBG_INFO, "[ERROR] - Key #%d for object 'buttonActions' is no string or too long. Skipping entry...\n", counter);
                 continue;
             }
-            else if (!i.value().isDouble() || i.value().toDouble() > 16)
+            else if (!i.value().isDouble() || i.value().toDouble() > MAX_BUTTON_ACTION_VALUE)
             {
                 DBG_Printf(DBG_INFO, "[ERROR] - Value #%d for object 'buttonActions' is no number or too large. Skipping entry...\n", counter);
                 continue;
@@ -317,7 +328,7 @@ std::vector<ButtonMap> loadButtonMapsJson(const QJsonDocument &buttonMaps, const
                                 {
                                     const auto mode = buttonMapItemArr.at(0).toInt();
                                     //DBG_Printf(DBG_INFO, "[INFO] - Button map item #1: %d\n", buttonMapItemArr.at(0).toUint());
-                                    if (mode == 0) { btnMap.mode = Sensor::ModeNone; }
+                                    if      (mode == 0) { btnMap.mode = Sensor::ModeNone; }
                                     else if (mode == 1) { btnMap.mode = Sensor::ModeScenes; }
                                     else if (mode == 2) { btnMap.mode = Sensor::ModeTwoGroups; }
                                     else if (mode == 3) { btnMap.mode = Sensor::ModeColorTemperature; }
@@ -352,7 +363,7 @@ std::vector<ButtonMap> loadButtonMapsJson(const QJsonDocument &buttonMaps, const
                                     btnMap.clusterId = cid.toUInt(&ok, 0);
                                 }
                                 else if (buttonMapItemArr.at(2).isString() && !buttonMapItemArr.at(2).toString().startsWith(QLatin1String("0x")) &&
-                                         buttonMapItemArr.at(2).toString().length() <= 20)
+                                         buttonMapItemArr.at(2).toString().length() <= MAX_CLUSTER_CHARACTER_LENGTH)
                                 {
                                     QString cid = buttonMapItemArr.at(2).toString();
                                     if (btnMapClusters.value(cid, 65535) != 65535) { btnMap.clusterId = btnMapClusters.value(buttonMapItemArr.at(2).toString()); }
@@ -378,7 +389,7 @@ std::vector<ButtonMap> loadButtonMapsJson(const QJsonDocument &buttonMaps, const
                                     btnMap.zclCommandId = cmd.toUInt(&ok, 0);
                                 }
                                 else if (buttonMapItemArr.at(3).isString() && !buttonMapItemArr.at(3).toString().startsWith(QLatin1String("0x")) &&
-                                         buttonMapItemArr.at(3).toString().length() <= 28)
+                                         buttonMapItemArr.at(3).toString().length() <= MAX_COMMAND_CHARACTER_LENGTH)
                                 {
                                     QString cid = buttonMapItemArr.at(2).toString();
                                     QString cmd = buttonMapItemArr.at(3).toString();
@@ -429,7 +440,7 @@ std::vector<ButtonMap> loadButtonMapsJson(const QJsonDocument &buttonMaps, const
                                     continue;
                                 }
 
-                                if (buttonMapItemArr.at(5).isString() && buttonMapItemArr.at(5).toString().length() <= 11)
+                                if (buttonMapItemArr.at(5).isString() && buttonMapItemArr.at(5).toString().length() <= MAX_BUTTON_CHARACTER_LENGTH)
                                 {
                                     //DBG_Printf(DBG_INFO, "[INFO] - Button map item #6: %s\n", qPrintable(buttonMapItemArr.at(5).toString()));
                                     btn = buttons.value(buttonMapItemArr.at(5).toString(), 0);
@@ -441,7 +452,7 @@ std::vector<ButtonMap> loadButtonMapsJson(const QJsonDocument &buttonMaps, const
                                     continue;
                                 }
 
-                                if (buttonMapItemArr.at(6).isString() && buttonMapItemArr.at(6).toString().length() <= 32)
+                                if (buttonMapItemArr.at(6).isString() && buttonMapItemArr.at(6).toString().length() <= MAX_BUTTON_ACTION_CHARACTER_LENGTH)
                                 {
                                     //DBG_Printf(DBG_INFO, "[INFO] - Button map item #7: %s\n", qPrintable(buttonMapItemArr.at(6).toString()));
                                     btn += actions.value(buttonMapItemArr.at(6).toString(), 0);
@@ -454,7 +465,7 @@ std::vector<ButtonMap> loadButtonMapsJson(const QJsonDocument &buttonMaps, const
                                     continue;
                                 }
 
-                                if (buttonMapItemArr.at(7).isString() && buttonMapItemArr.at(7).toString().length() <= 40)
+                                if (buttonMapItemArr.at(7).isString() && buttonMapItemArr.at(7).toString().length() <= MAX_DESCRIPTION_CHARACTER_LENGTH)
                                 {
                                     //DBG_Printf(DBG_INFO, "[INFO] - Button map item #8: %s\n", qPrintable(buttonMapItemArr.at(7).toString()));
                                     btnMap.name = buttonMapItemArr.at(7).toString();

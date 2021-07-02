@@ -18,6 +18,8 @@
 
 namespace deCONZ {
     class Address;
+    class ApsController;
+    class Node;
 }
 
 struct KeyMap
@@ -81,5 +83,7 @@ decltype(auto) matchKeyValue(const K &key, const Cont &cont)
 
     return ret;
 }
+
+const deCONZ::Node *getCoreNode(quint64 extAddress, deCONZ::ApsController *apsCtrl);
 
 #endif // UTILS_H

@@ -371,6 +371,7 @@ using namespace deCONZ::literals;
 #define VENDOR_MUELLER              0x121B // Used by Mueller Licht
 #define VENDOR_AURORA               0x121C // Used by Aurora Aone
 #define VENDOR_SUNRICHER            0x1224 // white label used by iCasa, Illuminize, Namron, SLC ...
+#define VENDOR_XIAOYAN              0x1228
 #define VENDOR_XAL                  0x122A
 #define VENDOR_ADUROLIGHT           0x122D
 #define VENDOR_THIRD_REALITY        0x1233
@@ -1544,10 +1545,10 @@ public:
     void sendArmResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, quint8 armMode);
     void handleIndicationSearchSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     bool sendTuyaRequest(TaskItem &task, TaskType taskType, qint8 Dp_type, qint8 Dp_identifier, const QByteArray &data);
+    bool sendTuyaRequest(deCONZ::Address srcAddress, quint8 srcEndpoint, qint8 Dp_type, qint8 Dp_identifier, const QByteArray &data);
     bool sendTuyaCommand(const deCONZ::ApsDataIndication &ind, qint8 commandId, const QByteArray &data);
     void handleCommissioningClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     bool sendTuyaRequestThermostatSetWeeklySchedule(TaskItem &taskRef, quint8 weekdays, const QString &transitions, qint8 Dp_identifier);
-    void handleZdpIndication(const deCONZ::ApsDataIndication &ind);
     bool handleMgmtBindRspConfirm(const deCONZ::ApsDataConfirm &conf);
     void handleDeviceAnnceIndication(const deCONZ::ApsDataIndication &ind);
     void handleNodeDescriptorResponseIndication(const deCONZ::ApsDataIndication &ind);
@@ -1587,6 +1588,8 @@ public:
     bool deserialiseThermostatSchedule(const QString &s, QVariantMap *schedule);
     void handleSimpleMeteringClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
     void handleElectricalMeasurementClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
+    void handleXiaoyanClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleOccupancySensingClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
 
     // Modify node attributes
     void setAttributeOnOff(LightNode *lightNode);
