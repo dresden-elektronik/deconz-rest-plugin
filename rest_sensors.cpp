@@ -2434,10 +2434,6 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
     //sensor
     map[QLatin1String("name")] = sensor->name();
     map[QLatin1String("type")] = sensor->type();
-    // if (sensor->type().startsWith(QLatin1String("Z"))) // ZigBee sensor
-    // {
-    //     map[QLatin1String("lastseen")] = sensor->lastRx().toUTC().toString("yyyy-MM-ddTHH:mmZ");
-    // }
 
     if (req.path.size() > 2 && req.path[2] == QLatin1String("devices"))
     {
