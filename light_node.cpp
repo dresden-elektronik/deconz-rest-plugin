@@ -27,10 +27,6 @@ LightNode::LightNode() :
     m_sceneCapacity(16)
 
 {
-    QDateTime now = QDateTime::currentDateTime();
-    lastStatePush = now;
-    lastAttrPush = now;
-
     // add common items
     addItem(DataTypeBool, RStateOn);
     addItem(DataTypeString, RStateAlert);
@@ -356,10 +352,6 @@ void LightNode::rx()
     {
         setValue(RAttrLastSeen, lastRx().toUTC());
     }
-    // else
-    // {
-    //     item(RAttrLastSeen)->setValue(lastRx().toUTC());
-    // }
 }
 
 /*! Returns the lights HA endpoint descriptor.
@@ -646,7 +638,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             case DEV_ID_HA_WINDOW_COVERING_DEVICE:     ltype = QLatin1String("Window covering device"); break;
             case DEV_ID_DOOR_LOCK:                     ltype = QLatin1String("Door Lock"); break;
             case DEV_ID_DOOR_LOCK_UNIT:                ltype = QLatin1String("Door Lock Unit"); break;
-            
+
             case DEV_ID_FAN:                           ltype = QLatin1String("Fan"); break;
             case DEV_ID_CONFIGURATION_TOOL:            removeItem(RStateOn);
                                                        removeItem(RStateAlert);

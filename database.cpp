@@ -3079,6 +3079,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (isClip)
         {
+            sensor.removeItem(RConfigReachable);
+            sensor.removeItem(RAttrLastAnnounced);
+            sensor.removeItem(RAttrLastSeen);
             ok = true;
         }
         // convert from old format 0x0011223344556677 to 00:11:22:33:44:55:66:77-AB where AB is the endpoint
@@ -3374,7 +3377,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         else if (sensor.type().endsWith(QLatin1String("DoorLock")))
         {
             clusterId = clusterId ? clusterId : DOOR_LOCK_CLUSTER_ID;
-            
+
             sensor.addItem(DataTypeString, RStateLockState);
             sensor.addItem(DataTypeBool, RConfigLock);
         }

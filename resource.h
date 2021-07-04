@@ -338,8 +338,6 @@ public:
     int itemCount() const;
     ResourceItem *itemForIndex(size_t idx);
     const ResourceItem *itemForIndex(size_t idx) const;
-    QDateTime lastStatePush;
-    QDateTime lastAttrPush;
 
 private:
     Resource() = delete;

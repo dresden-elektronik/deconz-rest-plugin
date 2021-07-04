@@ -341,6 +341,10 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         sensor.setSwVersion(map[QLatin1String("swversion")].toString());
         sensor.setType(type);
 
+        sensor.removeItem(RConfigReachable);
+        sensor.removeItem(RAttrLastAnnounced);
+        sensor.removeItem(RAttrLastSeen);
+
         if (getSensorNodeForUniqueId(sensor.uniqueId()))
         {
             rsp.list.append(errorToMap(ERR_DUPLICATE_EXIST, QLatin1String("/sensors"), QString("sensor with uniqueid, %1, already exists").arg(sensor.uniqueId())));
@@ -832,7 +836,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 else if (rid.suffix == RConfigAlert) // String
                 {
                     const std::array<KeyValMap, 3> RConfigAlertValues = { { {QLatin1String("none"), 0}, {QLatin1String("select"), 2}, {QLatin1String("lselect"), 15} } };
-                    
+
                     const auto match = matchKeyValue(data.string, RConfigAlertValues);
 
                     if (isValid(match))
@@ -859,7 +863,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     if (data.uinteger > 18) { data.uinteger = 18; }
                     if (data.uinteger < 1) { data.uinteger = 1; }
-                    
+
                     QByteArray tuyaData;
                     tuyaData.append(static_cast<qint8>(data.uinteger & 0xff));
 
@@ -1328,7 +1332,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                         }
                     }
-                    
+
                 }
                 else if (rid.suffix == RConfigLocked) // Boolean
                 {
@@ -2363,8 +2367,7 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
                 config[key] = item->toVariant();
             }
         }
-
-        if (strncmp(rid.suffix, "state/", 6) == 0)
+        else if (strncmp(rid.suffix, "state/", 6) == 0)
         {
             const char *key = item->descriptor().suffix + 6;
 
@@ -2404,6 +2407,8 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
                 state[key] = item->toVariant();
             }
         }
+        else if (item->descriptor().suffix == RAttrLastAnnounced) { map["lastannounced"] = item->toString(); }
+        else if (item->descriptor().suffix == RAttrLastSeen) { map["lastseen"] = item->toString(); }
     }
     if (iox && ioy && ioz)
     {
@@ -2429,10 +2434,10 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
     //sensor
     map[QLatin1String("name")] = sensor->name();
     map[QLatin1String("type")] = sensor->type();
-    if (sensor->type().startsWith(QLatin1String("Z"))) // ZigBee sensor
-    {
-        map[QLatin1String("lastseen")] = sensor->lastRx().toUTC().toString("yyyy-MM-ddTHH:mmZ");
-    }
+    // if (sensor->type().startsWith(QLatin1String("Z"))) // ZigBee sensor
+    // {
+    //     map[QLatin1String("lastseen")] = sensor->lastRx().toUTC().toString("yyyy-MM-ddTHH:mmZ");
+    // }
 
     if (req.path.size() > 2 && req.path[2] == QLatin1String("devices"))
     {
@@ -2657,6 +2662,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             if (!(item->needPushSet() || item->needPushChange()))
             {
                 DBG_Printf(DBG_INFO_L2, "discard sensor config push for %s (already pushed)\n", e.what());
+                webSocketServer->flush(); // force transmit send buffer
                 return; // already pushed
             }
 
@@ -2763,19 +2769,42 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         ResourceItem *item = sensor->item(e.what());
         if (item && item->isPublic())
         {
+            if (!(item->needPushSet() || item->needPushChange()))
+            {
+                DBG_Printf(DBG_INFO_L2, "discard sensor attr push for %s (already pushed)\n", e.what());
+                webSocketServer->flush(); // force transmit send buffer
+                return; // already pushed
+            }
+
             QVariantMap map;
             map[QLatin1String("t")] = QLatin1String("event");
             map[QLatin1String("e")] = QLatin1String("changed");
             map[QLatin1String("r")] = QLatin1String("sensors");
             map[QLatin1String("id")] = e.id();
             map[QLatin1String("uniqueid")] = sensor->uniqueId();
-            QVariantMap config;
 
-            // For now, don't collect top-level attributes into a single event.
-            const char *key = item->descriptor().suffix + 5;
-            map[key] = item->toVariant();
+            QVariantMap attr;
 
-            webSocketServer->broadcastTextMessage(Json::serialize(map));
+            for (int i = 0; i < sensor->itemCount(); i++)
+            {
+                item = sensor->itemForIndex(i);
+                const ResourceItemDescriptor &rid = item->descriptor();
+
+                if (strncmp(rid.suffix, "attr/", 5) == 0) {
+                    const char *key = item->descriptor().suffix + 5;
+
+                    if (item->lastSet().isValid() && (gwWebSocketNotifyAll || item->needPushChange()))
+                    {
+                        attr[key] = item->toVariant();
+                        item->clearNeedPush();
+                    }
+                }
+            }
+
+            if (!attr.isEmpty()) {
+                map["attr"] = attr;
+                webSocketServer->broadcastTextMessage(Json::serialize(map));
+            }
         }
     }
     else if (e.what() == REventAdded)

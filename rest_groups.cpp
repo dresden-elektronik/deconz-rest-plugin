@@ -221,8 +221,8 @@ int DeRestPluginPrivate::createGroup(const ApiRequest &req, ApiResponse &rsp)
                                    "Toilet", "Front door", "Garage", "Terrace", "Garden", "Driveway",
                                    "Carport", "Other",
                                    "Home", "Downstairs", "Upstairs", "Top floor", "Attic", "Guest room",
-                                   "Staircase", "Lounge", "Man cave", "Computer", "Studio", "Music", 
-                                   "TV", "Reading", "Closet", "Storage", "Laundry room", "Balcony", 
+                                   "Staircase", "Lounge", "Man cave", "Computer", "Studio", "Music",
+                                   "TV", "Reading", "Closet", "Storage", "Laundry room", "Balcony",
                                    "Porch", "Barbecue", "Pool" })
             {
                 if (gclass == QLatin1String(c))
@@ -445,8 +445,8 @@ int DeRestPluginPrivate::setGroupAttributes(const ApiRequest &req, ApiResponse &
                                    "Toilet", "Front door", "Garage", "Terrace", "Garden", "Driveway",
                                    "Carport", "Other",
                                    "Home", "Downstairs", "Upstairs", "Top floor", "Attic", "Guest room",
-                                   "Staircase", "Lounge", "Man cave", "Computer", "Studio", "Music", 
-                                   "TV", "Reading", "Closet", "Storage", "Laundry room", "Balcony", 
+                                   "Staircase", "Lounge", "Man cave", "Computer", "Studio", "Music",
+                                   "TV", "Reading", "Closet", "Storage", "Laundry room", "Balcony",
                                    "Porch", "Barbecue", "Pool" })
             {
                 if (gclass == QLatin1String(c))
@@ -3449,7 +3449,7 @@ void DeRestPluginPrivate::handleGroupEvent(const Event &e)
         ResourceItem *item = group->item(e.what());
         if (item)
         {
-            if (group->lastStatePush.isValid() && item->lastSet() < group->lastStatePush)
+            if (!(item->needPushSet() || item->needPushChange()))
             {
                 DBG_Printf(DBG_INFO_L2, "discard group state push for %s: %s (already pushed)\n", qPrintable(e.id()), e.what());
                 webSocketServer->flush(); // force transmit send buffer
@@ -3472,9 +3472,10 @@ void DeRestPluginPrivate::handleGroupEvent(const Event &e)
                 {
                     const char *key = item->descriptor().suffix + 6;
 
-                    if (item->lastSet().isValid() && (gwWebSocketNotifyAll || (item->lastChanged().isValid() && item->lastChanged() >= group->lastStatePush)))
+                    if (item->lastSet().isValid() && (gwWebSocketNotifyAll || (item->lastChanged().isValid() && item->needPushChange())))
                     {
                         state[key] = item->toVariant();
+                        item->clearNeedPush();
                     }
                 }
 
@@ -3484,7 +3485,6 @@ void DeRestPluginPrivate::handleGroupEvent(const Event &e)
             {
                 map["state"] = state;
                 webSocketServer->broadcastTextMessage(Json::serialize(map));
-                group->lastStatePush = now;
             }
         }
     }

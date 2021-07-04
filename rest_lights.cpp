@@ -2940,7 +2940,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
         ResourceItem *item = lightNode->item(e.what());
         if (item)
         {
-            if (lightNode->lastStatePush.isValid() && item->lastSet() < lightNode->lastStatePush)
+            if (!(item->needPushSet() || item->needPushChange()))
             {
                 DBG_Printf(DBG_INFO_L2, "discard light state push for %s: %s (already pushed)\n", qPrintable(e.id()), e.what());
                 webSocketServer->flush(); // force transmit send buffer
@@ -2975,9 +2975,10 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     {
                         iy = item;
                     }
-                    else if (item->lastSet().isValid() && (gwWebSocketNotifyAll || (item->lastChanged().isValid() && item->lastChanged() >= lightNode->lastStatePush)))
+                    else if (item->lastSet().isValid() && (gwWebSocketNotifyAll || (item->lastChanged().isValid() && item->needPushChange())))
                     {
                         state[key] = item->toVariant();
+                        item->clearNeedPush();
                     }
                 }
             }
@@ -2985,12 +2986,14 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
             if (ix && ix->lastSet().isValid() && iy && iy->lastSet().isValid())
             {
                 if (gwWebSocketNotifyAll ||
-                    (ix->lastChanged().isValid() && ix->lastChanged() >= lightNode->lastStatePush) ||
-                    (iy->lastChanged().isValid() && iy->lastChanged() >= lightNode->lastStatePush))
+                    (ix->lastChanged().isValid() && ix->needPushChange()) ||
+                    (iy->lastChanged().isValid() && iy->needPushChange()))
                   {
                       xy.append(round(ix->toNumber() / 6.5535) / 10000.0);
                       xy.append(round(iy->toNumber() / 6.5535) / 10000.0);
                       state["xy"] = xy;
+                      ix->clearNeedPush();
+                      iy->clearNeedPush();
                   }
             }
 
@@ -2998,7 +3001,6 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
             {
                 map["state"] = state;
                 webSocketServer->broadcastTextMessage(Json::serialize(map));
-                lightNode->lastStatePush = now;
             }
 
             if ((e.what() == RStateOn || e.what() == RStateReachable) && !lightNode->groups().empty())
@@ -3021,7 +3023,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
         ResourceItem *item = lightNode->item(e.what());
         if (item)
         {
-            if (lightNode->lastAttrPush.isValid() && item->lastSet() < lightNode->lastAttrPush)
+            if (!(item->needPushSet() || item->needPushChange()))
             {
                 DBG_Printf(DBG_INFO_L2, "discard light state push for %s: %s (already pushed)\n", qPrintable(e.id()), e.what());
                 webSocketServer->flush(); // force transmit send buffer
@@ -3056,9 +3058,10 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     continue;
                 }
 
-                if (item->lastSet().isValid() && (gwWebSocketNotifyAll || (item->lastChanged().isValid() && item->lastChanged() >= lightNode->lastAttrPush)))
+                if (item->lastSet().isValid() && (gwWebSocketNotifyAll || (item->lastChanged().isValid() && item->needPushChange())))
                 {
                     attr[key] = item->toVariant();
+                    item->clearNeedPush();
                 }
             }
 
@@ -3066,7 +3069,6 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
             {
                 map["attr"] = attr;
                 webSocketServer->broadcastTextMessage(Json::serialize(map));
-                lightNode->lastAttrPush = now;
             }
         }
     }

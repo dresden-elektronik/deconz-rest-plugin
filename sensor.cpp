@@ -8,6 +8,7 @@
  *
  */
 
+#include "de_web_plugin_private.h"
 #include "sensor.h"
 #include "json.h"
 #include "product_match.h"
@@ -154,8 +155,6 @@ Sensor::Sensor() :
     m_resetRetryCount(0),
     m_rxCounter(0)
 {
-    QDateTime now = QDateTime::currentDateTime();
-    lastStatePush = now;
     durationDue = QDateTime();
 
     // common sensor items
@@ -166,6 +165,8 @@ Sensor::Sensor() :
     addItem(DataTypeString, RAttrSwVersion);
     addItem(DataTypeString, RAttrId);
     addItem(DataTypeString, RAttrUniqueId);
+    addItem(DataTypeTime, RAttrLastAnnounced);
+    addItem(DataTypeTime, RAttrLastSeen);
     addItem(DataTypeBool, RConfigOn);
     addItem(DataTypeBool, RConfigReachable);
     addItem(DataTypeTime, RStateLastUpdated);
@@ -264,6 +265,97 @@ const QString &Sensor::modelId() const
 void Sensor::setModelId(const QString &mid)
 {
     item(RAttrModelId)->setValue(mid.trimmed());
+}
+/*! Handles admin when ResourceItem value has been set.
+ * \param i ResourceItem
+ */
+void Sensor::didSetValue(ResourceItem *i)
+{
+    plugin->enqueueEvent(Event(RSensors, i->descriptor().suffix, id(), i));
+    plugin->updateSensorEtag(this);
+    setNeedSaveDatabase(true);
+    plugin->saveDatabaseItems |= DB_SENSORS;
+    plugin->queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+}
+
+/*! Set ResourceItem value.
+ * \param suffix ResourceItem suffix
+ * \param val ResourceIetm value
+ */
+bool Sensor::setValue(const char *suffix, qint64 val, bool forceUpdate)
+{
+    ResourceItem *i = item(suffix);
+    if (!i)
+    {
+        return false;
+    }
+    if (forceUpdate || i->toNumber() != val)
+    {
+        if (!(i->setValue(val)))
+        {
+            return false;
+        }
+        didSetValue(i);
+        return true;
+    }
+    return false;
+}
+
+/*! Set ResourceItem value.
+ * \param suffix ResourceItem suffix
+ * \param val ResourceIetm value
+ */
+bool Sensor::setValue(const char *suffix, const QString &val, bool forceUpdate)
+{
+    ResourceItem *i = item(suffix);
+    if (!i)
+    {
+        return false;
+    }
+    if (forceUpdate || i->toString() != val)
+    {
+        if (!(i->setValue(val)))
+        {
+            return false;
+        }
+        didSetValue(i);
+        return true;
+    }
+    return false;
+}
+
+/*! Set ResourceItem value.
+ * \param suffix ResourceItem suffix
+ * \param val ResourceIetm value
+ */
+bool Sensor::setValue(const char *suffix, const QVariant &val, bool forceUpdate)
+{
+    ResourceItem *i = item(suffix);
+    if (!i)
+    {
+        return false;
+    }
+    if (forceUpdate || i->toVariant() != val)
+    {
+        if (!(i->setValue(val)))
+        {
+            return false;
+        }
+        didSetValue(i);
+        return true;
+    }
+    return false;
+}
+
+/*! Mark received command and update lastseen. */
+void Sensor::rx()
+{
+    RestNodeBase *b = static_cast<RestNodeBase *>(this);
+    b->rx();
+    if (lastRx() >= item(RAttrLastSeen)->lastChanged().addSecs(plugin->gwLightLastSeenInterval))
+    {
+        setValue(RAttrLastSeen, lastRx().toUTC());
+    }
 }
 
 /*! Returns the resetRetryCount.

@@ -902,8 +902,6 @@ Resource::Resource(const char *prefix) :
 
 /*! Copy constructor. */
 Resource::Resource(const Resource &other) :
-    lastStatePush(other.lastStatePush),
-    lastAttrPush(other.lastAttrPush),
     m_prefix(other.m_prefix),
     m_rItems(other.m_rItems)
 {
@@ -921,8 +919,6 @@ Resource &Resource::operator=(const Resource &other)
 {
     if (this != &other)
     {
-        lastStatePush = other.lastStatePush;
-        lastAttrPush = other.lastAttrPush;
         m_prefix = other.m_prefix;
         m_rItems = other.m_rItems;
     }
@@ -934,8 +930,6 @@ Resource &Resource::operator=(Resource &&other) noexcept
 {
     if (this != &other)
     {
-        lastStatePush = std::move(other.lastStatePush);
-        lastAttrPush = std::move(other.lastAttrPush);
         m_prefix = other.m_prefix;
         m_rItems = std::move(other.m_rItems);
     }
