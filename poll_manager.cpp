@@ -163,16 +163,9 @@ void PollManager::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
         return;
     }
 
-    if (dstAddr.hasExt() && conf.dstAddress().hasExt()
-        && dstAddr.ext() != conf.dstAddress().ext())
+    if (!isSameAddress(dstAddr, conf.dstAddress()))
     {
-
-    }
-
-    else if (dstAddr.hasNwk() && conf.dstAddress().hasNwk()
-        && dstAddr.nwk() != conf.dstAddress().nwk())
-    {
-
+        return;
     }
 
     DBG_Printf(DBG_INFO_L2, "Poll APS confirm %u status: 0x%02X\n", conf.id(), conf.status());

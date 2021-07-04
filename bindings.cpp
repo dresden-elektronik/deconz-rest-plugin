@@ -224,26 +224,12 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
         std::vector<BindingTableReader>::iterator i = bindingTableReaders.begin();
         std::vector<BindingTableReader>::iterator end = bindingTableReaders.end();
 
-        if (ind.srcAddress().hasExt())
+        for (; i != end; ++i)
         {
-            for (; i != end; ++i)
+            if (isSameAddress(ind.srcAddress(), i->apsReq.dstAddress()))
             {
-                if (i->apsReq.dstAddress().ext() == ind.srcAddress().ext())
-                {
-                    btReader = &(*i);
-                    break;
-                }
-            }
-        }
-        else if (ind.srcAddress().hasNwk())
-        {
-            for (; i != end; ++i)
-            {
-                if (i->apsReq.dstAddress().nwk() == ind.srcAddress().nwk())
-                {
-                    btReader = &(*i);
-                    break;
-                }
+                btReader = &(*i);
+                break;
             }
         }
     }
