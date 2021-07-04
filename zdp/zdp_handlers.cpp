@@ -160,7 +160,7 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
         if (si->address().ext() == ext)
         {
             si->rx();
-            si->setValue(RAttrLastAnnounced, i->lastRx().toUTC());
+            si->setValue(RAttrLastAnnounced, si->lastRx().toUTC());
             found++;
             DBG_Printf(DBG_INFO, "DeviceAnnce of SensorNode: 0x%016llX [1]\n", si->address().ext());
 
