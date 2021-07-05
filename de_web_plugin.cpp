@@ -14949,6 +14949,19 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                             basicClusterEndpoint = sd.endpoint();
                         }
 
+                        if (!attr.isAvailable())
+                        {
+                            unavailBasicAttr.push_back(attr.id());
+                            continue;
+                        }
+                        else if (attr.lastRead() != static_cast<time_t>(-1) && attr.dataType() == deCONZ::ZclCharacterString && attr.toString().isEmpty())
+                        {
+                            // e.g. some devices return empty strings.
+                            // Check read timestamp to make sure the attribute is read at least once.
+                            unavailBasicAttr.push_back(attr.id());
+                            continue;
+                        }
+
                         if (attr.id() == 0x0004 && manufacturer.isEmpty())
                         {
                             manufacturer = attr.toString();
@@ -14960,26 +14973,10 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                         else if (attr.id() == 0x0006 && dateCode.isEmpty())
                         {
                             dateCode = attr.toString();
-                            dateCodeAvailable = attr.isAvailable(); // might become false after first read
                         }
                         else if (attr.id() == 0x4000 && swBuildId.isEmpty())
                         {
                             swBuildId = attr.toString();
-                            swBuildIdAvailable = attr.isAvailable(); // might become false after first read
-                        }
-                        else
-                        {
-                            continue;
-                        }
-
-                        if (!attr.isAvailable())
-                        {
-                            unavailBasicAttr.push_back(attr.id());
-                        }
-                        else if (attr.lastRead() != static_cast<time_t>(-1) && attr.dataType() == deCONZ::ZclCharacterString && attr.toString().isEmpty())
-                        {
-                            // e.g. some Trust devices return empty strings
-                            unavailBasicAttr.push_back(attr.id());
                         }
                     }
                     else if (cl.id() == IAS_ZONE_CLUSTER_ID)
@@ -14996,6 +14993,9 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                     }
                 }
             }
+
+            swBuildIdAvailable = std::find(unavailBasicAttr.cbegin(), unavailBasicAttr.cend(), 0x4000) == unavailBasicAttr.cend();
+            dateCodeAvailable = std::find(unavailBasicAttr.cbegin(), unavailBasicAttr.cend(), 0x0006) == unavailBasicAttr.cend();
 
             if ((sd.deviceId() == DEV_ID_IAS_ZONE || sd.deviceId() == DEV_ID_IAS_WARNING_DEVICE) && iasZoneType == 0)
             {
@@ -15046,17 +15046,6 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         if (sensor && sensor->deletedState() != Sensor::StateNormal)
         {
             sensor = nullptr; // force query
-        }
-
-        if (node->nodeDescriptor().manufacturerCode() == VENDOR_SAMJIN)
-        {
-            swBuildIdAvailable = false; // empty string
-            dateCodeAvailable = false; // unsupported attribute
-        }
-        else if (modelId == QLatin1String("HG06323")) // LIDL Remote Control
-        {
-            swBuildIdAvailable = false; // unsupported attribute
-            dateCodeAvailable = false; // empty string
         }
 
         // manufacturer, model id, sw build id
@@ -15128,18 +15117,12 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             }
             else if (swBuildId.isEmpty() && dateCode.isEmpty())
             {
-                if ((sc->address.ext() & macPrefixMask) == tiMacPrefix ||
-                    existDevicesWithVendorCodeForMacPrefix(sc->address, VENDOR_UBISYS) ||
-                    modelId == QLatin1String("Motion Sensor-A") || // OSRAM motion sensor
-                    manufacturer.startsWith(QLatin1String("Climax")) ||
-                    modelId.startsWith(QLatin1String("lumi")) ||
-                    node->nodeDescriptor().manufacturerCode() == VENDOR_CENTRALITE ||
-                    !swBuildIdAvailable)
+                if (!swBuildIdAvailable && dateCodeAvailable)
                 {
                     DBG_Printf(DBG_INFO, "[4.1] Get date code\n");
                     attributes.push_back(0x0006); // date code
                 }
-                else
+                else if (swBuildIdAvailable)
                 {
                     DBG_Printf(DBG_INFO, "[4.1] Get sw build id\n");
                     attributes.push_back(0x4000); // sw build id
