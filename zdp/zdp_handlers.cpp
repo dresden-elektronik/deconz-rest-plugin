@@ -267,7 +267,7 @@ struct MapMfCode
     quint16 serverMask;
 };
 
-static const std::array<MapMfCode, 3> mapMfCode = {
+static const std::array<MapMfCode, 2> mapMfCode = {
     {
         { 0x04cf8c0000000000ULL, 0x115F, 0x0040}, // Xiaomi
         { 0x54ef440000000000ULL, 0x115F, 0x0040}  // Xiaomi
@@ -331,6 +331,7 @@ void ZDP_HandleNodeDescriptorRequest(const deCONZ::ApsDataIndication &ind, deCON
     }
 
     auto i = std::find_if(mapMfCode.cbegin(), mapMfCode.cend(), [&ind](const auto &entry) {
+        Q_ASSERT(entry.macPrefix != 0); // array size larger than given entries
         return (ind.srcAddress().ext() & entry.macPrefix) == entry.macPrefix;
     });
 
