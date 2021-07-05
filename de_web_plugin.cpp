@@ -16373,13 +16373,13 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 DBG_Printf(DBG_INFO, "Write Aqara switch 0x%016llX mode attribute 0x0009 = 1\n", sensor->address().ext());
                 deCONZ::ZclAttribute attr(0x0009, deCONZ::Zcl8BitUint, QLatin1String("mode"), deCONZ::ZclReadWrite, false);
                 attr.setValue(static_cast<quint64>(1));
-                writeAttribute(sensor, 0x01, XIAOMI_CLUSTER_ID, attr, VENDOR_XIAOMI);
+                writeAttribute(sensor, sensor->fingerPrint().endpoint, XIAOMI_CLUSTER_ID, attr, VENDOR_XIAOMI);
 
                 // Activate multiclick mode
                 DBG_Printf(DBG_INFO, "Write Aqara switch 0x%016llX multiclick mode attribute 0x0125 = 2\n", sensor->address().ext());
                 deCONZ::ZclAttribute attr2(0x0125, deCONZ::Zcl8BitUint, QLatin1String("multiclick mode"), deCONZ::ZclReadWrite, false);
                 attr2.setValue(static_cast<quint64>(2));
-                writeAttribute(sensor, 0x01, XIAOMI_CLUSTER_ID, attr2, VENDOR_XIAOMI);
+                writeAttribute(sensor, sensor->fingerPrint().endpoint, XIAOMI_CLUSTER_ID, attr2, VENDOR_XIAOMI);
 
                 item->setValue(item->toNumber() & ~R_PENDING_MODE);
             }
