@@ -348,6 +348,7 @@ using namespace deCONZ::literals;
 #define VENDOR_DDEL                 0x1135
 #define VENDOR_WAXMAN               0x113B
 #define VENDOR_OWON                 0x113C
+#define VENDOR_TUYA                 0x1141
 #define VENDOR_LUTRON               0x1144
 #define VENDOR_BOSCH2               0x1155
 #define VENDOR_ZEN                  0x1158
