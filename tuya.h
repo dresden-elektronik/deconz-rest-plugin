@@ -107,12 +107,20 @@
 #define DP_IDENTIFIER_HUMIDITY_ALARM 0x72
 #define DP_IDENTIFIER_VOLUME 0x74
 
+// Value for dp_identifier for sensor
+//-----------------------------------
+#define DP_IDENTIFIER_REPORTING_TIME 0x62
+#define DP_IDENTIFIER_TEMPERATURE 0x6B
+#define DP_IDENTIFIER_HUMIDITY 0x6C
+#define DP_IDENTIFIER_BATTERY 0x6E
+#define DP_IDENTIFIER_REPORTING 0x70
 
 // Value for tuya command
 //-----------------------
 #define TUYA_REQUEST 0x00
 #define TUYA_REPORTING 0x01
 #define TUYA_QUERY 0x02
+#define TUYA_STATUS_SEARCH 0x06
 #define TUYA_TIME_SYNCHRONISATION 0x24
 
 bool UseTuyaCluster(const QString &manufacturer);
