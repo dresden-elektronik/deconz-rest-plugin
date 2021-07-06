@@ -9,6 +9,7 @@
  */
 
 #include "de_web_plugin_private.h"
+#include "utils/utils.h"
 
 #define CHECK_RESET_DEVICES 3000
 #define WAIT_CONFIRM 2000

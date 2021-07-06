@@ -10,6 +10,7 @@
 
 #include "poll_manager.h"
 #include "de_web_plugin_private.h"
+#include "utils/utils.h"
 
 /*! Constructor.
  */
