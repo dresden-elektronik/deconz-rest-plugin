@@ -6862,6 +6862,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 (!modelId.startsWith(QLatin1String("lumi.plug.ma"))) &&
                 (modelId != QLatin1String("Plug-230V-ZB3.0")) &&
                 (modelId != QLatin1String("lumi.switch.b1naus01")) &&
+                (modelId != QLatin1String("lumi.switch.n0agl1")) &&
                 (modelId != QLatin1String("Connected socket outlet")) &&
                 (!modelId.startsWith(QLatin1String("SPW35Z"))))
             {
@@ -7354,12 +7355,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (modelId.startsWith(QLatin1String("lumi")))
     {
         sensorNode.setManufacturer("LUMI");
-        if (!sensorNode.modelId().startsWith(QLatin1String("lumi.ctrl_")) &&
-            !sensorNode.modelId().startsWith(QLatin1String("lumi.plug")) &&
-            !sensorNode.modelId().startsWith(QLatin1String("lumi.relay.c")) &&
-            sensorNode.modelId() != QLatin1String("lumi.curtain") &&
-            sensorNode.modelId() != QLatin1String("lumi.sensor_natgas") &&
-            sensorNode.modelId() != QLatin1String("lumi.switch.b1naus01") &&
+        if (!sensorNode.node()->nodeDescriptor().receiverOnWhenIdle() && sensorNode.modelId() != QLatin1String("lumi.sensor_natgas") &&
             !sensorNode.type().endsWith(QLatin1String("Battery")))
         {
             sensorNode.addItem(DataTypeUInt8, RConfigBattery);
