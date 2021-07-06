@@ -227,15 +227,15 @@ bool isSameAddress(const deCONZ::Address &a, const deCONZ::Address &b)
         // nested if statement, so the NWK check won't be made if both MAC addresses are known
         if (a.ext() != b.ext())
         {
-             return false;
+            return false;
         }
     }
-    else  if (a.hasNwk() && b.hasNwk())
+    else if (a.hasNwk() && b.hasNwk())
     {
-       if (a.nwk() != b.nwk())
-       {
+        if (a.nwk() != b.nwk())
+        {
             return false;
-       }
+        }
     }
     else { return false; }
 

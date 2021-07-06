@@ -3109,8 +3109,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
         return;
     }
 
-    if ((ind.srcAddress().hasExt() && ind.srcAddress().ext() == fastProbeAddr.ext()) ||
-        (fastProbeAddr.hasExt() && ind.srcAddress().hasNwk() && ind.srcAddress().nwk() == fastProbeAddr.nwk()))
+    if (isSameAddress(ind.srcAddress(), fastProbeAddr))
     {
         DBG_Printf(DBG_INFO, "FP indication 0x%04X / 0x%04X (0x%016llX / 0x%04X)\n", ind.profileId(), ind.clusterId(), ind.srcAddress().ext(), ind.srcAddress().nwk());
         DBG_Printf(DBG_INFO, "                      ...     (0x%016llX / 0x%04X)\n", fastProbeAddr.ext(), fastProbeAddr.nwk());
@@ -3213,16 +3212,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
             return;
         }
 
-        if (!fastProbeAddr.hasExt())
-        {
-            return;
-        }
-
-        if (ind.srcAddress().hasExt() && fastProbeAddr.ext() != ind.srcAddress().ext())
-        {
-            return;
-        }
-        else if (ind.srcAddress().hasNwk() && fastProbeAddr.nwk() != ind.srcAddress().nwk())
+        if (!isSameAddress(ind.srcAddress(), fastProbeAddr))
         {
             return;
         }
@@ -3310,13 +3300,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
 
         for (; i != end; ++i)
         {
-            if (ind.srcAddress().hasExt() && i->address.ext() == ind.srcAddress().ext())
-            {
-                sc = &*i;
-                break;
-            }
-
-            if (ind.srcAddress().hasNwk() && i->address.nwk() == ind.srcAddress().nwk())
+            if (isSameAddress(ind.srcAddress(), i->address))
             {
                 sc = &*i;
                 break;
@@ -3374,20 +3358,15 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
                 {
                     // ignore
                 }
-                else*/ if (node->address().hasExt() && ind.srcAddress().hasExt() &&
-                    ind.srcAddress().ext() == node->address().ext())
+                else*/
+                
+                if (isSameAddress(node->address(), ind.srcAddress()))
                 {
                     indAddress = node->address();
                     macCapabilities = node->macCapabilities();
                     break;
                 }
-                else if (node->address().hasNwk() && ind.srcAddress().hasNwk() &&
-                    ind.srcAddress().nwk() == node->address().nwk())
-                {
-                    indAddress = node->address();
-                    macCapabilities = node->macCapabilities();
-                    break;
-                }
+                
                 i++;
             }
         }

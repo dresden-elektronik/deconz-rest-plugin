@@ -9,6 +9,7 @@
  */
 
 #include "de_web_plugin_private.h"
+#include "utils/utils.h"
 
 #define CHECK_RESET_DEVICES 3000
 #define WAIT_CONFIRM 2000
@@ -231,9 +232,7 @@ void DeRestPluginPrivate::handleMgmtLeaveRspIndication(const deCONZ::ApsDataIndi
 
             for (i = nodes.begin(); i != end; ++i)
             {
-
-                if ((ind.srcAddress().hasExt() && i->address().ext() == ind.srcAddress().ext()) ||
-                    (ind.srcAddress().hasNwk() && i->address().nwk() == ind.srcAddress().nwk()))
+                if (isSameAddress(ind.srcAddress(), i->address()))
                 {
                    i->setResetRetryCount(0);
                    if (i->state() == LightNode::StateDeleted)
@@ -248,8 +247,7 @@ void DeRestPluginPrivate::handleMgmtLeaveRspIndication(const deCONZ::ApsDataIndi
 
             for (s = sensors.begin(); s != send; ++s)
             {
-                if ((ind.srcAddress().hasExt() && s->address().ext() == ind.srcAddress().ext()) ||
-                    (ind.srcAddress().hasNwk() && s->address().nwk() == ind.srcAddress().nwk()))
+                if (isSameAddress(ind.srcAddress(), s->address()))
                 {
                    s->setResetRetryCount(0);
                    s->item(RConfigReachable)->setValue(false);
