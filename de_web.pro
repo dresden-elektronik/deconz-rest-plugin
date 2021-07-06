@@ -133,6 +133,7 @@ HEADERS  = bindings.h \
            group_info.h \
            json.h \
            light_node.h \
+           mfspecific_cluster_xiaoyan.h \
            poll_control.h \
            poll_manager.h \
            product_match.h \
@@ -154,8 +155,8 @@ HEADERS  = bindings.h \
            utils/utils.h \
            websocket_server.h \
            zcl/zcl.h \
-           zdp/zdp.h
-           
+           zdp/zdp.h \
+           zdp/zdp_handlers.h
 
 SOURCES  = air_quality.cpp \
            aps_controller_wrapper.cpp \
@@ -198,6 +199,7 @@ SOURCES  = air_quality.cpp \
            identify.cpp \
            json.cpp \
            light_node.cpp \
+           mfspecific_cluster_xiaoyan.cpp \
            occupancy_sensing.cpp \
            poll_control.cpp \
            poll_manager.cpp \
@@ -240,10 +242,11 @@ SOURCES  = air_quality.cpp \
            xiaomi.cpp \
            window_covering.cpp \
            websocket_server.cpp \
+           xmas.cpp \
            zcl/zcl.cpp \
            zcl_tasks.cpp \
            zdp/zdp.cpp \
-           xmas.cpp
+           zdp/zdp_handlers.cpp
 
 win32 {
 

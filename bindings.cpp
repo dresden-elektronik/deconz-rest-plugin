@@ -246,26 +246,12 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
         std::vector<BindingTableReader>::iterator i = bindingTableReaders.begin();
         std::vector<BindingTableReader>::iterator end = bindingTableReaders.end();
 
-        if (ind.srcAddress().hasExt())
+        for (; i != end; ++i)
         {
-            for (; i != end; ++i)
+            if (isSameAddress(ind.srcAddress(), i->apsReq.dstAddress()))
             {
-                if (i->apsReq.dstAddress().ext() == ind.srcAddress().ext())
-                {
-                    btReader = &(*i);
-                    break;
-                }
-            }
-        }
-        else if (ind.srcAddress().hasNwk())
-        {
-            for (; i != end; ++i)
-            {
-                if (i->apsReq.dstAddress().nwk() == ind.srcAddress().nwk())
-                {
-                    btReader = &(*i);
-                    break;
-                }
+                btReader = &(*i);
+                break;
             }
         }
     }
@@ -1794,6 +1780,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                  modelId.startsWith(QLatin1String("S57003")) ||  // SLC switches
                  modelId == QLatin1String("CCT593011_AS") ||     // LK Wiser Temperature and Humidity Sensor
                  modelId == QLatin1String("CCT595011_AS") ||     // LK Wiser Motion Sensor
+                 modelId == QLatin1String("ZB-DoorSensor-D0003") || // Linkind Door/Window Sensor
                  modelId.startsWith(QLatin1String("FNB56-")) ||  // Feibit devices
                  modelId.startsWith(QLatin1String("FB56-")))     // Feibit devices
         {
@@ -1876,6 +1863,13 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.minInterval = 30;
             rq.maxInterval = 21600;
             rq.reportableChange8bit = 10;
+        }
+        else if (modelId == QLatin1String("lumi.remote.b28ac1")) // Aqara Wireless Remote Switch H1 (Double Rocker)
+        {
+            rq.attributeId = 0x0020;   // battery voltage
+            rq.minInterval = 3;
+            rq.maxInterval = 3600;
+            rq.reportableChange8bit = 1;
         }
         else
         {
@@ -3007,6 +3001,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("lumi.sensor_magnet.agl02") ||
         sensor->modelId() == QLatin1String("lumi.flood.agl02") ||
         sensor->modelId() == QLatin1String("lumi.switch.n0agl1") ||
+        sensor->modelId() == QLatin1String("lumi.remote.b28ac1") ||
         // iris
         sensor->modelId().startsWith(QLatin1String("1116-S")) ||
         sensor->modelId().startsWith(QLatin1String("1117-S")) ||
@@ -3031,6 +3026,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("Z01-A19")) ||
         // Linkind
         sensor->modelId() == QLatin1String("ZB-MotionSensor-D0003") ||
+        sensor->modelId() == QLatin1String("ZB-DoorSensor-D0003") ||
         // Drayton
         sensor->modelId() == QLatin1String("iTRV") ||
         // LK Wiser
@@ -3041,6 +3037,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Immax
         sensor->modelId() == QLatin1String("Plug-230V-ZB3.0") ||
         sensor->modelId() == QLatin1String("4in1-Sensor-ZB3.0") ||
+        sensor->modelId() == QLatin1String("DoorWindow-Sensor-ZB3.0") ||
         sensor->modelId() == QLatin1String("Keyfob-ZB3.0") ||
         // Sercomm
         sensor->modelId().startsWith(QLatin1String("SZ-")) ||
@@ -3105,6 +3102,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("0x8031") ||
         sensor->modelId() == QLatin1String("0x8034") ||
         sensor->modelId() == QLatin1String("0x8035") ||
+        // Swann
+        sensor->modelId() == QLatin1String("SWO-MOS1PA") ||
         // LIDL
         sensor->modelId() == QLatin1String("HG06323") ||
         // Eria
