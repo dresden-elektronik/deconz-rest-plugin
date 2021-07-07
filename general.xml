@@ -251,6 +251,7 @@
 		</attribute-set>
 		<attribute id="0xfffd" name="Cluster Revision" type="u16" default="0" access="rw" required="o"></attribute>
 		<command id="00" dir="recv" name="Reset to Factory Defaults" required="o"></command>
+        <command id="0xf0" dir="recv" name="Tuya test" required="o"></command>
 		</server>
 		<client>
 		</client>
