@@ -2913,6 +2913,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("Remote toggle switch") || //Legrand switch module
         sensor->modelId() == QLatin1String("Teleruptor") || //Legrand teleruptor
         sensor->modelId() == QLatin1String("Contactor") || //Legrand Contactor
+        // Adeo
+        sensor->modelId() == QLatin1String("LDSENK10") || // ADEO Animal compatible motion sensor (Leroy Merlin)
         // Philio
         sensor->modelId() == QLatin1String("PST03A-v2.2.5") || //Philio pst03-a
         // ORVIBO
