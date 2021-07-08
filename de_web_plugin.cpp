@@ -993,7 +993,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case TIME_CLUSTER_ID:
-            //handleTimeClusterIndication(ind, zclFrame);
+            handleTimeClusterIndication(ind, zclFrame);
             break;
 
         case WINDOW_COVERING_CLUSTER_ID:
