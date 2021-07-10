@@ -3142,6 +3142,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : ONOFF_CLUSTER_ID;
                 if (sensor.modelId().startsWith(QLatin1String("RDM00")) ||
+                    sensor.modelId().startsWith(QLatin1String("Pocket remote")) ||
                     sensor.modelId().startsWith(QLatin1String("SYMFONISK")))
                 {
                     // blacklisted

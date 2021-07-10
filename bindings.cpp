@@ -3996,7 +3996,6 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
          sensor->modelId() == QLatin1String("Double gangs remote switch") ||
 	     sensor->modelId() == QLatin1String("Shutters central remote switch") ||
          sensor->modelId() == QLatin1String("Remote toggle switch") ||
-         sensor->modelId() == QLatin1String("Pocket remote") ||
          sensor->modelId() == QLatin1String("Remote motion sensor"))
     {
         //Make group but without uniqueid

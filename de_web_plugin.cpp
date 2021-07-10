@@ -4268,6 +4268,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() != 0)
     {
         ResourceItem *item = sensor->addItem(DataTypeString, RConfigGroup);
+        
+        DBG_Printf(DBG_INFO, "Legrand Debug 10");
 
         quint16 groupId = ind.dstAddress().group();
 
