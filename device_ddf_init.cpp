@@ -103,9 +103,9 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
     return item;
 }
 
-/*! Creates and initialises sub-device Resources and ResourceItems if not already present.
+/*! Creates and initializes sub-device Resources and ResourceItems if not already present.
 
-    This function can replace database and joining device initialisation.
+    This function replaces the legacy database loading and joining device initialization.
  */
 bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &description)
 {
