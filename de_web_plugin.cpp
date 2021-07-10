@@ -1820,6 +1820,9 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             {
                 return;
             }
+            
+            // display some information
+            DBG_Printf(DBG_ZGP, "Device commissioning : options.byte 0x%02X , extOptions.byte 0x%02X , gpdsrcid %u , command 0x%02X , Payload %s\n", options.byte, extOptions.byte, ind.gpdSrcId(), gpdDeviceId, qPrintable(ind.payload().toHex()));
 
             // create new sensor
             Sensor sensorNode;
