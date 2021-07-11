@@ -3190,7 +3190,12 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 sensor.addItem(DataTypeUInt16, RStateX);
                 sensor.addItem(DataTypeUInt16, RStateY);
-                sensor.addItem(DataTypeUInt16, RStateAngle);
+                sensor.addItem(DataTypeInt16, RStateAngle);
+            }
+            else if (sensor.modelId() == QLatin1String("TERNCY-SD01"))
+            {
+                sensor.addItem(DataTypeInt16, RStateAngle);
+                sensor.addItem(DataTypeUInt16, RStateEventDuration);
             }
         }
         else if (sensor.type().endsWith(QLatin1String("LightLevel")))
@@ -3269,6 +3274,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             item = sensor.addItem(DataTypeInt16, RStatePressure);
             item->setValue(0);
+            item = sensor.addItem(DataTypeInt16, RConfigOffset);
+            item->setValue(0);
         }
         else if (sensor.type().endsWith(QLatin1String("Presence")))
         {
@@ -3276,7 +3283,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : OCCUPANCY_SENSING_CLUSTER_ID;
                 if (sensor.modelId().startsWith(QLatin1String("FLS")) ||
-                    sensor.modelId().startsWith(QLatin1String("SML00")))
+                    sensor.modelId().startsWith(QLatin1String("SML00")) ||
+                    sensor.modelId().startsWith(QLatin1String("MOSZB-1")))
                 {
                     // TODO write and recover min/max to db
                     deCONZ::NumericUnion dummy;
@@ -3313,6 +3321,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item->setValue(0);
                 item = sensor.addItem(DataTypeUInt8, RConfigSensitivityMax);
                 item->setValue(R_SENSITIVITY_MAX_DEFAULT);
+            }
+            else if (sensor.modelId().startsWith(QLatin1String("MOSZB-1")) && clusterId == OCCUPANCY_SENSING_CLUSTER_ID) // Develco/frient motion sensor
+            {
+                sensor.addItem(DataTypeUInt16, RConfigDelay)->setValue(0);
+                sensor.addItem(DataTypeUInt16, RConfigPending)->setValue(0);
             }
             else
             {
@@ -3382,8 +3395,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.addItem(DataTypeUInt8, RConfigMelody);
                 sensor.addItem(DataTypeString, RConfigPreset);
                 sensor.addItem(DataTypeUInt8, RConfigVolume);
-                sensor.addItem(DataTypeString, RConfigTempThreshold);
-                sensor.addItem(DataTypeString, RConfigHumiThreshold);
+                sensor.addItem(DataTypeInt8, RConfigTempMaxThreshold);
+                sensor.addItem(DataTypeInt8, RConfigTempMinThreshold);
+                sensor.addItem(DataTypeInt8, RConfigHumiMaxThreshold);
+                sensor.addItem(DataTypeInt8, RConfigHumiMinThreshold);
             }
 
         }
@@ -3534,8 +3549,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(30);
             item = sensor.addItem(DataTypeInt8, RConfigSunsetOffset);
             item->setValue(-30);
-            sensor.addItem(DataTypeString, RConfigLat);
-            sensor.addItem(DataTypeString, RConfigLong);
+            sensor.addItem(DataTypeString, RConfigLat)->setIsPublic(false);
+            sensor.addItem(DataTypeString, RConfigLong)->setIsPublic(false);
             sensor.addItem(DataTypeBool, RStateDaylight);
             sensor.addItem(DataTypeBool, RStateDark);
             sensor.addItem(DataTypeInt32, RStateStatus);
@@ -3643,7 +3658,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 if (sensor.modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
-                    sensor.addItem(DataTypeUInt32, RConfigHostFlags); // hidden
+                    sensor.addItem(DataTypeUInt32, RConfigHostFlags)->setIsPublic(false);
                     sensor.addItem(DataTypeBool, RConfigDisplayFlipped)->setValue(false);
                     sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                     sensor.addItem(DataTypeString, RConfigMode);
@@ -3712,7 +3727,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     // Supported with Danfoss firmware version 1.08
                     sensor.addItem(DataTypeBool, RConfigScheduleOn)->setValue(false);
                     sensor.addItem(DataTypeString, RConfigSchedule);
-                    sensor.addItem(DataTypeInt16, RConfigExternalTemperatureSensor);
+                    sensor.addItem(DataTypeInt16, RConfigExternalTemperatureSensor)->setValue(0);
                     sensor.addItem(DataTypeBool, RConfigExternalWindowOpen)->setValue(false);
                 }
                 else if (sensor.modelId() == QLatin1String("AC201")) // OWON AC201 Thermostat

@@ -145,7 +145,6 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                     }
                     else if (modelId == QLatin1String("RICI01") ||                                     // LifeControl Smart Plug
                              modelId.startsWith(QLatin1String("outlet")) ||                            // Samsung SmartThings IM6001-OTP/IM6001-OTP01
-                             modelId.startsWith(QLatin1String("EMIZB-1")) ||                           // Develco EMI
                              modelId.startsWith(QLatin1String("ROB_200")) ||                           // ROBB Smarrt micro dimmer
                              modelId.startsWith(QLatin1String("Micro Smart Dimmer")) ||                // Sunricher Micro Smart Dimmer
                              modelId == QLatin1String("Connected socket outlet") ||                    // Niko smart socket

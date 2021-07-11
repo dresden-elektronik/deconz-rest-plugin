@@ -48,6 +48,14 @@ contains(QMAKE_SPEC_T,.*linux.*) {
     }
 }
 
+macx {
+    DEFINES += QT_NO_DEPRECATED_WARNINGS
+    CONFIG+=sdk_no_version_check
+
+    LIBS += -lsqlite3
+    DEFINES += HAS_SQLITE3
+}
+
 unix:LIBS +=  -L../.. -ldeCONZ
 
 unix:!macx {
@@ -79,7 +87,7 @@ GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.11.03\\\"
+DEFINES += GW_SW_VERSION=\\\"2.12.01\\\"
 DEFINES += GW_SW_DATE=$$GIT_COMMIT_DATE
 DEFINES += GW_API_VERSION=\\\"1.16.0\\\"
 DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
@@ -98,7 +106,9 @@ DEFINES += GW_MIN_DERFUSB23E0X_FW_VERSION=0x22030300
 DEFINES += GW_DEFAULT_NAME=\\\"Phoscon-GW\\\"
 
 HEADERS  = bindings.h \
+           aps_controller_wrapper.h \
            backup.h \
+           button_maps.h \
            connectivity.h \
            colorspace.h \
            daylight.h \
@@ -106,6 +116,7 @@ HEADERS  = bindings.h \
            de_web_plugin_private.h \
            de_web_widget.h \
            event.h \
+           fan_control.h \
            gateway.h \
            gateway_scanner.h \
            green_power.h \
@@ -113,6 +124,7 @@ HEADERS  = bindings.h \
            group_info.h \
            json.h \
            light_node.h \
+           mfspecific_cluster_xiaoyan.h \
            poll_control.h \
            poll_manager.h \
            product_match.h \
@@ -125,14 +137,20 @@ HEADERS  = bindings.h \
            rule.h \
            scene.h \
            sensor.h \
+           simple_metering.h \
+           thermostat.h \
+           thermostat_ui_configuration.h \
            tuya.h \
            utils/utils.h \
-           websocket_server.h
+           websocket_server.h \
+           zdp/zdp_handlers.h
 
 SOURCES  = air_quality.cpp \
+           aps_controller_wrapper.cpp \
            authorisation.cpp \
            backup.cpp \
            bindings.cpp \
+           button_maps.cpp \
            change_channel.cpp \
            connectivity.cpp \
            colorspace.cpp \
@@ -161,6 +179,8 @@ SOURCES  = air_quality.cpp \
            identify.cpp \
            json.cpp \
            light_node.cpp \
+           mfspecific_cluster_xiaoyan.cpp \
+           occupancy_sensing.cpp \
            poll_control.cpp \
            poll_manager.cpp \
            product_match.cpp \
@@ -200,7 +220,8 @@ SOURCES  = air_quality.cpp \
            zcl_tasks.cpp \
            window_covering.cpp \
            websocket_server.cpp \
-           xmas.cpp
+           xmas.cpp \
+           zdp/zdp_handlers.cpp
 
 win32 {
 
@@ -218,11 +239,11 @@ win32 {
 
     LIBS += \
          -L../.. \
-         -L$${PWD}/../../../lib/sqlite-dll-win32-x86-3240000 \
+         -L$${PWD}/../../../lib/sqlite-dll-win32-x86-3270200 \
          -ldeCONZ1 \
          -lsqlite3
 
-    INCLUDEPATH += $${PWD}/../../../lib/sqlite-amalgamation-3240000
+    INCLUDEPATH += $${PWD}/../../../lib/sqlite-amalgamation-3270200
     CONFIG += dll
 }
 

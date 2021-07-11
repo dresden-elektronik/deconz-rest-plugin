@@ -1247,7 +1247,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
 
         if (hasCt)
         {
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIEABLE, QString("/groups/%1").arg(id), QString("parameter, /lights/%1/ct_inc, is not modifiable. ct was specified.").arg(id)));
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/groups/%1").arg(id), QString("parameter, /lights/%1/ct_inc, is not modifiable. ct was specified.").arg(id)));
         }
         else if (ok && (map["ct_inc"].type() == QVariant::Double) && (ct_inc >= -65534 && ct_inc <= 65534))
         {

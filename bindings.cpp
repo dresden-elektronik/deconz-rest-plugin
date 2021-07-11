@@ -224,26 +224,12 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
         std::vector<BindingTableReader>::iterator i = bindingTableReaders.begin();
         std::vector<BindingTableReader>::iterator end = bindingTableReaders.end();
 
-        if (ind.srcAddress().hasExt())
+        for (; i != end; ++i)
         {
-            for (; i != end; ++i)
+            if (isSameAddress(ind.srcAddress(), i->apsReq.dstAddress()))
             {
-                if (i->apsReq.dstAddress().ext() == ind.srcAddress().ext())
-                {
-                    btReader = &(*i);
-                    break;
-                }
-            }
-        }
-        else if (ind.srcAddress().hasNwk())
-        {
-            for (; i != end; ++i)
-            {
-                if (i->apsReq.dstAddress().nwk() == ind.srcAddress().nwk())
-                {
-                    btReader = &(*i);
-                    break;
-                }
+                btReader = &(*i);
+                break;
             }
         }
     }
@@ -445,12 +431,6 @@ void DeRestPluginPrivate::handleZclConfigureReportingResponseIndication(const de
     for (LightNode &l : nodes)
     {
         allNodes.push_back(&l);
-    }
-
-    // send DefaultResponse if not disabled
-    if (!(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
-    {
-        sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
     }
 
     for (RestNodeBase * restNode : allNodes)
@@ -670,7 +650,7 @@ bool DeRestPluginPrivate::sendBindRequest(BindingTask &bt)
         return false;
     }
 
-    if (apsCtrl && (apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success))
+    if (apsCtrlWrapper.apsdeDataRequest(apsReq) == deCONZ::Success)
     {
         return true;
     }
@@ -827,7 +807,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
     }
 
 
-    if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+    if (apsCtrlWrapper.apsdeDataRequest(apsReq) == deCONZ::Success)
     {
         queryTime = queryTime.addSecs(1);
         return true;
@@ -949,6 +929,11 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             // Only configure periodic reports, as events are already sent though zone status change notification commands
             rq.minInterval = 300;
             rq.maxInterval = 3600;
+        }
+        else if (sensor && sensor->type() == QLatin1String("ZHASwitch") && modelId == QLatin1String("button"))
+        {
+            rq.minInterval = 65535; // Disable reporting so devices must not be reset to not have it
+            rq.maxInterval = 65535; // configured at all. Should be changed in future to explicitly exclude device from reporting.
         }
         else
         {
@@ -1754,7 +1739,12 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (modelId.startsWith(QLatin1String("ED-1001")) || // EcoDim switches
                  modelId.startsWith(QLatin1String("45127")) ||   // Namron switches
+                 modelId == QLatin1String("CCT591011_AS") ||     // LK Wiser Door / Window Sensor
+                 modelId == QLatin1String("CCT592011_AS") ||     // LK Wiser Water Leak Sensor
                  modelId.startsWith(QLatin1String("S57003")) ||  // SLC switches
+                 modelId == QLatin1String("CCT593011_AS") ||     // LK Wiser Temperature and Humidity Sensor
+                 modelId == QLatin1String("CCT595011_AS") ||     // LK Wiser Motion Sensor
+                 modelId == QLatin1String("ZB-DoorSensor-D0003") || // Linkind Door/Window Sensor
                  modelId.startsWith(QLatin1String("FNB56-")) ||  // Feibit devices
                  modelId.startsWith(QLatin1String("FB56-")))     // Feibit devices
         {
@@ -1837,6 +1827,13 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.minInterval = 30;
             rq.maxInterval = 21600;
             rq.reportableChange8bit = 10;
+        }
+        else if (modelId == QLatin1String("lumi.remote.b28ac1")) // Aqara Wireless Remote Switch H1 (Double Rocker)
+        {
+            rq.attributeId = 0x0020;   // battery voltage
+            rq.minInterval = 3;
+            rq.maxInterval = 3600;
+            rq.reportableChange8bit = 1;
         }
         else
         {
@@ -2588,8 +2585,8 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         return;
     }
 
-    QList<deCONZ::ZclCluster>::const_iterator i = lightNode->haEndpoint().inClusters().begin();
-    QList<deCONZ::ZclCluster>::const_iterator end = lightNode->haEndpoint().inClusters().end();
+    auto i = lightNode->haEndpoint().inClusters().begin();
+    const auto end = lightNode->haEndpoint().inClusters().end();
 
     int tasksAdded = 0;
     QDateTime now = QDateTime::currentDateTime();
@@ -2958,6 +2955,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("TS0041")) ||
         sensor->modelId().startsWith(QLatin1String("TS0044")) ||
         sensor->modelId().startsWith(QLatin1String("TS0222")) || // TYZB01 light sensor 
+        sensor->modelId().startsWith(QLatin1String("TS004F")) || // 4 Gang Tuya ZigBee Wireless 12 Scene Switch
         // Tuyatec
         sensor->modelId().startsWith(QLatin1String("RH3040")) ||
         sensor->modelId().startsWith(QLatin1String("RH3001")) ||
@@ -2969,6 +2967,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("lumi.sensor_magnet.agl02") ||
         sensor->modelId() == QLatin1String("lumi.flood.agl02") ||
         sensor->modelId() == QLatin1String("lumi.switch.n0agl1") ||
+        sensor->modelId() == QLatin1String("lumi.remote.b28ac1") ||
         // iris
         sensor->modelId().startsWith(QLatin1String("1116-S")) ||
         sensor->modelId().startsWith(QLatin1String("1117-S")) ||
@@ -2993,11 +2992,18 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("Z01-A19")) ||
         // Linkind
         sensor->modelId() == QLatin1String("ZB-MotionSensor-D0003") ||
+        sensor->modelId() == QLatin1String("ZB-DoorSensor-D0003") ||
         // Drayton
         sensor->modelId() == QLatin1String("iTRV") ||
+        // LK Wiser
+        sensor->modelId() == QLatin1String("CCT591011_AS") ||
+        sensor->modelId() == QLatin1String("CCT592011_AS") ||
+        sensor->modelId() == QLatin1String("CCT593011_AS") ||
+        sensor->modelId() == QLatin1String("CCT595011_AS") ||
         // Immax
         sensor->modelId() == QLatin1String("Plug-230V-ZB3.0") ||
         sensor->modelId() == QLatin1String("4in1-Sensor-ZB3.0") ||
+        sensor->modelId() == QLatin1String("DoorWindow-Sensor-ZB3.0") ||
         sensor->modelId() == QLatin1String("Keyfob-ZB3.0") ||
         // Sercomm
         sensor->modelId().startsWith(QLatin1String("SZ-")) ||
@@ -3062,6 +3068,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("0x8031") ||
         sensor->modelId() == QLatin1String("0x8034") ||
         sensor->modelId() == QLatin1String("0x8035") ||
+        // Swann
+        sensor->modelId() == QLatin1String("SWO-MOS1PA") ||
         // LIDL
         sensor->modelId() == QLatin1String("HG06323") ||
         // Eria
@@ -3404,16 +3412,14 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         quint8 srcEndpoint = sensor->fingerPrint().endpoint;
 
         {  // some clusters might not be on fingerprint endpoint (power configuration), search in other simple descriptors
-            deCONZ::SimpleDescriptor *sd= sensor->node()->getSimpleDescriptor(srcEndpoint);
+            deCONZ::SimpleDescriptor *sd = sensor->node()->getSimpleDescriptor(srcEndpoint);
             if (!sd || !sd->cluster(*i, deCONZ::ServerCluster))
             {
-                for (int j = 0; j < sensor->node()->simpleDescriptors().size(); j++)
+                for (auto &sd2 : sensor->node()->simpleDescriptors())
                 {
-                    sd = &sensor->node()->simpleDescriptors()[j];
-
-                    if (sd && sd->cluster(*i, deCONZ::ServerCluster))
+                    if (sd2.cluster(*i, deCONZ::ServerCluster))
                     {
-                        srcEndpoint = sd->endpoint();
+                        srcEndpoint = sd2.endpoint();
                         break;
                     }
                 }
@@ -3810,6 +3816,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
     else if (sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) || // RGBgenie remote control
+             sensor->manufacturer() == QLatin1String("_TZ3000_xabckq1v") || // 4 Gang Tuya ZigBee Wireless 12 Scene Switch
              sensor->modelId().startsWith(QLatin1String("ZBT-DIMController-D0800"))) // Mueller-Licht tint dimmer
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
@@ -4422,11 +4429,10 @@ void DeRestPluginPrivate::processUbisysC4Configuration(Sensor *sensor)
     stream.setByteOrder(QDataStream::LittleEndian);
     zclFrame.writeToStream(stream);
 
-    if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
+    if (apsCtrlWrapper.apsdeDataRequest(req) == deCONZ::Success)
     {
 
     }
-
 }
 
 /*! Process binding related tasks queue every one second. */
@@ -5052,7 +5058,7 @@ void DeRestPluginPrivate::bindingTableReaderTimerFired()
             stream << i->index;
 
             // send
-            if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+            if (apsCtrlWrapper.apsdeDataRequest(apsReq) == deCONZ::Success)
             {
                 DBG_Printf(DBG_ZDP, "Mgmt_Bind_req id: %d to 0x%016llX send\n", i->apsReq.id(), i->apsReq.dstAddress().ext());
                 i->time.start();

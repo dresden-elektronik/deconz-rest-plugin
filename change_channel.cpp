@@ -71,7 +71,7 @@ bool DeRestPluginPrivate::startChannelChange(quint8 channel)
 bool DeRestPluginPrivate::verifyChannel(quint8 channel)
 {
 
-    DBG_Assert(apsCtrl != 0);
+    DBG_Assert(apsCtrl != nullptr);
     if (!apsCtrl)
     {
         return false;
@@ -135,9 +135,9 @@ void DeRestPluginPrivate::changeChannel(quint8 channel)
     else if (ccRetries < 3)
     {
         DBG_Assert(channel >= 11 && channel <= 26);
-        if (apsCtrl && (channel >= 11) && (channel <= 26))
+        if (apsCtrl && channel >= 11 && channel <= 26)
         {
-            uint8_t nwkUpdateId = (apsCtrl->getParameter(deCONZ::ParamNetworkUpdateId));
+            uint8_t nwkUpdateId = apsCtrl->getParameter(deCONZ::ParamNetworkUpdateId);
             if (nwkUpdateId < 255)
             {
                 nwkUpdateId++;
@@ -173,7 +173,7 @@ void DeRestPluginPrivate::changeChannel(quint8 channel)
             stream << scanDuration;
             stream << nwkUpdateId;
 
-            if (apsCtrl && apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
+            if (apsCtrlWrapper.apsdeDataRequest(req) == deCONZ::Success)
             {
                 channelChangeApsRequestId = req.id();
                 DBG_Printf(DBG_INFO, "change channel to %d, channel mask = 0x%08lX\n", channel, scanChannels);
@@ -285,7 +285,7 @@ void DeRestPluginPrivate::checkChannelChangeNetworkDisconnected()
         }
         else
         {
-            DBG_Assert(apsCtrl != 0);
+            DBG_Assert(apsCtrl != nullptr);
             if (apsCtrl)
             {
                 DBG_Printf(DBG_INFO, "disconnect from network failed, try again\n");

@@ -8,8 +8,12 @@
  *
  */
 
+#include <deconz/aps.h>
+#include <deconz/aps_controller.h>
 #include <deconz/dbg_trace.h>
+#include <deconz/node.h>
 #include "utils.h"
+#include "resource.h"
 
 /*! Generates a new uniqueid in various formats based on the input parameters.
 
@@ -73,3 +77,189 @@ QString generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId)
     return QString::fromLatin1(buf);
 }
 
+/*! Returnes an index >= 0 if \p needle is in \p haystack or -1 if not found.
+
+    The strings aren't required to be '\0' terminated.
+ */
+int indexOf(QLatin1String haystack, QLatin1String needle)
+{
+    if (needle.size() == 0 || haystack.size() == 0)
+    {
+        return -1;
+    }
+
+    for (int i = 0; i < haystack.size(); i++)
+    {
+        if (needle.size() > haystack.size() - i)
+        {
+            return -1;
+        }
+
+        int match = 0;
+        for (int j = i, n = 0; j < haystack.size() && n < needle.size(); j++, n++)
+        {
+            if (haystack.data()[j] != needle.data()[n])
+            {
+                break;
+            }
+            match++;
+        }
+
+        if (match == needle.size())
+        {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+/*! Returnes true if \p needle is in \p haystack.
+
+    The strings aren't required to be '\0' terminated.
+ */
+bool contains(QLatin1String haystack, QLatin1String needle)
+{
+    return indexOf(haystack, needle) >= 0;
+}
+
+// Tests for contains(QLatin1String, QLatin1String)
+// const char *haystack = "abc";
+
+// Q_ASSERT(contains(QLatin1String("Content-Type: form-data; foobar"), QLatin1String("form-data")) == true);
+// Q_ASSERT(contains(QLatin1String("form-data; barbaz"), QLatin1String("nop-data")) == false);
+// Q_ASSERT(contains(QLatin1String(haystack, 3), QLatin1String("abc")) == true);
+// Q_ASSERT(contains(QLatin1String(haystack, 3), QLatin1String("bc")) == true);
+// Q_ASSERT(contains(QLatin1String(haystack, 3), QLatin1String("c")) == true);
+// Q_ASSERT(contains(QLatin1String(haystack, 2), QLatin1String("abc")) == false);
+// Q_ASSERT(contains(QLatin1String(haystack, 3), QLatin1String("")) == false);
+// Q_ASSERT(contains(QLatin1String(), QLatin1String("")) == false);
+
+/*! Returnes true if \p str starts with \p needle.
+
+    The strings aren't required to be '\0' terminated.
+ */
+bool startsWith(QLatin1String str, QLatin1String needle)
+{
+    return indexOf(str, needle) == 0;
+}
+
+RestData verifyRestData(const ResourceItemDescriptor &rid, const QVariant &val)
+{
+    bool ok;
+    RestData data;
+
+    if (rid.qVariantType == val.type())
+    {
+        if (rid.type == DataTypeUInt8 || rid.type == DataTypeUInt16 || rid.type == DataTypeUInt32 || rid.type == DataTypeUInt64)
+        {
+            auto uintValue = val.toUInt(&ok);
+            if (ok)
+            {
+                data.uinteger = uintValue;
+                data.valid = true;
+                return data;
+            }
+            else
+            {
+                return data;
+            }
+        }
+        else if (rid.type == DataTypeString || rid.type == DataTypeTime || rid.type == DataTypeTimePattern)
+        {
+            if (!val.toString().isEmpty())
+            {
+                data.string = val.toString();
+                data.valid = true;
+                return data;
+            }
+            else
+            {
+                return data;
+            }
+        }
+        else if (rid.type == DataTypeBool)
+        {
+            data.boolean = val.toBool();
+            data.valid = true;
+            return data;
+        }
+        else if (rid.type == DataTypeInt8 || rid.type == DataTypeInt16 || rid.type == DataTypeInt32 || rid.type == DataTypeInt64)
+        {
+            auto intValue = val.toInt(&ok);
+            if (ok)
+            {
+                data.integer = intValue;
+                data.valid = true;
+                return data;
+            }
+            else
+            {
+                return data;
+            }
+        }
+        else if (rid.type == DataTypeReal)
+        {
+            data.real = val.toReal();
+            data.valid = true;
+            return data;
+        }
+        else
+        {
+            return data;
+        }
+    }
+    else
+    {
+        return data;
+    }
+}
+
+/*! Compare addresses where either NWK or MAC address might not be known.
+    \returns true if both adresses have same MAC address (strong guaranty).
+    \returns true if at least one of the addresses doesn't have MAC but the NWK addresses are equal.
+    \returns false otherwise.
+*/
+bool isSameAddress(const deCONZ::Address &a, const deCONZ::Address &b)
+{
+    if (a.hasExt() && b.hasExt())
+    {
+        // nested if statement, so the NWK check won't be made if both MAC addresses are known
+        if (a.ext() != b.ext())
+        {
+            return false;
+        }
+    }
+    else if (a.hasNwk() && b.hasNwk())
+    {
+        if (a.nwk() != b.nwk())
+        {
+            return false;
+        }
+    }
+    else { return false; }
+
+    return true;
+}
+
+const deCONZ::Node *getCoreNode(quint64 extAddress, deCONZ::ApsController *apsCtrl)
+{
+    DBG_Assert(apsCtrl);
+
+    if (apsCtrl && extAddress != 0)
+    {
+        int i = 0;
+        const deCONZ::Node *node = nullptr;
+
+        while (apsCtrl->getNode(i, &node) == 0)
+        {
+            if (node->address().ext() == extAddress)
+            {
+                return node;
+            }
+            i++;
+        }
+    }
+
+    return nullptr;
+}
