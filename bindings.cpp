@@ -3091,7 +3091,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
     
     if (sensor->manufacturer() == QLatin1String("_TZ3000_fvh3pjaz"))
     {
-        return;
+        return false;
     }
 
     if (!deviceSupported)
