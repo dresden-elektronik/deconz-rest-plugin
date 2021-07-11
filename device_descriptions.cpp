@@ -334,6 +334,7 @@ void DeviceDescriptions::handleDDFInitRequest(const Event &event)
 
         if (ddf.isValid())
         {
+            result = 0;
 
             if (DEV_InitDeviceFromDescription(static_cast<Device*>(resource), ddf))
             {
@@ -341,11 +342,16 @@ void DeviceDescriptions::handleDDFInitRequest(const Event &event)
             }
         }
 
-        if (result == 1)
+        if (result >= 0)
         {
             DBG_Printf(DBG_INFO, "DEV found DDF for 0x%016llX, path: %s\n", event.deviceKey(), qPrintable(ddf.path));
         }
-        else
+
+        if (result == 0)
+        {
+            DBG_Printf(DBG_INFO, "DEV init Device from DDF for 0x%016llX failed\n", event.deviceKey());
+        }
+        else if (result == -1)
         {
             DBG_Printf(DBG_INFO, "DEV no DDF for 0x%016llX, modelId: %s\n", event.deviceKey(), qPrintable(resource->item(RAttrModelId)->toString()));
         }

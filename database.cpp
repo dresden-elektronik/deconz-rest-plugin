@@ -3131,12 +3131,22 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         quint8 endpoint = sensor.fingerPrint().endpoint;
         DBG_Printf(DBG_INFO_L2, "DB found sensor %s %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()));
 
+        if (DEV_TestManaged())
         {
             const auto ddf = d->deviceDescriptions->get(&sensor);
             if (ddf.isValid())
             {
-                DBG_Printf(DBG_INFO, "DB skip loading sensor %s %s, handeled by DDF %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()), qPrintable(ddf.product));
-                return 0;
+                const int itemCount = DB_GetSubDeviceItemCount(sensor.item(RAttrUniqueId)->toLatin1String());
+
+                if (itemCount == 0)
+                {
+                    DBG_Printf(DBG_INFO, "DB legacy loading sensor %s %s, later handled by DDF %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()), qPrintable(ddf.product));
+                }
+                else
+                {
+                    DBG_Printf(DBG_INFO, "DB skip loading sensor %s %s, handled by DDF %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()), qPrintable(ddf.product));
+                    return 0;
+                }
             }
         }
 
@@ -6046,6 +6056,48 @@ std::vector<DB_ResourceItem> DB_LoadSubDeviceItemsOfDevice(QLatin1String deviceU
     }
 
     DeRestPluginPrivate::instance()->closeDb();
+
+    return result;
+}
+
+int DB_GetSubDeviceItemCount(QLatin1String uniqueId)
+{
+    int result = 0;
+
+    assert(db); // should be called while db is open
+    if (!db)
+    {
+        return result;
+    }
+
+    char sql[160];
+
+    int rc = snprintf(sql, sizeof(sql), "SELECT COUNT(item) FROM resource_items"
+                                         " WHERE sub_device_id = (SELECT id FROM sub_devices WHERE uniqueid = '%s')",
+                                         uniqueId.data());
+
+    assert(size_t(rc) < sizeof(sql));
+    if (size_t(rc) < sizeof(sql))
+    {
+        sqlite3_stmt *res = nullptr;
+
+        int rc = sqlite3_prepare_v2(db, sql, -1, &res, nullptr);
+        DBG_Assert(res);
+        DBG_Assert(rc == SQLITE_OK);
+
+        if (rc == SQLITE_OK)
+        {
+            rc = sqlite3_step(res);
+            DBG_Assert(rc == SQLITE_ROW);
+            if (rc == SQLITE_ROW)
+            {
+                result = sqlite3_column_int(res, 0);
+            }
+        }
+
+        rc = sqlite3_finalize(res);
+        DBG_Assert(rc == SQLITE_OK);
+    }
 
     return result;
 }

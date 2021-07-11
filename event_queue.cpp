@@ -44,20 +44,6 @@ void DeRestPluginPrivate::eventQueueTimerFired()
             {
                 device->handleEvent(e);
             }
-
-            // hack to forward first sub device name to core to show it as node name
-            if (device && e.what() == REventDDFInitResponse && e.num() > 0)
-            {
-                const auto subDevices = device->subDevices();
-                if (!subDevices.empty())
-                {
-                    const auto *i = subDevices.front()->item(RAttrName);
-                    if (i && !i->toString().isEmpty())
-                    {
-                        emit q_ptr->nodeUpdated(e.deviceKey(), QLatin1String("name"), i->toString());
-                    }
-                }
-            }
         }
 
         handleRuleEvent(e);

@@ -10,7 +10,9 @@
 
 #include <QBasicTimer>
 #include <QElapsedTimer>
+#include <QTimer>
 #include <QTimerEvent>
+#include <QMetaObject>
 #include <array>
 #include <tuple>
 #include <deconz/dbg_trace.h>
@@ -113,7 +115,21 @@ public:
     DA_ReadResult readResult; //! keep track of a running "read" request
 
     int maxResponseTime = RxOffWhenIdleResponseTime;
+
+    struct
+    {
+        unsigned char hasDdf : 1;
+        unsigned char initialRun : 1;
+        unsigned char reserved : 6;
+    } flags{};
 };
+
+//! Forward device attribute changes to core.
+void DEV_ForwardNodeChange(Device *device, const QString &key, const QString &value)
+{
+    QMetaObject::invokeMethod(device->d->apsCtrl, "onRestNodeUpdated", Qt::DirectConnection,
+                              Q_ARG(quint64, device->key()), Q_ARG(QString, key), Q_ARG(QString, value));
+}
 
 void DEV_EnqueueEvent(Device *device, const char *event)
 {
@@ -169,8 +185,11 @@ void DEV_InitStateHandler(Device *device, const Event &event)
         event.what() == RConfigReachable ||
         event.what() == RStateReachable ||
         event.what() == REventStateTimeout ||
-        event.what() == RStateLastUpdated)
+        event.what() == RStateLastUpdated ||
+        d->flags.initialRun == 1)
     {
+        d->flags.initialRun = 0;
+
         // lazy reference to deCONZ::Node
         if (!device->node())
         {
@@ -545,7 +564,7 @@ void DEV_BasicClusterStateHandler(Device *device, const Event &event)
         };
 
         size_t okCount = 0;
-        const auto subDevices = device->subDevices();
+        const auto &subDevices = device->subDevices();
 
         for (const auto &it : items)
         {
@@ -607,6 +626,39 @@ void DEV_BasicClusterStateHandler(Device *device, const Event &event)
     }
 }
 
+/*! Forward device attributes to core to show it in the GUI.
+ */
+void DEV_PublishToCore(Device *device)
+{
+
+    struct CoreItem
+    {
+        const char *suffix;
+        const char *mapped;
+    };
+
+    std::array<CoreItem, 3> coreItems = {
+        {
+            { RAttrName, "name" },
+            { RAttrModelId, "modelid" },
+            { RAttrManufacturerName, "vendor" }
+        }
+    };
+
+    const auto subDevices = device->subDevices();
+    if (!subDevices.empty())
+    {
+        for (const CoreItem &i : coreItems)
+        {
+            const auto *item = subDevices.front()->item(i.suffix);
+            if (item && !item->toString().isEmpty())
+            {
+                DEV_ForwardNodeChange(device, QLatin1String(i.mapped), item->toString());
+            }
+        }
+    }
+}
+
 /*! #6 This state checks if for the device a device description file (DDF) is available.
 
     In that case the device is initialised (or updated) based on the JSON description.
@@ -623,12 +675,16 @@ void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventDDFInitResponse)
     {
+        DEV_PublishToCore(device);
+
         if (event.num() == 1)
         {
+            d->flags.hasDdf = 1;
             d->setState(DEV_IdleStateHandler);
         }
         else
         {
+            d->flags.hasDdf = 0;
             d->setState(DEV_DeadStateHandler);
         }
     }
@@ -1289,6 +1345,7 @@ Device::Device(DeviceKey key, deCONZ::ApsController *apsCtrl, QObject *parent) :
     d->apsCtrl = apsCtrl;
     d->deviceKey = key;
     d->managed = DEV_TestManaged();
+    d->flags.initialRun = 1;
 
     addItem(DataTypeBool, RStateReachable);
     addItem(DataTypeBool, RAttrSleeper);
@@ -1298,7 +1355,11 @@ Device::Device(DeviceKey key, deCONZ::ApsController *apsCtrl, QObject *parent) :
     addItem(DataTypeString, RAttrManufacturerName);
     addItem(DataTypeString, RAttrModelId);
 
-    d->setState(DEV_InitStateHandler);
+    // lazy init since the event handler is connected after the constructor
+    QTimer::singleShot(0, this, [this]()
+    {
+        d->setState(DEV_InitStateHandler);
+    });
 }
 
 Device::~Device()

@@ -36,6 +36,7 @@ struct DB_LegacyItem
     BufString<128> value;
 };
 
+int DB_GetSubDeviceItemCount(QLatin1String uniqueId);
 bool DB_StoreSubDevice(const QString &parentUniqueId, const QString &uniqueId);
 bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item);
 bool DB_StoreSubDeviceItems(const Resource *sub);

@@ -2289,11 +2289,6 @@ void DeRestPluginPrivate::handleMacDataRequest(const deCONZ::NodeEvent &event)
  */
 void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 {
-    if (DEV_TestManaged())
-    {
-        return;
-    }
-
     DBG_Assert(node != nullptr);
     if (!node)
     {
@@ -2839,6 +2834,15 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         QString uid = generateUniqueId(lightNode.address().ext(), lightNode.haEndpoint().endpoint(), 0);
         lightNode.setUniqueId(uid);
 
+        if (DEV_TestManaged())
+        {
+            // check if this device is already handled by Device code
+            if (DB_GetSubDeviceItemCount(lightNode.item(RAttrUniqueId)->toLatin1String()) > 0)
+            {
+                return;
+            }
+        }
+
         if (existDevicesWithVendorCodeForMacPrefix(node->address(), VENDOR_DDEL) && i->deviceId() != DEV_ID_CONFIGURATION_TOOL && node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL)
         {
             ResourceItem *item = lightNode.addItem(DataTypeUInt32, RConfigPowerup);
@@ -3058,6 +3062,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
         DBG_Printf(DBG_INFO, "LightNode %u: %s added\n", lightNode.id().toUInt(), qPrintable(lightNode.name()));
 
+        lightNode.setHandle(R_CreateResourceHandle(&lightNode, nodes.size()));
         nodes.push_back(lightNode);
         lightNode2 = &nodes.back();
         queuePollNode(lightNode2);
@@ -17581,11 +17586,6 @@ Resource *DEV_AddResource(const Sensor &sensor)
     auto &s = plugin->sensors.back();
     s.setHandle(R_CreateResourceHandle(&s, plugin->sensors.size() - 1));
 
-    if (!s.name().isEmpty())
-    {
-        emit plugin->q_ptr->nodeUpdated(s.address().ext(), QLatin1String("name"), s.name());
-    }
-
     return &s;
 }
 
@@ -17596,11 +17596,6 @@ Resource *DEV_AddResource(const LightNode &lightNode)
     plugin->nodes.push_back(lightNode);
     auto &l = plugin->nodes.back();
     l.setHandle(R_CreateResourceHandle(&l, plugin->nodes.size() - 1));
-
-    if (!lightNode.name().isEmpty())
-    {
-        emit plugin->q_ptr->nodeUpdated(lightNode.address().ext(), QLatin1String("name"), lightNode.name());
-    }
 
     return &l;
 }
