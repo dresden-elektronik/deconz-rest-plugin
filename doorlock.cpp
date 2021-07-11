@@ -45,12 +45,6 @@ void DeRestPluginPrivate::handleDoorLockClusterIndication(const deCONZ::ApsDataI
         return;
     }
 
-    //Defaut response
-    if (!(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
-    {
-        sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
-    }
-
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
 
