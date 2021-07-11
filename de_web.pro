@@ -123,6 +123,7 @@ HEADERS  = bindings.h \
            group.h \
            group_info.h \
            json.h \
+           ias_ace.h \
            light_node.h \
            mfspecific_cluster_xiaoyan.h \
            poll_control.h \
