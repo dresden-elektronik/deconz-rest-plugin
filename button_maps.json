@@ -39,7 +39,9 @@
         "S_BUTTON_ACTION_SHAKE": 7,
         "S_BUTTON_ACTION_DROP": 8,
         "S_BUTTON_ACTION_TILT": 9,
-        "S_BUTTON_ACTION_MANY_PRESS": 10
+        "S_BUTTON_ACTION_MANY_PRESS": 10,
+        "S_BUTTON_ACTION_ROTATE_CLOCKWISE": 30,
+        "S_BUTTON_ACTION_ROTATE_COUNTER_CLOCKWISE": 31
 	},
 	"clusters": {
         "BASIC": 0,
@@ -53,7 +55,8 @@
         "IAS_ZONE": 1280,
         "IAS_ACE": 1281,
         "SENGLED": 64528,
-        "ADUROLIGHT": 64716
+        "ADUROLIGHT": 64716,
+        "XIAOYAN": 64716
 	},
 	"commands": {
         "DOOR_LOCK": {
@@ -120,6 +123,11 @@
         },
         "ADUROLIGHT": {
             "COMMAND_0": 0
+        },
+        "XIAOYAN": {
+            "COMMAND_0": 0,
+            "ATTRIBUTE_REPORT": 10,
+            "COMMAND_20": 20
         }
 	},
 	"maps": {
@@ -379,10 +387,10 @@
             "doc": "TRÅDFRI dimmer",
             "modelids": ["TRADFRI wireless dimmer"],
             "buttons": [
-                {"S_BUTTON_1": "Rotate full brightness"},
-                {"S_BUTTON_2": "Rotate clockwise"},
-                {"S_BUTTON_3": "Rotate counter clockwise"},
-                {"S_BUTTON_4": "Rotate to off"}
+                {"S_BUTTON_1": "Rotate Full Brightness"},
+                {"S_BUTTON_2": "Rotate Clockwise"},
+                {"S_BUTTON_3": "Rotate Counter Clockwise"},
+                {"S_BUTTON_4": "Rotate Off"}
             ],
             "map": [
                 [4, "0x01", "LEVEL_CONTROL", "MOVE_TO_LEVEL_WITH_ON_OFF", "0xFF", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Move to level 255 (with on/off)"],
@@ -415,9 +423,9 @@
             "doc": "SYMFONISK remote",
             "modelids": ["SYMFONISK Sound Controller"],
             "buttons": [
-                {"S_BUTTON_1": "Button 1"},
-                {"S_BUTTON_2": "Rotate clockwise"},
-                {"S_BUTTON_3": "Rotate counter clockwise"}
+                {"S_BUTTON_1": "Button"},
+                {"S_BUTTON_2": "Rotate Clockwise"},
+                {"S_BUTTON_3": "Rotate Counter Clockwise"}
             ],
             "map": [
                 [1, "0x01", "ONOFF", "TOGGLE", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Toggle"],
@@ -567,6 +575,31 @@
                 [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
                 [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Hold"],
                 [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "255", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Long released"]
+            ]
+        },
+        "xiaomiSwitchB1acn01Map": {
+            "vendor": "Xiaomi",
+            "doc": "WRS-R02 Aqara wireless remote switch H1 (Double Rocker)",
+            "modelids": ["lumi.remote.b28ac1"],
+            "buttons": [
+                {"S_BUTTON_1": "Left"},
+                {"S_BUTTON_2": "Right"},
+                {"S_BUTTON_3": "Both"}
+            ],
+            "map": [
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Long press"],
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "3", "S_BUTTON_1", "S_BUTTON_ACTION_TREBLE_PRESS", "Tripple press"],
+                [1, "0x01", "ONOFF", "TOGGLE", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Toggle"],
+                [1, "0x02", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0", "S_BUTTON_2", "S_BUTTON_ACTION_LONG_RELEASED", "Long press"],
+                [1, "0x02", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
+                [1, "0x02", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_2", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x02", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "3", "S_BUTTON_2", "S_BUTTON_ACTION_TREBLE_PRESS", "Tripple press"],
+                [1, "0x03", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0", "S_BUTTON_3", "S_BUTTON_ACTION_LONG_RELEASED", "Long press"],
+                [1, "0x03", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
+                [1, "0x03", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_3", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x03", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "3", "S_BUTTON_3", "S_BUTTON_ACTION_TREBLE_PRESS", "Tripple press"]
             ]
         },
         "xiaomiSwitchBx1acn02Map": {
@@ -1413,6 +1446,23 @@
                 [1, "0x01", "ADUROLIGHT", "COMMAND_0", "0x0001", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Dim up"],
                 [1, "0x01", "ADUROLIGHT", "COMMAND_0", "0x0002", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Dim down"],
                 [1, "0x01", "ADUROLIGHT", "COMMAND_0", "0x0003", "S_BUTTON_4", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"]
+            ]
+        },
+        "terncySd01Map": {
+            "vendor": "Terncy",
+            "doc": "Terncy Smart Dial SD01",
+            "modelids": ["TERNCY-SD01"],
+            "buttons": [
+                {"S_BUTTON_1": "Action button"}
+            ],
+            "map": [
+                [1, "0x01", "XIAOYAN", "COMMAND_0", "0x0001", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Single press"],
+                [1, "0x01", "XIAOYAN", "COMMAND_0", "0x0002", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x01", "XIAOYAN", "COMMAND_0", "0x0003", "S_BUTTON_1", "S_BUTTON_ACTION_TREBLE_PRESS", "Tripple press"],
+                [1, "0x01", "XIAOYAN", "COMMAND_0", "0x0004", "S_BUTTON_1", "S_BUTTON_ACTION_QUADRUPLE_PRESS", "Quadruple press"],
+                [1, "0x01", "XIAOYAN", "COMMAND_20", "0x01", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Long press"],
+                [1, "0x01", "XIAOYAN", "ATTRIBUTE_REPORT", "0x00", "S_BUTTON_1", "S_BUTTON_ACTION_ROTATE_CLOCKWISE", "Rotate clockwise"],
+                [1, "0x01", "XIAOYAN", "ATTRIBUTE_REPORT", "0x01", "S_BUTTON_1", "S_BUTTON_ACTION_ROTATE_COUNTER_CLOCKWISE", "Rotate counter-clockwise"]
             ]
         }
     }

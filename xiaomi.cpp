@@ -190,6 +190,10 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             DBG_Printf(DBG_INFO, "\t0b unknown %u (0x%02X)\n", u8, u8);
         }
+        else if (tag == 0x0c && dataType == deCONZ::Zcl8BitUint) // lumi.remote.b28ac1
+        {
+            DBG_Printf(DBG_INFO, "\t0c unknown %u (0x%02X)\n", u8, u8);
+        }
         else if ((tag == 0x64 || structIndex == 0x01) && dataType == deCONZ::ZclBoolean) // lumi.ctrl_ln2 endpoint 01
         {
             DBG_Printf(DBG_INFO, "\t64 on/off %u\n", u8);
@@ -230,14 +234,21 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             DBG_Printf(DBG_INFO, "\t65 unknown %u (0x%02X)\n", u8, u8);
         }
-        else if (tag == 0x66 && dataType == deCONZ::Zcl16BitUint)
+        else if (tag == 0x66)
         {
-            DBG_Printf(DBG_INFO, "\t66 unknown %u (0x%04X)\n", u16, u16);
-        }
-        else if (tag == 0x66 && dataType == deCONZ::Zcl32BitInt) // lumi.weather
-        {
-            pressure = (s32 + 50) / 100;
-            DBG_Printf(DBG_INFO, "\t66 pressure %d (%d)\n", s32, pressure);
+            if (dataType == deCONZ::Zcl8BitUint) // lumi.remote.b28ac1
+            {
+                DBG_Printf(DBG_INFO, "\t66 unknown %u (0x%02X)\n", u8, u8);
+            }
+            else if (dataType == deCONZ::Zcl16BitUint)
+            {
+                DBG_Printf(DBG_INFO, "\t66 unknown %u (0x%04X)\n", u16, u16);
+            }
+            else if (dataType == deCONZ::Zcl32BitInt) // lumi.weather
+            {
+                pressure = (s32 + 50) / 100;
+                DBG_Printf(DBG_INFO, "\t66 pressure %d (%d)\n", s32, pressure);
+            }
         }
         else if (tag == 0x6e && dataType == deCONZ::Zcl8BitUint) // lumi.ctrl_neutral2
         {
@@ -541,6 +552,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             item = sensor.item(RStatePressure);
             if (item)
             {
+                ResourceItem *item2 = sensor.item(RConfigOffset);
+                if (item2 && item2->toNumber() != 0)
+                {
+                    pressure += item2->toNumber();
+                }
                 item->setValue(pressure);
                 enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
                 sensor.updateStateTimestamp();
@@ -682,15 +698,26 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     {
         auto *item2 = r->item(RConfigPending);
         
-        if (item2 && (item2->toNumber() & R_PENDING_MODE))
+        if (item && (item->toString().endsWith(QLatin1String("86opcn01")) || item->toString() == QLatin1String("lumi.remote.b28ac1")))
         {
-            // Aqara Opple switches need to be configured to send proper button events
-            // send the magic word
-            DBG_Printf(DBG_INFO, "Write Aqara Opple switch 0x%016llX mode attribute 0x0009 = 1\n", ind.srcAddress().ext());
-            deCONZ::ZclAttribute attr(0x0009, deCONZ::Zcl8BitUint, QLatin1String("mode"), deCONZ::ZclReadWrite, false);
-            attr.setValue(static_cast<quint64>(1));
-            writeAttribute(restNodePending, 0x01, XIAOMI_CLUSTER_ID, attr, VENDOR_XIAOMI);
-            item2->setValue(item2->toNumber() & ~R_PENDING_MODE);
+            auto *item2 = r->item(RConfigPending);
+            
+            if (item2 && (item2->toNumber() & R_PENDING_MODE))
+            {
+                // Aqara switches need to be configured to send proper button events
+                // send the magic word
+                DBG_Printf(DBG_INFO, "Write Aqara switch 0x%016llX mode attribute 0x0009 = 1\n", ind.srcAddress().ext());
+                deCONZ::ZclAttribute attr(0x0009, deCONZ::Zcl8BitUint, QLatin1String("mode"), deCONZ::ZclReadWrite, false);
+                attr.setValue(static_cast<quint64>(1));
+                writeAttribute(restNodePending, 0x01, XIAOMI_CLUSTER_ID, attr, VENDOR_XIAOMI);
+
+                DBG_Printf(DBG_INFO, "Write Aqara switch 0x%016llX multiclick mode attribute 0x0125 = 2\n", ind.srcAddress().ext());
+                deCONZ::ZclAttribute attr2(0x0125, deCONZ::Zcl8BitUint, QLatin1String("multiclick mode"), deCONZ::ZclReadWrite, false);
+                attr2.setValue(static_cast<quint64>(2));
+                writeAttribute(restNodePending, 0x01, XIAOMI_CLUSTER_ID, attr2, VENDOR_XIAOMI);
+
+                item2->setValue(item2->toNumber() & ~R_PENDING_MODE);
+            }
         }
     }
 

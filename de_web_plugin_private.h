@@ -349,6 +349,7 @@ using namespace deCONZ::literals;
 #define VENDOR_DDEL                 0x1135
 #define VENDOR_WAXMAN               0x113B
 #define VENDOR_OWON                 0x113C
+#define VENDOR_TUYA                 0x1141
 #define VENDOR_LUTRON               0x1144
 #define VENDOR_BOSCH2               0x1155
 #define VENDOR_ZEN                  0x1158
@@ -372,6 +373,7 @@ using namespace deCONZ::literals;
 #define VENDOR_MUELLER              0x121B // Used by Mueller Licht
 #define VENDOR_AURORA               0x121C // Used by Aurora Aone
 #define VENDOR_SUNRICHER            0x1224 // white label used by iCasa, Illuminize, Namron, SLC ...
+#define VENDOR_XIAOYAN              0x1228
 #define VENDOR_XAL                  0x122A
 #define VENDOR_ADUROLIGHT           0x122D
 #define VENDOR_THIRD_REALITY        0x1233
@@ -523,6 +525,7 @@ extern const quint64 konkeMacPrefix;
 extern const quint64 ecozyMacPrefix;
 extern const quint64 zhejiangMacPrefix;
 extern const quint64 schlageMacPrefix;
+extern const quint64 lumiMacPrefix;
 
 inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
 {
@@ -530,7 +533,8 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
     switch (vendor) {
         case VENDOR_XIAOMI:
             return prefix == jennicMacPrefix ||
-                   prefix == xiaomiMacPrefix;
+                   prefix == xiaomiMacPrefix ||
+                   prefix == lumiMacPrefix;
         case VENDOR_SINOPE:
             return prefix == sinopeMacPrefix;
         case VENDOR_HEIMAN:
@@ -1549,10 +1553,10 @@ public:
     void sendArmResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, quint8 armMode);
     void handleIndicationSearchSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     bool sendTuyaRequest(TaskItem &task, TaskType taskType, qint8 Dp_type, qint8 Dp_identifier, const QByteArray &data);
+    bool sendTuyaRequest(deCONZ::Address srcAddress, quint8 srcEndpoint, qint8 Dp_type, qint8 Dp_identifier, const QByteArray &data);
     bool sendTuyaCommand(const deCONZ::ApsDataIndication &ind, qint8 commandId, const QByteArray &data);
     void handleCommissioningClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     bool sendTuyaRequestThermostatSetWeeklySchedule(TaskItem &taskRef, quint8 weekdays, const QString &transitions, qint8 Dp_identifier);
-    void handleZdpIndication(const deCONZ::ApsDataIndication &ind);
     bool handleMgmtBindRspConfirm(const deCONZ::ApsDataConfirm &conf);
     void handleDeviceAnnceIndication(const deCONZ::ApsDataIndication &ind);
     void handleNodeDescriptorResponseIndication(const deCONZ::ApsDataIndication &ind);
@@ -1592,6 +1596,8 @@ public:
     bool deserialiseThermostatSchedule(const QString &s, QVariantMap *schedule);
     void handleSimpleMeteringClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
     void handleElectricalMeasurementClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
+    void handleXiaoyanClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleOccupancySensingClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
 
     // Modify node attributes
     void setAttributeOnOff(LightNode *lightNode);

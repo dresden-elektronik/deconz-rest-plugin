@@ -2,76 +2,76 @@
 <zcl>
 	<datatypes>
 		<!--Null-->
-		<datatype id="00" name="No data" shortname="ndat" length="0" ad="-"></datatype>
+		<datatype id="0x00" name="No data" shortname="ndat" length="0" ad="-"></datatype>
 		<!--General data -->
-		<datatype id="08" name="8-bit data" shortname="dat8" length="1" ad="D"></datatype>
-		<datatype id="09" name="16-bit data" shortname="dat16" length="2" ad="D"></datatype>
-		<datatype id="0a" name="24-bit data" shortname="dat24" length="3" ad="D"></datatype>
-		<datatype id="0b" name="32-bit data" shortname="dat32" length="4" ad="D"></datatype>
-		<datatype id="0c" name="40-bit data" shortname="dat40" length="5" ad="D"></datatype>
-		<datatype id="0d" name="48-bit data" shortname="dat48" length="6" ad="D"></datatype>
-		<datatype id="0e" name="56-bit data" shortname="dat56" length="7" ad="D"></datatype>
-		<datatype id="0f" name="64-bit data" shortname="dat64" length="8" ad="D"></datatype>
+		<datatype id="0x08" name="8-bit data" shortname="dat8" length="1" ad="D"></datatype>
+		<datatype id="0x09" name="16-bit data" shortname="dat16" length="2" ad="D"></datatype>
+		<datatype id="0x0a" name="24-bit data" shortname="dat24" length="3" ad="D"></datatype>
+		<datatype id="0x0b" name="32-bit data" shortname="dat32" length="4" ad="D"></datatype>
+		<datatype id="0x0c" name="40-bit data" shortname="dat40" length="5" ad="D"></datatype>
+		<datatype id="0x0d" name="48-bit data" shortname="dat48" length="6" ad="D"></datatype>
+		<datatype id="0x0e" name="56-bit data" shortname="dat56" length="7" ad="D"></datatype>
+		<datatype id="0x0f" name="64-bit data" shortname="dat64" length="8" ad="D"></datatype>
 		<!-- Logical -->
-		<datatype id="10" name="Boolean" shortname="bool" length="1" inval="ff" ad="D"></datatype>
+		<datatype id="0x10" name="Boolean" shortname="bool" length="1" inval="0xff" ad="D"></datatype>
 		<!-- Bitmap -->
-		<datatype id="18" name="8-bit bitmap" shortname="bmp8" length="1" ad="D"></datatype>
-		<datatype id="19" name="16-bit bitmap" shortname="bmp16" length="2" ad="D"></datatype>
-		<datatype id="1a" name="24-bit bitmap" shortname="bmp24" length="3" ad="D"></datatype>
-		<datatype id="1b" name="32-bit bitmap" shortname="bmp32" length="4" ad="D"></datatype>
-		<datatype id="1c" name="40-bit bitmap" shortname="bmp40" length="5" ad="D"></datatype>
-		<datatype id="1d" name="48-bit bitmap" shortname="bmp48" length="6" ad="D"></datatype>
-		<datatype id="1e" name="56-bit bitmap" shortname="bmp56" length="7" ad="D"></datatype>
-		<datatype id="1f" name="64-bit bitmap" shortname="bmp64" length="8" ad="D"></datatype>
+		<datatype id="0x18" name="8-bit bitmap" shortname="bmp8" length="1" ad="D"></datatype>
+		<datatype id="0x19" name="16-bit bitmap" shortname="bmp16" length="2" ad="D"></datatype>
+		<datatype id="0x1a" name="24-bit bitmap" shortname="bmp24" length="3" ad="D"></datatype>
+		<datatype id="0x1b" name="32-bit bitmap" shortname="bmp32" length="4" ad="D"></datatype>
+		<datatype id="0x1c" name="40-bit bitmap" shortname="bmp40" length="5" ad="D"></datatype>
+		<datatype id="0x1d" name="48-bit bitmap" shortname="bmp48" length="6" ad="D"></datatype>
+		<datatype id="0x1e" name="56-bit bitmap" shortname="bmp56" length="7" ad="D"></datatype>
+		<datatype id="0x1f" name="64-bit bitmap" shortname="bmp64" length="8" ad="D"></datatype>
 		<!-- Unsigned integer -->
-		<datatype id="20" name="Unsigned 8-bit integer" shortname="u8" length="1" inval="ff" ad="A"></datatype>
-		<datatype id="21" name="Unsigned 16-bit integer" shortname="u16" length="2" inval="ffff" ad="A"></datatype>
-		<datatype id="22" name="Unsigned 24-bit integer" shortname="u24" length="3" inval="ffffff" ad="A"></datatype>
-		<datatype id="23" name="Unsigned 32-bit integer" shortname="u32" length="4" inval="ffffffff" ad="A"></datatype>
-		<datatype id="24" name="Unsigned 40-bit integer" shortname="u40" length="5" inval="ffffffffff" ad="A"></datatype>
-		<datatype id="25" name="Unsigned 48-bit integer" shortname="u48" length="6" inval="ffffffffffff" ad="A"></datatype>
-		<datatype id="26" name="Unsigned 56-bit integer" shortname="u56" length="7" inval="ffffffffffffff" ad="A"></datatype>
-		<datatype id="27" name="Unsigned 64-bit integer" shortname="u64" length="8" inval="ffffffffffffffff" ad="A"></datatype>
+		<datatype id="0x20" name="Unsigned 8-bit integer" shortname="u8" length="1" inval="0xff" ad="A"></datatype>
+		<datatype id="0x21" name="Unsigned 16-bit integer" shortname="u16" length="2" inval="0xffff" ad="A"></datatype>
+		<datatype id="0x22" name="Unsigned 24-bit integer" shortname="u24" length="3" inval="0xffffff" ad="A"></datatype>
+		<datatype id="0x23" name="Unsigned 32-bit integer" shortname="u32" length="4" inval="0xffffffff" ad="A"></datatype>
+		<datatype id="0x24" name="Unsigned 40-bit integer" shortname="u40" length="5" inval="0xffffffffff" ad="A"></datatype>
+		<datatype id="0x25" name="Unsigned 48-bit integer" shortname="u48" length="6" inval="0xffffffffffff" ad="A"></datatype>
+		<datatype id="0x26" name="Unsigned 56-bit integer" shortname="u56" length="7" inval="0xffffffffffffff" ad="A"></datatype>
+		<datatype id="0x27" name="Unsigned 64-bit integer" shortname="u64" length="8" inval="0xffffffffffffffff" ad="A"></datatype>
 		<!-- Signed integer -->
-		<datatype id="28" name="Signed 8-bit integer" shortname="s8" length="1" inval="80" ad="A"></datatype>
-		<datatype id="29" name="Signed 16-bit integer" shortname="s16" length="2" inval="8000" ad="A"></datatype>
-		<datatype id="2a" name="Signed 24-bit integer" shortname="s24" length="3" inval="800000" ad="A"></datatype>
-		<datatype id="2b" name="Signed 32-bit integer" shortname="s32" length="4" inval="80000000" ad="A"></datatype>
-		<datatype id="2c" name="Signed 40-bit integer" shortname="s40" length="5" inval="8000000000" ad="A"></datatype>
-		<datatype id="2d" name="Signed 48-bit integer" shortname="s48" length="6" inval="800000000000" ad="A"></datatype>
-		<datatype id="2e" name="Signed 56-bit integer" shortname="s56" length="7" inval="80000000000000" ad="A"></datatype>
-		<datatype id="2f" name="Signed 64-bit integer" shortname="s64" length="8" inval="8000000000000000" ad="A"></datatype>
+		<datatype id="0x28" name="Signed 8-bit integer" shortname="s8" length="1" inval="0x80" ad="A"></datatype>
+		<datatype id="0x29" name="Signed 16-bit integer" shortname="s16" length="2" inval="0x8000" ad="A"></datatype>
+		<datatype id="0x2a" name="Signed 24-bit integer" shortname="s24" length="3" inval="0x800000" ad="A"></datatype>
+		<datatype id="0x2b" name="Signed 32-bit integer" shortname="s32" length="4" inval="0x80000000" ad="A"></datatype>
+		<datatype id="0x2c" name="Signed 40-bit integer" shortname="s40" length="5" inval="0x8000000000" ad="A"></datatype>
+		<datatype id="0x2d" name="Signed 48-bit integer" shortname="s48" length="6" inval="0x800000000000" ad="A"></datatype>
+		<datatype id="0x2e" name="Signed 56-bit integer" shortname="s56" length="7" inval="0x80000000000000" ad="A"></datatype>
+		<datatype id="0x2f" name="Signed 64-bit integer" shortname="s64" length="8" inval="0x8000000000000000" ad="A"></datatype>
 		<!-- Enumeration -->
-		<datatype id="30" name="8-bit enumeration" shortname="enum8" length="1" inval="ff" ad="D"></datatype>
-		<datatype id="31" name="16-bit enumeration" shortname="enum16" length="2" inval="ffff" ad="D"></datatype>
+		<datatype id="0x30" name="8-bit enumeration" shortname="enum8" length="1" inval="0xff" ad="D"></datatype>
+		<datatype id="0x31" name="16-bit enumeration" shortname="enum16" length="2" inval="0xffff" ad="D"></datatype>
 		<!-- Floating point -->
-		<datatype id="38" name="Semi-precision" shortname="semi" length="2" inval="nan" ad="A"></datatype>
-		<datatype id="39" name="Single precision" shortname="float" length="4" inval="nan" ad="A"></datatype>
-		<datatype id="3a" name="Double precision" shortname="double" length="8" inval="nan" ad="A"></datatype>
+		<datatype id="0x38" name="Semi-precision" shortname="semi" length="2" inval="nan" ad="A"></datatype>
+		<datatype id="0x39" name="Single precision" shortname="float" length="4" inval="nan" ad="A"></datatype>
+		<datatype id="0x3a" name="Double precision" shortname="double" length="8" inval="nan" ad="A"></datatype>
 		<!-- String -->
 		<!-- oN, defined in first N octets -->
-		<datatype id="41" name="Octed string" shortname="ostring" length="o1" inval="ff" ad="D"></datatype>
-		<datatype id="42" name="Character string" shortname="cstring" length="o1" inval="ff" ad="D"></datatype>
-		<datatype id="43" name="Long octed string" shortname="lostring" length="o2" inval="ffff" ad="D"></datatype>
-		<datatype id="44" name="Long character string" shortname="lcstring" length="o2" inval="ffff" ad="D"></datatype>
+		<datatype id="0x41" name="Octed string" shortname="ostring" length="o1" inval="0xff" ad="D"></datatype>
+		<datatype id="0x42" name="Character string" shortname="cstring" length="o1" inval="0xff" ad="D"></datatype>
+		<datatype id="0x43" name="Long octed string" shortname="lostring" length="o2" inval="0xffff" ad="D"></datatype>
+		<datatype id="0x44" name="Long character string" shortname="lcstring" length="o2" inval="0xffff" ad="D"></datatype>
 		<!-- Ordered sequence -->
 		<!-- sloc, sum of length of content -->
-		<datatype id="48" name="Array" shortname="array" length="2+sloc" inval="ffff" ad="D"></datatype>
-		<datatype id="4c" name="Structure" shortname="struct" length="2+sloc" inval="ffff" ad="D"></datatype>
+		<datatype id="0x48" name="Array" shortname="array" length="2+sloc" inval="0xffff" ad="D"></datatype>
+		<datatype id="0x4c" name="Structure" shortname="struct" length="2+sloc" inval="0xffff" ad="D"></datatype>
 		<!-- Collection -->
-		<datatype id="50" name="Set" shortname="set" length="sloc" inval="ffff" ad="D"></datatype>
-		<datatype id="51" name="Bag" shortname="bag" length="sloc" inval="ffff" ad="D"></datatype>
+		<datatype id="0x50" name="Set" shortname="set" length="sloc" inval="0xffff" ad="D"></datatype>
+		<datatype id="0x51" name="Bag" shortname="bag" length="sloc" inval="0xffff" ad="D"></datatype>
 		<!-- Time -->
-		<datatype id="e0" name="Time of day" shortname="time" length="4" inval="ffffffff" ad="A"></datatype>
-		<datatype id="e1" name="Date" shortname="date" length="4" inval="ffffffff" ad="A"></datatype>
-		<datatype id="e2" name="UTCTime" shortname="utc" length="4" inval="ffffffff" ad="A"></datatype>
+		<datatype id="0xe0" name="Time of day" shortname="time" length="4" inval="0xffffffff" ad="A"></datatype>
+		<datatype id="0xe1" name="Date" shortname="date" length="4" inval="0xffffffff" ad="A"></datatype>
+		<datatype id="0xe2" name="UTCTime" shortname="utc" length="4" inval="0xffffffff" ad="A"></datatype>
 		<!-- Identifier -->
-		<datatype id="e8" name="Cluster ID" shortname="cid" length="2" inval="ffff" ad="D"></datatype>
-		<datatype id="e9" name="Attribute ID" shortname="aid" length="2" inval="ffff" ad="D"></datatype>
-		<datatype id="ea" name="BACnet OID" shortname="oid" length="4" inval="ffffffff" ad="D"></datatype>
+		<datatype id="0xe8" name="Cluster ID" shortname="cid" length="2" inval="0xffff" ad="D"></datatype>
+		<datatype id="0xe9" name="Attribute ID" shortname="aid" length="2" inval="0xffff" ad="D"></datatype>
+		<datatype id="0xea" name="BACnet OID" shortname="oid" length="4" inval="0xffffffff" ad="D"></datatype>
 		<!-- Miscellaneous -->
-		<datatype id="f0" name="IEEE address" shortname="uid" length="8" inval="ffffffffffffffff" ad="D"></datatype>
-		<datatype id="f1" name="128-bit security key" shortname="seckey" length="16" ad="D"></datatype>
+		<datatype id="0xf0" name="IEEE address" shortname="uid" length="8" inval="0xffffffffffffffff" ad="D"></datatype>
+		<datatype id="0xf1" name="128-bit security key" shortname="seckey" length="16" ad="D"></datatype>
 	</datatypes>
 
 	<enumeration id="0x00" name="ZCL_Status">
@@ -268,7 +268,7 @@
 				<value name="Mains Voltage too high (7.2.2.2.3)" value="1"></value>
 			</attribute>
 			<attribute id="0x0011" name="Mains Voltage Min Threshold" type="u16" access="rw" default="0" required="o"></attribute>
-			<attribute id="0x0012" name="Mains Voltage Max Threshold" type="u16" access="rw" default="ffff" required="o"></attribute>
+			<attribute id="0x0012" name="Mains Voltage Max Threshold" type="u16" access="rw" default="0xffff" required="o"></attribute>
 			<attribute id="0x0013" name="Mains Voltage Dwell Trip Point" type="u16" access="rw" default="0" required="o"></attribute>
 		</attribute-set>
 		<attribute-set id="0x0020" description="Battery Information">
@@ -277,7 +277,7 @@
 		</attribute-set>
 		<attribute-set id="0x0030" description="Battery Settings">
 			<attribute id="0x0030" name="Battery Manufacturer" type="cstring" access="rw" required="o" range="0,16"></attribute>
-			<attribute id="0x0031" name="Battery Size" type="enum8" default="ff" access="rw" required="o">
+			<attribute id="0x0031" name="Battery Size" type="enum8" default="0xff" access="rw" required="o">
 				<value name="No Battery" value="0"></value>
 				<value name="Built in" value="1"></value>
 				<value name="Other" value="2"></value>
@@ -1953,7 +1953,7 @@ by the Poll Control Cluster Client.</description>
 						<value name="Setpoint Hold Off" value="0"></value>
 						<value name="Setpoint Hold On" value="1"></value>
 					</attribute>
-					<attribute id="0x0024" name="Temperature Setpoint Hold Duration" type="u8" range="0x05a0,0xffff" default="0xffff" access="rw" required="o"></attribute>
+					<attribute id="0x0024" name="Temperature Setpoint Hold Duration" type="u16" range="0x05a0,0xffff" default="0xffff" access="rw" required="o"></attribute>
 					<attribute id="0x0025" name="Thermostat Programming Operation Mode" type="bmp8" default="0" access="rw" required="o">
 						<value name="Simple/setpoint mode" value="0">
 							<description>0 – This mode means the thermostat setpoint is altered only by manual
@@ -3960,6 +3960,25 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 			</client>
 		</cluster>
 
+		<!-- E-Wand -->
+		<cluster id="0xfc10" name="E-Wand specific" mfcode="0x1263">
+			<description>E-Wand manufacturer specific window covering configuration.</description>
+			<server>
+				<command id="0x23" dir="recv" name="Set Direction" required="o">
+					<description></description>
+					<payload>
+						<attribute id="0x0000" type="enum8" name="Mode" required="m" default="0x00">
+							<value name="Standard" value="0x00"></value>
+							<value name="Reversed" value="0x01"></value>
+							<value name="Toggle" value="0x02"></value>
+						</attribute>
+					</payload>
+				</command>
+			</server>
+			<client>
+			</client>
+		</cluster>
+
 		<!-- IKEA -->
 		<cluster id="0xfc7c" name="IKEA specific" mfcode="0x117c">
 			<description>IKEA control outlet cluster.</description>
@@ -3979,9 +3998,10 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 		<cluster id="0xfcc0" name="Lumi specific" mfcode="0x115f">
 			<description>Lumi specific attributes.
 
-Note - Aqara Opple switches have 2 modes of operation (0x0009): Switch all devices (0), event based switching (1).
+Switch mode: 1 - event based switching, 2 - zigbee group switching, 3 - Xiaomi specific switching
 Child lock off: 0 - false, 1 - true
 Report Consumer Connected: 1 - false, 0 - true
+Multiclick mode: 1 - false, 2 - true
 Attribute 0x0205 has range between 1 and 50 only</description>
 			<server>
 				<attribute id="0x0002" name="Power Outages" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
@@ -3994,7 +4014,7 @@ Attribute 0x0205 has range between 1 and 50 only</description>
 				<attribute id="0x0006" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0007" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0008" name="Unknown (write only)" type="ostring" mfcode="0x115f" access="w" required="m"> </attribute>
-				<attribute id="0x0009" name="Opple switch mode" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0009" name="Switch mode" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x00f3" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x00f5" name="Unknown" type="u32" mfcode="0x115f" access="r" required="m"> </attribute>
 				<attribute id="0x00f6" name="Reporting Interval" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
@@ -4003,6 +4023,7 @@ Attribute 0x0205 has range between 1 and 50 only</description>
 				<attribute id="0x00fe" name="Serial Number" type="cstring" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x00ff" name="Unknown (write only)" type="ostring" mfcode="0x115f" access="w" required="m"> </attribute>
 				<attribute id="0x0100" name="Unknown" type="u8" mfcode="0x115f" access="r" required="m"> </attribute>
+                <attribute id="0x0125" name="Multiclick mode" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0200" name="Child lock off" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0201" name="Restore Power on Outage" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0202" name="Auto-off after 20m below Threshold" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
