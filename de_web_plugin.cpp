@@ -4265,7 +4265,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
     sensor->previousSequenceNumber = zclFrame.sequenceNumber();
 
-    if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() != 0)
+    if ((ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() != 0) && (sensor->modelId() != QLatin1String("Pocket remote")))
     {
         ResourceItem *item = sensor->addItem(DataTypeString, RConfigGroup);
         
