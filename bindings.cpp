@@ -2588,6 +2588,11 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
     {
         return;
     }
+    
+    if (lightNode->manufacturer() == QLatin1String("_TZ3000_fvh3pjaz"))
+    {
+        return;
+    }
 
     auto i = lightNode->haEndpoint().inClusters().begin();
     const auto end = lightNode->haEndpoint().inClusters().end();
@@ -3082,6 +3087,11 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         {
             sensor->setMgmtBindSupported(false);
         }
+    }
+    
+    if (sensor->manufacturer() == QLatin1String("_TZ3000_fvh3pjaz"))
+    {
+        return;
     }
 
     if (!deviceSupported)
