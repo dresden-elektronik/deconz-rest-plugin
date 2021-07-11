@@ -1470,6 +1470,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
     sensor->rx();
 
     quint32 btn = ind.gpdCommandId();
+
     if (sensor->modelId() == QLatin1String("FOHSWITCH"))
     {
         // Map the command to the mapped button and action.
@@ -1649,6 +1650,9 @@ int DeRestPluginPrivate::taskCountForAddress(const deCONZ::Address &address)
  */
 void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
 {
+    // display some information
+    DBG_Printf(DBG_ZGP, "ZGP  : gpdsrcid %u , command 0x%02X , Payload %s\n", ind.gpdSrcId(), ind.gpdCommandId(), qPrintable(ind.payload().toHex()));
+    
     switch (ind.gpdCommandId())
     {
     case deCONZ::GpCommandIdScene0:
@@ -1867,6 +1871,23 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
                 sensorNode.setModelId("FOHSWITCH");
                 sensorNode.setManufacturer("PhilipsFoH");
                 sensorNode.setSwVersion("PTM216Z");
+            }
+            else if (gpdDeviceId == GpDeviceIdGenericSwitch && options.byte == 0xC5 && extOptions.byte == 0xF2 && ind.payload().size() == 31)
+            {
+                //For the 1 button switch (0 677 23L or ZLGP17):
+                //Button 1: Device commissioning : options.byte 0xC5 , extOptions.byte 0xF2 , gpdsrcid 5345230 , command 0x02 , Payload 02c5f20164366c366d12f5587972fd1dae3dee65ff1de0f001000004022220
+
+                //For the 2 buttons switch (0 677 24L or ZLGP18):
+                //Button 1: Device commissioning : options.byte 0xC5 , extOptions.byte 0xF2 , gpdsrcid 5375258 , command 0x02 , Payload 02c5f29ddf38cc0baaa63c6d8c31176a7d50892a7f84e35f00000004022220
+                //Button 2: Device commissioning : options.byte 0xC5 , extOptions.byte 0xF2 , gpdsrcid 5375259 , command 0x02 , Payload 02c5f2361cf5a1f812cebb4744edfec5d591f07fe3e2935800000004022220
+                
+                // It use as command
+                // 0x20 GpCommandIdOff
+                // 0x22 GpCommandIdToggle
+
+                sensorNode.setModelId("ZGPSWITCH");
+                sensorNode.setManufacturer("Legrand");
+                sensorNode.setSwVersion("1.0");
             }
             else
             {
