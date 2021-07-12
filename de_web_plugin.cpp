@@ -1872,7 +1872,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
                 sensorNode.setManufacturer("PhilipsFoH");
                 sensorNode.setSwVersion("PTM216Z");
             }
-            else if (gpdDeviceId == GpDeviceIdGenericSwitch && options.byte == 0xC5 && extOptions.byte == 0xF2 && ind.payload().size() == 31)
+            else if (gpdDeviceId == GpDeviceIdOnOffSwitch && options.byte == 0xC5 && extOptions.byte == 0xF2 && ind.payload().size() == 31)
             {
                 //For the 1 button switch (0 677 23L or ZLGP17):
                 //Button 1: Device commissioning : options.byte 0xC5 , extOptions.byte 0xF2 , gpdsrcid 5345230 , command 0x02 , Payload 02c5f20164366c366d12f5587972fd1dae3dee65ff1de0f001000004022220
