@@ -135,8 +135,74 @@ void DeRestPluginPrivate::sendTimeClusterResponse(const deCONZ::ApsDataIndicatio
         	instream >> attr;
         	stream << attr;
 
-        	stream << (quint8) 0x86;  // unsupported_attribute
+        	switch(attr)
+        	{
+        	case 0x0000:
+        		stream << code;
+        		stream << (quint8) deCONZ::ZclUtcTime;
+        		stream << time_now;
+        		break;
 
+        	case 0x0001:
+        		stream << code;
+        		stream << (quint8) deCONZ::Zcl8BitBitMap;
+        		stream << time_status;
+        		break;
+
+        	case 0x0002:
+        		stream << code;
+        		stream << (quint8) deCONZ::Zcl32BitInt;
+        		stream << time_zone;
+        		break;
+
+        	case 0x0003:
+        		stream << code;
+        		stream << (quint8) deCONZ::Zcl32BitUint;
+        		stream << time_dst_start;
+        		break;
+
+        	case 0x0004:
+        		stream << code;
+        		stream << (quint8) deCONZ::Zcl32BitUint;
+        		stream << time_dst_end;
+        		break;
+
+        	case 0x0005:
+           		stream << code;
+           		stream << (quint8) deCONZ::Zcl32BitInt;
+           		stream << time_dst_shift;
+        		break;
+
+        	case 0x0006:
+        		stream << code;
+        		stream << (quint8) deCONZ::Zcl32BitUint;
+        		stream << time_std_time;
+        		break;
+
+        	case 0x0007:
+        		stream << code;
+        		stream << (quint8) deCONZ::Zcl32BitUint;
+        		stream << time_local_time;
+        		break;
+
+        	case 0x0008:
+        		stream << code;
+        		stream << (quint8) deCONZ::ZclUtcTime;
+        		stream << time_now;
+        		break;
+
+        	case 0x0009:
+        		stream << code;
+        		stream << (quint8) deCONZ::ZclUtcTime;
+        		stream << time_valid_until_time;
+        		break;
+
+        	default:
+        	{
+        		stream << (quint8) 0x86;  // unsupported_attribute
+        	}
+        	break;
+        	}
         }
     }
 
