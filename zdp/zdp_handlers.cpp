@@ -598,9 +598,7 @@ void DeRestPluginPrivate::patchNodeDescriptor(const deCONZ::ApsDataIndication &i
         // Not having 'allocate address' 0x80 is valid but currently expected for all devices
         if (!nd.macCapabilities().testFlag(deCONZ::MacAllocateAddress))
         {
-            auto macCap = nd.macCapabilities();
-            macCap.setFlag(deCONZ::MacAllocateAddress);
-            nd.setMacCapabilities(macCap);
+            nd.setMacCapabilities(nd.macCapabilities() | deCONZ::MacAllocateAddress);
             updated |= UpdatedMacCapabilities;
         }
 
