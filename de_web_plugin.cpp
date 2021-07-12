@@ -1921,6 +1921,10 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
                 {
                     sensorNode.setName(QString("FoH Switch %2").arg(sensorNode.id()));
                 }
+                else if (sensorNode.Manufacturer() == QLatin1String("Legrand"))
+                {
+                    sensorNode.setName(QString("Self-e switch %2").arg(sensorNode.id()));
+                }
                 else
                 {
                     sensorNode.setName(QString("Hue Tap %2").arg(sensorNode.id()));
