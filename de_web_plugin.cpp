@@ -4169,11 +4169,14 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
              sensor->modelId() == QLatin1String("Double gangs remote switch") || //Legrand micro module
              sensor->modelId() == QLatin1String("Shutters central remote switch") || // legrand shutter switch
              sensor->modelId() == QLatin1String("Remote motion sensor") || // legrand motion sensor
-             sensor->modelId() == QLatin1String("Pocket remote") || // legrand 4x scene remote
              sensor->modelId() == QLatin1String("Remote toggle switch")) // legrand switch simple and double
     {
         checkReporting = true;
         checkClientCluster = true;
+    }
+    else if (sensor->modelId() == QLatin1String("Pocket remote")) // legrand 4x scene remote
+    {
+        checkReporting = true;
     }
     else if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
              sensor->modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
