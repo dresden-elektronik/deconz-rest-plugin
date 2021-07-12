@@ -4265,11 +4265,10 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
     sensor->previousSequenceNumber = zclFrame.sequenceNumber();
 
-    if ((ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() != 0) && (sensor->modelId() != QLatin1String("Pocket remote")))
+    if ((ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() != 0) &&
+       (sensor->modelId() != QLatin1String("Pocket remote"))) // Need to prevent this device use group feature, just without avoiding the RConfigGroup creation.
     {
         ResourceItem *item = sensor->addItem(DataTypeString, RConfigGroup);
-        
-        DBG_Printf(DBG_INFO, "Legrand Debug 10");
 
         quint16 groupId = ind.dstAddress().group();
 
