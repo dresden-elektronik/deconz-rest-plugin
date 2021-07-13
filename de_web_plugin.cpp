@@ -1921,7 +1921,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
                 {
                     sensorNode.setName(QString("FoH Switch %2").arg(sensorNode.id()));
                 }
-                else if (sensorNode.manufacturer() == QLatin1String("Legrand"))
+                else if (sensorNode.modelId() == QLatin1String("LEGRANDZGPSWITCH"))
                 {
                     sensorNode.setName(QString("Self-e switch %2").arg(sensorNode.id()));
                 }
