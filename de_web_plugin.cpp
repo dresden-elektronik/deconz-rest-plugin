@@ -1885,7 +1885,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
                 // 0x20 GpCommandIdOff
                 // 0x22 GpCommandIdToggle
 
-                sensorNode.setModelId("ZGPSWITCH");
+                sensorNode.setModelId("LEGRANDZGPSWITCH");
                 sensorNode.setManufacturer("Legrand");
                 sensorNode.setSwVersion("1.0");
             }
@@ -1921,7 +1921,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
                 {
                     sensorNode.setName(QString("FoH Switch %2").arg(sensorNode.id()));
                 }
-                else if (sensorNode.Manufacturer() == QLatin1String("Legrand"))
+                else if (sensorNode.manufacturer() == QLatin1String("Legrand"))
                 {
                     sensorNode.setName(QString("Self-e switch %2").arg(sensorNode.id()));
                 }
