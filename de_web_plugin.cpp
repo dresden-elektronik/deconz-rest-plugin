@@ -112,7 +112,7 @@ const quint64 silabs4MacPrefix    = 0x680ae20000000000ULL;
 const quint64 ecozyMacPrefix      = 0x70b3d50000000000ULL;
 const quint64 osramMacPrefix      = 0x8418260000000000ULL;
 const quint64 silabs5MacPrefix    = 0x842e140000000000ULL;
-const quint64 silabs10MacPrefix    = 0x8471270000000000ULL;
+const quint64 silabs10MacPrefix   = 0x8471270000000000ULL;
 const quint64 embertecMacPrefix   = 0x848e960000000000ULL;
 const quint64 YooksmartMacPrefix  = 0x84fd270000000000ULL;
 const quint64 silabsMacPrefix     = 0x90fd9f0000000000ULL;
@@ -250,6 +250,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.relay.c", jennicMacPrefix }, // Xiaomi Aqara LLKZMK11LM
     { VENDOR_JENNIC, "lumi.switch.b1lacn02", jennicMacPrefix }, // Xiaomi Aqara D1 1-gang (no neutral wire) QBKG21LM
     { VENDOR_JENNIC, "lumi.switch.b2lacn02", jennicMacPrefix }, // Xiaomi Aqara D1 2-gang (no neutral wire) QBKG22LM
+    { VENDOR_XIAOMI, "lumi.remote.b28ac1", lumiMacPrefix }, // Aqara Wireless Remote Switch H1 (Double Rocker) WRS-R02
     { VENDOR_XIAOMI, "lumi.plug", jennicMacPrefix }, // Xiaomi smart plug (router)
     { VENDOR_XIAOMI, "lumi.ctrl_ln", jennicMacPrefix}, // Xiaomi Wall Switch (router)
     { VENDOR_XIAOMI, "lumi.plug.maeu01", xiaomiMacPrefix}, // Xiaomi Aqara outlet
@@ -1102,7 +1103,8 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                              sensorNode->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
                              sensorNode->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
                              sensorNode->modelId().startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote
-                             sensorNode->modelId().startsWith(QLatin1String("Switch-LIGHTIFY")) ) // Osram 4 button remote
+                             sensorNode->modelId().startsWith(QLatin1String("Switch-LIGHTIFY")) || // Osram 4 button remote
+                             sensorNode->modelId() == QLatin1String("lumi.remote.b28ac1"))    // Aqara wireless remote switch H1 (double rocker)
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
                     }
@@ -1308,8 +1310,7 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
 
         if (conf.dstAddressMode() == deCONZ::ApsNwkAddress &&
             task.req.dstAddressMode() == deCONZ::ApsNwkAddress &&
-            conf.dstAddress().hasNwk() && task.req.dstAddress().hasNwk() &&
-            conf.dstAddress().nwk() != task.req.dstAddress().nwk())
+            !isSameAddress(conf.dstAddress(), task.req.dstAddress()))
         {
             DBG_Printf(DBG_INFO, "warn APSDE-DATA.confirm: 0x%02X nwk mismatch\n", conf.id());
             //continue;
@@ -5240,7 +5241,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpWaterSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
                     }
                     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_XIAOMI &&
-                             modelId.endsWith(QLatin1String("86opcn01"))) // Aqara Opple switches
+                             (modelId.endsWith(QLatin1String("86opcn01")) ||   // Aqara Opple switches
+                              modelId == QLatin1String("lumi.remote.b28ac1"))) // Aqara wireless remote switch H1 (double rocker)
                     {
                         fpSwitch.inClusters.push_back(MULTISTATE_INPUT_CLUSTER_ID);
                     }
@@ -5973,7 +5975,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("ZG2833PAC")) || // Sunricher C4
                              modelId.startsWith(QLatin1String("ED-1001")) ||  // EcoDim switches
                              modelId.startsWith(QLatin1String("45127")) ||    // Namron switches
-                             modelId.startsWith(QLatin1String("S57003")))     // SLC 4 ch remote switch
+                             modelId.startsWith(QLatin1String("S57003")) ||   // SLC 4 ch remote switch
+                             modelId == QLatin1String("lumi.remote.b28ac1"))  // Aqara Wireless Remote Switch H1 (Double Rocker)
                     {
                         if (i->endpoint() == 0x01) // create sensor only for first endpoint
                         {
@@ -7375,9 +7378,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             //sensorNode.addItem(DataTypeInt16, RConfigOffset);
         }
 
-        if (sensorNode.modelId().endsWith(QLatin1String("86opcn01")))
+        if (sensorNode.modelId().endsWith(QLatin1String("86opcn01")) || sensorNode.modelId() == QLatin1String("lumi.remote.b28ac1"))
         {
-            // Aqara Opple switches need to be configured to send proper button events
+            // Aqara switches need to be configured to send proper button events
             // write basic cluster attribute 0x0009 value 1
             item = sensorNode.addItem(DataTypeUInt16, RConfigPending);
             item->setValue(item->toNumber() | R_PENDING_MODE);
@@ -8232,6 +8235,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId() == QLatin1String("3AFE14010402000D") ||   // Konke motion sensor
                                     i->modelId() == QLatin1String("3AFE28010402000D") ||   // Konke motion sensor v2
                                     i->modelId() == QLatin1String("FB56-DOS06HM1.3") ||    // Feibit FB56-DOS06HM1.3 door/window sensor
+                                    i->modelId() == QLatin1String("lumi.remote.b28ac1") || // Aqara wireless remote switch H1 (double rocker)
                                     i->modelId().endsWith(QLatin1String("86opcn01")) ||    // Aqara Opple
                                     i->modelId().startsWith(QLatin1String("AQSZB-1")) ||   // Develco air quality sensor
                                     i->modelId().startsWith(QLatin1String("SMSZB-1")) ||   // Develco smoke sensor
@@ -11910,13 +11914,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
                 continue;
             }
 
-            if      (ind.srcAddress().hasExt() && sensor.address().hasExt() &&
-                     ind.srcAddress().ext() == sensor.address().ext())
-            { }
-            else if (ind.srcAddress().hasNwk() && sensor.address().hasNwk() &&
-                     ind.srcAddress().nwk() == sensor.address().nwk())
-            { }
-            else
+            if (!isSameAddress(ind.srcAddress(), sensor.address()))
             {
                 continue;
             }
@@ -12015,8 +12013,7 @@ void DeRestPluginPrivate::storeRecoverOnOffBri(LightNode *lightNode)
 
     for (; i != end; ++i)
     {
-        if (i->address.hasNwk() && lightNode->address().hasNwk() &&
-            i->address.nwk() == lightNode->address().nwk())
+        if (isSameAddress(i->address, lightNode->address()))
         {
             // update entry
             i->onOff = onOff ? onOff->toBool() : false;
@@ -13951,8 +13948,7 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(const deCONZ::ApsDataIndi
                 continue;
             }
 
-            if ((s.address().hasExt() && s.address().ext() == ind.srcAddress().ext()) ||
-                (s.address().hasNwk() && s.address().nwk() == ind.srcAddress().nwk()))
+            if (isSameAddress(s.address(), ind.srcAddress()))
             {
                 if (!s.type().endsWith(QLatin1String("Presence")))
                 {
@@ -14949,6 +14945,19 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                             basicClusterEndpoint = sd.endpoint();
                         }
 
+                        if (!attr.isAvailable())
+                        {
+                            unavailBasicAttr.push_back(attr.id());
+                            continue;
+                        }
+                        else if (attr.lastRead() != static_cast<time_t>(-1) && attr.dataType() == deCONZ::ZclCharacterString && attr.toString().isEmpty())
+                        {
+                            // e.g. some devices return empty strings.
+                            // Check read timestamp to make sure the attribute is read at least once.
+                            unavailBasicAttr.push_back(attr.id());
+                            continue;
+                        }
+
                         if (attr.id() == 0x0004 && manufacturer.isEmpty())
                         {
                             manufacturer = attr.toString();
@@ -14960,26 +14969,10 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                         else if (attr.id() == 0x0006 && dateCode.isEmpty())
                         {
                             dateCode = attr.toString();
-                            dateCodeAvailable = attr.isAvailable(); // might become false after first read
                         }
                         else if (attr.id() == 0x4000 && swBuildId.isEmpty())
                         {
                             swBuildId = attr.toString();
-                            swBuildIdAvailable = attr.isAvailable(); // might become false after first read
-                        }
-                        else
-                        {
-                            continue;
-                        }
-
-                        if (!attr.isAvailable())
-                        {
-                            unavailBasicAttr.push_back(attr.id());
-                        }
-                        else if (attr.lastRead() != static_cast<time_t>(-1) && attr.dataType() == deCONZ::ZclCharacterString && attr.toString().isEmpty())
-                        {
-                            // e.g. some Trust devices return empty strings
-                            unavailBasicAttr.push_back(attr.id());
                         }
                     }
                     else if (cl.id() == IAS_ZONE_CLUSTER_ID)
@@ -14996,6 +14989,9 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                     }
                 }
             }
+
+            swBuildIdAvailable = std::find(unavailBasicAttr.cbegin(), unavailBasicAttr.cend(), 0x4000) == unavailBasicAttr.cend();
+            dateCodeAvailable = std::find(unavailBasicAttr.cbegin(), unavailBasicAttr.cend(), 0x0006) == unavailBasicAttr.cend();
 
             if ((sd.deviceId() == DEV_ID_IAS_ZONE || sd.deviceId() == DEV_ID_IAS_WARNING_DEVICE) && iasZoneType == 0)
             {
@@ -15046,17 +15042,6 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         if (sensor && sensor->deletedState() != Sensor::StateNormal)
         {
             sensor = nullptr; // force query
-        }
-
-        if (node->nodeDescriptor().manufacturerCode() == VENDOR_SAMJIN)
-        {
-            swBuildIdAvailable = false; // empty string
-            dateCodeAvailable = false; // unsupported attribute
-        }
-        else if (modelId == QLatin1String("HG06323")) // LIDL Remote Control
-        {
-            swBuildIdAvailable = false; // unsupported attribute
-            dateCodeAvailable = false; // empty string
         }
 
         // manufacturer, model id, sw build id
@@ -15128,18 +15113,12 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             }
             else if (swBuildId.isEmpty() && dateCode.isEmpty())
             {
-                if ((sc->address.ext() & macPrefixMask) == tiMacPrefix ||
-                    existDevicesWithVendorCodeForMacPrefix(sc->address, VENDOR_UBISYS) ||
-                    modelId == QLatin1String("Motion Sensor-A") || // OSRAM motion sensor
-                    manufacturer.startsWith(QLatin1String("Climax")) ||
-                    modelId.startsWith(QLatin1String("lumi")) ||
-                    node->nodeDescriptor().manufacturerCode() == VENDOR_CENTRALITE ||
-                    !swBuildIdAvailable)
+                if (!swBuildIdAvailable && dateCodeAvailable)
                 {
                     DBG_Printf(DBG_INFO, "[4.1] Get date code\n");
                     attributes.push_back(0x0006); // date code
                 }
-                else
+                else if (swBuildIdAvailable)
                 {
                     DBG_Printf(DBG_INFO, "[4.1] Get sw build id\n");
                     attributes.push_back(0x4000); // sw build id
@@ -15549,16 +15528,25 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 queueBindingTask(bindingTask);
             }
         }
-        else if (sensor->modelId().endsWith(QLatin1String("86opcn01")))  // Aqara Opple
+        // Aqara Opple and Aqara Wireless Remote Switch H1 (Double Rocker)
+        else if (sensor->modelId().endsWith(QLatin1String("86opcn01")) || sensor->modelId() == QLatin1String("lumi.remote.b28ac1"))
         {
             auto *item = sensor->item(RConfigPending);
-            if (item && item->toNumber() & R_PENDING_MODE)
+            if (item && (item->toNumber() & R_PENDING_MODE))
             {
-                DBG_Printf(DBG_INFO, "Write Aqara Opple switch 0x%016llX mode attribute 0x0009 = 1\n", sensor->address().ext());
-                // send the magic word to the Aqara Opple switch
-                deCONZ::ZclAttribute attr(0x0009, deCONZ::Zcl8BitUint, "mode", deCONZ::ZclReadWrite, false);
+                // Some Aqara switches need to be configured to send proper button events
+                // send the magic word
+                DBG_Printf(DBG_INFO, "Write Aqara switch 0x%016llX mode attribute 0x0009 = 1\n", sensor->address().ext());
+                deCONZ::ZclAttribute attr(0x0009, deCONZ::Zcl8BitUint, QLatin1String("mode"), deCONZ::ZclReadWrite, false);
                 attr.setValue(static_cast<quint64>(1));
                 writeAttribute(sensor, sensor->fingerPrint().endpoint, XIAOMI_CLUSTER_ID, attr, VENDOR_XIAOMI);
+
+                // Activate multiclick mode
+                DBG_Printf(DBG_INFO, "Write Aqara switch 0x%016llX multiclick mode attribute 0x0125 = 2\n", sensor->address().ext());
+                deCONZ::ZclAttribute attr2(0x0125, deCONZ::Zcl8BitUint, QLatin1String("multiclick mode"), deCONZ::ZclReadWrite, false);
+                attr2.setValue(static_cast<quint64>(2));
+                writeAttribute(sensor, sensor->fingerPrint().endpoint, XIAOMI_CLUSTER_ID, attr2, VENDOR_XIAOMI);
+
                 item->setValue(item->toNumber() & ~R_PENDING_MODE);
             }
         }
@@ -16122,7 +16110,8 @@ void DeRestPlugin::idleTimerFired()
                 // workaround for lights and smart plugs with multiple endpoints but only one basic cluster
                 if ((lightNode->manufacturerCode() == VENDOR_JENNIC || // mostly Xiaomi
                      lightNode->manufacturerCode() == VENDOR_XIAOMI || // Xiaomi
-                     lightNode->manufacturerCode() == VENDOR_EMBER ||  // LIDL
+                     lightNode->manufacturerCode() == VENDOR_EMBER ||  // Tuya (Lidl)
+                     lightNode->manufacturerCode() == VENDOR_TUYA ||  // Tuya
                      (lightNode->address().ext() & macPrefixMask) == tiMacPrefix) // GLEDOPTO
                     && (lightNode->modelId().isEmpty() || lightNode->manufacturer().isEmpty() || lightNode->item(RAttrSwVersion)->toString().isEmpty()))
                 {

@@ -348,6 +348,7 @@ using namespace deCONZ::literals;
 #define VENDOR_DDEL                 0x1135
 #define VENDOR_WAXMAN               0x113B
 #define VENDOR_OWON                 0x113C
+#define VENDOR_TUYA                 0x1141
 #define VENDOR_LUTRON               0x1144
 #define VENDOR_BOSCH2               0x1155
 #define VENDOR_ZEN                  0x1158
@@ -523,6 +524,7 @@ extern const quint64 konkeMacPrefix;
 extern const quint64 ecozyMacPrefix;
 extern const quint64 zhejiangMacPrefix;
 extern const quint64 schlageMacPrefix;
+extern const quint64 lumiMacPrefix;
 
 inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
 {
@@ -530,7 +532,8 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
     switch (vendor) {
         case VENDOR_XIAOMI:
             return prefix == jennicMacPrefix ||
-                   prefix == xiaomiMacPrefix;
+                   prefix == xiaomiMacPrefix ||
+                   prefix == lumiMacPrefix;
         case VENDOR_SINOPE:
             return prefix == sinopeMacPrefix;
         case VENDOR_HEIMAN:

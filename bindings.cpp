@@ -224,26 +224,12 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
         std::vector<BindingTableReader>::iterator i = bindingTableReaders.begin();
         std::vector<BindingTableReader>::iterator end = bindingTableReaders.end();
 
-        if (ind.srcAddress().hasExt())
+        for (; i != end; ++i)
         {
-            for (; i != end; ++i)
+            if (isSameAddress(ind.srcAddress(), i->apsReq.dstAddress()))
             {
-                if (i->apsReq.dstAddress().ext() == ind.srcAddress().ext())
-                {
-                    btReader = &(*i);
-                    break;
-                }
-            }
-        }
-        else if (ind.srcAddress().hasNwk())
-        {
-            for (; i != end; ++i)
-            {
-                if (i->apsReq.dstAddress().nwk() == ind.srcAddress().nwk())
-                {
-                    btReader = &(*i);
-                    break;
-                }
+                btReader = &(*i);
+                break;
             }
         }
     }
@@ -1842,6 +1828,13 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 21600;
             rq.reportableChange8bit = 10;
         }
+        else if (modelId == QLatin1String("lumi.remote.b28ac1")) // Aqara Wireless Remote Switch H1 (Double Rocker)
+        {
+            rq.attributeId = 0x0020;   // battery voltage
+            rq.minInterval = 3;
+            rq.maxInterval = 3600;
+            rq.reportableChange8bit = 1;
+        }
         else
         {
             rq.minInterval = 300;
@@ -2960,6 +2953,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("lumi.sensor_magnet.agl02") ||
         sensor->modelId() == QLatin1String("lumi.flood.agl02") ||
         sensor->modelId() == QLatin1String("lumi.switch.n0agl1") ||
+        sensor->modelId() == QLatin1String("lumi.remote.b28ac1") ||
         // iris
         sensor->modelId().startsWith(QLatin1String("1116-S")) ||
         sensor->modelId().startsWith(QLatin1String("1117-S")) ||
