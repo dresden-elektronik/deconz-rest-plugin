@@ -2590,7 +2590,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
     }
     
     // Hack : Need to disable reporting for this device, else It will enable a power off.
-    if (lightNode->manufacturer() == QLatin1String("_TZ3000_fvh3pjaz"))
+    if (lightNode->manufacturer() == QLatin1String("_TZ3000_fvh3pjaz") ||
+        lightNode->manufacturer() == QLatin1String("_TZ3000_wyhuocal") ||
+        lightNode->manufacturer() == QLatin1String("_TZ3000_9hpxg80k "))
     {
         return;
     }
