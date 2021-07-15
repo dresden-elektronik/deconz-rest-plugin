@@ -43,4 +43,4 @@ jobs:
         
       # Basic JSON checking
       - name: Verify button maps has valid JSON
-        run: jsonlint --strict button_maps.json
+        run: jsonlint-php button_maps.json
