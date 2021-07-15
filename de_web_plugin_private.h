@@ -25,7 +25,7 @@
 #include "aps_controller_wrapper.h"
 #include "resource.h"
 #include "daylight.h"
-#include "event.h"
+#include "event_emitter.h"
 #include "green_power.h"
 #include "resource.h"
 #include "rest_node_base.h"
@@ -1374,9 +1374,7 @@ public Q_SLOTS:
     void checkSensorStateTimerFired();
 
     // events
-    void initEventQueue();
-    void eventQueueTimerFired();
-    void enqueueEvent(const Event &event);
+    void handleEvent(const Event &e);
 
     // firmware update
     void initFirmwareUpdate();
@@ -2101,8 +2099,7 @@ public:
     uint8_t haEndpoint;
 
     // events
-    QTimer *eventTimer;
-    std::deque<Event> eventQueue;
+    EventEmitter *eventEmitter = nullptr;
 
     // bindings
     size_t verifyRuleIter;
