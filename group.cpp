@@ -8,6 +8,7 @@
  *
  */
 
+#include "de_web_plugin_private.h"
 #include "group.h"
 #include <QStringList>
 
@@ -123,6 +124,17 @@ void Group::setColorLoopActive(bool colorLoopActive)
 bool Group::isColorLoopActive() const
 {
     return m_colorLoopActive;
+}
+
+/*! Handles admin when ResourceItem value has been set.
+ * \param i ResourceItem
+ */
+void Group::didSetValue(ResourceItem *i)
+{
+    plugin->enqueueEvent(Event(RGroups, i->descriptor().suffix, id(), i));
+    plugin->updateGroupEtag(this);
+    plugin->saveDatabaseItems |= DB_GROUPS;
+    plugin->queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
 }
 
 /*! multiDeviceIds to string. */

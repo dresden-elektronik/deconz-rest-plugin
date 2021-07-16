@@ -1050,6 +1050,75 @@ QVariant Resource::toVariant(const char *suffix) const
     return QVariant();
 }
 
+/*! Set ResourceItem value.
+ * \param suffix ResourceItem suffix
+ * \param val ResourceIetm value
+ */
+bool Resource::setValue(const char *suffix, qint64 val, bool forceUpdate)
+{
+    ResourceItem *i = item(suffix);
+    if (!i)
+    {
+        return false;
+    }
+    if (forceUpdate || i->toNumber() != val)
+    {
+        if (!(i->setValue(val)))
+        {
+            return false;
+        }
+        didSetValue(i);
+        return true;
+    }
+    return false;
+}
+
+/*! Set ResourceItem value.
+ * \param suffix ResourceItem suffix
+ * \param val ResourceIetm value
+ */
+bool Resource::setValue(const char *suffix, const QString &val, bool forceUpdate)
+{
+    ResourceItem *i = item(suffix);
+    if (!i)
+    {
+        return false;
+    }
+    if (forceUpdate || i->toString() != val)
+    {
+        if (!(i->setValue(val)))
+        {
+            return false;
+        }
+        didSetValue(i);
+        return true;
+    }
+    return false;
+}
+
+/*! Set ResourceItem value.
+ * \param suffix ResourceItem suffix
+ * \param val ResourceIetm value
+ */
+bool Resource::setValue(const char *suffix, const QVariant &val, bool forceUpdate)
+{
+    ResourceItem *i = item(suffix);
+    if (!i)
+    {
+        return false;
+    }
+    if (forceUpdate || i->toVariant() != val)
+    {
+        if (!(i->setValue(val)))
+        {
+            return false;
+        }
+        didSetValue(i);
+        return true;
+    }
+    return false;
+}
+
 int Resource::itemCount() const
 {
     return m_rItems.size();

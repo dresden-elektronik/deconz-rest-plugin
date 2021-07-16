@@ -1018,6 +1018,7 @@ class ApiConfig : public Resource
 {
 public:
     ApiConfig();
+    void didSetValue(ResourceItem *i);
 };
 
 class TcpClient
