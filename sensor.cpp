@@ -372,6 +372,54 @@ void Sensor::setSwVersion(const QString &swversion)
     item(RAttrSwVersion)->setValue(swversion.trimmed());
 }
 
+/*! Returns the sensor last seen timestamp.
+ */
+const QString &Sensor::lastSeen() const
+{
+    static const QString s = QString("");
+
+    const ResourceItem *i = item(RAttrLastSeen);
+    return i ? i->toString() : s;
+}
+
+/*! Sets the sensor last seen timestamp.
+    \param lastseen the sensor last seen timestamp
+ */
+void Sensor::setLastSeen(const QString &lastseen)
+{
+    ResourceItem *i = item(RAttrLastSeen);
+    if (i)
+    {
+        QDateTime ls = QDateTime::fromString(lastseen, QLatin1String("yyyy-MM-ddTHH:mmZ"));
+        ls.setTimeSpec(Qt::UTC);
+        i->setValue(ls);
+    }
+}
+
+/*! Returns the sensor last announced timestamp.
+ */
+const QString &Sensor::lastAnnounced() const
+{
+    static const QString s = QString("");
+
+    const ResourceItem *i = item(RAttrLastAnnounced);
+    return i ? i->toString() : s;
+}
+
+/*! Sets the sensor last announced timestamp.
+    \param lastannounced the sensor last announced timestamp
+ */
+void Sensor::setLastAnnounced(const QString &lastannounced)
+{
+    ResourceItem *i = item(RAttrLastAnnounced);
+    if (i)
+    {
+        QDateTime la = QDateTime::fromString(lastannounced, QLatin1String("yyyy-MM-ddTHH:mm:ssZ"));
+        la.setTimeSpec(Qt::UTC);
+        i->setValue(la);
+    }
+}
+
 /*! Transfers state into JSONString.
  */
 QString Sensor::stateToString()
