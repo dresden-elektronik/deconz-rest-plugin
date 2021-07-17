@@ -1788,7 +1788,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                  modelId.startsWith(QLatin1String("3300")) ||          // Centralite contatc sensor
                  modelId.startsWith(QLatin1String("3315")) ||
                  modelId.startsWith(QLatin1String("3157100")) ||
-                 modelId.startsWith(QLatin1String("URC4450BC0-X-R")) || // Xfinity Keypad XHK1-UE / URC4450BC0-X-R
+                 modelId == QLatin1String("URC4450BC0-X-R") || // Xfinity Keypad XHK1-UE / URC4450BC0-X-R
                  modelId.startsWith(QLatin1String("3405-L")) || // IRIS 3405-L Keypad
                  modelId.startsWith(QLatin1String("4655BC0")))
         {
@@ -3804,7 +3804,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     else if (sensor->modelId().startsWith(QLatin1String("TS0215")) ||
              sensor->modelId().startsWith(QLatin1String("RC_V14")) ||
              sensor->modelId().startsWith(QLatin1String("RC-EM")) ||
-             sensor->modelId().startsWith(QLatin1String("URC4450BC0-X-R")) ||
+             sensor->modelId() == QLatin1String("URC4450BC0-X-R") ||
              sensor->modelId().startsWith(QLatin1String("3405-L")) ||
              sensor->modelId().startsWith(QLatin1String("RC-EF-3.0")))
     {
