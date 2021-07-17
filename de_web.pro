@@ -116,6 +116,7 @@ HEADERS  = bindings.h \
            de_web_plugin_private.h \
            de_web_widget.h \
            event.h \
+           event_emitter.h \
            fan_control.h \
            gateway.h \
            gateway_scanner.h \
@@ -163,6 +164,7 @@ SOURCES  = air_quality.cpp \
            de_otau.cpp \
            electrical_measurement.cpp \
            event.cpp \
+           event_emitter.cpp \
            event_queue.cpp \
            fan_control.cpp \
            firmware_update.cpp \

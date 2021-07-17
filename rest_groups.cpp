@@ -2785,7 +2785,7 @@ static void recallSceneCheckGroupChanges(DeRestPluginPrivate *d, Group *group, S
         if (item && item->toBool() != ls->on())
         {
             item->setValue(ls->on());
-            d->enqueueEvent(Event(RLights, RStateOn, lightNode->id(), item));
+            enqueueEvent(Event(RLights, RStateOn, lightNode->id(), item));
             changed = true;
             groupOnChanged = true;
         }
@@ -2794,7 +2794,7 @@ static void recallSceneCheckGroupChanges(DeRestPluginPrivate *d, Group *group, S
         if (item && ls->bri() != item->toNumber())
         {
             item->setValue(ls->bri());
-            d->enqueueEvent(Event(RLights, RStateBri, lightNode->id(), item));
+            enqueueEvent(Event(RLights, RStateBri, lightNode->id(), item));
             changed = true;
             groupBriChanged = true;
         }
@@ -2805,7 +2805,7 @@ static void recallSceneCheckGroupChanges(DeRestPluginPrivate *d, Group *group, S
             if (ls->colorMode() != item->toString())
             {
                 item->setValue(ls->colorMode());
-                d->enqueueEvent(Event(RLights, RStateColorMode, lightNode->id()));
+                enqueueEvent(Event(RLights, RStateColorMode, lightNode->id()));
                 changed = true;
                 groupColorModeChanged = true;
             }
@@ -2816,14 +2816,14 @@ static void recallSceneCheckGroupChanges(DeRestPluginPrivate *d, Group *group, S
                 if (item && ls->x() != item->toNumber())
                 {
                     item->setValue(ls->x());
-                    d->enqueueEvent(Event(RLights, RStateX, lightNode->id(), item));
+                    enqueueEvent(Event(RLights, RStateX, lightNode->id(), item));
                     changed = true;
                 }
                 item = lightNode->item(RStateY);
                 if (item && ls->y() != item->toNumber())
                 {
                     item->setValue(ls->y());
-                    d->enqueueEvent(Event(RLights, RStateY, lightNode->id(), item));
+                    enqueueEvent(Event(RLights, RStateY, lightNode->id(), item));
                     changed = true;
                 }
             }
@@ -2833,7 +2833,7 @@ static void recallSceneCheckGroupChanges(DeRestPluginPrivate *d, Group *group, S
                 if (item && ls->colorTemperature() != item->toNumber())
                 {
                     item->setValue(ls->colorTemperature());
-                    d->enqueueEvent(Event(RLights, RStateCt, lightNode->id(), item));
+                    enqueueEvent(Event(RLights, RStateCt, lightNode->id(), item));
                     changed = true;
                     groupCtChanged = true;
                 }
@@ -2844,7 +2844,7 @@ static void recallSceneCheckGroupChanges(DeRestPluginPrivate *d, Group *group, S
                 if (item && ls->enhancedHue() != item->toNumber())
                 {
                     item->setValue(ls->enhancedHue());
-                    d->enqueueEvent(Event(RLights, RStateHue, lightNode->id(), item));
+                    enqueueEvent(Event(RLights, RStateHue, lightNode->id(), item));
                     changed = true;
                     groupHueSatChanged = true;
                 }
@@ -2853,7 +2853,7 @@ static void recallSceneCheckGroupChanges(DeRestPluginPrivate *d, Group *group, S
                 if (item && ls->saturation() != item->toNumber())
                 {
                     item->setValue(ls->saturation());
-                    d->enqueueEvent(Event(RLights, RStateSat, lightNode->id(), item));
+                    enqueueEvent(Event(RLights, RStateSat, lightNode->id(), item));
                     changed = true;
                     groupHueSatChanged = true;
                 }
