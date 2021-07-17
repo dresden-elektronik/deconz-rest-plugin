@@ -2558,7 +2558,6 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             if (!(item->needPushSet() || item->needPushChange()))
             {
                 DBG_Printf(DBG_INFO_L2, "discard sensor state push for %s: %s (already pushed)\n", qPrintable(e.id()), e.what());
-                webSocketServer->flush(); // force transmit send buffer
                 return; // already pushed
             }
 
@@ -2604,7 +2603,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                     {
                         iy = item;
                     }
-                    else if (item->isPublic() && item->lastSet().isValid() && (gwWebSocketNotifyAll || rid.suffix == RStateButtonEvent || item->needPushChange()))
+                    else if (item->isPublic() && (gwWebSocketNotifyAll || rid.suffix == RStateButtonEvent || item->needPushChange()))
                     {
                         state[key] = item->toVariant();
                         item->clearNeedPush();
@@ -2612,7 +2611,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                 }
             }
 
-            if (iox && iox->lastSet().isValid() && ioy && ioy->lastSet().isValid() && ioz && ioz->lastSet().isValid())
+            if (iox && ioy && ioz)
             {
                 if (gwWebSocketNotifyAll || iox->needPushChange() || ioy->needPushChange() || ioz->needPushChange())
                 {
@@ -2628,7 +2627,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                 }
             }
 
-            if (ix && ix->lastSet().isValid() && iy && iy->lastSet().isValid())
+            if (ix && iy)
             {
                 if (gwWebSocketNotifyAll || ix->needPushChange() || iy->needPushChange())
                 {
@@ -2657,7 +2656,6 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             if (!(item->needPushSet() || item->needPushChange()))
             {
                 DBG_Printf(DBG_INFO_L2, "discard sensor config push for %s (already pushed)\n", e.what());
-                webSocketServer->flush(); // force transmit send buffer
                 return; // already pushed
             }
 
@@ -2693,7 +2691,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                     {
                         ilct = item;
                     }
-                    else if (item->isPublic() && item->lastSet().isValid() && (gwWebSocketNotifyAll || item->needPushChange()))
+                    else if (item->isPublic() && (gwWebSocketNotifyAll || item->needPushChange()))
                     {
                         if (rid.suffix == RConfigSchedule)
                         {
@@ -2736,7 +2734,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                     }
                 }
             }
-            if (ilcs && ilcs->lastSet().isValid() && ilca && ilca->lastSet().isValid() && ilct && ilct->lastSet().isValid())
+            if (ilcs && ilca && ilct)
             {
                 if (gwWebSocketNotifyAll || ilcs->needPushChange() || ilca->needPushChange() || ilct->needPushChange())
                 {
@@ -2767,7 +2765,6 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             if (!(item->needPushSet() || item->needPushChange()))
             {
                 DBG_Printf(DBG_INFO_L2, "discard sensor attr push for %s (already pushed)\n", e.what());
-                webSocketServer->flush(); // force transmit send buffer
                 return; // already pushed
             }
 
@@ -2788,7 +2785,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                 if (strncmp(rid.suffix, "attr/", 5) == 0) {
                     const char *key = item->descriptor().suffix + 5;
 
-                    if (item->lastSet().isValid() && (gwWebSocketNotifyAll || item->needPushChange()))
+                    if (gwWebSocketNotifyAll || item->needPushChange())
                     {
                         attr[key] = item->toVariant();
                         item->clearNeedPush();

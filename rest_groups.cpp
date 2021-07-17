@@ -3452,7 +3452,6 @@ void DeRestPluginPrivate::handleGroupEvent(const Event &e)
             if (!(item->needPushSet() || item->needPushChange()))
             {
                 DBG_Printf(DBG_INFO_L2, "discard group state push for %s: %s (already pushed)\n", qPrintable(e.id()), e.what());
-                webSocketServer->flush(); // force transmit send buffer
                 return; // already pushed
             }
 
@@ -3472,7 +3471,7 @@ void DeRestPluginPrivate::handleGroupEvent(const Event &e)
                 {
                     const char *key = item->descriptor().suffix + 6;
 
-                    if (item->lastSet().isValid() && (gwWebSocketNotifyAll || (item->lastChanged().isValid() && item->needPushChange())))
+                    if (gwWebSocketNotifyAll || item->needPushChange())
                     {
                         state[key] = item->toVariant();
                         item->clearNeedPush();

@@ -2943,7 +2943,6 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
             if (!(item->needPushSet() || item->needPushChange()))
             {
                 DBG_Printf(DBG_INFO_L2, "discard light state push for %s: %s (already pushed)\n", qPrintable(e.id()), e.what());
-                webSocketServer->flush(); // force transmit send buffer
                 return; // already pushed
             }
 
@@ -2975,7 +2974,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     {
                         iy = item;
                     }
-                    else if (item->lastSet().isValid() && (gwWebSocketNotifyAll || (item->lastChanged().isValid() && item->needPushChange())))
+                    else if (gwWebSocketNotifyAll || item->needPushChange())
                     {
                         state[key] = item->toVariant();
                         item->clearNeedPush();
@@ -2983,11 +2982,9 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                 }
             }
 
-            if (ix && ix->lastSet().isValid() && iy && iy->lastSet().isValid())
+            if (ix && iy)
             {
-                if (gwWebSocketNotifyAll ||
-                    (ix->lastChanged().isValid() && ix->needPushChange()) ||
-                    (iy->lastChanged().isValid() && iy->needPushChange()))
+                if (gwWebSocketNotifyAll || ix->needPushChange() || iy->needPushChange())
                   {
                       xy.append(round(ix->toNumber() / 6.5535) / 10000.0);
                       xy.append(round(iy->toNumber() / 6.5535) / 10000.0);
@@ -3026,7 +3023,6 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
             if (!(item->needPushSet() || item->needPushChange()))
             {
                 DBG_Printf(DBG_INFO_L2, "discard light state push for %s: %s (already pushed)\n", qPrintable(e.id()), e.what());
-                webSocketServer->flush(); // force transmit send buffer
                 return; // already pushed
             }
 
@@ -3058,7 +3054,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     continue;
                 }
 
-                if (item->lastSet().isValid() && (gwWebSocketNotifyAll || (item->lastChanged().isValid() && item->needPushChange())))
+                if (gwWebSocketNotifyAll || item->needPushChange())
                 {
                     attr[key] = item->toVariant();
                     item->clearNeedPush();
