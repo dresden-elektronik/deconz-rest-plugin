@@ -3121,7 +3121,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (isClip)
         {
-            sensor.removeItem(RConfigReachable);
             sensor.removeItem(RAttrLastAnnounced);
             sensor.removeItem(RAttrLastSeen);
             ok = true;
