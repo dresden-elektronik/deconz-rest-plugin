@@ -178,7 +178,6 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
     }
 
     sensor->rx(); // mark rx here so that Read Attributes will work early on
-    sensor->incrementRxCounter();
 
     ResourceItem *itemIasState = sensor->item(RConfigEnrolled);
     ResourceItem *itemPending = sensor->item(RConfigPending);
