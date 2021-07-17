@@ -272,10 +272,7 @@ void Sensor::setModelId(const QString &mid)
 void Sensor::didSetValue(ResourceItem *i)
 {
     plugin->enqueueEvent(Event(RSensors, i->descriptor().suffix, id(), i));
-    plugin->updateSensorEtag(this);
     setNeedSaveDatabase(true);
-    plugin->saveDatabaseItems |= DB_SENSORS;
-    plugin->queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
 }
 
 /*! Mark received command and update lastseen. */

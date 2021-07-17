@@ -38,17 +38,6 @@ ApiConfig::ApiConfig() :
 {
 }
 
-/*! Handles admin when ResourceItem value has been set.
- * \param i ResourceItem
- */
-void ApiConfig::didSetValue(ResourceItem *i)
-{
-    plugin->enqueueEvent(Event(RConfig, i->descriptor().suffix, 0)); // FIXME
-    plugin->updateEtag(plugin->gwConfigEtag);
-    plugin->saveDatabaseItems |= DB_CONFIG;
-    plugin->queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
-}
-
 /*! Init the configuration. */
 void DeRestPluginPrivate::initConfig()
 {

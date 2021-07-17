@@ -2645,6 +2645,9 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             {
                 map[QLatin1String("state")] = state;
                 webSocketServer->broadcastTextMessage(Json::serialize(map));
+                updateSensorEtag(sensor);
+                plugin->saveDatabaseItems |= DB_SENSORS;
+                plugin->queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
             }
         }
     }
@@ -2754,6 +2757,9 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             {
                 map[QLatin1String("config")] = config;
                 webSocketServer->broadcastTextMessage(Json::serialize(map));
+                updateSensorEtag(sensor);
+                plugin->saveDatabaseItems |= DB_SENSORS;
+                plugin->queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
             }
         }
     }
@@ -2796,6 +2802,9 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             if (!attr.isEmpty()) {
                 map["attr"] = attr;
                 webSocketServer->broadcastTextMessage(Json::serialize(map));
+                updateSensorEtag(sensor);
+                plugin->saveDatabaseItems |= DB_SENSORS;
+                plugin->queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
             }
         }
     }

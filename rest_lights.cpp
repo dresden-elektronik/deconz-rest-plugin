@@ -2998,6 +2998,9 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
             {
                 map["state"] = state;
                 webSocketServer->broadcastTextMessage(Json::serialize(map));
+                updateLightEtag(lightNode);
+                plugin->saveDatabaseItems |= DB_LIGHTS;
+                plugin->queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
             }
 
             if ((e.what() == RStateOn || e.what() == RStateReachable) && !lightNode->groups().empty())
@@ -3065,6 +3068,9 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
             {
                 map["attr"] = attr;
                 webSocketServer->broadcastTextMessage(Json::serialize(map));
+                updateLightEtag(lightNode);
+                plugin->saveDatabaseItems |= DB_LIGHTS;
+                plugin->queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
             }
         }
     }

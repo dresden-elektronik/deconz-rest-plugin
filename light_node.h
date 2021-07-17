@@ -62,7 +62,7 @@ public:
     bool supportsColorLoop() const;
     void setColorLoopSpeed(uint8_t speed);
     uint8_t colorLoopSpeed() const;
-    void didSetValue(ResourceItem *i);
+    void didSetValue(ResourceItem *i) override;
     void rx();
     const deCONZ::SimpleDescriptor &haEndpoint() const;
     void setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint);

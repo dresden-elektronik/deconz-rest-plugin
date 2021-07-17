@@ -122,7 +122,7 @@ public:
     void setLastSeen(const QString &ls);
     const QString &lastAnnounced() const;
     void setLastAnnounced(const QString &la);
-    void didSetValue(ResourceItem *i);
+    void didSetValue(ResourceItem *i) override;
     void rx();
     uint8_t resetRetryCount() const;
     void setResetRetryCount(uint8_t resetRetryCount);

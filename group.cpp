@@ -132,9 +132,6 @@ bool Group::isColorLoopActive() const
 void Group::didSetValue(ResourceItem *i)
 {
     plugin->enqueueEvent(Event(RGroups, i->descriptor().suffix, id(), i));
-    plugin->updateGroupEtag(this);
-    plugin->saveDatabaseItems |= DB_GROUPS;
-    plugin->queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
 }
 
 /*! multiDeviceIds to string. */

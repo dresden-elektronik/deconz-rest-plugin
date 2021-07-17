@@ -44,7 +44,7 @@ public:
     void setIsOn(bool on);
     void setColorLoopActive(bool colorLoopActive);
     bool isColorLoopActive() const;
-    void didSetValue(ResourceItem *i);
+    void didSetValue(ResourceItem *i) override;
     const QString midsToString() const;
     void setMidsFromString(const QString &mids);
     const QString dmToString() const;

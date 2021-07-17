@@ -3484,6 +3484,9 @@ void DeRestPluginPrivate::handleGroupEvent(const Event &e)
             {
                 map["state"] = state;
                 webSocketServer->broadcastTextMessage(Json::serialize(map));
+                updateGroupEtag(group);
+                plugin->saveDatabaseItems |= DB_GROUPS;
+                plugin->queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
             }
         }
     }
