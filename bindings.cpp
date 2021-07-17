@@ -1789,7 +1789,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                  modelId.startsWith(QLatin1String("3315")) ||
                  modelId.startsWith(QLatin1String("3157100")) ||
                  modelId == QLatin1String("URC4450BC0-X-R") || // Xfinity Keypad XHK1-UE / URC4450BC0-X-R
-                 modelId.startsWith(QLatin1String("3405-L")) || // IRIS 3405-L Keypad
+                 modelId == QLatin1String("3405-L") || // IRIS 3405-L Keypad
                  modelId.startsWith(QLatin1String("4655BC0")))
         {
             rq.attributeId = 0x0020;   // battery voltage
@@ -3805,7 +3805,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
              sensor->modelId().startsWith(QLatin1String("RC_V14")) ||
              sensor->modelId().startsWith(QLatin1String("RC-EM")) ||
              sensor->modelId() == QLatin1String("URC4450BC0-X-R") ||
-             sensor->modelId().startsWith(QLatin1String("3405-L")) ||
+             sensor->modelId() == QLatin1String("3405-L") ||
              sensor->modelId().startsWith(QLatin1String("RC-EF-3.0")))
     {
         clusters.push_back(IAS_ACE_CLUSTER_ID);
