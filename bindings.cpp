@@ -11,6 +11,7 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "utils/utils.h"
+#include "product_match.h"
 
 #define MAX_ACTIVE_BINDING_TASKS 3
 
