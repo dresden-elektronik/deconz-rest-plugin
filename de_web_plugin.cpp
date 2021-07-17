@@ -603,7 +603,8 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     databaseTimer = new QTimer(this);
     databaseTimer->setSingleShot(true);
 
-    initEventQueue();
+    eventEmitter = new EventEmitter(this);
+    connect(eventEmitter, &EventEmitter::eventNotify, this, &DeRestPluginPrivate::handleEvent);
     initResourceDescriptors();
 
     connect(databaseTimer, SIGNAL(timeout()),
@@ -900,6 +901,7 @@ DeRestPluginPrivate::~DeRestPluginPrivate()
         inetDiscoveryManager->deleteLater();
         inetDiscoveryManager = 0;
     }
+    eventEmitter = nullptr;
 }
 
 DeRestPluginPrivate *DeRestPluginPrivate::instance()
@@ -1168,7 +1170,6 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             if (sensorNode)
             {
                 sensorNode->rx();
-                sensorNode->incrementRxCounter();
                 ResourceItem *item = sensorNode->item(RConfigReachable);
                 if (item && !item->toBool())
                 {
@@ -3932,17 +3933,6 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ:
             //checkSensorBindingsForAttributeReporting(sensor);
 
             updated = true;
-/*
-            if (event &&
-                (event->event() == deCONZ::NodeEvent::UpdatedClusterDataZclRead ||
-                 event->event() == deCONZ::NodeEvent::UpdatedClusterDataZclReport))
-            {
-            }
-            else if (sensor->rxCounter() == 0)
-            {
-                reachable = false; // wait till received something from sensor
-            }
-*/
         }
         if (sensor->type() == QLatin1String("ZHATime") && !sensor->mustRead(READ_TIME))
         {
@@ -7918,7 +7908,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             event.event() == deCONZ::NodeEvent::UpdatedClusterDataZclRead)
         {
             i->rx();
-            i->incrementRxCounter();
         }
 
         checkSensorNodeReachable(&*i, &event);
@@ -13994,7 +13983,6 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(const deCONZ::ApsDataIndi
                     checkSensorNodeReachable(&s);
                 }
 
-                s.incrementRxCounter();
                 item = s.item(RStatePresence);
                 if (item)
                 {
@@ -15982,7 +15970,7 @@ void DeRestPlugin::idleTimerFired()
     if (localTime)
     {
         localTime->setValue(QDateTime::currentDateTime());
-        d->enqueueEvent(Event(RConfig, RConfigLocalTime, 0));
+        enqueueEvent(Event(RConfig, RConfigLocalTime, 0));
     }
 
     if (d->idleLastActivity < IDLE_USER_LIMIT)

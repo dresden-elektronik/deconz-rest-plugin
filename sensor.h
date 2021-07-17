@@ -129,8 +129,6 @@ public:
     uint8_t zdpResetSeq() const;
     void setZdpResetSeq(uint8_t zdpResetSeq);
     void updateStateTimestamp();
-    void incrementRxCounter();
-    int rxCounter() const;
 
     QString stateToString();
     QString configToString();
@@ -156,7 +154,6 @@ private:
     uint8_t m_resetRetryCount;
     uint8_t m_zdpResetSeq;
     ButtonMapRef m_buttonMapRef{};
-    int m_rxCounter;
 };
 
 #endif // SENSOR_H
