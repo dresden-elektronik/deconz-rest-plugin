@@ -270,7 +270,7 @@ void Sensor::setModelId(const QString &mid)
  */
 void Sensor::didSetValue(ResourceItem *i)
 {
-    plugin->enqueueEvent(Event(RSensors, i->descriptor().suffix, id(), i));
+    enqueueEvent(Event(RSensors, i->descriptor().suffix, id(), i));
     setNeedSaveDatabase(true);
 }
 

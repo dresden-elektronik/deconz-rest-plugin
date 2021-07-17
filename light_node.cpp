@@ -267,7 +267,7 @@ uint8_t LightNode::colorLoopSpeed() const
  */
 void LightNode::didSetValue(ResourceItem *i)
 {
-    plugin->enqueueEvent(Event(RLights, i->descriptor().suffix, id(), i));
+    enqueueEvent(Event(RLights, i->descriptor().suffix, id(), i));
     setNeedSaveDatabase(true);
 }
 

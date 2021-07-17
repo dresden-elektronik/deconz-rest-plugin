@@ -8,7 +8,7 @@
  *
  */
 
-#include "de_web_plugin_private.h"
+#include "event_emitter.h"
 #include "group.h"
 #include <QStringList>
 
@@ -131,7 +131,7 @@ bool Group::isColorLoopActive() const
  */
 void Group::didSetValue(ResourceItem *i)
 {
-    plugin->enqueueEvent(Event(RGroups, i->descriptor().suffix, id(), i));
+    enqueueEvent(Event(RGroups, i->descriptor().suffix, id(), i));
 }
 
 /*! multiDeviceIds to string. */
