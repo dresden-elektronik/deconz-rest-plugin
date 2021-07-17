@@ -341,7 +341,6 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         sensor.setSwVersion(map[QLatin1String("swversion")].toString());
         sensor.setType(type);
 
-        sensor.removeItem(RConfigReachable);
         sensor.removeItem(RAttrLastAnnounced);
         sensor.removeItem(RAttrLastSeen);
 
@@ -3384,14 +3383,14 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
                     // ignore
                 }
                 else*/
-                
+
                 if (isSameAddress(node->address(), ind.srcAddress()))
                 {
                     indAddress = node->address();
                     macCapabilities = node->macCapabilities();
                     break;
                 }
-                
+
                 i++;
             }
         }
