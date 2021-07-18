@@ -184,7 +184,7 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
 
                 if (item)
                 {
-                    item->setValue(item->toNumber() | R_PENDING_MODE); // Ensure the device Xiaomi device operation mode is marked for writing when the device is reset AND
+                    item->setValue(item->toNumber() | R_PENDING_MODE); // Ensure the Xiaomi device operation mode is marked for writing when the device is reset AND
                                                                        // a ZHASwitch resource already exists which is not marked as deleted.
                 }
             }
