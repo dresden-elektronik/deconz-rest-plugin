@@ -73,7 +73,7 @@ bool deleteSensor(Sensor *sensor, DeRestPluginPrivate *plugin)
         sensor->setNeedSaveDatabase(true);
         sensor->setResetRetryCount(10);
 
-        plugin->enqueueEvent(Event(sensor->prefix(), REventDeleted, sensor->id()));
+        enqueueEvent(Event(sensor->prefix(), REventDeleted, sensor->id()));
         return true;
     }
 
@@ -106,7 +106,7 @@ bool deleteLight(LightNode *lightNode, DeRestPluginPrivate *plugin)
             }
         }
 
-        plugin->enqueueEvent(Event(lightNode->prefix(), REventDeleted, lightNode->id()));
+        enqueueEvent(Event(lightNode->prefix(), REventDeleted, lightNode->id()));
         return true;
     }
 

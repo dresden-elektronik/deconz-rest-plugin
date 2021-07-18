@@ -87,7 +87,7 @@ GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.12.01\\\"
+DEFINES += GW_SW_VERSION=\\\"2.12.03\\\"
 DEFINES += GW_SW_DATE=$$GIT_COMMIT_DATE
 DEFINES += GW_API_VERSION=\\\"1.16.0\\\"
 DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
@@ -116,6 +116,7 @@ HEADERS  = bindings.h \
            de_web_plugin_private.h \
            de_web_widget.h \
            event.h \
+           event_emitter.h \
            fan_control.h \
            gateway.h \
            gateway_scanner.h \
@@ -124,6 +125,7 @@ HEADERS  = bindings.h \
            group_info.h \
            json.h \
            light_node.h \
+           mfspecific_cluster_xiaoyan.h \
            poll_control.h \
            poll_manager.h \
            product_match.h \
@@ -140,7 +142,8 @@ HEADERS  = bindings.h \
            thermostat_ui_configuration.h \
            tuya.h \
            utils/utils.h \
-           websocket_server.h
+           websocket_server.h \
+           zdp/zdp_handlers.h
 
 SOURCES  = air_quality.cpp \
            aps_controller_wrapper.cpp \
@@ -161,6 +164,7 @@ SOURCES  = air_quality.cpp \
            de_otau.cpp \
            electrical_measurement.cpp \
            event.cpp \
+           event_emitter.cpp \
            event_queue.cpp \
            fan_control.cpp \
            firmware_update.cpp \
@@ -175,6 +179,8 @@ SOURCES  = air_quality.cpp \
            identify.cpp \
            json.cpp \
            light_node.cpp \
+           mfspecific_cluster_xiaoyan.cpp \
+           occupancy_sensing.cpp \
            poll_control.cpp \
            poll_manager.cpp \
            product_match.cpp \
@@ -214,7 +220,8 @@ SOURCES  = air_quality.cpp \
            zcl_tasks.cpp \
            window_covering.cpp \
            websocket_server.cpp \
-           xmas.cpp
+           xmas.cpp \
+           zdp/zdp_handlers.cpp
 
 win32 {
 

@@ -3190,7 +3190,12 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 sensor.addItem(DataTypeUInt16, RStateX);
                 sensor.addItem(DataTypeUInt16, RStateY);
-                sensor.addItem(DataTypeUInt16, RStateAngle);
+                sensor.addItem(DataTypeInt16, RStateAngle);
+            }
+            else if (sensor.modelId() == QLatin1String("TERNCY-SD01"))
+            {
+                sensor.addItem(DataTypeInt16, RStateAngle);
+                sensor.addItem(DataTypeUInt16, RStateEventDuration);
             }
         }
         else if (sensor.type().endsWith(QLatin1String("LightLevel")))
@@ -3268,6 +3273,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 clusterId = clusterId ? clusterId : PRESSURE_MEASUREMENT_CLUSTER_ID;
             }
             item = sensor.addItem(DataTypeInt16, RStatePressure);
+            item->setValue(0);
+            item = sensor.addItem(DataTypeInt16, RConfigOffset);
             item->setValue(0);
         }
         else if (sensor.type().endsWith(QLatin1String("Presence")))
@@ -4134,8 +4141,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                         item = sensor.item(RConfigGroup);
                         if (item && !item->toString().isEmpty() && item->toString() != QLatin1String("0"))
                         {
-                            Event e(RSensors, REventValidGroup, sensor.id());
-                            d->enqueueEvent(e);
+                            enqueueEvent(Event(RSensors, REventValidGroup, sensor.id()));
                         }
                     }
                 }
