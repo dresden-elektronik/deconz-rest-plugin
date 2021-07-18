@@ -1826,7 +1826,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             }
             
             // display some information
-            DBG_Printf(DBG_ZGP, "Device commissioning : options.byte 0x%02X, extOptions.byte 0x%02X\n", options.byte, extOptions.byte);
+            DBG_Printf(DBG_ZGP, "Device commissioning : device type 0x%02X, options.byte 0x%02X, extOptions.byte 0x%02X\n", gpdDeviceId, options.byte, extOptions.byte);
 
             // create new sensor
             Sensor sensorNode;
@@ -1875,17 +1875,32 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             else if (gpdDeviceId == GpDeviceIdOnOffSwitch && options.byte == 0xC5 && extOptions.byte == 0xF2 && ind.payload().size() == 31)
             {
                 //For the 1 button switch (0 677 23L or ZLGP17):
-                //Button 1: Device commissioning : options.byte 0xC5 , extOptions.byte 0xF2 , gpdsrcid 5345230 , command 0x02 , Payload 02c5f20164366c366d12f5587972fd1dae3dee65ff1de0f001000004022220
+                //Button 1: Device commissioning : options.byte 0xC5 , extOptions.byte 0xF2 , gpdsrcid 5345230 , gpdDeviceId 0x02 , Payload 02c5f20164366c366d12f5587972fd1dae3dee65ff1de0f001000004022220
 
                 //For the 2 buttons switch (0 677 24L or ZLGP18):
-                //Button 1: Device commissioning : options.byte 0xC5 , extOptions.byte 0xF2 , gpdsrcid 5375258 , command 0x02 , Payload 02c5f29ddf38cc0baaa63c6d8c31176a7d50892a7f84e35f00000004022220
-                //Button 2: Device commissioning : options.byte 0xC5 , extOptions.byte 0xF2 , gpdsrcid 5375259 , command 0x02 , Payload 02c5f2361cf5a1f812cebb4744edfec5d591f07fe3e2935800000004022220
+                //Button 1: Device commissioning : options.byte 0xC5 , extOptions.byte 0xF2 , gpdsrcid 5375258 , gpdDeviceId 0x02 , Payload 02c5f29ddf38cc0baaa63c6d8c31176a7d50892a7f84e35f00000004022220
+                //Button 2: Device commissioning : options.byte 0xC5 , extOptions.byte 0xF2 , gpdsrcid 5375259 , gpdDeviceId 0x02 , Payload 02c5f2361cf5a1f812cebb4744edfec5d591f07fe3e2935800000004022220
                 
-                // It use as command
+                // they use as command
                 // 0x20 GpCommandIdOff
                 // 0x22 GpCommandIdToggle
 
-                sensorNode.setModelId("LEGRANDZGPSWITCH");
+                sensorNode.setModelId("LEGRANDZGPTOGGLESWITCH");
+                sensorNode.setManufacturer("Legrand");
+                sensorNode.setSwVersion("1.0");
+            }
+            else if (gpdDeviceId == 0xfe && options.byte == 0xC5 && extOptions.byte == 0xF2 && ind.payload().size() == 37) //0xfe is for scene switch ?
+            {
+                //For the 4 buttons switch (0 677 55L or ZLGP15):
+                //          Device commissioning : options.byte 0xC5 , extOptions.byte 0xF2 , gpdsrcid 5350418 , gpdDeviceId 0x02 , Payload fec5f20aed654eac2b62be20be25648b591e5097033fbf640000000408141516171c1d1e1f
+                
+                // they use as command
+                // 0x14 GpCommandIdScene4
+                // 0x15 GpCommandIdScene5
+                // 0x16 GpCommandIdScene6
+                // 0x17 GpCommandIdScene7
+
+                sensorNode.setModelId("LEGRANDZGPSCENESWITCH");
                 sensorNode.setManufacturer("Legrand");
                 sensorNode.setSwVersion("1.0");
             }
