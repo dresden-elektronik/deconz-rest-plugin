@@ -3916,9 +3916,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 //item->setValue(0);
             }
 
-            if (sensor.modelId().endsWith(QLatin1String("86opcn01")))
+            if (sensor.modelId().endsWith(QLatin1String("86opcn01")) || sensor.modelId() == QLatin1String("lumi.remote.b28ac1"))
             {
-                // Aqara Opple switches need to be configured to send proper button events
+                // Aqara switches need to be configured to send proper button events
                 item = sensor.addItem(DataTypeUInt16, RConfigPending);
                 item->setValue(item->toNumber() | R_PENDING_MODE);
             }

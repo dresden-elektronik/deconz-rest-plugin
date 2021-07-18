@@ -177,6 +177,17 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
             {
                 item->setValue(IAS_STATE_INIT);
             }
+
+            if (si->modelId().startsWith(QLatin1String("lumi")) && si->type() == QLatin1String("ZHASwitch"))
+            {
+                item = si->item(RConfigPending); // holds switch configuration requirement
+
+                if (item)
+                {
+                    item->setValue(item->toNumber() | R_PENDING_MODE); // Ensure the device Xiaomi device operation mode is marked for writing when the device is reset AND
+                                                                       // a ZHASwitch resource already exists which is not marked as deleted.
+                }
+            }
             
             checkSensorGroup(&*si);
             checkSensorBindingsForAttributeReporting(&*si);
