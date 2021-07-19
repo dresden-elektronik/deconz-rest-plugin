@@ -13,6 +13,7 @@
 #include "deconz/dbg_trace.h"
 #include "resource.h"
 
+const char *RIASZones = "/iaszones";
 const char *RSensors = "/sensors";
 const char *RLights = "/lights";
 const char *RGroups = "/groups";
@@ -198,6 +199,7 @@ const char *RConfigUbisysJ1TotalSteps2 = "config/ubisys_j1_totalsteps2";
 const char *RConfigUbisysJ1AdditionalSteps = "config/ubisys_j1_additionalsteps";
 const char *RConfigUbisysJ1InactivePowerThreshold = "config/ubisys_j1_inactivepowerthreshold";
 const char *RConfigUbisysJ1StartupSteps = "config/ubisys_j1_startupsteps";
+const char *RConfigIasZoneId = "config/iaszoneid";
 
 const QStringList RConfigDeviceModeValues({
     "singlerocker", "singlepushbutton", "dualrocker", "dualpushbutton"
@@ -383,6 +385,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigUbisysJ1AdditionalSteps));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigUbisysJ1InactivePowerThreshold));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigUbisysJ1StartupSteps));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigIasZoneId));
 }
 
 const char *getResourcePrefix(const QString &str)

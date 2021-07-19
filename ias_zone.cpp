@@ -10,6 +10,7 @@
 
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
+#include "ias_zone.h"
 
 // server send
 #define CMD_STATUS_CHANGE_NOTIFICATION 0x00
@@ -775,4 +776,15 @@ bool DeRestPluginPrivate::writeIasCieAddress(Sensor *sensor)
     DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Failed sending write IAS CIE address.\n", sensor->address().ext());
 
     return false;
+}
+
+IASZone::IASZone() :
+    Resource(RIASZones)
+{
+    addItem(DataTypeString, RAttrName);
+    addItem(DataTypeString, RAttrType);
+    addItem(DataTypeString, RAttrId);
+    addItem(DataTypeUInt8, RConfigIasZoneId);
+    ResourceItem *armMode = addItem(DataTypeString, RConfigArmMode);
+    armMode->setValue(QString("disarmed"));
 }

@@ -2,8 +2,9 @@
 #include <QVariantMap>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
-#include "json.h"
+//#include "json.h"
 #include "ias_ace.h"
+#include "ias_zone.h"
 
 //  Arm mode command
 //-------------------
@@ -56,19 +57,172 @@ const std::array<KeyMap, 7> RConfigArmModeValues = { { {QLatin1String("disarmed"
                                                        {QLatin1String("invalid_code")}, {QLatin1String("not_ready")}, {QLatin1String("already_disarmed")} } };
 
 
-const std::array<KeyMap, 11> RConfigPanelValues = { { {QLatin1String("disarmed")}, {QLatin1String("armed_stay")}, {QLatin1String("armed_night")}, {QLatin1String("armed_away")},
-                                                      {QLatin1String("exit_delay")}, {QLatin1String("entry_delay")}, {QLatin1String("not_ready_to_arm")}, {QLatin1String("in_alarm")},
-                                                      {QLatin1String("arming_stay")}, {QLatin1String("arming_night")}, {QLatin1String("arming_away")} } };
+const std::array<KeyMap, 11> RConfigPanelValues = { {
+    {QLatin1String("disarmed")},
+    {QLatin1String("armed_stay")},
+    {QLatin1String("armed_night")},
+    {QLatin1String("armed_away")},
+    {QLatin1String("exit_delay")},
+    {QLatin1String("entry_delay")},
+    {QLatin1String("not_ready_to_arm")},
+    {QLatin1String("in_alarm")},
+    {QLatin1String("arming_stay")},
+    {QLatin1String("arming_night")},
+    {QLatin1String("arming_away")}
+} };
 
-const QStringList PanelStatusList({
-    "disarmed","armed_stay","armed_night","armed_away","exit_delay","entry_delay","not_ready_to_arm","in_alarm","arming_stay","arming_night","arming_away"
-});
-const QStringList ArmModeList({
-    "disarmed","armed_stay","armed_night","armed_away"
-});
-const QStringList ArmModeListReturn({
-    "disarmed", "armed_stay", "armed_night", "armed_away", "invalid_code", "not_ready", "already_disarmed"
-});
+const std::array<QLatin1String, 11> PanelStatusList = {
+    QLatin1String("disarmed") ,
+    QLatin1String("armed_stay"),
+    QLatin1String("armed_night") ,
+    QLatin1String("armed_away"),
+    QLatin1String("exit_delay"),
+    QLatin1String("entry_delay"),
+    QLatin1String("not_ready_to_arm"),
+    QLatin1String("in_alarm"),
+    QLatin1String("arming_stay"),
+    QLatin1String("arming_night"),
+    QLatin1String("arming_away")
+};
+
+#define IAS_ACE_ARM_MODE_DISARM                       0x00
+#define IAS_ACE_ARM_MODE_ARM_DAY_HOME_ZONES_ONLY      0x01
+#define IAS_ACE_ARM_MODE_ARM_NIGHT_SLEEP_ZONES_ONLY   0x02
+#define IAS_ACE_ARM_MODE_ARM_ALL_ZONES                0x03
+
+#define IAS_ACE_ARM_NOTF_ALL_ZONES_DISARMED           0x00
+#define IAS_ACE_ARM_NOTF_ONLY_DAY_HOME_ZONES_ARMED    0x01
+#define IAS_ACE_ARM_NOTF_ONLY_NIGHT_SLEEP_ZONES_ARMED 0x02
+#define IAS_ACE_ARM_NOTF_ALL_ZONES_ARMED              0x03
+#define IAS_ACE_ARM_NOTF_INVALID_ARM_DISARM_CODE      0x04
+#define IAS_ACE_ARM_NOTF_NOT_READY_TO_ARM             0x05
+#define IAS_ACE_ARM_NOTF_ALREADY_DISARMED             0x06
+
+#define IAS_ACE_PANEL_STATUS_PANEL_DISARMED           0x00
+#define IAS_ACE_PANEL_STATUS_ARMED_STAY               0x01
+#define IAS_ACE_PANEL_STATUS_ARMED_NIGHT              0x02
+#define IAS_ACE_PANEL_STATUS_ARMED_AWAY               0x03
+#define IAS_ACE_PANEL_STATUS_EXIT_DELAY               0x04
+#define IAS_ACE_PANEL_STATUS_ENTRY_DELAY              0x05
+#define IAS_ACE_PANEL_STATUS_NOT_READY_TO_ARM         0x06
+#define IAS_ACE_PANEL_STATUS_IN_ALARM                 0x07
+#define IAS_ACE_PANEL_STATUS_ARMING_STAY              0x08
+#define IAS_ACE_PANEL_STATUS_ARMING_NIGHT             0x09
+#define IAS_ACE_PANEL_STATUS_ARMING_AWAY              0x0a
+
+const std::array<QLatin1String, 4> ArmModeValues = {
+    QLatin1String("disarm"),
+    QLatin1String("arm_day_home_zones_only"),
+    QLatin1String("arm_night_sleep_zones_only"),
+    QLatin1String("arm_all_zones")
+};
+
+// following strings map directly to IAS_ACE_ARM_MODE_* and IAS_ACE_ARM_NOTF_*
+const std::array<QLatin1String, 7> ArmModeListReturn ={
+    QLatin1String("disarmed"),
+    QLatin1String("armed_stay"),
+    QLatin1String("armed_night"),
+    QLatin1String("armed_away"),
+    QLatin1String("invalid_code"),
+    QLatin1String("not_ready"),
+    QLatin1String("already_disarmed")
+};
+
+IASZone *IAS_GetZone(quint8 zoneId)
+{
+    static IASZone zone;
+
+    return &zone;
+}
+
+bool IAS_IsValidPinCode(quint8 zoneId, const QString &pinCode)
+{
+    if (zoneId == 100 && pinCode == QLatin1String("1234"))
+    {
+        return true;
+    }
+
+    return false;
+}
+
+
+quint8 IAS_ArmModeFromString(const QString &armMode)
+{
+    quint8 result = 0;
+    const auto i = std::find(ArmModeListReturn.cbegin(), ArmModeListReturn.cend(), armMode);
+
+    if (i != ArmModeListReturn.cend())
+    {
+        result = static_cast<quint8>(std::distance(ArmModeListReturn.cbegin(), i));
+    }
+
+    return result;
+}
+
+bool IAS_DeviceAllowedToArmZone(IASZone *zone, const deCONZ::Address &srcAddress)
+{
+    Q_UNUSED(zone);
+    Q_UNUSED(srcAddress);
+    return true;
+}
+
+quint8 IAS_HandleArmCommand(IASZone *zone, quint8 armMode, const QString &pinCode, const deCONZ::Address &srcAddress)
+{
+    if (!zone || armMode > IAS_ACE_ARM_MODE_ARM_ALL_ZONES)
+    {
+        return IAS_ACE_ARM_NOTF_NOT_READY_TO_ARM;
+    }
+
+    const quint8 zoneId = zone->item(RConfigIasZoneId)->toNumber();
+    ResourceItem *armModeItem = zone->item(RConfigArmMode);
+    const quint8 armMode0 = IAS_ArmModeFromString(armModeItem->toString());
+
+    if (!pinCode.isEmpty() && !IAS_IsValidPinCode(zoneId, pinCode))
+    {
+        return IAS_ACE_ARM_NOTF_INVALID_ARM_DISARM_CODE;
+    }
+
+    if (pinCode.isEmpty() && !IAS_DeviceAllowedToArmZone(zone, srcAddress))
+    {
+        return IAS_ACE_ARM_NOTF_INVALID_ARM_DISARM_CODE; // correct status?
+    }
+
+    if (armMode0 == IAS_ACE_ARM_MODE_DISARM && armMode == armMode0)
+    {
+        return IAS_ACE_ARM_NOTF_ALREADY_DISARMED;
+    }
+
+    quint8 result = IAS_ACE_ARM_NOTF_NOT_READY_TO_ARM;
+
+    if (armMode == IAS_ACE_ARM_MODE_ARM_ALL_ZONES)
+    {
+        result = IAS_ACE_ARM_NOTF_ALL_ZONES_ARMED;
+    }
+    else if (armMode == IAS_ACE_ARM_MODE_DISARM)
+    {
+        result = IAS_ACE_ARM_NOTF_ALL_ZONES_DISARMED;
+    }
+    else if (armMode == IAS_ACE_ARM_MODE_ARM_DAY_HOME_ZONES_ONLY)
+    {
+        result = IAS_ACE_ARM_NOTF_ONLY_DAY_HOME_ZONES_ARMED;
+    }
+    else if (armMode == IAS_ACE_ARM_MODE_ARM_NIGHT_SLEEP_ZONES_ONLY)
+    {
+        result = IAS_ACE_ARM_NOTF_ONLY_NIGHT_SLEEP_ZONES_ARMED;
+    }
+    else
+    {
+        return result;
+    }
+
+    if (armMode0 != armMode)
+    {
+        armModeItem->setValue(QString(ArmModeListReturn[result]));
+        plugin->enqueueEvent(Event(RIASZones, RConfigArmMode, zone->item(RAttrId)->toString(), armModeItem));
+    }
+
+    return result;
+}
 
 void DeRestPluginPrivate::handleIasAceClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
@@ -79,216 +233,129 @@ void DeRestPluginPrivate::handleIasAceClusterIndication(const deCONZ::ApsDataInd
     
     DBG_Printf(DBG_IAS, "[IAS ACE] - Address 0x%016llX, Payload %s, Command 0x%02X\n", ind.srcAddress().ext(), qPrintable(zclFrame.payload().toHex()), zclFrame.commandId());
 
-    QDataStream stream(zclFrame.payload());
-    stream.setByteOrder(QDataStream::LittleEndian);
-
     if (zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient)
     {
         return;
     }
-    
-    Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint(), QLatin1String("ZHAAncillaryControl"));
-    if (!sensorNode)
+
+    Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint(), QLatin1String("ZHAAncillaryControl"));
+    if (!sensor || !sensor->item(RConfigIasZoneId))
     {
         return;
     }
+
+    QDataStream stream(zclFrame.payload());
+    stream.setByteOrder(QDataStream::LittleEndian);   
     
-    ResourceItem *item;
     bool stateUpdated = false;
 
-    if (zclFrame.commandId() == CMD_ARM)
+    if (zclFrame.commandId() == IAS_ACE_CMD_ARM && zclFrame.payload().size() >= 2)
     {
-        quint8 desired_armmode;
-        quint8 returned_armmode;
-        quint16 length = zclFrame.payload().size() - 2;
-        QString code = QString("");
-        QString armcommand;
-        quint8 zoneId;
-        quint8 codeTemp;
-        
-        quint8 dummy;
+        // payload: [0] enum8 arm mode | [1] string arm/disarm code | [2] u8 zone id
 
-        //Arm Mode
-        stream >> desired_armmode;
-        
-        if (desired_armmode > ArmModeList.size())
-        {
-            armcommand =  QString("unknow");
-        }
-        else
-        {
-            armcommand =  ArmModeList[desired_armmode];
-        }
-        
-        // If there is code
-        // This part can vary, according to device, for exemple keyfob have length = 0
-        if (length > 1)
-        {
-            // the Arm/Disarm Code SHOULD be between four and eight alphanumeric characters in length.
-            // The string encoding SHALL be UTF-8.
-            
-            // Code lenght
-            stream >> dummy;
-            length -= 1;
-            
-            //Arm/Disarm Code
-            for (; length > 0; length--)
-            {
-                stream >> codeTemp;
-                code.append(QChar(codeTemp));
-            }
-        }
-        
-        //Zone ID
-        stream >> zoneId;
-        
-        DBG_Printf(DBG_IAS, "[IAS ACE] - Arm command received, arm mode: %d, code: %s, Zone id: %d\n", desired_armmode , qPrintable(code) ,zoneId);
-        
-        // Need to check code ?
-        if (!code.isEmpty())
-        {
-            
-            //--------------------------------------------
-            // THE VERIFICATION CHECK NEED TO HAPPEN HERE
-            //-------------------------------------------
-            // Jut memorise the value for the moment,
-            // Arm mode response is not used, the code only work using the panel status
-            
-            //Making websocket notification if there is a code to check
-            item = sensorNode->item(RStateAction);
+        // [0] arm mode
+        const quint8 armMode = static_cast<quint8>(zclFrame.payload().at(0));
 
-            if (item)
-            {
-                QString action = QString("%1,%2,%3").arg(armcommand).arg(code).arg(zclFrame.sequenceNumber());
-                item->setValue(action);
-                Event e(RSensors, RStateAction, sensorNode->id(), item);
-                enqueueEvent(e);
-                //Memorise sequence number too
-                item = sensorNode->item(RConfigHostFlags);
-                item->setValue(zclFrame.sequenceNumber());
-                enqueueEvent(Event(RSensors, RConfigHostFlags, sensorNode->id(), item));
-                
-                stateUpdated = true;
-            }
-            
-            // return here, waiting for validation, no response yet
+        if (armMode > IAS_ACE_ARM_MODE_ARM_ALL_ZONES)
+        {
+            DBG_Printf(DBG_IAS, "[IAS ACE] 0x%016llX invalid arm mode: %d, skip\n", ind.srcAddress().ext(), armMode);
             return;
- 
+        }
+        
+        // [2] zone id
+        const quint8 zoneId = static_cast<quint8>(zclFrame.payload().at(zclFrame.payload().size() - 1));
+        
+        DBG_Printf(DBG_IAS, "[IAS ACE] 0x%016llX arm command received, arm mode: 0x%02X, Zone id: %u\n", ind.srcAddress().ext(), armMode, zoneId);
+
+        QString armCode;
+
+        // [1] arm/disarm code in payload (allowed to be empty, e.g. for keyfobs)
+        if (zclFrame.payload().size() > 2)
+        {
+            armCode = QString::fromUtf8(zclFrame.payload().constData() + 1, zclFrame.payload().size() - 2);
         }
 
-        // no code, always validate
-        returned_armmode = desired_armmode;
+        IASZone *zone = IAS_GetZone(zoneId);
 
-        // Update the API if field exist
-        item = sensorNode->item(RConfigArmMode);
+        if (!zone)
+        {
+            return;
+        }
+
+        quint8 armRsp = IAS_HandleArmCommand(zone, armMode, armCode, ind.srcAddress());
+
+        sendArmResponse(ind, zclFrame, armRsp);
+    }
+    else if (zclFrame.commandId() == IAS_ACE_CMD_GET_PANEL_STATUS)
+    {
+        IASZone *zone = IAS_GetZone(sensor->item(RConfigIasZoneId)->toNumber());
+
+        if (!zone)
+        {
+            return;
+        }
+
+
+        quint8 panelStatus = 0; // disarmed
+        
+        ResourceItem *item = sensor->item(RConfigPanel);
         if (item)
         {
-            if (returned_armmode > ArmModeListReturn.size()) {
-                armcommand =  QString("unknow");
+            const auto i = std::find(PanelStatusList.cbegin(), PanelStatusList.cend(), item->toString());
+
+            if (i != PanelStatusList.cend())
+            {
+                panelStatus = static_cast<quint8>(std::distance(PanelStatusList.cbegin(), i));
             }
             else
             {
-                armcommand =  ArmModeListReturn[returned_armmode];
-            }
-            
-            item->setValue(armcommand);
-            Event e(RSensors, RConfigArmMode, sensorNode->id(), item);
-            enqueueEvent(e);
-            stateUpdated = true;
-        }
-        
-        //Can have strange result if not used, need more check
-        if (returned_armmode > 0x03) {
-            return;
-        }
-
-        //Send the request
-        sendArmResponse(ind, zclFrame, returned_armmode);
-
-    }
-    else if (zclFrame.commandId() == CMD_EMERGENCY)
-    {
-    }
-    else if (zclFrame.commandId() == CMD_FIRE)
-    {
-    }
-    else if (zclFrame.commandId() == CMD_PANIC)
-    {
-    }
-    else if (zclFrame.commandId() == CMD_GET_ZONE_ID_MAP)
-    {
-    }
-    else if (zclFrame.commandId() == CMD_GET_ZONE_INFORMATION)
-    {
-    }
-    else if (zclFrame.commandId() == CMD_GET_PANEL_STATUS)
-    {
-        quint8 PanelStatus;
-        
-        item = sensorNode->item(RConfigPanel);
-        if (item && !item->toString().isEmpty())
-        {
-            PanelStatus = PanelStatusList.indexOf(item->toString());
-            if (PanelStatus > PanelStatusList.size())
-            {
-                PanelStatus = 0x00;  // Disarmed
-                DBG_Printf(DBG_IAS, "[IAS ACE] : Unknow PanelStatus");
+                DBG_Printf(DBG_IAS, "[IAS ACE] : Unknow PanelStatus, default to 'disarmed'\n");
             }
         }
-        else
-        {
-            PanelStatus = 0x00;  // Disarmed
-            DBG_Printf(DBG_IAS, "[IAS ACE] : error, can't get PanelStatus");
-        }
 
-        sendGetPanelStatusResponse(ind, zclFrame, PanelStatus, 0x00);
+        sendGetPanelStatusResponse(ind, zclFrame, panelStatus, 0x00);
         
-        //Update too the presence detection, this device have one, triger when you move front of it
-        if (sensorNode->modelId() == QLatin1String("URC4450BC0-X-R") ||
-            sensorNode->modelId() == QLatin1String("3405-L"))
+        // Update too the presence detection, this device have one, triger when you move front of it
+        if (sensor->modelId() == QLatin1String("URC4450BC0-X-R") ||
+            sensor->modelId() == QLatin1String("3405-L"))
         {
-            Sensor *sensor2 = nullptr;
-            sensor2 = getSensorNodeForAddressAndEndpoint(sensorNode->address(), sensorNode->fingerPrint().endpoint, QLatin1String("ZHAPresence"));
+            Sensor *sensor2 = getSensorNodeForAddressAndEndpoint(sensor->address(), sensor->fingerPrint().endpoint, QLatin1String("ZHAPresence"));
             if (sensor2)
             {
-                item = sensor2->item(RStatePresence);
-                item->setValue(true);
+                ResourceItem *item2 = sensor2->item(RStatePresence);
+                if (item2)
+                {
+                    item2->setValue(true);
+                }
                 
-                ResourceItem *item2;
                 item2 = sensor2->item(RConfigDuration);
                 if (item2 && item2->toNumber() > 0)
                 {
-                    sensor2->durationDue = item->lastSet().addSecs(item2->toNumber());
+                    sensor2->durationDue = item2->lastSet().addSecs(item2->toNumber());
                 }
                 
                 sensor2->updateStateTimestamp();
                 enqueueEvent(Event(RSensors, RStatePresence, sensor2->id()));
                 updateSensorEtag(&*sensor2);
             }
-        }
-        
-    }
-    else if (zclFrame.commandId() == CMD_GET_BYPASSED_ZONE_LIST)
-    {
-    }
-    else if (zclFrame.commandId() == CMD_GET_ZONE_STATUS)
-    {
+        }        
     }
     
     if (stateUpdated)
     {
-        sensorNode->updateStateTimestamp();
-        enqueueEvent(Event(RSensors, RStateLastUpdated, sensorNode->id()));
-        updateSensorEtag(&*sensorNode);
-        sensorNode->setNeedSaveDatabase(true);
+        sensor->updateStateTimestamp();
+        enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
+        updateSensorEtag(sensor);
+        sensor->setNeedSaveDatabase(true);
         queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
     }
 }
 
 void DeRestPluginPrivate::sendArmResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, quint8 armMode)
 {
-    //Not supported ?
-    if ( armMode > 0x06)
+    DBG_Assert(armMode <= IAS_ACE_ARM_NOTF_ALREADY_DISARMED);
+
+    if (armMode > IAS_ACE_ARM_NOTF_ALREADY_DISARMED)
     {
         return;
     }
@@ -304,7 +371,7 @@ void DeRestPluginPrivate::sendArmResponse(const deCONZ::ApsDataIndication &ind, 
     req.setSrcEndpoint(endpoint());
 
     outZclFrame.setSequenceNumber(zclFrame.sequenceNumber());
-    outZclFrame.setCommandId(CMD_ARM_RESPONSE);
+    outZclFrame.setCommandId(IAS_ACE_CMD_ARM_RESPONSE);
 
     outZclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
                              deCONZ::ZclFCDirectionServerToClient |
@@ -329,7 +396,7 @@ void DeRestPluginPrivate::sendArmResponse(const deCONZ::ApsDataIndication &ind, 
     }
 }
 
-void DeRestPluginPrivate::sendGetPanelStatusResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame , quint8 PanelStatus, quint8 secs )
+void DeRestPluginPrivate::sendGetPanelStatusResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame , quint8 PanelStatus, quint8 secs)
 {
 
     deCONZ::ApsDataRequest req;
@@ -343,7 +410,7 @@ void DeRestPluginPrivate::sendGetPanelStatusResponse(const deCONZ::ApsDataIndica
     req.setSrcEndpoint(endpoint());
 
     outZclFrame.setSequenceNumber(zclFrame.sequenceNumber());
-    outZclFrame.setCommandId(CMD_GET_PANEL_STATUS_RESPONSE);
+    outZclFrame.setCommandId(IAS_ACE_CMD_GET_PANEL_STATUS_RESPONSE);
 
     outZclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
                                 deCONZ::ZclFCDirectionServerToClient); // deCONZ::ZclFCDisableDefaultResponse
@@ -381,7 +448,7 @@ bool DeRestPluginPrivate::addTaskPanelStatusChanged(TaskItem &task, const QStrin
 
     task.zclFrame.payload().clear();
     task.zclFrame.setSequenceNumber(zclSeq++);
-    task.zclFrame.setCommandId(CMD_PANEL_STATUS_CHANGED);
+    task.zclFrame.setCommandId(IAS_ACE_CMD_PANEL_STATUS_CHANGED);
     task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
                                   deCONZ::ZclFCDirectionServerToClient); //| deCONZ::ZclFCDisableDefaultResponse);
      // payload
@@ -389,7 +456,7 @@ bool DeRestPluginPrivate::addTaskPanelStatusChanged(TaskItem &task, const QStrin
     stream.setByteOrder(QDataStream::LittleEndian);
 
     //data
-    int panelstatus = PanelStatusList.indexOf(mode);
+    int panelstatus = 0; //PanelStatusList.indexOf(mode);
     
     //Unknow mode ?
     if (panelstatus < 0)
@@ -440,7 +507,7 @@ bool DeRestPluginPrivate::addTaskSendArmResponse(TaskItem &task, const QString &
 
     task.zclFrame.payload().clear();
     task.zclFrame.setSequenceNumber(sn);
-    task.zclFrame.setCommandId(CMD_ARM_RESPONSE);
+    task.zclFrame.setCommandId(IAS_ACE_CMD_ARM_RESPONSE);
 
     task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
                              deCONZ::ZclFCDirectionServerToClient |
@@ -449,9 +516,9 @@ bool DeRestPluginPrivate::addTaskSendArmResponse(TaskItem &task, const QString &
     QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
     stream.setByteOrder(QDataStream::LittleEndian);
     
-    quint8 armmode;
+    quint8 armmode = 0;
     
-    armmode = ArmModeListReturn.indexOf(mode);
+    armmode = 0; //ArmModeListReturn.indexOf(mode);
     if (armmode > ArmModeListReturn.size())
     {
         return false;

@@ -395,6 +395,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NETVOX, "Z809AE3R", netvoxMacPrefix }, // Netvox smartplug
     { VENDOR_LDS, "ZB-ONOFFPlug-D0005", silabs2MacPrefix }, // Samsung SmartPlug 2019 (7A-PL-Z-J3)
     { VENDOR_LDS, "ZBT-DIMSwitch", silabs2MacPrefix }, // Linkind 1 key Remote Control / ZS23000178
+    { VENDOR_LDS, "ZB-KeypadGeneric-D0002", silabs3MacPrefix }, // Linkind Keypad / ZS130000078
     { VENDOR_LDS, "ZB-MotionSensor-D0003", silabsMacPrefix }, // Linkind motion sensor / ZS110040078
     { VENDOR_LDS, "ZB-DoorSensor-D0003", YooksmartMacPrefix }, // Linkind Door/Window Sensor / ZS110050078
     { VENDOR_LDS, "ZBT-DIMController-D0800", jennicMacPrefix }, // Mueller-Licht tint dimmer
@@ -5428,9 +5429,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                     }
                     else if (modelId == QLatin1String("URC4450BC0-X-R") ||
-                             modelId == QLatin1String("3405-L"))
+                             modelId == QLatin1String("3405-L") ||
+                             modelId == QLatin1String("ZB-KeypadGeneric-D0002"))
                     {
-                        fpAncillaryControlSensor.inClusters.push_back(ci->id());
+//                        fpAncillaryControlSensor.inClusters.push_back(ci->id());
                         fpPresenceSensor.inClusters.push_back(ci->id());
                     }
                     else if (modelId.startsWith(QLatin1String("CO_")) ||                   // Heiman CO sensor
@@ -6034,10 +6036,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpSwitch.outClusters.push_back(ci->id());
                     }
                     if (modelId == QLatin1String("URC4450BC0-X-R") ||
-                        modelId == QLatin1String("3405-L"))
+                        modelId == QLatin1String("3405-L") ||
+                        modelId == QLatin1String("ZB-KeypadGeneric-D0002"))
                     {
                         fpAncillaryControlSensor.outClusters.push_back(ci->id());
-                        fpPresenceSensor.outClusters.push_back(ci->id());
+                        //fpPresenceSensor.outClusters.push_back(ci->id());
                     }
                 }
                     break;
