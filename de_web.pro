@@ -124,6 +124,7 @@ HEADERS  = bindings.h \
            group_info.h \
            json.h \
            ias_ace.h \
+           ias_zone.h \
            light_node.h \
            mfspecific_cluster_xiaoyan.h \
            poll_control.h \

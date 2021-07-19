@@ -27,6 +27,7 @@ enum ApiDataType
 };
 
 // resource prefixes: /lights, /sensors, ...
+extern const char *RIASZones;
 extern const char *RSensors;
 extern const char *RLights;
 extern const char *RGroups;
@@ -207,6 +208,7 @@ extern const char *RConfigUbisysJ1TotalSteps2;
 extern const char *RConfigUbisysJ1AdditionalSteps;
 extern const char *RConfigUbisysJ1InactivePowerThreshold;
 extern const char *RConfigUbisysJ1StartupSteps;
+extern const char *RConfigIasZoneId;
 
 #define R_ALERT_DEFAULT             QVariant(QLatin1String("none"))
 #define R_SENSITIVITY_MAX_DEFAULT   2

@@ -3939,6 +3939,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(R_ALERT_DEFAULT);
         }
 
+        // TODO cleanup conditions to be readable
         //Only use the ZHAAncillaryControl sensor if present for enrollement, but only enabled for one device ATM
         if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID) &&
            (sensor.modelId() != QLatin1String("URC4450BC0-X-R") ||
