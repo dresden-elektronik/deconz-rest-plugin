@@ -605,7 +605,8 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     databaseTimer = new QTimer(this);
     databaseTimer->setSingleShot(true);
 
-    initEventQueue();
+    eventEmitter = new EventEmitter(this);
+    connect(eventEmitter, &EventEmitter::eventNotify, this, &DeRestPluginPrivate::handleEvent);
     initResourceDescriptors();
 
     connect(databaseTimer, SIGNAL(timeout()),
@@ -902,6 +903,7 @@ DeRestPluginPrivate::~DeRestPluginPrivate()
         inetDiscoveryManager->deleteLater();
         inetDiscoveryManager = 0;
     }
+    eventEmitter = nullptr;
 }
 
 DeRestPluginPrivate *DeRestPluginPrivate::instance()
@@ -16028,7 +16030,7 @@ void DeRestPlugin::idleTimerFired()
     if (localTime)
     {
         localTime->setValue(QDateTime::currentDateTime());
-        d->enqueueEvent(Event(RConfig, RConfigLocalTime, 0));
+        enqueueEvent(Event(RConfig, RConfigLocalTime, 0));
     }
 
     if (d->idleLastActivity < IDLE_USER_LIMIT)
