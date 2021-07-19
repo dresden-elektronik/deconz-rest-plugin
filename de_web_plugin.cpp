@@ -6470,8 +6470,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         }
 
         // ZHAAirQuality
-        if (fpAirQualitySensor.hasInCluster(DEVELCO_AIR_QUALITY_CLUSTER_ID)   // Develco specific -> VOC Management
-            || fpAirQualitySensor.hasInCluster(BOSCH_AIR_QUALITY_CLUSTER_ID)) // Bosch Air quality sensor
+        if (fpAirQualitySensor.hasInCluster(DEVELCO_AIR_QUALITY_CLUSTER_ID) || // Develco specific -> VOC Management
+            fpAirQualitySensor.hasInCluster(ANALOG_INPUT_CLUSTER_ID) ||        // Xiaomi Aqara TVOC Air Quality Monitor
+            fpAirQualitySensor.hasInCluster(BOSCH_AIR_QUALITY_CLUSTER_ID))     // Bosch Air quality sensor
         {
             fpAirQualitySensor.endpoint = i->endpoint();
             fpAirQualitySensor.deviceId = i->deviceId();
@@ -7140,9 +7141,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             item = sensorNode.addItem(DataTypeUInt16, RConfigPending);
             item->setValue(item->toNumber() | R_PENDING_WRITE_POLL_CHECKIN_INTERVAL | R_PENDING_SET_LONG_POLL_INTERVAL);
         }
+        else if (sensorNode.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
+        {
+            clusterId = ANALOG_INPUT_CLUSTER_ID;
+        }
 
-        if (modelId == QLatin1String("AQSZB-110")  // Develco air quality sensor
-            || (node->nodeDescriptor().manufacturerCode() == VENDOR_BOSCH2 && modelId == QLatin1String("AIR")))  // Bosch air quality sensor
+        if (modelId == QLatin1String("AQSZB-110") ||                // Develco air quality sensor
+            modelId == QLatin1String("lumi.airmonitor.acn01") ||    // Xiaomi Aqara TVOC Air Quality Monitor
+            (node->nodeDescriptor().manufacturerCode() == VENDOR_BOSCH2 && modelId == QLatin1String("AIR")))  // Bosch air quality sensor
         {
             item = sensorNode.addItem(DataTypeString, RStateAirQuality);
             item = sensorNode.addItem(DataTypeUInt16, RStateAirQualityPpb);
