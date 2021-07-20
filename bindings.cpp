@@ -1828,7 +1828,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 21600;
             rq.reportableChange8bit = 10;
         }
-        else if (modelId == QLatin1String("lumi.remote.b28ac1")) // Aqara Wireless Remote Switch H1 (Double Rocker)
+        else if (modelId == QLatin1String("lumi.remote.b28ac1") ||              // Aqara Wireless Remote Switch H1 (Double Rocker)
+                 modelId == QLatin1String("lumi.motion.agl04"))                 // Xiaomi Aqara RTCGQ13LM high precision motion sensor
         {
             rq.attributeId = 0x0020;   // battery voltage
             rq.minInterval = 3;
@@ -2951,6 +2952,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("lumi.sen_ill.mgl01")) ||
         sensor->modelId().startsWith(QLatin1String("lumi.switch.b1naus01")) ||
         sensor->modelId() == QLatin1String("lumi.sensor_magnet.agl02") ||
+        sensor->modelId() == QLatin1String("lumi.motion.agl04") ||
         sensor->modelId() == QLatin1String("lumi.flood.agl02") ||
         sensor->modelId() == QLatin1String("lumi.switch.n0agl1") ||
         sensor->modelId() == QLatin1String("lumi.remote.b28ac1") ||
@@ -3220,6 +3222,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId().startsWith(QLatin1String("3AFE28010402000D")) || //konke presence sensor
                      sensor->modelId().startsWith(QLatin1String("TS0202")) || //Tuya presence sensor
                      sensor->modelId().endsWith(QLatin1String("86opcn01")) || // Aqara Opple
+                     sensor->modelId() == QLatin1String("lumi.motion.agl04") || // Xiaomi Aqara RTCGQ13LM high precision motion sensor
                      sensor->modelId().startsWith(QLatin1String("1116-S")) ||
                      sensor->modelId().startsWith(QLatin1String("1117-S")) ||
                      sensor->modelId().startsWith(QLatin1String("3323")) ||

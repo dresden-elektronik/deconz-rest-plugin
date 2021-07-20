@@ -768,8 +768,9 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigDelay) // Unsigned integer
                 {
-                    if (sensor->modelId().startsWith(QLatin1String("SML00")) || // Hue motion sensor
-                        sensor->modelId().startsWith(QLatin1String("MOSZB-1"))) // Develco/frient motion sensor
+                    if (sensor->modelId().startsWith(QLatin1String("SML00")) ||   // Hue motion sensor
+                        sensor->modelId().startsWith(QLatin1String("MOSZB-1")) || // Develco/frient motion sensor
+                        sensor->modelId() == QLatin1String("lumi.motion.agl04"))  // Xiaomi Aqara RTCGQ13LM high precision motion sensor
                     {
                         pendingMask |= R_PENDING_DELAY;
                         sensor->enableRead(WRITE_DELAY);
