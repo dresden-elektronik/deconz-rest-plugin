@@ -12669,7 +12669,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
         case RELATIVE_HUMIDITY_CLUSTER_ID:
         case PRESSURE_MEASUREMENT_CLUSTER_ID:
-        case SOIL_MOISTURE_CLUSTER_ID;
+        case SOIL_MOISTURE_CLUSTER_ID:
         case OCCUPANCY_SENSING_CLUSTER_ID:
         case IAS_ZONE_CLUSTER_ID:
         case BASIC_CLUSTER_ID:
