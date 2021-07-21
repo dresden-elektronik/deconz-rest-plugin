@@ -100,6 +100,7 @@ extern const char *RStateOrientationY;
 extern const char *RStateOrientationZ;
 extern const char *RStatePresence;
 extern const char *RStatePressure;
+extern const char *RStateMoisture;
 extern const char *RStatePower;
 extern const char *RStateReachable;
 extern const char *RStateSat;

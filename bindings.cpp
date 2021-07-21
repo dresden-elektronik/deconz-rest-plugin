@@ -1679,6 +1679,15 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.reportableChange16bit = 20;
         return sendConfigureReportingRequest(bt, {rq});
     }
+    else if (bt.binding.clusterId == SOIL_MOISTURE_CLUSTER_ID)
+    {
+        rq.dataType = deCONZ::Zcl16BitUint;
+        rq.attributeId = 0x0000; // measured value
+        rq.minInterval = 10;
+        rq.maxInterval = 300;
+        rq.reportableChange16bit = 20;
+        return sendConfigureReportingRequest(bt, {rq});
+    }
     else if (bt.binding.clusterId == BINARY_INPUT_CLUSTER_ID)
     {
         rq.dataType = deCONZ::ZclBoolean;
@@ -2826,6 +2835,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("TY0203") ||  // Door sensor
         sensor->modelId() == QLatin1String("TY0202") || // Motion Sensor
         sensor->modelId() == QLatin1String("TS0211") || // Door bell
+        // DIYRuZ
+        sensor->modelId() == QLatin1String("DIYRuZ_Flower") || // DIYRuZ_Flower
         // Konke
         sensor->modelId() == QLatin1String("3AFE140103020000") ||
         sensor->modelId() == QLatin1String("3AFE130104020015") ||
@@ -3163,6 +3174,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             }
             val = sensor->getZclValue(*i, 0x0000); // measured value
         }
+        else if (*i == SOIL_MOISTURE_CLUSTER_ID)
+        {
+            val = sensor->getZclValue(*i, 0x0000); // measured value
+        }
         else if (*i == OCCUPANCY_SENSING_CLUSTER_ID)
         {
             if (sensor->modelId() == QLatin1String("Motion Sensor-A"))
@@ -3421,6 +3436,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
         case RELATIVE_HUMIDITY_CLUSTER_ID:
         case PRESSURE_MEASUREMENT_CLUSTER_ID:
+        case SOIL_MOISTURE_CLUSTER_ID:
         case METERING_CLUSTER_ID:
         case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
         case VENDOR_CLUSTER_ID:
