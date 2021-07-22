@@ -509,6 +509,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     case 0x0202:
                     {
                         if (productId == QLatin1String("Tuya_DIMSWITCH Earda Dimmer") ||
+                            productId == QLatin1String("Tuya_DIMSWITCH MS-105Z") ||
                             productId == QLatin1String("Tuya_DIMSWITCH EDM-1ZAA-EU"))
                         {
                             const qint64 bri = data * 254 / 1000; // 0 to 1000 value
