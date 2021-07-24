@@ -1597,6 +1597,36 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
             btn = btnMapped + S_BUTTON_ACTION_LONG_RELEASED;
         }
     }
+    else if (sensor->modelId() == QLatin1String("LEGRANDZGPTOGGLESWITCH"))
+    {
+        if (btn == GpCommandIdToggle)
+        {
+            btn = S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED;
+        }
+        else //Will be GpCommandIdOff
+        {
+            btn = S_BUTTON_1 + S_BUTTON_ACTION_DOUBLE_PRESS;
+        }
+    }
+    else if sensor->modelId() == QLatin1String("LEGRANDZGPSCENESWITCH"))
+    {
+        if (btn == GpCommandIdScene4)
+        {
+            btn = S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED;
+        }
+        else if (btn == GpCommandIdScene5)
+        {
+            btn = S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED;
+        }
+        else if (btn == GpCommandIdScene6)
+        {
+            btn = S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED;
+        }
+        else //Will be GpCommandIdScene7
+        {
+            btn = S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED;
+        }
+    }
 
     updateSensorEtag(sensor);
     sensor->updateStateTimestamp();
