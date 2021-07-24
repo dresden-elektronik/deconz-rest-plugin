@@ -1599,30 +1599,30 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
     }
     else if (sensor->modelId() == QLatin1String("LEGRANDZGPTOGGLESWITCH"))
     {
-        if (btn == GpCommandIdToggle)
+        if (btn == deCONZ::GpCommandIdToggle)
         {
             btn = S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED;
         }
-        else //Will be GpCommandIdOff
+        else //Will be deCONZ::GpCommandIdOff
         {
             btn = S_BUTTON_1 + S_BUTTON_ACTION_DOUBLE_PRESS;
         }
     }
     else if sensor->modelId() == QLatin1String("LEGRANDZGPSCENESWITCH"))
     {
-        if (btn == GpCommandIdScene4)
+        if (btn == deCONZ::GpCommandIdScene4)
         {
             btn = S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED;
         }
-        else if (btn == GpCommandIdScene5)
+        else if (btn == deCONZ::GpCommandIdScene5)
         {
             btn = S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED;
         }
-        else if (btn == GpCommandIdScene6)
+        else if (btn == deCONZ::GpCommandIdScene6)
         {
             btn = S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED;
         }
-        else //Will be GpCommandIdScene7
+        else //Will be deCONZ::GpCommandIdScene7
         {
             btn = S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED;
         }
