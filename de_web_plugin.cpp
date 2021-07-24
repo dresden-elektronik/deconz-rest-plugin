@@ -1608,7 +1608,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
             btn = S_BUTTON_1 + S_BUTTON_ACTION_DOUBLE_PRESS;
         }
     }
-    else if sensor->modelId() == QLatin1String("LEGRANDZGPSCENESWITCH"))
+    else if (sensor->modelId() == QLatin1String("LEGRANDZGPSCENESWITCH"))
     {
         if (btn == deCONZ::GpCommandIdScene4)
         {
