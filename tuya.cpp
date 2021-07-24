@@ -964,6 +964,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
+                    case 0x020E: // battery
                     case 0x0215: // battery
                     {
                         quint8 bat = static_cast<qint8>(data & 0xFF);

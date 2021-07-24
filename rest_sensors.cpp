@@ -1027,6 +1027,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                         if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                             R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                            R_GetProductId(sensor) == QLatin1String("Tuya_THD BRT-100") ||
                             R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV"))
                         {
                             dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_2;
@@ -1357,6 +1358,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             dpIdentifier = DP_IDENTIFIER_THERMOSTAT_CHILDLOCK_3;
                         }
+                        else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BRT-100"))
+                        {
+                            dpIdentifier = DP_IDENTIFIER_THERMOSTAT_CHILDLOCK_4;
+                        }
 
                         if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, dpIdentifier, tuyaData))
                         {
@@ -1472,7 +1477,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                     qint8 dpIdentifier = DP_IDENTIFIER_WINDOW_OPEN;
 
-                    if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV"))
+                    if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
+                        R_GetProductId(sensor) == QLatin1String("Tuya_THD BRT-100"))
                     {
                         dpIdentifier = DP_IDENTIFIER_WINDOW_OPEN2;
                     }
