@@ -1995,6 +1995,11 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
                 hasAlert = true;
             }
         }
+        
+        //Not used but can cause error
+        else if (p.key() == "transitiontime")
+        {
+        }
 
         else
         {
