@@ -3451,7 +3451,6 @@ void DeRestPluginPrivate::handleGroupEvent(const Event &e)
         {
             if (!(item->needPushSet() || item->needPushChange()))
             {
-                DBG_Printf(DBG_INFO_L2, "discard group state push for %s: %s (already pushed)\n", qPrintable(e.id()), e.what());
                 return; // already pushed
             }
 

@@ -648,9 +648,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             // @manup: is check for FLS-PP needed, or is this already handled by check for state.x and state.y?
             paramOk = true;
             hasCmd = true;
-            if (map[param].type() == QVariant::List) {
+            if (map[param].type() == QVariant::List)
+            {
                 QVariantList xy = map["xy"].toList();
-                if (xy[0].type() == QVariant::Double && xy[1].type() == QVariant::Double) {
+                if (xy[0].type() == QVariant::Double && xy[1].type() == QVariant::Double)
+                {
                     const double x = xy[0].toDouble(&ok);
                     const double y = ok ? xy[1].toDouble(&ok) : 0;
                     if (ok && x >= 0.0 && x <= 1.0 && y >= 0.0 && y <= 1.0)
@@ -752,7 +754,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 colorloopSpeed = speed < 1 ? 1 : speed;
             }
         }
-        else if (param == "colormode" && taskRef.lightNode->item(RStateColorMode)) {
+        else if (param == "colormode" && taskRef.lightNode->item(RStateColorMode))
+        {
             paramOk = true;
             valueOk = true;
             rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state").arg(id), QString("parameter, %1, is not modifiable.").arg(param)));
@@ -828,7 +831,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state").arg(id), QString("invalid value, %1, for parameter, %2").arg(map[param].toString()).arg(param)));
         }
     }
-    if (taskRef.onTime > 0 && !hasOn && alert.isEmpty()) {
+    if (taskRef.onTime > 0 && !hasOn && alert.isEmpty())
+    {
         rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, QString("/lights/%1/state").arg(id), QString("missing parameter, on or alert, for parameter, ontime")));
     }
     if (hasWrap && !hasBriInc)
@@ -2145,7 +2149,8 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
             if (map[param].type() == QVariant::Double)
             {
                 const uint ot = map[param].toUInt(&ok);
-                if (ok && ot < 0xFFFF) {
+                if (ok && ot < 0xFFFF)
+                {
                     valueOk = true;
                     onTime = ot;
                 }
@@ -2162,7 +2167,8 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
             requestOk = false;
         }
     }
-    if (onTime > 0 && alert.isEmpty()) {
+    if (onTime > 0 && alert.isEmpty())
+    {
         rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, QString("/lights/%1/state").arg(id), QString("missing parameter, alert, for parameter, ontime")));
         requestOk = false;
     }
@@ -2942,7 +2948,6 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
         {
             if (!(item->needPushSet() || item->needPushChange()))
             {
-                DBG_Printf(DBG_INFO_L2, "discard light state push for %s: %s (already pushed)\n", qPrintable(e.id()), e.what());
                 return; // already pushed
             }
 
@@ -3025,7 +3030,6 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
         {
             if (!(item->needPushSet() || item->needPushChange()))
             {
-                DBG_Printf(DBG_INFO_L2, "discard light state push for %s: %s (already pushed)\n", qPrintable(e.id()), e.what());
                 return; // already pushed
             }
 

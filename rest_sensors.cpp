@@ -1989,7 +1989,8 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
                 if (rid.suffix == RStateTemperature || rid.suffix == RStateHumidity || rid.suffix == RStatePressure)
                 {
                     ResourceItem *item2 = sensor->item(RConfigOffset);
-                    if (item2 && item2->toNumber() != 0) {
+                    if (item2 && item2->toNumber() != 0)
+                    {
                         val = val.toInt() + item2->toNumber();
                         if (rid.suffix == RStateHumidity)
                         {
@@ -2406,8 +2407,8 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
                 state[key] = item->toVariant();
             }
         }
-        else if (item->descriptor().suffix == RAttrLastAnnounced) { map["lastannounced"] = item->toString(); }
-        else if (item->descriptor().suffix == RAttrLastSeen) { map["lastseen"] = item->toString(); }
+        else if (rid.suffix == RAttrLastAnnounced) { map["lastannounced"] = item->toString(); }
+        else if (rid.suffix == RAttrLastSeen) { map["lastseen"] = item->toString(); }
     }
     if (iox && ioy && ioz)
     {
@@ -2557,7 +2558,6 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
 
             if (!(item->needPushSet() || item->needPushChange()))
             {
-                DBG_Printf(DBG_INFO_L2, "discard sensor state push for %s: %s (already pushed)\n", qPrintable(e.id()), e.what());
                 return; // already pushed
             }
 
@@ -2658,7 +2658,6 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         {
             if (!(item->needPushSet() || item->needPushChange()))
             {
-                DBG_Printf(DBG_INFO_L2, "discard sensor config push for %s (already pushed)\n", e.what());
                 return; // already pushed
             }
 
@@ -2770,7 +2769,6 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         {
             if (!(item->needPushSet() || item->needPushChange()))
             {
-                DBG_Printf(DBG_INFO_L2, "discard sensor attr push for %s (already pushed)\n", e.what());
                 return; // already pushed
             }
 
@@ -2788,7 +2786,8 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                 item = sensor->itemForIndex(i);
                 const ResourceItemDescriptor &rid = item->descriptor();
 
-                if (strncmp(rid.suffix, "attr/", 5) == 0) {
+                if (strncmp(rid.suffix, "attr/", 5) == 0)
+                {
                     const char *key = item->descriptor().suffix + 5;
 
                     if (gwWebSocketNotifyAll || item->needPushChange())
@@ -2799,7 +2798,8 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                 }
             }
 
-            if (!attr.isEmpty()) {
+            if (!attr.isEmpty())
+            {
                 map["attr"] = attr;
                 webSocketServer->broadcastTextMessage(Json::serialize(map));
                 updateSensorEtag(sensor);
@@ -2870,7 +2870,8 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
 
         QStringList gids = item->toString().split(',', QString::SkipEmptyParts);
 
-        for (int j = 0; j < gids.size(); j++) {
+        for (int j = 0; j < gids.size(); j++)
+        {
             const QString gid = gids[j];
 
             if (gid == QLatin1String("0"))
