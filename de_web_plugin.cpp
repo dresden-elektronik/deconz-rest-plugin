@@ -5807,6 +5807,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpBatterySensor.inClusters.push_back(TUYA_CLUSTER_ID);
                     }
+                    if (manufacturer == QLatin1String("_TZE200_t5p1vj8r"))
+                    {
+                        fpFireSensor.inClusters.push_back(TUYA_CLUSTER_ID);
+                    }
                 }
                     break;
 
@@ -6294,7 +6298,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         }
 
         // ZHAFire
-        if (fpFireSensor.hasInCluster(IAS_ZONE_CLUSTER_ID))
+        if (fpFireSensor.hasInCluster(IAS_ZONE_CLUSTER_ID) ||
+            fpFireSensor.hasInCluster(TUYA_CLUSTER_ID) )
         {
             fpFireSensor.endpoint = i->endpoint();
             fpFireSensor.deviceId = i->deviceId();
@@ -6801,6 +6806,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         if (sensorNode.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
         {
             clusterId = IAS_ZONE_CLUSTER_ID;
+        }
+        else if (sensorNode.fingerPrint().hasInCluster(TUYA_CLUSTER_ID))
+        {
+            clusterId = TUYA_CLUSTER_ID;
         }
         item = sensorNode.addItem(DataTypeBool, RStateFire);
         item->setValue(false);

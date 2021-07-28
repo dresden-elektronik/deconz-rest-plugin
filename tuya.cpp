@@ -779,20 +779,36 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     break;
                     case 0x0101: // off / running for Moe
                     {
-                        QString mode;
-                        if      (data == 0) { mode = QLatin1String("off"); }
-                        else if (data == 1) { mode = QLatin1String("heat"); }
+                        // Smoke Sensor
+                        if (productId == "Tuya_Smoke sensor")
+                        {
+                            bool trigger = (data == 0) ? false : true;
+                            ResourceItem *item = sensorNode->item(RStateFire);
+
+                            if (item && item->toBool() != trigger)
+                            {
+                                item->setValue(trigger);
+                                Event e(RSensors, RStateFire, sensorNode->id(), item);
+                                enqueueEvent(e);
+                            }
+                        }
                         else
                         {
-                            return;
-                        }
+                            QString mode;
+                            if      (data == 0) { mode = QLatin1String("off"); }
+                            else if (data == 1) { mode = QLatin1String("heat"); }
+                            else
+                            {
+                                return;
+                            }
 
-                        ResourceItem *item = sensorNode->item(RConfigMode);
+                            ResourceItem *item = sensorNode->item(RConfigMode);
 
-                        if (item && item->toString() != mode)
-                        {
-                            item->setValue(mode);
-                            enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                            if (item && item->toString() != mode)
+                            {
+                                item->setValue(mode);
+                                enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                            }
                         }
                     }
                     break;
