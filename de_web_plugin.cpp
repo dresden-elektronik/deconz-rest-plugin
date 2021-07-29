@@ -2377,7 +2377,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 hasServerOnOff = false;
             }
             if (R_GetProductId(&lightNode).startsWith(QLatin1String("Tuya_COVD")) || //Battery covering
-                R_GetProductId(&lightNode) == QLatin1String("R7060 Garden Watering Switch")) || //R7060 Smart Garden Irrigation Control
+                R_GetProductId(&lightNode) == QLatin1String("R7060 Garden Watering Switch") || //R7060 Smart Garden Irrigation Control
                 R_GetProductId(&lightNode) == QLatin1String("NAS-AB02B0 Siren"))     // Tuya siren
             {
                 hasServerOnOff = true;
