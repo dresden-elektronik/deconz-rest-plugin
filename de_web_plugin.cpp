@@ -428,7 +428,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "TS0202", ikea2MacPrefix }, // Tuya multi sensor
     { VENDOR_NONE, "0yu2xgi", silabs5MacPrefix }, // Tuya siren
     { VENDOR_EMBER, "TS0601", silabs9MacPrefix }, // Tuya siren
-    { VENDOR_EMBER, "TS0222", silabs9MacPrefix }, // TYZB01 light sensor 
+    { VENDOR_EMBER, "TS0222", silabs9MacPrefix }, // TYZB01 light sensor
+    { VENDOR_EMBER, "TS0101", silabs7MacPrefix }, // Woox R7060 Smart Garden Irrigation Control
     { VENDOR_NONE, "eaxp72v", ikea2MacPrefix }, // Tuya TRV Wesmartify Thermostat Essentials Premium
     { VENDOR_NONE, "88teujp", silabs8MacPrefix }, // SEA802-Zigbee
     { VENDOR_NONE, "uhszj9s", silabs8MacPrefix }, // HiHome WZB-TRVL
@@ -2376,6 +2377,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 hasServerOnOff = false;
             }
             if (R_GetProductId(&lightNode).startsWith(QLatin1String("Tuya_COVD")) || //Battery covering
+                R_GetProductId(&lightNode) == QLatin1String("R7060 Garden Watering Switch")) || //R7060 Smart Garden Irrigation Control
                 R_GetProductId(&lightNode) == QLatin1String("NAS-AB02B0 Siren"))     // Tuya siren
             {
                 hasServerOnOff = true;
@@ -5803,6 +5805,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     }
                     if (manufacturer == QLatin1String("_TZE200_xuzcvlku") ||
                         manufacturer == QLatin1String("_TZE200_zah67ekd") ||
+                        manufacturer == QLatin1String("_TZ3210_eymunffl") ||
                         manufacturer == QLatin1String("_TZE200_rddyvrci"))
                     {
                         fpBatterySensor.inClusters.push_back(TUYA_CLUSTER_ID);

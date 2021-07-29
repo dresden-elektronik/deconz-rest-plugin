@@ -91,6 +91,7 @@ static const ProductMap products[] =
     {"_TYST11_d0yu2xgi", "0yu2xgi", "NEO/Tuya", "NAS-AB02B0 Siren"},
     {"_TZE200_d0yu2xgi", "TS0601", "NEO/Tuya", "NAS-AB02B0 Siren"},
     {"_TZ3000_m0vaazab", "TS0207", "Tuya", "Tuya_RPT Repeater"},
+    {"_TZ3210_eymunffl", "TS0101", "Tuya", "R7060 Garden Watering Switch"},
     
     // Sensor
     {"_TZ3210_rxqls8v0", "TS0202", "Fantem", "Tuya_SEN Multi-sensor"},
