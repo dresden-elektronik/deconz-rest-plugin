@@ -777,7 +777,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     {
                     }
                     break;
-                    case 0x0101: // off / running for Moe
+                    case 0x0101:
                     {
                         // Smoke Sensor
                         if (productId == "Tuya_Smoke sensor")
@@ -792,6 +792,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                                 enqueueEvent(e);
                             }
                         }
+                        // off / running for Moe
                         else
                         {
                             QString mode;
