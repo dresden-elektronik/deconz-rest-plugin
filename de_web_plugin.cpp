@@ -9336,19 +9336,27 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 }
                                 else if (i->modelId() == QLatin1String("lumi.airmonitor.acn01"))
                                 {
-                                    QString airQuality = getAirQualityString(ia->numericValue().u32);
+                                    quint32 levelPpb = static_cast<quint32>(ia->numericValue().real);
+                                    ResourceItem *item = i->item(RStateAirQualityPpb);
                                     
-                                    ResourceItem *item = i->item(RStateAirQuality);
-                    
-                                    if (item && item->toString() != airQuality)
+                                    if (item && item->toNumber() != levelPpb)
                                     {
-                                        item->setValue(airQuality);
+                                        item->setValue(levelPpb);
+                                        QString airQuality = getAirQualityString(levelPpb);
+                                        ResourceItem *item = i->item(RStateAirQuality);
+                        
+                                        if (item && item->toString() != airQuality)
+                                        {
+                                            item->setValue(airQuality);
+                                            enqueueEvent(Event(RSensors, RStateAirQuality, i->id(), item));
+                                        }
+                                        
                                         i->updateStateTimestamp();
                                         i->setNeedSaveDatabase(true);
-                                        enqueueEvent(Event(RSensors, RStateAirQuality, i->id(), item));
+                                        enqueueEvent(Event(RSensors, RStateAirQualityPpb, i->id(), item));
                                         enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
-
                                     }
+                                    
                                     updateSensorEtag(&*i);
                                 }
                             }
