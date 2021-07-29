@@ -3924,6 +3924,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item = sensor.addItem(DataTypeUInt16, RConfigPending);
                 item->setValue(item->toNumber() | R_PENDING_MODE);
             }
+            
+            if (sensor.modelId() == QLatin1String("lumi.switch.n0agl1"))
+            {
+                sensor.removeItem(RConfigBattery);
+            }
         }
         else if (sensor.modelId().startsWith(QLatin1String("tagv4"))) // SmartThings Arrival sensor
         {
