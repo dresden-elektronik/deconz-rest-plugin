@@ -1085,19 +1085,6 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         {
             Sensor *sensorNode = getSensorNodeForAddressEndpointAndCluster(ind.srcAddress(), ind.srcEndpoint(), ind.clusterId());
 
-            if (sensorNode && ind.clusterId() == IAS_ZONE_CLUSTER_ID && sensorNode->type() != QLatin1String("ZHASwitch"))
-            {
-                sensorNode = nullptr;
-                auto it = std::find_if(sensors.begin(), sensors.end(), [&ind](const Sensor &s) {
-                    return s.address().ext() == ind.srcAddress().ext() && s.type() == QLatin1String("ZHASwitch");
-                });
-
-                if (it != sensors.end())
-                {
-                    sensorNode = &*it;
-                }
-            }
-
             if (!sensorNode)
             {
                 // No sensorNode found for endpoint - check for multiple endpoints mapped to the same resource

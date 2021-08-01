@@ -107,6 +107,10 @@ void DeRestPluginPrivate::checkDbUserVersion()
     }
     else if (userVersion == 7)
     {
+        updated = upgradeDbToUserVersion8();
+    }
+    else if (userVersion == 8)
+    {
         // latest version
     }
     else
@@ -498,6 +502,36 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion7()
     }
 
     return setDbUserVersion(7);
+}
+
+/*! Upgrades database to user_version 8. */
+bool DeRestPluginPrivate::upgradeDbToUserVersion8()
+{
+    DBG_Printf(DBG_INFO, "DB upgrade to user_version 8\n");
+
+    const char *sql[] = {
+        "ALTER TABLE sensors add column lastseen TEXT",
+        "ALTER TABLE sensors add column lastannounced TEXT",
+        nullptr
+    };
+
+    for (int i = 0; sql[i] != nullptr; i++)
+    {
+        char *errmsg = nullptr;
+        int rc = sqlite3_exec(db, sql[i], nullptr, nullptr, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d), line: %d\n", sql[i], errmsg, rc, __LINE__);
+                sqlite3_free(errmsg);
+            }
+            return false;
+        }
+    }
+
+    return setDbUserVersion(8);
 }
 
 #if DECONZ_LIB_VERSION >= 0x010E00
@@ -3065,6 +3099,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.setDeletedState(Sensor::StateNormal);
                 }
             }
+            else if (strcmp(colname[i], "lastseen") == 0)
+            {
+                sensor.setLastSeen(val);
+            }
+            else if (strcmp(colname[i], "lastannounced") == 0)
+            {
+                sensor.setLastAnnounced(val);
+            }
         }
     }
 
@@ -3085,6 +3127,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (isClip)
         {
+            sensor.removeItem(RAttrLastAnnounced);
+            sensor.removeItem(RAttrLastSeen);
             ok = true;
         }
         // convert from old format 0x0011223344556677 to 00:11:22:33:44:55:66:77-AB where AB is the endpoint
@@ -3389,7 +3433,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         else if (sensor.type().endsWith(QLatin1String("DoorLock")))
         {
             clusterId = clusterId ? clusterId : DOOR_LOCK_CLUSTER_ID;
-            
+
             sensor.addItem(DataTypeString, RStateLockState);
             sensor.addItem(DataTypeBool, RConfigLock);
         }
@@ -5374,7 +5418,7 @@ void DeRestPluginPrivate::saveDb()
             QString fingerPrintJSON = i->fingerPrint().toString();
             const QString deletedState = "normal";
 
-            QString sql = QString(QLatin1String("REPLACE INTO sensors (sid, name, type, modelid, manufacturername, uniqueid, swversion, state, config, fingerprint, deletedState, mode) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10', '%11', '%12')"))
+            QString sql = QString(QLatin1String("REPLACE INTO sensors (sid, name, type, modelid, manufacturername, uniqueid, swversion, state, config, fingerprint, deletedState, mode, lastseen, lastannounced) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10', '%11', '%12', '%13', '%14')"))
                     .arg(i->id())
                     .arg(i->name())
                     .arg(i->type())
@@ -5386,7 +5430,9 @@ void DeRestPluginPrivate::saveDb()
                     .arg(configJSON)
                     .arg(fingerPrintJSON)
                     .arg(deletedState)
-                    .arg(QString::number(i->mode()));
+                    .arg(QString::number(i->mode()))
+                    .arg(i->lastSeen())
+                    .arg(i->lastAnnounced());
 
             DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
             errmsg = NULL;
