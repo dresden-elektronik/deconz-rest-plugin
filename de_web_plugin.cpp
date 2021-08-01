@@ -139,6 +139,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_3A_SMART_HOME, "FNB56-COS", jennicMacPrefix }, // Feibit FNB56-COS06FB1.7 Carb. Mon. detector
     { VENDOR_3A_SMART_HOME, "FNB56-SMF", jennicMacPrefix }, // Feibit FNB56-SMF06FB1.6 smoke detector
     { VENDOR_3A_SMART_HOME, "c3442b4ac59b4ba1a83119d938f283ab", jennicMacPrefix }, // ORVIBO SF30 smoke sensor
+    { VENDOR_ADEO, "LDSENK10", silabs9MacPrefix }, // ADEO Animal compatible motion sensor (Leroy Merlin)
     { VENDOR_BUSCH_JAEGER, "RB01", bjeMacPrefix },
     { VENDOR_BUSCH_JAEGER, "RM01", bjeMacPrefix },
     { VENDOR_BOSCH, "ISW-ZDL1-WP11G", boschMacPrefix },
@@ -5457,6 +5458,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId == QLatin1String("E13-A21") ||                   // Sengled E13-A21 PAR38 bulp with motion sensor
                              modelId == QLatin1String("TS0202") ||                    // Tuya generic motion sensor
                              modelId == QLatin1String("TY0202") ||                    // Lidl/Silvercrest Smart Motion Sensor
+                             modelId == QLatin1String("LDSENK10") ||                  // ADEO - Animal compatible motion sensor
                              modelId == QLatin1String("66666") ||                     // Sonoff SNZB-03
                              modelId == QLatin1String("MS01") ||                      // Sonoff SNZB-03
                              modelId == QLatin1String("MSO1") ||                      // Sonoff SNZB-03
