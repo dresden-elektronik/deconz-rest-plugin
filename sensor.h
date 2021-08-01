@@ -118,6 +118,12 @@ public:
     void setSwVersion(const QString &swversion);
     SensorMode mode() const;
     void setMode(SensorMode mode);
+    const QString &lastSeen() const;
+    void setLastSeen(const QString &ls);
+    const QString &lastAnnounced() const;
+    void setLastAnnounced(const QString &la);
+    void didSetValue(ResourceItem *i) override;
+    void rx();
     uint8_t resetRetryCount() const;
     void setResetRetryCount(uint8_t resetRetryCount);
     uint8_t zdpResetSeq() const;
