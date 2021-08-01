@@ -87,4 +87,7 @@ decltype(auto) matchKeyValue(const K &key, const Cont &cont)
 const deCONZ::Node *getCoreNode(quint64 extAddress, deCONZ::ApsController *apsCtrl);
 quint64 extAddressFromUniqueId(const QString &uniqueId);
 
+bool copyString(char *dst, size_t dstSize, const char *src, ssize_t srcSize = -1);
+inline bool isEmptyString(const char *str) { return str && str[0] == '\0'; }
+
 #endif // UTILS_H

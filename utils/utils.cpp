@@ -309,3 +309,36 @@ quint64 extAddressFromUniqueId(const QString &uniqueId)
 
     return result;
 }
+
+bool copyString(char *dst, size_t dstSize, const char *src, ssize_t srcSize)
+{
+    if (!dst || dstSize == 0)
+    {
+        return false;
+    }
+
+    if (!src)
+    {
+        dst[0] = '\0';
+        return false;
+    }
+
+    if (srcSize == -1)
+    {
+        srcSize = strlen(src);
+    }
+
+    if (srcSize + 1 > ssize_t(dstSize))
+    {
+        dst[0] = '\0';
+        return false;
+    }
+
+    if (srcSize > 0)
+    {
+        memcpy(dst, src, srcSize);
+    }
+    dst[srcSize] = '\0';
+
+    return true;
+}
