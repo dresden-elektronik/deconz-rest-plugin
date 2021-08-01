@@ -1554,43 +1554,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
                 }
-                else if (rid.suffix == RConfigArmMode) // String
-                {
-                    const auto match = matchKeyValue(data.string, RConfigArmModeValues);
-
-                    if (isValid(match))
-                    {
-                        quint8 sn = 0x00;
-                        item = sensor->item(RConfigHostFlags);
-                        if (item)
-                        {
-                            sn = static_cast<quint8>(item->toNumber());
-                        }
-                      
-                        if (addTaskSendArmResponse(task, match.key, sn))
-                        {
-                            updated = true;
-                        }
-                    }
-                }
-                else if (rid.suffix == RConfigPanel) // String
-                {
-                    const auto match = matchKeyValue(data.string, RConfigPanelValues);
-
-                    if (isValid(match))
-                    {
-                        if (addTaskPanelStatusChanged(task, match.key, true))
-                        {
-                            //clear RStateAction
-                            ResourceItem *item2 = sensor->item(RStateAction);
-                            item2->setValue(QString(""));
-                            enqueueEvent(Event(RSensors, RStateAction, sensor->id(), item2));
-
-                            updated = true;
-                        }
-                    }
-                }
-                else if (rid.suffix == RConfigWindowCoveringType) // Unsigned integer
+                if (rid.suffix == RConfigWindowCoveringType) // Unsigned integer
                 {
                     if (sensor->modelId().startsWith(QLatin1String("J1")))
                     {

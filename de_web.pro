@@ -106,6 +106,9 @@ DEFINES += GW_MIN_DERFUSB23E0X_FW_VERSION=0x22030300
 DEFINES += GW_DEFAULT_NAME=\\\"Phoscon-GW\\\"
 
 HEADERS  = bindings.h \
+           alarm_system.h \
+           alarm_system_device_table.h \
+           alarm_system_event_handler.h \
            aps_controller_wrapper.h \
            backup.h \
            button_maps.h \
@@ -113,6 +116,7 @@ HEADERS  = bindings.h \
            colorspace.h \
            crypto/random.h \
            crypto/scrypt.h \
+           database.h \
            daylight.h \
            de_web_plugin.h \
            de_web_plugin_private.h \
@@ -136,6 +140,7 @@ HEADERS  = bindings.h \
            read_files.h \
            resource.h \
            resourcelinks.h \
+           rest_alarmsystems.h \
            rest_devices.h \
            rest_node_base.h \
            rule.h \
@@ -150,6 +155,9 @@ HEADERS  = bindings.h \
            zdp/zdp_handlers.h
 
 SOURCES  = air_quality.cpp \
+           alarm_system.cpp \
+           alarm_system_device_table.cpp \
+           alarm_system_event_handler.cpp \
            aps_controller_wrapper.cpp \
            authorisation.cpp \
            backup.cpp \
@@ -193,6 +201,7 @@ SOURCES  = air_quality.cpp \
            read_files.cpp \
            resource.cpp \
            resourcelinks.cpp \
+           rest_alarmsystems.cpp \
            rest_configuration.cpp \
            rest_devices.cpp \
            rest_gateways.cpp \

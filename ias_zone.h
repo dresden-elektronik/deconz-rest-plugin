@@ -11,16 +11,6 @@
 #ifndef IAS_ZONE_H
 #define IAS_ZONE_H
 
-#include "resource.h"
-
-#define IAS_MAX_ZONE_CODE_LENGTH 16
-
-class IASZone : public Resource
-{
-public:
-    IASZone();
-
-private:
-};
+#define IAS_DEFAULT_ZONE 100
 
 #endif // IAS_ZONE_H

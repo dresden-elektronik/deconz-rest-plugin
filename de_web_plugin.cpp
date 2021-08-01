@@ -33,17 +33,20 @@
 #include <QJsonParseError>
 #include <queue>
 #include <cmath>
+#include "alarm_system_device_table.h"
 #include "colorspace.h"
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "de_web_widget.h"
 #include "gateway_scanner.h"
+#include "ias_ace.h"
 #include "json.h"
 #include "mfspecific_cluster_xiaoyan.h"
 #include "poll_control.h"
 #include "poll_manager.h"
 #include "product_match.h"
 #include "rest_devices.h"
+#include "rest_alarmsystems.h"
 #include "read_files.h"
 #include "utils/utils.h"
 #include "zdp/zdp_handlers.h"
@@ -610,6 +613,10 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     connect(eventEmitter, &EventEmitter::eventNotify, this, &DeRestPluginPrivate::handleEvent);
     initResourceDescriptors();
 
+    alarmSystemDeviceTable.reset(new AS_DeviceTable);
+
+    alarmSystems.reset(new AlarmSystems);
+
     connect(databaseTimer, SIGNAL(timeout()),
             this, SLOT(saveDatabaseTimerFired()));
 
@@ -687,6 +694,11 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     openDb();
     initDb();
     readDb();
+
+    DB_LoadAlarmSystemDevices(alarmSystemDeviceTable.get());
+    DB_LoadAlarmSystems(*alarmSystems, alarmSystemDeviceTable.get(), eventEmitter);
+    AS_InitDefaultAlarmSystem(*alarmSystems, alarmSystemDeviceTable.get(), eventEmitter);
+
     closeDb();
 
     initTimezone();
@@ -978,7 +990,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case IAS_ACE_CLUSTER_ID:
-            handleIasAceClusterIndication(ind, zclFrame);
+            IAS_IasAceClusterIndication(ind, zclFrame, alarmSystems.get(), apsCtrlWrapper);
             break;
 
         case VENDOR_CLUSTER_ID:
@@ -1960,7 +1972,7 @@ bool DeRestPluginPrivate::isInNetwork()
     \param description example: "resource, /lights/2, not available"
     \return the map
  */
-QVariantMap DeRestPluginPrivate::errorToMap(int id, const QString &ressource, const QString &description)
+QVariantMap errorToMap(int id, const QString &ressource, const QString &description)
 {
     QVariantMap map;
     QVariantMap error;
@@ -5432,8 +5444,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId == QLatin1String("3405-L") ||
                              modelId == QLatin1String("ZB-KeypadGeneric-D0002"))
                     {
-//                        fpAncillaryControlSensor.inClusters.push_back(ci->id());
-                        fpPresenceSensor.inClusters.push_back(ci->id());
+                        fpAncillaryControlSensor.inClusters.push_back(ci->id());
                     }
                     else if (modelId.startsWith(QLatin1String("CO_")) ||                   // Heiman CO sensor
                         modelId.startsWith(QLatin1String("COSensor")) ||              // Heiman CO sensor (newer model)
@@ -6040,7 +6051,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         modelId == QLatin1String("ZB-KeypadGeneric-D0002"))
                     {
                         fpAncillaryControlSensor.outClusters.push_back(ci->id());
-                        //fpPresenceSensor.outClusters.push_back(ci->id());
                     }
                 }
                     break;
@@ -6156,10 +6166,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             fpAncillaryControlSensor.deviceId = i->deviceId();
             fpAncillaryControlSensor.profileId = i->profileId();
 
-            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpAncillaryControlSensor, "ZHAAncillaryControl");
+            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpAncillaryControlSensor, QLatin1String("ZHAAncillaryControl"));
             if (!sensor || sensor->deletedState() != Sensor::StateNormal)
             {
-                addSensorNode(node, fpAncillaryControlSensor, "ZHAAncillaryControl", modelId, manufacturer);
+                addSensorNode(node, fpAncillaryControlSensor, QLatin1String("ZHAAncillaryControl"), modelId, manufacturer);
             }
             else
             {
@@ -6685,11 +6695,18 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (sensorNode.type().endsWith(QLatin1String("AncillaryControl")))
     {
         clusterId = IAS_ACE_CLUSTER_ID;
-        sensorNode.addItem(DataTypeString, RConfigArmMode);
         sensorNode.addItem(DataTypeString, RStateAction);
-        sensorNode.addItem(DataTypeUInt32, RConfigHostFlags); // hidden
-        sensorNode.addItem(DataTypeString, RConfigPanel)->setValue(QString("disarmed"));
+        sensorNode.addItem(DataTypeString, RStatePanel);
+        sensorNode.addItem(DataTypeUInt32, RStateSecondsRemaining)->setValue(0);
         sensorNode.addItem(DataTypeBool, RStateTampered)->setValue(false);
+
+        // by default add keypads to "default" alarm system 1
+        AlarmSystem *alarmSys = AS_GetAlarmSystem(1, *alarmSystems);
+        DBG_Assert(alarmSys != nullptr);
+        if (alarmSys)
+        {
+            alarmSys->addDevice(sensorNode.uniqueId(), AS_ENTRY_FLAG_IAS_ACE);
+        }
     }
     else if (sensorNode.type().endsWith(QLatin1String("LightLevel")))
     {
@@ -12273,7 +12290,6 @@ bool DeRestPluginPrivate::addTask(const TaskItem &task)
         (task.taskType != TaskWriteAttribute) &&
         (task.taskType != TaskViewScene) &&
         (task.taskType != TaskTuyaRequest) &&
-        (task.taskType != TaskIASACE) &&
         (task.taskType != TaskAddScene))
     {
         for (; i != end; ++i)
@@ -17038,6 +17054,10 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
                 else if (apiModule == QLatin1String("gateways"))
                 {
                     ret = d->handleGatewaysApi(req, rsp);
+                }
+                else if (apiModule == QLatin1String("alarmsystems") && d->alarmSystems)
+                {
+                    ret = AS_handleAlarmSystemsApi(req, rsp, *d->alarmSystems, d->eventEmitter);
                 }
                 else
                 {

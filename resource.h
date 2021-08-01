@@ -27,7 +27,7 @@ enum ApiDataType
 };
 
 // resource prefixes: /lights, /sensors, ...
-extern const char *RIASZones;
+extern const char *RAlarmSystems;
 extern const char *RSensors;
 extern const char *RLights;
 extern const char *RGroups;
@@ -36,8 +36,10 @@ extern const char *RConfig;
 // resource events
 extern const char *REventAdded;
 extern const char *REventDeleted;
+extern const char *REventDeviceAlarm;
 extern const char *REventValidGroup;
 extern const char *REventCheckGroupAnyOn;
+extern const char *REventTimerFired;
 
 // resouce suffixes: state/buttonevent, config/on, ...
 extern const char *RInvalidSuffix;
@@ -64,6 +66,7 @@ extern const char *RStateAlert;
 extern const char *RStateAllOn;
 extern const char *RStateAngle;
 extern const char *RStateAnyOn;
+extern const char *RStateArmState;
 extern const char *RStateBattery;
 extern const char *RStateBri;
 extern const char *RStateButtonEvent;
@@ -100,11 +103,13 @@ extern const char *RStateOpen;
 extern const char *RStateOrientationX;
 extern const char *RStateOrientationY;
 extern const char *RStateOrientationZ;
+extern const char *RStatePanel;
 extern const char *RStatePresence;
 extern const char *RStatePressure;
 extern const char *RStatePower;
 extern const char *RStateReachable;
 extern const char *RStateSat;
+extern const char *RStateSecondsRemaining;
 extern const char *RStateSpectralX;
 extern const char *RStateSpectralY;
 extern const char *RStateSpectralZ;
@@ -128,7 +133,15 @@ extern const char *RStateX;
 extern const char *RStateY;
 
 extern const char *RConfigArmMode;
-extern const char *RConfigPanel;
+extern const char *RConfigArmedAwayEntryDelay;
+extern const char *RConfigArmedAwayExitDelay;
+extern const char *RConfigArmedAwayTriggerDuration;
+extern const char *RConfigArmedStayEntryDelay;
+extern const char *RConfigArmedStayExitDelay;
+extern const char *RConfigArmedStayTriggerDuration;
+extern const char *RConfigArmedNightEntryDelay;
+extern const char *RConfigArmedNightExitDelay;
+extern const char *RConfigArmedNightTriggerDuration;
 extern const char *RConfigAlert;
 extern const char *RConfigLock;
 extern const char *RConfigBattery;
@@ -140,6 +153,8 @@ extern const char *RConfigCtMin;
 extern const char *RConfigCtMax;
 extern const char *RConfigDelay;
 extern const char *RConfigDeviceMode;
+extern const char *RConfigDisarmedEntryDelay;
+extern const char *RConfigDisarmedExitDelay;
 extern const char *RConfigDisplayFlipped;
 extern const char *RConfigDuration;
 extern const char *RConfigEnrolled;
@@ -208,7 +223,7 @@ extern const char *RConfigUbisysJ1TotalSteps2;
 extern const char *RConfigUbisysJ1AdditionalSteps;
 extern const char *RConfigUbisysJ1InactivePowerThreshold;
 extern const char *RConfigUbisysJ1StartupSteps;
-extern const char *RConfigIasZoneId;
+extern const char *RConfigAlarmSystemId;
 
 #define R_ALERT_DEFAULT             QVariant(QLatin1String("none"))
 #define R_SENSITIVITY_MAX_DEFAULT   2

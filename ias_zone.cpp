@@ -541,7 +541,7 @@ bool DeRestPluginPrivate::sendIasZoneEnrollResponse(Sensor *sensor)
         stream.setByteOrder(QDataStream::LittleEndian);
 
         quint8 code = 0x00; // success
-        quint8 zoneId = 100;
+        quint8 zoneId = IAS_DEFAULT_ZONE;
 
         stream << code;
         stream << zoneId;
@@ -592,7 +592,7 @@ bool DeRestPluginPrivate::sendIasZoneEnrollResponse(const deCONZ::ApsDataIndicat
         stream.setByteOrder(QDataStream::LittleEndian);
 
         quint8 code = 0x00; // success
-        quint8 zoneId = 100;
+        quint8 zoneId = IAS_DEFAULT_ZONE;
 
         stream << code;
         stream << zoneId;
@@ -776,15 +776,4 @@ bool DeRestPluginPrivate::writeIasCieAddress(Sensor *sensor)
     DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Failed sending write IAS CIE address.\n", sensor->address().ext());
 
     return false;
-}
-
-IASZone::IASZone() :
-    Resource(RIASZones)
-{
-    addItem(DataTypeString, RAttrName);
-    addItem(DataTypeString, RAttrType);
-    addItem(DataTypeString, RAttrId);
-    addItem(DataTypeUInt8, RConfigIasZoneId);
-    ResourceItem *armMode = addItem(DataTypeString, RConfigArmMode);
-    armMode->setValue(QString("disarmed"));
 }
