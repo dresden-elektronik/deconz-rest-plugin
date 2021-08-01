@@ -85,5 +85,6 @@ decltype(auto) matchKeyValue(const K &key, const Cont &cont)
 }
 
 const deCONZ::Node *getCoreNode(quint64 extAddress, deCONZ::ApsController *apsCtrl);
+quint64 extAddressFromUniqueId(const QString &uniqueId);
 
 #endif // UTILS_H
