@@ -477,6 +477,9 @@ using namespace deCONZ::literals;
 void getTime(quint32 *time, qint32 *tz, quint32 *dstStart, quint32 *dstEnd, qint32 *dstShift, quint32 *standardTime, quint32 *localTime, quint8 mode);
 int getFreeSensorId(); // TODO needs to be part of a Database class
 
+// REST API common
+QVariantMap errorToMap(int id, const QString &ressource, const QString &description);
+
 extern const quint64 macPrefixMask;
 
 extern const quint64 celMacPrefix;
@@ -1221,9 +1224,6 @@ public:
     // REST API capabilities
     int handleCapabilitiesApi(const ApiRequest &req, ApiResponse &rsp);
     int getCapabilities(const ApiRequest &req, ApiResponse &rsp);
-
-    // REST API common
-    QVariantMap errorToMap(int id, const QString &ressource, const QString &description);
 
     // UPNP discovery
     void initUpnpDiscovery();

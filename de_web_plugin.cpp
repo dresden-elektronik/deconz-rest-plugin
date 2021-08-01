@@ -17067,11 +17067,11 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
             {
                 if (resourceExist && req.hdr.httpMethod() == HttpGet)
                 {
-                    rsp.list.append(d->errorToMap(ERR_RESOURCE_NOT_AVAILABLE, resource, "resource, " + resource + ", not available"));
+                    rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, resource, "resource, " + resource + ", not available"));
                 }
                 else
                 {
-                    rsp.list.append(d->errorToMap(ERR_METHOD_NOT_AVAILABLE, resource, "method, " + req.hdr.method() + ", not available for resource, " + resource));
+                    rsp.list.append(errorToMap(ERR_METHOD_NOT_AVAILABLE, resource, "method, " + req.hdr.method() + ", not available for resource, " + resource));
                 }
                 rsp.httpStatus = HttpStatusNotFound;
                 ret = REQ_READY_SEND;
@@ -17079,7 +17079,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
             else
             {
                 rsp.httpStatus = HttpStatusForbidden;
-                rsp.list.append(d->errorToMap(ERR_UNAUTHORIZED_USER, resource, "unauthorized user"));
+                rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, resource, "unauthorized user"));
                 if (req.sock)
                 {
                     DBG_Printf(DBG_HTTP, "\thost: %s\n", qPrintable(req.sock->peerAddress().toString()));
