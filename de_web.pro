@@ -111,6 +111,8 @@ HEADERS  = bindings.h \
            button_maps.h \
            connectivity.h \
            colorspace.h \
+           crypto/random.h \
+           crypto/scrypt.h \
            daylight.h \
            de_web_plugin.h \
            de_web_plugin_private.h \
@@ -156,6 +158,8 @@ SOURCES  = air_quality.cpp \
            change_channel.cpp \
            connectivity.cpp \
            colorspace.cpp \
+           crypto/random.cpp \
+           crypto/scrypt.cpp \
            database.cpp \
            daylight.cpp \
            device_setup.cpp \
