@@ -3192,6 +3192,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : ONOFF_CLUSTER_ID;
                 if (sensor.modelId().startsWith(QLatin1String("RDM00")) ||
+                    sensor.modelId().startsWith(QLatin1String("Pocket remote")) ||
                     sensor.modelId().startsWith(QLatin1String("SYMFONISK")))
                 {
                     // blacklisted
@@ -3220,6 +3221,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             else if (sensor.fingerPrint().hasOutCluster(IAS_ACE_CLUSTER_ID))
             {
                 clusterId = clusterId ? clusterId : IAS_ACE_CLUSTER_ID;
+            }
+            else if (sensor.fingerPrint().hasOutCluster(SCENE_CLUSTER_ID))
+            {
+                clusterId = clusterId ? clusterId : SCENE_CLUSTER_ID;
             }
 
             item = sensor.addItem(DataTypeInt32, RStateButtonEvent);
