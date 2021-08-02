@@ -60,8 +60,6 @@ void DeRestPluginPrivate::handleXiaomiLumiClusterIndication(const deCONZ::ApsDat
                 continue;
             }
 
-            ResourceItem *item = nullptr;
-
             switch (attrId)
             {
             case XIAOMI_ATTRID_SPECIAL_REPORT:
