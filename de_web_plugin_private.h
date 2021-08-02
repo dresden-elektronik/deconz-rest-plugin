@@ -1224,6 +1224,10 @@ public:
     int handleCapabilitiesApi(const ApiRequest &req, ApiResponse &rsp);
     int getCapabilities(const ApiRequest &req, ApiResponse &rsp);
 
+    // REST API networkmap
+    int handleNetworkMapApi(const ApiRequest &req, ApiResponse &rsp);
+    int getNetworkMapDatas(const ApiRequest &req, ApiResponse &rsp);
+
     // REST API common
     QVariantMap errorToMap(int id, const QString &ressource, const QString &description);
 

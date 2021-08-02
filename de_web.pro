@@ -192,6 +192,7 @@ SOURCES  = air_quality.cpp \
            rest_gateways.cpp \
            rest_groups.cpp \
            rest_lights.cpp \
+           rest_networkmap.cpp \
            rest_node_base.cpp \
            rest_resourcelinks.cpp \
            rest_rules.cpp \
