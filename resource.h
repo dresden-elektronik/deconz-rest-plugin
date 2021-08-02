@@ -335,11 +335,13 @@ public:
     qint64 toNumber(const char *suffix) const;
     const QString &toString(const char *suffix) const;
     QVariant toVariant(const char *suffix) const;
+    virtual void didSetValue(ResourceItem *) {};
+    bool setValue(const char *suffix, qint64 val, bool forceUpdate = false);
+    bool setValue(const char *suffix, const QString &val, bool forceUpdate = false);
+    bool setValue(const char *suffix, const QVariant &val, bool forceUpdate = false);
     int itemCount() const;
     ResourceItem *itemForIndex(size_t idx);
     const ResourceItem *itemForIndex(size_t idx) const;
-    QDateTime lastStatePush;
-    QDateTime lastAttrPush;
 
 private:
     Resource() = delete;

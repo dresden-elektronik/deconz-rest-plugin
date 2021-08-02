@@ -577,7 +577,7 @@
                 [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "255", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Long released"]
             ]
         },
-        "xiaomiSwitchB1acn01Map": {
+        "xiaomiSwitchB28ac1Map": {
             "vendor": "Xiaomi",
             "doc": "WRS-R02 Aqara wireless remote switch H1 (Double Rocker)",
             "modelids": ["lumi.remote.b28ac1"],

@@ -27,18 +27,18 @@ issueConfigs:
 # Example 2: Device Request
   - "Device"
   - "Screenshots"
-- content:
+#- content:
 # Example 3: Feature Request
-  - "Feature request type"
-  - "Description"
-  - "Considered alternatives"
-  - "Additional context"
-- content:
+  #- "Feature request type"
+ # - "Description"
+ # - "Considered alternatives"
+ # - "Additional context"
+#- content:
 # Example 4: User Question
-  - "Describe the question or issue you are having"
-  - "Screenshots"
-  - "Environment"
-  - "deCONZ Logs"
-  - "Additional context"
+#  - "Describe the question or issue you are having"
+#- "Screenshots"
+#  - "Environment"
+#  - "deCONZ Logs"
+#  - "Additional context"
 # The issue is judged to be legal if it includes all keywords from any of these configs.
 # Or it will be closed by the app.

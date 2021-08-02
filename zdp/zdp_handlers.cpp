@@ -160,6 +160,7 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
         if (si->address().ext() == ext)
         {
             si->rx();
+            si->setValue(RAttrLastAnnounced, si->lastRx().toUTC());
             found++;
             DBG_Printf(DBG_INFO, "DeviceAnnce of SensorNode: 0x%016llX [1]\n", si->address().ext());
 
@@ -170,14 +171,14 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
                 Event e(si->prefix(), RConfigReachable, si->id(), item);
                 enqueueEvent(e);
             }
-            
+
             item = si->item(RConfigEnrolled); // holds per device IAS state variable
 
             if (item)
             {
                 item->setValue(IAS_STATE_INIT);
             }
-            
+
             checkSensorGroup(&*si);
             checkSensorBindingsForAttributeReporting(&*si);
             checkSensorBindingsForClientClusters(&*si);
@@ -598,9 +599,7 @@ void DeRestPluginPrivate::patchNodeDescriptor(const deCONZ::ApsDataIndication &i
         // Not having 'allocate address' 0x80 is valid but currently expected for all devices
         if (!nd.macCapabilities().testFlag(deCONZ::MacAllocateAddress))
         {
-            auto macCap = nd.macCapabilities();
-            macCap.setFlag(deCONZ::MacAllocateAddress);
-            nd.setMacCapabilities(macCap);
+            nd.setMacCapabilities(nd.macCapabilities() | deCONZ::MacAllocateAddress);
             updated |= UpdatedMacCapabilities;
         }
 
