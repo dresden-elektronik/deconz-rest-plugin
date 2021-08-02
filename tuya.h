@@ -115,6 +115,13 @@
 #define DP_IDENTIFIER_BATTERY 0x6E
 #define DP_IDENTIFIER_REPORTING 0x70
 
+// Value for dp_identifier for energy meter
+//-----------------------------------------
+#define DP_IDENTIFIER_ENERGY_ENERGY 0x11
+#define DP_IDENTIFIER_ENERGY_CURRENT 0x12
+#define DP_IDENTIFIER_ENERGY_POWER 0x13
+#define DP_IDENTIFIER_ENERGY_VOLTAGE 0x14
+
 // Value for tuya command
 //-----------------------
 #define TUYA_REQUEST 0x00

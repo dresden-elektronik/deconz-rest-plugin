@@ -432,6 +432,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "TS0202", ikea2MacPrefix }, // Tuya multi sensor
     { VENDOR_NONE, "0yu2xgi", silabs5MacPrefix }, // Tuya siren
     { VENDOR_EMBER, "TS0601", silabs9MacPrefix }, // Tuya siren
+    { VENDOR_EMBER, "TS0601", silabs8MacPrefix }, // Single Phase 65A Din Rail Smart Energy Meter
     { VENDOR_EMBER, "TS0222", silabs9MacPrefix }, // TYZB01 light sensor
     { VENDOR_NONE, "eaxp72v", ikea2MacPrefix }, // Tuya TRV Wesmartify Thermostat Essentials Premium
     { VENDOR_NONE, "88teujp", silabs8MacPrefix }, // SEA802-Zigbee
@@ -5821,6 +5822,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         manufacturer == QLatin1String("_TZE200_rddyvrci"))
                     {
                         fpBatterySensor.inClusters.push_back(TUYA_CLUSTER_ID);
+                    }
+                    if (manufacturer == QLatin1String("_TZE200_byzdayie"))
+                    {
+                        fpConsumptionSensor.inClusters.push_back(TUYA_CLUSTER_ID);
+                        fpConsumptionSensor.inClusters.push_back(TEMPERATURE_MEASUREMENT_CLUSTER_ID);
+                        fpPowerSensor.inClusters.push_back(TUYA_CLUSTER_ID);
+                        fpPowerSensor.inClusters.push_back(RELATIVE_HUMIDITY_CLUSTER_ID);
                     }
                 }
                     break;
