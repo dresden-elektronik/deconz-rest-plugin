@@ -82,19 +82,10 @@ void DeRestPluginPrivate::handleXiaomiLumiClusterIndication(const deCONZ::ApsDat
 
                 if (sensor)
                 {
-                    quint8 sensitivity = attr.numericValue().u8;
-                    item = sensor->item(RConfigSensitivity);
-
-                    if (item && item->toNumber() != sensitivity)
-                    {
-                        item->setValue(sensitivity);
-                        enqueueEvent(Event(RSensors, RConfigSensitivity, sensor->id(), item));
-                        updateSensorEtag(&*sensor);
-                        sensor->setNeedSaveDatabase(true);
-                        queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
-                    }
-
                     sensor->setZclValue(updateType, ind.srcEndpoint(), XIAOMI_CLUSTER_ID, XIAOMI_ATTRID_MOTION_SENSITIVITY, attr.numericValue());
+                    
+                    quint8 sensitivity = attr.numericValue().u8;
+                    sensor->setValue(RConfigSensitivity, sensitivity);
                 }
             }
                 break;
