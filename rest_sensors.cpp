@@ -2537,7 +2537,6 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
     {
         return;
     }
-    const QDateTime now = QDateTime::currentDateTime();
 
     // speedup sensor state check
     if ((e.what() == RStatePresence || e.what() == RStateButtonEvent) &&
