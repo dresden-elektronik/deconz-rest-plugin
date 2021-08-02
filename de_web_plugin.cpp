@@ -46,6 +46,7 @@
 #include "rest_devices.h"
 #include "read_files.h"
 #include "utils/utils.h"
+#include "xiaomi.h"
 #include "zdp/zdp_handlers.h"
 
 #ifdef ARCH_ARM
@@ -266,6 +267,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_XIAOMI, "lumi.curtain.hagl04", xiaomiMacPrefix}, // Xiaomi B1 curtain controller
     { VENDOR_XIAOMI, "lumi.remote.cagl01", xiaomiMacPrefix },  // Xiaomi Aqara T1 Cube MFKZQ11LM
     { VENDOR_XIAOMI, "lumi.sensor_magnet.agl02", xiaomiMacPrefix}, // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
+    { VENDOR_XIAOMI, "lumi.motion.agl04", lumiMacPrefix}, // Xiaomi Aqara RTCGQ13LM high precision motion sensor
     { VENDOR_XIAOMI, "lumi.flood.agl02", xiaomiMacPrefix}, // Xiaomi Aqara T1 water leak sensor SJCGQ12LM
     { VENDOR_XIAOMI, "lumi.switch.n0agl1", lumiMacPrefix}, // Xiaomi Aqara Single Switch Module T1 (With Neutral)
     { VENDOR_UBISYS, "C4", ubisysMacPrefix },
@@ -1051,6 +1053,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         case XIAOYAN_CLUSTER_ID:
             handleXiaoyanClusterIndication(ind, zclFrame);
+            break;
+
+        case XIAOMI_CLUSTER_ID:
+            handleXiaomiLumiClusterIndication(ind, zclFrame);
             break;
 
         case OCCUPANCY_SENSING_CLUSTER_ID:
@@ -6718,6 +6724,12 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             sensorNode.addItem(DataTypeUInt16, RConfigDelay)->setValue(0);
             sensorNode.addItem(DataTypeUInt16, RConfigPending)->setValue(0);
         }
+        else if (modelId == QLatin1String("lumi.motion.agl04"))
+        {
+            sensorNode.addItem(DataTypeUInt16, RConfigDelay)->setValue(0);
+            sensorNode.addItem(DataTypeUInt16, RConfigPending)->setValue(0);
+            sensorNode.addItem(DataTypeUInt8, RConfigSensitivity)->setValue(0);
+        }
         else
         {
             item = sensorNode.addItem(DataTypeUInt16, RConfigDuration);
@@ -7330,7 +7342,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         checkInstaModelId(&sensorNode);
     }
     else if (sensorNode.modelId() == QLatin1String("lumi.sensor_magnet.agl02") || // skip
-             sensorNode.modelId() == QLatin1String("lumi.flood.agl02"))
+             sensorNode.modelId() == QLatin1String("lumi.flood.agl02") ||
+             sensorNode.modelId() == QLatin1String("lumi.motion.agl04"))
     {
     }
     else if (modelId.startsWith(QLatin1String("lumi")))
@@ -8205,6 +8218,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId() == QLatin1String("Remote motion sensor") || // Legrand motion sensor
                                     i->modelId() == QLatin1String("lumi.sensor_magnet.agl02") || // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
                                     i->modelId() == QLatin1String("lumi.flood.agl02") ||         // Xiaomi Aqara T1 water leak sensor SJCGQ12LM
+                                    i->modelId() == QLatin1String("lumi.motion.agl04") ||        // Xiaomi Aqara RTCGQ13LM high precision motion sensor
                                     i->modelId() == QLatin1String("Zen-01") ||           // Zen thermostat
                                     i->modelId() == QLatin1String("Thermostat") ||       // eCozy thermostat
                                     i->modelId() == QLatin1String("Motion Sensor-A") ||  // Osram motion sensor
@@ -10430,8 +10444,14 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
 
     if (!nd.receiverOnWhenIdle() && (nd.manufacturerCode() == VENDOR_XIAOMI || sensorNode->modelId().startsWith(QLatin1String("lumi."))))
     {
-        // don't talk to sleeping Xiaomi devices here
-        return false;
+        if (sensorNode->modelId() == QLatin1String("lumi.motion.agl04"))
+        {
+            // Continue to process
+        }
+        else
+        {
+            return false; // don't talk to sleeping Xiaomi devices here
+        }
     }
 
     if (sensorNode->node()->simpleDescriptors().empty())
@@ -10625,19 +10645,28 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         if (item)
         {
             quint64 sensitivity = item->toNumber();
-            // sensitivity
-            deCONZ::ZclAttribute attr(0x0030, deCONZ::Zcl8BitUint, "sensitivity", deCONZ::ZclReadWrite, true);
-            attr.setValue(sensitivity);
-
-            if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attr, VENDOR_PHILIPS))
+            
+            if (nd.manufacturerCode() == VENDOR_PHILIPS)
             {
-                // ResourceItem *item = sensorNode->item(RConfigPending);
-                // quint16 mask = item->toNumber();
-                // mask &= ~R_PENDING_SENSITIVITY;
-                // item->setValue(mask);
-                // sensorNode->clearRead(WRITE_SENSITIVITY);
-                sensorNode->setNextReadTime(WRITE_SENSITIVITY, tNow.addSecs(7200));
-                processed++;
+                deCONZ::ZclAttribute attr(0x0030, deCONZ::Zcl8BitUint, "sensitivity", deCONZ::ZclReadWrite, true);
+                attr.setValue(sensitivity);
+    
+                if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attr, VENDOR_PHILIPS))
+                {
+                    sensorNode->setNextReadTime(WRITE_SENSITIVITY, tNow.addSecs(7200));
+                    processed++;
+                }
+            }
+            else if (nd.manufacturerCode() == VENDOR_XIAOMI)
+            {
+                deCONZ::ZclAttribute attr(XIAOMI_ATTRID_MOTION_SENSITIVITY, deCONZ::Zcl8BitUint, "sensitivity", deCONZ::ZclReadWrite, true);
+                attr.setValue(sensitivity);
+    
+                if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, XIAOMI_CLUSTER_ID, attr, VENDOR_XIAOMI))
+                {
+                    sensorNode->setNextReadTime(WRITE_SENSITIVITY, tNow.addSecs(3300)); // Default special reporting intervall
+                    processed++;
+                }
             }
         }
         else
@@ -11910,7 +11939,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
         }
     }
 
-    if (zclFrame.isProfileWideCommand() && existDevicesWithVendorCodeForMacPrefix(ind.srcAddress().ext(), VENDOR_XIAOMI) && (ind.clusterId() == BASIC_CLUSTER_ID || ind.clusterId() == XIAOMI_CLUSTER_ID))
+    if (zclFrame.isProfileWideCommand() && existDevicesWithVendorCodeForMacPrefix(ind.srcAddress().ext(), VENDOR_XIAOMI) && ind.clusterId() == BASIC_CLUSTER_ID)
     {
         handleZclAttributeReportIndicationXiaomiSpecial(ind, zclFrame);
     }
@@ -15525,6 +15554,20 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 writeAttribute(sensor, sensor->fingerPrint().endpoint, XIAOMI_CLUSTER_ID, attr2, VENDOR_XIAOMI);
 
                 item->setValue(item->toNumber() & ~R_PENDING_MODE);
+            }
+        }
+        // Xiaomi Aqara RTCGQ13LM high precision motion sensor
+        else if (sensor->modelId() == QLatin1String("lumi.motion.agl04"))
+        {
+            std::vector<uint16_t> attributes;
+            auto *item = sensor->item(RConfigSensitivity);
+            
+            if (item) { attributes.push_back(XIAOMI_ATTRID_MOTION_SENSITIVITY); }
+            
+            if (!attributes.empty() && readAttributes(sensor, sensor->fingerPrint().endpoint, XIAOMI_CLUSTER_ID, attributes, VENDOR_XIAOMI))
+            {
+                DBG_Printf(DBG_INFO, "Read 0x%016llX motion sensitivity attribute 0x010C...\n", sensor->address().ext());
+                queryTime = queryTime.addSecs(1);
             }
         }
         else if (sensor->modelId() == QLatin1String("HG06323")) // LIDL Remote Control
