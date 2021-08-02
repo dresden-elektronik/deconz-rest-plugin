@@ -1999,6 +1999,11 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
                 hasAlert = true;
             }
         }
+        
+        //Not used but can cause error
+        else if (p.key() == "transitiontime")
+        {
+        }
 
         else
         {
@@ -2021,6 +2026,7 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
         data.append(static_cast<qint8>(bri & 0xff));
 
         if (R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_DIMSWITCH Earda Dimmer") ||
+            R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_DIMSWITCH MS-105Z") ||
             R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_DIMSWITCH EDM-1ZAA-EU"))
         {
             ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_DIMMER_LEVEL_MODE2, data);
