@@ -852,7 +852,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigLock) // Boolean
                 {
-                    data.boolean ^= data.boolean;     // Flip bool value as 0 means lock and 1 means unlock
+                    data.boolean = !data.boolean;     // Flip bool value as 0 means lock and 1 means unlock
 
                     if (addTaskDoorLockUnlock(task, data.boolean))
                     {
@@ -977,7 +977,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigScheduleOn) // Boolean
                 {
-                    if (sensor->modelId() == QLatin1String("Thermostat")) { data.boolean ^= data.boolean; } // eCozy, flip true and false
+                    if (sensor->modelId() == QLatin1String("Thermostat")) { data.boolean = !data.boolean; } // eCozy, flip true and false
 
                     if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, THERM_ATTRID_THERMOSTAT_PROGRAMMING_OPERATION_MODE, deCONZ::Zcl8BitBitMap, data.boolean))
                     {
