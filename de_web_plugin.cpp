@@ -17040,6 +17040,10 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
                     resourceExist = false;
                 }
             }
+            else if (path[2] == QLatin1String("map"))
+            {
+                ret = d->handleMapApi(req, rsp);
+            }
             else
             {
                 resourceExist = false;

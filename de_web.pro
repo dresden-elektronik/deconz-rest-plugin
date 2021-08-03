@@ -201,6 +201,7 @@ SOURCES  = air_quality.cpp \
            rest_scenes.cpp \
            rest_info.cpp \
            rest_capabilities.cpp \
+           rest_map.cpp \
            rule.cpp \
            thermostat_ui_configuration.cpp \
            upnp.cpp \
