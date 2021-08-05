@@ -1828,7 +1828,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 21600;
             rq.reportableChange8bit = 10;
         }
-        else if (modelId == QLatin1String("lumi.remote.b28ac1")) // Aqara Wireless Remote Switch H1 (Double Rocker)
+        else if (modelId == QLatin1String("lumi.remote.b28ac1") ||              // Aqara Wireless Remote Switch H1 (Double Rocker)
+                 modelId == QLatin1String("lumi.motion.agl04"))                 // Xiaomi Aqara RTCGQ13LM high precision motion sensor
         {
             rq.attributeId = 0x0020;   // battery voltage
             rq.minInterval = 3;
@@ -2899,6 +2900,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("Remote toggle switch") || //Legrand switch module
         sensor->modelId() == QLatin1String("Teleruptor") || //Legrand teleruptor
         sensor->modelId() == QLatin1String("Contactor") || //Legrand Contactor
+        sensor->modelId() == QLatin1String("Pocket remote") || //Legrand wireless remote 4 scene
+        // Adeo
+        sensor->modelId() == QLatin1String("LDSENK10") || // ADEO Animal compatible motion sensor (Leroy Merlin)
         // Philio
         sensor->modelId() == QLatin1String("PST03A-v2.2.5") || //Philio pst03-a
         // ORVIBO
@@ -2951,6 +2955,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("lumi.sen_ill.mgl01")) ||
         sensor->modelId().startsWith(QLatin1String("lumi.switch.b1naus01")) ||
         sensor->modelId() == QLatin1String("lumi.sensor_magnet.agl02") ||
+        sensor->modelId() == QLatin1String("lumi.motion.agl04") ||
         sensor->modelId() == QLatin1String("lumi.flood.agl02") ||
         sensor->modelId() == QLatin1String("lumi.switch.n0agl1") ||
         sensor->modelId() == QLatin1String("lumi.remote.b28ac1") ||
@@ -3186,6 +3191,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             if (sensor->modelId() == QLatin1String("Remote switch") ||
                 sensor->modelId() == QLatin1String("Shutters central remote switch") ||
                 sensor->modelId() == QLatin1String("Double gangs remote switch") ||
+                sensor->modelId() == QLatin1String("Pocket remote") ||
                 sensor->modelId() == QLatin1String("Remote toggle switch") )
             {
                 //Those device don't support report attribute
@@ -3215,11 +3221,13 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId() == QLatin1String("Remote switch") ||
                      sensor->modelId() == QLatin1String("Shutters central remote switch") ||
                      sensor->modelId() == QLatin1String("Double gangs remote switch") ||
+                     sensor->modelId() == QLatin1String("Pocket remote") ||
                      sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||
                      sensor->modelId().startsWith(QLatin1String("3AFE14010402000D")) || //konke presence sensor
                      sensor->modelId().startsWith(QLatin1String("3AFE28010402000D")) || //konke presence sensor
                      sensor->modelId().startsWith(QLatin1String("TS0202")) || //Tuya presence sensor
                      sensor->modelId().endsWith(QLatin1String("86opcn01")) || // Aqara Opple
+                     sensor->modelId() == QLatin1String("lumi.motion.agl04") || // Xiaomi Aqara RTCGQ13LM high precision motion sensor
                      sensor->modelId().startsWith(QLatin1String("1116-S")) ||
                      sensor->modelId().startsWith(QLatin1String("1117-S")) ||
                      sensor->modelId().startsWith(QLatin1String("3323")) ||
@@ -3674,6 +3682,12 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
+    // LEGRAND Remote switch 4 scene
+    else if (sensor->modelId() == QLatin1String("Pocket remote"))
+    {
+        clusters.push_back(SCENE_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
     else if (sensor->modelId() == QLatin1String("ZBT-CCTSwitch-D0001"))
