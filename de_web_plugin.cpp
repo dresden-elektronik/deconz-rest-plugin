@@ -111,6 +111,7 @@ const quint64 silabs9MacPrefix    = 0x5c02720000000000ULL;
 const quint64 silabs8MacPrefix    = 0x60a4230000000000ULL;
 const quint64 silabs4MacPrefix    = 0x680ae20000000000ULL;
 const quint64 ecozyMacPrefix      = 0x70b3d50000000000ULL;
+const quint64 silabs11MacPrefix   = 0x804b500000000000ULL;
 const quint64 osramMacPrefix      = 0x8418260000000000ULL;
 const quint64 silabs5MacPrefix    = 0x842e140000000000ULL;
 const quint64 silabs10MacPrefix   = 0x8471270000000000ULL;
@@ -147,6 +148,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_BOSCH, "ISW-ZPR1-WP13", boschMacPrefix },
     { VENDOR_BOSCH, "RFDL-ZB-MS", emberMacPrefix }, // Bosch motion sensor
     { VENDOR_BOSCH2, "AIR", tiMacPrefix }, // Bosch Air quality sensor
+    { VENDOR_BOSCH3, "RBSH-WS-ZB-EU", silabs11MacPrefix }, // Bosch BWA-1 water sensor
     { VENDOR_CENTRALITE, "Motion Sensor-A", emberMacPrefix },
     { VENDOR_CENTRALITE, "3321-S", emberMacPrefix }, // Centralite multipurpose sensor
     { VENDOR_CENTRALITE, "3325-S", emberMacPrefix }, // Centralite motion sensor
@@ -5518,6 +5520,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("lumi.sensor_wleak")) || // Xiaomi Aqara flood sensor
                              modelId == QLatin1String("lumi.flood.agl02") ||          // Xiaomi Aqara T1 water leak sensor SJCGQ12LM
                              modelId == QLatin1String("CCT592011_AS") ||              // LK Wiser Water Leak Sensor
+                             modelId == QLatin1String("RBSH-WS-ZB-EU") ||             // Bosch BWA-1 water sensor
                              modelId.startsWith(QLatin1String("moisturev4")) ||       // SmartThings water leak sensor
                              modelId.startsWith(QLatin1String("WL4200")) ||           // Sinope Water Leak detector
                              modelId.startsWith(QLatin1String("3315")) ||             // Centralite water sensor
@@ -7529,6 +7532,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             {
                 item = sensorNode.addItem(DataTypeBool, RStateTest);
                 item->setValue(false);
+            }
+            else if (modelId == QLatin1String("RBSH-WS-ZB-EU"))
+            {
             }
             else
             {
