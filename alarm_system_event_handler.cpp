@@ -8,11 +8,13 @@
  *
  */
 
+#include <string.h>
 #include "alarm_system.h"
 #include "alarm_system_device_table.h"
 #include "alarm_system_event_handler.h"
 #include "de_web_plugin_private.h"
 #include "ias_ace.h"
+#include "websocket_server.h"
 
 // TODO remove dependency on plugin
 
@@ -51,9 +53,80 @@ static void mirrorKeypadAlarmSystemState(const AlarmSystem *alarmSys, EventEmitt
     }
 }
 
+static void pushEventToWebsocket(const Event &event, AlarmSystem *alarmSys, WebSocketServer *webSocket)
+{
+    Q_ASSERT(event.what());
+    {
+        char type = event.what()[0];
+        if (!(type == 's' || type == 'c' || type == 'a'))
+        {
+            return; // only interested in attr/*, state/* and config/*
+        }
+    }
+
+    int suffixOffset = 0;
+
+    {
+        const char *delim = strchr(event.what(), '/');
+        if (!delim)
+        {
+            return;
+        }
+
+        suffixOffset = delim - event.what() + 1;
+    }
+
+
+    ResourceItem *item = alarmSys->item(event.what());
+
+    if (!item)
+    {
+        return;
+    }
+
+    if (!(item->needPushSet() || item->needPushChange()))
+    {
+        return; // already pushed
+    }
+
+    QVariantMap map;
+    map[QLatin1String("t")] = QLatin1String("event");
+    map[QLatin1String("e")] = QLatin1String("changed");
+    map[QLatin1String("r")] = QLatin1String("alarmsystems");
+    map[QLatin1String("id")] = alarmSys->idString();
+
+    {
+        QVariantMap map2;
+
+        for (int i = 0; i < alarmSys->itemCount(); i++)
+        {
+            item = alarmSys->itemForIndex(size_t(i));
+            Q_ASSERT(item);
+            const char *suffix = item->descriptor().suffix;
+            if (*suffix == *event.what() && item->isPublic())
+            {
+                item->clearNeedPush();
+                if (suffix == RStateArmState)
+                {
+                    map2[QLatin1String(suffix + suffixOffset)] = alarmSys->armStateString();
+                }
+                else
+                {
+                    map2[QLatin1String(suffix + suffixOffset)] = item->toVariant();
+                }
+            }
+        }
+
+        map[QLatin1String(event.what(), suffixOffset - 1)] = map2;
+    }
+
+    webSocket->broadcastTextMessage(Json::serialize(map));
+}
+
+
 /*! Global handler for alarm system related events.
  */
-void AS_HandleAlarmSystemEvent(const Event &event, AlarmSystems &alarmSystems, EventEmitter *eventEmitter)
+void AS_HandleAlarmSystemEvent(const Event &event, AlarmSystems &alarmSystems, EventEmitter *eventEmitter, WebSocketServer *webSocket)
 {
     for (auto *alarmSys : alarmSystems.alarmSystems)
     {
@@ -62,6 +135,11 @@ void AS_HandleAlarmSystemEvent(const Event &event, AlarmSystems &alarmSystems, E
         if (event.what() == RStateArmState || event.what() == RStateSecondsRemaining)
         {
             mirrorKeypadAlarmSystemState(alarmSys, eventEmitter);
+        }
+
+        if (event.resource() == RAlarmSystems && event.id() == alarmSys->idString())
+        {
+            pushEventToWebsocket(event, alarmSys, webSocket);
         }
     }
 }

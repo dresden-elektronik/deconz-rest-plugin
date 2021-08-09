@@ -20,10 +20,13 @@
 
 static const QLatin1String paramArmMask("armmask");
 static const QLatin1String paramTrigger("trigger");
+static const QLatin1String paramName("name");
 
 static int getAllAlarmSystems(const ApiRequest &req, ApiResponse &rsp, const AlarmSystems &alarmSystems);
 static int getAlarmSystem(const ApiRequest &req, ApiResponse &rsp, const AlarmSystems &alarmSystems);
 static int putAlarmSystemConfig(const ApiRequest &req, ApiResponse &rsp, AlarmSystems &alarmSystems);
+static int putAlarmSystemAttributes(const ApiRequest &req, ApiResponse &rsp, AlarmSystems &alarmSystems);
+static int putAlarmSystemArmMode(const ApiRequest &req, ApiResponse &rsp, AlarmSystems &alarmSystems);
 static int putAlarmSystemDevice(const ApiRequest &req, ApiResponse &rsp, AlarmSystems &alarmSystems);
 static int deleteAlarmSystemDevice(const ApiRequest &req, ApiResponse &rsp, AlarmSystems &alarmSystems);
 
@@ -43,6 +46,11 @@ static QVariantMap errInternalError(int id, const QString &reason)
 {
     return errorToMap(ERR_INTERNAL_ERROR, QString(FMT_AS_ID).arg(id),
                                         QString("internal error, %1, occured").arg(reason));
+}
+
+static QVariantMap errMissingParameter(int id, const QLatin1String &param)
+{
+    return errorToMap(ERR_MISSING_PARAMETER, QString(FMT_AS_ID).arg(id), QString("missing parameter, %1").arg(param));
 }
 
 static QVariantMap errAlarmSystemDeviceNotAvailable(const QLatin1String &id, const QLatin1String &uniqueId)
@@ -66,6 +74,8 @@ static QVariantMap errMissingDeviceParameter(int id, QLatin1String uniqueId, con
 
 static QVariantMap errInvalidValue(int id, const char *suffix, const QString &value)
 {
+    Q_ASSERT(suffix);
+
     const char *param = strchr(suffix, '/');
     DBG_Assert(param != nullptr);
     if (!param)
@@ -74,7 +84,17 @@ static QVariantMap errInvalidValue(int id, const char *suffix, const QString &va
     }
     param++;
 
+    if (suffix[0] == 'a' && suffix[1] == 't')
+    {
+        suffix = param; // strip attr/
+    }
+
     return errorToMap(ERR_INVALID_VALUE, QString(FMT_AS_ID "/%2").arg(id).arg(QLatin1String(suffix)), QString("invalid value, %1, for parameter, %2").arg(value).arg(QLatin1String(param)));
+}
+
+static QVariantMap errParameterNotAvailable(int id, const QString &param)
+{
+    return errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString(FMT_AS_ID "/%2").arg(id).arg(param), QString("parameter, %1, not available").arg(param));
 }
 
 static bool isValidAlaramSystemId(QLatin1String id)
@@ -194,8 +214,20 @@ int AS_handleAlarmSystemsApi(const ApiRequest &req, ApiResponse &rsp, AlarmSyste
     }
 
     // PUT /api/<apikey>/alarmsystems/<id>
+    if (req.hdr.pathComponentsCount() == 4 && req.hdr.httpMethod() == HttpPut)
+    {
+        return putAlarmSystemAttributes(req, rsp, alarmSystems);
+    }
 
-    // PUT /api/<apikey>/alarmsystems/<id>/arm
+    // PUT /api/<apikey>/alarmsystems/<id>/(disarm | arm_stay | arm_night | arm_away)
+    if (req.hdr.pathComponentsCount() == 5 && req.hdr.httpMethod() == HttpPut)
+    {
+        const QLatin1String op = req.hdr.pathAt(4);
+        if (op == QLatin1String("disarm") || op == QLatin1String("arm_stay") || op == QLatin1String("arm_night") || op == QLatin1String("arm_away"))
+        {
+            return putAlarmSystemArmMode(req, rsp, alarmSystems);
+        }
+    }
 
     return REQ_NOT_HANDLED;
 }
@@ -273,48 +305,194 @@ static int putAlarmSystemConfig(const ApiRequest &req, ApiResponse &rsp, AlarmSy
         return REQ_READY_SEND;
     }
 
-//    if (map.contains(QLatin1String("armmode")))
-//    {
-//        const QString armMode = map.value(QLatin1String("armmode")).toString();
-
-//        const auto armState = AS_ArmStateFromString(armMode);
-
-//        if (armState <= AS_StateArmedNight)
-//        {
-
-//        }
-//        else
-//        {
-//            rsp.list.append(errInvalidValue(id, RConfigArmMode, armMode));
-//            rsp.httpStatus = HttpStatusBadRequest;
-//            return REQ_READY_SEND;
-//        }
-//    }
     rsp.httpStatus = HttpStatusOk;
 
-    if (map.contains(QLatin1String("code0")))
-    {
-        const QString code0 = map.value(QLatin1String("code0")).toString();
+    const auto keys = map.keys();
 
-        if (code0.size() < 4 || code0.size() > 16)
+    for (const auto &key : keys)
+    {
+        if (key == QLatin1String("code0"))
         {
-            rsp.list.append(errInvalidValue(id, "config/code0", code0));
-            rsp.httpStatus = HttpStatusBadRequest;
+            const QString code0 = map.value(key).toString();
+
+            if (code0.size() < 4 || code0.size() > 16)
+            {
+                rsp.list.append(errInvalidValue(id, "config/code0", code0));
+                rsp.httpStatus = HttpStatusBadRequest;
+                return REQ_READY_SEND;
+            }
+
+            if (alarmSys->setCode(0, code0))
+            {
+                rsp.list.append(addSuccessEntry(id, RConfigConfigured, true));
+            }
+            else
+            {
+                rsp.list.append(errInternalError(id, QLatin1String("failed to set code")));
+                rsp.httpStatus = HttpStatusServiceUnavailable;
+                return REQ_READY_SEND;
+            }
+
+            continue;
+        }
+
+        ResourceItemDescriptor rid;
+
+        if (!getResourceItemDescriptor(QString("config/%1").arg(key), rid))
+        {
+            rsp.list.append(errParameterNotAvailable(id, key));
+            rsp.httpStatus = HttpStatusNotFound;
             return REQ_READY_SEND;
         }
 
-        if (alarmSys->setCode(0, code0))
+        std::array<const char*, 2> readOnly = { RConfigArmMode, RConfigConfigured };
+
+        if (std::find(readOnly.cbegin(), readOnly.cend(), rid.suffix) != readOnly.cend())
         {
-            rsp.list.append(addSuccessEntry(id, RConfigConfigured, true));
+            rsp.list.append(errParameterNotAvailable(id, key));
+            rsp.httpStatus = HttpStatusNotFound;
+            return REQ_READY_SEND;
+        }
+
+        auto val = map.value(key);
+        if (alarmSys->setValue(rid.suffix, val))
+        {
+            rsp.list.append(addSuccessEntry(id, rid.suffix, val));
         }
         else
         {
-            rsp.list.append(errInternalError(id, QLatin1String("failed to set code")));
+            rsp.list.append(errInvalidValue(id, rid.suffix, val.toString()));
             rsp.httpStatus = HttpStatusServiceUnavailable;
             return REQ_READY_SEND;
         }
     }
 
+    return REQ_READY_SEND;
+}
+
+// PUT /api/<apikey>/alarmsystems/<id>
+static int putAlarmSystemAttributes(const ApiRequest &req, ApiResponse &rsp, AlarmSystems &alarmSystems)
+{
+    const int id = alarmSystemIdToInteger(req.hdr.pathAt(3));
+
+    AlarmSystem *alarmSys = AS_GetAlarmSystem(id, alarmSystems);
+
+    if (!alarmSys)
+    {
+        rsp.list.append(errAlarmSystemNotAvailable(req.hdr.pathAt(3)));
+        rsp.httpStatus = HttpStatusNotFound;
+        return REQ_READY_SEND;
+    }
+
+    bool ok = false;
+    QVariant var = Json::parse(req.content, ok);
+    QVariantMap map = var.toMap();
+
+    if (!ok || map.isEmpty())
+    {
+        rsp.list.append(errBodyContainsInvalidJson(id));
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
+    }
+
+    const auto keys = map.keys();
+
+    for (const auto &key : keys)
+    {
+        if (key == paramName)
+        {
+            const auto name = map.value(key).toString();
+
+            if (name.isEmpty() || name.size() > 32)
+            {
+                rsp.list.append(errInvalidValue(id, RAttrName, name));
+                rsp.httpStatus = HttpStatusNotFound;
+                return REQ_READY_SEND;
+            }
+
+            alarmSys->setValue(RAttrName, name);
+
+            rsp.list.append(addSuccessEntry(id, paramName.data(), name));
+        }
+        else
+        {
+            rsp.list.append(errParameterNotAvailable(id, key));
+            rsp.httpStatus = HttpStatusNotFound;
+            return REQ_READY_SEND;
+        }
+    }
+
+    return REQ_READY_SEND;
+}
+
+
+// PUT /api/<apikey>/alarmsystems/<id>/(disarm | arm_stay | arm_night | arm_away)
+static int putAlarmSystemArmMode(const ApiRequest &req, ApiResponse &rsp, AlarmSystems &alarmSystems)
+{
+    const int id = alarmSystemIdToInteger(req.hdr.pathAt(3));
+
+    AlarmSystem *alarmSys = AS_GetAlarmSystem(id, alarmSystems);
+
+    if (!alarmSys)
+    {
+        rsp.list.append(errAlarmSystemNotAvailable(req.hdr.pathAt(3)));
+        rsp.httpStatus = HttpStatusNotFound;
+        return REQ_READY_SEND;
+    }
+
+    bool ok = false;
+    QVariant var = Json::parse(req.content, ok);
+    QVariantMap map = var.toMap();
+
+    if (!ok || map.isEmpty())
+    {
+        rsp.list.append(errBodyContainsInvalidJson(id));
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
+    }
+
+    rsp.httpStatus = HttpStatusOk;
+
+    if (!map.contains(QLatin1String("code0")))
+    {
+        rsp.list.append(errMissingParameter(id, QLatin1String("code0")));
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
+    }
+
+    const QString code0 = map.value(QLatin1String("code0")).toString();
+
+    if (!alarmSys->isValidCode(code0, 0))
+    {
+        rsp.list.append(errInvalidValue(id, "attr/code0", code0)); // use attr/ since this gets stripped away
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
+    }
+
+    AS_ArmMode mode = AS_ArmModeMax;
+
+    const QLatin1String op = req.hdr.pathAt(4);
+    if      (op == QLatin1String("disarm"))    { mode = AS_ArmModeDisarmed; }
+    else if (op == QLatin1String("arm_away"))  { mode = AS_ArmModeArmedAway; }
+    else if (op == QLatin1String("arm_stay"))  { mode = AS_ArmModeArmedStay; }
+    else if (op == QLatin1String("arm_night")) { mode = AS_ArmModeArmedNight; }
+    else
+    {
+        DBG_Assert(0 && "should never happen");
+        return REQ_READY_SEND;
+    }
+
+    if (alarmSys->setTargetArmMode(mode))
+    {
+        // success
+        rsp.list.append(addSuccessEntry(id, RConfigArmMode, AS_ArmModeToString(mode)));
+    }
+    else
+    {
+        rsp.list.append(errInternalError(id, QString("failed to %1 the alarm system").arg(op)));
+        rsp.httpStatus = HttpStatusServiceUnavailable;
+        return REQ_READY_SEND;
+    }
 
     return REQ_READY_SEND;
 }

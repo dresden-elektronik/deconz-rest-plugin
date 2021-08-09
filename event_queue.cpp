@@ -23,7 +23,7 @@ void DeRestPluginPrivate::handleEvent(const Event &e)
     {
         if (alarmSystems)
         {
-            AS_HandleAlarmSystemEvent(e, *alarmSystems, eventEmitter);
+            AS_HandleAlarmSystemEvent(e, *alarmSystems, eventEmitter, webSocketServer);
         }
     }
 

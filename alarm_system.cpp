@@ -389,13 +389,6 @@ void AlarmSystem::handleEvent(const Event &event)
             return;
         }
 
-        DB_AlarmSystemResourceItem dbItem;
-        dbItem.alarmSystemId = id();
-        dbItem.timestamp = deCONZ::systemTimeRef().ref;
-        dbItem.suffix = RConfigArmMode;
-        dbItem.value = armMode.toStdString();
-        DB_StoreAlarmSystemResourceItem(dbItem);
-
         d->setSecondsRemaining(d->exitDelay); // set early for correct numbers in state/panel events
         d->setState(&AlarmSystemPrivate::stateExitDelay);
         d->startStateTimer();
@@ -406,6 +399,48 @@ void AlarmSystem::handleEvent(const Event &event)
     }
 }
 
+void AlarmSystem::didSetValue(ResourceItem *i)
+{
+    if (!i || !i->descriptor().suffix)
+    {
+        return;
+    }
+
+    emit eventNotify(Event(prefix(), i->descriptor().suffix, idString(), i));
+
+    // only attr/* and config/*
+    if (i->descriptor().suffix[0] != 'c' && i->descriptor().suffix[0] != 'a')
+    {
+        return;
+    }
+
+    const std::array<const char*, 13> store = {
+        RAttrName,
+        RConfigArmMode,
+        RConfigDisarmedEntryDelay, RConfigDisarmedExitDelay,
+        RConfigArmedAwayEntryDelay, RConfigArmedAwayExitDelay, RConfigArmedAwayTriggerDuration,
+        RConfigArmedStayEntryDelay, RConfigArmedStayExitDelay, RConfigArmedStayTriggerDuration,
+        RConfigArmedNightEntryDelay, RConfigArmedNightExitDelay, RConfigArmedNightTriggerDuration
+    };
+
+    if (std::find(store.cbegin(), store.cend(), i->descriptor().suffix) != store.cend())
+    {
+        DB_AlarmSystemResourceItem dbItem;
+        dbItem.alarmSystemId = id();
+        dbItem.timestamp = deCONZ::systemTimeRef().ref;
+        dbItem.suffix = i->descriptor().suffix;
+        if (i->descriptor().type == DataTypeString)
+        {
+            dbItem.value = i->toString().toStdString();
+        }
+        else
+        {
+            dbItem.value = std::to_string(i->toNumber());
+        }
+        DB_StoreAlarmSystemResourceItem(dbItem);
+    }
+}
+
 /*! Returns true if the \p code can be verified.
 
     The verification is only done if an entry for \p srcExtAddress exists
@@ -413,11 +448,14 @@ void AlarmSystem::handleEvent(const Event &event)
  */
 bool AlarmSystem::isValidCode(const QString &code, quint64 srcExtAddress)
 {
-    const AS_DeviceEntry &entry = d->devTable->get(srcExtAddress);
-
-    if (!isValid(entry) || entry.alarmSystemId != id())
+    if (srcExtAddress != 0)
     {
-        return false;
+        const AS_DeviceEntry &entry = d->devTable->get(srcExtAddress);
+
+        if (!isValid(entry) || entry.alarmSystemId != id())
+        {
+            return false;
+        }
     }
 
     DB_Secret sec;
@@ -495,16 +533,9 @@ bool AlarmSystem::setTargetArmMode(AS_ArmMode targetArmMode)
         return true;
     }
 
-    ResourceItem *i = item(RConfigArmMode);
+    setValue(RConfigArmMode, QString(AS_ArmModeToString(targetArmMode)));
 
-    if (i)
-    {
-        i->setValue(QString(AS_ArmModeToString(targetArmMode)));
-        emit eventNotify(Event(prefix(), i->descriptor().suffix, idString(), i));
-        return true;
-    }
-
-    return false;
+    return true;
 }
 
 bool AlarmSystem::addDevice(const QString &uniqueId, quint32 flags)
@@ -542,14 +573,8 @@ bool AlarmSystem::setCode(int index, const QString &code)
 
     if (DB_StoreSecret(sec))
     {
-        ResourceItem *configured = item(RConfigConfigured);
-        DBG_Assert(configured);
-        if (configured)
-        {
-            configured->setValue(true);
-            emit eventNotify(Event(prefix(), configured->descriptor().suffix, idString(), configured));
-            return true;
-        }
+        setValue(RConfigConfigured, true);
+        return true;
     }
 
     return false;
@@ -677,6 +702,11 @@ void DB_LoadAlarmSystems(AlarmSystems &alarmSystems, AS_DeviceTable *devTable, E
 
         for (const auto &dbItem : ritems)
         {
+            if (dbItem.value.empty())
+            {
+                continue;
+            }
+
             ResourceItem *item = alarmSys->item(dbItem.suffix);
 
             if (!item)
@@ -687,6 +717,11 @@ void DB_LoadAlarmSystems(AlarmSystems &alarmSystems, AS_DeviceTable *devTable, E
             if (item->descriptor().type == DataTypeString)
             {
                 item->setValue(QString::fromStdString(dbItem.value));
+            }
+            else if (item->descriptor().type == DataTypeUInt8)
+            {
+                qint64 num = strtol(dbItem.value.c_str(), nullptr, 10);
+                item->setValue(num);
             }
             else
             {
@@ -712,7 +747,6 @@ void AS_InitDefaultAlarmSystem(AlarmSystems &alarmSystems, AS_DeviceTable *devTa
 
     alarmSystems.alarmSystems.push_back(alarmSys);
 
-    alarmSys->item(RAttrName)->setValue(QString("default"));
 
     {
         DB_AlarmSystem dbAlarmSys;
@@ -722,15 +756,5 @@ void AS_InitDefaultAlarmSystem(AlarmSystems &alarmSystems, AS_DeviceTable *devTa
         DB_StoreAlarmSystem(dbAlarmSys);
     }
 
-    DB_AlarmSystemResourceItem dbItem;
-    dbItem.alarmSystemId = id;
-    dbItem.timestamp = deCONZ::systemTimeRef().ref;
-
-    dbItem.suffix = RConfigArmMode;
-    dbItem.value = alarmSys->item(RConfigArmMode)->toString().toStdString();
-    DB_StoreAlarmSystemResourceItem(dbItem);
-
-    dbItem.suffix = RAttrName;
-    dbItem.value = alarmSys->item(RAttrName)->toString().toStdString();
-    DB_StoreAlarmSystemResourceItem(dbItem);
+    alarmSys->setValue(RAttrName, QString("default"));
 }

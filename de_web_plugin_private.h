@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2021 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -17,6 +17,7 @@
 #include <QElapsedTimer>
 #include <stdint.h>
 #include <queue>
+#include <memory>
 #if QT_VERSION < 0x050000
 #include <QHttpRequestHeader>
 #endif

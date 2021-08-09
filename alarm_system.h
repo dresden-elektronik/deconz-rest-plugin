@@ -75,6 +75,7 @@ public:
     AlarmSystem(AlarmSystemId id, EventEmitter *eventEmitter, AS_DeviceTable *devTable, QObject *parent = nullptr);
     ~AlarmSystem();
     void handleEvent(const Event &event);
+    void didSetValue(ResourceItem *i) override;
     bool isValidCode(const QString &code, quint64 srcExtAddress);
     AlarmSystemId id() const;
     const QString &idString() const;
