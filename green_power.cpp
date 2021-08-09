@@ -1,15 +1,23 @@
+#define OPEN_SSL_VERSION_MIN 0x10100000
+
+#ifdef HAS_OPENSSL
+  #include <openssl/opensslv.h>
+  #if OPENSSL_VERSION_NUMBER < OPEN_SSL_VERSION_MIN // defined on supported versions in evp.h header
+    #undef HAS_OPENSSL
+  #endif
+#endif
+
 #include <QLibrary>
 #include <array>
 #ifdef HAS_OPENSSL
-#include <openssl/aes.h>
-#include <openssl/evp.h>
+  #include <openssl/aes.h>
+  #include <openssl/evp.h>
 #endif
 #include <string>
 #include "green_power.h"
 
 // this code is based on
 // https://github.com/Smanar/Zigbee_firmware/blob/master/Encryption.cpp
-#define OPEN_SSL_VERSION_MIN 0x10100000
 
 #define AES_KEYLENGTH 128
 #define AES_BLOCK_SIZE 16

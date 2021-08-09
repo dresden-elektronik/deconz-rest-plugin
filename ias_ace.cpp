@@ -102,7 +102,7 @@ QLatin1String IAS_PanelStatusToString(quint8 panelStatus)
         return IAS_PanelStates[panelStatus];
     }
 
-    return {};
+    return QLatin1String("");
 }
 
 static quint8 handleArmCommand(AlarmSystem *alarmSys, quint8 armMode, const QString &pinCode, quint64 srcAddress)

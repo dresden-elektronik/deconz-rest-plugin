@@ -8,15 +8,25 @@
  *
  */
 
+#define OPEN_SSL_VERSION_MIN 0x10101000L
+#ifdef HAS_OPENSSL
+  #include <openssl/opensslv.h>
+  #if OPENSSL_VERSION_NUMBER < OPEN_SSL_VERSION_MIN // defined on supported versions in evp.h header
+    #undef HAS_OPENSSL
+  #endif
+#endif
+
 #include <array>
 #include <QLibrary>
-#include <openssl/kdf.h>
-#include <openssl/evp.h>
 #include "deconz/dbg_trace.h"
 #include "random.h"
 #include "scrypt.h"
 
-#define OPEN_SSL_VERSION_MIN 0x10101000
+
+#ifdef HAS_OPENSSL
+
+#include <openssl/evp.h>
+#include <openssl/kdf.h>
 
 /*! KDF to scrypt the \p input.
  */
@@ -201,6 +211,28 @@ bool CRYPTO_ScryptVerify(const std::string &phcHash, const std::string &password
 
     return hash2 == phcHash;
 }
+
+#else
+
+// OpenSSL version too old
+// return errors or empty results
+
+bool CRYPTO_ParsePhcScryptParameters(const std::string &, ScryptParameters *)
+{
+    return false;
+}
+
+bool CRYPTO_ScryptVerify(const std::string &, const std::string &)
+{
+    return false;
+}
+
+std::string CRYPTO_ScryptPassword(const std::string &, const std::string &, int, int, int)
+{
+    return {};
+}
+
+#endif // HAS_OPENSSL
 
 /*! Returns a base64 encoded cryptographic secure salt.
  */
