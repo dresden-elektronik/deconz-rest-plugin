@@ -3520,6 +3520,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     (!sensor.modelId().startsWith(QLatin1String("lumi.plug.ma"))) &&
                     (sensor.modelId() != QLatin1String("Plug-230V-ZB3.0")) &&
                     (sensor.modelId() != QLatin1String("lumi.switch.b1naus01")) &&
+                    (sensor.modelId() != QLatin1String("lumi.switch.n0agl1")) &&
                     (sensor.modelId() != QLatin1String("Connected socket outlet")) &&
                     (!sensor.modelId().startsWith(QLatin1String("SPW35Z"))))
                 {
@@ -3937,6 +3938,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.modelId() != QLatin1String("lumi.curtain") &&
                 sensor.modelId() != QLatin1String("lumi.sensor_natgas") &&
                 sensor.modelId() != QLatin1String("lumi.switch.b1naus01") &&
+                sensor.modelId() != QLatin1String("lumi.switch.n0agl1") &&
                 !sensor.modelId().startsWith(QLatin1String("lumi.relay.c")) &&
                 !sensor.type().endsWith(QLatin1String("Battery")))
             {
@@ -3970,6 +3972,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 // Aqara switches need to be configured to send proper button events
                 item = sensor.addItem(DataTypeUInt16, RConfigPending);
                 item->setValue(item->toNumber() | R_PENDING_MODE);
+            }
+            
+            if (sensor.modelId() == QLatin1String("lumi.switch.n0agl1"))
+            {
+                sensor.removeItem(RConfigBattery);
             }
         }
         else if (sensor.modelId().startsWith(QLatin1String("tagv4"))) // SmartThings Arrival sensor
