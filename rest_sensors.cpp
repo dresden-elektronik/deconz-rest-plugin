@@ -1217,6 +1217,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             else if (sensor->modelId().startsWith(QLatin1String("SLR2")) ||
                                      sensor->modelId() == QLatin1String("SLR1b"))
                             {
+                                attributeList.insert(THERM_ATTRID_SYSTEM_MODE, (quint32)match.value);
+                                
                                 // Change automatically the Setpoint Hold
                                 // Add a timer for Boost mode
                                 if      (match.value == 0x00) { attributeList.insert(THERM_ATTRID_TEMPERATURE_SETPOINT_HOLD, (quint32)0x00); }
