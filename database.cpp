@@ -3168,6 +3168,15 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             return 0;
         }
 
+        // ZGP switches
+        if (sensor.fingerPrint().profileId == GP_PROFILE_ID)
+        {
+            sensor.addItem(DataTypeString, RConfigGPDKey)->setIsPublic(false);
+            sensor.addItem(DataTypeUInt16, RConfigGPDDeviceId)->setIsPublic(false);
+            sensor.addItem(DataTypeUInt32, RStateGPDFrameCounter)->setIsPublic(false);
+            sensor.addItem(DataTypeUInt64, RStateGPDLastPair)->setIsPublic(false);
+        }
+
         if (sensor.type().endsWith(QLatin1String("Switch")))
         {
             if (sensor.modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
@@ -4059,6 +4068,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (item)
             {
                 item->setValue(IAS_STATE_INIT); // reset at startup
+            }
+        }
+
+        {
+            ResourceItem *item = sensor.item(RStateGPDLastPair);
+            if (item)
+            {
+                item->setValue(0); // reset at startup
             }
         }
 

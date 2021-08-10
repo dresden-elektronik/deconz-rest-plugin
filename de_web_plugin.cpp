@@ -1464,6 +1464,14 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
     }
     sensor->rx();
 
+    {
+        ResourceItem *frameCounter = sensor->item(RStateGPDFrameCounter);
+        if (frameCounter)
+        {
+            frameCounter->setValue(ind.frameCounter());
+        }
+    }
+
     quint32 btn = ind.gpdCommandId();
     if (sensor->modelId() == QLatin1String("FOHSWITCH"))
     {
@@ -1593,6 +1601,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
     }
 
     updateSensorEtag(sensor);
+    sensor->setNeedSaveDatabase(true);
     sensor->updateStateTimestamp();
     item->setValue(btn);
     DBG_Printf(DBG_ZGP, "ZGP button %u %s\n", item->toNumber(), qPrintable(sensor->modelId()));
@@ -1906,6 +1915,8 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             sensorNode.setNeedSaveDatabase(true);
             sensors.push_back(sensorNode);
 
+            sensor = &sensors.back();
+
             Event e(RSensors, REventAdded, sensorNode.id());
             enqueueEvent(e);
             queSaveDb(DB_SENSORS , DB_SHORT_SAVE_DELAY);
@@ -1920,9 +1931,36 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
                 gpProcessButtonEvent(ind);
             }
         }
-        else
+
+        if (sensor) // add or update config attributes for known and new devices
         {
-            DBG_Printf(DBG_INFO, "SensorNode %s already known\n", qPrintable(sensor->name()));
+            {
+                ResourceItem *item = sensor->addItem(DataTypeString, RConfigGPDKey);
+                item->setIsPublic(false);
+                unsigned char buf[GP_SECURITY_KEY_SIZE * 2 + 1];
+                DBG_HexToAscii(gpdKey.data(), gpdKey.size(), buf);
+                Q_ASSERT(buf[GP_SECURITY_KEY_SIZE * 2] == '\0');
+                item->setValue(QString(QLatin1String(reinterpret_cast<char*>(buf))));
+            }
+
+            {
+                ResourceItem *item = sensor->addItem(DataTypeUInt16, RConfigGPDDeviceId);
+                item->setIsPublic(false);
+                item->setValue(gpdDeviceId);
+            }
+
+            {
+                ResourceItem *item = sensor->addItem(DataTypeUInt32, RStateGPDFrameCounter);
+                item->setIsPublic(false);
+                item->setValue(gpdOutgoingCounter);
+            }
+
+            {
+                ResourceItem *item = sensor->addItem(DataTypeUInt64, RStateGPDLastPair);
+                item->setIsPublic(false);
+                item->setValue(deCONZ::steadyTimeRef().ref);
+            }
+            sensor->setNeedSaveDatabase(true);
         }
     }
         break;
@@ -16309,6 +16347,14 @@ void DeRestPlugin::idleTimerFired()
                     {
                         sensorNode->setNode(node);
                         sensorNode->fingerPrint().checkCounter = SENSOR_CHECK_COUNTER_INIT; // force check
+                    }
+                }
+
+                if (sensorNode->fingerPrint().profileId == GP_PROFILE_ID && d->searchSensorsState != DeRestPluginPrivate::SearchSensorsActive)
+                {
+                    if (GP_SendPairingIfNeeded(sensorNode, d->apsCtrl, d->zclSeq + 1))
+                    {
+                        d->zclSeq++;
                     }
                 }
 
