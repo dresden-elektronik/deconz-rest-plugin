@@ -13,6 +13,7 @@
 #include "deconz/dbg_trace.h"
 #include "resource.h"
 
+const char *RAlarmSystems = "/alarmsystems";
 const char *RSensors = "/sensors";
 const char *RLights = "/lights";
 const char *RGroups = "/groups";
@@ -20,8 +21,10 @@ const char *RConfig = "/config";
 
 const char *REventAdded = "event/added";
 const char *REventDeleted = "event/deleted";
+const char *REventDeviceAlarm = "event/devicealarm";
 const char *REventValidGroup = "event/validgroup";
 const char *REventCheckGroupAnyOn = "event/checkgroupanyon";
+const char *REventTimerFired = "event/timerfired";
 
 const char *RInvalidSuffix = "invalid/suffix";
 
@@ -47,6 +50,7 @@ const char *RStateAlert = "state/alert";
 const char *RStateAllOn = "state/all_on";
 const char *RStateAngle = "state/angle";
 const char *RStateAnyOn = "state/any_on";
+const char *RStateArmState = "state/armstate";
 const char *RStateBattery = "state/battery";
 const char *RStateBri = "state/bri";
 const char *RStateButtonEvent = "state/buttonevent";
@@ -55,6 +59,7 @@ const char *RStateColorMode = "state/colormode";
 const char *RStateConsumption = "state/consumption";
 const char *RStateCurrent = "state/current";
 const char *RStateCt = "state/ct";
+const char *RStateAction = "state/action";
 const char *RStateDark = "state/dark";
 const char *RStateDaylight = "state/daylight";
 const char *RStateEffect = "state/effect";
@@ -84,11 +89,13 @@ const char *RStateOpen = "state/open";
 const char *RStateOrientationX = "state/orientation_x";
 const char *RStateOrientationY = "state/orientation_y";
 const char *RStateOrientationZ = "state/orientation_z";
+const char *RStatePanel = "state/panel";
 const char *RStatePresence = "state/presence";
 const char *RStatePressure = "state/pressure";
 const char *RStatePower = "state/power";
 const char *RStateReachable = "state/reachable";
 const char *RStateSat = "state/sat";
+const char *RStateSecondsRemaining = "state/seconds_remaining";
 const char *RStateSpectralX = "state/spectral_x";
 const char *RStateSpectralY = "state/spectral_y";
 const char *RStateSpectralZ = "state/spectral_z";
@@ -118,6 +125,16 @@ const QStringList RStateEffectValuesMueller({
     "none", "colorloop", "sunset", "party", "worklight", "campfire", "romance", "nightlight"
 });
 
+const char *RConfigArmMode = "config/armmode";
+const char *RConfigArmedAwayEntryDelay = "config/armed_away_entry_delay";
+const char *RConfigArmedAwayExitDelay = "config/armed_away_exit_delay";
+const char *RConfigArmedAwayTriggerDuration = "config/armed_away_trigger_duration";
+const char *RConfigArmedStayEntryDelay = "config/armed_stay_entry_delay";
+const char *RConfigArmedStayExitDelay = "config/armed_stay_exit_delay";
+const char *RConfigArmedStayTriggerDuration = "config/armed_stay_trigger_duration";
+const char *RConfigArmedNightEntryDelay = "config/armed_night_entry_delay";
+const char *RConfigArmedNightExitDelay = "config/armed_night_exit_delay";
+const char *RConfigArmedNightTriggerDuration = "config/armed_night_trigger_duration";
 const char *RConfigAlert = "config/alert";
 const char *RConfigLock = "config/lock";
 const char *RConfigBattery = "config/battery";
@@ -129,6 +146,8 @@ const char *RConfigCtMin = "config/ctmin";
 const char *RConfigCtMax = "config/ctmax";
 const char *RConfigDelay = "config/delay";
 const char *RConfigDeviceMode = "config/devicemode";
+const char *RConfigDisarmedEntryDelay = "config/disarmed_entry_delay";
+const char *RConfigDisarmedExitDelay = "config/disarmed_exit_delay";
 const char *RConfigDisplayFlipped = "config/displayflipped";
 const char *RConfigDuration = "config/duration";
 const char *RConfigEnrolled = "config/enrolled";
@@ -199,6 +218,7 @@ const char *RConfigUbisysJ1TotalSteps2 = "config/ubisys_j1_totalsteps2";
 const char *RConfigUbisysJ1AdditionalSteps = "config/ubisys_j1_additionalsteps";
 const char *RConfigUbisysJ1InactivePowerThreshold = "config/ubisys_j1_inactivepowerthreshold";
 const char *RConfigUbisysJ1StartupSteps = "config/ubisys_j1_startupsteps";
+const char *RConfigAlarmSystemId = "config/alarmsystemid";
 
 const QStringList RConfigDeviceModeValues({
     "singlerocker", "singlepushbutton", "dualrocker", "dualpushbutton"
@@ -240,11 +260,13 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateAllOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateAngle));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateAnyOn));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::String, RStateArmState));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateBattery, 0, 100));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateBri));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt32, QVariant::Double, RStateButtonEvent));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateCarbonMonoxide));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateColorMode));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateAction));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt64, QVariant::Double, RStateConsumption));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateCurrent));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateCt));
@@ -276,11 +298,13 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateOrientationX));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateOrientationY));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateOrientationZ));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStatePanel));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStatePresence));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStatePressure, 0, 32767));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStatePower));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateReachable));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateSat));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RStateSecondsRemaining));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RActionScene));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateSpectralX));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateSpectralY));
@@ -305,6 +329,16 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateY));
 
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigAlert));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigArmMode));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigArmedAwayEntryDelay, 0, 255));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigArmedAwayExitDelay, 0, 255));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigArmedAwayTriggerDuration, 0, 255));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigArmedStayEntryDelay, 0, 255));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigArmedStayExitDelay, 0, 255));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigArmedStayTriggerDuration, 0, 255));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigArmedNightEntryDelay, 0, 255));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigArmedNightExitDelay, 0, 255));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigArmedNightTriggerDuration, 0, 255));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigLock));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigBattery, 0, 100));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigColorCapabilities));
@@ -315,6 +349,8 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RConfigCoolSetpoint, 700, 3500));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigDelay));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigDeviceMode));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigDisarmedEntryDelay, 0, 255));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigDisarmedExitDelay, 0, 255));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigDisplayFlipped));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigDuration));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RConfigEnrolled));
@@ -385,6 +421,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigUbisysJ1AdditionalSteps));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigUbisysJ1InactivePowerThreshold));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigUbisysJ1StartupSteps));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigAlarmSystemId));
 }
 
 const char *getResourcePrefix(const QString &str)
@@ -905,7 +942,7 @@ void ResourceItem::setIsPublic(bool isPublic)
 Resource::Resource(const char *prefix) :
     m_prefix(prefix)
 {
-    Q_ASSERT(prefix == RSensors || prefix == RLights || prefix == RGroups || prefix == RConfig);
+    Q_ASSERT(prefix == RSensors || prefix == RLights || prefix == RGroups || prefix == RConfig || prefix == RAlarmSystems);
 }
 
 /*! Copy constructor. */

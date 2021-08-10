@@ -19,6 +19,7 @@
 #include "json.h"
 #include "product_match.h"
 #include "fan_control.h"
+#include "ias_ace.h"
 #include "simple_metering.h"
 #include "thermostat.h"
 #include "thermostat_ui_configuration.h"
@@ -1559,7 +1560,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
                 }
-                else if (rid.suffix == RConfigWindowCoveringType) // Unsigned integer
+                if (rid.suffix == RConfigWindowCoveringType) // Unsigned integer
                 {
                     if (sensor->modelId().startsWith(QLatin1String("J1")))
                     {
@@ -3088,6 +3089,10 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                         enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
                         updateSensorEtag(sensor);
                     }
+                }
+                else if (sensor->type().endsWith(QLatin1String("AncillaryControl")))
+                {
+                    DBG_Printf(DBG_IAS, "[IAS ACE] - Reseting counter\n");
                 }
 
                 sensor->durationDue = QDateTime();
