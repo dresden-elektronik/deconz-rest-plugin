@@ -7533,9 +7533,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 item = sensorNode.addItem(DataTypeBool, RStateTest);
                 item->setValue(false);
             }
-            else if (modelId == QLatin1String("RBSH-WS-ZB-EU"))
-            {
-            }
             else
             {
                 item = sensorNode.addItem(DataTypeBool, RStateTampered);
