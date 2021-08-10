@@ -67,6 +67,7 @@ public:
 
     ~RNGLib()
     {
+        RAND_bytes = nullptr;
         if (handle)
         {
             FreeLibrary(handle);
