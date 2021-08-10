@@ -49,20 +49,32 @@ private:
 #endif
 
 #ifdef _WIN32
+#include <windows.h>
 /*! RAII helper to open/close OpenSSL.
-    TODO implement Windows version
  */
 class RNGLib
 {
 public:
     RNGLib()
-    {  }
+    {
+        handle = LoadLibraryA("libcrypto-1_1.dll");
+
+        if (handle)
+        {
+            RAND_bytes = reinterpret_cast<RAND_bytes_t>(GetProcAddress(handle, "RAND_bytes"));
+        }
+    }
 
     ~RNGLib()
-    {  }
+    {
+        if (handle)
+        {
+            FreeLibrary(handle);
+        }
+    }
 
 private:
-    void *handle = nullptr;
+    HMODULE handle = nullptr;
 };
 #endif
 
