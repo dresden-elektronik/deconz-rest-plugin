@@ -189,6 +189,13 @@ int AS_handleAlarmSystemsApi(const ApiRequest &req, ApiResponse &rsp, AlarmSyste
         return getAllAlarmSystems(req, rsp, alarmSystems);
     }
 
+    // POST /api/<apikey>/alarmsystems
+    if (req.hdr.pathComponentsCount() == 3 && req.hdr.httpMethod() == HttpPost)
+    {
+        rsp.httpStatus = HttpStatusNotImplemented;
+        return REQ_READY_SEND;
+    }
+
     // GET /api/<apikey>/alarmsystems/<id>
     if (req.hdr.pathComponentsCount() == 4 && req.hdr.httpMethod() == HttpGet)
     {
@@ -234,6 +241,8 @@ int AS_handleAlarmSystemsApi(const ApiRequest &req, ApiResponse &rsp, AlarmSyste
 
 static int getAllAlarmSystems(const ApiRequest &, ApiResponse &rsp, const AlarmSystems &alarmSystems)
 {
+    rsp.httpStatus = HttpStatusOk;
+
     if (alarmSystems.alarmSystems.empty())
     {
         rsp.str = QLatin1String("{}");
@@ -262,6 +271,7 @@ static int getAlarmSystem(const ApiRequest &req, ApiResponse &rsp, const AlarmSy
         return REQ_READY_SEND;
     }
 
+    rsp.httpStatus = HttpStatusOk;
     rsp.map = alarmSystemToMap(alarmSys);
 
     return REQ_READY_SEND;
@@ -396,6 +406,7 @@ static int putAlarmSystemAttributes(const ApiRequest &req, ApiResponse &rsp, Ala
     }
 
     const auto keys = map.keys();
+    rsp.httpStatus = HttpStatusOk;
 
     for (const auto &key : keys)
     {
