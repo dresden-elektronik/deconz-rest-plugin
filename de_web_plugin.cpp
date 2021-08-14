@@ -6267,14 +6267,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         // ZHAMoisture
         if (fpMoistureSensor.hasInCluster(SOIL_MOISTURE_CLUSTER_ID))
         {
-            fpPressureSensor.endpoint = i->endpoint();
-            fpPressureSensor.deviceId = i->deviceId();
-            fpPressureSensor.profileId = i->profileId();
+            fpMoistureSensor.endpoint = i->endpoint();
+            fpMoistureSensor.deviceId = i->deviceId();
+            fpMoistureSensor.profileId = i->profileId();
 
             sensor = getSensorNodeForFingerPrint(node->address().ext(), fpMoistureSensor, "ZHAMoisture");
             if (!sensor || sensor->deletedState() != Sensor::StateNormal)
             {
-                addSensorNode(node, fpPressureSensor, "ZHAMoisture", modelId, manufacturer);
+                addSensorNode(node, fpMoistureSensor, "ZHAMoisture", modelId, manufacturer);
             }
             else
             {
@@ -6737,7 +6737,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = SOIL_MOISTURE_CLUSTER_ID;
         }
-        sensorNode.addItem(DataTypeInt16, RStateMoisture);
+        item = sensorNode.addItem(DataTypeInt16, RStateMoisture);
+        item->setValue(0);
     }
     else if (sensorNode.type().endsWith(QLatin1String("Presence")))
     {
