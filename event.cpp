@@ -29,11 +29,11 @@ Event::Event(const char *resource, const char *what, const QString &id, Resource
 
 /*! Constructor.
  */
-Event::Event(const char *resource, const char *what, const QString &id) :
+Event::Event(const char *resource, const char *what, const QString &id, int num) :
     m_resource(resource),
     m_what(what),
     m_id(id),
-    m_num(0),
+    m_num(num),
     m_numPrev(0)
 {
 }

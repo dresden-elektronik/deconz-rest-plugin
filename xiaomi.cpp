@@ -1,6 +1,99 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "utils/utils.h"
+#include "xiaomi.h"
+
+/*! Handle packets related to the Xiaomi/Lumi FCC0 cluster.
+    \param ind the APS level data indication containing the ZCL packet
+    \param zclFrame the actual ZCL frame which holds the Xiaomi/Lumi FCC0 cluster command or attribute
+ */
+void DeRestPluginPrivate::handleXiaomiLumiClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+{
+    if (zclFrame.isDefaultResponse())
+    {
+        return;
+    }
+
+    QDataStream stream(zclFrame.payload());
+    stream.setByteOrder(QDataStream::LittleEndian);
+
+    bool isReadAttr = false;
+    bool isReporting = false;
+    if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReadAttributesResponseId)
+    {
+        isReadAttr = true;
+    }
+    if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId)
+    {
+        isReporting = true;
+    }
+
+    // Read ZCL reporting and ZCL Read Attributes Response
+    if (isReadAttr || isReporting)
+    {
+        const NodeValue::UpdateType updateType = isReadAttr ? NodeValue::UpdateByZclRead : NodeValue::UpdateByZclReport;
+
+        // bool configUpdated = false;
+        // bool stateUpdated = false;
+
+        while (!stream.atEnd())
+        {
+            quint16 attrId;
+            quint8 attrTypeId;
+
+            stream >> attrId;
+            if (isReadAttr)
+            {
+                quint8 status;
+                stream >> status;  // Read Attribute Response status
+                if (status != deCONZ::ZclSuccessStatus)
+                {
+                    continue;
+                }
+            }
+            stream >> attrTypeId;
+
+            deCONZ::ZclAttribute attr(attrId, attrTypeId, QLatin1String(""), deCONZ::ZclRead, false);
+
+            if (!attr.readFromStream(stream))
+            {
+                continue;
+            }
+
+            switch (attrId)
+            {
+            case XIAOMI_ATTRID_SPECIAL_REPORT:
+            {
+                handleZclAttributeReportIndicationXiaomiSpecial(ind, zclFrame);
+            }
+                break;
+
+            case XIAOMI_ATTRID_DEVICE_MODE:
+            {
+
+            }
+                break;
+
+            case XIAOMI_ATTRID_MOTION_SENSITIVITY:
+            {
+                Sensor *sensor = getSensorNodeForAddressEndpointAndCluster(ind.srcAddress(), ind.srcEndpoint(), XIAOMI_CLUSTER_ID );
+
+                if (sensor)
+                {
+                    sensor->setZclValue(updateType, ind.srcEndpoint(), XIAOMI_CLUSTER_ID, XIAOMI_ATTRID_MOTION_SENSITIVITY, attr.numericValue());
+                    
+                    quint8 sensitivity = attr.numericValue().u8;
+                    sensor->setValue(RConfigSensitivity, sensitivity);
+                }
+            }
+                break;
+
+            default:
+                break;
+            }
+        }
+    }
+}
 
 /*! Handle manufacturer specific Xiaomi ZCL attribute report commands to basic cluster.
  */
