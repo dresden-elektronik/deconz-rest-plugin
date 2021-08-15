@@ -176,7 +176,15 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
 
             if (item)
             {
-                item->setValue(IAS_STATE_INIT);
+                if (si->modelId() == QLatin1String("lumi.sensor_smoke") ||
+                    si->modelId() == QLatin1String("lumi.sensor_natgas"))
+                {
+                    item->setValue(IAS_STATE_ENROLLED); // Doesn't support proper enrollment, so device is not kept unnecessarily busy
+                }
+                else
+                {
+                    item->setValue(IAS_STATE_INIT); // reset at startup
+                }
             }
 
             if (si->modelId().startsWith(QLatin1String("lumi")) && si->type() == QLatin1String("ZHASwitch"))

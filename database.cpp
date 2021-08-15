@@ -4002,6 +4002,13 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 sensor.removeItem(RConfigBattery);
             }
+            
+            if (sensor.modelId() == QLatin1String("lumi.sensor_smoke") ||
+                sensor.modelId() == QLatin1String("lumi.sensor_natgas"))
+            {
+                sensor.addItem(DataTypeBool, RConfigSelfTest)->setValue(false);
+                item = sensor.addItem(DataTypeUInt8, RConfigSensitivity);
+            }
         }
         else if (sensor.modelId().startsWith(QLatin1String("tagv4"))) // SmartThings Arrival sensor
         {
@@ -4093,7 +4100,15 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             ResourceItem *item = sensor.item(RConfigEnrolled);
             if (item)
             {
-                item->setValue(IAS_STATE_INIT); // reset at startup
+                if (sensor.modelId() == QLatin1String("lumi.sensor_smoke") ||
+                    sensor.modelId() == QLatin1String("lumi.sensor_natgas"))
+                {
+                    item->setValue(IAS_STATE_ENROLLED); // Doesn't support proper enrollment, so device is not kept unnecessarily busy
+                }
+                else
+                {
+                    item->setValue(IAS_STATE_INIT); // reset at startup
+                }
             }
         }
 

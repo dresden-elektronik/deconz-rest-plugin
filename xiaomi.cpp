@@ -3,6 +3,8 @@
 #include "utils/utils.h"
 #include "xiaomi.h"
 
+const std::array<KeyValMapUint8Uint32, 3> RConfigXiaomiHoneywellSensitivityValues = { { {2, 0x04010000}, {1, 0x04020000}, {0, 0x04030000} } };
+
 /*! Handle packets related to the Xiaomi/Lumi FCC0 cluster.
     \param ind the APS level data indication containing the ZCL packet
     \param zclFrame the actual ZCL frame which holds the Xiaomi/Lumi FCC0 cluster command or attribute
@@ -845,4 +847,28 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             }
         }
     }
+}
+
+void DeRestPluginPrivate::xiaomiSelfTestTimerFired()
+{
+    for (Sensor &sensor: sensors)
+    {
+        if (sensor.deletedState() != Sensor::StateNormal)                   { continue; }
+        if (sensor.modelId() == QLatin1String("lumi.sensor_smoke") ||
+            sensor.modelId() == QLatin1String("lumi.sensor_natgas"))
+        {
+            ResourceItem *item = sensor.item(RConfigSelfTest);
+
+            if (item && item->toBool())
+            {
+                item->setValue(false);
+                enqueueEvent(Event(RSensors, RConfigSelfTest, sensor.id(), item));
+                updateSensorEtag(&sensor);
+                sensor.setNeedSaveDatabase(true);
+                queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+            }
+        }
+    }
+
+    xiaomiSelfTestTimer->stop();
 }

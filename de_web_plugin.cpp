@@ -5291,11 +5291,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpWaterSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
                     }
-                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC &&
-                             modelId.startsWith(QLatin1String("lumi.sensor_smoke")))
-                    {
-                        fpFireSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
-                    }
                     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_SINOPE &&
                              modelId.startsWith(QLatin1String("WL4200")))
                     {
@@ -5566,7 +5561,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId == QLatin1String("358e4e3e03c644709905034dae81433e") || // Orvibo Combustible Gas Sensor
                              modelId == QLatin1String("c3442b4ac59b4ba1a83119d938f283ab") || // ORVIBO SF30 smoke sensor
                              modelId.startsWith(QLatin1String("LH05121")) ||                 // iHorn smoke detector
-                             modelId.startsWith(QLatin1String("lumi.sensor_smoke")) ||       // Xiaomi Mi smoke sensor
+                             modelId == QLatin1String("lumi.sensor_smoke") ||                // Xiaomi Mi smoke sensor
                              modelId.startsWith(QLatin1String("TS0204")) ||                  // Tuya gas sensor
                              modelId.startsWith(QLatin1String("TS0205")) ||                  // Tuya smoke sensor
                              modelId == QLatin1String("SD8SC_00.00.03.09TC") ||              // Centralite smoke sensor
@@ -7530,6 +7525,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             item = sensorNode.addItem(DataTypeUInt8, RConfigSensitivityMax);
             item->setValue(0x15); // low
             item = sensorNode.addItem(DataTypeUInt16, RConfigPending);
+        }
+        
+        if (sensorNode.modelId() == QLatin1String("lumi.sensor_smoke") ||
+            sensorNode.modelId() == QLatin1String("lumi.sensor_natgas"))
+        {
+            sensorNode.addItem(DataTypeBool, RConfigSelfTest)->setValue(false);
+            sensorNode.addItem(DataTypeUInt8, RConfigSensitivity)->setValue(0);
         }
     }
     else if (modelId.startsWith(QLatin1String("Super TR")) ||
@@ -10813,10 +10815,43 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
                     processed++;
                 }
             }
+            else if (sensorNode->modelId() == QLatin1String("lumi.sensor_smoke") ||
+                     sensorNode->modelId() == QLatin1String("lumi.sensor_natgas"))
+            {
+                const auto match = matchKeyValue(item->toNumber(), RConfigXiaomiHoneywellSensitivityValues);
+
+                if (match.key)
+                {
+                    deCONZ::ZclAttribute attr(XIAOMI_ATTRID_SMOKE_SENSITIVITY, deCONZ::Zcl32BitUint, QLatin1String("sensitivity"), deCONZ::ZclReadWrite, false);
+                    attr.setValue(static_cast<quint64>(match.value));
+
+                    if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, IAS_ZONE_CLUSTER_ID, attr, VENDOR_XIAOMI))
+                    {
+                        sensorNode->setNextReadTime(WRITE_SENSITIVITY, tNow.addSecs(10)); // Account for the extended mac poll interval
+                        processed++;
+                    }
+                }
+            }
         }
         else
         {
             sensorNode->clearRead(WRITE_SENSITIVITY);
+        }
+    }
+    
+    if (sensorNode->mustRead(READ_SENSITIVITY) && tNow > sensorNode->nextReadTime(READ_SENSITIVITY))
+    {
+        if (sensorNode->modelId() == QLatin1String("lumi.sensor_smoke") ||
+            sensorNode->modelId() == QLatin1String("lumi.sensor_natgas"))
+        {
+            std::vector<uint16_t> attributes;
+            attributes.push_back(XIAOMI_ATTRID_HONEYWELL_CONFIG);
+
+            if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, IAS_ZONE_CLUSTER_ID, attributes, VENDOR_XIAOMI))
+            {
+                sensorNode->clearRead(READ_SENSITIVITY);
+                processed++;
+            }
         }
     }
 
@@ -10983,7 +11018,7 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
     \param manufacturerCode (optional) manufacturerCode for manufacturer-specific attribute
     \return true if the request is queued
  */
-bool DeRestPluginPrivate::readAttributes(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const std::vector<uint16_t> &attributes, uint16_t manufacturerCode)
+bool DeRestPluginPrivate::readAttributes(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const std::vector<uint16_t> &attributes, uint16_t manufacturerCode, bool force)
 {
     DBG_Assert(restNode != 0);
     DBG_Assert(!attributes.empty());
@@ -10997,7 +11032,7 @@ bool DeRestPluginPrivate::readAttributes(RestNodeBase *restNode, quint8 endpoint
     {
         // FIXME: should check for light sleeper instead
     }
-    else if (!restNode->node()->nodeDescriptor().receiverOnWhenIdle())
+    else if (!restNode->node()->nodeDescriptor().receiverOnWhenIdle() && !force)
     {
         QDateTime now = QDateTime::currentDateTime();
         if (!restNode->lastRx().isValid() || (restNode->lastRx().secsTo(now) > 3))
@@ -11147,7 +11182,7 @@ bool DeRestPluginPrivate::getGroupIdentifiers(RestNodeBase *node, quint8 endpoin
     \param manufacturerCode (optional) manufacturerCode for manufacturer-specific attribute
     \return true if the request is queued
  */
-bool DeRestPluginPrivate::writeAttribute(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const deCONZ::ZclAttribute &attribute, uint16_t manufacturerCode)
+bool DeRestPluginPrivate::writeAttribute(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const deCONZ::ZclAttribute &attribute, uint16_t manufacturerCode, bool force)
 {
     DBG_Assert(restNode != nullptr);
 
@@ -11156,7 +11191,7 @@ bool DeRestPluginPrivate::writeAttribute(RestNodeBase *restNode, quint8 endpoint
         return false;
     }
 
-    if (!restNode->node()->nodeDescriptor().receiverOnWhenIdle())
+    if (!restNode->node()->nodeDescriptor().receiverOnWhenIdle() && !force)
     {
         QDateTime now = QDateTime::currentDateTime();
         if (!restNode->lastRx().isValid() || (restNode->lastRx().secsTo(now) > 3))
@@ -16648,6 +16683,25 @@ void DeRestPlugin::idleTimerFired()
                             }
                         }
 
+                        if (*ci == IAS_ZONE_CLUSTER_ID)
+                        {
+                            if (sensorNode->modelId() == QLatin1String("lumi.sensor_smoke") ||
+                                sensorNode->modelId() == QLatin1String("lumi.sensor_natgas"))
+                            {
+                                if (!sensorNode->mustRead(READ_SENSITIVITY))
+                                {
+                                    val = sensorNode->getZclValue(*ci, XIAOMI_ATTRID_HONEYWELL_CONFIG);
+                                    if (!val.timestamp.isValid() || val.timestamp.secsTo(now) >= 6 * 3600)
+                                    {
+                                        sensorNode->enableRead(READ_SENSITIVITY);
+                                        sensorNode->setLastRead(READ_SENSITIVITY, d->idleTotalCounter);
+                                        sensorNode->setNextReadTime(READ_SENSITIVITY, d->queryTime);
+                                        d->queryTime = d->queryTime.addSecs(tSpacing);
+                                        processSensors = true;
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     DBG_Printf(DBG_INFO_L2, "Force read attributes for %s SensorNode %s\n", qPrintable(sensorNode->type()), qPrintable(sensorNode->name()));

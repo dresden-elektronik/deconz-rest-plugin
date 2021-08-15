@@ -11,6 +11,7 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "ias_zone.h"
+#include "xiaomi.h"
 
 // server send
 #define CMD_STATUS_CHANGE_NOTIFICATION 0x00
@@ -202,6 +203,9 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
     bool isReporting = false;
     bool isWriteResponse = false;
     bool isClusterCmd = false;
+    bool configUpdated = false;
+    bool stateUpdated = false;
+
     if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReadAttributesResponseId)
     {
         isReadAttr = true;
@@ -288,7 +292,7 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
                     const quint16 zoneStatus = attr.numericValue().u16;   // might be reported or received via CMD_STATUS_CHANGE_NOTIFICATION
 
                     processIasZoneStatus(sensor, zoneStatus, updateType);
-
+                    stateUpdated = true;
                 }
                     break;
 
@@ -308,6 +312,45 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
                         R_SetFlags(itemPending, R_PENDING_WRITE_CIE_ADDRESS);
                     }
 
+                    sensor->setZclValue(updateType, ind.srcEndpoint(), IAS_ZONE_CLUSTER_ID, attrId, attr.numericValue());
+                }
+                    break;
+
+                case XIAOMI_ATTRID_HONEYWELL_CONFIG:
+                {
+                    bool ok;
+                    
+                    QString sens = QString("%1").arg(attr.numericValue().u64, 16, 16, QLatin1Char('0')).at(3);
+                    quint8 sensitivity = sens.toUInt(&ok);
+
+                    ResourceItem *item = nullptr;
+                    item = sensor->item(RConfigSensitivity);
+
+                    if (item && item->toNumber() != sensitivity)
+                    {
+                        item->setValue(sensitivity);
+                        enqueueEvent(Event(RSensors, RConfigSensitivity, sensor->id(), item));
+                        configUpdated = true;
+                    }
+
+                    if (sensor->mustRead(WRITE_SENSITIVITY))
+                    {
+                        item = sensor->item(RConfigPending);
+                        if (item)
+                        {
+                            quint16 mask = item->toNumber();
+                            mask &= ~R_PENDING_SENSITIVITY;
+                            item->setValue(mask);
+                            enqueueEvent(Event(RSensors, RConfigPending, sensor->id(), item));
+                        }
+                        sensor->clearRead(WRITE_SENSITIVITY);
+                    }
+
+                    if (sensor->mustRead(READ_SENSITIVITY))
+                    {
+                        sensor->clearRead(READ_SENSITIVITY);
+                    }
+                    
                     sensor->setZclValue(updateType, ind.srcEndpoint(), IAS_ZONE_CLUSTER_ID, attrId, attr.numericValue());
                 }
                     break;
@@ -355,6 +398,7 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
         DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Status Change, status: 0x%04X, zoneId: %u, delay: %u\n", sensor->address().ext(), zoneStatus, zoneId, delay);
 
         processIasZoneStatus(sensor, zoneStatus, NodeValue::UpdateByZclReport);
+        stateUpdated = true;
         
         checkIasEnrollmentStatus(sensor);
     }
@@ -382,6 +426,20 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
             sendIasZoneEnrollResponse(ind, zclFrame);
         }
         return; // don't trigger ZCL Default Response
+    }
+    
+    if (stateUpdated)
+    {
+        sensor->updateStateTimestamp();
+        enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
+    }
+
+    if (configUpdated || stateUpdated)
+    {
+        updateEtag(sensor->etag);
+        updateEtag(gwConfigEtag);
+        sensor->setNeedSaveDatabase(true);
+        queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
     }
 
     // ZCL Write Attributes Response
@@ -502,15 +560,6 @@ void DeRestPluginPrivate::processIasZoneStatus(Sensor *sensor, quint16 zoneStatu
             }
         }
     }
-    
-    sensor->updateStateTimestamp();
-    enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
-
-    updateEtag(sensor->etag);
-    updateEtag(gwConfigEtag);
-    sensor->setNeedSaveDatabase(true);
-    queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
-    
 }
 
 /*! Sends IAS Zone enroll response to IAS Zone server.

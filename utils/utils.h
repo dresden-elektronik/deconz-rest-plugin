@@ -39,6 +39,12 @@ struct KeyValMapInt
     quint16 value = 0;
 };
 
+struct KeyValMapUint8Uint32
+{
+    quint8 key = 0;
+    quint32 value = 0;
+};
+
 struct KeyValMapTuyaSingle
 {
     QLatin1String key;
@@ -69,6 +75,7 @@ inline bool isValid(const KeyValMapTuyaSingle &entry) { return entry.key.size() 
 constexpr KeyMap invalidValue(KeyMap) { return KeyMap{QLatin1String("")}; }
 constexpr KeyValMap invalidValue(KeyValMap) { return KeyValMap{QLatin1String(""), 0 }; }
 constexpr KeyValMapInt invalidValue(KeyValMapInt) { return KeyValMapInt{ 0, 0 }; }
+constexpr KeyValMapUint8Uint32 invalidValue(KeyValMapUint8Uint32) { return KeyValMapUint8Uint32{ 0, 0 }; }
 constexpr KeyValMapTuyaSingle invalidValue(KeyValMapTuyaSingle) { return KeyValMapTuyaSingle{QLatin1String(""), {0} }; }
 
 template <typename K, typename Cont, typename V = typename Cont::value_type>

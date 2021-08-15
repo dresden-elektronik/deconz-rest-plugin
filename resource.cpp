@@ -189,6 +189,7 @@ const char *RConfigHumiMinThreshold = "config/humidityminthreshold";
 const char *RConfigReachable = "config/reachable";
 const char *RConfigSchedule = "config/schedule";
 const char *RConfigScheduleOn = "config/schedule_on";
+const char *RConfigSelfTest = "config/selftest";
 const char *RConfigSensitivity = "config/sensitivity";
 const char *RConfigSensitivityMax = "config/sensitivitymax";
 const char *RConfigSetValve = "config/setvalve";
@@ -391,6 +392,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigReachable));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigSchedule));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigScheduleOn));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigSelfTest));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigSensitivity));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigSensitivityMax));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt8, QVariant::Double, RConfigSunriseOffset, -120, 120));

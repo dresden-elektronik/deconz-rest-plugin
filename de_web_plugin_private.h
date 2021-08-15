@@ -302,6 +302,7 @@ using namespace deCONZ::literals;
 #define WRITE_TIME             (1 << 20)
 #define READ_THERMOSTAT_SCHEDULE (1 << 21)
 #define WRITE_DEVICEMODE       (1 << 22)
+#define READ_SENSITIVITY       (1 << 23)
 
 #define READ_MODEL_ID_INTERVAL   (60 * 60) // s
 #define READ_SWBUILD_ID_INTERVAL (60 * 60) // s
@@ -1323,6 +1324,7 @@ public Q_SLOTS:
     void simpleRestartAppTimerFired();
     void pushSensorInfoToCore(Sensor *sensor);
     void pollNextDevice();
+    void xiaomiSelfTestTimerFired();
 
     // database
 #if DECONZ_LIB_VERSION >= 0x010E00
@@ -1461,8 +1463,8 @@ public:
     bool processZclAttributes(Sensor *sensorNode);
     bool readBindingTable(RestNodeBase *node, quint8 startIndex);
     bool getGroupIdentifiers(RestNodeBase *node, quint8 endpoint, quint8 startIndex);
-    bool readAttributes(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const std::vector<uint16_t> &attributes, uint16_t manufacturerCode = 0);
-    bool writeAttribute(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const deCONZ::ZclAttribute &attribute, uint16_t manufacturerCode = 0);
+    bool readAttributes(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const std::vector<uint16_t> &attributes, uint16_t manufacturerCode = 0, bool force = false);
+    bool writeAttribute(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const deCONZ::ZclAttribute &attribute, uint16_t manufacturerCode = 0, bool force = false);
     bool readSceneAttributes(LightNode *lightNode, uint16_t groupId, uint8_t sceneId);
     bool readGroupMembership(LightNode *lightNode, const std::vector<uint16_t> &groups);
     void foundGroupMembership(LightNode *lightNode, uint16_t groupId);
@@ -2105,6 +2107,7 @@ public:
     QUdpSocket *udpSock;
     QUdpSocket *udpSockOut;
     uint8_t haEndpoint;
+    QTimer *xiaomiSelfTestTimer;
 
     // events
     EventEmitter *eventEmitter = nullptr;

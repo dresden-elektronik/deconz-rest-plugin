@@ -24,6 +24,7 @@
 #include "thermostat.h"
 #include "thermostat_ui_configuration.h"
 #include "utils/utils.h"
+#include "xiaomi.h"
 
 /*! Sensors REST API broker.
     \param req - request data
@@ -814,10 +815,26 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigSensitivity) // Unsigned integer
                 {
-                    pendingMask |= R_PENDING_SENSITIVITY;
-                    sensor->enableRead(WRITE_SENSITIVITY);
-                    sensor->setNextReadTime(WRITE_SENSITIVITY, QTime::currentTime());
-                    updated = true;
+                    if (sensor->modelId() == QLatin1String("lumi.sensor_smoke") ||
+                        sensor->modelId() == QLatin1String("lumi.sensor_natgas"))
+                    {
+                        const auto match = matchKeyValue(data.uinteger, RConfigXiaomiHoneywellSensitivityValues);
+
+                        if (match.key)
+                        {
+                            pendingMask |= R_PENDING_SENSITIVITY;
+                            sensor->enableRead(WRITE_SENSITIVITY);
+                            sensor->setNextReadTime(WRITE_SENSITIVITY, QTime::currentTime());
+                            updated = true;
+                        }
+                    }
+                    else
+                    {
+                        pendingMask |= R_PENDING_SENSITIVITY;
+                        sensor->enableRead(WRITE_SENSITIVITY);
+                        sensor->setNextReadTime(WRITE_SENSITIVITY, QTime::currentTime());
+                        updated = true;
+                    }
                 }
                 else if (rid.suffix == RConfigUsertest) // Boolean
                 {
@@ -1560,6 +1577,27 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
                 }
+                else if (rid.suffix == RConfigSelfTest) // Boolean
+                {
+                    if (data.boolean)
+                    {
+                        DBG_Printf(DBG_INFO, "Write smoke sensor self test 0x%016llX mode attribute 0xFFF1 = 1\n", sensor->address().ext());
+                        deCONZ::ZclAttribute attr(XIAOMI_ATTRID_SMOKE_SENSITIVITY, deCONZ::Zcl32BitUint, QLatin1String("selftest"), deCONZ::ZclReadWrite, false);
+                        attr.setValue(static_cast<quint64>(0x03010000));
+
+                        if (writeAttribute(sensor, sensor->fingerPrint().endpoint, IAS_ZONE_CLUSTER_ID, attr, VENDOR_XIAOMI, true))
+                        {
+                            updated = true;
+                            
+                            xiaomiSelfTestTimer = new QTimer(this);
+                            xiaomiSelfTestTimer->setSingleShot(false);
+                            connect(xiaomiSelfTestTimer, SIGNAL(timeout()),
+                                    this, SLOT(xiaomiSelfTestTimerFired()));
+                            xiaomiSelfTestTimer->start(3000);
+                        }
+                    }
+                }
+
                 if (rid.suffix == RConfigWindowCoveringType) // Unsigned integer
                 {
                     if (sensor->modelId().startsWith(QLatin1String("J1")))
