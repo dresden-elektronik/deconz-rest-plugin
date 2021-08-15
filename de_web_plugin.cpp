@@ -6738,7 +6738,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             clusterId = SOIL_MOISTURE_CLUSTER_ID;
         }
         item = sensorNode.addItem(DataTypeInt16, RStateMoisture);
-        item->setValue(0);
     }
     else if (sensorNode.type().endsWith(QLatin1String("Presence")))
     {
