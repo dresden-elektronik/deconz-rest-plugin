@@ -517,7 +517,7 @@ void DeRestPluginPrivate::processIasZoneStatus(Sensor *sensor, quint16 zoneStatu
             }
         }
         else if (alarm && item->descriptor().suffix == RStateVibration)
-        {   // prepare to automatically set presence to false
+        {   // prepare to automatically set vibration to false
             sensor->durationDue = item->lastSet().addSecs(65);
         }
     }
