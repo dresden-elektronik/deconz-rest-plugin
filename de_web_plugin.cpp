@@ -264,6 +264,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_XIAOMI, "lumi.remote.b686opcn01", xiaomiMacPrefix }, // Xiaomi Aqara Opple WXCJKG13LM
     { VENDOR_XIAOMI, "lumi.sen_ill.mgl01", xiaomiMacPrefix }, // Xiaomi ZB3.0 light sensor
     { VENDOR_XIAOMI2, "lumi.sen_ill.mgl01", lumiMacPrefix }, // Mi light detection sensor GZCGQ01LM
+    { VENDOR_XIAOMI, "lumi.airmonitor.acn01", lumiMacPrefix}, // Xiaomi Aqara TVOC Air Quality Monitor VOCKQJK11LM
     { VENDOR_XIAOMI, "lumi.plug", xiaomiMacPrefix }, // Xiaomi smart plugs (router)
     { VENDOR_XIAOMI, "lumi.switch.b1naus01", xiaomiMacPrefix }, // Xiaomi Aqara ZB3.0 Smart Wall Switch Single Rocker WS-USC03
     // { VENDOR_XIAOMI, "lumi.curtain", jennicMacPrefix}, // Xiaomi curtain controller (router) - exposed only as light
@@ -5401,6 +5402,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     fpWaterSensor.inClusters.push_back(ci->id());
                     fpDoorLockSensor.inClusters.push_back(ci->id());
                     fpAncillaryControlSensor.inClusters.push_back(ci->id());
+                    fpAirQualitySensor.inClusters.push_back(ci->id());
                 }
                     break;
 
@@ -5776,6 +5778,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     else if (modelId.startsWith(QLatin1String("lumi.relay.c")))
                     {
                         fpConsumptionSensor.inClusters.push_back(ci->id());
+                    }
+                    else if (modelId == QLatin1String("lumi.airmonitor.acn01"))
+                    {
+                        fpAirQualitySensor.inClusters.push_back(ci->id());
                     }
                 }
                     break;
@@ -6576,8 +6582,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         }
 
         // ZHAAirQuality
-        if (fpAirQualitySensor.hasInCluster(DEVELCO_AIR_QUALITY_CLUSTER_ID)   // Develco specific -> VOC Management
-            || fpAirQualitySensor.hasInCluster(BOSCH_AIR_QUALITY_CLUSTER_ID)) // Bosch Air quality sensor
+        if (fpAirQualitySensor.hasInCluster(DEVELCO_AIR_QUALITY_CLUSTER_ID) || // Develco specific -> VOC Management
+            fpAirQualitySensor.hasInCluster(ANALOG_INPUT_CLUSTER_ID) ||        // Xiaomi Aqara TVOC Air Quality Monitor
+            fpAirQualitySensor.hasInCluster(BOSCH_AIR_QUALITY_CLUSTER_ID))     // Bosch Air quality sensor
         {
             fpAirQualitySensor.endpoint = i->endpoint();
             fpAirQualitySensor.deviceId = i->deviceId();
@@ -7287,9 +7294,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             item = sensorNode.addItem(DataTypeUInt16, RConfigPending);
             item->setValue(item->toNumber() | R_PENDING_WRITE_POLL_CHECKIN_INTERVAL | R_PENDING_SET_LONG_POLL_INTERVAL);
         }
+        else if (sensorNode.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
+        {
+            clusterId = ANALOG_INPUT_CLUSTER_ID;
+        }
 
-        if (modelId == QLatin1String("AQSZB-110")  // Develco air quality sensor
-            || (node->nodeDescriptor().manufacturerCode() == VENDOR_BOSCH2 && modelId == QLatin1String("AIR")))  // Bosch air quality sensor
+        if (modelId == QLatin1String("AQSZB-110") ||                // Develco air quality sensor
+            modelId == QLatin1String("lumi.airmonitor.acn01") ||    // Xiaomi Aqara TVOC Air Quality Monitor
+            (node->nodeDescriptor().manufacturerCode() == VENDOR_BOSCH2 && modelId == QLatin1String("AIR")))  // Bosch air quality sensor
         {
             item = sensorNode.addItem(DataTypeString, RStateAirQuality);
             item = sensorNode.addItem(DataTypeUInt16, RStateAirQualityPpb);
@@ -8360,6 +8372,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId() == QLatin1String("Remote motion sensor") || // Legrand motion sensor
                                     i->modelId() == QLatin1String("lumi.sensor_magnet.agl02") || // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
                                     i->modelId() == QLatin1String("lumi.flood.agl02") ||         // Xiaomi Aqara T1 water leak sensor SJCGQ12LM
+                                    i->modelId() == QLatin1String("lumi.airmonitor.acn01") ||    // Xiaomi Aqara TVOC Air Quality Monitor VOCKQJK11LM
                                     i->modelId() == QLatin1String("lumi.motion.agl04") ||        // Xiaomi Aqara RTCGQ13LM high precision motion sensor
                                     i->modelId() == QLatin1String("Zen-01") ||           // Zen thermostat
                                     i->modelId() == QLatin1String("Thermostat") ||       // eCozy thermostat
@@ -9287,6 +9300,31 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         }
                                         updateSensorEtag(&*i);
                                     }
+                                }
+                                else if (i->modelId() == QLatin1String("lumi.airmonitor.acn01"))
+                                {
+                                    quint32 levelPpb = static_cast<quint32>(ia->numericValue().real);
+                                    ResourceItem *item = i->item(RStateAirQualityPpb);
+
+                                    if (item && item->toNumber() != levelPpb)
+                                    {
+                                        item->setValue(levelPpb);
+                                        QString airQuality = getAirQualityString(levelPpb);
+                                        ResourceItem *item = i->item(RStateAirQuality);
+
+                                        if (item && item->toString() != airQuality)
+                                        {
+                                            item->setValue(airQuality);
+                                            enqueueEvent(Event(RSensors, RStateAirQuality, i->id(), item));
+                                        }
+
+                                        i->updateStateTimestamp();
+                                        i->setNeedSaveDatabase(true);
+                                        enqueueEvent(Event(RSensors, RStateAirQualityPpb, i->id(), item));
+                                        enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
+                                    }
+
+                                    updateSensorEtag(&*i);
                                 }
                             }
                         }
