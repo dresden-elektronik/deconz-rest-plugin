@@ -4031,7 +4031,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 // no support for some IAS Zone flags
             }
-            else if (sensor.modelId() == QLatin1String("Keyfob-ZB3.0"))
+            else if (sensor.modelId() == QLatin1String("Keyfob-ZB3.0") ||
+                     sensor.modelId() == QLatin1String("lumi.sensor_smoke") ||
+                     sensor.modelId() == QLatin1String("lumi.sensor_natgas"))
             {
                 sensor.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
             }

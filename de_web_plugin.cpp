@@ -7635,7 +7635,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             // no support for some IAS flags
         }
-        else if (modelId == QLatin1String("Keyfob-ZB3.0"))
+        else if (modelId == QLatin1String("Keyfob-ZB3.0") ||
+                 modelId == QLatin1String("lumi.sensor_smoke") ||
+                 modelId == QLatin1String("lumi.sensor_natgas"))
         {
             sensorNode.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
         }

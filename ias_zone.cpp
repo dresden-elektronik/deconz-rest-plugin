@@ -322,6 +322,10 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
                     
                     QString sens = QString("%1").arg(attr.numericValue().u64, 16, 16, QLatin1Char('0')).at(3);
                     quint8 sensitivity = sens.toUInt(&ok);
+                    
+                    if      (sensitivity == 1) { sensitivity = 2; }
+                    else if (sensitivity == 2) { sensitivity = 1; }
+                    else if (sensitivity == 3) { sensitivity = 0; }
 
                     ResourceItem *item = nullptr;
                     item = sensor->item(RConfigSensitivity);
