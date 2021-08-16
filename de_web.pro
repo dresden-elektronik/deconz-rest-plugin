@@ -152,6 +152,7 @@ HEADERS  = bindings.h \
            tuya.h \
            utils/utils.h \
            websocket_server.h \
+           xiaomi.h \
            zdp/zdp_handlers.h
 
 SOURCES  = air_quality.cpp \

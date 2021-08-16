@@ -1,6 +1,8 @@
 #ifndef XIAOMI_H
 #define XIAOMI_H
 
+#include "utils/utils.h"
+
 #define XIAOMI_CLUSTER_ID                 0xFCC0
 
 #define XIAOMI_ATTRID_DEVICE_MODE         0x0009
