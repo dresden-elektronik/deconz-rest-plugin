@@ -516,7 +516,7 @@ void DeRestPluginPrivate::processIasZoneStatus(Sensor *sensor, quint16 zoneStatu
                 sensor->durationDue = item->lastSet().addSecs(item2->toNumber());
             }
         }
-        else if (alarm && item->descriptor().suffix == RStateVibration)
+        else if (alarm && item->descriptor().suffix == RStateVibration && sensor->manufacturer() == QLatin1String("_TYZB01_3zv6oleo")) //This device never trigger off
         {   // prepare to automatically set vibration to false
             sensor->durationDue = item->lastSet().addSecs(65);
         }

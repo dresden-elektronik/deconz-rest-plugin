@@ -3043,7 +3043,9 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                         updateSensorEtag(sensor);
                     }
                 }
-                else if (!item && sensor->modelId().startsWith(QLatin1String("lumi.vibration")) && sensor->type() == QLatin1String("ZHAVibration"))
+                else if (!item &&
+                        (sensor->modelId().startsWith(QLatin1String("lumi.vibration")) || sensor->manufacturer() == QLatin1String("_TYZB01_3zv6oleo")) &&
+                         sensor->type() == QLatin1String("ZHAVibration"))
                 {
                     item = sensor->item(RStateVibration);
                     if (item && item->toBool())
