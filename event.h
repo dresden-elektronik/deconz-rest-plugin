@@ -11,7 +11,7 @@ class Event
 public:
     Event();
     Event(const char *resource, const char *what, const QString &id, ResourceItem *item);
-    Event(const char *resource, const char *what, const QString &id);
+    Event(const char *resource, const char *what, const QString &id, int num = 0);
     Event(const char *resource, const char *what, int num);
 
 

@@ -224,26 +224,12 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
         std::vector<BindingTableReader>::iterator i = bindingTableReaders.begin();
         std::vector<BindingTableReader>::iterator end = bindingTableReaders.end();
 
-        if (ind.srcAddress().hasExt())
+        for (; i != end; ++i)
         {
-            for (; i != end; ++i)
+            if (isSameAddress(ind.srcAddress(), i->apsReq.dstAddress()))
             {
-                if (i->apsReq.dstAddress().ext() == ind.srcAddress().ext())
-                {
-                    btReader = &(*i);
-                    break;
-                }
-            }
-        }
-        else if (ind.srcAddress().hasNwk())
-        {
-            for (; i != end; ++i)
-            {
-                if (i->apsReq.dstAddress().nwk() == ind.srcAddress().nwk())
-                {
-                    btReader = &(*i);
-                    break;
-                }
+                btReader = &(*i);
+                break;
             }
         }
     }
@@ -1753,9 +1739,12 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (modelId.startsWith(QLatin1String("ED-1001")) || // EcoDim switches
                  modelId.startsWith(QLatin1String("45127")) ||   // Namron switches
+                 modelId == QLatin1String("CCT591011_AS") ||     // LK Wiser Door / Window Sensor
                  modelId == QLatin1String("CCT592011_AS") ||     // LK Wiser Water Leak Sensor
                  modelId.startsWith(QLatin1String("S57003")) ||  // SLC switches
                  modelId == QLatin1String("CCT593011_AS") ||     // LK Wiser Temperature and Humidity Sensor
+                 modelId == QLatin1String("CCT595011_AS") ||     // LK Wiser Motion Sensor
+                 modelId == QLatin1String("ZB-DoorSensor-D0003") || // Linkind Door/Window Sensor
                  modelId.startsWith(QLatin1String("FNB56-")) ||  // Feibit devices
                  modelId.startsWith(QLatin1String("FB56-")))     // Feibit devices
         {
@@ -1791,6 +1780,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                  modelId == QLatin1String("Bell") ||
                  modelId == QLatin1String("ISW-ZPR1-WP13") ||
                  modelId == QLatin1String("SLT2") ||
+                 modelId == QLatin1String("SLT3") ||
                  modelId == QLatin1String("TS0202") || // Tuya sensor
                  modelId == QLatin1String("3AFE14010402000D") || // Konke presence sensor
                  modelId == QLatin1String("3AFE28010402000D") || // Konke presence sensor
@@ -1799,6 +1789,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                  modelId.startsWith(QLatin1String("3300")) ||          // Centralite contatc sensor
                  modelId.startsWith(QLatin1String("3315")) ||
                  modelId.startsWith(QLatin1String("3157100")) ||
+                 modelId == QLatin1String("URC4450BC0-X-R") || // Xfinity Keypad XHK1-UE / URC4450BC0-X-R
+                 modelId == QLatin1String("3405-L") || // IRIS 3405-L Keypad
                  modelId.startsWith(QLatin1String("4655BC0")))
         {
             rq.attributeId = 0x0020;   // battery voltage
@@ -1838,6 +1830,14 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.minInterval = 30;
             rq.maxInterval = 21600;
             rq.reportableChange8bit = 10;
+        }
+        else if (modelId == QLatin1String("lumi.remote.b28ac1") ||              // Aqara Wireless Remote Switch H1 (Double Rocker)
+                 modelId == QLatin1String("lumi.motion.agl04"))                 // Xiaomi Aqara RTCGQ13LM high precision motion sensor
+        {
+            rq.attributeId = 0x0020;   // battery voltage
+            rq.minInterval = 3;
+            rq.maxInterval = 3600;
+            rq.reportableChange8bit = 1;
         }
         else
         {
@@ -2903,6 +2903,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("Remote toggle switch") || //Legrand switch module
         sensor->modelId() == QLatin1String("Teleruptor") || //Legrand teleruptor
         sensor->modelId() == QLatin1String("Contactor") || //Legrand Contactor
+        sensor->modelId() == QLatin1String("Pocket remote") || //Legrand wireless remote 4 scene
+        // Adeo
+        sensor->modelId() == QLatin1String("LDSENK10") || // ADEO Animal compatible motion sensor (Leroy Merlin)
         // Philio
         sensor->modelId() == QLatin1String("PST03A-v2.2.5") || //Philio pst03-a
         // ORVIBO
@@ -2946,7 +2949,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("TS0044")) ||
         sensor->modelId().startsWith(QLatin1String("TS0222")) || // TYZB01 light sensor 
         sensor->modelId().startsWith(QLatin1String("TS004F")) || // 4 Gang Tuya ZigBee Wireless 12 Scene Switch
-        sensor->modelId().startsWith(QLatin1String("TS0210")) || // Tuya Zigbee Smart Vibration Sensor
         // Tuyatec
         sensor->modelId().startsWith(QLatin1String("RH3040")) ||
         sensor->modelId().startsWith(QLatin1String("RH3001")) ||
@@ -2956,8 +2958,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("lumi.sen_ill.mgl01")) ||
         sensor->modelId().startsWith(QLatin1String("lumi.switch.b1naus01")) ||
         sensor->modelId() == QLatin1String("lumi.sensor_magnet.agl02") ||
+        sensor->modelId() == QLatin1String("lumi.motion.agl04") ||
         sensor->modelId() == QLatin1String("lumi.flood.agl02") ||
         sensor->modelId() == QLatin1String("lumi.switch.n0agl1") ||
+        sensor->modelId() == QLatin1String("lumi.remote.b28ac1") ||
         // iris
         sensor->modelId().startsWith(QLatin1String("1116-S")) ||
         sensor->modelId().startsWith(QLatin1String("1117-S")) ||
@@ -2974,6 +2978,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("SLR2b") ||
         sensor->modelId() == QLatin1String("SLR1b") ||
         sensor->modelId() == QLatin1String("SLT2") ||
+        sensor->modelId() == QLatin1String("SLT3") ||
         sensor->modelId() == QLatin1String("TRV001") ||
         // Sengled
         sensor->modelId().startsWith(QLatin1String("E13-")) ||
@@ -2982,14 +2987,18 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("Z01-A19")) ||
         // Linkind
         sensor->modelId() == QLatin1String("ZB-MotionSensor-D0003") ||
+        sensor->modelId() == QLatin1String("ZB-DoorSensor-D0003") ||
         // Drayton
         sensor->modelId() == QLatin1String("iTRV") ||
         // LK Wiser
+        sensor->modelId() == QLatin1String("CCT591011_AS") ||
         sensor->modelId() == QLatin1String("CCT592011_AS") ||
         sensor->modelId() == QLatin1String("CCT593011_AS") ||
+        sensor->modelId() == QLatin1String("CCT595011_AS") ||
         // Immax
         sensor->modelId() == QLatin1String("Plug-230V-ZB3.0") ||
         sensor->modelId() == QLatin1String("4in1-Sensor-ZB3.0") ||
+        sensor->modelId() == QLatin1String("DoorWindow-Sensor-ZB3.0") ||
         sensor->modelId() == QLatin1String("Keyfob-ZB3.0") ||
         // Sercomm
         sensor->modelId().startsWith(QLatin1String("SZ-")) ||
@@ -3054,8 +3063,14 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("0x8031") ||
         sensor->modelId() == QLatin1String("0x8034") ||
         sensor->modelId() == QLatin1String("0x8035") ||
+        // Swann
+        sensor->modelId() == QLatin1String("SWO-MOS1PA") ||
         // LIDL
         sensor->modelId() == QLatin1String("HG06323") ||
+        // Xfinity
+        sensor->modelId() == QLatin1String("URC4450BC0-X-R") ||
+        // Iris
+        sensor->modelId() == QLatin1String("3405-L") ||
         // Eria
         sensor->modelId() == QLatin1String("Adurolight_NCC")
         )
@@ -3184,6 +3199,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             if (sensor->modelId() == QLatin1String("Remote switch") ||
                 sensor->modelId() == QLatin1String("Shutters central remote switch") ||
                 sensor->modelId() == QLatin1String("Double gangs remote switch") ||
+                sensor->modelId() == QLatin1String("Pocket remote") ||
                 sensor->modelId() == QLatin1String("Remote toggle switch") )
             {
                 //Those device don't support report attribute
@@ -3213,11 +3229,13 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId() == QLatin1String("Remote switch") ||
                      sensor->modelId() == QLatin1String("Shutters central remote switch") ||
                      sensor->modelId() == QLatin1String("Double gangs remote switch") ||
+                     sensor->modelId() == QLatin1String("Pocket remote") ||
                      sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||
                      sensor->modelId().startsWith(QLatin1String("3AFE14010402000D")) || //konke presence sensor
                      sensor->modelId().startsWith(QLatin1String("3AFE28010402000D")) || //konke presence sensor
                      sensor->modelId().startsWith(QLatin1String("TS0202")) || //Tuya presence sensor
                      sensor->modelId().endsWith(QLatin1String("86opcn01")) || // Aqara Opple
+                     sensor->modelId() == QLatin1String("lumi.motion.agl04") || // Xiaomi Aqara RTCGQ13LM high precision motion sensor
                      sensor->modelId().startsWith(QLatin1String("1116-S")) ||
                      sensor->modelId().startsWith(QLatin1String("1117-S")) ||
                      sensor->modelId().startsWith(QLatin1String("3323")) ||
@@ -3225,6 +3243,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId().startsWith(QLatin1String("3305-S")) ||
                      sensor->modelId().startsWith(QLatin1String("3157100")) ||
                      sensor->modelId().startsWith(QLatin1String("4655BC0")) ||
+                     sensor->modelId() == QLatin1String("URC4450BC0-X-R") || // Xfinity Keypad XHK1-UE
+                     sensor->modelId() == QLatin1String("3405-L") || // IRIS 3405-L Keypad
                      sensor->modelId() == QLatin1String("113D"))
             {
                 val = sensor->getZclValue(*i, 0x0020); // battery voltage
@@ -3674,6 +3694,12 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         clusters.push_back(LEVEL_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
+    // LEGRAND Remote switch 4 scene
+    else if (sensor->modelId() == QLatin1String("Pocket remote"))
+    {
+        clusters.push_back(SCENE_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
     else if (sensor->modelId() == QLatin1String("ZBT-CCTSwitch-D0001"))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
@@ -3794,6 +3820,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     else if (sensor->modelId().startsWith(QLatin1String("TS0215")) ||
              sensor->modelId().startsWith(QLatin1String("RC_V14")) ||
              sensor->modelId().startsWith(QLatin1String("RC-EM")) ||
+             sensor->modelId() == QLatin1String("URC4450BC0-X-R") ||
+             sensor->modelId() == QLatin1String("3405-L") ||
              sensor->modelId().startsWith(QLatin1String("RC-EF-3.0")))
     {
         clusters.push_back(IAS_ACE_CLUSTER_ID);

@@ -9,7 +9,9 @@
  */
 
 #include <deconz/aps.h>
+#include <deconz/aps_controller.h>
 #include <deconz/dbg_trace.h>
+#include <deconz/node.h>
 #include "utils.h"
 #include "resource.h"
 
@@ -225,17 +227,118 @@ bool isSameAddress(const deCONZ::Address &a, const deCONZ::Address &b)
         // nested if statement, so the NWK check won't be made if both MAC addresses are known
         if (a.ext() != b.ext())
         {
-             return false;
+            return false;
         }
     }
-    else  if (a.hasNwk() && b.hasNwk())
+    else if (a.hasNwk() && b.hasNwk())
     {
-       if (a.nwk() != b.nwk())
-       {
+        if (a.nwk() != b.nwk())
+        {
             return false;
-       }
+        }
     }
     else { return false; }
+
+    return true;
+}
+
+const deCONZ::Node *getCoreNode(quint64 extAddress, deCONZ::ApsController *apsCtrl)
+{
+    DBG_Assert(apsCtrl);
+
+    if (apsCtrl && extAddress != 0)
+    {
+        int i = 0;
+        const deCONZ::Node *node = nullptr;
+
+        while (apsCtrl->getNode(i, &node) == 0)
+        {
+            if (node->address().ext() == extAddress)
+            {
+                return node;
+            }
+            i++;
+        }
+    }
+
+    return nullptr;
+}
+
+static bool isHexChar(char ch)
+{
+    return ((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F'));
+}
+
+quint64 extAddressFromUniqueId(const QString &uniqueId)
+{
+    quint64 result = 0;
+
+    if (uniqueId.size() < 23)
+    {
+        return result;
+    }
+
+    // 28:6d:97:00:01:06:41:79-01-0500  31 characters
+    int pos = 0;
+    char buf[16 + 1];
+
+    for (auto ch : uniqueId)
+    {
+        if (ch != ':')
+        {
+            buf[pos] = ch.toLatin1();
+
+            if (!isHexChar(buf[pos]))
+            {
+                return result;
+            }
+            pos++;
+        }
+
+        if (pos == 16)
+        {
+            buf[pos] = '\0';
+            break;
+        }
+    }
+
+    if (pos == 16)
+    {
+        result = strtoull(buf, nullptr, 16);
+    }
+
+    return result;
+}
+
+bool copyString(char *dst, size_t dstSize, const char *src, ssize_t srcSize)
+{
+    if (!dst || dstSize == 0)
+    {
+        return false;
+    }
+
+    if (!src)
+    {
+        dst[0] = '\0';
+        return false;
+    }
+
+    if (srcSize == -1)
+    {
+        srcSize = strlen(src);
+    }
+
+    if (srcSize + 1 > ssize_t(dstSize))
+    {
+        dst[0] = '\0';
+        return false;
+    }
+
+    if (srcSize > 0)
+    {
+        memcpy(dst, src, srcSize);
+    }
+    dst[srcSize] = '\0';
 
     return true;
 }
