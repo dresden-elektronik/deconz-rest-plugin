@@ -21,6 +21,7 @@
 #include "device_access_fn.h"
 #include "device_descriptions.h"
 #include "event.h"
+#include "event_emitter.h"
 #include "utils/utils.h"
 #include "zcl/zcl.h"
 #include "zdp/zdp.h"
@@ -1564,7 +1565,7 @@ Device *DEV_GetDevice(DeviceContainer &devices, DeviceKey key)
     return nullptr;
 }
 
-Device *DEV_GetOrCreateDevice(QObject *parent, deCONZ::ApsController *apsCtrl, DeviceContainer &devices, DeviceKey key)
+Device *DEV_GetOrCreateDevice(QObject *parent, deCONZ::ApsController *apsCtrl, EventEmitter *eventEmitter, DeviceContainer &devices, DeviceKey key)
 {
     Q_ASSERT(key != 0);
     Q_ASSERT(apsCtrl);
@@ -1574,7 +1575,7 @@ Device *DEV_GetOrCreateDevice(QObject *parent, deCONZ::ApsController *apsCtrl, D
     if (d == devices.end())
     {
         devices.emplace_back(new Device(key, apsCtrl, parent));
-        QObject::connect(devices.back().get(), SIGNAL(eventNotify(Event)), parent, SLOT(enqueueEvent(Event)));
+        QObject::connect(devices.back().get(), SIGNAL(eventNotify(Event)), eventEmitter, SLOT(enqueueEvent(Event)));
         return devices.back().get();
     }
 

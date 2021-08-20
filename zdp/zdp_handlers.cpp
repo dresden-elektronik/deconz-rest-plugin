@@ -37,7 +37,7 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
         stream >> macCapabilities;
     }
 
-    auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), m_devices, ext);
+    auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, ext);
     Q_ASSERT(device);
     enqueueEvent(Event(device->prefix(), REventDeviceAnnounce, int(macCapabilities), device->key()));
 
@@ -164,6 +164,7 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
         if (si->address().ext() == ext)
         {
             si->rx();
+            si->setValue(RAttrLastAnnounced, si->lastRx().toUTC());
             found++;
             DBG_Printf(DBG_INFO, "DeviceAnnce of SensorNode: 0x%016llX [1]\n", si->address().ext());
 
@@ -174,12 +175,23 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
                 Event e(si->prefix(), RConfigReachable, si->id(), item);
                 enqueueEvent(e);
             }
-            
+
             item = si->item(RConfigEnrolled); // holds per device IAS state variable
 
             if (item)
             {
                 item->setValue(IAS_STATE_INIT);
+            }
+
+            if (si->modelId().startsWith(QLatin1String("lumi")) && si->type() == QLatin1String("ZHASwitch"))
+            {
+                item = si->item(RConfigPending); // holds switch configuration requirement
+
+                if (item)
+                {
+                    item->setValue(item->toNumber() | R_PENDING_MODE); // Ensure the Xiaomi device operation mode is marked for writing when the device is reset AND
+                                                                       // a ZHASwitch resource already exists which is not marked as deleted.
+                }
             }
             
             checkSensorGroup(&*si);
@@ -605,9 +617,7 @@ void DeRestPluginPrivate::patchNodeDescriptor(const deCONZ::ApsDataIndication &i
         // Not having 'allocate address' 0x80 is valid but currently expected for all devices
         if (!nd.macCapabilities().testFlag(deCONZ::MacAllocateAddress))
         {
-            auto macCap = nd.macCapabilities();
-            macCap.setFlag(deCONZ::MacAllocateAddress);
-            nd.setMacCapabilities(macCap);
+            nd.setMacCapabilities(nd.macCapabilities() | deCONZ::MacAllocateAddress);
             updated |= UpdatedMacCapabilities;
         }
 

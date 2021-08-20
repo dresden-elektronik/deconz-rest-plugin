@@ -33,6 +33,8 @@ Event::Event(const char *resource, const char *what, const QString &id, Resource
     m_resource(resource),
     m_what(what),
     m_id(id),
+    m_num(0),
+    m_numPrev(0),
     m_deviceKey(deviceKey),
     m_hasData(0)
 {
@@ -50,6 +52,22 @@ Event::Event(const char *resource, const char *what, const QString &id, DeviceKe
     m_resource(resource),
     m_what(what),
     m_id(id),
+    m_num(0),
+    m_numPrev(0),
+    m_deviceKey(deviceKey),
+    m_hasData(0)
+{
+
+}
+
+/*! Constructor.
+ */
+Event::Event(const char *resource, const char *what, const QString &id, int num, DeviceKey deviceKey) :
+    m_resource(resource),
+    m_what(what),
+    m_id(id),
+    m_num(num),
+    m_numPrev(0),
     m_deviceKey(deviceKey),
     m_hasData(0)
 {

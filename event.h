@@ -14,7 +14,8 @@ class Event
 public:
     Event();
     Event(const char *resource, const char *what, const QString &id, ResourceItem *item, DeviceKey deviceKey = 0);
-    Event(const char *resource, const char *what, const QString &id, DeviceKey deviceKey = 0);
+    Event(const char *resource, const char *what, const QString &id, DeviceKey deviceKey);
+    Event(const char *resource, const char *what, const QString &id, int num = 0, DeviceKey deviceKey = 0);
     Event(const char *resource, const char *what, int num, DeviceKey deviceKey = 0);
     //! Don't call following ctor directly use EventWithData() factory function.
     Event(const char *resource, const char *what, const void *data, size_t size, DeviceKey deviceKey = 0);

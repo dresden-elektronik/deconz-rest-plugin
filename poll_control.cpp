@@ -53,7 +53,7 @@ static void handleCheckinCommand(DeRestPluginPrivate *plugin, const deCONZ::ApsD
         {
             item->setIsPublic(false);
             item->setValue(now);
-            plugin->enqueueEvent(Event(r->prefix(), item->descriptor().suffix, r->toString(RAttrId), item));
+            enqueueEvent(Event(r->prefix(), item->descriptor().suffix, r->toString(RAttrId), item));
         }
     }
 

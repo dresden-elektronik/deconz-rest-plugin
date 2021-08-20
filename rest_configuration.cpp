@@ -297,6 +297,8 @@ void DeRestPluginPrivate::initTimezone()
         item->setValue(QVariant());
 
         dl.removeItem(RConfigReachable);
+        dl.removeItem(RAttrLastAnnounced);
+        dl.removeItem(RAttrLastSeen);
 
         dl.setModelId(QLatin1String("PHDL00"));
         dl.setManufacturer(QLatin1String("Philips"));
@@ -1088,7 +1090,7 @@ void DeRestPluginPrivate::basicConfigToMap(const ApiRequest &req, QVariantMap &m
         map["swversion"] = swversion;
         map["apiversion"] = QString(GW_API_VERSION);
         map["datastoreversion"] = QLatin1String("93");
-    } 
+    }
     else
     {
         map["modelid"] = QLatin1String("BSB002");

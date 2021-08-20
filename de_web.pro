@@ -87,7 +87,7 @@ GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.12.01\\\"
+DEFINES += GW_SW_VERSION=\\\"2.12.06\\\"
 DEFINES += GW_SW_DATE=$$GIT_COMMIT_DATE
 DEFINES += GW_API_VERSION=\\\"1.16.0\\\"
 DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
@@ -106,11 +106,16 @@ DEFINES += GW_MIN_DERFUSB23E0X_FW_VERSION=0x22030300
 DEFINES += GW_DEFAULT_NAME=\\\"Phoscon-GW\\\"
 
 HEADERS  = bindings.h \
+           alarm_system.h \
+           alarm_system_device_table.h \
+           alarm_system_event_handler.h \
            aps_controller_wrapper.h \
            backup.h \
            button_maps.h \
            connectivity.h \
            colorspace.h \
+           crypto/random.h \
+           crypto/scrypt.h \
            database.h \
            daylight.h \
            de_web_plugin.h \
@@ -125,6 +130,7 @@ HEADERS  = bindings.h \
            device_js/device_js_wrappers.h \
            device_tick.h \
            event.h \
+           event_emitter.h \
            fan_control.h \
            gateway.h \
            gateway_scanner.h \
@@ -132,6 +138,8 @@ HEADERS  = bindings.h \
            group.h \
            group_info.h \
            json.h \
+           ias_ace.h \
+           ias_zone.h \
            light_node.h \
            mfspecific_cluster_xiaoyan.h \
            poll_control.h \
@@ -140,6 +148,7 @@ HEADERS  = bindings.h \
            read_files.h \
            resource.h \
            resourcelinks.h \
+           rest_alarmsystems.h \
            rest_devices.h \
            rest_node_base.h \
            rule.h \
@@ -159,6 +168,9 @@ HEADERS  = bindings.h \
            zdp/zdp_handlers.h
 
 SOURCES  = air_quality.cpp \
+           alarm_system.cpp \
+           alarm_system_device_table.cpp \
+           alarm_system_event_handler.cpp \
            aps_controller_wrapper.cpp \
            authorisation.cpp \
            backup.cpp \
@@ -167,6 +179,8 @@ SOURCES  = air_quality.cpp \
            change_channel.cpp \
            connectivity.cpp \
            colorspace.cpp \
+           crypto/random.cpp \
+           crypto/scrypt.cpp \
            database.cpp \
            daylight.cpp \
            device.cpp \
@@ -185,6 +199,7 @@ SOURCES  = air_quality.cpp \
            de_otau.cpp \
            electrical_measurement.cpp \
            event.cpp \
+           event_emitter.cpp \
            event_queue.cpp \
            fan_control.cpp \
            firmware_update.cpp \
@@ -207,6 +222,7 @@ SOURCES  = air_quality.cpp \
            read_files.cpp \
            resource.cpp \
            resourcelinks.cpp \
+           rest_alarmsystems.cpp \
            rest_configuration.cpp \
            rest_devices.cpp \
            rest_gateways.cpp \

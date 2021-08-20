@@ -15,6 +15,7 @@
 #include "resource.h"
 
 class Event;
+class EventEmitter;
 class Device;
 class DDF_Binding;
 
@@ -128,10 +129,11 @@ Device *DEV_GetDevice(DeviceContainer &devices, DeviceKey key);
     If the device doesn't exist yet it will be created.
 
     \param parent - must be DeRestPluginPrivate instance
+    \param eventEmitter - emitter to enqueue events
     \param devices - the container which contains the device
     \param key - unique identifier for a device (MAC address for physical devices)
  */
-Device *DEV_GetOrCreateDevice(QObject *parent, deCONZ::ApsController *apsCtrl, DeviceContainer &devices, DeviceKey key);
+Device *DEV_GetOrCreateDevice(QObject *parent, deCONZ::ApsController *apsCtrl, EventEmitter *eventEmitter, DeviceContainer &devices, DeviceKey key);
 
 /*! Removes a device with \p key.
 
