@@ -407,7 +407,13 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             case 0x0000: // Local Temperature
             {
                 qint16 temperature = attr.numericValue().s16;
-                item = sensor->item(RStateTemperature);
+                if (sensor->modelId().startsWith(QLatin1String("Super TR"))) // ELKO
+                {
+                    item = sensor->item(RStateAirTemperature);
+                }
+                else {
+                    item = sensor->item(RStateTemperature);
+                }
                 if (item)
                 {
                     if (updateType == NodeValue::UpdateByZclReport)
@@ -417,7 +423,17 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                     if (item->toNumber() != temperature)
                     {
                         item->setValue(temperature);
-                        enqueueEvent(Event(RSensors, RStateTemperature, sensor->id(), item));
+                        if (sensor->modelId().startsWith(QLatin1String("Super TR"))) // ELKO
+                        {
+                            enqueueEvent(Event(RSensors, RStateAirTemperature, sensor->id(), item));
+                            if (sensor->item(RConfigTemperatureMeasurement) != QLatin1String("floor sensor"))
+                            {
+                                enqueueEvent(Event(RSensors, RStateTemperature, sensor->id(), item));
+                            }
+                        }
+                        else {
+                            enqueueEvent(Event(RSensors, RStateTemperature, sensor->id(), item));
+                        }
                         stateUpdated = true;
                     }
                 }
@@ -766,6 +782,10 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                     {
                         item->setValue(floortemp);
                         enqueueEvent(Event(RSensors, RStateFloorTemperature, sensor->id(), item));
+                        if (sensor->item(RConfigTemperatureMeasurement) == QLatin1String("floor sensor"))
+                        {
+                            enqueueEvent(Event(RSensors, RStateTemperature, sensor->id(), item));
+                        }
                         stateUpdated = true;
                     }
                 }

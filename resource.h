@@ -85,6 +85,7 @@ extern const char *RStateFire;
 extern const char *RStateFlag;
 extern const char *RStateLockState;
 extern const char *RStateFloorTemperature;
+extern const char *RStateAirTemperature;
 extern const char *RStateGesture;
 extern const char *RStateGPDFrameCounter;
 extern const char *RStateGPDLastPair;

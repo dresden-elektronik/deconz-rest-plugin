@@ -7157,6 +7157,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             {
                 sensorNode.addItem(DataTypeString, RConfigTemperatureMeasurement);
                 sensorNode.addItem(DataTypeInt16, RStateFloorTemperature);
+                sensorNode.addItem(DataTypeInt16, RStateAirTemperature);
                 sensorNode.addItem(DataTypeBool, RStateHeating)->setValue(false);
                 sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                 sensorNode.addItem(DataTypeString, RConfigMode);

@@ -3746,6 +3746,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 {
                     sensor.addItem(DataTypeString, RConfigTemperatureMeasurement);
                     sensor.addItem(DataTypeInt16, RStateFloorTemperature);
+                    sensor.addItem(DataTypeInt16, RStateAirTemperature);
                     sensor.addItem(DataTypeBool, RStateHeating)->setValue(false);
                     sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                     sensor.addItem(DataTypeString, RConfigMode);

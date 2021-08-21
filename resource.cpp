@@ -69,6 +69,7 @@ const char *RStateFire = "state/fire";
 const char *RStateFlag = "state/flag";
 const char *RStateLockState = "state/lockstate";
 const char *RStateFloorTemperature = "state/floortemperature";
+const char *RStateAirTemperature = "state/airtemperature";
 const char *RStateGesture = "state/gesture";
 const char *RStateGPDFrameCounter = "state/gpd_frame_counter";
 const char *RStateGPDLastPair = "state/gpd_last_pair";
@@ -278,6 +279,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateFire));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateFlag));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateFloorTemperature, -27315, 32767));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateAirTemperature, -27315, 32767));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt32, QVariant::Double, RStateGesture));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RStateGPDFrameCounter));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt64, QVariant::Double, RStateGPDLastPair));
