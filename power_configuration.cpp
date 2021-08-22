@@ -62,9 +62,9 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
 
         for (Sensor &sensor: sensors)
         {
-            // Interate through all sensors of a device, but we don't care about the enpoint to distrubute the battery value
+            // Interate through all sensors of a device, but we don't care about the endpoint to distrubute the battery value
             if (sensor.deletedState() != Sensor::StateNormal || !sensor.node())     { continue; }
-            if (!isSameAddress(sensor.address(), ind.dstAddress()))                 { continue; }
+            if (!isSameAddress(sensor.address(), ind.srcAddress()))                 { continue; }
 
             if (sensor.mustRead(READ_BATTERY))
             {
