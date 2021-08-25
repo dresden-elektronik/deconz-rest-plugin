@@ -4,6 +4,7 @@
 	"datatype": "String",
 	"access": "R",
 	"public": true,
+	"implicit" : true,
 	"description": "Type of the resource.",
 	"static": true
 }

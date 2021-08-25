@@ -283,9 +283,12 @@ void DeviceDescriptions::readAll()
         {
             if (it.filePath().contains(QLatin1String("generic/items/")))
             {
-                const auto result = DDF_ReadItemFile(it.filePath());
+                auto result = DDF_ReadItemFile(it.filePath());
                 if (result.isValid())
                 {
+                    result.isGenericRead = !result.readParameters.isNull() ? 1 : 0;
+                    result.isGenericWrite = !result.writeParameters.isNull() ? 1 : 0;
+                    result.isGenericParse = !result.parseParameters.isNull() ? 1 : 0;
                     genericItems.push_back(std::move(result));
                 }
             }
@@ -445,12 +448,17 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
 
         if (obj.contains(QLatin1String("public")))
         {
-            result.isPublic = obj.value(QLatin1String("public")).toBool();
+            result.isPublic = obj.value(QLatin1String("public")).toBool() ? 1 : 0;
+        }
+
+        if (obj.contains(QLatin1String("implicit")))
+        {
+            result.isImplicit = obj.value(QLatin1String("implicit")).toBool() ? 1 : 0;
         }
 
         if (obj.contains(QLatin1String("awake")))
         {
-            result.awake = obj.value(QLatin1String("awake")).toBool();
+            result.awake = obj.value(QLatin1String("awake")).toBool() ? 1 : 0;
         }
 
         if (obj.contains(QLatin1String("refresh.interval")))
@@ -989,15 +997,19 @@ static DeviceDescription DDF_MergeGenericItems(const std::vector<DeviceDescripti
         for (auto &item : sub.items)
         {
             const auto genItem = std::find_if(genericItems.cbegin(), genericItems.cend(),
-                                              [&item](const DeviceDescription::Item &i){ return i.name == item.name; });
+                                              [&item](const DeviceDescription::Item &i){ return i.descriptor.suffix == item.descriptor.suffix; });
             if (genItem == genericItems.cend())
             {
                 continue;
             }
 
-            if (item.parseParameters.isNull()) { item.parseParameters = genItem->parseParameters; }
-            if (item.readParameters.isNull()) { item.readParameters = genItem->readParameters; }
-            if (item.writeParameters.isNull()) { item.writeParameters = genItem->writeParameters; }
+            item.isGenericRead = 0;
+            item.isGenericWrite = 0;
+            item.isGenericParse = 0;
+
+            if (item.readParameters.isNull()) { item.readParameters = genItem->readParameters; item.isGenericRead = 1; }
+            if (item.writeParameters.isNull()) { item.writeParameters = genItem->writeParameters; item.isGenericWrite = 1; }
+            if (item.parseParameters.isNull()) { item.parseParameters = genItem->parseParameters; item.isGenericParse = 1; }
             if (item.descriptor.access == ResourceItemDescriptor::Access::Unknown)
             {
                 item.descriptor.access = genItem->descriptor.access;

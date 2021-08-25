@@ -4,5 +4,6 @@
 	"datatype": "Bool",
 	"access": "R",
 	"public": true,
+	"implicit": true,
 	"description": "When true the device is assumed to be operational."
 }

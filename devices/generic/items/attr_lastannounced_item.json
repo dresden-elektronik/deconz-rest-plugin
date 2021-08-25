@@ -4,5 +4,6 @@
 	"datatype": "ISO 8601 timestamp",
 	"access": "R",
 	"public": true,
+	"implicit" : true,
 	"description": "Timestamp of the last power-cyle or rejoin."
 }

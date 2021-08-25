@@ -349,7 +349,8 @@ class ResourceItem
         FlagNeedPushChange  = 0x02, // set when new value different than previous
         FlagPushOnSet       = 0x04, // events will be generated when item is set (even when value doesn't change)
         FlagPushOnChange    = 0x08, // events will be generated only when item changes
-        FlagAwakeOnSet      = 0x10  // REventAwake will be generated when item is set after parse
+        FlagAwakeOnSet      = 0x10, // REventAwake will be generated when item is set after parse
+        FlagImplicit        = 0x20  // the item is always present for a specific resource type
     };
 
 public:
@@ -375,6 +376,8 @@ public:
     void setPushOnChange(bool enable);
     bool awake() const;
     void setAwake(bool awake);
+    bool implicit() const;
+    void setImplicit(bool implicit);
     const QString &toString() const;
     QLatin1String toLatin1String() const;
     const char *toCString() const;

@@ -5,5 +5,6 @@
 	"access": "RW",
 	"public": true,
 	"default": true,
+	"implicit" : true,
 	"description": "When true the sensor is enabled in rules."
 }

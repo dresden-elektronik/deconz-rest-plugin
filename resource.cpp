@@ -649,6 +649,24 @@ void ResourceItem::setAwake(bool awake)
     }
 }
 
+bool ResourceItem::implicit() const
+{
+    return (m_flags & FlagImplicit) > 0;
+}
+
+void ResourceItem::setImplicit(bool implicit)
+{
+    if (implicit)
+    {
+        m_flags |= static_cast<quint16>(FlagImplicit);
+    }
+    else
+    {
+        m_flags &= ~static_cast<quint16>(FlagImplicit);
+    }
+}
+
+
 /*! Copy assignment. */
 ResourceItem &ResourceItem::operator=(const ResourceItem &other)
 {

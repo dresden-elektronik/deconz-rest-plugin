@@ -4,5 +4,6 @@
 	"datatype": "String",
 	"access": "RW",
 	"public": true,
+	"implicit" : true,
 	"description": "Name of the resource."
 }

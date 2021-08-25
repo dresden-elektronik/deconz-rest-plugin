@@ -73,12 +73,33 @@ public:
             InvalidItemHandle = 0
         };
 
+        Item()
+        {
+            isGenericRead = 0;
+            isGenericWrite = 0;
+            isGenericParse = 0;
+            isPublic = 0;
+            isStatic = 0;
+            isImplicit = 0;
+            awake = 0;
+            pad = 0;
+        }
+
         bool isValid() const { return !name.empty() && descriptor.isValid(); }
         Handle handle = InvalidItemHandle;
 
-        bool isPublic = true;
-        bool isStatic = false;
-        bool awake = false;
+        struct // 16 bits flags
+        {
+            unsigned int isGenericRead : 1;
+            unsigned int isGenericWrite : 1;
+            unsigned int isGenericParse : 1;
+            unsigned int isPublic : 1;
+            unsigned int isStatic : 1;
+            unsigned int isImplicit : 1;
+            unsigned int awake : 1;
+            unsigned int pad : 2 + 8;
+        };
+
         int refreshInterval = NoRefreshInterval;
         BufString<64> name;  // todo global cache
         ResourceItemDescriptor descriptor;
