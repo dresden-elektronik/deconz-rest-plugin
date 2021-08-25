@@ -108,6 +108,7 @@ public:
     const std::vector<Resource *> &subDevices();
     void clearBindings();
     void addBinding(const DDF_Binding &bnd);
+    const std::vector<DDF_Binding> &bindings() const;
 
 Q_SIGNALS:
     void eventNotify(const Event&); //! The device emits an event, which needs to be enqueued in a higher layer.

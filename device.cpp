@@ -1545,11 +1545,57 @@ void Device::clearBindings()
     }
 }
 
+bool isSame(const DDF_Binding &a, const DDF_Binding &b)
+{
+    return a.clusterId == b.clusterId &&
+           a.srcEndpoint == b.srcEndpoint &&
+           (
+            (a.isGroupBinding && b.isGroupBinding && a.dstGroup == b.dstGroup) ||
+            (a.isUnicastBinding && b.isUnicastBinding && a.dstExtAddress == b.dstExtAddress)
+           );
+}
+
+/*! Merges reporting configuration from \p b into \p a if not already existing.
+ */
+void mergeBindingReportConfigs(DDF_Binding &a, const DDF_Binding &b)
+{
+    for (const DDF_ZclReport &br : b.reporting)
+    {
+        const auto i = std::find_if(a.reporting.cbegin(), a.reporting.cend(),
+                                    [&br](const DDF_ZclReport &ar) { return ar.attributeId == br.attributeId; });
+
+        if (i == a.reporting.cend())
+        {
+            DBG_Printf(DBG_INFO, "DEV add reporting cluster: 0x%04X, attr: 0x%04X\n", b.clusterId, br.attributeId);
+            a.reporting.push_back(br);
+        }
+    }
+}
+
 void Device::addBinding(const DDF_Binding &bnd)
 {
-    auto cpy = bnd;
-    cpy.dstEndpoint = 0x01; // todo query coordinator endpoint
-    d->binding.bindings.push_back(cpy);
+
+    auto i = std::find_if(d->binding.bindings.begin(), d->binding.bindings.end(),
+                          [&bnd](const auto &i) { return isSame(i, bnd); });
+
+    if (i != d->binding.bindings.end())
+    {
+        mergeBindingReportConfigs(*i, bnd);
+    }
+    else
+    {
+        DBG_Printf(DBG_INFO, "DEV add binding cluster: 0x%04X,  0x%016llX\n", bnd.clusterId, d->deviceKey);
+        d->binding.bindings.push_back(bnd);
+        if (bnd.dstEndpoint == 0)
+        {
+            d->binding.bindings.back().dstEndpoint = 0x01; // todo query coordinator endpoint
+        }
+    }
+}
+
+const std::vector<DDF_Binding> &Device::bindings() const
+{
+    return d->binding.bindings;
 }
 
 Device *DEV_GetDevice(DeviceContainer &devices, DeviceKey key)

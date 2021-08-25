@@ -11,6 +11,7 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "device.h"
+#include "device_descriptions.h"
 #include "utils/utils.h"
 
 #define MAX_ACTIVE_BINDING_TASKS 3
@@ -704,6 +705,53 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
     if (requests.empty())
     {
         return false;
+    }
+
+    // clue code to get classic hard coded C++ bindings into DDF
+    Device *device = DEV_GetDevice(m_devices, bt.binding.srcAddress);
+    if (device)
+    {
+        if (!device->managed())
+        {
+            DDF_Binding ddfBinding;
+
+            ddfBinding.isUnicastBinding = bt.binding.dstAddrMode == deCONZ::ApsExtAddress;
+            ddfBinding.isGroupBinding = bt.binding.dstAddrMode == deCONZ::ApsGroupAddress;
+            if (ddfBinding.isUnicastBinding)
+            {
+                ddfBinding.dstExtAddress = bt.binding.dstAddress.ext;
+            }
+            else if (ddfBinding.isGroupBinding)
+            {
+                ddfBinding.dstGroup = bt.binding.dstAddress.group;
+            }
+            ddfBinding.clusterId = bt.binding.clusterId;
+            ddfBinding.dstEndpoint =  bt.binding.dstEndpoint;
+            ddfBinding.srcEndpoint = bt.binding.srcEndpoint;
+
+            for (const ConfigureReportingRequest &rep : requests)
+            {
+                DDF_ZclReport ddfRep;
+
+                ddfRep.attributeId = rep.attributeId;
+                ddfRep.dataType = rep.dataType;
+                ddfRep.direction = rep.direction;
+                ddfRep.manufacturerCode = rep.manufacturerCode;
+                ddfRep.minInterval = rep.minInterval;
+                ddfRep.maxInterval = rep.maxInterval;
+                ddfRep.valid = true;
+
+                if      (rep.reportableChange16bit != 0xFFFF)     { ddfRep.reportableChange = rep.reportableChange16bit; }
+                else if (rep.reportableChange8bit != 0xFF)        { ddfRep.reportableChange = rep.reportableChange8bit; }
+                else if (rep.reportableChange24bit != 0xFFFFFF)   { ddfRep.reportableChange = rep.reportableChange24bit; }
+                else if (rep.reportableChange48bit != 0xFFFFFFFF) { ddfRep.reportableChange = rep.reportableChange48bit; }
+
+                ddfBinding.reporting.push_back(ddfRep);
+            }
+
+            device->addBinding(ddfBinding);
+            return false;
+        }
     }
 
     if (zclSeq == 0) // don't use zero, simplify matching
@@ -3449,16 +3497,19 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
 
         quint16 maxInterval = val.maxInterval > 0 && val.maxInterval < 65535 ? (val.maxInterval * 3 / 2) : (60 * 15);
 
-        if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < maxInterval) // got update in timely manner
+        if (!DEV_TestManaged())
         {
-            DBG_Printf(DBG_INFO_L2, "binding for attribute reporting of ep: 0x%02X cluster 0x%04X seems to be active\n", val.endpoint, *i);
-            continue;
-        }
+            if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < maxInterval) // got update in timely manner
+            {
+                DBG_Printf(DBG_INFO_L2, "binding for attribute reporting of ep: 0x%02X cluster 0x%04X seems to be active\n", val.endpoint, *i);
+                continue;
+            }
 
-        if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() && sensor->lastRx().secsTo(now) > 6)
-        {
-            DBG_Printf(DBG_INFO, "skip binding for attribute reporting of ep: 0x%02X cluster 0x%04X (end-device might sleep)\n", val.endpoint, *i);
-            return false;
+            if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() && sensor->lastRx().secsTo(now) > 6)
+            {
+                DBG_Printf(DBG_INFO, "skip binding for attribute reporting of ep: 0x%02X cluster 0x%04X (end-device might sleep)\n", val.endpoint, *i);
+                return false;
+            }
         }
 
         quint8 srcEndpoint = sensor->fingerPrint().endpoint;
@@ -3521,6 +3572,11 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             else
             {
                 bindingTask.state = BindingTask::StateIdle;
+            }
+
+            if (DEV_TestManaged())
+            {
+                bindingTask.state = BindingTask::StateFinished; // don't actually send anything
             }
 
             bindingTask.action = action;
@@ -5189,6 +5245,40 @@ bool DeRestPluginPrivate::queueBindingTask(const BindingTask &bindingTask)
     if (i == bindingQueue.end())
     {
         DBG_Printf(DBG_INFO_L2, "queue binding task for 0x%016llX, cluster 0x%04X\n", bindingTask.binding.srcAddress, bindingTask.binding.clusterId);
+
+        Device *device = DEV_GetDevice(m_devices, bindingTask.binding.srcAddress);
+        if (device)
+        {
+            if (!device->managed())
+            {
+                DDF_Binding ddfBinding;
+
+                ddfBinding.isUnicastBinding = bindingTask.binding.dstAddrMode == deCONZ::ApsExtAddress;
+                ddfBinding.isGroupBinding = bindingTask.binding.dstAddrMode == deCONZ::ApsGroupAddress;
+                if (ddfBinding.isUnicastBinding)
+                {
+                    ddfBinding.dstExtAddress = bindingTask.binding.dstAddress.ext;
+                }
+                else if (ddfBinding.isGroupBinding)
+                {
+                    ddfBinding.dstGroup = bindingTask.binding.dstAddress.group;
+                }
+
+                ddfBinding.clusterId = bindingTask.binding.clusterId;
+                ddfBinding.dstEndpoint =  bindingTask.binding.dstEndpoint;
+                ddfBinding.srcEndpoint = bindingTask.binding.srcEndpoint;
+
+                device->addBinding(ddfBinding);
+
+                if (bindingTask.state == BindingTask::StateFinished) // dummy
+                {
+                    bindingQueue.push_back(bindingTask);
+                    sendConfigureReportingRequest(bindingQueue.back());
+                    return false;
+                }
+            }
+        }
+
         bindingQueue.push_back(bindingTask);
     }
     else
