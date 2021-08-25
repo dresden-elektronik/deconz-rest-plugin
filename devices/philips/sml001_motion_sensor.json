@@ -289,7 +289,7 @@
                 },
                 {
                     "name": "state/temperature",
-                    "parse": {"cl": "0x0402", "at": "0x0000", "eval": "Item.val = Attr.val"},
+                    "parse": {"cl": "0x0402", "at": "0x0000", "eval": "Item.val = Attr.val + R.item('config/offset').val"},
                     "awake": true
                 }
             ],
