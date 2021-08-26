@@ -59,6 +59,8 @@ static const ProductMap products[] =
     {"_TYST11_jeaxp72v", "eaxp72v", "Essentials", "Tuya_THD Essentials TRV"},
     {"_TYST11_kfvq6avy", "fvq6avy", "Revolt", "Tuya_THD NX-4911-675 TRV"},
     {"_TZE200_kfvq6avy", "TS0601", "Revolt", "Tuya_THD NX-4911-675 TRV"},
+    {"_TZE200_hhrtiq0x", "TS0601", "Unitec", "Tuya_THD 30946 TRV"},
+    {"_TZE200_ps5v5jor", "TS0601", "Unitec", "Tuya_THD 30946 TRV"},
     {"_TYST11_zivfvd7h", "ivfvd7h", "Siterwell", "Tuya_THD GS361A-H04 TRV"},
     {"_TZE200_zivfvd7h", "TS0601", "Siterwell", "Tuya_THD GS361A-H04 TRV"},
     {"_TYST11_yw7cahqs", "w7cahqs", "Hama", "Tuya_THD Smart radiator TRV"},
