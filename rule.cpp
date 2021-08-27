@@ -206,8 +206,8 @@ int Rule::handle() const
 QString Rule::actionsToString(const std::vector<RuleAction> &actions)
 {
     QString jsonString = QLatin1String("[");
-    std::vector<RuleAction>::const_iterator i = actions.begin();
-    std::vector<RuleAction>::const_iterator i_end = actions.end();
+    auto i = actions.cbegin();
+    const auto i_end = actions.cend();
 
     for (; i != i_end; ++i)
     {
@@ -229,8 +229,8 @@ QString Rule::conditionsToString(const std::vector<RuleCondition> &conditions)
 {
     QVariantList ls;
 
-    std::vector<RuleCondition>::const_iterator i = conditions.begin();
-    std::vector<RuleCondition>::const_iterator iend = conditions.end();
+    auto i = conditions.cbegin();
+    const auto iend = conditions.cend();
 
     for (; i != iend; ++i)
     {
@@ -261,8 +261,8 @@ std::vector<RuleAction> Rule::jsonToActions(const QString &json)
         return actions;
     }
 
-    QVariantList::const_iterator i = var.begin();
-    QVariantList::const_iterator end = var.end();
+    auto i = var.cbegin();
+    const auto end = var.cend();
 
     for (; i != end; ++i)
     {
@@ -291,8 +291,8 @@ std::vector<RuleCondition> Rule::jsonToConditions(const QString &json)
         return conditions;
     }
 
-    QVariantList::const_iterator i = var.begin();
-    QVariantList::const_iterator end = var.end();
+    auto i = var.cbegin();
+    const auto end = var.cend();
 
     for (; i != end; ++i)
     {

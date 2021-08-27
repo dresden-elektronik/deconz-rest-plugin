@@ -71,8 +71,8 @@ int DeRestPluginPrivate::getAllRules(const ApiRequest &req, ApiResponse &rsp)
     Q_UNUSED(req)
     rsp.httpStatus = HttpStatusOk;
 
-    std::vector<Rule>::const_iterator i = rules.begin();
-    std::vector<Rule>::const_iterator end = rules.end();
+    auto i = rules.cbegin();
+    const auto end = rules.cend();
 
     for (; i != end; ++i)
     {
@@ -84,8 +84,8 @@ int DeRestPluginPrivate::getAllRules(const ApiRequest &req, ApiResponse &rsp)
 
         QVariantMap rule;
 
-        std::vector<RuleCondition>::const_iterator c = i->conditions().begin();
-        std::vector<RuleCondition>::const_iterator cend = i->conditions().end();
+        auto c = i->conditions().cbegin();
+        const auto cend = i->conditions().cend();
 
         QVariantList conditions;
 
@@ -101,8 +101,8 @@ int DeRestPluginPrivate::getAllRules(const ApiRequest &req, ApiResponse &rsp)
             conditions.append(condition);
         }
 
-        std::vector<RuleAction>::const_iterator a = i->actions().begin();
-        std::vector<RuleAction>::const_iterator aend = i->actions().end();
+        auto a = i->actions().cbegin();
+        const auto aend = i->actions().cend();
 
         QVariantList actions;
 
@@ -166,8 +166,8 @@ bool DeRestPluginPrivate::ruleToMap(const Rule *rule, QVariantMap &map)
         return false;
     }
 
-    std::vector<RuleCondition>::const_iterator c = rule->conditions().begin();
-    std::vector<RuleCondition>::const_iterator c_end = rule->conditions().end();
+    auto c = rule->conditions().cbegin();
+    const auto c_end = rule->conditions().cend();
 
     QVariantList conditions;
 
@@ -183,8 +183,8 @@ bool DeRestPluginPrivate::ruleToMap(const Rule *rule, QVariantMap &map)
         conditions.append(condition);
     }
 
-    std::vector<RuleAction>::const_iterator a = rule->actions().begin();
-    std::vector<RuleAction>::const_iterator a_end = rule->actions().end();
+    auto a = rule->actions().cbegin();
+    const auto a_end = rule->actions().cend();
 
     QVariantList actions;
 
@@ -199,8 +199,8 @@ bool DeRestPluginPrivate::ruleToMap(const Rule *rule, QVariantMap &map)
         QVariant body = Json::parse(a->body(), ok);
         QVariantMap bodymap = body.toMap();
 
-        QVariantMap::const_iterator b = bodymap.begin();
-        QVariantMap::const_iterator b_end = bodymap.end();
+        auto b = bodymap.cbegin();
+        const auto b_end = bodymap.cend();
 
         QVariantMap resultmap;
 
@@ -212,9 +212,6 @@ bool DeRestPluginPrivate::ruleToMap(const Rule *rule, QVariantMap &map)
         action["body"] = resultmap;
         actions.append(action);
     }
-
-    map["actions"] = actions;
-    map["conditions"] = conditions;
 
     map["actions"] = actions;
     map["conditions"] = conditions;
@@ -264,8 +261,8 @@ int DeRestPluginPrivate::getRule(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    std::vector<RuleCondition>::const_iterator c = rule->conditions().begin();
-    std::vector<RuleCondition>::const_iterator c_end = rule->conditions().end();
+    auto c = rule->conditions().cbegin();
+    const auto c_end = rule->conditions().cend();
 
     QVariantList conditions;
 
@@ -281,8 +278,8 @@ int DeRestPluginPrivate::getRule(const ApiRequest &req, ApiResponse &rsp)
         conditions.append(condition);
     }
 
-    std::vector<RuleAction>::const_iterator a = rule->actions().begin();
-    std::vector<RuleAction>::const_iterator a_end = rule->actions().end();
+    auto a = rule->actions().cbegin();
+    const auto a_end = rule->actions().cend();
 
     QVariantList actions;
 
@@ -297,8 +294,8 @@ int DeRestPluginPrivate::getRule(const ApiRequest &req, ApiResponse &rsp)
         QVariant body = Json::parse(a->body(), ok);
         QVariantMap bodymap = body.toMap();
 
-        QVariantMap::const_iterator b = bodymap.begin();
-        QVariantMap::const_iterator b_end = bodymap.end();
+        auto b = bodymap.cbegin();
+        const auto b_end = bodymap.cend();
 
         QVariantMap resultmap;
 
@@ -455,8 +452,8 @@ int DeRestPluginPrivate::createRule(const ApiRequest &req, ApiResponse &rsp)
 
             do {
                 ok = true;
-                std::vector<Rule>::const_iterator i = rules.begin();
-                std::vector<Rule>::const_iterator end = rules.end();
+                auto i = rules.cbegin();
+                const auto end = rules.cend();
 
                 for (; i != end; ++i)
                 {
@@ -483,8 +480,8 @@ int DeRestPluginPrivate::createRule(const ApiRequest &req, ApiResponse &rsp)
             if (checkActions(actionsList, rsp))
             {
                 std::vector<RuleAction> actions;
-                QVariantList::const_iterator ai = actionsList.begin();
-                QVariantList::const_iterator aend = actionsList.end();
+                auto ai = actionsList.cbegin();
+                const auto aend = actionsList.cend();
 
                 for (; ai != aend; ++ai)
                 {
@@ -508,8 +505,8 @@ int DeRestPluginPrivate::createRule(const ApiRequest &req, ApiResponse &rsp)
             if (checkConditions(conditionsList, rsp))
             {
                 std::vector<RuleCondition> conditions;
-                QVariantList::const_iterator ci = conditionsList.begin();
-                QVariantList::const_iterator cend = conditionsList.end();
+                auto ci = conditionsList.cbegin();
+                const auto cend = conditionsList.cend();
 
                 for (; ci != cend; ++ci)
                 {
@@ -598,8 +595,8 @@ int DeRestPluginPrivate::updateRule(const ApiRequest &req, ApiResponse &rsp)
     userActivity();
 
     //check invalid parameter
-    QVariantMap::const_iterator pi = map.begin();
-    QVariantMap::const_iterator pend = map.end();
+    auto pi = map.cbegin();
+    const auto pend = map.cend();
 
     for (; pi != pend; ++pi)
     {
@@ -747,8 +744,8 @@ int DeRestPluginPrivate::updateRule(const ApiRequest &req, ApiResponse &rsp)
         if (checkActions(actionsList,rsp))
         {
             std::vector<RuleAction> actions;
-            QVariantList::const_iterator ai = actionsList.begin();
-            QVariantList::const_iterator aend = actionsList.end();
+            auto ai = actionsList.cbegin();
+            const auto aend = actionsList.cend();
 
             for (; ai != aend; ++ai)
             {
@@ -780,8 +777,8 @@ int DeRestPluginPrivate::updateRule(const ApiRequest &req, ApiResponse &rsp)
         if (checkConditions(conditionsList, rsp))
         {
             std::vector<RuleCondition> conditions;
-            QVariantList::const_iterator ci = conditionsList.begin();
-            QVariantList::const_iterator cend = conditionsList.end();
+            auto ci = conditionsList.cbegin();
+            const auto cend = conditionsList.cend();
 
             for (; ci != cend; ++ci)
             {
@@ -830,8 +827,8 @@ int DeRestPluginPrivate::updateRule(const ApiRequest &req, ApiResponse &rsp)
  */
 bool DeRestPluginPrivate::checkActions(QVariantList actionsList, ApiResponse &rsp)
 {
-    QVariantList::const_iterator ai = actionsList.begin();
-    QVariantList::const_iterator aend = actionsList.end();
+    auto ai = actionsList.cbegin();
+    const auto aend = actionsList.cend();
 
     for (; ai != aend; ++ai)
     {
@@ -903,9 +900,8 @@ bool DeRestPluginPrivate::checkActions(QVariantList actionsList, ApiResponse &rs
  */
 bool DeRestPluginPrivate::checkConditions(QVariantList conditionsList, ApiResponse &rsp)
 {
-    // check condition parameters
-    QVariantList::const_iterator ci = conditionsList.begin();
-    QVariantList::const_iterator cend = conditionsList.end();
+    auto ci = conditionsList.cbegin();
+    const auto cend = conditionsList.cend();
 
     for (; ci != cend; ++ci)
     {
@@ -998,8 +994,8 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
 
     {   // search in conditions for binding srcAddress and srcEndpoint
 
-        std::vector<RuleCondition>::const_iterator i = rule.conditions().begin();
-        std::vector<RuleCondition>::const_iterator end = rule.conditions().end();
+        auto i = rule.conditions().cbegin();
+        const auto end = rule.conditions().cend();
 
         for (; i != end; ++i)
         {
@@ -1094,8 +1090,8 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
     DBG_Printf(DBG_INFO, "verify Rule %s: %s\n", qPrintable(rule.id()), qPrintable(rule.name()));
 
     { // search in actions for binding dstAddress, dstEndpoint and clusterId
-        std::vector<RuleAction>::const_iterator i = rule.actions().begin();
-        std::vector<RuleAction>::const_iterator end = rule.actions().end();
+        auto i = rule.actions().begin();
+        const auto end = rule.actions().end();
 
         for (; i != end; ++i)
         {
@@ -1228,8 +1224,8 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
         }
     }
 
-    std::vector<RuleCondition>::const_iterator c = rule.conditions().begin();
-    std::vector<RuleCondition>::const_iterator cend = rule.conditions().end();
+    auto c = rule.conditions().cbegin();
+    const auto cend = rule.conditions().cend();
 
     for (; c != cend; ++c)
     {
@@ -1556,8 +1552,8 @@ void DeRestPluginPrivate::triggerRule(Rule &rule)
     DBG_Printf(DBG_INFO, "trigger rule %s - %s\n", qPrintable(rule.id()), qPrintable(rule.name()));
 
     bool triggered = false;
-    std::vector<RuleAction>::const_iterator ai = rule.actions().begin();
-    std::vector<RuleAction>::const_iterator aend = rule.actions().end();
+    auto ai = rule.actions().cbegin();
+    const auto aend = rule.actions().cend();
 
     for (; ai != aend; ++ai)
     {
