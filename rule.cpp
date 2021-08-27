@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2021 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -8,6 +8,7 @@
  *
  */
 
+#include "ias_ace.h"
 #include "rule.h"
 
 static int _ruleHandle = 1;
@@ -402,18 +403,19 @@ RuleCondition::RuleCondition(const QVariantMap &map)
     m_value = map["value"];
 
     // cache id
-    if (m_address.startsWith(QLatin1String("/sensors")) ||
-        m_address.startsWith(QLatin1String("/groups")) ||
-        m_address.startsWith(QLatin1String("/lights"))) // /sensors/<id>/state/buttonevent, ...
+    if (m_address.startsWith(QLatin1String(RSensors)) ||
+        m_address.startsWith(QLatin1String(RGroups)) ||
+        m_address.startsWith(QLatin1String(RLights)) ||
+        m_address.startsWith(QLatin1String(RAlarmSystems))) // /sensors/<id>/state/buttonevent, ...
     {
-        QStringList addrList = m_address.split('/', QString::SkipEmptyParts);
+        QStringList addrList = m_address.split('/', SKIP_EMPTY_PARTS);
         if (addrList.size() > 1)
         {
             m_id = addrList[1];
         }
     }
 
-    if (m_address.startsWith(QLatin1String("/sensors")))
+    if (m_address.startsWith(QLatin1String(RSensors)))
     {
         m_prefix = RSensors;
         if (m_address.endsWith(QLatin1String("/illuminance")))
@@ -421,17 +423,23 @@ RuleCondition::RuleCondition(const QVariantMap &map)
             m_address.replace(QLatin1String("/illuminance"), QLatin1String("/lux"));
         }
     }
-    else if (m_address.startsWith(QLatin1String("/config")))
+    else if (m_address.startsWith(QLatin1String(RConfig)))
     {
         m_prefix = RConfig;
     }
-    else if (m_address.startsWith(QLatin1String("/groups")))
+    else if (m_address.startsWith(QLatin1String(RGroups)))
     {
         m_prefix = RGroups;
     }
-    else if (m_address.startsWith(QLatin1String("/lights")))
+    else if (m_address.startsWith(QLatin1String(RLights)))
     {
         m_prefix = RLights;
+    }
+    else if (m_address.startsWith(QLatin1String(RAlarmSystems)))
+    {
+        m_prefix = RAlarmSystems;
+
+
     }
 
     ResourceItemDescriptor rid;
@@ -538,11 +546,23 @@ RuleCondition::RuleCondition(const QVariantMap &map)
         }
         else if (m_op == OpEqual || m_op == OpNotEqual || m_op == OpGreaterThan || m_op == OpLowerThan)
         {
-            int num = str.toInt(&ok);
-            if (ok)
+            if (rid.suffix == RStateArmState)
             {
-                m_value = static_cast<double>(num);
-            } else { m_op = OpUnknown; } // mark invalid
+                // transform from string to number
+                int num = IAS_PanelStatusFromString(str);
+                if (num >= 0)
+                {
+                    m_num = num;
+                } else { m_op = OpUnknown; } // mark invalid
+            }
+            else
+            {
+                int num = str.toInt(&ok);
+                if (ok)
+                {
+                    m_value = static_cast<double>(num);
+                } else { m_op = OpUnknown; } // mark invalid
+            }
         }
     }
 

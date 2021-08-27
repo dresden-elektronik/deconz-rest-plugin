@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2021 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -18,6 +18,7 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "json.h"
+#include "rest_alarmsystems.h"
 
 #define MAX_RULES_COUNT 500
 #define FAST_RULE_CHECK_INTERVAL_MS 10
@@ -856,7 +857,7 @@ bool DeRestPluginPrivate::checkActions(QVariantList actionsList, ApiResponse &rs
         }
 
         //no dublicate addresses allowed
-        const char *resources[] = { "groups", "lights", "schedules", "scenes", "sensors", "rules", nullptr };
+        const char *resources[] = { "groups", "lights", "schedules", "scenes", "sensors", "rules", "alarmsystems", nullptr };
 
         for (int i = 0; ; i++)
         {
@@ -867,12 +868,11 @@ bool DeRestPluginPrivate::checkActions(QVariantList actionsList, ApiResponse &rs
 
             if (!resources[i])
             {
-                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString(address),
-                                QString("Rule actions contain errors or an action on a unsupported resource")));
+                rsp.list.append(errorToMap(ERR_ACTION_ERROR, address, QLatin1String("Rule actions contain errors or an action on a unsupported resource")));
                 return false;
             }
 
-            if (addrList[0] == resources[i])
+            if (addrList[0] == QLatin1String(resources[i]))
             {
                 break; // supported
             }
@@ -881,7 +881,7 @@ bool DeRestPluginPrivate::checkActions(QVariantList actionsList, ApiResponse &rs
         //check methods
         if(!(method == QLatin1String("PUT") || method == QLatin1String("POST") || method == QLatin1String("DELETE") || method == QLatin1String("BIND") || method == QLatin1String("GET")))
         {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE , QString("rules/method"), QString("invalid value, %1, for parameter, method").arg(method)));
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE , QLatin1String("rules/method"), QString("invalid value, %1, for parameter, method").arg(method)));
             return false;
         }
 
@@ -890,7 +890,7 @@ bool DeRestPluginPrivate::checkActions(QVariantList actionsList, ApiResponse &rs
         Json::parse(body, ok);
         if (!ok)
         {
-            rsp.list.append(errorToMap(ERR_INVALID_JSON, QString("/rules/"), QString("body contains invalid JSON")));
+            rsp.list.append(errorToMap(ERR_INVALID_JSON, QLatin1String("/rules/"), QLatin1String("body contains invalid JSON")));
             return false;
         }
     }
@@ -1643,6 +1643,14 @@ void DeRestPluginPrivate::triggerRule(Rule &rule)
         else if (path[2] == QLatin1String("rules"))
         {
             if (handleRulesApi(req, rsp) == REQ_NOT_HANDLED)
+            {
+                return;
+            }
+            triggered = true;
+        }
+        else if (path[2] == QLatin1String("alarmsystems"))
+        {
+            if (AS_handleAlarmSystemsApi(req, rsp, *alarmSystems, eventEmitter) == REQ_NOT_HANDLED)
             {
                 return;
             }
