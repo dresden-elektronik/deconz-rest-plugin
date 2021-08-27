@@ -18,6 +18,7 @@
 #include <QVariantMap>
 #include <QNetworkInterface>
 #include <QProcessEnvironment>
+#include "rest_alarmsystems.h"
 #include "daylight.h"
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
@@ -1252,9 +1253,8 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
-    // scenes
-    {
-    }
+    // alarm systems
+    rsp.map[QLatin1String("alarmsystems")] = AS_AlarmSystemsToMap(*alarmSystems);
 
     configToMap(req, configMap);
 
