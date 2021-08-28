@@ -89,6 +89,7 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                         modelId.startsWith(QLatin1String("Micro Smart Dimmer")) ||            // Sunricher Micro Smart Dimmer
                         modelId.startsWith(QLatin1String("lumi.plug.maeu")) ||                // Xiaomi Aqara ZB3.0 smart plug
                         modelId == QLatin1String("RICI01") ||                                 // LifeControl Smart Plug
+                        modelId == QLatin1String("SP 234") ||                                 // innr Smart Plug
                         modelId.startsWith(QLatin1String("outlet")) ||                        // Samsung SmartThings IM6001-OTP/IM6001-OTP01
                         modelId == QLatin1String("3200-Sgb") ||                               // Samsung/Centralite smart outlet
                         modelId == QLatin1String("3200-de") ||                                // Samsung/Centralite smart outlet
@@ -177,6 +178,7 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                 if (item && current != 65535)
                 {
                     if (modelId == QLatin1String("SP 120") ||                                     // innr
+                        modelId == QLatin1String("SP 234") ||                                     // innr
                         modelId.startsWith(QLatin1String("outlet")) ||                            // Samsung SmartThings IM6001-OTP/IM6001-OTP01
                         modelId == QLatin1String("DoubleSocket50AU") ||                           // Aurora
                         modelId.startsWith(QLatin1String("SPLZB-1")) ||                           // Develco smart plug

@@ -93,6 +93,7 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
                     consumption = static_cast<quint64>(round((double)consumption / 10.0)); // 0.1 Wh -> Wh
                 }
                 else if (modelId == QLatin1String("SP 120") ||                    // innr
+                         modelId == QLatin1String("SP 234") ||                    // innr
                          modelId == QLatin1String("Plug-230V-ZB3.0") ||           // Immax
                          modelId == QLatin1String("Smart plug Zigbee PE") ||      // Niko Smart Plug 552-80699
                          modelId == QLatin1String("TS0121"))                      // Tuya / Blitzwolf

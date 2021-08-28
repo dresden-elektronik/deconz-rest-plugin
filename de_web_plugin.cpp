@@ -313,6 +313,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_KEEN_HOME , "SV01-", celMacPrefix}, // Keen Home Vent
     { VENDOR_KEEN_HOME , "SV02-", celMacPrefix}, // Keen Home Vent
     { VENDOR_INNR, "SP 120", jennicMacPrefix}, // innr smart plug
+    { VENDOR_INNR, "SP 234", silabs10MacPrefix}, // innr smart plug
     { VENDOR_JENNIC, "VMS_ADUROLIGHT", jennicMacPrefix }, // Trust motion sensor ZPIR-8000
     { VENDOR_JENNIC, "CSW_ADUROLIGHT", jennicMacPrefix }, // Trust contact sensor ZMST-808
     { VENDOR_JENNIC, "ZYCT-202", jennicMacPrefix }, // Trust remote control ZYCT-202 (older model)
@@ -6983,6 +6984,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 item = sensorNode.addItem(DataTypeUInt64, RStateConsumption);
             }
             if ((modelId != QLatin1String("SP 120")) &&
+                (modelId != QLatin1String("SP 234")) &&
                 (modelId != QLatin1String("ZB-ONOFFPlug-D0005")) &&
                 (modelId != QLatin1String("TS0121")) &&
                 (!modelId.startsWith(QLatin1String("BQZ10-AU"))) &&
