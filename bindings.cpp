@@ -1954,6 +1954,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.maxInterval = 300;
         if (modelId == QLatin1String("SmartPlug") ||                   // Heiman
             modelId == QLatin1String("SKHMP30-I1") ||                  // GS smart plug
+            modelId == QLatin1String("SP 234") ||                      // innr smart plug
             modelId == QLatin1String("SZ-ESW01-AU") ||                 // Sercomm / Telstra smart plug
             modelId == QLatin1String("Connected socket outlet") ||     // Niko smart socket
             modelId.startsWith(QLatin1String("ROB_200")) ||            // ROBB Smarrt micro dimmer
@@ -2005,6 +2006,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq3.minInterval = 1;
         rq3.maxInterval = 300;
         if (modelId == QLatin1String("SP 120") ||                  // innr
+            modelId == QLatin1String("SP 234") ||                  // innr
             modelId == QLatin1String("PoP") ||                     // Apex Smart Plug
             modelId == QLatin1String("DoubleSocket50AU") ||        // Aurora
             modelId.startsWith(QLatin1String("SPLZB-1")) ||        // Develco smart plug
