@@ -381,6 +381,15 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             //Window covering ?
             if (productId.startsWith(QLatin1String("Tuya_COVD")))
             {
+                // This device don't use same command, so I m using this hack to keep an uniform code
+                if (productId == QLatin1String("Tuya_COVD AM43-0.45/40-ES-EZ(TY)"))
+                {
+                    if (dp == 0x0401)
+                    {
+                        if (data == 0x01) { data = 0x00; }
+                        else if (data == 0x00) { data = 0x01; }
+                    }
+                }
 
                 switch (dp)
                 {
@@ -410,6 +419,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         
                         // Need reverse
                         if (productId.startsWith(QLatin1String("Tuya_COVD YS-MT750")) ||
+                            productId.startsWith(QLatin1String("Tuya_COVD AM43-0.45/40-ES-EZ(TY)") ||
                             productId.startsWith(QLatin1String("Tuya_COVD DS82")))
                         {
                             lift = 100 - lift;
