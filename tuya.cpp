@@ -419,7 +419,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         
                         // Need reverse
                         if (productId.startsWith(QLatin1String("Tuya_COVD YS-MT750")) ||
-                            productId.startsWith(QLatin1String("Tuya_COVD AM43-0.45/40-ES-EZ(TY)") ||
+                            productId.startsWith(QLatin1String("Tuya_COVD AM43-0.45/40-ES-EZ(TY)")) ||
                             productId.startsWith(QLatin1String("Tuya_COVD DS82")))
                         {
                             lift = 100 - lift;
