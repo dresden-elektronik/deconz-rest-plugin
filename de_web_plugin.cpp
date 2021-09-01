@@ -2997,6 +2997,23 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
         if (item) { item->setIsPublic(false); }
         item = lightNode->item(RStateY);
         if (item) { item->setIsPublic(false); }
+    } else if (lightNode->manufacturerCode() == VENDOR_SENGLED_OPTOELEC &&
+            lightNode->modelId() == QLatin1String("Z01-A19NAE26"))
+    {
+        item = lightNode->item(RAttrType);
+        if (item)
+        {
+            item->setValue(QVariant("Color temperature light"));
+        }
+        if (lightNode->item(RConfigColorCapabilities) != nullptr)
+        {
+            return; // already initialized
+        }
+        lightNode->addItem(DataTypeUInt16, RStateCt);
+        lightNode->addItem(DataTypeUInt16, RConfigCtMin)->setValue(153);
+        lightNode->addItem(DataTypeUInt16, RConfigCtMax)->setValue(370);
+        lightNode->addItem(DataTypeUInt16, RConfigColorCapabilities)->setValue(0x0001 | 0x0008 | 0x0010);
+        lightNode->addItem(DataTypeString, RStateColorMode)->setValue(QVariant("ct"));
     }
     else if (isXmasLightStrip(lightNode))
     {
