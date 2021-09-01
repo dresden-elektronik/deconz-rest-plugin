@@ -3013,7 +3013,10 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
         {
             QDateTime now = QDateTime::currentDateTime();
 
-            if (sensor->modelId() == QLatin1String("TY0202")) // Lidl/SILVERCREST motion sensor
+
+            const std::array<QLatin1String, 5> iasZoneOffSensors = {QLatin1String("TY0202"), QLatin1String("MS01"), QLatin1String("MSO1"), QLatin1String("ms01") ,QLatin1String("66666")};
+            const auto resetByIasZone = std::find(iasZoneOffSensors.cbegin(), iasZoneOffSensors.cend(), sensor->modelId()) != iasZoneOffSensors.cend();
+            if (resetByIasZone)
             {
                 continue; // will be only reset via IAS Zone status
             }
