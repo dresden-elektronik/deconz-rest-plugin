@@ -3011,17 +3011,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
 
         if (sensor->durationDue.isValid())
         {
-            QDateTime now = QDateTime::currentDateTime();
-
-
-            const std::array<QLatin1String, 5> iasZoneOffSensors = {QLatin1String("TY0202"), QLatin1String("MS01"), QLatin1String("MSO1"), QLatin1String("ms01") ,QLatin1String("66666")};
-            const auto resetByIasZone = std::find(iasZoneOffSensors.cbegin(), iasZoneOffSensors.cend(), sensor->modelId()) != iasZoneOffSensors.cend();
-            if (resetByIasZone)
-            {
-                continue; // will be only reset via IAS Zone status
-            }
-
-            if (sensor->durationDue <= now)
+            if (sensor->durationDue <= QDateTime::currentDateTime())
             {
                 // automatically set presence to false, if not triggered in config.duration
                 ResourceItem *item = sensor->item(RStatePresence);
