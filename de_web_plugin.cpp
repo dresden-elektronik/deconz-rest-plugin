@@ -5891,9 +5891,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     if (manufacturer == QLatin1String("_TZE200_byzdayie"))
                     {
                         fpConsumptionSensor.inClusters.push_back(TUYA_CLUSTER_ID);
-                        fpConsumptionSensor.inClusters.push_back(TEMPERATURE_MEASUREMENT_CLUSTER_ID);
+                        fpConsumptionSensor.inClusters.push_back(METERING_CLUSTER_ID);
                         fpPowerSensor.inClusters.push_back(TUYA_CLUSTER_ID);
-                        fpPowerSensor.inClusters.push_back(RELATIVE_HUMIDITY_CLUSTER_ID);
+                        fpPowerSensor.inClusters.push_back(ELECTRICAL_MEASUREMENT_CLUSTER_ID);
                     }
                 }
                     break;
