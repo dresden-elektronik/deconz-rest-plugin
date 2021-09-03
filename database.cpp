@@ -3546,6 +3546,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     (sensor.modelId() != QLatin1String("lumi.switch.b1naus01")) &&
                     (sensor.modelId() != QLatin1String("lumi.switch.n0agl1")) &&
                     (sensor.modelId() != QLatin1String("Connected socket outlet")) &&
+                    (sensor.manufacturer() != QLatin1String("_TZE200_byzdayie")) &&
                     (!sensor.modelId().startsWith(QLatin1String("SPW35Z"))))
                 {
                     item = sensor.addItem(DataTypeInt16, RStatePower);
