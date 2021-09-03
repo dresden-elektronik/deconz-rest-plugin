@@ -509,6 +509,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SCHNEIDER, "iTRV", silabs3MacPrefix }, // Drayton Wiser Radiator Thermostat
     { VENDOR_SCHNEIDER, "CCT593011_AS", emberMacPrefix }, // LK Wiser Temperature and Humidity Sensor
     { VENDOR_SCHNEIDER, "CCT595011_AS", emberMacPrefix }, // LK Wiser Motion Sensor
+    { VENDOR_DANFOSS, "eT093WRO", silabs5MacPrefix }, // POPP Smart Thermostat
     { VENDOR_DANFOSS, "eTRV0100", silabs2MacPrefix }, // Danfoss Ally thermostat
     { VENDOR_DANFOSS, "0x8020", silabs6MacPrefix }, // Danfoss RT24V Display thermostat
     { VENDOR_DANFOSS, "0x8021", silabs6MacPrefix }, // Danfoss RT24V Display thermostat with floor sensor
@@ -5958,7 +5959,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 {
                     // Many Xiaomi devices advertise non-functional Time cluster, so better use whitelist.
                     if (modelId == QLatin1String("Thermostat") || // eCozy
-                        modelId == QLatin1String("eTRV0100")) // Danfoss
+                        modelId == QLatin1String("eTRV0100") ||   // Danfoss
+                        modelId == QLatin1String("eT093WRO"))     // POPP smart thermostat
                     {
                         fpTimeSensor.inClusters.push_back(ci->id());
                     }
@@ -7196,8 +7198,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.addItem(DataTypeString, RConfigMode);
                 sensorNode.addItem(DataTypeString, RConfigFanMode);
             }
-            else if ((modelId == QLatin1String("eTRV0100")) || // Danfoss Ally
-                     (modelId == QLatin1String("TRV001")) )    // Hive TRV
+            else if (modelId == QLatin1String("eTRV0100") || // Danfoss Ally
+                     modelId == QLatin1String("TRV001") ||   // Hive TRV
+                     modelId == QLatin1String("eT093WRO"))   // POPP smart thermostat
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
                 sensorNode.addItem(DataTypeString, RStateWindowOpen);
@@ -16598,6 +16601,7 @@ void DeRestPlugin::idleTimerFired()
                                 sensorNode->modelId().startsWith(QLatin1String("TH112")) ||     // Sinope devices
                                 sensorNode->modelId().startsWith(QLatin1String("TH1300ZB")) ||  // Sinope devices
                                 sensorNode->modelId().startsWith(QLatin1String("eTRV0100")) ||  // Danfoss Ally
+                                sensorNode->modelId().startsWith(QLatin1String("eT093WRO")) ||  // POPP smart thermostat
                                 sensorNode->modelId().startsWith(QLatin1String("0x8020")) ||    // Danfoss RT24V Display thermostat
                                 sensorNode->modelId().startsWith(QLatin1String("0x8021")) ||    // Danfoss RT24V Display thermostat with floor sensor
                                 sensorNode->modelId().startsWith(QLatin1String("0x8030")) ||    // Danfoss RTbattery Display thermostat
