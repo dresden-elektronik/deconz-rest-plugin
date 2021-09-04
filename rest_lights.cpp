@@ -250,15 +250,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (item->descriptor().suffix == RStateOpen) { state["open"] = item->toBool(); }
         else if (item->descriptor().suffix == RStateTilt) { state["tilt"] = item->toNumber(); }
         else if (item->descriptor().suffix == RStateLift) { state["lift"] = item->toNumber(); }
-        else if (item->descriptor().suffix == RStateReachable)
-        {
-            if (lightNode->parentResource())
-            {
-                item = lightNode->parentResource()->item(RStateReachable);
-                Q_ASSERT(item);
-            }
-            state["reachable"] = item->toBool();
-        }
+        else if (item->descriptor().suffix == RStateReachable) { state["reachable"] = item->toBool(); }
         else if (item->descriptor().suffix == RConfigCtMin) { map["ctmin"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigCtMax) { map["ctmax"] = item->toNumber(); }
         else if (req.apiVersion() <= ApiVersion_1_DDEL && item->descriptor().suffix == RConfigColorCapabilities) { map["colorcapabilities"] = item->toNumber(); }

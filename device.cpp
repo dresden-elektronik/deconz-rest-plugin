@@ -691,6 +691,25 @@ void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event)
     }
 }
 
+void DEV_CheckReachable(Device *device)
+{
+    DevicePrivate *d = device->d;
+
+    for (Resource *r : d->subResources)
+    {
+        ResourceItem *item = r->item(RConfigReachable);
+        if (!item)
+        {
+            item = r->item(RStateReachable);
+        }
+
+        if (item && item->toBool() != device->reachable())
+        {
+            r->setValue(item->descriptor().suffix, device->reachable());
+        }
+    }
+}
+
 /*! #7 In this state the device is operational and runs sub states
     In parallel.
 
@@ -702,6 +721,7 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
 
     if (event.what() == REventStateEnter)
     {
+        DEV_CheckReachable(device);
         d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
         d->setState(DEV_PollIdleStateHandler, STATE_LEVEL_POLL);
         return;
@@ -1398,9 +1418,11 @@ void Device::addSubDevice(Resource *sub)
         if (!isValid(hnd))
         {
             hnd = sub->handle();
+            DEV_CheckReachable(this);
             return;
         }
     }
+
 
     Q_ASSERT(0); // too many sub resources, todo raise limit
 }
@@ -1433,6 +1455,10 @@ void Device::handleEvent(const Event &event, DEV_StateLevel level)
         if (event.what() == REventAwake && level == StateLevel0)
         {
             d->awake.start();
+        }
+        else if (event.what() == RStateReachable && event.resource() == RDevices)
+        {
+            DEV_CheckReachable(this);
         }
 
         d->state[level](this, event);

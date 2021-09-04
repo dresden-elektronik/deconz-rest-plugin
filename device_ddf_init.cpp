@@ -200,6 +200,18 @@ bool DEV_InitDeviceBasic(Device *device)
     std::array<const char*, 2> poi = { RAttrManufacturerName, RAttrModelId };
     for (const auto &dbItem : dbItems)
     {
+        if (dbItem.name == RStateReachable || dbItem.name == RConfigReachable)
+        {
+            ResourceItem *reachable = device->item(RStateReachable);
+            DBG_Assert(reachable);
+            if (reachable)
+            {
+                reachable->setValue(dbItem.value.toBool());
+                reachable->setTimeStamps(QDateTime::fromMSecsSinceEpoch(dbItem.timestampMs));
+            }
+            continue;
+        }
+
         for (const char *suffix: poi)
         {
             if (dbItem.name != suffix)
@@ -215,6 +227,8 @@ bool DEV_InitDeviceBasic(Device *device)
                 item->setTimeStamps(QDateTime::fromMSecsSinceEpoch(dbItem.timestampMs));
                 found++;
             }
+
+            break;
         }
     }
 

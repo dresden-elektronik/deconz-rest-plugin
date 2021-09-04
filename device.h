@@ -155,6 +155,8 @@ Resource *DEV_GetResource(Resource::Handle hnd);
  */
 const deCONZ::Node *DEV_GetCoreNode(uint64_t extAddress);
 
+void DEV_CheckReachable(Device *device);
+
 bool DEV_TestManaged();
 
 #endif // DEVICE_H
