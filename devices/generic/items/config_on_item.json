@@ -6,5 +6,6 @@
 	"public": true,
 	"default": true,
 	"implicit" : true,
+	"managed": true,
 	"description": "When true the sensor is enabled in rules."
 }

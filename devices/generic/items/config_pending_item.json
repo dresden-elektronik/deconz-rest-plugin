@@ -4,5 +4,6 @@
 	"datatype": "Array",
 	"access": "R",
 	"public": true,
+	"managed": true,
 	"description": "Pending tasks to configure the device."
 }

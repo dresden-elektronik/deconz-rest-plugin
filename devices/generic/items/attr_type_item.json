@@ -5,6 +5,6 @@
 	"access": "R",
 	"public": true,
 	"implicit" : true,
-	"description": "Type of the resource.",
-	"static": true
+	"managed": true,
+	"description": "Type of the resource."
 }
