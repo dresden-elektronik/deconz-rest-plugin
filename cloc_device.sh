@@ -6,8 +6,9 @@ cloc \
 	device_compat.* \
 	device_ddf_init.* \
 	device_descriptions.* \
-	device_js.* \
-	device_js_wrappers.* \
+	device_js/* \
+	zcl/* \
 	device_tick.* \
-	state_change.*
+	state_change.* \
+	ui/*
 
