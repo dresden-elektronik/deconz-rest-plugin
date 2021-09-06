@@ -63,6 +63,8 @@ constexpr int BindingAutoCheckInterval = 1000 * 60 * 60;
 constexpr int MaxPollItemRetries = 3;
 constexpr int MaxSubResources = 8;
 
+static int devManaged = -1;
+
 struct DEV_PollItem
 {
     explicit DEV_PollItem(const Resource *r, const ResourceItem *i, const QVariant &p) :
@@ -680,11 +682,13 @@ void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event)
 
         if (event.num() == 1)
         {
+            d->managed = true;
             d->flags.hasDdf = 1;
             d->setState(DEV_IdleStateHandler);
         }
         else
         {
+            d->managed = false;
             d->flags.hasDdf = 0;
             d->setState(DEV_DeadStateHandler);
         }
@@ -1365,7 +1369,6 @@ Device::Device(DeviceKey key, deCONZ::ApsController *apsCtrl, QObject *parent) :
     d->q = this;
     d->apsCtrl = apsCtrl;
     d->deviceKey = key;
-    d->managed = DEV_TestManaged();
     d->flags.initialRun = 1;
 
     addItem(DataTypeBool, RStateReachable);
@@ -1439,7 +1442,12 @@ const deCONZ::Node *Device::node() const
 
 bool Device::managed() const
 {
-    return d->managed;
+    return devManaged && d->managed && d->flags.hasDdf;
+}
+
+void Device::setManaged(bool managed)
+{
+    d->managed = managed;
 }
 
 void Device::handleEvent(const Event &event, DEV_StateLevel level)
@@ -1668,10 +1676,14 @@ bool DEV_RemoveDevice(DeviceContainer &devices, DeviceKey key)
     return false;
 }
 
+void DEV_SetTestManaged(bool enabled)
+{
+    devManaged = enabled ? 1 : 0;
+}
+
 /*! Is used to test full Device control over: Device and sub-device creation, read, write, parse of Zigbee commands.
  */
 bool DEV_TestManaged()
 {
-    static bool managed = (deCONZ::appArgumentNumeric("--dev-test-managed", 0) > 0);
-    return managed;
+    return devManaged > 0;
 }

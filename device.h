@@ -64,11 +64,12 @@ enum DEV_StateLevel {
     - ZDP Simple Descriptors
     - ZCL Basic cluster modelid and manufacturer name
 
-    TODO
 
     Configurations like bindings and ZCL attribute reporting are maintained and verified continously. These may
     be specified in device description files or are configured dynamically via REST-API, e.g. a switch controls
     a certain group.
+
+    TODO
 
     A Device maintains sub-resources which may represent lights, sensors or any other device. The device state given
     by the REST-API like on/off, brightness or thermostat configuration is kept in RecourceItems per sub-device.
@@ -101,6 +102,7 @@ public:
     DeviceKey key() const;
     const deCONZ::Node *node() const;
     bool managed() const;
+    void setManaged(bool managed);
     void handleEvent(const Event &event, DEV_StateLevel level = StateLevel0);
     void timerEvent(QTimerEvent *event) override;
     qint64 lastAwakeMs() const;
@@ -157,6 +159,7 @@ const deCONZ::Node *DEV_GetCoreNode(uint64_t extAddress);
 
 void DEV_CheckReachable(Device *device);
 
+void DEV_SetTestManaged(bool enabled);
 bool DEV_TestManaged();
 
 #endif // DEVICE_H

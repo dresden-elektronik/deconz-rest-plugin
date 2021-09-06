@@ -644,6 +644,8 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
 {
     plugin = this;
 
+    DEV_SetTestManaged(deCONZ::appArgumentNumeric("--dev-test-managed", 0) > 0);
+
     pollManager = new PollManager(this);
 
     databaseTimer = new QTimer(this);
@@ -981,8 +983,6 @@ DeRestPluginPrivate *DeRestPluginPrivate::instance()
 
 void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndication &ind, Device *device)
 {
-    deCONZ::ZclFrame zclFrame;
-
     if (!device)
     {
         return;
@@ -997,6 +997,8 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
             enqueueEvent(Event(device->prefix(), item->descriptor().suffix, 0, device->key()));
         }
     }
+
+    deCONZ::ZclFrame zclFrame;
 
     if (ind.profileId() == HA_PROFILE_ID || ind.profileId() == ZLL_PROFILE_ID)
     {
@@ -1051,6 +1053,11 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
 
     for (auto &r : resources)
     {
+        if (!device->managed())
+        {
+            break;
+        }
+
         for (int i = 0; i < r->itemCount(); i++)
         {
             ResourceItem *item = r->itemForIndex(i);
@@ -2884,14 +2891,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         QString uid = generateUniqueId(lightNode.address().ext(), lightNode.haEndpoint().endpoint(), 0);
         lightNode.setUniqueId(uid);
 
-        if (DEV_TestManaged())
-        {
-            // check if this device is already handled by Device code
-            if (DB_GetSubDeviceItemCount(lightNode.item(RAttrUniqueId)->toLatin1String()) > 0)
-            {
-                return;
-            }
-        }
 
         if (existDevicesWithVendorCodeForMacPrefix(node->address(), VENDOR_DDEL) && i->deviceId() != DEV_ID_CONFIGURATION_TOOL && node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL)
         {
@@ -2903,6 +2902,24 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         openDb();
         loadLightNodeFromDb(&lightNode);
         closeDb();
+
+        if (DEV_TestManaged())
+        {
+            // check if this device is already handled by Device code
+            if (DB_GetSubDeviceItemCount(lightNode.item(RAttrUniqueId)->toLatin1String()) > 0)
+            {
+                const DeviceDescription &ddf = deviceDescriptions->get(&lightNode);
+                if (ddf.isValid())
+                {
+                    if (ddf.path.isEmpty())
+                    {
+                        DBG_Printf(DBG_INFO, "TODO %s has partial ddf\n", qPrintable(lightNode.uniqueId()));
+                    }
+                    DBG_Printf(DBG_INFO, "skip classic loading %s / %s \n", qPrintable(lightNode.uniqueId()), qPrintable(lightNode.name()));
+                    return;
+                }
+            }
+        }
 
         setLightNodeStaticCapabilities(&lightNode);
 
@@ -3391,12 +3408,14 @@ void DeRestPluginPrivate::nodeZombieStateChanged(const deCONZ::Node *node)
  */
 LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
 {
-    if (DEV_TestManaged())
+    if (!event.node())
     {
         return nullptr;
     }
 
-    if (!event.node())
+    Device *device = DEV_GetDevice(m_devices, event.node()->address().ext());
+
+    if (device && device->managed())
     {
         return nullptr;
     }
@@ -5347,14 +5366,16 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
  */
 void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::NodeEvent *event)
 {
-    if (DEV_TestManaged())
+    DBG_Assert(node);
+
+    if (!node)
     {
         return;
     }
 
-    DBG_Assert(node);
+    Device *device = DEV_GetDevice(m_devices, node->address().ext());
 
-    if (!node)
+    if (device && device->managed())
     {
         return;
     }
@@ -5414,9 +5435,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
     {
         return;
     }
-
-    auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, node->address().ext());
-    Q_ASSERT(device);
 
     if (fastProbeAddr.hasExt() && fastProbeAddr.ext() != node->address().ext())
     {
@@ -12442,6 +12460,12 @@ void DeRestPluginPrivate::queuePollNode(RestNodeBase *node)
         return;
     }
 
+    const Device *device = DEV_GetDevice(m_devices, node->address().ext());
+    if (device && device->managed())
+    {
+        return;
+    }
+
     if (!node->node()->nodeDescriptor().receiverOnWhenIdle())
     {
         return; // only support non sleeping devices for now
@@ -13077,9 +13101,14 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
             return;
         }
 
-        if (DEV_TestManaged())
+        if (event.node())
         {
-            return;
+            Device *device = DEV_GetDevice(m_devices, event.node()->address().ext());
+
+            if (device && device->managed())
+            {
+                return;
+            }
         }
 
         DBG_Printf(DBG_INFO_L2, "Node data %s profileId: 0x%04X, clusterId: 0x%04X\n", qPrintable(event.node()->address().toStringExt()), event.profileId(), event.clusterId());
@@ -17963,11 +17992,6 @@ void DeRestPluginPrivate::pollNextDevice()
         return;
     }
 
-    if (DEV_TestManaged())
-    {
-        return;
-    }
-
     RestNodeBase *restNode = nullptr;
 
     while (!pollNodes.empty())
@@ -17998,6 +18022,15 @@ void DeRestPluginPrivate::pollNextDevice()
         {
             if (l.isAvailable() && l.address().ext() != gwDeviceAddress.ext() && l.state() == LightNode::StateNormal)
             {
+                if (l.parentResource())
+                {
+                    Device *device = static_cast<Device*>(l.parentResource());
+                    if (device->managed())
+                    {
+                        continue;
+                    }
+                }
+
                 const PollNodeItem pollItem(l.uniqueId(), RLights);
                 pollNodes.push_back(pollItem);
             }
@@ -18007,6 +18040,15 @@ void DeRestPluginPrivate::pollNextDevice()
         {
             if (s.isAvailable() && s.node() && s.node()->nodeDescriptor().receiverOnWhenIdle() && s.deletedState() == Sensor::StateNormal)
             {
+                if (s.parentResource())
+                {
+                    Device *device = static_cast<Device*>(s.parentResource());
+                    if (device->managed())
+                    {
+                        continue;
+                    }
+                }
+
                 const PollNodeItem pollItem(s.uniqueId(), RSensors);
                 pollNodes.push_back(pollItem);
             }
@@ -18015,6 +18057,11 @@ void DeRestPluginPrivate::pollNextDevice()
 
     if (restNode && restNode->isAvailable())
     {
+        Device *device = DEV_GetDevice(m_devices, restNode->address().ext());
+        if (device && device->managed())
+        {
+            return;
+        }
         DBG_Printf(DBG_INFO_L2, "poll node %s\n", qPrintable(restNode->uniqueId()));
         pollManager->poll(restNode);
     }
