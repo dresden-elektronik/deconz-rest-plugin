@@ -8541,7 +8541,13 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId() == QLatin1String("TERNCY-SD01"))       // TERNCY smart button
                                     {
                                         bat = ia->numericValue().u8;
+                                        DDF_AnnoteZclParse(&*i, item, event.endpoint(), event.clusterId(), ia->id(), "Item.val = Attr.val");
                                     }
+                                    else
+                                    {
+                                        DDF_AnnoteZclParse(&*i, item, event.endpoint(), event.clusterId(), ia->id(), "Item.val = Attr.val / 2");
+                                    }
+
                                     item->setValue(bat);
                                     i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
@@ -8604,6 +8610,15 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         {
                                             continue;
                                         }
+                                    }
+
+                                    if (bat == ia->numericValue().u8)
+                                    {
+                                        DDF_AnnoteZclParse(&*i, item, event.endpoint(), event.clusterId(), ia->id(), "Item.val = Attr.val");
+                                    }
+                                    else
+                                    {
+                                        DDF_AnnoteZclParse(&*i, item, event.endpoint(), event.clusterId(), ia->id(), "Item.val = Attr.val / 2");
                                     }
 
                                     if (item->toNumber() != bat)
@@ -8748,6 +8763,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (item)
                                 {
+                                    DDF_AnnoteZclParse(&*i, item, event.endpoint(), event.clusterId(), ia->id(), "Item.val = (Attr.val & 1) != 0");
                                     bool lowBat = (ia->numericValue().u8 & 0x01);
                                     if (!item->lastSet().isValid() || item->toBool() != lowBat)
                                     {
@@ -8880,6 +8896,16 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     item->setValue(temp);
                                     i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
+
+                                    if (item2)
+                                    {
+                                        DDF_AnnoteZclParse(&*i, item, event.endpoint(), event.clusterId(), ia->id(), "Item.val = Attr.val + R.item('config/offset').val");
+                                    }
+                                    else
+                                    {
+                                        DDF_AnnoteZclParse(&*i, item, event.endpoint(), event.clusterId(), ia->id(), "Item.val = Attr.val");
+                                    }
+
                                     Event e(RSensors, RStateTemperature, i->id(), item);
                                     enqueueEvent(e);
                                     enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
@@ -8950,6 +8976,16 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         humidity = _humidity < 0 ? 0 : _humidity > 10000 ? 10000 : _humidity;
                                     }
                                     item->setValue(humidity);
+
+                                    if (item2)
+                                    {
+                                        DDF_AnnoteZclParse(&*i, item, event.endpoint(), event.clusterId(), ia->id(), "Item.val = Attr.val + R.item('config/offset').val");
+                                    }
+                                    else
+                                    {
+                                        DDF_AnnoteZclParse(&*i, item, event.endpoint(), event.clusterId(), ia->id(), "Item.val = Attr.val");
+                                    }
+
                                     i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
                                     Event e(RSensors, RStateHumidity, i->id(), item);
@@ -9709,6 +9745,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     Event e(RSensors, RStatePresence, i->id(), item);
                                     enqueueEvent(e);
                                     enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
+
+                                    DDF_AnnoteZclParse(&*i, item, event.endpoint(), event.clusterId(), ia->id(), "Item.val = true");
 
                                     // prepare to automatically set presence to false
                                     if (item->toBool())

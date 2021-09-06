@@ -46,6 +46,7 @@ union ItemHandlePack
 };
 
 static DeviceDescriptions *_instance = nullptr;
+static DeviceDescriptionsPrivate *_priv = nullptr;
 
 class DeviceDescriptionsPrivate
 {
@@ -63,6 +64,8 @@ static bool DDF_ReadConstantsJson(const QString &path, std::map<QString,QString>
 static DeviceDescription::Item DDF_ReadItemFile(const QString &path);
 static std::vector<DeviceDescription> DDF_ReadDeviceFile(const QString &path);
 static DeviceDescription DDF_MergeGenericItems(const std::vector<DeviceDescription::Item> &genericItems, const DeviceDescription &ddf);
+static DeviceDescription::Item *DDF_GetItemMutable(const ResourceItem *item);
+static void DDF_UpdateItemHandles(std::vector<DeviceDescription> &descriptions, uint loadCounter);
 DeviceDescription DDF_LoadScripts(const DeviceDescription &ddf);
 
 /*! Constructor. */
@@ -71,6 +74,7 @@ DeviceDescriptions::DeviceDescriptions(QObject *parent) :
     d_ptr2(new DeviceDescriptionsPrivate)
 {
     _instance = this;
+    _priv = d_ptr2;
 }
 
 /*! Destructor. */
@@ -78,6 +82,7 @@ DeviceDescriptions::~DeviceDescriptions()
 {
     Q_ASSERT(_instance == this);
     _instance = nullptr;
+    _priv = nullptr;
     Q_ASSERT(d_ptr2);
     delete d_ptr2;
     d_ptr2 = nullptr;
@@ -89,6 +94,60 @@ DeviceDescriptions *DeviceDescriptions::instance()
 {
     Q_ASSERT(_instance);
     return _instance;
+}
+
+/*! Helper to transform hard C++ coded parse functions to DDF.
+ */
+void DDF_AnnoteZclParse1(int line, const char *file, const Resource *resource, const ResourceItem *item, quint8 ep, quint16 clusterId, quint16 attributeId, const char *eval)
+{
+    DBG_Assert(resource);
+    DBG_Assert(item);
+    DBG_Assert(eval);
+
+    if (!_instance || !resource || !item || !eval)
+    {
+        return;
+    }
+
+    if (item->ddfItemHandle() != DeviceDescription::Item::InvalidItemHandle)
+    {
+        DeviceDescription::Item *ddfItem = DDF_GetItemMutable(item);
+
+        if (ddfItem && ddfItem->isValid())
+        {
+            if (ddfItem->parseParameters.isNull())
+            {
+                char buf[255];
+
+                QVariantMap param;
+                param[QLatin1String("ep")] = int(ep);
+                snprintf(buf, sizeof(buf), "0x%04X", clusterId);
+                param[QLatin1String("cl")] = QLatin1String(buf);
+                snprintf(buf, sizeof(buf), "0x%04X", attributeId);
+                param[QLatin1String("at")] = QLatin1String(buf);
+                param[QLatin1String("eval")] = QLatin1String(eval);
+
+                size_t fileLen = strlen(file);
+                const char *fileName = file + fileLen;
+
+                for (size_t i = fileLen; i > 0; i--, fileName--)
+                {
+                    if (*fileName == '/')
+                    {
+                        fileName++;
+                        break;
+                    }
+                }
+
+                snprintf(buf, sizeof(buf), "%s:%d", fileName, line);
+                param[QLatin1String("cppsrc")] = QLatin1String(buf);
+
+                ddfItem->parseParameters = param;
+
+                DBG_Printf(DBG_DDF, "DDF %s:%d: %s updated ZCL function cl: 0x%04X, at: 0x%04X, eval: %s\n", fileName, line, qPrintable(resource->item(RAttrUniqueId)->toString()), clusterId, attributeId, eval);
+            }
+        }
+    }
 }
 
 void DeviceDescriptions::handleEvent(const Event &event)
@@ -135,14 +194,86 @@ QString DeviceDescriptions::constantToString(const QString &constant) const
 {
     Q_D(const DeviceDescriptions);
 
-    const auto i = d->constants.find(constant);
-
-    if (i != d->constants.end())
+    if (constant.startsWith('$'))
     {
-        return i->second;
+        const auto i = d->constants.find(constant);
+
+        if (i != d->constants.end())
+        {
+            return i->second;
+        }
     }
 
     return constant;
+}
+
+QString DeviceDescriptions::stringToConstant(const QString &str) const
+{
+    Q_D(const DeviceDescriptions);
+
+    if (str.startsWith('$'))
+    {
+        return str;
+    }
+
+    const auto end = d->constants.cend();
+    for (auto p = d->constants.begin(); p != end; ++p)
+    {
+        if (p->second == str)
+        {
+            return p->first;
+        }
+    }
+
+    return str;
+}
+
+static DeviceDescription::Item *DDF_GetItemMutable(const ResourceItem *item)
+{
+    if (!_priv || !item)
+    {
+        return nullptr;
+    }
+
+    DeviceDescriptionsPrivate *d = _priv;
+
+    ItemHandlePack h;
+    h.handle = item->ddfItemHandle(); // unpack
+
+    if (h.handle == DeviceDescription::Item::InvalidItemHandle)
+    {
+        return nullptr;
+    }
+
+    if (h.loadCounter != d->loadCounter)
+    {
+        return nullptr;
+    }
+
+    DBG_Assert(h.description < d->descriptions.size());
+    if (h.description >= d->descriptions.size())
+    {
+        return nullptr;
+    }
+
+    auto &ddf = d->descriptions[h.description];
+
+    DBG_Assert(h.subDevice < ddf.subDevices.size());
+    if (h.subDevice >= ddf.subDevices.size())
+    {
+        return nullptr;
+    }
+
+    auto &sub = ddf.subDevices[h.subDevice];
+
+    DBG_Assert(h.item < sub.items.size());
+
+    if (h.item < sub.items.size())
+    {
+        return &sub.items[h.item];
+    }
+
+    return nullptr;
 }
 
 /*! Retrieves the DDF item for the given \p item.
@@ -210,9 +341,9 @@ const DeviceDescription::Item &DeviceDescriptions::getGenericItem(const char *su
 /*! Updates all DDF item handles to point to correct location.
     \p loadCounter - the current load counter.
  */
-std::vector<DeviceDescription> DDF_UpdateItemHandles(const std::vector<DeviceDescription> &descriptions, uint loadCounter)
+static void DDF_UpdateItemHandles(std::vector<DeviceDescription> &descriptions, uint loadCounter)
 {
-    auto result = descriptions;
+    int index = 0;
     Q_ASSERT(loadCounter >= HND_MIN_LOAD_COUNTER);
     Q_ASSERT(loadCounter <= HND_MAX_LOAD_COUNTER);
 
@@ -220,8 +351,9 @@ std::vector<DeviceDescription> DDF_UpdateItemHandles(const std::vector<DeviceDes
     handle.description = 0;
     handle.loadCounter = loadCounter;
 
-    for (auto &ddf : result)
+    for (auto &ddf : descriptions)
     {
+        ddf.handle = index++;
         handle.subDevice = 0;
         for (auto &sub : ddf.subDevices)
         {
@@ -241,8 +373,6 @@ std::vector<DeviceDescription> DDF_UpdateItemHandles(const std::vector<DeviceDes
         Q_ASSERT(handle.description < HND_MAX_DESCRIPTIONS);
         handle.description++;
     }
-
-    return result;
 }
 
 /*! Reads all DDF related files.
@@ -308,7 +438,8 @@ void DeviceDescriptions::readAll()
 
     if (!descriptions.empty())
     {
-        d->descriptions = DDF_UpdateItemHandles(descriptions, d->loadCounter);
+        d->descriptions = descriptions;
+        DDF_UpdateItemHandles(d->descriptions, d->loadCounter);
 
         for (auto &ddf : d->descriptions)
         {
@@ -327,6 +458,8 @@ void DeviceDescriptions::readAll()
  */
 void DeviceDescriptions::handleDDFInitRequest(const Event &event)
 {
+    Q_D(DeviceDescriptions);
+
     auto *resource = DEV_GetResource(RDevices, QString::number(event.deviceKey()));
 
     int result = -1; // error
@@ -342,6 +475,11 @@ void DeviceDescriptions::handleDDFInitRequest(const Event &event)
             if (DEV_InitDeviceFromDescription(static_cast<Device*>(resource), ddf))
             {
                 result = 1; // ok
+
+                if (ddf.status == QLatin1String("Draft"))
+                {
+                    result = 2;
+                }
             }
         }
 
@@ -357,6 +495,17 @@ void DeviceDescriptions::handleDDFInitRequest(const Event &event)
         else if (result == -1)
         {
             DBG_Printf(DBG_INFO, "DEV no DDF for 0x%016llX, modelId: %s\n", event.deviceKey(), qPrintable(resource->item(RAttrModelId)->toString()));
+            DBG_Printf(DBG_INFO, "DEV create on-the-fly DDF for 0x%016llX\n", event.deviceKey());
+
+            DeviceDescription ddf1;
+
+            Device *device = static_cast<Device*>(resource);
+
+            if (DEV_InitBaseDescriptionForDevice(device, ddf1))
+            {
+                d->descriptions.push_back(ddf1);
+                DDF_UpdateItemHandles(d->descriptions, d->loadCounter);
+            }
         }
     }
 
@@ -425,6 +574,11 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
         result.name = obj.value(QLatin1String("id")).toString().toUtf8().constData();
     }
 
+    if (obj.contains(QLatin1String("description")))
+    {
+        result.description = obj.value(QLatin1String("description")).toString();
+    }
+
     if (result.name.empty())
     {
 
@@ -461,6 +615,11 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
             result.awake = obj.value(QLatin1String("awake")).toBool() ? 1 : 0;
         }
 
+        if (obj.contains(QLatin1String("managed")))
+        {
+            result.isManaged = obj.value(QLatin1String("managed")).toBool() ? 1 : 0;
+        }
+
         if (obj.contains(QLatin1String("refresh.interval")))
         {
             result.refreshInterval = obj.value(QLatin1String("refresh.interval")).toInt(0);
@@ -482,6 +641,12 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
         if (write.isObject())
         {
             result.writeParameters = write.toVariant();
+        }
+
+        if (obj.contains(QLatin1String("static")))
+        {
+            result.isStatic = 1;
+            result.defaultValue = obj.value(QLatin1String("static")).toVariant();
         }
 
         if (obj.contains(QLatin1String("default")))
@@ -724,6 +889,10 @@ static DDF_Binding DDF_ParseBinding(const QJsonObject &obj)
         }
         result.dstEndpoint = dstEndpoint;
     }
+    else
+    {
+        result.dstEndpoint = 0;
+    }
 
     const auto report = obj.value(QLatin1String("report"));
     if (report.isArray())
@@ -745,22 +914,22 @@ static DDF_Binding DDF_ParseBinding(const QJsonObject &obj)
     return result;
 }
 
-/*! Parses an model ids in DDF JSON object.
-    The model id can be a string or array of strings.
-    \returns List of parsed model ids.
+/*! Parses a single string or array of strings in DDF JSON object.
+    The obj[key] value can be a string or array of strings.
+    \returns List of parsed strings.
  */
-static QStringList DDF_ParseModelids(const QJsonObject &obj)
+static QStringList DDF_ParseStringOrList(const QJsonObject &obj, QLatin1String key)
 {
     QStringList result;
-    const auto modelId = obj.value(QLatin1String("modelid"));
+    const auto val = obj.value(key);
 
-    if (modelId.isString()) // "modelid": "alpha.sensor"
+    if (val.isString()) // "key": "alpha.sensor"
     {
-        result.push_back(modelId.toString());
+        result.push_back(val.toString());
     }
-    else if (modelId.isArray()) // "modelid": [ "alpha.sensor", "beta.sensor" ]
+    else if (val.isArray()) // "key": [ "alpha.sensor", "beta.sensor" ]
     {
-        const auto arr = modelId.toArray();
+        const auto arr = val.toArray();
         for (const auto &i : arr)
         {
             if (i.isString())
@@ -794,9 +963,19 @@ static DeviceDescription DDF_ParseDeviceObject(const QJsonObject &obj, const QSt
     }
 
     result.path = path;
-    result.manufacturer = obj.value(QLatin1String("manufacturername")).toString();
-    result.modelIds = DDF_ParseModelids(obj);
+    result.manufacturerNames = DDF_ParseStringOrList(obj, QLatin1String("manufacturername"));
+    result.modelIds = DDF_ParseStringOrList(obj, QLatin1String("modelid"));
     result.product = obj.value(QLatin1String("product")).toString();
+
+    if (obj.contains(QLatin1String("status")))
+    {
+        result.status = obj.value(QLatin1String("status")).toString();
+    }
+
+    if (obj.contains(QLatin1String("vendor")))
+    {
+        result.vendor = obj.value(QLatin1String("vendor")).toString();
+    }
 
     if (obj.contains(QLatin1String("sleeper")))
     {
@@ -1003,6 +1182,8 @@ static DeviceDescription DDF_MergeGenericItems(const std::vector<DeviceDescripti
                 continue;
             }
 
+            item.isImplicit = genItem->isImplicit;
+            item.isManaged = genItem->isManaged;
             item.isGenericRead = 0;
             item.isGenericWrite = 0;
             item.isGenericParse = 0;
@@ -1023,6 +1204,11 @@ static DeviceDescription DDF_MergeGenericItems(const std::vector<DeviceDescripti
             if (!item.defaultValue.isValid() && genItem->defaultValue.isValid())
             {
                 item.defaultValue = genItem->defaultValue;
+            }
+
+            if (item.description.isEmpty() && !genItem->description.isEmpty())
+            {
+                item.description = genItem->description;
             }
         }
     }

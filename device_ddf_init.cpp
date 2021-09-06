@@ -75,9 +75,7 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
         return ddfItem.name == dbItem.name;
     });
 
-    if (item->lastSet().isValid() && ddfItem.isStatic)
-    { }
-    else if (dbItem != dbItems.cend())
+    if (!ddfItem.isStatic && dbItem != dbItems.cend())
     {
         item->setValue(dbItem->value);
         item->setTimeStamps(QDateTime::fromMSecsSinceEpoch(dbItem->timestampMs));
@@ -107,14 +105,14 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
 
     This function replaces the legacy database loading and joining device initialization.
  */
-bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &description)
+bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
 {
     Q_ASSERT(device);
-    Q_ASSERT(description.isValid());
+    Q_ASSERT(ddf.isValid());
 
     size_t subCount = 0;
 
-    for (const auto &sub : description.subDevices)
+    for (const auto &sub : ddf.subDevices)
     {
         Q_ASSERT(sub.isValid());
 
@@ -137,7 +135,7 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &desc
         auto *mf = rsub->item(RAttrManufacturerName);
         if (mf && mf->toLatin1String().isEmpty())
         {
-            mf->setValue(DeviceDescriptions::instance()->constantToString(description.manufacturer));
+            mf->setValue(DeviceDescriptions::instance()->constantToString(device->item(RAttrManufacturerName)->toString()));
         }
 
         // TODO storing should be done else where, since this is init code
@@ -157,7 +155,15 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &desc
 
             if (!ddfItem.defaultValue.isNull() && !ddfItem.writeParameters.isNull())
             {
-                const auto writeFunction = ddfItem.writeParameters.toMap()["fn"].toString();
+                QString writeFunction;
+                {
+                    const auto writeParam = ddfItem.writeParameters.toMap();
+                    if (writeParam.contains(QLatin1String("fn")))
+                    {
+                        writeFunction = writeParam.value(QLatin1String("fn")).toString();
+                    }
+                }
+
                 if (writeFunction.isEmpty() || writeFunction == QLatin1String("zcl"))
                 {
                     StateChange stateChange(StateChange::StateWaitSync, SC_WriteZclAttribute, sub.uniqueId.at(1).toUInt());
@@ -177,18 +183,103 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &desc
         }
     }
 
-    if (description.sleeper >= 0)
+    if (ddf.sleeper >= 0)
     {
-        device->item(RAttrSleeper)->setValue(description.sleeper == 1);
+        device->item(RAttrSleeper)->setValue(ddf.sleeper == 1);
     }
 
     device->clearBindings();
-    for (const auto &bnd : description.bindings)
+    for (const auto &bnd : ddf.bindings)
     {
         device->addBinding(bnd);
     }
 
-    return subCount == description.subDevices.size();
+    return subCount == ddf.subDevices.size();
+}
+
+bool DEV_InitBaseDescriptionForDevice(Device *device, DeviceDescription &ddf)
+{
+    ddf.status = QLatin1String("Draft");
+    ddf.manufacturerNames.push_back(device->item(RAttrManufacturerName)->toString());
+    ddf.modelIds.push_back(device->item(RAttrModelId)->toString());
+
+    if (ddf.manufacturerNames.last().isEmpty() || ddf.manufacturerNames.last() == QLatin1String("Unknown") || ddf.modelIds.isEmpty() || ddf.modelIds.front().isEmpty())
+    {
+        return false;
+    }
+
+    const auto *dd = DeviceDescriptions::instance();
+
+    for (const Resource *r : device->subDevices())
+    {
+        DeviceDescription::SubDevice sub;
+
+        sub.type = dd->stringToConstant(r->item(RAttrType)->toString());
+        sub.restApi = QLatin1String(r->prefix());
+
+        if (ddf.product.isEmpty())
+        {
+            const ResourceItem *productId = r->item(RAttrProductId);
+            if (productId && !productId->toString().isEmpty())
+            {
+                ddf.product = productId->toString();
+            }
+        }
+
+        {
+            QString uniqueId = r->item(RAttrUniqueId)->toString();
+            QStringList ls = uniqueId.split('-', SKIP_EMPTY_PARTS);
+
+            // this is a bit fugly but uniqueid template must be valid
+            DBG_Assert(ls.size() > 1); // lights uniqueid
+            if (ls.size() > 1)
+            {
+                ls[0] = QLatin1String("$address.ext");
+
+                ls[1] = "0x" + ls[1];
+                if (ls.size() > 2) // sensor uniqueid
+                {
+                    ls[2] = "0x" + ls[2];
+                }
+                sub.uniqueId = ls;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        if (r->prefix() == RSensors)
+        {
+            const Sensor *sensor = dynamic_cast<const Sensor*>(r);
+            if (sensor)
+            {
+                sub.fingerPrint = sensor->fingerPrint();
+            }
+        }
+
+        for (int i = 0; i < r->itemCount(); i++)
+        {
+            const ResourceItem *item = r->itemForIndex(i);
+
+            DeviceDescription::Item ddfItem = DeviceDescriptions::instance()->getItem(item);
+
+            if (!ddfItem.isValid())
+            {
+                // create some
+                ddfItem.name = item->descriptor().suffix;
+                ddfItem.descriptor = item->descriptor();
+            }
+
+            ddfItem.isPublic = item->isPublic();
+
+            sub.items.push_back(ddfItem);
+        }
+
+        ddf.subDevices.push_back(sub);
+    }
+
+    return true;
 }
 
 

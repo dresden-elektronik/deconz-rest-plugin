@@ -546,7 +546,7 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion9()
     /*
        The 'sub_devices' table references 'devices' so that entries are
        automatically deleted if the destination node is removed.
-       Inserting an entry with an existing uuid will automatically be ignored.
+       Inserting an existing entry will automatically be ignored.
 
        The 'resource_items' table references 'sub_devices' so that
        entries are deleted when the respective sub_devices entry is removed.

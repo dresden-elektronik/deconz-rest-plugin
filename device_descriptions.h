@@ -22,13 +22,13 @@ class DDF_ZclReport
 {
 public:
     bool isValid() const { return valid; }
-    quint32 reportableChange;
-    quint16 attributeId;
-    quint16 minInterval;
-    quint16 maxInterval;
-    quint16 manufacturerCode;
-    quint8 direction;
-    quint8 dataType;
+    quint32 reportableChange = 0;
+    quint16 attributeId = 0;
+    quint16 minInterval = 0;
+    quint16 maxInterval = 0;
+    quint16 manufacturerCode = 0;
+    quint8 direction = 0;
+    quint8 dataType = 0;
     bool valid = false;
 };
 
@@ -57,11 +57,15 @@ public:
 class DeviceDescription
 {
 public:
-    bool isValid() const { return !modelIds.empty() && !subDevices.empty(); }
+    bool isValid() const { return !manufacturerNames.isEmpty() && !modelIds.empty() && !subDevices.empty(); }
 
     QStringList modelIds;
-    QString manufacturer;
+    QStringList manufacturerNames; // as reported in Basic cluster
+    QString vendor; // optional: friendly name of manufacturer
     QString product;
+    QString status;
+
+    int handle = -1; // index in container
     int sleeper = -1;
 
     class Item
@@ -81,6 +85,7 @@ public:
             isPublic = 0;
             isStatic = 0;
             isImplicit = 0;
+            isManaged = 0;
             awake = 0;
             pad = 0;
         }
@@ -96,8 +101,9 @@ public:
             unsigned int isPublic : 1;
             unsigned int isStatic : 1;
             unsigned int isImplicit : 1;
+            unsigned int isManaged : 1; // managed internally
             unsigned int awake : 1;
-            unsigned int pad : 2 + 8;
+            unsigned int pad : 8;
         };
 
         int refreshInterval = NoRefreshInterval;
@@ -107,6 +113,7 @@ public:
         QVariant readParameters;
         QVariant writeParameters;
         QVariant defaultValue;
+        QString description;
     };
 
     class SubDevice
@@ -136,6 +143,7 @@ public:
     ~DeviceDescriptions();
     const DeviceDescription &get(const Resource *resource) const;
     QString constantToString(const QString &constant) const;
+    QString stringToConstant(const QString &str) const;
 
     const DeviceDescription::Item &getItem(const ResourceItem *item) const;
 
@@ -157,6 +165,10 @@ private:
     DeviceDescriptionsPrivate *d_ptr2 = nullptr;
 };
 
+#define DDF_AnnoteZclParse(resource, item, ep, cl, at, eval) \
+    DDF_AnnoteZclParse1(__LINE__, __FILE__, resource, item, ep, cl, at, eval)
+
+void DDF_AnnoteZclParse1(int line, const char* file, const Resource *resource, const ResourceItem *item, quint8 ep, quint16 clusterId, quint16 attributeId, const char *eval);
 const DeviceDescription::Item &DDF_GetItem(const ResourceItem *item);
 
 #endif // DEVICEDESCRIPTIONS_H

@@ -154,7 +154,7 @@ quint8 resolveAutoEndpoint(const Resource *r)
     if (ls.size() >= 2)
     {
         bool ok = false;
-        uint ep = ls[1].toUInt(&ok, 10);
+        uint ep = ls[1].toUInt(&ok, 16);
         if (ok && ep < BroadcastEndpoint)
         {
             result = ep;
@@ -199,13 +199,13 @@ bool evalZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndi
         if (engine.evaluate(expr) == JsEvalResult::Ok)
         {
             const auto res = engine.result();
-            DBG_Printf(DBG_INFO, "expression: %s --> %s\n", qPrintable(expr), qPrintable(res.toString()));
+            DBG_Printf(DBG_DDF, "%s/%s expression: %s --> %s\n", r->item(RAttrUniqueId)->toCString(), item->descriptor().suffix, qPrintable(expr), qPrintable(res.toString()));
             // item->setValue(res, ResourceItem::SourceDevice);
             return true;
         }
         else
         {
-            DBG_Printf(DBG_INFO, "failed to evaluate expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
+            DBG_Printf(DBG_DDF, "failed to evaluate expression for %s/%s: %s, err: %s\n", r->item(RAttrUniqueId)->toCString(), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
         }
     }
     return false;

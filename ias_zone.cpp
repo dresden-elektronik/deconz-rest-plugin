@@ -10,6 +10,7 @@
 
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
+#include "device_descriptions.h"
 #include "ias_zone.h"
 
 // server send
@@ -473,6 +474,9 @@ void DeRestPluginPrivate::processIasZoneStatus(Sensor *sensor, quint16 zoneStatu
         bool alarm = (zoneStatus & (STATUS_ALARM1 | STATUS_ALARM2)) ? true : false;
         item->setValue(alarm);
         enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor->id(), item));
+
+        // TODO DDF DDF_AnnoteZclParseCommand()
+        DDF_AnnoteZclParse(sensor, item, 0, IAS_ZONE_CLUSTER_ID, IAS_ZONE_STATUS, "Item.val = (Attr.val & 0x3) != 0");
 
         item2 = sensor->item(RStateTest);
         if (item2)
