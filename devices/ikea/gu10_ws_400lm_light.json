@@ -40,15 +40,15 @@
                 },
                 {
                     "name": "config/colorcapabilities",
-                    "default": 16
+                    "static": 16
                 },
                 {
                     "name": "config/ctmin",
-                    "default": 250
+                    "static": 250
                 },
                 {
                     "name": "config/ctmax",
-                    "default": 454
+                    "static": 454
                 },
                 {
                     "name": "state/on"
@@ -64,6 +64,7 @@
                 },
                 {
                     "name": "state/colormode",
+                    "static": "ct",
                     "values": [
                         ["\"ct\"", "color temperature"]
                     ]
