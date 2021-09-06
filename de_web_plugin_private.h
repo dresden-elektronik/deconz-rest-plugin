@@ -93,7 +93,7 @@ using namespace deCONZ::literals;
 
 #define MAX_UNLOCK_GATEWAY_TIME 600
 #define MAX_RECOVER_ENTRY_AGE 600
-#define PERMIT_JOIN_SEND_INTERVAL (1000 * 1800)
+#define PERMIT_JOIN_SEND_INTERVAL (1000 * 60)
 #define SET_ENDPOINTCONFIG_DURATION (1000 * 16) // time deCONZ needs to update Endpoints
 #define OTA_LOW_PRIORITY_TIME (60 * 2)
 #define CHECK_SENSOR_FAST_ROUNDS 3
@@ -1245,7 +1245,7 @@ public:
     bool setInternetDiscoveryInterval(int minutes);
     // Permit join
     void initPermitJoin();
-    bool setPermitJoinDuration(uint8_t duration);
+    void setPermitJoinDuration(int duration);
 
     // Otau
     void initOtau();
@@ -1293,8 +1293,8 @@ public Q_SLOTS:
     void inetProxyHostLookupDone(const QHostInfo &host);
     void inetProxyCheckHttpVia(const QString &via);
     void scheduleTimerFired();
+    void permitJoin(int seconds);
     void permitJoinTimerFired();
-    void resendPermitJoinTimerFired();
     void otauTimerFired();
     void lockGatewayTimerFired();
     void openClientTimerFired();
@@ -1714,8 +1714,8 @@ public:
     int gwAnnounceInterval; // used by internet discovery [minutes]
     QString gwAnnounceUrl;
     int gwAnnounceVital; // 0 not tried, > 0 success attemps, < 0 failed attemps
-    uint8_t gwPermitJoinDuration; // global permit join state (last set)
-    int gwPermitJoinResend; // permit join of values > 255
+    int gwPermitJoinDuration = 0; // global permit join state (last set)
+    QString permitJoinApiKey;
     uint16_t gwNetworkOpenDuration; // user setting how long network remains open
     QString gwWifi;     // configured | not-configured | not-available | new-configured | deactivated
     QString gwWifiActive;
@@ -1856,11 +1856,9 @@ public:
     QTimer *lockGatewayTimer;
 
     // permit join
-    // used by searchLights()
     QTimer *permitJoinTimer;
-    QTime permitJoinLastSendTime;
+    QElapsedTimer permitJoinLastSendTime;
     bool permitJoinFlag; // indicates that permitJoin changed from greater than 0 to 0
-    QTimer *resendPermitJoinTimer;
 
     // schedules
     QTimer *scheduleTimer;

@@ -11,6 +11,8 @@
 #ifndef ZDP_H
 #define ZDP_H
 
+#include <cstdint>
+
 namespace deCONZ
 {
     class ApsController;
@@ -57,5 +59,6 @@ ZDP_Result ZDP_NodeDescriptorReq(uint16_t nwkAddress, deCONZ::ApsController *aps
 ZDP_Result ZDP_ActiveEndpointsReq(uint16_t nwkAddress, deCONZ::ApsController *apsCtrl);
 ZDP_Result ZDP_SimpleDescriptorReq(uint16_t nwkAddress, uint8_t endpoint, deCONZ::ApsController *apsCtrl);
 ZDP_Result ZDP_BindReq(const deCONZ::Binding &bnd, deCONZ::ApsController *apsCtrl);
+uint8_t ZDP_NextSequenceNumber();
 
 #endif // ZDP_H

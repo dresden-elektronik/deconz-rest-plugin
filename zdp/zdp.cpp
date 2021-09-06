@@ -175,3 +175,9 @@ ZDP_Result ZDP_BindReq(const deCONZ::Binding &bnd, deCONZ::ApsController *apsCtr
 
     return result;
 }
+
+uint8_t ZDP_NextSequenceNumber()
+{
+    uint8_t result = zdpSeq++;
+    return result;
+}

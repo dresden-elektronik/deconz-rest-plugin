@@ -31,6 +31,7 @@ const char *REventDeviceAlarm = "event/devicealarm";
 const char *REventDeviceAnnounce = "event/device.anounce";
 const char *REventPermitjoinEnabled = "event/permit.join.enabled";
 const char *REventPermitjoinDisabled = "event/permit.join.disabled";
+const char *REventPermitjoinRunning = "event/permit.join.running";
 const char *REventPoll = "event/poll";
 const char *REventDDFReload = "event/ddf.reload";
 const char *REventDDFInitRequest = "event/ddf.init.req";

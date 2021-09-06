@@ -152,8 +152,6 @@ int DeRestPluginPrivate::getAllLights(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::searchNewLights(const ApiRequest &req, ApiResponse &rsp)
 {
-    Q_UNUSED(req);
-
     if (!isInNetwork())
     {
         rsp.list.append(errorToMap(ERR_NOT_CONNECTED, QLatin1String("/lights"), QLatin1String("Not connected")));
@@ -161,6 +159,7 @@ int DeRestPluginPrivate::searchNewLights(const ApiRequest &req, ApiResponse &rsp
         return REQ_READY_SEND;
     }
 
+    permitJoinApiKey = req.apikey();
     startSearchLights();
     {
         QVariantMap rspItem;
@@ -3161,23 +3160,16 @@ void DeRestPluginPrivate::startSearchLights()
     }
 
     searchLightsTimeout = gwNetworkOpenDuration;
-    gwPermitJoinResend = searchLightsTimeout;
-    if (!resendPermitJoinTimer->isActive())
-    {
-        resendPermitJoinTimer->start(100);
-    }
+    setPermitJoinDuration(searchLightsTimeout);
 }
 
 /*! Handler for search lights active state.
  */
 void DeRestPluginPrivate::searchLightsTimerFired()
 {
-    if (gwPermitJoinResend == 0)
+    if (gwPermitJoinDuration == 0)
     {
-        if (gwPermitJoinDuration == 0)
-        {
-            searchLightsTimeout = 0; // done
-        }
+        searchLightsTimeout = 0; // done
     }
 
     if (searchLightsTimeout > 0)

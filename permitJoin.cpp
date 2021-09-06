@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2021 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -9,6 +9,7 @@
  */
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
+#include "zdp/zdp.h"
 
 /*! Inits permit join manager.
 
@@ -22,23 +23,16 @@ void DeRestPluginPrivate::initPermitJoin()
     connect(permitJoinTimer, SIGNAL(timeout()),
             this, SLOT(permitJoinTimerFired()));
     permitJoinTimer->start(1000);
-    permitJoinLastSendTime = QTime::currentTime();
-
-    resendPermitJoinTimer = new QTimer(this);
-    resendPermitJoinTimer->setSingleShot(true);
-    connect(resendPermitJoinTimer, SIGNAL(timeout()),
-            this, SLOT(resendPermitJoinTimerFired()));
 }
 
 /*! Sets the permit join interval
 
     \param duration specifies the interval in which joining is enabled
                - 0 disabled
-               - 1..254 duration in seconds until joining will be disabled
-               - 255 always permit
- * \return
+               - >0 duration in seconds until joining will be disabled
+
  */
-bool DeRestPluginPrivate::setPermitJoinDuration(uint8_t duration)
+void DeRestPluginPrivate::setPermitJoinDuration(int duration)
 {
     if (gwPermitJoinDuration != duration)
     {
@@ -46,8 +40,7 @@ bool DeRestPluginPrivate::setPermitJoinDuration(uint8_t duration)
     }
 
     // force resend
-    permitJoinLastSendTime = QTime();
-    return true;
+    permitJoinLastSendTime.invalidate();
 }
 
 /*! Handle broadcasting of permit join interval.
@@ -63,16 +56,25 @@ void DeRestPluginPrivate::permitJoinTimerFired()
         return;
     }
 
-    if ((gwPermitJoinDuration > 0) && (gwPermitJoinDuration < 255))
+    if (gwPermitJoinDuration > 0)
     {
+        gwPermitJoinDuration--;
+
         if (!permitJoinFlag)
         {
             permitJoinFlag = true;
-            enqueueEvent(Event(RConfig, REventPermitjoinEnabled, 0));
+            enqueueEvent(Event(RConfig, REventPermitjoinEnabled, gwPermitJoinDuration));
         }
-        gwPermitJoinDuration--;
+        else
+        {
+            enqueueEvent(Event(RConfig, REventPermitjoinRunning, gwPermitJoinDuration));
+        }
 
-        if ((gwPermitJoinDuration % 10) == 0)
+        if (DEV_TestManaged())
+        {
+
+        }
+        else if ((gwPermitJoinDuration % 10) == 0) // TODO bad this needs to go
         {
             // try to add light nodes even if they existed in deCONZ bevor and therefore
             // no node added event will be triggert in this phase
@@ -88,7 +90,7 @@ void DeRestPluginPrivate::permitJoinTimerFired()
                 i++;
             }
         }
-        else if ((gwPermitJoinDuration % 15) == 0)
+        else if ((gwPermitJoinDuration % 15) == 0) // TODO bad this needs to go
         {
             for (LightNode &l : nodes)
             {
@@ -102,12 +104,6 @@ void DeRestPluginPrivate::permitJoinTimerFired()
         updateEtag(gwConfigEtag); // update Etag so that webApp can count down permitJoin duration
     }
 
-    if (gwPermitJoinDuration == 0 && permitJoinFlag)
-    {
-        permitJoinFlag = false;
-        enqueueEvent(Event(RConfig, REventPermitjoinDisabled, 0));
-    }
-
     if (!isInNetwork())
     {
         return;
@@ -118,19 +114,14 @@ void DeRestPluginPrivate::permitJoinTimerFired()
     {
         // workaround since the firmware reports cached value instead hot value
         apsCtrl->setPermitJoin(gwPermitJoinDuration);
-        permitJoinLastSendTime = {}; // force broadcast
+        permitJoinLastSendTime.invalidate(); // force broadcast
     }
 
-//    if (gwPermitJoinDuration == 0 && otauLastBusyTimeDelta() < (60 * 5))
-//    {
-//        // don't pollute channel while OTA is running
-//        return;
-//    }
+    if (!permitJoinFlag)
+    {
 
-    QTime now = QTime::currentTime();
-    int diff = permitJoinLastSendTime.msecsTo(now);
-
-    if (!permitJoinLastSendTime.isValid() || ((diff > PERMIT_JOIN_SEND_INTERVAL) && !gwdisablePermitJoinAutoOff))
+    }
+    else if (!permitJoinLastSendTime.isValid() || (permitJoinLastSendTime.elapsed() > PERMIT_JOIN_SEND_INTERVAL && !gwdisablePermitJoinAutoOff))
     {
         deCONZ::ApsDataRequest apsReq;
         quint8 tcSignificance = 0x01;
@@ -147,25 +138,23 @@ void DeRestPluginPrivate::permitJoinTimerFired()
         QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
         stream.setByteOrder(QDataStream::LittleEndian);
 
-        stream << (uint8_t)now.second(); // seqno
-        stream << gwPermitJoinDuration;
+        static_assert (PERMIT_JOIN_SEND_INTERVAL / 1000 < 180, "permit join send interval < 180 seconds");
+        static_assert (PERMIT_JOIN_SEND_INTERVAL / 1000 > 30, "permit join send interval > 30 seconds");
+
+        int duration = qMin(gwPermitJoinDuration, (PERMIT_JOIN_SEND_INTERVAL / 1000) + 5);
+
+        stream << ZDP_NextSequenceNumber();
+        stream << static_cast<quint8>(duration);
         stream << tcSignificance;
 
-        DBG_Assert(apsCtrl != 0);
-
-        if (!apsCtrl)
-        {
-            return;
-        }
-
         // set for own node
-        apsCtrl->setPermitJoin(gwPermitJoinDuration);
+        apsCtrl->setPermitJoin(duration);
 
         // broadcast
         if (apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
         {
-            DBG_Printf(DBG_INFO, "send permit join, duration: %d\n", gwPermitJoinDuration);
-            permitJoinLastSendTime = now;
+            DBG_Printf(DBG_INFO, "send permit join, duration: %d\n", duration);
+            permitJoinLastSendTime.restart();
 
             if (gwPermitJoinDuration > 0)
             {
@@ -176,46 +165,28 @@ void DeRestPluginPrivate::permitJoinTimerFired()
         {
             DBG_Printf(DBG_INFO, "send permit join failed\n");
         }
+    }
 
+    if (gwPermitJoinDuration == 0 && permitJoinFlag)
+    {
+        permitJoinApiKey.clear();
+        permitJoinFlag = false;
+        enqueueEvent(Event(RConfig, REventPermitjoinDisabled, 0));
     }
 }
 
-/*! Check if permitJoin is > 60 seconds then resend permitjoin with 60 seconds
- */
-void DeRestPluginPrivate::resendPermitJoinTimerFired()
+void DeRestPluginPrivate::permitJoin(int seconds)
 {
-    resendPermitJoinTimer->stop();
-    if (gwPermitJoinDuration <= 1)
+    if (seconds > 0)
     {
-        if (gwPermitJoinResend > 0)
-        {
-            if (gwPermitJoinResend >= 60)
-            {
-                setPermitJoinDuration(60);
-            }
-            else
-            {
-                setPermitJoinDuration(gwPermitJoinResend);
-            }
-            gwPermitJoinResend -= 60;
-            updateEtag(gwConfigEtag);
-            if (gwPermitJoinResend <= 0)
-            {
-                gwPermitJoinResend = 0;
-                return;
-            }
-
-        }
-        else if (gwPermitJoinResend == 0)
-        {
-            setPermitJoinDuration(0);
-            return;
-        }
+        int tmp = gwNetworkOpenDuration; // preserve configured duration
+        gwNetworkOpenDuration = seconds;
+        startSearchSensors();
+        startSearchLights();
+        gwNetworkOpenDuration = tmp;
     }
-    else if (gwPermitJoinResend == 0)
+    else
     {
-        setPermitJoinDuration(0);
-        return;
+        gwPermitJoinDuration = 0;
     }
-    resendPermitJoinTimer->start(1000);
 }

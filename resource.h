@@ -59,6 +59,7 @@ extern const char *REventDeviceAlarm;
 extern const char *REventDeviceAnnounce;
 extern const char *REventPermitjoinEnabled;
 extern const char *REventPermitjoinDisabled;
+extern const char *REventPermitjoinRunning;
 extern const char *REventPoll;
 extern const char *REventDDFReload;
 extern const char *REventDDFInitRequest;
