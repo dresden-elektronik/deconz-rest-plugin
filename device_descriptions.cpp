@@ -58,6 +58,10 @@ public:
 
     DeviceDescription invalidDescription;
     DeviceDescription::Item invalidItem;
+
+    std::vector<DDF_FunctionDescriptor> readFunctions;
+    std::vector<DDF_FunctionDescriptor> writeFunctions;
+    std::vector<DDF_FunctionDescriptor> parseFunctions;
 };
 
 static bool DDF_ReadConstantsJson(const QString &path, std::map<QString,QString> *constants);
@@ -75,6 +79,166 @@ DeviceDescriptions::DeviceDescriptions(QObject *parent) :
 {
     _instance = this;
     _priv = d_ptr2;
+
+    {  // Parse function as shown in the DDF editor.
+        DDF_FunctionDescriptor fn;
+        fn.name = "zcl";
+        fn.description = "Generic function to parse ZCL attributes and commands.";
+
+        DDF_FunctionDescriptor::Parameter param;
+
+        param.name = "Endpoint";
+        param.key = "ep";
+        param.description = "255 means any endpoint, 0 means auto selected from subdevice.";
+        param.dataType = DataTypeUInt8;
+        param.defaultValue = 0;
+        param.isOptional = 1;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Cluster ID";
+        param.key = "cl";
+        param.description = "As string hex value";
+        param.dataType = DataTypeUInt16;
+        param.defaultValue = 0;
+        param.isOptional = 0;
+        param.isHexString = 1;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Attribute ID";
+        param.key = "at";
+        param.description = "As string hex value";
+        param.dataType = DataTypeUInt16;
+        param.defaultValue = 0;
+        param.isOptional = 0;
+        param.isHexString = 1;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Manufacturer code";
+        param.key = "mf";
+        param.description = "As string hex value.";
+        param.dataType = DataTypeUInt16;
+        param.defaultValue = 0;
+        param.isOptional = 1;
+        param.isHexString = 1;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Expression";
+        param.key = "eval";
+        param.description = "Javascript expression to transform the raw value.";
+        param.dataType = DataTypeString;
+        param.defaultValue = 0;
+        param.isOptional = 1;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        d_ptr2->parseFunctions.push_back(fn);
+    }
+
+    {  // Read function as shown in the DDF editor.
+        DDF_FunctionDescriptor fn;
+        fn.name = "zcl";
+        fn.description = "Generic function to read ZCL attributes.";
+
+        DDF_FunctionDescriptor::Parameter param;
+
+        param.name = "Endpoint";
+        param.key = "ep";
+        param.description = "255 means any endpoint, 0 means auto selected from subdevice.";
+        param.dataType = DataTypeUInt8;
+        param.defaultValue = 255;
+        param.isOptional = 0;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Cluster ID";
+        param.key = "cl";
+        param.description = "As string hex value";
+        param.dataType = DataTypeUInt16;
+        param.defaultValue = 0;
+        param.isOptional = 0;
+        param.isHexString = 1;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Attribute ID";
+        param.key = "at";
+        param.description = "As string hex value";
+        param.dataType = DataTypeUInt16;
+        param.defaultValue = 0;
+        param.isOptional = 0;
+        param.isHexString = 1;
+        param.supportsArray = 1;
+        fn.parameters.push_back(param);
+
+        param.name = "Manufacturer code";
+        param.key = "mf";
+        param.description = "As string hex value.";
+        param.dataType = DataTypeUInt16;
+        param.defaultValue = 0;
+        param.isOptional = 1;
+        param.isHexString = 1;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        d_ptr2->readFunctions.push_back(fn);
+    }
+
+    {
+        DDF_FunctionDescriptor fn;
+        fn.name = "xiaomi:special";
+        fn.description = "Generic function to parse custom Xiaomi attributes and commands.";
+
+        DDF_FunctionDescriptor::Parameter param;
+
+        param.name = "Endpoint";
+        param.key = "ep";
+        param.description = "Source endpoint of the incoming command, default value 255 means any endpoint.";
+        param.dataType = DataTypeUInt8;
+        param.defaultValue = 255;
+        param.isOptional = 1;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Attribute ID";
+        param.key = "at";
+        param.description = "The attribute to parse, shall be 0xff01, 0xff02 or 0x00f7";
+        param.dataType = DataTypeUInt16;
+        param.defaultValue = 0;
+        param.isOptional = 0;
+        param.isHexString = 1;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Index";
+        param.key = "idx";
+        param.description = "A 8-bit string hex value.";
+        param.dataType = DataTypeUInt8;
+        param.defaultValue = 0;
+        param.isOptional = 0;
+        param.isHexString = 1;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Expression";
+        param.key = "eval";
+        param.description = "Javascript expression to transform the raw value.";
+        param.dataType = DataTypeString;
+        param.defaultValue = 0;
+        param.isOptional = 0;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        d_ptr2->parseFunctions.push_back(fn);
+    }
 }
 
 /*! Destructor. */
@@ -185,6 +349,35 @@ const DeviceDescription &DeviceDescriptions::get(const Resource *resource) const
     }
 
     return d->invalidDescription;
+}
+
+void DeviceDescriptions::put(const DeviceDescription &ddf)
+{
+    if (!ddf.isValid())
+    {
+        return;
+    }
+
+    Q_D(DeviceDescriptions);
+
+    if (ddf.handle >= 0 && ddf.handle <= int(d->descriptions.size()))
+    {
+        DeviceDescription &ddf0 = d->descriptions[ddf.handle];
+
+        DBG_Assert(ddf0.handle == ddf.handle);
+        if (ddf.handle == ddf0.handle)
+        {
+            DBG_Printf(DBG_INFO, "update ddf %s index %d\n", qPrintable(ddf0.modelIds.front()), ddf.handle);
+            ddf0 = ddf;
+            DDF_UpdateItemHandles(d->descriptions, d->loadCounter);
+            return;
+        }
+    }
+
+    {
+        DBG_Printf(DBG_INFO, "add ddf %s\n", qPrintable(ddf.modelIds.front()));
+        DDF_UpdateItemHandles(d->descriptions, d->loadCounter);
+    }
 }
 
 /*! Turns a string constant into it's value.
@@ -323,6 +516,11 @@ const DeviceDescription::Item &DeviceDescriptions::getItem(const ResourceItem *i
     return sub.items[h.item];
 }
 
+const DDF_Items &DeviceDescriptions::genericItems() const
+{
+    return d_ptr2->genericItems;
+}
+
 const DeviceDescription::Item &DeviceDescriptions::getGenericItem(const char *suffix) const
 {
     Q_D(const DeviceDescriptions);
@@ -336,6 +534,16 @@ const DeviceDescription::Item &DeviceDescriptions::getGenericItem(const char *su
     }
 
     return d->invalidItem;
+}
+
+std::vector<DDF_FunctionDescriptor> &DeviceDescriptions::getParseFunctions() const
+{
+    return d_ptr2->parseFunctions;
+}
+
+std::vector<DDF_FunctionDescriptor> &DeviceDescriptions::getReadFunctions() const
+{
+    return d_ptr2->readFunctions;
 }
 
 /*! Updates all DDF item handles to point to correct location.
@@ -389,44 +597,50 @@ void DeviceDescriptions::readAll()
 
     DBG_MEASURE_START(DDF_ReadAllFiles);
 
-    QDirIterator it(deCONZ::getStorageLocation(deCONZ::DdfLocation),
-                    QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
-
     std::vector<DeviceDescription> descriptions;
     std::vector<DeviceDescription::Item> genericItems;
 
-    while (it.hasNext())
-    {
-        it.next();
+    QStringList dirs;
+    dirs.push_back(deCONZ::getStorageLocation(deCONZ::DdfUserLocation));
+    dirs.push_back(deCONZ::getStorageLocation(deCONZ::DdfLocation));
 
-        if (it.filePath().endsWith(QLatin1String("generic/constants.json")))
+    while (!dirs.isEmpty())
+    {
+        QDirIterator it(dirs.takeFirst(), QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
+
+        while (it.hasNext())
         {
-            std::map<QString,QString> constants;
-            if (DDF_ReadConstantsJson(it.filePath(), &constants))
+            it.next();
+
+            if (it.filePath().endsWith(QLatin1String("generic/constants.json")))
             {
-                d->constants = constants;
-            }
-        }
-        else if (it.fileName() == QLatin1String("button_maps.json"))
-        {  }
-        else if (it.fileName().endsWith(QLatin1String(".json")))
-        {
-            if (it.filePath().contains(QLatin1String("generic/items/")))
-            {
-                auto result = DDF_ReadItemFile(it.filePath());
-                if (result.isValid())
+                std::map<QString,QString> constants;
+                if (DDF_ReadConstantsJson(it.filePath(), &constants))
                 {
-                    result.isGenericRead = !result.readParameters.isNull() ? 1 : 0;
-                    result.isGenericWrite = !result.writeParameters.isNull() ? 1 : 0;
-                    result.isGenericParse = !result.parseParameters.isNull() ? 1 : 0;
-                    genericItems.push_back(std::move(result));
+                    d->constants = constants;
                 }
             }
-            else
+            else if (it.fileName() == QLatin1String("button_maps.json"))
+            {  }
+            else if (it.fileName().endsWith(QLatin1String(".json")))
             {
-                DBG_Printf(DBG_INFO, "CHK %s\n", qPrintable(it.fileName()));
-                std::vector<DeviceDescription> result = DDF_ReadDeviceFile(it.filePath());
-                std::move(result.begin(), result.end(), std::back_inserter(descriptions));
+                if (it.filePath().contains(QLatin1String("generic/items/")))
+                {
+                    auto result = DDF_ReadItemFile(it.filePath());
+                    if (result.isValid())
+                    {
+                        result.isGenericRead = !result.readParameters.isNull() ? 1 : 0;
+                        result.isGenericWrite = !result.writeParameters.isNull() ? 1 : 0;
+                        result.isGenericParse = !result.parseParameters.isNull() ? 1 : 0;
+                        genericItems.push_back(std::move(result));
+                    }
+                }
+                else
+                {
+                    DBG_Printf(DBG_DDF, "read %s\n", qPrintable(it.fileName()));
+                    std::vector<DeviceDescription> result = DDF_ReadDeviceFile(it.filePath());
+                    std::move(result.begin(), result.end(), std::back_inserter(descriptions));
+                }
             }
         }
     }

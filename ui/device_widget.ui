@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DeviceWidget</class>
+ <widget class="QWidget" name="DeviceWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>655</width>
+    <height>661</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <property name="documentMode">
+      <bool>false</bool>
+     </property>
+     <widget class="QWidget" name="devTab1">
+      <attribute name="title">
+       <string>DDF</string>
+      </attribute>
+      <widget class="QLabel" name="uniqueIdLabel">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>30</y>
+         <width>150</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>No device selected</string>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="enableDDFCheckBox">
+       <property name="geometry">
+        <rect>
+         <x>40</x>
+         <y>110</y>
+         <width>421</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Enable DDF handling</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_4">
+       <property name="geometry">
+        <rect>
+         <x>40</x>
+         <y>160</y>
+         <width>421</width>
+         <height>121</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, devices with a Device Description File (DDF) are joined and processed by DDF handlers.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Important:&lt;/span&gt; This is a test mode and not suitable for production networks.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="devTab2">
+      <attribute name="title">
+       <string>Pairing</string>
+      </attribute>
+      <widget class="QStackedWidget" name="permitJoinStackedWidget">
+       <property name="geometry">
+        <rect>
+         <x>70</x>
+         <y>110</y>
+         <width>451</width>
+         <height>331</height>
+        </rect>
+       </property>
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <widget class="QWidget" name="permitJoinDisabledPage">
+        <widget class="QPushButton" name="enablePermitJoinButton">
+         <property name="geometry">
+          <rect>
+           <x>232</x>
+           <y>230</y>
+           <width>161</width>
+           <height>31</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Enable permit join</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label">
+         <property name="geometry">
+          <rect>
+           <x>60</x>
+           <y>70</y>
+           <width>211</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Permit join is disabled.</string>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QWidget" name="permitJoinEnabledPage">
+        <widget class="QLabel" name="label_2">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>50</y>
+           <width>231</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Permit join is enabled</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_3">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>120</y>
+           <width>161</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Seconds remaining:</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="permitJoinRemainingTimeLabel">
+         <property name="geometry">
+          <rect>
+           <x>193</x>
+           <y>120</y>
+           <width>111</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>0</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="disablePermitJoinButton">
+         <property name="geometry">
+          <rect>
+           <x>222</x>
+           <y>250</y>
+           <width>171</width>
+           <height>31</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Disable permit join</string>
+         </property>
+        </widget>
+       </widget>
+      </widget>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

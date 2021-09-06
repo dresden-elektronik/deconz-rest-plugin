@@ -131,8 +131,11 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
             i->enableRead(READ_GROUPS | READ_SCENES);
 
             // bring to front to force next polling
-            const PollNodeItem pollItem(i->uniqueId(), i->prefix());
-            pollNodes.push_front(pollItem);
+            if (!device->managed())
+            {
+                const PollNodeItem pollItem(i->uniqueId(), i->prefix());
+                pollNodes.push_front(pollItem);
+            }
 
             for (uint32_t ii = 0; ii < 32; ii++)
             {

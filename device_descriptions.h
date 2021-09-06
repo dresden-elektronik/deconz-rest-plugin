@@ -132,7 +132,33 @@ public:
     std::vector<DDF_Binding> bindings;
 };
 
+struct DDF_FunctionDescriptor
+{
+    struct Parameter
+    {
+        struct // 16 bits flags
+        {
+            unsigned int isOptional : 1;
+            unsigned int supportsArray : 1;
+            unsigned int isHexString : 1;
+            unsigned int pad : 5;
+        };
+
+        QString name;
+        QString key;
+        QString description;
+        ApiDataType dataType = DataTypeUnknown;
+        qint64 defaultValue = 0;
+    };
+
+    QString name;
+    QString description;
+    std::vector<Parameter> parameters;
+};
+
 class DeviceDescriptionsPrivate;
+
+using DDF_Items = std::vector<DeviceDescription::Item>;
 
 class DeviceDescriptions : public QObject
 {
@@ -142,10 +168,16 @@ public:
     explicit DeviceDescriptions(QObject *parent = nullptr);
     ~DeviceDescriptions();
     const DeviceDescription &get(const Resource *resource) const;
+    void put(const DeviceDescription &ddf);
+
     QString constantToString(const QString &constant) const;
     QString stringToConstant(const QString &str) const;
 
+    const DDF_Items &genericItems() const;
     const DeviceDescription::Item &getItem(const ResourceItem *item) const;
+    const DeviceDescription::Item &getGenericItem(const char *suffix) const;
+    std::vector<DDF_FunctionDescriptor> &getParseFunctions() const;
+    std::vector<DDF_FunctionDescriptor> &getReadFunctions() const;
 
     static DeviceDescriptions *instance();
 
@@ -158,7 +190,6 @@ Q_SIGNALS:
     void loaded();
 
 private:
-    const DeviceDescription::Item &getGenericItem(const char *suffix) const;
     void handleDDFInitRequest(const Event &event);
 
     Q_DECLARE_PRIVATE_D(d_ptr2, DeviceDescriptions)

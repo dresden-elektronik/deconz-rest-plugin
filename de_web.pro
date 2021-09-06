@@ -159,6 +159,12 @@ HEADERS  = bindings.h \
            thermostat.h \
            thermostat_ui_configuration.h \
            tuya.h \
+           ui/ddf_editor.h \
+           ui/ddf_itemeditor.h \
+           ui/ddf_itemlist.h \
+           ui/ddf_treeview.h \
+           ui/device_widget.h \
+           ui/text_lineedit.h \
            utils/bufstring.h \
            utils/stringcache.h \
            utils/utils.h \
@@ -240,6 +246,12 @@ SOURCES  = air_quality.cpp \
            rule.cpp \
            state_change.cpp \
            thermostat_ui_configuration.cpp \
+           ui/ddf_editor.cpp \
+           ui/ddf_itemeditor.cpp \
+           ui/ddf_itemlist.cpp \
+           ui/ddf_treeview.cpp \
+           ui/device_widget.cpp \
+           ui/text_lineedit.cpp \
            upnp.cpp \
            permitJoin.cpp \
            scene.cpp \
@@ -292,4 +304,6 @@ win32:DESTDIR  = ../../debug/plugins # TODO adjust
 unix:DESTDIR  = ..
 
 FORMS += \
-    de_web_widget.ui
+    de_web_widget.ui \
+    ui/ddf_editor.ui \
+    ui/device_widget.ui

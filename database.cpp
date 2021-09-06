@@ -6600,6 +6600,10 @@ int DB_GetSubDeviceItemCount(QLatin1String uniqueId)
                 result = sqlite3_column_int(res, 0);
             }
         }
+        else
+        {
+            DBG_Printf(DBG_ERROR, "error preparing sql (err: %d): %s\n", rc, sql);
+        }
 
         rc = sqlite3_finalize(res);
         DBG_Assert(rc == SQLITE_OK);

@@ -712,6 +712,7 @@ extern const char *HttpContentSVG;
 
 // Forward declarations
 class DeviceDescriptions;
+class DeviceWidget;
 class Gateway;
 class GatewayScanner;
 class QUdpSocket;
@@ -2003,6 +2004,8 @@ public:
         SearchSensorsDone,
     };
 
+
+    DeviceWidget *deviceWidget = nullptr;
     RestDevices *restDevices;
 
     int sensorIndIdleTotalCounter;

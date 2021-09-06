@@ -736,10 +736,6 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
         d->setState(nullptr, STATE_LEVEL_POLL);
         return;
     }
-    else if (event.what() == REventDDFReload)
-    {
-        d->setState(DEV_InitStateHandler);
-    }
     else if (event.what() != RAttrLastSeen && event.what() != REventPoll)
     {
         // DBG_Printf(DBG_INFO, "DEV Idle event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
@@ -1457,6 +1453,11 @@ void Device::handleEvent(const Event &event, DEV_StateLevel level)
         Q_ASSERT(event.num() >= StateLevel0);
         Q_ASSERT(event.num() < StateLevelMax);
         d->state[event.num()](this, event);
+    }
+    else if (event.what() == REventDDFReload)
+    {
+        d->setState(DEV_InitStateHandler);
+        d->startStateTimer(50, StateLevel0);
     }
     else if (d->state[level])
     {

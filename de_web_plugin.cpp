@@ -42,6 +42,7 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "de_web_widget.h"
+#include "ui/device_widget.h"
 #include "gateway_scanner.h"
 #include "ias_ace.h"
 #include "json.h"
@@ -12980,10 +12981,28 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
             addLightNode(event.node());
         }
 
+        if (deviceWidget)
+        {
+            deviceWidget->nodeEvent(event);
+        }
+
         break;
 
     case deCONZ::NodeEvent::NodeDeselected:
+        if (deviceWidget)
+        {
+            deviceWidget->nodeEvent(event);
+        }
         break;
+
+#if DECONZ_LIB_VERSION >= 0x011003
+    case deCONZ::NodeEvent::EditDeviceDDF:
+        if (deviceWidget)
+        {
+            deviceWidget->nodeEvent(event);
+        }
+        break;
+#endif
 
     case deCONZ::NodeEvent::NodeRemoved: // deleted via GUI
     {
@@ -12993,6 +13012,10 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
             restDevices->deleteDevice(event.node()->address().ext());
         }
 #endif
+        if (deviceWidget)
+        {
+            deviceWidget->nodeEvent(event);
+        }
     }
         break;
 
@@ -17197,6 +17220,7 @@ bool DeRestPlugin::hasFeature(Features feature)
     switch (feature)
     {
     case DialogFeature:
+    case WidgetFeature:
     case HttpClientHandlerFeature:
         return true;
 
@@ -17212,7 +17236,12 @@ bool DeRestPlugin::hasFeature(Features feature)
  */
 QWidget *DeRestPlugin::createWidget()
 {
-    return 0;
+    if (!d->deviceWidget)
+    {
+        d->deviceWidget = new DeviceWidget(d->m_devices, nullptr);
+        connect(d->deviceWidget, &DeviceWidget::permitJoin, d, &DeRestPluginPrivate::permitJoin);
+    }
+    return d->deviceWidget;
 }
 
 /*! Creates a control dialog for this plugin.
