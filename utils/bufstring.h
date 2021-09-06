@@ -54,29 +54,44 @@ public:
         setString(str, len);
     }
 
+    BufString(const BufString &rhs)
+    {
+        setString(rhs.c_str(), rhs.size());
+    }
+
     constexpr const BufStringBase *base() const { return &base_; }
 
     constexpr bool setString(const char *str)
     {
+        assert(str);
         return setString(str, strlen(str));
     }
 
     constexpr bool setString(const char *str, const size_t len)
     {
 #ifdef QT_DEBUG
+        assert(str);
+        assert(str != c_str());
         assert(len <= maxSize());
+        assert(1 + len < Size);
 #endif
+        if (str == c_str())
+        {
+            return true;
+        }
+
         if (len > maxSize())
         {
             return false;
         }
 
         buf[0] = len;
-        if (len)
+        if (len > 0)
         {
-            memcpy(&buf[1], str, len);
+            memmove(&buf[1], str, len);
         }
         buf[1 + len] = '\0';
+        assert(buf[1 + size()] == '\0');
         return true;
     }
 
@@ -86,7 +101,12 @@ public:
         buf[1] = '\0';
     }
 
-    constexpr const char *c_str() const { return &buf[1]; };
+    constexpr const char *c_str() const
+    {
+        assert(size() < Size);
+        assert(buf[1 + size()] == '\0');
+        return &buf[1];
+    };
     constexpr bool empty() const { return size() == 0; }
     constexpr size_t size() const { return buf[0]; }
     constexpr size_t maxSize() const { return Size - BufStringOverHead; }
@@ -98,11 +118,11 @@ public:
     template<size_t U>
     constexpr bool operator==(const BufString<U> &rhs) const
     {
-        const auto sz = size() + 1; // first byte is length
+        const size_t sz = size() + 1; // first byte is length
 
-        for (uint8_t i = 0; i < sz; ++i)
+        for (size_t i = 0; i < sz; i++)
         {
-            if (buf[i] != rhs.base()->buf[i])
+            if (buf[i] != rhs.buf[i])
             {
                 return false;
             }
@@ -114,6 +134,17 @@ public:
     constexpr BufString &operator=(const char *str)
     {
         setString(str);
+        return *this;
+    }
+
+    BufString &operator=(const BufString &rhs)
+    {
+        assert(this != &rhs);
+        assert(rhs.size() <= maxSize());
+        if (rhs.size() <= maxSize())
+        {
+            setString(rhs.c_str(), rhs.size());
+        }
         return *this;
     }
 
@@ -136,6 +167,12 @@ public:
         return false;
     }
 };
+
+template<size_t T, size_t U>
+constexpr bool operator<(const BufString<T> &lhs, const BufString<U> &rhs)
+{
+    return static_cast<QLatin1String>(lhs) < static_cast<QLatin1String>(rhs);
+}
 
 template <size_t Size>
 inline bool operator==(const BufString<Size> &lhs, const std::string &rhs)
