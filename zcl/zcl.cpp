@@ -237,6 +237,8 @@ ZCL_ReadReportConfigurationRsp ZCL_ParseReadReportConfigurationRsp(const deCONZ:
         stream >> record.minInterval;
         stream >> record.maxInterval;
 
+        record.reportableChange = 0;
+
         if (ZCL_IsDataTypeAnalog(deCONZ::ZclDataTypeId(record.dataType)))
         {
             const auto size = ZCL_DataTypeSize(deCONZ::ZclDataTypeId(record.dataType));
@@ -250,8 +252,7 @@ ZCL_ReadReportConfigurationRsp ZCL_ParseReadReportConfigurationRsp(const deCONZ:
             {
                 quint8 tmp;
                 stream >> tmp;
-                record.reportableChange <<= 8;
-                record.reportableChange |= tmp;
+                record.reportableChange |= quint64(tmp) << (i * 8);
             }
         }
     }
