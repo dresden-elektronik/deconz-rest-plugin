@@ -1105,7 +1105,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                 if (idItem && push)
                 {
                     enqueueEvent(Event(r->prefix(), item->descriptor().suffix, idItem->toString(), device->key()));
-                    if (item->lastChanged() != item->lastSet())
+                    if (item->lastChanged() == item->lastSet())
                     {
                         DB_StoreSubDeviceItem(r, item);
                     }
