@@ -163,11 +163,6 @@ void DEV_InitStateHandler(Device *device, const Event &event)
 {
     DevicePrivate *d = device->d;
 
-    if (event.what() != RAttrLastSeen)
-    {
-        DBG_Printf(DBG_INFO, "DEV Init event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
-    }
-
     if (event.what() == REventStateEnter)
     {
         d->zdpResult = { };
@@ -175,12 +170,21 @@ void DEV_InitStateHandler(Device *device, const Event &event)
         if ((event.deviceKey() & 0x00212E0000000000LLU) == 0x00212E0000000000LLU)
         {
             d->node = DEV_GetCoreNode(device->key());
-            if (d->node && d->node->address().nwk() == 0x0000)
+            if (d->node && d->node->address().hasNwk() && d->node->address().nwk() == 0x0000)
             {
                 d->setState(DEV_DeadStateHandler);
                 return; // ignore coordinaor for now
             }
         }
+    }
+    else if (event.what() == REventStateLeave)
+    {
+        return;
+    }
+
+    if (!DEV_TestManaged())
+    {
+        return;
     }
 
     if (event.what() == REventPoll ||
@@ -739,6 +743,12 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
     else if (event.what() != RAttrLastSeen && event.what() != REventPoll)
     {
         // DBG_Printf(DBG_INFO, "DEV Idle event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
+    }
+
+    if (!DEV_TestManaged())
+    {
+        d->setState(DEV_InitStateHandler);
+        return;
     }
 
     DEV_CheckItemChanges(device, event);
@@ -1348,11 +1358,22 @@ void DEV_PollBusyStateHandler(Device *device, const Event &event)
  */
 void DEV_DeadStateHandler(Device *device, const Event &event)
 {
-    Q_UNUSED(device)
-
     if (event.what() == REventStateEnter)
     {
         DBG_Printf(DBG_INFO, "DEV enter dead state 0x%016llX\n", event.deviceKey());
+    }
+    else if (event.what() == REventStateLeave)
+    {
+
+    }
+    else
+    {
+        DevicePrivate *d = device->d;
+        if (device->managed()) // when DDF handling is enabled again
+        {
+            d->setState(DEV_InitStateHandler);
+        }
+        return;
     }
 }
 
