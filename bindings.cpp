@@ -748,6 +748,14 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
         }
 
         device->addBinding(ddfBinding);
+
+        auto ddf = deviceDescriptions->get(device);
+        if (ddf.status == QLatin1String("Draft"))
+        {
+            ddf.bindings = device->bindings();
+            deviceDescriptions->put(ddf);
+        }
+
         return false;
     }
 
@@ -5265,6 +5273,13 @@ bool DeRestPluginPrivate::queueBindingTask(const BindingTask &bindingTask)
             ddfBinding.srcEndpoint = bindingTask.binding.srcEndpoint;
 
             device->addBinding(ddfBinding);
+
+            auto ddf = deviceDescriptions->get(device);
+            if (ddf.status == QLatin1String("Draft"))
+            {
+                ddf.bindings = device->bindings();
+                deviceDescriptions->put(ddf);
+            }
 
             if (bindingTask.state == BindingTask::StateFinished) // dummy
             {

@@ -384,10 +384,12 @@ public:
     const char *toCString() const;
     qint64 toNumber() const;
     qint64 toNumberPrevious() const;
+    deCONZ::SteadyTimeRef lastZclReport() const { return m_lastZclReport; }
+    void setLastZclReport(deCONZ::SteadyTimeRef t) { m_lastZclReport = t; }
     bool toBool() const;
     QVariant toVariant() const;
-    int refreshInterval() const;
-    void setRefreshInterval(int interval);
+    deCONZ::TimeSeconds refreshInterval() const { return m_refreshInterval; }
+    void setRefreshInterval(deCONZ::TimeSeconds interval) { m_refreshInterval = interval; }
     void setZclProperties(const ZCL_Param &param) { m_zclParam = param; }
     bool setValue(const QString &val, ValueSource source = SourceUnknown);
     bool setValue(qint64 val, ValueSource source = SourceUnknown);
@@ -400,7 +402,7 @@ public:
     const std::vector<int> &rulesInvolved() const;
     bool isPublic() const;
     void setIsPublic(bool isPublic);
-    const ZCL_Param zclParam() const { return m_zclParam; }
+    const ZCL_Param &zclParam() const { return m_zclParam; }
     ParseFunction_t parseFunction() const { return m_parseFunction; }
     void setParseFunction(ParseFunction_t fn) { m_parseFunction = fn; }
     ValueSource valueSource() const { return m_valueSource; }
@@ -430,10 +432,11 @@ private:
     quint16 m_flags = 0; // bitmap of ResourceItem::ItemFlags
     qint64 m_num = 0;
     qint64 m_numPrev = 0;
+    deCONZ::SteadyTimeRef m_lastZclReport;
 
     BufStringCacheHandle m_strHandle; // for strings which don't fit into \c m_istr
     ItemString m_istr; // internal embedded small string
-    int m_refreshInterval = 0;
+    deCONZ::TimeSeconds m_refreshInterval;
     QString *m_str = nullptr;
     const ResourceItemDescriptor *m_rid = &rInvalidItemDescriptor;
     QDateTime m_lastSet;

@@ -75,15 +75,30 @@ struct DEV_PollItem
     QVariant readParameters;
 };
 
+// special value for ReportTracker::lastConfigureCheck during zcl configure reporting step
+constexpr int64_t MarkZclConfigureBusy = 21;
+
+struct ReportTracker
+{
+    deCONZ::SteadyTimeRef lastReport;
+    deCONZ::SteadyTimeRef lastConfigureCheck;
+    uint16_t clusterId = 0;
+    uint16_t attributeId = 0;
+    uint8_t endpoint = 0;
+};
+
 struct BindingContext
 {
     size_t bindingIter = 0;
     size_t reportIter = 0;
     bool mgmtBindSupported = false;
     std::vector<DDF_Binding> bindings;
+    std::vector<ReportTracker> reportTrackers;
     ZCL_Result zclResult;
     ZDP_Result zdpResult;
 };
+
+static ReportTracker &DEV_GetOrCreateReportTracker(Device *device, uint16_t clusterId, uint16_t attrId, uint8_t endpoint);
 
 class DevicePrivate
 {
@@ -178,11 +193,6 @@ void DEV_InitStateHandler(Device *device, const Event &event)
         }
     }
     else if (event.what() == REventStateLeave)
-    {
-        return;
-    }
-
-    if (!DEV_TestManaged())
     {
         return;
     }
@@ -730,6 +740,7 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
     if (event.what() == REventStateEnter)
     {
         DEV_CheckReachable(device);
+        d->binding.bindingIter = 0;
         d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
         d->setState(DEV_PollIdleStateHandler, STATE_LEVEL_POLL);
         return;
@@ -747,7 +758,7 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
 
     if (!DEV_TestManaged())
     {
-        d->setState(DEV_InitStateHandler);
+        d->setState(DEV_DeadStateHandler);
         return;
     }
 
@@ -1011,14 +1022,35 @@ void DEV_ReadReportConfigurationHandler(Device *device, const Event &event)
         param.manufacturerCode = 0; // TODO
         param.endpoint = bnd.srcEndpoint;
 
+        auto tnow = deCONZ::steadyTimeRef();
+
         for (const auto &report : bnd.reporting)
         {
+            ReportTracker &tracker = DEV_GetOrCreateReportTracker(device, bnd.clusterId, report.attributeId, bnd.srcEndpoint);
+
+            if ((tnow - tracker.lastConfigureCheck) < deCONZ::TimeSeconds{3600})
+            {
+                DBG_Printf(DBG_DEV, "0x%016llX skip read ZCL report config for 0x%04X / 0x%04X\n", d->deviceKey, bnd.clusterId, report.attributeId);
+                continue;
+            }
+
+            tracker.lastConfigureCheck.ref = MarkZclConfigureBusy;
+
             ZCL_ReadReportConfigurationParam::Record record{};
 
             record.attributeId = report.attributeId;
             record.direction = report.direction;
 
             param.records.push_back(record);
+        }
+
+        if (param.records.empty())
+        {
+            // process next binding
+            d->binding.bindingIter++;
+            d->setState(DEV_BindingTableVerifyHandler, STATE_LEVEL_BINDING);
+            DEV_EnqueueEvent(device, REventBindingTick);
+            return;
         }
 
         d->binding.zclResult = ZCL_ReadReportConfiguration(param, d->apsCtrl);
@@ -1055,6 +1087,16 @@ void DEV_ReadReportConfigurationHandler(Device *device, const Event &event)
     {
         if (reportingConfigurationValid(device, event))
         {
+            const auto tnow = deCONZ::steadyTimeRef();
+
+            for (ReportTracker &tracker : d->binding.reportTrackers)
+            {
+                if (tracker.lastConfigureCheck.ref == MarkZclConfigureBusy)
+                {
+                    tracker.lastConfigureCheck = tnow;
+                }
+            }
+
             // process next binding
             d->binding.bindingIter++;
             d->setState(DEV_BindingTableVerifyHandler, STATE_LEVEL_BINDING);
@@ -1062,7 +1104,7 @@ void DEV_ReadReportConfigurationHandler(Device *device, const Event &event)
         }
         else
         {
-            d->setState(DEV_ConfigureReportingHandler, STATE_LEVEL_BINDING); // TODO reconfigure
+            d->setState(DEV_ConfigureReportingHandler, STATE_LEVEL_BINDING);
         }
     }
     else if (event.what() == REventStateTimeout)
@@ -1179,13 +1221,63 @@ void DEV_BindingIdleHandler(Device *device, const Event &event)
     }
 }
 
+static ReportTracker &DEV_GetOrCreateReportTracker(Device *device, uint16_t clusterId, uint16_t attrId, uint8_t endpoint)
+{
+    DevicePrivate *d = device->d;
+
+    auto i = std::find_if(d->binding.reportTrackers.begin(), d->binding.reportTrackers.end(), [&](ReportTracker &tracker) {
+        return tracker.endpoint == endpoint &&
+               tracker.clusterId == clusterId &&
+               tracker.attributeId == attrId;
+    });
+
+    if (i != d->binding.reportTrackers.end())
+    {
+        return *i;
+    }
+
+    ReportTracker tracker;
+
+    tracker.endpoint = endpoint;
+    tracker.clusterId = clusterId;
+    tracker.attributeId = attrId;
+
+    d->binding.reportTrackers.push_back(tracker);
+
+    return d->binding.reportTrackers.back();
+}
+
+static void DEV_UpdateReportTracker(Device *device, const ResourceItem *item)
+{
+    if (!isValid(item->lastZclReport()))
+    {
+        return;
+    }
+
+    const ZCL_Param &zclParam = item->zclParam();
+    if (!isValid(zclParam) || zclParam.attributeCount == 0)
+    {
+        return;
+    }
+
+    Q_ASSERT(zclParam.attributeCount < zclParam.attributes.size());
+
+    for (size_t i = 0; i < zclParam.attributeCount && i < zclParam.attributes.size(); i++)
+    {
+        ReportTracker &tracker = DEV_GetOrCreateReportTracker(device, zclParam.clusterId, zclParam.attributes[i], zclParam.endpoint);
+        tracker.lastReport = item->lastZclReport();
+    }
+}
+
 /*! Returns all items wich are ready for polling.
     The returned vector is reversed to use std::vector::pop_back() when processing the queue.
  */
 std::vector<DEV_PollItem> DEV_GetPollItems(Device *device)
 {
+    DevicePrivate *d = device->d;
     std::vector<DEV_PollItem> result;
     const auto now = QDateTime::currentDateTime();
+    const auto tnow = deCONZ::steadyTimeRef();
 
     for (const auto *r : device->subDevices())
     {
@@ -1193,16 +1285,39 @@ std::vector<DEV_PollItem> DEV_GetPollItems(Device *device)
         {
             const auto *item = r->itemForIndex(size_t(i));
 
-            if (item->lastSet().isValid() && item->lastSet().secsTo(now) < item->refreshInterval())
-            {
-                continue;
-            }
+            DEV_UpdateReportTracker(device, item);
 
             const auto &ddfItem = DDF_GetItem(item);
 
             if (ddfItem.readParameters.isNull())
             {
                 continue;
+            }
+
+            if (item->refreshInterval().val == 0)
+            {
+
+            }
+            else if (isValid(item->lastZclReport()))
+            {
+                const auto dt = tnow - item->lastZclReport();
+                if (dt < item->refreshInterval())
+                {
+                    continue;
+                }
+                else
+                {
+                    DBG_Printf(DBG_DEV, "DEV 0x%016llX read %s, dt %d ms\n", d->deviceKey, item->descriptor().suffix, int(dt.val));
+                }
+
+            }
+            else if (item->lastSet().isValid())
+            {
+                const auto dt = item->lastSet().secsTo(now);
+                if (dt  < item->refreshInterval().val)
+                {
+                    continue;
+                }
             }
 
             if (ddfItem.readParameters.toMap().empty())

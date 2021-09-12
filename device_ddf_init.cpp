@@ -85,6 +85,7 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
         item->setValue(ddfItem.defaultValue);
     }
 
+    assert(ddfItem.handle != DeviceDescription::Item::InvalidItemHandle);
     item->setDdfItemHandle(ddfItem.handle);
 
     // check updates
@@ -93,7 +94,7 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
 
     if (ddfItem.refreshInterval != DeviceDescription::Item::NoRefreshInterval)
     {
-        item->setRefreshInterval(ddfItem.refreshInterval);
+        item->setRefreshInterval(deCONZ::TimeSeconds{ddfItem.refreshInterval});
     }
 
     item->setParseFunction(nullptr);

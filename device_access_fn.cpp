@@ -211,7 +211,7 @@ bool evalZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndi
     return false;
 }
 
-/*! Evaluates an items Javascript expression for a received attribute.
+/*! Evaluates an items Javascript expression for a received ZCL frame.
  */
 bool evalZclFrame(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, const QVariant &parseParameters)
 {
@@ -351,6 +351,10 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
 
         if (evalZclAttribute(r, item, ind, zclFrame, attr, parseParameters))
         {
+            if (zclFrame.commandId() == deCONZ::ZclReportAttributesId)
+            {
+                item->setLastZclReport(deCONZ::steadyTimeRef().ref);
+            }
             result = true;
         }
     }

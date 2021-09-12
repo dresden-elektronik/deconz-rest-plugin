@@ -1007,7 +1007,11 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
         stream.setByteOrder(QDataStream::LittleEndian);
         zclFrame.readFromStream(stream);
 
-        if (zclFrame.commandId() == deCONZ::ZclReadAttributesResponseId && zclFrame.payload().size() >= 3)
+        if (!zclFrame.isProfileWideCommand())
+        {
+
+        }
+        else if (zclFrame.commandId() == deCONZ::ZclReadAttributesResponseId && zclFrame.payload().size() >= 3)
         {
             const auto status = quint8(zclFrame.payload().at(2));
             enqueueEvent(Event(device->prefix(), REventZclResponse, EventZclResponsePack(zclFrame.sequenceNumber(), status), device->key()));
@@ -1017,7 +1021,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
             const auto status = quint8(zclFrame.payload().at(0));
             enqueueEvent(Event(device->prefix(), REventZclResponse, EventZclResponsePack(zclFrame.sequenceNumber(), status), device->key()));
         }
-        else if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReadReportingConfigResponseId)
+        else if (zclFrame.commandId() == deCONZ::ZclReadReportingConfigResponseId)
         {
             const auto rsp = ZCL_ParseReadReportConfigurationRsp(ind, zclFrame);
             enqueueEvent(EventWithData(device->prefix(), REventZclReadReportConfigResponse, rsp, device->key()));

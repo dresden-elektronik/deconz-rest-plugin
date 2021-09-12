@@ -112,6 +112,8 @@ struct ZCL_ReadReportConfigurationRsp
     Record records[MaxRecords];
 };
 
+inline bool isValid(const ZCL_Param &param) { return param.valid != 0; }
+
 quint8 zclNextSequenceNumber();
 ZCL_Result ZCL_ReadAttributes(const ZCL_Param &param, quint64 extAddress, quint16 nwkAddress, deCONZ::ApsController *apsCtrl);
 ZCL_Result ZCL_ReadReportConfiguration(const ZCL_ReadReportConfigurationParam &param, deCONZ::ApsController *apsCtrl);

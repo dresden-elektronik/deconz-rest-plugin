@@ -685,6 +685,7 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
     m_zclParam = other.m_zclParam;
     m_num = other.m_num;
     m_numPrev = other.m_numPrev;
+    m_lastZclReport = other.m_lastZclReport;
     m_rid = other.m_rid;
     m_lastSet = other.m_lastSet;
     m_lastChanged = other.m_lastChanged;
@@ -727,6 +728,7 @@ ResourceItem &ResourceItem::operator=(ResourceItem &&other) noexcept
     m_flags = other.m_flags;
     m_num = other.m_num;
     m_numPrev = other.m_numPrev;
+    m_lastZclReport = other.m_lastZclReport;
     m_rid = other.m_rid;
     m_lastSet = std::move(other.m_lastSet);
     m_lastChanged = std::move(other.m_lastChanged);
@@ -1096,16 +1098,6 @@ QVariant ResourceItem::toVariant() const
     }
 
     return QVariant();
-}
-
-int ResourceItem::refreshInterval() const
-{
-    return m_refreshInterval;
-}
-
-void ResourceItem::setRefreshInterval(int interval)
-{
-    m_refreshInterval = interval;
 }
 
 /*! Marks the resource item as involved in a rule. */

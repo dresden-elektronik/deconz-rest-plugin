@@ -1042,6 +1042,16 @@ static DDF_ZclReport DDF_ParseZclReport(const QJsonObject &obj)
         }
     }
 
+    if (obj.contains(QLatin1String("mf")))
+    {
+        result.manufacturerCode = obj.value(QLatin1String("mf")).toString().toUShort(&ok, 0);
+
+        if (!ok)
+        {
+            return {};
+        }
+    }
+
     result.valid = true;
 
     return result;
@@ -1231,7 +1241,6 @@ static DeviceDescription DDF_ParseDeviceObject(const QJsonObject &obj, const QSt
             }
         }
     }
-
 
     return result;
 }
