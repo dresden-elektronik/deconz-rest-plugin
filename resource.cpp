@@ -1442,6 +1442,30 @@ void Resource::cleanupStateChanges()
     }
 }
 
+/*! Returns the string presentation of an data type */
+QLatin1String R_DataTypeToString(ApiDataType type)
+{
+    switch (type)
+    {
+    case DataTypeUnknown: { return QLatin1String("unknown"); }
+    case DataTypeBool: { return QLatin1String("bool"); }
+    case DataTypeUInt8: { return QLatin1String("uint8"); }
+    case DataTypeUInt16: { return QLatin1String("uint16"); }
+    case DataTypeUInt32: { return QLatin1String("uint32"); }
+    case DataTypeUInt64: { return QLatin1String("uint64"); }
+    case DataTypeInt8: { return QLatin1String("int8"); }
+    case DataTypeInt16: { return QLatin1String("int16"); }
+    case DataTypeInt32: { return QLatin1String("int32"); }
+    case DataTypeInt64: { return QLatin1String("int64"); }
+    case DataTypeReal: { return QLatin1String("double"); }
+    case DataTypeString: { return QLatin1String("string"); }
+    case DataTypeTime: { return QLatin1String("ISO 8601 timestamp"); }
+    case DataTypeTimePattern: { return QLatin1String("time pattern"); }
+    }
+
+    return QLatin1String("unknown");
+}
+
 /*! Creates a unique Resource handle.
  */
 Resource::Handle R_CreateResourceHandle(const Resource *r, size_t containerIndex)

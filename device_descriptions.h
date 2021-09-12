@@ -79,31 +79,45 @@ public:
 
         Item()
         {
-            isGenericRead = 0;
-            isGenericWrite = 0;
-            isGenericParse = 0;
-            isPublic = 0;
-            isStatic = 0;
-            isImplicit = 0;
-            isManaged = 0;
-            awake = 0;
-            pad = 0;
+            flags = 0;
         }
 
         bool isValid() const { return !name.empty() && descriptor.isValid(); }
+        bool operator==(const Item &other) const
+        {
+            return flags == other.flags &&
+                   handle == other.handle &&
+                   refreshInterval == other.refreshInterval &&
+                   name == other.name &&
+                   descriptor.suffix == other.descriptor.suffix &&
+                   parseParameters == other.parseParameters &&
+                   readParameters == other.readParameters &&
+                   writeParameters == other.writeParameters &&
+                   defaultValue == other.defaultValue &&
+                   description == other.description;
+        }
+
+        bool operator!=(const Item &other) const { return !(*this == other); }
+
+
         Handle handle = InvalidItemHandle;
 
-        struct // 16 bits flags
+        union
         {
-            unsigned int isGenericRead : 1;
-            unsigned int isGenericWrite : 1;
-            unsigned int isGenericParse : 1;
-            unsigned int isPublic : 1;
-            unsigned int isStatic : 1;
-            unsigned int isImplicit : 1;
-            unsigned int isManaged : 1; // managed internally
-            unsigned int awake : 1;
-            unsigned int pad : 8;
+            struct // 16 bits flags
+            {
+                unsigned short isGenericRead : 1;
+                unsigned short isGenericWrite : 1;
+                unsigned short isGenericParse : 1;
+                unsigned short isPublic : 1;
+                unsigned short isStatic : 1;
+                unsigned short isImplicit : 1;
+                unsigned short isManaged : 1; // managed internally
+                unsigned short awake : 1;
+                unsigned short pad : 8;
+            };
+
+            unsigned short flags;
         };
 
         int refreshInterval = NoRefreshInterval;
@@ -131,6 +145,20 @@ public:
     std::vector<SubDevice> subDevices;
     std::vector<DDF_Binding> bindings;
 };
+
+class DDF_SubDeviceDescriptor
+{
+public:
+    QString type;
+    QString name;
+    QString restApi;
+    QStringList uniqueId;
+};
+
+inline bool isValid(const DDF_SubDeviceDescriptor &sub)
+{
+    return !sub.type.isEmpty() && !sub.name.isEmpty() && !sub.restApi.isEmpty() && !sub.uniqueId.isEmpty();
+}
 
 struct DDF_FunctionDescriptor
 {
@@ -172,12 +200,14 @@ public:
 
     QString constantToString(const QString &constant) const;
     QString stringToConstant(const QString &str) const;
+    QStringList constants(const QString &prefix = QString()) const;
 
     const DDF_Items &genericItems() const;
     const DeviceDescription::Item &getItem(const ResourceItem *item) const;
     const DeviceDescription::Item &getGenericItem(const char *suffix) const;
-    std::vector<DDF_FunctionDescriptor> &getParseFunctions() const;
-    std::vector<DDF_FunctionDescriptor> &getReadFunctions() const;
+    const std::vector<DDF_FunctionDescriptor> &getParseFunctions() const;
+    const std::vector<DDF_FunctionDescriptor> &getReadFunctions() const;
+    const std::vector<DDF_SubDeviceDescriptor> &getSubDevices() const;
 
     static DeviceDescriptions *instance();
 
@@ -199,7 +229,7 @@ private:
 #define DDF_AnnoteZclParse(resource, item, ep, cl, at, eval) \
     DDF_AnnoteZclParse1(__LINE__, __FILE__, resource, item, ep, cl, at, eval)
 
-void DDF_AnnoteZclParse1(int line, const char* file, const Resource *resource, const ResourceItem *item, quint8 ep, quint16 clusterId, quint16 attributeId, const char *eval);
+void DDF_AnnoteZclParse1(int line, const char* file, const Resource *resource, ResourceItem *item, quint8 ep, quint16 clusterId, quint16 attributeId, const char *eval);
 const DeviceDescription::Item &DDF_GetItem(const ResourceItem *item);
 
 #endif // DEVICEDESCRIPTIONS_H

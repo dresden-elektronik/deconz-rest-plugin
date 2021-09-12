@@ -8,6 +8,10 @@
 
 const char *ddfMimeItemName = "ddf/itemname";
 
+#define ITEM_TYPE_ROLE (Qt::UserRole + 2)
+#define ITEM_TYPE_SUBDEVICE 1
+#define ITEM_TYPE_DDF_ITEM  2
+
 class ItemModel : public QStandardItemModel
 {
 public:
@@ -33,7 +37,19 @@ public:
         for (const QModelIndex &idx : indexes)
         {
             QUrl url;
-            url.setScheme("ddfitem");
+            int role = idx.data(ITEM_TYPE_ROLE).toInt();
+            if (role == ITEM_TYPE_DDF_ITEM)
+            {
+                url.setScheme("ddfitem");
+            }
+            else if (role == ITEM_TYPE_SUBDEVICE)
+            {
+                url.setScheme("subdevice");
+            }
+            else
+            {
+                continue; // TODO
+            }
             url.setPath(idx.data().toString());
             urls.push_back(url);
         }
@@ -69,22 +85,27 @@ void DDF_ItemList::update(DeviceDescriptions *dd)
 {
     d->model->clear();
 
-    const DDF_Items &gen = dd->genericItems();
-
-    std::vector<BufString<64>> names;
-    names.reserve(gen.size());
-
-    for (const auto &i : gen)
     {
-        Q_ASSERT(!i.name.empty());
-        names.push_back(i.name);
+        for (const auto &sub : dd->getSubDevices())
+        {
+            QStandardItem *item = new QStandardItem(sub.name);
+            //item->setToolTip(i.description);
+            item->setData(ITEM_TYPE_SUBDEVICE, ITEM_TYPE_ROLE);
+            d->model->appendRow(item);
+        }
     }
 
-    std::sort(names.begin(), names.end());
-
-    for (const auto &name : names)
     {
-        QStandardItem *item = new QStandardItem(name.c_str());
-        d->model->appendRow(item);
+        auto gen = dd->genericItems();
+
+        std::sort(gen.begin(), gen.end(), [](const auto &a, const auto &b){ return a.name < b.name; });
+
+        for (const auto &i : gen)
+        {
+            QStandardItem *item = new QStandardItem(i.name.c_str());
+            item->setToolTip(i.description);
+            item->setData(ITEM_TYPE_DDF_ITEM, ITEM_TYPE_ROLE);
+            d->model->appendRow(item);
+        }
     }
 }

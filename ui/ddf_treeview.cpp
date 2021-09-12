@@ -1,3 +1,4 @@
+#include <QAction>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
 #include <QPainter>
@@ -93,15 +94,18 @@ DDF_TreeView::DDF_TreeView(QWidget *parent) :
     setModel(m_model);
 
     connect(selectionModel(), &QItemSelectionModel::currentChanged, this, &DDF_TreeView::currentIndexChanged);
+
+    m_removeAction = new QAction(tr("Remove"), this);
+    m_removeAction->setShortcut(QKeySequence::Delete);
+    setContextMenuPolicy(Qt::ActionsContextMenu);
+    connect(m_removeAction, &QAction::triggered, this, &DDF_TreeView::removeActionTriggered);
+    addAction(m_removeAction);
 }
 
 void DDF_TreeView::dragEnterEvent(QDragEnterEvent *event)
 {
-//    DBG_Printf(DBG_INFO, "drag enter: pos: %d,%d\n", event->pos().x(), event->pos().y());
-
     const QMimeData *mimeData = event->mimeData();
     const QStringList formats = mimeData->formats();
-
 
     if (mimeData->hasUrls())
     {
@@ -109,16 +113,15 @@ void DDF_TreeView::dragEnterEvent(QDragEnterEvent *event)
 
         for (const QUrl &url : urls)
         {
-            DBG_Printf(DBG_INFO, "url: %s\n", qPrintable(url.toString()));
-        }
-
-        event->accept();
-    }
-    else
-    {
-        for (const QString &fmt : formats)
-        {
-            DBG_Printf(DBG_INFO, "fmt: %s\n", qPrintable(fmt));
+            if (url.scheme() == QLatin1String("ddfitem") || url.scheme() == QLatin1String("subdevice"))
+            {
+                event->accept();
+                break;
+            }
+            else
+            {
+                DBG_Printf(DBG_INFO, "url: %s\n", qPrintable(url.toString()));
+            }
         }
     }
 }
@@ -142,25 +145,29 @@ void DDF_TreeView::dropEvent(QDropEvent *event)
         return;
     }
 
-    QModelIndex index = indexAt(event->pos());
-
-    if (!index.isValid())
-    {
-        return;
-    }
-
-    TreeItemHandle handle;
-    handle.value = index.data(MODEL_HANDLE_ROLE).toUInt();
-
     const QUrl url = event->mimeData()->urls().first();
 
     if (url.scheme() == QLatin1String("ddfitem"))
     {
+        QModelIndex index = indexAt(event->pos());
+
+        if (!index.isValid())
+        {
+            return;
+        }
+
+        TreeItemHandle handle;
+        handle.value = index.data(MODEL_HANDLE_ROLE).toUInt();
+
         const QString suffix = url.path();
         if (!suffix.isEmpty())
         {
             emit addItem(handle.subDevice, suffix);
         }
+    }
+    else if (url.scheme() == QLatin1String("subdevice"))
+    {
+        emit addSubDevice(url.path());
     }
 }
 
@@ -169,11 +176,18 @@ void DDF_TreeView::resizeEvent(QResizeEvent *event)
     QTreeView::resizeEvent(event);
 }
 
-void DDF_TreeView::currentIndexChanged(const QModelIndex &current, const QModelIndex &prev)
+void DDF_TreeView::removeActionTriggered()
 {
-    Q_UNUSED(prev)
+    const QModelIndexList indexes = selectedIndexes();
+    if (indexes.size() != 1)
+    {
+        return;
+    }
+
+    const QModelIndex index = indexes.first();
+
     TreeItemHandle handle;
-    handle.value = current.data(MODEL_HANDLE_ROLE).toUInt();
+    handle.value = index.data(MODEL_HANDLE_ROLE).toUInt();
 
     switch (handle.type)
     {
@@ -181,12 +195,42 @@ void DDF_TreeView::currentIndexChanged(const QModelIndex &current, const QModelI
     case I_TYPE_ITEM_CONFIG:
     case I_TYPE_ITEM_STATE:
     {
+        emit removeItem(handle.subDevice, handle.item);
+    }
+        break;
+
+    case I_TYPE_SUBDEVICE:
+    {
+        emit removeSubDevice(handle.subDevice);
+    }
+        break;
+
+    default:
+        break;
+    }
+}
+
+void DDF_TreeView::currentIndexChanged(const QModelIndex &current, const QModelIndex &prev)
+{
+    Q_UNUSED(prev)
+    TreeItemHandle handle;
+    handle.value = current.data(MODEL_HANDLE_ROLE).toUInt();
+    m_removeAction->setEnabled(false);
+
+    switch (handle.type)
+    {
+    case I_TYPE_ITEM_ATTR:
+    case I_TYPE_ITEM_CONFIG:
+    case I_TYPE_ITEM_STATE:
+    {
+        m_removeAction->setEnabled(true);
         emit itemSelected(handle.subDevice, handle.item);
     }
         break;
 
     case I_TYPE_SUBDEVICE:
     {
+        m_removeAction->setEnabled(true);
         emit subDeviceSelected(handle.subDevice);
     }
         break;

@@ -539,16 +539,27 @@ bool ddfSerializeV1(JsonDoc &doc, const DeviceDescription &ddf, char *buf, size_
 
             for (const DeviceDescription::Item &i : sub.items)
             {
+                JsonObject item = items.createNestedObject();
+
                 if (i.isImplicit && !ddfFull)
                 {
+                    item["name"] = i.name.c_str();
                     continue;
                 }
-
-                JsonObject item = items.createNestedObject();
 
                 item["name"] = i.name.c_str();
                 if (!i.isPublic) { item["public"] = false; }
                 if (i.awake)     { item["awake"] = true; }
+
+                if (!i.description.isEmpty())
+                {
+                    item["description"] = i.description.toStdString();
+                }
+
+                if (i.refreshInterval > 0)
+                {
+                    item["refresh.interval"] = i.refreshInterval;
+                }
 
                 if (!i.readParameters.isNull()  && (ddfFull || !i.isGenericRead))  { putItemParameter(item, "read", i.readParameters.toMap()); }
                 if (!i.writeParameters.isNull() && (ddfFull || !i.isGenericWrite)) { putItemParameter(item, "write", i.writeParameters.toMap()); }

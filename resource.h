@@ -586,6 +586,7 @@ bool R_SetValueEventOnSet(Resource *r, const char *suffix, const V &val, Resourc
     return result;
 }
 
+QLatin1String R_DataTypeToString(ApiDataType type);
 Resource::Handle R_CreateResourceHandle(const Resource *r, size_t containerIndex);
 inline bool isValid(Resource::Handle hnd) { return hnd.hash != 0 && hnd.index < UINT16_MAX && hnd.type != 0; }
 inline bool operator==(Resource::Handle a, Resource::Handle b) { return a.hash == b.hash && a.type == b.type; }

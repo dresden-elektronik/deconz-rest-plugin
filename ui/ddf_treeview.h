@@ -24,13 +24,18 @@ protected:
 Q_SIGNALS:
     void itemSelected(uint subDevice, uint item);
     void addItem(uint subDevice, const QString &suffix);
+    void addSubDevice(const QString &name);
     void subDeviceSelected(uint subDevice);
     void deviceSelected();
+    void removeItem(uint subDevice, uint item);
+    void removeSubDevice(uint subDevice);
 
 private Q_SLOTS:
+    void removeActionTriggered();
     void currentIndexChanged(const QModelIndex &current, const QModelIndex &prev);
 
 private:
+    QAction *m_removeAction = nullptr;
     QStandardItemModel *m_model = nullptr;
 };
 

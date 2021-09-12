@@ -5,6 +5,23 @@
 #include <QLineEdit>
 #include "device_descriptions.h"
 
+class FunctionWidget : public QWidget
+{
+    Q_OBJECT
+
+public:
+    FunctionWidget(QWidget *parent);
+
+protected:
+    void dragEnterEvent(QDragEnterEvent *event) override;
+    void dragLeaveEvent(QDragLeaveEvent *event) override;
+    void dragMoveEvent(QDragMoveEvent *event) override;
+    void dropEvent(QDropEvent *event) override;
+
+Q_SIGNALS:
+    void droppedUrl(const QUrl &);
+};
+
 class ItemLineEdit : public QLineEdit
 {
     Q_OBJECT
@@ -45,9 +62,9 @@ public Q_SLOTS:
     void readParamChanged();
     void attributeChanged();
     void functionChanged(const QString &text);
+    void droppedUrl(const QUrl &url);
 
 Q_SIGNALS:
-    void removeItem();
     void itemChanged();
 
 private:

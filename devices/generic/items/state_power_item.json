@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/power",
+	"datatype": "Int16",
+	"access": "RW",
+	"public": true,
+	"description": "The measured power (in W)."
+}

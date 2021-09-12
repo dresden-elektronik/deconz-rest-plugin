@@ -39,33 +39,29 @@ DDF_Editor::DDF_Editor(DeviceDescriptions *dd, QWidget *parent) :
     d->dd = dd;
     connect(ui->ddfTreeView, &DDF_TreeView::itemSelected, this, &DDF_Editor::itemSelected);
     connect(ui->ddfTreeView, &DDF_TreeView::addItem, this, &DDF_Editor::addItem);
+    connect(ui->ddfTreeView, &DDF_TreeView::addSubDevice, this, &DDF_Editor::addSubDevice);
     connect(ui->ddfTreeView, &DDF_TreeView::subDeviceSelected, this, &DDF_Editor::subDeviceSelected);
     connect(ui->ddfTreeView, &DDF_TreeView::deviceSelected, this, &DDF_Editor::deviceSelected);
+    connect(ui->ddfTreeView, &DDF_TreeView::removeItem, this, &DDF_Editor::removeItem);
+    connect(ui->ddfTreeView, &DDF_TreeView::removeSubDevice, this, &DDF_Editor::removeSubDevice);
 
     connect(ui->editItem, &DDF_ItemEditor::itemChanged, this, &DDF_Editor::itemChanged);
-    connect(ui->editItem, &DDF_ItemEditor::removeItem, this, &DDF_Editor::removeItem);
 
-    QStringList wordList;
-    wordList << "$TYPE_BATTERY_SENSOR"
-             << "$TYPE_COLOR_TEMPERATURE_LIGHT"
-             << "$TYPE_COLOR_LIGHT";
+    {
+        QStringList wordlist;
+        const auto &subDevices = dd->getSubDevices();
 
-//            "$TYPE_BATTERY_SENSOR": "ZHABattery",
-//        "$TYPE_COLOR_TEMPERATURE_LIGHT": "Color temperature light",
-//        "$TYPE_COLOR_LIGHT": "Color light",
-//        "$TYPE_HUMIDITY_SENSOR": "ZHAHumidity",
-//        "$TYPE_LIGHT_LEVEL_SENSOR": "ZHALightLevel",
-//        "$TYPE_OPEN_CLOSE_SENSOR": "ZHAOpenClose",
-//        "$TYPE_PRESENCE_SENSOR": "ZHAPresence",
-//        "$TYPE_SWITCH": "ZHASwitch",
-//        "$TYPE_TEMPERATURE_SENSOR": "ZHATemperature",
-//        "$TYPE_VIBRATION_SENSOR": "ZHAVibration",
-//        "$TYPE_WINDOW_COVERING_DEVICE": "Window covering device",
-//        "$TYPE_ZGP_SWITCH": "ZGPSwitch"
+        for (const auto &sub : subDevices)
+        {
+            wordlist.push_back(sub.type);
+        }
 
-    QCompleter *subDeviceCompleter = new QCompleter(wordList, this);
+        QCompleter *subDeviceCompleter = new QCompleter(wordlist, this);
+        ui->subDeviceTypeInput->setCompleter(subDeviceCompleter);
+    }
 
-    ui->subDeviceTypeInput->setCompleter(subDeviceCompleter);
+    connect(ui->subDeviceTypeInput, &TextLineEdit::valueChanged, this, &DDF_Editor::subDeviceInputChanged);
+    connect(ui->subDeviceUniqueIdInput, &TextLineEdit::valueChanged, this, &DDF_Editor::subDeviceInputChanged);
 
     ui->devVendorInput->setIsOptional(true);
 
@@ -157,6 +153,12 @@ const DeviceDescription &DDF_Editor::ddf() const
     return d->ddf;
 }
 
+void DDF_Editor::showEvent(QShowEvent *event)
+{
+    Q_UNUSED(event)
+    ui->tabWidget->setCurrentWidget(ui->tabItems);
+}
+
 void DDF_Editor::itemSelected(uint subDevice, uint item)
 {
     if (subDevice >= d->ddf.subDevices.size())
@@ -215,7 +217,8 @@ void DDF_Editor::subDeviceSelected(uint subDevice)
         return;
     }
 
-    const DeviceDescription::SubDevice &sub = d->ddf.subDevices[subDevice];
+    d->curSubDevice = subDevice;
+    const DeviceDescription::SubDevice &sub = d->ddf.subDevices[d->curSubDevice];
 
     ui->subDeviceTypeInput->setInputText(sub.type);
     ui->subDeviceUniqueIdInput->setInputText(sub.uniqueId.join(QLatin1Char('-')));
@@ -261,6 +264,44 @@ void DDF_Editor::addItem(uint subDevice, const QString &suffix)
         DDF_SortItems(d->ddf);
 
         ui->ddfTreeView->setDDF(d->ddf);
+    }
+}
+
+void DDF_Editor::addSubDevice(const QString &name)
+{
+    {
+        const auto i = std::find_if(d->ddf.subDevices.cbegin(), d->ddf.subDevices.cend(), [&](const auto &sub)
+        {
+            return d->dd->constantToString(sub.type) == name;
+        });
+
+        if (i != d->ddf.subDevices.cend())
+        {
+            DBG_Printf(DBG_INFO, "%s already exists\n", qPrintable(name));
+            return;
+        }
+    }
+
+    const auto &subDevices = d->dd->getSubDevices();
+
+    const auto i = std::find_if(subDevices.cbegin(), subDevices.cend(), [&](const auto &sub)
+    {
+        return sub.name == name;
+    });
+
+    if (i != subDevices.cend() && isValid(*i))
+    {
+        DeviceDescription::SubDevice sub;
+
+        sub.type = i->type;
+        sub.restApi = i->restApi;
+        sub.uniqueId = i->uniqueId;
+
+        d->ddf.subDevices.push_back(sub);
+        ui->ddfTreeView->setDDF(d->ddf);
+
+        d->curItem = 0;
+        subDeviceSelected(d->ddf.subDevices.size() - 1);
     }
 }
 
@@ -311,21 +352,20 @@ void DDF_Editor::tabChanged()
     }
 }
 
-void DDF_Editor::removeItem()
+void DDF_Editor::removeItem(uint subDevice, uint item)
 {
-    if (d->curSubDevice >= d->ddf.subDevices.size())
+    if (subDevice >= d->ddf.subDevices.size())
     {
         return;
     }
 
-    auto &sub = d->ddf.subDevices[d->curSubDevice];
-    if (d->curItem >= sub.items.size())
+    auto &sub = d->ddf.subDevices[subDevice];
+    if (item >= sub.items.size())
     {
         return;
     }
 
-
-    sub.items.erase(sub.items.begin() + d->curItem);
+    sub.items.erase(sub.items.begin() + item);
 
     if (d->curItem > 0)
     {
@@ -334,4 +374,61 @@ void DDF_Editor::removeItem()
 
     ui->ddfTreeView->setDDF(d->ddf);
     itemSelected(d->curSubDevice, d->curItem);
+}
+
+void DDF_Editor::removeSubDevice(uint subDevice)
+{
+    if (subDevice >= d->ddf.subDevices.size())
+    {
+        return;
+    }
+
+    d->ddf.subDevices.erase(d->ddf.subDevices.begin() + subDevice);
+
+    if (d->curSubDevice > 0)
+    {
+        d->curSubDevice--;
+    }
+
+    d->curItem = 0;
+    ui->ddfTreeView->setDDF(d->ddf);
+    itemSelected(d->curSubDevice, d->curItem);
+}
+
+void DDF_Editor::subDeviceInputChanged()
+{
+    if (d->ddf.subDevices.size() <= d->curSubDevice)
+    {
+        return;
+    }
+
+    bool changed = false;
+    DeviceDescription::SubDevice &sub = d->ddf.subDevices[d->curSubDevice];
+    const QStringList uniqueId = ui->subDeviceUniqueIdInput->text().split(QLatin1Char('-'), SKIP_EMPTY_PARTS);
+    const QString type = ui->subDeviceTypeInput->text();
+    const auto &subDevices = d->dd->getSubDevices();
+
+    auto i = std::find_if(subDevices.cbegin(), subDevices.cend(), [&type](const auto &sub){ return sub.type == type; });
+    if (i == subDevices.cend())
+    {
+        return;
+    }
+
+    if (type != sub.type)
+    {
+        sub.type = type;
+        sub.restApi = i->restApi;
+        changed = true;
+    }
+
+    if (uniqueId.size() == i->uniqueId.size() && uniqueId != sub.uniqueId)
+    {
+        sub.uniqueId = uniqueId;
+        changed = true;
+    }
+
+    if (changed)
+    {
+        ui->ddfTreeView->setDDF(d->ddf);
+    }
 }

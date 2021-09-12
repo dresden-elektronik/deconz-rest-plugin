@@ -24,6 +24,7 @@ public:
     void previewDDF(const DeviceDescription &ddf);
 
     const DeviceDescription &ddf() const;
+    void showEvent(QShowEvent *event) override;
 
 private Q_SLOTS:
     void itemSelected(uint subDevice, uint item);
@@ -31,9 +32,12 @@ private Q_SLOTS:
     void subDeviceSelected(uint subDevice);
     void deviceSelected();
     void addItem(uint subDevice, const QString &suffix);
+    void addSubDevice(const QString &name);
     void deviceChanged();
     void tabChanged();
-    void removeItem();
+    void removeItem(uint subDevice, uint item);
+    void removeSubDevice(uint subDevice);
+    void subDeviceInputChanged();
 
 private:
     Ui::DDF_Editor *ui;

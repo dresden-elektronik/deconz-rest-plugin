@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/current",
+	"datatype": "UInt16",
+	"access": "RW",
+	"public": true,
+	"description": "The measured current (in mA)."
+}
