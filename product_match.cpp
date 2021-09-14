@@ -98,6 +98,7 @@ static const ProductMap products[] =
     {"_TZE200_t5p1vj8r", "TS0601", "Tuya", "Tuya_Smoke sensor"},
 
      // Switch
+    {"_TZE200_la2c2uo9", "TS0601", "Moes", "Tuya_DIMSWITCH MS-105Z"},
     {"_TZE200_dfxkcots", "TS0601", "Earda", "Tuya_DIMSWITCH Earda Dimmer"},
     {"_TZE200_9i9dt8is", "TS0601", "Earda", "Tuya_DIMSWITCH EDM-1ZAA-EU"},
 

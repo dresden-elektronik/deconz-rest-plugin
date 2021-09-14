@@ -480,7 +480,7 @@ int RestDevices::putDeviceInstallCode(const ApiRequest &req, ApiResponse &rsp)
 
     if (!ok || map.isEmpty())
     {
-        rsp.list.append(plugin->errorToMap(ERR_INVALID_JSON, QString("/devices/%1/installcode").arg(uniqueid), QString("body contains invalid JSON")));
+        rsp.list.append(errorToMap(ERR_INVALID_JSON, QString("/devices/%1/installcode").arg(uniqueid), QString("body contains invalid JSON")));
         rsp.httpStatus = HttpStatusBadRequest;
         return REQ_READY_SEND;
     }
@@ -502,14 +502,14 @@ int RestDevices::putDeviceInstallCode(const ApiRequest &req, ApiResponse &rsp)
             cli.start("hashing-cli", QStringList() << "-i" << installCode);
             if (!cli.waitForStarted(2000))
             {
-                rsp.list.append(plugin->errorToMap(ERR_INTERNAL_ERROR, QString("/devices"), QString("internal error, %1, occured").arg(cli.error())));
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/devices"), QString("internal error, %1, occured").arg(cli.error())));
                 rsp.httpStatus = HttpStatusServiceUnavailable;
                 return REQ_READY_SEND;
             }
 
             if (!cli.waitForFinished(2000))
             {
-                rsp.list.append(plugin->errorToMap(ERR_INTERNAL_ERROR, QString("/devices"), QString("internal error, %1, occured").arg(cli.error())));
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/devices"), QString("internal error, %1, occured").arg(cli.error())));
                 rsp.httpStatus = HttpStatusServiceUnavailable;
                 return REQ_READY_SEND;
             }
@@ -532,7 +532,7 @@ int RestDevices::putDeviceInstallCode(const ApiRequest &req, ApiResponse &rsp)
 
             if (mmoHash.isEmpty())
             {
-                rsp.list.append(plugin->errorToMap(ERR_INTERNAL_ERROR, QLatin1String("/devices"), QLatin1String("internal error, failed to calc mmo hash, occured")));
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QLatin1String("/devices"), QLatin1String("internal error, failed to calc mmo hash, occured")));
                 rsp.httpStatus = HttpStatusServiceUnavailable;
                 return REQ_READY_SEND;
             }
@@ -557,13 +557,13 @@ int RestDevices::putDeviceInstallCode(const ApiRequest &req, ApiResponse &rsp)
         }
         else
         {
-            rsp.list.append(plugin->errorToMap(ERR_INVALID_VALUE, QString("/devices"), QString("invalid value, %1, for parameter, installcode").arg(installCode)));
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/devices"), QString("invalid value, %1, for parameter, installcode").arg(installCode)));
             rsp.httpStatus = HttpStatusBadRequest;
         }
     }
     else
     {
-        rsp.list.append(plugin->errorToMap(ERR_MISSING_PARAMETER, QString("/devices/%1/installcode").arg(uniqueid), QString("missing parameters in body")));
+        rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, QString("/devices/%1/installcode").arg(uniqueid), QString("missing parameters in body")));
         rsp.httpStatus = HttpStatusBadRequest;
     }
 
