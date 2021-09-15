@@ -5887,7 +5887,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpBatterySensor.inClusters.push_back(TUYA_CLUSTER_ID);
                     }
-                    if (manufacturer == QLatin1String("_TZE200_t5p1vj8r"))
+                    if (manufacturer == QLatin1String("_TZE200_t5p1vj8r") ||
+                        manufacturer == QLatin1String("_TZE200_uebojraa"))
                     {
                         fpFireSensor.inClusters.push_back(TUYA_CLUSTER_ID);
                     }

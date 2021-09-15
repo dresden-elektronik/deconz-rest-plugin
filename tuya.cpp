@@ -781,7 +781,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     case 0x0101:
                     {
                         // Smoke Sensor
-                        if (productId == "Tuya_Smoke sensor")
+                        if ((productId == "Tuya Smoke sensor 1") ||
+                            (productId == "Tuya Smoke sensor 2"))
                         {
                             bool trigger = (data == 0) ? false : true;
                             ResourceItem *item = sensorNode->item(RStateFire);
