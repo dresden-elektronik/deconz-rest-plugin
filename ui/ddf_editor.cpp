@@ -74,7 +74,7 @@ DDF_Editor::DDF_Editor(DeviceDescriptions *dd, QWidget *parent) :
 
     connect(ui->tabWidget, &QTabWidget::currentChanged, this, &DDF_Editor::tabChanged);
 
-    // d->u16Validator = new QRegExpValidator(QRegExp("0x[0-9a-fA-F]{1,4}"), this);
+    connect(ui->tabBindings, &DDF_BindingEditor::bindingsChanged, this, &DDF_Editor::bindingsChanged);
 }
 
 DDF_Editor::~DDF_Editor()
@@ -137,6 +137,7 @@ void DDF_Editor::setDDF(const DeviceDescription &ddf)
 
     ui->itemListView->update(d->dd);
     ui->ddfTreeView->setDDF(d->ddf);
+    ui->tabBindings->setBindings(d->ddf.bindings);
 
     d->state = StateEdit;
 
@@ -350,6 +351,10 @@ void DDF_Editor::tabChanged()
     {
         previewDDF(d->ddf);
     }
+    else if (ui->tabWidget->currentWidget() == ui->tabBindings)
+    {
+
+    }
 }
 
 void DDF_Editor::removeItem(uint subDevice, uint item)
@@ -431,4 +436,9 @@ void DDF_Editor::subDeviceInputChanged()
     {
         ui->ddfTreeView->setDDF(d->ddf);
     }
+}
+
+void DDF_Editor::bindingsChanged()
+{
+    d->ddf.bindings = ui->tabBindings->bindings();
 }

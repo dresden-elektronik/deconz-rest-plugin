@@ -29,7 +29,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <property name="documentMode">
       <bool>true</bool>
@@ -400,7 +400,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tabBindings">
+     <widget class="DDF_BindingEditor" name="tabBindings">
       <attribute name="title">
        <string>Bindings</string>
       </attribute>
@@ -444,6 +444,12 @@
    <class>TextLineEdit</class>
    <extends>QLineEdit</extends>
    <header>ui/text_lineedit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>DDF_BindingEditor</class>
+   <extends>QWidget</extends>
+   <header>ui/ddf_bindingeditor.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -159,6 +159,7 @@ HEADERS  = bindings.h \
            thermostat.h \
            thermostat_ui_configuration.h \
            tuya.h \
+           ui/ddf_bindingeditor.h \
            ui/ddf_editor.h \
            ui/ddf_itemeditor.h \
            ui/ddf_itemlist.h \
@@ -246,6 +247,7 @@ SOURCES  = air_quality.cpp \
            rule.cpp \
            state_change.cpp \
            thermostat_ui_configuration.cpp \
+           ui/ddf_bindingeditor.cpp \
            ui/ddf_editor.cpp \
            ui/ddf_itemeditor.cpp \
            ui/ddf_itemlist.cpp \

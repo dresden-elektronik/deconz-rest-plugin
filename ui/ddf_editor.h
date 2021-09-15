@@ -38,6 +38,7 @@ private Q_SLOTS:
     void removeItem(uint subDevice, uint item);
     void removeSubDevice(uint subDevice);
     void subDeviceInputChanged();
+    void bindingsChanged();
 
 private:
     Ui::DDF_Editor *ui;
