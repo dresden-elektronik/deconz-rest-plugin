@@ -5353,6 +5353,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpDoorLockSensor.inClusters.push_back(DOOR_LOCK_CLUSTER_ID);
                     }
+                    else if (manufacturer == QLatin1String("_TZE200_t5p1vj8r") ||
+                             manufacturer == QLatin1String("_TZE200_uebojraa"))
+                    {
+                        fpFireSensor.inClusters.push_back(TUYA_CLUSTER_ID);
+                    }
                 }
                     break;
 
