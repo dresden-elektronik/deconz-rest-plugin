@@ -5098,8 +5098,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
     {
         return;
     }
-    
-    DBG_Printf(DBG_INFO, "debug test 4");
 
     { // check existing sensors
         std::vector<Sensor>::iterator i = sensors.begin();
@@ -5352,7 +5350,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         if (manufacturer == QLatin1String("_TZE200_t5p1vj8r") ||
                             manufacturer == QLatin1String("_TZE200_uebojraa"))
                         {
-                            DBG_Printf(DBG_INFO, "debug test 1");
                             fpFireSensor.inClusters.push_back(TUYA_CLUSTER_ID);
                         }
                     }
@@ -5878,7 +5875,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case TUYA_CLUSTER_ID:
                 {
-                    DBG_Printf(DBG_INFO, "debug test 2");
+                    //Warning using this cluster don't work for all devices, better to use the Basic cluster.
                     if (manufacturer.endsWith(QLatin1String("kud7u2l")) ||
                         manufacturer.endsWith(QLatin1String("GbxAXL2")) ||
                         manufacturer.endsWith(QLatin1String("eaxp72v")) ||
@@ -5897,12 +5894,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         manufacturer == QLatin1String("_TZE200_rddyvrci"))
                     {
                         fpBatterySensor.inClusters.push_back(TUYA_CLUSTER_ID);
-                    }
-                    if (manufacturer == QLatin1String("_TZE200_t5p1vj8r") ||
-                        manufacturer == QLatin1String("_TZE200_uebojraa"))
-                    {
-                        DBG_Printf(DBG_INFO, "debug test 3");
-                        fpFireSensor.inClusters.push_back(TUYA_CLUSTER_ID);
                     }
                 }
                     break;
