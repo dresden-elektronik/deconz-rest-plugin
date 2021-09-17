@@ -781,8 +781,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     case 0x0101:
                     {
                         // Smoke Sensor
-                        if ((productId == "Tuya Smoke sensor 1") ||
-                            (productId == "Tuya Smoke sensor 2"))
+                        if (productId == "Tuya Smoke sensor 1")
                         {
                             bool trigger = (data == 0) ? false : true;
                             ResourceItem *item = sensorNode->item(RStateFire);
@@ -1134,6 +1133,22 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         {
                             item->setValue(valve);
                             enqueueEvent(Event(RSensors, RStateValve, sensorNode->id(), item));
+                        }
+                    }
+                    break;
+                    case 0x0401 : // Smoke detector
+                    {
+                        if (productId == "Tuya Smoke sensor 2")
+                        {
+                            bool trigger = (data == 0) ? true : false;
+                            ResourceItem *item = sensorNode->item(RStateFire);
+
+                            if (item && item->toBool() != trigger)
+                            {
+                                item->setValue(trigger);
+                                Event e(RSensors, RStateFire, sensorNode->id(), item);
+                                enqueueEvent(e);
+                            }
                         }
                     }
                     break;
