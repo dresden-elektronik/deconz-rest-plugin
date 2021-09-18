@@ -89,6 +89,7 @@ struct ReportTracker
 
 struct BindingContext
 {
+    size_t bindingCheckRound = 0;
     size_t bindingIter = 0;
     size_t reportIter = 0;
     bool mgmtBindSupported = false;
@@ -206,6 +207,7 @@ void DEV_InitStateHandler(Device *device, const Event &event)
         d->flags.initialRun == 1)
     {
         d->flags.initialRun = 0;
+        d->binding.bindingCheckRound = 0;
 
         // lazy reference to deCONZ::Node
         if (!device->node())
@@ -756,6 +758,11 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
         // DBG_Printf(DBG_INFO, "DEV Idle event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
     }
 
+    if (!device->reachable())
+    {
+        DBG_Printf(DBG_DEV, "DEV (NOT reachable) Idle event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
+    }
+
     if (!DEV_TestManaged())
     {
         d->setState(DEV_DeadStateHandler);
@@ -829,6 +836,7 @@ void DEV_BindingTableVerifyHandler(Device *device, const Event &event)
     }
     else if (d->binding.bindingIter >= d->binding.bindings.size())
     {
+        d->binding.bindingCheckRound++;
         d->setState(DEV_BindingIdleHandler, STATE_LEVEL_BINDING);
     }
     else
@@ -890,6 +898,15 @@ void DEV_BindingTableVerifyHandler(Device *device, const Event &event)
             d->setState(DEV_ReadReportConfigurationHandler, STATE_LEVEL_BINDING);
         }
     }
+}
+
+static void DEV_ProcessNextBinding(Device *device)
+{
+    DevicePrivate *d = device->d;
+
+    d->binding.bindingIter++;
+    d->setState(DEV_BindingTableVerifyHandler, STATE_LEVEL_BINDING);
+    DEV_EnqueueEvent(device, REventBindingTick);
 }
 
 void DEV_CreatebindingHandler(Device *device, const Event &event)
@@ -1007,10 +1024,7 @@ void DEV_ReadReportConfigurationHandler(Device *device, const Event &event)
 
         if (bnd.reporting.empty())
         {
-            // process next binding
-            d->binding.bindingIter++;
-            d->setState(DEV_BindingTableVerifyHandler, STATE_LEVEL_BINDING);
-            DEV_EnqueueEvent(device, REventBindingTick);
+            DEV_ProcessNextBinding(device);
             return;
         }
 
@@ -1028,7 +1042,11 @@ void DEV_ReadReportConfigurationHandler(Device *device, const Event &event)
         {
             ReportTracker &tracker = DEV_GetOrCreateReportTracker(device, bnd.clusterId, report.attributeId, bnd.srcEndpoint);
 
-            if ((tnow - tracker.lastConfigureCheck) < deCONZ::TimeSeconds{3600})
+            if (d->binding.bindingCheckRound == 0)
+            {
+                // always verify on first round (needed for DDF hot reloading)
+            }
+            else if ((tnow - tracker.lastConfigureCheck) < deCONZ::TimeSeconds{3600})
             {
                 DBG_Printf(DBG_DEV, "0x%016llX skip read ZCL report config for 0x%04X / 0x%04X\n", d->deviceKey, bnd.clusterId, report.attributeId);
                 continue;
@@ -1046,10 +1064,7 @@ void DEV_ReadReportConfigurationHandler(Device *device, const Event &event)
 
         if (param.records.empty())
         {
-            // process next binding
-            d->binding.bindingIter++;
-            d->setState(DEV_BindingTableVerifyHandler, STATE_LEVEL_BINDING);
-            DEV_EnqueueEvent(device, REventBindingTick);
+            DEV_ProcessNextBinding(device);
             return;
         }
 
@@ -1097,10 +1112,7 @@ void DEV_ReadReportConfigurationHandler(Device *device, const Event &event)
                 }
             }
 
-            // process next binding
-            d->binding.bindingIter++;
-            d->setState(DEV_BindingTableVerifyHandler, STATE_LEVEL_BINDING);
-            DEV_EnqueueEvent(device, REventBindingTick);
+            DEV_ProcessNextBinding(device);
         }
         else
         {
@@ -1185,9 +1197,7 @@ void DEV_ConfigureReportingHandler(Device *device, const Event &event)
 
             if (EventZclStatus(event) == deCONZ::ZclSuccessStatus)
             {
-                d->binding.bindingIter++;
-                d->setState(DEV_BindingTableVerifyHandler, STATE_LEVEL_BINDING);
-                DEV_EnqueueEvent(device, REventBindingTick);
+                DEV_ProcessNextBinding(device);
             }
             else
             {
