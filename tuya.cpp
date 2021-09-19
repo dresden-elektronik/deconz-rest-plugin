@@ -1218,6 +1218,19 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
+                    case 0x040e : // Batterie state ?
+                    {
+                        bool batlevel = (data == 2) ? false : true;
+                        ResourceItem *item = sensorNode->item(RStateLowBattery);
+
+                        if (item && item->toBool() != batlevel)
+                        {
+                            item->setValue(batlevel);
+                            Event e(RSensors, RStateLowBattery, sensorNode->id(), item);
+                            enqueueEvent(e);
+                        }
+                    }
+                    break;
                     case 0x046a : // Force mode : normal/open/close
                     {
                         QString mode;
