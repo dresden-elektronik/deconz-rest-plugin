@@ -1391,11 +1391,10 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             updateSensorEtag(&*sensorNode);
             sensorNode->updateStateTimestamp();
             
-            sensorNode->rx();
-            
             enqueueEvent(Event(RSensors, RStateLastUpdated, sensorNode->id()));
             
-            //In some situation the reachable flag stay at false
+            //The classic way don't work for tuya device using fake cluster
+            sensorNode->rx();
             ResourceItem *item3 = sensorNode->item(RConfigReachable);
             if (item3 && !item3->toBool())
             {
