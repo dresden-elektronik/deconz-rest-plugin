@@ -1389,9 +1389,16 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         if (sensorNode)
         {
             updateSensorEtag(&*sensorNode);
-
             sensorNode->updateStateTimestamp();
             enqueueEvent(Event(RSensors, RStateLastUpdated, sensorNode->id()));
+            
+            //In some situation the reachable flag star at false
+            ResourceItem *item3 = sensorNode->item(RConfigReachable);
+            if (item3 && !item3->toBool())
+            {
+                item3->setValue(true);
+                enqueueEvent(Event(RSensors, RConfigReachable, sensor->id(), item3));
+            }
 
             sensorNode->setNeedSaveDatabase(true);
         }
