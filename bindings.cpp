@@ -2906,6 +2906,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("Pocket remote") || //Legrand wireless remote 4 scene
         // Adeo
         sensor->modelId() == QLatin1String("LDSENK10") || // ADEO Animal compatible motion sensor (Leroy Merlin)
+        // Adeo
+        sensor->modelId() == QLatin1String("LXEK-5") || // ADEO Lexman Télécommande (Leroy Merlin)
         // Philio
         sensor->modelId() == QLatin1String("PST03A-v2.2.5") || //Philio pst03-a
         // ORVIBO
@@ -3642,11 +3644,19 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         clusters.push_back(LEVEL_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
+    // Sonoff
     else if (sensor->modelId().startsWith(QLatin1String("WB01")) ||
              sensor->modelId().startsWith(QLatin1String("WB-01")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
+    // ADEO Lexman Télécommande (Leroy Merlin)
+    else if (sensor->modelId().startsWith(QLatin1String("LXEK-5")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        clusters.push_back(COLOR_CLUSTER_ID);
     }
     // OSRAM 3 button remote
     else if (sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) )
@@ -3999,6 +4009,7 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         sensor->modelId().startsWith(QLatin1String("ElkoDimmer")) || // Elko dimmer
         sensor->modelId().startsWith(QLatin1String("E1E-")) || // Sengled smart light switch
         sensor->modelId().startsWith(QLatin1String("ZG2835")) || // SR-ZG2835 Zigbee Rotary Switch
+        sensor->modelId().startsWith(QLatin1String("LXEK-5")) || // ADEO Lexman Télécommande (Leroy Merlin)
         sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5121"))) // RGBgenie ZB-5121 remote
     {
 

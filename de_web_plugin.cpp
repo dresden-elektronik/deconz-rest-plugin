@@ -187,6 +187,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "902010/29", tiMacPrefix }, // Bitron: Outdoor siren
     { VENDOR_NONE, "SPW35Z", tiMacPrefix }, // RT-RK OBLO SPW35ZD0 smart plug
     { VENDOR_NONE, "SWO-MOS1PA", tiMacPrefix }, // Swann One Motion Sensor
+    { VENDOR_ADEO, "LXEK-5", emberMacPrefix }, // ADEO Lexman Télécommande (Leroy Merlin)
     { VENDOR_BITRON, "902010/32", emberMacPrefix }, // Bitron: thermostat
     { VENDOR_DDEL, "Lighting Switch", deMacPrefix },
     { VENDOR_DDEL, "Scene Switch", deMacPrefix },
@@ -1087,10 +1088,17 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         }
 
         handleIndicationSearchSensors(ind, zclFrame);
+            
+        bool checkSensor = false;
 
-        if (ind.dstAddressMode() == deCONZ::ApsGroupAddress || ind.clusterId() == VENDOR_CLUSTER_ID || ind.clusterId() == IAS_ZONE_CLUSTER_ID || zclFrame.manufacturerCode() == VENDOR_XIAOYAN ||
-            !(zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient) ||
-            (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId))
+        if      (ind.dstAddressMode() == deCONZ::ApsGroupAddress) { checkSensor = true; }
+        else if (ind.clusterId() == VENDOR_CLUSTER_ID) { checkSensor = true; }
+        else if (ind.clusterId() == IAS_ZONE_CLUSTER_ID) { checkSensor = true; }
+        else if ((zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient) == 0) { checkSensor = true; }
+        else if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId) { checkSensor = true; }
+        else if (ind.clusterId() == ADEO_CLUSTER_ID && zclFrame.manufacturerCode() == VENDOR_ADEO) { checkSensor = true; }
+
+        if (checkSensor)
         {
             Sensor *sensorNode = getSensorNodeForAddressEndpointAndCluster(ind.srcAddress(), ind.srcEndpoint(), ind.clusterId());
 
@@ -4240,9 +4248,9 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")) || // icasa remote
              sensor->modelId().startsWith(QLatin1String("ZGR904-S")) || // Envilar remote
              sensor->modelId().startsWith(QLatin1String("RGBGenie ZB-5")) || // RGBGenie remote control
+             sensor->modelId().startsWith(QLatin1String("LXEK-5")) || // ADEO Lexman Télécommande (Leroy Merlin)
              sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")) || // RGBGenie ZB-5001
              sensor->modelId().startsWith(QLatin1String("ZG2833PAC"))) // Sunricher C4
-
     {
         checkReporting = true;
         checkClientCluster = true;
@@ -4713,7 +4721,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 }
                 else if (ind.clusterId() == LEVEL_CLUSTER_ID &&
                          (zclFrame.commandId() == 0x01 ||  // move
-                          zclFrame.commandId() == 0x02 ||  // step
                           zclFrame.commandId() == 0x05 ||  // move (with on/off)
                           zclFrame.commandId() == 0x06))   // step (with on/off)
                 {
@@ -4722,6 +4729,33 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     {
                         sensor->previousDirection = zclFrame.payload().at(0);
                         ok = true;
+                    }
+                }
+                else if (ind.clusterId() == LEVEL_CLUSTER_ID && zclFrame.commandId() == 0x02 )  // step
+                {
+                    ok = false;
+                    if (zclFrame.payload().size() >= 1 && buttonMap.zclParam0 == zclFrame.payload().at(0)) // direction
+                    {
+                        sensor->previousDirection = zclFrame.payload().at(0);
+                        ok = true;
+                    }
+                    if (zclFrame.payload().size() >= 3)
+                    {
+                        //First value is a quint8 for step mode : 0x00 UP and 0x01 DOWN
+                        //The second one is step size
+                        //The third value is a quint16 for transition
+                        if (sensor->modelId().startsWith(QLatin1String("LXEK-5"))) // ADEO Lexman Télécommande (Leroy Merlin)
+                        {
+                            //need to use stepsize too for this device
+                            ok = true;
+                            quint16 param = static_cast<quint16>(zclFrame.payload().at(0) & 0xff);
+                            param <<= 8;
+                            param |= static_cast<quint16>(zclFrame.payload().at(1) & 0xff);
+                            if (buttonMap.zclParam0 != param)
+                            {
+                                ok = false;
+                            }
+                        }
                     }
                 }
                 else if (ind.clusterId() == LEVEL_CLUSTER_ID &&
@@ -4737,7 +4771,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     if (buttonMap.zclParam0 != sensor->previousDirection && // direction of previous move/step
                         (sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5121")) || // Device sends cmd = 7 + param = 0 for dim up/down
                         sensor->modelId().startsWith(QLatin1String("ZBT-DIMSwitch-D0001")) ||
-                        sensor->modelId().startsWith(QLatin1String("ZGRC-TEUR-003"))))
+                        sensor->modelId().startsWith(QLatin1String("ZGRC-TEUR-003")) ||
+                        sensor->modelId().startsWith(QLatin1String("LXEK-5"))))
                     {
                         sensor->previousDirection = 0xFF;
                         ok = true;
@@ -4938,15 +4973,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         ok = true;
                     }
                 }
-                else if (ind.clusterId() == COLOR_CLUSTER_ID &&
-                         (zclFrame.commandId() == 0x4c))  // step color temperature
-                {
-                    ok = false;
-                    if (zclFrame.payload().size() >= 1 && buttonMap.zclParam0 == zclFrame.payload().at(0)) // direction
-                    {
-                        ok = true;
-                    }
-                }
                 else if (ind.clusterId() == COLOR_CLUSTER_ID && (zclFrame.commandId() == 0x01 ))  // Move hue command
                 {
                     // Only used by Osram devices currently
@@ -4962,10 +4988,66 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     }
 
                 }
+                else if (ind.clusterId() == COLOR_CLUSTER_ID && 
+                        (zclFrame.commandId() == 0x05 || // Step Saturation
+                         zclFrame.commandId() == 0x02 || // Step Hue
+                         zclFrame.commandId() == 0x4C))  // Step Color Temperature
+                {
+                    ok = false;
+                    if (zclFrame.payload().size() >= 1 && buttonMap.zclParam0 == zclFrame.payload().at(0)) // direction
+                    {
+                        sensor->previousDirection = zclFrame.payload().at(0);
+                        ok = true;
+                    }
+                    
+                    if (zclFrame.payload().size() >= 3)
+                    {
+                        //First value is a quint8 for step mode : 0x00 UP and 0x01 DOWN
+                        //The second one is step size
+                        //The third value is a quint16 for transition
+                        
+                        if (sensor->modelId().startsWith(QLatin1String("LXEK-5"))) // ADEO Lexman Télécommande (Leroy Merlin)
+                        {
+                            //need to use step size too for this device
+                            ok = true;
+                            quint16 param = static_cast<quint16>(zclFrame.payload().at(0) & 0xff);
+                            param <<= 8;
+                            param |= static_cast<quint16>(zclFrame.payload().at(1) & 0xff);
+                            if (buttonMap.zclParam0 != param)
+                            {
+                                ok = false;
+                            }
+                        }
+                    }
+                }
+                else if (ind.clusterId() == COLOR_CLUSTER_ID && zclFrame.commandId() == 0x47) // stop
+                {
+                    ok = false;
+                    if (buttonMap.zclParam0 == sensor->previousDirection) // direction of previous step
+                    {
+                        sensor->previousDirection = 0xFF;
+                        ok = true;
+                    }
+                    if (buttonMap.zclParam0 != sensor->previousDirection && // direction of previous step
+                        sensor->modelId().startsWith(QLatin1String("LXEK-5")))
+                    {
+                        sensor->previousDirection = 0xFF;
+                        ok = true;
+                    }
+                }
                 else if (ind.clusterId() == SENGLED_CLUSTER_ID)
                 {
                     ok = false;
 
+                    if (buttonMap.zclParam0 == pl0)
+                    {
+                        ok = true;
+                    }
+                }
+                else if (ind.clusterId() == ADEO_CLUSTER_ID)
+                {
+                    ok = false;
+                    
                     if (buttonMap.zclParam0 == pl0)
                     {
                         ok = true;
@@ -4987,11 +5069,12 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
                 if (ok && buttonMap.button != 0)
                 {
-                    if (!buttonMap.name.isEmpty()) { cmd = buttonMap.name; }
-
-                    DBG_Printf(DBG_INFO, "[INFO] - Button %u - %s%s, endpoint: 0x%02X, cluster: %s, action: %s, payload: %s, zclSeq: %u\n",
-                        buttonMap.button, qPrintable(sensor->modelId()), qPrintable(addressMode), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), qPrintable(zclPayload), zclFrame.sequenceNumber());
-
+                    QString action = QLatin1String("Not defined");
+                    if (!buttonMap.name.isEmpty()) { action = buttonMap.name; }
+                    
+                    DBG_Printf(DBG_INFO, "[INFO] - Button %u - %s%s, endpoint: 0x%02X, cluster: %s, command: %s, action: %s, payload: %s, zclSeq: %u\n",
+                        buttonMap.button, qPrintable(sensor->modelId()), qPrintable(addressMode), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), qPrintable(action), qPrintable(zclPayload), zclFrame.sequenceNumber());
+                   
                     ResourceItem *item = sensor->item(RStateButtonEvent);
                     if (item)
                     {
