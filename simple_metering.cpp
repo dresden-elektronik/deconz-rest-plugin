@@ -103,7 +103,11 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
                 {
                     consumption = static_cast<quint64>(round((double)consumption / 1000.0)); // -> Wh
                 }
-                else if (modelId.startsWith(QLatin1String("ROB_200")) ||            // ROBB Smarrt micro dimmer
+                else if (modelId == QLatin1String("AD-SmartPlug3001")) // AduroSmart Eira SmartPlug 3001
+                {
+                    consumption = static_cast<quint64>(round((double)consumption / 10000.0)); // -> Wh
+                }
+                else if (modelId.startsWith(QLatin1String("ROB_200")) ||            // ROBB Smart micro dimmer
                          modelId.startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
                          modelId.startsWith(QLatin1String("SPW35Z")))               // RT-RK OBLO SPW35ZD0 smart plug
                 {
