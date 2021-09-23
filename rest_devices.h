@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2021 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -39,5 +39,9 @@ private:
 
     DeRestPluginPrivate *plugin;
 };
+
+// Resource Introspection (RIS)
+int RIS_GetDeviceIntrospect(const ApiRequest &req, ApiResponse &rsp);
+int RIS_GetDeviceItemIntrospect(const ApiRequest &req, ApiResponse &rsp);
 
 #endif // REST_DEVICES_H

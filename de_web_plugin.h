@@ -32,13 +32,6 @@ class DeRestPlugin : public QObject,
     Q_PLUGIN_METADATA(IID "org.dresden-elektronik.DeRestPlugin")
 #endif
 public:
-
-    enum State
-    {
-        StateOff,
-        StateIdle
-    };
-
     explicit DeRestPlugin(QObject *parent = 0);
     ~DeRestPlugin();
     // node interface
@@ -70,7 +63,6 @@ Q_SIGNALS:
 private:
     QTimer *m_idleTimer = nullptr;
     QTimer *m_readAttributesTimer = nullptr;
-    State m_state;
     friend class DeRestWidget;
     DeRestWidget *m_w = nullptr;
     DeRestPluginPrivate *d = nullptr;

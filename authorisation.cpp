@@ -77,9 +77,11 @@ void DeRestPluginPrivate::initAuthentication()
  */
 bool DeRestPluginPrivate::allowedToCreateApikey(const ApiRequest &req, ApiResponse &rsp, QVariantMap &map)
 {
-    if (req.hdr.hasKey("Authorization"))
+    if (req.hdr.hasKey(QLatin1String("Authorization")))
     {
-        QStringList ls = req.hdr.value("Authorization").split(' ');
+        const QString auth(req.hdr.value(QLatin1String("Authorization")));
+        const QStringList ls = auth.split(' ');
+
         if ((ls.size() > 1) && ls[0] == "Basic")
         {
             QString enc = encryptString(ls[1]);
@@ -163,9 +165,9 @@ void DeRestPluginPrivate::authorise(ApiRequest &req, ApiResponse &rsp)
             // fill in useragent string if not already exist
             if (i->useragent.isEmpty())
             {
-                if (req.hdr.hasKey("User-Agent"))
+                if (req.hdr.hasKey(QLatin1String("User-Agent")))
                 {
-                    i->useragent = req.hdr.value("User-Agent");
+                    i->useragent = req.hdr.value(QLatin1String("User-Agent"));
                     DBG_Printf(DBG_HTTP, "set useragent '%s' for apikey '%s'\n", qPrintable(i->useragent), qPrintable(i->apikey));
                 }
             }

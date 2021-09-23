@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2021 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -12,12 +12,14 @@
 #include <QStringBuilder>
 #include <QElapsedTimer>
 #include <unistd.h>
+#include "database.h"
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "deconz/dbg_trace.h"
 #include "gateway.h"
 #include "json.h"
 #include "product_match.h"
+#include "utils/utils.h"
 
 static const char *pragmaUserVersion = "PRAGMA user_version";
 static const char *pragmaPageCount = "PRAGMA page_count";
@@ -35,6 +37,8 @@ struct DB_Callback {
 /******************************************************************************
                     Local prototypes
 ******************************************************************************/
+static bool initAlarmSystemsTable();
+static bool initSecretsTable();
 static int sqliteLoadAuthCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadUserparameterCallback(void *user, int ncols, char **colval , char **colname);
@@ -103,6 +107,10 @@ void DeRestPluginPrivate::checkDbUserVersion()
     }
     else if (userVersion == 7)
     {
+        updated = upgradeDbToUserVersion8();
+    }
+    else if (userVersion == 8)
+    {
         // latest version
     }
     else
@@ -119,6 +127,9 @@ void DeRestPluginPrivate::checkDbUserVersion()
     {
         cleanUpDb();
         createTempViews();
+
+        initSecretsTable(); // todo, temporary, use user version > 8, after PR #5089 is merged
+        initAlarmSystemsTable();
     }
 }
 
@@ -491,6 +502,36 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion7()
     }
 
     return setDbUserVersion(7);
+}
+
+/*! Upgrades database to user_version 8. */
+bool DeRestPluginPrivate::upgradeDbToUserVersion8()
+{
+    DBG_Printf(DBG_INFO, "DB upgrade to user_version 8\n");
+
+    const char *sql[] = {
+        "ALTER TABLE sensors add column lastseen TEXT",
+        "ALTER TABLE sensors add column lastannounced TEXT",
+        nullptr
+    };
+
+    for (int i = 0; sql[i] != nullptr; i++)
+    {
+        char *errmsg = nullptr;
+        int rc = sqlite3_exec(db, sql[i], nullptr, nullptr, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d), line: %d\n", sql[i], errmsg, rc, __LINE__);
+                sqlite3_free(errmsg);
+            }
+            return false;
+        }
+    }
+
+    return setDbUserVersion(8);
 }
 
 #if DECONZ_LIB_VERSION >= 0x010E00
@@ -3058,6 +3099,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.setDeletedState(Sensor::StateNormal);
                 }
             }
+            else if (strcmp(colname[i], "lastseen") == 0)
+            {
+                sensor.setLastSeen(val);
+            }
+            else if (strcmp(colname[i], "lastannounced") == 0)
+            {
+                sensor.setLastAnnounced(val);
+            }
         }
     }
 
@@ -3078,6 +3127,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (isClip)
         {
+            sensor.removeItem(RAttrLastAnnounced);
+            sensor.removeItem(RAttrLastSeen);
             ok = true;
         }
         // convert from old format 0x0011223344556677 to 00:11:22:33:44:55:66:77-AB where AB is the endpoint
@@ -3123,6 +3174,15 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             return 0;
         }
 
+        // ZGP switches
+        if (sensor.fingerPrint().profileId == GP_PROFILE_ID)
+        {
+            sensor.addItem(DataTypeString, RConfigGPDKey)->setIsPublic(false);
+            sensor.addItem(DataTypeUInt16, RConfigGPDDeviceId)->setIsPublic(false);
+            sensor.addItem(DataTypeUInt32, RStateGPDFrameCounter)->setIsPublic(false);
+            sensor.addItem(DataTypeUInt64, RStateGPDLastPair)->setIsPublic(false);
+        }
+
         if (sensor.type().endsWith(QLatin1String("Switch")))
         {
             if (sensor.modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
@@ -3141,6 +3201,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : ONOFF_CLUSTER_ID;
                 if (sensor.modelId().startsWith(QLatin1String("RDM00")) ||
+                    sensor.modelId().startsWith(QLatin1String("Pocket remote")) ||
                     sensor.modelId().startsWith(QLatin1String("SYMFONISK")))
                 {
                     // blacklisted
@@ -3170,10 +3231,16 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : IAS_ACE_CLUSTER_ID;
             }
+            else if (sensor.fingerPrint().hasOutCluster(SCENE_CLUSTER_ID))
+            {
+                clusterId = clusterId ? clusterId : SCENE_CLUSTER_ID;
+            }
+
             item = sensor.addItem(DataTypeInt32, RStateButtonEvent);
             item->setValue(0);
 
-            if (sensor.modelId().startsWith(QLatin1String("lumi.sensor_cube")))
+            if (sensor.modelId().startsWith(QLatin1String("lumi.sensor_cube")) ||
+                sensor.modelId() == QLatin1String("lumi.remote.cagl01"))
             {
                 sensor.addItem(DataTypeInt32, RStateGesture);
             }
@@ -3188,8 +3255,21 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 sensor.addItem(DataTypeUInt16, RStateX);
                 sensor.addItem(DataTypeUInt16, RStateY);
-                sensor.addItem(DataTypeUInt16, RStateAngle);
+                sensor.addItem(DataTypeInt16, RStateAngle);
             }
+            else if (sensor.modelId() == QLatin1String("TERNCY-SD01"))
+            {
+                sensor.addItem(DataTypeInt16, RStateAngle);
+                sensor.addItem(DataTypeUInt16, RStateEventDuration);
+            }
+        }
+        else if (sensor.type().endsWith(QLatin1String("AncillaryControl")))
+        {
+            clusterId = IAS_ACE_CLUSTER_ID;
+            sensor.addItem(DataTypeString, RStateAction);
+            sensor.addItem(DataTypeString, RStatePanel);
+            sensor.addItem(DataTypeUInt32, RStateSecondsRemaining)->setValue(0);
+            sensor.addItem(DataTypeBool, RStateTampered)->setValue(false);
         }
         else if (sensor.type().endsWith(QLatin1String("LightLevel")))
         {
@@ -3267,6 +3347,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             item = sensor.addItem(DataTypeInt16, RStatePressure);
             item->setValue(0);
+            item = sensor.addItem(DataTypeInt16, RConfigOffset);
+            item->setValue(0);
         }
         else if (sensor.type().endsWith(QLatin1String("Presence")))
         {
@@ -3274,7 +3356,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : OCCUPANCY_SENSING_CLUSTER_ID;
                 if (sensor.modelId().startsWith(QLatin1String("FLS")) ||
-                    sensor.modelId().startsWith(QLatin1String("SML00")))
+                    sensor.modelId().startsWith(QLatin1String("SML00")) ||
+                    sensor.modelId().startsWith(QLatin1String("MOSZB-1")))
                 {
                     // TODO write and recover min/max to db
                     deCONZ::NumericUnion dummy;
@@ -3311,6 +3394,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item->setValue(0);
                 item = sensor.addItem(DataTypeUInt8, RConfigSensitivityMax);
                 item->setValue(R_SENSITIVITY_MAX_DEFAULT);
+            }
+            else if (sensor.modelId().startsWith(QLatin1String("MOSZB-1")) && clusterId == OCCUPANCY_SENSING_CLUSTER_ID) // Develco/frient motion sensor
+            {
+                sensor.addItem(DataTypeUInt16, RConfigDelay)->setValue(0);
+                sensor.addItem(DataTypeUInt16, RConfigPending)->setValue(0);
             }
             else
             {
@@ -3359,7 +3447,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         else if (sensor.type().endsWith(QLatin1String("DoorLock")))
         {
             clusterId = clusterId ? clusterId : DOOR_LOCK_CLUSTER_ID;
-            
+
             sensor.addItem(DataTypeString, RStateLockState);
             sensor.addItem(DataTypeBool, RConfigLock);
         }
@@ -3377,8 +3465,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.addItem(DataTypeUInt8, RConfigMelody);
                 sensor.addItem(DataTypeString, RConfigPreset);
                 sensor.addItem(DataTypeUInt8, RConfigVolume);
-                sensor.addItem(DataTypeString, RConfigTempThreshold);
-                sensor.addItem(DataTypeString, RConfigHumiThreshold);
+                sensor.addItem(DataTypeInt8, RConfigTempMaxThreshold);
+                sensor.addItem(DataTypeInt8, RConfigTempMinThreshold);
+                sensor.addItem(DataTypeInt8, RConfigHumiMaxThreshold);
+                sensor.addItem(DataTypeInt8, RConfigHumiMinThreshold);
             }
 
         }
@@ -3454,6 +3544,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     (!sensor.modelId().startsWith(QLatin1String("lumi.plug.ma"))) &&
                     (sensor.modelId() != QLatin1String("Plug-230V-ZB3.0")) &&
                     (sensor.modelId() != QLatin1String("lumi.switch.b1naus01")) &&
+                    (sensor.modelId() != QLatin1String("lumi.switch.n0agl1")) &&
                     (sensor.modelId() != QLatin1String("Connected socket outlet")) &&
                     (!sensor.modelId().startsWith(QLatin1String("SPW35Z"))))
                 {
@@ -3464,6 +3555,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 {
                     sensor.addItem(DataTypeUInt8, RConfigInterfaceMode)->setValue(1);
                     sensor.addItem(DataTypeUInt16, RConfigPulseConfiguration)->setValue(1000);
+                }
+                if (sensor.modelId().startsWith(QLatin1String("EMIZB-1")))
+                {
+                    sensor.addItem(DataTypeUInt8, RConfigInterfaceMode)->setValue(1);
                 }
             }
             else if (sensor.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
@@ -3491,6 +3586,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 else if (sensor.modelId() == QLatin1String("ZB-ONOFFPlug-D0005") ||
                          sensor.modelId() == QLatin1String("Plug-230V-ZB3.0") ||
                          sensor.modelId() == QLatin1String("lumi.switch.b1naus01") ||
+                         sensor.modelId() == QLatin1String("lumi.plug.maeu01") ||
+                         sensor.modelId() == QLatin1String("lumi.switch.n0agl1") ||
                          sensor.manufacturer() == QLatin1String("Legrand"))
                 {
                     hasVoltage = false;
@@ -3523,8 +3620,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(30);
             item = sensor.addItem(DataTypeInt8, RConfigSunsetOffset);
             item->setValue(-30);
-            sensor.addItem(DataTypeString, RConfigLat);
-            sensor.addItem(DataTypeString, RConfigLong);
+            sensor.addItem(DataTypeString, RConfigLat)->setIsPublic(false);
+            sensor.addItem(DataTypeString, RConfigLong)->setIsPublic(false);
             sensor.addItem(DataTypeBool, RStateDaylight);
             sensor.addItem(DataTypeBool, RStateDark);
             sensor.addItem(DataTypeInt32, RStateStatus);
@@ -3555,12 +3652,13 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 if (sensor.modelId().startsWith(QLatin1String("SLR2")) ||   // Hive
                     sensor.modelId() == QLatin1String("SLR1b") ||           // Hive
                     sensor.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
-                    sensor.modelId() == QLatin1String("902010/32") ||       // Bitron
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD MOES TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                 {
                     sensor.addItem(DataTypeString, RConfigMode);
@@ -3568,6 +3666,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
                 if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV"))
@@ -3578,11 +3677,13 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
                 if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD MOES TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                 {
                     sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
@@ -3590,6 +3691,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
                 if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
@@ -3618,6 +3720,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV"))
                 {
                     sensor.addItem(DataTypeBool, RConfigWindowOpen)->setValue(false);
@@ -3626,10 +3729,18 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 if (sensor.modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
-                    sensor.addItem(DataTypeUInt32, RConfigHostFlags); // hidden
+                    sensor.addItem(DataTypeUInt32, RConfigHostFlags)->setIsPublic(false);
                     sensor.addItem(DataTypeBool, RConfigDisplayFlipped)->setValue(false);
                     sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                     sensor.addItem(DataTypeString, RConfigMode);
+                }
+                else if (sensor.modelId() == QLatin1String("902010/32"))  // Bitron
+                {
+                    sensor.addItem(DataTypeString, RConfigMode);
+                    sensor.addItem(DataTypeUInt8, RConfigControlSequence)->setValue(4);
+                    sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);
+                    sensor.addItem(DataTypeBool, RConfigScheduleOn)->setValue(false);
+                    sensor.addItem(DataTypeString, RConfigSchedule);
                 }
                 else if (sensor.modelId() == QLatin1String("Super TR"))   // ELKO
                 {
@@ -3687,7 +3798,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     // Supported with Danfoss firmware version 1.08
                     sensor.addItem(DataTypeBool, RConfigScheduleOn)->setValue(false);
                     sensor.addItem(DataTypeString, RConfigSchedule);
-                    sensor.addItem(DataTypeInt16, RConfigExternalTemperatureSensor);
+                    sensor.addItem(DataTypeInt16, RConfigExternalTemperatureSensor)->setValue(0);
                     sensor.addItem(DataTypeBool, RConfigExternalWindowOpen)->setValue(false);
                 }
                 else if (sensor.modelId() == QLatin1String("AC201")) // OWON AC201 Thermostat
@@ -3697,10 +3808,22 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeString, RConfigFanMode);
                     sensor.addItem(DataTypeString, RConfigSwingMode);
                 }
+                else if (sensor.modelId() == QLatin1String("iTRV")) // Drayton Wiser Radiator Thermostat
+                {
+                    sensor.addItem(DataTypeUInt8, RStateValve);
+                    sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);
+                    sensor.addItem(DataTypeString, RConfigMode);
+                    sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
+                }
                 else if (sensor.modelId() == QLatin1String("TH1300ZB")) // sinope thermostat
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
                     sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
+                    sensor.addItem(DataTypeString, RConfigMode);
+                }
+                else if (sensor.modelId() == QLatin1String("ALCANTARA2 D1.00P1.01Z1.00")) // Alcantara 2 acova
+                {
+                    sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);
                     sensor.addItem(DataTypeString, RConfigMode);
                 }
                 else
@@ -3839,6 +3962,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.modelId() != QLatin1String("lumi.curtain") &&
                 sensor.modelId() != QLatin1String("lumi.sensor_natgas") &&
                 sensor.modelId() != QLatin1String("lumi.switch.b1naus01") &&
+                sensor.modelId() != QLatin1String("lumi.switch.n0agl1") &&
                 !sensor.modelId().startsWith(QLatin1String("lumi.relay.c")) &&
                 !sensor.type().endsWith(QLatin1String("Battery")))
             {
@@ -3867,11 +3991,16 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 //item->setValue(0);
             }
 
-            if (sensor.modelId().endsWith(QLatin1String("86opcn01")))
+            if (sensor.modelId().endsWith(QLatin1String("86opcn01")) || sensor.modelId() == QLatin1String("lumi.remote.b28ac1"))
             {
-                // Aqara Opple switches need to be configured to send proper button events
+                // Aqara switches need to be configured to send proper button events
                 item = sensor.addItem(DataTypeUInt16, RConfigPending);
                 item->setValue(item->toNumber() | R_PENDING_MODE);
+            }
+            
+            if (sensor.modelId() == QLatin1String("lumi.switch.n0agl1"))
+            {
+                sensor.removeItem(RConfigBattery);
             }
         }
         else if (sensor.modelId().startsWith(QLatin1String("tagv4"))) // SmartThings Arrival sensor
@@ -3880,7 +4009,12 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(R_ALERT_DEFAULT);
         }
 
-        if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
+        // TODO cleanup conditions to be readable
+        //Only use the ZHAAncillaryControl sensor if present for enrollement, but only enabled for one device ATM
+        if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID) &&
+           (sensor.modelId() != QLatin1String("URC4450BC0-X-R") ||
+            sensor.modelId() != QLatin1String("3405-L") ||
+           (sensor.type().endsWith(QLatin1String("AncillaryControl")) || !sensor.fingerPrint().hasOutCluster(IAS_ACE_CLUSTER_ID))))
         {
             if (sensor.modelId() == QLatin1String("button") ||
                 sensor.modelId().startsWith(QLatin1String("multi")) ||
@@ -3909,8 +4043,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     item->setValue(false);
                 }
             }
-            item = sensor.addItem(DataTypeUInt16, RConfigPending);
-            item->setValue(0);
+            sensor.addItem(DataTypeUInt16, RConfigPending)->setValue(0);
             sensor.addItem(DataTypeUInt32, RConfigEnrolled)->setValue(IAS_STATE_INIT);
         }
 
@@ -3961,6 +4094,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (item)
             {
                 item->setValue(IAS_STATE_INIT); // reset at startup
+            }
+        }
+
+        {
+            ResourceItem *item = sensor.item(RStateGPDLastPair);
+            if (item)
+            {
+                item->setValue(0); // reset at startup
             }
         }
 
@@ -4029,7 +4170,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (extAddr != 0)
         {
-            QString uid = d->generateUniqueId(extAddr, endpoint, clusterId);
+            const QString uid = generateUniqueId(extAddr, endpoint, clusterId);
 
             if (uid != sensor.uniqueId())
             {
@@ -4092,8 +4233,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                         item = sensor.item(RConfigGroup);
                         if (item && !item->toString().isEmpty() && item->toString() != QLatin1String("0"))
                         {
-                            Event e(RSensors, REventValidGroup, sensor.id());
-                            d->enqueueEvent(e);
+                            enqueueEvent(Event(RSensors, REventValidGroup, sensor.id()));
                         }
                     }
                 }
@@ -4858,11 +4998,11 @@ void DeRestPluginPrivate::saveDb()
 
             i->setNeedSaveDatabase(false);
 
-            /*
             if (i->state() == LightNode::StateDeleted)
             {
                 // delete LightNode from db (if exist)
-                QString sql = QString("DELETE FROM nodes WHERE id='%1'").arg(i->id());
+                QString sql = QString("DELETE FROM nodes WHERE mac='%1'").arg(i->uniqueId());
+                sql.append(QString("; DELETE FROM devices WHERE mac = '%1'").arg(generateUniqueId(i->address().ext(), 0, 0)));
 
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
@@ -4878,9 +5018,6 @@ void DeRestPluginPrivate::saveDb()
 
                 continue;
             }
-            */
-
-            QString lightState((i->state() == LightNode::StateDeleted ? "deleted" : "normal"));
 
             std::vector<GroupInfo>::const_iterator gi = i->groups().begin();
             std::vector<GroupInfo>::const_iterator gend = i->groups().end();
@@ -4894,6 +5031,7 @@ void DeRestPluginPrivate::saveDb()
                 }
             }
 
+            const QString lightState = "normal";
             QString ritems = i->resourceItemsToJson();
             QString sql = QString(QLatin1String("REPLACE INTO nodes (id, state, mac, name, groups, endpoint, modelid, manufacturername, swbuildid, ritems) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10')"))
                     .arg(i->id())
@@ -4906,11 +5044,6 @@ void DeRestPluginPrivate::saveDb()
                     .arg(i->manufacturer())
                     .arg(i->swBuildId())
                     .arg(ritems);
-
-            if (i->state() == LightNode::StateDeleted)
-            {
-                sql.append(QString("; DELETE FROM devices WHERE mac = '%1'").arg(generateUniqueId(i->address().ext(), 0, 0)));
-            }
 
             DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
             errmsg = NULL;
@@ -5288,11 +5421,11 @@ void DeRestPluginPrivate::saveDb()
 
             i->setNeedSaveDatabase(false);
 
-            /*
             if (i->deletedState() == Sensor::StateDeleted)
             {
                 // delete sensor from db (if exist)
-                QString sql = QString("DELETE FROM sensors WHERE sid='%1'").arg(sid);
+                QString sql = QString("DELETE FROM sensors WHERE uniqueid='%1'").arg(i->uniqueId());
+                sql.append(QString("; DELETE FROM devices WHERE mac = '%1'").arg(generateUniqueId(i->address().ext(), 0, 0)));
 
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
@@ -5308,13 +5441,13 @@ void DeRestPluginPrivate::saveDb()
 
                 continue;
             }
-            */
+
             QString stateJSON = i->stateToString();
             QString configJSON = i->configToString();
             QString fingerPrintJSON = i->fingerPrint().toString();
-            QString deletedState((i->deletedState() == Sensor::StateDeleted ? "deleted" : "normal"));
+            const QString deletedState = "normal";
 
-            QString sql = QString(QLatin1String("REPLACE INTO sensors (sid, name, type, modelid, manufacturername, uniqueid, swversion, state, config, fingerprint, deletedState, mode) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10', '%11', '%12')"))
+            QString sql = QString(QLatin1String("REPLACE INTO sensors (sid, name, type, modelid, manufacturername, uniqueid, swversion, state, config, fingerprint, deletedState, mode, lastseen, lastannounced) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10', '%11', '%12', '%13', '%14')"))
                     .arg(i->id())
                     .arg(i->name())
                     .arg(i->type())
@@ -5326,12 +5459,9 @@ void DeRestPluginPrivate::saveDb()
                     .arg(configJSON)
                     .arg(fingerPrintJSON)
                     .arg(deletedState)
-                    .arg(QString::number(i->mode()));
-
-            if (i->deletedState() == Sensor::StateDeleted)
-            {
-                sql.append(QString("; DELETE FROM devices WHERE mac = '%1'").arg(generateUniqueId(i->address().ext(), 0, 0)));
-            }
+                    .arg(QString::number(i->mode()))
+                    .arg(i->lastSeen())
+                    .arg(i->lastAnnounced());
 
             DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
             errmsg = NULL;
@@ -5799,4 +5929,418 @@ void DeRestPluginPrivate::saveDatabaseTimerFired()
 
         DBG_Assert(saveDatabaseItems == 0);
     }
+}
+
+bool DB_StoreSecret(const DB_Secret &secret)
+{
+    if (!db || secret.uniqueId.empty())
+    {
+        return false;
+    }
+
+    std::vector<char> sql(512);
+
+    int rc = snprintf(sql.data(), sql.size(), "REPLACE INTO secrets (uniqueid,secret,state) VALUES ('%s','%s',%d)", secret.uniqueId.data(), secret.secret.data(), secret.state);
+
+    if (rc >= int(sql.size()))
+    {
+        return false;
+    }
+
+    char *errmsg = nullptr;
+    rc = sqlite3_exec(db, sql.data(), NULL, NULL, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", sql.data(), errmsg);
+            sqlite3_free(errmsg);
+        }
+        return false;
+    }
+
+    return true;
+}
+
+/*! Sqlite callback to load userparameter data.
+ */
+static int sqliteLoadSecretCallback(void *user, int ncols, char **colval , char **)
+{
+    DB_Secret *secret = static_cast<DB_Secret*>(user);
+
+    if (ncols == 2 && secret)
+    {
+        secret->secret = colval[0];
+        secret->state = std::strtoul(colval[1], nullptr, 10);
+        return 0;
+    }
+
+    return 1;
+}
+
+bool DB_LoadSecret(DB_Secret &secret)
+{
+    if (!db || secret.uniqueId.empty())
+    {
+        return false;
+    }
+
+    char sql[200];
+
+    int rc = snprintf(sql, sizeof(sql), "SELECT secret,state FROM secrets WHERE uniqueid = '%s'", secret.uniqueId.data());
+
+    if (rc >= int(sizeof(sql)))
+    {
+        return false;
+    }
+
+    char *errmsg = nullptr;
+    rc = sqlite3_exec(db, sql, sqliteLoadSecretCallback, &secret, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR, "sqlite3_exec %s, error: %s\n", sql, errmsg);
+            sqlite3_free(errmsg);
+        }
+
+        return false;
+    }
+
+    return true;
+}
+
+static bool initSecretsTable()
+{
+    if (!db)
+    {
+        return false;
+    }
+
+    const char *sql = "CREATE TABLE IF NOT EXISTS secrets (uniqueid TEXT PRIMARY KEY, secret TEXT, state INTEGER)";
+
+    char *errmsg = nullptr;
+    int rc = sqlite3_exec(db, sql, nullptr, nullptr, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR, "sqlite3_exec %s, error: %s\n", sql, errmsg);
+            sqlite3_free(errmsg);
+        }
+
+        return false;
+    }
+
+    return true;
+}
+
+static bool initAlarmSystemsTable()
+{
+    if (!db)
+    {
+        return false;
+    }
+
+    const char *sql = "CREATE TABLE IF NOT EXISTS alarm_systems (id INTEGER PRIMARY KEY ON CONFLICT IGNORE, timestamp INTEGER NOT NULL)";
+
+    char *errmsg = nullptr;
+    int rc = sqlite3_exec(db, sql, nullptr, nullptr, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR, "sqlite3_exec %s, error: %s\n", sql, errmsg);
+            sqlite3_free(errmsg);
+        }
+
+        return false;
+    }
+
+    sql = "CREATE TABLE if NOT EXISTS alarm_systems_ritems ("
+          " suffix TEXT PRIMARY KEY ON CONFLICT REPLACE,"
+          " as_id INTEGER,"
+          " value TEXT NOT NULL,"
+          " timestamp INTEGER NOT NULL,"
+          " FOREIGN KEY(as_id) REFERENCES alarm_systems(id) ON DELETE CASCADE)";
+
+    errmsg = nullptr;
+    rc = sqlite3_exec(db, sql, nullptr, nullptr, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR, "sqlite3_exec %s, error: %s\n", sql, errmsg);
+            sqlite3_free(errmsg);
+        }
+
+        return false;
+    }
+
+    sql = "CREATE TABLE if NOT EXISTS alarm_systems_devices ("
+          " uniqueid TEXT PRIMARY KEY ON CONFLICT REPLACE,"
+          " as_id INTEGER,"
+          " flags INTEGER NOT NULL,"
+          " timestamp INTEGER NOT NULL,"
+          " FOREIGN KEY(as_id) REFERENCES alarm_systems(id) ON DELETE CASCADE)";
+
+    errmsg = nullptr;
+    rc = sqlite3_exec(db, sql, nullptr, nullptr, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR, "sqlite3_exec %s, error: %s\n", sql, errmsg);
+            sqlite3_free(errmsg);
+        }
+
+        return false;
+    }
+
+    return true;
+}
+
+bool DB_StoreAlarmSystem(const DB_AlarmSystem &alarmSys)
+{
+    if (!db)
+    {
+        return false;
+    }
+
+    char sql[200];
+
+    int rc = snprintf(sql, sizeof(sql), "REPLACE INTO alarm_systems (id,timestamp) VALUES ('%d',%" PRIu64 ")", alarmSys.id, alarmSys.timestamp);
+
+    if (rc >= int(sizeof(sql)))
+    {
+        return false;
+    }
+
+    char *errmsg = nullptr;
+    rc = sqlite3_exec(db, sql, NULL, NULL, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", sql, errmsg);
+            sqlite3_free(errmsg);
+        }
+        return false;
+    }
+
+    return true;
+}
+
+bool DB_StoreAlarmSystemResourceItem(const DB_AlarmSystemResourceItem &item)
+{
+    if (!db || !item.suffix || item.value.empty())
+    {
+        return false;
+    }
+
+    char sql[200];
+
+    int rc = snprintf(sql, sizeof(sql), "REPLACE INTO alarm_systems_ritems (suffix,as_id,value,timestamp) VALUES ('%s','%d','%s',%" PRIu64 ")", item.suffix, item.alarmSystemId, item.value.data(), item.timestamp);
+
+    if (rc >= int(sizeof(sql)))
+    {
+        return false;
+    }
+
+    char *errmsg = nullptr;
+    rc = sqlite3_exec(db, sql, NULL, NULL, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", sql, errmsg);
+            sqlite3_free(errmsg);
+        }
+        return false;
+    }
+
+    return true;
+}
+
+/*! Sqlite callback to load alarm system resource items.
+ */
+static int sqliteLoadAlarmSystemResourceItemsCallback(void *user, int ncols, char **colval , char **)
+{
+    auto *result = static_cast<std::vector<DB_AlarmSystemResourceItem>*>(user);
+
+    if (ncols == 3 && result)
+    {
+        ResourceItemDescriptor rid;
+        if (getResourceItemDescriptor(QLatin1String(colval[0]), rid))
+        {
+            DB_AlarmSystemResourceItem item;
+            item.suffix = rid.suffix;
+            item.value = colval[1];
+            item.timestamp = std::strtoull(colval[2], nullptr, 10);
+            result->push_back(item);
+        }
+
+        return 0;
+    }
+
+    return 1;
+}
+
+std::vector<DB_AlarmSystemResourceItem> DB_LoadAlarmSystemResourceItems(int alarmSystemId)
+{
+    std::vector<DB_AlarmSystemResourceItem> result;
+
+    if (!db)
+    {
+        return result;
+    }
+
+    char sql[200];
+
+    int rc = snprintf(sql, sizeof(sql), "SELECT suffix,value,timestamp FROM alarm_systems_ritems WHERE as_id = '%d'", alarmSystemId);
+
+    if (rc >= int(sizeof(sql)))
+    {
+        return result;
+    }
+
+    char *errmsg = nullptr;
+    rc = sqlite3_exec(db, sql, sqliteLoadAlarmSystemResourceItemsCallback, &result, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR, "sqlite3_exec %s, error: %s\n", sql, errmsg);
+            sqlite3_free(errmsg);
+        }
+    }
+
+    return result;
+}
+
+bool DB_StoreAlarmSystemDevice(const DB_AlarmSystemDevice &dev)
+{
+    if (!db || isEmptyString(dev.uniqueid))
+    {
+        return false;
+    }
+
+    char sql[200];
+
+    int rc = snprintf(sql, sizeof(sql), "REPLACE INTO alarm_systems_devices (uniqueid,as_id,flags,timestamp) VALUES ('%s','%d','%d',%" PRIu64 ")", dev.uniqueid, dev.alarmSystemId, dev.flags, dev.timestamp);
+
+    if (rc >= int(sizeof(sql)))
+    {
+        return false;
+    }
+
+    char *errmsg = nullptr;
+    rc = sqlite3_exec(db, sql, NULL, NULL, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", sql, errmsg);
+            sqlite3_free(errmsg);
+        }
+        return false;
+    }
+
+    return true;
+}
+
+/*! Sqlite callback to load alarm system devices.
+ */
+static int sqliteLoadAlarmSystemDevicesCallback(void *user, int ncols, char **colval , char **)
+{
+    auto *result = static_cast<std::vector<DB_AlarmSystemDevice>*>(user);
+
+    if (ncols == 3 && result)
+    {
+        DB_AlarmSystemDevice item;
+
+        copyString(item.uniqueid, sizeof(item.uniqueid), colval[0]);
+        item.alarmSystemId = std::strtoul(colval[1], nullptr, 10);
+        item.flags = std::strtoul(colval[2], nullptr, 10);
+
+        DBG_Assert(!isEmptyString(item.uniqueid));
+        DBG_Assert(item.alarmSystemId != 0);
+        if (!isEmptyString(item.uniqueid) && item.alarmSystemId != 0)
+        {
+            result->push_back(item);
+        }
+
+        return 0;
+    }
+
+    return 1;
+}
+
+std::vector<DB_AlarmSystemDevice> DB_LoadAlarmSystemDevices()
+{
+    std::vector<DB_AlarmSystemDevice> result;
+
+    if (!db)
+    {
+        return result;
+    }
+
+    const char *sql = "SELECT uniqueid,as_id,flags FROM alarm_systems_devices";
+
+    char *errmsg = nullptr;
+    int rc = sqlite3_exec(db, sql, sqliteLoadAlarmSystemDevicesCallback, &result, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR, "sqlite3_exec %s, error: %s\n", sql, errmsg);
+            sqlite3_free(errmsg);
+        }
+    }
+
+    return result;
+}
+
+bool DB_DeleteAlarmSystemDevice(const std::string &uniqueId)
+{
+    if (!db || uniqueId.empty())
+    {
+        return false;
+    }
+
+    char sql[160];
+
+    int rc = snprintf(sql, sizeof(sql), "DELETE FROM alarm_systems_devices WHERE uniqueid = '%s'", uniqueId.data());
+
+    if (rc >= int(sizeof(sql)))
+    {
+        return false;
+    }
+
+    char *errmsg = nullptr;
+    rc = sqlite3_exec(db, sql, nullptr, nullptr, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR, "sqlite3_exec %s, error: %s\n", sql, errmsg);
+            sqlite3_free(errmsg);
+        }
+
+        return false;
+    }
+
+    return true;
 }
