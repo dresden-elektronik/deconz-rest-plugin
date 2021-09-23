@@ -3911,55 +3911,59 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ:
                 reachable = true;
             }
 
-            // check that all clusters from fingerprint are present
-            for (const deCONZ::SimpleDescriptor &sd : sensor->node()->simpleDescriptors())
+            //Don't do that for tuya device, can use fake cluster
+            if (!sensor.fingerPrint().hasInCluster(TUYA_CLUSTER_ID))
             {
-                if (!reachable)
+                // check that all clusters from fingerprint are present
+                for (const deCONZ::SimpleDescriptor &sd : sensor->node()->simpleDescriptors())
                 {
-                    break;
-                }
-
-                if (sd.endpoint() != sensor->fingerPrint().endpoint)
-                {
-                    continue;
-                }
-
-                for (quint16 clusterId : sensor->fingerPrint().inClusters)
-                {
-                    bool found = false;
-                    for (const deCONZ::ZclCluster &cl : sd.inClusters())
+                    if (!reachable)
                     {
-                        if (clusterId == cl.id())
+                        break;
+                    }
+
+                    if (sd.endpoint() != sensor->fingerPrint().endpoint)
+                    {
+                        continue;
+                    }
+
+                    for (quint16 clusterId : sensor->fingerPrint().inClusters)
+                    {
+                        bool found = false;
+                        for (const deCONZ::ZclCluster &cl : sd.inClusters())
                         {
-                            found = true;
+                            if (clusterId == cl.id())
+                            {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found)
+                        {
+                            reachable = false;
                             break;
                         }
                     }
-                    if (!found)
-                    {
-                        reachable = false;
-                        break;
-                    }
-                }
 
-                for (quint16 clusterId : sensor->fingerPrint().outClusters)
-                {
-                    bool found = false;
-                    for (const deCONZ::ZclCluster &cl : sd.outClusters())
+                    for (quint16 clusterId : sensor->fingerPrint().outClusters)
                     {
-                        if (clusterId == cl.id())
+                        bool found = false;
+                        for (const deCONZ::ZclCluster &cl : sd.outClusters())
                         {
-                            found = true;
+                            if (clusterId == cl.id())
+                            {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found)
+                        {
+                            reachable = false;
                             break;
                         }
                     }
-                    if (!found)
-                    {
-                        reachable = false;
-                        break;
-                    }
-                }
 
+                }
             }
         }
     }
