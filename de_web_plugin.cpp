@@ -3912,7 +3912,7 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ:
             }
 
             //Don't do that for tuya device, can use fake cluster
-            if (!sensor.fingerPrint().hasInCluster(TUYA_CLUSTER_ID))
+            if (!sensor->fingerPrint().hasInCluster(TUYA_CLUSTER_ID))
             {
                 // check that all clusters from fingerprint are present
                 for (const deCONZ::SimpleDescriptor &sd : sensor->node()->simpleDescriptors())
