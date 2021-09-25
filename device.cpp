@@ -228,7 +228,7 @@ void DEV_InitStateHandler(Device *device, const Event &event)
         }
         else
         {
-            DBG_Printf(DBG_INFO, "DEV Init no node found: 0x%016llX\n", event.deviceKey());
+            DBG_Printf(DBG_DEV, "DEV Init no node found: 0x%016llX\n", event.deviceKey());
 
             if ((device->key() & 0xffffffff00000000LLU) == 0)
             {
@@ -286,7 +286,7 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
     {
         if (!device->node()->nodeDescriptor().isNull())
         {
-            DBG_Printf(DBG_INFO, "ZDP node descriptor verified: 0x%016llX\n", device->key());
+            DBG_Printf(DBG_DEV, "ZDP node descriptor verified: 0x%016llX\n", device->key());
             d->maxResponseTime = d->hasRxOnWhenIdle() ? RxOnWhenIdleResponseTime
                                                       : RxOffWhenIdleResponseTime;
             device->item(RAttrSleeper)->setValue(!d->hasRxOnWhenIdle()); // can be overwritten by DDF
@@ -335,7 +335,7 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventStateTimeout)
     {
-        DBG_Printf(DBG_INFO, "read ZDP node descriptor timeout: 0x%016llX\n", device->key());
+        DBG_Printf(DBG_DEV, "read ZDP node descriptor timeout: 0x%016llX\n", device->key());
         d->setState(DEV_InitStateHandler);
     }
 }
@@ -350,7 +350,7 @@ void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event)
     {
         if (!device->node()->endpoints().empty())
         {
-            DBG_Printf(DBG_INFO, "ZDP active endpoints verified: 0x%016llX\n", device->key());
+            DBG_Printf(DBG_DEV, "ZDP active endpoints verified: 0x%016llX\n", device->key());
             d->setState(DEV_SimpleDescriptorStateHandler);
         }
         else if (!device->reachable())
@@ -396,7 +396,7 @@ void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventStateTimeout)
     {
-        DBG_Printf(DBG_INFO, "read ZDP active endpoints timeout: 0x%016llX\n", device->key());
+        DBG_Printf(DBG_DEV, "read ZDP active endpoints timeout: 0x%016llX\n", device->key());
         d->setState(DEV_InitStateHandler);
     }
 }
@@ -423,7 +423,7 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
 
         if (needFetchEp == 0x00)
         {
-            DBG_Printf(DBG_INFO, "ZDP simple descriptors verified: 0x%016llX\n", device->key());
+            DBG_Printf(DBG_DEV, "ZDP simple descriptors verified: 0x%016llX\n", device->key());
             d->setState(DEV_BasicClusterStateHandler);
         }
         else if (!device->reachable())
@@ -469,7 +469,7 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventStateTimeout)
     {
-        DBG_Printf(DBG_INFO, "read ZDP simple descriptor timeout: 0x%016llX\n", device->key());
+        DBG_Printf(DBG_DEV, "read ZDP simple descriptor timeout: 0x%016llX\n", device->key());
         d->setState(DEV_InitStateHandler);
     }
 }
@@ -534,7 +534,7 @@ bool DEV_ZclRead(Device *device, ResourceItem *item, deCONZ::ZclClusterId_t clus
 
     if (!device->reachable())
     {
-        DBG_Printf(DBG_INFO, "DEV not reachable, skip read %s: 0x%016llX\n", item->descriptor().suffix, device->key());
+        DBG_Printf(DBG_DEV, "DEV not reachable, skip read %s: 0x%016llX\n", item->descriptor().suffix, device->key());
         return false;
     }
 
@@ -542,7 +542,7 @@ bool DEV_ZclRead(Device *device, ResourceItem *item, deCONZ::ZclClusterId_t clus
 
     if (!sd)
     {
-        DBG_Printf(DBG_INFO, "TODO cluster 0x%04X not found: 0x%016llX\n", device->key(), static_cast<quint16>(clusterId));
+        DBG_Printf(DBG_DEV, "TODO cluster 0x%04X not found: 0x%016llX\n", device->key(), static_cast<quint16>(clusterId));
         return false;
     }
 
@@ -599,7 +599,7 @@ void DEV_BasicClusterStateHandler(Device *device, const Event &event)
                 return; // keep state and wait for REventStateTimeout or response
             }
 
-            DBG_Printf(DBG_INFO, "Failed to read %s: 0x%016llX\n", it.suffix, device->key());
+            DBG_Printf(DBG_DEV, "Failed to read %s: 0x%016llX\n", it.suffix, device->key());
             break;
         }
 
@@ -609,7 +609,7 @@ void DEV_BasicClusterStateHandler(Device *device, const Event &event)
         }
         else
         {
-            DBG_Printf(DBG_INFO, "DEV modelId: %s, 0x%016llX\n", qPrintable(device->item(RAttrModelId)->toString()), device->key());
+            DBG_Printf(DBG_DEV, "DEV modelId: %s, 0x%016llX\n", qPrintable(device->item(RAttrModelId)->toString()), device->key());
             d->setState(DEV_GetDeviceDescriptionHandler);
         }
     }
@@ -634,13 +634,13 @@ void DEV_BasicClusterStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == RAttrManufacturerName || event.what() == RAttrModelId)
     {
-        DBG_Printf(DBG_INFO, "DEV received %s: 0x%016llX\n", event.what(), device->key());
+        DBG_Printf(DBG_DEV, "DEV received %s: 0x%016llX\n", event.what(), device->key());
         d->setState(DEV_InitStateHandler); // ok re-evaluate
         DEV_EnqueueEvent(device, REventAwake);
     }
     else if (event.what() == REventStateTimeout)
     {
-        DBG_Printf(DBG_INFO, "DEV read basic cluster timeout: 0x%016llX\n", device->key());
+        DBG_Printf(DBG_DEV, "DEV read basic cluster timeout: 0x%016llX\n", device->key());
         d->setState(DEV_InitStateHandler);
     }
 }
@@ -755,7 +755,7 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
     }
     else if (event.what() != RAttrLastSeen && event.what() != REventPoll)
     {
-        // DBG_Printf(DBG_INFO, "DEV Idle event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
+        // DBG_Printf(DBG_DEV, "DEV Idle event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
     }
 
     if (!device->reachable())
@@ -789,11 +789,11 @@ void DEV_BindingHandler(Device *device, const Event &event)
 
     if (event.what() == REventStateEnter)
     {
-        DBG_Printf(DBG_INFO, "DEV Binding enter %s/0x%016llX\n", event.resource(), event.deviceKey());
+        DBG_Printf(DBG_DEV, "DEV Binding enter %s/0x%016llX\n", event.resource(), event.deviceKey());
     }
     else if (event.what() == REventPoll || event.what() == REventAwake)
     {
-        DBG_Printf(DBG_INFO, "DEV Binding verify bindings %s/0x%016llX\n", event.resource(), event.deviceKey());
+        DBG_Printf(DBG_DEV, "DEV Binding verify bindings %s/0x%016llX\n", event.resource(), event.deviceKey());
         d->binding.bindingIter = 0;
         d->setState(DEV_BindingTableVerifyHandler, STATE_LEVEL_BINDING);
         DEV_EnqueueEvent(device, REventBindingTick);
@@ -873,12 +873,12 @@ void DEV_BindingTableVerifyHandler(Device *device, const Event &event)
 
             if (i->dstAddressMode() == deCONZ::ApsExtAddress)
             {
-                DBG_Printf(DBG_INFO, "BND 0x%016llX cl: 0x%04X, dstAddrmode: %u, dst: 0x%016llX, dstEp: 0x%02X, dt: %lld seconds\n",
+                DBG_Printf(DBG_DEV, "BND 0x%016llX cl: 0x%04X, dstAddrmode: %u, dst: 0x%016llX, dstEp: 0x%02X, dt: %lld seconds\n",
                            i->srcAddress(), i->clusterId(), i->dstAddressMode(), i->dstAddress().ext(), i->dstEndpoint(), dt);
             }
             else if (i->dstAddressMode() == deCONZ::ApsGroupAddress)
             {
-                DBG_Printf(DBG_INFO, "BND 0x%016llX cl: 0x%04X, dstAddrmode: %u, group: 0x%04X, dstEp: 0x%02X, dt: %lld seconds\n",
+                DBG_Printf(DBG_DEV, "BND 0x%016llX cl: 0x%04X, dstAddrmode: %u, group: 0x%04X, dstEp: 0x%02X, dt: %lld seconds\n",
                            i->srcAddress(), i->clusterId(), i->dstAddressMode(), i->dstAddress().group(), i->dstEndpoint(), dt);
             }
 
@@ -965,7 +965,7 @@ void DEV_CreatebindingHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventStateTimeout)
     {
-        DBG_Printf(DBG_INFO, "ZDP create binding timeout: 0x%016llX\n", device->key());
+        DBG_Printf(DBG_DEV, "ZDP create binding timeout: 0x%016llX\n", device->key());
         d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
     }
 }
@@ -998,18 +998,18 @@ static bool reportingConfigurationValid(const Device *device, const Event &event
 
             okCount++;
 
-            DBG_Printf(DBG_INFO, "ZCL report configuration cl: 0x%04X, at: 0x%04X OK 0x%016llX\n", rsp.clusterId, record.attributeId, device->key());
+            DBG_Printf(DBG_DEV, "ZCL report configuration cl: 0x%04X, at: 0x%04X OK 0x%016llX\n", rsp.clusterId, record.attributeId, device->key());
         }
     }
 
     if (okCount == bnd.reporting.size())
     {
-        DBG_Printf(DBG_INFO, "ZCL report configuration cl: 0x%04X verified 0x%016llX\n", rsp.clusterId, device->key());
+        DBG_Printf(DBG_DEV, "ZCL report configuration cl: 0x%04X verified 0x%016llX\n", rsp.clusterId, device->key());
         return true;
     }
     else
     {
-        DBG_Printf(DBG_INFO, "ZCL report configuration cl: 0x%04X needs update 0x%016llX\n", rsp.clusterId, device->key());
+        DBG_Printf(DBG_DEV, "ZCL report configuration cl: 0x%04X needs update 0x%016llX\n", rsp.clusterId, device->key());
         return false;
     }
 }
@@ -1121,7 +1121,7 @@ void DEV_ReadReportConfigurationHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventStateTimeout)
     {
-        DBG_Printf(DBG_INFO, "ZCL read report configuration timeout: 0x%016llX\n", device->key());
+        DBG_Printf(DBG_DEV, "ZCL read report configuration timeout: 0x%016llX\n", device->key());
         d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
     }
 }
@@ -1192,7 +1192,7 @@ void DEV_ConfigureReportingHandler(Device *device, const Event &event)
     {
         if (d->binding.zclResult.sequenceNumber == EventZclSequenceNumber(event))
         {
-            DBG_Printf(DBG_INFO, "DEV configure reporting %s/0x%016llX ZCL response seq: %u, status: 0x%02X\n",
+            DBG_Printf(DBG_DEV, "DEV configure reporting %s/0x%016llX ZCL response seq: %u, status: 0x%02X\n",
                    event.resource(), event.deviceKey(), d->binding.zclResult.sequenceNumber, EventZclStatus(event));
 
             if (EventZclStatus(event) == deCONZ::ZclSuccessStatus)
@@ -1207,7 +1207,7 @@ void DEV_ConfigureReportingHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventStateTimeout)
     {
-        DBG_Printf(DBG_INFO, "ZCL configure reporting timeout: 0x%016llX\n", device->key());
+        DBG_Printf(DBG_DEV, "ZCL configure reporting timeout: 0x%016llX\n", device->key());
         d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
     }
 }
@@ -1218,7 +1218,7 @@ void DEV_BindingIdleHandler(Device *device, const Event &event)
 
     if (event.what() == REventStateEnter)
     {
-        DBG_Printf(DBG_INFO, "DEV Binding idle enter %s/0x%016llX\n", event.resource(), event.deviceKey());
+        DBG_Printf(DBG_DEV, "DEV Binding idle enter %s/0x%016llX\n", event.resource(), event.deviceKey());
         d->startStateTimer(BindingAutoCheckInterval, STATE_LEVEL_BINDING);
     }
     else if (event.what() == REventStateLeave)
@@ -1352,7 +1352,7 @@ void DEV_PollIdleStateHandler(Device *device, const Event &event)
 
     if (event.what() == REventStateEnter)
     {
-        DBG_Printf(DBG_INFO, "DEV Poll Idle enter %s/0x%016llX\n", event.resource(), event.deviceKey());
+        DBG_Printf(DBG_DEV, "DEV Poll Idle enter %s/0x%016llX\n", event.resource(), event.deviceKey());
     }
     else if (event.what() == REventPoll)
     {
@@ -1397,7 +1397,7 @@ void DEV_PollNextStateHandler(Device *device, const Event &event)
         }
         else
         {
-            DBG_Printf(DBG_INFO, "DEV: Poll Next no read function for item: %s / 0x%016llX\n", poll.item->descriptor().suffix, device->key());
+            DBG_Printf(DBG_DEV, "DEV: Poll Next no read function for item: %s / 0x%016llX\n", poll.item->descriptor().suffix, device->key());
             d->pollItems.pop_back();
         }
 
@@ -1409,7 +1409,7 @@ void DEV_PollNextStateHandler(Device *device, const Event &event)
         {
             poll.retry++;
 
-            DBG_Printf(DBG_INFO, "DEV: Poll Next failed to enqueue read item: %s / 0x%016llX\n", poll.item->descriptor().suffix, device->key());
+            DBG_Printf(DBG_DEV, "DEV: Poll Next failed to enqueue read item: %s / 0x%016llX\n", poll.item->descriptor().suffix, device->key());
             if (poll.retry >= MaxPollItemRetries)
             {
                 d->pollItems.pop_back();
@@ -1441,7 +1441,7 @@ void DEV_PollBusyStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventApsConfirm && EventApsConfirmId(event) == d->readResult.apsReqId)
     {
-        DBG_Printf(DBG_INFO, "DEV Poll Busy %s/0x%016llX APS-DATA.confirm id: %u, status: 0x%02X\n",
+        DBG_Printf(DBG_DEV, "DEV Poll Busy %s/0x%016llX APS-DATA.confirm id: %u, status: 0x%02X\n",
                    event.resource(), event.deviceKey(), d->readResult.apsReqId, EventApsConfirmStatus(event));
         Q_ASSERT(!d->pollItems.empty());
 
@@ -1466,7 +1466,7 @@ void DEV_PollBusyStateHandler(Device *device, const Event &event)
     {
         if (d->readResult.sequenceNumber == EventZclSequenceNumber(event))
         {
-            DBG_Printf(DBG_INFO, "DEV Poll Busy %s/0x%016llX ZCL response seq: %u, status: 0x%02X\n",
+            DBG_Printf(DBG_DEV, "DEV Poll Busy %s/0x%016llX ZCL response seq: %u, status: 0x%02X\n",
                    event.resource(), event.deviceKey(), d->readResult.sequenceNumber, EventZclStatus(event));
 
             d->pollItems.pop_back();
@@ -1485,7 +1485,7 @@ void DEV_DeadStateHandler(Device *device, const Event &event)
 {
     if (event.what() == REventStateEnter)
     {
-        DBG_Printf(DBG_INFO, "DEV enter dead state 0x%016llX\n", event.deviceKey());
+        DBG_Printf(DBG_DEV, "DEV enter passive state 0x%016llX\n", event.deviceKey());
     }
     else if (event.what() == REventStateLeave)
     {
@@ -1747,7 +1747,7 @@ void mergeBindingReportConfigs(DDF_Binding &a, const DDF_Binding &b)
 
         if (i == a.reporting.cend())
         {
-            DBG_Printf(DBG_INFO, "DEV add reporting cluster: 0x%04X, attr: 0x%04X\n", b.clusterId, br.attributeId);
+            DBG_Printf(DBG_DEV, "DEV add reporting cluster: 0x%04X, attr: 0x%04X\n", b.clusterId, br.attributeId);
             a.reporting.push_back(br);
         }
     }
@@ -1765,7 +1765,7 @@ void Device::addBinding(const DDF_Binding &bnd)
     }
     else
     {
-        DBG_Printf(DBG_INFO, "DEV add binding cluster: 0x%04X,  0x%016llX\n", bnd.clusterId, d->deviceKey);
+        DBG_Printf(DBG_DEV, "DEV add binding cluster: 0x%04X,  0x%016llX\n", bnd.clusterId, d->deviceKey);
         d->binding.bindings.push_back(bnd);
         if (bnd.dstEndpoint == 0)
         {
