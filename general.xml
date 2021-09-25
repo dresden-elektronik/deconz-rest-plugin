@@ -1859,6 +1859,7 @@ by the Poll Control Cluster Client.</description>
 				<value name="Off" value="0"></value>
 				<value name="On" value="1"></value>
 			</attribute>
+            <attribute id="0xf003" name="Calibration time (tenth of a second)" type="u16" default="0x0000" required="m" access="rw"></attribute>
         </attribute-set>
         <command id="0x00" dir="recv" name="Up / Open" required="m"></command>
         <command id="0x01" dir="recv" name="Down / Close" required="m"></command>
