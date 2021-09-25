@@ -2166,6 +2166,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
         if (sd && (sd->deviceId() == DEV_ID_SMART_PLUG) && (node->simpleDescriptors().size() < 2) &&
         (((node->address().ext() & 0xffffff0000000000ULL ) == silabs3MacPrefix) ||
+         ((node->address().ext() & 0xffffff0000000000ULL ) == YooksmartMacPrefix) ||
          ((node->address().ext() & 0xffffff0000000000ULL ) == silabs4MacPrefix))
         )
         {
