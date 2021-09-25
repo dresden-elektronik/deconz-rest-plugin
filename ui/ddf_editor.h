@@ -22,9 +22,11 @@ public:
 
     void setDDF(const DeviceDescription &ddf);
     void previewDDF(const DeviceDescription &ddf);
+    void updateDDFHash();
 
     const DeviceDescription &ddf() const;
     void showEvent(QShowEvent *event) override;
+    bool eventFilter(QObject *object, QEvent *event) override;
 
 private Q_SLOTS:
     void itemSelected(uint subDevice, uint item);
@@ -39,6 +41,8 @@ private Q_SLOTS:
     void removeSubDevice(uint subDevice);
     void subDeviceInputChanged();
     void bindingsChanged();
+    void startCheckDDFChanged();
+    void checkDDFChanged();
 
 private:
     Ui::DDF_Editor *ui;

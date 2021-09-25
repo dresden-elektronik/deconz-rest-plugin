@@ -11,14 +11,14 @@
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
+   <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
   </property>
   <property name="minimumSize">
    <size>
-    <width>860</width>
+    <width>1024</width>
     <height>610</height>
    </size>
   </property>
@@ -29,7 +29,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <property name="documentMode">
       <bool>true</bool>
@@ -64,10 +64,22 @@
          </item>
          <item>
           <widget class="DDF_TreeView" name="ddfTreeView">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="minimumSize">
             <size>
-             <width>350</width>
+             <width>300</width>
              <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>16777215</height>
             </size>
            </property>
           </widget>
@@ -76,10 +88,22 @@
        </item>
        <item>
         <widget class="QStackedWidget" name="editStackedWidget">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="minimumSize">
           <size>
-           <width>300</width>
+           <width>360</width>
            <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>16777215</height>
           </size>
          </property>
          <property name="frameShape">
@@ -173,31 +197,46 @@
                </layout>
               </item>
               <item>
-               <widget class="QLabel" name="label_5">
-                <property name="text">
-                 <string>Manufacturer name</string>
+               <widget class="QGroupBox" name="debBasicClusterId">
+                <property name="title">
+                 <string>Basic cluster identification</string>
                 </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="TextLineEdit" name="devManufacturerNameInput">
-                <property name="toolTip">
-                 <string>Manufacturer name from Basic Cluster</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_6">
-                <property name="text">
-                 <string>Model ID</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="TextLineEdit" name="devModelIdInput">
-                <property name="toolTip">
-                 <string>Model ID from Basic Cluster</string>
-                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_11">
+                 <item>
+                  <widget class="QLabel" name="label_5">
+                   <property name="text">
+                    <string>Manufacturer name</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>devManufacturerNameInput</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="TextLineEdit" name="devManufacturerNameInput">
+                   <property name="toolTip">
+                    <string>Manufacturer name from Basic Cluster</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_6">
+                   <property name="text">
+                    <string>Model ID</string>
+                   </property>
+                   <property name="buddy">
+                    <cstring>devModelIdInput</cstring>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="TextLineEdit" name="devModelIdInput">
+                   <property name="toolTip">
+                    <string>Model ID from Basic Cluster</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </widget>
               </item>
               <item>
@@ -228,6 +267,9 @@
                 <property name="text">
                  <string>Vendor</string>
                 </property>
+                <property name="buddy">
+                 <cstring>devVendorInput</cstring>
+                </property>
                </widget>
               </item>
               <item>
@@ -241,6 +283,9 @@
                <widget class="QLabel" name="label_7">
                 <property name="text">
                  <string>Product</string>
+                </property>
+                <property name="buddy">
+                 <cstring>devProductInput</cstring>
                 </property>
                </widget>
               </item>
@@ -355,7 +400,33 @@
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_8">
               <item>
-               <widget class="QLabel" name="label_11">
+               <widget class="QLabel" name="managedItemDescription">
+                <property name="text">
+                 <string>Description</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="verticalSpacer_5">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Preferred</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>24</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_12877">
                 <property name="text">
                  <string>This item is managed internally.</string>
                 </property>
@@ -394,7 +465,26 @@
           </widget>
          </item>
          <item>
-          <widget class="DDF_ItemList" name="itemListView"/>
+          <widget class="DDF_ItemList" name="itemListView">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>230</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>400</width>
+             <height>16777215</height>
+            </size>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>

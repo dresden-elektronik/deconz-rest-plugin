@@ -159,7 +159,8 @@ const deCONZ::Node *DEV_GetCoreNode(uint64_t extAddress);
 
 void DEV_CheckReachable(Device *device);
 
-void DEV_SetTestManaged(bool enabled);
+void DEV_SetTestManaged(int enabled);
 bool DEV_TestManaged();
+bool DEV_TestStrict();
 
 #endif // DEVICE_H

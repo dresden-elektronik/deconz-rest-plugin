@@ -1823,9 +1823,12 @@ bool DEV_RemoveDevice(DeviceContainer &devices, DeviceKey key)
     return false;
 }
 
-void DEV_SetTestManaged(bool enabled)
+void DEV_SetTestManaged(int enabled)
 {
-    devManaged = enabled ? 1 : 0;
+    if (enabled >= 0 && enabled <= 2)
+    {
+        devManaged = enabled ? enabled : 0;
+    }
 }
 
 /*! Is used to test full Device control over: Device and sub-device creation, read, write, parse of Zigbee commands.
@@ -1833,4 +1836,12 @@ void DEV_SetTestManaged(bool enabled)
 bool DEV_TestManaged()
 {
     return devManaged > 0;
+}
+
+/*! Is used to test full Device control over: Device and sub-device creation, read, write, parse of Zigbee commands.
+    In addition legacy code for these tasks is disabled.
+ */
+bool DEV_TestStrict()
+{
+    return devManaged > 1;
 }

@@ -148,6 +148,7 @@ static Resource *DEV_InitLightNodeFromDescription(Device *device, const DeviceDe
 
     // remove some items which need to be specified via DDF
     lightNode.removeItem(RStateOn);
+    lightNode.removeItem(RStateBri);
     lightNode.removeItem(RStateHue);
     lightNode.removeItem(RStateSat);
     lightNode.removeItem(RStateAlert);

@@ -1,5 +1,6 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
+#include "device.h"
 #include "device_descriptions.h"
 
 #define ACTIVE_POWER                            0x050B
@@ -13,6 +14,11 @@
  */
 void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame)
 {
+    if (DEV_TestStrict())
+    {
+        return;
+    }
+
     if (zclFrame.isDefaultResponse())
     {
         return;

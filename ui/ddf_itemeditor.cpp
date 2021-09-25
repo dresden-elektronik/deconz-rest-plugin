@@ -13,6 +13,7 @@
 #include <QHBoxLayout>
 #include <QUrlQuery>
 #include <vector>
+#include "deconz/zcl.h"
 #include "ddf_itemeditor.h"
 
 ItemLineEdit::ItemLineEdit(const QVariantMap &ddfParam, const DDF_FunctionDescriptor::Parameter &param, QWidget *parent) :
@@ -29,23 +30,56 @@ ItemLineEdit::ItemLineEdit(const QVariantMap &ddfParam, const DDF_FunctionDescri
             val = val.toStringList().join(QLatin1Char(','));
         }
 
-        setText(val.toString());
+        if (param.dataType == DataTypeUInt8 && param.key == QLatin1String("ep"))
+        {
+            if (val.toUInt() == 0)
+            {
+                setText(QLatin1String("auto"));
+            }
+        }
+        else
+        {
+            setText(val.toString());
+        }
         origValue = text();
     }
 
     switch (param.dataType)
     {
-    case DataTypeUInt16: {
+    case DataTypeUInt8:
+    {
         if (param.isHexString)
         {
-            setPlaceholderText(QString("0x%1").arg(param.defaultValue, 4, 16, QLatin1Char('0')));
+            setPlaceholderText(QString("0x%1").arg(param.defaultValue.toUInt(), 2, 16, QLatin1Char('0')));
         }
         else
         {
-            setPlaceholderText(QString::number(param.defaultValue));
+            setPlaceholderText(QString::number(param.defaultValue.toUInt()));
         }
+    }
+        break;
 
-    } break;
+    case DataTypeUInt16:
+    {
+        if (param.isHexString)
+        {
+            setPlaceholderText(QString("0x%1").arg(param.defaultValue.toUInt(), 4, 16, QLatin1Char('0')));
+        }
+        else
+        {
+            setPlaceholderText(QString::number(param.defaultValue.toUInt()));
+        }
+    }
+        break;
+
+    case DataTypeString:
+    {
+        if (!param.defaultValue.isNull() && text().isEmpty())
+        {
+            setPlaceholderText(text());
+        }
+    }
+        break;
 
     default:
         break;
@@ -72,6 +106,15 @@ bool ItemLineEdit::verifyInputText(const QString &text)
 
     for (const QString &i : ls)
     {
+        if (paramDescription.dataType == DataTypeUInt8 && paramDescription.key == QLatin1String("ep"))
+        {
+            if (i == QLatin1String("auto"))
+            {
+                isValid = true;
+                continue;
+            }
+        }
+
         if (i.isEmpty() && !paramDescription.isOptional)
         {
             isValid = false;
@@ -126,6 +169,15 @@ void ItemLineEdit::updateValueInMap(QVariantMap &map) const
 
     for (const QString &i : sls)
     {
+        if (paramDescription.dataType == DataTypeUInt8 && paramDescription.key == QLatin1String("ep"))
+        {
+            if (i == QLatin1String("auto"))
+            {
+                vls.push_back(0);
+                continue;
+            }
+        }
+
         switch (paramDescription.dataType)
         {
         case DataTypeUInt8:  fieldWidth = 2;  break;
@@ -181,6 +233,8 @@ struct DDF_Function
     QComboBox *functionComboBox = nullptr;
     QWidget *paramWidget = nullptr;
     QVariantMap paramMap;
+    QLabel *clusterName = nullptr;
+    QLabel *attrName = nullptr;
     std::vector<QWidget*> itemWidgets; // dynamic widgets
     void (DDF_ItemEditor::*paramChanged)() = nullptr; // called when the line edit content changes
 };
@@ -271,6 +325,9 @@ DDF_ItemEditor::DDF_ItemEditor(QWidget *parent) :
     connect(d->defaultValue, &QLineEdit::textChanged, this, &DDF_ItemEditor::attributeChanged);
     scrollLay->addWidget(d->defaultValue);
 
+    QFont boldFont = font();
+    boldFont.setBold(true);
+
     // parse function
     {
         DDF_Function &fn = d->parseFunction;
@@ -282,8 +339,12 @@ DDF_ItemEditor::DDF_ItemEditor(QWidget *parent) :
         fn.widget->setLayout(fnLay);
         connect(fn.widget, &FunctionWidget::droppedUrl, this, &DDF_ItemEditor::droppedUrl);
 
-        fnLay->addWidget(new QLabel(tr("Parse"), this));
+        QLabel *parseLabel = new QLabel(tr("Parse"), this);
+        parseLabel->setFont(boldFont);
+        fnLay->addWidget(parseLabel);
         fn.functionComboBox = new QComboBox(fn.widget);
+        fn.functionComboBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
+        fn.functionComboBox->setMinimumWidth(160);
         fnLay->addWidget(fn.functionComboBox);
 
         fn.paramWidget = new QWidget(fn.widget);
@@ -302,8 +363,12 @@ DDF_ItemEditor::DDF_ItemEditor(QWidget *parent) :
         fn.widget->setLayout(fnLay);
         connect(fn.widget, &FunctionWidget::droppedUrl, this, &DDF_ItemEditor::droppedUrl);
 
-        fnLay->addWidget(new QLabel(tr("Read"), this));
+        QLabel *readLabel = new QLabel(tr("Read"), this);
+        readLabel->setFont(boldFont);
+        fnLay->addWidget(readLabel);
         fn.functionComboBox = new QComboBox(fn.widget);
+        fn.functionComboBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
+        fn.functionComboBox->setMinimumWidth(160);
         fnLay->addWidget(fn.functionComboBox);
 
         fn.paramWidget = new QWidget(fn.widget);
@@ -326,9 +391,58 @@ DDF_ItemEditor::~DDF_ItemEditor()
     delete d;
 }
 
-void DDF_ItemEditor::DDF_SetupFunction(DDF_Function &fn, const DeviceDescription::Item &item, const QVariantMap &ddfParam, const std::vector<DDF_FunctionDescriptor> &fnDescriptors)
+void DDF_ItemEditor::updateZclLabels(DDF_Function &fn)
+{
+    bool ok;
+    quint16 clusterId = UINT16_MAX;
+    quint16 attrId = UINT16_MAX;
+
+    if (fn.paramMap.contains(QLatin1String("cl")))
+    {
+        clusterId = fn.paramMap.value(QLatin1String("cl")).toString().toUInt(&ok, 0);
+    }
+
+    if (clusterId == UINT16_MAX)
+    {
+        return;
+    }
+
+    const auto cl = deCONZ::ZCL_InCluster(HA_PROFILE_ID, clusterId, 0x0000);
+
+    if (!cl.isValid())
+    {
+        return;
+    }
+
+    if (fn.clusterName && clusterId != UINT16_MAX)
+    {
+        fn.clusterName->setText(cl.name());
+    }
+
+    if (fn.paramMap.contains(QLatin1String("at")))
+    {
+        attrId = fn.paramMap.value(QLatin1String("at")).toString().toUInt(&ok, 0);
+    }
+
+    if (fn.attrName && attrId != UINT16_MAX)
+    {
+        const auto i = std::find_if(cl.attributes().cbegin(), cl.attributes().cend(), [attrId](const auto &i)
+        {
+            return i.id() == attrId;
+        });
+
+        if (i != cl.attributes().cend())
+        {
+            fn.attrName->setText(i->name());
+        }
+    }
+}
+
+void DDF_ItemEditor::setupFunction(DDF_Function &fn, const DeviceDescription::Item &item, const QVariantMap &ddfParam, const std::vector<DDF_FunctionDescriptor> &fnDescriptors)
 {
     fn.paramWidget->hide();
+    fn.attrName = nullptr;
+    fn.clusterName = nullptr;
 
     for (auto *w : fn.itemWidgets)
     {
@@ -378,6 +492,28 @@ void DDF_ItemEditor::DDF_SetupFunction(DDF_Function &fn, const DeviceDescription
 
             for (const auto &param : descr.parameters)
             {
+                if (fnName == QLatin1String("zcl"))
+                {
+                    if (param.key == QLatin1String("cl"))
+                    {
+                        auto *label = new QLabel("Cluster");
+                        fn.clusterName = new QLabel;
+                        fn.clusterName->setWordWrap(true);
+                        fn.itemWidgets.push_back(label);
+                        fn.itemWidgets.push_back(fn.clusterName);
+                        lay->insertRow(0, label, fn.clusterName);
+                    }
+                    else if (param.key == QLatin1String("at"))
+                    {
+                        auto *label = new QLabel("Attribute");
+                        fn.attrName = new QLabel;
+                        fn.attrName->setWordWrap(true);
+                        fn.itemWidgets.push_back(label);
+                        fn.itemWidgets.push_back(fn.attrName);
+                        lay->insertRow(1, label, fn.attrName);
+                    }
+                }
+
                 QLabel *name = new QLabel(param.name, fn.paramWidget);
                 fn.itemWidgets.push_back(name);
 
@@ -407,6 +543,7 @@ void DDF_ItemEditor::DDF_SetupFunction(DDF_Function &fn, const DeviceDescription
     }
 
     connect(fn.functionComboBox, &QComboBox::currentTextChanged, this, &DDF_ItemEditor::functionChanged);
+    updateZclLabels(fn);
 }
 
 void DDF_ItemEditor::setItem(const DeviceDescription::Item &item, DeviceDescriptions *dd)
@@ -445,9 +582,9 @@ void DDF_ItemEditor::setItem(const DeviceDescription::Item &item, DeviceDescript
         d->itemDescription->setPlainText(item.description);
     }
 
-    DDF_SetupFunction(d->parseFunction, item, item.parseParameters.toMap(), dd->getParseFunctions());
+    setupFunction(d->parseFunction, item, item.parseParameters.toMap(), dd->getParseFunctions());
 
-    DDF_SetupFunction(d->readFunction, item, item.readParameters.toMap(), dd->getReadFunctions());
+    setupFunction(d->readFunction, item, item.readParameters.toMap(), dd->getReadFunctions());
     d->state = StateEdit;
 
     if (item != d->editItem)
@@ -473,7 +610,11 @@ void DDF_ItemEditor::parseParamChanged()
         edit->updateValueInMap(fn.paramMap);
     }
 
-    d->editItem.parseParameters = fn.paramMap;
+    if (d->editItem.parseParameters != fn.paramMap)
+    {
+        d->editItem.parseParameters = fn.paramMap;
+        updateZclLabels(fn);
+    }
 
     const auto &genItem = d->dd->getGenericItem(d->editItem.descriptor.suffix);
 
@@ -503,7 +644,11 @@ void DDF_ItemEditor::readParamChanged()
         edit->updateValueInMap(fn.paramMap);
     }
 
-    d->editItem.readParameters = fn.paramMap;
+    if (d->editItem.readParameters != fn.paramMap)
+    {
+        d->editItem.readParameters = fn.paramMap;
+        updateZclLabels(fn);
+    }
 
     const auto &genItem = d->dd->getGenericItem(d->editItem.descriptor.suffix);
 
@@ -661,11 +806,11 @@ void DDF_ItemEditor::functionChanged(const QString &text)
 
         if (d->parseFunction.functionComboBox == combo)
         {
-            DDF_SetupFunction(d->parseFunction, item, item.parseParameters.toMap(), d->dd->getParseFunctions());
+            setupFunction(d->parseFunction, item, item.parseParameters.toMap(), d->dd->getParseFunctions());
         }
         else if (d->readFunction.functionComboBox == combo)
         {
-            DDF_SetupFunction(d->readFunction, item, item.readParameters.toMap(), d->dd->getReadFunctions());
+            setupFunction(d->readFunction, item, item.readParameters.toMap(), d->dd->getReadFunctions());
         }
     }
 }
@@ -677,6 +822,7 @@ void DDF_ItemEditor::droppedUrl(const QUrl &url)
         // zclattr:attr?ep=1&cl=6&cs=s&mf=0&a=0&dt=16&rmin=1&rmax=300&t=D
         QUrlQuery urlQuery(url);
 
+        bool ok;
         QVariantMap params;
 
         if (sender() == d->parseFunction.widget)
@@ -690,21 +836,21 @@ void DDF_ItemEditor::droppedUrl(const QUrl &url)
 
         if (urlQuery.hasQueryItem("ep"))
         {
-            params["ep"] = urlQuery.queryItemValue("ep").toInt();
+            params["ep"] = urlQuery.queryItemValue("ep").toUInt(&ok, 16);
         }
-        if (urlQuery.hasQueryItem("cl"))
+        if (urlQuery.hasQueryItem("cid"))
         {
-            int cl = urlQuery.queryItemValue("cl").toInt();
+            quint16 cl = urlQuery.queryItemValue("cid").toUShort(&ok, 16);
             params["cl"] = QString("0x%1").arg(cl, 4, 16, QLatin1Char('0'));
         }
         if (urlQuery.hasQueryItem("a"))
         {
-            int attr = urlQuery.queryItemValue("a").toInt();
+            quint16 attr = urlQuery.queryItemValue("a").toUShort(&ok, 16);
             params["at"] = QString("0x%1").arg(attr, 4, 16, QLatin1Char('0'));
         }
         if (urlQuery.hasQueryItem("mf"))
         {
-            int mf = urlQuery.queryItemValue("mf").toInt();
+            quint16 mf = urlQuery.queryItemValue("mf").toUShort(&ok, 16);
             if (mf != 0)
             {
                 params["mf"] = QString("0x%1").arg(mf, 4, 16, QLatin1Char('0'));
@@ -718,7 +864,7 @@ void DDF_ItemEditor::droppedUrl(const QUrl &url)
         if (sender() == d->parseFunction.widget)
         {
             //d->editItem.parseParameters = params;
-            DDF_SetupFunction(d->parseFunction, d->editItem, params, d->dd->getParseFunctions());
+            setupFunction(d->parseFunction, d->editItem, params, d->dd->getParseFunctions());
             parseParamChanged();
         }
         else if (sender() == d->readFunction.widget)
@@ -729,7 +875,7 @@ void DDF_ItemEditor::droppedUrl(const QUrl &url)
                 d->readInterval->setValue(max);
             }
             //d->editItem.readParameters = params;
-            DDF_SetupFunction(d->readFunction, d->editItem, params, d->dd->getReadFunctions());
+            setupFunction(d->readFunction, d->editItem, params, d->dd->getReadFunctions());
             readParamChanged();
         }
 
@@ -767,12 +913,8 @@ void FunctionWidget::dragEnterEvent(QDragEnterEvent *event)
 
 void FunctionWidget::dragLeaveEvent(QDragLeaveEvent *event)
 {
+    Q_UNUSED(event)
     setPalette(parentWidget()->palette());
-}
-
-void FunctionWidget::dragMoveEvent(QDragMoveEvent *event)
-{
-
 }
 
 void FunctionWidget::dropEvent(QDropEvent *event)

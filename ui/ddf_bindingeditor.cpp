@@ -13,19 +13,28 @@
 #include <QStandardItemModel>
 #include <QTableView>
 #include <QUrlQuery>
+#include <QVBoxLayout>
 #include "deconz/dbg_trace.h"
+#include "deconz/zcl.h"
 #include "ddf_bindingeditor.h"
 #include "device_descriptions.h"
 
 
-DDF_ZclReportWidget::DDF_ZclReportWidget(QWidget *parent, DDF_ZclReport *rep) :
+DDF_ZclReportWidget::DDF_ZclReportWidget(QWidget *parent, DDF_ZclReport *rep, const deCONZ::ZclCluster *cl) :
     QFrame(parent)
 {
     Q_ASSERT(rep);
+    Q_ASSERT(cl);
 
+    cluster = cl;
     report = rep;
     attrId = new QLineEdit(this);
+    attrName = new QLabel(this);
+    attrName->setWordWrap(true);
+    QFont smallFont = font();
+    smallFont.setPointSize(smallFont.pointSize() - 1);
     mfCode = new QLineEdit(this);
+    mfCode->setPlaceholderText(QLatin1String("0x0000"));
     dataType = new QLineEdit(this);
     minInterval = new QSpinBox(this);
     minInterval->setMinimum(0);
@@ -35,9 +44,30 @@ DDF_ZclReportWidget::DDF_ZclReportWidget(QWidget *parent, DDF_ZclReport *rep) :
     maxInterval->setMaximum(65535);
     reportableChange = new QLineEdit(this);
 
+    const auto dt = deCONZ::ZCL_DataType(rep->dataType);
+    DBG_Assert(dt.isValid());
+
+    auto at = std::find_if(cl->attributes().cbegin(), cl->attributes().cend(), [rep](const auto &i) { return i.id() == rep->attributeId; });
+
     attrId->setText(QString("0x%1").arg(rep->attributeId, 4, 16, QLatin1Char('0')));
-    mfCode->setText(QString("0x%1").arg(rep->manufacturerCode, 4, 16, QLatin1Char('0')));
-    dataType->setText(QString("0x%1").arg(rep->dataType, 2, 16, QLatin1Char('0')));
+    if (rep->manufacturerCode != 0)
+    {
+        mfCode->setText(QString("0x%1").arg(rep->manufacturerCode, 4, 16, QLatin1Char('0')));
+    }
+
+    if (at != cl->attributes().cend())
+    {
+        attrName->setText(at->name());
+    }
+
+    if (dt.isValid())
+    {
+        dataType->setText(dt.shortname());
+    }
+    else
+    {
+        dataType->setText(QString("0x%1").arg(rep->dataType, 2, 16, QLatin1Char('0')));
+    }
     minInterval->setValue(rep->minInterval);
     maxInterval->setValue(rep->maxInterval);
     reportableChange->setText(QString::number(rep->reportableChange));
@@ -51,17 +81,18 @@ DDF_ZclReportWidget::DDF_ZclReportWidget(QWidget *parent, DDF_ZclReport *rep) :
 
     auto *lay = new QFormLayout;
 
-    lay->addRow("Manufacturer code", mfCode);
-    lay->addRow("Attribute", attrId);
-    lay->addRow("Datatype", dataType);
-    lay->addRow("Min interval", minInterval);
-    lay->addRow("Max interval", maxInterval);
-    lay->addRow("Reportable change", reportableChange);
+    lay->addRow(QLatin1String("Attribute"), attrName);
+    lay->addRow(QLatin1String("Attribute ID"), attrId);
+    lay->addRow(QLatin1String("Manufacturer code"), mfCode);
+    lay->addRow(QLatin1String("Datatype ID"), dataType);
+    lay->addRow(QLatin1String("Min interval"), minInterval);
+    lay->addRow(QLatin1String("Max interval"), maxInterval);
+    lay->addRow(QLatin1String("Reportable change"), reportableChange);
 
     setLayout(lay);
     setFrameStyle(QFrame::StyledPanel | QFrame::Raised);
 
-    QAction *removeAction = new QAction(tr("Delete"), this);
+    QAction *removeAction = new QAction(tr("Remove"), this);
     addAction(removeAction);
     setContextMenuPolicy(Qt::ActionsContextMenu);
 
@@ -74,8 +105,19 @@ void DDF_ZclReportWidget::attributeIdChanged()
     {
         bool ok;
         uint val = attrId->text().toUShort(&ok, 0);
-        if (ok)
+        if (ok && report->attributeId != val)
         {
+            // update attribute name
+            auto at = std::find_if(cluster->attributes().cbegin(), cluster->attributes().cend(), [val](const auto &i) { return i.id() == val; });
+            if (at != cluster->attributes().cend())
+            {
+                attrName->setText(at->name());
+            }
+            else
+            {
+                attrName->clear();
+            }
+
             report->attributeId = val;
             emit changed();
         }
@@ -100,12 +142,31 @@ void DDF_ZclReportWidget::dataTypeChanged()
 {
     if (report)
     {
-        bool ok;
-        uint val = dataType->text().toUShort(&ok, 0);
-        if (ok && val <= UINT8_MAX)
+        QString text = dataType->text();
+
+        if (text.startsWith(QLatin1String("0x")))
         {
-            report->dataType = val;
-            emit changed();
+            bool ok;
+            uint val = dataType->text().toUShort(&ok, 0);
+            if (ok && val <= UINT8_MAX)
+            {
+                const auto dt = deCONZ::ZCL_DataType(val);
+
+                if (dt.isValid())
+                {
+                    report->dataType = val;
+                    emit changed();
+                }
+            }
+        }
+        else
+        {
+            const auto dt = deCONZ::ZCL_DataType(text);
+            if (dt.isValid() && report->dataType != dt.id())
+            {
+                report->dataType = dt.id();
+                emit changed();
+            }
         }
     }
 }
@@ -144,6 +205,7 @@ public:
     QStandardItemModel *bndModel = nullptr;
     QScrollArea *repScrollArea = nullptr;
     QWidget *repWidget = nullptr;
+    deCONZ::ZclCluster curCluster;
 
     std::vector<DDF_ZclReportWidget*> repReportWidgets;
 };
@@ -173,22 +235,44 @@ DDF_BindingEditor::DDF_BindingEditor(QWidget *parent) :
     auto *lay = new QHBoxLayout;
     setLayout(lay);
 
+    auto *bndLay = new QVBoxLayout;
+
+    auto *bndLabel = new QLabel(tr("Bindings"));
+    bndLay->addWidget(bndLabel);
+
     d->bndModel = new QStandardItemModel(this);
     d->bndModel->setColumnCount(3);
 
     d->bndView = new QTableView(this);
     d->bndView->setModel(d->bndModel);
     d->bndView->horizontalHeader()->setStretchLastSection(true);
-    d->bndView->setMaximumWidth(400);
+    d->bndView->setMinimumWidth(400);
+    d->bndView->setMaximumWidth(600);
+    d->bndView->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
     d->bndView->setSelectionBehavior(QTableView::SelectRows);
+    d->bndView->setSelectionMode(QTableView::SingleSelection);
     d->bndView->verticalHeader()->hide();
-    connect(d->bndView->selectionModel(), &QItemSelectionModel::currentChanged, this, &DDF_BindingEditor::bindingActivated);
-
     d->bndView->setAcceptDrops(true);
     d->bndView->installEventFilter(this);
-    lay->addWidget(d->bndView);
+    connect(d->bndView->selectionModel(), &QItemSelectionModel::currentChanged, this, &DDF_BindingEditor::bindingActivated);
+
+    QAction *removeAction = new QAction(tr("Remove"), this);
+    d->bndView->addAction(removeAction);
+    d->bndView->setContextMenuPolicy(Qt::ActionsContextMenu);
+    connect(removeAction, &QAction::triggered, this, &DDF_BindingEditor::removeBinding);
+
+    bndLay->addWidget(d->bndView);
+
+    lay->addLayout(bndLay);
+
+    auto *repLay = new QVBoxLayout;
+
+    auto *repLabel = new QLabel(tr("Reporting configuration"));
+    repLay->addWidget(repLabel);
 
     d->repScrollArea = new QScrollArea(this);
+    d->repScrollArea->setMinimumWidth(400);
+    d->repScrollArea->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     d->repWidget = new QWidget;
     d->repWidget->installEventFilter(this);
     d->repWidget->setAcceptDrops(true);
@@ -199,10 +283,9 @@ DDF_BindingEditor::DDF_BindingEditor(QWidget *parent) :
     d->repScrollArea->setWidget(d->repWidget);
     d->repScrollArea->setWidgetResizable(true);
 
-    lay->addWidget(d->repScrollArea);
-
-
-    lay->addStretch();
+    repLay->addWidget(d->repScrollArea);
+    lay->addLayout(repLay);
+    lay->addStretch(0);
 }
 
 DDF_BindingEditor::~DDF_BindingEditor()
@@ -232,12 +315,31 @@ void DDF_BindingEditor::setBindings(const std::vector<DDF_Binding> &bindings)
 
     for (const auto &bnd : d->bindings)
     {
+        const auto cl = deCONZ::ZCL_InCluster(HA_PROFILE_ID, bnd.clusterId, 0x0000);
+
         QStandardItem *type = new QStandardItem((bnd.isUnicastBinding ? "unicast" : "group"));
         QStandardItem *srcEp = new QStandardItem(QString("0x%1").arg(bnd.srcEndpoint, 2, 16, QLatin1Char('0')));
-        QStandardItem *cluster = new QStandardItem(QString("0x%1").arg(bnd.clusterId, 4, 16, QLatin1Char('0')));
+
+        QString name;
+        if (cl.isValid())
+        {
+            name = cl.name();
+        }
+        else
+        {
+            name = QString("0x%1").arg(bnd.clusterId, 4, 16, QLatin1Char('0'));
+        }
+
+        QStandardItem *cluster = new QStandardItem(name);
 
         d->bndModel->appendRow({type,srcEp,cluster});
     }
+
+    d->bndView->resizeColumnToContents(0);
+    d->bndView->resizeColumnToContents(1);
+    d->bndView->horizontalHeader()->setStretchLastSection(true);
+
+    bindingActivated(d->bndModel->index(0, 0), QModelIndex());
 }
 
 bool DDF_BindingEditor::eventFilter(QObject *object, QEvent *event)
@@ -252,10 +354,11 @@ bool DDF_BindingEditor::eventFilter(QObject *object, QEvent *event)
         }
 
         const auto urls = e->mimeData()->urls();
+        const auto url = urls.first();
 
         if (object == d->bndView)
         {
-            if (urls.first().scheme() == QLatin1String("cluster"))
+            if (url.scheme() == QLatin1String("cluster") || url.scheme() == QLatin1String("zclattr"))
             {
                 e->accept();
                 return true;
@@ -266,11 +369,12 @@ bool DDF_BindingEditor::eventFilter(QObject *object, QEvent *event)
             QModelIndex index;
             DDF_Binding *bnd = d->getSelectedBinding(&index);
 
-            if (bnd && urls.first().scheme() == QLatin1String("zclattr"))
+            if (bnd && url.scheme() == QLatin1String("zclattr"))
             {
-                QUrlQuery urlQuery(urls.first());
+                QUrlQuery urlQuery(url);
 
-                if (urlQuery.queryItemValue("cl").toUInt() == bnd->clusterId)
+                bool ok;
+                if (urlQuery.queryItemValue("cid").toUShort(&ok, 16) == bnd->clusterId)
                 {
                     e->accept();
                     return true;
@@ -295,6 +399,10 @@ bool DDF_BindingEditor::eventFilter(QObject *object, QEvent *event)
             {
                 dropClusterUrl(urls.first());
             }
+            else if (urls.first().scheme() == QLatin1String("zclattr"))
+            {
+                dropClusterUrl(urls.first()); // contains also "cid" and "ep"
+            }
             return true;
         }
         else if (object == d->repWidget)
@@ -313,10 +421,6 @@ bool DDF_BindingEditor::eventFilter(QObject *object, QEvent *event)
 void DDF_BindingEditor::bindingActivated(const QModelIndex &index, const QModelIndex &prev)
 {
     Q_UNUSED(prev)
-    if (!index.isValid() || index.row() >= int(d->bindings.size()))
-    {
-        return;
-    }
 
     for (auto *w : d->repReportWidgets)
     {
@@ -327,13 +431,20 @@ void DDF_BindingEditor::bindingActivated(const QModelIndex &index, const QModelI
 
     d->repReportWidgets.clear();
 
+    if (!index.isValid() || index.row() >= int(d->bindings.size()))
+    {
+        return;
+    }
+
     auto &bnd = d->bindings[index.row()];
+    d->curCluster = deCONZ::ZCL_InCluster(HA_PROFILE_ID, bnd.clusterId, 0x0000);
+
     QVBoxLayout *lay = static_cast<QVBoxLayout*>(d->repWidget->layout());
 
     int i = 0;
     for (auto &rep : bnd.reporting)
     {
-        auto *w = new DDF_ZclReportWidget(d->repWidget, &rep);
+        auto *w = new DDF_ZclReportWidget(d->repWidget, &rep, &d->curCluster);
 
         d->repReportWidgets.push_back(w);
         lay->insertWidget(i, w);
@@ -351,7 +462,7 @@ void DDF_BindingEditor::dropClusterUrl(const QUrl &url)
 
     bool ok;
     bnd.clusterId = urlQuery.queryItemValue("cid").toUShort(&ok, 16);
-    bnd.srcEndpoint = urlQuery.queryItemValue("ep").toUInt() & 0xFF;
+    bnd.srcEndpoint = urlQuery.queryItemValue("ep").toUInt(&ok, 16) & 0xFF;
     bnd.isUnicastBinding = 1;
 
     const auto i = std::find_if(d->bindings.cbegin(), d->bindings.cend(), [&](const auto &i)
@@ -389,16 +500,16 @@ void DDF_BindingEditor::dropAttributeUrl(const QUrl &url)
     DDF_ZclReport rep{};
 
     bool ok;
-    rep.attributeId = urlQuery.queryItemValue("a").toUShort(&ok);
+    rep.attributeId = urlQuery.queryItemValue("a").toUShort(&ok, 16);
 
     if (urlQuery.hasQueryItem("mf"))
     {
-        rep.manufacturerCode = urlQuery.queryItemValue("mf").toUShort();
+        rep.manufacturerCode = urlQuery.queryItemValue("mf").toUShort(&ok, 16);
     }
 
     if (urlQuery.hasQueryItem("dt"))
     {
-        rep.dataType = urlQuery.queryItemValue("dt").toUShort() & 0xFF;
+        rep.dataType = urlQuery.queryItemValue("dt").toUShort(&ok, 16) & 0xFF;
     }
 
     if (urlQuery.hasQueryItem("rmin"))
@@ -461,4 +572,19 @@ void DDF_BindingEditor::reportRemoved()
         bindingActivated(index, QModelIndex());
         emit bindingsChanged();
     }
+}
+
+void DDF_BindingEditor::removeBinding()
+{
+    QModelIndex index;
+    auto *bnd = d->getSelectedBinding(&index);
+
+    if (!bnd || !index.isValid() || index.row() >= int(d->bindings.size()))
+    {
+        return;
+    }
+
+    d->bindings.erase(d->bindings.begin() + index.row());
+    setBindings(d->bindings);
+    emit bindingsChanged();
 }

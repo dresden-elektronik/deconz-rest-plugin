@@ -15,7 +15,6 @@ public:
 protected:
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dragLeaveEvent(QDragLeaveEvent *event) override;
-    void dragMoveEvent(QDragMoveEvent *event) override;
     void dropEvent(QDropEvent *event) override;
 
 Q_SIGNALS:
@@ -68,7 +67,8 @@ Q_SIGNALS:
     void itemChanged();
 
 private:
-    void DDF_SetupFunction(DDF_Function &fn, const DeviceDescription::Item &item, const QVariantMap &ddfParam, const std::vector<DDF_FunctionDescriptor> &fnDescriptors);
+    void setupFunction(DDF_Function &fn, const DeviceDescription::Item &item, const QVariantMap &ddfParam, const std::vector<DDF_FunctionDescriptor> &fnDescriptors);
+    void updateZclLabels(DDF_Function &fn);
     DDF_ItemEditorPrivate *d = nullptr;
 };
 

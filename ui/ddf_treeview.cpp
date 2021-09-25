@@ -248,125 +248,122 @@ void DDF_TreeView::currentIndexChanged(const QModelIndex &current, const QModelI
 
 void DDF_TreeView::setDDF(const DeviceDescription &ddf)
 {
-    if (ddf.isValid())
+    int scrollPos = verticalScrollBar()->value();
+    bool showImplicit = true;
+
+    m_model->clear();
+
+    setHeaderHidden(true);
+    setIndentation(0);
+
+    TreeItemHandle handle;
+    handle.value = 0;
+    handle.type = I_TYPE_DEVICE;
+
+    QStandardItem *top = new QStandardItem(tr("Device"));
+
+    top->setEditable(false);
+    top->setData(handle.value, MODEL_HANDLE_ROLE);
+    top->setForeground(QBrush(itemDrawOptions[handle.type].fgColor));
+
+    m_model->appendRow(top);
+
+    for (const DeviceDescription::SubDevice &sub : ddf.subDevices)
     {
-        int scrollPos = verticalScrollBar()->value();
-        bool showImplicit = true;
+        handle.type = I_TYPE_SUBDEVICE;
+        handle.item = 0;
 
-        m_model->clear();
+        QString subType = DeviceDescriptions::instance()->constantToString(sub.type);
 
-        setHeaderHidden(true);
-        setIndentation(0);
+        QStandardItem *isub = new QStandardItem(QString("%1 (%2)").arg(subType).arg(handle.subDevice + 1));
+        isub->setEditable(false);
+        isub->setData(handle.value, MODEL_HANDLE_ROLE);
+        isub->setForeground(QBrush(itemDrawOptions[handle.type].fgColor));
 
-        TreeItemHandle handle;
-        handle.value = 0;
-        handle.type = I_TYPE_DEVICE;
+        top->appendRow(isub);
 
-        QStandardItem *top = new QStandardItem(tr("Device"));
+        QStandardItem *config = nullptr;
+        QStandardItem *attr = nullptr;
+        QStandardItem *state = nullptr;
 
-        top->setEditable(false);
-        top->setData(handle.value, MODEL_HANDLE_ROLE);
-        top->setForeground(QBrush(itemDrawOptions[handle.type].fgColor));
-
-        m_model->appendRow(top);
-
-        for (const DeviceDescription::SubDevice &sub : ddf.subDevices)
+        for (const DeviceDescription::Item &item : sub.items)
         {
-            handle.type = I_TYPE_SUBDEVICE;
-            handle.item = 0;
-
-            QString subType = DeviceDescriptions::instance()->constantToString(sub.type);
-
-            QStandardItem *isub = new QStandardItem(QString("%1 (%2)").arg(subType).arg(handle.subDevice + 1));
-            isub->setEditable(false);
-            isub->setData(handle.value, MODEL_HANDLE_ROLE);
-            isub->setForeground(QBrush(itemDrawOptions[handle.type].fgColor));
-
-            top->appendRow(isub);
-
-            QStandardItem *config = nullptr;
-            QStandardItem *attr = nullptr;
-            QStandardItem *state = nullptr;
-
-            for (const DeviceDescription::Item &item : sub.items)
+            if (!showImplicit && item.isImplicit)
             {
-                if (!showImplicit && item.isImplicit)
-                {
-                    continue;
-                }
-
-                QStandardItem *iParent = nullptr;
-
-                if (item.name.c_str()[0] == 'a')
-                {
-                    if (!attr)
-                    {
-                        handle.type = I_TYPE_ATTR;
-                        attr = new QStandardItem(QLatin1String("Attributes"));
-                        attr->setData(handle.value, MODEL_HANDLE_ROLE);
-                        attr->setEditable(false);
-                        attr->setDragEnabled(false);
-                        isub->appendRow(attr);
-                    }
-
-                    handle.type = I_TYPE_ITEM_ATTR;
-                    iParent = attr;
-                }
-                else if (item.name.c_str()[0] == 'c')
-                {
-                    if (!config)
-                    {
-                        handle.type = I_TYPE_CONFIG;
-                        config = new QStandardItem(QLatin1String("Config"));
-                        config->setData(handle.value, MODEL_HANDLE_ROLE);
-                        config->setDragEnabled(false);
-                        config->setEditable(false);
-                        isub->appendRow(config);
-                    }
-
-                    handle.type = I_TYPE_ITEM_CONFIG;
-                    iParent = config;
-                }
-                else if (item.name.c_str()[0] == 's')
-                {
-                    if (!state)
-                    {
-                        handle.type = I_TYPE_STATE;
-                        state = new QStandardItem(QLatin1String("State"));
-                        state->setData(handle.value, MODEL_HANDLE_ROLE);
-                        state->setDragEnabled(false);
-                        state->setEditable(false);
-                        isub->appendRow(state);
-                    }
-
-                    handle.type = I_TYPE_ITEM_STATE;
-                    iParent = state;
-                }
-
-                if (!iParent)
-                {
-                    continue;
-                }
-
-                const char *iname = strchr(item.name.c_str(), '/');
-                if (!iname)
-                {
-                    continue;
-                }
-                iname++;
-
-                QStandardItem *iitem0 = new QStandardItem(QLatin1String(iname));
-                iitem0->setEditable(false);
-                iitem0->setData(handle.value, MODEL_HANDLE_ROLE);
-                iParent->appendRow(iitem0);
-
-                handle.item++;
+                continue;
             }
 
-            handle.subDevice++;
+            QStandardItem *iParent = nullptr;
+
+            if (item.name.c_str()[0] == 'a')
+            {
+                if (!attr)
+                {
+                    handle.type = I_TYPE_ATTR;
+                    attr = new QStandardItem(QLatin1String("Attributes"));
+                    attr->setData(handle.value, MODEL_HANDLE_ROLE);
+                    attr->setEditable(false);
+                    attr->setDragEnabled(false);
+                    isub->appendRow(attr);
+                }
+
+                handle.type = I_TYPE_ITEM_ATTR;
+                iParent = attr;
+            }
+            else if (item.name.c_str()[0] == 'c')
+            {
+                if (!config)
+                {
+                    handle.type = I_TYPE_CONFIG;
+                    config = new QStandardItem(QLatin1String("Config"));
+                    config->setData(handle.value, MODEL_HANDLE_ROLE);
+                    config->setDragEnabled(false);
+                    config->setEditable(false);
+                    isub->appendRow(config);
+                }
+
+                handle.type = I_TYPE_ITEM_CONFIG;
+                iParent = config;
+            }
+            else if (item.name.c_str()[0] == 's')
+            {
+                if (!state)
+                {
+                    handle.type = I_TYPE_STATE;
+                    state = new QStandardItem(QLatin1String("State"));
+                    state->setData(handle.value, MODEL_HANDLE_ROLE);
+                    state->setDragEnabled(false);
+                    state->setEditable(false);
+                    isub->appendRow(state);
+                }
+
+                handle.type = I_TYPE_ITEM_STATE;
+                iParent = state;
+            }
+
+            if (!iParent)
+            {
+                continue;
+            }
+
+            const char *iname = strchr(item.name.c_str(), '/');
+            if (!iname)
+            {
+                continue;
+            }
+            iname++;
+
+            QStandardItem *iitem0 = new QStandardItem(QLatin1String(iname));
+            iitem0->setEditable(false);
+            iitem0->setData(handle.value, MODEL_HANDLE_ROLE);
+            iParent->appendRow(iitem0);
+
+            handle.item++;
         }
 
-        expandAll();
-        verticalScrollBar()->setValue(scrollPos);
+        handle.subDevice++;
     }
+
+    expandAll();
+    verticalScrollBar()->setValue(scrollPos);
 }

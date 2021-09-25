@@ -21,7 +21,6 @@ class Event;
 class DDF_ZclReport
 {
 public:
-    bool isValid() const { return valid; }
     quint32 reportableChange = 0;
     quint16 attributeId = 0;
     quint16 minInterval = 0;
@@ -32,10 +31,18 @@ public:
     bool valid = false;
 };
 
+inline bool operator==(const DDF_ZclReport &a, const DDF_ZclReport &b)
+{
+    return memcmp(&a, &b, sizeof(a)) == 0;
+}
+
+inline bool operator!=(const DDF_ZclReport &a, const DDF_ZclReport &b) { return !(a == b); }
+
+inline bool isValid(const DDF_ZclReport &rep) { return rep.valid; }
+
 class DDF_Binding
 {
 public:
-    bool isValid() const { return (isUnicastBinding || isGroupBinding) && srcEndpoint != 0; }
     union
     {
         quint16 dstGroup;
@@ -53,6 +60,31 @@ public:
     };
     std::vector<DDF_ZclReport> reporting;
 };
+
+inline bool isValid(const DDF_Binding &bnd) { return (bnd.isUnicastBinding || bnd.isGroupBinding) && bnd.srcEndpoint != 0; }
+
+inline bool operator==(const DDF_Binding &a, const DDF_Binding &b)
+{
+    if (a.clusterId == b.clusterId &&
+        a.srcEndpoint == b.srcEndpoint &&
+        a.reporting == b.reporting)
+    {
+        if (a.isUnicastBinding && b.isUnicastBinding &&
+            a.dstExtAddress == b.dstExtAddress &&
+            a.dstEndpoint == b.dstEndpoint)
+        {
+            return true;
+        }
+        if (a.isGroupBinding && b.isGroupBinding && a.dstGroup == b.dstGroup)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+inline bool operator!=(const DDF_Binding &a, const DDF_Binding &b)  { return !(a == b); }
 
 class DeviceDescription
 {
@@ -153,6 +185,7 @@ public:
     QString name;
     QString restApi;
     QStringList uniqueId;
+    std::vector<const char*> items; // RAttrName, etc.
 };
 
 inline bool isValid(const DDF_SubDeviceDescriptor &sub)
@@ -176,7 +209,7 @@ struct DDF_FunctionDescriptor
         QString key;
         QString description;
         ApiDataType dataType = DataTypeUnknown;
-        qint64 defaultValue = 0;
+        QVariant defaultValue = 0;
     };
 
     QString name;
@@ -197,6 +230,7 @@ public:
     ~DeviceDescriptions();
     const DeviceDescription &get(const Resource *resource) const;
     void put(const DeviceDescription &ddf);
+    const DeviceDescription &load(const QString &path);
 
     QString constantToString(const QString &constant) const;
     QString stringToConstant(const QString &str) const;

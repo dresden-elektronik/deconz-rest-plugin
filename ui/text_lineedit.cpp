@@ -16,8 +16,8 @@ void TextLineEdit::inputTextChanged(const QString &text)
 {
     if (verifyInputText(text))
     {
-        emit valueChanged();
     }
+    emit valueChanged();
 }
 
 bool TextLineEdit::verifyInputText(const QString &text)

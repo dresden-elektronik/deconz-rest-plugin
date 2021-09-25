@@ -645,7 +645,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
 {
     plugin = this;
 
-    DEV_SetTestManaged(deCONZ::appArgumentNumeric("--dev-test-managed", 0) > 0);
+    DEV_SetTestManaged(deCONZ::appArgumentNumeric("--dev-test-managed", 0));
 
     pollManager = new PollManager(this);
 
@@ -658,7 +658,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
 
     restDevices = new RestDevices(this);
     connect(restDevices, &RestDevices::eventNotify, eventEmitter, &EventEmitter::enqueueEvent);
-    connect(this, &DeRestPluginPrivate::eventNotify, restDevices, &RestDevices::handleEvent);
+    connect(eventEmitter, &EventEmitter::eventNotify, restDevices, &RestDevices::handleEvent);
 
     alarmSystemDeviceTable.reset(new AS_DeviceTable);
 
@@ -1058,7 +1058,9 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
 
     for (auto &r : resources)
     {
-        if (!device->managed())
+        if (ind.clusterId() == BASIC_CLUSTER_ID && zclFrame.commandId() == deCONZ::ZclReadAttributesResponseId)
+        { }
+        else if (!device->managed())
         {
             break;
         }
@@ -2351,6 +2353,11 @@ void DeRestPluginPrivate::handleMacDataRequest(const deCONZ::NodeEvent &event)
  */
 void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 {
+    if (DEV_TestStrict())
+    {
+        return;
+    }
+
     DBG_Assert(node != nullptr);
     if (!node)
     {
@@ -5371,6 +5378,11 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
  */
 void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::NodeEvent *event)
 {
+    if (DEV_TestStrict())
+    {
+        return;
+    }
+
     DBG_Assert(node);
 
     if (!node)
@@ -15248,6 +15260,11 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
  */
 void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *event)
 {
+    if (DEV_TestStrict())
+    {
+        return;
+    }
+
     if (!apsCtrl)
     {
         return;
@@ -16594,6 +16611,11 @@ void DeRestPlugin::idleTimerFired()
 
             while (d->lightIter < d->nodes.size())
             {
+                if (DEV_TestStrict())
+                {
+                    break;
+                }
+
                 LightNode *lightNode = &d->nodes[d->lightIter];
                 d->lightIter++;
 
@@ -16826,6 +16848,10 @@ void DeRestPlugin::idleTimerFired()
                     continue;
                 }
 
+                if (DEV_TestStrict())
+                {
+                    break;
+                }
 
                 if (sensorNode->modelId().isEmpty())
                 {
@@ -17010,6 +17036,7 @@ void DeRestPlugin::idleTimerFired()
             }
         }
 
+        if (!DEV_TestManaged())
         {
             std::vector<LightNode>::iterator i = d->nodes.begin();
             std::vector<LightNode>::iterator end = d->nodes.end();

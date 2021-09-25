@@ -561,9 +561,12 @@ bool ddfSerializeV1(JsonDoc &doc, const DeviceDescription &ddf, char *buf, size_
                     item["refresh.interval"] = i.refreshInterval;
                 }
 
-                if (!i.readParameters.isNull()  && (ddfFull || !i.isGenericRead))  { putItemParameter(item, "read", i.readParameters.toMap()); }
-                if (!i.writeParameters.isNull() && (ddfFull || !i.isGenericWrite)) { putItemParameter(item, "write", i.writeParameters.toMap()); }
-                if (!i.parseParameters.isNull() && (ddfFull || !i.isGenericParse)) { putItemParameter(item, "parse", i.parseParameters.toMap()); }
+                if (!i.isStatic)
+                {
+                    if (!i.readParameters.isNull()  && (ddfFull || !i.isGenericRead))  { putItemParameter(item, "read", i.readParameters.toMap()); }
+                    if (!i.writeParameters.isNull() && (ddfFull || !i.isGenericWrite)) { putItemParameter(item, "write", i.writeParameters.toMap()); }
+                    if (!i.parseParameters.isNull() && (ddfFull || !i.isGenericParse)) { putItemParameter(item, "parse", i.parseParameters.toMap()); }
+                }
                 if (!i.defaultValue.isNull())
                 {
                     if (i.isStatic)

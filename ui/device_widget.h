@@ -34,6 +34,8 @@ Q_SIGNALS:
 
 public Q_SLOTS:
     void editDDF();
+    void openDDF();
+    void saveDDF();
     void saveAsDDF();
     void hotReload();
 

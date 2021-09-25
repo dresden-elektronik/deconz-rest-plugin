@@ -8,20 +8,27 @@
 class DDF_Binding;
 class DDF_BindingEditorPrivate;
 class DDF_ZclReport;
+class QLabel;
 class QLineEdit;
 class QSpinBox;
 class QModelIndex;
+
+namespace deCONZ {
+    class ZclCluster;
+}
 
 class DDF_ZclReportWidget : public QFrame
 {
     Q_OBJECT
 
 public:
-    DDF_ZclReportWidget(QWidget *parent, DDF_ZclReport *rep);
+    DDF_ZclReportWidget(QWidget *parent, DDF_ZclReport *rep, const deCONZ::ZclCluster *cl);
 
+    const deCONZ::ZclCluster *cluster = nullptr;
     DDF_ZclReport *report = nullptr;
     QLineEdit *mfCode = nullptr;
     QLineEdit *attrId = nullptr;
+    QLabel *attrName = nullptr;
     QLineEdit *dataType = nullptr;
     QSpinBox *minInterval = nullptr;
     QSpinBox *maxInterval = nullptr;
@@ -55,6 +62,7 @@ private Q_SLOTS:
     void dropClusterUrl(const QUrl &url);
     void dropAttributeUrl(const QUrl &url);
     void reportRemoved();
+    void removeBinding();
 
 Q_SIGNALS:
     void bindingsChanged();

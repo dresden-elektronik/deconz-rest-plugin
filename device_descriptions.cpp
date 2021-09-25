@@ -134,7 +134,7 @@ DeviceDescriptions::DeviceDescriptions(QObject *parent) :
         param.key = "script";
         param.description = "Relative path of a Javascript .js file.";
         param.dataType = DataTypeString;
-        param.defaultValue = 0;
+        param.defaultValue = {};
         param.isOptional = 1;
         param.isHexString = 0;
         param.supportsArray = 0;
@@ -144,7 +144,7 @@ DeviceDescriptions::DeviceDescriptions(QObject *parent) :
         param.key = "eval";
         param.description = "Javascript expression to transform the raw value.";
         param.dataType = DataTypeString;
-        param.defaultValue = 0;
+        param.defaultValue = QLatin1String("Item.val = Attr.val");
         param.isOptional = 1;
         param.isHexString = 0;
         param.supportsArray = 0;
@@ -244,7 +244,7 @@ DeviceDescriptions::DeviceDescriptions(QObject *parent) :
         param.key = "eval";
         param.description = "Javascript expression to transform the raw value.";
         param.dataType = DataTypeString;
-        param.defaultValue = 0;
+        param.defaultValue = {};
         param.isOptional = 0;
         param.isHexString = 0;
         param.supportsArray = 0;
@@ -448,6 +448,52 @@ void DeviceDescriptions::put(const DeviceDescription &ddf)
             return;
         }
     }
+}
+
+const DeviceDescription &DeviceDescriptions::load(const QString &path)
+{
+    Q_D(DeviceDescriptions);
+
+    auto i = std::find_if(d->descriptions.begin(), d->descriptions.end(), [&path](const auto &ddf){ return ddf.path == path; });
+    if (i != d->descriptions.end())
+    {
+        return *i;
+    }
+
+    auto result = DDF_ReadDeviceFile(path);
+
+    if (!result.empty())
+    {
+        for (auto &ddf : result)
+        {
+            ddf = DDF_MergeGenericItems(d->genericItems, ddf);
+            ddf = DDF_LoadScripts(ddf);
+
+            i = std::find_if(d->descriptions.begin(), d->descriptions.end(), [&ddf](const DeviceDescription &b)
+            {
+                return ddf.modelIds == b.modelIds && ddf.manufacturerNames == b.manufacturerNames;
+            });
+
+            if (i != d->descriptions.end())
+            {
+                *i = ddf; // update
+            }
+            else
+            {
+                d->descriptions.push_back(ddf);
+            }
+        }
+
+        DDF_UpdateItemHandles(d->descriptions, d->loadCounter);
+
+        i = std::find_if(d->descriptions.begin(), d->descriptions.end(), [&path](const auto &ddf){ return ddf.path == path; });
+        if (i != d->descriptions.end())
+        {
+            return *i;
+        }
+    }
+
+    return d->invalidDescription;
 }
 
 /*! Turns a string constant into it's value.
@@ -748,17 +794,21 @@ void DeviceDescriptions::readAll()
 
     if (!genericItems.empty())
     {
-        d->genericItems = genericItems;
+        d->genericItems = std::move(genericItems);
     }
 
     if (!subDevices.empty())
     {
-        d->subDevices = subDevices;
+        std::sort(subDevices.begin(), subDevices.end(), [](const auto &a, const auto &b){
+            return a.name < b.name;
+        });
+
+        d->subDevices = std::move(subDevices);
     }
 
     if (!descriptions.empty())
     {
-        d->descriptions = descriptions;
+        d->descriptions = std::move(descriptions);
         DDF_UpdateItemHandles(d->descriptions, d->loadCounter);
 
         for (auto &ddf : d->descriptions)
@@ -1233,7 +1283,7 @@ static DDF_Binding DDF_ParseBinding(const QJsonObject &obj)
             if (i.isObject())
             {
                 const auto rep = DDF_ParseZclReport(i.toObject());
-                if (rep.isValid())
+                if (isValid(rep))
                 {
                     result.reporting.push_back(rep);
                 }
@@ -1340,7 +1390,7 @@ static DeviceDescription DDF_ParseDeviceObject(const QJsonObject &obj, const QSt
             if (i.isObject())
             {
                 const auto bnd = DDF_ParseBinding(i.toObject());
-                if (bnd.isValid())
+                if (isValid(bnd))
                 {
                     result.bindings.push_back(bnd);
                 }
@@ -1447,7 +1497,25 @@ static DDF_SubDeviceDescriptor DDF_ReadSubDeviceFile(const QString &path)
                 const auto arr = uniqueId.toArray();
                 for (const auto &i : arr)
                 {
+                    DBG_Assert(i.isString());
                     result.uniqueId.push_back(i.toString());
+                }
+            }
+        }
+        if (obj.contains(QLatin1String("items")))
+        {
+            const auto items = obj.value(QLatin1String("items"));
+            if (items.isArray())
+            {
+                const auto arr = items.toArray();
+                for (const auto &i : arr)
+                {
+                    DBG_Assert(i.isString());
+                    ResourceItemDescriptor rid;
+                    if (getResourceItemDescriptor(i.toString(), rid))
+                    {
+                        result.items.push_back(rid.suffix);
+                    }
                 }
             }
         }

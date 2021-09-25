@@ -1,8 +1,10 @@
 #include <QDesktopServices>
+#include <QDragEnterEvent>
 #include <QFileDialog>
 #include <QGuiApplication>
 #include <QMainWindow>
 #include <QMenuBar>
+#include <QMimeData>
 #include <QUrl>
 #include <QStatusBar>
 #include <deconz/node.h>
@@ -24,8 +26,13 @@ public:
     DDF_EditorDialog(DeviceWidget *parent);
 
     void showEvent(QShowEvent *t) override;
+    void dragEnterEvent(QDragEnterEvent *event) override;
+//    void dragLeaveEvent(QDragLeaveEvent *event) override;
+//    void dragMoveEvent(QDragMoveEvent *event) override;
+    void dropEvent(QDropEvent *event) override;
     void showMessage(const QString &text);
 
+    DeviceWidget *q = nullptr;
     DDF_Editor *editor;
     bool initPos = false;
 };
@@ -33,6 +40,7 @@ public:
 DDF_EditorDialog::DDF_EditorDialog(DeviceWidget *parent) :
     QMainWindow(parent)
 {
+    q = parent;
     editor = new DDF_Editor(DeviceDescriptions::instance(), this);
     setCentralWidget(editor);
 
@@ -40,8 +48,15 @@ DDF_EditorDialog::DDF_EditorDialog(DeviceWidget *parent) :
 
     QMenu *fileMenu = menuBar()->addMenu(tr("&File"));
     fileMenu->addAction(tr("&New"));
-    fileMenu->addAction(tr("&Open"));
-    fileMenu->addAction(tr("&Save"));
+
+
+    QAction *open = fileMenu->addAction(tr("&Open"));
+    open->setShortcut(QKeySequence::Open);
+    connect(open, &QAction::triggered, parent, &DeviceWidget::openDDF);
+
+    QAction *save = fileMenu->addAction(tr("&Save"));
+    save->setShortcut(QKeySequence::Save);
+    connect(save, &QAction::triggered, parent, &DeviceWidget::saveDDF);
 
     QAction *saveAs = fileMenu->addAction(tr("&Save as"));
     saveAs->setShortcut(QKeySequence::SaveAs);
@@ -58,7 +73,7 @@ DDF_EditorDialog::DDF_EditorDialog(DeviceWidget *parent) :
     });
 
     setWindowTitle(tr("DDF Editor"));
-
+    setAcceptDrops(true);
 }
 
 void DDF_EditorDialog::showMessage(const QString &text)
@@ -73,8 +88,8 @@ void DDF_EditorDialog::showEvent(QShowEvent *)
     {
         initPos = true;
         auto geoWin = qApp->activeWindow()->geometry();
-//        auto geo0 = geometry();
-        int w = qMin(1380, geoWin.width() - 20);
+
+        int w = qMin(1200, geoWin.width() - 20);
         int h = qMin(768, geoWin.height() - 20);
 
         move(geoWin.x() + (geoWin.width() - w) / 4,
@@ -83,6 +98,50 @@ void DDF_EditorDialog::showEvent(QShowEvent *)
         setGeometry(geoWin.x() + (geoWin.width() - w) / 4,
                     geoWin.y() + (geoWin.height() - h) / 4,
                     w, h);
+    }
+}
+
+void DDF_EditorDialog::dragEnterEvent(QDragEnterEvent *event)
+{
+    if (event->mimeData()->hasUrls())
+    {
+        const auto urls = event->mimeData()->urls();
+        const auto &url = urls.first();
+
+        if (url.scheme() == QLatin1String("file") && url.path().endsWith(QLatin1String(".json")))
+        {
+            event->accept();
+        }
+    }
+
+    auto *m = event->mimeData();
+    const auto fmts = m->formats();
+
+    for (const auto &fmt : fmts)
+    {
+        DBG_Printf(DBG_INFO, "Mime-format: %s\nMime-data: %s\n", qPrintable(fmt), qPrintable(m->data(fmt)));
+
+    }
+}
+
+void DDF_EditorDialog::dropEvent(QDropEvent *event)
+{
+    if (event->mimeData()->hasUrls() && editor)
+    {
+        const auto urls = event->mimeData()->urls();
+        const auto &url = urls.first();
+
+        if (url.scheme() == QLatin1String("file") && url.path().endsWith(QLatin1String(".json")))
+        {
+            auto *dd = DeviceDescriptions::instance();
+            auto ddf = dd->load(url.path());
+            if (ddf.isValid())
+            {
+                editor->setDDF(ddf);
+            }
+
+            event->accept();
+        }
     }
 }
 
@@ -107,8 +166,13 @@ DeviceWidget::DeviceWidget(DeviceContainer &devices, QWidget *parent) :
     connect(ui->enablePermitJoinButton, &QPushButton::clicked, this, &DeviceWidget::enablePermitJoin);
     connect(ui->disablePermitJoinButton, &QPushButton::clicked, this, &DeviceWidget::disablePermitJoin);
 
-    ui->enableDDFCheckBox->setChecked(DEV_TestManaged());
-    connect(ui->enableDDFCheckBox, &QCheckBox::stateChanged, this, &DeviceWidget::enableDDFHandlingChanged);
+    if      (DEV_TestStrict())  { ui->ddfStrictRadioButton->setChecked(true); }
+    else if (DEV_TestManaged()) { ui->ddfNormalRadioButton->setChecked(true); }
+    else                        { ui->ddfDisabledRadioButton->setChecked(true); }
+
+    connect(ui->ddfDisabledRadioButton, &QRadioButton::clicked, this, &DeviceWidget::enableDDFHandlingChanged);
+    connect(ui->ddfNormalRadioButton, &QRadioButton::clicked, this, &DeviceWidget::enableDDFHandlingChanged);
+    connect(ui->ddfStrictRadioButton, &QRadioButton::clicked, this, &DeviceWidget::enableDDFHandlingChanged);
 }
 
 DeviceWidget::~DeviceWidget()
@@ -193,29 +257,102 @@ void DeviceWidget::editDDF()
     }
 }
 
-void DeviceWidget::saveAsDDF()
+void DeviceWidget::openDDF()
 {
-    const DeviceDescription &ddf = d->ddfWindow->editor->ddf();
+    QString dir = deCONZ::getStorageLocation(deCONZ::DdfUserLocation);
+    QString path = QFileDialog::getOpenFileName(d->ddfWindow,
+                                                tr("Open DDF file"),
+                                                dir,
+                                                tr("DDF files (*.json)"));
 
-    if (ddf.product.isEmpty())
+    if (path.isEmpty())
     {
-        d->ddfWindow->showMessage(tr("Device product must be set"));
         return;
     }
 
-    QString fileName = ddf.product;
-    for (auto &ch : fileName)
+    auto *dd = DeviceDescriptions::instance();
+    auto ddf = dd->load(path);
+    if (!ddf.isValid())
     {
-        if (ch == QLatin1Char(' ') || ch.unicode() > 'z')
-        {
-            ch = QLatin1Char('_');
-        }
+        d->ddfWindow->showMessage(tr("Failed to open %1").arg(path));
+        return;
     }
 
-    QString dir = deCONZ::getStorageLocation(deCONZ::DdfUserLocation);
+    d->ddfWindow->editor->setDDF(ddf);
+}
+
+void DeviceWidget::saveDDF()
+{
+    DeviceDescription ddf = d->ddfWindow->editor->ddf();
+
+    QFileInfo fi(ddf.path);
+
+    if (ddf.manufacturerNames.empty() || ddf.modelIds.empty())
+    {
+        d->ddfWindow->showMessage(tr("Device model ID and manufacturer must be set"));
+        return;
+    }
+
+    if (ddf.path.isEmpty() || !fi.isWritable())
+    {
+        saveAsDDF();
+        return;
+    }
+
+    if (ddf.product.isEmpty())
+    {
+        ddf.product = ddf.modelIds.first();
+    }
+
+    QFile f(ddf.path);
+
+    if (!f.open(QIODevice::WriteOnly))
+    {
+        d->ddfWindow->showMessage(tr("Failed to write %1").arg(ddf.path));
+        return;
+    }
+
+    const QString ddfJson = DDF_ToJsonPretty(ddf);
+    f.write(ddfJson.toUtf8());
+
+    d->ddfWindow->editor->updateDDFHash();
+    d->ddfWindow->showMessage(tr("DDF saved to %1").arg(ddf.path));
+}
+
+void DeviceWidget::saveAsDDF()
+{
+    DeviceDescription ddf = d->ddfWindow->editor->ddf();
+
+    if (ddf.manufacturerNames.empty() || ddf.modelIds.empty())
+    {
+        d->ddfWindow->showMessage(tr("Device model ID and manufacturer must be set"));
+        return;
+    }
+
+    if (ddf.product.isEmpty())
+    {
+        ddf.product = ddf.modelIds.first();
+    }
+
+    QString saveFilePath = ddf.path;
+
+    if (saveFilePath.isEmpty())
+    {
+        QString fileName = ddf.product;
+        for (auto &ch : fileName)
+        {
+            if (ch == QLatin1Char(' ') || ch.unicode() > 'z')
+            {
+                ch = QLatin1Char('_');
+            }
+        }
+        QString dir = deCONZ::getStorageLocation(deCONZ::DdfUserLocation);
+        saveFilePath = QString("%1/%2.json").arg(dir, fileName.toLower());
+    }
+
     QString path = QFileDialog::getSaveFileName(d->ddfWindow,
                                                 tr("Save DDF file as"),
-                                                QString("%1/%2.json").arg(dir, fileName.toLower()),
+                                                saveFilePath,
                                                 tr("DDF files (*.json)"));
 
     if (path.isEmpty())
@@ -231,9 +368,11 @@ void DeviceWidget::saveAsDDF()
         return;
     }
 
+    ddf.path = path;
     const QString ddfJson = DDF_ToJsonPretty(ddf);
     f.write(ddfJson.toUtf8());
 
+    d->ddfWindow->editor->setDDF(ddf);
     d->ddfWindow->showMessage(tr("DDF save to %1").arg(path));
 }
 
@@ -257,6 +396,8 @@ void DeviceWidget::hotReload()
             dev->handleEvent(Event(RDevices, REventDDFReload, 0, dev->key()));
         }
     }
+
+    d->ddfWindow->showMessage(tr("DDF reloaded for devices"));
 }
 
 void DeviceWidget::enablePermitJoin()
@@ -271,6 +412,17 @@ void DeviceWidget::disablePermitJoin()
 
 void DeviceWidget::enableDDFHandlingChanged()
 {
-    DEV_SetTestManaged(ui->enableDDFCheckBox->isChecked());
+    if (ui->ddfDisabledRadioButton->isChecked())
+    {
+        DEV_SetTestManaged(0);
+    }
+    else if (ui->ddfNormalRadioButton->isChecked())
+    {
+        DEV_SetTestManaged(1);
+    }
+    else if (ui->ddfStrictRadioButton->isChecked())
+    {
+        DEV_SetTestManaged(2);
+    }
 }
 
