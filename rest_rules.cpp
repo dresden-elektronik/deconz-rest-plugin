@@ -1820,10 +1820,11 @@ void DeRestPluginPrivate::fastRuleCheckTimerFired()
 /*! Triggers rules based on events. */
 void DeRestPluginPrivate::handleRuleEvent(const Event &e)
 {
-    if (e.id().isEmpty())
+    if (e.resource() == RDevices)
     {
-        return;
+        return; // todo
     }
+
     Resource *resource = getResource(e.resource(), e.id());
     ResourceItem *item = resource ? resource->item(e.what()) : nullptr;
     const ResourceItem *localTime = config.item(RConfigLocalTime);
