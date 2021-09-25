@@ -29,13 +29,15 @@ WebSocketServer::WebSocketServer(QObject *parent, quint16 port) :
     }
 
     QHostAddress address;
-    if (deCONZ::appArgumentString("--http-listen", QString()).isEmpty()) // Tie websocket server to specified IP, if any
+    QString addrArg = deCONZ::appArgumentString("--http-listen", QString());
+
+    if (addrArg.isEmpty()) // Tie websocket server to specified IP, if any
     {
         address = QHostAddress::AnyIPv4;
     }
     else
     {
-        address = deCONZ::appArgumentString("--http-listen", QString());
+        address = QHostAddress(addrArg);
     }
 
     while (!srv->listen(address, ports[p]))
