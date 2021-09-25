@@ -107,6 +107,7 @@ const quint64 ikea2MacPrefix      = 0x14b4570000000000ULL;
 const quint64 profaluxMacPrefix   = 0x20918a0000000000ULL;
 const quint64 stMacPrefix         = 0x24fd5b0000000000ULL;
 const quint64 samjinMacPrefix     = 0x286d970000000000ULL;
+const quint64 casaiaPrefix        = 0x3c6a2c0000000000ULL;
 const quint64 sinopeMacPrefix     = 0x500b910000000000ULL;
 const quint64 lumiMacPrefix       = 0x54ef440000000000ULL;
 const quint64 silabs6MacPrefix    = 0x588e810000000000ULL;
@@ -439,6 +440,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "0yu2xgi", silabs5MacPrefix }, // Tuya siren
     { VENDOR_EMBER, "TS0601", silabs9MacPrefix }, // Tuya siren
     { VENDOR_EMBER, "TS0222", silabs9MacPrefix }, // TYZB01 light sensor
+    { VENDOR_OWON, "CTHS317ET", casaiaPrefix }, // CASA.ia Temperature probe CTHS-317-ET
     { VENDOR_NONE, "eaxp72v", ikea2MacPrefix }, // Tuya TRV Wesmartify Thermostat Essentials Premium
     { VENDOR_NONE, "88teujp", silabs8MacPrefix }, // SEA802-Zigbee
     { VENDOR_NONE, "uhszj9s", silabs8MacPrefix }, // HiHome WZB-TRVL
