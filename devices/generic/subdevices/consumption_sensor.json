@@ -1,13 +1,13 @@
 {
     "schema": "subdevice1.schema.json",
-    "type": "$TYPE_BATTERY_SENSOR",
-    "name": "ZHABattery",
+    "type": "$TYPE_CONSUMPTION_SENSOR",
+    "name": "ZHAConsumption",
     "restapi": "/sensors",
-    "uuid": ["$address.ext", "0x01", "0x0001"],
+    "uuid": ["$address.ext", "0x01", "0x0702"],
     "items": [
             "config/on",
             "config/reachable",
-            "state/battery",
+            "state/consumption",
             "state/lastupdated"
     ]
 }

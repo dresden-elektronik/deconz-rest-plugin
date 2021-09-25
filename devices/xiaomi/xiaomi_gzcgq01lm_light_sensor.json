@@ -4,7 +4,7 @@
     "doc:hdr": "Light sensor GZCGQ01LM",
     "manufacturername": "$MF_XIAOMI",
     "modelid": "lumi.sen_ill.mgl01",
-    "product": "GZCGQ01LM",
+    "product": "Light Sensor (GZCGQ01LM)",
     "status": "Silver",
     "md:known_issues": [ ],
     "subdevices": [

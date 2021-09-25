@@ -4,7 +4,7 @@
     "doc:hdr": "Motion sensor ESS-SI-PIR-6101",
     "manufacturername": "$MF_TUYA",
     "modelid": "RH3040",
-    "product": "ESS-SI-PIR-6101",
+    "product": "Motion Sensor (ESS-SI-PIR-6101)",
     "status": "Bronze",
     "supportsMgmtBind": true,
     "subdevices": [

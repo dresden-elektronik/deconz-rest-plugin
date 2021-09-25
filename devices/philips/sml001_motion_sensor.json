@@ -1,10 +1,10 @@
 {
     "schema": "devcap1.schema.json",
     "doc:path": "philips/sml001_motion_sensor.md",
-    "doc:hdr": "Motion sensor SML001",
+    "doc:hdr": "Motion sensor 1. Gen (SML001)",
     "manufacturername": "$MF_PHILIPS",
     "modelid": "SML001",
-    "product": "SML001",
+    "product": "Motion Sensor 1. Gen (SML001)",
     "status": "Gold",
     "sleeper": false,
     "md:known_issues": [ ],
@@ -42,18 +42,21 @@
                 },
                 {
                     "name": "config/battery",
-                    "parse": {"cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"},
-                    "read": {"cl": "0x0001", "at": "0x0021"},
+                    "parse": {"ep": 2, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"},
+                    "read": {"ep": 2, "cl": "0x0001", "at": "0x0021"},
                     "refresh.interval": 7300,
                     "awake": true
                 },
                 {
-                    "name": "config/delay"
+                    "name": "config/delay",
+                    "read": {"ep": 2, "cl": "0x0406", "at": "0x0010"},
+                    "parse": {"ep": 2, "cl": "0x0406", "at": "0x0010", "eval": "Item.val = Attr.val"},
+                    "refresh.interval": 84000
                 },
                 {
                     "name": "config/ledindication",
-                    "read": {"cl": "0x0000", "at": "0x0033", "mf": "0x100b"},
-                    "parse": {"cl": "0x0000", "at": "0x0033", "mf": "0x100b", "eval": "Item.val = Attr.val"},
+                    "read": {"ep": 2, "cl": "0x0000", "at": "0x0033", "mf": "0x100b"},
+                    "parse": {"ep": 2, "cl": "0x0000", "at": "0x0033", "mf": "0x100b", "eval": "Item.val = Attr.val"},
                     "refresh.interval": 84000
                 },
                 {
@@ -72,18 +75,18 @@
                         [1, "medium"],
                         [2, "high"]
                     ],
-                    "read": {"cl": "0x0406", "at": "0x0030", "mf": "0x100b"},
-                    "parse": {"cl": "0x0406", "at": "0x0030", "mf": "0x100b", "eval": "Item.val == 0 ? Item.val = Attr.val : Item.val"},
+                    "read": {"ep": 2, "cl": "0x0406", "at": "0x0030", "mf": "0x100b"},
+                    "parse": {"ep": 2, "cl": "0x0406", "at": "0x0030", "mf": "0x100b", "eval": "Item.val == 0 ? Item.val = Attr.val : Item.val"},
                     "refresh.interval": 84000
                 },
                 {
                     "name": "config/sensitivitymax",
-                    "default": 2
+                    "static": 2
                 },
                 {
                     "name": "config/usertest",
-                    "read": {"cl": "0x0000", "at": "0x0032", "mf": "0x100b"},
-                    "parse": {"cl": "0x0000", "at": "0x0032", "mf": "0x100b", "eval": "Item.val = Attr.val"},
+                    "read": {"ep": 2, "cl": "0x0000", "at": "0x0032", "mf": "0x100b"},
+                    "parse": {"ep": 2, "cl": "0x0000", "at": "0x0032", "mf": "0x100b", "eval": "Item.val = Attr.val"},
                     "refresh.interval": 84000
                 },
                 {
@@ -91,7 +94,7 @@
                 },
                 {
                     "name": "state/presence",
-                    "parse": {"cl": "0x0406", "at": "0x0000", "eval": "Item.val = Attr.val"},
+                    "parse": {"ep": 2, "cl": "0x0406", "at": "0x0000", "eval": "Item.val = Attr.val"},
                     "awake": true
                 }
             ],
@@ -156,11 +159,11 @@
                 },
                 {
                     "name": "config/battery",
-                    "parse": {"cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"}
+                    "parse": {"ep": 2, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"}
                 },
                 {
                     "name": "config/ledindication",
-                    "parse": {"cl": "0x0000", "at": "0x0033", "mf": "0x100b", "eval": "Item.val = Attr.val"}
+                    "parse": {"ep": 2, "cl": "0x0000", "at": "0x0033", "mf": "0x100b", "eval": "Item.val = Attr.val"}
                 },
                 {
                     "name": "config/on"
@@ -179,7 +182,7 @@
                 },
                 {
                     "name": "config/usertest",
-                    "parse": {"cl": "0x0000", "at": "0x0032", "mf": "0x100b", "eval": "Item.val = Attr.val"}
+                    "parse": {"ep": 2, "cl": "0x0000", "at": "0x0032", "mf": "0x100b", "eval": "Item.val = Attr.val"}
                 },
                 {
                     "name": "state/dark"
@@ -192,7 +195,7 @@
                 },
                 {
                     "name": "state/lightlevel",
-                    "parse": {"cl": "0x0400", "at": "0x0000", "script": "sml_light_level.js"},
+                    "parse": {"ep": 2, "cl": "0x0400", "at": "0x0000", "script": "sml_light_level.js"},
                     "awake": true
                 },
                 {
@@ -262,11 +265,11 @@
                 },
                 {
                     "name": "config/battery",
-                    "parse": {"cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"}
+                    "parse": {"ep": 2, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"}
                 },
                 {
                     "name": "config/ledindication",
-                    "parse": {"cl": "0x0000", "at": "0x0033", "mf": "0x100b", "eval": "Item.val = Attr.val"}
+                    "parse": {"ep": 2, "cl": "0x0000", "at": "0x0033", "mf": "0x100b", "eval": "Item.val = Attr.val"}
                 },
                 {
                     "name": "config/offset"
@@ -282,14 +285,14 @@
                 },
                 {
                     "name": "config/usertest",
-                    "parse": {"cl": "0x0000", "at": "0x0032", "mf": "0x100b", "eval": "Item.val = Attr.val"}
+                    "parse": {"ep": 2, "cl": "0x0000", "at": "0x0032", "mf": "0x100b", "eval": "Item.val = Attr.val"}
                 },
                 {
                     "name": "state/lastupdated"
                 },
                 {
                     "name": "state/temperature",
-                    "parse": {"cl": "0x0402", "at": "0x0000", "eval": "Item.val = Attr.val + R.item('config/offset').val"},
+                    "parse": {"ep": 2, "cl": "0x0402", "at": "0x0000", "eval": "Item.val = Attr.val + R.item('config/offset').val"},
                     "awake": true
                 }
             ],

@@ -4,7 +4,7 @@
     "doc:hdr": "Dimmer Switch 1. Gen EU/US",
     "manufacturername": "$MF_PHILIPS",
     "modelid": ["RWL021", "RWL021"],
-    "product": "Dimmer Switch 1. Gen",
+    "product": "Dimmer Switch 1. Gen EU/US",
     "status": "Gold",
     "sleeper": true,
     "md:known_issues": [ ],
@@ -94,7 +94,7 @@
     ],
     "bindings": [
         {
-            "bind": "unicast", "src.ep": 2, "cl": "0xfc00", "mf": "0x100b"
+            "bind": "unicast", "src.ep": 2, "cl": "0xfc00"
         },
         {
             "bind": "unicast",

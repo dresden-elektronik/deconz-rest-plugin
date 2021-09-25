@@ -1,0 +1,17 @@
+{
+    "schema": "subdevice1.schema.json",
+    "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
+    "name": "Color temperature light",
+    "restapi": "/lights",
+    "uuid": ["$address.ext", "0x01"],
+    "items": [
+            "config/ctmax",
+            "config/ctmin",
+            "state/alert",
+            "state/reachable",
+            "state/bri",
+            "state/colormode",
+            "state/ct",
+            "state/on"
+    ]
+}
