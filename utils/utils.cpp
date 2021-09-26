@@ -263,3 +263,97 @@ const deCONZ::Node *getCoreNode(quint64 extAddress, deCONZ::ApsController *apsCt
 
     return nullptr;
 }
+
+static bool isHexChar(char ch)
+{
+    return ((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F'));
+}
+
+quint64 extAddressFromUniqueId(const QString &uniqueId)
+{
+    quint64 result = 0;
+
+    if (uniqueId.size() < 23)
+    {
+        return result;
+    }
+
+    // 28:6d:97:00:01:06:41:79-01-0500  31 characters
+    int pos = 0;
+    char buf[16 + 1];
+
+    for (auto ch : uniqueId)
+    {
+        if (ch != ':')
+        {
+            buf[pos] = ch.toLatin1();
+
+            if (!isHexChar(buf[pos]))
+            {
+                return result;
+            }
+            pos++;
+        }
+
+        if (pos == 16)
+        {
+            buf[pos] = '\0';
+            break;
+        }
+    }
+
+    if (pos == 16)
+    {
+        result = strtoull(buf, nullptr, 16);
+    }
+
+    return result;
+}
+
+bool copyString(char *dst, size_t dstSize, const char *src, ssize_t srcSize)
+{
+    if (!dst || dstSize == 0)
+    {
+        return false;
+    }
+
+    if (!src)
+    {
+        dst[0] = '\0';
+        return false;
+    }
+
+    if (srcSize == -1)
+    {
+        srcSize = strlen(src);
+    }
+
+    if (srcSize + 1 > ssize_t(dstSize))
+    {
+        dst[0] = '\0';
+        return false;
+    }
+
+    if (srcSize > 0)
+    {
+        memcpy(dst, src, srcSize);
+    }
+    dst[srcSize] = '\0';
+
+    return true;
+}
+
+quint8 calculateBatteryPercentageRemaining(const quint8 batteryVoltage, const float vmin, const float vmax)
+{
+    float batteryPercentage = batteryVoltage;
+
+    if      (batteryPercentage > vmax) { batteryPercentage = vmax; }
+    else if (batteryPercentage < vmin) { batteryPercentage = vmin; }
+
+    batteryPercentage = ((batteryPercentage - vmin) / (vmax - vmin)) * 100;
+
+    if      (batteryPercentage > 100) { batteryPercentage = 100; }
+    else if (batteryPercentage <= 0)  { batteryPercentage = 1; } // ?
+
+    return static_cast<quint8>(batteryPercentage);
+}

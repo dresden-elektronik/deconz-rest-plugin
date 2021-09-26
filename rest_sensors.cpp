@@ -19,6 +19,7 @@
 #include "json.h"
 #include "product_match.h"
 #include "fan_control.h"
+#include "ias_ace.h"
 #include "simple_metering.h"
 #include "thermostat.h"
 #include "thermostat_ui_configuration.h"
@@ -852,7 +853,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigLock) // Boolean
                 {
-                    data.boolean ^= data.boolean;     // Flip bool value as 0 means lock and 1 means unlock
+                    data.boolean = !data.boolean;     // Flip bool value as 0 means lock and 1 means unlock
 
                     if (addTaskDoorLockUnlock(task, data.boolean))
                     {
@@ -977,7 +978,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigScheduleOn) // Boolean
                 {
-                    if (sensor->modelId() == QLatin1String("Thermostat")) { data.boolean ^= data.boolean; } // eCozy, flip true and false
+                    if (sensor->modelId() == QLatin1String("Thermostat")) { data.boolean = !data.boolean; } // eCozy, flip true and false
 
                     if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, THERM_ATTRID_THERMOSTAT_PROGRAMMING_OPERATION_MODE, deCONZ::Zcl8BitBitMap, data.boolean))
                     {
@@ -1217,6 +1218,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             else if (sensor->modelId().startsWith(QLatin1String("SLR2")) ||
                                      sensor->modelId() == QLatin1String("SLR1b"))
                             {
+                                attributeList.insert(THERM_ATTRID_SYSTEM_MODE, (quint32)match.value);
+                                
                                 // Change automatically the Setpoint Hold
                                 // Add a timer for Boost mode
                                 if      (match.value == 0x00) { attributeList.insert(THERM_ATTRID_TEMPERATURE_SETPOINT_HOLD, (quint32)0x00); }
@@ -1557,7 +1560,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
                 }
-                else if (rid.suffix == RConfigWindowCoveringType) // Unsigned integer
+                if (rid.suffix == RConfigWindowCoveringType) // Unsigned integer
                 {
                     if (sensor->modelId().startsWith(QLatin1String("J1")))
                     {
@@ -3008,14 +3011,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
 
         if (sensor->durationDue.isValid())
         {
-            QDateTime now = QDateTime::currentDateTime();
-
-            if (sensor->modelId() == QLatin1String("TY0202")) // Lidl/SILVERCREST motion sensor
-            {
-                continue; // will be only reset via IAS Zone status
-            }
-
-            if (sensor->durationDue <= now)
+            if (sensor->durationDue <= QDateTime::currentDateTime())
             {
                 // automatically set presence to false, if not triggered in config.duration
                 ResourceItem *item = sensor->item(RStatePresence);
@@ -3086,6 +3082,10 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                         enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
                         updateSensorEtag(sensor);
                     }
+                }
+                else if (sensor->type().endsWith(QLatin1String("AncillaryControl")))
+                {
+                    DBG_Printf(DBG_IAS, "[IAS ACE] - Reseting counter\n");
                 }
 
                 sensor->durationDue = QDateTime();
