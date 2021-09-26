@@ -356,3 +356,18 @@ QString getAirQualityString(quint32 levelPpb)
 
     return airquality;
 }
+
+quint8 calculateBatteryPercentageRemaining(const quint8 batteryVoltage, const float vmin, const float vmax)
+{
+    float batteryPercentage = batteryVoltage;
+
+    if      (batteryPercentage > vmax) { batteryPercentage = vmax; }
+    else if (batteryPercentage < vmin) { batteryPercentage = vmin; }
+
+    batteryPercentage = ((batteryPercentage - vmin) / (vmax - vmin)) * 100;
+
+    if      (batteryPercentage > 100) { batteryPercentage = 100; }
+    else if (batteryPercentage <= 0)  { batteryPercentage = 1; } // ?
+
+    return static_cast<quint8>(batteryPercentage);
+}

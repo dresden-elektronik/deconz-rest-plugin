@@ -62,6 +62,7 @@ bool contains(QLatin1String haystack, QLatin1String needle);
 RestData verifyRestData(const ResourceItemDescriptor &rid, const QVariant &val);
 bool isSameAddress(const deCONZ::Address &a, const deCONZ::Address &b);
 QString getAirQualityString(quint32 levelPpb);
+quint8 calculateBatteryPercentageRemaining(const quint8 batteryVoltage, const float vmin, const float vmax);
 
 inline bool isValid(const KeyMap &entry) { return entry.key.size() != 0; }
 inline bool isValid(const KeyValMap &entry) { return entry.key.size() != 0; }

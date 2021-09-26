@@ -2948,6 +2948,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("TS0043")) || // to test
         sensor->modelId().startsWith(QLatin1String("TS0041")) ||
         sensor->modelId().startsWith(QLatin1String("TS0044")) ||
+        sensor->modelId().startsWith(QLatin1String("TS0203")) ||
         sensor->modelId().startsWith(QLatin1String("TS0222")) || // TYZB01 light sensor 
         sensor->modelId().startsWith(QLatin1String("TS004F")) || // 4 Gang Tuya ZigBee Wireless 12 Scene Switch
         // Tuyatec
@@ -3002,6 +3003,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("4in1-Sensor-ZB3.0") ||
         sensor->modelId() == QLatin1String("DoorWindow-Sensor-ZB3.0") ||
         sensor->modelId() == QLatin1String("Keyfob-ZB3.0") ||
+        // Casa.IA
+        sensor->modelId().startsWith(QLatin1String("CTHS317ET")) ||
         // Sercomm
         sensor->modelId().startsWith(QLatin1String("SZ-")) ||
         sensor->modelId().startsWith(QLatin1String("GZ-")) ||
