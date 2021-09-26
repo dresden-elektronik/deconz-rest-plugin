@@ -3487,6 +3487,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : IAS_ZONE_CLUSTER_ID;
             }
+            else if (sensor.fingerPrint().hasInCluster(TUYA_CLUSTER_ID))
+            {
+                clusterId = clusterId ? clusterId : TUYA_CLUSTER_ID;
+            }
             item = sensor.addItem(DataTypeBool, RStateFire);
             item->setValue(false);
         }

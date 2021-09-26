@@ -788,22 +788,39 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     {
                     }
                     break;
-                    case 0x0101: // off / running for Moe
+                    case 0x0101:
                     {
-                        QString mode;
-                        if      (data == 0) { mode = QLatin1String("off"); }
-                        else if (data == 1) { mode = QLatin1String("heat"); }
+                        // Smoke Sensor
+                        if (productId == "Tuya Smoke sensor 1")
+                        {
+                            bool trigger = (data == 0) ? false : true;
+                            ResourceItem *item = sensorNode->item(RStateFire);
+
+                            if (item && item->toBool() != trigger)
+                            {
+                                item->setValue(trigger);
+                                Event e(RSensors, RStateFire, sensorNode->id(), item);
+                                enqueueEvent(e);
+                            }
+                        }
+                        // off / running for Moe
                         else
                         {
-                            return;
-                        }
+                            QString mode;
+                            if      (data == 0) { mode = QLatin1String("off"); }
+                            else if (data == 1) { mode = QLatin1String("heat"); }
+                            else
+                            {
+                                return;
+                            }
 
-                        ResourceItem *item = sensorNode->item(RConfigMode);
+                            ResourceItem *item = sensorNode->item(RConfigMode);
 
-                        if (item && item->toString() != mode)
-                        {
-                            item->setValue(mode);
-                            enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                            if (item && item->toString() != mode)
+                            {
+                                item->setValue(mode);
+                                enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                            }
                         }
                     }
                     break;
@@ -1129,6 +1146,22 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
+                    case 0x0401 : // Smoke detector
+                    {
+                        if (productId == "Tuya Smoke sensor 2")
+                        {
+                            bool trigger = (data == 0) ? true : false;
+                            ResourceItem *item = sensorNode->item(RStateFire);
+
+                            if (item && item->toBool() != trigger)
+                            {
+                                item->setValue(trigger);
+                                Event e(RSensors, RStateFire, sensorNode->id(), item);
+                                enqueueEvent(e);
+                            }
+                        }
+                    }
+                    break;
                     case 0x0402 : // preset for moe or mode
                     case 0x0403 : // preset for moe
                     {
@@ -1192,6 +1225,19 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         {
                             item->setValue(preset);
                             enqueueEvent(Event(RSensors, RConfigPreset, sensorNode->id(), item));
+                        }
+                    }
+                    break;
+                    case 0x040e : // Batterie state ?
+                    {
+                        bool batlevel = (data == 2) ? false : true;
+                        ResourceItem *item = sensorNode->item(RStateLowBattery);
+
+                        if (item && item->toBool() != batlevel)
+                        {
+                            item->setValue(batlevel);
+                            Event e(RSensors, RStateLowBattery, sensorNode->id(), item);
+                            enqueueEvent(e);
                         }
                     }
                     break;

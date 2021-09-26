@@ -121,6 +121,7 @@ const quint64 silabs10MacPrefix   = 0x8471270000000000ULL;
 const quint64 embertecMacPrefix   = 0x848e960000000000ULL;
 const quint64 YooksmartMacPrefix  = 0x84fd270000000000ULL;
 const quint64 silabsMacPrefix     = 0x90fd9f0000000000ULL;
+const quint64 telinkMacPrefix     = 0xa4c1380000000000ULL;
 const quint64 zhejiangMacPrefix   = 0xb0ce180000000000ULL;
 const quint64 silabs12MacPrefix   = 0xb4e3f90000000000ULL;
 const quint64 silabs7MacPrefix    = 0xbc33ac0000000000ULL;
@@ -439,6 +440,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "TS0202", ikea2MacPrefix }, // Tuya multi sensor
     { VENDOR_NONE, "0yu2xgi", silabs5MacPrefix }, // Tuya siren
     { VENDOR_EMBER, "TS0601", silabs9MacPrefix }, // Tuya siren
+    { VENDOR_TUYA, "TS0601", telinkMacPrefix }, // Tuya Zigbee Smoke detector
     { VENDOR_EMBER, "TS0222", silabs9MacPrefix }, // TYZB01 light sensor
     { VENDOR_OWON, "CTHS317ET", casaiaPrefix }, // CASA.ia Temperature probe CTHS-317-ET
     { VENDOR_NONE, "eaxp72v", ikea2MacPrefix }, // Tuya TRV Wesmartify Thermostat Essentials Premium
@@ -5347,12 +5349,17 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                             fpAlarmSensor.inClusters.push_back(TUYA_CLUSTER_ID);
                             fpAlarmSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
                         }
-                    }
-                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER &&
-                             (manufacturer.endsWith(QLatin1String("oclfnxz")) ||
-                              manufacturer.endsWith(QLatin1String("88teujp"))))
-                    {
-                        fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
+                        if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER &&
+                           (manufacturer.endsWith(QLatin1String("oclfnxz")) ||
+                            manufacturer.endsWith(QLatin1String("88teujp"))))
+                        {
+                            fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
+                        }
+                        if (manufacturer == QLatin1String("_TZE200_t5p1vj8r") ||
+                            manufacturer == QLatin1String("_TZE200_uebojraa"))
+                        {
+                            fpFireSensor.inClusters.push_back(TUYA_CLUSTER_ID);
+                        }
                     }
                     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC &&
                               modelId.startsWith(QLatin1String("lumi.lock.v1")))
@@ -5877,6 +5884,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case TUYA_CLUSTER_ID:
                 {
+                    //Warning using this cluster don't work for all devices, better to use the Basic cluster.
                     if (manufacturer.endsWith(QLatin1String("kud7u2l")) ||
                         manufacturer.endsWith(QLatin1String("GbxAXL2")) ||
                         manufacturer.endsWith(QLatin1String("eaxp72v")) ||
@@ -6412,7 +6420,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         }
 
         // ZHAFire
-        if (fpFireSensor.hasInCluster(IAS_ZONE_CLUSTER_ID))
+        if (fpFireSensor.hasInCluster(IAS_ZONE_CLUSTER_ID) ||
+            fpFireSensor.hasInCluster(TUYA_CLUSTER_ID) )
         {
             fpFireSensor.endpoint = i->endpoint();
             fpFireSensor.deviceId = i->deviceId();
@@ -6945,6 +6954,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         if (sensorNode.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
         {
             clusterId = IAS_ZONE_CLUSTER_ID;
+        }
+        else if (sensorNode.fingerPrint().hasInCluster(TUYA_CLUSTER_ID))
+        {
+            clusterId = TUYA_CLUSTER_ID;
         }
         item = sensorNode.addItem(DataTypeBool, RStateFire);
         item->setValue(false);
