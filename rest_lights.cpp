@@ -2017,6 +2017,9 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
         rsp.httpStatus = HttpStatusBadRequest;
         return REQ_READY_SEND;
     }
+    
+    //Retreive Fake endpoint
+    const auto ep = taskRef.lightNode->haEndpoint().endpoint();
 
     if (hasBri)
     {
@@ -2063,8 +2066,7 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
         qint8 button = DP_IDENTIFIER_BUTTON_1;
         QByteArray data;
 
-        //Retreive Fake endpoint, and change button value
-        const auto ep = taskRef.lightNode->haEndpoint().endpoint();
+        //Change button value, according to fake endpoint
         if      (ep == 0x02) { button = DP_IDENTIFIER_BUTTON_2; }
         else if (ep == 0x03) { button = DP_IDENTIFIER_BUTTON_3; }
         
