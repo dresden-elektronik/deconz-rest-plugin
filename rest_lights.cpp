@@ -2073,7 +2073,7 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
         //Special device
         if ((R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_DIMSWITCH MS-105B")) && (ep == 0x02))
         {
-            button = 0x07;
+            button = DP_IDENTIFIER_BUTTON_2_V2;
         }
 
         //Use only the first endpoint for command

@@ -463,6 +463,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     case 0x0101:
                     case 0x0102:
                     case 0x0103:
+                    case 0x0107:
                     {
                         bool onoff = (data == 0) ? false : true;
 
@@ -470,6 +471,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             uint ep = 0x01;
                             if (dp == 0x0102) { ep = 0x02; }
                             if (dp == 0x0103) { ep = 0x03; }
+                            
+                            if (dp == 0x0107) { ep = 0x02; }
 
                             LightNode *lightNode2 = lightNode;
                             lightNode = getLightNodeForAddress(ind.srcAddress(), ep);
@@ -505,8 +508,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     }
                     break;
                     
-                    // Dimmer level for mode 1
-                    case 0x0202:
+                    case 0x0202: // Dimmer level for mode 1
+                    case 0x0203: // Dimmer level for mode 2
                     {
                         if (productId == QLatin1String("Tuya_DIMSWITCH Earda Dimmer") ||
                             productId == QLatin1String("Tuya_DIMSWITCH MS-105Z") ||
@@ -526,11 +529,18 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
-                    // Dimmer level for mode 2
-                    case 0x0203:
+                    case 0x0208: // Dimmer level for mode 1 but V2
                     {
-                        if (productId == QLatin1String("Tuya_DIMSWITCH Not model found yet"))
+                        if (productId == QLatin1String("Tuya_DIMSWITCH MS-105B"))
                         {
+                            //Changing the node
+                            lightNode = getLightNodeForAddress(ind.srcAddress(), 0x02);
+
+                            if (!lightNode)
+                            {
+                                return;
+                            }
+                            
                             const qint64 bri = data * 254 / 1000; // 0 to 1000 value
                             
                             ResourceItem *item = lightNode->item(RStateBri);
