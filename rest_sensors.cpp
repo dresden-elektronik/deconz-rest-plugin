@@ -3011,14 +3011,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
 
         if (sensor->durationDue.isValid())
         {
-            QDateTime now = QDateTime::currentDateTime();
-
-            if (sensor->modelId() == QLatin1String("TY0202")) // Lidl/SILVERCREST motion sensor
-            {
-                continue; // will be only reset via IAS Zone status
-            }
-
-            if (sensor->durationDue <= now)
+            if (sensor->durationDue <= QDateTime::currentDateTime())
             {
                 // automatically set presence to false, if not triggered in config.duration
                 ResourceItem *item = sensor->item(RStatePresence);
