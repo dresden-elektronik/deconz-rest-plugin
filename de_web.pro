@@ -197,6 +197,7 @@ SOURCES  = air_quality.cpp \
            occupancy_sensing.cpp \
            poll_control.cpp \
            poll_manager.cpp \
+           power_configuration.cpp \
            product_match.cpp \
            read_files.cpp \
            resource.cpp \
