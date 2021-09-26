@@ -1054,8 +1054,15 @@
 				<value name="Out of Service" value="0x08"></value>
 			</attribute>
             <attribute id="0x0100" name="Application Type" type="u32" required="o" access="r"></attribute>
+            <attribute-set id="0x8000" description="Develco specific" mfcode="0x1015">
+                <attribute id="0x8000" name="IAS Activation" type="u16" access="rw" required="m" mfcode="0x1015"></attribute>
+            </attribute-set>
 		</server>
 		<client>
+            <attribute-set id="0x8000" description="Develco specific" mfcode="0x1015">
+                <attribute id="0x8000" name="OnWithTimeOff_OnTime" type="u16" access="rw" required="m" mfcode="0x1015"></attribute>
+                <attribute id="0x8001" name="OnWithTimeOff_OffWaitTime" type="u16" access="rw" required="m" mfcode="0x1015"></attribute>
+            </attribute-set>
 		</client>
 	</cluster>
 	<cluster id="0x0010" name="Binary Output (Basic)">
