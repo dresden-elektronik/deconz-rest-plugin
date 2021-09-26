@@ -2027,10 +2027,17 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
 
         if (R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_DIMSWITCH Earda Dimmer") ||
             R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_DIMSWITCH MS-105Z") ||
-            R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_DIMSWITCH MS-105B") ||
+          ((R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_DIMSWITCH MS-105B")) && (ep == 0x01)) ||
             R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_DIMSWITCH EDM-1ZAA-EU"))
         {
             ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_DIMMER_LEVEL_MODE2, data);
+        }
+        // this device use fake endpoint
+        else if ((R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_DIMSWITCH MS-105B")) && (ep == 0x02))
+        {
+            //Use only the first endpoint for command
+            taskRef.req.setDstEndpoint(0x01);
+            ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_DIMMER_LEVEL_MODE2_B2, data);
         }
         else
         {
@@ -2060,6 +2067,12 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
         const auto ep = taskRef.lightNode->haEndpoint().endpoint();
         if      (ep == 0x02) { button = DP_IDENTIFIER_BUTTON_2; }
         else if (ep == 0x03) { button = DP_IDENTIFIER_BUTTON_3; }
+        
+        //Special device
+        if ((R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_DIMSWITCH MS-105B")) && (ep == 0x02))
+        {
+            button == 0x07;
+        }
 
         //Use only the first endpoint for command
         taskRef.req.setDstEndpoint(0x01);
