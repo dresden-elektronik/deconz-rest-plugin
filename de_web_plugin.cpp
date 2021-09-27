@@ -107,6 +107,7 @@ const quint64 ikea2MacPrefix      = 0x14b4570000000000ULL;
 const quint64 profaluxMacPrefix   = 0x20918a0000000000ULL;
 const quint64 stMacPrefix         = 0x24fd5b0000000000ULL;
 const quint64 samjinMacPrefix     = 0x286d970000000000ULL;
+const quint64 casaiaPrefix        = 0x3c6a2c0000000000ULL;
 const quint64 sinopeMacPrefix     = 0x500b910000000000ULL;
 const quint64 lumiMacPrefix       = 0x54ef440000000000ULL;
 const quint64 silabs6MacPrefix    = 0x588e810000000000ULL;
@@ -121,6 +122,7 @@ const quint64 embertecMacPrefix   = 0x848e960000000000ULL;
 const quint64 YooksmartMacPrefix  = 0x84fd270000000000ULL;
 const quint64 silabsMacPrefix     = 0x90fd9f0000000000ULL;
 const quint64 zhejiangMacPrefix   = 0xb0ce180000000000ULL;
+const quint64 silabs12MacPrefix   = 0xb4e3f90000000000ULL;
 const quint64 silabs7MacPrefix    = 0xbc33ac0000000000ULL;
 const quint64 dlinkMacPrefix      = 0xc4e90a0000000000ULL;
 const quint64 silabs2MacPrefix    = 0xcccccc0000000000ULL;
@@ -414,6 +416,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "RH3052", emberMacPrefix }, // Tuyatec temperature sensor
     { VENDOR_NONE, "RH3052", konkeMacPrefix }, // Tuyatec/Lupus temperature sensor
     { VENDOR_EMBER, "TS0201", silabs3MacPrefix }, // Tuya/Blitzwolf temperature and humidity sensor
+    { VENDOR_EMBER, "TS0203", silabs12MacPrefix }, // tuya door windows sensor
     { VENDOR_NONE, "TS0204", silabs3MacPrefix }, // Tuya gas sensor
     { VENDOR_NONE, "TS0205", silabs3MacPrefix }, // Tuya smoke sensor
     { VENDOR_NONE, "TS0121", silabs3MacPrefix }, // Tuya/Blitzwolf smart plug
@@ -438,6 +441,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "0yu2xgi", silabs5MacPrefix }, // Tuya siren
     { VENDOR_EMBER, "TS0601", silabs9MacPrefix }, // Tuya siren
     { VENDOR_EMBER, "TS0222", silabs9MacPrefix }, // TYZB01 light sensor
+    { VENDOR_OWON, "CTHS317ET", casaiaPrefix }, // CASA.ia Temperature probe CTHS-317-ET
     { VENDOR_NONE, "eaxp72v", ikea2MacPrefix }, // Tuya TRV Wesmartify Thermostat Essentials Premium
     { VENDOR_NONE, "88teujp", silabs8MacPrefix }, // SEA802-Zigbee
     { VENDOR_NONE, "uhszj9s", silabs8MacPrefix }, // HiHome WZB-TRVL
@@ -1009,6 +1013,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             {
                 handleDEClusterIndication(ind, zclFrame);
             }
+            break;
+
+        case POWER_CONFIGURATION_CLUSTER_ID:
+            handlePowerConfigurationClusterIndication(ind, zclFrame);
             break;
 
         case XAL_CLUSTER_ID:
@@ -5525,6 +5533,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId == QLatin1String("GMB-HAS-DW-B01") ||                      // GamaBit Ltd. Window/Door Sensor
                              modelId == QLatin1String("TY0203") ||                              // lidl / SilverCrest
                              modelId == QLatin1String("DCH-B112") ||                            // D-Link door/window sensor
+                             manufacturer == QLatin1String("_TZ3000_402jjyro") ||               // tuya door windows sensor
                              modelId == QLatin1String("RH3001"))                                // Tuya/Blitzwolf BW-IS2 door/window sensor
                     {
                         fpOpenCloseSensor.inClusters.push_back(ci->id());
@@ -8103,7 +8112,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
             case RELATIVE_HUMIDITY_CLUSTER_ID:
             case PRESSURE_MEASUREMENT_CLUSTER_ID:
-            case POWER_CONFIGURATION_CLUSTER_ID:
             case BASIC_CLUSTER_ID:
             case ONOFF_CLUSTER_ID:
             case ANALOG_INPUT_CLUSTER_ID:
@@ -8212,283 +8220,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                         updateType = NodeValue::UpdateByZclReport;
                     }
 
-                    if (event.clusterId() == POWER_CONFIGURATION_CLUSTER_ID)
-                    {
-                        for (;ia != enda; ++ia)
-                        {
-                            if (!ia->isAvailable())
-                            {
-                                continue;
-                            }
-
-                            if (std::find(event.attributeIds().begin(),
-                                          event.attributeIds().end(),
-                                          ia->id()) == event.attributeIds().end())
-                            {
-                                continue;
-                            }
-
-                            if (i->mustRead(READ_BATTERY))
-                            {
-                                i->clearRead(READ_BATTERY);
-                            }
-
-                            if (ia->id() == 0x0021) // battery percentage remaining
-                            {
-                                if (updateType != NodeValue::UpdateInvalid)
-                                {
-                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
-                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
-                                }
-
-                                ResourceItem *item = i->item(RStateBattery);
-
-                                if (item) {
-                                    int bat = ia->numericValue().u8 / 2;
-
-                                    if (i->modelId().startsWith(QLatin1String("TRADFRI")) || // IKEA
-                                        i->modelId().startsWith(QLatin1String("FYRTUR")) || // IKEA
-                                        i->modelId().startsWith(QLatin1String("KADRILJ")) || // IKEA
-                                        i->modelId().startsWith(QLatin1String("SYMFONISK")) || // IKEA
-                                        i->modelId().startsWith(QLatin1String("Remote Control N2")) || // IKEA
-                                        i->modelId().startsWith(QLatin1String("ICZB-")) || // iCasa keypads and remote
-                                        i->modelId().startsWith(QLatin1String("ZGR904-S")) || // Envilar remote
-                                        i->modelId().startsWith(QLatin1String("ED-1001")) || // EcoDim wireless switches
-                                        i->modelId().startsWith(QLatin1String("ZGRC-KEY")) || //  Sunricher wireless CCT remote
-                                        i->modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
-                                        i->modelId().startsWith(QLatin1String("iTRV")) || // Drayton Wiser Radiator Thermostat
-                                        i->modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
-                                        i->modelId().startsWith(QLatin1String("SV02-")) || // Keen Home vent
-                                        i->modelId().startsWith(QLatin1String("45127")) || // Namron 1/2/4-ch remote controller
-                                        i->modelId().startsWith(QLatin1String("S57003")) || // SLC 4-ch remote controller
-                                        i->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) || // RGBgenie remote control
-                                        i->modelId().startsWith(QLatin1String("VOC_Sensor")) || // LifeControl Enviroment sensor
-                                        i->modelId().startsWith(QLatin1String("TY0203")) || // SilverCrest / lidl
-                                        i->modelId().startsWith(QLatin1String("TY0202")) || // SilverCrest / lidl
-                                        i->modelId().startsWith(QLatin1String("ZG2835")) || // SR-ZG2835 Zigbee Rotary Switch
-                                        i->modelId() == QLatin1String("TERNCY-SD01"))       // TERNCY smart button
-                                    {
-                                        bat = ia->numericValue().u8;
-                                    }
-                                    item->setValue(bat);
-                                    i->updateStateTimestamp();
-                                    i->setNeedSaveDatabase(true);
-                                    queSaveDb(DB_SENSORS, DB_HUGE_SAVE_DELAY);
-                                    Event e(RSensors, RStateBattery, i->id(), item);
-                                    enqueueEvent(e);
-                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
-                                    updateSensorEtag(&*i);
-                                    q_ptr->nodeUpdated(i->address().ext(), QLatin1String(item->descriptor().suffix), QString::number(bat));
-                                    continue;
-                                }
-
-                                item = i->item(RConfigBattery);
-
-                                if (!item && ia->numericValue().u8 > 0) // valid value: create resource item
-                                {
-                                    item = i->addItem(DataTypeUInt8, RConfigBattery);
-                                }
-
-                                // Specifies the remaining battery life as a half integer percentage of the full battery capacity (e.g., 34.5%, 45%,
-                                // 68.5%, 90%) with a range between zero and 100%, with 0x00 = 0%, 0x64 = 50%, and 0xC8 = 100%. This is
-                                // particularly suited for devices with rechargeable batteries.
-                                if (item)
-                                {
-
-                                    int bat = ia->numericValue().u8 / 2;
-
-                                    if (i->modelId().startsWith(QLatin1String("TRADFRI")) || // IKEA
-                                        i->modelId().startsWith(QLatin1String("SYMFONISK")) || // IKEA
-                                        i->modelId().startsWith(QLatin1String("Remote Control N2")) || // IKEA
-                                        i->modelId().startsWith(QLatin1String("ICZB-")) || // iCasa keypads and remote
-                                        i->modelId().startsWith(QLatin1String("ZGR904-S")) || // Envilar remote
-                                        i->modelId().startsWith(QLatin1String("ED-1001")) || // EcoDim wireless switches
-                                        i->modelId().startsWith(QLatin1String("ZGRC-KEY")) || // Sunricher wireless CCT remote
-                                        i->modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
-                                        i->modelId().startsWith(QLatin1String("iTRV")) || // Drayton Wiser Radiator Thermostat
-                                        i->modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
-                                        i->modelId().startsWith(QLatin1String("SV02-")) || // Keen Home vent
-                                        i->modelId().startsWith(QLatin1String("45127")) || // Namron 1/2/4-ch remote controller
-                                        i->modelId().startsWith(QLatin1String("S57003")) || // SLC 4-ch remote controller
-                                        i->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) || // RGBgenie remote control
-                                        i->modelId().startsWith(QLatin1String("VOC_Sensor")) || // LifeControl Enviroment sensor
-                                        i->modelId().startsWith(QLatin1String("ZG2835")) ||     // SR-ZG2835 Zigbee Rotary Switch
-                                        i->modelId() == QLatin1String("TERNCY-SD01"))           // TERNCY smart button
-                                    {
-                                        bat = ia->numericValue().u8;
-                                    }
-
-                                    if (i->modelId() == QLatin1String("0x8020") || // Danfoss RT24V Display thermostat
-                                        i->modelId() == QLatin1String("0x8021") || // Danfoss RT24V Display thermostat with floor sensor
-                                        i->modelId() == QLatin1String("0x8030") || // Danfoss RTbattery Display thermostat
-                                        i->modelId() == QLatin1String("0x8031") || // Danfoss RTbattery Display thermostat with infrared
-                                        i->modelId() == QLatin1String("0x8034") || // Danfoss RTbattery Dial thermostat
-                                        i->modelId() == QLatin1String("0x8035"))   // Danfoss RTbattery Dial thermostat with infrared
-                                    {
-                                        // The Danfoss Icon Zigbee module exposes each in-room thermostat in its controller
-                                        // as an endpoint. Each endpoint has the battery measurement for the device it represents.
-                                        // This check makes sure none of the other endpoints get their battery value overwritten.
-                                        if (event.endpoint() != i->fingerPrint().endpoint)
-                                        {
-                                            continue;
-                                        }
-                                    }
-
-                                    if (item->toNumber() != bat)
-                                    {
-                                        i->setNeedSaveDatabase(true);
-                                        queSaveDb(DB_SENSORS, DB_HUGE_SAVE_DELAY);
-                                    }
-                                    item->setValue(bat);
-                                    Event e(RSensors, RConfigBattery, i->id(), item);
-                                    enqueueEvent(e);
-                                    q_ptr->nodeUpdated(i->address().ext(), QLatin1String(item->descriptor().suffix), QString::number(bat));
-                                }
-
-                                updateSensorEtag(&*i);
-                            }
-                            else if (ia->id() == 0x0020) // battery voltage
-                            {
-                                if (i->modelId().startsWith(QLatin1String("tagv4")) ||   // SmartThings Arrival sensor
-                                    i->modelId().startsWith(QLatin1String("motionv4")) ||// SmartThings motion sensor
-                                    i->modelId().startsWith(QLatin1String("moisturev4")) ||// SmartThings water leak sensor
-                                    i->modelId().startsWith(QLatin1String("multiv4")) ||// SmartThings multi sensor 2016
-                                    i->modelId().startsWith(QLatin1String("3305-S")) ||  // SmartThings 2014 motion sensor
-                                    i->modelId() == QLatin1String("Remote switch") ||    // Legrand switch
-                                    i->modelId() == QLatin1String("Pocket remote") ||    // Legrand wireless switch scene x 4
-                                    i->modelId() == QLatin1String("Double gangs remote switch") ||    // Legrand switch double
-                                    i->modelId() == QLatin1String("Shutters central remote switch") || // Legrand switch module
-                                    i->modelId() == QLatin1String("Remote toggle switch") || // Legrand shutter switch
-                                    i->modelId() == QLatin1String("Remote motion sensor") || // Legrand motion sensor
-                                    i->modelId() == QLatin1String("lumi.sensor_magnet.agl02") || // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
-                                    i->modelId() == QLatin1String("lumi.flood.agl02") ||         // Xiaomi Aqara T1 water leak sensor SJCGQ12LM
-                                    i->modelId() == QLatin1String("lumi.motion.agl04") ||        // Xiaomi Aqara RTCGQ13LM high precision motion sensor
-                                    i->modelId() == QLatin1String("Zen-01") ||           // Zen thermostat
-                                    i->modelId() == QLatin1String("Thermostat") ||       // eCozy thermostat
-                                    i->modelId() == QLatin1String("Motion Sensor-A") ||  // Osram motion sensor
-                                    i->modelId() == QLatin1String("Bell") ||             // Sage doorbell sensor
-                                    i->modelId() == QLatin1String("ISW-ZPR1-WP13") ||    // Bosch motion sensor
-                                    i->modelId() == QLatin1String("3AFE14010402000D") ||   // Konke motion sensor
-                                    i->modelId() == QLatin1String("3AFE28010402000D") ||   // Konke motion sensor v2
-                                    i->modelId() == QLatin1String("FB56-DOS06HM1.3") ||    // Feibit FB56-DOS06HM1.3 door/window sensor
-                                    i->modelId() == QLatin1String("lumi.remote.b28ac1") || // Aqara wireless remote switch H1 (double rocker)
-                                    i->modelId().endsWith(QLatin1String("86opcn01")) ||    // Aqara Opple
-                                    i->modelId().startsWith(QLatin1String("AQSZB-1")) ||   // Develco air quality sensor
-                                    i->modelId().startsWith(QLatin1String("SMSZB-1")) ||   // Develco smoke sensor
-                                    i->modelId().startsWith(QLatin1String("HESZB-1")) ||   // Develco heat sensor
-                                    i->modelId().startsWith(QLatin1String("MOSZB-1")) ||   // Develco motion sensor
-                                    i->modelId().startsWith(QLatin1String("WISZB-1")) ||   // Develco window sensor
-                                    i->modelId().startsWith(QLatin1String("FLSZB-1")) ||   // Develco water leak sensor
-                                    i->modelId().startsWith(QLatin1String("SIRZB-1")) ||   // Develco siren
-                                    i->modelId().startsWith(QLatin1String("HMSZB-1")) ||   // Develco temp/hum sensor
-                                    i->modelId().startsWith(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
-                                    i->modelId().startsWith(QLatin1String("MotionSensor51AU")) || // Aurora (Develco) motion sensor
-                                    i->modelId().startsWith(QLatin1String("RFDL-ZB-MS")) ||// Bosch motion sensor
-                                    i->modelId().startsWith(QLatin1String("1116-S")) ||    // iris contact sensor v3
-                                    i->modelId().startsWith(QLatin1String("1117-S")) ||    // iris motion sensor v3
-                                    i->modelId().startsWith(QLatin1String("3326-L")) ||    // iris motion sensor v2
-                                    i->modelId().startsWith(QLatin1String("3300")) ||      // Centralite contact sensor
-                                    i->modelId().startsWith(QLatin1String("3320-L")) ||    // Centralite contact sensor
-                                    i->modelId().startsWith(QLatin1String("3323")) ||      // Centralite contact sensor
-                                    i->modelId().startsWith(QLatin1String("3315")) ||      // Centralite water sensor
-                                    i->modelId().startsWith(QLatin1String("3157100")) ||      // Centralite pearl thermostat
-                                    i->modelId().startsWith(QLatin1String("4655BC0")) ||      // Ecolink contact sensor
-                                    i->modelId().startsWith(QLatin1String("lumi.sen_ill")) || // Xiaomi ZB3.0 light sensor
-                                    i->modelId().startsWith(QLatin1String("SZ-DWS04"))   || // Sercomm open/close sensor
-                                    i->modelId().startsWith(QLatin1String("SZ-WTD02N_CAR")) || // Sercomm water sensor
-                                    i->modelId().startsWith(QLatin1String("GZ-PIR02"))   || // Sercomm motion sensor
-                                    i->modelId() == QLatin1String("URC4450BC0-X-R")   || // Xfinity Keypad XHK1-UE
-                                    i->modelId() == QLatin1String("3405-L") ||           // IRIS 3405-L Keypad
-                                    i->modelId().startsWith(QLatin1String("Tripper")) || // Quirky Tripper (Sercomm) open/close
-                                    i->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
-                                    i->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
-                                    i->modelId().startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote
-                                    i->modelId().startsWith(QLatin1String("Switch-LIGHTIFY")) ) // Osram 4 button remote
-                                {  }
-                                else
-                                {
-                                    continue;
-                                }
-
-                                if (updateType != NodeValue::UpdateInvalid)
-                                {
-                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
-                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
-                                }
-
-                                ResourceItem *item = i->item(RConfigBattery);
-
-                                if (!item && ia->numericValue().u8 > 0) // valid value: create resource item
-                                {
-                                    item = i->addItem(DataTypeUInt8, RConfigBattery);
-                                }
-
-                                if (item)
-                                {
-                                    int battery = ia->numericValue().u8; // in 0.1 V
-                                    float vmin = 20; // TODO: check - I've seen 24
-                                    float vmax = 30; // TODO: check - I've seen 29
-                                    float bat = battery;
-
-                                    if (i->modelId() == QLatin1String("Zen-01") ||
-                                        i->modelId() == QLatin1String("URC4450BC0-X-R"))
-                                    {
-                                        // 4x LR6 AA 1.5 V
-                                        vmin = 36; // according to attribute 0x0036
-                                        vmax = 60;
-                                    }
-
-                                    if      (bat > vmax) { bat = vmax; }
-                                    else if (bat < vmin) { bat = vmin; }
-
-                                    bat = ((bat - vmin) / (vmax - vmin)) * 100;
-
-                                    if      (bat > 100) { bat = 100; }
-                                    else if (bat <= 0)  { bat = 1; } // ?
-
-                                    if (item->toNumber() != static_cast<quint8>(bat))
-                                    {
-                                        i->setNeedSaveDatabase(true);
-                                        queSaveDb(DB_SENSORS, DB_HUGE_SAVE_DELAY);
-                                    }
-                                    item->setValue(static_cast<quint8>(bat));
-                                    Event e(RSensors, RConfigBattery, i->id(), item);
-                                    enqueueEvent(e);
-                                    q_ptr->nodeUpdated(i->address().ext(), QLatin1String(item->descriptor().suffix), QString::number(bat));
-                                }
-                                updateSensorEtag(&*i);
-                            }
-                            else if (ia->id() == 0x0035) // battery alarm mask
-                            {
-                                if (updateType != NodeValue::UpdateInvalid)
-                                {
-                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
-                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
-                                }
-
-                                ResourceItem *item = i->item(RStateLowBattery);
-                                if (!item)
-                                {
-                                    item = i->addItem(DataTypeBool, RStateLowBattery);
-                                    i->setNeedSaveDatabase(true);
-                                    queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
-                                }
-
-                                if (item)
-                                {
-                                    bool lowBat = (ia->numericValue().u8 & 0x01);
-                                    if (!item->lastSet().isValid() || item->toBool() != lowBat)
-                                    {
-                                        item->setValue(lowBat);
-                                        enqueueEvent(Event(RSensors, RStateLowBattery, i->id(), item));
-                                        i->setNeedSaveDatabase(true);
-                                        queSaveDb(DB_SENSORS, DB_HUGE_SAVE_DELAY);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else if (event.clusterId() == BOSCH_AIR_QUALITY_CLUSTER_ID)
+                    if (event.clusterId() == BOSCH_AIR_QUALITY_CLUSTER_ID)
                     {
                         for (;ia != enda; ++ia)
                         {
