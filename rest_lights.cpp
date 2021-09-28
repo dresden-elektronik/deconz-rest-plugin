@@ -2004,6 +2004,10 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
         else if (p.key() == "transitiontime")
         {
         }
+        //Same to keep compatiblity with old web app , it use payload like {"id":"4","on":true}
+        else if (p.key() == "id")
+        {
+        }
 
         else
         {
