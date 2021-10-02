@@ -1145,7 +1145,7 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
     Q_UNUSED(colname);
     DBG_Assert(user != 0);
 
-    if (!user || (ncols != 2))
+    if (!user || (ncols != 2) || !colval)
     {
         return 0;
     }
@@ -2055,10 +2055,10 @@ static int sqliteLoadAllScenesCallback(void *user, int ncols, char **colval , ch
         return 0;
     }
 
-    bool ok;
-    bool ok1;
-    bool ok2;
-    Scene scene;
+    bool ok = false;
+    bool ok1 = false;
+    bool ok2 = false;
+    Scene scene{};
     DeRestPluginPrivate *d = static_cast<DeRestPluginPrivate*>(user);
 
     for (int i = 0; i < ncols; i++)
