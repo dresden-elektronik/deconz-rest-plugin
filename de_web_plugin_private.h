@@ -581,6 +581,7 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
                    prefix == konkeMacPrefix ||
                    prefix == silabs3MacPrefix ||
                    prefix == silabs5MacPrefix ||
+                   prefix == silabs9MacPrefix ||
                    prefix == silabs10MacPrefix ||
                    prefix == silabs7MacPrefix;
         case VENDOR_EMBERTEC:
