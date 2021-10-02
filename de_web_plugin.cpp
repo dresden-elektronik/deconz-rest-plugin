@@ -17253,6 +17253,10 @@ Resource *DeRestPluginPrivate::getResource(const char *resource, const QString &
     {
         return &config;
     }
+    else if (resource == RAlarmSystems)
+    {
+        return AS_GetAlarmSystem(id.toUInt(), *alarmSystems);
+    }
 
     return 0;
 }

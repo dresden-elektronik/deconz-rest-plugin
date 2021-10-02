@@ -6017,7 +6017,7 @@ bool DB_LoadSecret(DB_Secret &secret)
         return false;
     }
 
-    return true;
+    return !secret.secret.empty();
 }
 
 static bool initSecretsTable()
