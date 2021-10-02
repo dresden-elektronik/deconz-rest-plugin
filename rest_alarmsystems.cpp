@@ -239,6 +239,18 @@ int AS_handleAlarmSystemsApi(const ApiRequest &req, ApiResponse &rsp, AlarmSyste
     return REQ_NOT_HANDLED;
 }
 
+QVariantMap AS_AlarmSystemsToMap(const AlarmSystems &alarmSystems)
+{
+    QVariantMap result;
+
+    for (const AlarmSystem *alarmSys : alarmSystems.alarmSystems)
+    {
+        result[QString::number(alarmSys->id())] = alarmSystemToMap(alarmSys);
+    }
+
+    return result;
+}
+
 static int getAllAlarmSystems(const ApiRequest &, ApiResponse &rsp, const AlarmSystems &alarmSystems)
 {
     rsp.httpStatus = HttpStatusOk;
@@ -249,11 +261,7 @@ static int getAllAlarmSystems(const ApiRequest &, ApiResponse &rsp, const AlarmS
         return REQ_READY_SEND;
     }
 
-    for (const AlarmSystem *alarmSys : alarmSystems.alarmSystems)
-    {
-        QVariantMap map = alarmSystemToMap(alarmSys);
-        rsp.map[QString::number(alarmSys->id())] = map;
-    }
+    rsp.map = AS_AlarmSystemsToMap(alarmSystems);
 
     return REQ_READY_SEND;
 }

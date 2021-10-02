@@ -1698,6 +1698,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             R_GetProductId(taskRef.lightNode) == QLatin1String("Zigbee curtain switch") ||
             R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_COVD YS-MT750") ||
             R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_COVD DS82") ||
+            R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_COVD AM43-0.45/40-ES-EZ(TY)") ||
             taskRef.lightNode->modelId() == QLatin1String("Motor Controller"))
         {
             targetLiftZigBee = 100 - targetLift;
@@ -1751,7 +1752,15 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
 
         if (cluster == TUYA_CLUSTER_ID)
         {
-            ok = sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_CONTROL, QByteArray("\x01", 1));
+            if (R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_COVD AM43-0.45/40-ES-EZ(TY)"))
+            {
+                //This device use bad command
+                ok = sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_CONTROL, QByteArray("\x00", 1));
+            }
+            else
+            {
+                ok = sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_CONTROL, QByteArray("\x01", 1));
+            }
         }
         else
         {
@@ -1882,7 +1891,15 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             }
             else
             {
-                ok = sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_CONTROL, QByteArray("\x00", 1));
+                if (R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_COVD AM43-0.45/40-ES-EZ(TY)"))
+                {
+                    //This device use bad command
+                    ok = sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_CONTROL, QByteArray("\x01", 1));
+                }
+                else
+                {
+                    ok = sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_CONTROL, QByteArray("\x00", 1));
+                }
             }
         }
         else
