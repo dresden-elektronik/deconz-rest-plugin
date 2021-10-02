@@ -5283,16 +5283,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         }
                     }
 
-                    fpSwitch.inClusters.push_back(ci->id());
                     if (manufacturer == QLatin1String("TERNCY") && modelId == QLatin1String("TERNCY-SD01"))
                     {
                         fpSwitch.inClusters.push_back(XIAOYAN_CLUSTER_ID);
-                    }
-                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_PHILIPS)
-                    {
-                        fpPresenceSensor.inClusters.push_back(ci->id());
-                        fpLightSensor.inClusters.push_back(ci->id());
-                        fpTemperatureSensor.inClusters.push_back(ci->id());
                     }
                     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC &&
                              modelId.startsWith(QLatin1String("lumi.sensor_wleak")))
@@ -5359,6 +5352,27 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpDoorLockSensor.inClusters.push_back(DOOR_LOCK_CLUSTER_ID);
                     }
+                    
+                    fpAirQualitySensor.inClusters.push_back(ci->id());
+                    fpAlarmSensor.inClusters.push_back(ci->id());
+                    fpBatterySensor.inClusters.push_back(ci->id());
+                    fpCarbonMonoxideSensor.inClusters.push_back(ci->id());
+                    fpConsumptionSensor.inClusters.push_back(ci->id());
+                    fpFireSensor.inClusters.push_back(ci->id());
+                    fpHumiditySensor.inClusters.push_back(ci->id());
+                    fpLightSensor.inClusters.push_back(ci->id());
+                    fpOpenCloseSensor.inClusters.push_back(ci->id());
+                    fpPowerSensor.inClusters.push_back(ci->id());
+                    fpPresenceSensor.inClusters.push_back(ci->id());
+                    fpPressureSensor.inClusters.push_back(ci->id());
+                    fpSwitch.inClusters.push_back(ci->id());
+                    fpTemperatureSensor.inClusters.push_back(ci->id());
+                    fpThermostatSensor.inClusters.push_back(ci->id());
+                    fpTimeSensor.inClusters.push_back(ci->id());
+                    fpVibrationSensor.inClusters.push_back(ci->id());
+                    fpWaterSensor.inClusters.push_back(ci->id());
+                    fpDoorLockSensor.inClusters.push_back(ci->id());
+                    fpAncillaryControlSensor.inClusters.push_back(ci->id());
                 }
                     break;
 
@@ -5373,6 +5387,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case POWER_CONFIGURATION_CLUSTER_ID:
                 {
+                    fpAirQualitySensor.inClusters.push_back(ci->id());
                     fpAlarmSensor.inClusters.push_back(ci->id());
                     if (node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA &&
                         (modelId.startsWith(QLatin1String("FYRTUR")) || modelId.startsWith(QLatin1String("KADRILJ"))))
@@ -6119,6 +6134,32 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpAncillaryControlSensor.outClusters.push_back(ci->id());
                     }
+                }
+                    break;
+
+                case OTAU_CLUSTER_ID:
+                case TIME_CLUSTER_ID:
+                {
+                    fpAirQualitySensor.outClusters.push_back(ci->id());
+                    fpAlarmSensor.outClusters.push_back(ci->id());
+                    fpBatterySensor.outClusters.push_back(ci->id());
+                    fpCarbonMonoxideSensor.outClusters.push_back(ci->id());
+                    fpConsumptionSensor.outClusters.push_back(ci->id());
+                    fpFireSensor.outClusters.push_back(ci->id());
+                    fpHumiditySensor.outClusters.push_back(ci->id());
+                    fpLightSensor.outClusters.push_back(ci->id());
+                    fpOpenCloseSensor.outClusters.push_back(ci->id());
+                    fpPowerSensor.outClusters.push_back(ci->id());
+                    fpPresenceSensor.outClusters.push_back(ci->id());
+                    fpPressureSensor.outClusters.push_back(ci->id());
+                    fpSwitch.outClusters.push_back(ci->id());
+                    fpTemperatureSensor.outClusters.push_back(ci->id());
+                    fpThermostatSensor.outClusters.push_back(ci->id());
+                    fpTimeSensor.outClusters.push_back(ci->id());
+                    fpVibrationSensor.outClusters.push_back(ci->id());
+                    fpWaterSensor.outClusters.push_back(ci->id());
+                    fpDoorLockSensor.outClusters.push_back(ci->id());
+                    fpAncillaryControlSensor.outClusters.push_back(ci->id());
                 }
                     break;
 
@@ -8672,6 +8713,12 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                           ia->id()) == event.attributeIds().end())
                             {
                                 continue;
+                            }
+                            
+                            // Correct incomplete sensor fingerprint
+                            if (!i->fingerPrint().hasInCluster(BASIC_CLUSTER_ID))
+                            {
+                                i->fingerPrint().inClusters.push_back(BASIC_CLUSTER_ID);
                             }
 
                             if (ia->id() == 0x0005) // Model identifier
