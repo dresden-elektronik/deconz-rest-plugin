@@ -1203,7 +1203,7 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
     Q_UNUSED(colname);
     DBG_Assert(user != 0);
 
-    if (!user || (ncols != 2))
+    if (!user || (ncols != 2) || !colval)
     {
         return 0;
     }
@@ -2113,10 +2113,10 @@ static int sqliteLoadAllScenesCallback(void *user, int ncols, char **colval , ch
         return 0;
     }
 
-    bool ok;
-    bool ok1;
-    bool ok2;
-    Scene scene;
+    bool ok = false;
+    bool ok1 = false;
+    bool ok2 = false;
+    Scene scene{};
     DeRestPluginPrivate *d = static_cast<DeRestPluginPrivate*>(user);
 
     for (int i = 0; i < ncols; i++)
@@ -3564,6 +3564,12 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : IAS_ZONE_CLUSTER_ID;
             }
+            else if (sensor.fingerPrint().hasInCluster(TUYA_CLUSTER_ID))
+            {
+                clusterId = clusterId ? clusterId : TUYA_CLUSTER_ID;
+                sensor.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
+            }
+            
             item = sensor.addItem(DataTypeBool, RStateFire);
             item->setValue(false);
         }
@@ -3662,6 +3668,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 }
                 else if (sensor.modelId() == QLatin1String("ZB-ONOFFPlug-D0005") ||
                          sensor.modelId() == QLatin1String("Plug-230V-ZB3.0") ||
+                         sensor.modelId() == QLatin1String("lumi.switch.b1nacn02") ||
                          sensor.modelId() == QLatin1String("lumi.switch.b1naus01") ||
                          sensor.modelId() == QLatin1String("lumi.plug.maeu01") ||
                          sensor.modelId() == QLatin1String("lumi.switch.n0agl1") ||
@@ -4038,6 +4045,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 !sensor.modelId().startsWith(QLatin1String("lumi.plug")) &&
                 sensor.modelId() != QLatin1String("lumi.curtain") &&
                 sensor.modelId() != QLatin1String("lumi.sensor_natgas") &&
+                sensor.modelId() != QLatin1String("lumi.switch.b1nacn02") &&
                 sensor.modelId() != QLatin1String("lumi.switch.b1naus01") &&
                 sensor.modelId() != QLatin1String("lumi.switch.n0agl1") &&
                 !sensor.modelId().startsWith(QLatin1String("lumi.relay.c")) &&
@@ -6095,7 +6103,7 @@ bool DB_LoadSecret(DB_Secret &secret)
         return false;
     }
 
-    return true;
+    return !secret.secret.empty();
 }
 
 static bool initSecretsTable()
