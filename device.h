@@ -11,6 +11,7 @@
 #ifndef DEVICE_H
 #define DEVICE_H
 
+#include <memory>
 #include <QObject>
 #include "resource.h"
 

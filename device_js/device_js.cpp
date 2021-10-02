@@ -28,8 +28,9 @@ public:
 DeviceJs::DeviceJs() :
     d(new DeviceJsPrivate)
 {
+#if QT_VERSION > 0x050700
     d->engine.installExtensions(QJSEngine::ConsoleExtension);
-
+#endif
     d->jsResource = new JsResource(&d->engine);
     auto jsR = d->engine.newQObject(d->jsResource);
     d->engine.globalObject().setProperty("R", jsR);

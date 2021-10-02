@@ -43,7 +43,7 @@ public Q_SLOTS:
     void mfCodeChanged();
     void dataTypeChanged();
     void reportableChangeChanged();
-    void minMaxChanged();
+    void minMaxChanged(int val);
 };
 
 class DDF_BindingEditor : public QWidget

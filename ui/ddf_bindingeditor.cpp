@@ -76,8 +76,8 @@ DDF_ZclReportWidget::DDF_ZclReportWidget(QWidget *parent, DDF_ZclReport *rep, co
     connect(mfCode, &QLineEdit::textChanged, this, &DDF_ZclReportWidget::mfCodeChanged);
     connect(dataType, &QLineEdit::textChanged, this, &DDF_ZclReportWidget::dataTypeChanged);
     connect(reportableChange, &QLineEdit::textChanged, this, &DDF_ZclReportWidget::reportableChangeChanged);
-    connect(minInterval, QOverload<int>::of(&QSpinBox::valueChanged), this, &DDF_ZclReportWidget::minMaxChanged);
-    connect(maxInterval, QOverload<int>::of(&QSpinBox::valueChanged), this, &DDF_ZclReportWidget::minMaxChanged);
+    connect(minInterval, SIGNAL(valueChanged(int)), this, SLOT(minMaxChanged(int)));
+    connect(maxInterval, SIGNAL(valueChanged(int)), this, SLOT(minMaxChanged(int)));
 
     auto *lay = new QFormLayout;
 
@@ -185,8 +185,9 @@ void DDF_ZclReportWidget::reportableChangeChanged()
     }
 }
 
-void DDF_ZclReportWidget::minMaxChanged()
+void DDF_ZclReportWidget::minMaxChanged(int val)
 {
+    Q_UNUSED(val)
     if (report)
     {
         report->minInterval = minInterval->value();

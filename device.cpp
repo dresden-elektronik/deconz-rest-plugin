@@ -123,7 +123,7 @@ public:
     /*! The currently active state handler function(s).
         Indexes >0 represent sub states of StateLevel0 running in parallel.
     */
-    std::array<DeviceStateHandler, StateLevelMax> state{0};
+    std::array<DeviceStateHandler, StateLevelMax> state{};
 
     std::array<QBasicTimer, StateLevelMax> timer; //! internal single shot timer one for each state level
     QElapsedTimer awake; //! time to track when an end-device was last awake

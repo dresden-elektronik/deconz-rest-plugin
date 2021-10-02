@@ -16,6 +16,8 @@
 #include <cstring>
 #include <cassert>
 
+bool startsWith(QLatin1String str, QLatin1String needle);
+
 constexpr size_t BufStringOverHead = 2; // length + null termintor
 
 /*! The data part in each BufString starts with \c BufStringBase.
@@ -152,7 +154,7 @@ public:
     {
         if (str.size() <= int(size()))
         {
-            return QLatin1String(c_str(), int(size())).startsWith(str);
+            return startsWith(QLatin1String(c_str(), int(size())), str);
         }
         return false;
     }
@@ -189,7 +191,7 @@ inline bool operator!=(const BufString<Size> &lhs, const std::string &rhs)
 template <size_t Size>
 inline bool operator==(const BufString<Size> &lhs, const QLatin1String &rhs)
 {
-    return !rhs.isEmpty() && strcmp(lhs.c_str(), rhs.data()) == 0;
+    return rhs.size() != 0 && strcmp(lhs.c_str(), rhs.data()) == 0;
 }
 
 template <size_t Size>

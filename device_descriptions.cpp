@@ -1026,7 +1026,7 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
     }
     else
     {
-        DBG_Printf(DBG_INFO, "DDF: failed to load resource item descriptor: %s\n", qPrintable(result.name));
+        DBG_Printf(DBG_INFO, "DDF: failed to load resource item descriptor: %s\n", result.name.c_str());
     }
 
     return result;

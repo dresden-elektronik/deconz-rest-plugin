@@ -836,7 +836,7 @@ QLatin1String ResourceItem::toLatin1String() const
         return QLatin1String(&m_strHandle.base->buf[0], m_strHandle.base->length);
     }
 
-    return QLatin1String();
+    return QLatin1String("");
 }
 
 const char *ResourceItem::toCString() const

@@ -379,7 +379,7 @@ DDF_ItemEditor::DDF_ItemEditor(QWidget *parent) :
         d->readInterval = new QSpinBox(this);
         d->readInterval->setSuffix(" s");
         d->readInterval->setRange(0, 84000 * 2);
-        connect(d->readInterval, QOverload<int>::of(&QSpinBox::valueChanged), this, &DDF_ItemEditor::attributeChanged);
+        connect(d->readInterval, SIGNAL(valueChanged(int)), this, SLOT(attributeChanged()));
         readLay->addRow(new QLabel(tr("Interval")), d->readInterval);
     }
 
@@ -713,11 +713,11 @@ void DDF_ItemEditor::attributeChanged()
 
             case QVariant::Bool:
             {
-                if (d->defaultValue->text() == QLatin1String("true") || d->defaultValue->text() == QLatin1Char('1'))
+                if (d->defaultValue->text() == QLatin1String("true") || d->defaultValue->text() == QLatin1String("1"))
                 {
                     d->editItem.defaultValue = true;
                 }
-                else if (d->defaultValue->text() == QLatin1String("false") || d->defaultValue->text() == QLatin1Char('0'))
+                else if (d->defaultValue->text() == QLatin1String("false") || d->defaultValue->text() == QLatin1String("0"))
                 {
                     d->editItem.defaultValue = false;
                 }

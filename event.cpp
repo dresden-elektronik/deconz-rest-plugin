@@ -27,6 +27,9 @@ quint16 allocDataBuffer()
  */
 Event::Event()
 {
+    m_num = 0;
+    m_numPrev = 0;
+    m_hasData = 0;
 }
 
 Event::Event(const char *resource, const char *what, const QString &id, ResourceItem *item, DeviceKey deviceKey) :
@@ -98,6 +101,8 @@ Event::Event(const char *resource, const char *what, const void *data, size_t si
 {
     Q_ASSERT(data);
     Q_ASSERT(size > 0 && size <= MaxEventDataSize);
+    m_num = 0;
+    m_numPrev = 0;
     m_dataIndex = allocDataBuffer();
     m_dataId = _eventData[m_dataIndex].id;
     m_dataSize = size;

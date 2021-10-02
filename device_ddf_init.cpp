@@ -134,7 +134,7 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
         subCount++;
 
         auto *mf = rsub->item(RAttrManufacturerName);
-        if (mf && mf->toLatin1String().isEmpty())
+        if (mf && mf->toLatin1String().size() == 0)
         {
             mf->setValue(DeviceDescriptions::instance()->constantToString(device->item(RAttrManufacturerName)->toString()));
         }

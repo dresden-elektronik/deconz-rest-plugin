@@ -38,8 +38,8 @@ private:
     {
         struct
         {
-            int m_num = 0;
-            int m_numPrev = 0;
+            int m_num;
+            int m_numPrev;
         };
 
         struct

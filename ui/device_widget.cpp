@@ -47,8 +47,7 @@ DDF_EditorDialog::DDF_EditorDialog(DeviceWidget *parent) :
     connect(editor, &DDF_Editor::windowTitleChanged, this, &DDF_EditorDialog::setWindowTitle);
 
     QMenu *fileMenu = menuBar()->addMenu(tr("&File"));
-    fileMenu->addAction(tr("&New"));
-
+    //fileMenu->addAction(tr("&New"));
 
     QAction *open = fileMenu->addAction(tr("&Open"));
     open->setShortcut(QKeySequence::Open);
