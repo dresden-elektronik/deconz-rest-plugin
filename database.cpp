@@ -8,6 +8,8 @@
  *
  */
 
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 #include <QString>
 #include <QStringBuilder>
 #include <QElapsedTimer>
@@ -22,12 +24,15 @@
 #include "product_match.h"
 #include "utils/utils.h"
 
+constexpr size_t MAX_SQL_LEN = 2048;
+
 static const char *pragmaUserVersion = "PRAGMA user_version";
 static const char *pragmaPageCount = "PRAGMA page_count";
 static const char *pragmaPageSize = "PRAGMA page_size";
 static const char *pragmaFreeListCount = "PRAGMA freelist_count";
 
 static sqlite3 *db = nullptr; // TODO should be member of Database class
+static char sqlBuf[MAX_SQL_LEN];
 
 struct DB_Callback {
   DeRestPluginPrivate *d = nullptr;
@@ -6477,36 +6482,111 @@ bool DB_StoreSubDevice(const QString &parentUniqueId, const QString &uniqueId)
     return true;
 }
 
+/*! Sqlite callback to check if an resource item entry already exists.
+ */
+static int sqliteSelectDeviceItemCallback(void *user, int, char **, char **)
+{
+    auto *result = static_cast<int*>(user);
+
+    if (result)
+    {
+        *result += 1;
+        return 0;
+    }
+
+    return 1;
+}
+
 bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item)
 {
-     DeRestPluginPrivate::instance()->openDb();
+    const ResourceItem *uniqueId = sub->item(RAttrUniqueId);
+    if (!uniqueId)
+    {
+        return false;
+    }
+
+    DeRestPluginPrivate::instance()->openDb();
     if (!db)
     {
         return false;
     }
 
-    if (!item->lastSet().isValid())
+    if (!item->lastChanged().isValid())
     {
         return false;
     }
 
-    const auto sql = QString("INSERT INTO resource_items (sub_device_id,item,value,source,timestamp)"
-                             " SELECT id, '%1', '%2', 'dev', %3"
-                             " FROM sub_devices WHERE uniqueid = '%4'")
-                             .arg(QLatin1String(item->descriptor().suffix), item->toVariant().toString())
-                             .arg(QDateTime::currentMSecsSinceEpoch() / 1000)
-                             .arg(sub->item(RAttrUniqueId)->toString());
+    int ret = 0;
+    const uint64_t timestamp = item->lastChanged().toMSecsSinceEpoch() / 1000;
+    const QString value = item->toVariant().toString();
 
-    char *errmsg = nullptr;
+    // 1) check insert or update needed
 
-    int rc = sqlite3_exec(db, qPrintable(sql), nullptr, nullptr, &errmsg);
+    ret = snprintf(sqlBuf, sizeof(sqlBuf),
+                   "SELECT item,value,timestamp FROM resource_items"
+                   " WHERE sub_device_id = (SELECT id FROM sub_devices WHERE uniqueid = '%s')"
+                   " AND item = '%s' AND value = '%s' AND timestamp = %" PRIu64,
+                   uniqueId->toCString(),
+                   item->descriptor().suffix,
+                   qPrintable(value), timestamp);
 
-    if (rc != SQLITE_OK)
+
+    assert(size_t(ret) < sizeof(sqlBuf));
+    if (size_t(ret) < sizeof(sqlBuf))
     {
-        if (errmsg)
+        if (item->descriptor().type == DataTypeString)
         {
-            DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", qPrintable(sql), errmsg, rc);
-            sqlite3_free(errmsg);
+            char *c = strstr(sqlBuf, "AND timestamp"); // don't check timestamp for strings
+            if (c)
+            {
+                c[-1] = '\0';
+            }
+        }
+
+        char *errmsg = nullptr;
+
+        int nrows = 0;
+        int rc = sqlite3_exec(db, sqlBuf, sqliteSelectDeviceItemCallback, &nrows, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sqlBuf, errmsg, rc);
+                sqlite3_free(errmsg);
+            }
+        }
+
+        if (nrows > 0)
+        {
+            return true;
+        }
+    }
+
+    // 2) update or insert
+
+    ret = snprintf(sqlBuf, sizeof(sqlBuf),
+                       "INSERT INTO resource_items (sub_device_id,item,value,source,timestamp)"
+                       " SELECT id, '%s', '%s', 'dev', %" PRIu64
+                       " FROM sub_devices WHERE uniqueid = '%s'",
+                       item->descriptor().suffix,
+                       qPrintable(item->toVariant().toString()),
+                       timestamp, uniqueId->toCString());
+
+    assert(size_t(ret) < sizeof(sqlBuf));
+    if (size_t(ret) < sizeof(sqlBuf))
+    {
+        char *errmsg = nullptr;
+
+        int rc = sqlite3_exec(db, sqlBuf, nullptr, nullptr, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sqlBuf, errmsg, rc);
+                sqlite3_free(errmsg);
+            }
         }
     }
 
@@ -6551,20 +6631,18 @@ std::vector<DB_ResourceItem> DB_LoadSubDeviceItemsOfDevice(QLatin1String deviceU
         return result;
     }
 
-    char sql[160];
-
-    int ret = snprintf(sql, sizeof(sql), "SELECT item,value,timestamp FROM resource_items"
+    int ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT item,value,timestamp FROM resource_items"
                                  " WHERE sub_device_id = (SELECT id FROM sub_devices WHERE uniqueid LIKE '%%%s%%')",
                                  deviceUniqueId.data());
-    assert(size_t(ret) < sizeof(sql));
-    if (size_t(ret) < sizeof(sql))
+    assert(size_t(ret) < sizeof(sqlBuf));
+    if (size_t(ret) < sizeof(sqlBuf))
     {
         char *errmsg = nullptr;
-        int rc = sqlite3_exec(db, sql, DB_LoadSubDeviceItemsCallback, &result, &errmsg);
+        int rc = sqlite3_exec(db, sqlBuf, DB_LoadSubDeviceItemsCallback, &result, &errmsg);
 
         if (errmsg)
         {
-            DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sql, errmsg, rc);
+            DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sqlBuf, errmsg, rc);
             sqlite3_free(errmsg);
         }
     }
@@ -6584,18 +6662,16 @@ int DB_GetSubDeviceItemCount(QLatin1String uniqueId)
         return result;
     }
 
-    char sql[160];
-
-    int rc = snprintf(sql, sizeof(sql), "SELECT COUNT(item) FROM resource_items"
+    int rc = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT COUNT(item) FROM resource_items"
                                          " WHERE sub_device_id = (SELECT id FROM sub_devices WHERE uniqueid = '%s')",
                                          uniqueId.data());
 
-    assert(size_t(rc) < sizeof(sql));
-    if (size_t(rc) < sizeof(sql))
+    assert(size_t(rc) < sizeof(sqlBuf));
+    if (size_t(rc) < sizeof(sqlBuf))
     {
         sqlite3_stmt *res = nullptr;
 
-        int rc = sqlite3_prepare_v2(db, sql, -1, &res, nullptr);
+        int rc = sqlite3_prepare_v2(db, sqlBuf, -1, &res, nullptr);
         DBG_Assert(res);
         DBG_Assert(rc == SQLITE_OK);
 
@@ -6610,7 +6686,7 @@ int DB_GetSubDeviceItemCount(QLatin1String uniqueId)
         }
         else
         {
-            DBG_Printf(DBG_ERROR, "error preparing sql (err: %d): %s\n", rc, sql);
+            DBG_Printf(DBG_ERROR, "error preparing sql (err: %d): %s\n", rc, sqlBuf);
         }
 
         rc = sqlite3_finalize(res);
@@ -6637,21 +6713,19 @@ std::vector<DB_ResourceItem> DB_LoadSubDeviceItems(QLatin1String uniqueId)
         return result;
     }
 
-    char sql[160];
-
-    int ret = snprintf(sql, sizeof(sql), "SELECT item,value,timestamp FROM resource_items"
+    int ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT item,value,timestamp FROM resource_items"
                                          " WHERE sub_device_id = (SELECT id FROM sub_devices WHERE uniqueid = '%s')",
                                          uniqueId.data());
 
-    assert(size_t(ret) < sizeof(sql));
-    if (size_t(ret) < sizeof(sql))
+    assert(size_t(ret) < sizeof(sqlBuf));
+    if (size_t(ret) < sizeof(sqlBuf))
     {
         char *errmsg = nullptr;
-        int rc = sqlite3_exec(db, qPrintable(sql), DB_LoadSubDeviceItemsCallback, &result, &errmsg);
+        int rc = sqlite3_exec(db, qPrintable(sqlBuf), DB_LoadSubDeviceItemsCallback, &result, &errmsg);
 
         if (errmsg)
         {
-            DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sql, errmsg, rc);
+            DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sqlBuf, errmsg, rc);
             sqlite3_free(errmsg);
         }
     }
@@ -6696,20 +6770,18 @@ bool DB_LoadLegacySensorValue(DB_LegacyItem *litem)
 
     litem->value.clear();
 
-    char sql[120];
-
-    int ret = snprintf(sql, sizeof(sql), "SELECT %s FROM sensors WHERE uniqueid = '%s'",
+    int ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT %s FROM sensors WHERE uniqueid = '%s'",
                        litem->column.c_str(), litem->uniqueId.c_str());
 
-    assert(size_t(ret) < sizeof(sql));
-    if (size_t(ret) < sizeof(sql))
+    assert(size_t(ret) < sizeof(sqlBuf));
+    if (size_t(ret) < sizeof(sqlBuf))
     {
         char *errmsg = nullptr;
-        int rc = sqlite3_exec(db, sql, DB_LoadLegacyValueCallback, litem, &errmsg);
+        int rc = sqlite3_exec(db, sqlBuf, DB_LoadLegacyValueCallback, litem, &errmsg);
 
         if (errmsg)
         {
-            DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sql, errmsg, rc);
+            DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sqlBuf, errmsg, rc);
             sqlite3_free(errmsg);
         }
         else
@@ -6735,18 +6807,16 @@ bool DB_LoadLegacyLightValue(DB_LegacyItem *litem)
 
     litem->value.clear();
 
-    char sql[120];
-
-    int ret = snprintf(sql, sizeof(sql), "SELECT %s FROM nodes WHERE mac = '%s'", litem->column .c_str(), litem->uniqueId.c_str());
-    assert(size_t(ret) < sizeof(sql));
-    if (size_t(ret) < sizeof(sql))
+    int ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT %s FROM nodes WHERE mac = '%s'", litem->column .c_str(), litem->uniqueId.c_str());
+    assert(size_t(ret) < sizeof(sqlBuf));
+    if (size_t(ret) < sizeof(sqlBuf))
     {
         char *errmsg = nullptr;
-        int rc = sqlite3_exec(db, sql, DB_LoadLegacyValueCallback, litem, &errmsg);
+        int rc = sqlite3_exec(db, sqlBuf, DB_LoadLegacyValueCallback, litem, &errmsg);
 
         if (errmsg)
         {
-            DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sql, errmsg, rc);
+            DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sqlBuf, errmsg, rc);
             sqlite3_free(errmsg);
         }
         else
