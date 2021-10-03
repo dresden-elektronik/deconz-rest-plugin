@@ -51,13 +51,16 @@
                     "static": 454
                 },
                 {
-                    "name": "state/on"
+                    "name": "state/on",
+                    "refresh.interval": 1805
                 },
                 {
-                    "name": "state/bri"
+                    "name": "state/bri",
+                    "refresh.interval": 1805
                 },
                 {
-                    "name": "state/ct"
+                    "name": "state/ct",
+                    "refresh.interval": 1805
                 },
                 {
                     "name": "state/reachable"
