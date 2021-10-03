@@ -1596,9 +1596,14 @@ void Device::handleEvent(const Event &event, DEV_StateLevel level)
 {
     if (event.what() == REventStateEnter || event.what() == REventStateLeave)
     {
-        Q_ASSERT(event.num() >= StateLevel0);
-        Q_ASSERT(event.num() < StateLevelMax);
-        d->state[event.num()](this, event);
+        const auto level1 = static_cast<unsigned>(event.num());
+        assert(level1 >= StateLevel0);
+        assert(level1 < StateLevelMax);
+        const auto fn = d->state[level1];
+        if (fn)
+        {
+            fn(this, event);
+        }
     }
     else if (event.what() == REventDDFReload)
     {
