@@ -6226,7 +6226,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         Sensor *sensor = nullptr;
 
         // ZHASwitch
-        if (fpSwitch.hasInCluster(ONOFF_SWITCH_CONFIGURATION_CLUSTER_ID) ||
+        if (// in clusters
+            fpSwitch.hasInCluster(ONOFF_SWITCH_CONFIGURATION_CLUSTER_ID) ||
             fpSwitch.hasInCluster(ONOFF_CLUSTER_ID) ||
             fpSwitch.hasInCluster(ANALOG_INPUT_CLUSTER_ID) ||
             fpSwitch.hasInCluster(MULTISTATE_INPUT_CLUSTER_ID) ||
@@ -6234,7 +6235,15 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             fpSwitch.hasInCluster(IAS_ZONE_CLUSTER_ID) ||
             fpSwitch.hasInCluster(XIAOYAN_CLUSTER_ID) ||
             fpSwitch.hasOutCluster(IAS_ACE_CLUSTER_ID) ||
-            !fpSwitch.outClusters.empty())
+            // out clusters
+            fpSwitch.hasOutCluster(ONOFF_CLUSTER_ID) ||
+            fpSwitch.hasOutCluster(SENGLED_CLUSTER_ID) ||
+            fpSwitch.hasOutCluster(ADUROLIGHT_CLUSTER_ID) ||
+            fpSwitch.hasOutCluster(WINDOW_COVERING_CLUSTER_ID) ||
+            fpSwitch.hasOutCluster(IAS_ACE_CLUSTER_ID) ||
+            fpSwitch.hasOutCluster(XIAOMI_CLUSTER_ID) ||
+            fpSwitch.hasOutCluster(LEVEL_CLUSTER_ID) ||
+            fpSwitch.hasOutCluster(SCENE_CLUSTER_ID))
         {
             fpSwitch.endpoint = i->endpoint();
             fpSwitch.deviceId = i->deviceId();
