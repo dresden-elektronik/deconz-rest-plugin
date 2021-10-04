@@ -6234,7 +6234,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             fpSwitch.hasInCluster(DOOR_LOCK_CLUSTER_ID) ||
             fpSwitch.hasInCluster(IAS_ZONE_CLUSTER_ID) ||
             fpSwitch.hasInCluster(XIAOYAN_CLUSTER_ID) ||
-            fpSwitch.hasOutCluster(IAS_ACE_CLUSTER_ID) ||
             // out clusters
             fpSwitch.hasOutCluster(ONOFF_CLUSTER_ID) ||
             fpSwitch.hasOutCluster(SENGLED_CLUSTER_ID) ||
