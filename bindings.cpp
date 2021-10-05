@@ -2904,6 +2904,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("Teleruptor") || //Legrand teleruptor
         sensor->modelId() == QLatin1String("Contactor") || //Legrand Contactor
         sensor->modelId() == QLatin1String("Pocket remote") || //Legrand wireless remote 4 scene
+        sensor->modelId() == QLatin1String("Remote dimmer switch") || //Wireless Smart Dimmer with Netatmo WNRL63
         // Adeo
         sensor->modelId() == QLatin1String("LDSENK10") || // ADEO Animal compatible motion sensor (Leroy Merlin)
         // Philio
@@ -3203,6 +3204,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                 sensor->modelId() == QLatin1String("Shutters central remote switch") ||
                 sensor->modelId() == QLatin1String("Double gangs remote switch") ||
                 sensor->modelId() == QLatin1String("Pocket remote") ||
+                sensor->modelId() == QLatin1String("Remote dimmer switch") ||
                 sensor->modelId() == QLatin1String("Remote toggle switch") )
             {
                 //Those device don't support report attribute
@@ -3233,6 +3235,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId() == QLatin1String("Shutters central remote switch") ||
                      sensor->modelId() == QLatin1String("Double gangs remote switch") ||
                      sensor->modelId() == QLatin1String("Pocket remote") ||
+                     sensor->modelId() == QLatin1String("Remote dimmer switch") ||
                      sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||
                      sensor->modelId().startsWith(QLatin1String("3AFE14010402000D")) || //konke presence sensor
                      sensor->modelId().startsWith(QLatin1String("3AFE28010402000D")) || //konke presence sensor
@@ -3691,6 +3694,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     }
     // LEGRAND Remote switch, simple and double
     else if (sensor->modelId() == QLatin1String("Remote switch") ||
+             sensor->modelId() == QLatin1String("Remote dimmer switch") ||
              sensor->modelId() == QLatin1String("Double gangs remote switch"))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);

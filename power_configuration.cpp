@@ -161,6 +161,7 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                     sensor.modelId() == QLatin1String("Shutters central remote switch") || // Legrand switch module
                     sensor.modelId() == QLatin1String("Remote toggle switch") || // Legrand shutter switch
                     sensor.modelId() == QLatin1String("Remote motion sensor") || // Legrand motion sensor
+                    sensor.modelId() == QLatin1String("Remote dimmer switch") || // Legrand Wireless Smart Dimmer with Netatmo WNRL63
                     sensor.modelId() == QLatin1String("lumi.sensor_magnet.agl02") || // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
                     sensor.modelId() == QLatin1String("lumi.flood.agl02") ||         // Xiaomi Aqara T1 water leak sensor SJCGQ12LM
                     sensor.modelId() == QLatin1String("lumi.motion.agl04") ||        // Xiaomi Aqara RTCGQ13LM high precision motion sensor

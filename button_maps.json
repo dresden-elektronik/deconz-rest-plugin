@@ -1066,7 +1066,7 @@
         "legrandSwitchRemote": {
             "vendor": "Legrand",
             "doc": "Remote switch",
-            "modelids": ["Remote switch"],
+            "modelids": ["Remote switch", "Remote dimmer switch"],
             "map": [
                 [1, "0x01", "ONOFF", "TOGGLE", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Toggle"],
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
