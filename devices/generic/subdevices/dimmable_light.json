@@ -1,11 +1,12 @@
 {
     "schema": "subdevice1.schema.json",
-    "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
-    "name": "On/Off plug-in unit",
+    "type": "$TYPE_DIMMABLE_LIGHT",
+    "name": "Dimmable light",
     "restapi": "/lights",
     "uuid": ["$address.ext", "0x01"],
     "items": [
-        "state/reachable",
+        "state/alert",
+        "state/bri",
         "state/on"
     ]
 }

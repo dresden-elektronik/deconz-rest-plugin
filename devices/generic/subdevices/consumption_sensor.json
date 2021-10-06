@@ -5,9 +5,9 @@
     "restapi": "/sensors",
     "uuid": ["$address.ext", "0x01", "0x0702"],
     "items": [
-            "config/on",
-            "config/reachable",
-            "state/consumption",
-            "state/lastupdated"
+        "config/on",
+        "config/reachable",
+        "state/consumption",
+        "state/lastupdated"
     ]
 }

@@ -4,5 +4,6 @@
 	"datatype": "Bool",
 	"access": "R",
 	"public": true,
+	"managed": true,
 	"description": "True when the device battery runs low."
 }

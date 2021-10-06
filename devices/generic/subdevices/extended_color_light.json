@@ -1,17 +1,23 @@
 {
     "schema": "subdevice1.schema.json",
-    "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
-    "name": "Color temperature light",
+    "type": "$TYPE_EXTENDED_COLOR_LIGHT",
+    "name": "Extended color light",
     "restapi": "/lights",
     "uuid": ["$address.ext", "0x01"],
     "items": [
         "config/ctmax",
         "config/ctmin",
+        "config/colorcapabilities",
         "state/alert",
-        "state/reachable",
         "state/bri",
         "state/colormode",
         "state/ct",
-        "state/on"
+        "state/effect",
+        "state/hue",
+        "state/on",
+        "state/reachable",
+        "state/sat",
+        "state/x",
+        "state/y"
     ]
 }
