@@ -1584,7 +1584,7 @@ const deCONZ::Node *Device::node() const
 
 bool Device::managed() const
 {
-    return devManaged && d->managed && d->flags.hasDdf;
+    return devManaged > 0 && d->managed && d->flags.hasDdf;
 }
 
 void Device::setManaged(bool managed)
