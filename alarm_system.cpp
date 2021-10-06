@@ -571,6 +571,11 @@ bool AlarmSystem::setCode(int index, const QString &code)
     sec.secret = CRYPTO_ScryptPassword(code0, CRYPTO_GenerateSalt());
     sec.state = 1;
 
+    if (sec.secret.empty())
+    {
+        return false;
+    }
+
     if (DB_StoreSecret(sec))
     {
         setValue(RConfigConfigured, true);

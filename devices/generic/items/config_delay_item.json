@@ -1,0 +1,9 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/delay",
+	"datatype": "UInt16",
+	"access": "RW",
+	"public": true,
+    "default": 0,
+	"description": "The occupied to unoccupied delay in seconds."
+}

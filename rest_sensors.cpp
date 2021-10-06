@@ -2220,8 +2220,6 @@ int DeRestPluginPrivate::deleteSensor(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::searchNewSensors(const ApiRequest &req, ApiResponse &rsp)
 {
-    Q_UNUSED(req);
-
     if (!isInNetwork())
     {
         rsp.list.append(errorToMap(ERR_NOT_CONNECTED, QLatin1String("/sensors"), QLatin1String("Not connected")));
@@ -2229,6 +2227,7 @@ int DeRestPluginPrivate::searchNewSensors(const ApiRequest &req, ApiResponse &rs
         return REQ_READY_SEND;
     }
 
+    permitJoinApiKey = req.apikey();
     startSearchSensors();
     {
         QVariantMap rspItem;
@@ -2946,23 +2945,16 @@ void DeRestPluginPrivate::startSearchSensors()
     }
 
     searchSensorsTimeout = gwNetworkOpenDuration;
-    gwPermitJoinResend = searchSensorsTimeout;
-    if (!resendPermitJoinTimer->isActive())
-    {
-        resendPermitJoinTimer->start(100);
-    }
+    setPermitJoinDuration(searchSensorsTimeout);
 }
 
 /*! Handler for search sensors active state.
  */
 void DeRestPluginPrivate::searchSensorsTimerFired()
 {
-    if (gwPermitJoinResend == 0)
+    if (gwPermitJoinDuration == 0)
     {
-        if (gwPermitJoinDuration == 0)
-        {
-            searchSensorsTimeout = 0; // done
-        }
+        searchSensorsTimeout = 0; // done
     }
 
     if (searchSensorsTimeout > 0)
@@ -3136,6 +3128,11 @@ void DeRestPluginPrivate::checkInstaModelId(Sensor *sensor)
 void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
     if (searchSensorsState != SearchSensorsActive)
+    {
+        return;
+    }
+
+    if (DEV_TestManaged())
     {
         return;
     }
