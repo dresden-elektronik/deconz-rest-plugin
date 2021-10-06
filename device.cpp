@@ -1596,9 +1596,11 @@ void Device::handleEvent(const Event &event, DEV_StateLevel level)
 {
     if (event.what() == REventStateEnter || event.what() == REventStateLeave)
     {
+        if (event.num() < StateLevel0 || event.num() >= StateLevelMax)
+        {
+            return;
+        }
         const auto level1 = static_cast<unsigned>(event.num());
-        assert(level1 >= StateLevel0);
-        assert(level1 < StateLevelMax);
         const auto fn = d->state[level1];
         if (fn)
         {
