@@ -188,6 +188,7 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                         modelId.startsWith(QLatin1String("Micro Smart Dimmer")) ||                // Sunricher Micro Smart Dimmer
                         modelId == QLatin1String("Connected socket outlet") ||                    // Niko smart socket
                         modelId == QLatin1String("SMRZB-1") ||                                    // Develco smart cable
+                        modelId == QLatin1String("PoP") ||                                        // Apex Smart Plug
                         modelId.startsWith(QLatin1String("S1")) ||                                // Ubisys S1/S1-R
                         modelId.startsWith(QLatin1String("S2")) ||                                // Ubisys S2/S2-R
                         modelId.startsWith(QLatin1String("J1")) ||                                // Ubisys J1/J1-R
