@@ -16996,11 +16996,14 @@ void DeRestPlugin::appAboutToQuit()
         d->openDb();
         d->saveDb();
 
-        for (const auto &dev : d->m_devices)
+        if (DEV_TestManaged())
         {
-            for (const auto *sub : dev->subDevices())
+            for (const auto &dev : d->m_devices)
             {
-                DB_StoreSubDeviceItems(sub);
+                for (const auto *sub : dev->subDevices())
+                {
+                    DB_StoreSubDeviceItems(sub);
+                }
             }
         }
 
