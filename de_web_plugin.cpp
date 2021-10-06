@@ -6153,6 +6153,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 }
                     break;
 
+/*
+                TODO from PR: "Corrections on sensor fingerprints" #5246
+                Following is disabled for now since unwanted ZHASwitch resources are created.
+
                 case OTAU_CLUSTER_ID:
                 case TIME_CLUSTER_ID:
                 {
@@ -6178,6 +6182,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     fpAncillaryControlSensor.outClusters.push_back(ci->id());
                 }
                     break;
+*/
 
                 default:
                     break;
