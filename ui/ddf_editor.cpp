@@ -315,11 +315,13 @@ void DDF_Editor::subDeviceSelected(uint subDevice)
         return;
     }
 
-    d->curSubDevice = subDevice;
-    const DeviceDescription::SubDevice &sub = d->ddf.subDevices[d->curSubDevice];
+    d->curSubDevice = d->ddf.subDevices.size(); // prevent field change
+
+    const DeviceDescription::SubDevice &sub = d->ddf.subDevices[subDevice];
 
     ui->subDeviceTypeInput->setInputText(d->dd->constantToString(sub.type));
     ui->subDeviceUniqueIdInput->setInputText(sub.uniqueId.join(QLatin1Char('-')));
+    d->curSubDevice = subDevice;
 
     ui->editStackedWidget->setCurrentWidget(ui->editSubdevice);
 }

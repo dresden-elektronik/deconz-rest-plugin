@@ -3992,6 +3992,11 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                                 updated = true;
                             }
                             item->setValue(str); // always needed to refresh set timestamp
+
+                            {
+                                Q_Q(DeRestPlugin);
+                                emit q->nodeUpdated(lightNode->address().ext(), QLatin1String("version"), str);
+                            }
                         }
                     }
                     else if (ia->id() == 0x4005 && lightNode->manufacturerCode() == VENDOR_MUELLER)

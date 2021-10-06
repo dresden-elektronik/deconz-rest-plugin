@@ -30,12 +30,9 @@ ItemLineEdit::ItemLineEdit(const QVariantMap &ddfParam, const DDF_FunctionDescri
             val = val.toStringList().join(QLatin1Char(','));
         }
 
-        if (param.dataType == DataTypeUInt8 && param.key == QLatin1String("ep"))
+        if (param.dataType == DataTypeUInt8 && param.key == QLatin1String("ep") && val.toUInt() == 0)
         {
-            if (val.toUInt() == 0)
-            {
-                setText(QLatin1String("auto"));
-            }
+            setText(QLatin1String("auto"));
         }
         else
         {

@@ -46,14 +46,13 @@ struct ItemDrawOptions
 static const ItemDrawOptions itemDrawOptions[] =
 {
     { QColor(90, 90, 90), QColor(255, 255, 255) },  // I_TYPE_DEVICE
-    { QColor(96, 96, 96), QColor(255, 255, 255) },  // I_TYPE_SUBDEVICE
+    { QColor(100, 100, 100), QColor(255, 255, 255) },  // I_TYPE_SUBDEVICE
     { QColor(193, 175, 229), QColor(0, 0, 0) },  // I_TYPE_ATTR
     { QColor(162, 204, 239), QColor(0, 0, 0) },  // I_TYPE_CONFIG
     { QColor(155, 220, 169), QColor(0, 0, 0) },  // I_TYPE_STATE
     { QColor(187, 222, 251), QColor(0, 0, 0) },  // I_TYPE_ITEM_CONFIG
     { QColor(218, 209, 238), QColor(0, 0, 0) },  // I_TYPE_ITEM_ATTR
     { QColor(190, 238, 194), QColor(0, 0, 0) }   // I_TYPE_ITEM_STATE
-
 };
 
 class GridItemDelegate : public QStyledItemDelegate
@@ -65,22 +64,46 @@ public:
 
 void GridItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    QStyleOptionViewItem opt = option;
-
-    initStyleOption(&opt, index);
 
     TreeItemHandle handle;
     handle.value = index.data(MODEL_HANDLE_ROLE).toUInt();
 
     if (handle.type < I_TYPE_MAX)
     {
-        opt.backgroundBrush = QBrush(itemDrawOptions[handle.type].bgColor);
-        painter->fillRect(opt.rect, opt.backgroundBrush);
-        painter->setPen(QColor(128, 128, 128));
-        painter->drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight());
-    }
+        QStyleOptionViewItem opt = option;
+        initStyleOption(&opt, index);
 
-    QStyledItemDelegate::paint(painter, opt, index);
+        QColor bgColor = itemDrawOptions[handle.type].bgColor;
+        QColor fgColor = itemDrawOptions[handle.type].fgColor;
+
+        if (opt.state.testFlag(QStyle::State_Selected))
+        {
+            bgColor = QColor(255, 225, 105); // egg yellow
+            fgColor = QColor(Qt::black);
+        }
+        else if (opt.state.testFlag(QStyle::State_MouseOver))
+        {
+            bgColor = bgColor.lighter(104);
+        }
+
+        opt.backgroundBrush = QBrush(bgColor);
+        painter->fillRect(opt.rect, opt.backgroundBrush);
+
+
+        painter->setPen(bgColor.lighter(118)); // top light edge
+        painter->drawLine(opt.rect.topLeft(), opt.rect.topRight());
+
+        painter->setPen(bgColor.darker(170)); // bottom shadow edge
+        painter->drawLine(opt.rect.bottomLeft(), opt.rect.bottomRight());
+
+        painter->setPen(fgColor);
+        opt.rect.setLeft(opt.rect.left() + 4);
+        painter->drawText(opt.rect, Qt::AlignVCenter, index.data().toString());
+    }
+    else
+    {
+        QStyledItemDelegate::paint(painter, option, index);
+    }
 }
 
 
@@ -88,7 +111,8 @@ DDF_TreeView::DDF_TreeView(QWidget *parent) :
     QTreeView(parent)
 {
     setItemDelegate(new GridItemDelegate(this));
-    setDragDropMode(QTreeView::DragDrop);
+    setDragDropMode(QTreeView::DropOnly);
+    setMouseTracking(true);
 
     m_model = new QStandardItemModel(this);
     setModel(m_model);
@@ -100,6 +124,8 @@ DDF_TreeView::DDF_TreeView(QWidget *parent) :
     setContextMenuPolicy(Qt::ActionsContextMenu);
     connect(m_removeAction, &QAction::triggered, this, &DDF_TreeView::removeActionTriggered);
     addAction(m_removeAction);
+
+    setStyleSheet("QTreeView::item { padding-bottom: 2px; }");
 }
 
 void DDF_TreeView::dragEnterEvent(QDragEnterEvent *event)
@@ -265,6 +291,7 @@ void DDF_TreeView::setDDF(const DeviceDescription &ddf)
     top->setEditable(false);
     top->setData(handle.value, MODEL_HANDLE_ROLE);
     top->setForeground(QBrush(itemDrawOptions[handle.type].fgColor));
+    top->setSizeHint(QSize(200, 32));
 
     m_model->appendRow(top);
 
@@ -304,6 +331,7 @@ void DDF_TreeView::setDDF(const DeviceDescription &ddf)
                     attr->setData(handle.value, MODEL_HANDLE_ROLE);
                     attr->setEditable(false);
                     attr->setDragEnabled(false);
+                    attr->setSelectable(false);
                     isub->appendRow(attr);
                 }
 
@@ -319,6 +347,7 @@ void DDF_TreeView::setDDF(const DeviceDescription &ddf)
                     config->setData(handle.value, MODEL_HANDLE_ROLE);
                     config->setDragEnabled(false);
                     config->setEditable(false);
+                    config->setSelectable(false);
                     isub->appendRow(config);
                 }
 
@@ -334,6 +363,7 @@ void DDF_TreeView::setDDF(const DeviceDescription &ddf)
                     state->setData(handle.value, MODEL_HANDLE_ROLE);
                     state->setDragEnabled(false);
                     state->setEditable(false);
+                    state->setSelectable(false);
                     isub->appendRow(state);
                 }
 
