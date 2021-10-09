@@ -1477,9 +1477,19 @@ Resource::Handle R_CreateResourceHandle(const Resource *r, size_t containerIndex
     result.hash = qHash(r->item(RAttrUniqueId)->toString());
     result.index = containerIndex;
     result.type = r->prefix()[1];
+    result.order = 0;
 
     Q_ASSERT(result.type == 's' || result.type == 'l' || result.type == 'd' || result.type == 'g');
     Q_ASSERT(isValid(result));
+
+    if (result.type == 's' || result.type == 'l')
+    {
+        const ResourceItem *type = r->item(RAttrType);
+        if (type)
+        {
+            result.order = DDF_GetSubDeviceOrder(type->toString());
+        }
+    }
 
     return result;
 }
