@@ -11,6 +11,7 @@
 #ifdef USE_WEBSOCKETS
 
 #include "deconz/dbg_trace.h"
+#include "deconz/util.h"
 #include "websocket_server.h"
 
 /*! Constructor.
@@ -27,21 +28,33 @@ WebSocketServer::WebSocketServer(QObject *parent, quint16 port) :
         ports[0] = port;
     }
 
-    while (!srv->listen(QHostAddress::AnyIPv4, ports[p]))
+    QHostAddress address;
+    QString addrArg = deCONZ::appArgumentString("--http-listen", QString());
+
+    if (addrArg.isEmpty()) // Tie websocket server to specified IP, if any
+    {
+        address = QHostAddress::AnyIPv4;
+    }
+    else
+    {
+        address = QHostAddress(addrArg);
+    }
+
+    while (!srv->listen(address, ports[p]))
     {
         if (ports[p] == 0)
         {
-            DBG_Printf(DBG_ERROR, "giveup starting websocket server on port %u. error: %s\n", ports[p], qPrintable(srv->errorString()));
+            DBG_Printf(DBG_ERROR, "Giveup starting websocket server on %s, port: %u. error: %s\n", qPrintable(address.toString()), ports[p], qPrintable(srv->errorString()));
             break;
         }
 
-        DBG_Printf(DBG_ERROR, "failed to start websocket server on port %u. error: %s\n", ports[p], qPrintable(srv->errorString()));
+        DBG_Printf(DBG_ERROR, "Failed to start websocket server on %s, port: %u. error: %s\n", qPrintable(address.toString()), ports[p], qPrintable(srv->errorString()));
         p++;
     }
 
     if (srv->isListening())
     {
-        DBG_Printf(DBG_INFO, "started websocket server at port %u\n", srv->serverPort());
+        DBG_Printf(DBG_INFO, "Started websocket server on %s, port: %u\n", qPrintable(address.toString()), srv->serverPort());
         connect(srv, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
     }
 }
