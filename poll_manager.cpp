@@ -440,7 +440,7 @@ void PollManager::pollTimerFired()
         if (item && (item->toString().isEmpty() ||
              (item->lastSet().secsTo(now) > READ_SWBUILD_ID_INTERVAL))) // dynamic
         {
-            if (lightNode->manufacturerCode() == VENDOR_EMBER && lightNode->modelId() == QLatin1String("TS011F")) // LIDL plugs
+            if (lightNode->manufacturerCode() == VENDOR_EMBER && lightNode->modelId() == QLatin1String("TS011F")) // Tuya plugs
             {
                 if (item->toString().isEmpty())
                 {

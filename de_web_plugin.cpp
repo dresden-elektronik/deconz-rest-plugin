@@ -450,6 +450,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "TS0222", silabs9MacPrefix }, // TYZB01 light sensor
     { VENDOR_OWON, "CTHS317ET", casaiaPrefix }, // CASA.ia Temperature probe CTHS-317-ET
     { VENDOR_NONE, "eaxp72v", ikea2MacPrefix }, // Tuya TRV Wesmartify Thermostat Essentials Premium
+    { VENDOR_EMBER, "TS011F", YooksmartMacPrefix }, // Tuya Plug Blitzwolf BW-SHP15
+    { VENDOR_EMBER, "TS011F", silabs10MacPrefix }, // Other tuya plugs
     { VENDOR_NONE, "88teujp", silabs8MacPrefix }, // SEA802-Zigbee
     { VENDOR_NONE, "uhszj9s", silabs8MacPrefix }, // HiHome WZB-TRVL
     { VENDOR_NONE, "fvq6avy", silabs7MacPrefix }, // Revolt NX-4911-675 Thermostat
@@ -3862,9 +3864,10 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
 
                     if (ia->id() == 0x0001 && lightNode->modelId() == QLatin1String("TS011F")) // Application version
                     {
-                        // For Lidl plugs (TS011F) date code is empty, use this attribute instead.
+                        // For some Tuya plugs (TS011F) date code is empty, use this attribute instead.
                         // _TZ3000_1obwwnmq    3x plug
                         // _TZ3000_kdi2o9m6    1x plug
+                        // _TZ3000_mraovvmm
                         const auto str = QString::number(static_cast<int>(ia->numericValue().u8));
                         ResourceItem *item = lightNode->item(RAttrSwVersion);
 
