@@ -127,6 +127,7 @@ const quint64 silabs5MacPrefix    = 0x842e140000000000ULL;
 const quint64 silabs10MacPrefix   = 0x8471270000000000ULL;
 const quint64 embertecMacPrefix   = 0x848e960000000000ULL;
 const quint64 YooksmartMacPrefix  = 0x84fd270000000000ULL;
+const quint64 silabs13MacPrefix   = 0x8cf6810000000000ULL;
 const quint64 silabsMacPrefix     = 0x90fd9f0000000000ULL;
 const quint64 zhejiangMacPrefix   = 0xb0ce180000000000ULL;
 const quint64 silabs12MacPrefix   = 0xb4e3f90000000000ULL;

@@ -510,6 +510,7 @@ extern const quint64 silabs8MacPrefix;
 extern const quint64 silabs9MacPrefix;
 extern const quint64 silabs10MacPrefix;
 extern const quint64 silabs12MacPrefix;
+extern const quint64 silabs13MacPrefix;
 extern const quint64 instaMacPrefix;
 extern const quint64 casaiaPrefix;
 extern const quint64 boschMacPrefix;
@@ -584,6 +585,7 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
                    prefix == silabs3MacPrefix ||
                    prefix == silabs5MacPrefix ||
                    prefix == silabs10MacPrefix ||
+                   prefix == silabs13MacPrefix ||
                    prefix == silabs7MacPrefix;
         case VENDOR_EMBERTEC:
             return prefix == embertecMacPrefix;
