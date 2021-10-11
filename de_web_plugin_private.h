@@ -23,6 +23,7 @@
 #endif
 #include <sqlite3.h>
 #include <deconz.h>
+#include "device.h"
 #include "aps_controller_wrapper.h"
 #include "alarm_system.h"
 #include "resource.h"
@@ -92,7 +93,7 @@ using namespace deCONZ::literals;
 
 #define MAX_UNLOCK_GATEWAY_TIME 600
 #define MAX_RECOVER_ENTRY_AGE 600
-#define PERMIT_JOIN_SEND_INTERVAL (1000 * 1800)
+#define PERMIT_JOIN_SEND_INTERVAL (1000 * 60)
 #define SET_ENDPOINTCONFIG_DURATION (1000 * 16) // time deCONZ needs to update Endpoints
 #define OTA_LOW_PRIORITY_TIME (60 * 2)
 #define CHECK_SENSOR_FAST_ROUNDS 3
@@ -479,6 +480,7 @@ using namespace deCONZ::literals;
 
 void getTime(quint32 *time, qint32 *tz, quint32 *dstStart, quint32 *dstEnd, qint32 *dstShift, quint32 *standardTime, quint32 *localTime, quint8 mode);
 int getFreeSensorId(); // TODO needs to be part of a Database class
+int getFreeLightId();  // TODO needs to be part of a Database class
 
 // REST API common
 QVariantMap errorToMap(int id, const QString &ressource, const QString &description);
@@ -507,7 +509,10 @@ extern const quint64 silabs7MacPrefix;
 extern const quint64 silabs8MacPrefix;
 extern const quint64 silabs9MacPrefix;
 extern const quint64 silabs10MacPrefix;
+extern const quint64 silabs12MacPrefix;
+extern const quint64 silabs13MacPrefix;
 extern const quint64 instaMacPrefix;
+extern const quint64 casaiaPrefix;
 extern const quint64 boschMacPrefix;
 extern const quint64 jennicMacPrefix;
 extern const quint64 lutronMacPrefix;
@@ -580,6 +585,7 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
                    prefix == silabs3MacPrefix ||
                    prefix == silabs5MacPrefix ||
                    prefix == silabs10MacPrefix ||
+                   prefix == silabs13MacPrefix ||
                    prefix == silabs7MacPrefix;
         case VENDOR_EMBERTEC:
             return prefix == embertecMacPrefix;
@@ -687,6 +693,9 @@ inline bool checkMacAndVendor(const deCONZ::Node *node, quint16 vendor)
     return node->nodeDescriptor().manufacturerCode() == vendor && existDevicesWithVendorCodeForMacPrefix(node->address(), vendor);
 }
 
+quint8 zclNextSequenceNumber();
+const deCONZ::Node *getCoreNode(uint64_t extAddress);
+
 // HTTP status codes
 extern const char *HttpStatusOk;
 extern const char *HttpStatusAccepted;
@@ -706,6 +715,8 @@ extern const char *HttpContentJPG;
 extern const char *HttpContentSVG;
 
 // Forward declarations
+class DeviceDescriptions;
+class DeviceWidget;
 class Gateway;
 class GatewayScanner;
 class QUdpSocket;
@@ -1239,7 +1250,7 @@ public:
     bool setInternetDiscoveryInterval(int minutes);
     // Permit join
     void initPermitJoin();
-    bool setPermitJoinDuration(uint8_t duration);
+    void setPermitJoinDuration(int duration);
 
     // Otau
     void initOtau();
@@ -1259,10 +1270,14 @@ public:
     //Timezone
     QVariantList getTimezones();
 
+Q_SIGNALS:
+    void eventNotify(const Event&);
+
 public Q_SLOTS:
     Resource *getResource(const char *resource, const QString &id = QString());
     void announceUpnp();
     void upnpReadyRead();
+    void apsdeDataIndicationDevice(const deCONZ::ApsDataIndication &ind, Device *device);
     void apsdeDataIndication(const deCONZ::ApsDataIndication &ind);
     void apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf);
     void gpDataIndication(const deCONZ::GpDataIndication &ind);
@@ -1283,8 +1298,8 @@ public Q_SLOTS:
     void inetProxyHostLookupDone(const QHostInfo &host);
     void inetProxyCheckHttpVia(const QString &via);
     void scheduleTimerFired();
+    void permitJoin(int seconds);
     void permitJoinTimerFired();
-    void resendPermitJoinTimerFired();
     void otauTimerFired();
     void lockGatewayTimerFired();
     void openClientTimerFired();
@@ -1581,7 +1596,7 @@ public:
     void sendTimeClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleBasicClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendBasicClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    void handlePhilipsClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handlePhilipsClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, Device *device);
     void handleTuyaClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclAttributeReportIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclConfigureReportingResponseIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
@@ -1598,6 +1613,7 @@ public:
     void handleXiaoyanClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleXiaomiLumiClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleOccupancySensingClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
+    void handlePowerConfigurationClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
 
     // Modify node attributes
     void setAttributeOnOff(LightNode *lightNode);
@@ -1625,6 +1641,7 @@ public:
     bool upgradeDbToUserVersion6();
     bool upgradeDbToUserVersion7();
     bool upgradeDbToUserVersion8();
+    bool upgradeDbToUserVersion9();
     void refreshDeviceDb(const deCONZ::Address &addr);
     void pushZdpDescriptorDb(quint64 extAddress, quint8 endpoint, quint16 type, const QByteArray &data);
     void pushZclValueDb(quint64 extAddress, quint8 endpoint, quint16 clusterId, quint16 attributeId, qint64 data);
@@ -1649,7 +1666,6 @@ public:
     void loadSensorDataFromDb(Sensor *sensor, QVariantList &ls, qint64 fromTime, int max);
     void loadLightDataFromDb(LightNode *lightNode, QVariantList &ls, qint64 fromTime, int max);
     void loadAllGatewaysFromDb();
-    int getFreeLightId();
     void saveDb();
     void saveApiKey(QString apikey);
     void closeDb();
@@ -1665,7 +1681,6 @@ public:
     int saveDatabaseItems;
     int saveDatabaseIdleTotalCounter;
     QString sqliteDatabaseName;
-    std::vector<int> lightIds;
     std::vector<QString> dbQueryQueue;
     qint64 dbZclValueMaxAge;
     QTimer *databaseTimer;
@@ -1705,8 +1720,8 @@ public:
     int gwAnnounceInterval; // used by internet discovery [minutes]
     QString gwAnnounceUrl;
     int gwAnnounceVital; // 0 not tried, > 0 success attemps, < 0 failed attemps
-    uint8_t gwPermitJoinDuration; // global permit join state (last set)
-    int gwPermitJoinResend; // permit join of values > 255
+    int gwPermitJoinDuration = 0; // global permit join state (last set)
+    QString permitJoinApiKey;
     uint16_t gwNetworkOpenDuration; // user setting how long network remains open
     QString gwWifi;     // configured | not-configured | not-available | new-configured | deactivated
     QString gwWifiActive;
@@ -1847,11 +1862,9 @@ public:
     QTimer *lockGatewayTimer;
 
     // permit join
-    // used by searchLights()
     QTimer *permitJoinTimer;
-    QTime permitJoinLastSendTime;
+    QElapsedTimer permitJoinLastSendTime;
     bool permitJoinFlag; // indicates that permitJoin changed from greater than 0 to 0
-    QTimer *resendPermitJoinTimer;
 
     // schedules
     QTimer *scheduleTimer;
@@ -1996,6 +2009,8 @@ public:
         SearchSensorsDone,
     };
 
+
+    DeviceWidget *deviceWidget = nullptr;
     RestDevices *restDevices;
 
     int sensorIndIdleTotalCounter;
@@ -2085,6 +2100,7 @@ public:
     size_t sensorAttrIter;
     size_t sensorCheckIter;
     int sensorCheckFast;
+    DeviceContainer m_devices;
     std::vector<Group> groups;
     std::vector<LightNode> nodes;
     std::vector<Rule> rules;
@@ -2118,6 +2134,8 @@ public:
     std::list<Binding> bindingToRuleQueue; // check if rule exists for discovered bindings
     std::list<BindingTask> bindingQueue; // bind/unbind queue
     std::vector<BindingTableReader> bindingTableReaders;
+
+    DeviceDescriptions *deviceDescriptions = nullptr;
 
     // IAS
     std::unique_ptr<AS_DeviceTable> alarmSystemDeviceTable;

@@ -8,6 +8,8 @@
  *
  */
 
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 #include <QString>
 #include <QStringBuilder>
 #include <QElapsedTimer>
@@ -16,10 +18,13 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "deconz/dbg_trace.h"
+#include "device_descriptions.h"
 #include "gateway.h"
 #include "json.h"
 #include "product_match.h"
 #include "utils/utils.h"
+
+constexpr size_t MAX_SQL_LEN = 2048;
 
 static const char *pragmaUserVersion = "PRAGMA user_version";
 static const char *pragmaPageCount = "PRAGMA page_count";
@@ -27,6 +32,7 @@ static const char *pragmaPageSize = "PRAGMA page_size";
 static const char *pragmaFreeListCount = "PRAGMA freelist_count";
 
 static sqlite3 *db = nullptr; // TODO should be member of Database class
+static char sqlBuf[MAX_SQL_LEN];
 
 struct DB_Callback {
   DeRestPluginPrivate *d = nullptr;
@@ -87,7 +93,7 @@ void DeRestPluginPrivate::initDb()
 void DeRestPluginPrivate::checkDbUserVersion()
 {
     bool updated = false;
-    int userVersion = getDbPragmaInteger(pragmaUserVersion); // sqlite default is 0
+    const int userVersion = getDbPragmaInteger(pragmaUserVersion); // sqlite default is 0
 
     if (userVersion == 0) // initial and legacy databases
     {
@@ -111,6 +117,10 @@ void DeRestPluginPrivate::checkDbUserVersion()
     }
     else if (userVersion == 8)
     {
+        updated = upgradeDbToUserVersion9();
+    }
+    else if (userVersion == 9)
+    {
         // latest version
     }
     else
@@ -118,18 +128,17 @@ void DeRestPluginPrivate::checkDbUserVersion()
         DBG_Printf(DBG_INFO, "DB database file opened with a older deCONZ version\n");
     }
 
-    // if something was upgraded
-    if (updated)
-    {
-        checkDbUserVersion();
-    }
-    else
+    if (!updated)
     {
         cleanUpDb();
         createTempViews();
 
         initSecretsTable(); // todo, temporary, use user version > 8, after PR #5089 is merged
         initAlarmSystemsTable();
+    }
+    else // if something was upgraded
+    {
+        checkDbUserVersion(); // tail recursion
     }
 }
 
@@ -532,6 +541,60 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion8()
     }
 
     return setDbUserVersion(8);
+}
+
+/*! Upgrades database to user_version 9. */
+bool DeRestPluginPrivate::upgradeDbToUserVersion9()
+{
+    DBG_Printf(DBG_INFO, "DB upgrade to user_version 9\n");
+
+    /*
+       The 'sub_devices' table references 'devices' so that entries are
+       automatically deleted if the destination node is removed.
+       Inserting an existing entry will automatically be ignored.
+
+       The 'resource_items' table references 'sub_devices' so that
+       entries are deleted when the respective sub_devices entry is removed.
+       Each entry is unique and automatically replaced if already existing.
+     */
+
+    // create tables
+    const char *sql[] = {
+        "CREATE TABLE IF NOT EXISTS sub_devices ("
+        " id INTEGER PRIMARY KEY,"
+        " uniqueid TEXT NOT NULL,"
+        " device_id INTEGER REFERENCES devices(id) ON DELETE CASCADE,"
+        " timestamp INTEGER NOT NULL,"
+        " UNIQUE(uniqueid) ON CONFLICT IGNORE)",
+
+        "CREATE TABLE if NOT EXISTS resource_items ("
+        " sub_device_id TEXT REFERENCES sub_devices(id) ON DELETE CASCADE,"
+        " item STRING NOT NULL,"
+        " value NOT NULL," // can be any type
+        " source STRING NOT NULL,"
+        " timestamp INTEGER NOT NULL," // is the last set timestamp
+        " PRIMARY KEY (sub_device_id, item) ON CONFLICT REPLACE"
+        ")",
+        nullptr
+    };
+
+    for (int i = 0; sql[i] != nullptr; i++)
+    {
+        char *errmsg = nullptr;
+        int rc = sqlite3_exec(db, sql[i], nullptr, nullptr, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d), line: %d\n", sql[i], errmsg, rc, __LINE__);
+                sqlite3_free(errmsg);
+            }
+            return false;
+        }
+    }
+
+    return setDbUserVersion(9);
 }
 
 #if DECONZ_LIB_VERSION >= 0x010E00
@@ -1145,7 +1208,7 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
     Q_UNUSED(colname);
     DBG_Assert(user != 0);
 
-    if (!user || (ncols != 2))
+    if (!user || (ncols != 2) || !colval)
     {
         return 0;
     }
@@ -2055,10 +2118,10 @@ static int sqliteLoadAllScenesCallback(void *user, int ncols, char **colval , ch
         return 0;
     }
 
-    bool ok;
-    bool ok1;
-    bool ok2;
-    Scene scene;
+    bool ok = false;
+    bool ok1 = false;
+    bool ok2 = false;
+    Scene scene{};
     DeRestPluginPrivate *d = static_cast<DeRestPluginPrivate*>(user);
 
     for (int i = 0; i < ncols; i++)
@@ -3120,6 +3183,25 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         quint8 endpoint = sensor.fingerPrint().endpoint;
         DBG_Printf(DBG_INFO_L2, "DB found sensor %s %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()));
 
+        if (DEV_TestManaged())
+        {
+            const auto ddf = d->deviceDescriptions->get(&sensor);
+            if (ddf.isValid())
+            {
+                const int itemCount = DB_GetSubDeviceItemCount(sensor.item(RAttrUniqueId)->toLatin1String());
+
+                if (itemCount == 0)
+                {
+                    DBG_Printf(DBG_INFO, "DB legacy loading sensor %s %s, later handled by DDF %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()), qPrintable(ddf.product));
+                }
+                else
+                {
+                    DBG_Printf(DBG_INFO, "DB skip loading sensor %s %s, handled by DDF %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()), qPrintable(ddf.product));
+                    return 0;
+                }
+            }
+        }
+
         if (!isClip && sensor.type() == QLatin1String("Daylight"))
         {
             isClip = true;
@@ -3487,6 +3569,12 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : IAS_ZONE_CLUSTER_ID;
             }
+            else if (sensor.fingerPrint().hasInCluster(TUYA_CLUSTER_ID))
+            {
+                clusterId = clusterId ? clusterId : TUYA_CLUSTER_ID;
+                sensor.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
+            }
+            
             item = sensor.addItem(DataTypeBool, RStateFire);
             item->setValue(false);
         }
@@ -3586,6 +3674,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 }
                 else if (sensor.modelId() == QLatin1String("ZB-ONOFFPlug-D0005") ||
                          sensor.modelId() == QLatin1String("Plug-230V-ZB3.0") ||
+                         sensor.modelId() == QLatin1String("lumi.switch.b1nacn02") ||
                          sensor.modelId() == QLatin1String("lumi.switch.b1naus01") ||
                          sensor.modelId() == QLatin1String("lumi.plug.maeu01") ||
                          sensor.modelId() == QLatin1String("lumi.switch.n0agl1") ||
@@ -3962,6 +4051,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 !sensor.modelId().startsWith(QLatin1String("lumi.plug")) &&
                 sensor.modelId() != QLatin1String("lumi.curtain") &&
                 sensor.modelId() != QLatin1String("lumi.sensor_natgas") &&
+                sensor.modelId() != QLatin1String("lumi.switch.b1nacn02") &&
                 sensor.modelId() != QLatin1String("lumi.switch.b1naus01") &&
                 sensor.modelId() != QLatin1String("lumi.switch.n0agl1") &&
                 !sensor.modelId().startsWith(QLatin1String("lumi.relay.c")) &&
@@ -4249,8 +4339,16 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
                 sensor.address().setExt(extAddr);
                 // append to cache if not already known
+                sensor.setHandle(R_CreateResourceHandle(&sensor, d->sensors.size()));
                 d->sensors.push_back(sensor);
                 d->updateSensorEtag(&d->sensors.back());
+
+                if (!isClip && sensor.modelId() != QLatin1String("Daylight"))
+                {
+                    const auto key = extAddr != 0 ? extAddr : qHash(sensor.uniqueId());
+                    auto *device = DEV_GetOrCreateDevice(d, deCONZ::ApsController::instance(), d->eventEmitter, d->m_devices, key);
+                    device->addSubDevice(&d->sensors.back());
+                }
 
                 if (sensor.needSaveDatabase())
                 {
@@ -4332,7 +4430,7 @@ static int sqliteGetAllLightIdsCallback(void *user, int ncols, char **colval , c
         return 0;
     }
 
-    DeRestPluginPrivate *d = static_cast<DeRestPluginPrivate*>(user);
+    std::vector<int> *lightIds = static_cast<std::vector<int>*>(user);
 
     for (int i = 0; i < ncols; i++)
     {
@@ -4345,7 +4443,7 @@ static int sqliteGetAllLightIdsCallback(void *user, int ncols, char **colval , c
 
                 if (ok)
                 {
-                    d->lightIds.push_back(id);
+                    lightIds->push_back(id);
                 }
             }
         }
@@ -4356,23 +4454,23 @@ static int sqliteGetAllLightIdsCallback(void *user, int ncols, char **colval , c
 
 /*! Determines a unused id for a light.
  */
-int DeRestPluginPrivate::getFreeLightId()
+int getFreeLightId()
 {
-    int rc;
-    char *errmsg = 0;
+    DeRestPluginPrivate *plugin = DeRestPluginPrivate::instance();
 
-    DBG_Assert(db != 0);
+    DBG_Assert(plugin && plugin->dbIsOpen());
 
-    if (!db)
+    if (!plugin || !plugin->dbIsOpen())
     {
-        return 1;
+        DBG_Printf(DBG_ERROR, "DB getFreeSensorId() called with no valid db pointer\n");
+        return 1; // TODO, this is an error we should handle this. 1 is misleading
     }
 
-    lightIds.clear();
+    std::vector<int> lightIds(plugin->nodes.size());
 
     { // append all ids from nodes known at runtime
-        std::vector<LightNode>::const_iterator i = nodes.begin();
-        std::vector<LightNode>::const_iterator end = nodes.end();
+        std::vector<LightNode>::const_iterator i = plugin->nodes.begin();
+        std::vector<LightNode>::const_iterator end = plugin->nodes.end();
         for (;i != end; ++i)
         {
             lightIds.push_back(i->id().toUInt());
@@ -4380,10 +4478,11 @@ int DeRestPluginPrivate::getFreeLightId()
     }
 
     // append all ids from database (dublicates are ok here)
-    QString sql = QString("SELECT * FROM nodes");
+    const auto sql = QString("SELECT * FROM nodes");
 
     DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
-    rc = sqlite3_exec(db, qPrintable(sql), sqliteGetAllLightIdsCallback, this, &errmsg);
+    char *errmsg = nullptr;
+    int rc = sqlite3_exec(db, qPrintable(sql), sqliteGetAllLightIdsCallback, &lightIds, &errmsg);
 
     if (rc != SQLITE_OK)
     {
@@ -4397,7 +4496,7 @@ int DeRestPluginPrivate::getFreeLightId()
     int id = 1;
     while (1)
     {
-        std::vector<int>::iterator result = std::find(lightIds.begin(), lightIds.end(), id);
+        const auto result = std::find(lightIds.begin(), lightIds.end(), id);
 
         // id not known?
         if (result == lightIds.end())
@@ -6010,7 +6109,7 @@ bool DB_LoadSecret(DB_Secret &secret)
         return false;
     }
 
-    return true;
+    return !secret.secret.empty();
 }
 
 static bool initSecretsTable()
@@ -6344,4 +6443,390 @@ bool DB_DeleteAlarmSystemDevice(const std::string &uniqueId)
     }
 
     return true;
+}
+
+bool DB_StoreSubDevice(const QString &parentUniqueId, const QString &uniqueId)
+{
+    if (parentUniqueId.isEmpty() || uniqueId.isEmpty())
+    {
+        return false;
+    }
+
+    DeRestPluginPrivate::instance()->openDb();
+
+    if (!db)
+    {
+        return false;
+    }
+
+    const auto sql = QString("INSERT INTO sub_devices (device_id,uniqueid,timestamp)"
+                             " SELECT id, '%1', %2"
+                             " FROM devices WHERE mac = '%3'")
+                             .arg(uniqueId)
+                             .arg(QDateTime::currentMSecsSinceEpoch() / 1000)
+                             .arg(parentUniqueId);
+
+    char *errmsg = nullptr;
+
+    int rc = sqlite3_exec(db, qPrintable(sql), nullptr, nullptr, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", qPrintable(sql), errmsg, rc);
+            sqlite3_free(errmsg);
+        }
+    }
+
+    DeRestPluginPrivate::instance()->closeDb();
+    return true;
+}
+
+/*! Sqlite callback to check if an resource item entry already exists.
+ */
+static int sqliteSelectDeviceItemCallback(void *user, int, char **, char **)
+{
+    auto *result = static_cast<int*>(user);
+
+    if (result)
+    {
+        *result += 1;
+        return 0;
+    }
+
+    return 1;
+}
+
+bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item)
+{
+    const ResourceItem *uniqueId = sub->item(RAttrUniqueId);
+    if (!uniqueId)
+    {
+        return false;
+    }
+
+    DeRestPluginPrivate::instance()->openDb();
+    if (!db)
+    {
+        return false;
+    }
+
+    if (!item->lastChanged().isValid())
+    {
+        return false;
+    }
+
+    int ret = 0;
+    const uint64_t timestamp = item->lastChanged().toMSecsSinceEpoch() / 1000;
+    const QString value = item->toVariant().toString();
+
+    // 1) check insert or update needed
+
+    ret = snprintf(sqlBuf, sizeof(sqlBuf),
+                   "SELECT item,value,timestamp FROM resource_items"
+                   " WHERE sub_device_id = (SELECT id FROM sub_devices WHERE uniqueid = '%s')"
+                   " AND item = '%s' AND value = '%s' AND timestamp = %" PRIu64,
+                   uniqueId->toCString(),
+                   item->descriptor().suffix,
+                   qPrintable(value), timestamp);
+
+
+    assert(size_t(ret) < sizeof(sqlBuf));
+    if (size_t(ret) < sizeof(sqlBuf))
+    {
+        if (item->descriptor().type == DataTypeString)
+        {
+            char *c = strstr(sqlBuf, "AND timestamp"); // don't check timestamp for strings
+            if (c)
+            {
+                c[-1] = '\0';
+            }
+        }
+
+        char *errmsg = nullptr;
+
+        int nrows = 0;
+        int rc = sqlite3_exec(db, sqlBuf, sqliteSelectDeviceItemCallback, &nrows, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sqlBuf, errmsg, rc);
+                sqlite3_free(errmsg);
+            }
+        }
+
+        if (nrows > 0)
+        {
+            return true;
+        }
+    }
+
+    // 2) update or insert
+
+    ret = snprintf(sqlBuf, sizeof(sqlBuf),
+                       "INSERT INTO resource_items (sub_device_id,item,value,source,timestamp)"
+                       " SELECT id, '%s', '%s', 'dev', %" PRIu64
+                       " FROM sub_devices WHERE uniqueid = '%s'",
+                       item->descriptor().suffix,
+                       qPrintable(item->toVariant().toString()),
+                       timestamp, uniqueId->toCString());
+
+    assert(size_t(ret) < sizeof(sqlBuf));
+    if (size_t(ret) < sizeof(sqlBuf))
+    {
+        char *errmsg = nullptr;
+
+        int rc = sqlite3_exec(db, sqlBuf, nullptr, nullptr, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sqlBuf, errmsg, rc);
+                sqlite3_free(errmsg);
+            }
+        }
+    }
+
+    DeRestPluginPrivate::instance()->closeDb();
+    return true;
+}
+
+static int DB_LoadSubDeviceItemsCallback(void *user, int ncols, char **colval , char **)
+{
+    auto *result = static_cast<std::vector<DB_ResourceItem>*>(user);
+    Q_ASSERT(result);
+    Q_ASSERT(ncols == 3);
+
+    DB_ResourceItem ritem;
+
+    ritem.name = colval[0];
+    ritem.value = QString(colval[1]);
+    ritem.timestampMs = QString(colval[2]).toLongLong() * 1000;
+
+    if (!ritem.name.empty() && !ritem.value.isNull())
+    {
+        result->push_back(std::move(ritem));
+    }
+    return 0;
+};
+
+std::vector<DB_ResourceItem> DB_LoadSubDeviceItemsOfDevice(QLatin1String deviceUniqueId)
+{
+    assert(deviceUniqueId.size() == 23); // 64 bit uniqueId with : after each byte
+
+    std::vector<DB_ResourceItem> result;
+
+    if (deviceUniqueId.size() != 23)
+    {
+        return result;
+    }
+
+    DeRestPluginPrivate::instance()->openDb();
+
+    if (!db)
+    {
+        return result;
+    }
+
+    int ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT item,value,timestamp FROM resource_items"
+                                 " WHERE sub_device_id = (SELECT id FROM sub_devices WHERE uniqueid LIKE '%%%s%%')",
+                                 deviceUniqueId.data());
+    assert(size_t(ret) < sizeof(sqlBuf));
+    if (size_t(ret) < sizeof(sqlBuf))
+    {
+        char *errmsg = nullptr;
+        int rc = sqlite3_exec(db, sqlBuf, DB_LoadSubDeviceItemsCallback, &result, &errmsg);
+
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sqlBuf, errmsg, rc);
+            sqlite3_free(errmsg);
+        }
+    }
+
+    DeRestPluginPrivate::instance()->closeDb();
+
+    return result;
+}
+
+int DB_GetSubDeviceItemCount(QLatin1String uniqueId)
+{
+    int result = 0;
+
+    assert(db); // should be called while db is open
+    if (!db)
+    {
+        return result;
+    }
+
+    int rc = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT COUNT(item) FROM resource_items"
+                                         " WHERE sub_device_id = (SELECT id FROM sub_devices WHERE uniqueid = '%s')",
+                                         uniqueId.data());
+
+    assert(size_t(rc) < sizeof(sqlBuf));
+    if (size_t(rc) < sizeof(sqlBuf))
+    {
+        sqlite3_stmt *res = nullptr;
+
+        int rc = sqlite3_prepare_v2(db, sqlBuf, -1, &res, nullptr);
+        DBG_Assert(res);
+        DBG_Assert(rc == SQLITE_OK);
+
+        if (rc == SQLITE_OK)
+        {
+            rc = sqlite3_step(res);
+            DBG_Assert(rc == SQLITE_ROW);
+            if (rc == SQLITE_ROW)
+            {
+                result = sqlite3_column_int(res, 0);
+            }
+        }
+        else
+        {
+            DBG_Printf(DBG_ERROR, "error preparing sql (err: %d): %s\n", rc, sqlBuf);
+        }
+
+        rc = sqlite3_finalize(res);
+        DBG_Assert(rc == SQLITE_OK);
+    }
+
+    return result;
+}
+
+std::vector<DB_ResourceItem> DB_LoadSubDeviceItems(QLatin1String uniqueId)
+{
+    std::vector<DB_ResourceItem> result;
+
+    assert(uniqueId.size() <= 64);
+    if (uniqueId.size() > 64)
+    {
+        return result;
+    }
+
+    DeRestPluginPrivate::instance()->openDb();
+
+    if (!db)
+    {
+        return result;
+    }
+
+    int ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT item,value,timestamp FROM resource_items"
+                                         " WHERE sub_device_id = (SELECT id FROM sub_devices WHERE uniqueid = '%s')",
+                                         uniqueId.data());
+
+    assert(size_t(ret) < sizeof(sqlBuf));
+    if (size_t(ret) < sizeof(sqlBuf))
+    {
+        char *errmsg = nullptr;
+        int rc = sqlite3_exec(db, qPrintable(sqlBuf), DB_LoadSubDeviceItemsCallback, &result, &errmsg);
+
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sqlBuf, errmsg, rc);
+            sqlite3_free(errmsg);
+        }
+    }
+
+    DeRestPluginPrivate::instance()->closeDb();
+
+    return result;
+}
+
+bool DB_StoreSubDeviceItems(const Resource *sub)
+{
+    for (int i = 0; i < sub->itemCount(); i++)
+    {
+        auto *item = sub->itemForIndex(size_t(i));
+        Q_ASSERT(item);
+        DB_StoreSubDeviceItem(sub, item);
+    }
+
+    return true;
+}
+
+static int DB_LoadLegacyValueCallback(void *user, int ncols, char **colval , char **)
+{
+    auto *result = static_cast<DB_LegacyItem*>(user);
+    Q_ASSERT(result);
+    Q_ASSERT(ncols == 1);
+
+    result->value.setString(colval[0]);
+
+    return 0;
+};
+
+bool DB_LoadLegacySensorValue(DB_LegacyItem *litem)
+{
+    bool result = false;
+    DeRestPluginPrivate::instance()->openDb();
+
+    if (!db)
+    {
+        return result;
+    }
+
+    litem->value.clear();
+
+    int ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT %s FROM sensors WHERE uniqueid = '%s'",
+                       litem->column.c_str(), litem->uniqueId.c_str());
+
+    assert(size_t(ret) < sizeof(sqlBuf));
+    if (size_t(ret) < sizeof(sqlBuf))
+    {
+        char *errmsg = nullptr;
+        int rc = sqlite3_exec(db, sqlBuf, DB_LoadLegacyValueCallback, litem, &errmsg);
+
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sqlBuf, errmsg, rc);
+            sqlite3_free(errmsg);
+        }
+        else
+        {
+            result = !litem->value.empty();
+        }
+    }
+
+    DeRestPluginPrivate::instance()->closeDb();
+
+    return result;
+}
+
+bool DB_LoadLegacyLightValue(DB_LegacyItem *litem)
+{
+    bool result = false;
+    DeRestPluginPrivate::instance()->openDb();
+
+    if (!db)
+    {
+        return result;
+    }
+
+    litem->value.clear();
+
+    int ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT %s FROM nodes WHERE mac = '%s'", litem->column .c_str(), litem->uniqueId.c_str());
+    assert(size_t(ret) < sizeof(sqlBuf));
+    if (size_t(ret) < sizeof(sqlBuf))
+    {
+        char *errmsg = nullptr;
+        int rc = sqlite3_exec(db, sqlBuf, DB_LoadLegacyValueCallback, litem, &errmsg);
+
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sqlBuf, errmsg, rc);
+            sqlite3_free(errmsg);
+        }
+        else
+        {
+            result = !litem->value.empty();
+        }
+    }
+
+    DeRestPluginPrivate::instance()->closeDb();
+
+    return result;
 }

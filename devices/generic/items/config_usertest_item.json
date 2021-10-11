@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/usertest",
+	"datatype": "Bool",
+	"access": "RW",
+	"public": true,
+	"description": "Activates the user test mode."
+}
