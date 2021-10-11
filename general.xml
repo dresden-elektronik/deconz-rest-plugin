@@ -484,6 +484,7 @@
 					<attribute id="0x0000" type="u16" name="Group ID" required="m" showas="hex" default="0x0000"></attribute>
 					<attribute id="0x0001" type="u8" name="Scene ID" required="m" showas="hex" default="0x00"></attribute>
 					<attribute id="0x0002" type="u16" name="Transition time" required="m" showas="hex" default="0x0000"></attribute>
+					<attribute id="0x0003" type="u8" name="Name Length" required="m" showas="hex" default="0x00"></attribute>
 				</payload>
 			</command>
 			<command id="0x01" dir="recv" name="View scene" required="m" response="0x01">

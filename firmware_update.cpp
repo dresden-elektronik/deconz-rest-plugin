@@ -390,7 +390,7 @@ void DeRestPluginPrivate::queryFirmwareVersion()
 
     if (fwUpdateFile.isEmpty())
     {
-        DBG_Printf(DBG_ERROR, "GW update firmware not found: %s\n", qPrintable(fileName));
+        DBG_Printf(DBG_INFO_L2, "GW update firmware not found: %s\n", qPrintable(fileName));
         fwUpdateState = FW_Idle;
         fwUpdateTimer->start(FW_IDLE_TIMEOUT);
         return;
