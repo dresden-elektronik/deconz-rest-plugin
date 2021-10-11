@@ -1,0 +1,15 @@
+{
+    "schema": "subdevice1.schema.json",
+    "type": "$TYPE_HUMIDITY_SENSOR",
+    "name": "ZHAHumidity",
+    "restapi": "/sensors",
+    "order": 23,
+    "uuid": ["$address.ext", "0x01", "0x0405"],
+    "items": [
+        "config/on",
+        "config/offset",
+        "config/reachable",
+        "state/humidity",
+        "state/lastupdated"
+    ]
+}

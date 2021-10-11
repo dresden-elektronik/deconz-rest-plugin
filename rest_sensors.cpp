@@ -19,6 +19,7 @@
 #include "json.h"
 #include "product_match.h"
 #include "fan_control.h"
+#include "ias_ace.h"
 #include "simple_metering.h"
 #include "thermostat.h"
 #include "thermostat_ui_configuration.h"
@@ -852,7 +853,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigLock) // Boolean
                 {
-                    data.boolean ^= data.boolean;     // Flip bool value as 0 means lock and 1 means unlock
+                    data.boolean = !data.boolean;     // Flip bool value as 0 means lock and 1 means unlock
 
                     if (addTaskDoorLockUnlock(task, data.boolean))
                     {
@@ -977,7 +978,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigScheduleOn) // Boolean
                 {
-                    if (sensor->modelId() == QLatin1String("Thermostat")) { data.boolean ^= data.boolean; } // eCozy, flip true and false
+                    if (sensor->modelId() == QLatin1String("Thermostat")) { data.boolean = !data.boolean; } // eCozy, flip true and false
 
                     if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, THERM_ATTRID_THERMOSTAT_PROGRAMMING_OPERATION_MODE, deCONZ::Zcl8BitBitMap, data.boolean))
                     {
@@ -1098,7 +1099,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
-                             R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD MOES TRV"))
                     {
                         const auto match = matchKeyValue(data.string, RConfigModeValuesTuya1);
@@ -1134,6 +1134,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
                     else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
+                             R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV"))
                     {
                         const auto match = matchKeyValue(data.string, RConfigModeValuesTuya2);
@@ -1142,17 +1143,24 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             if (match.key == QLatin1String("off"))
                             {
-                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_MODE_3, QByteArray("\x00", 1)))
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_SCHEDULE_ENABLE, QByteArray("\x00", 1)) &&
+                                    sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_MODE_3, QByteArray("\x00", 1)))
+                                {
+                                    updated = true;
+                                }
+                            }
+                            else if (match.key == QLatin1String("heat"))
+                            {
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_SCHEDULE_ENABLE, QByteArray("\x00", 1)) &&
+                                    sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_MODE_3, QByteArray("\x01", 1)))
                                 {
                                     updated = true;
                                 }
                             }
                             else
                             {
-                                QByteArray tuyaData = QByteArray::fromRawData(match.value, 1);
-
-                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, 0x6c, tuyaData) &&
-                                    sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, 0x65, QByteArray("\x01", 1)))
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_SCHEDULE_ENABLE, QByteArray("\x01", 1)) &&
+                                    sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_MODE_3, QByteArray("\x01", 1)))
                                 {
                                     updated = true;
                                 }
@@ -1217,6 +1225,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             else if (sensor->modelId().startsWith(QLatin1String("SLR2")) ||
                                      sensor->modelId() == QLatin1String("SLR1b"))
                             {
+                                attributeList.insert(THERM_ATTRID_SYSTEM_MODE, (quint32)match.value);
+                                
                                 // Change automatically the Setpoint Hold
                                 // Add a timer for Boost mode
                                 if      (match.value == 0x00) { attributeList.insert(THERM_ATTRID_TEMPERATURE_SETPOINT_HOLD, (quint32)0x00); }
@@ -1557,7 +1567,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
                 }
-                else if (rid.suffix == RConfigWindowCoveringType) // Unsigned integer
+                if (rid.suffix == RConfigWindowCoveringType) // Unsigned integer
                 {
                     if (sensor->modelId().startsWith(QLatin1String("J1")))
                     {
@@ -2217,8 +2227,6 @@ int DeRestPluginPrivate::deleteSensor(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::searchNewSensors(const ApiRequest &req, ApiResponse &rsp)
 {
-    Q_UNUSED(req);
-
     if (!isInNetwork())
     {
         rsp.list.append(errorToMap(ERR_NOT_CONNECTED, QLatin1String("/sensors"), QLatin1String("Not connected")));
@@ -2226,6 +2234,7 @@ int DeRestPluginPrivate::searchNewSensors(const ApiRequest &req, ApiResponse &rs
         return REQ_READY_SEND;
     }
 
+    permitJoinApiKey = req.apikey();
     startSearchSensors();
     {
         QVariantMap rspItem;
@@ -2943,23 +2952,16 @@ void DeRestPluginPrivate::startSearchSensors()
     }
 
     searchSensorsTimeout = gwNetworkOpenDuration;
-    gwPermitJoinResend = searchSensorsTimeout;
-    if (!resendPermitJoinTimer->isActive())
-    {
-        resendPermitJoinTimer->start(100);
-    }
+    setPermitJoinDuration(searchSensorsTimeout);
 }
 
 /*! Handler for search sensors active state.
  */
 void DeRestPluginPrivate::searchSensorsTimerFired()
 {
-    if (gwPermitJoinResend == 0)
+    if (gwPermitJoinDuration == 0)
     {
-        if (gwPermitJoinDuration == 0)
-        {
-            searchSensorsTimeout = 0; // done
-        }
+        searchSensorsTimeout = 0; // done
     }
 
     if (searchSensorsTimeout > 0)
@@ -3008,14 +3010,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
 
         if (sensor->durationDue.isValid())
         {
-            QDateTime now = QDateTime::currentDateTime();
-
-            if (sensor->modelId() == QLatin1String("TY0202")) // Lidl/SILVERCREST motion sensor
-            {
-                continue; // will be only reset via IAS Zone status
-            }
-
-            if (sensor->durationDue <= now)
+            if (sensor->durationDue <= QDateTime::currentDateTime())
             {
                 // automatically set presence to false, if not triggered in config.duration
                 ResourceItem *item = sensor->item(RStatePresence);
@@ -3087,6 +3082,10 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                         updateSensorEtag(sensor);
                     }
                 }
+                else if (sensor->type().endsWith(QLatin1String("AncillaryControl")))
+                {
+                    DBG_Printf(DBG_IAS, "[IAS ACE] - Reseting counter\n");
+                }
 
                 sensor->durationDue = QDateTime();
             }
@@ -3136,6 +3135,11 @@ void DeRestPluginPrivate::checkInstaModelId(Sensor *sensor)
 void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
     if (searchSensorsState != SearchSensorsActive)
+    {
+        return;
+    }
+
+    if (DEV_TestManaged())
     {
         return;
     }

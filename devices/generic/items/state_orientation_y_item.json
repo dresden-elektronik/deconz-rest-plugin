@@ -1,0 +1,9 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/orientation_y",
+	"datatype": "Int16",
+	"access": "R",
+	"public": false,
+	"range": [-65535, 65535],
+	"description": "The Y orientation of a gyro."
+}

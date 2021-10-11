@@ -1,0 +1,11 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/sat",
+	"datatype": "UInt8",
+	"access": "RW",
+	"public": true,
+	"description": "The current color saturation.",
+	"parse": {"fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x0001", "eval": "Item.val = Attr.val"},
+	"read": {"fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x0001"},
+	"refresh.interval": 5
+}

@@ -1,20 +1,45 @@
+/*
+ * Copyright (c) 2020-2021 dresden elektronik ingenieurtechnik gmbh.
+ * All rights reserved.
+ *
+ * The software in this package is published under the terms of the BSD
+ * style license a copy of which has been included with this distribution in
+ * the LICENSE.txt file.
+ *
+ */
+
 #include <QLibrary>
-#include <array>
+#include <QDataStream>
+
 #ifdef HAS_OPENSSL
-#include <openssl/aes.h>
-#include <openssl/evp.h>
+#define OPEN_SSL_VERSION_MIN 0x10100000L
+
+#include <openssl/opensslv.h>
+#if OPENSSL_VERSION_NUMBER >= OPEN_SSL_VERSION_MIN
+  #define HAS_RECENT_OPENSSL
+#endif
+#endif
+
+#ifdef HAS_RECENT_OPENSSL
+  #include <openssl/aes.h>
+  #include <openssl/evp.h>
 #endif
 #include <string>
+#include "deconz/aps_controller.h"
+#include "deconz/dbg_trace.h"
+#include "deconz/green_power.h"
+#include "deconz/zcl.h"
 #include "green_power.h"
+#include "resource.h"
+
+#define GP_PAIR_INTERVAL_SECONDS (60 * 15)
 
 // this code is based on
 // https://github.com/Smanar/Zigbee_firmware/blob/master/Encryption.cpp
-#define OPEN_SSL_VERSION_MIN 0x10100000
 
 #define AES_KEYLENGTH 128
 #define AES_BLOCK_SIZE 16
 
-const unsigned char defaultTCLinkKey[] = { 0x5A, 0x69, 0x67, 0x42, 0x65, 0x65, 0x41, 0x6C, 0x6C, 0x69, 0x61, 0x6E, 0x63, 0x65, 0x30, 0x39 };
 
 // From https://github.com/Koenkk/zigbee-herdsman/blob/master/src/controller/greenPower.ts
 /*!
@@ -23,7 +48,8 @@ GpKey_t GP_DecryptSecurityKey(quint32 sourceID, const GpKey_t &securityKey)
 {
     GpKey_t result = { 0 };
 
-#ifdef HAS_OPENSSL
+#ifdef HAS_RECENT_OPENSSL
+    const unsigned char defaultTCLinkKey[] = { 0x5A, 0x69, 0x67, 0x42, 0x65, 0x65, 0x41, 0x6C, 0x6C, 0x69, 0x61, 0x6E, 0x63, 0x65, 0x30, 0x39 };
 
     unsigned char nonce[13]; // u8 source address, u32 frame counter, u8 security control
     unsigned char sourceIDInBytes[4];
@@ -53,7 +79,7 @@ GpKey_t GP_DecryptSecurityKey(quint32 sourceID, const GpKey_t &securityKey)
 
     if (!libCrypto.load() || !libSsl.load())
     {
-        DBG_Printf(DBG_INFO, "OpenSSl library for ZGP encryption not found\n");
+        DBG_Printf(DBG_ZGP, "[ZGP] OpenSSl library for ZGP encryption not found\n");
         return result;
     }
 
@@ -80,11 +106,11 @@ GpKey_t GP_DecryptSecurityKey(quint32 sourceID, const GpKey_t &securityKey)
             _EVP_CIPHER_CTX_free &&
             _EVP_aes_128_ccm)
     {
-        DBG_Printf(DBG_INFO, "OpenSSl version 0x%08X loaded\n", openSslVersion);
+        DBG_Printf(DBG_ZGP, "[ZGP] OpenSSl version 0x%08X loaded\n", openSslVersion);
     }
     else
     {
-        DBG_Printf(DBG_INFO, "OpenSSl library version 0x%08X for ZGP encryption resolve symbols failed\n", openSslVersion);
+        DBG_Printf(DBG_ZGP, "[ZGP] OpenSSl library version 0x%08X for ZGP encryption resolve symbols failed\n", openSslVersion);
         return result;
     }
 
@@ -110,7 +136,10 @@ GpKey_t GP_DecryptSecurityKey(quint32 sourceID, const GpKey_t &securityKey)
 
     std::copy(encryptBuf.begin(), encryptBuf.begin() + result.size(), result.begin());
 
-#endif // HAS_OPENSSL
+#else
+    Q_UNUSED(securityKey)
+    DBG_Printf(DBG_ERROR, "[ZGP] failed to decrypt GPDKey for 0x%08X, OpenSSL is not available or too old\n", unsigned(sourceID));
+#endif // HAS_RECENT_OPENSSL
 
     return result;
 }
@@ -161,11 +190,11 @@ bool GP_SendProxyCommissioningMode(deCONZ::ApsController *apsCtrl, quint8 zclSeq
     // broadcast
     if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
     {
-        DBG_Printf(DBG_INFO, "send GP proxy commissioning mode\n");
+        DBG_Printf(DBG_ZGP, "[ZGP] send GP proxy commissioning mode\n");
         return true;
     }
 
-    DBG_Printf(DBG_INFO, "send GP proxy commissioning mode failed\n");
+    DBG_Printf(DBG_ZGP, "[ZGP] send GP proxy commissioning mode failed\n");
     return false;
 }
 
@@ -204,7 +233,7 @@ bool GP_SendPairing(quint32 gpdSrcId, quint16 sinkGroupId, quint8 deviceId, quin
         // 4: remove gpd
         // 5..6: communication mode
         // 7: gpd fixed
-        quint8 options0 = 0xc8; // bits 0..7: add sink, enter commissioning mode, exit on window expire
+        quint8 options0 = 0x48; // bits 0..7: add sink, enter commissioning mode, exit on window expire
 
         // 0 / 8: gpd mac seq number capabilities
         // 1..2 / 9..10: security level
@@ -245,10 +274,131 @@ bool GP_SendPairing(quint32 gpdSrcId, quint16 sinkGroupId, quint8 deviceId, quin
     // broadcast
     if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
     {
-        DBG_Printf(DBG_INFO, "send GP pairing to 0x%04X\n", gppShortAddress);
+        DBG_Printf(DBG_ZGP, "[ZGP]  send GP pairing to 0x%04X\n", gppShortAddress);
         return true;
     }
 
-    DBG_Printf(DBG_INFO, "send GP pairing to 0x%04X failed\n", gppShortAddress);
+    DBG_Printf(DBG_ZGP, "[ZGP] send GP pairing to 0x%04X failed\n", gppShortAddress);
+    return false;
+}
+
+
+// TODO remove TMP_ functions after alarm systems PR is merged, where these functions are in utils.h
+static bool TMP_isHexChar(char ch)
+{
+    return ((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F'));
+}
+
+static quint64 TMP_extAddressFromUniqueId(const QString &uniqueId)
+{
+    quint64 result = 0;
+
+    if (uniqueId.size() < 23)
+    {
+        return result;
+    }
+
+    // 28:6d:97:00:01:06:41:79-01-0500  31 characters
+    int pos = 0;
+    char buf[16 + 1];
+
+    for (auto ch : uniqueId)
+    {
+        if (ch != ':')
+        {
+            buf[pos] = ch.toLatin1();
+
+            if (!TMP_isHexChar(buf[pos]))
+            {
+                return result;
+            }
+            pos++;
+        }
+
+        if (pos == 16)
+        {
+            buf[pos] = '\0';
+            break;
+        }
+    }
+
+    if (pos == 16)
+    {
+        result = strtoull(buf, nullptr, 16);
+    }
+
+    return result;
+}
+
+/*! For already paired ZGP devices a Pair command needs to be send periodically every \c GP_PAIR_INTERVAL_SECONDS
+    in order to keep ZGP Proxy entrys alive.
+
+    Each ZGP device keeps track of when the last Pair command was sent and the current device frame counter.
+ */
+bool GP_SendPairingIfNeeded(Resource *resource, deCONZ::ApsController *apsCtrl, quint8 zclSeqNo)
+{
+    if (!resource || !apsCtrl)
+    {
+        return false;
+    }
+
+    ResourceItem *gpdLastpair = resource->item(RStateGPDLastPair);
+    if (!gpdLastpair)
+    {
+        return false;
+    }
+
+    const deCONZ::SteadyTimeRef now = deCONZ::steadyTimeRef();
+
+    if (now - deCONZ::SteadyTimeRef{gpdLastpair->toNumber()} < deCONZ::TimeSeconds{GP_PAIR_INTERVAL_SECONDS})
+    {
+        return false;
+    }
+
+    // the GPDKey must be known to send pair command
+    ResourceItem *gpdKey = resource->item(RConfigGPDKey);
+
+    if (!gpdKey || gpdKey->toString().isEmpty())
+    {
+        return false;
+    }
+
+    ResourceItem *frameCounter = resource->item(RStateGPDFrameCounter);
+    ResourceItem *gpdDeviceId = resource->item(RConfigGPDDeviceId);
+    ResourceItem *uniqueId = resource->item(RAttrUniqueId);
+
+    if (!gpdKey || !frameCounter || !gpdDeviceId || !uniqueId)
+    {
+        return false;
+    }
+
+    auto srcGpdId = TMP_extAddressFromUniqueId(uniqueId->toString());
+
+    if (srcGpdId == 0 || srcGpdId > UINT32_MAX)
+    {
+        return false; // should not happen
+    }
+
+    GpKey_t key;
+
+    {
+        QByteArray arr = QByteArray::fromHex(gpdKey->toString().toLocal8Bit());
+        DBG_Assert(arr.size() == int(key.size()));
+        if (arr.size() != int(key.size()))
+        {
+            return false;
+        }
+
+        memcpy(key.data(), arr.constData(), key.size());
+    }
+
+    quint8 deviceId = gpdDeviceId->toNumber() & 0xFF;
+
+    if (GP_SendPairing(quint32(srcGpdId), GP_DEFAULT_PROXY_GROUP, deviceId, frameCounter->toNumber(), key, apsCtrl, zclSeqNo, deCONZ::BroadcastRouters))
+    {
+        gpdLastpair->setValue(now.ref);
+        return true;
+    }
+
     return false;
 }
