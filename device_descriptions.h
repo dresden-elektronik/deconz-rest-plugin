@@ -16,6 +16,8 @@
 #include "resource.h"
 #include "sensor.h"
 
+#define SUBDEVICE_DEFAULT_ORDER  200
+
 class Event;
 
 class DDF_ZclReport
@@ -186,6 +188,7 @@ public:
     QString restApi;
     QStringList uniqueId;
     std::vector<const char*> items; // RAttrName, etc.
+    int order;
 };
 
 inline bool isValid(const DDF_SubDeviceDescriptor &sub)

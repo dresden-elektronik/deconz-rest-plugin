@@ -1489,6 +1489,9 @@ static DDF_SubDeviceDescriptor DDF_ReadSubDeviceFile(const QString &path)
         {
             result.restApi = obj.value(QLatin1String("restapi")).toString();
         }
+
+        result.order = obj.value(QLatin1String("order")).toInt(SUBDEVICE_DEFAULT_ORDER);
+
         if (obj.contains(QLatin1String("uuid")))
         {
             const auto uniqueId = obj.value(QLatin1String("uuid"));
@@ -1677,4 +1680,29 @@ static DeviceDescription DDF_MergeGenericItems(const std::vector<DeviceDescripti
     }
 
     return result;
+}
+
+uint8_t DDF_GetSubDeviceOrder(const QString &type)
+{
+    if (type.isEmpty() || type.startsWith(QLatin1String("CLIP")))
+    {
+        return SUBDEVICE_DEFAULT_ORDER;
+    }
+
+    if (_priv)
+    {
+        auto i = std::find_if(_priv->subDevices.cbegin(), _priv->subDevices.cend(), [&](const auto &sub)
+        { return sub.name == type; });
+
+        if (i != _priv->subDevices.cend())
+        {
+            return i->order;
+        }
+    }
+
+#ifdef QT_DEBUG
+    DBG_Printf(DBG_DDF, "DDF: No subdevice for type: %s\n", qPrintable(type));
+#endif
+
+    return SUBDEVICE_DEFAULT_ORDER;
 }

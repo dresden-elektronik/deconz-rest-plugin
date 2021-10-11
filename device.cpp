@@ -1564,6 +1564,13 @@ void Device::addSubDevice(Resource *sub)
         {
             hnd = sub->handle();
             DEV_CheckReachable(this);
+
+            std::sort(d->subResourceHandles.begin(), d->subResourceHandles.end(), [](const auto &a, const auto &b)
+            {
+                if (a.order == 0) { return false; }
+                return a.order < b.order;
+            });
+
             return;
         }
     }

@@ -459,7 +459,7 @@ public:
         // 'L' LightNode
         // 'S' Sensor
         char type = 0;
-        quint8 reserved = 0;
+        quint8 order = 0;
     };
 
     Resource(const char *prefix);
@@ -586,6 +586,7 @@ bool R_SetValueEventOnSet(Resource *r, const char *suffix, const V &val, Resourc
     return result;
 }
 
+uint8_t DDF_GetSubDeviceOrder(const QString &type);
 QLatin1String R_DataTypeToString(ApiDataType type);
 Resource::Handle R_CreateResourceHandle(const Resource *r, size_t containerIndex);
 inline bool isValid(Resource::Handle hnd) { return hnd.hash != 0 && hnd.index < UINT16_MAX && hnd.type != 0; }

@@ -17812,6 +17812,18 @@ void DeRestPluginPrivate::pushSensorInfoToCore(Sensor *sensor)
 
     Q_Q(DeRestPlugin);
 
+    bool isMainSubDevice = false;
+    Device *device = static_cast<Device*>(sensor->parentResource());
+
+    if (device)
+    {
+        const auto &subs = device->subDevices();
+        if (!subs.empty() && subs.front() == sensor)
+        {
+            isMainSubDevice = true;
+        }
+    }
+
     if (sensor->modelId().startsWith(QLatin1String("FLS-NB")))
     { } // use name from light
     else if (sensor->modelId().startsWith(QLatin1String("D1")) || sensor->modelId().startsWith(QLatin1String("S1")) ||
@@ -17823,19 +17835,19 @@ void DeRestPluginPrivate::pushSensorInfoToCore(Sensor *sensor)
     { } // use name from ZHAPresence sensor only
     else if (sensor->modelId() == QLatin1String("WarningDevice") && sensor->type() == QLatin1String("ZHAAlarm"))
     { } // use name from light
-    else if (!sensor->name().isEmpty())
+    else if (!sensor->name().isEmpty() || isMainSubDevice)
     {
-        q->nodeUpdated(sensor->address().ext(), QLatin1String("name"), sensor->name());
+        emit q->nodeUpdated(sensor->address().ext(), QLatin1String("name"), sensor->name());
     }
 
     if (!sensor->modelId().isEmpty())
     {
-        q->nodeUpdated(sensor->address().ext(), QLatin1String("modelid"), sensor->modelId());
+        emit q->nodeUpdated(sensor->address().ext(), QLatin1String("modelid"), sensor->modelId());
     }
 
     if (!sensor->manufacturer().isEmpty())
     {
-        q->nodeUpdated(sensor->address().ext(), QLatin1String("vendor"), sensor->manufacturer());
+        emit q->nodeUpdated(sensor->address().ext(), QLatin1String("vendor"), sensor->manufacturer());
     }
 
     if (!sensor->swVersion().isEmpty())
