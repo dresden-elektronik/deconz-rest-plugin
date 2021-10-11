@@ -1099,7 +1099,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
-                             R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD MOES TRV"))
                     {
                         const auto match = matchKeyValue(data.string, RConfigModeValuesTuya1);
@@ -1135,6 +1134,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
                     else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
+                             R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV"))
                     {
                         const auto match = matchKeyValue(data.string, RConfigModeValuesTuya2);
@@ -1143,17 +1143,24 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             if (match.key == QLatin1String("off"))
                             {
-                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_MODE_3, QByteArray("\x00", 1)))
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_SCHEDULE_ENABLE, QByteArray("\x00", 1)) &&
+                                    sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_MODE_3, QByteArray("\x00", 1)))
+                                {
+                                    updated = true;
+                                }
+                            }
+                            else if (match.key == QLatin1String("heat"))
+                            {
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_SCHEDULE_ENABLE, QByteArray("\x00", 1)) &&
+                                    sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_MODE_3, QByteArray("\x01", 1)))
                                 {
                                     updated = true;
                                 }
                             }
                             else
                             {
-                                QByteArray tuyaData = QByteArray::fromRawData(match.value, 1);
-
-                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, 0x6c, tuyaData) &&
-                                    sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, 0x65, QByteArray("\x01", 1)))
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_SCHEDULE_ENABLE, QByteArray("\x01", 1)) &&
+                                    sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_MODE_3, QByteArray("\x01", 1)))
                                 {
                                     updated = true;
                                 }
@@ -2220,8 +2227,6 @@ int DeRestPluginPrivate::deleteSensor(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::searchNewSensors(const ApiRequest &req, ApiResponse &rsp)
 {
-    Q_UNUSED(req);
-
     if (!isInNetwork())
     {
         rsp.list.append(errorToMap(ERR_NOT_CONNECTED, QLatin1String("/sensors"), QLatin1String("Not connected")));
@@ -2229,6 +2234,7 @@ int DeRestPluginPrivate::searchNewSensors(const ApiRequest &req, ApiResponse &rs
         return REQ_READY_SEND;
     }
 
+    permitJoinApiKey = req.apikey();
     startSearchSensors();
     {
         QVariantMap rspItem;
@@ -2946,23 +2952,16 @@ void DeRestPluginPrivate::startSearchSensors()
     }
 
     searchSensorsTimeout = gwNetworkOpenDuration;
-    gwPermitJoinResend = searchSensorsTimeout;
-    if (!resendPermitJoinTimer->isActive())
-    {
-        resendPermitJoinTimer->start(100);
-    }
+    setPermitJoinDuration(searchSensorsTimeout);
 }
 
 /*! Handler for search sensors active state.
  */
 void DeRestPluginPrivate::searchSensorsTimerFired()
 {
-    if (gwPermitJoinResend == 0)
+    if (gwPermitJoinDuration == 0)
     {
-        if (gwPermitJoinDuration == 0)
-        {
-            searchSensorsTimeout = 0; // done
-        }
+        searchSensorsTimeout = 0; // done
     }
 
     if (searchSensorsTimeout > 0)
@@ -3136,6 +3135,11 @@ void DeRestPluginPrivate::checkInstaModelId(Sensor *sensor)
 void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
     if (searchSensorsState != SearchSensorsActive)
+    {
+        return;
+    }
+
+    if (DEV_TestManaged())
     {
         return;
     }

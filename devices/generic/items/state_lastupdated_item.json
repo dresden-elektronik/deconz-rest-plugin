@@ -1,0 +1,10 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/lastupdated",
+	"datatype": "ISO 8601 timestamp",
+	"access": "R",
+	"public": true,
+	"implicit": true,
+	"managed": true,
+	"description": "Timestamp when state was last updated."
+}

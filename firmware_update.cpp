@@ -390,7 +390,7 @@ void DeRestPluginPrivate::queryFirmwareVersion()
 
     if (fwUpdateFile.isEmpty())
     {
-        DBG_Printf(DBG_ERROR, "GW update firmware not found: %s\n", qPrintable(fileName));
+        DBG_Printf(DBG_INFO_L2, "GW update firmware not found: %s\n", qPrintable(fileName));
         fwUpdateState = FW_Idle;
         fwUpdateTimer->start(FW_IDLE_TIMEOUT);
         return;
@@ -438,7 +438,7 @@ void DeRestPluginPrivate::queryFirmwareVersion()
             updateEtag(gwConfigEtag);
         }
 
-        DBG_Printf(DBG_INFO, "GW firmware version: %s\n", qPrintable(gwFirmwareVersion));
+        DBG_Printf(DBG_INFO_L2, "GW firmware version: %s\n", qPrintable(gwFirmwareVersion));
 
         // if the device is detected check that the firmware version is >= min version
         // if fwVersion is FW_ONLY_AVR_BOOTLOADER, there might be no firmware at all, but update is possible

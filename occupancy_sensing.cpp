@@ -1,5 +1,6 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
+#include "device_descriptions.h"
 
 #define OCCUPIED_STATE                  0x0000
 #define OCCUPIED_TO_UNOCCUPIED_DELAY    0x0010
@@ -85,6 +86,8 @@ void DeRestPluginPrivate::handleOccupancySensingClusterIndication(const deCONZ::
                 item->setValue(occupancy);
                 enqueueEvent(Event(RSensors, RStatePresence, sensor->id(), item));
                 stateUpdated = true;
+
+                DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "Item.val = Attr.val != 0");
 
                 // The checked sensors support reporting occupancy = false
                 if (!sensor->modelId().startsWith(QLatin1String("MOSZB-1")) && !sensor->modelId().startsWith(QLatin1String("SML00")))

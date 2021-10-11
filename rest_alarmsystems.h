@@ -11,6 +11,8 @@
 #ifndef REST_ALARMSYSTEMS_H
 #define REST_ALARMSYSTEMS_H
 
+#include <QVariant>
+
 class ApiRequest;
 class ApiResponse;
 class EventEmitter;
@@ -23,5 +25,6 @@ class AlarmSystems;
             REQ_NOT_HANDLED
  */
 int AS_handleAlarmSystemsApi(const ApiRequest &req, ApiResponse &rsp, AlarmSystems &alarmSystems, EventEmitter *eventEmitter);
+QVariantMap AS_AlarmSystemsToMap(const AlarmSystems &alarmSystems);
 
 #endif // REST_ALARMSYSTEMS_H
