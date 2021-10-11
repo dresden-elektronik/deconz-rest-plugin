@@ -4014,9 +4014,10 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
          sensor->modelId() == QLatin1String("Double gangs remote switch") ||
 	     sensor->modelId() == QLatin1String("Shutters central remote switch") ||
          sensor->modelId() == QLatin1String("Remote toggle switch") ||
+         sensor->modelId() == QLatin1String("Remote dimmer switch") ||
          sensor->modelId() == QLatin1String("Remote motion sensor"))
     {
-        //Make group but without uniqueid
+        //Make group but without uniqueid, Legrand Stuff, don't have group cluster
     }
     else if (sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
              sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
