@@ -1,6 +1,5 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
-#include "device_descriptions.h"
 #include "simple_metering.h"
 
 const std::array<KeyValMapInt, 8> RConfigInterfaceModeValuesZHEMI = { { {1, PULSE_COUNTING_ELECTRICITY}, {2, PULSE_COUNTING_GAS}, {3, PULSE_COUNTING_WATER},
@@ -92,32 +91,23 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
                     modelId == QLatin1String("Connected socket outlet"))          // Niko smart socket
                 {
                     consumption = static_cast<quint64>(round((double)consumption / 10.0)); // 0.1 Wh -> Wh
-                    DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "Item.val = Math.round(Attr.val / 10)");
                 }
                 else if (modelId == QLatin1String("SP 120") ||                    // innr
                          modelId == QLatin1String("Plug-230V-ZB3.0") ||           // Immax
                          modelId == QLatin1String("Smart plug Zigbee PE") ||      // Niko Smart Plug 552-80699
-                         modelId == QLatin1String("TS011F") ||                    // Tuya / Blitzwolf 
                          modelId == QLatin1String("TS0121"))                      // Tuya / Blitzwolf
                 {
                     consumption *= 10; // 0.01 kWh = 10 Wh -> Wh
-                    DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "Item.val = Attr.val * 10");
                 }
                 else if (modelId.startsWith(QLatin1String("SZ-ESW01"))) // Sercomm / Telstra smart plug
                 {
                     consumption = static_cast<quint64>(round((double)consumption / 1000.0)); // -> Wh
-                    DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "Item.val = Math.round(Attr.val / 1000)");
                 }
                 else if (modelId.startsWith(QLatin1String("ROB_200")) ||            // ROBB Smarrt micro dimmer
                          modelId.startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
                          modelId.startsWith(QLatin1String("SPW35Z")))               // RT-RK OBLO SPW35ZD0 smart plug
                 {
                     consumption = static_cast<quint64>(round((double)consumption / 3600.0)); // -> Wh
-                    DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "Item.val = Math.round(Attr.val / 3600)");
-                }
-                else
-                {
-                    DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "Item.val = Attr.val");
                 }
 
                 if (item && item->toNumber() != static_cast<qint64>(consumption))
@@ -137,8 +127,6 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
                 {
                     quint16 pulseConfiguration = attr.numericValue().u16;
                     item = sensor->item(RConfigPulseConfiguration);
-
-                    DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "Item.val = Attr.val");
 
                     if (item && item->toNumber() != pulseConfiguration)
                     {
@@ -178,8 +166,6 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
                         else if (interfaceMode == KAIFA_KAMSTRUP_METERS)    { mode = 4; }
                         else if (interfaceMode == AUTO_DETECT)              { mode = 5; }                        
                     }
-
-                    DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "console.log('todo script')");
                     
                     if (item && mode != 0 && item->toNumber() != mode)
                     {
@@ -205,12 +191,10 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
                     modelId.startsWith(QLatin1String("160-01")))              // Plugwise smart plug
                 {
                     power = static_cast<qint32>(round((double)power / 10.0)); // 0.1W -> W
-                    DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "Item.val = Math.round(Attr.val / 10)");
                 }
                 else if (modelId.startsWith(QLatin1String("SZ-ESW01")))       // Sercomm / Telstra smart plug
                 {
                     power = static_cast<qint32>(round((double)power / 1000.0)); // -> W
-                    DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "Item.val = Math.round(Attr.val / 1000)");
                 }
 
                 if (item && item->toNumber() != power)

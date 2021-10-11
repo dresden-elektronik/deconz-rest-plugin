@@ -916,7 +916,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         //if (data == 1) { away = true; }
                     }
                     break;
-                    case 0x016c: // manual / auto : Schedule mode for Saswell devices
+                    case 0x016c: // manual / auto
                     {
                         QString mode;
                         if      (data == 0) { mode = QLatin1String("heat"); } // was "manu"

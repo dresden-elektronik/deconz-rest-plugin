@@ -1,8 +1,0 @@
-{
-	"schema": "resourceitem1.schema.json",
-	"id": "state/vibration",
-	"datatype": "Bool",
-	"access": "RW",
-	"public": true,
-	"description": "True when vibration is detected."
-}

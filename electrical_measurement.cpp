@@ -1,7 +1,5 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
-#include "device.h"
-#include "device_descriptions.h"
 
 #define ACTIVE_POWER                            0x050B
 #define RMS_VOLTAGE                             0x0505
@@ -14,11 +12,6 @@
  */
 void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame)
 {
-    if (DEV_TestStrict())
-    {
-        return;
-    }
-
     if (zclFrame.isDefaultResponse())
     {
         return;
@@ -103,30 +96,22 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                         modelId.startsWith(QLatin1String("lumi.switch.b1naus01")))            // Xiaomi ZB3.0 Smart Wall Switch
                     {
                         power = static_cast<qint16>(round((double)power / 10.0)); // 0.1W -> W
-                        DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "if (Attr.val != -32768) { Item.val = Math.round(Attr.val / 10); } ");
                     }
                     else if (modelId.startsWith(QLatin1String("Plug")) && sensor->manufacturer() == QLatin1String("OSRAM")) // OSRAM
                     {
                         power = power == 28000 ? 0 : power / 10;
-                        DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "if (Attr.val != -32768) { Item.val = Attr.val == 28000 ? 0: Attr.val / 10; } ");
                     }
                     else if (modelId.startsWith(QLatin1String("SZ-ESW01")))                   // Sercomm / Telstra smart plug
                     {
                         power = static_cast<qint16>(round(((double)power * 128) / 1000.0));
-                        DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "if (Attr.val != -32768) { Item.val = Math.round(Attr.val * 128 / 1000); } ");
                     }
                     else if (modelId == QLatin1String("Connected socket outlet"))             // Niko smart socket
                     {
                         power = static_cast<qint16>(round(((double)power * 1123) / 10000.0));
-                        DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "if (Attr.val != -32768) { Item.val = Math.round(Attr.val * 1123 / 10000); } ");
                     }
                     else if (modelId.startsWith(QLatin1String("lumi.relay.c2acn")))           // Xiaomi relay
                     {
                         continue;   // Device seems to always report -1 via this cluster/attribute
-                    }
-                    else
-                    {
-                        DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "if (Attr.val != -32768) { Item.val = Attr.val; } ");
                     }
 
                     if (item->toNumber() != power)
@@ -157,7 +142,6 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                         modelId == QLatin1String("PoP"))                                               // Apex Smart Plug
                     {
                         voltage = static_cast<quint16>(round((double)voltage / 100.0)); // 0.01V -> V
-                        DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "if (Attr.val != 65535) { Item.val = Math.round(Attr.val / 100); } ");
                     }
                     else if (modelId == QLatin1String("RICI01") ||                                     // LifeControl Smart Plug
                              modelId.startsWith(QLatin1String("outlet")) ||                            // Samsung SmartThings IM6001-OTP/IM6001-OTP01
@@ -167,16 +151,10 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                              modelId.startsWith(QLatin1String("TH112")))                               // Sinope Thermostats
                     {
                         voltage = static_cast<quint16>(round((double)voltage / 10.0)); // 0.1V -> V
-                        DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "if (Attr.val != 65535) { Item.val = Math.round(Attr.val / 10); } ");
                     }
                     else if (modelId.startsWith(QLatin1String("SZ-ESW01")))                            // Sercomm / Telstra smart plug
                     {
                         voltage = static_cast<quint16>(round((double)voltage / 125.0)); // -> V
-                        DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "if (Attr.val != 65535) { Item.val = Math.round(Attr.val / 125); } ");
-                    }
-                    else
-                    {
-                        DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "if (Attr.val != 65535) { Item.val = Attr.val; } ");
                     }
 
                     if (item->toNumber() != voltage)
@@ -210,15 +188,12 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                         modelId.startsWith(QLatin1String("Micro Smart Dimmer")) ||                // Sunricher Micro Smart Dimmer
                         modelId == QLatin1String("Connected socket outlet") ||                    // Niko smart socket
                         modelId == QLatin1String("SMRZB-1") ||                                    // Develco smart cable
-                        modelId == QLatin1String("PoP") ||                                        // Apex Smart Plug
-                        modelId == QLatin1String("TS011F") ||                                     // Tuya plugs
                         modelId.startsWith(QLatin1String("S1")) ||                                // Ubisys S1/S1-R
                         modelId.startsWith(QLatin1String("S2")) ||                                // Ubisys S2/S2-R
                         modelId.startsWith(QLatin1String("J1")) ||                                // Ubisys J1/J1-R
                         modelId.startsWith(QLatin1String("D1")))                                  // Ubisys D1/D1-R
                     {
                         // already in mA
-                        DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "if (Attr.val != 65535) { Item.val = Attr.val; } ");
                     }
                     else if (modelId == QLatin1String("SmartPlug") ||                             // Heiman
                              modelId.startsWith(QLatin1String("EMIZB-1")) ||                      // Develco EMI
@@ -229,12 +204,10 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                              modelId == QLatin1String("TH1300ZB"))                                // Sinope thermostat
                     {
                         current *= 10; // 0.01A -> mA
-                        DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "if (Attr.val != 65535) { Item.val = Attr.val * 10; } ");
                     }
                     else
                     {
                         current *= 1000; // A -> mA
-                        DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "if (Attr.val != 65535) { Item.val = Attr.val * 1000; } ");
                     }
 
                     if (item->toNumber() != current)
@@ -259,11 +232,6 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                     if (modelId == QLatin1String("TH1300ZB")) // Sinope thermostat
                     {
                         power = static_cast<quint16>(round((double)power / 1000.0)); // -> W
-                        DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "if (Attr.val != 65535) { Item.val = Math.round(Attr.val / 1000); } ");
-                    }
-                    else
-                    {
-                        DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "if (Attr.val != 65535) { Item.val = Attr.val; } ");
                     }
 
                     if (item->toNumber() != power)

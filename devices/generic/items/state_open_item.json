@@ -1,8 +1,0 @@
-{
-	"schema": "resourceitem1.schema.json",
-	"id": "state/open",
-	"datatype": "Bool",
-	"access": "RW",
-	"public": true,
-	"description": "The open/close state."
-}

@@ -37,10 +37,6 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
         stream >> macCapabilities;
     }
 
-    auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, ext);
-    Q_ASSERT(device);
-    enqueueEvent(Event(device->prefix(), REventDeviceAnnounce, int(macCapabilities), device->key()));
-
     for (; i != end; ++i)
     {
         if (i->state() != LightNode::StateNormal)
@@ -131,11 +127,8 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
             i->enableRead(READ_GROUPS | READ_SCENES);
 
             // bring to front to force next polling
-            if (!device->managed())
-            {
-                const PollNodeItem pollItem(i->uniqueId(), i->prefix());
-                pollNodes.push_front(pollItem);
-            }
+            const PollNodeItem pollItem(i->uniqueId(), i->prefix());
+            pollNodes.push_front(pollItem);
 
             for (uint32_t ii = 0; ii < 32; ii++)
             {
@@ -268,9 +261,6 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
         deCONZ::ZclFrame zclFrame; // dummy
         handleIndicationSearchSensors(ind, zclFrame);
     }
-
-    Q_ASSERT(device);
-    enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
 }
 
 struct MapMfCode

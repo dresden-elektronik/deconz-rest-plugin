@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2018 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -440,7 +440,7 @@ void PollManager::pollTimerFired()
         if (item && (item->toString().isEmpty() ||
              (item->lastSet().secsTo(now) > READ_SWBUILD_ID_INTERVAL))) // dynamic
         {
-            if (lightNode->manufacturerCode() == VENDOR_EMBER && lightNode->modelId() == QLatin1String("TS011F")) // Tuya plugs
+            if (lightNode->manufacturerCode() == VENDOR_EMBER && lightNode->modelId() == QLatin1String("TS011F")) // LIDL plugs
             {
                 if (item->toString().isEmpty())
                 {

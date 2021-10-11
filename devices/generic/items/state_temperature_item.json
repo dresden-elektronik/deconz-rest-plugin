@@ -1,9 +1,0 @@
-{
-	"schema": "resourceitem1.schema.json",
-	"id": "state/temperature",
-	"datatype": "Int16",
-	"access": "R",
-	"public": true,
-	"range": [0, 255],
-	"description": "The current temperature in °C &times; 100."
-}

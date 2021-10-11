@@ -12,7 +12,6 @@
 #define BINDINGS_H
 
 #include <QElapsedTimer>
-#include <deconz.h>
 
 /*! \class Binding
 
@@ -112,9 +111,5 @@ public:
     quint32 reportableChange48bit;          // there's no quint48
     quint16 manufacturerCode;
 };
-
-#if DECONZ_LIB_VERSION >= 0x010F00
-deCONZ::Binding convertToCoreBinding(const Binding &bnd);
-#endif
 
 #endif // BINDINGS_H

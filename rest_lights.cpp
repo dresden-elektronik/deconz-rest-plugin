@@ -152,6 +152,8 @@ int DeRestPluginPrivate::getAllLights(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::searchNewLights(const ApiRequest &req, ApiResponse &rsp)
 {
+    Q_UNUSED(req);
+
     if (!isInNetwork())
     {
         rsp.list.append(errorToMap(ERR_NOT_CONNECTED, QLatin1String("/lights"), QLatin1String("Not connected")));
@@ -159,7 +161,6 @@ int DeRestPluginPrivate::searchNewLights(const ApiRequest &req, ApiResponse &rsp
         return REQ_READY_SEND;
     }
 
-    permitJoinApiKey = req.apikey();
     startSearchLights();
     {
         QVariantMap rspItem;
@@ -911,15 +912,12 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
         if (!isOn && hasBri && taskRef.onTime == 0)
         {
-            // if a light is off and should transition from 0 to new brightness
-            // turn light on at lowest brightness first
             TaskItem task;
             copyTaskReq(taskRef, task);
             task.transitionTime = 0;
 
             ok = addTaskSetBrightness(task, 2, true);
         }
-
         // Danalock support. In rest_lights.cpp, you need to call this routine from setLightState() under if (hasOn)
         if (isDoorLockDevice)
         {
@@ -931,15 +929,6 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                     ? ONOFF_COMMAND_ON_WITH_TIMED_OFF
                     : ONOFF_COMMAND_ON;
             ok = addTaskSetOnOff(task, cmd, taskRef.onTime, 0);
-
-            StateChange change(StateChange::StateWaitSync, SC_SetOnOff, task.req.dstEndpoint());
-            change.addTargetValue(RStateOn, 0x01);
-            change.addParameter(QLatin1String("cmd"), cmd);
-            if (cmd == ONOFF_COMMAND_ON_WITH_TIMED_OFF)
-            {
-                change.addParameter(QLatin1String("ontime"), taskRef.onTime);
-            }
-            taskRef.lightNode->addStateChange(change);
         }
 
         if (ok)
@@ -962,7 +951,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
-    // state.bri has priority over state.bri_inc
+    // state.bri trumps state.bri_inc
     if (hasBri)
     {
         TaskItem task;
@@ -1493,11 +1482,6 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                     ? ONOFF_COMMAND_OFF_WITH_EFFECT
                     : ONOFF_COMMAND_OFF;
             ok = addTaskSetOnOff(task, cmd, 0, 0);
-
-            StateChange change(StateChange::StateWaitSync, SC_SetOnOff, task.req.dstEndpoint());
-            change.addTargetValue(RStateOn, 0x00);
-            change.addParameter(QLatin1String("cmd"), cmd);
-            taskRef.lightNode->addStateChange(change);
         }
 
         if (ok)
@@ -1517,12 +1501,6 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/on").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
-    }
-
-    if (!taskRef.lightNode->stateChanges().empty())
-    {
-        DBG_Printf(DBG_INFO, "emit event/tick: %s\n", qPrintable(taskRef.lightNode->address().toStringExt()));
-        enqueueEvent({taskRef.lightNode->prefix(), REventTick, taskRef.lightNode->uniqueId(), taskRef.lightNode->address().ext()});
     }
 
     rsp.etag = taskRef.lightNode->etag;
@@ -2255,7 +2233,7 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
             }
             else if (taskRef.lightNode->modelId() == QLatin1String("SIRZB-110"))    // Doesn't support strobe
             {
-                task.options = 0xC1;    // Warning mode 1 (burglar), no Strobe, Very high sound, Develco uses inversed bit order
+                task.options = 0x13;    // Warning mode 1 (burglar), no Strobe, Very high sound
             }
             task.duration = 1;
         }
@@ -2269,7 +2247,7 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
             }
             else if (taskRef.lightNode->modelId() == QLatin1String("SIRZB-110"))    // Doesn't support strobe
             {
-                task.options = 0xC1;    // Warning mode 1 (burglar), no Strobe, Very high sound, Develco uses inversed bit order
+                task.options = 0x13;    // Warning mode 1 (burglar), no Strobe, Very high sound
             }
             task.duration = onTime > 0 ? onTime : 300;
         }
@@ -3177,16 +3155,23 @@ void DeRestPluginPrivate::startSearchLights()
     }
 
     searchLightsTimeout = gwNetworkOpenDuration;
-    setPermitJoinDuration(searchLightsTimeout);
+    gwPermitJoinResend = searchLightsTimeout;
+    if (!resendPermitJoinTimer->isActive())
+    {
+        resendPermitJoinTimer->start(100);
+    }
 }
 
 /*! Handler for search lights active state.
  */
 void DeRestPluginPrivate::searchLightsTimerFired()
 {
-    if (gwPermitJoinDuration == 0)
+    if (gwPermitJoinResend == 0)
     {
-        searchLightsTimeout = 0; // done
+        if (gwPermitJoinDuration == 0)
+        {
+            searchLightsTimeout = 0; // done
+        }
     }
 
     if (searchLightsTimeout > 0)

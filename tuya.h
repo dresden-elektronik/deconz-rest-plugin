@@ -52,7 +52,6 @@
 #define DP_IDENTIFIER_THERMOSTAT_SCHEDULE_2 0x70 // work days (6)
 #define DP_IDENTIFIER_THERMOSTAT_SCHEDULE_3 0x71 // holiday = Not working day (6)
 #define DP_IDENTIFIER_THERMOSTAT_SCHEDULE_4 0x6D // Not finished
-#define DP_IDENTIFIER_THERMOSTAT_SCHEDULE_ENABLE 0x6C // Enable schedule mode for Saswell
 
 #define DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT 0x02 // Heatsetpoint
 #define DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_2 0x67 // Heatsetpoint for Moe

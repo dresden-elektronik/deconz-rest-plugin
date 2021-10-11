@@ -10,8 +10,6 @@
 
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
-#include "device.h"
-#include "device_descriptions.h"
 #include "utils/utils.h"
 
 #define MAX_ACTIVE_BINDING_TASKS 3
@@ -109,21 +107,6 @@ bool Binding::writeToStream(QDataStream &stream) const
     return false;
 }
 
-/*! Converts a plugin Binding object to core deCONZ::Binding. */
-deCONZ::Binding convertToCoreBinding(const Binding &bnd)
-{
-    if (bnd.dstAddrMode == deCONZ::ApsExtAddress)
-    {
-        return deCONZ::Binding(bnd.srcAddress, bnd.dstAddress.ext, bnd.clusterId, bnd.srcEndpoint, bnd.dstEndpoint);
-    }
-    else if (bnd.dstAddrMode == deCONZ::ApsGroupAddress)
-    {
-        return deCONZ::Binding(bnd.srcAddress, bnd.dstAddress.group, bnd.clusterId, bnd.srcEndpoint);
-    }
-
-    return { };
-}
-
 /*! Queue reading ZDP binding table.
     \param node the node from which the binding table shall be read
     \param startIndex the index to start the reading
@@ -134,12 +117,6 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
     DBG_Assert(node != 0);
 
     if (!node || !node->node())
-    {
-        return false;
-    }
-
-    Device *device = DEV_GetDevice(m_devices, node->address().ext());
-    if (device && device->managed())
     {
         return false;
     }
@@ -345,8 +322,6 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
         {
             btReader->state = BindingTableReader::StateFinished;
         }
-
-        enqueueEvent({RDevices, REventBindingTable, status, ind.srcAddress().ext()});
     }
 
     while (listCount && !stream.atEnd())
@@ -446,12 +421,6 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
  */
 void DeRestPluginPrivate::handleZclConfigureReportingResponseIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    Device *device = DEV_GetDevice(m_devices, ind.srcAddress().ext());
-    if (device && device->managed())
-    {
-        return;
-    }
-
     QDateTime now = QDateTime::currentDateTime();
     std::vector<RestNodeBase*> allNodes;
     for (Sensor &s : sensors)
@@ -551,12 +520,6 @@ void DeRestPluginPrivate::handleZclConfigureReportingResponseIndication(const de
  */
 void DeRestPluginPrivate::handleBindAndUnbindRspIndication(const deCONZ::ApsDataIndication &ind)
 {
-    Device *device = DEV_GetDevice(m_devices, ind.srcAddress().ext());
-    if (device && device->managed())
-    {
-        return;
-    }
-
     QDataStream stream(ind.asdu());
     stream.setByteOrder(QDataStream::LittleEndian);
 
@@ -704,61 +667,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
     DBG_Assert(!requests.empty());
     if (requests.empty())
     {
-        return false;
-    }
-
-    // clue code to get classic hard coded C++ bindings into DDF
-    Device *device = DEV_GetDevice(m_devices, bt.binding.srcAddress);
-    if (device && !device->managed())
-    {
-        DDF_Binding ddfBinding;
-
-        ddfBinding.isUnicastBinding = bt.binding.dstAddrMode == deCONZ::ApsExtAddress;
-        ddfBinding.isGroupBinding = bt.binding.dstAddrMode == deCONZ::ApsGroupAddress;
-        if (ddfBinding.isUnicastBinding)
-        {
-            ddfBinding.dstExtAddress = bt.binding.dstAddress.ext;
-        }
-        else if (ddfBinding.isGroupBinding)
-        {
-            ddfBinding.dstGroup = bt.binding.dstAddress.group;
-        }
-        ddfBinding.clusterId = bt.binding.clusterId;
-        ddfBinding.dstEndpoint =  bt.binding.dstEndpoint;
-        ddfBinding.srcEndpoint = bt.binding.srcEndpoint;
-
-        for (const ConfigureReportingRequest &rep : requests)
-        {
-            DDF_ZclReport ddfRep;
-
-            ddfRep.attributeId = rep.attributeId;
-            ddfRep.dataType = rep.dataType;
-            ddfRep.direction = rep.direction;
-            ddfRep.manufacturerCode = rep.manufacturerCode;
-            ddfRep.minInterval = rep.minInterval;
-            ddfRep.maxInterval = rep.maxInterval;
-            ddfRep.valid = true;
-
-            if      (rep.reportableChange16bit != 0xFFFF)     { ddfRep.reportableChange = rep.reportableChange16bit; }
-            else if (rep.reportableChange8bit != 0xFF)        { ddfRep.reportableChange = rep.reportableChange8bit; }
-            else if (rep.reportableChange24bit != 0xFFFFFF)   { ddfRep.reportableChange = rep.reportableChange24bit; }
-            else if (rep.reportableChange48bit != 0xFFFFFFFF) { ddfRep.reportableChange = rep.reportableChange48bit; }
-
-            ddfBinding.reporting.push_back(ddfRep);
-        }
-
-        device->addBinding(ddfBinding);
-
-        auto ddf = deviceDescriptions->get(device);
-        if (ddf.status == QLatin1String("Draft"))
-        {
-            if (ddf.bindings != device->bindings())
-            {
-                ddf.bindings = device->bindings();
-                deviceDescriptions->put(ddf);
-            }
-        }
-
         return false;
     }
 
@@ -2503,12 +2411,6 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         }
     }
 
-    Device *device = DEV_GetDevice(m_devices, lightNode->address().ext());
-    if (device && device->managed())
-    {
-        return;
-    }
-
     BindingTask::Action action = BindingTask::ActionUnbind;
 
     // whitelist
@@ -2825,12 +2727,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         return false;
     }
 
-    Device *device = DEV_GetDevice(m_devices, sensor->address().ext());
-    if (device && device->managed())
-    {
-        return false;
-    }
-
     bool deviceSupported = false;
     // whitelist
         // Climax
@@ -3054,7 +2950,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("TS0203")) ||
         sensor->modelId().startsWith(QLatin1String("TS0222")) || // TYZB01 light sensor 
         sensor->modelId().startsWith(QLatin1String("TS004F")) || // 4 Gang Tuya ZigBee Wireless 12 Scene Switch
-        sensor->modelId().startsWith(QLatin1String("TS011F")) || // Plugs
         // Tuyatec
         sensor->modelId().startsWith(QLatin1String("RH3040")) ||
         sensor->modelId().startsWith(QLatin1String("RH3001")) ||
@@ -3509,19 +3404,16 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
 
         quint16 maxInterval = val.maxInterval > 0 && val.maxInterval < 65535 ? (val.maxInterval * 3 / 2) : (60 * 15);
 
-        if (!DEV_TestManaged())
+        if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < maxInterval) // got update in timely manner
         {
-            if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < maxInterval) // got update in timely manner
-            {
-                DBG_Printf(DBG_INFO_L2, "binding for attribute reporting of ep: 0x%02X cluster 0x%04X seems to be active\n", val.endpoint, *i);
-                continue;
-            }
+            DBG_Printf(DBG_INFO_L2, "binding for attribute reporting of ep: 0x%02X cluster 0x%04X seems to be active\n", val.endpoint, *i);
+            continue;
+        }
 
-            if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() && sensor->lastRx().secsTo(now) > 6)
-            {
-                DBG_Printf(DBG_INFO, "skip binding for attribute reporting of ep: 0x%02X cluster 0x%04X (end-device might sleep)\n", val.endpoint, *i);
-                return false;
-            }
+        if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() && sensor->lastRx().secsTo(now) > 6)
+        {
+            DBG_Printf(DBG_INFO, "skip binding for attribute reporting of ep: 0x%02X cluster 0x%04X (end-device might sleep)\n", val.endpoint, *i);
+            return false;
         }
 
         quint8 srcEndpoint = sensor->fingerPrint().endpoint;
@@ -3586,11 +3478,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                 bindingTask.state = BindingTask::StateIdle;
             }
 
-            if (DEV_TestManaged())
-            {
-                bindingTask.state = BindingTask::StateFinished; // don't actually send anything
-            }
-
             bindingTask.action = action;
             bindingTask.restNode = sensor;
             bindingTask.timeout = BindingTask::TimeoutEndDevice;
@@ -3651,12 +3538,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
 
     if (searchSensorsState != SearchSensorsActive &&
         idleTotalCounter < (IDLE_READ_LIMIT + (60 * 15))) // wait for some input before fire bindings
-    {
-        return false;
-    }
-
-    Device *device = DEV_GetDevice(m_devices, sensor->address().ext());
-    if (device && device->managed())
     {
         return false;
     }
@@ -5257,48 +5138,6 @@ bool DeRestPluginPrivate::queueBindingTask(const BindingTask &bindingTask)
     if (i == bindingQueue.end())
     {
         DBG_Printf(DBG_INFO_L2, "queue binding task for 0x%016llX, cluster 0x%04X\n", bindingTask.binding.srcAddress, bindingTask.binding.clusterId);
-
-        Device *device = DEV_GetDevice(m_devices, bindingTask.binding.srcAddress);
-
-        if (device && !device->managed())
-        {
-            DDF_Binding ddfBinding;
-
-            ddfBinding.isUnicastBinding = bindingTask.binding.dstAddrMode == deCONZ::ApsExtAddress;
-            ddfBinding.isGroupBinding = bindingTask.binding.dstAddrMode == deCONZ::ApsGroupAddress;
-            if (ddfBinding.isUnicastBinding)
-            {
-                ddfBinding.dstExtAddress = bindingTask.binding.dstAddress.ext;
-            }
-            else if (ddfBinding.isGroupBinding)
-            {
-                ddfBinding.dstGroup = bindingTask.binding.dstAddress.group;
-            }
-
-            ddfBinding.clusterId = bindingTask.binding.clusterId;
-            ddfBinding.dstEndpoint =  bindingTask.binding.dstEndpoint;
-            ddfBinding.srcEndpoint = bindingTask.binding.srcEndpoint;
-
-            device->addBinding(ddfBinding);
-
-            auto ddf = deviceDescriptions->get(device);
-            if (ddf.status == QLatin1String("Draft"))
-            {
-                if (ddf.bindings != device->bindings())
-                {
-                    ddf.bindings = device->bindings();
-                    deviceDescriptions->put(ddf);
-                }
-            }
-
-            if (bindingTask.state == BindingTask::StateFinished) // dummy
-            {
-                bindingQueue.push_back(bindingTask);
-                sendConfigureReportingRequest(bindingQueue.back());
-                return false;
-            }
-        }
-
         bindingQueue.push_back(bindingTask);
     }
     else

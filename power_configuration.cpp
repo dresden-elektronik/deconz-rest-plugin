@@ -1,4 +1,3 @@
-#include "device_descriptions.h"
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "utils/utils.h"
@@ -6,47 +5,6 @@
 #define POWER_CONFIG_ATTRID_BATTERY_VOLTAGE               0x0020
 #define POWER_CONFIG_ATTRID_BATTERY_PERCENTAGE_REMAINING  0x0021
 #define POWER_CONFIG_ATTRID_BATTERY_ALARM_MASK            0x0035
-
-static quint8 calculateBatteryPercentageRemaining(const Resource *r, ResourceItem *item, const quint8 batteryVoltage, const float vmin, const float vmax)
-{
-    float batteryPercentage = batteryVoltage;
-
-    if      (batteryPercentage > vmax) { batteryPercentage = vmax; }
-    else if (batteryPercentage < vmin) { batteryPercentage = vmin; }
-
-    batteryPercentage = ((batteryPercentage - vmin) / (vmax - vmin)) * 100;
-
-    if      (batteryPercentage > 100) { batteryPercentage = 100; }
-    else if (batteryPercentage <= 0)  { batteryPercentage = 1; } // ?
-
-    if (r && item)
-    {
-        const int maxSize = 384;
-        auto jsEval = std::make_unique<char[]>(maxSize);
-        int ret = snprintf(jsEval.get(), maxSize,
-                          "const vmin = %.1f;"
-                          " const vmax = %.1f;"
-                          " let bat = Attr.val;"
-
-                          " if (bat > vmax) { bat = vmax; }"
-                          " else if (bat < vmin) { bat = vmin; }"
-
-                          " bat = ((bat - vmin) / (vmax - vmin)) * 100;"
-
-                          " if (bat > 100) { bat = 100; }"
-                          " else if (bat <= 0)  { bat = 1; }"
-
-                          " Item.val = bat;", vmin, vmax);
-
-        DBG_Assert(ret < maxSize);
-        if (ret > 0 && ret < maxSize && jsEval[ret] == '\0')
-        {
-            DDF_AnnoteZclParse(r, item, 255, POWER_CONFIGURATION_CLUSTER_ID, POWER_CONFIG_ATTRID_BATTERY_VOLTAGE, jsEval.get());
-        }
-    }
-
-    return static_cast<quint8>(batteryPercentage);
-}
 
 /*! Handle packets related to the ZCL power configuration cluster.
     \param ind the APS level data indication containing the ZCL packet
@@ -121,7 +79,7 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                 // 68.5%, 90%) with a range between zero and 100%, with 0x00 = 0%, 0x64 = 50%, and 0xC8 = 100%. This is
                 // particularly suited for devices with rechargeable batteries.
                 
-                uint divider = 2;
+                int bat = attr.numericValue().u8 / 2;
 
                 if (sensor.modelId().startsWith(QLatin1String("TRADFRI")) || // IKEA
                     sensor.modelId().startsWith(QLatin1String("FYRTUR")) || // IKEA
@@ -145,10 +103,8 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                     sensor.modelId().startsWith(QLatin1String("ZG2835")) || // SR-ZG2835 Zigbee Rotary Switch
                     sensor.modelId() == QLatin1String("TERNCY-SD01"))       // TERNCY smart button
                 {
-                    divider = 1;
+                    bat = attr.numericValue().u8;
                 }
-
-                int bat = attr.numericValue().u8 / divider;
 
                 if (sensor.modelId() == QLatin1String("0x8020") || // Danfoss RT24V Display thermostat
                     sensor.modelId() == QLatin1String("0x8021") || // Danfoss RT24V Display thermostat with floor sensor
@@ -166,35 +122,20 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                     }
                 }
 
-                ResourceItem *item = nullptr;
-
                 if (sensor.type().endsWith(QLatin1String("Battery")))
                 {
                     sensor.setValue(RStateBattery, bat);
-                    item = sensor.item(RStateBattery);
                 }
                 else
                 {
-                    item = sensor.item(RConfigBattery);
+                    ResourceItem *item = sensor.item(RConfigBattery);
     
                     if (!item && attr.numericValue().u8 > 0) // valid value: create resource item
                     {
-                        item = sensor.addItem(DataTypeUInt8, RConfigBattery);
+                        sensor.addItem(DataTypeUInt8, RConfigBattery);
                     }
     
                     sensor.setValue(RConfigBattery, bat);
-                }
-
-                if (item)
-                {
-                    if (divider == 1)
-                    {
-                        DDF_AnnoteZclParse(&sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "Item.val = Attr.val");
-                    }
-                    else if (divider == 2)
-                    {
-                        DDF_AnnoteZclParse(&sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "Item.val = Attr.val / 2");
-                    }
                 }
                 
                 // Correct incomplete sensor fingerprint
@@ -295,7 +236,7 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                     vmax = 60;
                 }
 
-                battery = calculateBatteryPercentageRemaining(&sensor, item, battery, vmin, vmax);
+                battery = calculateBatteryPercentageRemaining(battery, vmin, vmax);
 
                 sensor.setValue(RConfigBattery, battery);
                 sensor.setZclValue(updateType, ind.srcEndpoint(), POWER_CONFIGURATION_CLUSTER_ID, POWER_CONFIG_ATTRID_BATTERY_VOLTAGE, attr.numericValue());
@@ -308,18 +249,13 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
 
                 if (!item)
                 {
-                    item = sensor.addItem(DataTypeBool, RStateLowBattery);
+                    sensor.addItem(DataTypeBool, RStateLowBattery);
                 }
 
                 bool lowBat = (attr.numericValue().u8 & 0x01);
 
                 sensor.setValue(RConfigBattery, lowBat);
                 sensor.setZclValue(updateType, ind.srcEndpoint(), POWER_CONFIGURATION_CLUSTER_ID, POWER_CONFIG_ATTRID_BATTERY_ALARM_MASK, attr.numericValue());
-
-                if (item)
-                {
-                    DDF_AnnoteZclParse(&sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "Item.val = (Attr.val & 1) != 0");
-                }
             }
                 break;
 
