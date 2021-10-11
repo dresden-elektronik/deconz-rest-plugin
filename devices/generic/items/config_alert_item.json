@@ -1,0 +1,13 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/alert",
+	"datatype": "String",
+	"access": "RW",
+	"public": true,
+	"description": "The currently active alert.",
+	"values": [
+		["\"none\"", "no alert is set"],
+		["\"select\"", "device is identifying a short time"],
+		["\"lselect\"", "device is identifying a longer time"]
+	]
+}

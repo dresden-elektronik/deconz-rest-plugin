@@ -1,0 +1,9 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/pending",
+	"datatype": "Array",
+	"access": "R",
+	"public": true,
+	"managed": true,
+	"description": "Pending tasks to configure the device."
+}

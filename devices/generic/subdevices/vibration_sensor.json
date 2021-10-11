@@ -1,0 +1,14 @@
+{
+    "schema": "subdevice1.schema.json",
+    "type": "$TYPE_VIBRATION_SENSOR",
+    "name": "ZHAVibration",
+    "restapi": "/sensors",
+    "order": 20,
+    "uuid": ["$address.ext", "0x01", "0x0000"],
+    "items": [
+        "config/on",
+        "config/reachable",
+        "state/vibration",
+        "state/lastupdated"
+    ]
+}
