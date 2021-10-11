@@ -911,7 +911,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                          R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
                          R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                          R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
-                         R_GetProductId(sensor) == QLatin1String("Tuya_THD 30946 TRV") ||
                          R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV")) ||
                          R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV"))
                     {
@@ -1021,7 +1020,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
-                             R_GetProductId(sensor) == QLatin1String("Tuya_THD 30946 TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
@@ -1101,8 +1099,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
-                             R_GetProductId(sensor) == QLatin1String("Tuya_THD 30946 TRV") ||
-                             R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD MOES TRV"))
                     {
                         const auto match = matchKeyValue(data.string, RConfigModeValuesTuya1);
@@ -1269,7 +1265,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         R_GetProductId(sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
                         R_GetProductId(sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                         R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
-                        R_GetProductId(sensor) == QLatin1String("Tuya_THD 30946 TRV") ||
                         R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                         R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
                         R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV"))
@@ -1353,7 +1348,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     if (R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
                         R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
-                        R_GetProductId(sensor) == QLatin1String("Tuya_THD 30946 TRV") ||
                         R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
                         R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                         R_GetProductId(sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
@@ -1893,7 +1887,6 @@ int DeRestPluginPrivate::changeThermostatSchedule(const ApiRequest &req, ApiResp
         R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
         R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
         R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
-        R_GetProductId(sensor) == QLatin1String("Tuya_THD 30946 TRV") ||
         R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV"))
     {
         ok2 = sendTuyaRequestThermostatSetWeeklySchedule(task, weekdays, transitions, DP_IDENTIFIER_THERMOSTAT_SCHEDULE_2);
