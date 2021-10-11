@@ -40,7 +40,7 @@ public:
     LightNode();
     State state() const;
     void setState(State state);
-    bool isAvailable() const override;
+    bool isAvailable() const;
     uint16_t manufacturerCode() const;
     void setManufacturerCode(uint16_t code);
     const QString &manufacturer() const;

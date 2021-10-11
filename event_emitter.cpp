@@ -11,8 +11,6 @@
 #include <QTimer>
 #include <QElapsedTimer>
 #include "event_emitter.h"
-#include "rest_node_base.h"
-#include "de_web_plugin_private.h"
 
 static EventEmitter *instance_ = nullptr;
 
@@ -32,36 +30,7 @@ EventEmitter::EventEmitter(QObject *parent) :
 
 void EventEmitter::enqueueEvent(const Event &event)
 {
-    RestNodeBase *restNode = nullptr;
-
-    // workaround to attach DeviceKey to an event
-    // TODO DDF remove dependency on plugin
-    if (event.deviceKey() == 0 && (event.resource() == RSensors || event.resource() == RLights))
-    {
-        if (event.resource() == RSensors)
-        {
-            restNode = plugin->getSensorNodeForId(event.id());
-            if (!restNode)
-            {
-                restNode = plugin->getSensorNodeForUniqueId(event.id());
-            }
-        }
-        else if (event.resource() == RLights)
-        {
-            restNode = plugin->getLightNodeForId(event.id());
-        }
-    }
-
-    if (restNode && restNode->address().ext() > 0)
-    {
-        Event e2 = event;
-        e2.setDeviceKey(restNode->address().ext());
-        m_queue.push_back(e2);
-    }
-    else
-    {
-        m_queue.push_back(event);
-    }
+    m_queue.push_back(event);
 
     if (!m_timer->isActive())
     {

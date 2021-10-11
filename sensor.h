@@ -78,11 +78,6 @@ struct SensorFingerprint
     std::vector<quint16> outClusters;
 };
 
-inline bool isValid(const SensorFingerprint &fp)
-{
-    return fp.endpoint != INVALID_ENDPOINT;
-}
-
 /*! \class Sensor
 
     Represents a HA based Sensor.

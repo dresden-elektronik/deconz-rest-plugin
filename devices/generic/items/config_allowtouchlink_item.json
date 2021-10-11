@@ -1,8 +1,0 @@
-{
-	"schema": "resourceitem1.schema.json",
-	"id": "config/allowtouchlink",
-	"datatype": "Bool",
-	"access": "RW",
-	"public": false,
-	"description": "When true the device can initiate touchlink."
-}

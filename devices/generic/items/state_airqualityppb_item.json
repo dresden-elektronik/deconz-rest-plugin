@@ -1,8 +1,0 @@
-{
-	"schema": "resourceitem1.schema.json",
-	"id": "state/airqualityppb",
-	"datatype": "UInt16",
-	"access": "R",
-	"public": true,
-	"description": "Measured air quality in PPB."
-}

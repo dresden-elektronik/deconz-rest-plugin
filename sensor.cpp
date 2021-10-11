@@ -71,11 +71,11 @@ bool SensorFingerprint::readFromJsonString(const QString &json)
 
     if (map.contains("ep") && map.contains("p") && map.contains("d"))
     {
-        endpoint = map["ep"].toString().toUInt(&ok, 0);
+        endpoint = map["ep"].toUInt(&ok);
         if (!ok) { return false; }
-        profileId = map["p"].toString().toUInt(&ok, 0);
+        profileId = map["p"].toUInt(&ok);
         if (!ok) { return false; }
-        deviceId = map["d"].toString().toUInt(&ok, 0);
+        deviceId = map["d"].toUInt(&ok);
         if (!ok) { return false; }
 
         inClusters.clear();
@@ -88,7 +88,7 @@ bool SensorFingerprint::readFromJsonString(const QString &json)
             QVariantList::const_iterator end = ls.constEnd();
             for (; i != end; ++i)
             {
-                const quint16 clusterId = i->toString().toUInt(&ok, 0);
+                quint16 clusterId = i->toUInt(&ok);
                 if (ok)
                 {
                     inClusters.push_back(clusterId);
@@ -103,7 +103,7 @@ bool SensorFingerprint::readFromJsonString(const QString &json)
             QVariantList::const_iterator end = ls.constEnd();
             for (; i != end; ++i)
             {
-                const quint16 clusterId = i->toString().toUInt(&ok, 0);
+                quint16 clusterId = i->toUInt(&ok);
                 if (ok)
                 {
                     outClusters.push_back(clusterId);

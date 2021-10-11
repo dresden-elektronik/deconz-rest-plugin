@@ -25,10 +25,10 @@ class EventEmitter : public QObject
 
 public:
     explicit EventEmitter(QObject *parent = nullptr);
+    void enqueueEvent(const Event &event);
     ~EventEmitter();
 
 public Q_SLOTS:
-    void enqueueEvent(const Event &event);
     void timerFired();
 
 Q_SIGNALS:
