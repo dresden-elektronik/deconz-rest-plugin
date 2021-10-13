@@ -110,6 +110,7 @@ const quint64 heimanMacPrefix     = 0x0050430000000000ULL;
 const quint64 davicomMacPrefix    = 0x00606e0000000000ULL;
 const quint64 xiaomiMacPrefix     = 0x04cf8c0000000000ULL;
 const quint64 konkeMacPrefix      = 0x086bd70000000000ULL;
+const quint64 silabs14MacPrefix   = 0x0C43140000000000ULL;
 const quint64 ikea2MacPrefix      = 0x14b4570000000000ULL;
 const quint64 profaluxMacPrefix   = 0x20918a0000000000ULL;
 const quint64 stMacPrefix         = 0x24fd5b0000000000ULL;
@@ -5654,6 +5655,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                             manufacturer.endsWith(QLatin1String("oclfnxz")) ||
                             manufacturer.endsWith(QLatin1String("ivfvd7h")) ||
                             manufacturer.endsWith(QLatin1String("wnjrr72")) ||
+                            manufacturer.endsWith(QLatin1String("hyvmhay")) ||
                             manufacturer.endsWith(QLatin1String("GbxAXL2")))
                         {
                             fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
@@ -6226,6 +6228,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         manufacturer.endsWith(QLatin1String("w7cahqs")) ||
                         manufacturer.endsWith(QLatin1String("wdxldoj")) ||
                         manufacturer.endsWith(QLatin1String("hn3negr")) ||
+                        manufacturer.endsWith(QLatin1String("hyvmhay")) ||
                         manufacturer.endsWith(QLatin1String("88teujp")))
                     {
                         fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
@@ -7489,6 +7492,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD MOES TRV") ||
+                R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat")) ||
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
             {
                 sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
@@ -7501,6 +7505,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat")) ||
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
             {
                 sensorNode.addItem(DataTypeString, RConfigPreset);
@@ -7513,6 +7518,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat")) ||
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
             {
                 sensorNode.addItem(DataTypeString, RConfigSchedule);

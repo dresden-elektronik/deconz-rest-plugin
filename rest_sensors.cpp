@@ -1022,6 +1022,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat") ||
+                             R_GetProductId(sensor) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD MOES TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV"))
@@ -1040,6 +1041,11 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_3;
                             data.integer = data.integer / 10;
+                        }
+                        else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat"))
+                        {
+                            dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_3;
+                            data.integer = data.integer * 2 / 10;
                         }
                         else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD MOES TRV"))
                         {
@@ -1098,7 +1104,9 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
+                             R_GetProductId(sensor) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
+                             
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD MOES TRV"))
                     {
                         const auto match = matchKeyValue(data.string, RConfigModeValuesTuya1);
@@ -1108,7 +1116,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             QByteArray tuyaData = QByteArray::fromRawData(match.value, 1);
                             quint8 dpIdentifier = DP_IDENTIFIER_THERMOSTAT_MODE_1;
 
-                            if (R_GetProductId(sensor) == QLatin1String("Tuya_THD MOES TRV"))
+                            if (R_GetProductId(sensor) == QLatin1String("Tuya_THD MOES TRV") ||
+                                R_GetProductId(sensor) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat"))
                             {
                                 dpIdentifier = DP_IDENTIFIER_THERMOSTAT_MODE_2;
                             }
@@ -1281,7 +1290,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                         }
                     }
-                    else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
+                    else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat") ||
+                             R_GetProductId(sensor) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat"))
                     {
                         const auto match = matchKeyValue(data.string, RConfigPresetValuesTuya2);
 
@@ -1355,6 +1365,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat") ||
                         R_GetProductId(sensor) == QLatin1String("Tuya_THD MOES TRV") ||
                         R_GetProductId(sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
+                        R_GetProductId(sensor) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat") ||
                         R_GetProductId(sensor) == QLatin1String("Tuya_THD HY369 TRV"))
                     {
                         QByteArray tuyaData = QByteArray("\x00", 1);
@@ -1363,6 +1374,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         if (data.boolean) { tuyaData = QByteArray("\x01", 1); }
 
                         if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat") ||
+                            R_GetProductId(sensor) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat") ||
                             R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV"))
                         {
                             dpIdentifier = DP_IDENTIFIER_THERMOSTAT_CHILDLOCK_2;
@@ -1891,7 +1903,8 @@ int DeRestPluginPrivate::changeThermostatSchedule(const ApiRequest &req, ApiResp
     {
         ok2 = sendTuyaRequestThermostatSetWeeklySchedule(task, weekdays, transitions, DP_IDENTIFIER_THERMOSTAT_SCHEDULE_2);
     }
-    else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
+    else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat") ||
+             R_GetProductId(sensor) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat"))
     {
         ok2 = sendTuyaRequestThermostatSetWeeklySchedule(task, weekdays, transitions, DP_IDENTIFIER_THERMOSTAT_SCHEDULE_1);
     }

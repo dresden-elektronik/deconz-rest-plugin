@@ -983,11 +983,12 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
-                    case 0x0210: // Thermostat heatsetpoint for moe
+                    case 0x0210: // Thermostat heatsetpoint for moe and lidl
                     {
                         qint16 temp = static_cast<qint16>(data & 0xFFFF) * 100;
                         
-                        if (productId == "Tuya_THD MOES TRV")
+                        if (productId == "Tuya_THD MOES TRV" ||
+                            productId == "Tuya_THD SilverCrest Smart Radiator Thermostat")
                         {
                             temp = static_cast<qint16>(data & 0xFFFF) * 100 / 2;
                         }
@@ -1004,6 +1005,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     }
                     break;
                     case 0x0215: // battery
+                    case 0x0223: // Battery for Moe lidl
                     {
                         quint8 bat = static_cast<qint8>(data & 0xFF);
                         if (bat > 100) { bat = 100; }
@@ -1160,7 +1162,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     case 0x0402 : // preset for moe or mode
                     case 0x0403 : // preset for moe
                     {
-                        if (productId == "Tuya_THD MOES TRV")
+                        if (productId == "Tuya_THD MOES TRV" ||
+                            productId == "Tuya_THD SilverCrest Smart Radiator Thermostat")
                         {
                             QString mode;
                             if (data == 0) { mode = QLatin1String("auto"); } //schedule
