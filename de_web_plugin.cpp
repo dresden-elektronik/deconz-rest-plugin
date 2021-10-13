@@ -7492,7 +7492,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD MOES TRV") ||
-                R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat")) ||
+                R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat") ||
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
             {
                 sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
@@ -7505,7 +7505,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD Smart radiator TRV") ||
-                R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat")) ||
+                R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat") ||
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
             {
                 sensorNode.addItem(DataTypeString, RConfigPreset);
@@ -7518,7 +7518,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD Smart radiator TRV") ||
-                R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat")) ||
+                R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat") ||
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
             {
                 sensorNode.addItem(DataTypeString, RConfigSchedule);
