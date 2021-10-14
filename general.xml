@@ -2890,62 +2890,75 @@ controller device, that supports a keypad and LCD screen.</description>
 			<client>
 			</client>
 		</cluster>
-	<cluster id="0x0b04" name="Electrical Measurement">
-		<description>Provides a mechanism for querying data about the electrical properties as measured by the device.</description>
-		<server>
-			<attribute-set id="0x0000" description="Basic Information">
-				<attribute id="0x0000" name="Measurement Type" type="bmp32" access="r" required="m" default="0x00000000">
-						<value name="Active measurement (AC)" value="0"></value>
-						<value name="Reactive measurement (AC)" value="1"></value>
-						<value name="Apparent measurement (AC)" value="2"></value>
-						<value name="Phase A measurement" value="3"></value>
-						<value name="Phase B measurement" value="4"></value>
-						<value name="Phase C measurement" value="5"></value>
-						<value name="DC measurement" value="6"></value>
-						<value name="Harmonics measurement" value="7"></value>
-						<value name="Power quality measurement" value="8"></value>
-				</attribute>
-			</attribute-set>
-			<attribute-set id="0x0300" description="AC (Non-phase Specific) Measurements">
-				<attribute id="0x0300" name="AC Frequency" type="u16" access="r" required="o" default="0xFFFF"></attribute>
-				<attribute id="0x0304" name="Total Active Power" type="u32" access="r" required="o"></attribute>
-				<attribute id="0x0305" name="Total Reactive Power" type="u32" access="r" required="o"></attribute>
-				<attribute id="0x0306" name="Total Apparent Power" type="s32" access="r" required="o"></attribute>
-			</attribute-set>
-			<attribute-set id="0x0400" description="AC (Non-phase Specific) Formatting">
-				<attribute id="0x0402" name="Power Multiplier" type="u32" access="r" required="o" default="0x000001"></attribute>
-				<attribute id="0x0403" name="Power Divisor" type="u32" access="r" required="o" default="0x000001"></attribute>
-			</attribute-set>
-			<attribute-set id="0x0500" description="AC (Single Phase or Phase A) Measurements">
-				<attribute id="0x0505" name="RMS Voltage" type="u16" access="r" required="o" default="0xFFFF"></attribute>
-				<attribute id="0x0508" name="RMS Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
-				<attribute id="0x050b" name="Active Power" type="s16" access="r" required="o" default="0x8000">
-					<description>Represents the single phase or Phase A, current demand of active power delivered or received at the premises, in Watts (W). Positive values indicate power delivered to the premises where negative values indicate power received from the premises.</description>
-				</attribute>
-				<attribute id="0x050e" name="Reactive Power" type="s16" access="r" required="o" default="0x8000"></attribute>
-				<attribute id="0x050f" name="Apparent Power" type="u16" access="r" required="o" default="0xFFFF"></attribute>
-				<attribute id="0x0510" name="Power Factor" type="s8" access="r" required="o" default="0x00"></attribute>
-			</attribute-set>
-			<attribute-set id="0x0600" description="AC Formatting">
-				<attribute id="0x0600" name="AC Voltage Multiplier" type="u16" access="r" required="o" default="0x0001"></attribute>
-				<attribute id="0x0601" name="AC Voltage Divisor" type="u16" access="r" required="o" default="0x0001"></attribute>
-				<attribute id="0x0602" name="AC Current Multiplier" type="u16" access="r" required="o" default="0x0001"></attribute>
-				<attribute id="0x0603" name="AC Current Divisor" type="u16" access="r" required="o" default="0x0001"></attribute>
-				<attribute id="0x0604" name="AC Power Multiplier" type="u16" access="r" required="o" default="0x0001"></attribute>
-				<attribute id="0x0605" name="AC Power Divisor" type="u16" access="r" required="o" default="0x0001"></attribute>
-			</attribute-set>
-			<attribute-set id="0x0900" description="AC (Phase B) Measurements">
-				<attribute id="0x0905" name="RMS Voltage" type="u16" access="r" required="o" default="0xFFFF"></attribute>
-				<attribute id="0x0908" name="RMS Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
-			</attribute-set>
-			<attribute-set id="0x0a00" description="AC (Phase C) Measurements">
-				<attribute id="0x0a05" name="RMS Voltage" type="u16" access="r" required="o" default="0xFFFF"></attribute>
-				<attribute id="0x0a08" name="RMS Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
-			</attribute-set>
-		</server>
-		<client>
-		</client>
-	</cluster>
+		<cluster id="0x0408" name="Soil Moisture">
+			<description></description>
+			<server>
+				<attribute-set id="0x0000" description="Soil Moisture Information">
+					<attribute id="0x0000" name="Measured Value" type="u16" access="r" default="0" required="m"></attribute>
+					<attribute id="0x0001" name="Min Measured Value" type="u16" access="r" required="m" range="0x954d,0x7ffe"></attribute>
+					<attribute id="0x0002" name="Max Measured Value" type="u16" access="r" required="m" range="0x954e,0x7ffe"></attribute>
+					<attribute id="0x0003" name="Tolerance" type="u16" access="r" required="o" range="0x0000,0x0800"></attribute>
+				</attribute-set>
+			</server>
+			<client>
+			</client>
+		</cluster>
+        <cluster id="0x0b04" name="Electrical Measurement">
+            <description>Provides a mechanism for querying data about the electrical properties as measured by the device.</description>
+            <server>
+                <attribute-set id="0x0000" description="Basic Information">
+                    <attribute id="0x0000" name="Measurement Type" type="bmp32" access="r" required="m" default="0x00000000">
+                            <value name="Active measurement (AC)" value="0"></value>
+                            <value name="Reactive measurement (AC)" value="1"></value>
+                            <value name="Apparent measurement (AC)" value="2"></value>
+                            <value name="Phase A measurement" value="3"></value>
+                            <value name="Phase B measurement" value="4"></value>
+                            <value name="Phase C measurement" value="5"></value>
+                            <value name="DC measurement" value="6"></value>
+                            <value name="Harmonics measurement" value="7"></value>
+                            <value name="Power quality measurement" value="8"></value>
+                    </attribute>
+                </attribute-set>
+                <attribute-set id="0x0300" description="AC (Non-phase Specific) Measurements">
+                    <attribute id="0x0300" name="AC Frequency" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+                    <attribute id="0x0304" name="Total Active Power" type="u32" access="r" required="o"></attribute>
+                    <attribute id="0x0305" name="Total Reactive Power" type="u32" access="r" required="o"></attribute>
+                    <attribute id="0x0306" name="Total Apparent Power" type="s32" access="r" required="o"></attribute>
+                </attribute-set>
+                <attribute-set id="0x0400" description="AC (Non-phase Specific) Formatting">
+                    <attribute id="0x0402" name="Power Multiplier" type="u32" access="r" required="o" default="0x000001"></attribute>
+                    <attribute id="0x0403" name="Power Divisor" type="u32" access="r" required="o" default="0x000001"></attribute>
+                </attribute-set>
+                <attribute-set id="0x0500" description="AC (Single Phase or Phase A) Measurements">
+                    <attribute id="0x0505" name="RMS Voltage" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+                    <attribute id="0x0508" name="RMS Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+                    <attribute id="0x050b" name="Active Power" type="s16" access="r" required="o" default="0x8000">
+                        <description>Represents the single phase or Phase A, current demand of active power delivered or received at the premises, in Watts (W). Positive values indicate power delivered to the premises where negative values indicate power received from the premises.</description>
+                    </attribute>
+                    <attribute id="0x050e" name="Reactive Power" type="s16" access="r" required="o" default="0x8000"></attribute>
+                    <attribute id="0x050f" name="Apparent Power" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+                    <attribute id="0x0510" name="Power Factor" type="s8" access="r" required="o" default="0x00"></attribute>
+                </attribute-set>
+                <attribute-set id="0x0600" description="AC Formatting">
+                    <attribute id="0x0600" name="AC Voltage Multiplier" type="u16" access="r" required="o" default="0x0001"></attribute>
+                    <attribute id="0x0601" name="AC Voltage Divisor" type="u16" access="r" required="o" default="0x0001"></attribute>
+                    <attribute id="0x0602" name="AC Current Multiplier" type="u16" access="r" required="o" default="0x0001"></attribute>
+                    <attribute id="0x0603" name="AC Current Divisor" type="u16" access="r" required="o" default="0x0001"></attribute>
+                    <attribute id="0x0604" name="AC Power Multiplier" type="u16" access="r" required="o" default="0x0001"></attribute>
+                    <attribute id="0x0605" name="AC Power Divisor" type="u16" access="r" required="o" default="0x0001"></attribute>
+                </attribute-set>
+                <attribute-set id="0x0900" description="AC (Phase B) Measurements">
+                    <attribute id="0x0905" name="RMS Voltage" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+                    <attribute id="0x0908" name="RMS Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+                </attribute-set>
+                <attribute-set id="0x0a00" description="AC (Phase C) Measurements">
+                    <attribute id="0x0a05" name="RMS Voltage" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+                    <attribute id="0x0a08" name="RMS Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+                </attribute-set>
+            </server>
+            <client>
+            </client>
+        </cluster>
 		<cluster id="0x0b05" name="Diagnostics">
 			<description>The diagnostics cluster provides access to information regarding the operation of the ZigBee stack over time.</description>
 				<server>

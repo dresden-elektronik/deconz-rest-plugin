@@ -519,6 +519,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "66666", tiMacPrefix }, // Sonoff SNZB-03
     { VENDOR_NONE, "TH01", tiMacPrefix }, // Sonoff SNZB-02
     { VENDOR_NONE, "DS01", tiMacPrefix }, // Sonoff SNZB-04
+    { VENDOR_NONE, "DIYRuZ_Flower", tiMacPrefix }, // DIYRuZ_Flower
     { VENDOR_SCHNEIDER, "CCT591011_AS", emberMacPrefix }, // LK Wiser Door / Window Sensor
     { VENDOR_SCHNEIDER, "CCT592011_AS", emberMacPrefix }, // LK Wiser Water Leak Sensor
     { VENDOR_SCHNEIDER, "iTRV", silabs3MacPrefix }, // Drayton Wiser Radiator Thermostat
@@ -5547,6 +5548,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         SensorFingerprint fpPowerSensor;
         SensorFingerprint fpPresenceSensor;
         SensorFingerprint fpPressureSensor;
+        SensorFingerprint fpMoistureSensor;
         SensorFingerprint fpSpectralSensor;
         SensorFingerprint fpSwitch;
         SensorFingerprint fpTemperatureSensor;
@@ -5743,6 +5745,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     fpOpenCloseSensor.inClusters.push_back(ci->id());
                     fpPresenceSensor.inClusters.push_back(ci->id());
                     fpPressureSensor.inClusters.push_back(ci->id());
+                    fpMoistureSensor.inClusters.push_back(ci->id());
                     fpSwitch.inClusters.push_back(ci->id());
                     fpTemperatureSensor.inClusters.push_back(ci->id());
                     fpThermostatSensor.inClusters.push_back(ci->id());
@@ -6092,6 +6095,12 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 case PRESSURE_MEASUREMENT_CLUSTER_ID:
                 {
                     fpPressureSensor.inClusters.push_back(ci->id());
+                }
+                    break;
+
+                case SOIL_MOISTURE_CLUSTER_ID:
+                {
+                    fpMoistureSensor.inClusters.push_back(ci->id());
                 }
                     break;
 
@@ -6747,6 +6756,24 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 checkSensorNodeReachable(sensor);
             }
         }
+        
+        // ZHAMoisture
+        if (fpMoistureSensor.hasInCluster(SOIL_MOISTURE_CLUSTER_ID))
+        {
+            fpMoistureSensor.endpoint = i->endpoint();
+            fpMoistureSensor.deviceId = i->deviceId();
+            fpMoistureSensor.profileId = i->profileId();
+
+            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpMoistureSensor, "ZHAMoisture");
+            if (!sensor || sensor->deletedState() != Sensor::StateNormal)
+            {
+                addSensorNode(node, fpMoistureSensor, "ZHAMoisture", modelId, manufacturer);
+            }
+            else
+            {
+                checkSensorNodeReachable(sensor);
+            }
+        }
 
         // ZHAAlarm
         if (fpAlarmSensor.hasInCluster(IAS_ZONE_CLUSTER_ID))
@@ -7219,6 +7246,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.addItem(DataTypeInt16, RStatePressure);
         item = sensorNode.addItem(DataTypeInt16, RConfigOffset);
         item->setValue(0);
+    }
+    else if (sensorNode.type().endsWith(QLatin1String("Moisture")))
+    {
+        if (sensorNode.fingerPrint().hasInCluster(SOIL_MOISTURE_CLUSTER_ID))
+        {
+            clusterId = SOIL_MOISTURE_CLUSTER_ID;
+        }
+        item = sensorNode.addItem(DataTypeInt16, RStateMoisture);
     }
     else if (sensorNode.type().endsWith(QLatin1String("Presence")))
     {
@@ -8501,6 +8536,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
             case RELATIVE_HUMIDITY_CLUSTER_ID:
             case PRESSURE_MEASUREMENT_CLUSTER_ID:
+            case SOIL_MOISTURE_CLUSTER_ID:
             case BASIC_CLUSTER_ID:
             case ONOFF_CLUSTER_ID:
             case ANALOG_INPUT_CLUSTER_ID:
@@ -8857,6 +8893,35 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
                                     Event e(RSensors, RStatePressure, i->id(), item);
+                                    enqueueEvent(e);
+                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
+                                }
+
+                                updateSensorEtag(&*i);
+                            }
+                        }
+                    }
+                    else if (event.clusterId() == SOIL_MOISTURE_CLUSTER_ID)
+                    {
+                        for (;ia != enda; ++ia)
+                        {
+                            if (ia->id() == 0x0000) // Soil Moisture
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), 0x0000, ia->numericValue());
+                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().s16);
+                                }
+
+                                qint16 soil_moisture = ia->numericValue().s16 / 100;
+                                ResourceItem *item = i->item(RStateMoisture);
+
+                                if (item)
+                                {
+                                    item->setValue(soil_moisture);
+                                    i->updateStateTimestamp();
+                                    i->setNeedSaveDatabase(true);
+                                    Event e(RSensors, RStateMoisture, i->id(), item);
                                     enqueueEvent(e);
                                     enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                                 }
@@ -12970,6 +13035,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
         case RELATIVE_HUMIDITY_CLUSTER_ID:
         case PRESSURE_MEASUREMENT_CLUSTER_ID:
+        case SOIL_MOISTURE_CLUSTER_ID:
         case OCCUPANCY_SENSING_CLUSTER_ID:
         case IAS_ZONE_CLUSTER_ID:
         case BASIC_CLUSTER_ID:
