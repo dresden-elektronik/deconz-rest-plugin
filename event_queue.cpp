@@ -1,5 +1,6 @@
 #include "alarm_system_event_handler.h"
 #include "de_web_plugin_private.h"
+#include "ui/device_widget.h"
 
 /*! Handles one event and fires again if more are in the queue.
  */
@@ -24,6 +25,22 @@ void DeRestPluginPrivate::handleEvent(const Event &e)
         if (alarmSystems)
         {
             AS_HandleAlarmSystemEvent(e, *alarmSystems, eventEmitter, webSocketServer);
+        }
+    }
+    else if (e.resource() == RConfig)
+    {
+        if (deviceWidget)
+        {
+            deviceWidget->handleEvent(e);
+        }
+    }
+
+    if (e.deviceKey() != 0)
+    {
+        auto *device = DEV_GetDevice(m_devices, e.deviceKey());
+        if (device)
+        {
+            device->handleEvent(e);
         }
     }
 

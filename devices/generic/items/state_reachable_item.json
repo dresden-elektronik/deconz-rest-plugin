@@ -1,0 +1,10 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/reachable",
+	"datatype": "Bool",
+	"access": "R",
+	"public": true,
+	"implicit": true,
+	"managed": true,
+	"description": "When true the device is assumed to be operational."
+}

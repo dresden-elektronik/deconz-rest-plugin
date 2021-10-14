@@ -1,0 +1,15 @@
+{
+    "schema": "subdevice1.schema.json",
+    "type": "$TYPE_PRESSURE_SENSOR",
+    "name": "ZHAPressure",
+    "restapi": "/sensors",
+    "order": 24,
+    "uuid": ["$address.ext", "0x01", "0x0403"],
+    "items": [
+        "config/on",
+        "config/offset",
+        "config/reachable",
+        "state/pressure",
+        "state/lastupdated"
+    ]
+}

@@ -10,6 +10,7 @@
 
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
+#include "device_descriptions.h"
 #include "ias_zone.h"
 
 // server send
@@ -131,6 +132,38 @@ static void IAS_EnsureValidState(ResourceItem *itemIasState)
         DBG_Printf(DBG_IAS, "[IAS ZONE] - invalid state: %u, set to IAS_STATE_INIT\n", itemIasState->toNumber());
         itemIasState->setValue(IAS_STATE_INIT);
     }
+}
+
+/*! Configure presence restoration timer */
+static void IAS_QueueRestorePresence(Sensor *const sensor, const ResourceItem &presence)
+{
+    const NodeValue &val = sensor->getZclValue(IAS_ZONE_CLUSTER_ID, IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID);
+    const ResourceItem *const duration = sensor->item(RConfigDuration);
+    if (val.maxInterval > 0)
+    {
+        sensor->durationDue = presence.lastSet().addSecs(val.maxInterval);
+    }
+    else if (duration && duration->toNumber() > 0)
+    {
+        sensor->durationDue = presence.lastSet().addSecs(duration->toNumber());
+    }
+}
+
+/*! Check whether a sensor sends Zone Status Change when an alarm is reset */
+static bool IAS_SensorSendsRestoreReports(const Sensor &sensor, const quint16 zoneStatus)
+{
+    if (zoneStatus & STATUS_RESTORE_REP)
+    {
+        return true;
+    }
+    const std::array<const QLatin1String, 5> supportedSensors = {
+        QLatin1String("TY0202"),
+        QLatin1String("MS01"),
+        QLatin1String("MSO1"),
+        QLatin1String("ms01"),
+        QLatin1String("66666")
+    };
+    return std::find(supportedSensors.cbegin(), supportedSensors.cend(), sensor.modelId()) != supportedSensors.cend();
 }
 
 /*! Handle packets related to the ZCL IAS Zone cluster.
@@ -474,6 +507,9 @@ void DeRestPluginPrivate::processIasZoneStatus(Sensor *sensor, quint16 zoneStatu
         item->setValue(alarm);
         enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor->id(), item));
 
+        // TODO DDF DDF_AnnoteZclParseCommand()
+        DDF_AnnoteZclParse(sensor, item, 0, IAS_ZONE_CLUSTER_ID, IAS_ZONE_STATUS, "Item.val = (Attr.val & 0x3) != 0");
+
         item2 = sensor->item(RStateTest);
         if (item2)
         {
@@ -488,17 +524,8 @@ void DeRestPluginPrivate::processIasZoneStatus(Sensor *sensor, quint16 zoneStatu
 
         if (alarm && item->descriptor().suffix == RStatePresence)
         {
-            // prepare to automatically set presence to false
-            NodeValue &val = sensor->getZclValue(IAS_ZONE_CLUSTER_ID, IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID);
-
-            item2 = sensor->item(RConfigDuration);
-            if (val.maxInterval > 0)
-            {
-                sensor->durationDue = item->lastSet().addSecs(val.maxInterval);
-            }
-            else if (item2 && item2->toNumber() > 0)
-            {
-                sensor->durationDue = item->lastSet().addSecs(item2->toNumber());
+            if (!IAS_SensorSendsRestoreReports(*sensor, zoneStatus)) {
+                IAS_QueueRestorePresence(sensor, *item);
             }
         }
     }

@@ -381,6 +381,15 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             //Window covering ?
             if (productId.startsWith(QLatin1String("Tuya_COVD")))
             {
+                // This device don't use same command, so I m using this hack to keep an uniform code
+                if (productId == QLatin1String("Tuya_COVD AM43-0.45/40-ES-EZ(TY)"))
+                {
+                    if (dp == 0x0401)
+                    {
+                        if (data == 0x01) { data = 0x00; }
+                        else if (data == 0x00) { data = 0x01; }
+                    }
+                }
 
                 switch (dp)
                 {
@@ -410,6 +419,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         
                         // Need reverse
                         if (productId.startsWith(QLatin1String("Tuya_COVD YS-MT750")) ||
+                            productId.startsWith(QLatin1String("Tuya_COVD AM43-0.45/40-ES-EZ(TY)")) ||
                             productId.startsWith(QLatin1String("Tuya_COVD DS82")))
                         {
                             lift = 100 - lift;
@@ -778,22 +788,37 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     {
                     }
                     break;
-                    case 0x0101: // off / running for Moe
+                    case 0x0101: // off / running for Moe, or state for other
                     {
-                        QString mode;
-                        if      (data == 0) { mode = QLatin1String("off"); }
-                        else if (data == 1) { mode = QLatin1String("heat"); }
+                        if (productId == "Tuya_OTH R7049 Smoke Alarm")
+                        {
+                            bool fire = (data == 0) ? false : true;
+                            ResourceItem *item = sensorNode->item(RStateFire);
+
+                            if (item && item->toBool() != fire)
+                            {
+                                item->setValue(fire);
+                                Event e(RSensors, RStateFire, sensorNode->id(), item);
+                                enqueueEvent(e);
+                            }
+                        }
                         else
                         {
-                            return;
-                        }
+                            QString mode;
+                            if      (data == 0) { mode = QLatin1String("off"); }
+                            else if (data == 1) { mode = QLatin1String("heat"); }
+                            else
+                            {
+                                return;
+                            }
 
-                        ResourceItem *item = sensorNode->item(RConfigMode);
+                            ResourceItem *item = sensorNode->item(RConfigMode);
 
-                        if (item && item->toString() != mode)
-                        {
-                            item->setValue(mode);
-                            enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                            if (item && item->toString() != mode)
+                            {
+                                item->setValue(mode);
+                                enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                            }
                         }
                     }
                     break;
@@ -806,6 +831,19 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         {
                             item->setValue(locked);
                             Event e(RSensors, RConfigLocked, sensorNode->id(), item);
+                            enqueueEvent(e);
+                        }
+                    }
+                    break;
+                    case 0x010E : // Woox Low Battery
+                    {
+                        bool lowbat = (data == 0) ? false : true;
+                        ResourceItem *item = sensorNode->item(RStateLowBattery);
+
+                        if (item && item->toBool() != lowbat)
+                        {
+                            item->setValue(lowbat);
+                            Event e(RSensors, RStateLowBattery, sensorNode->id(), item);
                             enqueueEvent(e);
                         }
                     }
@@ -878,7 +916,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         //if (data == 1) { away = true; }
                     }
                     break;
-                    case 0x016c: // manual / auto
+                    case 0x016c: // manual / auto : Schedule mode for Saswell devices
                     {
                         QString mode;
                         if      (data == 0) { mode = QLatin1String("heat"); } // was "manu"
