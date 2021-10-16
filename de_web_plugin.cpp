@@ -698,7 +698,6 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     idleTotalCounter = IDLE_READ_LIMIT;
     idleLastActivity = 0;
     idleUpdateZigBeeConf = idleTotalCounter + 15;
-    sensorIndIdleTotalCounter = 0;
     queryTime = QTime::currentTime();
     udpSock = 0;
     haEndpoint = 0;
@@ -12323,18 +12322,27 @@ void DeRestPluginPrivate::storeRecoverOnOffBri(LightNode *lightNode)
 
     ResourceItem *onOff = lightNode->item(RStateOn);
     ResourceItem *bri = lightNode->item(RStateBri);
-    std::vector<RecoverOnOff>::iterator i = recoverOnOff.begin();
-    std::vector<RecoverOnOff>::iterator end = recoverOnOff.end();
+
+    if (!onOff || !bri)
+    {
+        return;
+    }
+
+    if (!onOff->lastSet().isValid() || !bri->lastSet().isValid())
+    {
+        return;
+    }
+
+    auto i = recoverOnOff.begin();
+    auto end = recoverOnOff.end();
 
     for (; i != end; ++i)
     {
         if (isSameAddress(i->address, lightNode->address()))
         {
             // update entry
-            i->onOff = onOff ? onOff->toBool() : false;
-            if (bri && bri->lastSet().isValid()) { i->bri = bri->toNumber(); }
-            else                                 { i->bri = 0; }
-
+            i->onOff = onOff->toBool();
+            i->bri = bri->toNumber();
             i->idleTotalCounterCopy = idleTotalCounter;
             return;
         }
@@ -12344,8 +12352,8 @@ void DeRestPluginPrivate::storeRecoverOnOffBri(LightNode *lightNode)
     DBG_Printf(DBG_INFO, "New recover onOff entry 0x%016llX\n", lightNode->address().ext());
     RecoverOnOff rc;
     rc.address = lightNode->address();
-    rc.onOff = onOff ? onOff->toBool() : false;
-    rc.bri = bri ? bri->toNumber() : 0;
+    rc.onOff = onOff->toBool();
+    rc.bri = bri->toNumber();
     rc.idleTotalCounterCopy = idleTotalCounter;
     recoverOnOff.push_back(rc);
 }
