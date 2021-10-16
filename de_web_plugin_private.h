@@ -1255,7 +1255,6 @@ public:
     // Otau
     void initOtau();
     void otauDataIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
-    void otauSendStdNotify(LightNode *node);
     bool isOtauBusy();
     bool isOtauActive();
     int otauLastBusyTimeDelta() const;
@@ -1890,8 +1889,6 @@ public:
     int otauBusyTicks;
     int otauIdleTotalCounter;
     int otauUnbindIdleTotalCounter;
-    uint otauNotifyIter; // iterator over nodes
-    int otauNotifyDelay;
 
     // touchlink
 
@@ -2012,8 +2009,6 @@ public:
 
     DeviceWidget *deviceWidget = nullptr;
     RestDevices *restDevices;
-
-    int sensorIndIdleTotalCounter;
 
     class SensorCommand
     {
