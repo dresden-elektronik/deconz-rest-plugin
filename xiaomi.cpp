@@ -9,6 +9,7 @@
  */
 void DeRestPluginPrivate::handleXiaomiLumiClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
+DBG_Printf(DBG_INFO, "################### 0 \n");
     if (zclFrame.isDefaultResponse())
     {
         return;

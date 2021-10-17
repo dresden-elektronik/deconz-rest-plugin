@@ -1149,7 +1149,6 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
  */
 void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &ind)
 {
-            DBG_Printf(DBG_INFO, "################# 0\n");
     Q_Q(DeRestPlugin);
     if (!q->pluginActive())
     {
@@ -12217,7 +12216,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
 
     if (DBG_IsEnabled(DBG_INFO))
     {
-DBG_Printf(DBG_INFO, "################### 1 \n");
         DBG_Printf(DBG_INFO, "ZCL attribute report 0x%016llX for cluster: 0x%04X, ep: 0x%02X, frame control: 0x%02X, mfcode: 0x%04X \n", ind.srcAddress().ext(), ind.clusterId(), ind.srcEndpoint(), zclFrame.frameControl(), zclFrame.manufacturerCode());
     }
 
@@ -12274,10 +12272,9 @@ DBG_Printf(DBG_INFO, "################### 1 \n");
     {
         handleZclAttributeReportIndicationXiaomiSpecial(ind, zclFrame);
     }
-DBG_Printf(DBG_INFO, "################### 2 \n");
+
     if (zclFrame.isProfileWideCommand() && existDevicesWithVendorCodeForMacPrefix(ind.srcAddress().ext(), VENDOR_XIAOMI) && ind.clusterId() == XIAOMI_CLUSTER_ID)
     {
-DBG_Printf(DBG_INFO, "################### 3 \n");
         handleZclAttributeReportIndicationXiaomiAqaraS1ScenePanelSpecial(ind, zclFrame);
     }
 
