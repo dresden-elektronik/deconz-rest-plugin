@@ -12273,6 +12273,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
         handleZclAttributeReportIndicationXiaomiSpecial(ind, zclFrame);
     }
 
+    if (zclFrame.isProfileWideCommand() && existDevicesWithVendorCodeForMacPrefix(ind.srcAddress().ext(), VENDOR_XIAOMI) && ind.clusterId() == XIAOMI_CLUSTER_ID)
+    {
+        handleZclAttributeReportIndicationXiaomiAqaraS1ScenePanelSpecial(ind, zclFrame);
+    }
+
     if (otauLastBusyTimeDelta() < (60 * 60))
     {
         if ((idleTotalCounter - otauUnbindIdleTotalCounter) > 5)
