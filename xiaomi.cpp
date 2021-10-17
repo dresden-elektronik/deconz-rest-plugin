@@ -9,7 +9,6 @@
  */
 void DeRestPluginPrivate::handleXiaomiLumiClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-DBG_Printf(DBG_INFO, "################### 0 \n");
     if (zclFrame.isDefaultResponse())
     {
         return;
@@ -94,6 +93,7 @@ DBG_Printf(DBG_INFO, "################### 0 \n");
             }
         }
     }
+    handleZclAttributeReportIndicationXiaomiAqaraS1ScenePanelSpecial(ind, zclFrame); // TODO: integrate the logic into this function.
 }
 
 /*! Handle manufacturer specific Xiaomi ZCL attribute report commands to basic cluster.
