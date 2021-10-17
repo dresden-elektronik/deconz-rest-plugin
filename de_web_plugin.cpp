@@ -12272,7 +12272,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
     {
         handleZclAttributeReportIndicationXiaomiSpecial(ind, zclFrame);
     }
-
+DBG_Printf(DBG_INFO, "################### 1 \n");
     if (zclFrame.isProfileWideCommand() && existDevicesWithVendorCodeForMacPrefix(ind.srcAddress().ext(), VENDOR_XIAOMI) && ind.clusterId() == XIAOMI_CLUSTER_ID)
     {
         handleZclAttributeReportIndicationXiaomiAqaraS1ScenePanelSpecial(ind, zclFrame);
