@@ -18,6 +18,12 @@ CONFIG(release, debug|release) {
     LIBS += -L../../release
 }
 
+equals(QT_MAJOR_VERSION, 5):lessThan(QT_MINOR_VERSION, 15) {
+    DEFINES += SKIP_EMPTY_PARTS=QString::SkipEmptyParts
+} else {
+    DEFINES += SKIP_EMPTY_PARTS=Qt::SkipEmptyParts
+}
+
 greaterThan(QT_MAJOR_VERSION, 4) {
     QT += core gui widgets serialport
 
@@ -42,6 +48,14 @@ contains(QMAKE_SPEC_T,.*linux.*) {
     }
 }
 
+macx {
+    DEFINES += QT_NO_DEPRECATED_WARNINGS
+    CONFIG+=sdk_no_version_check
+
+    LIBS += -lsqlite3
+    DEFINES += HAS_SQLITE3
+}
+
 unix:LIBS +=  -L../.. -ldeCONZ
 
 unix:!macx {
@@ -51,10 +65,10 @@ unix:!macx {
 TEMPLATE        = lib
 CONFIG         += plugin \
                += debug_and_release \
-               += c++11 \
+               += c++14 \
                -= qtquickcompiler
 
-QT             += network
+QT             += network qml
 
 INCLUDEPATH    += ../.. \
                   ../../common
@@ -73,7 +87,7 @@ GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.10.03\\\"
+DEFINES += GW_SW_VERSION=\\\"2.13.01\\\"
 DEFINES += GW_SW_DATE=$$GIT_COMMIT_DATE
 DEFINES += GW_API_VERSION=\\\"1.16.0\\\"
 DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
@@ -92,48 +106,107 @@ DEFINES += GW_MIN_DERFUSB23E0X_FW_VERSION=0x22030300
 DEFINES += GW_DEFAULT_NAME=\\\"Phoscon-GW\\\"
 
 HEADERS  = bindings.h \
+           alarm_system.h \
+           alarm_system_device_table.h \
+           alarm_system_event_handler.h \
+           aps_controller_wrapper.h \
+           backup.h \
+           button_maps.h \
            connectivity.h \
            colorspace.h \
+           crypto/random.h \
+           crypto/scrypt.h \
+           database.h \
            daylight.h \
            de_web_plugin.h \
            de_web_plugin_private.h \
            de_web_widget.h \
+           device.h \
+           device_access_fn.h \
+           device_compat.h \
+           device_ddf_init.h \
+           device_descriptions.h \
+           device_js/device_js.h \
+           device_js/device_js_wrappers.h \
+           device_tick.h \
            event.h \
+           event_emitter.h \
+           fan_control.h \
            gateway.h \
            gateway_scanner.h \
            green_power.h \
            group.h \
            group_info.h \
            json.h \
+           ias_ace.h \
+           ias_zone.h \
            light_node.h \
+           mfspecific_cluster_xiaoyan.h \
            poll_control.h \
            poll_manager.h \
+           product_match.h \
            read_files.h \
            resource.h \
            resourcelinks.h \
+           rest_alarmsystems.h \
            rest_devices.h \
            rest_node_base.h \
            rule.h \
            scene.h \
            sensor.h \
+           state_change.h \
+           simple_metering.h \
+           thermostat.h \
+           thermostat_ui_configuration.h \
            tuya.h \
-           websocket_server.h
+           ui/ddf_bindingeditor.h \
+           ui/ddf_editor.h \
+           ui/ddf_itemeditor.h \
+           ui/ddf_itemlist.h \
+           ui/ddf_treeview.h \
+           ui/device_widget.h \
+           ui/text_lineedit.h \
+           utils/bufstring.h \
+           utils/stringcache.h \
+           utils/utils.h \
+           websocket_server.h \
+           zcl/zcl.h \
+           zdp/zdp.h \
+           zdp/zdp_handlers.h
 
 SOURCES  = air_quality.cpp \
+           alarm_system.cpp \
+           alarm_system_device_table.cpp \
+           alarm_system_event_handler.cpp \
+           aps_controller_wrapper.cpp \
            authorisation.cpp \
+           backup.cpp \
            bindings.cpp \
+           button_maps.cpp \
            change_channel.cpp \
            connectivity.cpp \
            colorspace.cpp \
+           crypto/random.cpp \
+           crypto/scrypt.cpp \
            database.cpp \
            daylight.cpp \
+           device.cpp \
+           device_access_fn.cpp \
+           device_compat.cpp \
+           device_ddf_init.cpp \
+           device_descriptions.cpp \
+           device_js/device_js.cpp \
+           device_js/device_js_wrappers.cpp \
            device_setup.cpp \
+           device_tick.cpp \
            diagnostics.cpp \
            discovery.cpp \
            de_web_plugin.cpp \
            de_web_widget.cpp \
            de_otau.cpp \
+           electrical_measurement.cpp \
            event.cpp \
+           event_emitter.cpp \
            event_queue.cpp \
            fan_control.cpp \
            firmware_update.cpp \
@@ -148,11 +221,16 @@ SOURCES  = air_quality.cpp \
            identify.cpp \
            json.cpp \
            light_node.cpp \
+           mfspecific_cluster_xiaoyan.cpp \
+           occupancy_sensing.cpp \
            poll_control.cpp \
            poll_manager.cpp \
+           power_configuration.cpp \
+           product_match.cpp \
            read_files.cpp \
            resource.cpp \
            resourcelinks.cpp \
+           rest_alarmsystems.cpp \
            rest_configuration.cpp \
            rest_devices.cpp \
            rest_gateways.cpp \
@@ -168,11 +246,20 @@ SOURCES  = air_quality.cpp \
            rest_info.cpp \
            rest_capabilities.cpp \
            rule.cpp \
+           state_change.cpp \
            thermostat_ui_configuration.cpp \
+           ui/ddf_bindingeditor.cpp \
+           ui/ddf_editor.cpp \
+           ui/ddf_itemeditor.cpp \
+           ui/ddf_itemlist.cpp \
+           ui/ddf_treeview.cpp \
+           ui/device_widget.cpp \
+           ui/text_lineedit.cpp \
            upnp.cpp \
            permitJoin.cpp \
            scene.cpp \
            sensor.cpp \
+           simple_metering.cpp \
            thermostat.cpp \
            time.cpp \
            tuya.cpp \
@@ -180,10 +267,17 @@ SOURCES  = air_quality.cpp \
            appliances.cpp \
            reset_device.cpp \
            rest_userparameter.cpp \
-           zcl_tasks.cpp \
+           utils/bufstring.cpp \
+           utils/stringcache.cpp \
+           utils/utils.cpp \
+           xiaomi.cpp \
            window_covering.cpp \
            websocket_server.cpp \
-           xmas.cpp
+           xmas.cpp \
+           zcl/zcl.cpp \
+           zcl_tasks.cpp \
+           zdp/zdp.cpp \
+           zdp/zdp_handlers.cpp
 
 win32 {
 
@@ -201,11 +295,11 @@ win32 {
 
     LIBS += \
          -L../.. \
-         -L$${PWD}/../../../lib/sqlite-dll-win32-x86-3240000 \
+         -L$${PWD}/../../../lib/sqlite-dll-win32-x86-3270200 \
          -ldeCONZ1 \
          -lsqlite3
 
-    INCLUDEPATH += $${PWD}/../../../lib/sqlite-amalgamation-3240000
+    INCLUDEPATH += $${PWD}/../../../lib/sqlite-amalgamation-3270200
     CONFIG += dll
 }
 
@@ -213,4 +307,6 @@ win32:DESTDIR  = ../../debug/plugins # TODO adjust
 unix:DESTDIR  = ..
 
 FORMS += \
-    de_web_widget.ui
+    de_web_widget.ui \
+    ui/ddf_editor.ui \
+    ui/device_widget.ui

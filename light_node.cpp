@@ -9,6 +9,7 @@
  */
 
 #include "de_web_plugin_private.h"
+#include "product_match.h"
 
 /*! Constructor.
  */
@@ -26,10 +27,6 @@ LightNode::LightNode() :
     m_sceneCapacity(16)
 
 {
-    QDateTime now = QDateTime::currentDateTime();
-    lastStatePush = now;
-    lastAttrPush = now;
-
     // add common items
     addItem(DataTypeBool, RStateOn);
     addItem(DataTypeString, RStateAlert);
@@ -107,7 +104,7 @@ void LightNode::setManufacturerCode(uint16_t code)
         case VENDOR_UBISYS:  name = QLatin1String("ubisys"); break;
         case VENDOR_BUSCH_JAEGER:  name = QLatin1String("Busch-Jaeger"); break;
         //case VENDOR_EMBER:   // fall through
-        case VENDOR_HEIMAN:  name = QLatin1String("Heiman"); break;
+        //case VENDOR_HEIMAN:  name = QLatin1String("Heiman"); break;
         case VENDOR_KEEN_HOME: name = QLatin1String("Keen Home Inc"); break;
         case VENDOR_DANALOCK: name = QLatin1String("Danalock"); break;
         case VENDOR_SCHLAGE: name = QLatin1String("Schlage"); break;
@@ -238,6 +235,19 @@ bool LightNode::isColorLoopActive() const
     return m_colorLoopActive;
 }
 
+bool LightNode::supportsColorLoop() const
+{
+    const auto *colorCapabilities = item(RConfigColorCapabilities);
+
+    if (colorCapabilities)
+    {
+        const quint16 colorLoopCap = COLOR_CAP_ENHANCED_HUE | COLOR_CAP_COLORLOOP;
+        return (colorCapabilities->toNumber() & colorLoopCap) == colorLoopCap;
+    }
+
+    return false;
+}
+
 /*! Sets the nodes color loop speed state.
     \param colorLoopActive whereever the color loop is active
  */
@@ -257,80 +267,8 @@ uint8_t LightNode::colorLoopSpeed() const
  */
 void LightNode::didSetValue(ResourceItem *i)
 {
-    plugin->enqueueEvent(Event(RLights, i->descriptor().suffix, id(), i));
-    plugin->updateLightEtag(this);
+    enqueueEvent(Event(RLights, i->descriptor().suffix, id(), i));
     setNeedSaveDatabase(true);
-    plugin->saveDatabaseItems |= DB_LIGHTS;
-    plugin->queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
-}
-
-/*! Set ResourceItem value.
- * \param suffix ResourceItem suffix
- * \param val ResourceIetm value
- */
-bool LightNode::setValue(const char *suffix, qint64 val, bool forceUpdate)
-{
-    ResourceItem *i = item(suffix);
-    if (!i)
-    {
-        return false;
-    }
-    if (forceUpdate || i->toNumber() != val)
-    {
-        if (!(i->setValue(val)))
-        {
-            return false;
-        }
-        didSetValue(i);
-        return true;
-    }
-    return false;
-}
-
-/*! Set ResourceItem value.
- * \param suffix ResourceItem suffix
- * \param val ResourceIetm value
- */
-bool LightNode::setValue(const char *suffix, const QString &val, bool forceUpdate)
-{
-    ResourceItem *i = item(suffix);
-    if (!i)
-    {
-        return false;
-    }
-    if (forceUpdate || i->toString() != val)
-    {
-        if (!(i->setValue(val)))
-        {
-            return false;
-        }
-        didSetValue(i);
-        return true;
-    }
-    return false;
-}
-
-/*! Set ResourceItem value.
- * \param suffix ResourceItem suffix
- * \param val ResourceIetm value
- */
-bool LightNode::setValue(const char *suffix, const QVariant &val, bool forceUpdate)
-{
-    ResourceItem *i = item(suffix);
-    if (!i)
-    {
-        return false;
-    }
-    if (forceUpdate || i->toVariant() != val)
-    {
-        if (!(i->setValue(val)))
-        {
-            return false;
-        }
-        didSetValue(i);
-        return true;
-    }
-    return false;
 }
 
 /*! Mark received command and update lastseen. */
@@ -342,17 +280,20 @@ void LightNode::rx()
     {
         setValue(RAttrLastSeen, lastRx().toUTC());
     }
-    // else
-    // {
-    //     item(RAttrLastSeen)->setValue(lastRx().toUTC());
-    // }
 }
 
 /*! Returns the lights HA endpoint descriptor.
  */
 const deCONZ::SimpleDescriptor &LightNode::haEndpoint() const
 {
-    return m_haEndpoint;
+    const auto *sd = m_haEndpoint < 255 ? getSimpleDescriptor(m_node, m_haEndpoint) : nullptr;
+    if (sd)
+    {
+        return *sd;
+    }
+
+    static deCONZ::SimpleDescriptor invalidEndpoint; // TODO hack
+    return invalidEndpoint;
 }
 
 /*! Sets the lights HA endpoint descriptor.
@@ -361,14 +302,14 @@ const deCONZ::SimpleDescriptor &LightNode::haEndpoint() const
 void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
 {
     bool isWindowCovering = false;
-    bool isInitialized = m_haEndpoint.isValid();
-    m_haEndpoint = endpoint;
+    bool isInitialized = m_haEndpoint < 255;
+    m_haEndpoint = endpoint.endpoint();
 
     // check if std otau cluster present in endpoint
     if (otauClusterId() == 0)
     {
-        QList<deCONZ::ZclCluster>::const_iterator it = endpoint.outClusters().constBegin();
-        QList<deCONZ::ZclCluster>::const_iterator end = endpoint.outClusters().constEnd();
+        auto it = endpoint.outClusters().cbegin();
+        const auto end = endpoint.outClusters().cend();
 
         for (; it != end; ++it)
         {
@@ -396,16 +337,19 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
     // initial setup
     if (!isInitialized)
     {
-        quint16 deviceId = haEndpoint().deviceId();
+        quint16 deviceId = endpoint.deviceId();
         QString ltype = QLatin1String("Unknown");
 
         {
-            QList<deCONZ::ZclCluster>::const_iterator i = endpoint.inClusters().constBegin();
-            QList<deCONZ::ZclCluster>::const_iterator end = endpoint.inClusters().constEnd();
+            auto i = endpoint.inClusters().cbegin();
+            const auto end = endpoint.inClusters().cend();
 
             for (; i != end; ++i)
             {
-                if (i->id() == LEVEL_CLUSTER_ID)
+                if (i->id() == ONOFF_CLUSTER_ID)
+                {
+                }
+                else if (i->id() == LEVEL_CLUSTER_ID)
                 {
                     if ((manufacturerCode() == VENDOR_IKEA && endpoint.deviceId() == DEV_ID_Z30_ONOFF_PLUGIN_UNIT) || // IKEA Tradfri control outlet
                         (manufacturerCode() == VENDOR_INNR && endpoint.deviceId() == DEV_ID_ZLL_ONOFF_PLUGIN_UNIT) || // innr SP120 smart plug
@@ -495,9 +439,9 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 {
                     if (modelId() != QLatin1String("lumi.light.aqcn02"))
                     {
-                        QList<deCONZ::ZclCluster>::const_iterator ic = haEndpoint().inClusters().constBegin();
-                        std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
-                        std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
+                        auto ic = endpoint.inClusters().cbegin();
+                        auto ia = ic->attributes().cbegin();
+                        const auto enda = ic->attributes().cend();
                         isWindowCovering = true;
                         bool hasLift = true; // set default to lift
                         bool hasTilt = false;
@@ -565,9 +509,10 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 }
                 else if (i->id() == IDENTIFY_CLUSTER_ID)
                 {
-                    if (manufacturerCode() == VENDOR_IKEA && deviceId == DEV_ID_RANGE_EXTENDER)
+                    if ((manufacturerCode() == VENDOR_IKEA && deviceId == DEV_ID_RANGE_EXTENDER) ||
+                        R_GetProductId(this) == QLatin1String("Tuya_RPT Repeater"))
                     {
-                        // the repeater has no on/off cluster but an led which supports identify
+                        // the ikea repeater has no on/off cluster but an led which supports identify
                         removeItem(RStateOn);
                         ltype = QLatin1String("Range extender");
                     }
@@ -575,7 +520,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             }
         }
 
-        if (haEndpoint().profileId() == HA_PROFILE_ID)
+        if (endpoint.profileId() == HA_PROFILE_ID)
         {
 
             if ((manufacturerCode() == VENDOR_LEGRAND) && isWindowCovering)
@@ -622,10 +567,9 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                                                        ltype = QLatin1String("Warning device"); break;
             case DEV_ID_HA_WINDOW_COVERING_CONTROLLER: ltype = QLatin1String("Window covering controller"); break;
             case DEV_ID_HA_WINDOW_COVERING_DEVICE:     ltype = QLatin1String("Window covering device"); break;
-            // Danalock support. Add the device id to setHAEndPoint() to set the type to "Door lock".
             case DEV_ID_DOOR_LOCK:                     ltype = QLatin1String("Door Lock"); break;
             case DEV_ID_DOOR_LOCK_UNIT:                ltype = QLatin1String("Door Lock Unit"); break;
-            
+
             case DEV_ID_FAN:                           ltype = QLatin1String("Fan"); break;
             case DEV_ID_CONFIGURATION_TOOL:            removeItem(RStateOn);
                                                        removeItem(RStateAlert);
@@ -634,7 +578,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 break;
             }
         }
-        else if (haEndpoint().profileId() == ZLL_PROFILE_ID)
+        else if (endpoint.profileId() == ZLL_PROFILE_ID)
         {
             switch (deviceId)
             {
@@ -653,7 +597,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 break;
             }
         }
-        else if (haEndpoint().profileId() == DIN_PROFILE_ID)
+        else if (endpoint.profileId() == DIN_PROFILE_ID)
         {
             switch (deviceId)
             {

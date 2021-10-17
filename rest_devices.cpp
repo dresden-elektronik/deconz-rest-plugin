@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2021 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -9,20 +9,41 @@
  */
 
 #include <QString>
-#include <QTcpSocket>
-#include <QUrlQuery>
 #include <QVariantMap>
 #include <QProcess>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
-#include "json.h"
+#include "product_match.h"
+#include "device_descriptions.h"
 #include "rest_devices.h"
+#include "utils/ArduinoJson.h"
+#include "utils/utils.h"
+
+using JsonDoc = StaticJsonDocument<1024 * 1024 * 2>; // 2 megabytes
+
+static RestDevicesPrivate *priv_;
+
+class RestDevicesPrivate
+{
+public:
+    JsonDoc json;
+
+    char jsonBuffer[1024 * 1024];
+};
 
 RestDevices::RestDevices(QObject *parent) :
     QObject(parent)
 {
+    d = new RestDevicesPrivate;
+    priv_ = d;
     plugin = qobject_cast<DeRestPluginPrivate*>(parent);
     Q_ASSERT(plugin);
+}
+
+RestDevices::~RestDevices()
+{
+    priv_ = nullptr;
+    delete d;
 }
 
 /*! Devices REST API broker.
@@ -33,29 +54,143 @@ RestDevices::RestDevices(QObject *parent) :
  */
 int RestDevices::handleApi(const ApiRequest &req, ApiResponse &rsp)
 {
-    if (req.path[2] != QLatin1String("devices"))
-    {
-        return REQ_NOT_HANDLED;
-    }
-
     // GET /api/<apikey>/devices
-    if ((req.path.size() == 3) && (req.hdr.method() == QLatin1String("GET")))
+    if (req.hdr.pathComponentsCount() == 3 && req.hdr.httpMethod() == HttpGet)
     {
         return getAllDevices(req, rsp);
     }
     // GET /api/<apikey>/devices/<uniqueid>
-    else if ((req.path.size() == 4) && (req.hdr.method() == QLatin1String("GET")))
+    else if (req.hdr.pathComponentsCount() == 4 && req.hdr.httpMethod() == HttpGet)
     {
         return getDevice(req, rsp);
     }
+    // PUT /api/<apikey>/devices/<uniqueid>/ddf/reload
+    else if (req.path.size() == 6 && req.hdr.method() == QLatin1String("PUT") && req.path[4] == QLatin1String("ddf") && req.path[5] == QLatin1String("reload"))
+    {
+        return putDeviceReloadDDF(req, rsp);
+    }
+    // GET /api/<apikey>/devices/<uniqueid>/ddf
+    else if (req.hdr.pathComponentsCount() == 5 && req.hdr.httpMethod() == HttpGet && req.hdr.pathAt(4) == QLatin1String("ddf"))
+    {
+        return getDeviceDDF(req, rsp);
+    }
+    // GET /api/<apikey>/devices/<uniqueid>/ddffull
+    else if (req.hdr.pathComponentsCount() == 5 && req.hdr.httpMethod() == HttpGet && req.hdr.pathAt(4) == QLatin1String("ddffull"))
+    {
+        return getDeviceDDF(req, rsp);
+    }
+    // GET /api/<apikey>/devices/<uniuqueid>/introspect
+    else if (req.hdr.pathComponentsCount() == 5 && req.hdr.httpMethod() == HttpGet && req.hdr.pathAt(4) == QLatin1String("introspect"))
+    {
+        return RIS_GetDeviceIntrospect(req, rsp);
+    }
+    // GET /api/<apikey>/devices/<uniqueid>/[<prefix>/]<item>/introspect
+    else if (req.hdr.pathComponentsCount() > 5 && req.hdr.httpMethod() == HttpGet &&
+             req.hdr.pathAt(req.hdr.pathComponentsCount() - 1) == QLatin1String("introspect"))
+    {
+        return RIS_GetDeviceItemIntrospect(req, rsp);
+    }
     // PUT /api/<apikey>/devices/<uniqueid>/installcode
-    else if ((req.path.size() == 5) && (req.hdr.method() == QLatin1String("PUT")) && (req.path[4] == QLatin1String("installcode")))
+    else if (req.hdr.pathComponentsCount() == 5 && req.hdr.httpMethod() == HttpPut && req.hdr.pathAt(4) == QLatin1String("installcode"))
     {
         return putDeviceInstallCode(req, rsp);
     }
 
-
     return REQ_NOT_HANDLED;
+}
+
+/*! Deletes a Sensor as a side effect it will be removed from the REST API
+    and a ZDP reset will be send if possible.
+ */
+bool deleteSensor(Sensor *sensor, DeRestPluginPrivate *plugin)
+{
+    if (sensor && plugin && sensor->deletedState() == Sensor::StateNormal)
+    {
+        sensor->setDeletedState(Sensor::StateDeleted);
+        sensor->setNeedSaveDatabase(true);
+        sensor->setResetRetryCount(10);
+
+        enqueueEvent(Event(sensor->prefix(), REventDeleted, sensor->id()));
+        return true;
+    }
+
+    return false;
+}
+
+/*! Deletes a LightNode as a side effect it will be removed from the REST API
+    and a ZDP reset will be send if possible.
+ */
+bool deleteLight(LightNode *lightNode, DeRestPluginPrivate *plugin)
+{
+    if (lightNode && plugin && lightNode->state() == LightNode::StateNormal)
+    {
+        lightNode->setState(LightNode::StateDeleted);
+        lightNode->setResetRetryCount(10);
+        lightNode->setNeedSaveDatabase(true);
+
+        // delete all group membership from light (todo this is messy)
+        for (auto &group : lightNode->groups())
+        {
+            //delete Light from all scenes.
+            plugin->deleteLightFromScenes(lightNode->id(), group.id);
+
+            //delete Light from all groups
+            group.actions &= ~GroupInfo::ActionAddToGroup;
+            group.actions |= GroupInfo::ActionRemoveFromGroup;
+            if (group.state != GroupInfo::StateNotInGroup)
+            {
+                group.state = GroupInfo::StateNotInGroup;
+            }
+        }
+
+        enqueueEvent(Event(lightNode->prefix(), REventDeleted, lightNode->id()));
+        return true;
+    }
+
+    return false;
+}
+
+/*! Deletes all resources related to a device from the REST API.
+ */
+bool RestDevices::deleteDevice(quint64 extAddr)
+{
+    int count = 0;
+
+    for (auto &sensor : plugin->sensors)
+    {
+        if (sensor.address().ext() == extAddr && deleteSensor(&sensor, plugin))
+        {
+            count++;
+        }
+    }
+
+    for (auto &lightNode : plugin->nodes)
+    {
+        if (lightNode.address().ext() == extAddr && deleteLight(&lightNode, plugin))
+        {
+            count++;
+        }
+    }
+
+    if (count > 0)
+    {
+        plugin->queSaveDb(DB_SENSORS | DB_LIGHTS | DB_GROUPS | DB_SCENES, DB_SHORT_SAVE_DELAY);
+    }
+
+    // delete device entry, regardless if REST resources exists
+    plugin->deleteDeviceDb(generateUniqueId(extAddr, 0, 0));
+
+    enqueueEvent(Event(RDevices, REventDeleted, 0, extAddr));
+
+    return count > 0;
+}
+
+void RestDevices::handleEvent(const Event &event)
+{
+    if (event.resource() == RDevices && event.what() == REventDeleted)
+    {
+        DEV_RemoveDevice(plugin->m_devices, event.deviceKey());
+    }
 }
 
 /*! GET /api/<apikey>/devices
@@ -65,6 +200,14 @@ int RestDevices::handleApi(const ApiRequest &req, ApiResponse &rsp)
 int RestDevices::getAllDevices(const ApiRequest &req, ApiResponse &rsp)
 {
     Q_UNUSED(req)
+
+    rsp.httpStatus = HttpStatusOk;
+
+    for (const auto &d : plugin->m_devices)
+    {
+        Q_ASSERT(d);
+        rsp.list.push_back(d->item(RAttrUniqueId)->toString());
+    }
 
     if (rsp.list.isEmpty())
     {
@@ -83,56 +226,717 @@ int RestDevices::getDevice(const ApiRequest &req, ApiResponse &rsp)
 {
     DBG_Assert(req.path.size() == 4);
 
-    const QString &uniqueid = req.path[3];
+    const auto deviceKey = extAddressFromUniqueId(req.hdr.pathAt(3));
+
+    Device *device = DEV_GetDevice(plugin->m_devices, deviceKey);
+
+    rsp.httpStatus = device ? HttpStatusOk : HttpStatusNotFound;
+
+    if (!device)
+    {
+        return REQ_READY_SEND;
+    }
+
+    const DeviceDescription ddf = plugin->deviceDescriptions->get(device);
+
+    if (ddf.isValid())
+    {
+        rsp.map["productid"] = ddf.product;
+    }
 
     QVariantList subDevices;
-    QString modelid;
-    QString swversion;
-    QString manufacturer;
 
-    // humble attemp to merge resources, these might be merged in one resource container later
-
-    for (const LightNode &l : plugin->nodes)
+    for (const auto &sub : device->subDevices())
     {
-        if (l.uniqueId().indexOf(uniqueid) != 0)
+        QVariantMap map;
+
+        for (int i = 0; i < sub->itemCount(); i++)
         {
-            continue;
+            auto *item = sub->itemForIndex(i);
+            Q_ASSERT(item);
+
+            if (item->descriptor().suffix == RStateLastUpdated ||
+                item->descriptor().suffix == RAttrId)
+            {
+                continue;
+            }
+
+            if (!item->isPublic())
+            {
+                continue;
+            }
+
+            const auto ls = QString(QLatin1String(item->descriptor().suffix)).split(QLatin1Char('/'));
+
+            if (ls.size() == 2)
+            {
+                if (item->descriptor().suffix == RAttrLastSeen || item->descriptor().suffix == RAttrLastAnnounced ||
+                    item->descriptor().suffix == RAttrManufacturerName || item->descriptor().suffix == RAttrModelId ||
+                    item->descriptor().suffix == RAttrSwVersion || item->descriptor().suffix == RAttrName)
+                {
+                    if (!rsp.map.contains(ls.at(1)))
+                    {
+                        rsp.map[ls.at(1)] = item->toString(); // top level attribute
+                    }
+                }
+                else if (ls.at(0) == QLatin1String("attr"))
+                {
+                    map[ls.at(1)] = item->toVariant(); // sub device top level attribute
+                }
+                else
+                {
+                    QVariantMap m2;
+                    if (map.contains(ls.at(0)))
+                    {
+                        m2 = map[ls.at(0)].toMap();
+                    }
+
+                    QVariantMap itemMap;
+
+                    itemMap[QLatin1String("value")] = item->toVariant();
+
+                    QDateTime dt = item->lastChanged().isValid() ? item->lastChanged() : item->lastSet();
+                    // UTC in msec resolution
+                    dt.setOffsetFromUtc(0);
+                    itemMap[QLatin1String("lastupdated")] = dt.toString(QLatin1String("yyyy-MM-ddTHH:mm:ssZ"));
+
+
+                    m2[ls.at(1)] = itemMap;
+                    map[ls.at(0)] = m2;
+                }
+            }
         }
 
-        if (manufacturer.isEmpty() && !l.manufacturer().isEmpty()) { manufacturer = l.manufacturer(); }
-        if (modelid.isEmpty() && !l.modelId().isEmpty()) { modelid = l.modelId(); }
-        if (swversion.isEmpty() && !l.swBuildId().isEmpty()) { swversion = l.swBuildId(); }
+        subDevices.push_back(map);
+    }
 
-        QVariantMap m;
-        if (plugin->lightToMap(req, &l, m))
+    rsp.map["uniqueid"] = device->item(RAttrUniqueId)->toString();
+    rsp.map["subdevices"] = subDevices;
+
+    return REQ_READY_SEND;
+}
+
+static void putJsonArrayQVariantValue(JsonArray &arr, const QVariant &value)
+{
+    if (value.type() == QVariant::String)
+    {
+        arr.add(value.toString().toStdString());
+    }
+    else if (value.type() == QVariant::Bool)
+    {
+        arr.add(value.toBool());
+    }
+    else if (value.type() == QVariant::Double)
+    {
+        arr.add(value.toDouble());
+    }
+    else if (value.type() == QVariant::Int)
+    {
+        arr.add(value.toInt());
+    }
+    else if (value.type() == QVariant::UInt)
+    {
+        arr.add(value.toUInt());
+    }
+    else if (value.type() == QVariant::ULongLong)
+    {
+        arr.add(uint64_t(value.toULongLong()));
+    }
+    else if (value.type() == QVariant::LongLong)
+    {
+        arr.add(int64_t(value.toLongLong()));
+    }
+    else
+    {
+        DBG_Printf(DBG_INFO, "DDF TODO %s:%d arr add type: %s\n", __FILE__, __LINE__, QVariant::typeToName(value.type()));
+    }
+}
+
+static void putJsonQVariantValue(JsonObject &obj, std::string key, const QVariant &value)
+{
+    if (value.type() == QVariant::String)
+    {
+        obj[key] = value.toString().toStdString();
+    }
+    else if (value.type() == QVariant::Bool)
+    {
+        obj[key] = value.toBool();
+    }
+    else if (value.type() == QVariant::Double)
+    {
+        obj[key] = value.toDouble();
+    }
+    else if (value.type() == QVariant::Int)
+    {
+        obj[key] = value.toInt();
+    }
+    else if (value.type() == QVariant::UInt)
+    {
+        obj[key] = value.toUInt();
+    }
+    else if (value.type() == QVariant::ULongLong)
+    {
+        obj[key] = uint64_t(value.toULongLong());
+    }
+    else if (value.type() == QVariant::LongLong)
+    {
+        obj[key] = int64_t(value.toLongLong());
+    }
+    else if (value.type() == QVariant::List)
+    {
+        JsonArray arr = obj.createNestedArray(key);
+        const QVariantList ls = value.toList();
+
+        for (const auto &v : ls)
         {
-            subDevices.push_back(m);
+            putJsonArrayQVariantValue(arr, v);
+        }
+    }
+    else
+    {
+        DBG_Printf(DBG_INFO, "DDF TODO %s:%d obj.%s type: %s\n", __FILE__, __LINE__, key.c_str(), QVariant::typeToName(value.type()));
+    }
+}
+
+static void putItemParameter(JsonObject &item, const char *name, const QVariantMap &param)
+{
+    JsonObject parse = item.createNestedObject(name);
+
+    const auto end = param.constEnd();
+    for (auto cur = param.constBegin(); cur != end; cur++)
+    {
+        if (cur.key() == QLatin1String("eval"))
+        {
+            // no script cached 'eval' value
+            if (!param.contains(QLatin1String("script")))
+            {
+                putJsonQVariantValue(parse, "eval", cur.value());
+            }
+        }
+        else
+        {
+            putJsonQVariantValue(parse, cur.key().toStdString(), cur.value());
+        }
+    }
+}
+
+bool ddfSerializeV1(JsonDoc &doc, const DeviceDescription &ddf, char *buf, size_t bufsize, bool ddfFull, bool prettyPrint)
+{
+    doc.clear();
+
+    doc["schema"] = "devcap1.schema.json";
+
+    if (ddf.manufacturerNames.size() == 1)
+    {
+        doc["manufacturername"] = ddf.manufacturerNames.front().toStdString();
+    }
+    else
+    {
+        JsonArray arr = doc.createNestedArray("manufacturername");
+        for (const QString &i : ddf.manufacturerNames)
+        {
+            arr.add(i.toStdString());
         }
     }
 
-    for (const Sensor &s : plugin->sensors)
+    if (ddf.modelIds.size() == 1)
     {
-        if (s.uniqueId().indexOf(uniqueid) != 0)
+        doc["modelid"] = ddf.modelIds.front().toStdString();
+    }
+    else
+    {
+        JsonArray arr = doc.createNestedArray("modelid");
+        for (const QString &i : ddf.modelIds)
         {
-            continue;
-        }
-
-        if (manufacturer.isEmpty() && !s.manufacturer().isEmpty()) { manufacturer = s.manufacturer(); }
-        if (modelid.isEmpty() && !s.modelId().isEmpty()) { modelid = s.modelId(); }
-        if (swversion.isEmpty() && !s.swVersion().isEmpty()) { swversion = s.swVersion(); }
-
-        QVariantMap m;
-        if (plugin->sensorToMap(&s, m, req))
-        {
-            subDevices.push_back(m);
+            arr.add(i.toStdString());
         }
     }
 
-    rsp.map["uniqueid"] = uniqueid;
-    rsp.map["sub"] = subDevices;
-    if (!manufacturer.isEmpty()) { rsp.map["manufacturername"] = manufacturer; }
-    if (!modelid.isEmpty()) { rsp.map["modelid"] = modelid; }
-    if (!swversion.isEmpty()) { rsp.map["swversion"] = swversion; }
+    if (!ddf.vendor.isEmpty())
+    {
+        doc["vendor"] = ddf.vendor.toStdString();
+    }
+
+    if (!ddf.product.isEmpty())
+    {
+        doc["product"] = ddf.product.toStdString();
+    }
+
+    if (ddf.sleeper >= 0)
+    {
+        doc["sleeper"] = ddf.sleeper > 0;
+    }
+
+    doc["status"] = ddf.status.toStdString();
+
+    if (!ddf.path.isEmpty())
+    {
+        int idx = ddf.path.indexOf(QLatin1String("/devices/"));
+
+        if (idx >= 0)
+        {
+            doc["path"] = ddf.path.mid(idx).toStdString();
+        }
+    }
+
+    {
+        JsonArray subDevices = doc.createNestedArray("subdevices");
+
+        for (const DeviceDescription::SubDevice &sub : ddf.subDevices)
+        {
+            JsonObject subDevice = subDevices.createNestedObject();
+
+            subDevice["type"] = sub.type.toStdString();
+            subDevice["restapi"] = sub.restApi.toStdString();
+
+            JsonArray uuid = subDevice.createNestedArray("uuid");
+            for (const QString &i : sub.uniqueId)
+            {
+                uuid.add(i.toStdString());
+            }
+
+            if (isValid(sub.fingerPrint))
+            {
+                // "fingerprint": { "profile": "0x0104", "device": "0x0107", "endpoint": "0x02", "in": ["0x0000", "0x0001", "0x0402"] },
+
+                char buf[16];
+
+                JsonObject fp = subDevice.createNestedObject("fingerprint");
+
+                snprintf(buf, sizeof(buf), "0x%04X", sub.fingerPrint.profileId);
+                fp["profile"] = std::string(buf);
+
+                snprintf(buf, sizeof(buf), "0x%04X", sub.fingerPrint.deviceId);
+                fp["device"] = std::string(buf);
+
+                snprintf(buf, sizeof(buf), "0x%02X", sub.fingerPrint.endpoint);
+                fp["endpoint"] = std::string(buf);
+
+                if (!sub.fingerPrint.inClusters.empty())
+                {
+                    JsonArray inClusters = fp.createNestedArray("in");
+
+                    for (const auto clusterId : sub.fingerPrint.inClusters)
+                    {
+                        snprintf(buf, sizeof(buf), "0x%04X", clusterId);
+                        inClusters.add(std::string(buf));
+                    }
+                }
+
+                if (!sub.fingerPrint.outClusters.empty())
+                {
+                    JsonArray outClusters = fp.createNestedArray("out");
+
+                    for (const auto clusterId : sub.fingerPrint.outClusters)
+                    {
+                        snprintf(buf, sizeof(buf), "0x%04X", clusterId);
+                        outClusters.add(std::string(buf));
+                    }
+                }
+            }
+
+            JsonArray items = subDevice.createNestedArray("items");
+
+            for (const DeviceDescription::Item &i : sub.items)
+            {
+                JsonObject item = items.createNestedObject();
+
+                if (i.isImplicit && !ddfFull)
+                {
+                    item["name"] = i.name.c_str();
+                    continue;
+                }
+
+                item["name"] = i.name.c_str();
+                if (!i.isPublic) { item["public"] = false; }
+                if (i.awake)     { item["awake"] = true; }
+
+                if (!i.description.isEmpty())
+                {
+                    item["description"] = i.description.toStdString();
+                }
+
+                if (i.refreshInterval > 0)
+                {
+                    item["refresh.interval"] = i.refreshInterval;
+                }
+
+                if (!i.isStatic)
+                {
+                    if (!i.readParameters.isNull()  && (ddfFull || !i.isGenericRead))  { putItemParameter(item, "read", i.readParameters.toMap()); }
+                    if (!i.writeParameters.isNull() && (ddfFull || !i.isGenericWrite)) { putItemParameter(item, "write", i.writeParameters.toMap()); }
+                    if (!i.parseParameters.isNull() && (ddfFull || !i.isGenericParse)) { putItemParameter(item, "parse", i.parseParameters.toMap()); }
+                }
+                if (!i.defaultValue.isNull())
+                {
+                    if (i.isStatic)
+                    {
+                        putJsonQVariantValue(item, "static", i.defaultValue);
+                    }
+                    else
+                    {
+                        putJsonQVariantValue(item, "default", i.defaultValue);
+                    }
+                }
+            }
+        }
+    }
+
+    if (!ddf.bindings.empty())
+    {
+        JsonArray bindings = doc.createNestedArray("bindings");
+
+        for (const DDF_Binding &bnd : ddf.bindings)
+        {
+            JsonObject binding = bindings.createNestedObject();
+
+            if      (bnd.isUnicastBinding) { binding["bind"] = "unicast"; }
+            else if (bnd.isGroupBinding)   { binding["bind"] = "groupcast"; }
+
+            binding["src.ep"] = bnd.srcEndpoint;
+
+            if (bnd.dstEndpoint > 0) { binding["dst.ep"] = bnd.dstEndpoint; }
+
+            char buf[16];
+
+            snprintf(buf, sizeof(buf), "0x%04X", bnd.clusterId);
+
+            binding["cl"] = std::string(buf);
+
+            if (!bnd.reporting.empty())
+            {
+                JsonArray reportings = binding.createNestedArray("report");
+
+                for (const DDF_ZclReport &rep: bnd.reporting)
+                {
+                    JsonObject report = reportings.createNestedObject();
+
+                    snprintf(buf, sizeof(buf), "0x%04X", rep.attributeId);
+                    report["at"] = std::string(buf);
+
+                    // TODO ZCLDB names
+                    snprintf(buf, sizeof(buf), "0x%02X", rep.dataType);
+                    report["dt"] = std::string(buf);
+
+                    report["min"] = rep.minInterval;
+                    report["max"] = rep.maxInterval;
+
+                    if (rep.reportableChange > 0)
+                    {
+                        snprintf(buf, sizeof(buf), "0x%08X", rep.reportableChange); // TODO proper length
+                        report["change"] = std::string(buf);
+                    }
+                }
+            }
+        }
+    }
+
+
+    size_t sz = 0;
+
+    if (prettyPrint)
+    {
+        sz = serializeJsonPretty(doc, buf, bufsize);
+    }
+    else
+    {
+        sz = serializeJson(doc, buf, bufsize);
+    }
+    assert(sz < bufsize);
+
+    DBG_Printf(DBG_INFO, "JSON serialized size %d\n", int(sz));
+
+    return sz > 0 && sz < bufsize;
+}
+
+QString DDF_ToJsonPretty(const DeviceDescription &ddf)
+{
+    QString result;
+
+    if (priv_ && ddfSerializeV1(priv_->json, ddf, priv_->jsonBuffer, sizeof(priv_->jsonBuffer), false, true))
+    {
+        result = priv_->jsonBuffer;
+    }
+
+    return result;
+}
+
+int RestDevices::getDeviceDDF(const ApiRequest &req, ApiResponse &rsp)
+{
+    const auto deviceKey = extAddressFromUniqueId(req.hdr.pathAt(3));
+
+    bool ddfFull = req.hdr.pathAt(4) == QLatin1String("ddffull");
+
+    Device *device = DEV_GetDevice(plugin->m_devices, deviceKey);
+
+    rsp.httpStatus = device ? HttpStatusOk : HttpStatusNotFound;
+
+    if (!device)
+    {
+        return REQ_READY_SEND;
+    }
+
+    DeviceDescription ddf = DeviceDescriptions::instance()->get(device);
+
+    if (ddf.isValid())
+    {
+        if (ddf.bindings.empty())
+        {
+            ddf.bindings = device->bindings();
+        }
+
+        if (ddfSerializeV1(d->json, ddf, d->jsonBuffer, sizeof(d->jsonBuffer), ddfFull, false))
+        {
+            rsp.str = d->jsonBuffer;
+        }
+        else
+        {
+            // error
+        }
+    }
+    else
+    {
+        rsp.httpStatus = HttpStatusNotFound;
+        rsp.str = QLatin1String("{}");
+    }
+
+    return REQ_READY_SEND;
+}
+
+/*! GET /api/<apikey>/devices/<uniqueid>/introspect
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+
+    Unstable API to experiment: don't use in production!
+ */
+int RIS_GetDeviceIntrospect(const ApiRequest &req, ApiResponse &rsp)
+{
+    Q_UNUSED(req)
+    rsp.str = QLatin1String("[\"introspect\": false]");
+    return REQ_READY_SEND;
+}
+
+/*! Returns string form of a ApiDataType.
+ */
+QLatin1String RIS_DataTypeToString(ApiDataType type)
+{
+    static const std::array<QLatin1String, 14> map = {
+         QLatin1String("unknown"),
+         QLatin1String("bool"),
+         QLatin1String("uint8"),
+         QLatin1String("uint16"),
+         QLatin1String("uint32"),
+         QLatin1String("uint64"),
+         QLatin1String("int8"),
+         QLatin1String("int16"),
+         QLatin1String("int32"),
+         QLatin1String("int64"),
+         QLatin1String("double"),
+         QLatin1String("string"),
+         QLatin1String("time"),
+         QLatin1String("timepattern")
+    };
+
+    if (type < map.size())
+    {
+
+        return map[type];
+    }
+
+    return map[0];
+}
+
+/*! Returns string form of \c state/buttonevent action part.
+ */
+QLatin1String RIS_ButtonEventActionToString(int buttonevent)
+{
+    const uint action = buttonevent % 1000;
+
+    static std::array<QLatin1String, 11> map = {
+         QLatin1String("INITIAL_PRESS"),
+         QLatin1String("HOLD"),
+         QLatin1String("SHORT_RELEASE"),
+         QLatin1String("LONG_RELEASE"),
+         QLatin1String("DOUBLE_PRESS"),
+         QLatin1String("TREBLE_PRESS"),
+         QLatin1String("QUADRUPLE_PRESS"),
+         QLatin1String("SHAKE"),
+         QLatin1String("DROP"),
+         QLatin1String("TILT"),
+         QLatin1String("MANY_PRESS")
+    };
+
+    if (action < map.size())
+    {
+
+        return map[action];
+    }
+
+    return QLatin1String("UNKNOWN");
+}
+
+/*! Returns generic introspection for a \c ResourceItem.
+ */
+QVariantMap RIS_IntrospectGenericItem(const ResourceItemDescriptor &rid)
+{
+    QVariantMap result;
+
+    result[QLatin1String("type")] = RIS_DataTypeToString(rid.type);
+
+    if (rid.validMin != 0 || rid.validMax != 0)
+    {
+        result[QLatin1String("minval")] = rid.validMin;
+        result[QLatin1String("maxval")] = rid.validMax;
+    }
+
+    return result;
+}
+
+/*! Returns introspection for \c state/buttonevent.
+ */
+QVariantMap RIS_IntrospectButtonEventItem(const ResourceItemDescriptor &rid, const Resource *r)
+{
+    QVariantMap result = RIS_IntrospectGenericItem(rid);
+
+    Q_ASSERT(r->prefix() == RSensors);
+    const auto *sensor = static_cast<const Sensor*>(r);
+
+    if (!sensor)
+    {
+        return result;
+    }
+
+    // TODO dependency on plugin needs to be removed to make this testable
+    const auto &buttonMapButtons = plugin->buttonMeta;
+    const auto &buttonMapData = plugin->buttonMaps;
+    const auto &buttonMapForModelId = plugin->buttonProductMap;
+
+    const auto *buttonData = BM_ButtonMapForProduct(productHash(r), buttonMapData, buttonMapForModelId);
+
+    if (!buttonData)
+    {
+        return result;
+    }
+
+    int buttonBits = 0; // button 1 = 1 << 1, button 2 = 1 << 2 ...
+
+    {
+        QVariantMap values;
+
+        for (const auto &btn : buttonData->buttons)
+        {
+            buttonBits |= 1 << int(btn.button / 1000);
+
+            QVariantMap m;
+            m[QLatin1String("button")] = int(btn.button / 1000);
+            m[QLatin1String("action")] = RIS_ButtonEventActionToString(btn.button);
+            values[QString::number(btn.button)] = m;
+        }
+        result[QLatin1String("values")] = values;
+    }
+
+    const auto buttonsMeta = std::find_if(buttonMapButtons.cbegin(), buttonMapButtons.cend(),
+                                          [buttonData](const auto &meta){ return meta.buttonMapRef.hash == buttonData->buttonMapRef.hash; });
+
+    QVariantMap buttons;
+
+    if (buttonsMeta != buttonMapButtons.cend())
+    {
+        for (const auto &button : buttonsMeta->buttons)
+        {
+            QVariantMap m;
+            m[QLatin1String("name")] = button.name;
+            buttons[QString::number(button.button)] = m;
+        }
+    }
+    else // fallback if no "buttons" is defined in the button map, generate a generic one
+    {
+        for (int i = 1 ; i < 32; i++)
+        {
+            if (buttonBits & (1 << i))
+            {
+                QVariantMap m;
+                m[QLatin1String("name")] = QString("Button %1").arg(i);
+                buttons[QString::number(i)] = m;
+            }
+        }
+    }
+
+    result[QLatin1String("buttons")] = buttons;
+
+    return result;
+}
+
+/*! /api/<apikey>/devices/<uniqueid>/[<prefix>/]<item>/introspect
+
+    Fills ResourceItemDescriptor \p rid for the '[<prefix>/]<item>' part of the URL.
+
+    \note The verification that the URL has enough segments must be done by the caller.
+*/
+bool RIS_ResourceItemDescriptorFromHeader(const QHttpRequestHeader &hdr, ResourceItemDescriptor *rid)
+{
+    const auto last = hdr.pathAt(hdr.pathComponentsCount() - 2);
+    const char *beg = hdr.pathAt(4).data();
+    const char *end = last.data() + last.size();
+
+    if (beg && end && beg < end)
+    {
+        const QLatin1String suffix(beg, end - beg);
+
+        if (getResourceItemDescriptor(suffix, *rid))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/*! Returns the Resource for a given \p uniqueid.
+ */
+static Resource *resourceForUniqueId(const QLatin1String &uniqueid)
+{
+    Resource *r = plugin->getResource(RSensors, uniqueid);
+
+    if (!r)
+    {
+        plugin->getResource(RLights, uniqueid);
+    }
+
+    return r;
+}
+
+/*! GET /api/<apikey>/devices/<uniqueid>/[<prefix>/]<item>/introspect
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int RIS_GetDeviceItemIntrospect(const ApiRequest &req, ApiResponse &rsp)
+{
+    rsp.httpStatus = HttpStatusOk;
+    const Resource *r = resourceForUniqueId(req.hdr.pathAt(3));
+
+    if (!r)
+    {
+        rsp.httpStatus = HttpStatusNotFound;
+        return REQ_READY_SEND;
+    }
+
+    ResourceItemDescriptor rid;
+
+    if (!RIS_ResourceItemDescriptorFromHeader(req.hdr, &rid))
+    {
+        rsp.httpStatus = HttpStatusNotFound;
+        return REQ_READY_SEND;
+    }
+
+    if (rid.suffix == RStateButtonEvent)
+    {
+        rsp.map = RIS_IntrospectButtonEventItem(rid, r);
+    }
+    else
+    {
+        rsp.map = RIS_IntrospectGenericItem(rid);
+    }
 
     return REQ_READY_SEND;
 }
@@ -156,7 +960,7 @@ int RestDevices::putDeviceInstallCode(const ApiRequest &req, ApiResponse &rsp)
 
     if (!ok || map.isEmpty())
     {
-        rsp.list.append(plugin->errorToMap(ERR_INVALID_JSON, QString("/devices/%1/installcode").arg(uniqueid), QString("body contains invalid JSON")));
+        rsp.list.append(errorToMap(ERR_INVALID_JSON, QString("/devices/%1/installcode").arg(uniqueid), QString("body contains invalid JSON")));
         rsp.httpStatus = HttpStatusBadRequest;
         return REQ_READY_SEND;
     }
@@ -178,14 +982,14 @@ int RestDevices::putDeviceInstallCode(const ApiRequest &req, ApiResponse &rsp)
             cli.start("hashing-cli", QStringList() << "-i" << installCode);
             if (!cli.waitForStarted(2000))
             {
-                rsp.list.append(plugin->errorToMap(ERR_INTERNAL_ERROR, QString("/devices"), QString("internal error, %1, occured").arg(cli.error())));
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/devices"), QString("internal error, %1, occured").arg(cli.error())));
                 rsp.httpStatus = HttpStatusServiceUnavailable;
                 return REQ_READY_SEND;
             }
 
             if (!cli.waitForFinished(2000))
             {
-                rsp.list.append(plugin->errorToMap(ERR_INTERNAL_ERROR, QString("/devices"), QString("internal error, %1, occured").arg(cli.error())));
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/devices"), QString("internal error, %1, occured").arg(cli.error())));
                 rsp.httpStatus = HttpStatusServiceUnavailable;
                 return REQ_READY_SEND;
             }
@@ -208,7 +1012,7 @@ int RestDevices::putDeviceInstallCode(const ApiRequest &req, ApiResponse &rsp)
 
             if (mmoHash.isEmpty())
             {
-                rsp.list.append(plugin->errorToMap(ERR_INTERNAL_ERROR, QLatin1String("/devices"), QLatin1String("internal error, failed to calc mmo hash, occured")));
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QLatin1String("/devices"), QLatin1String("internal error, failed to calc mmo hash, occured")));
                 rsp.httpStatus = HttpStatusServiceUnavailable;
                 return REQ_READY_SEND;
             }
@@ -233,14 +1037,45 @@ int RestDevices::putDeviceInstallCode(const ApiRequest &req, ApiResponse &rsp)
         }
         else
         {
-            rsp.list.append(plugin->errorToMap(ERR_INVALID_VALUE, QString("/devices"), QString("invalid value, %1, for parameter, installcode").arg(installCode)));
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/devices"), QString("invalid value, %1, for parameter, installcode").arg(installCode)));
             rsp.httpStatus = HttpStatusBadRequest;
         }
     }
     else
     {
-        rsp.list.append(plugin->errorToMap(ERR_MISSING_PARAMETER, QString("/devices/%1/installcode").arg(uniqueid), QString("missing parameters in body")));
+        rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, QString("/devices/%1/installcode").arg(uniqueid), QString("missing parameters in body")));
         rsp.httpStatus = HttpStatusBadRequest;
+    }
+
+    return REQ_READY_SEND;
+}
+
+int RestDevices::putDeviceReloadDDF(const ApiRequest &req, ApiResponse &rsp)
+{
+    DBG_Assert(req.path.size() == 6);
+
+    rsp.httpStatus = HttpStatusOk;
+
+    auto uniqueId = req.path.at(3);
+    uniqueId.remove(QLatin1Char(':'));
+
+    bool ok = false;
+    const auto deviceKey = uniqueId.toULongLong(&ok, 16);
+
+    if (ok)
+    {
+        emit eventNotify(Event(RDevices, REventDDFReload, 0, deviceKey));
+
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState["reload"] = req.path.at(3);
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+        rsp.httpStatus = HttpStatusOk;
+    }
+    else
+    {
+        // TODO
     }
 
     return REQ_READY_SEND;

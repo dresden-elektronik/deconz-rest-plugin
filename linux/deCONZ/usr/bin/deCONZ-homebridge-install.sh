@@ -1,14 +1,13 @@
 #!/bin/bash
 
-UPDATE_VERSION_HB="1.1.0"
-UPDATE_VERSION_HB_HUE="0.11.74"
-UPDATE_VERSION_HB_LIB="4.7.15"
-UPDATE_VERSION_NPM="6.14.7"
-UPDATE_VERSION_NODE="12.18.4"
-# use install name to install the specific node version via apt. Retrieve it via: apt-cache policy nodejs
-UPDATE_VERSION_NODE_INSTALL_NAME="12.18.4-1nodesource1"
+UPDATE_VERSION_HB="1.3.4"
+UPDATE_VERSION_HB_HUE="0.13.5"
+UPDATE_VERSION_HB_LIB="5.1.1"
+UPDATE_VERSION_NPM="6.14.12"
+UPDATE_VERSION_NODE="14.16.0"
+
 # when increasing major version of node adjust downoload link
-NODE_DOWNLOAD_LINK="https://deb.nodesource.com/setup_12.x"
+NODE_DOWNLOAD_LINK="https://deb.nodesource.com/setup_14.x"
 
 TIMEOUT=0
 LOG_LEVEL=3

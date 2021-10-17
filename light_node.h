@@ -17,6 +17,12 @@
 #include "rest_node_base.h"
 #include "group_info.h"
 
+#define COLOR_CAP_HUE_SAT         (1 << 0)
+#define COLOR_CAP_ENHANCED_HUE    (1 << 1)
+#define COLOR_CAP_COLORLOOP       (1 << 2)
+#define COLOR_CAP_XY              (1 << 3)
+#define COLOR_CAP_CT              (1 << 4)
+
 /*! \class LightNode
 
     Represents a HA or ZLL based light.
@@ -34,7 +40,7 @@ public:
     LightNode();
     State state() const;
     void setState(State state);
-    bool isAvailable() const;
+    bool isAvailable() const override;
     uint16_t manufacturerCode() const;
     void setManufacturerCode(uint16_t code);
     const QString &manufacturer() const;
@@ -53,12 +59,10 @@ public:
     bool hasColor() const;
     void setColorLoopActive(bool colorLoopActive);
     bool isColorLoopActive() const;
+    bool supportsColorLoop() const;
     void setColorLoopSpeed(uint8_t speed);
     uint8_t colorLoopSpeed() const;
-    void didSetValue(ResourceItem *i);
-    bool setValue(const char *suffix, qint64 val, bool forceUpdate = false);
-    bool setValue(const char *suffix, const QString &val, bool forceUpdate = false);
-    bool setValue(const char *suffix, const QVariant &val, bool forceUpdate = false);
+    void didSetValue(ResourceItem *i) override;
     void rx();
     const deCONZ::SimpleDescriptor &haEndpoint() const;
     void setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint);
@@ -87,7 +91,7 @@ private:
     std::vector<GroupInfo> m_groups;
     bool m_colorLoopActive;
     uint8_t m_colorLoopSpeed;
-    deCONZ::SimpleDescriptor m_haEndpoint;
+    quint8 m_haEndpoint = 255;
     uint8_t m_groupCount;
     uint8_t m_sceneCapacity;
 };

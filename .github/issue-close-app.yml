@@ -10,6 +10,7 @@ comment: "Hi there. </br>
           - everything enclosed by `<!-- -->` is intended to give you guidance and should be replaced by your input specific to the issue </br>
           - Listings regarding your environment must be filled out completely where applicable (bug reports and user questions).</br>
           - Not following the template or providing insufficient information can still implicate manual closure.</br>
+          - Anything that is not clearly a bug can still implicate manual closure. For support we recommend the forum: https://forum.phoscon.de</br>
           </br>
           So please, first help us a bit to help you! </br>"
 issueConfigs:
@@ -27,18 +28,18 @@ issueConfigs:
 # Example 2: Device Request
   - "Device"
   - "Screenshots"
-- content:
+#- content:
 # Example 3: Feature Request
-  - "Feature request type"
-  - "Description"
-  - "Considered alternatives"
-  - "Additional context"
-- content:
+  #- "Feature request type"
+ # - "Description"
+ # - "Considered alternatives"
+ # - "Additional context"
+#- content:
 # Example 4: User Question
-  - "Describe the question or issue you are having"
-  - "Screenshots"
-  - "Environment"
-  - "deCONZ Logs"
-  - "Additional context"
+#  - "Describe the question or issue you are having"
+#- "Screenshots"
+#  - "Environment"
+#  - "deCONZ Logs"
+#  - "Additional context"
 # The issue is judged to be legal if it includes all keywords from any of these configs.
 # Or it will be closed by the app.

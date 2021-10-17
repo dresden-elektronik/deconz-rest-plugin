@@ -53,7 +53,7 @@ static void handleCheckinCommand(DeRestPluginPrivate *plugin, const deCONZ::ApsD
         {
             item->setIsPublic(false);
             item->setValue(now);
-            plugin->enqueueEvent(Event(r->prefix(), item->descriptor().suffix, r->toString(RAttrId), item));
+            enqueueEvent(Event(r->prefix(), item->descriptor().suffix, r->toString(RAttrId), item));
         }
     }
 
@@ -172,7 +172,7 @@ bool DeRestPluginPrivate::checkPollControlClusterTask(Sensor *sensor)
              outZclFrame.writeToStream(stream);
          }
 
-         if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+         if (apsCtrlWrapper.apsdeDataRequest(apsReq) == deCONZ::Success)
          {
              item->setValue(item->toNumber() & ~R_PENDING_SET_LONG_POLL_INTERVAL);
              return true;

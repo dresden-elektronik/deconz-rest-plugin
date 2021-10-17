@@ -1,0 +1,9 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/offset",
+	"datatype": "Int16",
+	"access": "RW",
+	"public": true,
+    "default": 0,
+	"description": "Relative offset to the main measured value."
+}

@@ -79,8 +79,13 @@
           "WINDOW_COVERING",
           "COLOR_CONTROL",
           "IAS_ZONE",
-          "IAS_ACE"
+          "IAS_ACE",
+          "ADUROLIGHT",
+          "XIAOYAN"
         ]
+    },
+    "adurolight-commands": {
+      "enum": [ "ATTRIBUTE_REPORT", "COMMAND_0", "COMMAND_20" ]
     },
     "basic-commands": {
       "enum": [ "0x02" ]
@@ -108,6 +113,9 @@
     },
     "multistate-input-commands": {
       "enum": [ "ATTRIBUTE_REPORT" ]
+    },
+    "xiaoyan-commands": {
+      "enum": [ "ATTRIBUTE_REPORT", "COMMAND_0", "COMMAND_20"  ]
     },
     "entry": {
       "type": "object",
@@ -143,6 +151,7 @@
         },
         {
           "anyOf": [
+            { "$ref": "#/definitions/adurolight-commands" },
             { "$ref": "#/definitions/basic-commands" },
             { "$ref": "#/definitions/onoff-commands" },
             { "$ref": "#/definitions/level-commands" },
@@ -151,7 +160,8 @@
             { "$ref": "#/definitions/sengled-commands" },
             { "$ref": "#/definitions/window-covering-commands" },
             { "$ref": "#/definitions/ias-commands" },
-            { "$ref": "#/definitions/multistate-input-commands" }
+            { "$ref": "#/definitions/multistate-input-commands" },
+            { "$ref": "#/definitions/xiaoyan-commands" }
           ],
           "description": "The received cluster command."
         },

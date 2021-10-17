@@ -1,0 +1,14 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/effect",
+	"datatype": "String",
+	"access": "RW",
+	"public": true,
+	"managed": true,
+	"description": "The currently active effect.",
+	"default": "none",
+	"values": [
+		["\"none\"", "no effect is active"],
+		["\"colorloop\"", "colorloop through hue values"]
+	]
+}
