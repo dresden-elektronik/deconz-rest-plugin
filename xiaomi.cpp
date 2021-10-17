@@ -1,5 +1,99 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
+#include "utils/utils.h"
+#include "xiaomi.h"
+
+/*! Handle packets related to the Xiaomi/Lumi FCC0 cluster.
+    \param ind the APS level data indication containing the ZCL packet
+    \param zclFrame the actual ZCL frame which holds the Xiaomi/Lumi FCC0 cluster command or attribute
+ */
+void DeRestPluginPrivate::handleXiaomiLumiClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+{
+    if (zclFrame.isDefaultResponse())
+    {
+        return;
+    }
+
+    QDataStream stream(zclFrame.payload());
+    stream.setByteOrder(QDataStream::LittleEndian);
+
+    bool isReadAttr = false;
+    bool isReporting = false;
+    if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReadAttributesResponseId)
+    {
+        isReadAttr = true;
+    }
+    if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId)
+    {
+        isReporting = true;
+    }
+
+    // Read ZCL reporting and ZCL Read Attributes Response
+    if (isReadAttr || isReporting)
+    {
+        const NodeValue::UpdateType updateType = isReadAttr ? NodeValue::UpdateByZclRead : NodeValue::UpdateByZclReport;
+
+        // bool configUpdated = false;
+        // bool stateUpdated = false;
+
+        while (!stream.atEnd())
+        {
+            quint16 attrId;
+            quint8 attrTypeId;
+
+            stream >> attrId;
+            if (isReadAttr)
+            {
+                quint8 status;
+                stream >> status;  // Read Attribute Response status
+                if (status != deCONZ::ZclSuccessStatus)
+                {
+                    continue;
+                }
+            }
+            stream >> attrTypeId;
+
+            deCONZ::ZclAttribute attr(attrId, attrTypeId, QLatin1String(""), deCONZ::ZclRead, false);
+
+            if (!attr.readFromStream(stream))
+            {
+                continue;
+            }
+
+            switch (attrId)
+            {
+            case XIAOMI_ATTRID_SPECIAL_REPORT:
+            {
+                handleZclAttributeReportIndicationXiaomiSpecial(ind, zclFrame);
+            }
+                break;
+
+            case XIAOMI_ATTRID_DEVICE_MODE:
+            {
+
+            }
+                break;
+
+            case XIAOMI_ATTRID_MOTION_SENSITIVITY:
+            {
+                Sensor *sensor = getSensorNodeForAddressEndpointAndCluster(ind.srcAddress(), ind.srcEndpoint(), XIAOMI_CLUSTER_ID );
+
+                if (sensor)
+                {
+                    sensor->setZclValue(updateType, ind.srcEndpoint(), XIAOMI_CLUSTER_ID, XIAOMI_ATTRID_MOTION_SENSITIVITY, attr.numericValue());
+                    
+                    quint8 sensitivity = attr.numericValue().u8;
+                    sensor->setValue(RConfigSensitivity, sensitivity);
+                }
+            }
+                break;
+
+            default:
+                break;
+            }
+        }
+    }
+}
 
 /*! Handle manufacturer specific Xiaomi ZCL attribute report commands to basic cluster.
  */
@@ -309,6 +403,17 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         return;
     }
 
+    Device *device = nullptr;
+    const DeviceKey deviceKey = ind.srcAddress().ext();
+    if (ind.srcAddress().hasExt())
+    {
+        device = DEV_GetDevice(m_devices, deviceKey);
+        if (device)
+        {
+            enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
+        }
+    }
+
     quint8 structIndex = 0; // only attribute id 0xff02
     quint16 structSize = 0; // only attribute id 0xff02
 
@@ -440,6 +545,10 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             DBG_Printf(DBG_INFO, "\t0b unknown %u (0x%02X)\n", u8, u8);
         }
+        else if (tag == 0x0c && dataType == deCONZ::Zcl8BitUint) // lumi.remote.b28ac1
+        {
+            DBG_Printf(DBG_INFO, "\t0c unknown %u (0x%02X)\n", u8, u8);
+        }
         else if ((tag == 0x64 || structIndex == 0x01) && dataType == deCONZ::ZclBoolean) // lumi.ctrl_ln2 endpoint 01
         {
             DBG_Printf(DBG_INFO, "\t64 on/off %u\n", u8);
@@ -480,14 +589,21 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             DBG_Printf(DBG_INFO, "\t65 unknown %u (0x%02X)\n", u8, u8);
         }
-        else if (tag == 0x66 && dataType == deCONZ::Zcl16BitUint)
+        else if (tag == 0x66)
         {
-            DBG_Printf(DBG_INFO, "\t66 unknown %u (0x%04X)\n", u16, u16);
-        }
-        else if (tag == 0x66 && dataType == deCONZ::Zcl32BitInt) // lumi.weather
-        {
-            pressure = (s32 + 50) / 100;
-            DBG_Printf(DBG_INFO, "\t66 pressure %d (%d)\n", s32, pressure);
+            if (dataType == deCONZ::Zcl8BitUint) // lumi.remote.b28ac1
+            {
+                DBG_Printf(DBG_INFO, "\t66 unknown %u (0x%02X)\n", u8, u8);
+            }
+            else if (dataType == deCONZ::Zcl16BitUint)
+            {
+                DBG_Printf(DBG_INFO, "\t66 unknown %u (0x%04X)\n", u16, u16);
+            }
+            else if (dataType == deCONZ::Zcl32BitInt) // lumi.weather
+            {
+                pressure = (s32 + 50) / 100;
+                DBG_Printf(DBG_INFO, "\t66 pressure %d (%d)\n", s32, pressure);
+            }
         }
         else if (tag == 0x6e && dataType == deCONZ::Zcl8BitUint) // lumi.ctrl_neutral2
         {
@@ -791,6 +907,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             item = sensor.item(RStatePressure);
             if (item)
             {
+                ResourceItem *item2 = sensor.item(RConfigOffset);
+                if (item2 && item2->toNumber() != 0)
+                {
+                    pressure += item2->toNumber();
+                }
                 item->setValue(pressure);
                 enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
                 sensor.updateStateTimestamp();
@@ -928,18 +1049,24 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     
     item = r->item(RAttrModelId);
 
-    if (item && item->toString().endsWith(QLatin1String("86opcn01")))
+    if (item && (item->toString().endsWith(QLatin1String("86opcn01")) || item->toString() == QLatin1String("lumi.remote.b28ac1")))
     {
         auto *item2 = r->item(RConfigPending);
         
         if (item2 && (item2->toNumber() & R_PENDING_MODE))
         {
-            // Aqara Opple switches need to be configured to send proper button events
+            // Aqara switches need to be configured to send proper button events
             // send the magic word
-            DBG_Printf(DBG_INFO, "Write Aqara Opple switch 0x%016llX mode attribute 0x0009 = 1\n", ind.srcAddress().ext());
+            DBG_Printf(DBG_INFO, "Write Aqara switch 0x%016llX mode attribute 0x0009 = 1\n", ind.srcAddress().ext());
             deCONZ::ZclAttribute attr(0x0009, deCONZ::Zcl8BitUint, QLatin1String("mode"), deCONZ::ZclReadWrite, false);
             attr.setValue(static_cast<quint64>(1));
             writeAttribute(restNodePending, 0x01, XIAOMI_CLUSTER_ID, attr, VENDOR_XIAOMI);
+
+            DBG_Printf(DBG_INFO, "Write Aqara switch 0x%016llX multiclick mode attribute 0x0125 = 2\n", ind.srcAddress().ext());
+            deCONZ::ZclAttribute attr2(0x0125, deCONZ::Zcl8BitUint, QLatin1String("multiclick mode"), deCONZ::ZclReadWrite, false);
+            attr2.setValue(static_cast<quint64>(2));
+            writeAttribute(restNodePending, 0x01, XIAOMI_CLUSTER_ID, attr2, VENDOR_XIAOMI);
+
             item2->setValue(item2->toNumber() & ~R_PENDING_MODE);
         }
     }

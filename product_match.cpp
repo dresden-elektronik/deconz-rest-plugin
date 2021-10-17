@@ -44,6 +44,7 @@ static const ProductMap products[] =
     // Tuya_THD : thermostat device using Tuya cluster
     // Tuya_COVD : covering device using Tuya cluster
     // Tuya_RPT : Repeater
+    // Tuya_SEN : Sensor
 
     // Tuya Thermostat / TRV
     {"_TYST11_zuhszj9s", "uhszj9s", "HiHome", "Tuya_THD WZB-TRVL TRV"},
@@ -79,6 +80,7 @@ static const ProductMap products[] =
     {"_TZE200_fdtjuw7u", "TS0601", "Yushun", "Tuya_COVD YS-MT750"},
     {"_TZE200_bqcqqjpb", "TS0601", "Yushun", "Tuya_COVD YS-MT750"},
     {"_TZE200_nueqqe6k", "TS0601", "Zemismart", "Tuya_COVD M515EGB"},
+    {"_TZE200_iossyxra", "TS0601", "Zemismart", "Tuya_COVD Roller Shade"},
 
     // Tuya covering not using tuya cluster but need reversing
     {"_TZ3000_egq7y6pr", "TS130F", "Lonsonho", "11830304 Switch"},
@@ -90,8 +92,14 @@ static const ProductMap products[] =
     {"_TYST11_d0yu2xgi", "0yu2xgi", "NEO/Tuya", "NAS-AB02B0 Siren"},
     {"_TZE200_d0yu2xgi", "TS0601", "NEO/Tuya", "NAS-AB02B0 Siren"},
     {"_TZ3000_m0vaazab", "TS0207", "Tuya", "Tuya_RPT Repeater"},
+    
+    // Sensor
+    {"_TZ3210_rxqls8v0", "TS0202", "Fantem", "Tuya_SEN Multi-sensor"},
+    {"_TZ3210_zmy9hjay", "TS0202", "Fantem", "Tuya_SEN Multi-sensor"},
+    {"_TZE200_aycxwiau", "TS0601", "Woox", "Tuya_OTH R7049 Smoke Alarm"},
 
      // Switch
+    {"_TZE200_la2c2uo9", "TS0601", "Moes", "Tuya_DIMSWITCH MS-105Z"},
     {"_TZE200_dfxkcots", "TS0601", "Earda", "Tuya_DIMSWITCH Earda Dimmer"},
     {"_TZE200_9i9dt8is", "TS0601", "Earda", "Tuya_DIMSWITCH EDM-1ZAA-EU"},
 
@@ -242,4 +250,22 @@ bool isLidlDevice(const QString &zigbeeModelIdentifier, const QString &manufactu
         device++;
     }
     return false;
+}
+
+uint productHash(const Resource *r)
+{
+    if (!r || !r->item(RAttrManufacturerName) || !r->item(RAttrModelId))
+    {
+        return 0;
+    }
+
+    if (isTuyaManufacturerName(r->item(RAttrManufacturerName)->toString()))
+    {
+        // for Tuya devices use manufacturer name as modelid
+        return qHash(r->item(RAttrManufacturerName)->toString());
+    }
+    else
+    {
+        return qHash(r->item(RAttrModelId)->toString());
+    }
 }

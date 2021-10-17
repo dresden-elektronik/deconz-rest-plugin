@@ -1,0 +1,9 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/duration",
+	"datatype": "UInt16",
+	"access": "RW",
+	"public": true,
+	"range": [0, 65535],
+	"description": "The duration until presence is automatically turned back to false."
+}

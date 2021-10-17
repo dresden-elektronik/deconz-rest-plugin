@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2021 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -12,7 +12,7 @@
 #define SENSOR_H
 
 #include <QString>
-#include <deconz.h>
+#include "button_maps.h"
 #include "resource.h"
 #include "rest_node_base.h"
 
@@ -78,6 +78,11 @@ struct SensorFingerprint
     std::vector<quint16> outClusters;
 };
 
+inline bool isValid(const SensorFingerprint &fp)
+{
+    return fp.endpoint != INVALID_ENDPOINT;
+}
+
 /*! \class Sensor
 
     Represents a HA based Sensor.
@@ -101,17 +106,6 @@ public:
         StateDeleted
     };
 
-    struct ButtonMap
-    {
-        Sensor::SensorMode mode;
-        quint8 endpoint;
-        quint16 clusterId;
-        quint8 zclCommandId;
-        quint16 zclParam0;
-        int button;
-        QString name;
-    };
-
     Sensor();
 
     DeletedState deletedState() const;
@@ -129,13 +123,17 @@ public:
     void setSwVersion(const QString &swversion);
     SensorMode mode() const;
     void setMode(SensorMode mode);
+    const QString &lastSeen() const;
+    void setLastSeen(const QString &ls);
+    const QString &lastAnnounced() const;
+    void setLastAnnounced(const QString &la);
+    void didSetValue(ResourceItem *i) override;
+    void rx();
     uint8_t resetRetryCount() const;
     void setResetRetryCount(uint8_t resetRetryCount);
     uint8_t zdpResetSeq() const;
     void setZdpResetSeq(uint8_t zdpResetSeq);
     void updateStateTimestamp();
-    void incrementRxCounter();
-    int rxCounter() const;
 
     QString stateToString();
     QString configToString();
@@ -144,15 +142,15 @@ public:
     void jsonToConfig(const QString &json);
     SensorFingerprint &fingerPrint();
     const SensorFingerprint &fingerPrint() const;
+    ButtonMapRef buttonMapRef() const { return m_buttonMapRef; }
+    void setButtonMapRef(ButtonMapRef ref) { m_buttonMapRef = ref; }
 
     QString etag;
-    const std::vector<Sensor::ButtonMap> buttonMap(const QMap<QString, std::vector<Sensor::ButtonMap>> &buttonMapData, QMap<QString, QString> &buttonMapForModelId);
     uint8_t previousDirection;
     quint16 previousCt;
     QDateTime durationDue;
     uint16_t previousSequenceNumber = 0xffff;
     uint8_t previousCommandId;
-    
 
 private:
     DeletedState m_deletedstate;
@@ -160,8 +158,7 @@ private:
     SensorMode m_mode;
     uint8_t m_resetRetryCount;
     uint8_t m_zdpResetSeq;
-    std::vector<Sensor::ButtonMap> m_buttonMap;
-    int m_rxCounter;
+    ButtonMapRef m_buttonMapRef{};
 };
 
 #endif // SENSOR_H

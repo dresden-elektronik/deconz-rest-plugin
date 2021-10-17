@@ -157,8 +157,6 @@ int DeRestPluginPrivate::getAllLights(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::searchNewLights(const ApiRequest &req, ApiResponse &rsp)
 {
-    Q_UNUSED(req);
-
     if (!isInNetwork())
     {
         rsp.list.append(errorToMap(ERR_NOT_CONNECTED, QLatin1String("/lights"), QLatin1String("Not connected")));
@@ -166,6 +164,7 @@ int DeRestPluginPrivate::searchNewLights(const ApiRequest &req, ApiResponse &rsp
         return REQ_READY_SEND;
     }
 
+    permitJoinApiKey = req.apikey();
     startSearchLights();
     {
         QVariantMap rspItem;
@@ -904,6 +903,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     }
     
     
+
     // Danalock support. You need to check for taskRef.lightNode->type() == QLatin1String("Door lock"), similar to what I've done under hasAlert for the Siren.
     bool isDoorLockDevice = false;
     if (taskRef.lightNode->type() == QLatin1String("Door Lock"))
@@ -1003,9 +1003,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             // @manup: is check for FLS-PP needed, or is this already handled by check for state.x and state.y?
             paramOk = true;
             hasCmd = true;
-            if (map[param].type() == QVariant::List) {
+            if (map[param].type() == QVariant::List)
+            {
                 QVariantList xy = map["xy"].toList();
-                if (xy[0].type() == QVariant::Double && xy[1].type() == QVariant::Double) {
+                if (xy[0].type() == QVariant::Double && xy[1].type() == QVariant::Double)
+                {
                     const double x = xy[0].toDouble(&ok);
                     const double y = ok ? xy[1].toDouble(&ok) : 0;
                     if (ok && x >= 0.0 && x <= 1.0 && y >= 0.0 && y <= 1.0)
@@ -1107,10 +1109,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 colorloopSpeed = speed < 1 ? 1 : speed;
             }
         }
-        else if (param == "colormode" && taskRef.lightNode->item(RStateColorMode)) {
+        else if (param == "colormode" && taskRef.lightNode->item(RStateColorMode))
+        {
             paramOk = true;
             valueOk = true;
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIEABLE, QString("/lights/%1/state").arg(id), QString("parameter, %1, is not modifiable.").arg(param)));
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state").arg(id), QString("parameter, %1, is not modifiable.").arg(param)));
         }
         else if (param == "alert" && taskRef.lightNode->item(RStateAlert))
         {
@@ -1183,7 +1186,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state").arg(id), QString("invalid value, %1, for parameter, %2").arg(map[param].toString()).arg(param)));
         }
     }
-    if (taskRef.onTime > 0 && !hasOn && alert.isEmpty()) {
+    if (taskRef.onTime > 0 && !hasOn && alert.isEmpty())
+    {
         rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, QString("/lights/%1/state").arg(id), QString("missing parameter, on or alert, for parameter, ontime")));
     }
     if (hasWrap && !hasBriInc)
@@ -1263,12 +1267,15 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
         if (!isOn && hasBri && taskRef.onTime == 0)
         {
+            // if a light is off and should transition from 0 to new brightness
+            // turn light on at lowest brightness first
             TaskItem task;
             copyTaskReq(taskRef, task);
             task.transitionTime = 0;
 
             ok = addTaskSetBrightness(task, 2, true);
         }
+
         // Danalock support. In rest_lights.cpp, you need to call this routine from setLightState() under if (hasOn)
         if (isDoorLockDevice)
         {
@@ -1280,6 +1287,15 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                     ? ONOFF_COMMAND_ON_WITH_TIMED_OFF
                     : ONOFF_COMMAND_ON;
             ok = addTaskSetOnOff(task, cmd, taskRef.onTime, 0);
+
+            StateChange change(StateChange::StateWaitSync, SC_SetOnOff, task.req.dstEndpoint());
+            change.addTargetValue(RStateOn, 0x01);
+            change.addParameter(QLatin1String("cmd"), cmd);
+            if (cmd == ONOFF_COMMAND_ON_WITH_TIMED_OFF)
+            {
+                change.addParameter(QLatin1String("ontime"), taskRef.onTime);
+            }
+            taskRef.lightNode->addStateChange(change);
         }
 
         if (ok)
@@ -1302,7 +1318,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
-    // state.bri trumps state.bri_inc
+    // state.bri has priority over state.bri_inc
     if (hasBri)
     {
         TaskItem task;
@@ -1417,7 +1433,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else if (taskRef.lightNode->isColorLoopActive())
         {
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIEABLE, QString("/lights/%1/state").arg(id), QString("parameter, xy, is not modifiable. Colorloop is active.")));
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state").arg(id), QString("parameter, xy, is not modifiable. Colorloop is active.")));
         }
         else if (addTaskSetXyColor(task, targetX, targetY))
         {
@@ -1450,7 +1466,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else if (taskRef.lightNode->isColorLoopActive())
         {
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIEABLE, QString("/lights/%1/state").arg(id), QString("parameter, ct, is not modifiable. Colorloop is active.")));
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state").arg(id), QString("parameter, ct, is not modifiable. Colorloop is active.")));
         }
         else if (addTaskSetColorTemperature(task, targetCt))
         {
@@ -1479,7 +1495,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else if (taskRef.lightNode->isColorLoopActive())
         {
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIEABLE, QString("/lights/%1/state").arg(id), QString("parameter, ct_inc, is not modifiable. Colorloop is active.")));
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state").arg(id), QString("parameter, ct_inc, is not modifiable. Colorloop is active.")));
         }
         else if (addTaskIncColorTemperature(task, targetCtInc))
         {
@@ -1518,11 +1534,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             if (hasHue)
             {
-                rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIEABLE, QString("/lights/%1/state").arg(id), QString("parameter, hue, is not modifiable. Colorloop is active.")));
+                rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state").arg(id), QString("parameter, hue, is not modifiable. Colorloop is active.")));
             }
             if (hasSat)
             {
-                rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIEABLE, QString("/lights/%1/state").arg(id), QString("parameter, sat, is not modifiable. Colorloop is active.")));
+                rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state").arg(id), QString("parameter, sat, is not modifiable. Colorloop is active.")));
             }
         }
         else if (!hasSat) // only state.hue
@@ -1828,10 +1844,16 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         else
         {
             const quint16 manufacturerCode = taskRef.lightNode->manufacturerCode();
-            const quint8 cmd = (manufacturerCode == VENDOR_PHILIPS || manufacturerCode == VENDOR_IKEA)
+            const quint8 cmd = (manufacturerCode == VENDOR_PHILIPS ||
+                                (manufacturerCode == VENDOR_IKEA && taskRef.lightNode->modelId() != QLatin1String("KNYCKLAN receiver")))
                     ? ONOFF_COMMAND_OFF_WITH_EFFECT
                     : ONOFF_COMMAND_OFF;
             ok = addTaskSetOnOff(task, cmd, 0, 0);
+
+            StateChange change(StateChange::StateWaitSync, SC_SetOnOff, task.req.dstEndpoint());
+            change.addTargetValue(RStateOn, 0x00);
+            change.addParameter(QLatin1String("cmd"), cmd);
+            taskRef.lightNode->addStateChange(change);
         }
 
         if (ok)
@@ -1851,6 +1873,12 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/on").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
+    }
+
+    if (!taskRef.lightNode->stateChanges().empty())
+    {
+        DBG_Printf(DBG_INFO, "emit event/tick: %s\n", qPrintable(taskRef.lightNode->address().toStringExt()));
+        enqueueEvent({taskRef.lightNode->prefix(), REventTick, taskRef.lightNode->uniqueId(), taskRef.lightNode->address().ext()});
     }
 
     rsp.etag = taskRef.lightNode->etag;
@@ -2048,7 +2076,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             R_GetProductId(taskRef.lightNode) == QLatin1String("Zigbee curtain switch") ||
             R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_COVD YS-MT750") ||
             R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_COVD DS82") ||
-            taskRef.lightNode->modelId() == QLatin1String("D10110") ||
+            R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_COVD AM43-0.45/40-ES-EZ(TY)") ||
             taskRef.lightNode->modelId() == QLatin1String("Motor Controller"))
         {
             targetLiftZigBee = 100 - targetLift;
@@ -2102,7 +2130,15 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
 
         if (cluster == TUYA_CLUSTER_ID)
         {
-            ok = sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_CONTROL, QByteArray("\x01", 1));
+            if (R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_COVD AM43-0.45/40-ES-EZ(TY)"))
+            {
+                //This device use bad command
+                ok = sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_CONTROL, QByteArray("\x00", 1));
+            }
+            else
+            {
+                ok = sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_CONTROL, QByteArray("\x01", 1));
+            }
         }
         else
         {
@@ -2233,7 +2269,15 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             }
             else
             {
-                ok = sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_CONTROL, QByteArray("\x00", 1));
+                if (R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_COVD AM43-0.45/40-ES-EZ(TY)"))
+                {
+                    //This device use bad command
+                    ok = sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_CONTROL, QByteArray("\x01", 1));
+                }
+                else
+                {
+                    ok = sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_CONTROL, QByteArray("\x00", 1));
+                }
             }
         }
         else
@@ -2301,15 +2345,15 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
 int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map)
 {
     QString id = req.path[3];
-    
+
     bool targetOn = false;
     bool hasOn = false;
     bool hasBri = false;
     bool hasAlert = false;
     uint targetBri = 0;
-    
+
     bool ok = false;
-    
+
     //Parse all parameters
     for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
     {
@@ -2342,13 +2386,18 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
                 rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state").arg(id), QString("invalid value, %1, for parameter, on").arg(map["on"].toString())));
             }
         }
+
+        else if (p.key() == "alert")
+        {
+            if (map[p.key()].type() == QVariant::String)
+            {
+                hasAlert = true;
+            }
+        }
         
-        else if (p.key() == "alert")	
-        {	
-            if (map[p.key()].type() == QVariant::String)	
-            {	
-                hasAlert = true;	
-            }	
+        //Not used but can cause error
+        else if (p.key() == "transitiontime")
+        {
         }
 
         else
@@ -2356,12 +2405,12 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
             rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state").arg(id), QString("parameter, %1, not available").arg(p.key())));
         }
     }
-    
+
     // Return direct if there is already error
     if (!rsp.list.isEmpty())
     {
-        rsp.httpStatus = HttpStatusBadRequest; 
-        return REQ_READY_SEND; 
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
     }
 
     if (hasBri)
@@ -2370,8 +2419,9 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
         QByteArray data = QByteArray("\x00\x00", 2);
         data.append(static_cast<qint8>((bri >> 8) & 0xff));
         data.append(static_cast<qint8>(bri & 0xff));
-        
+
         if (R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_DIMSWITCH Earda Dimmer") ||
+            R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_DIMSWITCH MS-105Z") ||
             R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_DIMSWITCH EDM-1ZAA-EU"))
         {
             ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_DIMMER_LEVEL_MODE2, data);
@@ -2380,7 +2430,7 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
         {
             ok = sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_VALUE, DP_IDENTIFIER_DIMMER_LEVEL_MODE1, data);
         }
-        
+
         if (ok)
         {
             QVariantMap rspItem;
@@ -2435,28 +2485,28 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
         }
 
     }
-    
-    if (hasAlert)	
-    {	
-        QByteArray data("\x00", 1);	
-    
-        if (map["alert"].toString() == "lselect")	
-        {	
-            data = QByteArray("\x01",1);	
-        }	
-    
-        if (sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_BOOL, DP_IDENTIFIER_ALARM, data))	
-        {	
-            QVariantMap rspItem;	
-            QVariantMap rspItemState;	
-            rspItemState[QString("/lights/%1/state/alert").arg(id)] = map["alert"].toString();	
-            rspItem["success"] = rspItemState;	
-            rsp.list.append(rspItem);	
-        }	
-        else	
-        {	
-            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));	
-        }	
+
+    if (hasAlert)
+    {
+        QByteArray data("\x00", 1);
+
+        if (map["alert"].toString() == "lselect")
+        {
+            data = QByteArray("\x01",1);
+        }
+
+        if (sendTuyaRequest(taskRef, TaskTuyaRequest, DP_TYPE_BOOL, DP_IDENTIFIER_ALARM, data))
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/alert").arg(id)] = map["alert"].toString();
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+        }
     }
 
     return REQ_READY_SEND;
@@ -2500,7 +2550,8 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
             if (map[param].type() == QVariant::Double)
             {
                 const uint ot = map[param].toUInt(&ok);
-                if (ok && ot < 0xFFFF) {
+                if (ok && ot < 0xFFFF)
+                {
                     valueOk = true;
                     onTime = ot;
                 }
@@ -2517,7 +2568,8 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
             requestOk = false;
         }
     }
-    if (onTime > 0 && alert.isEmpty()) {
+    if (onTime > 0 && alert.isEmpty())
+    {
         rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, QString("/lights/%1/state").arg(id), QString("missing parameter, alert, for parameter, ontime")));
         requestOk = false;
     }
@@ -2559,7 +2611,7 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
             }
             else if (taskRef.lightNode->modelId() == QLatin1String("SIRZB-110"))    // Doesn't support strobe
             {
-                task.options = 0x13;    // Warning mode 1 (burglar), no Strobe, Very high sound
+                task.options = 0xC1;    // Warning mode 1 (burglar), no Strobe, Very high sound, Develco uses inversed bit order
             }
             task.duration = 1;
         }
@@ -2573,7 +2625,7 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
             }
             else if (taskRef.lightNode->modelId() == QLatin1String("SIRZB-110"))    // Doesn't support strobe
             {
-                task.options = 0x13;    // Warning mode 1 (burglar), no Strobe, Very high sound
+                task.options = 0xC1;    // Warning mode 1 (burglar), no Strobe, Very high sound, Develco uses inversed bit order
             }
             task.duration = onTime > 0 ? onTime : 300;
         }
@@ -3364,10 +3416,8 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
         ResourceItem *item = lightNode->item(e.what());
         if (item)
         {
-            if (lightNode->lastStatePush.isValid() && item->lastSet() < lightNode->lastStatePush)
+            if (!(item->needPushSet() || item->needPushChange()))
             {
-                DBG_Printf(DBG_INFO_L2, "discard light state push for %s: %s (already pushed)\n", qPrintable(e.id()), e.what());
-                webSocketServer->flush(); // force transmit send buffer
                 return; // already pushed
             }
 
@@ -3399,22 +3449,23 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     {
                         iy = item;
                     }
-                    else if (item->lastSet().isValid() && (gwWebSocketNotifyAll || (item->lastChanged().isValid() && item->lastChanged() >= lightNode->lastStatePush)))
+                    else if (gwWebSocketNotifyAll || item->needPushChange())
                     {
                         state[key] = item->toVariant();
+                        item->clearNeedPush();
                     }
                 }
             }
 
-            if (ix && ix->lastSet().isValid() && iy && iy->lastSet().isValid())
+            if (ix && iy)
             {
-                if (gwWebSocketNotifyAll ||
-                    (ix->lastChanged().isValid() && ix->lastChanged() >= lightNode->lastStatePush) ||
-                    (iy->lastChanged().isValid() && iy->lastChanged() >= lightNode->lastStatePush))
+                if (gwWebSocketNotifyAll || ix->needPushChange() || iy->needPushChange())
                   {
                       xy.append(round(ix->toNumber() / 6.5535) / 10000.0);
                       xy.append(round(iy->toNumber() / 6.5535) / 10000.0);
                       state["xy"] = xy;
+                      ix->clearNeedPush();
+                      iy->clearNeedPush();
                   }
             }
 
@@ -3422,7 +3473,9 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
             {
                 map["state"] = state;
                 webSocketServer->broadcastTextMessage(Json::serialize(map));
-                lightNode->lastStatePush = now;
+                updateLightEtag(lightNode);
+                plugin->saveDatabaseItems |= DB_LIGHTS;
+                plugin->queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
             }
 
             if ((e.what() == RStateOn || e.what() == RStateReachable) && !lightNode->groups().empty())
@@ -3445,10 +3498,8 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
         ResourceItem *item = lightNode->item(e.what());
         if (item)
         {
-            if (lightNode->lastAttrPush.isValid() && item->lastSet() < lightNode->lastAttrPush)
+            if (!(item->needPushSet() || item->needPushChange()))
             {
-                DBG_Printf(DBG_INFO_L2, "discard light state push for %s: %s (already pushed)\n", qPrintable(e.id()), e.what());
-                webSocketServer->flush(); // force transmit send buffer
                 return; // already pushed
             }
 
@@ -3480,9 +3531,10 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     continue;
                 }
 
-                if (item->lastSet().isValid() && (gwWebSocketNotifyAll || (item->lastChanged().isValid() && item->lastChanged() >= lightNode->lastAttrPush)))
+                if (gwWebSocketNotifyAll || item->needPushChange())
                 {
                     attr[key] = item->toVariant();
+                    item->clearNeedPush();
                 }
             }
 
@@ -3490,7 +3542,9 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
             {
                 map["attr"] = attr;
                 webSocketServer->broadcastTextMessage(Json::serialize(map));
-                lightNode->lastAttrPush = now;
+                updateLightEtag(lightNode);
+                plugin->saveDatabaseItems |= DB_LIGHTS;
+                plugin->queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
             }
         }
     }
@@ -3548,23 +3602,16 @@ void DeRestPluginPrivate::startSearchLights()
     }
 
     searchLightsTimeout = gwNetworkOpenDuration;
-    gwPermitJoinResend = searchLightsTimeout;
-    if (!resendPermitJoinTimer->isActive())
-    {
-        resendPermitJoinTimer->start(100);
-    }
+    setPermitJoinDuration(searchLightsTimeout);
 }
 
 /*! Handler for search lights active state.
  */
 void DeRestPluginPrivate::searchLightsTimerFired()
 {
-    if (gwPermitJoinResend == 0)
+    if (gwPermitJoinDuration == 0)
     {
-        if (gwPermitJoinDuration == 0)
-        {
-            searchLightsTimeout = 0; // done
-        }
+        searchLightsTimeout = 0; // done
     }
 
     if (searchLightsTimeout > 0)

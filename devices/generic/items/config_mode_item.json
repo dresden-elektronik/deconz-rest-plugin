@@ -1,0 +1,8 @@
+{
+    "schema": "resourceitem1.schema.json",
+    "id": "config/mode",
+    "datatype": "String",
+    "access": "RW",
+    "public": true,
+    "description": "Mode of the device."
+}

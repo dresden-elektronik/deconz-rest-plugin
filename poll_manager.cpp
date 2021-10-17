@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2020 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -10,6 +10,7 @@
 
 #include "poll_manager.h"
 #include "de_web_plugin_private.h"
+#include "utils/utils.h"
 
 /*! Constructor.
  */
@@ -163,16 +164,9 @@ void PollManager::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
         return;
     }
 
-    if (dstAddr.hasExt() && conf.dstAddress().hasExt()
-        && dstAddr.ext() != conf.dstAddress().ext())
+    if (!isSameAddress(dstAddr, conf.dstAddress()))
     {
-
-    }
-
-    else if (dstAddr.hasNwk() && conf.dstAddress().hasNwk()
-        && dstAddr.nwk() != conf.dstAddress().nwk())
-    {
-
+        return;
     }
 
     DBG_Printf(DBG_INFO_L2, "Poll APS confirm %u status: 0x%02X\n", conf.id(), conf.status());
@@ -446,7 +440,7 @@ void PollManager::pollTimerFired()
         if (item && (item->toString().isEmpty() ||
              (item->lastSet().secsTo(now) > READ_SWBUILD_ID_INTERVAL))) // dynamic
         {
-            if (lightNode->manufacturerCode() == VENDOR_EMBER && lightNode->modelId() == QLatin1String("TS011F")) // LIDL plugs
+            if (lightNode->manufacturerCode() == VENDOR_EMBER && lightNode->modelId() == QLatin1String("TS011F")) // Tuya plugs
             {
                 if (item->toString().isEmpty())
                 {
@@ -492,10 +486,10 @@ void PollManager::pollTimerFired()
     if (clusterId != 0xffff)
     {
         bool found = false;
-        deCONZ::SimpleDescriptor sd;
-        if (restNode->node()->copySimpleDescriptor(pitem.endpoint, &sd) == 0)
+        const deCONZ::SimpleDescriptor *sd = getSimpleDescriptor(restNode->node(), pitem.endpoint);
+        if (sd)
         {
-            for (const auto &cl : sd.inClusters())  // Loop through clusters
+            for (const auto &cl : sd->inClusters())  // Loop through clusters
             {
                 if (cl.id() == clusterId)
                 {

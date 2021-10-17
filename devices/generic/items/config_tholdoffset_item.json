@@ -1,0 +1,10 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/tholdoffset",
+	"datatype": "UInt16",
+	"access": "RW",
+	"public": true,
+	"range": [1, 65534],
+    "default": 7000,
+	"description": "Relative offset to <code class=\"api-attribute\">tholddark</code>. Sets <code class=\"api-attribute\">daylight</code> attribute to true when when lightlevel is at or above (tholddark + tholdoffset)."
+}

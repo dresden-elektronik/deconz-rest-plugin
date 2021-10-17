@@ -18,6 +18,7 @@
 #include <QVariantMap>
 #include <QNetworkInterface>
 #include <QProcessEnvironment>
+#include "rest_alarmsystems.h"
 #include "daylight.h"
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
@@ -52,7 +53,6 @@ void DeRestPluginPrivate::initConfig()
     gwRfConnected = false; // will be detected later
     gwRfConnectedExpected = (deCONZ::appArgumentNumeric("--auto-connect", 1) == 1) ? true : false;
     gwPermitJoinDuration = 0;
-    gwPermitJoinResend = 0;
     gwNetworkOpenDuration = 60;
     gwWifiState = WifiStateInitMgmt;
     gwWifiMgmt = 0;
@@ -297,6 +297,8 @@ void DeRestPluginPrivate::initTimezone()
         item->setValue(QVariant());
 
         dl.removeItem(RConfigReachable);
+        dl.removeItem(RAttrLastAnnounced);
+        dl.removeItem(RAttrLastSeen);
 
         dl.setModelId(QLatin1String("PHDL00"));
         dl.setManufacturer(QLatin1String("Philips"));
@@ -922,8 +924,8 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
 
     if (req.apiVersion() >= ApiVersion_1_DDEL)
     {
-        map["permitjoin"] = static_cast<double>(gwPermitJoinDuration);
-        map["permitjoinfull"] = static_cast<double>(gwPermitJoinResend);
+        map["permitjoin"] = static_cast<double>(qMin(gwPermitJoinDuration, 254));
+        map["permitjoinfull"] = static_cast<double>(gwPermitJoinDuration);
         map["otauactive"] = isOtauActive();
         map["otaustate"] = (isOtauBusy() ? "busy" : (isOtauActive() ? "idle" : "off"));
         map["groupdelay"] = static_cast<double>(gwGroupSendDelay);
@@ -1088,7 +1090,7 @@ void DeRestPluginPrivate::basicConfigToMap(const ApiRequest &req, QVariantMap &m
         map["swversion"] = swversion;
         map["apiversion"] = QString(GW_API_VERSION);
         map["datastoreversion"] = QLatin1String("93");
-    } 
+    }
     else
     {
         map["modelid"] = QLatin1String("BSB002");
@@ -1250,9 +1252,8 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
-    // scenes
-    {
-    }
+    // alarm systems
+    rsp.map[QLatin1String("alarmsystems")] = AS_AlarmSystemsToMap(*alarmSystems);
 
     configToMap(req, configMap);
 
@@ -1713,9 +1714,19 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             return REQ_READY_SEND;
         }
 
-        if (gwPermitJoinResend != seconds)
+        if (seconds == 0)
         {
-            gwPermitJoinResend = seconds;
+            // workaround that only initial caller can disable permit join
+            if (req.apikey() == permitJoinApiKey)
+            {
+                gwPermitJoinDuration = 0;
+                changed = true;
+            }
+        }
+        else if (gwPermitJoinDuration != seconds)
+        {
+            permitJoinApiKey = req.apikey();
+            gwPermitJoinDuration = seconds;
             changed = true;
         }
 

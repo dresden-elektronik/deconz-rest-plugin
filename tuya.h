@@ -52,6 +52,7 @@
 #define DP_IDENTIFIER_THERMOSTAT_SCHEDULE_2 0x70 // work days (6)
 #define DP_IDENTIFIER_THERMOSTAT_SCHEDULE_3 0x71 // holiday = Not working day (6)
 #define DP_IDENTIFIER_THERMOSTAT_SCHEDULE_4 0x6D // Not finished
+#define DP_IDENTIFIER_THERMOSTAT_SCHEDULE_ENABLE 0x6C // Enable schedule mode for Saswell
 
 #define DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT 0x02 // Heatsetpoint
 #define DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_2 0x67 // Heatsetpoint for Moe
@@ -62,8 +63,9 @@
 #define DP_IDENTIFIER_THERMOSTAT_CHILDLOCK_2 0x28
 #define DP_IDENTIFIER_THERMOSTAT_CHILDLOCK_3 0x1E // For Moe device
 
-#define DP_IDENTIFIER_THERMOSTAT_MODE_1 0x6A // mode
-#define DP_IDENTIFIER_THERMOSTAT_MODE_2 0x02 // mode for Moe device
+#define DP_IDENTIFIER_THERMOSTAT_MODE_1 0x6A // mode used with DP_TYPE_ENUM
+#define DP_IDENTIFIER_THERMOSTAT_MODE_2 0x02 // mode for Moe device used with DP_TYPE_ENUM
+#define DP_IDENTIFIER_THERMOSTAT_MODE_3 0x65 // mode for Saswell device used with DP_TYPE_BOOL
 
 
 // Value for dp_identifier for covering
@@ -106,12 +108,20 @@
 #define DP_IDENTIFIER_HUMIDITY_ALARM 0x72
 #define DP_IDENTIFIER_VOLUME 0x74
 
+// Value for dp_identifier for sensor
+//-----------------------------------
+#define DP_IDENTIFIER_REPORTING_TIME 0x62
+#define DP_IDENTIFIER_TEMPERATURE 0x6B
+#define DP_IDENTIFIER_HUMIDITY 0x6C
+#define DP_IDENTIFIER_BATTERY 0x6E
+#define DP_IDENTIFIER_REPORTING 0x70
 
 // Value for tuya command
 //-----------------------
 #define TUYA_REQUEST 0x00
 #define TUYA_REPORTING 0x01
 #define TUYA_QUERY 0x02
+#define TUYA_STATUS_SEARCH 0x06
 #define TUYA_TIME_SYNCHRONISATION 0x24
 
 bool UseTuyaCluster(const QString &manufacturer);
