@@ -777,6 +777,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
                 // // FIXME: The following low-level code is needed because ZclAttribute is broken for Zcl8BitEnum.
 
+                const quint16 XIAOMI_CLUSTER_ID = 0xFCC0; // TODO: Find a proper way to have this working from the xiaomi.h file (The main original repo changed the location of it) or move all this logic to the xiaomi class...
                 const quint16 cluster = XIAOMI_CLUSTER_ID;
 
                 task.taskType = TaskWriteAttribute;
