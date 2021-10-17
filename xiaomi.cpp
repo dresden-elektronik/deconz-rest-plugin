@@ -1114,6 +1114,8 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
  */
 void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiAqaraS1ScenePanelSpecial(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
+    DBG_Printf(DBG_INFO, "0x%016llX Xiaomi Aqara attribute report\n", ind.srcAddress().ext());
+
     quint16 attrId = 0;
     quint8 dataType = 0;
     quint8 length = 0;
