@@ -1149,6 +1149,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
  */
 void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &ind)
 {
+            DBG_Printf(DBG_INFO, "################# 0\n",);
     Q_Q(DeRestPlugin);
     if (!q->pluginActive())
     {
