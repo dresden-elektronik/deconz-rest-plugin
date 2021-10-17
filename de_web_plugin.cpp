@@ -12277,6 +12277,7 @@ DBG_Printf(DBG_INFO, "################### 1 \n");
 DBG_Printf(DBG_INFO, "################### 2 \n");
     if (zclFrame.isProfileWideCommand() && existDevicesWithVendorCodeForMacPrefix(ind.srcAddress().ext(), VENDOR_XIAOMI) && ind.clusterId() == XIAOMI_CLUSTER_ID)
     {
+DBG_Printf(DBG_INFO, "################### 3 \n");
         handleZclAttributeReportIndicationXiaomiAqaraS1ScenePanelSpecial(ind, zclFrame);
     }
 
