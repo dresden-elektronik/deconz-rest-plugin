@@ -987,20 +987,16 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     {
                         qint16 temp = static_cast<qint16>(data & 0xFFFF) * 100;
                         
-                        DBG_Printf(DBG_INFO, "Debug tuya 77 : 1");
-                        
                         if (productId == "Tuya_THD MOES TRV" ||
                             productId == "Tuya_THD SilverCrest Smart Radiator Thermostat")
                         {
                             temp = static_cast<qint16>(data & 0xFFFF) * 100 / 2;
-                            DBG_Printf(DBG_INFO, "Debug tuya 77 : 2");
                         }
                         
                         ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
 
                         if (item && item->toNumber() != temp)
                         {
-                            DBG_Printf(DBG_INFO, "Debug tuya 77 : 3");
                             item->setValue(temp);
                             Event e(RSensors, RConfigHeatSetpoint, sensorNode->id(), item);
                             enqueueEvent(e);
@@ -1097,7 +1093,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     break;
                     case 0x0269: // Boost time in second or Heatpoint
                     {
-                        if (productId == "Tuya_THD MOES TRV")
+                        if (productId == "Tuya_THD MOES TRV" ||
+                            productId == "Tuya_THD SilverCrest Smart Radiator Thermostat")
                         {
                             qint16 temp = static_cast<qint16>(data & 0xFFFF) * 100 / 2;
    

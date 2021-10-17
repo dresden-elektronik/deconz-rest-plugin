@@ -1042,12 +1042,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_3;
                             data.integer = data.integer / 10;
                         }
-                        else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat"))
-                        {
-                            dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_3;
-                            data.integer = data.integer * 2 / 10;
-                        }
-                        else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD MOES TRV"))
+                        else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD MOES TRV") ||
+                                 R_GetProductId(sensor) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat"))
                         {
                             ResourceItem *item2 = sensor->item(RConfigMode);
 
