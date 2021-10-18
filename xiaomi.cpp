@@ -452,6 +452,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     {
         if (!lightNode.modelId().startsWith(QLatin1String("lumi."))) { continue; }
         if (!isSameAddress(lightNode.address(), ind.srcAddress()))   { continue; }
+        if (ind.srcEndpoint() != lightNode.haEndpoint().endpoint())  { continue; }
 
         quint8 stateOnOff = UINT8_MAX;
         ResourceItem *item;
