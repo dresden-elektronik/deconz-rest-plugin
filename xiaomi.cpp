@@ -64,7 +64,7 @@ void DeRestPluginPrivate::handleXiaomiLumiClusterIndication(const deCONZ::ApsDat
             {
             case XIAOMI_ATTRID_SPECIAL_REPORT:
             {
-                handleZclAttributeReportIndicationXiaomiSpecial(ind, zclFrame);
+                // handleZclAttributeReportIndicationXiaomiSpecial(ind, zclFrame);
             }
                 break;
 
