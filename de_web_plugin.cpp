@@ -1114,7 +1114,6 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                 }
 
                 const bool push = item->pushOnSet() || (item->pushOnChange() && item->lastChanged() == item->lastSet());
-
                 if (idItem && push)
                 {
                     enqueueEvent(Event(r->prefix(), item->descriptor().suffix, idItem->toString(), device->key()));

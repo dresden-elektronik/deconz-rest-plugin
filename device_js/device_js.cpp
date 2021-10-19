@@ -8,6 +8,7 @@
  *
  */
 
+#include "deconz/aps.h"
 #include "device_js.h"
 #include "device_js_wrappers.h"
 
@@ -23,6 +24,7 @@ public:
     JsZclAttribute *jsZclAttribute = nullptr;
     JsZclFrame *jsZclFrame = nullptr;
     JsResourceItem *jsItem = nullptr;
+    const deCONZ::ApsDataIndication *apsInd = nullptr;
 };
 
 DeviceJs::DeviceJs() :
@@ -75,7 +77,8 @@ void DeviceJs::setResource(const Resource *r)
 
 void DeviceJs::setApsIndication(const deCONZ::ApsDataIndication &ind)
 {
-    Q_UNUSED(ind);
+    d->apsInd = &ind;
+    d->engine.globalObject().setProperty("SrcEp", int(ind.srcEndpoint()));
 }
 
 void DeviceJs::setZclFrame(const deCONZ::ZclFrame &zclFrame)
