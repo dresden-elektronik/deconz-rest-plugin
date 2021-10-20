@@ -148,7 +148,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
 
         quint8 dp_type;
         quint8 dp_identifier;
-        quint8 dummy;
+        quint8 dummy = 0;
 
         stream >> status;
         stream >> transid;
@@ -178,7 +178,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         dp_type = ((dp >> 8) & 0xFF);
 
         DBG_Printf(DBG_INFO, "Tuya debug 4 : Address 0x%016llX Payload %s\n", ind.srcAddress().ext(), qPrintable(zclFrame.payload().toHex()));
-        DBG_Printf(DBG_INFO, "Tuya debug 5 : Status: %u Transid: %u Dp: %u (0x%02X,0x%02X) Fn: %u Data %ld\n", status, transid, dp, dp_type, dp_identifier, fn, data);
+        DBG_Printf(DBG_INFO, "Tuya debug 5 : Status: %u Transid: %u Dp: %u (0x%02X,0x%02X) Fn: %u Data %d\n", status, transid, dp, dp_type, dp_identifier, fn, data);
 
         if (length > 4) //schedule command
         {
@@ -194,12 +194,10 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             // All days = W127
 
             QString transitions;
-
-            if (zclFrame.payload().size() < ((length * 3) + 6))
-            {
-                DBG_Printf(DBG_INFO, "Tuya : Schedule data error\n");
-                return;
-            }
+            
+            Scheduledatalength = zclFrame.payload().size() - 6;
+            quint8 blocklength = 0;
+            quint8 values_to_read = 0;
 
             quint8 hour;
             quint8 minut;
@@ -217,21 +215,24 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 {
                     part = 1;
                     listday << 124;
-                    length = length / 3;
+                    values_to_read = 3;
+                    blocklength = length / values_to_read;
                 }
                 break;
                 case 0x0071: // holiday = Not working day (6)
                 {
                     part = 1;
                     listday << 3;
-                    length = length / 3;
+                    values_to_read = 3;
+                    blocklength = length / values_to_read;
                 }
                 break;
                 case 0x0065: // Moe thermostat W124 (4) + W002 (4) + W001 (4)
                 {
                     part = length / 3;
                     listday << 124 << 2 << 1;
-                    length = length / 3;
+                    values_to_read = 3;
+                    blocklength = length / values_to_read;
                 }
                 break;
                 // Daily schedule (mode 8)(minut 16)(temperature 16)(minut 16)(temperature 16)(minut 16)(temperature 16)(minut 16)(temperature 16)
@@ -254,10 +255,13 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     
                     listday << t[dp - 0x007B];
                     
-                    length = (length - 1) / 2;
+                    values_to_read = 2;
+                    blocklength = (length - 1) / values_to_read;
                     
                     quint8 mode;
                     stream >> mode; // First octet is the mode
+                    Scheduledatalength-=1;
+                    
                     break;
 
                 }
@@ -268,9 +272,17 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 break;
             }
             
+            //Sanitary check
+            if (Scheduledatalength < (part * blocklength * values_to_read)
+            {
+                DBG_Printf(DBG_INFO, "Tuya : Schedule data error\n");
+                return;
+            }
+            
+            
             for (; part > 0; part--)
             {
-                for (; length > 0; length--)
+                for (; blocklength > 0; blocklength--)
                 {
                     if (dp >= 0x007B && dp <= 0x0081)
                     {
@@ -1107,17 +1119,20 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
-                    case 0x026B: // Temperature
+                    case 0x026B: // Temperature for Multi sensor
                     {
-                        qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
-                        ResourceItem *item = sensorNode->item(RStateTemperature);
-
-                        if (item && item->toNumber() != temp)
+                        if (productId == "Tuya_SEN Multi-sensor")
                         {
-                            item->setValue(temp);
-                            Event e(RSensors, RStateTemperature, sensorNode->id(), item);
-                            enqueueEvent(e);
-                            update = true;
+                            qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
+                            ResourceItem *item = sensorNode->item(RStateTemperature);
+
+                            if (item && item->toNumber() != temp)
+                            {
+                                item->setValue(temp);
+                                Event e(RSensors, RStateTemperature, sensorNode->id(), item);
+                                enqueueEvent(e);
+                                update = true;
+                            }
                         }
                     }
                     break;
