@@ -195,7 +195,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
 
             QString transitions;
             
-            Scheduledatalength = zclFrame.payload().size() - 6;
+            quint8 Scheduledatalength = zclFrame.payload().size() - 6;
             quint8 blocklength = 0;
             quint8 values_to_read = 0;
 
