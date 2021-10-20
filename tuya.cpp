@@ -273,7 +273,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             }
             
             //Sanitary check
-            if (Scheduledatalength < (part * blocklength * values_to_read)
+            if (Scheduledatalength < (part * blocklength * values_to_read))
             {
                 DBG_Printf(DBG_INFO, "Tuya : Schedule data error\n");
                 return;
