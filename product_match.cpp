@@ -57,6 +57,7 @@ static const ProductMap products[] =
     {"_TZE200_fhn3negr", "TS0601", "MOES/tuya", "Tuya_THD MOES TRV"},
     {"_TZE200_aoclfnxz", "TS0601", "Moes", "Tuya_THD BTH-002 Thermostat"},
     {"_TYST11_jeaxp72v", "eaxp72v", "Essentials", "Tuya_THD Essentials TRV"},
+    {"_TZE200_jeaxp72v", "TS0601", "Essentials", "Tuya_THD Essentials TRV"},
     {"_TYST11_kfvq6avy", "fvq6avy", "Revolt", "Tuya_THD NX-4911-675 TRV"},
     {"_TZE200_kfvq6avy", "TS0601", "Revolt", "Tuya_THD NX-4911-675 TRV"},
     {"_TYST11_zivfvd7h", "ivfvd7h", "Siterwell", "Tuya_THD GS361A-H04 TRV"},
