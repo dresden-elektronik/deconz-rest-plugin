@@ -1100,7 +1100,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
-                             R_GetProductId(sensor) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD MOES TRV"))
                     {
@@ -1111,8 +1110,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             QByteArray tuyaData = QByteArray::fromRawData(match.value, 1);
                             quint8 dpIdentifier = DP_IDENTIFIER_THERMOSTAT_MODE_1;
 
-                            if (R_GetProductId(sensor) == QLatin1String("Tuya_THD MOES TRV") ||
-                                R_GetProductId(sensor) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat"))
+                            if (R_GetProductId(sensor) == QLatin1String("Tuya_THD MOES TRV"))
                             {
                                 dpIdentifier = DP_IDENTIFIER_THERMOSTAT_MODE_2;
                             }
@@ -1136,6 +1134,39 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                 updated = true;
                             }
                         }
+                    }
+                    else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat"))
+                    {
+
+                        const auto match = matchKeyValue(data.string, RConfigModeValuesTuya2);
+
+                        if (isValid(match))
+                        {
+                            if (match.key == QLatin1String("off"))
+                            {
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_3, QByteArray("\x00\x00\x00\x01", 4)) &&
+                                    sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, DP_IDENTIFIER_THERMOSTAT_MODE_2, QByteArray("\x01", 1)))
+                                {
+                                    updated = true;
+                                }
+                            }
+                            else if (match.key == QLatin1String("heat"))
+                            {
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_3, QByteArray("\x00\x00\x00\x64", 4)) &&
+                                    sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, DP_IDENTIFIER_THERMOSTAT_MODE_2, QByteArray("\x01", 1)))
+                                {
+                                    updated = true;
+                                }
+                            }
+                            else // Auto
+                            {
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, DP_IDENTIFIER_THERMOSTAT_MODE_2, QByteArray("\x00", 1)))
+                                {
+                                    updated = true;
+                                }
+                            }
+                        }
+                        
                     }
                     else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
