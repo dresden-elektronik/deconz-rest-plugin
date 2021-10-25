@@ -1063,7 +1063,17 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                             if (item2 && item2->toString() == QLatin1String("auto"))
                             {
-                                dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_4;
+                                //Set moon
+                                dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_ECO;
+                                int tempmoon = data.integer - 5;
+                                tuyaData.append(static_cast<qint8>((tempmoon >> 8) & 0xff));
+                                tuyaData.append(static_cast<qint8>(tempmoon & 0xff));
+                                sendTuyaRequest(task, TaskThermostat, DP_TYPE_VALUE, dp, tuyaData)
+
+                                //Set sun
+                                dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_COMFORT;
+                                tuyaData = QByteArray("\x00\x00", 2);
+                                
                             }
                             else
                             {
