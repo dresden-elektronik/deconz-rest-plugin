@@ -1068,7 +1068,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                 int tempmoon = data.integer - 5;
                                 tuyaData.append(static_cast<qint8>((tempmoon >> 8) & 0xff));
                                 tuyaData.append(static_cast<qint8>(tempmoon & 0xff));
-                                sendTuyaRequest(task, TaskThermostat, DP_TYPE_VALUE, dp, tuyaData)
+                                sendTuyaRequest(task, TaskThermostat, DP_TYPE_VALUE, dp, tuyaData);
 
                                 //Set sun
                                 dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_COMFORT;
