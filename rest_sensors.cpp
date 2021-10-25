@@ -1042,8 +1042,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_3;
                             data.integer = data.integer / 10;
                         }
-                        else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD MOES TRV") ||
-                                 R_GetProductId(sensor) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat"))
+                        else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD MOES TRV"))
                         {
                             ResourceItem *item2 = sensor->item(RConfigMode);
 
@@ -1054,6 +1053,21 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             else
                             {
                                 dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_4;
+                            }
+
+                            data.integer = data.integer * 2 / 10;
+                        }
+                        else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat"))
+                        {
+                            ResourceItem *item2 = sensor->item(RConfigMode);
+
+                            if (item2 && item2->toString() == QLatin1String("auto"))
+                            {
+                                dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_4;
+                            }
+                            else
+                            {
+                                dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_3;
                             }
 
                             data.integer = data.integer * 2 / 10;
@@ -1144,7 +1158,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             if (match.key == QLatin1String("off"))
                             {
-                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_3, QByteArray("\x00\x00\x00\x01", 4)) &&
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_3, QByteArray("\x00\x00\x00\x00", 4)) &&
                                     sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, DP_IDENTIFIER_THERMOSTAT_MODE_2, QByteArray("\x01", 1)))
                                 {
                                     updated = true;
@@ -1158,10 +1172,12 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                     updated = true;
                                 }
                             }
-                            else // Auto
+                            else if (match.key == QLatin1String("auto"))
                             {
+                                DBG_Printf(DBG_INFO, "Tuya debug 77");
                                 if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, DP_IDENTIFIER_THERMOSTAT_MODE_2, QByteArray("\x00", 1)))
                                 {
+                                    DBG_Printf(DBG_INFO, "Tuya debug 78");
                                     updated = true;
                                 }
                             }

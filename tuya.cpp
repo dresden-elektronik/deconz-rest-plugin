@@ -1163,13 +1163,36 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     case 0x0402 : // preset for moe or mode
                     case 0x0403 : // preset for moe
                     {
-                        if (productId == "Tuya_THD MOES TRV" ||
-                            productId == "Tuya_THD SilverCrest Smart Radiator Thermostat")
+                        if (productId == "Tuya_THD MOES TRV")
                         {
                             QString mode;
                             if (data == 0) { mode = QLatin1String("auto"); } //schedule
                             else if (data == 1) { mode = QLatin1String("heat"); } //manual
                             else if (data == 2) { mode = QLatin1String("off"); } //away
+                            else
+                            {
+                                return;
+                            }
+                            
+                            ResourceItem *item = sensorNode->item(RConfigMode);
+
+                            if (item && item->toString() != mode)
+                            {
+                                item->setValue(mode);
+                                enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                            }
+                        }
+                        if (productId == "Tuya_THD SilverCrest Smart Radiator Thermostat")
+                        {
+                            QString mode;
+                            if (data == 0) { mode = QLatin1String("auto"); } //schedule
+                            else if (data == 1) // Manual
+                            {
+                                mode = QLatin1String("heat");
+                                ResourceItem *item3 = sensorNode->item(RConfigHeatSetpoint);
+                                if (item3->toNumber() == 0) mode = QLatin1String("off");
+                            }
+                            //else if (data == 2) { mode = QLatin1String("off"); } //away
                             else
                             {
                                 return;
