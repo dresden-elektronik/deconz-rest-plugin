@@ -1066,7 +1066,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     }
                     break;
                     case 0x0265: // Comfort temperature
-                        else if (productId == "Tuya_THD SilverCrest Smart Radiator Thermostat")
+                        if (productId == "Tuya_THD SilverCrest Smart Radiator Thermostat")
                         {
                             qint16 temp = static_cast<qint16>(data & 0xFFFF) * 100 / 2;
                             ResourceItem *item = sensorNode->item(RConfigComfortHeatSetpoint);
