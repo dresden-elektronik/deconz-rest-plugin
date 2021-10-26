@@ -1006,10 +1006,12 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         if ((productId == "Tuya_THD SilverCrest Smart Radiator Thermostat") and (temp == 0))
                         {
                             ResourceItem *item = sensorNode->item(RConfigMode);
+                            
+                            Qstring mode = QLatin1String("off");
 
-                            if (item && item->toString() != QLatin1String("off"))
+                            if (item && item->toString() != mode)
                             {
-                                item->setValue(QLatin1String("off"));
+                                item->setValue(mode);
                                 enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
                                 update = true;
                             }
