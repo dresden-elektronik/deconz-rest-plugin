@@ -1007,7 +1007,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         {
                             ResourceItem *item = sensorNode->item(RConfigMode);
 
-                            if (item && item->toString() != QLatin1String("off")
+                            if (item && item->toString() != QLatin1String("off"))
                             {
                                 item->setValue(QLatin1String("off");
                                 enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
