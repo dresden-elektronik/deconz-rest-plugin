@@ -1002,6 +1002,18 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             enqueueEvent(e);
                             update = true;
                         }
+                        
+                        if ((productId == "Tuya_THD SilverCrest Smart Radiator Thermostat") and (temp == 0))
+                        {
+                            ResourceItem *item = sensorNode->item(RConfigMode);
+
+                            if (item && item->toString() != QLatin1String("off")
+                            {
+                                item->setValue(QLatin1String("off");
+                                enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                                update = true;
+                            }
+                        }
                     }
                     break;
                     case 0x0215: // battery
@@ -1051,6 +1063,21 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
+                    case 0x0265: // Comfort temperature
+                        else if (productId == "Tuya_THD SilverCrest Smart Radiator Thermostat")
+                        {
+                            qint16 temp = static_cast<qint16>(data & 0xFFFF) * 100 / 2;
+                            ResourceItem *item = sensorNode->item(RConfigComfortHeatSetpoint);
+
+                            if (item && item->toNumber() != temp)
+                            {
+                                item->setValue(temp);
+                                Event e(RSensors, RConfigComfortHeatSetpoint, sensorNode->id(), item);
+                                enqueueEvent(e);
+                                update = true;
+                            }
+                        }
+                    break;
                     case 0x0266: // min temperature limit
                     {
                         //Can be Temperature for some device
@@ -1067,6 +1094,19 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                                 Event e(RSensors, RStateTemperature, sensorNode->id(), item);
                                 enqueueEvent(e);
 
+                            }
+                        }
+                        else if (productId == "Tuya_THD SilverCrest Smart Radiator Thermostat") // Eco temperature
+                        {
+                            qint16 temp = static_cast<qint16>(data & 0xFFFF) * 100 / 2;
+                            ResourceItem *item = sensorNode->item(RConfigEcoHeatSetpoint);
+
+                            if (item && item->toNumber() != temp)
+                            {
+                                item->setValue(temp);
+                                Event e(RSensors, RConfigEcoHeatSetpoint, sensorNode->id(), item);
+                                enqueueEvent(e);
+                                update = true;
                             }
                         }
                     }
@@ -1086,7 +1126,6 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                                 item->setValue(temp);
                                 Event e(RSensors, RConfigHeatSetpoint, sensorNode->id(), item);
                                 enqueueEvent(e);
-
                             }
                         }
                     }
@@ -1182,7 +1221,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                                 enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
                             }
                         }
-                        if (productId == "Tuya_THD SilverCrest Smart Radiator Thermostat")
+                        else if (productId == "Tuya_THD SilverCrest Smart Radiator Thermostat")
                         {
                             QString mode;
                             if (data == 0) { mode = QLatin1String("auto"); } //schedule
@@ -1222,6 +1261,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             {
                                 item->setValue(preset);
                                 enqueueEvent(Event(RSensors, RConfigPreset, sensorNode->id(), item));
+                                update = true;
                             }
                         }
                     }

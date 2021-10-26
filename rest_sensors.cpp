@@ -985,6 +985,32 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         updated = true;
                     }
                 }
+                else if (rid.suffix == RConfigEcoHeatSetpoint)
+                {
+                    QByteArray tuyaData = QByteArray("\x00\x00", 2);
+                    data.integer = data.integer * 2 / 10;
+
+                    tuyaData.append(static_cast<qint8>((data.integer >> 8) & 0xff));
+                    tuyaData.append(static_cast<qint8>(data.integer & 0xff));
+
+                    if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_VALUE, DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_ECO, tuyaData))
+                    {
+                        updated = true;
+                    }
+                }
+                else if (rid.suffix == RConfigComfortHeatSetpoint)
+                {
+                    QByteArray tuyaData = QByteArray("\x00\x00", 2);
+                    data.integer = data.integer * 2 / 10;
+
+                    tuyaData.append(static_cast<qint8>((data.integer >> 8) & 0xff));
+                    tuyaData.append(static_cast<qint8>(data.integer & 0xff));
+
+                    if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_VALUE, DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_COMFORT, tuyaData))
+                    {
+                        updated = true;
+                    }
+                }
                 else if (rid.suffix == RConfigHeatSetpoint) // Signed integer
                 {
                     if (sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
@@ -1063,17 +1089,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                             if (item2 && item2->toString() == QLatin1String("auto"))
                             {
-                                //Set moon
-                                dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_ECO;
-                                int tempmoon = data.integer - 5;
-                                tuyaData.append(static_cast<qint8>((tempmoon >> 8) & 0xff));
-                                tuyaData.append(static_cast<qint8>(tempmoon & 0xff));
-                                sendTuyaRequest(task, TaskThermostat, DP_TYPE_VALUE, dp, tuyaData);
-
-                                //Set sun
-                                dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_COMFORT;
-                                tuyaData = QByteArray("\x00\x00", 2);
-                                
+                                dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_4;
                             }
                             else
                             {
@@ -1162,7 +1178,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat"))
                     {
 
-                        const auto match = matchKeyValue(data.string, RConfigModeValuesTuya2);
+                        const auto match = matchKeyValue(data.string, RConfigModeValuesTuya1);
 
                         if (isValid(match))
                         {
@@ -1184,10 +1200,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                             else if (match.key == QLatin1String("auto"))
                             {
-                                DBG_Printf(DBG_INFO, "Tuya debug 77");
                                 if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, DP_IDENTIFIER_THERMOSTAT_MODE_2, QByteArray("\x00", 1)))
                                 {
-                                    DBG_Printf(DBG_INFO, "Tuya debug 78");
                                     updated = true;
                                 }
                             }
