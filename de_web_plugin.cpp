@@ -15175,7 +15175,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         {
             DBG_Printf(DBG_INFO, "[1] get node descriptor for 0x%016llx\n", sc->address.ext());
 
-            if (ZDP_NodeDescriptorReq(sc->address.nwk(), apsCtrl))
+            if (ZDP_NodeDescriptorReq(sc->address, apsCtrl))
             {
                 queryTime = queryTime.addSecs(5);
                 sc->timeout.restart();
@@ -15190,7 +15190,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         {
             DBG_Printf(DBG_INFO, "[2] get active endpoints for 0x%016llx\n", sc->address.ext());
 
-            if (ZDP_ActiveEndpointsReq(sc->address.nwk(), apsCtrl))
+            if (ZDP_ActiveEndpointsReq(sc->address, apsCtrl))
             {
                 queryTime = queryTime.addSecs(5);
                 sc->timeout.restart();
@@ -15220,7 +15220,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 {
                     DBG_Printf(DBG_INFO, "[3] get simple descriptor 0x%02X for 0x%016llx\n", ep, sc->address.ext());
 
-                    if (ZDP_SimpleDescriptorReq(sc->address.nwk(), ep, apsCtrl))
+                    if (ZDP_SimpleDescriptorReq(sc->address, ep, apsCtrl))
                     {
                         queryTime = queryTime.addSecs(1);
                         sc->timeout.restart();
