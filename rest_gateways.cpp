@@ -459,22 +459,6 @@ void DeRestPluginPrivate::handleClusterIndicationGateways(const deCONZ::ApsDataI
         return;
     }
 
-    if (zclFrame.isClusterCommand())
-    {
-        if (ind.clusterId() == ONOFF_CLUSTER_ID)
-        {
-            if (zclFrame.commandId() == 0x00 || zclFrame.commandId() == 0x40 || // Off || Off with effect
-                zclFrame.commandId() == 0x01 || zclFrame.commandId() == 0x42)  // On || On with timed off
-            {
-                sensorIndIdleTotalCounter = idleTotalCounter;
-            }
-        }
-        else if (ind.clusterId() == LEVEL_CLUSTER_ID)
-        {
-            sensorIndIdleTotalCounter = idleTotalCounter;
-        }
-    }
-
     for (size_t i = 0; i < gateways.size(); i++)
     {
         Gateway *gw = gateways[i];

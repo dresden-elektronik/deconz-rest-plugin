@@ -146,34 +146,34 @@
 			</attribute>
 			<attribute id="0x0008" name="Generic Device Class" type="enum8" default="0xff" access="r" required="o" >
 				<description>IKEA control outlet specific.</description>
-        <value name="Lighting" value="0"></value>
-        <value name="Unspecified" value="0xff"></value>
+				<value name="Lighting" value="0"></value>
+				<value name="Unspecified" value="0xff"></value>
 			</attribute>
 			<attribute id="0x0009" name="Generic Device Type" type="enum8" default="0xff" access="r" required="o" >
 				<description>IKEA control outlet specific.</description>
-        <value name="Incandescent" value="0"></value>
-        <value name="Spotlight Halogen" value="1"></value>
-        <value name="Halogen Bulb" value="2"></value>
-        <value name="CFL" value="3"></value>
-        <value name="Linear Fluorencent" value="4"></value>
-        <value name="LED Bulb" value="5"></value>
-        <value name="Spotlight LED" value="6"></value>
-        <value name="LED Strip" value="7"></value>
-        <value name="LED Tube" value="8"></value>
-        <value name="Indoor Luminaire" value="9"></value>
-        <value name="Outdoor Luminaire" value="0x0a"></value>
-        <value name="Pendant Luminaire" value="0x0b"></value>
-        <value name="Floor Standing Luminaire" value="0x0c"></value>
-        <value name="Controller" value="0xe0"></value>
-        <value name="Wall Switch" value="0xe1"></value>
-        <value name="Portable Remote Controller" value="0xe2"></value>
-        <value name="Motion or Light Sensor" value="0xe3"></value>
-        <value name="Actuator" value="0xf0"></value>
-        <value name="Wall Socket" value="0xf1"></value>
-        <value name="Gateway or Bridge" value="0xf2"></value>
-        <value name="Plug-In Unit" value="0xf3"></value>
-        <value name="Retrofit Actuator" value="0xf4"></value>
-        <value name="Unspecified" value="0xff"></value>
+				<value name="Incandescent" value="0"></value>
+				<value name="Spotlight Halogen" value="1"></value>
+				<value name="Halogen Bulb" value="2"></value>
+				<value name="CFL" value="3"></value>
+				<value name="Linear Fluorencent" value="4"></value>
+				<value name="LED Bulb" value="5"></value>
+				<value name="Spotlight LED" value="6"></value>
+				<value name="LED Strip" value="7"></value>
+				<value name="LED Tube" value="8"></value>
+				<value name="Indoor Luminaire" value="9"></value>
+				<value name="Outdoor Luminaire" value="0x0a"></value>
+				<value name="Pendant Luminaire" value="0x0b"></value>
+				<value name="Floor Standing Luminaire" value="0x0c"></value>
+				<value name="Controller" value="0xe0"></value>
+				<value name="Wall Switch" value="0xe1"></value>
+				<value name="Portable Remote Controller" value="0xe2"></value>
+				<value name="Motion or Light Sensor" value="0xe3"></value>
+				<value name="Actuator" value="0xf0"></value>
+				<value name="Wall Socket" value="0xf1"></value>
+				<value name="Gateway or Bridge" value="0xf2"></value>
+				<value name="Plug-In Unit" value="0xf3"></value>
+				<value name="Retrofit Actuator" value="0xf4"></value>
+				<value name="Unspecified" value="0xff"></value>
 			</attribute>
 			<attribute id="0x000a" name="Product code" type="ostring" access="r" required="o" >
 				<description>As printed on the product.</description>
@@ -203,7 +203,7 @@
 				<value name="General Hardware Fault" value="0"></value>
 				<value name="General Software Fault" value="1"></value>
 			</attribute>
-      <attribute id="0x0014" name="Disable Local Config" type="bmp8" default="00000000" access="rw" required="o">
+			<attribute id="0x0014" name="Disable Local Config" type="bmp8" default="00000000" access="rw" required="o">
 				<value name="Reset (to factory defaults) disabled" value="0"></value>
 				<value name="Device configuration disabled" value="1"></value>
 			</attribute>
@@ -221,12 +221,12 @@
 			</attribute>
 			<attribute id="0x0032" name="Usertest" type="bool" default="0" access="rw" required="o" mfcode="0x100b"></attribute>
 			<attribute id="0x0033" name="LED Indication" type="bool" default="0" access="rw" required="o" mfcode="0x100b"></attribute>
-      <attribute id="0x0034" name="Device Mode" type="enum8" default="0" access="rw" required="o" mfcode="0x100b">
-        <value name="Single Rocker" value="0"></value>
-        <value name="Single Push Button" value="1"></value>
-        <value name="Dual Rocker" value="2"></value>
-        <value name="Dual Push Button" value="3"></value>
-      </attribute>
+			<attribute id="0x0034" name="Device Mode" type="enum8" default="0" access="rw" required="o" mfcode="0x100b">
+				<value name="Single Rocker" value="0"></value>
+				<value name="Single Push Button" value="1"></value>
+				<value name="Dual Rocker" value="2"></value>
+				<value name="Dual Push Button" value="3"></value>
+			</attribute>
 		</attribute-set>
 		<attribute-set id="0x4000" description="Manufacturer specific" mfcode="0x1037">
 			<attribute id="0x4001" name="128-Bit security key" type="seckey" access="r" required="m" mfcode="0x1037"></attribute>
@@ -236,18 +236,35 @@
 			<attribute id="0x4001" name="128-Bit security key" type="seckey" access="r" required="m" mfcode="0x1166"></attribute>
 			<attribute id="0x4002" name="IEEE address" type="uid" access="rw" required="m" mfcode="0x1166"></attribute>
 		</attribute-set>
-    <attribute-set id="0x4000" description="Müller Licht specific" mfcode="0x121b">
+		<attribute-set id="0x4000" description="Müller Licht specific" mfcode="0x121b">
 			<attribute id="0x4005" name="Scene" type="u8" access="rw" required="o" mfcode="0x121b"></attribute>
 		</attribute-set>
 		<attribute-set id="0x5000" description="ID Lock specific" mfcode="0x1337">
 			<attribute id="0x5000" name="Lock fw" type="cstring" access="r" required="m" mfcode="0x1337" />
 		</attribute-set>
-		<attribute-set id="0x8000" description="Develco Specific" mfcode="0x1015">
+		<attribute-set id="0x8000" description="Develco specific" mfcode="0x1015">
 			<attribute id="0x8000" name="Primary SW Version" type="ostring" access="r" required="m" mfcode="0x1015"></attribute>
 			<attribute id="0x8010" name="Primary Bootloader SW Version" type="ostring" access="r" required="m" mfcode="0x1015"></attribute>
 			<attribute id="0x8020" name="Primary HW Version" type="ostring" access="r" required="m" mfcode="0x1015"></attribute>
 			<attribute id="0x8030" name="Primary HW name" type="ostring" access="r" required="m" mfcode="0x1015"></attribute>
 			<attribute id="0x8050" name="Primary SW Version 3rd Party" type="ostring" access="r" required="m" mfcode="0x1015"></attribute>
+		</attribute-set>
+		<attribute-set id="0xFF00" description="Xiaomi specific" mfcode="0x1037">
+			<attribute id="0xFF0D" name="Xiaomi Sensitivity" type="u8" access="rw" required="o" mfcode="0x115f"></attribute>
+			<attribute id="0xFF22" name="Xiaomi Disconnect 1" type="u8" showas="hex" access="rw" required="o" mfcode="0x115f">
+				<description>Set to 0x12 (0xFE) to connect (disconnect) the left button to (from) the relay.</description>
+			</attribute>
+			<attribute id="0xFF23" name="Xiaomi Disconnect 2" type="u8" showas="hex" access="rw" required="o" mfcode="0x115f">
+				<description>Set to 0x22 (0xFE) to connect (disconnect) the left button to (from) the relay.</description>
+			</attribute>
+		</attribute-set>
+		<attribute-set id="0xFF00" description="Xiaomi specific" mfcode="0x115f">
+			<attribute id="0xFF08" name="Unknown" type="u16" access="rw" required="o" mfcode="0x115f"></attribute>
+			<attribute id="0xFF51" name="Unknown" type="ostring" access="rw" required="o" mfcode="0x115f"></attribute>
+			<attribute id="0xFF52" name="Unknown" type="cstring" access="rw" required="o" mfcode="0x115f"></attribute>
+			<attribute id="0xFF53" name="Unknown" type="ostring" access="rw" required="o" mfcode="0x115f"></attribute>
+			<attribute id="0xFF54" name="Unknown" type="ostring" access="rw" required="o" mfcode="0x115f"></attribute>
+			<attribute id="0xFFF0" name="Unknown" type="ostring" access="rw" required="o" mfcode="0x115f"></attribute>
 		</attribute-set>
 		<attribute id="0xfffd" name="Cluster Revision" type="u16" default="0" access="rw" required="o"></attribute>
 		<command id="00" dir="recv" name="Reset to Factory Defaults" required="o"></command>
@@ -467,6 +484,7 @@
 					<attribute id="0x0000" type="u16" name="Group ID" required="m" showas="hex" default="0x0000"></attribute>
 					<attribute id="0x0001" type="u8" name="Scene ID" required="m" showas="hex" default="0x00"></attribute>
 					<attribute id="0x0002" type="u16" name="Transition time" required="m" showas="hex" default="0x0000"></attribute>
+					<attribute id="0x0003" type="u8" name="Name Length" required="m" showas="hex" default="0x00"></attribute>
 				</payload>
 			</command>
 			<command id="0x01" dir="recv" name="View scene" required="m" response="0x01">
@@ -1037,8 +1055,15 @@
 				<value name="Out of Service" value="0x08"></value>
 			</attribute>
             <attribute id="0x0100" name="Application Type" type="u32" required="o" access="r"></attribute>
+            <attribute-set id="0x8000" description="Develco specific" mfcode="0x1015">
+                <attribute id="0x8000" name="IAS Activation" type="u16" access="rw" required="m" mfcode="0x1015"></attribute>
+            </attribute-set>
 		</server>
 		<client>
+            <attribute-set id="0x8000" description="Develco specific" mfcode="0x1015">
+                <attribute id="0x8000" name="OnWithTimeOff_OnTime" type="u16" access="rw" required="m" mfcode="0x1015"></attribute>
+                <attribute id="0x8001" name="OnWithTimeOff_OffWaitTime" type="u16" access="rw" required="m" mfcode="0x1015"></attribute>
+            </attribute-set>
 		</client>
 	</cluster>
 	<cluster id="0x0010" name="Binary Output (Basic)">
@@ -1842,6 +1867,7 @@ by the Poll Control Cluster Client.</description>
 				<value name="Off" value="0"></value>
 				<value name="On" value="1"></value>
 			</attribute>
+            <attribute id="0xf003" name="Calibration time (tenth of a second)" type="u16" default="0x0000" required="m" access="rw"></attribute>
         </attribute-set>
         <command id="0x00" dir="recv" name="Up / Open" required="m"></command>
         <command id="0x01" dir="recv" name="Down / Close" required="m"></command>
@@ -4001,9 +4027,11 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 Switch mode: 1 - event based switching, 2 - zigbee group switching, 3 - Xiaomi specific switching
 Child lock off: 0 - false, 1 - true
 Report Consumer Connected: 1 - false, 0 - true
+Motion sensitivity: 1 - low, 2 - medium, 3 - high
 Multiclick mode: 1 - false, 2 - true
 Attribute 0x0205 has range between 1 and 50 only</description>
 			<server>
+				<attribute id="0x0001" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0002" name="Power Outages" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0003" name="Unknown" type="enum8" mfcode="0x115f" access="r" required="m"> </attribute>
 					<value name="0" value="0x00"></value>
@@ -4014,16 +4042,29 @@ Attribute 0x0205 has range between 1 and 50 only</description>
 				<attribute id="0x0006" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0007" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0008" name="Unknown (write only)" type="ostring" mfcode="0x115f" access="w" required="m"> </attribute>
-				<attribute id="0x0009" name="Switch mode" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
-				<attribute id="0x00f3" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
-				<attribute id="0x00f5" name="Unknown" type="u32" mfcode="0x115f" access="r" required="m"> </attribute>
-				<attribute id="0x00f6" name="Reporting Interval" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
-				<attribute id="0x00fa" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
-				<attribute id="0x00fc" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
-				<attribute id="0x00fe" name="Serial Number" type="cstring" mfcode="0x115f" access="rw" required="m"> </attribute>
-				<attribute id="0x00ff" name="Unknown (write only)" type="ostring" mfcode="0x115f" access="w" required="m"> </attribute>
+				<attribute id="0x0009" name="Device operation mode" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x000A" name="Switch mode" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00E8" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00F1" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00F3" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00F4" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00F5" name="Unknown" type="u32" mfcode="0x115f" access="r" required="m"> </attribute>
+				<attribute id="0x00F6" name="Reporting Interval" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00F7" name="Unknown" type="ostring" mfcode="0x115f" access="r" required="m"> </attribute>
+				<attribute id="0x00F8" name="Unknown" type="u64" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00F9" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00FA" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00FB" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00FC" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00FE" name="Serial Number" type="cstring" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00FF" name="Unknown (write only)" type="ostring" mfcode="0x115f" access="w" required="m"> </attribute>
 				<attribute id="0x0100" name="Unknown" type="u8" mfcode="0x115f" access="r" required="m"> </attribute>
-                <attribute id="0x0125" name="Multiclick mode" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x010C" name="Motion sensitivity" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0125" name="Multiclick mode" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0135" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0136" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0137" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0138" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0200" name="Child lock off" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0201" name="Restore Power on Outage" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0202" name="Auto-off after 20m below Threshold" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
@@ -4032,9 +4073,11 @@ Attribute 0x0205 has range between 1 and 50 only</description>
 				<attribute id="0x0205" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0206" name="Power Threshold for Auto-off" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0207" name="Consumer Connected" type="bool" mfcode="0x115f" access="r" required="m"> </attribute>
-				<attribute id="0x020b" name="Max. Load Exceeded at (W)" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
-				<attribute id="0xf000" name="Report Consumer Connected" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
-				<attribute id="0xfffd" name="Cluster Revision" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x020B" name="Max. Load Exceeded at (W)" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0xF000" name="Report Consumer Connected" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0xF001" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0xF002" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0xFFFD" name="Cluster Revision" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
 			</server>
 			<client>
 			</client>

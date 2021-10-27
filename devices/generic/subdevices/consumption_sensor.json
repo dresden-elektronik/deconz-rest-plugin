@@ -1,0 +1,14 @@
+{
+    "schema": "subdevice1.schema.json",
+    "type": "$TYPE_CONSUMPTION_SENSOR",
+    "name": "ZHAConsumption",
+    "restapi": "/sensors",
+    "order": 22,
+    "uuid": ["$address.ext", "0x01", "0x0702"],
+    "items": [
+        "config/on",
+        "config/reachable",
+        "state/consumption",
+        "state/lastupdated"
+    ]
+}

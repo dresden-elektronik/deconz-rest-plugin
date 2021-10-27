@@ -31,7 +31,7 @@ static bool ZCL_SendDefaultResponse(deCONZ::ApsController *apsCtrl, const deCONZ
     apsReq.setProfileId(ind.profileId());
     apsReq.setRadius(0);
     apsReq.setClusterId(ind.clusterId());
-    //apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+    apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
 
     deCONZ::ZclFrame outZclFrame;
     outZclFrame.setSequenceNumber(zclFrame.sequenceNumber());
@@ -71,6 +71,11 @@ static bool ZCL_SendDefaultResponse(deCONZ::ApsController *apsCtrl, const deCONZ
 //! Returns true if \p zclFrame requires a ZCL Default Response.
 static bool ZCL_NeedDefaultResponse(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame)
 {
+    if (zclFrame.isDefaultResponse())
+    {
+        return false;
+    }
+
     if (ind.dstAddressMode() == deCONZ::ApsNwkAddress) // only respond to unicast
     {
         if (!(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
