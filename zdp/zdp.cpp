@@ -151,7 +151,7 @@ ZDP_Result ZDP_BindReq(const deCONZ::Binding &bnd, deCONZ::ApsController *apsCtr
     stream << bnd.srcAddress();
     stream << bnd.srcEndpoint();
     stream << bnd.clusterId();
-    stream << bnd.dstAddressMode();
+    stream << static_cast<uint8_t>(bnd.dstAddressMode());
 
     if (bnd.dstAddressMode() == deCONZ::ApsGroupAddress)
     {
