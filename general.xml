@@ -3811,6 +3811,10 @@ devices can operate on either battery or mains power, and can have a wide variet
 					<attribute id="0x0004" type="ostring" name="data" required="m" default="1,0x0000"></attribute>
 				</payload>
 			</command>
+            
+			<command id="03" dir="recv" name="Reset" required="m">
+				<description>Reset device ?</description>
+			</command>
 
 			</server>
 			<client>

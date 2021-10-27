@@ -6275,7 +6275,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case THERMOSTAT_CLUSTER_ID:
                 {
-                    if(modelId != QLatin1String("VOC_Sensor"))
+                    if (manufacturer == QLatin1String("_TZE200_chyvmhay")) // This have but not use the THERMOSTAT_CLUSTER_ID
+                    {
+                        fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
+                    }
+                    else if(modelId != QLatin1String("VOC_Sensor"))
                     {
                         fpThermostatSensor.inClusters.push_back(ci->id());
                     }

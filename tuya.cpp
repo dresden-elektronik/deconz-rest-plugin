@@ -994,9 +994,12 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                         
                         ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
+                        
+                        DBG_Printf(DBG_INFO, "Tuya debug heatpoint 1\n");
 
                         if (item && item->toNumber() != temp)
                         {
+                            DBG_Printf(DBG_INFO, "Tuya debug heatpoint 2\n");
                             item->setValue(temp);
                             Event e(RSensors, RConfigHeatSetpoint, sensorNode->id(), item);
                             enqueueEvent(e);
@@ -1005,14 +1008,17 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         
                         if ((productId == "Tuya_THD SilverCrest Smart Radiator Thermostat") and (temp == 0))
                         {
-                            ResourceItem *item = sensorNode->item(RConfigMode);
+                            ResourceItem *item2 = sensorNode->item(RConfigMode);
                             
                             QString mode = QLatin1String("off");
+                            
+                            DBG_Printf(DBG_INFO, "Tuya debug heatpoint 3\n");
 
-                            if (item && item->toString() != mode)
+                            if (item2 && item2->toString() != mode)
                             {
-                                item->setValue(mode);
-                                enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                                DBG_Printf(DBG_INFO, "Tuya debug heatpoint 4\n");
+                                item2->setValue(mode);
+                                enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item2));
                                 update = true;
                             }
                         }
