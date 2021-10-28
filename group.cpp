@@ -8,6 +8,7 @@
  *
  */
 
+#include "event_emitter.h"
 #include "group.h"
 #include <QStringList>
 
@@ -123,6 +124,14 @@ void Group::setColorLoopActive(bool colorLoopActive)
 bool Group::isColorLoopActive() const
 {
     return m_colorLoopActive;
+}
+
+/*! Handles admin when ResourceItem value has been set.
+ * \param i ResourceItem
+ */
+void Group::didSetValue(ResourceItem *i)
+{
+    enqueueEvent(Event(RGroups, i->descriptor().suffix, id(), i));
 }
 
 /*! multiDeviceIds to string. */

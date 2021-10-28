@@ -81,6 +81,7 @@ static const ProductMap products[] =
     {"_TZE200_fdtjuw7u", "TS0601", "Yushun", "Tuya_COVD YS-MT750"},
     {"_TZE200_bqcqqjpb", "TS0601", "Yushun", "Tuya_COVD YS-MT750"},
     {"_TZE200_nueqqe6k", "TS0601", "Zemismart", "Tuya_COVD M515EGB"},
+    {"_TZE200_iossyxra", "TS0601", "Zemismart", "Tuya_COVD Roller Shade"},
 
     // Tuya covering not using tuya cluster but need reversing
     {"_TZ3000_egq7y6pr", "TS130F", "Lonsonho", "11830304 Switch"},
@@ -96,8 +97,10 @@ static const ProductMap products[] =
     // Sensor
     {"_TZ3210_rxqls8v0", "TS0202", "Fantem", "Tuya_SEN Multi-sensor"},
     {"_TZ3210_zmy9hjay", "TS0202", "Fantem", "Tuya_SEN Multi-sensor"},
+    {"_TZE200_aycxwiau", "TS0601", "Woox", "Tuya_OTH R7049 Smoke Alarm"},
 
      // Switch
+    {"_TZE200_la2c2uo9", "TS0601", "Moes", "Tuya_DIMSWITCH MS-105Z"},
     {"_TZE200_dfxkcots", "TS0601", "Earda", "Tuya_DIMSWITCH Earda Dimmer"},
     {"_TZE200_9i9dt8is", "TS0601", "Earda", "Tuya_DIMSWITCH EDM-1ZAA-EU"},
 

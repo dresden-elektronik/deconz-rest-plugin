@@ -19,6 +19,7 @@
 #include "json.h"
 #include "product_match.h"
 #include "fan_control.h"
+#include "ias_ace.h"
 #include "simple_metering.h"
 #include "thermostat.h"
 #include "thermostat_ui_configuration.h"
@@ -340,6 +341,9 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         sensor.setUniqueId(map[QLatin1String("uniqueid")].toString());
         sensor.setSwVersion(map[QLatin1String("swversion")].toString());
         sensor.setType(type);
+
+        sensor.removeItem(RAttrLastAnnounced);
+        sensor.removeItem(RAttrLastSeen);
 
         if (getSensorNodeForUniqueId(sensor.uniqueId()))
         {
@@ -768,8 +772,9 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigDelay) // Unsigned integer
                 {
-                    if (sensor->modelId().startsWith(QLatin1String("SML00")) || // Hue motion sensor
-                        sensor->modelId().startsWith(QLatin1String("MOSZB-1"))) // Develco/frient motion sensor
+                    if (sensor->modelId().startsWith(QLatin1String("SML00")) ||   // Hue motion sensor
+                        sensor->modelId().startsWith(QLatin1String("MOSZB-1")) || // Develco/frient motion sensor
+                        sensor->modelId() == QLatin1String("lumi.motion.agl04"))  // Xiaomi Aqara RTCGQ13LM high precision motion sensor
                     {
                         pendingMask |= R_PENDING_DELAY;
                         sensor->enableRead(WRITE_DELAY);
@@ -832,7 +837,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 else if (rid.suffix == RConfigAlert) // String
                 {
                     const std::array<KeyValMap, 3> RConfigAlertValues = { { {QLatin1String("none"), 0}, {QLatin1String("select"), 2}, {QLatin1String("lselect"), 15} } };
-                    
+
                     const auto match = matchKeyValue(data.string, RConfigAlertValues);
 
                     if (isValid(match))
@@ -848,7 +853,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigLock) // Boolean
                 {
-                    data.boolean ^= data.boolean;     // Flip bool value as 0 means lock and 1 means unlock
+                    data.boolean = !data.boolean;     // Flip bool value as 0 means lock and 1 means unlock
 
                     if (addTaskDoorLockUnlock(task, data.boolean))
                     {
@@ -859,7 +864,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     if (data.uinteger > 18) { data.uinteger = 18; }
                     if (data.uinteger < 1) { data.uinteger = 1; }
-                    
+
                     QByteArray tuyaData;
                     tuyaData.append(static_cast<qint8>(data.uinteger & 0xff));
 
@@ -973,7 +978,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigScheduleOn) // Boolean
                 {
-                    if (sensor->modelId() == QLatin1String("Thermostat")) { data.boolean ^= data.boolean; } // eCozy, flip true and false
+                    if (sensor->modelId() == QLatin1String("Thermostat")) { data.boolean = !data.boolean; } // eCozy, flip true and false
 
                     if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, THERM_ATTRID_THERMOSTAT_PROGRAMMING_OPERATION_MODE, deCONZ::Zcl8BitBitMap, data.boolean))
                     {
@@ -1095,7 +1100,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
-                             R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD MOES TRV"))
                     {
                         const auto match = matchKeyValue(data.string, RConfigModeValuesTuya1);
@@ -1131,6 +1135,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
                     else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
+                             R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV"))
                     {
                         const auto match = matchKeyValue(data.string, RConfigModeValuesTuya2);
@@ -1139,17 +1144,24 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             if (match.key == QLatin1String("off"))
                             {
-                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_MODE_3, QByteArray("\x00", 1)))
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_SCHEDULE_ENABLE, QByteArray("\x00", 1)) &&
+                                    sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_MODE_3, QByteArray("\x00", 1)))
+                                {
+                                    updated = true;
+                                }
+                            }
+                            else if (match.key == QLatin1String("heat"))
+                            {
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_SCHEDULE_ENABLE, QByteArray("\x00", 1)) &&
+                                    sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_MODE_3, QByteArray("\x01", 1)))
                                 {
                                     updated = true;
                                 }
                             }
                             else
                             {
-                                QByteArray tuyaData = QByteArray::fromRawData(match.value, 1);
-
-                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, 0x6c, tuyaData) &&
-                                    sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, 0x65, QByteArray("\x01", 1)))
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_SCHEDULE_ENABLE, QByteArray("\x01", 1)) &&
+                                    sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_MODE_3, QByteArray("\x01", 1)))
                                 {
                                     updated = true;
                                 }
@@ -1214,6 +1226,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             else if (sensor->modelId().startsWith(QLatin1String("SLR2")) ||
                                      sensor->modelId() == QLatin1String("SLR1b"))
                             {
+                                attributeList.insert(THERM_ATTRID_SYSTEM_MODE, (quint32)match.value);
+                                
                                 // Change automatically the Setpoint Hold
                                 // Add a timer for Boost mode
                                 if      (match.value == 0x00) { attributeList.insert(THERM_ATTRID_TEMPERATURE_SETPOINT_HOLD, (quint32)0x00); }
@@ -1329,7 +1343,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                         }
                     }
-                    
+
                 }
                 else if (rid.suffix == RConfigLocked) // Boolean
                 {
@@ -1559,7 +1573,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
                 }
-                else if (rid.suffix == RConfigWindowCoveringType) // Unsigned integer
+                if (rid.suffix == RConfigWindowCoveringType) // Unsigned integer
                 {
                     if (sensor->modelId().startsWith(QLatin1String("J1")))
                     {
@@ -1992,7 +2006,8 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
                 if (rid.suffix == RStateTemperature || rid.suffix == RStateHumidity || rid.suffix == RStatePressure)
                 {
                     ResourceItem *item2 = sensor->item(RConfigOffset);
-                    if (item2 && item2->toNumber() != 0) {
+                    if (item2 && item2->toNumber() != 0)
+                    {
                         val = val.toInt() + item2->toNumber();
                         if (rid.suffix == RStateHumidity)
                         {
@@ -2218,8 +2233,6 @@ int DeRestPluginPrivate::deleteSensor(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::searchNewSensors(const ApiRequest &req, ApiResponse &rsp)
 {
-    Q_UNUSED(req);
-
     if (!isInNetwork())
     {
         rsp.list.append(errorToMap(ERR_NOT_CONNECTED, QLatin1String("/sensors"), QLatin1String("Not connected")));
@@ -2227,6 +2240,7 @@ int DeRestPluginPrivate::searchNewSensors(const ApiRequest &req, ApiResponse &rs
         return REQ_READY_SEND;
     }
 
+    permitJoinApiKey = req.apikey();
     startSearchSensors();
     {
         QVariantMap rspItem;
@@ -2369,8 +2383,7 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
                 config[key] = item->toVariant();
             }
         }
-
-        if (strncmp(rid.suffix, "state/", 6) == 0)
+        else if (strncmp(rid.suffix, "state/", 6) == 0)
         {
             const char *key = item->descriptor().suffix + 6;
 
@@ -2410,6 +2423,8 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
                 state[key] = item->toVariant();
             }
         }
+        else if (rid.suffix == RAttrLastAnnounced) { map["lastannounced"] = item->toString(); }
+        else if (rid.suffix == RAttrLastSeen) { map["lastseen"] = item->toString(); }
     }
     if (iox && ioy && ioz)
     {
@@ -2435,10 +2450,6 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
     //sensor
     map[QLatin1String("name")] = sensor->name();
     map[QLatin1String("type")] = sensor->type();
-    if (sensor->type().startsWith(QLatin1String("Z"))) // ZigBee sensor
-    {
-        map[QLatin1String("lastseen")] = sensor->lastRx().toUTC().toString("yyyy-MM-ddTHH:mmZ");
-    }
 
     if (req.path.size() > 2 && req.path[2] == QLatin1String("devices"))
     {
@@ -2541,7 +2552,6 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
     {
         return;
     }
-    const QDateTime now = QDateTime::currentDateTime();
 
     // speedup sensor state check
     if ((e.what() == RStatePresence || e.what() == RStateButtonEvent) &&
@@ -2563,8 +2573,6 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
 
             if (!(item->needPushSet() || item->needPushChange()))
             {
-                DBG_Printf(DBG_INFO_L2, "discard sensor state push for %s: %s (already pushed)\n", qPrintable(e.id()), e.what());
-                webSocketServer->flush(); // force transmit send buffer
                 return; // already pushed
             }
 
@@ -2610,7 +2618,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                     {
                         iy = item;
                     }
-                    else if (item->isPublic() && item->lastSet().isValid() && (gwWebSocketNotifyAll || rid.suffix == RStateButtonEvent || item->needPushChange()))
+                    else if (item->isPublic() && (gwWebSocketNotifyAll || rid.suffix == RStateButtonEvent || item->needPushChange()))
                     {
                         state[key] = item->toVariant();
                         item->clearNeedPush();
@@ -2618,7 +2626,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                 }
             }
 
-            if (iox && iox->lastSet().isValid() && ioy && ioy->lastSet().isValid() && ioz && ioz->lastSet().isValid())
+            if (iox && ioy && ioz)
             {
                 if (gwWebSocketNotifyAll || iox->needPushChange() || ioy->needPushChange() || ioz->needPushChange())
                 {
@@ -2634,7 +2642,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                 }
             }
 
-            if (ix && ix->lastSet().isValid() && iy && iy->lastSet().isValid())
+            if (ix && iy)
             {
                 if (gwWebSocketNotifyAll || ix->needPushChange() || iy->needPushChange())
                 {
@@ -2652,6 +2660,9 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             {
                 map[QLatin1String("state")] = state;
                 webSocketServer->broadcastTextMessage(Json::serialize(map));
+                updateSensorEtag(sensor);
+                plugin->saveDatabaseItems |= DB_SENSORS;
+                plugin->queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
             }
         }
     }
@@ -2662,7 +2673,6 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         {
             if (!(item->needPushSet() || item->needPushChange()))
             {
-                DBG_Printf(DBG_INFO_L2, "discard sensor config push for %s (already pushed)\n", e.what());
                 return; // already pushed
             }
 
@@ -2698,7 +2708,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                     {
                         ilct = item;
                     }
-                    else if (item->isPublic() && item->lastSet().isValid() && (gwWebSocketNotifyAll || item->needPushChange()))
+                    else if (item->isPublic() && (gwWebSocketNotifyAll || item->needPushChange()))
                     {
                         if (rid.suffix == RConfigSchedule)
                         {
@@ -2741,7 +2751,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                     }
                 }
             }
-            if (ilcs && ilcs->lastSet().isValid() && ilca && ilca->lastSet().isValid() && ilct && ilct->lastSet().isValid())
+            if (ilcs && ilca && ilct)
             {
                 if (gwWebSocketNotifyAll || ilcs->needPushChange() || ilca->needPushChange() || ilct->needPushChange())
                 {
@@ -2761,6 +2771,9 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             {
                 map[QLatin1String("config")] = config;
                 webSocketServer->broadcastTextMessage(Json::serialize(map));
+                updateSensorEtag(sensor);
+                plugin->saveDatabaseItems |= DB_SENSORS;
+                plugin->queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
             }
         }
     }
@@ -2769,19 +2782,45 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         ResourceItem *item = sensor->item(e.what());
         if (item && item->isPublic())
         {
+            if (!(item->needPushSet() || item->needPushChange()))
+            {
+                return; // already pushed
+            }
+
             QVariantMap map;
             map[QLatin1String("t")] = QLatin1String("event");
             map[QLatin1String("e")] = QLatin1String("changed");
             map[QLatin1String("r")] = QLatin1String("sensors");
             map[QLatin1String("id")] = e.id();
             map[QLatin1String("uniqueid")] = sensor->uniqueId();
-            QVariantMap config;
 
-            // For now, don't collect top-level attributes into a single event.
-            const char *key = item->descriptor().suffix + 5;
-            map[key] = item->toVariant();
+            QVariantMap attr;
 
-            webSocketServer->broadcastTextMessage(Json::serialize(map));
+            for (int i = 0; i < sensor->itemCount(); i++)
+            {
+                item = sensor->itemForIndex(i);
+                const ResourceItemDescriptor &rid = item->descriptor();
+
+                if (strncmp(rid.suffix, "attr/", 5) == 0)
+                {
+                    const char *key = item->descriptor().suffix + 5;
+
+                    if (gwWebSocketNotifyAll || item->needPushChange())
+                    {
+                        attr[key] = item->toVariant();
+                        item->clearNeedPush();
+                    }
+                }
+            }
+
+            if (!attr.isEmpty())
+            {
+                map["attr"] = attr;
+                webSocketServer->broadcastTextMessage(Json::serialize(map));
+                updateSensorEtag(sensor);
+                plugin->saveDatabaseItems |= DB_SENSORS;
+                plugin->queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+            }
         }
     }
     else if (e.what() == REventAdded)
@@ -2846,7 +2885,8 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
 
         QStringList gids = item->toString().split(',', QString::SkipEmptyParts);
 
-        for (int j = 0; j < gids.size(); j++) {
+        for (int j = 0; j < gids.size(); j++)
+        {
             const QString gid = gids[j];
 
             if (gid == QLatin1String("0"))
@@ -2918,23 +2958,16 @@ void DeRestPluginPrivate::startSearchSensors()
     }
 
     searchSensorsTimeout = gwNetworkOpenDuration;
-    gwPermitJoinResend = searchSensorsTimeout;
-    if (!resendPermitJoinTimer->isActive())
-    {
-        resendPermitJoinTimer->start(100);
-    }
+    setPermitJoinDuration(searchSensorsTimeout);
 }
 
 /*! Handler for search sensors active state.
  */
 void DeRestPluginPrivate::searchSensorsTimerFired()
 {
-    if (gwPermitJoinResend == 0)
+    if (gwPermitJoinDuration == 0)
     {
-        if (gwPermitJoinDuration == 0)
-        {
-            searchSensorsTimeout = 0; // done
-        }
+        searchSensorsTimeout = 0; // done
     }
 
     if (searchSensorsTimeout > 0)
@@ -2983,14 +3016,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
 
         if (sensor->durationDue.isValid())
         {
-            QDateTime now = QDateTime::currentDateTime();
-
-            if (sensor->modelId() == QLatin1String("TY0202")) // Lidl/SILVERCREST motion sensor
-            {
-                continue; // will be only reset via IAS Zone status
-            }
-
-            if (sensor->durationDue <= now)
+            if (sensor->durationDue <= QDateTime::currentDateTime())
             {
                 // automatically set presence to false, if not triggered in config.duration
                 ResourceItem *item = sensor->item(RStatePresence);
@@ -3062,6 +3088,10 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                         updateSensorEtag(sensor);
                     }
                 }
+                else if (sensor->type().endsWith(QLatin1String("AncillaryControl")))
+                {
+                    DBG_Printf(DBG_IAS, "[IAS ACE] - Reseting counter\n");
+                }
 
                 sensor->durationDue = QDateTime();
             }
@@ -3111,6 +3141,11 @@ void DeRestPluginPrivate::checkInstaModelId(Sensor *sensor)
 void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
     if (searchSensorsState != SearchSensorsActive)
+    {
+        return;
+    }
+
+    if (DEV_TestManaged())
     {
         return;
     }
@@ -3365,14 +3400,14 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
                     // ignore
                 }
                 else*/
-                
+
                 if (isSameAddress(node->address(), ind.srcAddress()))
                 {
                     indAddress = node->address();
                     macCapabilities = node->macCapabilities();
                     break;
                 }
-                
+
                 i++;
             }
         }

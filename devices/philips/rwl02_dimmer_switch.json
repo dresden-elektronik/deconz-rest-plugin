@@ -1,0 +1,106 @@
+{
+    "schema": "devcap1.schema.json",
+    "doc:path": "philips/rwl02_gen1_dimmer_switch.md",
+    "doc:hdr": "Dimmer Switch 1. Gen EU/US",
+    "manufacturername": "$MF_PHILIPS",
+    "modelid": ["RWL021", "RWL021"],
+    "product": "Dimmer Switch 1. Gen EU/US",
+    "status": "Gold",
+    "sleeper": true,
+    "md:known_issues": [ ],
+    "subdevices": [
+         {
+            "type": "$TYPE_SWITCH",
+            "restapi": "/sensors",
+            "uuid": [ "$address.ext", "0x02", "0xfc00"],
+            "fingerprint": { "profile": "0x0104", "device": "0x000c", "endpoint": "0x02", "in": ["0x0000", "0x0001", "0xfc00"] },
+            "items": [
+                {
+                    "name": "attr/lastseen"
+                },
+                {
+                    "name": "attr/manufacturername"
+                },
+                {
+                    "name": "attr/modelid"
+                },
+                {
+                    "name": "attr/name"
+                },
+                {
+                    "name": "attr/swversion"
+                },
+                {
+                    "name": "attr/type"
+                },
+                {
+                    "name": "attr/uniqueid"
+                },
+                {
+                    "name": "config/battery",
+                    "parse": {"cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"},
+                    "awake": true
+                },
+                {
+                    "name": "config/allowtouchlink",
+                    "read": {"cl": "0x0000", "at": "0x0031", "mf": "0x100b"},
+                    "parse": {"cl": "0x0000", "at": "0x0031", "mf": "0x100b", "eval": "Item.val = Attr.val != 0x000b"},
+                    "write": {"cl": "0x0000", "at": "0x0031", "mf": "0x100b", "dt": "0x19", "eval": "Item.val ? 0x0000 : 0x000b"},
+                    "default": false,
+                    "refresh.interval": 84000
+                },
+                {
+                    "name": "config/on"
+                },
+                {
+                    "name": "config/reachable"
+                },
+                {
+                    "name": "state/lastupdated"
+                },
+                {
+                    "name": "state/buttonevent",
+                    "parse": {"cl": "0xfc00", "mf": "0x100b", "cmd": "0x00", "eval": "Item.val = ZclFrame.at(0) * 1000 + ZclFrame.at(4)"},
+                    "awake": true
+                },
+                {
+                    "name": "state/eventduration",
+                    "parse": {"cl": "0xfc00", "mf": "0x100b", "cmd": "0x00", "eval": "Item.val = ZclFrame.at(6) | ZclFrame.at(7) << 8"}
+                }
+            ],
+            "example": {
+                "config": {
+                    "battery": null,
+                    "on": true,
+                    "reachable": true
+                },
+                "ep": 2,
+                "etag": "d60d24fb0d41f5ed9e69c638631e9e34",
+                "lastseen": "2021-05-02T18:44Z",
+                "manufacturername": "Philips",
+                "mode": 2,
+                "modelid": "RWL021",
+                "name": "Switch 5",
+                "state": {
+                    "buttonevent": 1002,
+                    "eventduration": 1,
+                    "lastupdated": "2021-05-02T18:44:00.559"
+                },
+                "swversion": "5.45.1.17846",
+                "type": "ZHASwitch",
+                "uniqueid": "00:17:88:01:08:f7:76:8c-02-fc00"
+            }
+        }
+    ],
+    "bindings": [
+        {
+            "bind": "unicast", "src.ep": 2, "cl": "0xfc00"
+        },
+        {
+            "bind": "unicast",
+            "src.ep": 2,
+            "cl": "0x0001",
+            "report": [ {"at": "0x0021", "dt": "0x20", "min": 300, "max": 600, "change": "0x01" } ]
+        }
+    ]
+}
