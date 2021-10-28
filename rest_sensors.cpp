@@ -988,7 +988,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 else if (rid.suffix == RConfigEcoHeatSetpoint)
                 {
                     QByteArray tuyaData = QByteArray("\x00\x00", 2);
-                    data.integer = data.integer * 2 / 10;
+                    data.integer = data.integer * 2 / 100;
 
                     tuyaData.append(static_cast<qint8>((data.integer >> 8) & 0xff));
                     tuyaData.append(static_cast<qint8>(data.integer & 0xff));
@@ -1001,7 +1001,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 else if (rid.suffix == RConfigComfortHeatSetpoint)
                 {
                     QByteArray tuyaData = QByteArray("\x00\x00", 2);
-                    data.integer = data.integer * 2 / 10;
+                    data.integer = data.integer * 2 / 100;
 
                     tuyaData.append(static_cast<qint8>((data.integer >> 8) & 0xff));
                     tuyaData.append(static_cast<qint8>(data.integer & 0xff));
