@@ -1120,6 +1120,20 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                         }
                     }
+                    else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BRT-100"))
+                    {
+                        const auto match = matchKeyValue(data.string, RConfigModeValuesTuya1);
+
+                        if (isValid(match))
+                        {
+                            QByteArray tuyaData = QByteArray::fromRawData(match.value, 1);
+
+                            if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, DP_IDENTIFIER_THERMOSTAT_MODE_4, tuyaData))
+                            {
+                                updated = true;
+                            }
+                        }
+                    }
                     else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                     {
                         const auto match = matchKeyValue(data.string, RConfigModeValuesTuya2);

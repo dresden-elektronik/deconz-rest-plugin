@@ -956,6 +956,28 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         DBG_Printf(DBG_INFO, "Tuya device 0x%016llX reporting status state : %ld\n", ind.srcAddress().ext(), data);
                     }
                     break;
+                    case 0x0201: // Mode for Moes
+                        if (productId == "Tuya_THD BRT-100")
+                        {
+                            QString mode;
+                            if (data == 0) { mode = QLatin1String("auto"); } //programming
+                            else if (data == 1) { mode = QLatin1String("manual"); } //manual
+                            else if (data == 2) { mode = QLatin1String("temporary_manual"); } //temporary_manual
+                            else if (data == 3) { mode = QLatin1String("holiday"); } //holiday
+                            else
+                            {
+                                return;
+                            }
+                            
+                            ResourceItem *item = sensorNode->item(RConfigMode);
+
+                            if (item && item->toString() != mode)
+                            {
+                                item->setValue(mode);
+                                enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                            }
+                        }
+                    break;
                     case 0x0202: // Thermostat heatsetpoint
                     {
                         qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
