@@ -298,7 +298,7 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
         }
         else
         {
-            d->zdpResult = ZDP_NodeDescriptorReq(device->item(RAttrNwkAddress)->toNumber(), d->apsCtrl);
+            d->zdpResult = ZDP_NodeDescriptorReq(d->node->address(), d->apsCtrl);
             if (d->zdpResult.isEnqueued)
             {
                 d->startStateTimer(MaxConfirmTimeout, StateLevel0);
@@ -359,7 +359,7 @@ void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event)
         }
         else
         {
-            d->zdpResult = ZDP_ActiveEndpointsReq(device->item(RAttrNwkAddress)->toNumber(), d->apsCtrl);
+            d->zdpResult = ZDP_ActiveEndpointsReq(d->node->address(), d->apsCtrl);
             if (d->zdpResult.isEnqueued)
             {
                 d->startStateTimer(MaxConfirmTimeout, StateLevel0);
@@ -432,7 +432,7 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
         }
         else
         {
-            d->zdpResult = ZDP_SimpleDescriptorReq(device->item(RAttrNwkAddress)->toNumber(), needFetchEp, d->apsCtrl);
+            d->zdpResult = ZDP_SimpleDescriptorReq(d->node->address(), needFetchEp, d->apsCtrl);
             if (d->zdpResult.isEnqueued)
             {
                 d->startStateTimer(MaxConfirmTimeout, StateLevel0);

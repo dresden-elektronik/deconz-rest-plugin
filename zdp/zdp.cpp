@@ -17,20 +17,26 @@
 
 static uint8_t zdpSeq;
 
-ZDP_Result ZDP_NodeDescriptorReq(quint16 nwkAddress, deCONZ::ApsController *apsCtrl)
+ZDP_Result ZDP_NodeDescriptorReq(const deCONZ::Address &addr, deCONZ::ApsController *apsCtrl)
 {
     Q_ASSERT(apsCtrl);
 
-    DBG_Printf(DBG_INFO, "ZDP get node descriptor for 0x%04X\n", nwkAddress);
-    deCONZ::ApsDataRequest apsReq;
+    DBG_Printf(DBG_INFO, "ZDP get node descriptor for 0x%04X\n", addr.nwk());
     ZDP_Result result;
+
+    if (!addr.hasExt() || !addr.hasNwk())
+    {
+        return result;
+    }
+
+    deCONZ::ApsDataRequest apsReq;
 
     result.apsReqId = apsReq.id();
     result.zdpSeq = zdpSeq++;
 
     // ZDP Header
-    apsReq.dstAddress().setNwk(nwkAddress);
-    apsReq.setDstAddressMode(deCONZ::ApsNwkAddress);
+    apsReq.dstAddress() = addr;
+    apsReq.setDstAddressMode(deCONZ::ApsExtAddress);
     apsReq.setDstEndpoint(ZDO_ENDPOINT);
     apsReq.setSrcEndpoint(ZDO_ENDPOINT);
     apsReq.setProfileId(ZDP_PROFILE_ID);
@@ -42,7 +48,7 @@ ZDP_Result ZDP_NodeDescriptorReq(quint16 nwkAddress, deCONZ::ApsController *apsC
     stream.setByteOrder(QDataStream::LittleEndian);
 
     stream << result.zdpSeq;
-    stream << nwkAddress;
+    stream << addr.nwk();
 
     if (apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
     {
@@ -53,20 +59,26 @@ ZDP_Result ZDP_NodeDescriptorReq(quint16 nwkAddress, deCONZ::ApsController *apsC
     return result;
 }
 
-ZDP_Result ZDP_ActiveEndpointsReq(uint16_t nwkAddress, deCONZ::ApsController *apsCtrl)
+ZDP_Result ZDP_ActiveEndpointsReq(const deCONZ::Address &addr, deCONZ::ApsController *apsCtrl)
 {
     Q_ASSERT(apsCtrl);
 
-    DBG_Printf(DBG_INFO, "ZDP get active endpoints for 0x%04X\n", nwkAddress);
-    deCONZ::ApsDataRequest apsReq;
+    DBG_Printf(DBG_INFO, "ZDP get active endpoints for 0x%04X\n", addr.nwk());
     ZDP_Result result;
+
+    if (!addr.hasExt() || !addr.hasNwk())
+    {
+        return result;
+    }
+
+    deCONZ::ApsDataRequest apsReq;
 
     result.apsReqId = apsReq.id();
     result.zdpSeq = zdpSeq++;
 
     // ZDP Header
-    apsReq.dstAddress().setNwk(nwkAddress);
-    apsReq.setDstAddressMode(deCONZ::ApsNwkAddress);
+    apsReq.dstAddress() = addr;
+    apsReq.setDstAddressMode(deCONZ::ApsExtAddress);
     apsReq.setDstEndpoint(ZDO_ENDPOINT);
     apsReq.setSrcEndpoint(ZDO_ENDPOINT);
     apsReq.setProfileId(ZDP_PROFILE_ID);
@@ -78,7 +90,7 @@ ZDP_Result ZDP_ActiveEndpointsReq(uint16_t nwkAddress, deCONZ::ApsController *ap
     stream.setByteOrder(QDataStream::LittleEndian);
 
     stream << result.zdpSeq;
-    stream << nwkAddress;
+    stream << addr.nwk();
 
     if (apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
     {
@@ -89,20 +101,26 @@ ZDP_Result ZDP_ActiveEndpointsReq(uint16_t nwkAddress, deCONZ::ApsController *ap
     return result;
 }
 
-ZDP_Result ZDP_SimpleDescriptorReq(uint16_t nwkAddress, quint8 endpoint, deCONZ::ApsController *apsCtrl)
+ZDP_Result ZDP_SimpleDescriptorReq(const deCONZ::Address &addr, quint8 endpoint, deCONZ::ApsController *apsCtrl)
 {
     Q_ASSERT(apsCtrl);
 
-    DBG_Printf(DBG_INFO, "ZDP get simple descriptor 0x%02X for 0x%04X\n", endpoint, nwkAddress);
-    deCONZ::ApsDataRequest apsReq;
+    DBG_Printf(DBG_INFO, "ZDP get simple descriptor 0x%02X for 0x%04X\n", endpoint, addr.nwk());
     ZDP_Result result;
+
+    if (!addr.hasExt() || !addr.hasNwk())
+    {
+        return result;
+    }
+
+    deCONZ::ApsDataRequest apsReq;
 
     result.apsReqId = apsReq.id();
     result.zdpSeq = zdpSeq++;
 
     // ZDP Header
-    apsReq.dstAddress().setNwk(nwkAddress);
-    apsReq.setDstAddressMode(deCONZ::ApsNwkAddress);
+    apsReq.dstAddress() = addr;
+    apsReq.setDstAddressMode(deCONZ::ApsExtAddress);
     apsReq.setDstEndpoint(ZDO_ENDPOINT);
     apsReq.setSrcEndpoint(ZDO_ENDPOINT);
     apsReq.setProfileId(ZDP_PROFILE_ID);
@@ -114,7 +132,7 @@ ZDP_Result ZDP_SimpleDescriptorReq(uint16_t nwkAddress, quint8 endpoint, deCONZ:
     stream.setByteOrder(QDataStream::LittleEndian);
 
     stream << result.zdpSeq;
-    stream << nwkAddress;
+    stream << addr.nwk();
     stream << endpoint;
 
     if (apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
