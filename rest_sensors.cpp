@@ -1401,7 +1401,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             ResourceItem *item3 = sensor->item(RConfigMode);
                             if (item3 && item3->toString() != QLatin1String("auto"))
                             {
-                                item3->setValue(QLatin1String("auto"));
+                                item3->setValue(QString("auto"));
                                 enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item3));
                             }
                         }
