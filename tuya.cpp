@@ -1230,8 +1230,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         {
                             QString preset;
                             if (data == 0) { preset = QLatin1String("auto"); }
-                            else if (data == 1) { mode = QLatin1String("manual"); }
-                            else if (data == 2) { mode = QLatin1String("away"); }
+                            else if (data == 1) { preset = QLatin1String("manual"); }
+                            else if (data == 2) { preset = QLatin1String("away"); }
                             else
                             {
                                 return;
