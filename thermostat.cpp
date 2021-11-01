@@ -110,6 +110,8 @@ const std::array<KeyMap, 2> RConfigPresetValuesTuya2 = { { {QLatin1String("auto"
 
 const std::array<KeyMap, 4> RConfigPresetValuesTuya3 = { { {QLatin1String("both")}, {QLatin1String("humidity")}, {QLatin1String("temperature")}, {QLatin1String("off")} } };
 
+const std::array<KeyMap, 2> RConfigPresetValuesTuya4 = { { {QLatin1String("auto")}, {QLatin1String("manual")}, {QLatin1String("away")} } };
+
 const std::array<KeyValMap, 3> RConfigTemperatureMeasurementValues = { { {QLatin1String("air sensor"), 0}, {QLatin1String("floor sensor"), 1},
                                                                                 {QLatin1String("floor protection"), 3} } };
 

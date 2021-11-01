@@ -983,7 +983,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
-                    case 0x0210: // Thermostat heatsetpoint for moe and lidl
+                    case 0x0210: // Thermostat heatsetpoint for moe and lidl in manu mode
                     {
                         qint16 temp = static_cast<qint16>(data & 0xFFFF) * 100;
                         
@@ -994,29 +994,26 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                         
                         ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
-                        
-                        DBG_Printf(DBG_INFO, "Tuya debug heatpoint 1\n");
 
+                        // This part is skipped if values are out of range
                         if (item && item->toNumber() != temp)
                         {
-                            DBG_Printf(DBG_INFO, "Tuya debug heatpoint 2\n");
                             item->setValue(temp);
                             Event e(RSensors, RConfigHeatSetpoint, sensorNode->id(), item);
                             enqueueEvent(e);
                             update = true;
                         }
                         
-                        if ((productId == "Tuya_THD SilverCrest Smart Radiator Thermostat") and (temp == 0))
+                        if (productId == "Tuya_THD SilverCrest Smart Radiator Thermostat" && (temp == 0 || temp == 6000))
                         {
+                            QString mode = QLatin1String("auto");
+                            if (temp == 0) { QString mode = QLatin1String("off"); }
+                            if (temp == 6000) { QString mode = QLatin1String("heat"); }
+                            
                             ResourceItem *item2 = sensorNode->item(RConfigMode);
-                            
-                            QString mode = QLatin1String("off");
-                            
-                            DBG_Printf(DBG_INFO, "Tuya debug heatpoint 3\n");
 
                             if (item2 && item2->toString() != mode)
                             {
-                                DBG_Printf(DBG_INFO, "Tuya debug heatpoint 4\n");
                                 item2->setValue(mode);
                                 enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item2));
                                 update = true;
@@ -1231,26 +1228,34 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                         else if (productId == "Tuya_THD SilverCrest Smart Radiator Thermostat")
                         {
-                            QString mode;
-                            if (data == 0) { mode = QLatin1String("auto"); } //schedule
-                            else if (data == 1) // Manual
-                            {
-                                mode = QLatin1String("heat");
-                                ResourceItem *item3 = sensorNode->item(RConfigHeatSetpoint);
-                                if (item3->toNumber() == 0) mode = QLatin1String("off");
-                            }
-                            //else if (data == 2) { mode = QLatin1String("off"); } //away
+                            QString preset;
+                            if (data == 0) { preset = QLatin1String("auto"); }
+                            else if (data == 1) { mode = QLatin1String("manual"); }
+                            else if (data == 2) { mode = QLatin1String("away"); }
                             else
                             {
                                 return;
                             }
                             
-                            ResourceItem *item = sensorNode->item(RConfigMode);
+                            ResourceItem *item = sensorNode->item(RConfigPreset);
 
-                            if (item && item->toString() != mode)
+                            if (item && item->toString() != preset)
                             {
-                                item->setValue(mode);
-                                enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                                item->setValue(preset);
+                                enqueueEvent(Event(RSensors, RConfigPreset, sensorNode->id(), item));
+                                update = true;
+                                
+                                // Force mode
+                                ResourceItem *item2 = sensorNode->item(RConfigMode);
+                                QString mode = QLatin1String("auto");
+
+                                if (item2 && item2->toString() != mode)
+                                {
+                                    item2->setValue(mode);
+                                    enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item2));
+                                }
+                                
+                                
                             }
                         }
                         else
