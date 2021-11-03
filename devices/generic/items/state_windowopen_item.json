@@ -1,6 +1,6 @@
 {
 	"schema": "resourceitem1.schema.json",
-	"id": "state/windowsopen",
+	"id": "state/windowopen",
 	"datatype": "String",
 	"access": "R",
 	"public": true,
@@ -11,6 +11,6 @@
 		["\"Closed\"", "Window is closed"],
         ["\"Hold\"", "Window is maybe about to open"],
         ["\"Open\"", "Window is open"],
-        ["\"Open (external), closed (internal)\"", "In window open state from external, but detected closed locally"],
+        ["\"Open (external), closed (internal)\"", "In window open state from external, but detected closed locally"]
 	]
 }
