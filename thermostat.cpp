@@ -98,7 +98,7 @@ const std::array<KeyValMapTuyaSingle, 3> RConfigModeValuesTuya1 = { { {QLatin1St
 
 const std::array<KeyValMapTuyaSingle, 2> RConfigModeValuesTuya2 = { { {QLatin1String("off"), {0x00}}, {QLatin1String("heat"), {0x01}} } };
 
-const std::array<KeyValMapTuyaSingle, 4> RConfigModeValuesTuya3 = { { {QLatin1String("auto"), {0x00}}, {QLatin1String("manual"), {0x01}}, {QLatin1String("temporary_manual"), {0x02}}, {QLatin1String("holiday"), {0x02}} } };
+const std::array<KeyValMapTuyaSingle, 4> RConfigModeValuesTuya3 = { { {QLatin1String("auto"), {0x00}}, {QLatin1String("manual"), {0x01}}, {QLatin1String("temporary_manual"), {0x02}}, {QLatin1String("holiday"), {0x03}} } };
 
 const std::array<KeyValMap, 9> RConfigModeValues = { { {QLatin1String("off"), 0}, {QLatin1String("auto"), 1}, {QLatin1String("cool"), 3}, {QLatin1String("heat"), 4},
                                                               {QLatin1String("emergency heating"), 5}, {QLatin1String("precooling"), 6}, {QLatin1String("fan only"), 7},

@@ -956,25 +956,25 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         DBG_Printf(DBG_INFO, "Tuya device 0x%016llX reporting status state : %ld\n", ind.srcAddress().ext(), data);
                     }
                     break;
-                    case 0x0201: // Mode for Moes
+                    case 0x0201: // Preset for Moes
                         if (productId == "Tuya_THD BRT-100")
                         {
-                            QString mode;
-                            if (data == 0) { mode = QLatin1String("auto"); } //programming
-                            else if (data == 1) { mode = QLatin1String("manual"); } //manual
-                            else if (data == 2) { mode = QLatin1String("temporary_manual"); } //temporary_manual
-                            else if (data == 3) { mode = QLatin1String("holiday"); } //holiday
+                            QString preset;
+                            if (data == 0) { preset = QLatin1String("auto"); } //programming
+                            else if (data == 1) { preset = QLatin1String("manual"); } //manual
+                            else if (data == 2) { preset = QLatin1String("temporary_manual"); } //temporary_manual
+                            else if (data == 3) { preset = QLatin1String("holiday"); } //holiday
                             else
                             {
                                 return;
                             }
                             
-                            ResourceItem *item = sensorNode->item(RConfigMode);
+                            ResourceItem *item = sensorNode->item(RConfigPreset);
 
-                            if (item && item->toString() != mode)
+                            if (item && item->toString() != preset)
                             {
-                                item->setValue(mode);
-                                enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                                item->setValue(preset);
+                                enqueueEvent(Event(RSensors, RConfigPreset, sensorNode->id(), item));
                             }
                         }
                     break;
