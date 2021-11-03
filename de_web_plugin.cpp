@@ -12668,7 +12668,7 @@ void DeRestPluginPrivate::processTasks()
             {
                 onAir++;
 
-                if (onAir >= maxOnAir)
+                if (onAir > maxOnAir)
                 {
                     ok = false;
                     break;
@@ -12678,7 +12678,7 @@ void DeRestPluginPrivate::processTasks()
             {
                 onAir++;
                 int dt = idleTotalCounter - j->sendTime;
-                if (dt < 5 || onAir >= maxOnAir)
+                if (dt < 5 || onAir > maxOnAir)
                 {
                     if (dt > 120)
                     {
