@@ -266,6 +266,11 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.switch.b1lacn02", jennicMacPrefix }, // Xiaomi Aqara D1 1-gang (no neutral wire) QBKG21LM
     { VENDOR_JENNIC, "lumi.switch.b2lacn02", jennicMacPrefix }, // Xiaomi Aqara D1 2-gang (no neutral wire) QBKG22LM
     { VENDOR_XIAOMI, "lumi.switch.b1nacn02", jennicMacPrefix }, // Xiaomi Aqara D1 1-gang (neutral wire) QBKG23LM
+    { VENDOR_XIAOMI, "lumi.switch.b2nacn02", jennicMacPrefix }, // Xiaomi Aqara D1 2-gang (neutral wire) QBKG24LM
+    { VENDOR_XIAOMI, "lumi.switch.l1aeu1", lumiMacPrefix }, // Xiaomi Aqara H1 1-gang (no neutral wire) WS-EUK01
+    { VENDOR_XIAOMI, "lumi.switch.l2aeu1", lumiMacPrefix }, // Xiaomi Aqara H1 2-gang (no neutral wire) WS-EUK02
+    { VENDOR_XIAOMI, "lumi.switch.n1aeu1", lumiMacPrefix }, // Xiaomi Aqara H1 1-gang (neutral wire) WS-EUK03
+    { VENDOR_XIAOMI, "lumi.switch.n2aeu1", lumiMacPrefix }, // Xiaomi Aqara H1 2-gang (neutral wire) WS-EUK04
     { VENDOR_XIAOMI, "lumi.remote.b28ac1", lumiMacPrefix }, // Aqara Wireless Remote Switch H1 (Double Rocker) WRS-R02
     { VENDOR_XIAOMI, "lumi.plug", jennicMacPrefix }, // Xiaomi smart plug (router)
     { VENDOR_XIAOMI, "lumi.ctrl_ln", jennicMacPrefix}, // Xiaomi Wall Switch (router)
@@ -1341,7 +1346,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                              sensorNode->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
                              sensorNode->modelId().startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote
                              sensorNode->modelId().startsWith(QLatin1String("Switch-LIGHTIFY")) || // Osram 4 button remote
-                             sensorNode->modelId() == QLatin1String("lumi.remote.b28ac1"))    // Aqara wireless remote switch H1 (double rocker)
+                             sensorNode->modelId() == QLatin1String("lumi.remote.b28ac1") ||    // Aqara wireless remote switch H1 (double rocker)
+                             sensorNode->modelId() == QLatin1String("lumi.remote.b286acn01") || // Xiaomi dual button wall switch WXKG02LM 2018
+                             sensorNode->modelId() == QLatin1String("lumi.remote.b286acn02"))   // Xiaomi dual button wall switch WXKG02LM 2020
+                             
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
                     }
@@ -1378,16 +1386,24 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
                     }
+                    else if ((ind.srcEndpoint() == 0x05 || ind.srcEndpoint() == 0x06) &&
+                            (sensorNode->modelId() == QLatin1String("lumi.switch.b1lacn02") || sensorNode->modelId() == QLatin1String("lumi.switch.b2lacn02")))
+                    {
+                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x04);
+                    }
                     else if ((ind.srcEndpoint() == 0x06 || ind.srcEndpoint() == 0x07) && sensorNode->modelId() == QLatin1String("lumi.ctrl_ln2.aq1"))
                     {
                         // TODO Button maps should express one ZHASwitch is related to multiple endpoints.
                         //      Or search for one ZHASwitch resource inside sensors.
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x05);
                     }
-                    else if ((ind.srcEndpoint() == 0x05 || ind.srcEndpoint() == 0x06) &&
-                            (sensorNode->modelId() == QLatin1String("lumi.switch.b1lacn02") || sensorNode->modelId() == QLatin1String("lumi.switch.b2lacn02")))
+                    else if (sensorNode->modelId() == QLatin1String("lumi.switch.b1nacn02") || sensorNode->modelId() == QLatin1String("lumi.switch.b2nacn02"))
                     {
-                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x04);
+                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x05);
+                    }
+                    else if (sensorNode->modelId() == QLatin1String("lumi.switch.l2aeu1") || sensorNode->modelId() == QLatin1String("lumi.switch.n2aeu1"))
+                    {
+                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x29);
                     }
                     else
                     {
@@ -6112,7 +6128,18 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                             fpConsumptionSensor.inClusters.push_back(ci->id());
                         }
                     }
-                    else if (modelId.startsWith(QLatin1String("lumi.ctrl_ln2")))
+                    else if (modelId == QLatin1String("lumi.switch.n1aeu1") || modelId == QLatin1String("lumi.switch.n2aeu1"))
+                    {
+                        if (i->endpoint() == 0x15)
+                        {
+                            fpPowerSensor.inClusters.push_back(ci->id());
+                        }
+                        else if (i->endpoint() == 0x1F)
+                        {
+                            fpConsumptionSensor.inClusters.push_back(ci->id());
+                        }
+                    }
+                    else if (modelId.startsWith(QLatin1String("lumi.ctrl_ln2")) || modelId == QLatin1String("lumi.switch.b2nacn02"))
                     {
                         if (i->endpoint() == 0x03)
                         {
@@ -6144,24 +6171,25 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
-                    else if (modelId == QLatin1String("lumi.sensor_switch.aq3") || modelId == QLatin1String("lumi.remote.b1acn01") ||
-                             modelId == QLatin1String("lumi.switch.b1nacn02"))
+                    else if (modelId == QLatin1String("lumi.sensor_switch.aq3"))
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
-                    else if ((modelId == QLatin1String("lumi.remote.b186acn01") ||
-                              modelId == QLatin1String("lumi.remote.b186acn02"))
-                             && i->endpoint() == 0x01)
+                    else if ((modelId == QLatin1String("lumi.switch.l1aeu1") || modelId == QLatin1String("lumi.switch.l2aeu1") ||
+                             modelId == QLatin1String("lumi.switch.n1aeu1") || modelId == QLatin1String("lumi.switch.n2aeu1")) && i->endpoint() == 0x29)
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
-                    else if ((modelId == QLatin1String("lumi.remote.b286acn01") ||
-                              modelId == QLatin1String("lumi.remote.b286acn02"))
-                             && i->endpoint() == 0x01)
+                    else if ((modelId == QLatin1String("lumi.remote.b186acn01") || modelId == QLatin1String("lumi.remote.b186acn02") ||
+                              modelId == QLatin1String("lumi.remote.b286acn01") || modelId == QLatin1String("lumi.remote.b286acn02")) && i->endpoint() == 0x01)
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
                     else if ((modelId == QLatin1String("lumi.switch.b1lacn02") || modelId == QLatin1String("lumi.switch.b2lacn02")) && i->endpoint() == 0x04)
+                    {
+                        fpSwitch.inClusters.push_back(ci->id());
+                    }
+                    else if ((modelId == QLatin1String("lumi.switch.b1nacn02") || modelId == QLatin1String("lumi.switch.b2nacn02")) && i->endpoint() == 0x05)
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
@@ -7380,6 +7408,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 (!modelId.startsWith(QLatin1String("lumi.plug.ma"))) &&
                 (modelId != QLatin1String("Plug-230V-ZB3.0")) &&
                 (modelId != QLatin1String("lumi.switch.b1nacn02")) &&
+                (modelId != QLatin1String("lumi.switch.b2nacn02")) &&
+                (modelId != QLatin1String("lumi.switch.n1aeu1")) &&
+                (modelId != QLatin1String("lumi.switch.n2aeu1")) &&
                 (modelId != QLatin1String("lumi.switch.b1naus01")) &&
                 (modelId != QLatin1String("lumi.switch.n0agl1")) &&
                 (modelId != QLatin1String("Connected socket outlet")) &&
@@ -7413,6 +7444,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                  (!modelId.startsWith(QLatin1String("ZB-ONOFFPlug-D0005"))) &&
                  (modelId != QLatin1String("Plug-230V-ZB3.0")) &&
                  (modelId != QLatin1String("lumi.switch.b1naus01")) &&
+                 (modelId != QLatin1String("lumi.switch.b1nacn02")) &&
+                 (modelId != QLatin1String("lumi.switch.b2nacn02")) &&
                  (modelId != QLatin1String("lumi.plug.maeu01")) &&
                  (modelId != QLatin1String("lumi.switch.n0agl1")) &&
                  (node->nodeDescriptor().manufacturerCode() != VENDOR_LEGRAND) ) // OSRAM and Legrand plug don't have theses options
@@ -7867,9 +7900,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.setManufacturer("Insta");
         checkInstaModelId(&sensorNode);
     }
-    else if (sensorNode.modelId() == QLatin1String("lumi.sensor_magnet.agl02") || // skip
-             sensorNode.modelId() == QLatin1String("lumi.flood.agl02") ||
-             sensorNode.modelId() == QLatin1String("lumi.motion.agl04"))
+    // Skip legacy Xiaomi items
+    else if (sensorNode.modelId() == QLatin1String("lumi.sensor_magnet.agl02") || sensorNode.modelId() == QLatin1String("lumi.flood.agl02") ||
+             sensorNode.modelId() == QLatin1String("lumi.motion.agl04") || sensorNode.modelId() == QLatin1String("lumi.switch.b1nacn02") ||
+             sensorNode.modelId() == QLatin1String("lumi.switch.b2nacn02") || sensorNode.modelId() == QLatin1String("lumi.switch.n1aeu1") ||
+             sensorNode.modelId() == QLatin1String("lumi.switch.n2aeu1") || sensorNode.modelId() == QLatin1String("lumi.switch.l1aeu1") ||
+             sensorNode.modelId() == QLatin1String("lumi.switch.l2aeu1") || sensorNode.modelId() == QLatin1String("lumi.switch.b1naus01") ||
+             sensorNode.modelId() == QLatin1String("lumi.switch.n0agl1") || sensorNode.modelId() == QLatin1String("lumi.switch.b1lacn02") ||
+             sensorNode.modelId() == QLatin1String("lumi.switch.b2lacn02"))
     {
     }
     else if (modelId.startsWith(QLatin1String("lumi")))
@@ -7880,8 +7918,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             !sensorNode.modelId().startsWith(QLatin1String("lumi.relay.c")) &&
             sensorNode.modelId() != QLatin1String("lumi.curtain") &&
             sensorNode.modelId() != QLatin1String("lumi.sensor_natgas") &&
-            sensorNode.modelId() != QLatin1String("lumi.switch.b1naus01") &&
-            sensorNode.modelId() != QLatin1String("lumi.switch.n0agl1") &&
             !sensorNode.type().endsWith(QLatin1String("Battery")))
         {
             sensorNode.addItem(DataTypeUInt8, RConfigBattery);
@@ -9401,6 +9437,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 else if ((i->modelId() == QLatin1String("lumi.plug.mmeu01") && event.endpoint() == 21) ||
                                          (i->modelId() == QLatin1String("lumi.plug") && event.endpoint() == 2) ||
                                          (i->modelId() == QLatin1String("lumi.switch.b1nacn02") && event.endpoint() == 2) ||
+                                         (i->modelId() == QLatin1String("lumi.switch.b2nacn02") && event.endpoint() == 3) ||
+                                         (i->modelId() == QLatin1String("lumi.switch.n1aeu1") && event.endpoint() == 21) ||
+                                         (i->modelId() == QLatin1String("lumi.switch.n2aeu1") && event.endpoint() == 21) ||
                                          (i->modelId().startsWith(QLatin1String("lumi.ctrl_")) && event.endpoint() == 2) ||
                                           i->modelId().startsWith(QLatin1String("lumi.relay.c")))
                                 {
@@ -9423,6 +9462,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 else if ((i->modelId() == QLatin1String("lumi.plug.mmeu01") && event.endpoint() == 22) ||
                                          (i->modelId() == QLatin1String("lumi.plug") && event.endpoint() == 3) ||
                                          (i->modelId() == QLatin1String("lumi.switch.b1nacn02") && event.endpoint() == 3) ||
+                                         (i->modelId() == QLatin1String("lumi.switch.b2nacn02") && event.endpoint() == 4) ||
+                                         (i->modelId() == QLatin1String("lumi.switch.n1aeu1") && event.endpoint() == 31) ||
+                                         (i->modelId() == QLatin1String("lumi.switch.n2aeu1") && event.endpoint() == 31) ||
                                          (i->modelId().startsWith(QLatin1String("lumi.ctrl_")) && event.endpoint() == 3))
                                 {
                                     if (i->type() == QLatin1String("ZHAConsumption"))
@@ -15854,8 +15896,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             auto *item = sensor->item(RConfigPending);
             if (item && (item->toNumber() & R_PENDING_MODE))
             {
-                // Some Aqara switches need to be configured to send proper button events
-                // send the magic word
+                // Some Aqara switches need to be configured to send proper button events, send the magic word
                 DBG_Printf(DBG_INFO, "Write Aqara switch 0x%016llX mode attribute 0x0009 = 1\n", sensor->address().ext());
                 deCONZ::ZclAttribute attr(0x0009, deCONZ::Zcl8BitUint, QLatin1String("mode"), deCONZ::ZclReadWrite, false);
                 attr.setValue(static_cast<quint64>(1));
