@@ -698,7 +698,6 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     idleTotalCounter = IDLE_READ_LIMIT;
     idleLastActivity = 0;
     idleUpdateZigBeeConf = idleTotalCounter + 15;
-    sensorIndIdleTotalCounter = 0;
     queryTime = QTime::currentTime();
     udpSock = 0;
     haEndpoint = 0;
@@ -1115,7 +1114,6 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                 }
 
                 const bool push = item->pushOnSet() || (item->pushOnChange() && item->lastChanged() == item->lastSet());
-
                 if (idItem && push)
                 {
                     enqueueEvent(Event(r->prefix(), item->descriptor().suffix, idItem->toString(), device->key()));
@@ -5110,7 +5108,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 {
                     quint16 x;
                     quint16 y;
-                    quint16 a = 0xFFFF;
+                    qint16 a = 0xFFFF;
                     QDataStream stream(zclFrame.payload());
                     stream.setByteOrder(QDataStream::LittleEndian);
                     stream >> x;
@@ -12323,18 +12321,27 @@ void DeRestPluginPrivate::storeRecoverOnOffBri(LightNode *lightNode)
 
     ResourceItem *onOff = lightNode->item(RStateOn);
     ResourceItem *bri = lightNode->item(RStateBri);
-    std::vector<RecoverOnOff>::iterator i = recoverOnOff.begin();
-    std::vector<RecoverOnOff>::iterator end = recoverOnOff.end();
+
+    if (!onOff || !bri)
+    {
+        return;
+    }
+
+    if (!onOff->lastSet().isValid() || !bri->lastSet().isValid())
+    {
+        return;
+    }
+
+    auto i = recoverOnOff.begin();
+    auto end = recoverOnOff.end();
 
     for (; i != end; ++i)
     {
         if (isSameAddress(i->address, lightNode->address()))
         {
             // update entry
-            i->onOff = onOff ? onOff->toBool() : false;
-            if (bri && bri->lastSet().isValid()) { i->bri = bri->toNumber(); }
-            else                                 { i->bri = 0; }
-
+            i->onOff = onOff->toBool();
+            i->bri = bri->toNumber();
             i->idleTotalCounterCopy = idleTotalCounter;
             return;
         }
@@ -12344,8 +12351,8 @@ void DeRestPluginPrivate::storeRecoverOnOffBri(LightNode *lightNode)
     DBG_Printf(DBG_INFO, "New recover onOff entry 0x%016llX\n", lightNode->address().ext());
     RecoverOnOff rc;
     rc.address = lightNode->address();
-    rc.onOff = onOff ? onOff->toBool() : false;
-    rc.bri = bri ? bri->toNumber() : 0;
+    rc.onOff = onOff->toBool();
+    rc.bri = bri->toNumber();
     rc.idleTotalCounterCopy = idleTotalCounter;
     recoverOnOff.push_back(rc);
 }
@@ -15168,7 +15175,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         {
             DBG_Printf(DBG_INFO, "[1] get node descriptor for 0x%016llx\n", sc->address.ext());
 
-            if (ZDP_NodeDescriptorReq(sc->address.nwk(), apsCtrl))
+            if (ZDP_NodeDescriptorReq(sc->address, apsCtrl))
             {
                 queryTime = queryTime.addSecs(5);
                 sc->timeout.restart();
@@ -15183,7 +15190,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         {
             DBG_Printf(DBG_INFO, "[2] get active endpoints for 0x%016llx\n", sc->address.ext());
 
-            if (ZDP_ActiveEndpointsReq(sc->address.nwk(), apsCtrl))
+            if (ZDP_ActiveEndpointsReq(sc->address, apsCtrl))
             {
                 queryTime = queryTime.addSecs(5);
                 sc->timeout.restart();
@@ -15213,7 +15220,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 {
                     DBG_Printf(DBG_INFO, "[3] get simple descriptor 0x%02X for 0x%016llx\n", ep, sc->address.ext());
 
-                    if (ZDP_SimpleDescriptorReq(sc->address.nwk(), ep, apsCtrl))
+                    if (ZDP_SimpleDescriptorReq(sc->address, ep, apsCtrl))
                     {
                         queryTime = queryTime.addSecs(1);
                         sc->timeout.restart();
