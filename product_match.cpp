@@ -87,6 +87,7 @@ static const ProductMap products[] =
     {"_TZ3000_xzqbrqk1", "TS130F", "Lonsonho", "Zigbee curtain switch"}, // https://github.com/dresden-elektronik/deconz-rest-plugin/issues/3757#issuecomment-776201454
     {"_TZ3000_ltiqubue", "TS130F", "Tuya", "Zigbee curtain switch"},
     {"_TZ3000_vd43bbfq", "TS130F", "Tuya", "QS-Zigbee-C01 Module"}, // Curtain module QS-Zigbee-C01
+    {"_TZ3000_kpve0q1p", "TS130F", "Tuya", "Covering Switch ESW-2ZAD-EU"},
 
     // Other
     {"_TYST11_d0yu2xgi", "0yu2xgi", "NEO/Tuya", "NAS-AB02B0 Siren"},
