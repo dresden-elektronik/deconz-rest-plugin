@@ -1349,7 +1349,6 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                              sensorNode->modelId() == QLatin1String("lumi.remote.b28ac1") ||    // Aqara wireless remote switch H1 (double rocker)
                              sensorNode->modelId() == QLatin1String("lumi.remote.b286acn01") || // Xiaomi dual button wall switch WXKG02LM 2018
                              sensorNode->modelId() == QLatin1String("lumi.remote.b286acn02"))   // Xiaomi dual button wall switch WXKG02LM 2020
-                             
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
                     }
