@@ -3598,8 +3598,17 @@ devices can operate on either battery or mains power, and can have a wide variet
 			<!-- TODO -->
 			</client>
 		</cluster>
-        <cluster id="0x0b01" name="Appliance Identification">
+        <cluster id="0x0b00" name="Appliance Identification">
 			<description>Attributes and commands for determining basic information about a device and setting user device information. The Appliance Identification Cluster is a transposition of EN50523 "Identify Product" functional block.</description>
+			<server>
+			<!-- TODO -->
+			</server>
+			<client>
+			<!-- TODO -->
+			</client>
+		</cluster>
+        <cluster id="0x0b01" name="Meter Identification">
+			<description>Attributes and commands that provide an interface to meter identification.</description>
 			<server>
 			<!-- TODO -->
 			</server>
