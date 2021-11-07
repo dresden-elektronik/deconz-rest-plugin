@@ -1540,7 +1540,7 @@ public:
     bool addTaskThermostatGetSchedule(TaskItem &task);
     bool addTaskThermostatSetWeeklySchedule(TaskItem &task, quint8 weekdays, const QString &transitions);
     void updateThermostatSchedule(Sensor *sensor, quint8 newWeekdays, QString &transitions);
-    bool addTaskThermostatReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t mfrCode, uint16_t attrId, uint8_t attrType, uint32_t attrValue);
+    bool addTaskThermostatReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t mfrCode, uint16_t attrId, uint8_t attrType, int attrValue);
     bool addTaskThermostatWriteAttributeList(TaskItem &task, uint16_t mfrCode, QMap<quint16, quint32> &AttributeList );
     bool addTaskControlModeCmd(TaskItem &task, uint8_t cmdId, int8_t mode);
     bool addTaskSyncTime(Sensor *sensor);
