@@ -1237,7 +1237,15 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                                 return;
                             }
                             
-                            ResourceItem *item = sensorNode->item(RConfigPreset);
+                            ResourceItem *item,
+                            //Do the device is in "auto" mode
+                            item = sensorNode->item(RConfigMode);
+                            if (item && item->toString() != QLatin1String("auto"))
+                            {
+                                return;
+                            }
+                            
+                            item = sensorNode->item(RConfigPreset);
 
                             if (item && item->toString() != preset)
                             {
