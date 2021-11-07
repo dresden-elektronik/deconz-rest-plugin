@@ -3797,7 +3797,7 @@ devices can operate on either battery or mains power, and can have a wide variet
     </cluster>
 
     <!-- LiXee -->
-    <cluster id="0xfc00" name="LiXee specific cluster" mfcode="0x1037">
+    <cluster id="0xff66" name="LiXee specific cluster" mfcode="0x1037">
       <description>LiXee specific cluster.</description>
       <server>
         <attribute id="0x0000" type="cstring" name="Option tarifaire" access="r" required="m"/>
