@@ -3610,7 +3610,18 @@ devices can operate on either battery or mains power, and can have a wide variet
         <cluster id="0x0b01" name="Meter Identification">
 			<description>Attributes and commands that provide an interface to meter identification.</description>
 			<server>
-			<!-- TODO -->
+                <attribute id="0x0000" type="cstring" name="CompanyName" access="r" required="m"/>
+                <attribute id="0x0001" type="u16" name="MeterTypeID" access="r" required="m"/>
+                <attribute id="0x0004" type="u16" name="DataQualityID" access="r" required="m"/>
+                <attribute id="0x0005" type="cstring" name="CustomerName" access="r" required="m"/>
+                <attribute id="0x0006" type="ostring" name="Model" access="r" required="m"/>
+                <attribute id="0x0007" type="ostring" name="PartNumber" access="r" required="m"/>
+                <attribute id="0x0008" type="ostring" name="ProductRevision" access="r" required="m"/>
+                <attribute id="0x000a" type="ostring" name="SoftwareRevision" access="r" required="m"/>
+                <attribute id="0x000b" type="cstring" name="UtilityName" access="r" required="m"/>
+                <attribute id="0x000c" type="u16" name="POD" access="r" required="m"/>
+			    <attribute id="0x000d" type="s24" name="AvailablePower" access="r" required="m"/>
+                <attribute id="0x000e" type="s24" name="PowerThreshold" access="r" required="m"/>
 			</server>
 			<client>
 			<!-- TODO -->
