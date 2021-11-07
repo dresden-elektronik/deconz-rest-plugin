@@ -1198,16 +1198,19 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case ONOFF_CLUSTER_ID:
-            handleOnOffClusterIndication(ind, zclFrame);
-            handleClusterIndicationGateways(ind, zclFrame);
+            if (!DEV_TestStrict())
+            {
+                handleOnOffClusterIndication(ind, zclFrame);
+                handleClusterIndicationGateways(ind, zclFrame);
+            }
             break;
 
         case METERING_CLUSTER_ID:
-            handleSimpleMeteringClusterIndication(ind, zclFrame);
+            if (!DEV_TestStrict()) { handleSimpleMeteringClusterIndication(ind, zclFrame); }
             break;
 
         case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
-            handleElectricalMeasurementClusterIndication(ind, zclFrame);
+            if (!DEV_TestStrict()) { handleElectricalMeasurementClusterIndication(ind, zclFrame); }
             break;
 
         case IAS_ZONE_CLUSTER_ID:
@@ -1231,7 +1234,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case POWER_CONFIGURATION_CLUSTER_ID:
-            handlePowerConfigurationClusterIndication(ind, zclFrame);
+            if (!DEV_TestStrict()) { handlePowerConfigurationClusterIndication(ind, zclFrame); }
             break;
 
         case XAL_CLUSTER_ID:
@@ -1243,7 +1246,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case WINDOW_COVERING_CLUSTER_ID:
-            handleWindowCoveringClusterIndication(ind, zclFrame);
+            if (!DEV_TestStrict()) { handleWindowCoveringClusterIndication(ind, zclFrame); }
             break;
 
         case TUYA_CLUSTER_ID:
@@ -1252,11 +1255,11 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case THERMOSTAT_CLUSTER_ID:
-            handleThermostatClusterIndication(ind, zclFrame);
+            if (!DEV_TestStrict()) { handleThermostatClusterIndication(ind, zclFrame); }
             break;
 
         case BASIC_CLUSTER_ID:
-            handleBasicClusterIndication(ind, zclFrame);
+            if (!DEV_TestStrict()) { handleBasicClusterIndication(ind, zclFrame); }
             break;
 
         case APPLIANCE_EVENTS_AND_ALERTS_CLUSTER_ID:
@@ -1264,11 +1267,11 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID:
-            handleThermostatUiConfigurationClusterIndication(ind, zclFrame);
+            if (!DEV_TestStrict()) { handleThermostatUiConfigurationClusterIndication(ind, zclFrame); }
             break;
 
         case DIAGNOSTICS_CLUSTER_ID:
-            handleDiagnosticsClusterIndication(ind, zclFrame);
+            if (!DEV_TestStrict()) { handleDiagnosticsClusterIndication(ind, zclFrame); }
             break;
 
         case IDENTIFY_CLUSTER_ID:
@@ -1277,7 +1280,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         case DEVELCO_AIR_QUALITY_CLUSTER_ID: // Develco specific -> VOC Management
         case BOSCH_AIR_QUALITY_CLUSTER_ID: // Bosch Air quality sensor
-            handleAirQualityClusterIndication(ind, zclFrame);
+            if (!DEV_TestStrict()) { handleAirQualityClusterIndication(ind, zclFrame); }
             break;
 
         case POLL_CONTROL_CLUSTER_ID:
@@ -1297,11 +1300,11 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case XIAOMI_CLUSTER_ID:
-            handleXiaomiLumiClusterIndication(ind, zclFrame);
+            if (!DEV_TestStrict()) { handleXiaomiLumiClusterIndication(ind, zclFrame); }
             break;
 
         case OCCUPANCY_SENSING_CLUSTER_ID:
-            handleOccupancySensingClusterIndication(ind, zclFrame);
+            if (!DEV_TestStrict()) { handleOccupancySensingClusterIndication(ind, zclFrame); }
             break;
 
         default:
