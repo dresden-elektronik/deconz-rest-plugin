@@ -199,9 +199,13 @@ bool evalZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndi
         if (engine.evaluate(expr) == JsEvalResult::Ok)
         {
             const auto res = engine.result();
-            DBG_Printf(DBG_DDF, "%s/%s expression: %s --> %s\n", r->item(RAttrUniqueId)->toCString(), item->descriptor().suffix, qPrintable(expr), qPrintable(res.toString()));
-            // item->setValue(res, ResourceItem::SourceDevice);
-            return true;
+            if (res.isValid())
+            {
+                DBG_Printf(DBG_DDF, "%s/%s expression: %s --> %s\n", r->item(RAttrUniqueId)->toCString(), item->descriptor().suffix, qPrintable(expr), qPrintable(res.toString()));
+
+                // item->setValue(res, ResourceItem::SourceDevice);
+                return true;
+            }
         }
         else
         {
@@ -228,8 +232,11 @@ bool evalZclFrame(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicati
         if (engine.evaluate(expr) == JsEvalResult::Ok)
         {
             const auto res = engine.result();
-            DBG_Printf(DBG_INFO, "expression: %s --> %s\n", qPrintable(expr), qPrintable(res.toString()));
-            return true;
+            if (res.isValid())
+            {
+                DBG_Printf(DBG_INFO, "expression: %s --> %s\n", qPrintable(expr), qPrintable(res.toString()));
+                return true;
+            }
         }
         else
         {
@@ -302,7 +309,7 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
 
     const auto &zclParam = item->zclParam();
 
-    if (ind.clusterId() != zclParam.clusterId || zclFrame.payload().isEmpty())
+    if (ind.clusterId() != zclParam.clusterId)
     {
         return result;
     }
@@ -318,6 +325,11 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
         {
             result = true;
         }
+        return result;
+    }
+
+    if (zclFrame.payload().isEmpty() && zclParam.attributeCount > 0)
+    {
         return result;
     }
 

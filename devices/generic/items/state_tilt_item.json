@@ -1,0 +1,9 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/tilt",
+	"datatype": "UInt8",
+	"access": "RW",
+	"public": true,
+	"range": [0, 254],
+	"description": "The tilt state of a shutter or blind."
+}

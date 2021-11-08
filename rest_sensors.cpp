@@ -996,9 +996,17 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         // UPD 16-11-2020: Since there is no way to reckognize older and newer models correctly and a new firmware version is on its way this
                         //                 'fix' is changed to a more robust but ugly implementation by simply sending both codes to the device. One of the commands
                         //                 will be accepted while the other one will be refused. Let's hope this code can be removed in a future release.
+                        
+                        TaskItem task2 ;
+                        task2.req.dstAddress() = sensor->address();
+                        task2.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+                        task2.req.setDstEndpoint(sensor->fingerPrint().endpoint);
+                        task2.req.setSrcEndpoint(getSrcEndpoint(sensor, task2.req));
+                        task2.req.setDstAddressMode(deCONZ::ApsExtAddress);
+                        task2.req.setSendDelay(1000);
 
-                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, THERM_ATTRID_CURRENT_TEMPERATURE_SETPOINT, deCONZ::Zcl16BitInt, data.integer) &&
-                            addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_NONE,   THERM_ATTRID_OCCUPIED_HEATING_SETPOINT, deCONZ::Zcl16BitInt, data.integer))
+                        if (addTaskThermostatReadWriteAttribute(task,  deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, THERM_ATTRID_CURRENT_TEMPERATURE_SETPOINT, deCONZ::Zcl16BitInt, data.integer) &&
+                            addTaskThermostatReadWriteAttribute(task2, deCONZ::ZclWriteAttributesId, VENDOR_NONE,   THERM_ATTRID_OCCUPIED_HEATING_SETPOINT, deCONZ::Zcl16BitInt, data.integer))
                         {
                             // Setting the heat setpoint disables off/boost modes, but this is not reported back by the thermostat.
                             // Hence, the off/boost flags will be removed here to reflect the actual operating state.

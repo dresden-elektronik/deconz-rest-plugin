@@ -295,12 +295,13 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateAlert));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateLockState));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateAllOn));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateAngle));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateAngle));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateAnyOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::String, RStateArmState));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateBattery, 0, 100));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateBri));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt32, QVariant::Double, RStateButtonEvent));
+    rItemDescriptors.back().flags |= ResourceItem::FlagPushOnSet;
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateCarbonMonoxide));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateColorMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateAction));
@@ -769,7 +770,8 @@ ResourceItem::ResourceItem(const ResourceItemDescriptor &rid) :
         m_str = new QString;
     }
 
-    m_flags = FlagPushOnChange;
+    m_flags = rid.flags;
+    m_flags |= FlagPushOnChange;
 }
 
 const QString &ResourceItem::toString() const
@@ -1466,32 +1468,4 @@ QLatin1String R_DataTypeToString(ApiDataType type)
     }
 
     return QLatin1String("unknown");
-}
-
-/*! Creates a unique Resource handle.
- */
-Resource::Handle R_CreateResourceHandle(const Resource *r, size_t containerIndex)
-{
-    Q_ASSERT(r->prefix() != nullptr);
-    Q_ASSERT(!r->item(RAttrUniqueId)->toString().isEmpty());
-
-    Resource::Handle result;
-    result.hash = qHash(r->item(RAttrUniqueId)->toString());
-    result.index = containerIndex;
-    result.type = r->prefix()[1];
-    result.order = 0;
-
-    Q_ASSERT(result.type == 's' || result.type == 'l' || result.type == 'd' || result.type == 'g');
-    Q_ASSERT(isValid(result));
-
-    if (result.type == 's' || result.type == 'l')
-    {
-        const ResourceItem *type = r->item(RAttrType);
-        if (type)
-        {
-            result.order = DDF_GetSubDeviceOrder(type->toString());
-        }
-    }
-
-    return result;
 }

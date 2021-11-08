@@ -699,7 +699,6 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     idleTotalCounter = IDLE_READ_LIMIT;
     idleLastActivity = 0;
     idleUpdateZigBeeConf = idleTotalCounter + 15;
-    sensorIndIdleTotalCounter = 0;
     queryTime = QTime::currentTime();
     udpSock = 0;
     haEndpoint = 0;
@@ -1116,7 +1115,6 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                 }
 
                 const bool push = item->pushOnSet() || (item->pushOnChange() && item->lastChanged() == item->lastSet());
-
                 if (idItem && push)
                 {
                     enqueueEvent(Event(r->prefix(), item->descriptor().suffix, idItem->toString(), device->key()));
@@ -1344,7 +1342,24 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                              sensorNode->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
                              sensorNode->modelId().startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote
                              sensorNode->modelId().startsWith(QLatin1String("Switch-LIGHTIFY")) || // Osram 4 button remote
-                             sensorNode->modelId() == QLatin1String("lumi.remote.b28ac1"))    // Aqara wireless remote switch H1 (double rocker)
+                             sensorNode->modelId() == QLatin1String("lumi.remote.b28ac1") ||    // Aqara wireless remote switch H1 (double rocker)
+                             sensorNode->manufacturer() == QLatin1String("_TZ3000_bi6lpsew") ||
+                             sensorNode->manufacturer() == QLatin1String("_TZ3400_keyjhapk") ||
+                             sensorNode->manufacturer() == QLatin1String("_TYZB02_key8kk7r") ||
+                             sensorNode->manufacturer() == QLatin1String("_TZ3400_keyjqthh") ||
+                             sensorNode->manufacturer() == QLatin1String("_TZ3400_key8kk7r") ||
+                             sensorNode->manufacturer() == QLatin1String("_TZ3000_rrjr1q0u") ||
+                             sensorNode->manufacturer() == QLatin1String("_TZ3000_abci1hiu") ||
+                             sensorNode->manufacturer() == QLatin1String("_TZ3000_vp6clf9d") ||
+                             sensorNode->manufacturer() == QLatin1String("_TZ3000_peszejy7") ||
+                             sensorNode->manufacturer() == QLatin1String("_TZ3000_qzjcsmar") ||
+                             sensorNode->manufacturer() == QLatin1String("_TZ3000_owgcnkrh") ||
+                             sensorNode->manufacturer() == QLatin1String("_TZ3000_adkvzooy") ||
+                             sensorNode->manufacturer() == QLatin1String("_TZ3000_arfwfgoa") ||
+                             sensorNode->manufacturer() == QLatin1String("_TZ3000_a7ouggvs") ||
+                             sensorNode->manufacturer() == QLatin1String("_TZ3000_dfgbtub0") ||
+                             sensorNode->manufacturer() == QLatin1String("_TZ3000_xabckq1v") ||
+                             sensorNode->manufacturer() == QLatin1String("_TYZB02_keyjqthh"))
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
                     }
@@ -1358,26 +1373,6 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x03);
                     }
                     else if (sensorNode->modelId().endsWith(QLatin1String("86opcn01"))) //Aqara Opple enable events from all multistate clusters
-                    {
-                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
-                    }
-                    else if ((sensorNode->manufacturer() == QLatin1String("_TZ3000_bi6lpsew")) ||
-                        (sensorNode->manufacturer() == QLatin1String("_TZ3400_keyjhapk")) ||
-                        (sensorNode->manufacturer() == QLatin1String("_TYZB02_key8kk7r")) ||
-                        (sensorNode->manufacturer() == QLatin1String("_TZ3400_keyjqthh")) ||
-                        (sensorNode->manufacturer() == QLatin1String("_TZ3400_key8kk7r")) ||
-                        (sensorNode->manufacturer() == QLatin1String("_TZ3000_rrjr1q0u")) ||
-                        (sensorNode->manufacturer() == QLatin1String("_TZ3000_abci1hiu")) ||
-                        (sensorNode->manufacturer() == QLatin1String("_TZ3000_vp6clf9d")) ||
-                        (sensorNode->manufacturer() == QLatin1String("_TZ3000_peszejy7")) ||
-                        (sensorNode->manufacturer() == QLatin1String("_TZ3000_qzjcsmar")) ||
-                        (sensorNode->manufacturer() == QLatin1String("_TZ3000_owgcnkrh")) ||
-                        (sensorNode->manufacturer() == QLatin1String("_TZ3000_adkvzooy")) ||
-                        (sensorNode->manufacturer() == QLatin1String("_TZ3000_arfwfgoa")) ||
-                        (sensorNode->manufacturer() == QLatin1String("_TZ3000_a7ouggvs")) ||
-                        (sensorNode->manufacturer() == QLatin1String("_TZ3000_dfgbtub0")) ||
-                        (sensorNode->manufacturer() == QLatin1String("_TZ3000_xabckq1v")) ||
-                        (sensorNode->manufacturer() == QLatin1String("_TYZB02_keyjqthh")))
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
                     }
@@ -5111,7 +5106,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 {
                     quint16 x;
                     quint16 y;
-                    quint16 a = 0xFFFF;
+                    qint16 a = 0xFFFF;
                     QDataStream stream(zclFrame.payload());
                     stream.setByteOrder(QDataStream::LittleEndian);
                     stream >> x;
@@ -8460,6 +8455,37 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
     {
         return;
     }
+    
+    // filter for relevant clusters
+    if (event.profileId() == HA_PROFILE_ID || event.profileId() == ZLL_PROFILE_ID)
+    {
+        switch (event.clusterId())
+        {
+        case ILLUMINANCE_MEASUREMENT_CLUSTER_ID:
+        case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
+        case RELATIVE_HUMIDITY_CLUSTER_ID:
+        case PRESSURE_MEASUREMENT_CLUSTER_ID:
+        case SOIL_MOISTURE_CLUSTER_ID:
+        case BASIC_CLUSTER_ID:
+        case ONOFF_CLUSTER_ID:
+        case ANALOG_INPUT_CLUSTER_ID:
+        case MULTISTATE_INPUT_CLUSTER_ID:
+        case BINARY_INPUT_CLUSTER_ID:
+        case DOOR_LOCK_CLUSTER_ID:
+        case SAMJIN_CLUSTER_ID:
+        case TIME_CLUSTER_ID:
+        case VENDOR_CLUSTER_ID:
+        case BOSCH_AIR_QUALITY_CLUSTER_ID:
+            break;
+
+        default:
+            return; // don't process further
+        }
+    }
+    else
+    {
+        return; // don't process further
+    }
 
     std::vector<Sensor>::iterator i = sensors.begin();
     std::vector<Sensor>::iterator end = sensors.end();
@@ -8527,57 +8553,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             return;
         }
 
-        // filter for relevant clusters
-        if (event.profileId() == HA_PROFILE_ID || event.profileId() == ZLL_PROFILE_ID)
+        if (event.clusterId() == BOSCH_AIR_QUALITY_CLUSTER_ID && !(i->modelId() == QLatin1String("AIR") && event.node()->nodeDescriptor().manufacturerCode() == VENDOR_BOSCH2))
         {
-            switch (event.clusterId())
-            {
-            case ILLUMINANCE_MEASUREMENT_CLUSTER_ID:
-            case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
-            case RELATIVE_HUMIDITY_CLUSTER_ID:
-            case PRESSURE_MEASUREMENT_CLUSTER_ID:
-            case SOIL_MOISTURE_CLUSTER_ID:
-            case BASIC_CLUSTER_ID:
-            case ONOFF_CLUSTER_ID:
-            case ANALOG_INPUT_CLUSTER_ID:
-            case MULTISTATE_INPUT_CLUSTER_ID:
-            case BINARY_INPUT_CLUSTER_ID:
-            case DOOR_LOCK_CLUSTER_ID:
-            case SAMJIN_CLUSTER_ID:
-            case TIME_CLUSTER_ID:
-                break;
-
-            case VENDOR_CLUSTER_ID:
-            {
-                // ubisys device management (UBISYS_DEVICE_SETUP_CLUSTER_ID)
-                if (event.endpoint() == 0xE8 && existDevicesWithVendorCodeForMacPrefix(event.node()->address(), VENDOR_UBISYS))
-                {
-                    break;
-                }
-                // dresden elektronik spectral sensor
-                else if (i->modelId() == QLatin1String("de_spect") && existDevicesWithVendorCodeForMacPrefix(event.node()->address(), VENDOR_DDEL))
-                {
-                    break;
-                }
-            }
-                continue; // ignore
-
-            case BOSCH_AIR_QUALITY_CLUSTER_ID:
-                if (i->modelId() == QLatin1String("AIR") && event.node()->nodeDescriptor().manufacturerCode() == VENDOR_BOSCH2)
-                {
-                    break; // Bosch Air quality sensor
-                }
-                continue;
-
-            default:
-                continue; // don't process further
-            }
+            continue; // Bosch Air quality sensor
         }
-        else
-        {
-            continue;
-        }
-
 
         if (event.clusterId() != BASIC_CLUSTER_ID && event.clusterId() != POWER_CONFIGURATION_CLUSTER_ID && event.clusterId() != VENDOR_CLUSTER_ID)
         {
@@ -12388,18 +12367,27 @@ void DeRestPluginPrivate::storeRecoverOnOffBri(LightNode *lightNode)
 
     ResourceItem *onOff = lightNode->item(RStateOn);
     ResourceItem *bri = lightNode->item(RStateBri);
-    std::vector<RecoverOnOff>::iterator i = recoverOnOff.begin();
-    std::vector<RecoverOnOff>::iterator end = recoverOnOff.end();
+
+    if (!onOff || !bri)
+    {
+        return;
+    }
+
+    if (!onOff->lastSet().isValid() || !bri->lastSet().isValid())
+    {
+        return;
+    }
+
+    auto i = recoverOnOff.begin();
+    auto end = recoverOnOff.end();
 
     for (; i != end; ++i)
     {
         if (isSameAddress(i->address, lightNode->address()))
         {
             // update entry
-            i->onOff = onOff ? onOff->toBool() : false;
-            if (bri && bri->lastSet().isValid()) { i->bri = bri->toNumber(); }
-            else                                 { i->bri = 0; }
-
+            i->onOff = onOff->toBool();
+            i->bri = bri->toNumber();
             i->idleTotalCounterCopy = idleTotalCounter;
             return;
         }
@@ -12409,8 +12397,8 @@ void DeRestPluginPrivate::storeRecoverOnOffBri(LightNode *lightNode)
     DBG_Printf(DBG_INFO, "New recover onOff entry 0x%016llX\n", lightNode->address().ext());
     RecoverOnOff rc;
     rc.address = lightNode->address();
-    rc.onOff = onOff ? onOff->toBool() : false;
-    rc.bri = bri ? bri->toNumber() : 0;
+    rc.onOff = onOff->toBool();
+    rc.bri = bri->toNumber();
     rc.idleTotalCounterCopy = idleTotalCounter;
     recoverOnOff.push_back(rc);
 }
@@ -15234,7 +15222,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         {
             DBG_Printf(DBG_INFO, "[1] get node descriptor for 0x%016llx\n", sc->address.ext());
 
-            if (ZDP_NodeDescriptorReq(sc->address.nwk(), apsCtrl))
+            if (ZDP_NodeDescriptorReq(sc->address, apsCtrl))
             {
                 queryTime = queryTime.addSecs(5);
                 sc->timeout.restart();
@@ -15249,7 +15237,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         {
             DBG_Printf(DBG_INFO, "[2] get active endpoints for 0x%016llx\n", sc->address.ext());
 
-            if (ZDP_ActiveEndpointsReq(sc->address.nwk(), apsCtrl))
+            if (ZDP_ActiveEndpointsReq(sc->address, apsCtrl))
             {
                 queryTime = queryTime.addSecs(5);
                 sc->timeout.restart();
@@ -15279,7 +15267,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 {
                     DBG_Printf(DBG_INFO, "[3] get simple descriptor 0x%02X for 0x%016llx\n", ep, sc->address.ext());
 
-                    if (ZDP_SimpleDescriptorReq(sc->address.nwk(), ep, apsCtrl))
+                    if (ZDP_SimpleDescriptorReq(sc->address, ep, apsCtrl))
                     {
                         queryTime = queryTime.addSecs(1);
                         sc->timeout.restart();
