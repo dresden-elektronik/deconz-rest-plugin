@@ -206,6 +206,7 @@ using namespace deCONZ::literals;
 #define PRESSURE_MEASUREMENT_CLUSTER_ID       0x0403
 #define RELATIVE_HUMIDITY_CLUSTER_ID          0x0405
 #define OCCUPANCY_SENSING_CLUSTER_ID          0x0406
+#define SOIL_MOISTURE_CLUSTER_ID              0x0408
 #define IAS_ZONE_CLUSTER_ID                   0x0500
 #define IAS_ACE_CLUSTER_ID                    0x0501
 #define IAS_WD_CLUSTER_ID                     0x0502
