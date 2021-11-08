@@ -1137,7 +1137,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV"))
                     {
-                        const auto match = matchKeyValue(data.string, RConfigModeValuesTuya2);
+                        const auto match = matchKeyValue(data.string, RConfigModeValuesTuya1);
 
                         if (isValid(match))
                         {
