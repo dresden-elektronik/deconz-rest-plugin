@@ -1004,8 +1004,9 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             update = true;
                         }
                         
-                        if (productId == "Tuya_THD SilverCrest Smart Radiator Thermostat" && (temp == 0 || temp == 6000))
+                        if (productId == "Tuya_THD SilverCrest Smart Radiator Thermostat" && (temp == 0 || temp == 3000))
                         {
+                            DBG_Printf(DBG_INFO, "Tuya magic change 1: %u\n", temp);
                             QString mode = QLatin1String("auto");
                             if (temp == 0) { QString mode = QLatin1String("off"); }
                             if (temp == 6000) { QString mode = QLatin1String("heat"); }
@@ -1014,6 +1015,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
 
                             if (item2 && item2->toString() != mode)
                             {
+                                DBG_Printf(DBG_INFO, "Tuya magic change 2: %s\n", qPrintable(mode));
                                 item2->setValue(mode);
                                 enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item2));
                                 update = true;
@@ -1242,8 +1244,11 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             item = sensorNode->item(RConfigMode);
                             if (item && item->toString() != QLatin1String("auto"))
                             {
+                                DBG_Printf(DBG_INFO, "Tuya magic change 3: skip\n");
                                 return;
                             }
+                            
+                            DBG_Printf(DBG_INFO, "Tuya magic change 5: not skipped %s\n", qPrintable(item->toString()));
                             
                             item = sensorNode->item(RConfigPreset);
 
@@ -1259,6 +1264,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
 
                                 if (item2 && item2->toString() != mode)
                                 {
+                                    DBG_Printf(DBG_INFO, "Tuya magic change 4: %s\n", qPrintable(mode));
                                     item2->setValue(mode);
                                     enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item2));
                                 }

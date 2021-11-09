@@ -1186,7 +1186,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             if (match.key == QLatin1String("off"))
                             {
                                 if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, DP_IDENTIFIER_THERMOSTAT_MODE_2, QByteArray("\x01", 1))&&
-                                    sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_3, QByteArray("\x00\x00\x00\x00", 4)))
+                                    sendTuyaRequest(task, TaskThermostat, DP_TYPE_VALUE, DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_3, QByteArray("\x00\x00\x00\x00", 4)))
                                 {
                                     updated = true;
                                 }
@@ -1194,7 +1194,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             else if (match.key == QLatin1String("heat"))
                             {
                                 if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, DP_IDENTIFIER_THERMOSTAT_MODE_2, QByteArray("\x01", 1))&&
-                                    sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_3, QByteArray("\x00\x00\x00\x78", 4)))
+                                    sendTuyaRequest(task, TaskThermostat, DP_TYPE_VALUE, DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_3, QByteArray("\x00\x00\x00\x3c", 4)))
                                 {
                                     updated = true;
                                 }
