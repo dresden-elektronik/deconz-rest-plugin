@@ -1008,8 +1008,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         {
                             DBG_Printf(DBG_INFO, "Tuya magic change 1: %u\n", temp);
                             QString mode = QLatin1String("auto");
-                            if (temp == 0) { QString mode = QLatin1String("off"); }
-                            if (temp == 6000) { QString mode = QLatin1String("heat"); }
+                            if (temp == 0) { mode = QLatin1String("off"); }
+                            if (temp == 6000) { mode = QLatin1String("heat"); }
                             
                             ResourceItem *item2 = sensorNode->item(RConfigMode);
 
