@@ -709,7 +709,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
 
     // clue code to get classic hard coded C++ bindings into DDF
     Device *device = DEV_GetDevice(m_devices, bt.binding.srcAddress);
-    if (device && !device->managed())
+    if (!device)
+    {  }
+    else if (!device->managed())
     {
         DDF_Binding ddfBinding;
 
@@ -758,7 +760,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
                 deviceDescriptions->put(ddf);
             }
         }
-
+    }
+    else if (device->managed())
+    {
         return false;
     }
 
