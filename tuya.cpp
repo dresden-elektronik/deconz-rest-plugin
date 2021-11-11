@@ -265,6 +265,37 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     break;
 
                 }
+                // Daily schedule (day 8)(minut 8)(temperature 8)(minut 8)(temperature 8)(minut 8)(temperature 8)(minut 8)(temperature 8).... (temperature 8)
+                // 20:34:34:284 Tuya debug 4 : Address 0x0C4314FFFE73C758 Payload (006d 6d00 00 12) 01 24-18 2b-33 23-44 2b-5c 22-60 2a-60 22-60 2a-60 22
+                case 0x0073: // Sunday
+                case 0x006D: // Monday
+                case 0x006E: // Thuesday
+                case 0x006F: // Wednesday
+                case 0x0070: // Thursday
+                case 0x0071: // Friday
+                case 0x0072: // Saturday
+                {
+                    const std::array<int, 7> t = {64,32,46,8,4,2,1};
+                    part = 1;
+                    
+                    if (dp < 0x006D || (dp - 0x006D) >= static_cast<int>(t.size()))
+                    {
+                        DBG_Printf(DBG_INFO, "Tuya unsupported daily schedule dp value: 0x%04X\n", dp);
+                        return; // bail out early
+                    }
+                    
+                    listday << t[dp - 0x006D];
+                    
+                    values_to_read = 8;
+                    blocklength = (length - 2) / values_to_read;
+                    
+                    quint8 day;
+                    stream >> day; // First octet is the day
+                    Scheduledatalength-=1;
+                    
+                    break;
+
+                }
                 default:
                 {
                     DBG_Printf(DBG_INFO, "Tuya : Unknow Schedule mode\n");
@@ -291,6 +322,17 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         hour = static_cast<quint8>((minut16 / 60) & 0xff);
                         minut = static_cast<quint8>((minut16 - 60 * hour) & 0xff);
                         heatSetpoint = static_cast<quint8>((heatSetpoint16 / 10) & 0xff);
+                    }
+                    if (dp >= 0x006D && dp <= 0x0073)
+                    {
+                        stream >> heatSetpoint;
+                        
+                        quint8 value;
+                        stream >> value;
+                        
+                        hour = static_cast<quint8>((value / 4) & 0xff);
+                        minut = static_cast<quint8>(((value % 4)*15) & 0xff);
+                        heatSetpoint = static_cast<quint8>((heatSetpoint / 2) & 0xff);
                     }
                     else
                     {
