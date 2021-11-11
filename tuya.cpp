@@ -937,14 +937,15 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         if (item)
                         {
                             QString mode;
-                            if      (data == 0 && item->toString() != QLatin1String("off")) { mode = QLatin1String("heat"); } // can be "off" or "heat"
+                            if      (data == 0) { mode = QLatin1String("heat"); } // can be "off" or "heat"
                             else if (data == 1) { mode = QLatin1String("auto"); } // "auto" for sure
                             else
                             {
                                 return;
                             }
 
-                            if (item->toString() != mode)
+                            if (item->toString() != mode && 
+                               (mode == QLatin1String("auto") || item->toString() == QLatin1String("auto"))) // Only change if the state is auto or become auto
                             {
                                 item->setValue(mode);
                                 enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
