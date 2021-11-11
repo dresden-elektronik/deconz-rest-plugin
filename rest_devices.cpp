@@ -618,6 +618,12 @@ bool ddfSerializeV1(JsonDoc &doc, const DeviceDescription &ddf, char *buf, size_
                     snprintf(buf, sizeof(buf), "0x%02X", rep.dataType);
                     report["dt"] = std::string(buf);
 
+                    if (rep.manufacturerCode > 0)
+                    {
+                        snprintf(buf, sizeof(buf), "0x%04X", rep.manufacturerCode);
+                        report["mf"] = std::string(buf);
+                    }
+
                     report["min"] = rep.minInterval;
                     report["max"] = rep.maxInterval;
 
@@ -630,7 +636,6 @@ bool ddfSerializeV1(JsonDoc &doc, const DeviceDescription &ddf, char *buf, size_
             }
         }
     }
-
 
     size_t sz = 0;
 

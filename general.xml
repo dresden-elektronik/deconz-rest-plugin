@@ -2890,6 +2890,19 @@ controller device, that supports a keypad and LCD screen.</description>
 			<client>
 			</client>
 		</cluster>
+		<cluster id="0x0408" name="Soil Moisture">
+			<description></description>
+			<server>
+				<attribute-set id="0x0000" description="Soil Moisture Information">
+					<attribute id="0x0000" name="Measured Value" type="u16" access="r" default="0" required="m"></attribute>
+					<attribute id="0x0001" name="Min Measured Value" type="u16" access="r" required="m" range="0x954d,0x7ffe"></attribute>
+					<attribute id="0x0002" name="Max Measured Value" type="u16" access="r" required="m" range="0x954e,0x7ffe"></attribute>
+					<attribute id="0x0003" name="Tolerance" type="u16" access="r" required="o" range="0x0000,0x0800"></attribute>
+				</attribute-set>
+			</server>
+			<client>
+			</client>
+		</cluster>
 	<cluster id="0x0b04" name="Electrical Measurement">
 		<description>Provides a mechanism for querying data about the electrical properties as measured by the device.</description>
 		<server>
