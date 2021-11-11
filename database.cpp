@@ -3432,6 +3432,15 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeInt16, RConfigOffset);
             item->setValue(0);
         }
+        else if (sensor.type().endsWith(QLatin1String("Moisture")))
+        {
+            if (sensor.fingerPrint().hasInCluster(SOIL_MOISTURE_CLUSTER_ID))
+            {
+                clusterId = clusterId ? clusterId : SOIL_MOISTURE_CLUSTER_ID;
+            }
+            item = sensor.addItem(DataTypeInt16, RStateMoisture);
+            item->setValue(0);
+        }
         else if (sensor.type().endsWith(QLatin1String("Presence")))
         {
             if (sensor.fingerPrint().hasInCluster(OCCUPANCY_SENSING_CLUSTER_ID))
