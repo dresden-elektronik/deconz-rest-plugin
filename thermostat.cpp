@@ -1284,7 +1284,7 @@ void DeRestPluginPrivate::addTaskThermostatGetScheduleTimer()
    \return true - on success
            false - on error
  */
-bool DeRestPluginPrivate::addTaskThermostatReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t mfrCode, uint16_t attrId, uint8_t attrType, uint32_t attrValue)
+bool DeRestPluginPrivate::addTaskThermostatReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t mfrCode, uint16_t attrId, uint8_t attrType, int attrValue)
 {
     if (readOrWriteCmd != deCONZ::ZclReadAttributesId && readOrWriteCmd != deCONZ::ZclWriteAttributesId)
     {

@@ -45,20 +45,14 @@ void DeRestPluginPrivate::initOtau()
 {
     otauIdleTicks = 0;
     otauBusyTicks = 0;
-    otauNotifyIter = 0;
     otauIdleTotalCounter = 0;
     otauUnbindIdleTotalCounter = 0;
-    otauNotifyDelay = deCONZ::appArgumentNumeric("--otau-notify-delay", OTAU_IDLE_TICKS_NOTIFY);
 
     otauTimer = new QTimer(this);
     otauTimer->setSingleShot(false);
     connect(otauTimer, SIGNAL(timeout()),
             this, SLOT(otauTimerFired()));
 
-    if (otauNotifyDelay > 0)
-    {
-        otauTimer->start(1000);
-    }
 }
 
 /*! Handler for incoming otau packets.
@@ -120,16 +114,14 @@ void DeRestPluginPrivate::otauDataIndication(const deCONZ::ApsDataIndication &in
         {
             lightNode->setLastRead(READ_SWBUILD_ID, idleTotalCounter);
             lightNode->enableRead(READ_SWBUILD_ID);
-            lightNode->setNextReadTime(READ_SWBUILD_ID, queryTime.addSecs(120));
+            lightNode->setNextReadTime(READ_SWBUILD_ID, queryTime.addSecs(160));
+            storeRecoverOnOffBri(lightNode);
         }
     }
-    else if ((ind.clusterId() == OTAU_CLUSTER_ID) && ((zclFrame.commandId() == OTAU_IMAGE_PAGE_REQUEST_CMD_ID) || (zclFrame.commandId() == OTAU_IMAGE_BLOCK_REQUEST_CMD_ID)))
+    else if (ind.clusterId() == OTAU_CLUSTER_ID && zclFrame.commandId() == OTAU_IMAGE_BLOCK_REQUEST_CMD_ID)
     {
         // remember last activity time
         otauIdleTotalCounter = idleTotalCounter;
-
-        LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
-        storeRecoverOnOffBri(lightNode);
     }
 
     if (!isOtauActive())
@@ -152,52 +144,6 @@ void DeRestPluginPrivate::otauDataIndication(const deCONZ::ApsDataIndication &in
         }
 
         otauBusyTicks = OTAU_BUSY_TICKS;
-    }
-}
-
-/*! Sends otau notifcation (std otau cluster) to \p node.
-    The node will then send a query next image request.
- */
-void DeRestPluginPrivate::otauSendStdNotify(LightNode *node)
-{
-    deCONZ::ApsDataRequest req;
-    deCONZ::ZclFrame zclFrame;
-
-    req.setProfileId(HA_PROFILE_ID);
-    req.setClusterId(OTAU_CLUSTER_ID);
-    req.setDstAddressMode(deCONZ::ApsExtAddress);
-    req.dstAddress().setExt(node->address().ext());
-    req.setDstEndpoint(node->haEndpoint().endpoint());
-    req.setSrcEndpoint(endpoint());
-    req.setState(deCONZ::FireAndForgetState);
-
-    zclFrame.setSequenceNumber(zclSeq++);
-    zclFrame.setCommandId(OTAU_IMAGE_NOTIFY_CMD_ID);
-
-    zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
-                             deCONZ::ZclFCDirectionServerToClient |
-                             deCONZ::ZclFCDisableDefaultResponse);
-
-    { // payload
-        QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
-        stream.setByteOrder(QDataStream::LittleEndian);
-
-        uint8_t payloadType = 0x00; // query jitter
-        uint8_t queryJitter = 100;
-
-        stream << payloadType;
-        stream << queryJitter;
-    }
-
-    { // ZCL frame
-        QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
-        stream.setByteOrder(QDataStream::LittleEndian);
-        zclFrame.writeToStream(stream);
-    }
-
-    if (apsCtrlWrapper.apsdeDataRequest(req) != deCONZ::Success)
-    {
-        DBG_Printf(DBG_INFO, "otau failed to send image notify request\n");
     }
 }
 
@@ -249,17 +195,7 @@ void DeRestPluginPrivate::otauTimerFired()
         return;
     }
 
-    if (otauNotifyDelay == 0)
-    {
-        return;
-    }
-
     if (!isInNetwork())
-    {
-        return;
-    }
-
-    if (nodes.empty())
     {
         return;
     }
@@ -279,67 +215,5 @@ void DeRestPluginPrivate::otauTimerFired()
         }
     }
 
-    if (otauIdleTicks < otauNotifyDelay)
-    {
-        return;
-    }
-
-    if (otauNotifyIter >= nodes.size())
-    {
-        otauNotifyIter = 0;
-    }
-
-    // dont do anything if sensors are triggering group commands
-    if ((idleTotalCounter - sensorIndIdleTotalCounter) < (60 * 10))
-    {
-        return;
-    }
-
-    LightNode *lightNode = &nodes[otauNotifyIter];
-    otauNotifyIter++;
-
-    if (!lightNode->isAvailable() &&
-        lightNode->otauClusterId() != OTAU_CLUSTER_ID)
-    {
-        return;
-    }
-
-    // filter vendor
-    if (lightNode->manufacturerCode() != VENDOR_DDEL)
-    {
-        return;
-    }
-
-    // whitelist active notify to some devices
-    if (lightNode->modelId().startsWith("FLS-NB"))
-    { }
-    else if (lightNode->modelId().startsWith("FLS-PP3"))
-    { }
-    else if (lightNode->modelId().startsWith("FLS-A"))
-    { }
-    else
-    {
-        return;
-    }
-
-    QDateTime now = QDateTime::currentDateTime();
-    NodeValue &val = lightNode->getZclValue(OTAU_CLUSTER_ID, OTAU_SWVERSION_ID);
-
-    if (val.updateType == NodeValue::UpdateByZclRead)
-    {
-        if (val.timestamp.isValid() && val.timestamp.secsTo(now) < OTAU_NOTIFY_INTERVAL)
-        {
-            return;
-        }
-
-        if (val.timestampLastReadRequest.isValid() && val.timestampLastReadRequest.secsTo(now) < OTAU_NOTIFY_INTERVAL)
-        {
-            return;
-        }
-
-        val.timestampLastReadRequest = now;
-    }
-
-    otauSendStdNotify(lightNode);
     otauIdleTicks = 0;
 }
