@@ -209,98 +209,112 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             quint8 part = 0;
             QList<int> listday;
             
-            switch (dp)
+            if (productId == "Tuya_THD SilverCrest Smart Radiator Thermostat")
             {
-                case 0x0070: //work days (6)
+                switch (dp)
                 {
-                    part = 1;
-                    listday << 124;
-                    values_to_read = 3;
-                    blocklength = length / values_to_read;
-                }
-                break;
-                case 0x0071: // holiday = Not working day (6)
-                {
-                    part = 1;
-                    listday << 3;
-                    values_to_read = 3;
-                    blocklength = length / values_to_read;
-                }
-                break;
-                case 0x0065: // Moe thermostat W124 (4) + W002 (4) + W001 (4)
-                {
-                    part = length / 3;
-                    listday << 124 << 2 << 1;
-                    values_to_read = 3;
-                    blocklength = length / values_to_read;
-                }
-                break;
-                // Daily schedule (mode 8)(minut 16)(temperature 16)(minut 16)(temperature 16)(minut 16)(temperature 16)(minut 16)(temperature 16)
-                case 0x007B: // Sunday
-                case 0x007C: // Monday
-                case 0x007D: // Thuesday
-                case 0x007E: // Wednesday
-                case 0x007F: // Thursday
-                case 0x0080: // Friday
-                case 0x0081: // Saturday
-                {
-                    const std::array<int, 7> t = {1,64,32,46,8,4,2};
-                    part = 1;
-                    
-                    if (dp < 0x007B || (dp - 0x007B) >= static_cast<int>(t.size()))
+                    // Daily schedule (day 8)(minut 8)(temperature 8)(minut 8)(temperature 8)(minut 8)(temperature 8)(minut 8)(temperature 8).... (temperature 8)
+                    // 20:34:34:284 Tuya debug 4 : Address 0x0C4314FFFE73C758 Payload (006d 6d00 00 12) 01 24-18 2b-33 23-44 2b-5c 22-60 2a-60 22-60 2a-60 22
+                    case 0x0073: // Sunday
+                    case 0x006D: // Monday
+                    case 0x006E: // Thuesday
+                    case 0x006F: // Wednesday
+                    case 0x0070: // Thursday
+                    case 0x0071: // Friday
+                    case 0x0072: // Saturday
                     {
-                        DBG_Printf(DBG_INFO, "Tuya unsupported daily schedule dp value: 0x%04X\n", dp);
-                        return; // bail out early
-                    }
-                    
-                    listday << t[dp - 0x007B];
-                    
-                    values_to_read = 2;
-                    blocklength = (length - 1) / values_to_read;
-                    
-                    quint8 mode;
-                    stream >> mode; // First octet is the mode
-                    Scheduledatalength-=1;
-                    
-                    break;
+                        const std::array<int, 7> t = {64,32,46,8,4,2,1};
+                        part = 1;
+                        
+                        if (dp < 0x006D || (dp - 0x006D) >= static_cast<int>(t.size()))
+                        {
+                            DBG_Printf(DBG_INFO, "Tuya unsupported daily schedule dp value: 0x%04X\n", dp);
+                            return; // bail out early
+                        }
+                        
+                        listday << t[dp - 0x006D];
+                        
+                        values_to_read = 8;
+                        blocklength = (length - 2) / values_to_read;
+                        
+                        quint8 day;
+                        stream >> day; // First octet is the day
+                        Scheduledatalength-=1;
+                        
+                        break;
 
-                }
-                // Daily schedule (day 8)(minut 8)(temperature 8)(minut 8)(temperature 8)(minut 8)(temperature 8)(minut 8)(temperature 8).... (temperature 8)
-                // 20:34:34:284 Tuya debug 4 : Address 0x0C4314FFFE73C758 Payload (006d 6d00 00 12) 01 24-18 2b-33 23-44 2b-5c 22-60 2a-60 22-60 2a-60 22
-                case 0x0073: // Sunday
-                case 0x006D: // Monday
-                case 0x006E: // Thuesday
-                case 0x006F: // Wednesday
-                case 0x0070: // Thursday
-                case 0x0071: // Friday
-                case 0x0072: // Saturday
-                {
-                    const std::array<int, 7> t = {64,32,46,8,4,2,1};
-                    part = 1;
-                    
-                    if (dp < 0x006D || (dp - 0x006D) >= static_cast<int>(t.size()))
+                    }
+                    default:
                     {
-                        DBG_Printf(DBG_INFO, "Tuya unsupported daily schedule dp value: 0x%04X\n", dp);
-                        return; // bail out early
+                        DBG_Printf(DBG_INFO, "Tuya : Unknow Schedule mode\n");
                     }
-                    
-                    listday << t[dp - 0x006D];
-                    
-                    values_to_read = 8;
-                    blocklength = (length - 2) / values_to_read;
-                    
-                    quint8 day;
-                    stream >> day; // First octet is the day
-                    Scheduledatalength-=1;
-                    
                     break;
-
                 }
-                default:
+            }                
+            else
+            {
+                switch (dp)
                 {
-                    DBG_Printf(DBG_INFO, "Tuya : Unknow Schedule mode\n");
+                    case 0x0070: //work days (6)
+                    {
+                        part = 1;
+                        listday << 124;
+                        values_to_read = 3;
+                        blocklength = length / values_to_read;
+                    }
+                    break;
+                    case 0x0071: // holiday = Not working day (6)
+                    {
+                        part = 1;
+                        listday << 3;
+                        values_to_read = 3;
+                        blocklength = length / values_to_read;
+                    }
+                    break;
+                    case 0x0065: // Moe thermostat W124 (4) + W002 (4) + W001 (4)
+                    {
+                        part = length / 3;
+                        listday << 124 << 2 << 1;
+                        values_to_read = 3;
+                        blocklength = length / values_to_read;
+                    }
+                    break;
+                    // Daily schedule (mode 8)(minut 16)(temperature 16)(minut 16)(temperature 16)(minut 16)(temperature 16)(minut 16)(temperature 16)
+                    case 0x007B: // Sunday
+                    case 0x007C: // Monday
+                    case 0x007D: // Thuesday
+                    case 0x007E: // Wednesday
+                    case 0x007F: // Thursday
+                    case 0x0080: // Friday
+                    case 0x0081: // Saturday
+                    {
+                        const std::array<int, 7> t = {1,64,32,46,8,4,2};
+                        part = 1;
+                        
+                        if (dp < 0x007B || (dp - 0x007B) >= static_cast<int>(t.size()))
+                        {
+                            DBG_Printf(DBG_INFO, "Tuya unsupported daily schedule dp value: 0x%04X\n", dp);
+                            return; // bail out early
+                        }
+                        
+                        listday << t[dp - 0x007B];
+                        
+                        values_to_read = 2;
+                        blocklength = (length - 1) / values_to_read;
+                        
+                        quint8 mode;
+                        stream >> mode; // First octet is the mode
+                        Scheduledatalength-=1;
+                        
+                        break;
+
+                    }
+                    default:
+                    {
+                        DBG_Printf(DBG_INFO, "Tuya : Unknow Schedule mode\n");
+                    }
+                    break;
                 }
-                break;
             }
             
             //Sanitary check
