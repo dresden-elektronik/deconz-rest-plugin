@@ -920,21 +920,24 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     break;
                     case 0x016c: // manual / auto : Schedule mode for Saswell devices
                     {
-                        QString mode;
-                        if      (data == 0) { mode = QLatin1String("heat"); } // was "manu"
-                        else if (data == 1) { mode = QLatin1String("auto"); } // back to "auto"
-                        else
-                        {
-                            return;
-                        }
-
                         ResourceItem *item = sensorNode->item(RConfigMode);
-
-                        if (item && item->toString() != mode)
+                        
+                        if (item)
                         {
-                            item->setValue(mode);
-                            enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
-                            update = true;
+                            QString mode;
+                            if      (data == 0 && item->toString() != QLatin1String("off")) { mode = QLatin1String("heat"); } // can be "off" or "heat"
+                            else if (data == 1) { mode = QLatin1String("auto"); } // "auto" for sure
+                            else
+                            {
+                                return;
+                            }
+
+                            if (item->toString() != mode)
+                            {
+                                item->setValue(mode);
+                                enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                                update = true;
+                            }
                         }
                     }
                     break;
