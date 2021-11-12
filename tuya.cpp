@@ -363,7 +363,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
 
                     if (part > 0 && listday.size() >= static_cast<int>(part))
                     {
-                        DBG_Printf(DBG_INFO, "Tuya : Schedule debug %u \n", listday.at(part - 1))
+                        DBG_Printf(DBG_INFO, "Tuya : Schedule debug %u \n", listday.at(part - 1));
                         updateThermostatSchedule(sensorNode, listday.at(part - 1), transitions);
                     }
                 }
