@@ -234,7 +234,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         
                         listday << t[dp - 0x006D];
                         
-                        values_to_read = 8;
+                        values_to_read = 2;
                         blocklength = (length - 2) / values_to_read;
                         
                         quint8 day;
@@ -329,15 +329,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             {
                 for (; blocklength > 0; blocklength--)
                 {
-                    if (dp >= 0x007B && dp <= 0x0081)
-                    {
-                        stream >> minut16;
-                        stream >> heatSetpoint16;
-                        hour = static_cast<quint8>((minut16 / 60) & 0xff);
-                        minut = static_cast<quint8>((minut16 - 60 * hour) & 0xff);
-                        heatSetpoint = static_cast<quint8>((heatSetpoint16 / 10) & 0xff);
-                    }
-                    if (dp >= 0x006D && dp <= 0x0073)
+                    if (productId == "Tuya_THD SilverCrest Smart Radiator Thermostat" &&
+                        dp >= 0x006D && dp <= 0x0073)
                     {
                         stream >> heatSetpoint;
                         
@@ -346,7 +339,15 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         
                         hour = static_cast<quint8>((value / 4) & 0xff);
                         minut = static_cast<quint8>(((value % 4)*15) & 0xff);
-                        heatSetpoint = static_cast<quint8>((heatSetpoint / 2) & 0xff);
+                        heatSetpoint = static_cast<quint8>((heatSetpoint * 50) & 0xff);
+                    }
+                    else if (dp >= 0x007B && dp <= 0x0081)
+                    {
+                        stream >> minut16;
+                        stream >> heatSetpoint16;
+                        hour = static_cast<quint8>((minut16 / 60) & 0xff);
+                        minut = static_cast<quint8>((minut16 - 60 * hour) & 0xff);
+                        heatSetpoint = static_cast<quint8>((heatSetpoint16 / 10) & 0xff);
                     }
                     else
                     {
@@ -362,6 +363,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
 
                     if (part > 0 && listday.size() >= static_cast<int>(part))
                     {
+                        DBG_Printf(DBG_INFO, "Tuya : Schedule debug %u \n", listday.at(part - 1))
                         updateThermostatSchedule(sensorNode, listday.at(part - 1), transitions);
                     }
                 }
