@@ -956,28 +956,6 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         DBG_Printf(DBG_INFO, "Tuya device 0x%016llX reporting status state : %ld\n", ind.srcAddress().ext(), data);
                     }
                     break;
-                    case 0x0201: // Preset for Moes
-                        if (productId == "Tuya_THD BRT-100")
-                        {
-                            QString preset;
-                            if (data == 0) { preset = QLatin1String("auto"); } //programming
-                            else if (data == 1) { preset = QLatin1String("manual"); } //manual
-                            else if (data == 2) { preset = QLatin1String("temporary_manual"); } //temporary_manual
-                            else if (data == 3) { preset = QLatin1String("holiday"); } //holiday
-                            else
-                            {
-                                return;
-                            }
-                            
-                            ResourceItem *item = sensorNode->item(RConfigPreset);
-
-                            if (item && item->toString() != preset)
-                            {
-                                item->setValue(preset);
-                                enqueueEvent(Event(RSensors, RConfigPreset, sensorNode->id(), item));
-                            }
-                        }
-                    break;
                     case 0x0202: // Thermostat heatsetpoint
                     {
                         qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
@@ -1179,6 +1157,28 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             enqueueEvent(Event(RSensors, RStateValve, sensorNode->id(), item));
                         }
                     }
+                    break;
+                    case 0x0401: // Preset for Moes
+                        if (productId == "Tuya_THD BRT-100")
+                        {
+                            QString preset;
+                            if (data == 0) { preset = QLatin1String("auto"); } //programming
+                            else if (data == 1) { preset = QLatin1String("manual"); } //manual
+                            else if (data == 2) { preset = QLatin1String("temporary_manual"); } //temporary_manual
+                            else if (data == 3) { preset = QLatin1String("holiday"); } //holiday
+                            else
+                            {
+                                return;
+                            }
+                            
+                            ResourceItem *item = sensorNode->item(RConfigPreset);
+
+                            if (item && item->toString() != preset)
+                            {
+                                item->setValue(preset);
+                                enqueueEvent(Event(RSensors, RConfigPreset, sensorNode->id(), item));
+                            }
+                        }
                     break;
                     case 0x0402 : // preset for moe or mode
                     case 0x0403 : // preset for moe
