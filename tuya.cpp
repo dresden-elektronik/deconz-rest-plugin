@@ -363,7 +363,6 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
 
                     if (part > 0 && listday.size() >= static_cast<int>(part))
                     {
-                        DBG_Printf(DBG_INFO, "Tuya : Schedule debug %u \n", listday.at(part - 1));
                         updateThermostatSchedule(sensorNode, listday.at(part - 1), transitions);
                     }
                 }
@@ -1538,7 +1537,7 @@ bool DeRestPluginPrivate::sendTuyaRequestThermostatSetWeeklyScheduleLIDL(TaskIte
     return false;
     
     //Append day
-    data.append(QByteArray("\x01", 1);
+    data.append(QByteArray("\x01", 1));
 
     for (const QString &entry : list)
     {
@@ -1558,7 +1557,7 @@ bool DeRestPluginPrivate::sendTuyaRequestThermostatSetWeeklyScheduleLIDL(TaskIte
     }
     
     //Append unknow temperature
-    data.append(QByteArray("\x22", 1);
+    data.append(QByteArray("\x22", 1));
 
     return sendTuyaRequest(taskRef, TaskThermostat, DP_TYPE_RAW, Dp_identifier, data);
 }
