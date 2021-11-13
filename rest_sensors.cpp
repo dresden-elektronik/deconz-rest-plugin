@@ -2045,14 +2045,17 @@ int DeRestPluginPrivate::changeThermostatSchedule(const ApiRequest &req, ApiResp
     {
         ok2 = sendTuyaRequestThermostatSetWeeklySchedule(task, weekdays, transitions, DP_IDENTIFIER_THERMOSTAT_SCHEDULE_2);
     }
-    else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat") ||
-             R_GetProductId(sensor) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat"))
+    else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
     {
         ok2 = sendTuyaRequestThermostatSetWeeklySchedule(task, weekdays, transitions, DP_IDENTIFIER_THERMOSTAT_SCHEDULE_1);
     }
     else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV"))
     {
         ok2 = sendTuyaRequestThermostatSetWeeklySchedule(task, weekdays, transitions, DP_IDENTIFIER_THERMOSTAT_SCHEDULE_4);
+    }
+    else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat"))
+    {
+        ok2 = sendTuyaRequestThermostatSetWeeklyScheduleLIDL(task, weekdays, transitions);
     }
     else
     {

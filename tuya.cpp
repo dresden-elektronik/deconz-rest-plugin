@@ -1515,6 +1515,54 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
 
 }
 
+bool DeRestPluginPrivate::sendTuyaRequestThermostatSetWeeklyScheduleLIDL(TaskItem &taskRef, quint8 weekdays, const QString &transitions)
+{
+    QByteArray data;
+
+    const QStringList list = transitions.split("T", QString::SkipEmptyParts);
+
+    quint8 hh;
+    quint8 mm;
+    quint8 heatSetpoint;
+    
+    qint8 Dp_identifier = DP_IDENTIFIER_THERMOSTAT_SCHEDULE_4;
+
+    if (list.size() != 8)
+    {
+        DBG_Printf(DBG_INFO, "Tuya : Schedule command error, need to have 8 values for this device\n");
+        return false;
+    }
+    
+    DBG_Printf(DBG_INFO, "Tuya : Schedule debug %u\n", weekdays);
+    
+    return false;
+    
+    //Append day
+    data.append(QByteArray("\x01", 1);
+
+    for (const QString &entry : list)
+    {
+        QStringList attributes = entry.split("|");
+        if (attributes.size() != 2)
+        {
+            return false;
+        }
+
+        hh = attributes.at(0).midRef(0, 2).toUInt();
+        mm = attributes.at(0).midRef(3, 2).toUInt();
+        heatSetpoint = attributes.at(1).toInt();
+
+        data.append(QByteArray::number(hh, 16));
+        data.append(QByteArray::number(mm, 16));
+        data.append(QByteArray::number(heatSetpoint, 16));
+    }
+    
+    //Append unknow temperature
+    data.append(QByteArray("\x22", 1);
+
+    return sendTuyaRequest(taskRef, TaskThermostat, DP_TYPE_RAW, Dp_identifier, data);
+}
+
 bool DeRestPluginPrivate::sendTuyaRequestThermostatSetWeeklySchedule(TaskItem &taskRef, quint8 weekdays, const QString &transitions, qint8 Dp_identifier)
 {
     QByteArray data;
