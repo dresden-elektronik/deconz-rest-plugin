@@ -1090,6 +1090,27 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
+                    case 0x0268 : // Valve position in % for Moe
+                    {
+                        quint8 valve = static_cast<qint8>(data & 0xFF);
+                        bool on = valve > 3;
+
+                        ResourceItem *item = sensorNode->item(RStateOn);
+                        if (item)
+                        {
+                            if (item->toBool() != on)
+                            {
+                                item->setValue(on);
+                                enqueueEvent(Event(RSensors, RStateOn, sensorNode->id(), item));
+                            }
+                        }
+                        item = sensorNode->item(RStateValve);
+                        if (item && item->toNumber() != valve)
+                        {
+                            item->setValue(valve);
+                            enqueueEvent(Event(RSensors, RStateValve, sensorNode->id(), item));
+                        }
+                    }
                     case 0x0269: // Boost time in second or Heatpoint
                     {
                         if (productId == "Tuya_THD MOES TRV")
