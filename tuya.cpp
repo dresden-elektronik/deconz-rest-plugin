@@ -223,7 +223,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     case 0x0071: // Friday
                     case 0x0072: // Saturday
                     {
-                        const std::array<int, 7> t = {64,32,46,8,4,2,1};
+                        const std::array<int, 7> t = {64,32,16,8,4,2,1};
                         part = 1;
                         
                         if (dp < 0x006D || (dp - 0x006D) >= static_cast<int>(t.size()))
@@ -288,7 +288,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     case 0x0080: // Friday
                     case 0x0081: // Saturday
                     {
-                        const std::array<int, 7> t = {1,64,32,46,8,4,2};
+                        const std::array<int, 7> t = {1,64,32,16,8,4,2};
                         part = 1;
                         
                         if (dp < 0x007B || (dp - 0x007B) >= static_cast<int>(t.size()))
