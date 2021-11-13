@@ -1111,6 +1111,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             enqueueEvent(Event(RSensors, RStateValve, sensorNode->id(), item));
                         }
                     }
+                    break;
                     case 0x0269: // Boost time in second or Heatpoint
                     {
                         if (productId == "Tuya_THD MOES TRV")
