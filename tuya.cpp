@@ -339,7 +339,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         
                         hour = static_cast<quint8>((value / 4) & 0xff);
                         minut = static_cast<quint8>(((value % 4)*15) & 0xff);
-                        heatSetpoint = static_cast<quint8>((heatSetpoint * 50) & 0xff);
+                        heatSetpoint = static_cast<quint8>((heatSetpoint / 2) & 0xff);
                     }
                     else if (dp >= 0x007B && dp <= 0x0081)
                     {
