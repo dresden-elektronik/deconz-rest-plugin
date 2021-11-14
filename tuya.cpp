@@ -1048,6 +1048,26 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
+                    case 0x021B : // temperature calibration (offset in degree) for Moes
+                    {
+                        qint16 temp = static_cast<qint16>(data & 0xFFFF);
+                        
+                        if (temp > 2048)
+                        {
+                            temp = temp - 4096;
+                        }
+                        
+                        temp = temp * 100;
+                        
+                        ResourceItem *item = sensorNode->item(RConfigOffset);
+
+                        if (item && item->toNumber() != temp)
+                        {
+                            item->setValue(temp);
+                            Event e(RSensors, RConfigOffset, sensorNode->id(), item);
+                            enqueueEvent(e);
+                        }
+                    }
                     case 0x022c : // temperature calibration (offset in degree)
                     {
                         qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
