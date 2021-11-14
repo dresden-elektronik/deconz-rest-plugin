@@ -910,8 +910,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                          R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
                          R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                          R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
-                         R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV")) ||
-                         R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat")) ||
+                         R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
+                         R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat") ||
                          R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV"))
                     {
                         QByteArray tuyaData;
