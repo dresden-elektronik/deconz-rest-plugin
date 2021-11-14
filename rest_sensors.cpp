@@ -917,33 +917,33 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         QByteArray tuyaData;
                         bool alternative = false;
                         
-                        data.integer = data.integer / 100;
+                        qint8 offset2 = data.integer / 100;
 
                         if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") || // Moes
                             R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                         {
-                            if (data.integer > 60)  { data.integer = 60;  } // offset, min = -60, max = 60
-                            if (data.integer < -60) { data.integer = -60; }
+                            if (offset2 > 60)  { offset2 = 60;  } // offset, min = -60, max = 60
+                            if (offset2 < -60) { offset2 = -60; }
                             
-                            if (data.integer < 0)
+                            if (offset2 < 0)
                             {
-                                data.integer = 4096 + data.integer;
+                                offset2 = 4096 + offset2;
                             }
 
                             alternative = true;
                         }
                         else // Others
                         {
-                            if (data.integer > 90)  { data.integer = 90;  } // offset, min = -90, max = 90
-                            if (data.integer < -90) { data.integer = -90; }
+                            if (offset2 > 90)  { offset2 = 90;  } // offset, min = -90, max = 90
+                            if (offset2 < -90) { offset2 = -90; }
                             
-                            data.integer = data.integer * 10;
+                            offset2 = offset2 * 10;
                         }
 
-                        tuyaData.append((qint8)((offset >> 24) & 0xff));
-                        tuyaData.append((qint8)((offset >> 16) & 0xff));
-                        tuyaData.append((qint8)((offset >> 8) & 0xff));
-                        tuyaData.append((qint8)(offset & 0xff));
+                        tuyaData.append((qint8)((offset2 >> 24) & 0xff));
+                        tuyaData.append((qint8)((offset2 >> 16) & 0xff));
+                        tuyaData.append((qint8)((offset2 >> 8) & 0xff));
+                        tuyaData.append((qint8)(offset2 & 0xff));
 
                         if (!alternative)
                         {
