@@ -958,7 +958,13 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     break;
                     case 0x0202: // Thermostat heatsetpoint
                     {
-                        qint16 temp = static_cast<qint16>(data & 0xFFFF) * 100;
+                        qint16 temp = static_cast<qint16>(data & 0xFFFF) * 10;
+                        
+                        if (productId == "Tuya_THD BRT-100")
+                        {
+                            temp = temp * 10;
+                        }
+                        
                         ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
 
                         if (item && item->toNumber() != temp)
