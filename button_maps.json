@@ -527,6 +527,19 @@
                 [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"]
             ]
         },
+        "xiaomiSwitchCtrlLn1Aq1Map": {
+            "vendor": "Xiaomi",
+            "doc": "QBKG23LM Aqara D1 1-gang neutral wire (2020 version)",
+            "modelids": ["lumi.switch.b1nacn02"],
+            "map": [
+                [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Hold"],
+                [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Single press"],
+                [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "3", "S_BUTTON_1", "S_BUTTON_ACTION_TREBLE_PRESS", "Tripple press"],
+                [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "4", "S_BUTTON_1", "S_BUTTON_ACTION_QUADRUPLE_PRESS", "Quadruple press"],
+                [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "255", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Long released"]
+            ]
+        },
         "xiaomiSwitchCtrlLn2Aq1Map": {
             "vendor": "Xiaomi",
             "doc": "QBKG12LM switch",

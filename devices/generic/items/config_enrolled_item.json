@@ -1,0 +1,9 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/enrolled",
+	"datatype": "UInt32",
+	"access": "RW",
+	"public": false,
+	"managed": true,
+	"description": "State of IAS enrollment process."
+}

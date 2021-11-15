@@ -80,12 +80,15 @@ static const ProductMap products[] =
     {"_TZE200_fdtjuw7u", "TS0601", "Yushun", "Tuya_COVD YS-MT750"},
     {"_TZE200_bqcqqjpb", "TS0601", "Yushun", "Tuya_COVD YS-MT750"},
     {"_TZE200_nueqqe6k", "TS0601", "Zemismart", "Tuya_COVD M515EGB"},
+    {"_TZE200_iossyxra", "TS0601", "Zemismart", "Tuya_COVD Roller Shade"},
 
     // Tuya covering not using tuya cluster but need reversing
     {"_TZ3000_egq7y6pr", "TS130F", "Lonsonho", "11830304 Switch"},
     {"_TZ3000_xzqbrqk1", "TS130F", "Lonsonho", "Zigbee curtain switch"}, // https://github.com/dresden-elektronik/deconz-rest-plugin/issues/3757#issuecomment-776201454
     {"_TZ3000_ltiqubue", "TS130F", "Tuya", "Zigbee curtain switch"},
     {"_TZ3000_vd43bbfq", "TS130F", "Tuya", "QS-Zigbee-C01 Module"}, // Curtain module QS-Zigbee-C01
+    {"_TZ3000_kpve0q1p", "TS130F", "Tuya", "Covering Switch ESW-2ZAD-EU"},
+    {"_TZ3000_fccpjz5z", "TS130F", "Tuya", "QS-Zigbee-C01 Module"}, // Curtain module QS-Zigbee-C01
 
     // Other
     {"_TYST11_d0yu2xgi", "0yu2xgi", "NEO/Tuya", "NAS-AB02B0 Siren"},
@@ -95,6 +98,7 @@ static const ProductMap products[] =
     // Sensor
     {"_TZ3210_rxqls8v0", "TS0202", "Fantem", "Tuya_SEN Multi-sensor"},
     {"_TZ3210_zmy9hjay", "TS0202", "Fantem", "Tuya_SEN Multi-sensor"},
+    {"_TZE200_aycxwiau", "TS0601", "Woox", "Tuya_OTH R7049 Smoke Alarm"},
 
      // Switch
     {"_TZE200_la2c2uo9", "TS0601", "Moes", "Tuya_DIMSWITCH MS-105Z"},

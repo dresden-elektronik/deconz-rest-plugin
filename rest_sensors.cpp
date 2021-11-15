@@ -996,9 +996,17 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         // UPD 16-11-2020: Since there is no way to reckognize older and newer models correctly and a new firmware version is on its way this
                         //                 'fix' is changed to a more robust but ugly implementation by simply sending both codes to the device. One of the commands
                         //                 will be accepted while the other one will be refused. Let's hope this code can be removed in a future release.
+                        
+                        TaskItem task2 ;
+                        task2.req.dstAddress() = sensor->address();
+                        task2.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+                        task2.req.setDstEndpoint(sensor->fingerPrint().endpoint);
+                        task2.req.setSrcEndpoint(getSrcEndpoint(sensor, task2.req));
+                        task2.req.setDstAddressMode(deCONZ::ApsExtAddress);
+                        task2.req.setSendDelay(1000);
 
-                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, THERM_ATTRID_CURRENT_TEMPERATURE_SETPOINT, deCONZ::Zcl16BitInt, data.integer) &&
-                            addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_NONE,   THERM_ATTRID_OCCUPIED_HEATING_SETPOINT, deCONZ::Zcl16BitInt, data.integer))
+                        if (addTaskThermostatReadWriteAttribute(task,  deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, THERM_ATTRID_CURRENT_TEMPERATURE_SETPOINT, deCONZ::Zcl16BitInt, data.integer) &&
+                            addTaskThermostatReadWriteAttribute(task2, deCONZ::ZclWriteAttributesId, VENDOR_NONE,   THERM_ATTRID_OCCUPIED_HEATING_SETPOINT, deCONZ::Zcl16BitInt, data.integer))
                         {
                             // Setting the heat setpoint disables off/boost modes, but this is not reported back by the thermostat.
                             // Hence, the off/boost flags will be removed here to reflect the actual operating state.
@@ -1099,7 +1107,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
-                             R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD MOES TRV"))
                     {
                         const auto match = matchKeyValue(data.string, RConfigModeValuesTuya1);
@@ -1135,6 +1142,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
                     else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
+                             R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV"))
                     {
                         const auto match = matchKeyValue(data.string, RConfigModeValuesTuya2);
@@ -1143,17 +1151,24 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             if (match.key == QLatin1String("off"))
                             {
-                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_MODE_3, QByteArray("\x00", 1)))
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_SCHEDULE_ENABLE, QByteArray("\x00", 1)) &&
+                                    sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_MODE_3, QByteArray("\x00", 1)))
+                                {
+                                    updated = true;
+                                }
+                            }
+                            else if (match.key == QLatin1String("heat"))
+                            {
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_SCHEDULE_ENABLE, QByteArray("\x00", 1)) &&
+                                    sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_MODE_3, QByteArray("\x01", 1)))
                                 {
                                     updated = true;
                                 }
                             }
                             else
                             {
-                                QByteArray tuyaData = QByteArray::fromRawData(match.value, 1);
-
-                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, 0x6c, tuyaData) &&
-                                    sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, 0x65, QByteArray("\x01", 1)))
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_SCHEDULE_ENABLE, QByteArray("\x01", 1)) &&
+                                    sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_MODE_3, QByteArray("\x01", 1)))
                                 {
                                     updated = true;
                                 }
@@ -2220,8 +2235,6 @@ int DeRestPluginPrivate::deleteSensor(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::searchNewSensors(const ApiRequest &req, ApiResponse &rsp)
 {
-    Q_UNUSED(req);
-
     if (!isInNetwork())
     {
         rsp.list.append(errorToMap(ERR_NOT_CONNECTED, QLatin1String("/sensors"), QLatin1String("Not connected")));
@@ -2229,6 +2242,7 @@ int DeRestPluginPrivate::searchNewSensors(const ApiRequest &req, ApiResponse &rs
         return REQ_READY_SEND;
     }
 
+    permitJoinApiKey = req.apikey();
     startSearchSensors();
     {
         QVariantMap rspItem;
@@ -2946,23 +2960,16 @@ void DeRestPluginPrivate::startSearchSensors()
     }
 
     searchSensorsTimeout = gwNetworkOpenDuration;
-    gwPermitJoinResend = searchSensorsTimeout;
-    if (!resendPermitJoinTimer->isActive())
-    {
-        resendPermitJoinTimer->start(100);
-    }
+    setPermitJoinDuration(searchSensorsTimeout);
 }
 
 /*! Handler for search sensors active state.
  */
 void DeRestPluginPrivate::searchSensorsTimerFired()
 {
-    if (gwPermitJoinResend == 0)
+    if (gwPermitJoinDuration == 0)
     {
-        if (gwPermitJoinDuration == 0)
-        {
-            searchSensorsTimeout = 0; // done
-        }
+        searchSensorsTimeout = 0; // done
     }
 
     if (searchSensorsTimeout > 0)
@@ -3011,14 +3018,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
 
         if (sensor->durationDue.isValid())
         {
-            QDateTime now = QDateTime::currentDateTime();
-
-            if (sensor->modelId() == QLatin1String("TY0202")) // Lidl/SILVERCREST motion sensor
-            {
-                continue; // will be only reset via IAS Zone status
-            }
-
-            if (sensor->durationDue <= now)
+            if (sensor->durationDue <= QDateTime::currentDateTime())
             {
                 // automatically set presence to false, if not triggered in config.duration
                 ResourceItem *item = sensor->item(RStatePresence);
@@ -3143,6 +3143,11 @@ void DeRestPluginPrivate::checkInstaModelId(Sensor *sensor)
 void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
     if (searchSensorsState != SearchSensorsActive)
+    {
+        return;
+    }
+
+    if (DEV_TestManaged())
     {
         return;
     }

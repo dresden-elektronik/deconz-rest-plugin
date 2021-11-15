@@ -46,6 +46,7 @@ class AlarmSystems;
 class ApsControllerWrapper;
 
 QLatin1String IAS_PanelStatusToString(quint8 panelStatus);
+int IAS_PanelStatusFromString(const QString &panelStatus);
 void IAS_IasAceClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, AlarmSystems *alarmSystems, ApsControllerWrapper &apsCtrlWrapper);
 
 #endif // IAS_ACE_H

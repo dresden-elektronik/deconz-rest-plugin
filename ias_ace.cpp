@@ -105,6 +105,18 @@ QLatin1String IAS_PanelStatusToString(quint8 panelStatus)
     return QLatin1String("");
 }
 
+int IAS_PanelStatusFromString(const QString &panelStatus)
+{
+    const auto i = std::find(IAS_PanelStates.cbegin(), IAS_PanelStates.cend(), panelStatus);
+
+    if (i != IAS_PanelStates.cend())
+    {
+        return std::distance(IAS_PanelStates.cbegin(), i);
+    }
+
+    return -1;
+}
+
 static quint8 handleArmCommand(AlarmSystem *alarmSys, quint8 armMode, const QString &pinCode, quint64 srcAddress)
 {
     if (!alarmSys || armMode > IAS_ACE_ARM_MODE_ARM_ALL_ZONES)
