@@ -70,6 +70,8 @@
 #define DP_IDENTIFIER_THERMOSTAT_MODE_3 0x65 // mode for Saswell device used with DP_TYPE_BOOL
 #define DP_IDENTIFIER_THERMOSTAT_MODE_4 0x01 // mode for Moes device used with DP_TYPE_ENUM
 
+#define DP_IDENTIFIER_THERMOSTAT_BOOST 0x04 // Boost for Moes
+
 // Value for dp_identifier for covering
 //-----------------------------------
 

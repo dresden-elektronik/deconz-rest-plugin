@@ -1138,6 +1138,20 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                         }
                     }
+                    else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BRT-100"))
+                    {
+                        const auto match = matchKeyValue(data.string, RConfigModeValuesTuya2);
+
+                        if (isValid(match))
+                        {
+                            QByteArray tuyaData = QByteArray::fromRawData(match.value, 1);
+
+                            if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_BOOST, tuyaData))
+                            {
+                                updated = true;
+                            }
+                        }
+                    }
                     else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV"))
