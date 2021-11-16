@@ -1140,7 +1140,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BRT-100"))
                     {
-                        const auto match = matchKeyValue(data.string, RConfigModeValuesTuya2);
+                        const auto match = matchKeyValue(data.string, RConfigModeValuesTuya4);
 
                         if (isValid(match))
                         {

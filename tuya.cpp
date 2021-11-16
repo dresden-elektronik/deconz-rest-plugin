@@ -827,7 +827,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         if (productId == "Tuya_THD BRT-100")
                         {
                             QString mode;
-                            if      (data == 0) { mode = QLatin1String("off"); }
+                            if      (data == 0) { mode = QLatin1String("auto"); }
                             else { mode = QLatin1String("heat"); }
                             
                             ResourceItem *item = sensorNode->item(RConfigMode);
