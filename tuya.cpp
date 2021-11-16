@@ -822,6 +822,24 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
+                    case 0x0104: // Boost on Moes
+                    {
+                        if (productId == "Tuya_THD BRT-100")
+                        {
+                            QString mode;
+                            if      (data == 0) { mode = QLatin1String("off"); }
+                            else { mode = QLatin1String("heat"); }
+                            
+                            ResourceItem *item = sensorNode->item(RConfigMode);
+
+                            if (item && item->toString() != mode)
+                            {
+                                item->setValue(mode);
+                                enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                            }
+                        }
+                    }
+                    break;
                     case 0x0107 : // Childlock status
                     {
                         bool locked = (data == 0) ? false : true;
