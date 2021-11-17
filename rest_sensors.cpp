@@ -1144,11 +1144,25 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                         if (isValid(match))
                         {
-                            QByteArray tuyaData = QByteArray::fromRawData(match.value, 1);
-
-                            if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_BOOST, tuyaData))
+                            if (match.key == QLatin1String("off")) // Fake off mode
                             {
+                                sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, DP_IDENTIFIER_THERMOSTAT_MODE_4, QByteArray("\x01", 1);) // mode manual
+                                sendTuyaRequest(task, TaskThermostat, DP_TYPE_VALUE, DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT, QByteArray("\x00\x00\x00\x05", 4);) // Set heat point 5 °C
                                 updated = true;
+                            }
+                            else if (match.key == QLatin1String("heat"))
+                            {
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_BOOST, QByteArray("\x01", 1);))
+                                {
+                                    updated = true;
+                                }
+                            }
+                            else
+                            {
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_BOOST, QByteArray("\x00", 1);))
+                                {
+                                    updated = true;
+                                }
                             }
                         }
                     }

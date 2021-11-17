@@ -981,6 +981,19 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         if (productId == "Tuya_THD BRT-100")
                         {
                             temp = temp * 10;
+                            
+                            //change the mode too ?
+                            ResourceItem *item = sensorNode->item(RConfigMode);
+                            
+                            QString mode = QLatin1String("auto");
+                            if (temp <= 500) { mode = QLatin1String("off"); }
+
+                            if (item && item->toString() != mode)
+                            {
+                                item->setValue(mode);
+                                enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                            }
+                            
                         }
                         
                         ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
@@ -989,7 +1002,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         {
                             item->setValue(temp);
                             enqueueEvent(Event(RSensors, RConfigHeatSetpoint, sensorNode->id(), item));
-
+                            update = true;
                         }
                     }
                     break;
