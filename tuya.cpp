@@ -1052,12 +1052,18 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     {
                         qint16 temp = static_cast<qint16>(data & 0xFFFF);
                         
+                        DBG_Printf(DBG_INFO, "Tuya debug temp 1 : %u\n",temp);
+                        
                         if (temp > 2048)
                         {
                             temp = temp - 4096;
                         }
                         
+                        DBG_Printf(DBG_INFO, "Tuya debug temp 2 : %u\n",temp);
+                        
                         temp = temp * 100;
+                        
+                        DBG_Printf(DBG_INFO, "Tuya debug temp 3 : %u\n",temp);
                         
                         ResourceItem *item = sensorNode->item(RConfigOffset);
 
