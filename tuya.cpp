@@ -1061,7 +1061,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         
                         DBG_Printf(DBG_INFO, "Tuya debug temp 2 : %u\n",temp);
                         
-                        temp = temp * 100;
+                        temp = temp * 1000;
                         
                         DBG_Printf(DBG_INFO, "Tuya debug temp 3 : %u\n",temp);
                         
