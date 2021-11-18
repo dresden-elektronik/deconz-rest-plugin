@@ -1130,18 +1130,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     case 0x0268 : // Valve position in % for Moe
                     {
                         quint8 valve = static_cast<qint8>(data & 0xFF);
-                        bool on = valve > 3;
 
-                        ResourceItem *item = sensorNode->item(RStateOn);
-                        if (item)
-                        {
-                            if (item->toBool() != on)
-                            {
-                                item->setValue(on);
-                                enqueueEvent(Event(RSensors, RStateOn, sensorNode->id(), item));
-                            }
-                        }
-                        item = sensorNode->item(RStateValve);
+                        ResourceItem *item = sensorNode->item(RStateValve);
                         if (item && item->toNumber() != valve)
                         {
                             item->setValue(valve);
@@ -1305,6 +1295,21 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
+                    case 0x0407 : // valve open / closed for Moes
+                    {
+                        bool on = data < 0x01; // 0x01 = off, 0x00 = on
+
+                        ResourceItem *item = sensorNode->item(RStateOn);
+                        if (item)
+                        {
+                            if (item->toBool() != on)
+                            {
+                                item->setValue(on);
+                                enqueueEvent(Event(RSensors, RStateOn, sensorNode->id(), item));
+                            }
+                        }
+                    }
+                        break;
                     case 0x046a : // Force mode : normal/open/close
                     {
                         QString mode;
