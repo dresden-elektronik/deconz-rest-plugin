@@ -826,16 +826,20 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     {
                         if (productId == "Tuya_THD BRT-100")
                         {
-                            QString mode;
-                            if      (data == 0) { mode = QLatin1String("auto"); }
-                            else { mode = QLatin1String("heat"); }
-                            
-                            ResourceItem *item = sensorNode->item(RConfigMode);
+                            QString preset;
+                            if (data == 0) { preset = QLatin1String("manual"); } //stop boosting
+                            else { preset = QLatin1String("boost"); } //start boosting
 
-                            if (item && item->toString() != mode)
+                            ResourceItem *item = sensorNode->item(RConfigPreset);
+
+                            if (item && item->toString() != preset && preset == QLatin1String("boost"))
                             {
-                                item->setValue(mode);
-                                enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                                // only change preset if it's not boosting or was boosting before
+                                if (preset == QLatin1String("boost") || item->toString() == QLatin1String("boost"))
+                                {
+                                    item->setValue(preset);
+                                    enqueueEvent(Event(RSensors, RConfigPreset, sensorNode->id(), item));
+                                }
                             }
                         }
                     }
@@ -982,18 +986,17 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         {
                             temp = temp * 10;
                             
-                            //change the mode too ?
+                            //change the mode too ? only if temp <5°C change it to off
                             ResourceItem *item = sensorNode->item(RConfigMode);
-                            
-                            QString mode = QLatin1String("auto");
-                            if (temp <= 500) { mode = QLatin1String("off"); }
 
-                            if (item && item->toString() != mode)
-                            {
-                                item->setValue(mode);
-                                enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                            if (temp <= 500) {
+                                QString mode = QLatin1String("off");
+                                if (item && item->toString() != mode)
+                                {
+                                    item->setValue(mode);
+                                    enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                                }
                             }
-                            
                         }
                         
                         ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
@@ -1210,22 +1213,44 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     case 0x0401: // Preset for Moes
                         if (productId == "Tuya_THD BRT-100")
                         {
+                            QString mode;
                             QString preset;
-                            if (data == 0) { preset = QLatin1String("auto"); } //programming
-                            else if (data == 1) { preset = QLatin1String("manual"); } //manual
-                            else if (data == 2) { preset = QLatin1String("temporary_manual"); } //temporary_manual
-                            else if (data == 3) { preset = QLatin1String("holiday"); } //holiday
+                            if (data == 0) { //programming
+                                mode = QLatin1String("auto");
+                                preset = QLatin1String("auto");
+                            }
+                            else if (data == 1) { //manual
+                                mode = QLatin1String("heat");
+                                preset = QLatin1String("manual");
+                            }
+                            else if (data == 2) { //temporary_manual
+                                mode = QLatin1String("heat");
+                                preset = QLatin1String("manual");
+                            }
+                            //temporary_manual
+                            else if (data == 3) { //holiday
+                                mode = QLatin1String("auto");
+                                preset = QLatin1String("holiday");
+                            }
                             else
                             {
                                 return;
                             }
                             
-                            ResourceItem *item = sensorNode->item(RConfigPreset);
+                            ResourceItem *item_mode = sensorNode->item(RConfigMode);
 
-                            if (item && item->toString() != preset)
+                            if (item_mode && item_mode->toString() != mode)
                             {
-                                item->setValue(preset);
-                                enqueueEvent(Event(RSensors, RConfigPreset, sensorNode->id(), item));
+                                item_mode->setValue(mode);
+                                enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item_mode));
+                            }
+
+                            ResourceItem *item_preset = sensorNode->item(RConfigPreset);
+
+                            if (item_preset && item_preset->toString() != preset)
+                            {
+                                item_preset->setValue(preset);
+                                enqueueEvent(Event(RSensors, RConfigPreset, sensorNode->id(), item_preset));
                             }
                         }
                     break;
