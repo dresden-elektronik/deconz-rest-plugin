@@ -47,10 +47,6 @@ static const ProductMap products[] =
     // Tuya_SEN : Sensor
     // Tuya_SWITCH : Wired Switch
     // Tuya_DIMSWITCH : Wired Switch with dimmer
-    
-    //Suffix signification
-    //--------------------
-    //(T) : Need hack for auto power off.
 
     // Tuya Thermostat / TRV
     {"_TYST11_zuhszj9s", "uhszj9s", "HiHome", "Tuya_THD WZB-TRVL TRV"},
@@ -105,9 +101,9 @@ static const ProductMap products[] =
      // Switch
     {"_TZE200_dfxkcots", "TS0601", "Earda", "Tuya_DIMSWITCH Earda Dimmer"},
     {"_TZE200_9i9dt8is", "TS0601", "Earda", "Tuya_DIMSWITCH EDM-1ZAA-EU"},
-    {"_TZ3000_fvh3pjaz", "TS0012", "Tuya", "Tuya_SWITCH 2 Gangs (T)"},
-    {"_TZ3000_9hpxg80k", "TS0011", "Tuya", "Tuya_SWITCH 1 Gangs (T)"},
-    {"_TZ3000_wyhuocal", "TS0013", "Tuya", "Tuya_SWITCH 3 Gangs (T)"},
+    {"_TZ3000_fvh3pjaz", "TS0012", "Tuya", "Tuya_SWITCH 2 Gangs"},
+    {"_TZ3000_9hpxg80k", "TS0011", "Tuya", "Tuya_SWITCH 1 Gangs"},
+    {"_TZ3000_wyhuocal", "TS0013", "Tuya", "Tuya_SWITCH 3 Gangs"},
 
     {nullptr, nullptr, nullptr, nullptr}
 };
