@@ -27,10 +27,6 @@ LightNode::LightNode() :
     m_sceneCapacity(16)
 
 {
-    QDateTime now = QDateTime::currentDateTime();
-    lastStatePush = now;
-    lastAttrPush = now;
-
     // add common items
     addItem(DataTypeBool, RStateOn);
     addItem(DataTypeString, RStateAlert);
@@ -271,80 +267,8 @@ uint8_t LightNode::colorLoopSpeed() const
  */
 void LightNode::didSetValue(ResourceItem *i)
 {
-    plugin->enqueueEvent(Event(RLights, i->descriptor().suffix, id(), i));
-    plugin->updateLightEtag(this);
+    enqueueEvent(Event(RLights, i->descriptor().suffix, id(), i));
     setNeedSaveDatabase(true);
-    plugin->saveDatabaseItems |= DB_LIGHTS;
-    plugin->queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
-}
-
-/*! Set ResourceItem value.
- * \param suffix ResourceItem suffix
- * \param val ResourceIetm value
- */
-bool LightNode::setValue(const char *suffix, qint64 val, bool forceUpdate)
-{
-    ResourceItem *i = item(suffix);
-    if (!i)
-    {
-        return false;
-    }
-    if (forceUpdate || i->toNumber() != val)
-    {
-        if (!(i->setValue(val)))
-        {
-            return false;
-        }
-        didSetValue(i);
-        return true;
-    }
-    return false;
-}
-
-/*! Set ResourceItem value.
- * \param suffix ResourceItem suffix
- * \param val ResourceIetm value
- */
-bool LightNode::setValue(const char *suffix, const QString &val, bool forceUpdate)
-{
-    ResourceItem *i = item(suffix);
-    if (!i)
-    {
-        return false;
-    }
-    if (forceUpdate || i->toString() != val)
-    {
-        if (!(i->setValue(val)))
-        {
-            return false;
-        }
-        didSetValue(i);
-        return true;
-    }
-    return false;
-}
-
-/*! Set ResourceItem value.
- * \param suffix ResourceItem suffix
- * \param val ResourceIetm value
- */
-bool LightNode::setValue(const char *suffix, const QVariant &val, bool forceUpdate)
-{
-    ResourceItem *i = item(suffix);
-    if (!i)
-    {
-        return false;
-    }
-    if (forceUpdate || i->toVariant() != val)
-    {
-        if (!(i->setValue(val)))
-        {
-            return false;
-        }
-        didSetValue(i);
-        return true;
-    }
-    return false;
 }
 
 /*! Mark received command and update lastseen. */
@@ -356,10 +280,6 @@ void LightNode::rx()
     {
         setValue(RAttrLastSeen, lastRx().toUTC());
     }
-    // else
-    // {
-    //     item(RAttrLastSeen)->setValue(lastRx().toUTC());
-    // }
 }
 
 /*! Returns the lights HA endpoint descriptor.
@@ -426,7 +346,10 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
 
             for (; i != end; ++i)
             {
-                if (i->id() == LEVEL_CLUSTER_ID)
+                if (i->id() == ONOFF_CLUSTER_ID)
+                {
+                }
+                else if (i->id() == LEVEL_CLUSTER_ID)
                 {
                     if ((manufacturerCode() == VENDOR_IKEA && endpoint.deviceId() == DEV_ID_Z30_ONOFF_PLUGIN_UNIT) || // IKEA Tradfri control outlet
                         (manufacturerCode() == VENDOR_INNR && endpoint.deviceId() == DEV_ID_ZLL_ONOFF_PLUGIN_UNIT) || // innr SP120 smart plug
@@ -646,7 +569,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             case DEV_ID_HA_WINDOW_COVERING_DEVICE:     ltype = QLatin1String("Window covering device"); break;
             case DEV_ID_DOOR_LOCK:                     ltype = QLatin1String("Door Lock"); break;
             case DEV_ID_DOOR_LOCK_UNIT:                ltype = QLatin1String("Door Lock Unit"); break;
-            
+
             case DEV_ID_FAN:                           ltype = QLatin1String("Fan"); break;
             case DEV_ID_CONFIGURATION_TOOL:            removeItem(RStateOn);
                                                        removeItem(RStateAlert);

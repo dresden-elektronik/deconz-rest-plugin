@@ -1,5 +1,6 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
+#include "device_descriptions.h"
 
 #define OCCUPIED_STATE                  0x0000
 #define OCCUPIED_TO_UNOCCUPIED_DELAY    0x0010
@@ -86,22 +87,30 @@ void DeRestPluginPrivate::handleOccupancySensingClusterIndication(const deCONZ::
                 enqueueEvent(Event(RSensors, RStatePresence, sensor->id(), item));
                 stateUpdated = true;
 
-                const NodeValue &val = sensor->getZclValue(OCCUPANCY_SENSING_CLUSTER_ID, OCCUPIED_STATE);
+                DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "Item.val = Attr.val != 0");
 
-                // prepare to automatically set presence to false
-                if (item->toBool())
+                // The checked sensors support reporting occupancy = false
+                if (!sensor->modelId().startsWith(QLatin1String("MOSZB-1")) && !sensor->modelId().startsWith(QLatin1String("SML00")))
                 {
-                    if (val.maxInterval > 0 && updateType == NodeValue::UpdateByZclReport)
+                    const NodeValue &val = sensor->getZclValue(OCCUPANCY_SENSING_CLUSTER_ID, OCCUPIED_STATE);
+
+                    // prepare to automatically set presence to false
+                    if (item->toBool())
                     {
-                        // prevent setting presence back to false, when report.maxInterval > config.duration
-                        sensor->durationDue = item->lastSet().addSecs(val.maxInterval);
-                    }
-                    else
-                    {
-                        ResourceItem *item2 = sensor->item(RConfigDuration);
-                        if (item2 && item2->toNumber() > 0)
+                        if (val.maxInterval > 0 && updateType == NodeValue::UpdateByZclReport)
                         {
-                            sensor->durationDue = item->lastSet().addSecs(item2->toNumber());
+                            // prevent setting presence back to false, when report.maxInterval > config.duration
+                            // Add 3 seconds grace time for late reports
+                            sensor->durationDue = item->lastSet().addSecs(val.maxInterval + 3);
+                        }
+                        else
+                        {
+                            ResourceItem *item2 = sensor->item(RConfigDuration);
+                            if (item2 && item2->toNumber() > 0)
+                            {
+                                // If occupied state is not reportable, add duration seconds after a occupied = true to automatically set to false
+                                sensor->durationDue = item->lastSet().addSecs(item2->toNumber());
+                            }
                         }
                     }
                 }

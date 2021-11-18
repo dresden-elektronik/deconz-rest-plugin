@@ -36,3 +36,11 @@ jobs:
       # Verify button maps JSON schema
       - name: Verify button maps JSON schema
         run: npx ajv -s button_maps.schema.json -d button_maps.json
+
+      # Install jsonlint
+      - name: Install jsonlint
+        run: sudo apt install jsonlint
+        
+      # Basic JSON checking
+      - name: Verify button maps has valid JSON
+        run: jsonlint-php button_maps.json
