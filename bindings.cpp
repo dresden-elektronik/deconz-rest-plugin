@@ -10,6 +10,8 @@
 
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
+#include "device.h"
+#include "device_descriptions.h"
 #include "utils/utils.h"
 #include "product_match.h"
 
@@ -108,6 +110,21 @@ bool Binding::writeToStream(QDataStream &stream) const
     return false;
 }
 
+/*! Converts a plugin Binding object to core deCONZ::Binding. */
+deCONZ::Binding convertToCoreBinding(const Binding &bnd)
+{
+    if (bnd.dstAddrMode == deCONZ::ApsExtAddress)
+    {
+        return deCONZ::Binding(bnd.srcAddress, bnd.dstAddress.ext, bnd.clusterId, bnd.srcEndpoint, bnd.dstEndpoint);
+    }
+    else if (bnd.dstAddrMode == deCONZ::ApsGroupAddress)
+    {
+        return deCONZ::Binding(bnd.srcAddress, bnd.dstAddress.group, bnd.clusterId, bnd.srcEndpoint);
+    }
+
+    return { };
+}
+
 /*! Queue reading ZDP binding table.
     \param node the node from which the binding table shall be read
     \param startIndex the index to start the reading
@@ -118,6 +135,12 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
     DBG_Assert(node != 0);
 
     if (!node || !node->node())
+    {
+        return false;
+    }
+
+    Device *device = DEV_GetDevice(m_devices, node->address().ext());
+    if (device && device->managed())
     {
         return false;
     }
@@ -225,26 +248,12 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
         std::vector<BindingTableReader>::iterator i = bindingTableReaders.begin();
         std::vector<BindingTableReader>::iterator end = bindingTableReaders.end();
 
-        if (ind.srcAddress().hasExt())
+        for (; i != end; ++i)
         {
-            for (; i != end; ++i)
+            if (isSameAddress(ind.srcAddress(), i->apsReq.dstAddress()))
             {
-                if (i->apsReq.dstAddress().ext() == ind.srcAddress().ext())
-                {
-                    btReader = &(*i);
-                    break;
-                }
-            }
-        }
-        else if (ind.srcAddress().hasNwk())
-        {
-            for (; i != end; ++i)
-            {
-                if (i->apsReq.dstAddress().nwk() == ind.srcAddress().nwk())
-                {
-                    btReader = &(*i);
-                    break;
-                }
+                btReader = &(*i);
+                break;
             }
         }
     }
@@ -337,6 +346,8 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
         {
             btReader->state = BindingTableReader::StateFinished;
         }
+
+        enqueueEvent({RDevices, REventBindingTable, status, ind.srcAddress().ext()});
     }
 
     while (listCount && !stream.atEnd())
@@ -436,6 +447,12 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
  */
 void DeRestPluginPrivate::handleZclConfigureReportingResponseIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
+    Device *device = DEV_GetDevice(m_devices, ind.srcAddress().ext());
+    if (device && device->managed())
+    {
+        return;
+    }
+
     QDateTime now = QDateTime::currentDateTime();
     std::vector<RestNodeBase*> allNodes;
     for (Sensor &s : sensors)
@@ -535,6 +552,12 @@ void DeRestPluginPrivate::handleZclConfigureReportingResponseIndication(const de
  */
 void DeRestPluginPrivate::handleBindAndUnbindRspIndication(const deCONZ::ApsDataIndication &ind)
 {
+    Device *device = DEV_GetDevice(m_devices, ind.srcAddress().ext());
+    if (device && device->managed())
+    {
+        return;
+    }
+
     QDataStream stream(ind.asdu());
     stream.setByteOrder(QDataStream::LittleEndian);
 
@@ -681,6 +704,65 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
 {
     DBG_Assert(!requests.empty());
     if (requests.empty())
+    {
+        return false;
+    }
+
+    // clue code to get classic hard coded C++ bindings into DDF
+    Device *device = DEV_GetDevice(m_devices, bt.binding.srcAddress);
+    if (!device)
+    {  }
+    else if (!device->managed())
+    {
+        DDF_Binding ddfBinding;
+
+        ddfBinding.isUnicastBinding = bt.binding.dstAddrMode == deCONZ::ApsExtAddress;
+        ddfBinding.isGroupBinding = bt.binding.dstAddrMode == deCONZ::ApsGroupAddress;
+        if (ddfBinding.isUnicastBinding)
+        {
+            ddfBinding.dstExtAddress = bt.binding.dstAddress.ext;
+        }
+        else if (ddfBinding.isGroupBinding)
+        {
+            ddfBinding.dstGroup = bt.binding.dstAddress.group;
+        }
+        ddfBinding.clusterId = bt.binding.clusterId;
+        ddfBinding.dstEndpoint =  bt.binding.dstEndpoint;
+        ddfBinding.srcEndpoint = bt.binding.srcEndpoint;
+
+        for (const ConfigureReportingRequest &rep : requests)
+        {
+            DDF_ZclReport ddfRep;
+
+            ddfRep.attributeId = rep.attributeId;
+            ddfRep.dataType = rep.dataType;
+            ddfRep.direction = rep.direction;
+            ddfRep.manufacturerCode = rep.manufacturerCode;
+            ddfRep.minInterval = rep.minInterval;
+            ddfRep.maxInterval = rep.maxInterval;
+            ddfRep.valid = true;
+
+            if      (rep.reportableChange16bit != 0xFFFF)     { ddfRep.reportableChange = rep.reportableChange16bit; }
+            else if (rep.reportableChange8bit != 0xFF)        { ddfRep.reportableChange = rep.reportableChange8bit; }
+            else if (rep.reportableChange24bit != 0xFFFFFF)   { ddfRep.reportableChange = rep.reportableChange24bit; }
+            else if (rep.reportableChange48bit != 0xFFFFFFFF) { ddfRep.reportableChange = rep.reportableChange48bit; }
+
+            ddfBinding.reporting.push_back(ddfRep);
+        }
+
+        device->addBinding(ddfBinding);
+
+        auto ddf = deviceDescriptions->get(device);
+        if (ddf.status == QLatin1String("Draft"))
+        {
+            if (ddf.bindings != device->bindings())
+            {
+                ddf.bindings = device->bindings();
+                deviceDescriptions->put(ddf);
+            }
+        }
+    }
+    else if (device->managed())
     {
         return false;
     }
@@ -1694,6 +1776,15 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.reportableChange16bit = 20;
         return sendConfigureReportingRequest(bt, {rq});
     }
+    else if (bt.binding.clusterId == SOIL_MOISTURE_CLUSTER_ID)
+    {
+        rq.dataType = deCONZ::Zcl16BitUint;
+        rq.attributeId = 0x0000; // measured value
+        rq.minInterval = 10;
+        rq.maxInterval = 300;
+        rq.reportableChange16bit = 20;
+        return sendConfigureReportingRequest(bt, {rq});
+    }
     else if (bt.binding.clusterId == BINARY_INPUT_CLUSTER_ID)
     {
         rq.dataType = deCONZ::ZclBoolean;
@@ -1795,14 +1886,18 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                  modelId == QLatin1String("Bell") ||
                  modelId == QLatin1String("ISW-ZPR1-WP13") ||
                  modelId == QLatin1String("SLT2") ||
+                 modelId == QLatin1String("SLT3") ||
                  modelId == QLatin1String("TS0202") || // Tuya sensor
                  modelId == QLatin1String("3AFE14010402000D") || // Konke presence sensor
                  modelId == QLatin1String("3AFE28010402000D") || // Konke presence sensor
+                 modelId == QLatin1String("lumi.airmonitor.acn01") ||      // Xiaomi Aqara TVOC Air Quality Monitor
                  modelId.startsWith(QLatin1String("GZ-PIR02")) ||          // Sercomm motion sensor
                  modelId.startsWith(QLatin1String("SZ-WTD02N_CAR")) ||     // Sercomm water sensor
                  modelId.startsWith(QLatin1String("3300")) ||          // Centralite contatc sensor
                  modelId.startsWith(QLatin1String("3315")) ||
                  modelId.startsWith(QLatin1String("3157100")) ||
+                 modelId == QLatin1String("URC4450BC0-X-R") || // Xfinity Keypad XHK1-UE / URC4450BC0-X-R
+                 modelId == QLatin1String("3405-L") || // IRIS 3405-L Keypad
                  modelId.startsWith(QLatin1String("4655BC0")))
         {
             rq.attributeId = 0x0020;   // battery voltage
@@ -1843,7 +1938,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 21600;
             rq.reportableChange8bit = 10;
         }
-        else if (modelId == QLatin1String("lumi.remote.b28ac1")) // Aqara Wireless Remote Switch H1 (Double Rocker)
+        else if (modelId == QLatin1String("lumi.remote.b28ac1") ||              // Aqara Wireless Remote Switch H1 (Double Rocker)
+                 modelId == QLatin1String("lumi.motion.agl04"))                 // Xiaomi Aqara RTCGQ13LM high precision motion sensor
         {
             rq.attributeId = 0x0020;   // battery voltage
             rq.minInterval = 3;
@@ -2422,6 +2518,12 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         }
     }
 
+    Device *device = DEV_GetDevice(m_devices, lightNode->address().ext());
+    if (device && device->managed())
+    {
+        return;
+    }
+
     BindingTask::Action action = BindingTask::ActionUnbind;
 
     // whitelist
@@ -2745,6 +2847,12 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         return false;
     }
 
+    Device *device = DEV_GetDevice(m_devices, sensor->address().ext());
+    if (device && device->managed())
+    {
+        return false;
+    }
+
     bool deviceSupported = false;
     // whitelist
         // Climax
@@ -2848,6 +2956,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("TY0203") ||  // Door sensor
         sensor->modelId() == QLatin1String("TY0202") || // Motion Sensor
         sensor->modelId() == QLatin1String("TS0211") || // Door bell
+        // DIYRuZ
+        sensor->modelId() == QLatin1String("DIYRuZ_Flower") || // DIYRuZ_Flower
         // Konke
         sensor->modelId() == QLatin1String("3AFE140103020000") ||
         sensor->modelId() == QLatin1String("3AFE130104020015") ||
@@ -2921,6 +3031,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("Remote toggle switch") || //Legrand switch module
         sensor->modelId() == QLatin1String("Teleruptor") || //Legrand teleruptor
         sensor->modelId() == QLatin1String("Contactor") || //Legrand Contactor
+        sensor->modelId() == QLatin1String("Pocket remote") || //Legrand wireless remote 4 scene
+        // Adeo
+        sensor->modelId() == QLatin1String("LDSENK10") || // ADEO Animal compatible motion sensor (Leroy Merlin)
         // Philio
         sensor->modelId() == QLatin1String("PST03A-v2.2.5") || //Philio pst03-a
         // ORVIBO
@@ -2962,8 +3075,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("TS0043")) || // to test
         sensor->modelId().startsWith(QLatin1String("TS0041")) ||
         sensor->modelId().startsWith(QLatin1String("TS0044")) ||
+        sensor->modelId().startsWith(QLatin1String("TS0203")) ||
         sensor->modelId().startsWith(QLatin1String("TS0222")) || // TYZB01 light sensor 
         sensor->modelId().startsWith(QLatin1String("TS004F")) || // 4 Gang Tuya ZigBee Wireless 12 Scene Switch
+        sensor->modelId().startsWith(QLatin1String("TS011F")) || // Plugs
         // Tuyatec
         sensor->modelId().startsWith(QLatin1String("RH3040")) ||
         sensor->modelId().startsWith(QLatin1String("RH3001")) ||
@@ -2972,7 +3087,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("lumi.plug.maeu01")) ||
         sensor->modelId().startsWith(QLatin1String("lumi.sen_ill.mgl01")) ||
         sensor->modelId().startsWith(QLatin1String("lumi.switch.b1naus01")) ||
+        sensor->modelId() == QLatin1String("lumi.airmonitor.acn01") ||
         sensor->modelId() == QLatin1String("lumi.sensor_magnet.agl02") ||
+        sensor->modelId() == QLatin1String("lumi.motion.agl04") ||
         sensor->modelId() == QLatin1String("lumi.flood.agl02") ||
         sensor->modelId() == QLatin1String("lumi.switch.n0agl1") ||
         sensor->modelId() == QLatin1String("lumi.remote.b28ac1") ||
@@ -2992,6 +3109,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("SLR2b") ||
         sensor->modelId() == QLatin1String("SLR1b") ||
         sensor->modelId() == QLatin1String("SLT2") ||
+        sensor->modelId() == QLatin1String("SLT3") ||
         sensor->modelId() == QLatin1String("TRV001") ||
         // Sengled
         sensor->modelId().startsWith(QLatin1String("E13-")) ||
@@ -3013,6 +3131,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("4in1-Sensor-ZB3.0") ||
         sensor->modelId() == QLatin1String("DoorWindow-Sensor-ZB3.0") ||
         sensor->modelId() == QLatin1String("Keyfob-ZB3.0") ||
+        // Casa.IA
+        sensor->modelId().startsWith(QLatin1String("CTHS317ET")) ||
         // Sercomm
         sensor->modelId().startsWith(QLatin1String("SZ-")) ||
         sensor->modelId().startsWith(QLatin1String("GZ-")) ||
@@ -3080,6 +3200,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("SWO-MOS1PA") ||
         // LIDL
         sensor->modelId() == QLatin1String("HG06323") ||
+        // Xfinity
+        sensor->modelId() == QLatin1String("URC4450BC0-X-R") ||
+        // Iris
+        sensor->modelId() == QLatin1String("3405-L") ||
         // Eria
         sensor->modelId() == QLatin1String("Adurolight_NCC")
         )
@@ -3185,6 +3309,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             }
             val = sensor->getZclValue(*i, 0x0000); // measured value
         }
+        else if (*i == SOIL_MOISTURE_CLUSTER_ID)
+        {
+            val = sensor->getZclValue(*i, 0x0000); // measured value
+        }
         else if (*i == OCCUPANCY_SENSING_CLUSTER_ID)
         {
             if (sensor->modelId() == QLatin1String("Motion Sensor-A"))
@@ -3208,6 +3336,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             if (sensor->modelId() == QLatin1String("Remote switch") ||
                 sensor->modelId() == QLatin1String("Shutters central remote switch") ||
                 sensor->modelId() == QLatin1String("Double gangs remote switch") ||
+                sensor->modelId() == QLatin1String("Pocket remote") ||
                 sensor->modelId() == QLatin1String("Remote toggle switch") )
             {
                 //Those device don't support report attribute
@@ -3237,11 +3366,13 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId() == QLatin1String("Remote switch") ||
                      sensor->modelId() == QLatin1String("Shutters central remote switch") ||
                      sensor->modelId() == QLatin1String("Double gangs remote switch") ||
+                     sensor->modelId() == QLatin1String("Pocket remote") ||
                      sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||
                      sensor->modelId().startsWith(QLatin1String("3AFE14010402000D")) || //konke presence sensor
                      sensor->modelId().startsWith(QLatin1String("3AFE28010402000D")) || //konke presence sensor
                      sensor->modelId().startsWith(QLatin1String("TS0202")) || //Tuya presence sensor
                      sensor->modelId().endsWith(QLatin1String("86opcn01")) || // Aqara Opple
+                     sensor->modelId() == QLatin1String("lumi.motion.agl04") || // Xiaomi Aqara RTCGQ13LM high precision motion sensor
                      sensor->modelId().startsWith(QLatin1String("1116-S")) ||
                      sensor->modelId().startsWith(QLatin1String("1117-S")) ||
                      sensor->modelId().startsWith(QLatin1String("3323")) ||
@@ -3249,6 +3380,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId().startsWith(QLatin1String("3305-S")) ||
                      sensor->modelId().startsWith(QLatin1String("3157100")) ||
                      sensor->modelId().startsWith(QLatin1String("4655BC0")) ||
+                     sensor->modelId() == QLatin1String("URC4450BC0-X-R") || // Xfinity Keypad XHK1-UE
+                     sensor->modelId() == QLatin1String("3405-L") || // IRIS 3405-L Keypad
                      sensor->modelId() == QLatin1String("113D"))
             {
                 val = sensor->getZclValue(*i, 0x0020); // battery voltage
@@ -3405,16 +3538,19 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
 
         quint16 maxInterval = val.maxInterval > 0 && val.maxInterval < 65535 ? (val.maxInterval * 3 / 2) : (60 * 15);
 
-        if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < maxInterval) // got update in timely manner
+        if (!DEV_TestManaged())
         {
-            DBG_Printf(DBG_INFO_L2, "binding for attribute reporting of ep: 0x%02X cluster 0x%04X seems to be active\n", val.endpoint, *i);
-            continue;
-        }
+            if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < maxInterval) // got update in timely manner
+            {
+                DBG_Printf(DBG_INFO_L2, "binding for attribute reporting of ep: 0x%02X cluster 0x%04X seems to be active\n", val.endpoint, *i);
+                continue;
+            }
 
-        if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() && sensor->lastRx().secsTo(now) > 6)
-        {
-            DBG_Printf(DBG_INFO, "skip binding for attribute reporting of ep: 0x%02X cluster 0x%04X (end-device might sleep)\n", val.endpoint, *i);
-            return false;
+            if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() && sensor->lastRx().secsTo(now) > 6)
+            {
+                DBG_Printf(DBG_INFO, "skip binding for attribute reporting of ep: 0x%02X cluster 0x%04X (end-device might sleep)\n", val.endpoint, *i);
+                return false;
+            }
         }
 
         quint8 srcEndpoint = sensor->fingerPrint().endpoint;
@@ -3443,6 +3579,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
         case RELATIVE_HUMIDITY_CLUSTER_ID:
         case PRESSURE_MEASUREMENT_CLUSTER_ID:
+        case SOIL_MOISTURE_CLUSTER_ID:
         case METERING_CLUSTER_ID:
         case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
         case VENDOR_CLUSTER_ID:
@@ -3477,6 +3614,11 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             else
             {
                 bindingTask.state = BindingTask::StateIdle;
+            }
+
+            if (DEV_TestManaged())
+            {
+                bindingTask.state = BindingTask::StateFinished; // don't actually send anything
             }
 
             bindingTask.action = action;
@@ -3539,6 +3681,12 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
 
     if (searchSensorsState != SearchSensorsActive &&
         idleTotalCounter < (IDLE_READ_LIMIT + (60 * 15))) // wait for some input before fire bindings
+    {
+        return false;
+    }
+
+    Device *device = DEV_GetDevice(m_devices, sensor->address().ext());
+    if (device && device->managed())
     {
         return false;
     }
@@ -3698,6 +3846,12 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         clusters.push_back(LEVEL_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
+    // LEGRAND Remote switch 4 scene
+    else if (sensor->modelId() == QLatin1String("Pocket remote"))
+    {
+        clusters.push_back(SCENE_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
     else if (sensor->modelId() == QLatin1String("ZBT-CCTSwitch-D0001"))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
@@ -3818,6 +3972,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     else if (sensor->modelId().startsWith(QLatin1String("TS0215")) ||
              sensor->modelId().startsWith(QLatin1String("RC_V14")) ||
              sensor->modelId().startsWith(QLatin1String("RC-EM")) ||
+             sensor->modelId() == QLatin1String("URC4450BC0-X-R") ||
+             sensor->modelId() == QLatin1String("3405-L") ||
              sensor->modelId().startsWith(QLatin1String("RC-EF-3.0")))
     {
         clusters.push_back(IAS_ACE_CLUSTER_ID);
@@ -5131,6 +5287,48 @@ bool DeRestPluginPrivate::queueBindingTask(const BindingTask &bindingTask)
     if (i == bindingQueue.end())
     {
         DBG_Printf(DBG_INFO_L2, "queue binding task for 0x%016llX, cluster 0x%04X\n", bindingTask.binding.srcAddress, bindingTask.binding.clusterId);
+
+        Device *device = DEV_GetDevice(m_devices, bindingTask.binding.srcAddress);
+
+        if (device && !device->managed())
+        {
+            DDF_Binding ddfBinding;
+
+            ddfBinding.isUnicastBinding = bindingTask.binding.dstAddrMode == deCONZ::ApsExtAddress;
+            ddfBinding.isGroupBinding = bindingTask.binding.dstAddrMode == deCONZ::ApsGroupAddress;
+            if (ddfBinding.isUnicastBinding)
+            {
+                ddfBinding.dstExtAddress = bindingTask.binding.dstAddress.ext;
+            }
+            else if (ddfBinding.isGroupBinding)
+            {
+                ddfBinding.dstGroup = bindingTask.binding.dstAddress.group;
+            }
+
+            ddfBinding.clusterId = bindingTask.binding.clusterId;
+            ddfBinding.dstEndpoint =  bindingTask.binding.dstEndpoint;
+            ddfBinding.srcEndpoint = bindingTask.binding.srcEndpoint;
+
+            device->addBinding(ddfBinding);
+
+            auto ddf = deviceDescriptions->get(device);
+            if (ddf.status == QLatin1String("Draft"))
+            {
+                if (ddf.bindings != device->bindings())
+                {
+                    ddf.bindings = device->bindings();
+                    deviceDescriptions->put(ddf);
+                }
+            }
+
+            if (bindingTask.state == BindingTask::StateFinished) // dummy
+            {
+                bindingQueue.push_back(bindingTask);
+                sendConfigureReportingRequest(bindingQueue.back());
+                return false;
+            }
+        }
+
         bindingQueue.push_back(bindingTask);
     }
     else

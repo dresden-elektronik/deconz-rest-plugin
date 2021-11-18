@@ -1,0 +1,10 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/tholddark",
+	"datatype": "UInt16",
+	"access": "RW",
+	"public": true,
+	"range": [0, 65534],
+    "default": 12000,
+	"description": "Specifies at which <code class=\"api-attribute\">lightlevel</code> the <code class=\"api-attribute\">dark</code> attribute turns false."
+}

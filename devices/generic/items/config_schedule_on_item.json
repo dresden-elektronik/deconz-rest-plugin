@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/schedule_on",
+	"datatype": "Bool",
+	"access": "RW",
+	"public": true,
+	"description": "Determines if on-device schedules for setting the heatsetpoint are currently used or if the thermostat is operated manually."
+}

@@ -78,6 +78,11 @@ struct SensorFingerprint
     std::vector<quint16> outClusters;
 };
 
+inline bool isValid(const SensorFingerprint &fp)
+{
+    return fp.endpoint != INVALID_ENDPOINT;
+}
+
 /*! \class Sensor
 
     Represents a HA based Sensor.
@@ -118,13 +123,17 @@ public:
     void setSwVersion(const QString &swversion);
     SensorMode mode() const;
     void setMode(SensorMode mode);
+    const QString &lastSeen() const;
+    void setLastSeen(const QString &ls);
+    const QString &lastAnnounced() const;
+    void setLastAnnounced(const QString &la);
+    void didSetValue(ResourceItem *i) override;
+    void rx();
     uint8_t resetRetryCount() const;
     void setResetRetryCount(uint8_t resetRetryCount);
     uint8_t zdpResetSeq() const;
     void setZdpResetSeq(uint8_t zdpResetSeq);
     void updateStateTimestamp();
-    void incrementRxCounter();
-    int rxCounter() const;
 
     QString stateToString();
     QString configToString();
@@ -150,7 +159,6 @@ private:
     uint8_t m_resetRetryCount;
     uint8_t m_zdpResetSeq;
     ButtonMapRef m_buttonMapRef{};
-    int m_rxCounter;
 };
 
 #endif // SENSOR_H

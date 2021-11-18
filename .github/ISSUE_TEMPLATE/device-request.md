@@ -8,6 +8,7 @@ assignees: ''
 ---
 
 <!--
+  !!!!! READ THIS FIRST: https://forum.phoscon.de/t/read-me-device-request-read-me/23/2 !!!!!!
   - Before requesting a device, please make sure to search the open and closed issues for any requests in the past.
   - Make sure not to remove any headers and fill the template completely. If you remove the headers, the issue will be auto-closed.
   - Sometimes devices have been requested before but are not implemented yet due to various reasons.
