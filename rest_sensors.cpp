@@ -1034,6 +1034,14 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 						if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BRT-100"))
                         {
                             data.integer = data.integer / 10;
+
+                            ResourceItem *item = sensor->item(RConfigMode);
+
+                            if (data.integer > 5 && item && item->toString() == QLatin1String("off")) // reverse setting for fake off mode
+                            {
+                                QString mode = QLatin1String("heat");
+                                item->setValue(mode);
+                            }
                         }
                         else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                             R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
@@ -1146,20 +1154,27 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             if (match.key == QLatin1String("off")) // Fake off mode
                             {
-                                sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, DP_IDENTIFIER_THERMOSTAT_MODE_4, QByteArray("\x01", 1)); // mode manual
-                                sendTuyaRequest(task, TaskThermostat, DP_TYPE_VALUE, DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT, QByteArray("\x00\x00\x00\x05", 4)); // Set heat point 5 °C
-                                updated = true;
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, DP_IDENTIFIER_THERMOSTAT_MODE_4, QByteArray("\x01", 1)) &&
+                                    sendTuyaRequest(task, TaskThermostat, DP_TYPE_VALUE, DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT, QByteArray("\x00\x00\x00\x05", 4))) // mode manual and Set heat point 5 °C
+                                {
+                                    updated = true;
+                                }
                             }
                             else if (match.key == QLatin1String("heat"))
                             {
-                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_BOOST, QByteArray("\x01", 1)))
+                                ResourceItem *item = sensor->item(RConfigHeatSetpoint);
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, DP_IDENTIFIER_THERMOSTAT_MODE_4, QByteArray("\x01", 1))) // mode manual
                                 {
+                                    if(item->toNumber() <= 500) // reverse fake off mode by setting temp to 20°C
+                                    {
+                                        sendTuyaRequest(task, TaskThermostat, DP_TYPE_VALUE, DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT, QByteArray("\x00\x00\x00\x14", 4));
+                                    }
                                     updated = true;
                                 }
                             }
                             else
                             {
-                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_BOOST, QByteArray("\x00", 1)))
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, DP_IDENTIFIER_THERMOSTAT_MODE_4, QByteArray("\x00", 1))) // mode auto
                                 {
                                     updated = true;
                                 }
@@ -1322,9 +1337,20 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             QByteArray tuyaData = QByteArray::fromRawData(match.value, 1);
 
-                            if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, DP_IDENTIFIER_THERMOSTAT_MODE_4, tuyaData))
+                            if (match.key == QLatin1String("boost")) //start boost
                             {
-                                updated = true;
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_BOOST, QByteArray("\x01", 1)))
+                                {
+                                    updated = true;
+                                }
+                            }
+                            else // stop boost
+                            {
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, DP_IDENTIFIER_THERMOSTAT_MODE_4, tuyaData) &&
+                                    sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_BOOST, QByteArray("\x00", 1)))
+                                {
+                                    updated = true;
+                                }
                             }
                         }
                     }
