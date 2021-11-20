@@ -1165,7 +1165,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                     updated = true;
                                 }
                             }
-                            else
+                            else // auto
                             {
                                 if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_SCHEDULE_ENABLE, QByteArray("\x01", 1)) &&
                                     sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_MODE_3, QByteArray("\x01", 1)))
