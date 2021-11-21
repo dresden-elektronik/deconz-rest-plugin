@@ -230,3 +230,13 @@ int JsZclFrame::payloadSize() const
     }
     return 0;
 }
+
+bool JsZclFrame::isClCmd() const
+{
+    if (zclFrame)
+    {
+        return zclFrame->isClusterCommand();
+    }
+
+    return false;
+}

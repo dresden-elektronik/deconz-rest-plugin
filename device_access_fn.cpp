@@ -8,9 +8,11 @@
  *
  */
 
-#include "resource.h"
+#include "air_quality.h"
 #include "device_access_fn.h"
 #include "device_js/device_js.h"
+#include "ias_zone.h"
+#include "resource.h"
 #include "zcl/zcl.h"
 
 enum DA_Constants
@@ -480,7 +482,7 @@ bool parseXiaomiSpecial(Resource *r, ResourceItem *item, const deCONZ::ApsDataIn
         return result;
     }
 
-    if (ind.clusterId() != 0x0000) // must be basic cluster
+    if (ind.clusterId() != 0x0000 && ind.clusterId() != 0xfcc0) // must be basic or lumi specific cluster
     {
         return result;
     }
@@ -500,6 +502,12 @@ bool parseXiaomiSpecial(Resource *r, ResourceItem *item, const deCONZ::ApsDataIn
 
         param.endpoint = BroadcastEndpoint; // default
         param.clusterId = 0x0000;
+        
+        if (ind.clusterId() == 0xfcc0)
+        {
+            param.clusterId = 0xfcc0;
+            param.manufacturerCode = 0x115f;
+        }
 
         if (map.contains(QLatin1String("ep")))
         {
@@ -551,6 +559,195 @@ bool parseXiaomiSpecial(Resource *r, ResourceItem *item, const deCONZ::ApsDataIn
     if (evalZclAttribute(r, item, ind, zclFrame, attr, parseParameters))
     {
         result = true;
+    }
+
+    return result;
+}
+
+/*! A function to parse IAS Zone status change notifications or read/report commands for IAS Zone status of the IAS Zone cluster.
+    The item->parseParameters() is expected to be an object (given in the device description file).
+
+    {"fn": "ias:zonestatus", "mask": expression}
+
+    - expression (optional): The bitmask to be applied for Alarm1 and Alarm2 of the IAS zone status value
+
+    Example: { "parse": {"fn": "ias:zonestatus", "mask": "alarm1,alarm2" } }
+ */
+bool parseIasZoneNotificationAndStatus(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, const QVariant &parseParameters)
+{
+    bool result = false;
+
+    if (ind.clusterId() != IAS_ZONE_CLUSTER_ID)
+    {
+        return result;
+    }
+
+    if (ind.srcEndpoint() != resolveAutoEndpoint(r))
+    {
+        return result;
+    }
+
+    if (zclFrame.isClusterCommand())  // is IAS Zone status notification?
+    {
+        if (zclFrame.commandId() != CMD_STATUS_CHANGE_NOTIFICATION)
+        {
+            return result;
+        }
+
+    }
+    else if (zclFrame.commandId() != deCONZ::ZclReadAttributesResponseId && zclFrame.commandId() != deCONZ::ZclReportAttributesId) // is read or report?
+    {
+        return result;
+    }
+
+    if (!item->parseFunction()) // init on first call
+    {
+        item->setParseFunction(parseIasZoneNotificationAndStatus);
+    }
+
+    QDataStream stream(zclFrame.payload());
+    stream.setByteOrder(QDataStream::LittleEndian);
+
+    quint16 zoneStatus = UINT16_MAX;
+
+    while (!stream.atEnd())
+    {
+        if (zclFrame.isClusterCommand())
+        {
+            quint8 extendedStatus;
+            quint8 zoneId;
+            quint16 delay;
+
+            stream >> zoneStatus;
+            stream >> extendedStatus; // reserved, set to 0
+            stream >> zoneId;
+            stream >> delay;
+
+            DBG_Assert(stream.status() == QDataStream::Ok);
+        }
+        else
+        {
+            quint16 attrId;
+            quint8 status;
+            quint8 dataType;
+
+            stream >> attrId;
+
+            if (zclFrame.commandId() == deCONZ::ZclReadAttributesResponseId)
+            {
+                stream >> status;
+                if (status != deCONZ::ZclSuccessStatus)
+                {
+                    continue;
+                }
+            }
+
+            stream >> dataType;
+            deCONZ::ZclAttribute attr(attrId, dataType, QLatin1String(""), deCONZ::ZclReadWrite, true);
+
+            if (!attr.readFromStream(stream))
+            {
+                break;
+            }
+
+            if (attr.id() == 0x0002)
+            {
+                zoneStatus = attr.numericValue().u16;
+                break;
+            }
+        }
+    }
+
+    if (zoneStatus != UINT16_MAX)
+    {
+        int mask = 0;
+        const char *suffix = item->descriptor().suffix;
+
+        if (suffix == RStateAlarm || suffix == RStateCarbonMonoxide || suffix == RStateFire || suffix == RStateOpen ||
+            suffix == RStatePresence || suffix == RStateVibration || suffix == RStateWater)
+        {
+            const auto map = parseParameters.toMap();
+
+            if (map.contains(QLatin1String("mask")))
+            {
+                QStringList alarmMask = map["mask"].toString().split(',', QString::SkipEmptyParts);
+
+                if (alarmMask.contains(QLatin1String("alarm1"))) { mask |= STATUS_ALARM1; }
+                if (alarmMask.contains(QLatin1String("alarm2"))) { mask |= STATUS_ALARM2; }
+            }
+        }
+        else if (suffix == RStateTampered)
+        {
+            mask |= STATUS_TAMPER;
+        }
+        else if (suffix == RStateLowBattery)
+        {
+            mask |= STATUS_BATTERY;
+        }
+        else if (suffix == RStateTest)
+        {
+            mask |= STATUS_TEST;
+        }
+
+        item->setValue((zoneStatus & mask) != 0);
+        item->setLastZclReport(deCONZ::steadyTimeRef().ref);    // Treat as report
+        result = true;
+    }
+
+    return result;
+}
+
+/*! A function to parse the air quality attribute and set the string rating for resource item 'airQuality' at the same time.
+    IMPORTANT: The parse function must be used on resource item 'airQualityPpb', resource item 'airQuality' can then be left untouched completely.
+    The item->parseParameters() is expected to be an object (given in the device description file).
+
+    {"fn": "air:rawtorating", "ep": endpoint, "cl": clusterId, "at": attributeId, "mf": manufacturerCode, "eval": expression, "to": rating}
+
+    - endpoint: (optional) 255 means any endpoint, 0 means auto selected from the related resource, defaults to 0
+    - clusterId: string hex value
+    - attributeId: string hex value or array of string hex values
+    - manufacturerCode: (optional) string hex value, defaults to "0x0000" for non manufacturer specific commands
+    - expression: Javascript expression to transform the raw value
+    - rating: Rating scale to apply on 'airQualityPpb', updating 'airQuality'
+
+    Example: { "parse": {"fn": "air:rawtorating", "ep:" 38, "cl": "0xfc03", "at": "0x0000", "mf": "0x1015", "eval": "Item.val = Attr.val;", "to": "voclevelger" } }
+ */
+bool parseAirQuality(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, const QVariant &parseParameters)
+{
+    bool result = false;
+    const char *suffix = item->descriptor().suffix;
+
+    if (suffix == RStateAirQualityPpb)
+    {
+        if (parseZclAttribute(r, item, ind, zclFrame, parseParameters))
+        {
+            if (!item->parseFunction()) // init on first call
+            {
+                item->setParseFunction(parseAirQuality);
+            }
+
+            result = true;
+
+            if (r->item(RStateAirQuality))
+            {
+                QString airQuality;
+                KeyValMapAirQuality match;
+                
+                const auto map = parseParameters.toMap();
+                const bool rating = map.contains(QLatin1String("to"));
+                const quint16 airQualityRaw = static_cast<quint16>(item->toNumber());
+
+                if (!rating) { match = lessThenKeyValue(airQualityRaw, RStateAirQualityVocLevelGer); }
+                else if (map["to"].toString() == QLatin1String("voclevelger")) { match = lessThenKeyValue(airQualityRaw, RStateAirQualityVocLevelGer); }
+
+                if (match.key)
+                {
+                    airQuality = match.value;
+                    r->item(RStateAirQuality)->setValue(airQuality);
+                    r->item(RStateAirQuality)->setLastZclReport(item->lastZclReport()); // Treat as report
+                }
+            }
+        }
     }
 
     return result;
@@ -764,10 +961,12 @@ ParseFunction_t DA_GetParseFunction(const QVariant &params)
 {
     ParseFunction_t result = nullptr;
 
-    const std::array<ParseFunction, 2> functions =
+    const std::array<ParseFunction, 4> functions =
     {
         ParseFunction("zcl", 1, parseZclAttribute),
-        ParseFunction("xiaomi:special", 1, parseXiaomiSpecial)
+        ParseFunction("xiaomi:special", 1, parseXiaomiSpecial),
+        ParseFunction("ias:zonestatus", 1, parseIasZoneNotificationAndStatus),
+        ParseFunction("air:rawtorating", 1, parseAirQuality)
     };
 
     QString fnName;

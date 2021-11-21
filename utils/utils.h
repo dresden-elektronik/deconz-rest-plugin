@@ -45,6 +45,12 @@ struct KeyValMapTuyaSingle
     char value[1];
 };
 
+struct KeyValMapAirQuality
+{
+    quint16 key;
+    QLatin1String value;
+};
+
 struct RestData
 {
     bool boolean;
@@ -61,7 +67,6 @@ int indexOf(QLatin1String haystack, QLatin1String needle);
 bool contains(QLatin1String haystack, QLatin1String needle);
 RestData verifyRestData(const ResourceItemDescriptor &rid, const QVariant &val);
 bool isSameAddress(const deCONZ::Address &a, const deCONZ::Address &b);
-QString getAirQualityString(quint32 levelPpb);
 quint8 calculateBatteryPercentageRemaining(const quint8 batteryVoltage, const float vmin, const float vmax);
 
 inline bool isValid(const KeyMap &entry) { return entry.key.size() != 0; }
@@ -72,12 +77,26 @@ constexpr KeyMap invalidValue(KeyMap) { return KeyMap{QLatin1String("")}; }
 constexpr KeyValMap invalidValue(KeyValMap) { return KeyValMap{QLatin1String(""), 0 }; }
 constexpr KeyValMapInt invalidValue(KeyValMapInt) { return KeyValMapInt{ 0, 0 }; }
 constexpr KeyValMapTuyaSingle invalidValue(KeyValMapTuyaSingle) { return KeyValMapTuyaSingle{QLatin1String(""), {0} }; }
+constexpr KeyValMapAirQuality invalidValue(KeyValMapAirQuality) { return KeyValMapAirQuality{ 0, QLatin1String("") }; }
 
 template <typename K, typename Cont, typename V = typename Cont::value_type>
 decltype(auto) matchKeyValue(const K &key, const Cont &cont)
 {
     V ret = invalidValue(ret);
     const auto res = std::find_if(cont.cbegin(), cont.cend(), [&key](const auto &i){ return i.key == key; });
+    if (res != cont.cend())
+    {
+        ret = *res;
+    }
+
+    return ret;
+}
+
+template <typename K, typename Cont, typename V = typename Cont::value_type>
+decltype(auto) lessThenKeyValue(const K &key, const Cont &cont)
+{
+    V ret = invalidValue(ret);
+    const auto res = std::find_if(cont.cbegin(), cont.cend(), [&key](const auto &i){ return key <= i.key; });
     if (res != cont.cend())
     {
         ret = *res;
