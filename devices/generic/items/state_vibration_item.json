@@ -2,7 +2,8 @@
 	"schema": "resourceitem1.schema.json",
 	"id": "state/vibration",
 	"datatype": "Bool",
-	"access": "RW",
+	"access": "R",
 	"public": true,
-	"description": "True when vibration is detected."
+	"description": "True when vibration is detected.",
+	"parse": {"fn": "ias:zonestatus", "mask": "alarm1,alarm2"}
 }
