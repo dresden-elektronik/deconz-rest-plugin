@@ -857,6 +857,19 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
+					case 0x010D : // Childlock status for BRT-100
+                    {
+                        bool locked = (data == 0) ? false : true;
+                        ResourceItem *item = sensorNode->item(RConfigLocked);
+
+                        if (item && item->toBool() != locked)
+                        {
+                            item->setValue(locked);
+                            Event e(RSensors, RConfigLocked, sensorNode->id(), item);
+                            enqueueEvent(e);
+                        }
+                    }
+                    break;
                     case 0x010E : // Woox Low Battery
                     {
                         bool lowbat = (data == 0) ? false : true;
