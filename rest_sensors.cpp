@@ -918,13 +918,12 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         bool alternative = false;
                         
                         qint8 offset2 = data.integer / 100;
+                        
+                        if (offset2 > 6)  { offset2 = 6;  } // offset, min = -60, max = 60
+                        if (offset2 < -6) { offset2 = -6; }
 
-                        if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") || // Moes
-                            R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
+                        if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat")) // Moes
                         {
-                            if (offset2 > 60)  { offset2 = 60;  } // offset, min = -60, max = 60
-                            if (offset2 < -60) { offset2 = -60; }
-                            
                             if (offset2 < 0)
                             {
                                 offset2 = 4096 + offset2;
@@ -932,11 +931,14 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                             alternative = true;
                         }
-                        else // Others
+                        else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") || // Saswell
+                                 R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                                 R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV"))
                         {
-                            if (offset2 > 90)  { offset2 = 90;  } // offset, min = -90, max = 90
-                            if (offset2 < -90) { offset2 = -90; }
-                            
+                            alternative = true;
+                        }
+                        else // others
+                        {
                             offset2 = offset2 * 10;
                         }
 
@@ -954,7 +956,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                         else
                         {
-                            if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_VALUE, DP_IDENTIFIER_THERMOSTAT_CALIBRATION_1, tuyaData)) // Moes
+                            if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_VALUE, DP_IDENTIFIER_THERMOSTAT_CALIBRATION_1, tuyaData)) // Moes and Saswell
                             {
                                 updated = true;
                             }

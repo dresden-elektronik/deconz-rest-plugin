@@ -1048,13 +1048,16 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
-                    case 0x021B : // temperature calibration (offset in degree) for Moes
+                    case 0x021B : // temperature calibration (offset in degree) for Moes and Saswell
                     {
                         qint16 temp = static_cast<qint16>(data & 0xFFFF);
                         
-                        if (temp > 2048)
+                        if (productId == "Tuya_THD BTH-002 Thermostat") // Only Moes
                         {
-                            temp = temp - 4096;
+                            if (temp > 2048)
+                            {
+                                temp = temp - 4096;
+                            }
                         }
                         
                         temp = temp * 100;
