@@ -1036,11 +1036,23 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             data.integer = data.integer / 10;
 
                             ResourceItem *item = sensor->item(RConfigMode);
+                            ResourceItem *item2 = sensor->item(RConfigPreset);
 
-                            if (data.integer > 5 && item && item->toString() == QLatin1String("off")) // reverse setting for fake off mode
+                            if (data.integer > 5 && item) // reverse setting for fake off mode
                             {
-                                QString mode = QLatin1String("heat");
-                                item->setValue(mode);
+                                if (item->toString() == QLatin1String("off"))
+                                {
+                                    QString mode = QLatin1String("heat");
+                                    item->setValue(mode);
+                                }
+                                else if (item->toString() == QLatin1String("auto") &&
+                                         item2 && item2->toString() == QLatin1String("auto")) // change mode to manual if mode and preset have been auto
+                                {
+                                    QString mode = QLatin1String("heat");
+                                    QString preset = QLatin1String("manual");
+                                    item->setValue(mode);
+                                    item2->setValue(preset);
+                                }
                             }
                         }
                         else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
