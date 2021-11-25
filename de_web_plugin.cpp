@@ -526,6 +526,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SCHNEIDER, "iTRV", silabs3MacPrefix }, // Drayton Wiser Radiator Thermostat
     { VENDOR_SCHNEIDER, "CCT593011_AS", emberMacPrefix }, // LK Wiser Temperature and Humidity Sensor
     { VENDOR_SCHNEIDER, "CCT595011_AS", emberMacPrefix }, // LK Wiser Motion Sensor
+    { VENDOR_DANFOSS, "eT093WRO", silabs5MacPrefix }, // POPP Smart Thermostat
     { VENDOR_DANFOSS, "eTRV0100", silabs2MacPrefix }, // Danfoss Ally thermostat
     { VENDOR_DANFOSS, "0x8020", silabs6MacPrefix }, // Danfoss RT24V Display thermostat
     { VENDOR_DANFOSS, "0x8021", silabs6MacPrefix }, // Danfoss RT24V Display thermostat with floor sensor
