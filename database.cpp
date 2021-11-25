@@ -3884,7 +3884,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeString, RConfigFanMode);
                 }
                 else if (sensor.modelId() == QLatin1String("eTRV0100") || // Danfoss Ally
-                         sensor.modelId() == QLatin1String("TRV001"))     // Hive TRV
+                         sensor.modelId() == QLatin1String("TRV001") ||   // Hive TRV
+                         sensor.modelId() == QLatin1String("eT093WRO"))   // POPP smart thermostat
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
                     sensor.addItem(DataTypeString, RStateWindowOpen);
