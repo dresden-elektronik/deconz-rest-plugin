@@ -67,7 +67,7 @@ void DeRestPluginPrivate::handleDiagnosticsClusterIndication(const deCONZ::ApsDa
             {
             case 0x4000: // SW error code
             {
-                if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001"))
+                if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001") || sensor->modelId() == QLatin1String("eT093WRO"))
                 {
                     quint16 value = attr.numericValue().u16;
                     QString errorCode = QString("%1").arg(value, 4, 16, QLatin1Char('0')).toUpper();
