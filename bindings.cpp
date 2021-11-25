@@ -3168,6 +3168,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Owon
         sensor->modelId() == QLatin1String("AC201") ||
         sensor->modelId() == QLatin1String("PR412C") ||
+        // Third Reality 
+        sensor->modelId() == QLatin1String("3RMS16BZ") ||
         // D-Link
         sensor->modelId() == QLatin1String("DCH-B112") ||
         sensor->modelId() == QLatin1String("DCH-B122") ||

@@ -113,6 +113,7 @@ const quint64 konkeMacPrefix      = 0x086bd70000000000ULL;
 const quint64 ikea2MacPrefix      = 0x14b4570000000000ULL;
 const quint64 profaluxMacPrefix   = 0x20918a0000000000ULL;
 const quint64 stMacPrefix         = 0x24fd5b0000000000ULL;
+const quint64 thirdrealityPrefix  = 0x282c020000000000ULL;
 const quint64 samjinMacPrefix     = 0x286d970000000000ULL;
 const quint64 casaiaPrefix        = 0x3c6a2c0000000000ULL;
 const quint64 sinopeMacPrefix     = 0x500b910000000000ULL;
@@ -168,6 +169,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_CLS, "3200-de", emberMacPrefix }, // Centralite smart plug / Samsung smart outlet
     { VENDOR_C2DF, "3300", emberMacPrefix }, // Centralite contact sensor
     { VENDOR_C2DF, "3320-L", emberMacPrefix }, // Centralite contact sensor
+    { VENDOR_THIRD_REALITY, "3RMS16BZ", thirdrealityPrefix }, // THIRDREALITY Zigbee Motion Sensor, Pet Friendly
     { VENDOR_C2DF, "3315", emberMacPrefix }, // Centralite water sensor
     { VENDOR_D_LINK, "DCH-B112", dlinkMacPrefix }, // D-Link DCH-B112 door/window sensor
     { VENDOR_D_LINK, "DCH-B122", dlinkMacPrefix }, // D-Link DCH-B122 motion sensor
@@ -5900,6 +5902,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId == QLatin1String("TS0202") ||                    // Tuya generic motion sensor
                              modelId == QLatin1String("TY0202") ||                    // Lidl/Silvercrest Smart Motion Sensor
                              modelId == QLatin1String("LDSENK10") ||                  // ADEO - Animal compatible motion sensor
+                             modelId == QLatin1String("3RMS16BZ") ||                  // THIRDREALITY Zigbee Motion Sensor, Pet Friendly
                              modelId == QLatin1String("66666") ||                     // Sonoff SNZB-03
                              modelId == QLatin1String("MS01") ||                      // Sonoff SNZB-03
                              modelId == QLatin1String("MSO1") ||                      // Sonoff SNZB-03

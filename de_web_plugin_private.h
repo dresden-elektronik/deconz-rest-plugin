@@ -515,6 +515,7 @@ extern const quint64 silabs13MacPrefix;
 extern const quint64 instaMacPrefix;
 extern const quint64 casaiaPrefix;
 extern const quint64 boschMacPrefix;
+extern const quint64 thirdrealityPrefix;
 extern const quint64 jennicMacPrefix;
 extern const quint64 lutronMacPrefix;
 extern const quint64 netvoxMacPrefix;
