@@ -8129,9 +8129,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                     }
                 }
             }
-            if (!DEV_TestStrict())
+            else if (*ci == TIME_CLUSTER_ID)
             {
-                else if (*ci == TIME_CLUSTER_ID)
+                if (!DEV_TestStrict())
                 {
                     if (sensorNode.modelId() == QLatin1String("Thermostat")) // eCozy
                     {
