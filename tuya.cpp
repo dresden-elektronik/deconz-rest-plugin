@@ -942,7 +942,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     {
                         QString mode;
                         if      (data == 0) { mode = QLatin1String("off"); }
-                        else if (data == 1) { mode = QLatin1String("manu"); }
+                        else if (data == 1) { mode = QLatin1String("auto"); }
                         else
                         {
                             return;
@@ -950,10 +950,12 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
 
                         ResourceItem *item = sensorNode->item(RConfigMode);
 
-                        if (item && item->toString() != mode && data == 0) // Only change if off
+                        if (item && item->toString() != mode && 
+                           (mode == QLatin1String("off") || item->toString() == QLatin1String("off"))) // Only change if the state is off or become off
                         {
                             item->setValue(mode);
                             enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                            update = true;
                         }
                     }
                     break;
@@ -965,20 +967,25 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     break;
                     case 0x016c: // manual / auto : Schedule mode for Saswell devices
                     {
-                        QString mode;
-                        if      (data == 0) { mode = QLatin1String("heat"); } // was "manu"
-                        else if (data == 1) { mode = QLatin1String("auto"); } // back to "auto"
-                        else
-                        {
-                            return;
-                        }
-
                         ResourceItem *item = sensorNode->item(RConfigMode);
-
-                        if (item && item->toString() != mode)
+                        
+                        if (item)
                         {
-                            item->setValue(mode);
-                            enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                            QString mode;
+                            if      (data == 0) { mode = QLatin1String("heat"); } // can be "off" or "heat"
+                            else if (data == 1) { mode = QLatin1String("auto"); } // "auto" for sure
+                            else
+                            {
+                                return;
+                            }
+
+                            if (item->toString() != mode && 
+                               (mode == QLatin1String("auto") || item->toString() == QLatin1String("auto"))) // Only change if the state is auto or become auto
+                            {
+                                item->setValue(mode);
+                                enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                                update = true;
+                            }
                         }
                     }
                     break;
