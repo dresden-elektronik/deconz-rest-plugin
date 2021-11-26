@@ -3757,6 +3757,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD MOES TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD BRT-100") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                 {
                     sensor.addItem(DataTypeString, RConfigMode);
@@ -3767,6 +3768,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD BRT-100") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV"))
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
@@ -3782,6 +3784,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD MOES TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD BRT-100") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                 {
                     sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
@@ -3795,6 +3798,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD BRT-100") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                 {
                     sensor.addItem(DataTypeString, RConfigPreset);
@@ -3819,6 +3823,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD BRT-100") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV"))
                 {
                     sensor.addItem(DataTypeBool, RConfigWindowOpen)->setValue(false);
