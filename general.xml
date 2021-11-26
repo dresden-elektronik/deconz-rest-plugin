@@ -651,6 +651,11 @@
                 <value name="Mode 2" value="1"></value>
                 <value name="Mode 3" value="2"></value>
             </attribute>
+            <attribute id="0x8002" name="Power on state" type="enum8" default="0" required="m" access="rw">
+                <value name="Off" value="0"></value>
+                <value name="On" value="1"></value>
+                <value name="Last state" value="2"></value>
+            </attribute>
         </attribute-set>
 
 			<command id="00" dir="recv" name="Off" required="m">
