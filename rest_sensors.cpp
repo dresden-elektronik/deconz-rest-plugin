@@ -905,6 +905,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigOffset) // Signed integer
                 {
+                    data.integer = data.integer / 10;
+                    
                     if (R_GetProductId(sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
                         R_GetProductId(sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
                         R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
@@ -917,7 +919,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         QByteArray tuyaData;
                         bool alternative = false;
                         
-                        qint8 offset2 = data.integer / 100;
+                        qint8 offset2 = data.integer / 10;
                         
                         if (offset2 > 6)  { offset2 = 6;  } // offset, min = -60, max = 60
                         if (offset2 < -6) { offset2 = -6; }
