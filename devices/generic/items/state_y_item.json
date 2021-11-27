@@ -1,8 +1,0 @@
-{
-	"schema": "resourceitem1.schema.json",
-	"id": "state/y",
-	"datatype": "UInt16",
-	"access": "R",
-	"public": false,
-	"description": "The current value of the normalized chromaticity value y, as defined in the CIE xyY Color Space."
-}
