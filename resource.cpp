@@ -188,6 +188,8 @@ const char *RConfigGPDDeviceId = "config/gpd_device_id";
 const char *RConfigGPDKey = "config/gpd_key";
 const char *RConfigGroup = "config/group";
 const char *RConfigHeatSetpoint = "config/heatsetpoint";
+const char *RConfigEcoHeatSetpoint = "config/eco_heatsetpoint";
+const char *RConfigComfortHeatSetpoint = "config/comfort_heatsetpoint";
 const char *RConfigHostFlags = "config/hostflags";
 const char *RConfigId = "config/id";
 const char *RConfigInterfaceMode = "config/interfacemode";
@@ -400,6 +402,8 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigGPDKey));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigGroup));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RConfigHeatSetpoint, 500, 3200));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RConfigEcoHeatSetpoint, 500, 3200));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RConfigComfortHeatSetpoint, 500, 3200));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RConfigHostFlags));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RConfigId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigInterfaceMode));

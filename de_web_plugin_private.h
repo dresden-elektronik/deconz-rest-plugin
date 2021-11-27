@@ -512,6 +512,7 @@ extern const quint64 silabs9MacPrefix;
 extern const quint64 silabs10MacPrefix;
 extern const quint64 silabs12MacPrefix;
 extern const quint64 silabs13MacPrefix;
+extern const quint64 silabs14MacPrefix;
 extern const quint64 instaMacPrefix;
 extern const quint64 casaiaPrefix;
 extern const quint64 boschMacPrefix;
@@ -587,6 +588,7 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
                    prefix == silabs5MacPrefix ||
                    prefix == silabs10MacPrefix ||
                    prefix == silabs13MacPrefix ||
+                   prefix == silabs14MacPrefix ||
                    prefix == silabs7MacPrefix;
         case VENDOR_EMBERTEC:
             return prefix == embertecMacPrefix;
@@ -1571,6 +1573,7 @@ public:
     bool sendTuyaCommand(const deCONZ::ApsDataIndication &ind, qint8 commandId, const QByteArray &data);
     void handleCommissioningClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     bool sendTuyaRequestThermostatSetWeeklySchedule(TaskItem &taskRef, quint8 weekdays, const QString &transitions, qint8 Dp_identifier);
+    bool sendTuyaRequestThermostatSetWeeklyScheduleLIDL(TaskItem &taskRef, quint8 weekdays, const QString &transitions);
     bool handleMgmtBindRspConfirm(const deCONZ::ApsDataConfirm &conf);
     void handleDeviceAnnceIndication(const deCONZ::ApsDataIndication &ind);
     void handleNodeDescriptorResponseIndication(const deCONZ::ApsDataIndication &ind);

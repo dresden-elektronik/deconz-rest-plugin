@@ -210,6 +210,8 @@ extern const char *RConfigGPDDeviceId;
 extern const char *RConfigGPDKey;
 extern const char *RConfigGroup;
 extern const char *RConfigHeatSetpoint;
+extern const char *RConfigEcoHeatSetpoint;
+extern const char *RConfigComfortHeatSetpoint;
 extern const char *RConfigHostFlags;
 extern const char *RConfigId;
 extern const char *RConfigInterfaceMode;

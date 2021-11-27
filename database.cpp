@@ -3758,9 +3758,16 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD MOES TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD BRT-100") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                 {
                     sensor.addItem(DataTypeString, RConfigMode);
+                }
+                
+                if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat"))
+                {
+                    sensor.addItem(DataTypeInt16, RConfigEcoHeatSetpoint);
+                    sensor.addItem(DataTypeInt16, RConfigComfortHeatSetpoint);
                 }
 
                 if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
@@ -3785,6 +3792,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD MOES TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD BRT-100") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                 {
                     sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
@@ -3799,9 +3807,22 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD BRT-100") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                 {
                     sensor.addItem(DataTypeString, RConfigPreset);
+                }
+
+                if (R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
+                {
                     sensor.addItem(DataTypeBool, RConfigSetValve)->setValue(false);
                 }
 
@@ -3811,6 +3832,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD SilverCrest Smart Radiator Thermostat") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                 {
                     sensor.addItem(DataTypeString, RConfigSchedule);
