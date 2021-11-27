@@ -48,6 +48,7 @@ static const ProductMap products[] =
 
     // Tuya Thermostat / TRV
     {"_TYST11_zuhszj9s", "uhszj9s", "HiHome", "Tuya_THD WZB-TRVL TRV"},
+    {"_TZE200_zuhszj9s", "TS0601", "HiHome", "Tuya_THD WZB-TRVL TRV"},
     {"_TYST11_KGbxAXL2", "GbxAXL2", "Saswell", "Tuya_THD SEA801-ZIGBEE TRV"},
     {"_TYST11_c88teujp", "88teujp", "Saswell", "Tuya_THD SEA801-ZIGBEE TRV"},
     {"_TZE200_c88teujp", "TS0601", "Saswell", "Tuya_THD SEA801-ZIGBEE TRV"},
@@ -64,6 +65,7 @@ static const ProductMap products[] =
     {"_TYST11_yw7cahqs", "w7cahqs", "Hama", "Tuya_THD Smart radiator TRV"},
     {"_TZE200_yw7cahqs", "TS0601", "Hama", "Tuya_THD Smart radiator TRV"},
     {"_TZE200_cwnjrr72", "TS0601", "MOES", "Tuya_THD HY368 TRV"},
+    {"_TZE200_b6wax7g0", "TS0601", "MOES", "Tuya_THD BRT-100"},
     {"_TZE200_chyvmhay", "TS0601", "Lidl", "Tuya_THD SilverCrest Smart Radiator Thermostat"},
 
     // Tuya Covering
