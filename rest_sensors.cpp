@@ -919,7 +919,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         QByteArray tuyaData;
                         bool alternative = false;
                         
-                        qint8 offset2 = data.integer / 10;
+                        qint32 offset2 = data.integer / 10;
                         
                         if (offset2 > 6)  { offset2 = 6;  } // offset, min = -60, max = 60
                         if (offset2 < -6) { offset2 = -6; }
