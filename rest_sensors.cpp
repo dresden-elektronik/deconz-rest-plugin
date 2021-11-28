@@ -1692,8 +1692,12 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigGroup) // String
                 {
-                    checkSensorBindingsForClientClusters(sensor);
-                    continue;
+                    data.valid = isValidRConfigGroup(data.string);
+                    if (data.valid)
+                    {
+                        updated = true;
+                        checkSensorBindingsForClientClusters(sensor);
+                    }
                 }
                 else if (QString(rid.suffix).startsWith("config/ubisys_j1_")) // Unsigned integer
                 {
