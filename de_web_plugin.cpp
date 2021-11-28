@@ -1129,6 +1129,15 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                 {
                     device->handleEvent(Event(r->prefix(), item->descriptor().suffix, idItem->toString(), device->key()));
                 }
+
+                if (item->descriptor().suffix[0] == 's') // state/*
+                {
+                    ResourceItem *lastUpdated = r->item(RStateLastUpdated);
+                    if (lastUpdated)
+                    {
+                        lastUpdated->setValue(item->lastSet());
+                    }
+                }
             }
         }
     }
