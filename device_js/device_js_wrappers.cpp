@@ -164,6 +164,10 @@ QVariant JsZclAttribute::value() const
     case deCONZ::Zcl56BitInt:
     case deCONZ::Zcl64BitInt:
         return QString::number(attr->numericValue().s64);
+
+    case deCONZ::ZclSingleFloat:
+        return attr->numericValue().real;
+
     default:
         break;
     }
