@@ -248,6 +248,114 @@ bool evalZclFrame(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicati
     return false;
 }
 
+/*! A general purpose function to map number values of a source item to a string which is stored in \p item .
+
+    The item->parseParameters() is expected to be an object (given in the device description file).
+    {"fn": "numtostring", "srcitem": suffix, "op": operator, "to": array}
+    - srcitem: the suffix of the source item which holds the numeric value
+    - op: (lt | le | eq | gt | ge) the operator used to match the 'to' array
+    - to: [number, string, [number, string], ...] an sorted array to map 'number -> string' with the given operator
+
+    Example: { "parse": {"fn": "numtostr", "srcitem": "state/airqualityppb", "op": "le", "to": [65, "good", 65535, "bad"] }
+ */
+bool parseNumericToString(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, const QVariant &parseParameters)
+{
+    Q_UNUSED(ind)
+    Q_UNUSED(zclFrame)
+    bool result = false;
+
+    ResourceItem *srcItem = nullptr;
+    const auto map = parseParameters.toMap();
+
+    enum Op { OpNone, OpLessThan, OpLessEqual, OpEqual, OpGreaterThan, OpGreaterEqual };
+    Op op = OpNone;
+
+    if (!item->parseFunction()) // init on first call
+    {
+        if (item->descriptor().type != DataTypeString)
+        {
+            return result;
+        }
+
+        if (!map.contains(QLatin1String("to")) || !map.contains(QLatin1String("op")) || !map.contains(QLatin1String("srcitem")))
+        {
+            return result;
+        }
+
+        item->setParseFunction(parseNumericToString);
+    }
+
+    ResourceItemDescriptor rid;
+    if (!getResourceItemDescriptor(map["srcitem"].toString(), rid))
+    {
+        return result;
+    }
+
+    srcItem = r->item(rid.suffix);
+    if (!srcItem)
+    {
+        return result;
+    }
+
+    if (!(srcItem->needPushChange() || srcItem->needPushSet()))
+    {
+        return result; // only update if needed
+    }
+
+    {
+        const auto opString = map[QLatin1String("op")].toString();
+
+        if      (opString == QLatin1String("le")) { op = OpLessEqual; }
+        else if (opString == QLatin1String("lt")) { op = OpLessThan; }
+        else if (opString == QLatin1String("eq")) { op = OpEqual; }
+        else if (opString == QLatin1String("ge")) { op = OpGreaterEqual; }
+        else if (opString == QLatin1String("gt")) { op = OpGreaterThan; }
+        else
+        {
+            return result;
+        }
+    }
+
+    const qint64 num = srcItem->toNumber();
+    const auto to = map["to"].toList();
+
+    if (to.size() & 1)
+    {
+        return result; // array size must be even
+    }
+
+    auto i = std::find_if(to.cbegin(), to.cend(), [num, op](const QVariant &var)
+    {
+        if (var.type() == QVariant::Double)
+        {
+            if (op == OpLessEqual)    { return num <= var.toInt(); }
+            if (op == OpLessThan)     { return num < var.toInt();  }
+            if (op == OpEqual)        { return num == var.toInt(); }
+            if (op == OpGreaterEqual) { return num >= var.toInt(); }
+            if (op == OpGreaterThan)  { return num > var.toInt();  }
+        }
+        return false;
+    });
+
+    if (i != to.cend())
+    {
+        i++; // point next element (string)
+
+        if (i != to.cend() && i->type() == QVariant::String)
+        {
+            const QString str = i->toString();
+            if (!str.isEmpty())
+            {
+                item->setValue(str);
+                item->setLastZclReport(srcItem->lastZclReport()); // Treat as report
+                result = true;
+            }
+        }
+    }
+
+    return result;
+}
+
 /*! A generic function to parse ZCL values from read/report commands.
     The item->parseParameters() is expected to be an object (given in the device description file).
 
@@ -961,12 +1069,13 @@ ParseFunction_t DA_GetParseFunction(const QVariant &params)
 {
     ParseFunction_t result = nullptr;
 
-    const std::array<ParseFunction, 4> functions =
+    const std::array<ParseFunction, 5> functions =
     {
         ParseFunction("zcl", 1, parseZclAttribute),
         ParseFunction("xiaomi:special", 1, parseXiaomiSpecial),
         ParseFunction("ias:zonestatus", 1, parseIasZoneNotificationAndStatus),
-        ParseFunction("air:rawtorating", 1, parseAirQuality)
+        ParseFunction("air:rawtorating", 1, parseAirQuality),
+        ParseFunction("numtostr", 1, parseNumericToString)
     };
 
     QString fnName;

@@ -305,6 +305,46 @@ DeviceDescriptions::DeviceDescriptions(QObject *parent) :
 
     {
         DDF_FunctionDescriptor fn;
+        fn.name = "numtostr";
+        fn.description = "Generic function to to convert number to string.";
+
+        DDF_FunctionDescriptor::Parameter param;
+
+        param.name = "Source item";
+        param.key = "srcitem";
+        param.description = "The source item holding the number.";
+        param.dataType = DataTypeString;
+        param.defaultValue = 0;
+        param.isOptional = 0;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Operator";
+        param.key = "op";
+        param.description = "Comparison operator (lt | le | eq | gt | ge)";
+        param.dataType = DataTypeString;
+        param.defaultValue = 0;
+        param.isOptional = 0;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Mapping";
+        param.key = "to";
+        param.description = "Array of (num, string) mappings";
+        param.dataType = DataTypeString;
+        param.defaultValue = 0;
+        param.isOptional = 0;
+        param.isHexString = 0;
+        param.supportsArray = 1;
+        fn.parameters.push_back(param);
+
+        d_ptr2->parseFunctions.push_back(fn);
+    }
+
+    {
+        DDF_FunctionDescriptor fn;
         fn.name = "xiaomi:special";
         fn.description = "Generic function to parse custom Xiaomi attributes and commands.";
 
