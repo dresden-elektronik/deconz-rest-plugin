@@ -1643,7 +1643,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
         }
-        else if (modelId == QLatin1String("ALCANTARA2 D1.00P1.01Z1.00")) // Alcantara 2 acova
+        else if (modelId == QLatin1String("ALCANTARA2 D1.00P1.01Z1.00") ||
+                modelId == QLatin1String("PERCALE2 D1.00P1.01Z1.00")) // Alcantara 2 acova
         {
             rq.dataType = deCONZ::Zcl16BitInt;
             rq.attributeId = 0x0000;         // Local Temperature
@@ -3053,8 +3054,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().contains(QLatin1String("Zen-01")) ||
         // eCozy
         sensor->modelId() == QLatin1String("Thermostat") ||
-        // Alcantara
+        // Acova
         sensor->modelId() == QLatin1String("ALCANTARA2 D1.00P1.01Z1.00") ||
+        sensor->modelId() == QLatin1String("PERCALE2 D1.00P1.01Z1.00") ||
         // Stelpro
         sensor->modelId().contains(QLatin1String("ST218")) ||
         sensor->modelId().contains(QLatin1String("STZB402")) ||

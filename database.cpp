@@ -3924,7 +3924,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                     sensor.addItem(DataTypeString, RConfigMode);
                 }
-                else if (sensor.modelId() == QLatin1String("ALCANTARA2 D1.00P1.01Z1.00")) // Alcantara 2 acova
+                else if (sensor.modelId() == QLatin1String("ALCANTARA2 D1.00P1.01Z1.00") ||
+                        sensor.modelId() == QLatin1String("PERCALE2 D1.00P1.01Z1.00")) // Alcantara 2 acova
                 {
                     sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);
                     sensor.addItem(DataTypeString, RConfigMode);
