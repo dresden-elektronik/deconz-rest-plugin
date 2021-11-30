@@ -4521,10 +4521,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 checkSensorGroup(sensor);
             }
         }
-        if (ind.dstAddressMode() == deCONZ::ApsNwkAddress)
-        {
-            return;
-        }
     }
     else if (sensor->modelId().startsWith(QLatin1String("SYMFONISK")))
     {
@@ -4615,14 +4611,15 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     if (zclFrame.sequenceNumber() == sensor->previousSequenceNumber)
     {
         // useful in general but limit scope to known problematic devices
-        if (isTuyaManufacturerName(sensor->manufacturer()) ||
+        if ((sensor->node() && sensor->node()->nodeDescriptor().manufacturerCode() == VENDOR_IKEA) ||
+            isTuyaManufacturerName(sensor->manufacturer()) ||
             // TODO "HG06323" can likely be removed after testing,
             // since the device only sends group casts and we don't expect this to trigger.
             sensor->modelId() == QLatin1String("HG06323"))
         {
             // deCONZ doesn't always send ZCL Default Response to unicast commands, or they can get lost.
             // in this case some devices re-send the command multiple times
-            DBG_Printf(DBG_INFO, "Discard duplicated zcl.cmd: 0x%02X, cluster: 0x%04X with zcl.seq: %u for %s / %s\n",
+            DBG_Printf(DBG_INFO_L2, "Discard duplicated zcl.cmd: 0x%02X, cluster: 0x%04X with zcl.seq: %u for %s / %s\n",
                        zclFrame.commandId(), ind.clusterId(), zclFrame.sequenceNumber(), qPrintable(sensor->manufacturer()), qPrintable(sensor->modelId()));
             return;
         }
