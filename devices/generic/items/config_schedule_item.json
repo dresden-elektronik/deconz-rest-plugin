@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/schedule",
+	"datatype": "String",
+	"access": "RW",
+	"public": true,
+	"description": "On-device heating schedules."
+}

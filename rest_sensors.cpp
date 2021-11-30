@@ -906,45 +906,59 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 else if (rid.suffix == RConfigOffset) // Signed integer
                 {
                     data.integer = data.integer / 10;
-
-                    if ((R_GetProductId(sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
-                         R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
-                         R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
-                         R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
-                         R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV")) ||
-                         R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV"))
+                    
+                    if (R_GetProductId(sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
+                        R_GetProductId(sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
+                        R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
+                        R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                        R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
+                        R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
+                        R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat") ||
+                        R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV"))
                     {
                         QByteArray tuyaData;
                         bool alternative = false;
+                        
+                        qint32 offset2 = data.integer / 10;
+                        
+                        if (offset2 > 6)  { offset2 = 6;  } // offset, min = -60, max = 60
+                        if (offset2 < -6) { offset2 = -6; }
 
-                        if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV"))
+                        if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat")) // Moes
                         {
-                            if (data.integer > 6)  { data.integer = 6;  } // offset, min = -60, max = 60
-                            if (data.integer < -6) { data.integer = -6; }
+                            if (offset2 < 0)
+                            {
+                                offset2 = 4096 + offset2;
+                            }
 
                             alternative = true;
                         }
-                        else
+                        else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") || // Saswell
+                                 R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                                 R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV"))
                         {
-                            if (data.integer > 90)  { data.integer = 90;  } // offset, min = -90, max = 90
-                            if (data.integer < -90) { data.integer = -90; }
+                            alternative = true;
+                        }
+                        else // others
+                        {
+                            offset2 = offset2 * 10;
                         }
 
-                        tuyaData.append((qint8)((offset >> 24) & 0xff));
-                        tuyaData.append((qint8)((offset >> 16) & 0xff));
-                        tuyaData.append((qint8)((offset >> 8) & 0xff));
-                        tuyaData.append((qint8)(offset & 0xff));
+                        tuyaData.append((qint8)((offset2 >> 24) & 0xff));
+                        tuyaData.append((qint8)((offset2 >> 16) & 0xff));
+                        tuyaData.append((qint8)((offset2 >> 8) & 0xff));
+                        tuyaData.append((qint8)(offset2 & 0xff));
 
                         if (!alternative)
                         {
-                            if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_VALUE, 0x2c, tuyaData))
+                            if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_VALUE, DP_IDENTIFIER_THERMOSTAT_CALIBRATION_2, tuyaData)) // Others
                             {
                                 updated = true;
                             }
                         }
                         else
                         {
-                            if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_VALUE, 0x1b, tuyaData))
+                            if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_VALUE, DP_IDENTIFIER_THERMOSTAT_CALIBRATION_1, tuyaData)) // Moes and Saswell
                             {
                                 updated = true;
                             }
@@ -1034,13 +1048,38 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD MOES TRV") ||
+                             R_GetProductId(sensor) == QLatin1String("Tuya_THD BRT-100") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV"))
                     {
                         data.integer = data.integer / 10;
                         QByteArray tuyaData = QByteArray("\x00\x00", 2);
                         qint8 dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT;
 
-                        if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
+					    if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BRT-100"))
+                        {
+                            data.integer = data.integer / 10;
+
+                            ResourceItem *item = sensor->item(RConfigMode);
+                            ResourceItem *item2 = sensor->item(RConfigPreset);
+
+                            if (data.integer > 5 && item) // reverse setting for fake off mode
+                            {
+                                if (item->toString() == QLatin1String("off"))
+                                {
+                                    QString mode = QLatin1String("heat");
+                                    item->setValue(mode);
+                                }
+                                else if (item->toString() == QLatin1String("auto") &&
+                                         item2 && item2->toString() == QLatin1String("auto")) // change mode to manual if mode and preset have been auto
+                                {
+                                    QString mode = QLatin1String("heat");
+                                    QString preset = QLatin1String("manual");
+                                    item->setValue(mode);
+                                    item2->setValue(preset);
+                                }
+                            }
+                        }
+                        else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                             R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                             R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV"))
                         {
@@ -1143,11 +1182,46 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                         }
                     }
+                    else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BRT-100"))
+                    {
+                        const auto match = matchKeyValue(data.string, RConfigModeValuesTuya1);
+
+                        if (isValid(match))
+                        {
+                            if (match.key == QLatin1String("off")) // Fake off mode
+                            {
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, DP_IDENTIFIER_THERMOSTAT_MODE_4, QByteArray("\x01", 1)) &&
+                                    sendTuyaRequest(task, TaskThermostat, DP_TYPE_VALUE, DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT, QByteArray("\x00\x00\x00\x05", 4))) // mode manual and Set heat point 5 °C
+                                {
+                                    updated = true;
+                                }
+                            }
+                            else if (match.key == QLatin1String("heat"))
+                            {
+                                ResourceItem *item = sensor->item(RConfigHeatSetpoint);
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, DP_IDENTIFIER_THERMOSTAT_MODE_4, QByteArray("\x01", 1))) // mode manual
+                                {
+                                    if(item->toNumber() <= 500) // reverse fake off mode by setting temp to 20°C
+                                    {
+                                        sendTuyaRequest(task, TaskThermostat, DP_TYPE_VALUE, DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT, QByteArray("\x00\x00\x00\x14", 4));
+                                    }
+                                    updated = true;
+                                }
+                            }
+                            else
+                            {
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, DP_IDENTIFIER_THERMOSTAT_MODE_4, QByteArray("\x00", 1))) // mode auto
+                                {
+                                    updated = true;
+                                }
+                            }
+                        }
+                    }
                     else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                              R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV"))
                     {
-                        const auto match = matchKeyValue(data.string, RConfigModeValuesTuya2);
+                        const auto match = matchKeyValue(data.string, RConfigModeValuesTuya1);
 
                         if (isValid(match))
                         {
@@ -1167,7 +1241,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                     updated = true;
                                 }
                             }
-                            else
+                            else // auto
                             {
                                 if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_SCHEDULE_ENABLE, QByteArray("\x01", 1)) &&
                                     sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_MODE_3, QByteArray("\x01", 1)))
@@ -1291,6 +1365,31 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                         }
                     }
+                    else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BRT-100"))
+                    {
+                        const auto match = matchKeyValue(data.string, RConfigModeValuesTuya3);
+
+                        if (isValid(match))
+                        {
+                            QByteArray tuyaData = QByteArray::fromRawData(match.value, 1);
+
+                            if (match.key == QLatin1String("boost")) //start boost
+                            {
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_BOOST, QByteArray("\x01", 1)))
+                                {
+                                    updated = true;
+                                }
+                            }
+                            else // stop boost
+                            {
+                                if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_ENUM, DP_IDENTIFIER_THERMOSTAT_MODE_4, tuyaData) &&
+                                    sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, DP_IDENTIFIER_THERMOSTAT_BOOST, QByteArray("\x00", 1)))
+                                {
+                                    updated = true;
+                                }
+                            }
+                        }
+                    }
                     else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                     {
                         const auto match = matchKeyValue(data.string, RConfigPresetValuesTuya2);
@@ -1365,6 +1464,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat") ||
                         R_GetProductId(sensor) == QLatin1String("Tuya_THD MOES TRV") ||
                         R_GetProductId(sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
+                        R_GetProductId(sensor) == QLatin1String("Tuya_THD BRT-100") ||
                         R_GetProductId(sensor) == QLatin1String("Tuya_THD HY369 TRV"))
                     {
                         QByteArray tuyaData = QByteArray("\x00", 1);
@@ -1380,6 +1480,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD MOES TRV"))
                         {
                             dpIdentifier = DP_IDENTIFIER_THERMOSTAT_CHILDLOCK_3;
+                        }
+                        else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BRT-100"))
+                        {
+                            dpIdentifier = DP_IDENTIFIER_THERMOSTAT_CHILDLOCK_4;
                         }
 
                         if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, dpIdentifier, tuyaData))
@@ -1497,7 +1601,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                     qint8 dpIdentifier = DP_IDENTIFIER_WINDOW_OPEN;
 
-                    if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV"))
+                    if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
+                        R_GetProductId(sensor) == QLatin1String("Tuya_THD BRT-100"))
                     {
                         dpIdentifier = DP_IDENTIFIER_WINDOW_OPEN2;
                     }
@@ -1590,8 +1695,12 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigGroup) // String
                 {
-                    checkSensorBindingsForClientClusters(sensor);
-                    continue;
+                    data.valid = isValidRConfigGroup(data.string);
+                    if (data.valid)
+                    {
+                        updated = true;
+                        checkSensorBindingsForClientClusters(sensor);
+                    }
                 }
                 else if (QString(rid.suffix).startsWith("config/ubisys_j1_")) // Unsigned integer
                 {

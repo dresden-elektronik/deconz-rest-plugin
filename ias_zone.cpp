@@ -318,9 +318,12 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
 
                 case IAS_ZONE_STATUS:
                 {
-                    const quint16 zoneStatus = attr.numericValue().u16;   // might be reported or received via CMD_STATUS_CHANGE_NOTIFICATION
+                    if (!DEV_TestStrict())
+                    {
+                        const quint16 zoneStatus = attr.numericValue().u16;   // might be reported or received via CMD_STATUS_CHANGE_NOTIFICATION
 
-                    processIasZoneStatus(sensor, zoneStatus, updateType);
+                        processIasZoneStatus(sensor, zoneStatus, updateType);
+                    }
 
                 }
                     break;
@@ -376,18 +379,21 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
     // Read ZCL Cluster Command Response
     if (isClusterCmd && zclFrame.commandId() == CMD_STATUS_CHANGE_NOTIFICATION)
     {
-        quint16 zoneStatus;
-        quint8 extendedStatus;
-        quint8 zoneId;
-        quint16 delay;
-        stream >> zoneStatus;
-        stream >> extendedStatus; // reserved, set to 0
-        stream >> zoneId;
-        stream >> delay;
-        DBG_Assert(stream.status() == QDataStream::Ok);
-        DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Status Change, status: 0x%04X, zoneId: %u, delay: %u\n", sensor->address().ext(), zoneStatus, zoneId, delay);
+        if (!DEV_TestStrict())
+        {
+            quint16 zoneStatus;
+            quint8 extendedStatus;
+            quint8 zoneId;
+            quint16 delay;
+            stream >> zoneStatus;
+            stream >> extendedStatus; // reserved, set to 0
+            stream >> zoneId;
+            stream >> delay;
+            DBG_Assert(stream.status() == QDataStream::Ok);
+            DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Status Change, status: 0x%04X, zoneId: %u, delay: %u\n", sensor->address().ext(), zoneStatus, zoneId, delay);
 
-        processIasZoneStatus(sensor, zoneStatus, NodeValue::UpdateByZclReport);
+            processIasZoneStatus(sensor, zoneStatus, NodeValue::UpdateByZclReport);
+        }
         
         checkIasEnrollmentStatus(sensor);
     }
