@@ -805,62 +805,6 @@ bool parseIasZoneNotificationAndStatus(Resource *r, ResourceItem *item, const de
     return result;
 }
 
-/*! A function to parse the air quality attribute and set the string rating for resource item 'airQuality' at the same time.
-    IMPORTANT: The parse function must be used on resource item 'airQualityPpb', resource item 'airQuality' can then be left untouched completely.
-    The item->parseParameters() is expected to be an object (given in the device description file).
-
-    {"fn": "air:rawtorating", "ep": endpoint, "cl": clusterId, "at": attributeId, "mf": manufacturerCode, "eval": expression, "to": rating}
-
-    - endpoint: (optional) 255 means any endpoint, 0 means auto selected from the related resource, defaults to 0
-    - clusterId: string hex value
-    - attributeId: string hex value or array of string hex values
-    - manufacturerCode: (optional) string hex value, defaults to "0x0000" for non manufacturer specific commands
-    - expression: Javascript expression to transform the raw value
-    - rating: Rating scale to apply on 'airQualityPpb', updating 'airQuality'
-
-    Example: { "parse": {"fn": "air:rawtorating", "ep:" 38, "cl": "0xfc03", "at": "0x0000", "mf": "0x1015", "eval": "Item.val = Attr.val;", "to": "voclevelger" } }
- */
-bool parseAirQuality(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, const QVariant &parseParameters)
-{
-    bool result = false;
-    const char *suffix = item->descriptor().suffix;
-
-    if (suffix == RStateAirQualityPpb)
-    {
-        if (parseZclAttribute(r, item, ind, zclFrame, parseParameters))
-        {
-            if (!item->parseFunction()) // init on first call
-            {
-                item->setParseFunction(parseAirQuality);
-            }
-
-            result = true;
-
-            if (r->item(RStateAirQuality))
-            {
-                QString airQuality;
-                KeyValMapAirQuality match;
-                
-                const auto map = parseParameters.toMap();
-                const bool rating = map.contains(QLatin1String("to"));
-                const quint16 airQualityRaw = static_cast<quint16>(item->toNumber());
-
-                if (!rating) { match = lessThenKeyValue(airQualityRaw, RStateAirQualityVocLevelGer); }
-                else if (map["to"].toString() == QLatin1String("voclevelger")) { match = lessThenKeyValue(airQualityRaw, RStateAirQualityVocLevelGer); }
-
-                if (match.key)
-                {
-                    airQuality = match.value;
-                    r->item(RStateAirQuality)->setValue(airQuality);
-                    r->item(RStateAirQuality)->setLastZclReport(item->lastZclReport()); // Treat as report
-                }
-            }
-        }
-    }
-
-    return result;
-}
-
 /*! A generic function to read ZCL attributes.
     The item->readParameters() is expected to be an object (given in the device description file).
 
@@ -1069,12 +1013,11 @@ ParseFunction_t DA_GetParseFunction(const QVariant &params)
 {
     ParseFunction_t result = nullptr;
 
-    const std::array<ParseFunction, 5> functions =
+    const std::array<ParseFunction, 4> functions =
     {
         ParseFunction("zcl", 1, parseZclAttribute),
         ParseFunction("xiaomi:special", 1, parseXiaomiSpecial),
         ParseFunction("ias:zonestatus", 1, parseIasZoneNotificationAndStatus),
-        ParseFunction("air:rawtorating", 1, parseAirQuality),
         ParseFunction("numtostr", 1, parseNumericToString)
     };
 
