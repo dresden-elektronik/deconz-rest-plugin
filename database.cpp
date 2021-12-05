@@ -2648,8 +2648,8 @@ static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , ch
         lightNode->setName(name);
     }
 
-    QStringList::const_iterator gi = groupIds.begin();
-    QStringList::const_iterator gend = groupIds.end();
+    auto gi = groupIds.cbegin();
+    const auto gend = groupIds.cend();
 
     for (; gi != gend; ++gi)
     {
@@ -2662,8 +2662,8 @@ static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , ch
         }
 
         // already known?
-        std::vector<GroupInfo>::const_iterator k = lightNode->groups().begin();
-        std::vector<GroupInfo>::const_iterator kend = lightNode->groups().end();
+        auto k = lightNode->groups().cbegin();
+        const auto kend = lightNode->groups().cend();
 
         for (; k != kend; ++k)
         {
