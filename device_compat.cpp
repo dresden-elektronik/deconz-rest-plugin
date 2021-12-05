@@ -146,6 +146,34 @@ static Resource *DEV_InitLightNodeFromDescription(Device *device, const DeviceDe
         }
     }
 
+    {
+        dbItem->column = "groups";
+        if (DB_LoadLegacyLightValue(dbItem.get()))
+        {
+            const auto groupList = QString(static_cast<QLatin1String>(dbItem->value)).split(',', SKIP_EMPTY_PARTS);
+
+            for (const auto &g : groupList)
+            {
+                bool ok = false;
+                uint gid = g.toUShort(&ok, 0);
+                if (!ok) { continue; }
+
+                auto i = std::find_if(lightNode.groups().cbegin(), lightNode.groups().cend(), [gid](const auto &group)
+                {
+                    return gid == group.id;
+                });
+
+                if (i == lightNode.groups().cend())
+                {
+                    GroupInfo groupInfo;
+                    groupInfo.id = gid;
+                    groupInfo.state = GroupInfo::StateInGroup;
+                    lightNode.groups().push_back(groupInfo);
+                }
+            }
+        }
+    }
+
     // remove some items which need to be specified via DDF
     lightNode.removeItem(RStateOn);
     lightNode.removeItem(RStateBri);

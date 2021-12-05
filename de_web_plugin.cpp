@@ -1117,17 +1117,13 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                 }
 
                 const bool push = item->pushOnSet() || (item->pushOnChange() && item->lastChanged() == item->lastSet());
-                if (idItem && push)
+                if (idItem)
                 {
                     enqueueEvent(Event(r->prefix(), item->descriptor().suffix, idItem->toString(), device->key()));
-                    if (item->lastChanged() == item->lastSet())
+                    if (push && item->lastChanged() == item->lastSet())
                     {
                         DB_StoreSubDeviceItem(r, item);
                     }
-                }
-                else if (idItem)
-                {
-                    device->handleEvent(Event(r->prefix(), item->descriptor().suffix, idItem->toString(), device->key()));
                 }
 
                 if (item->descriptor().suffix[0] == 's') // state/*
