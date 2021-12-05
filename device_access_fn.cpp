@@ -677,7 +677,7 @@ bool parseXiaomiSpecial(Resource *r, ResourceItem *item, const deCONZ::ApsDataIn
 
     {"fn": "ias:zonestatus", "mask": expression}
 
-    - expression (optional): The bitmask to be applied for Alarm1 and Alarm2 of the IAS zone status value
+    - mask (optional): The bitmask to be applied for Alarm1 and Alarm2 of the IAS zone status value as list of strings
 
     Example: { "parse": {"fn": "ias:zonestatus", "mask": "alarm1,alarm2" } }
  */
