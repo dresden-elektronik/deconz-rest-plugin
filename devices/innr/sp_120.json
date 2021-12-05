@@ -52,7 +52,7 @@
           "refresh.interval": 60,
           "parse": {
             "at": "0x0000",
-            "cl": "0x0008",
+            "cl": "0x0006",
             "ep": 1,
             "eval": "Item.val = Attr.val",
             "fn": "zcl"

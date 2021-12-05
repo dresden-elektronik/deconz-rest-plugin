@@ -1469,3 +1469,25 @@ QLatin1String R_DataTypeToString(ApiDataType type)
 
     return QLatin1String("unknown");
 }
+
+/*! Returns true if \p str contains a valid list of group identifiers.
+
+    Valid values are:
+      ""          empty
+      "45"        single group
+      "343,123"   two groups
+ */
+bool isValidRConfigGroup(const QString &str)
+{
+    int result = 0;
+    const QStringList groupList = str.split(',', SKIP_EMPTY_PARTS);
+
+    for (const auto &groupId : groupList)
+    {
+        bool ok = false;
+        auto gid = groupId.toUInt(&ok, 0);
+        if (ok && gid <= UINT16_MAX) { result++; }
+    }
+
+    return result == groupList.size();
+}

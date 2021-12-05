@@ -173,6 +173,11 @@ RestData verifyRestData(const ResourceItemDescriptor &rid, const QVariant &val)
                 data.valid = true;
                 return data;
             }
+            else if (rid.suffix == RConfigGroup)
+            {
+                data.valid = true; // empty string allowed
+                return data;
+            }
             else
             {
                 return data;

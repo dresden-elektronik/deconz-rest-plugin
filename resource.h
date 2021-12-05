@@ -588,6 +588,8 @@ bool R_SetValueEventOnSet(Resource *r, const char *suffix, const V &val, Resourc
     return result;
 }
 
+bool isValidRConfigGroup(const QString &str);
+
 uint8_t DDF_GetSubDeviceOrder(const QString &type);
 QLatin1String R_DataTypeToString(ApiDataType type);
 inline bool isValid(Resource::Handle hnd) { return hnd.hash != 0 && hnd.index < UINT16_MAX && hnd.type != 0; }

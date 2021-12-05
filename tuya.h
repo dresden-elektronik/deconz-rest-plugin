@@ -59,14 +59,21 @@
 #define DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_3 0x10 // Heatsetpoint for TRV_MOE mode heat
 #define DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT_4 0x69 // Heatsetpoint for TRV_MOE mode auto
 #define DP_IDENTIFIER_THERMOSTAT_VALVE 0x14 // Valve
+#define DP_IDENTIFIER_THERMOSTAT_VALVE_2 0x68 // Valve
 #define DP_IDENTIFIER_THERMOSTAT_CHILDLOCK_1 0x07
 #define DP_IDENTIFIER_THERMOSTAT_CHILDLOCK_2 0x28
 #define DP_IDENTIFIER_THERMOSTAT_CHILDLOCK_3 0x1E // For Moe device
+#define DP_IDENTIFIER_THERMOSTAT_CHILDLOCK_4 0x0D
 
 #define DP_IDENTIFIER_THERMOSTAT_MODE_1 0x6A // mode used with DP_TYPE_ENUM
 #define DP_IDENTIFIER_THERMOSTAT_MODE_2 0x02 // mode for Moe device used with DP_TYPE_ENUM
 #define DP_IDENTIFIER_THERMOSTAT_MODE_3 0x65 // mode for Saswell device used with DP_TYPE_BOOL
+#define DP_IDENTIFIER_THERMOSTAT_MODE_4 0x01 // mode for Moes device used with DP_TYPE_ENUM
 
+#define DP_IDENTIFIER_THERMOSTAT_BOOST 0x04 // Boost for Moes
+
+#define DP_IDENTIFIER_THERMOSTAT_CALIBRATION_1 0x1B // Calibration offset used by Moes and Saswell
+#define DP_IDENTIFIER_THERMOSTAT_CALIBRATION_2 0x2C // Calibration offset used by others
 
 // Value for dp_identifier for covering
 //-----------------------------------
