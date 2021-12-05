@@ -651,7 +651,7 @@ bool parseXiaomiSpecial(Resource *r, ResourceItem *item, const deCONZ::ApsDataIn
 
     const auto &zclParam = item->zclParam();
 
-    if (ind.clusterId() != zclParam.clusterId || zclFrame.payload().isEmpty())
+    if (!(ind.clusterId() == 0x0000 || ind.clusterId() == 0xfcc0) || zclFrame.payload().isEmpty())
     {
         return result;
     }
