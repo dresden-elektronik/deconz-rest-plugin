@@ -164,6 +164,10 @@ QVariant JsZclAttribute::value() const
     case deCONZ::Zcl56BitInt:
     case deCONZ::Zcl64BitInt:
         return QString::number(attr->numericValue().s64);
+
+    case deCONZ::ZclSingleFloat:
+        return attr->numericValue().real;
+
     default:
         break;
     }
@@ -229,4 +233,14 @@ int JsZclFrame::payloadSize() const
         return zclFrame->payload().size();
     }
     return 0;
+}
+
+bool JsZclFrame::isClCmd() const
+{
+    if (zclFrame)
+    {
+        return zclFrame->isClusterCommand();
+    }
+
+    return false;
 }

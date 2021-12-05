@@ -150,6 +150,7 @@ extern const char *RStateOrientationZ;
 extern const char *RStatePanel;
 extern const char *RStatePresence;
 extern const char *RStatePressure;
+extern const char *RStateMoisture;
 extern const char *RStatePower;
 extern const char *RStateReachable;
 extern const char *RStateSat;
@@ -586,6 +587,8 @@ bool R_SetValueEventOnSet(Resource *r, const char *suffix, const V &val, Resourc
 
     return result;
 }
+
+bool isValidRConfigGroup(const QString &str);
 
 uint8_t DDF_GetSubDeviceOrder(const QString &type);
 QLatin1String R_DataTypeToString(ApiDataType type);

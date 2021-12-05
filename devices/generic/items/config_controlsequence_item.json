@@ -1,0 +1,9 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/controlsequence",
+	"datatype": "UInt8",
+	"access": "RW",
+	"public": true,
+    "range": [0, 5],
+	"description": "Specifies the overall operating environment of the thermostat, and thus the possible system modes that the thermostat can operate in."
+}

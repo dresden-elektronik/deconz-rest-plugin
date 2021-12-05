@@ -146,7 +146,7 @@ static QVariantMap alarmSystemToMap(const AlarmSystem *alarmSys)
         {
             QVariantMap dev;
 
-            if ((entry.flags & (AS_ENTRY_FLAG_ARMED_AWAY | AS_ENTRY_FLAG_ARMED_AWAY | AS_ENTRY_FLAG_ARMED_AWAY)) != 0)
+            if ((entry.flags & (AS_ENTRY_FLAG_ARMED_AWAY | AS_ENTRY_FLAG_ARMED_STAY | AS_ENTRY_FLAG_ARMED_NIGHT)) != 0)
             {
                 dev[paramArmMask] = QLatin1String(entry.armMask);
             }

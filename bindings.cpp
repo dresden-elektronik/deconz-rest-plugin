@@ -709,7 +709,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
 
     // clue code to get classic hard coded C++ bindings into DDF
     Device *device = DEV_GetDevice(m_devices, bt.binding.srcAddress);
-    if (device && !device->managed())
+    if (!device)
+    {  }
+    else if (!device->managed())
     {
         DDF_Binding ddfBinding;
 
@@ -758,7 +760,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
                 deviceDescriptions->put(ddf);
             }
         }
-
+    }
+    else if (device->managed())
+    {
         return false;
     }
 
@@ -1771,6 +1775,15 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.reportableChange16bit = 20;
         return sendConfigureReportingRequest(bt, {rq});
     }
+    else if (bt.binding.clusterId == SOIL_MOISTURE_CLUSTER_ID)
+    {
+        rq.dataType = deCONZ::Zcl16BitUint;
+        rq.attributeId = 0x0000; // measured value
+        rq.minInterval = 10;
+        rq.maxInterval = 300;
+        rq.reportableChange16bit = 20;
+        return sendConfigureReportingRequest(bt, {rq});
+    }
     else if (bt.binding.clusterId == BINARY_INPUT_CLUSTER_ID)
     {
         rq.dataType = deCONZ::ZclBoolean;
@@ -1876,6 +1889,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                  modelId == QLatin1String("TS0202") || // Tuya sensor
                  modelId == QLatin1String("3AFE14010402000D") || // Konke presence sensor
                  modelId == QLatin1String("3AFE28010402000D") || // Konke presence sensor
+                 modelId == QLatin1String("lumi.airmonitor.acn01") ||      // Xiaomi Aqara TVOC Air Quality Monitor
                  modelId.startsWith(QLatin1String("GZ-PIR02")) ||          // Sercomm motion sensor
                  modelId.startsWith(QLatin1String("SZ-WTD02N_CAR")) ||     // Sercomm water sensor
                  modelId.startsWith(QLatin1String("3300")) ||          // Centralite contatc sensor
@@ -2934,6 +2948,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("TY0203") ||  // Door sensor
         sensor->modelId() == QLatin1String("TY0202") || // Motion Sensor
         sensor->modelId() == QLatin1String("TS0211") || // Door bell
+        // DIYRuZ
+        sensor->modelId() == QLatin1String("DIYRuZ_Flower") || // DIYRuZ_Flower
         // Konke
         sensor->modelId() == QLatin1String("3AFE140103020000") ||
         sensor->modelId() == QLatin1String("3AFE130104020015") ||
@@ -3063,6 +3079,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("lumi.plug.maeu01")) ||
         sensor->modelId().startsWith(QLatin1String("lumi.sen_ill.mgl01")) ||
         sensor->modelId().startsWith(QLatin1String("lumi.switch.b1naus01")) ||
+        sensor->modelId() == QLatin1String("lumi.airmonitor.acn01") ||
         sensor->modelId() == QLatin1String("lumi.sensor_magnet.agl02") ||
         sensor->modelId() == QLatin1String("lumi.motion.agl04") ||
         sensor->modelId() == QLatin1String("lumi.flood.agl02") ||
@@ -3282,6 +3299,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             {
                 continue; // use BOSCH_AIR_QUALITY_CLUSTER_ID instead
             }
+            val = sensor->getZclValue(*i, 0x0000); // measured value
+        }
+        else if (*i == SOIL_MOISTURE_CLUSTER_ID)
+        {
             val = sensor->getZclValue(*i, 0x0000); // measured value
         }
         else if (*i == OCCUPANCY_SENSING_CLUSTER_ID)
@@ -3550,6 +3571,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
         case RELATIVE_HUMIDITY_CLUSTER_ID:
         case PRESSURE_MEASUREMENT_CLUSTER_ID:
+        case SOIL_MOISTURE_CLUSTER_ID:
         case METERING_CLUSTER_ID:
         case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
         case VENDOR_CLUSTER_ID:

@@ -121,6 +121,7 @@ const char *RStateOrientationZ = "state/orientation_z";
 const char *RStatePanel = "state/panel";
 const char *RStatePresence = "state/presence";
 const char *RStatePressure = "state/pressure";
+const char *RStateMoisture = "state/moisture";
 const char *RStatePower = "state/power";
 const char *RStateReachable = "state/reachable";
 const char *RStateSat = "state/sat";
@@ -294,7 +295,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateAlert));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateLockState));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateAllOn));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateAngle));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateAngle));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateAnyOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::String, RStateArmState));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateBattery, 0, 100));
@@ -338,6 +339,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStatePanel));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStatePresence));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStatePressure, 0, 32767));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateMoisture));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStatePower));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateReachable));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateSat));
@@ -1466,4 +1468,26 @@ QLatin1String R_DataTypeToString(ApiDataType type)
     }
 
     return QLatin1String("unknown");
+}
+
+/*! Returns true if \p str contains a valid list of group identifiers.
+
+    Valid values are:
+      ""          empty
+      "45"        single group
+      "343,123"   two groups
+ */
+bool isValidRConfigGroup(const QString &str)
+{
+    int result = 0;
+    const QStringList groupList = str.split(',', SKIP_EMPTY_PARTS);
+
+    for (const auto &groupId : groupList)
+    {
+        bool ok = false;
+        auto gid = groupId.toUInt(&ok, 0);
+        if (ok && gid <= UINT16_MAX) { result++; }
+    }
+
+    return result == groupList.size();
 }
