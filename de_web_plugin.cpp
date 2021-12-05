@@ -10560,12 +10560,6 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         return false;
     }
 
-    // check if read should happen now
-//    if (lightNode->nextReadTime() > QTime::currentTime())
-//    {
-//        return false;
-//    }
-
     if (!lightNode->isAvailable() || !lightNode->lastRx().isValid())
     {
         return false;
@@ -10578,73 +10572,6 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
     }
 
     int processed = 0;
-
-    if (lightNode->haEndpoint().profileId() == ZLL_PROFILE_ID)
-    {
-        switch(lightNode->haEndpoint().deviceId())
-        {
-        case DEV_ID_ZLL_COLOR_LIGHT:
-        case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
-        case DEV_ID_Z30_EXTENDED_COLOR_LIGHT:
-        case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT:
-        case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
-            //fall through
-
-        case DEV_ID_ZLL_DIMMABLE_LIGHT:
-        case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
-        case DEV_ID_Z30_DIMMABLE_PLUGIN_UNIT:
-            //fall through
-
-        case DEV_ID_ZLL_ONOFF_LIGHT:
-        case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
-        case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:
-        case DEV_ID_ZLL_ONOFF_SENSOR:
-            //readOnOff = true;
-            break;
-
-        default:
-            break;
-        }
-    }
-    else if (lightNode->haEndpoint().profileId() == HA_PROFILE_ID)
-    {
-        switch(lightNode->haEndpoint().deviceId())
-        {
-        case DEV_ID_HA_COLOR_DIMMABLE_LIGHT:
-        case DEV_ID_ZLL_COLOR_LIGHT:
-        case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
-        case DEV_ID_Z30_EXTENDED_COLOR_LIGHT:
-        case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT:
-        case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
-            //fall through
-
-        case DEV_ID_HA_DIMMABLE_LIGHT:
-        case DEV_ID_HA_ONOFF_LIGHT_SWITCH:
-        case DEV_ID_HA_DIMMER_SWITCH:
-        //case DEV_ID_ZLL_DIMMABLE_LIGHT: // same as DEV_ID_HA_ONOFF_LIGHT
-        case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
-        case DEV_ID_Z30_DIMMABLE_PLUGIN_UNIT:
-        case DEV_ID_LEVEL_CONTROL_SWITCH:
-            //fall through
-
-        case DEV_ID_MAINS_POWER_OUTLET:
-        case DEV_ID_SMART_PLUG:
-        case DEV_ID_HA_ONOFF_LIGHT:
-        case DEV_ID_ZLL_ONOFF_LIGHT:
-        case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
-        case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:
-        case DEV_ID_ZLL_ONOFF_SENSOR:
-        case DEV_ID_HA_WINDOW_COVERING_DEVICE:
-        case DEV_ID_HA_WINDOW_COVERING_CONTROLLER:
-        // Danalock support. The device id (0x000a) needs to be defined and whitelisted
-        case DEV_ID_DOOR_LOCK:
-        case DEV_ID_FAN:
-            break;
-
-        default:
-            break;
-        }
-    }
 
     QTime tNow = QTime::currentTime();
 
@@ -10716,97 +10643,6 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
             processed++;
         }
     }
-
-#if 0 // TODO add this to poll manager
-      // this is very problematic and causes queues to fill up extremely
-    if ((processed < 2) && lightNode->mustRead(READ_SCENES) && !lightNode->groups().empty()&& tNow > lightNode->nextReadTime(READ_SCENES))
-    {
-        std::vector<GroupInfo>::iterator i = lightNode->groups().begin();
-        std::vector<GroupInfo>::iterator end = lightNode->groups().end();
-
-        int rd = 0;
-
-        for (; i != end; ++i)
-        {
-            Group *group = getGroupForId(i->id);
-
-            if (group && group->state() != Group::StateDeleted && group->state() != Group::StateDeleteFromDB)
-            {
-                // NOTE: this may cause problems if we have a lot of nodes + groups
-                // proposal mark groups for which scenes where discovered
-                if (readSceneMembership(lightNode, group))
-                {
-                    processed++;
-                    rd++;
-                }
-                else
-                {
-                    // print but don't take action
-                    DBG_Printf(DBG_INFO_L2, "read scenes membership for group: 0x%04X rejected\n", i->id);
-                }
-            }
-        }
-
-        if (!lightNode->groups().empty())
-        {
-            if (rd > 0)
-            {
-                lightNode->clearRead(READ_SCENES);
-            }
-        }
-        else
-        {
-            lightNode->clearRead(READ_SCENES);
-        }
-
-    }
-
-    if ((processed < 2) && lightNode->mustRead(READ_SCENE_DETAILS) && tNow > lightNode->nextReadTime(READ_SCENE_DETAILS))
-    {
-        std::vector<GroupInfo>::iterator g = lightNode->groups().begin();
-        std::vector<GroupInfo>::iterator gend = lightNode->groups().end();
-
-        int rd = 0;
-
-        for (; g != gend; ++g)
-        {
-            Group *group = getGroupForId(g->id);
-
-            if (group  && group->state() != Group::StateDeleted && group->state() != Group::StateDeleteFromDB)
-            {
-                std::vector<Scene>::iterator s = group->scenes.begin();
-                std::vector<Scene>::iterator send = group->scenes.end();
-
-                for (; s != send; ++s)
-                {
-                    if (readSceneAttributes(lightNode, g->id, s->id))
-                    {
-                        processed++;
-                        rd++;
-                    }
-                    else
-                    {
-                        // print but don't take action
-                        DBG_Printf(DBG_INFO_L2, "read scene Attributes for group: 0x%04X rejected\n", g->id);
-                    }
-                }
-            }
-        }
-
-        if (!lightNode->groups().empty())
-        {
-            if (rd > 0)
-            {
-                lightNode->clearRead(READ_SCENE_DETAILS);
-            }
-        }
-        else
-        {
-            lightNode->clearRead(READ_SCENE_DETAILS);
-        }
-
-    }
-#endif
 
     return (processed > 0);
 }
