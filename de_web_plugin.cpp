@@ -33,6 +33,7 @@
 #include <QJsonParseError>
 #include <queue>
 #include <cmath>
+#include "air_quality.h"
 #include "alarm_system_device_table.h"
 #include "colorspace.h"
 #include "database.h"
@@ -1127,6 +1128,15 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                 else if (idItem)
                 {
                     device->handleEvent(Event(r->prefix(), item->descriptor().suffix, idItem->toString(), device->key()));
+                }
+
+                if (item->descriptor().suffix[0] == 's') // state/*
+                {
+                    ResourceItem *lastUpdated = r->item(RStateLastUpdated);
+                    if (lastUpdated)
+                    {
+                        lastUpdated->setValue(item->lastSet());
+                    }
                 }
             }
         }
@@ -9515,13 +9525,21 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 }
                                 else if (i->modelId() == QLatin1String("lumi.airmonitor.acn01"))
                                 {
-                                    quint32 levelPpb = static_cast<quint32>(ia->numericValue().real);
+                                    quint16 level = static_cast<quint16>(ia->numericValue().real);
                                     ResourceItem *item = i->item(RStateAirQualityPpb);
 
-                                    if (item && item->toNumber() != levelPpb)
+                                    if (item && item->toNumber() != level)
                                     {
-                                        item->setValue(levelPpb);
-                                        QString airQuality = getAirQualityString(levelPpb);
+                                        item->setValue(level);
+                                        QString airQuality;
+
+                                        const auto match = lessThenKeyValue(level, RStateAirQualityVocLevelGer);
+
+                                        if (match.key)
+                                        {
+                                            airQuality = match.value;
+                                        }
+
                                         ResourceItem *item = i->item(RStateAirQuality);
 
                                         if (item && item->toString() != airQuality)

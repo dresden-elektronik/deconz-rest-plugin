@@ -106,6 +106,7 @@ DEFINES += GW_MIN_DERFUSB23E0X_FW_VERSION=0x22030300
 DEFINES += GW_DEFAULT_NAME=\\\"Phoscon-GW\\\"
 
 HEADERS  = bindings.h \
+           air_quality.h \
            alarm_system.h \
            alarm_system_device_table.h \
            alarm_system_event_handler.h \
@@ -170,6 +171,7 @@ HEADERS  = bindings.h \
            utils/stringcache.h \
            utils/utils.h \
            websocket_server.h \
+           xiaomi.h \
            zcl/zcl.h \
            zdp/zdp.h \
            zdp/zdp_handlers.h

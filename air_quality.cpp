@@ -1,7 +1,11 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
+#include "air_quality.h"
 
-/*! Handle packets related to manufacturer specific clusters for air quality (VOC).
+const std::array<KeyValMapAirQuality, 6> RStateAirQualityVocLevelGer = { { {65, QLatin1String("excellent")}, {220, QLatin1String("good")}, {660, QLatin1String("moderate")}, {2200, QLatin1String("poor")},
+                                                                            {5000, QLatin1String("unhealthy")}, {65535, QLatin1String("out of scale")} } };
+
+/*! Handle packets related to manufacturer specific clusters for air quality.
     \param ind the APS level data indication containing the ZCL packet
     \param zclFrame the actual ZCL frame which holds the Thermostat cluster command or attribute
  */
@@ -60,7 +64,8 @@ void DeRestPluginPrivate::handleAirQualityClusterIndication(const deCONZ::ApsDat
                 continue;
             }
 
-            quint32 levelPpb = UINT32_MAX; // invalid value
+            quint32 level = UINT32_MAX; // invalid value
+            QString airquality;
 
             switch (attrId)
             {
@@ -68,7 +73,14 @@ void DeRestPluginPrivate::handleAirQualityClusterIndication(const deCONZ::ApsDat
             {
                 if (ind.clusterId() == 0xFC03 && sensor->modelId() == QLatin1String("AQSZB-110"))    // Develco air quality sensor
                 {
-                    levelPpb = attr.numericValue().u16;
+                    level = attr.numericValue().u16;
+
+                    const auto match = lessThenKeyValue(level, RStateAirQualityVocLevelGer);
+
+                    if (match.key)
+                    {
+                        airquality = match.value;
+                    }
                 }
             }
                 break;
@@ -78,7 +90,13 @@ void DeRestPluginPrivate::handleAirQualityClusterIndication(const deCONZ::ApsDat
                 // Bosch air quality sensor
                 if (ind.clusterId() == BOSCH_AIR_QUALITY_CLUSTER_ID && sensor->modelId() == QLatin1String("AIR"))
                 {
-                    levelPpb = attr.numericValue().u16;
+                    level = attr.numericValue().u16;
+                    const auto match = lessThenKeyValue(level, RStateAirQualityVocLevelGer);
+
+                    if (match.key)
+                    {
+                        airquality = match.value;
+                    }
                 }
             }
                 break;
@@ -87,18 +105,24 @@ void DeRestPluginPrivate::handleAirQualityClusterIndication(const deCONZ::ApsDat
                 break;
             }
 
-            if (levelPpb != UINT32_MAX)
+            if (level != UINT32_MAX)
             {
-                QString airquality = QLatin1String("none");
+                ResourceItem *item = sensor->item(RStateAirQualityPpb);
+                if (item)
+                {
+                    if (updateType == NodeValue::UpdateByZclReport)
+                    {
+                        stateUpdated = true;
+                    }
+                    if (item->toNumber() != level)
+                    {
+                        item->setValue(level);
+                        enqueueEvent(Event(RSensors, RStateAirQualityPpb, sensor->id(), item));
+                        stateUpdated = true;
+                    }
+                }
 
-                if (levelPpb <= 65)                      { airquality = QLatin1String("excellent"); }
-                if (levelPpb > 65 && levelPpb <= 220)    { airquality = QLatin1String("good"); }
-                if (levelPpb > 220 && levelPpb <= 660)   { airquality = QLatin1String("moderate"); }
-                if (levelPpb > 660 && levelPpb <= 2200)  { airquality = QLatin1String("poor"); }
-                if (levelPpb > 2200 && levelPpb <= 5500) { airquality = QLatin1String("unhealthy"); }
-                if (levelPpb > 5500 )                    { airquality = QLatin1String("out of scale"); }
-
-                ResourceItem *item = sensor->item(RStateAirQuality);
+                item = sensor->item(RStateAirQuality);
                 if (item)
                 {
                     if (updateType == NodeValue::UpdateByZclReport)
@@ -109,21 +133,6 @@ void DeRestPluginPrivate::handleAirQualityClusterIndication(const deCONZ::ApsDat
                     {
                         item->setValue(airquality);
                         enqueueEvent(Event(RSensors, RStateAirQuality, sensor->id(), item));
-                        stateUpdated = true;
-                    }
-                }
-
-                item = sensor->item(RStateAirQualityPpb);
-                if (item)
-                {
-                    if (updateType == NodeValue::UpdateByZclReport)
-                    {
-                        stateUpdated = true;
-                    }
-                    if (item->toNumber() != levelPpb)
-                    {
-                        item->setValue(levelPpb);
-                        enqueueEvent(Event(RSensors, RStateAirQualityPpb, sensor->id(), item));
                         stateUpdated = true;
                     }
                 }
