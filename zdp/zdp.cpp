@@ -194,6 +194,88 @@ ZDP_Result ZDP_BindReq(const deCONZ::Binding &bnd, deCONZ::ApsController *apsCtr
     return result;
 }
 
+ZDP_Result ZDP_UnbindReq(const deCONZ::Binding &bnd, deCONZ::ApsController *apsCtrl)
+{
+    ZDP_Result result;
+    deCONZ::ApsDataRequest apsReq;
+
+    // set destination addressing
+    apsReq.setDstAddressMode(deCONZ::ApsExtAddress);
+    apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+    apsReq.dstAddress().setExt(bnd.srcAddress());
+    apsReq.setDstEndpoint(ZDO_ENDPOINT);
+    apsReq.setSrcEndpoint(ZDO_ENDPOINT);
+    apsReq.setProfileId(ZDP_PROFILE_ID);
+    apsReq.setClusterId(ZDP_UNBIND_REQ_CLID);
+
+    result.apsReqId = apsReq.id();
+    result.zdpSeq = zdpSeq++;
+
+    // prepare payload
+    QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
+    stream.setByteOrder(QDataStream::LittleEndian);
+
+    stream << result.zdpSeq;
+    stream << bnd.srcAddress();
+    stream << bnd.srcEndpoint();
+    stream << bnd.clusterId();
+    stream << static_cast<uint8_t>(bnd.dstAddressMode());
+
+    if (bnd.dstAddressMode() == deCONZ::ApsGroupAddress)
+    {
+        stream << bnd.dstAddress().group();
+    }
+    else if (bnd.dstAddressMode() == deCONZ::ApsExtAddress && bnd.dstAddress().ext() != 0 && bnd.dstEndpoint() != 0)
+    {
+        stream << quint64(bnd.dstAddress().ext());
+        stream << bnd.dstEndpoint();
+    }
+    else
+    {
+        return { };
+    }
+
+    if (apsCtrl && (apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success))
+    {
+        result.isEnqueued = true;
+        apsCtrl->removeBinding(bnd);
+    }
+
+    return result;
+}
+
+ZDP_Result ZDP_MgmtBindReq(uint8_t startIndex, const deCONZ::Address &addr, deCONZ::ApsController *apsCtrl)
+{
+    ZDP_Result result;
+    deCONZ::ApsDataRequest apsReq;
+
+    // set destination addressing
+    apsReq.setDstAddressMode(deCONZ::ApsExtAddress);
+    apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+    apsReq.dstAddress() = addr;
+    apsReq.setDstEndpoint(ZDO_ENDPOINT);
+    apsReq.setSrcEndpoint(ZDO_ENDPOINT);
+    apsReq.setProfileId(ZDP_PROFILE_ID);
+    apsReq.setClusterId(ZDP_MGMT_BIND_REQ_CLID);
+
+    result.apsReqId = apsReq.id();
+    result.zdpSeq = ZDP_NextSequenceNumber();
+
+    // prepare payload
+    QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
+    stream.setByteOrder(QDataStream::LittleEndian);
+
+    stream << result.zdpSeq;
+    stream << startIndex;
+
+    if (apsCtrl && (apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success))
+    {
+        result.isEnqueued = true;
+    }
+
+    return result;
+}
+
 uint8_t ZDP_NextSequenceNumber()
 {
     uint8_t result = zdpSeq++;
