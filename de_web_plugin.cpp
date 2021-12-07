@@ -1050,6 +1050,10 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
         {
             enqueueEvent(Event(device->prefix(), REventSimpleDescriptor, 0, device->key()));
         }
+        else if (ind.clusterId() == ZDP_MGMT_BIND_RSP_CLID)
+        {
+            enqueueEvent(EventWithData(device->prefix(), REventZdpMgmtBindResponse, ind.asdu().constData(), ind.asdu().size(), device->key()));
+        }
 
         if ((ind.clusterId() & 0x8000) != 0 && ind.asdu().size() >= 2)
         {
@@ -1072,6 +1076,12 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
         else if (!device->managed())
         {
             break;
+        }
+
+        if (r->prefix() == RLights)
+        {
+            LightNode *l = static_cast<LightNode*>(r);
+            l->rx();
         }
 
         for (int i = 0; i < r->itemCount(); i++)
@@ -12230,12 +12240,6 @@ void DeRestPluginPrivate::queuePollNode(RestNodeBase *node)
         return;
     }
 
-    const Device *device = DEV_GetDevice(m_devices, node->address().ext());
-    if (device && device->managed())
-    {
-        return;
-    }
-
     if (!node->node()->nodeDescriptor().receiverOnWhenIdle())
     {
         return; // only support non sleeping devices for now
@@ -12244,6 +12248,12 @@ void DeRestPluginPrivate::queuePollNode(RestNodeBase *node)
     auto *resource = dynamic_cast<Resource*>(node);
 
     if (!resource)
+    {
+        return;
+    }
+
+    const Device *device = static_cast<Device*>(resource->parentResource());
+    if (device && device->managed())
     {
         return;
     }

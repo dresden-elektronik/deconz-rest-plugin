@@ -1294,9 +1294,12 @@ static DDF_Binding DDF_ParseBinding(const QJsonObject &obj)
     {
         result.isUnicastBinding = 1;
     }
+    else if (type == QLatin1String("groupcast"))
+    {
+        result.isGroupBinding = 1;
+    }
     else
     {
-        // TODO group cast
         return {};
     }
 
@@ -1332,6 +1335,20 @@ static DDF_Binding DDF_ParseBinding(const QJsonObject &obj)
     else
     {
         result.dstEndpoint = 0;
+    }
+
+    if (result.isGroupBinding && obj.contains(QLatin1String("config.group")))
+    {
+        const auto configGroup = obj.value(QLatin1String("config.group")).toInt(-1);
+        if (configGroup < 0 || configGroup >= 255)
+        {
+            return {};
+        }
+        result.configGroup = configGroup;
+    }
+    else
+    {
+        result.configGroup = 0;
     }
 
     const auto report = obj.value(QLatin1String("report"));

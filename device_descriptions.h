@@ -54,6 +54,7 @@ public:
     quint16 clusterId;
     quint8 srcEndpoint;
     quint8 dstEndpoint;
+    quint8 configGroup;
     struct
     {
         unsigned int isGroupBinding : 1;
