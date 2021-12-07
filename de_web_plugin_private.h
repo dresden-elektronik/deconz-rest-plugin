@@ -1796,7 +1796,6 @@ public:
     bool gwRunFromShellScript;
     QString gwRunMode;
     bool gwDeleteUnknownRules;
-    bool groupDeviceMembershipChecked;
     QVariantMap gwUserParameter;
     std::vector<QString> gwUserParameterToDelete;
     deCONZ::Address gwDeviceAddress;

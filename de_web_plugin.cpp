@@ -706,7 +706,6 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     haEndpoint = 0;
     gwGroupSendDelay = deCONZ::appArgumentNumeric("--group-delay", GROUP_SEND_DELAY);
     supportColorModeXyForGroups = true;
-    groupDeviceMembershipChecked = false;
     gwLinkButton = false;
     gwWebSocketNotifyAll = true;
     gwdisablePermitJoinAutoOff = false;
