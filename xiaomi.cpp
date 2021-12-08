@@ -300,6 +300,18 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             DBG_Printf(DBG_INFO, "\t0c unknown %u (0x%02X)\n", u8, u8);
         }
+        else if (tag == 0x0d && dataType == deCONZ::Zcl32BitUint) // lumi.switch.n2aeu1
+        {
+            DBG_Printf(DBG_INFO, "\t0d unknown %u (0x%08X)\n", u32, u32);
+        }
+        else if (tag == 0x0e && dataType == deCONZ::Zcl32BitUint) // lumi.switch.n2aeu1
+        {
+            DBG_Printf(DBG_INFO, "\t0e unknown %u (0x%08X)\n", u32, u32);
+        }
+        else if (tag == 0x0f && dataType == deCONZ::Zcl32BitUint) // lumi.switch.n2aeu1
+        {
+            DBG_Printf(DBG_INFO, "\t0f unknown %u (0x%08X)\n", u32, u32);
+        }
         else if ((tag == 0x64 || structIndex == 0x01) && dataType == deCONZ::ZclBoolean) // lumi.ctrl_ln2 endpoint 01
         {
             DBG_Printf(DBG_INFO, "\t64 on/off %u\n", u8);

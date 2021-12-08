@@ -4077,7 +4077,15 @@ Attribute 0x0205 has range between 1 and 50 only</description>
 				<attribute id="0x0008" name="Unknown (write only)" type="ostring" mfcode="0x115f" access="w" required="m"> </attribute>
 				<attribute id="0x0009" name="Device operation mode" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x000A" name="Switch mode" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x000C" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x000D" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x00E8" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00E9" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00EA" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00EB" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00ED" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00EE" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00F0" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x00F1" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x00F3" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x00F4" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
@@ -4107,9 +4115,27 @@ Attribute 0x0205 has range between 1 and 50 only</description>
 				<attribute id="0x0206" name="Power Threshold for Auto-off" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0207" name="Consumer Connected" type="bool" mfcode="0x115f" access="r" required="m"> </attribute>
 				<attribute id="0x020B" name="Max. Load Exceeded at (W)" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x020C" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x020D" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x020E" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x023B" name="Unknown" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x023E" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0700" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0701" name="Unknown" type="s8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0702" name="Unknown" type="s8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0703" name="Unknown" type="s8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0704" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0705" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0740" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0780" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0781" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0782" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0783" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x07C0" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0xF000" name="Report Consumer Connected" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0xF001" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0xF002" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0xFFF2" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0xFFFD" name="Cluster Revision" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
 			</server>
 			<client>
