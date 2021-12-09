@@ -4303,11 +4303,11 @@ void DeRestPluginPrivate::checkOldSensorGroups(Sensor *sensor)
         return;
     }
 
-    QStringList gids = item->toString().split(',', QString::SkipEmptyParts);
+    QStringList gids = item->toString().split(',', SKIP_EMPTY_PARTS);
 
     {
-        std::vector<Group>::iterator i = groups.begin();
-        std::vector<Group>::iterator end = groups.end();
+        auto i = groups.begin();
+        const auto end = groups.end();
 
         for (; i != end; ++i)
         {
@@ -4323,9 +4323,12 @@ void DeRestPluginPrivate::checkOldSensorGroups(Sensor *sensor)
             }
             else if (i->deviceIsMember(sensor->uniqueId()) || i->deviceIsMember(sensor->id()))
             {
-                if (!i->removeDeviceMembership(sensor->uniqueId()))
+                i->removeDeviceMembership(sensor->uniqueId());
+                i->removeDeviceMembership(sensor->id());
+
+                if (!i->item(RAttrUniqueId) || i->item(RAttrUniqueId)->toString().isEmpty())
                 {
-                    i->removeDeviceMembership(sensor->id());
+                    continue; // don't remove ordinary groups
                 }
 
                 if (i->address() != 0 && i->state() == Group::StateNormal && !i->hasDeviceMembers())
@@ -4337,8 +4340,8 @@ void DeRestPluginPrivate::checkOldSensorGroups(Sensor *sensor)
 
                     // for each node which is part of this group send a remove group request (will be unicast)
                     // note: nodes which are curently switched off will not be removed!
-                    std::vector<LightNode>::iterator j = nodes.begin();
-                    std::vector<LightNode>::iterator jend = nodes.end();
+                    auto j = nodes.begin();
+                    const auto jend = nodes.end();
 
                     for (; j != jend; ++j)
                     {
@@ -4361,8 +4364,8 @@ void DeRestPluginPrivate::checkOldSensorGroups(Sensor *sensor)
 /*! Remove groups which are controlled by device \p id. */
 void DeRestPluginPrivate::deleteGroupsWithDeviceMembership(const QString &id)
 {
-    std::vector<Group>::iterator i = groups.begin();
-    std::vector<Group>::iterator end = groups.end();
+    auto i = groups.begin();
+    const auto end = groups.end();
     for (; i != end; ++i)
     {
         if (i->deviceIsMember(id) && i->state() == Group::StateNormal)
@@ -4377,12 +4380,17 @@ void DeRestPluginPrivate::deleteGroupsWithDeviceMembership(const QString &id)
                 continue;
             }
 
+            if (!i->item(RAttrUniqueId) || i->item(RAttrUniqueId)->toString().isEmpty())
+            {
+                continue; // don't remove ordinary groups
+            }
+
             i->setState(Group::StateDeleted);
 
             // for each node which is part of this group send a remove group request (will be unicast)
             // note: nodes which are curently switched off will not be removed!
-            std::vector<LightNode>::iterator j = nodes.begin();
-            std::vector<LightNode>::iterator jend = nodes.end();
+            auto j = nodes.begin();
+            const auto jend = nodes.end();
 
             for (; j != jend; ++j)
             {

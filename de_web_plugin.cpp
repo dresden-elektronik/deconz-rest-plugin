@@ -711,7 +711,6 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     haEndpoint = 0;
     gwGroupSendDelay = deCONZ::appArgumentNumeric("--group-delay", GROUP_SEND_DELAY);
     supportColorModeXyForGroups = true;
-    groupDeviceMembershipChecked = false;
     gwLinkButton = false;
     gwWebSocketNotifyAll = true;
     gwdisablePermitJoinAutoOff = false;
@@ -1056,6 +1055,10 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
         {
             enqueueEvent(Event(device->prefix(), REventSimpleDescriptor, 0, device->key()));
         }
+        else if (ind.clusterId() == ZDP_MGMT_BIND_RSP_CLID)
+        {
+            enqueueEvent(EventWithData(device->prefix(), REventZdpMgmtBindResponse, ind.asdu().constData(), ind.asdu().size(), device->key()));
+        }
 
         if ((ind.clusterId() & 0x8000) != 0 && ind.asdu().size() >= 2)
         {
@@ -1078,6 +1081,12 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
         else if (!device->managed())
         {
             break;
+        }
+
+        if (r->prefix() == RLights)
+        {
+            LightNode *l = static_cast<LightNode*>(r);
+            l->rx();
         }
 
         for (int i = 0; i < r->itemCount(); i++)
@@ -12269,12 +12278,6 @@ void DeRestPluginPrivate::queuePollNode(RestNodeBase *node)
         return;
     }
 
-    const Device *device = DEV_GetDevice(m_devices, node->address().ext());
-    if (device && device->managed())
-    {
-        return;
-    }
-
     if (!node->node()->nodeDescriptor().receiverOnWhenIdle())
     {
         return; // only support non sleeping devices for now
@@ -12283,6 +12286,12 @@ void DeRestPluginPrivate::queuePollNode(RestNodeBase *node)
     auto *resource = dynamic_cast<Resource*>(node);
 
     if (!resource)
+    {
+        return;
+    }
+
+    const Device *device = static_cast<Device*>(resource->parentResource());
+    if (device && device->managed())
     {
         return;
     }
@@ -17714,6 +17723,122 @@ Resource *DEV_AddResource(const LightNode &lightNode)
     l.setHandle(R_CreateResourceHandle(&l, plugin->nodes.size() - 1));
 
     return &l;
+}
+
+/*!  Called by init DDF to allocate new groups for config.group = "auto [,auto, ...]".
+
+     For each "auto" entry in the comma seperated group list a new \c Group is allocated
+     and assigned to the device via device membership and group.uniqueid.
+
+     The group.uniqueid is generated based on the position in the config.group list:
+
+     "auto":            00:11:22:33:44:55:66:77
+
+     "auto,auto":       00:11:22:33:44:55:66:77
+                        00:11:22:33:44:55:66:77-1
+
+     "auto,auto,auto":  00:11:22:33:44:55:66:77
+                        00:11:22:33:44:55:66:77-1
+                        00:11:22:33:44:55:66:77-2
+
+     Where 00:11:22:33:44:55:66:77 is the MAC address of the device.
+     Note: The first group has no "-0" suffix, to be backward compatible with old code.
+ */
+void DEV_AllocateGroup(const Device *device, Resource *rsub, ResourceItem *item)
+{
+    assert(device);
+    assert(rsub);
+    assert(item);
+    assert(item->descriptor().suffix == RConfigGroup);
+
+    if (!device || !rsub || !item || item->descriptor().suffix != RConfigGroup)
+    {
+        return;
+    }
+
+    if (isValidRConfigGroup(item->toString()))
+    {
+        return;
+    }
+
+    const auto &rId = rsub->item(RAttrId)->toString();
+    auto &groups = plugin->groups;
+    auto ls = item->toString().split(',', SKIP_EMPTY_PARTS);
+
+    int allocated = 0;
+    for (int i = 0; i < ls.size(); i++)
+    {
+        if (ls[i] == QLatin1String("auto"))
+        {
+            QString gUniqueId = device->item(RAttrUniqueId)->toString();
+            if (ls.size() > 1)
+            {
+                gUniqueId += "-" + QString::number(i);
+            }
+
+            auto g = groups.begin();
+            const auto gend = groups.end();
+
+            for (; g != gend; ++g)
+            {
+                if (g->address() == 0 || g->state() != Group::StateNormal)
+                {
+                    continue;
+                }
+
+                const ResourceItem *uid = g->item(RAttrUniqueId);
+
+                if (uid && uid->toString() == gUniqueId)
+                {
+                    ls[i] = g->id(); // device group already exists, grab group id
+                    g->addDeviceMembership(rId);
+                    allocated++;
+                    break;
+                }
+            }
+
+            if (g == gend)
+            {
+                for (quint16 gid = 20000 ; gid < 25000; gid++)
+                {
+                    const auto match = std::find_if(groups.cbegin(), groups.cend(), [gid](const Group &x) { return x.address() == gid; });
+
+                    if (match == groups.cend())
+                    {
+                        Group group;
+
+                        group.setAddress(gid);
+                        group.addItem(DataTypeString, RAttrUniqueId)->setValue(gUniqueId);
+                        group.addDeviceMembership(rId);
+                        group.setName(rsub->item(RAttrName)->toString() + " " + QString::number(i));
+                        ls[i] = group.id();
+
+                        groups.push_back(group);
+                        plugin->updateGroupEtag(&groups.back());
+                        plugin->queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
+                        allocated++;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    if (allocated > 0)
+    {
+        item->setValue(ls.join(','));
+        DB_StoreSubDeviceItem(rsub, item);
+
+        if (rsub->prefix() == RSensors)
+        {
+            Sensor *s = static_cast<Sensor*>(rsub);
+            if (s)
+            {
+                s->setNeedSaveDatabase(true);
+                plugin->queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+            }
+        }
+    }
 }
 
 /*! Returns deCONZ core node for a given \p extAddress.

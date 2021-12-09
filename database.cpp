@@ -5984,32 +5984,6 @@ void DeRestPluginPrivate::checkConsistency()
     {
         gwProxyPort = 0;
     }
-
-    {
-        std::vector<Group>::iterator i = groups.begin();
-        std::vector<Group>::iterator end = groups.end();
-
-        for (; i != end; ++i)
-        {
-            for (size_t j = 0; j < i->m_deviceMemberships.size(); j++)
-            {
-                const QString &sid = i->m_deviceMemberships[j];
-                Sensor *sensor = getSensorNodeForId(sid);
-
-                if (!sensor || sensor->deletedState() != Sensor::StateNormal)
-                {
-                    // sensor isn't available anymore
-                    DBG_Printf(DBG_INFO, "remove sensor %s from group 0x%04X\n", qPrintable(sid), i->address());
-                    i->m_deviceMemberships[j] = i->m_deviceMemberships.back();
-                    i->m_deviceMemberships.pop_back();
-                }
-                else
-                {
-                    j++;
-                }
-            }
-        }
-    }
 }
 
 /*! Timer handler for storing persistent data.

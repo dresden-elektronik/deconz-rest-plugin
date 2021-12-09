@@ -14,6 +14,7 @@
 #include <QUrlQuery>
 #include <QVariantMap>
 #include <QtCore/qmath.h>
+#include "database.h"
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "json.h"
@@ -652,6 +653,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     TaskItem task;
     QString id = req.path[3];
     Sensor *sensor = id.length() < MIN_UNIQUEID_LENGTH ? getSensorNodeForId(id) : getSensorNodeForUniqueId(id);
+    Device *device = sensor->parentResource() ? static_cast<Device*>(sensor->parentResource()) : nullptr;
     bool ok;
     bool updated;
     bool save = false;
@@ -1697,6 +1699,12 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         updated = true;
                         checkSensorBindingsForClientClusters(sensor);
+
+                        if (device && device->managed() && data.string != item->toString())
+                        {
+                            // if the device has groupcast bindings check for reconfiguration
+                            enqueueEvent(Event(RDevices, REventDDFReload, 0, sensor->address().ext()));
+                        }
                     }
                 }
                 else if (QString(rid.suffix).startsWith("config/ubisys_j1_")) // Unsigned integer
@@ -1796,6 +1804,11 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         rsp.list.append(rspItem);
                         Event e(RSensors, rid.suffix, id, item);
                         enqueueEvent(e);
+
+                        if (device && device->managed())
+                        {
+                            DB_StoreSubDeviceItem(sensor, item);
+                        }
                     }
 
                     save = true;
