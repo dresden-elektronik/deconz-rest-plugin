@@ -211,6 +211,28 @@
                 [1, "0x01", "SCENES", "RECALL_SCENE", "4", "S_BUTTON_6", "S_BUTTON_ACTION_SHORT_RELEASED", "Recall scene 4"]
             ]
         },
+        "deKoboldMap": {
+            "vendor": "dresden elektronik",
+            "modelids": ["Kobold"],
+            "doc": "Kobold",
+            "buttons": [
+                {"S_BUTTON_1": "Button 1"}
+            ],
+            "map": [
+                [1, "0x02", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
+                [1, "0x02", "ONOFF", "OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
+                [1, "0x02", "LEVEL_CONTROL", "MOVE", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Dimm up"],
+                [1, "0x02", "LEVEL_CONTROL", "MOVE", "1", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Dimm down"],
+                [1, "0x02", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "1", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Dimm stop"],
+                [1, "0x02", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Dimm stop"],
+                [2, "0x02", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
+                [2, "0x02", "ONOFF", "OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
+                [2, "0x02", "LEVEL_CONTROL", "MOVE", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Dimm up"],
+                [2, "0x02", "LEVEL_CONTROL", "MOVE", "1", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Dimm down"],
+                [2, "0x02", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "1", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Dimm stop"],
+                [2, "0x02", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Dimm stop"]
+            ]
+        },
         "instaRemoteMap": {
             "vendor": "GIRA / JUNG",
             "doc":"Switches and remotes",
