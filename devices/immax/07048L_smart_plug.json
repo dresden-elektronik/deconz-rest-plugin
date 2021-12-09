@@ -5,7 +5,7 @@
   "vendor": "Immax Neo",
   "product": "07048L",
   "sleeper": false,
-  "status": "Gold",
+  "status": "Silver",
   "subdevices": [
     {
       "type": "$TYPE_SMART_PLUG",
