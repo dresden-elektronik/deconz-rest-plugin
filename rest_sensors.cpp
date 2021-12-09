@@ -3274,6 +3274,12 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
         return;
     }
 
+    Device *device = DEV_GetDevice(m_devices, ind.srcAddress().ext());
+    if (device && device->managed())
+    {
+        return;
+    }
+
     if (isSameAddress(ind.srcAddress(), fastProbeAddr))
     {
         DBG_Printf(DBG_INFO, "FP indication 0x%04X / 0x%04X (0x%016llX / 0x%04X)\n", ind.profileId(), ind.clusterId(), ind.srcAddress().ext(), ind.srcAddress().nwk());

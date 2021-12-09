@@ -3183,7 +3183,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         quint8 endpoint = sensor.fingerPrint().endpoint;
         DBG_Printf(DBG_INFO_L2, "DB found sensor %s %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()));
 
-        if (DEV_TestManaged())
         {
             const auto ddf = d->deviceDescriptions->get(&sensor);
             if (ddf.isValid())
@@ -3194,7 +3193,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 {
                     DBG_Printf(DBG_INFO, "DB legacy loading sensor %s %s, later handled by DDF %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()), qPrintable(ddf.product));
                 }
-                else
+                else if (DEV_TestManaged() || d->deviceDescriptions->enabledStatusFilter().contains(ddf.status))
                 {
                     DBG_Printf(DBG_INFO, "DB skip loading sensor %s %s, handled by DDF %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()), qPrintable(ddf.product));
                     return 0;

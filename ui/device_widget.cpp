@@ -6,7 +6,9 @@
 #include <QMenuBar>
 #include <QMimeData>
 #include <QUrl>
+#include <QSettings>
 #include <QStatusBar>
+#include <QTimer>
 #include <deconz/node.h>
 #include <deconz/node_event.h>
 #include <deconz/dbg_trace.h>
@@ -151,6 +153,9 @@ public:
     DeviceContainer *devices = nullptr;
 
     deCONZ::Address curNode;
+
+    uint reloadIter = 0;
+    QTimer *reloadTimer = nullptr;
 };
 
 DeviceWidget::DeviceWidget(DeviceContainer &devices, QWidget *parent) :
@@ -162,16 +167,30 @@ DeviceWidget::DeviceWidget(DeviceContainer &devices, QWidget *parent) :
     ui->setupUi(this);
     setWindowTitle(tr("Control"));
 
+    d->reloadTimer = new QTimer(this);
+    d->reloadTimer->setSingleShot(true);
+    connect(d->reloadTimer, &QTimer::timeout, this, &DeviceWidget::reloadTimerFired);
+
     connect(ui->enablePermitJoinButton, &QPushButton::clicked, this, &DeviceWidget::enablePermitJoin);
     connect(ui->disablePermitJoinButton, &QPushButton::clicked, this, &DeviceWidget::disablePermitJoin);
 
     if      (DEV_TestStrict())  { ui->ddfStrictRadioButton->setChecked(true); }
     else if (DEV_TestManaged()) { ui->ddfNormalRadioButton->setChecked(true); }
-    else                        { ui->ddfDisabledRadioButton->setChecked(true); }
+    else                        { ui->ddfFilteredRadioButton->setChecked(true); }
 
-    connect(ui->ddfDisabledRadioButton, &QRadioButton::clicked, this, &DeviceWidget::enableDDFHandlingChanged);
+    const QStringList filter = DeviceDescriptions::instance()->enabledStatusFilter();
+
+    ui->ddfFilterBronzeCheckBox->setChecked(filter.contains("Bronze"));
+    ui->ddfFilterSilverCheckBox->setChecked(filter.contains("Silver"));
+    ui->ddfFilterGoldCheckBox->setChecked(filter.contains("Gold"));
+
+    connect(ui->ddfFilteredRadioButton, &QRadioButton::clicked, this, &DeviceWidget::enableDDFHandlingChanged);
     connect(ui->ddfNormalRadioButton, &QRadioButton::clicked, this, &DeviceWidget::enableDDFHandlingChanged);
     connect(ui->ddfStrictRadioButton, &QRadioButton::clicked, this, &DeviceWidget::enableDDFHandlingChanged);
+
+    connect(ui->ddfFilterBronzeCheckBox, &QCheckBox::clicked, this, &DeviceWidget::enableDDFHandlingChanged);
+    connect(ui->ddfFilterSilverCheckBox, &QCheckBox::clicked, this, &DeviceWidget::enableDDFHandlingChanged);
+    connect(ui->ddfFilterGoldCheckBox, &QCheckBox::clicked, this, &DeviceWidget::enableDDFHandlingChanged);
 }
 
 DeviceWidget::~DeviceWidget()
@@ -411,17 +430,59 @@ void DeviceWidget::disablePermitJoin()
 
 void DeviceWidget::enableDDFHandlingChanged()
 {
-    if (ui->ddfDisabledRadioButton->isChecked())
+    QStringList filter;
+
+    if (ui->ddfFilteredRadioButton->isChecked())
     {
         DEV_SetTestManaged(0);
+
+        filter.clear();
+        if (ui->ddfFilterBronzeCheckBox->isChecked()) { filter.append("Bronze"); }
+        if (ui->ddfFilterSilverCheckBox->isChecked()) { filter.append("Silver"); }
+        if (ui->ddfFilterGoldCheckBox->isChecked()) { filter.append("Gold"); }
     }
     else if (ui->ddfNormalRadioButton->isChecked())
     {
         DEV_SetTestManaged(1);
+
+        filter.append("Bronze");
+        filter.append("Silver");
+        filter.append("Gold");
     }
     else if (ui->ddfStrictRadioButton->isChecked())
     {
         DEV_SetTestManaged(2);
+
+        filter.append("Bronze");
+        filter.append("Silver");
+        filter.append("Gold");
     }
+
+    if (filter != DeviceDescriptions::instance()->enabledStatusFilter())
+    {
+        DeviceDescriptions::instance()->setEnabledStatusFilter(filter);
+
+        QSettings config(deCONZ::getStorageLocation(deCONZ::ConfigLocation), QSettings::IniFormat);
+
+        config.setValue("ddf-filter/bronze", ui->ddfFilterBronzeCheckBox->isChecked() ? 1 : 0);
+        config.setValue("ddf-filter/silver", ui->ddfFilterSilverCheckBox->isChecked() ? 1 : 0);
+        config.setValue("ddf-filter/gold", ui->ddfFilterGoldCheckBox->isChecked() ? 1 : 0);
+    }
+
+    // reload all Devices to bring state machine in correct state
+    d->reloadIter = 0;
+    d->reloadTimer->start(1000);
 }
 
+void DeviceWidget::reloadTimerFired()
+{
+    if (d->reloadIter >= d->devices->size())
+    {
+        return;
+    }
+
+    Device *device = d->devices->at(d->reloadIter).get();
+    device->handleEvent(Event(RDevices, REventDDFReload, 0, device->key()));
+    d->reloadIter++;
+    d->reloadTimer->start(1000);
+}

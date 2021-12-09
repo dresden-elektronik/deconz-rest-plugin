@@ -14,6 +14,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <QSettings>
 #include <deconz/dbg_trace.h>
 #include "device_ddf_init.h"
 #include "device_descriptions.h"
@@ -59,6 +60,8 @@ public:
     DeviceDescription invalidDescription;
     DeviceDescription::Item invalidItem;
 
+    QStringList enabledStatusFilter;
+
     std::vector<DDF_SubDeviceDescriptor> subDevices;
 
     std::vector<DDF_FunctionDescriptor> readFunctions;
@@ -82,6 +85,8 @@ DeviceDescriptions::DeviceDescriptions(QObject *parent) :
 {
     _instance = this;
     _priv = d_ptr2;
+
+    d_ptr2->enabledStatusFilter;
 
     {  // Parse function as shown in the DDF editor.
         DDF_FunctionDescriptor fn;
@@ -323,6 +328,16 @@ DeviceDescriptions::~DeviceDescriptions()
     Q_ASSERT(d_ptr2);
     delete d_ptr2;
     d_ptr2 = nullptr;
+}
+
+void DeviceDescriptions::setEnabledStatusFilter(const QStringList &filter)
+{
+    d_ptr2->enabledStatusFilter = filter;
+}
+
+const QStringList &DeviceDescriptions::enabledStatusFilter() const
+{
+    return d_ptr2->enabledStatusFilter;
 }
 
 /*! Returns the DeviceDescriptions singleton instance.
@@ -902,7 +917,11 @@ void DeviceDescriptions::handleDDFInitRequest(const Event &event)
         {
             result = 0;
 
-            if (DEV_InitDeviceFromDescription(static_cast<Device*>(resource), ddf))
+            if (!DEV_TestManaged() && !d->enabledStatusFilter.contains(ddf.status))
+            {
+                result = 2;
+            }
+            else if (DEV_InitDeviceFromDescription(static_cast<Device*>(resource), ddf))
             {
                 result = 1; // ok
 

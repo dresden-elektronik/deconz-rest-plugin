@@ -683,6 +683,23 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     deviceDescriptions = new DeviceDescriptions(this);
     connect(deviceDescriptions, &DeviceDescriptions::eventNotify, eventEmitter, &EventEmitter::enqueueEvent);
     connect(eventEmitter, &EventEmitter::eventNotify, deviceDescriptions, &DeviceDescriptions::handleEvent);
+
+    {
+        QSettings config(deCONZ::getStorageLocation(deCONZ::ConfigLocation), QSettings::IniFormat);
+
+        int filterBronze = config.value("ddf-filter/bronze", 0).toInt();
+        int filterSilver = config.value("ddf-filter/silver", 0).toInt();
+        int filterGold = config.value("ddf-filter/gold", 1).toInt();
+
+        QStringList filter;
+
+        if (filterBronze) { filter.append("Bronze"); }
+        if (filterSilver) { filter.append("Silver"); }
+        if (filterGold) { filter.append("Gold"); }
+
+        deviceDescriptions->setEnabledStatusFilter(filter);
+    }
+
     deviceDescriptions->readAll();
 
     connect(databaseTimer, SIGNAL(timeout()),
@@ -2954,21 +2971,18 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         loadLightNodeFromDb(&lightNode);
         closeDb();
 
-        if (DEV_TestManaged())
+        // check if this device is already handled by Device code
+        if (DB_GetSubDeviceItemCount(lightNode.item(RAttrUniqueId)->toLatin1String()) > 0)
         {
-            // check if this device is already handled by Device code
-            if (DB_GetSubDeviceItemCount(lightNode.item(RAttrUniqueId)->toLatin1String()) > 0)
+            const DeviceDescription &ddf = deviceDescriptions->get(&lightNode);
+            if (ddf.isValid() && (DEV_TestManaged() || deviceDescriptions->enabledStatusFilter().contains(ddf.status)))
             {
-                const DeviceDescription &ddf = deviceDescriptions->get(&lightNode);
-                if (ddf.isValid())
+                if (ddf.path.isEmpty())
                 {
-                    if (ddf.path.isEmpty())
-                    {
-                        DBG_Printf(DBG_INFO, "TODO %s has partial ddf\n", qPrintable(lightNode.uniqueId()));
-                    }
-                    DBG_Printf(DBG_INFO, "skip classic loading %s / %s \n", qPrintable(lightNode.uniqueId()), qPrintable(lightNode.name()));
-                    return;
+                    DBG_Printf(DBG_INFO, "TODO %s has partial ddf\n", qPrintable(lightNode.uniqueId()));
                 }
+                DBG_Printf(DBG_INFO, "skip classic loading %s / %s \n", qPrintable(lightNode.uniqueId()), qPrintable(lightNode.name()));
+                return;
             }
         }
 
@@ -8315,6 +8329,12 @@ void DeRestPluginPrivate::checkUpdatedFingerPrint(const deCONZ::Node *node, quin
     }
 
     if (!node)
+    {
+        return;
+    }
+
+    Device *device = DEV_GetDevice(m_devices, node->address().ext());
+    if (device && device->managed())
     {
         return;
     }
@@ -17011,9 +17031,9 @@ void DeRestPlugin::appAboutToQuit()
         d->openDb();
         d->saveDb();
 
-        if (DEV_TestManaged())
+        for (const auto &dev : d->m_devices)
         {
-            for (const auto &dev : d->m_devices)
+            if (dev->managed())
             {
                 for (const auto *sub : dev->subDevices())
                 {
