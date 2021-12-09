@@ -778,12 +778,6 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
         DBG_Printf(DBG_DEV, "DEV (NOT reachable) Idle event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
     }
 
-    if (!DEV_TestManaged())
-    {
-        d->setState(DEV_DeadStateHandler);
-        return;
-    }
-
     DEV_CheckItemChanges(device, event);
 
     // process parallel states
@@ -1917,7 +1911,7 @@ const deCONZ::Node *Device::node() const
 
 bool Device::managed() const
 {
-    return devManaged > 0 && d->managed && d->flags.hasDdf;
+    return d->managed && d->flags.hasDdf;
 }
 
 void Device::setManaged(bool managed)

@@ -1700,7 +1700,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         updated = true;
                         checkSensorBindingsForClientClusters(sensor);
 
-                        if (device && device->managed() && data.string != item->toString())
+                        if (device && device->managed())
                         {
                             // if the device has groupcast bindings check for reconfiguration
                             enqueueEvent(Event(RDevices, REventDDFReload, 0, sensor->address().ext()));
