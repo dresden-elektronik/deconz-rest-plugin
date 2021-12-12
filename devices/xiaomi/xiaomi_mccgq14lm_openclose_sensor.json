@@ -5,7 +5,7 @@
   "vendor": "Xiaomi Aqara",
   "product": "Open/close sensor MCCGQ14LM",
   "sleeper": true,
-  "status": "Gold",
+  "status": "Silver",
   "subdevices": [
     {
       "type": "$TYPE_OPEN_CLOSE_SENSOR",
@@ -74,12 +74,7 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/open",
-          "parse": {
-            "at": "0x0002",
-            "cl": "0x0500",
-            "ep": 1
-          }
+          "name": "state/open"
         }
       ]
     }

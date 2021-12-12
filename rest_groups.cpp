@@ -3396,7 +3396,6 @@ void DeRestPluginPrivate::handleGroupEvent(const Event &e)
     {
         return;
     }
-    const QDateTime now = QDateTime::currentDateTime();
 
     if (e.what() == REventCheckGroupAnyOn)
     {

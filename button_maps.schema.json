@@ -80,6 +80,7 @@
           "COLOR_CONTROL",
           "IAS_ZONE",
           "IAS_ACE",
+          "XIAOMI",
           "ADUROLIGHT",
           "XIAOYAN"
         ]
@@ -114,8 +115,11 @@
     "multistate-input-commands": {
       "enum": [ "ATTRIBUTE_REPORT" ]
     },
+    "xiaomi-commands": {
+      "enum": [ "ATTRIBUTE_REPORT" ]
+    },
     "xiaoyan-commands": {
-      "enum": [ "ATTRIBUTE_REPORT", "COMMAND_0", "COMMAND_20"  ]
+      "enum": [ "ATTRIBUTE_REPORT", "COMMAND_0", "COMMAND_20" ]
     },
     "entry": {
       "type": "object",
@@ -161,6 +165,7 @@
             { "$ref": "#/definitions/window-covering-commands" },
             { "$ref": "#/definitions/ias-commands" },
             { "$ref": "#/definitions/multistate-input-commands" },
+            { "$ref": "#/definitions/xiaomi-commands" },
             { "$ref": "#/definitions/xiaoyan-commands" }
           ],
           "description": "The received cluster command."

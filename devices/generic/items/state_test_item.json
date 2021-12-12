@@ -1,0 +1,9 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/test",
+	"datatype": "Bool",
+	"access": "R",
+	"public": true,
+	"description": "True when a test is detected.",
+	"parse": {"fn": "ias:zonestatus"}
+}

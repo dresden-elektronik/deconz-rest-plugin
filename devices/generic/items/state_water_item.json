@@ -4,5 +4,6 @@
 	"datatype": "Bool",
 	"access": "R",
 	"public": true,
-	"description": "The current water state."
+	"description": "True when water is detected.",
+	"parse": {"fn": "ias:zonestatus", "mask": "alarm1,alarm2"}
 }

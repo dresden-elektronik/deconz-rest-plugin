@@ -8,9 +8,11 @@
  *
  */
 
-#include "resource.h"
+#include "air_quality.h"
 #include "device_access_fn.h"
 #include "device_js/device_js.h"
+#include "ias_zone.h"
+#include "resource.h"
 #include "zcl/zcl.h"
 
 enum DA_Constants
@@ -244,6 +246,114 @@ bool evalZclFrame(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicati
         }
     }
     return false;
+}
+
+/*! A general purpose function to map number values of a source item to a string which is stored in \p item .
+
+    The item->parseParameters() is expected to be an object (given in the device description file).
+    {"fn": "numtostring", "srcitem": suffix, "op": operator, "to": array}
+    - srcitem: the suffix of the source item which holds the numeric value
+    - op: (lt | le | eq | gt | ge) the operator used to match the 'to' array
+    - to: [number, string, [number, string], ...] an sorted array to map 'number -> string' with the given operator
+
+    Example: { "parse": {"fn": "numtostr", "srcitem": "state/airqualityppb", "op": "le", "to": [65, "good", 65535, "bad"] }
+ */
+bool parseNumericToString(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, const QVariant &parseParameters)
+{
+    Q_UNUSED(ind)
+    Q_UNUSED(zclFrame)
+    bool result = false;
+
+    ResourceItem *srcItem = nullptr;
+    const auto map = parseParameters.toMap();
+
+    enum Op { OpNone, OpLessThan, OpLessEqual, OpEqual, OpGreaterThan, OpGreaterEqual };
+    Op op = OpNone;
+
+    if (!item->parseFunction()) // init on first call
+    {
+        if (item->descriptor().type != DataTypeString)
+        {
+            return result;
+        }
+
+        if (!map.contains(QLatin1String("to")) || !map.contains(QLatin1String("op")) || !map.contains(QLatin1String("srcitem")))
+        {
+            return result;
+        }
+
+        item->setParseFunction(parseNumericToString);
+    }
+
+    ResourceItemDescriptor rid;
+    if (!getResourceItemDescriptor(map["srcitem"].toString(), rid))
+    {
+        return result;
+    }
+
+    srcItem = r->item(rid.suffix);
+    if (!srcItem)
+    {
+        return result;
+    }
+
+    if (!(srcItem->needPushChange() || srcItem->needPushSet()))
+    {
+        return result; // only update if needed
+    }
+
+    {
+        const auto opString = map[QLatin1String("op")].toString();
+
+        if      (opString == QLatin1String("le")) { op = OpLessEqual; }
+        else if (opString == QLatin1String("lt")) { op = OpLessThan; }
+        else if (opString == QLatin1String("eq")) { op = OpEqual; }
+        else if (opString == QLatin1String("ge")) { op = OpGreaterEqual; }
+        else if (opString == QLatin1String("gt")) { op = OpGreaterThan; }
+        else
+        {
+            return result;
+        }
+    }
+
+    const qint64 num = srcItem->toNumber();
+    const auto to = map["to"].toList();
+
+    if (to.size() & 1)
+    {
+        return result; // array size must be even
+    }
+
+    auto i = std::find_if(to.cbegin(), to.cend(), [num, op](const QVariant &var)
+    {
+        if (var.type() == QVariant::Double)
+        {
+            if (op == OpLessEqual)    { return num <= var.toInt(); }
+            if (op == OpLessThan)     { return num < var.toInt();  }
+            if (op == OpEqual)        { return num == var.toInt(); }
+            if (op == OpGreaterEqual) { return num >= var.toInt(); }
+            if (op == OpGreaterThan)  { return num > var.toInt();  }
+        }
+        return false;
+    });
+
+    if (i != to.cend())
+    {
+        i++; // point next element (string)
+
+        if (i != to.cend() && i->type() == QVariant::String)
+        {
+            const QString str = i->toString();
+            if (!str.isEmpty())
+            {
+                item->setValue(str);
+                item->setLastZclReport(srcItem->lastZclReport()); // Treat as report
+                result = true;
+            }
+        }
+    }
+
+    return result;
 }
 
 /*! A generic function to parse ZCL values from read/report commands.
@@ -480,7 +590,7 @@ bool parseXiaomiSpecial(Resource *r, ResourceItem *item, const deCONZ::ApsDataIn
         return result;
     }
 
-    if (ind.clusterId() != 0x0000) // must be basic cluster
+    if (ind.clusterId() != 0x0000 && ind.clusterId() != 0xfcc0) // must be basic or lumi specific cluster
     {
         return result;
     }
@@ -500,6 +610,12 @@ bool parseXiaomiSpecial(Resource *r, ResourceItem *item, const deCONZ::ApsDataIn
 
         param.endpoint = BroadcastEndpoint; // default
         param.clusterId = 0x0000;
+        
+        if (ind.clusterId() == 0xfcc0)
+        {
+            param.clusterId = 0xfcc0;
+            param.manufacturerCode = 0x115f;
+        }
 
         if (map.contains(QLatin1String("ep")))
         {
@@ -535,7 +651,7 @@ bool parseXiaomiSpecial(Resource *r, ResourceItem *item, const deCONZ::ApsDataIn
 
     const auto &zclParam = item->zclParam();
 
-    if (ind.clusterId() != zclParam.clusterId || zclFrame.payload().isEmpty())
+    if (!(ind.clusterId() == 0x0000 || ind.clusterId() == 0xfcc0) || zclFrame.payload().isEmpty())
     {
         return result;
     }
@@ -550,6 +666,139 @@ bool parseXiaomiSpecial(Resource *r, ResourceItem *item, const deCONZ::ApsDataIn
 
     if (evalZclAttribute(r, item, ind, zclFrame, attr, parseParameters))
     {
+        result = true;
+    }
+
+    return result;
+}
+
+/*! A function to parse IAS Zone status change notifications or read/report commands for IAS Zone status of the IAS Zone cluster.
+    The item->parseParameters() is expected to be an object (given in the device description file).
+
+    {"fn": "ias:zonestatus", "mask": expression}
+
+    - mask (optional): The bitmask to be applied for Alarm1 and Alarm2 of the IAS zone status value as list of strings
+
+    Example: { "parse": {"fn": "ias:zonestatus", "mask": "alarm1,alarm2" } }
+ */
+bool parseIasZoneNotificationAndStatus(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, const QVariant &parseParameters)
+{
+    bool result = false;
+
+    if (ind.clusterId() != IAS_ZONE_CLUSTER_ID)
+    {
+        return result;
+    }
+
+    if (ind.srcEndpoint() != resolveAutoEndpoint(r))
+    {
+        return result;
+    }
+
+    if (zclFrame.isClusterCommand())  // is IAS Zone status notification?
+    {
+        if (zclFrame.commandId() != CMD_STATUS_CHANGE_NOTIFICATION)
+        {
+            return result;
+        }
+
+    }
+    else if (zclFrame.commandId() != deCONZ::ZclReadAttributesResponseId && zclFrame.commandId() != deCONZ::ZclReportAttributesId) // is read or report?
+    {
+        return result;
+    }
+
+    if (!item->parseFunction()) // init on first call
+    {
+        item->setParseFunction(parseIasZoneNotificationAndStatus);
+    }
+
+    QDataStream stream(zclFrame.payload());
+    stream.setByteOrder(QDataStream::LittleEndian);
+
+    quint16 zoneStatus = UINT16_MAX;
+
+    while (!stream.atEnd())
+    {
+        if (zclFrame.isClusterCommand())
+        {
+            quint8 extendedStatus;
+            quint8 zoneId;
+            quint16 delay;
+
+            stream >> zoneStatus;
+            stream >> extendedStatus; // reserved, set to 0
+            stream >> zoneId;
+            stream >> delay;
+
+            DBG_Assert(stream.status() == QDataStream::Ok);
+        }
+        else
+        {
+            quint16 attrId;
+            quint8 status;
+            quint8 dataType;
+
+            stream >> attrId;
+
+            if (zclFrame.commandId() == deCONZ::ZclReadAttributesResponseId)
+            {
+                stream >> status;
+                if (status != deCONZ::ZclSuccessStatus)
+                {
+                    continue;
+                }
+            }
+
+            stream >> dataType;
+            deCONZ::ZclAttribute attr(attrId, dataType, QLatin1String(""), deCONZ::ZclReadWrite, true);
+
+            if (!attr.readFromStream(stream))
+            {
+                break;
+            }
+
+            if (attr.id() == 0x0002)
+            {
+                zoneStatus = attr.numericValue().u16;
+                break;
+            }
+        }
+    }
+
+    if (zoneStatus != UINT16_MAX)
+    {
+        int mask = 0;
+        const char *suffix = item->descriptor().suffix;
+
+        if (suffix == RStateAlarm || suffix == RStateCarbonMonoxide || suffix == RStateFire || suffix == RStateOpen ||
+            suffix == RStatePresence || suffix == RStateVibration || suffix == RStateWater)
+        {
+            const auto map = parseParameters.toMap();
+
+            if (map.contains(QLatin1String("mask")))
+            {
+                QStringList alarmMask = map["mask"].toString().split(',', QString::SkipEmptyParts);
+
+                if (alarmMask.contains(QLatin1String("alarm1"))) { mask |= STATUS_ALARM1; }
+                if (alarmMask.contains(QLatin1String("alarm2"))) { mask |= STATUS_ALARM2; }
+            }
+        }
+        else if (suffix == RStateTampered)
+        {
+            mask |= STATUS_TAMPER;
+        }
+        else if (suffix == RStateLowBattery)
+        {
+            mask |= STATUS_BATTERY;
+        }
+        else if (suffix == RStateTest)
+        {
+            mask |= STATUS_TEST;
+        }
+
+        item->setValue((zoneStatus & mask) != 0);
+        item->setLastZclReport(deCONZ::steadyTimeRef().ref);    // Treat as report
         result = true;
     }
 
@@ -764,10 +1013,12 @@ ParseFunction_t DA_GetParseFunction(const QVariant &params)
 {
     ParseFunction_t result = nullptr;
 
-    const std::array<ParseFunction, 2> functions =
+    const std::array<ParseFunction, 4> functions =
     {
         ParseFunction("zcl", 1, parseZclAttribute),
-        ParseFunction("xiaomi:special", 1, parseXiaomiSpecial)
+        ParseFunction("xiaomi:special", 1, parseXiaomiSpecial),
+        ParseFunction("ias:zonestatus", 1, parseIasZoneNotificationAndStatus),
+        ParseFunction("numtostr", 1, parseNumericToString)
     };
 
     QString fnName;

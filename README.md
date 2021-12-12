@@ -24,7 +24,7 @@ Current Beta: **v2.13.2-beta**
 Current Stable: **v2.12.6**
 
 Next Beta: **v2.13.3-beta**  
-Next Stable: **v2.13.x** expected in November.
+Next Stable: **v2.13.x** expected half december.
 
 Installation
 ============

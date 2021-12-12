@@ -19,13 +19,14 @@
 int getFreeSensorId();
 int getFreeLightId();
 
+#define READ_GROUPS            (1 << 5) // from web_plugin_private.h
+
 /*! Overloads to add specific resources in higher layer.
     Since Device class doesn't know anything about web plugin or testing code,
     this is a free standing function which needs to be implemented in the higher layer.
 */
 Resource *DEV_AddResource(const Sensor &sensor);
 Resource *DEV_AddResource(const LightNode &lightNode);
-
 
 /*! V1 compatibility function to create SensorNodes based on sub-device description.
  */
@@ -116,7 +117,7 @@ static Resource *DEV_InitLightNodeFromDescription(Device *device, const DeviceDe
 
     lightNode.item(RAttrType)->setValue(DeviceDescriptions::instance()->constantToString(sub.type));
     lightNode.setUniqueId(uniqueId);
-    lightNode.setNode(const_cast<deCONZ::Node*>(device->node()));
+    lightNode.enableRead(READ_GROUPS);
 
     auto dbItem = std::make_unique<DB_LegacyItem>();
     dbItem->uniqueId = lightNode.item(RAttrUniqueId)->toCString();
@@ -143,6 +144,34 @@ static Resource *DEV_InitLightNodeFromDescription(Device *device, const DeviceDe
         else
         {
             lightNode.setName(QString("%1 %2").arg(lightNode.type(), lightNode.id()));
+        }
+    }
+
+    {
+        dbItem->column = "groups";
+        if (DB_LoadLegacyLightValue(dbItem.get()))
+        {
+            const auto groupList = QString(static_cast<QLatin1String>(dbItem->value)).split(',', SKIP_EMPTY_PARTS);
+
+            for (const auto &g : groupList)
+            {
+                bool ok = false;
+                uint gid = g.toUShort(&ok, 0);
+                if (!ok) { continue; }
+
+                auto i = std::find_if(lightNode.groups().cbegin(), lightNode.groups().cend(), [gid](const auto &group)
+                {
+                    return gid == group.id;
+                });
+
+                if (i == lightNode.groups().cend())
+                {
+                    GroupInfo groupInfo;
+                    groupInfo.id = gid;
+                    groupInfo.state = GroupInfo::StateInGroup;
+                    lightNode.groups().push_back(groupInfo);
+                }
+            }
         }
     }
 

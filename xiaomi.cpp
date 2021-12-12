@@ -99,6 +99,19 @@ void DeRestPluginPrivate::handleXiaomiLumiClusterIndication(const deCONZ::ApsDat
  */
 void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
+    if (ind.srcAddress().hasExt())
+    {
+        Device *device = DEV_GetDevice(m_devices, ind.srcAddress().ext());
+        if (device)
+        {
+            enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
+            if (device->managed())
+            {
+                return;
+            }
+        }
+    }
+
     quint16 attrId = 0;
     quint8 dataType = 0;
     quint8 length = 0;
@@ -138,7 +151,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
         if (dataType == deCONZ::ZclCharacterString && attrId != 0xff01)
         {
-            DBG_Printf(DBG_INFO, "0x%016llX skip Xiaomi attribute 0x%04X\n", ind.srcAddress().ext(), attrId);
+            DBG_Printf(DBG_INFO_L2, "0x%016llX skip Xiaomi attribute 0x%04X\n", ind.srcAddress().ext(), attrId);
             for (; length > 0; length--) // skip
             {
                 quint8 dummy;
@@ -150,17 +163,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     if (stream.atEnd() || attrId == 0)
     {
         return;
-    }
-
-    Device *device = nullptr;
-    const DeviceKey deviceKey = ind.srcAddress().ext();
-    if (ind.srcAddress().hasExt())
-    {
-        device = DEV_GetDevice(m_devices, deviceKey);
-        if (device)
-        {
-            enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
-        }
     }
 
     quint8 structIndex = 0; // only attribute id 0xff02
@@ -297,6 +299,18 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         else if (tag == 0x0c && dataType == deCONZ::Zcl8BitUint) // lumi.remote.b28ac1
         {
             DBG_Printf(DBG_INFO, "\t0c unknown %u (0x%02X)\n", u8, u8);
+        }
+        else if (tag == 0x0d && dataType == deCONZ::Zcl32BitUint) // lumi.switch.n2aeu1
+        {
+            DBG_Printf(DBG_INFO, "\t0d unknown %u (0x%08X)\n", u32, u32);
+        }
+        else if (tag == 0x0e && dataType == deCONZ::Zcl32BitUint) // lumi.switch.n2aeu1
+        {
+            DBG_Printf(DBG_INFO, "\t0e unknown %u (0x%08X)\n", u32, u32);
+        }
+        else if (tag == 0x0f && dataType == deCONZ::Zcl32BitUint) // lumi.switch.n2aeu1
+        {
+            DBG_Printf(DBG_INFO, "\t0f unknown %u (0x%08X)\n", u32, u32);
         }
         else if ((tag == 0x64 || structIndex == 0x01) && dataType == deCONZ::ZclBoolean) // lumi.ctrl_ln2 endpoint 01
         {
