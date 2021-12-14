@@ -501,6 +501,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SUNRICHER, "45127", silabs2MacPrefix }, // Namron 1/2/4-ch remote controller
     { VENDOR_SUNRICHER, "S57003", silabs2MacPrefix }, // SLC 4-ch remote controller	
     { VENDOR_SENGLED_OPTOELEC, "E13-", zhejiangMacPrefix }, // Sengled PAR38 Bulbs
+    { VENDOR_SENGLED_OPTOELEC, "E11-", zhejiangMacPrefix }, // Sengled Element Color Plus E11-N1EA
     { VENDOR_SENGLED_OPTOELEC, "E1D-", zhejiangMacPrefix }, // Sengled contact sensor
     { VENDOR_SENGLED_OPTOELEC, "E1E-", zhejiangMacPrefix }, // Sengled Smart Light Switch
     { VENDOR_SENGLED_OPTOELEC, "Z01-A19", zhejiangMacPrefix }, // Sengled SMART LED Z01-A19NAE26
@@ -3310,7 +3311,8 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
         item = lightNode->item(RStateY);
         if (item) { item->setIsPublic(false); }
     } else if (lightNode->manufacturerCode() == VENDOR_SENGLED_OPTOELEC &&
-            lightNode->modelId() == QLatin1String("Z01-A19NAE26"))
+            lightNode->modelId() == QLatin1String("Z01-A19NAE26") ||
+            lightNode->modelId() == QLatin1String("E11-N1EA"))
     {
         item = lightNode->item(RAttrType);
         if (item)
