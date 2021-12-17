@@ -64,6 +64,36 @@ static int sqliteLoadAllGatewaysCallback(void *user, int ncols, char **colval , 
                     Implementation
 ******************************************************************************/
 
+static QString dbEscapeString(const QString &str)
+{
+    QString result;
+    result.reserve(str.size());
+
+    for (const QChar &ch : str)
+    {
+        if (ch.isNonCharacter() || ch < ' ')
+        {
+            result.push_back('.');
+            continue;
+        }
+
+        switch (ch.unicode())
+        {
+        case u'\'':
+            result.push_back(ch);
+            result.push_back(ch);
+            break;
+
+        default:
+            result.push_back(ch);
+            break;
+        }
+    }
+
+    return result;
+}
+
+
 /*! Inits the database and creates tables/columns if necessary.
  */
 void DeRestPluginPrivate::initDb()
@@ -5147,13 +5177,13 @@ void DeRestPluginPrivate::saveDb()
                 }
             }
 
-            const QString lightState = "normal";
-            QString ritems = i->resourceItemsToJson();
+            const QLatin1String lightState("normal");
+            QString ritems = dbEscapeString(i->resourceItemsToJson());
             QString sql = QString(QLatin1String("REPLACE INTO nodes (id, state, mac, name, groups, endpoint, modelid, manufacturername, swbuildid, ritems) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10')"))
                     .arg(i->id())
                     .arg(lightState)
                     .arg(i->uniqueId().toLower())
-                    .arg(i->name())
+                    .arg(dbEscapeString(i->name()))
                     .arg(groupIds.join(","))
                     .arg(i->haEndpoint().endpoint())
                     .arg(i->modelId())
@@ -5270,7 +5300,7 @@ void DeRestPluginPrivate::saveDb()
 
             QString sql = QString(QLatin1String("REPLACE INTO groups (gid, name, state, mids, devicemembership, lightsequence, hidden, type, class, uniqueid) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10')"))
                     .arg(gid)
-                    .arg(i->name())
+                    .arg(dbEscapeString(i->name()))
                     .arg(grpState)
                     .arg(i->midsToString())
                     .arg(i->dmToString())
@@ -5320,7 +5350,7 @@ void DeRestPluginPrivate::saveDb()
                             .arg(gsid)
                             .arg(gid)
                             .arg(sid)
-                            .arg(si->name)
+                            .arg(dbEscapeString(si->name))
                             .arg(si->transitiontime())
                             .arg(lights);
                     }
@@ -5565,7 +5595,7 @@ void DeRestPluginPrivate::saveDb()
 
             QString sql = QString(QLatin1String("REPLACE INTO sensors (sid, name, type, modelid, manufacturername, uniqueid, swversion, state, config, fingerprint, deletedState, mode, lastseen, lastannounced) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10', '%11', '%12', '%13', '%14')"))
                     .arg(i->id())
-                    .arg(i->name())
+                    .arg(dbEscapeString(i->name()))
                     .arg(i->type())
                     .arg(i->modelId())
                     .arg(i->manufacturer())
@@ -6509,7 +6539,7 @@ bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item)
 
     int ret = 0;
     const uint64_t timestamp = item->lastChanged().toMSecsSinceEpoch() / 1000;
-    const QString value = item->toVariant().toString();
+    const auto value = dbEscapeString(item->toVariant().toString()).toUtf8();
 
     // 1) check insert or update needed
 
@@ -6519,7 +6549,7 @@ bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item)
                    " AND item = '%s' AND value = '%s' AND timestamp = %" PRIu64,
                    uniqueId->toCString(),
                    item->descriptor().suffix,
-                   qPrintable(value), timestamp);
+                   value.constData(), timestamp);
 
 
     assert(size_t(ret) < sizeof(sqlBuf));
@@ -6561,7 +6591,7 @@ bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item)
                        " SELECT id, '%s', '%s', 'dev', %" PRIu64
                        " FROM sub_devices WHERE uniqueid = '%s'",
                        item->descriptor().suffix,
-                       qPrintable(item->toVariant().toString()),
+                       value.constData(),
                        timestamp, uniqueId->toCString());
 
     assert(size_t(ret) < sizeof(sqlBuf));
