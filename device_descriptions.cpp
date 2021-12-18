@@ -86,8 +86,6 @@ DeviceDescriptions::DeviceDescriptions(QObject *parent) :
     _instance = this;
     _priv = d_ptr2;
 
-    d_ptr2->enabledStatusFilter;
-
     {  // Parse function as shown in the DDF editor.
         DDF_FunctionDescriptor fn;
         fn.name = "zcl";
