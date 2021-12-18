@@ -518,7 +518,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
     // FIXME: use cluster instead of device type.
     if (taskRef.lightNode->type() == QLatin1String("Window covering controller") ||
-        taskRef.lightNode->type() == QLatin1String("Window covering device"))
+        taskRef.lightNode->type() == QLatin1String("Window covering device") ||
+        taskRef.lightNode->modelId() == QLatin1String("lumi.curtain.acn002"))
     {
         return setWindowCoveringState(req, rsp, taskRef, map);
     }
