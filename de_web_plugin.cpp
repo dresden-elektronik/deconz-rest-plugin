@@ -1100,10 +1100,24 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
             break;
         }
 
-        if (r->prefix() == RLights)
-        {
-            LightNode *l = static_cast<LightNode*>(r);
-            l->rx();
+        {   // TODO this is too messy
+            ResourceItem *reachable = nullptr;
+            if (r->prefix() == RLights)
+            {
+                LightNode *l = static_cast<LightNode*>(r);
+                l->rx();
+                reachable = r->item(RStateReachable);
+            }
+            else if (r->prefix() == RSensors)
+            {
+                reachable = r->item(RConfigReachable);
+            }
+
+            if (reachable && !reachable->toBool())
+            {
+                reachable->setValue(true);
+                enqueueEvent(Event(r->prefix(), reachable->descriptor().suffix, r->item(RAttrId)->toString(), device->key()));
+            }
         }
 
         for (int i = 0; i < r->itemCount(); i++)
