@@ -84,7 +84,7 @@
             "fn": "numtostr",
             "op": "le",
             "srcitem": "state/airqualityppb",
-            "to": [65, "excellent", 220, "good", 660, "moderate", 5000, "unhealthy", 65535, "out of scale"]
+            "to": [65, "excellent", 220, "good", 660, "moderate", 10000, "unhealthy", 65535, "out of scale"]
           }
         },
         {
