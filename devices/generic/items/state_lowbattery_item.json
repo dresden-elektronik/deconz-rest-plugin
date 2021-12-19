@@ -5,5 +5,6 @@
 	"access": "R",
 	"public": true,
 	"managed": true,
-	"description": "True when the device battery runs low."
+	"description": "True when the device battery runs low.",
+	"parse": {"fn": "ias:zonestatus"}
 }

@@ -14,11 +14,6 @@
  */
 void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame)
 {
-    if (DEV_TestStrict())
-    {
-        return;
-    }
-
     if (zclFrame.isDefaultResponse())
     {
         return;

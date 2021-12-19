@@ -78,6 +78,7 @@ extern const char *REventTick;
 extern const char *REventTimerFired;
 extern const char *REventZclResponse;
 extern const char *REventZclReadReportConfigResponse;
+extern const char *REventZdpMgmtBindResponse;
 extern const char *REventZdpResponse;
 
 // resouce suffixes: state/buttonevent, config/on, ...
@@ -172,6 +173,7 @@ extern const char *RStateOrientationZ;
 extern const char *RStatePanel;
 extern const char *RStatePresence;
 extern const char *RStatePressure;
+extern const char *RStateMoisture;
 extern const char *RStatePower;
 extern const char *RStateReachable;
 extern const char *RStateSat;
@@ -355,6 +357,7 @@ public:
     const char *suffix = RInvalidSuffix;
     qint64 validMin = 0;
     qint64 validMax = 0;
+    quint16 flags = 0;
 };
 
 class Resource;
@@ -366,6 +369,7 @@ extern const ResourceItemDescriptor rInvalidItemDescriptor;
 
 class ResourceItem
 {
+public:
     enum ItemFlags
     {
         FlagNeedPushSet     = 0x01, // set after a value has been set
@@ -376,7 +380,6 @@ class ResourceItem
         FlagImplicit        = 0x20  // the item is always present for a specific resource type
     };
 
-public:
     enum ValueSource
     {
         SourceUnknown,
@@ -608,9 +611,10 @@ bool R_SetValueEventOnSet(Resource *r, const char *suffix, const V &val, Resourc
     return result;
 }
 
+bool isValidRConfigGroup(const QString &str);
+
 uint8_t DDF_GetSubDeviceOrder(const QString &type);
 QLatin1String R_DataTypeToString(ApiDataType type);
-Resource::Handle R_CreateResourceHandle(const Resource *r, size_t containerIndex);
 inline bool isValid(Resource::Handle hnd) { return hnd.hash != 0 && hnd.index < UINT16_MAX && hnd.type != 0; }
 inline bool operator==(Resource::Handle a, Resource::Handle b) { return a.hash == b.hash && a.type == b.type; }
 

@@ -15,6 +15,7 @@
 
 namespace deCONZ
 {
+    class Address;
     class ApsController;
     class Binding;
 }
@@ -55,10 +56,12 @@ struct ZDP_Result
     }
 };
 
-ZDP_Result ZDP_NodeDescriptorReq(uint16_t nwkAddress, deCONZ::ApsController *apsCtrl);
-ZDP_Result ZDP_ActiveEndpointsReq(uint16_t nwkAddress, deCONZ::ApsController *apsCtrl);
-ZDP_Result ZDP_SimpleDescriptorReq(uint16_t nwkAddress, uint8_t endpoint, deCONZ::ApsController *apsCtrl);
+ZDP_Result ZDP_NodeDescriptorReq(const deCONZ::Address &addr, deCONZ::ApsController *apsCtrl);
+ZDP_Result ZDP_ActiveEndpointsReq(const deCONZ::Address &addr, deCONZ::ApsController *apsCtrl);
+ZDP_Result ZDP_SimpleDescriptorReq(const deCONZ::Address &addr, uint8_t endpoint, deCONZ::ApsController *apsCtrl);
 ZDP_Result ZDP_BindReq(const deCONZ::Binding &bnd, deCONZ::ApsController *apsCtrl);
+ZDP_Result ZDP_UnbindReq(const deCONZ::Binding &bnd, deCONZ::ApsController *apsCtrl);
+ZDP_Result ZDP_MgmtBindReq(uint8_t startIndex, const deCONZ::Address &addr, deCONZ::ApsController *apsCtrl);
 uint8_t ZDP_NextSequenceNumber();
 
 #endif // ZDP_H

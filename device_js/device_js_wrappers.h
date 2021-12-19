@@ -88,6 +88,7 @@ class JsZclFrame : public QObject
 
     Q_PROPERTY(int cmd READ cmd)
     Q_PROPERTY(int payloadSize READ payloadSize)
+    Q_PROPERTY(bool isClCmd READ isClCmd)
 
 public:
     const deCONZ::ZclFrame *zclFrame = nullptr;
@@ -98,6 +99,7 @@ public Q_SLOTS:
     int at(int i) const;
     int cmd() const;
     int payloadSize() const;
+    bool isClCmd() const;
 };
 
 #endif // DEVICE_JS_WRAPPERS_H

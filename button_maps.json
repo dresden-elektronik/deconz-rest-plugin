@@ -55,6 +55,7 @@
         "IAS_ZONE": 1280,
         "IAS_ACE": 1281,
         "SENGLED": 64528,
+        "XIAOMI": 64704,
         "ADUROLIGHT": 64716,
         "XIAOYAN": 64716
 	},
@@ -120,6 +121,9 @@
         },
         "SENGLED": {
             "COMMAND_0": 0
+        },
+        "XIAOMI": {
+            "ATTRIBUTE_REPORT": 10
         },
         "ADUROLIGHT": {
             "COMMAND_0": 0
@@ -205,6 +209,28 @@
                 [1, "0x01", "SCENES", "RECALL_SCENE", "2", "S_BUTTON_4", "S_BUTTON_ACTION_SHORT_RELEASED", "Recall scene 2"],
                 [1, "0x01", "SCENES", "RECALL_SCENE", "3", "S_BUTTON_5", "S_BUTTON_ACTION_SHORT_RELEASED", "Recall scene 3"],
                 [1, "0x01", "SCENES", "RECALL_SCENE", "4", "S_BUTTON_6", "S_BUTTON_ACTION_SHORT_RELEASED", "Recall scene 4"]
+            ]
+        },
+        "deKoboldMap": {
+            "vendor": "dresden elektronik",
+            "modelids": ["Kobold"],
+            "doc": "Kobold",
+            "buttons": [
+                {"S_BUTTON_1": "Button 1"}
+            ],
+            "map": [
+                [1, "0x02", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
+                [1, "0x02", "ONOFF", "OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
+                [1, "0x02", "LEVEL_CONTROL", "MOVE", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Dimm up"],
+                [1, "0x02", "LEVEL_CONTROL", "MOVE", "1", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Dimm down"],
+                [1, "0x02", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "1", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Dimm stop"],
+                [1, "0x02", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Dimm stop"],
+                [2, "0x02", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
+                [2, "0x02", "ONOFF", "OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
+                [2, "0x02", "LEVEL_CONTROL", "MOVE", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Dimm up"],
+                [2, "0x02", "LEVEL_CONTROL", "MOVE", "1", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Dimm down"],
+                [2, "0x02", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "1", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Dimm stop"],
+                [2, "0x02", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Dimm stop"]
             ]
         },
         "instaRemoteMap": {
@@ -527,19 +553,6 @@
                 [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"]
             ]
         },
-        "xiaomiSwitchCtrlLn1Aq1Map": {
-            "vendor": "Xiaomi",
-            "doc": "QBKG23LM Aqara D1 1-gang neutral wire (2020 version)",
-            "modelids": ["lumi.switch.b1nacn02"],
-            "map": [
-                [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Hold"],
-                [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Single press"],
-                [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
-                [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "3", "S_BUTTON_1", "S_BUTTON_ACTION_TREBLE_PRESS", "Tripple press"],
-                [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "4", "S_BUTTON_1", "S_BUTTON_ACTION_QUADRUPLE_PRESS", "Quadruple press"],
-                [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "255", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Long released"]
-            ]
-        },
         "xiaomiSwitchCtrlLn2Aq1Map": {
             "vendor": "Xiaomi",
             "doc": "QBKG12LM switch",
@@ -617,7 +630,7 @@
         },
         "xiaomiSwitchBx1acn02Map": {
             "vendor": "Xiaomi",
-            "doc": "Xiaomi Aqara D1 1-gang QBKG21LM and 2-gang QBKG22LM",
+            "doc": "Xiaomi Aqara D1 1-gang QBKG21LM and 2-gang QBKG22LM without neutral wire (2020 version)",
             "modelids": ["lumi.switch.b1lacn02", "lumi.switch.b2lacn02"],
             "map": [
                 [1, "0x04", "ONOFF", "ATTRIBUTE_REPORT", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
@@ -629,6 +642,50 @@
                 [1, "0x06", "ONOFF", "ATTRIBUTE_REPORT", "0", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
                 [1, "0x06", "ONOFF", "ATTRIBUTE_REPORT", "1", "S_BUTTON_3", "S_BUTTON_ACTION_LONG_RELEASED", "Long press"],
                 [1, "0x06", "ONOFF", "ATTRIBUTE_REPORT", "2", "S_BUTTON_3", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"]
+            ]
+        },
+        "xiaomiSwitchBxnacn02Map": {
+            "vendor": "Xiaomi",
+            "doc": "Xiaomi Aqara D1 1-gang QBKG23LM and 2-gang QBKG24LM with neutral wire (2020 version)",
+            "modelids": ["lumi.switch.b1nacn02", "lumi.switch.b2nacn02"],
+            "map": [
+                [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Hold"],
+                [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Single press"],
+                [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "3", "S_BUTTON_1", "S_BUTTON_ACTION_TREBLE_PRESS", "Tripple press"],
+                [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "4", "S_BUTTON_1", "S_BUTTON_ACTION_QUADRUPLE_PRESS", "Quadruple press"],
+                [1, "0x05", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "255", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Long released"],
+                [1, "0x06", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0", "S_BUTTON_2", "S_BUTTON_ACTION_HOLD", "Hold"],
+                [1, "0x06", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Single press"],
+                [1, "0x06", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_2", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x06", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "3", "S_BUTTON_2", "S_BUTTON_ACTION_TREBLE_PRESS", "Tripple press"],
+                [1, "0x06", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "4", "S_BUTTON_2", "S_BUTTON_ACTION_QUADRUPLE_PRESS", "Quadruple press"],
+                [1, "0x06", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "255", "S_BUTTON_2", "S_BUTTON_ACTION_LONG_RELEASED", "Long released"],
+                [1, "0x07", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0", "S_BUTTON_3", "S_BUTTON_ACTION_HOLD", "Hold"],
+                [1, "0x07", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Single press"],
+                [1, "0x07", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_3", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x07", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "3", "S_BUTTON_3", "S_BUTTON_ACTION_TREBLE_PRESS", "Tripple press"],
+                [1, "0x07", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "4", "S_BUTTON_3", "S_BUTTON_ACTION_QUADRUPLE_PRESS", "Quadruple press"],
+                [1, "0x07", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "255", "S_BUTTON_3", "S_BUTTON_ACTION_LONG_RELEASED", "Long released"]
+            ]
+        },
+        "xiaomiSwitchH1Euk0XMap": {
+            "vendor": "Xiaomi",
+            "doc": "Xiaomi Aqara H1 1/2-gang with and without neutral wire WS-EUK01, WS-EUK02, WS-EUK03, WS-EUK04",
+            "modelids": ["lumi.switch.l1aeu1", "lumi.switch.l2aeu1", "lumi.switch.n1aeu1", "lumi.switch.n2aeu1"],
+            "map": [
+                [1, "0x29", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Single press"],
+                [1, "0x29", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x2A", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Single press"],
+                [1, "0x2A", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_2", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x33", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Single press"],
+                [1, "0x33", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_3", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x01", "XIAOMI", "ATTRIBUTE_REPORT", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Single press"],
+                [1, "0x01", "XIAOMI", "ATTRIBUTE_REPORT", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x02", "XIAOMI", "ATTRIBUTE_REPORT", "1", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Single press"],
+                [1, "0x02", "XIAOMI", "ATTRIBUTE_REPORT", "2", "S_BUTTON_2", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x33", "XIAOMI", "ATTRIBUTE_REPORT", "1", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Single press"],
+                [1, "0x33", "XIAOMI", "ATTRIBUTE_REPORT", "2", "S_BUTTON_3", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"]
             ]
         },
         "xiaomiSwitchAq2Map": {

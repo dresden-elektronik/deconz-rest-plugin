@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/fanmode",
+	"datatype": "String",
+	"access": "RW",
+	"public": true,
+	"description": "Specifies the current speed of the fan for sensors."
+}

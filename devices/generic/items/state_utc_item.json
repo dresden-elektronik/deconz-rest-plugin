@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/utc",
+	"datatype": "ISO 8601 timestamp",
+	"access": "RW",
+	"public": true,
+	"description": "Current timestamp in UTC set on the device."
+}
