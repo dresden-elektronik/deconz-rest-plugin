@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/lastset",
+	"datatype": "ISO 8601 timestamp",
+	"access": "R",
+	"public": true,
+	"description": "Timestamp when the time attribute was last set on the device."
+}

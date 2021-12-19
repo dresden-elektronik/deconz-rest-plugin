@@ -206,6 +206,7 @@ using namespace deCONZ::literals;
 #define PRESSURE_MEASUREMENT_CLUSTER_ID       0x0403
 #define RELATIVE_HUMIDITY_CLUSTER_ID          0x0405
 #define OCCUPANCY_SENSING_CLUSTER_ID          0x0406
+#define SOIL_MOISTURE_CLUSTER_ID              0x0408
 #define IAS_ZONE_CLUSTER_ID                   0x0500
 #define IAS_ACE_CLUSTER_ID                    0x0501
 #define IAS_WD_CLUSTER_ID                     0x0502
@@ -1540,7 +1541,7 @@ public:
     bool addTaskThermostatGetSchedule(TaskItem &task);
     bool addTaskThermostatSetWeeklySchedule(TaskItem &task, quint8 weekdays, const QString &transitions);
     void updateThermostatSchedule(Sensor *sensor, quint8 newWeekdays, QString &transitions);
-    bool addTaskThermostatReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t mfrCode, uint16_t attrId, uint8_t attrType, uint32_t attrValue);
+    bool addTaskThermostatReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t mfrCode, uint16_t attrId, uint8_t attrType, int attrValue);
     bool addTaskThermostatWriteAttributeList(TaskItem &task, uint16_t mfrCode, QMap<quint16, quint32> &AttributeList );
     bool addTaskControlModeCmd(TaskItem &task, uint8_t cmdId, int8_t mode);
     bool addTaskSyncTime(Sensor *sensor);
@@ -1591,7 +1592,7 @@ public:
     void handleTimeClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleDiagnosticsClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleFanControlClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    void handleIdentifyClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleIdentifyClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
     void sendTimeClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleBasicClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendBasicClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
@@ -1795,7 +1796,6 @@ public:
     bool gwRunFromShellScript;
     QString gwRunMode;
     bool gwDeleteUnknownRules;
-    bool groupDeviceMembershipChecked;
     QVariantMap gwUserParameter;
     std::vector<QString> gwUserParameterToDelete;
     deCONZ::Address gwDeviceAddress;

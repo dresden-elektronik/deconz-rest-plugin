@@ -2,7 +2,8 @@
 	"schema": "resourceitem1.schema.json",
 	"id": "state/open",
 	"datatype": "Bool",
-	"access": "RW",
+	"access": "R",
 	"public": true,
-	"description": "The open/close state."
+	"description": "True when open is detected.",
+	"parse": {"fn": "ias:zonestatus", "mask": "alarm1,alarm2"}
 }
