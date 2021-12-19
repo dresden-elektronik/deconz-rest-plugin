@@ -29,6 +29,10 @@
 #define STATE_LEVEL_BINDING  StateLevel1
 #define STATE_LEVEL_POLL     StateLevel2
 
+#define MGMT_BIND_SUPPORT_UNKNOWN -1
+#define MGMT_BIND_SUPPORTED        1
+#define MGMT_BIND_NOT_SUPPORTED    0
+
 typedef void (*DeviceStateHandler)(Device *, const Event &);
 
 /*! Device state machine description can be found in the wiki:
@@ -43,8 +47,10 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event);
 void DEV_BasicClusterStateHandler(Device *device, const Event &event);
 void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event);
 void DEV_BindingHandler(Device *device, const Event &event);
+void DEV_BindingTableReadHandler(Device *device, const Event &event);
 void DEV_BindingTableVerifyHandler(Device *device, const Event &event);
-void DEV_CreatebindingHandler(Device *device, const Event &event);
+void DEV_BindingCreateHandler(Device *device, const Event &event);
+void DEV_BindingRemoveHandler(Device *device, const Event &event);
 void DEV_ReadReportConfigurationHandler(Device *device, const Event &event);
 void DEV_ReadNextReportConfigurationHandler(Device *device, const Event &event);
 void DEV_ConfigureReportingHandler(Device *device, const Event &event);
@@ -98,7 +104,8 @@ struct BindingContext
     size_t bindingCheckRound = 0;
     size_t bindingIter = 0;
     size_t reportIter = 0;
-    bool mgmtBindSupported = false;
+    int mgmtBindSupported = MGMT_BIND_SUPPORT_UNKNOWN;
+    uint8_t mgmtBindStartIndex = 0;
     std::vector<BindingTracker> bindingTrackers;
     std::vector<DDF_Binding> bindings;
     std::vector<ReportTracker> reportTrackers;
@@ -771,12 +778,6 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
         DBG_Printf(DBG_DEV, "DEV (NOT reachable) Idle event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
     }
 
-    if (!DEV_TestManaged())
-    {
-        d->setState(DEV_DeadStateHandler);
-        return;
-    }
-
     DEV_CheckItemChanges(device, event);
 
     // process parallel states
@@ -798,23 +799,34 @@ void DEV_BindingHandler(Device *device, const Event &event)
     if (event.what() == REventStateEnter)
     {
         DBG_Printf(DBG_DEV, "DEV Binding enter %s/0x%016llX\n", event.resource(), event.deviceKey());
+
+        if (!d->node->isRouter())
+        {
+            // most end devices support it, however disable for now until further testing
+            d->binding.mgmtBindSupported = MGMT_BIND_NOT_SUPPORTED;
+        }
     }
-    else if (event.what() == REventPoll || event.what() == REventAwake)
+    else if (event.what() == REventPoll || event.what() == REventAwake || event.what() == REventBindingTick)
     {
-        DBG_Printf(DBG_DEV, "DEV Binding verify bindings %s/0x%016llX\n", event.resource(), event.deviceKey());
         d->binding.bindingIter = 0;
-        d->setState(DEV_BindingTableVerifyHandler, STATE_LEVEL_BINDING);
-        DEV_EnqueueEvent(device, REventBindingTick);
+        if (d->binding.mgmtBindSupported == MGMT_BIND_NOT_SUPPORTED)
+        {
+            d->setState(DEV_BindingTableVerifyHandler, STATE_LEVEL_BINDING);
+        }
+        else
+        {
+            d->setState(DEV_BindingTableReadHandler, STATE_LEVEL_BINDING);
+        }
     }
     else if (event.what() == REventBindingTable)
     {
         if (event.num() == deCONZ::ZdpSuccess)
         {
-            d->binding.mgmtBindSupported = true;
+            d->binding.mgmtBindSupported = MGMT_BIND_SUPPORTED;
         }
         else if (event.num() == deCONZ::ZdpNotSupported)
         {
-            d->binding.mgmtBindSupported = false;
+            d->binding.mgmtBindSupported = MGMT_BIND_NOT_SUPPORTED;
         }
     }
 }
@@ -834,25 +846,125 @@ deCONZ::Binding DEV_ToCoreBinding(const DDF_Binding &bnd, quint64 srcAddress)
     return {};
 }
 
+void DEV_BindingTableReadHandler(Device *device, const Event &event)
+{
+    DevicePrivate *d = device->d;
+
+    if (event.what() == REventStateEnter)
+    {
+        DBG_Printf(DBG_DEV, "DEV Binding read bindings %s/0x%016llX\n", event.resource(), event.deviceKey());
+        d->binding.mgmtBindStartIndex = 0;
+        DEV_EnqueueEvent(device, REventBindingTick);
+    }
+    else if (event.what() == REventBindingTick)
+    {
+        d->zdpResult = ZDP_MgmtBindReq(d->binding.mgmtBindStartIndex, d->node->address(), d->apsCtrl);
+
+        if (d->zdpResult.isEnqueued)
+        {
+            d->startStateTimer(MaxConfirmTimeout, STATE_LEVEL_BINDING);
+        }
+        else
+        {
+            d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
+        }
+    }
+    else if (event.what() == REventStateLeave)
+    {
+        d->stopStateTimer(STATE_LEVEL_BINDING);
+    }
+    else if (event.what() == REventApsConfirm)
+    {
+        if (d->zdpResult.apsReqId == EventApsConfirmId(event))
+        {
+            if (EventApsConfirmStatus(event) == deCONZ::ApsSuccessStatus)
+            {
+                d->stopStateTimer(STATE_LEVEL_BINDING);
+                d->startStateTimer(d->maxResponseTime, STATE_LEVEL_BINDING);
+            }
+            else
+            {
+                d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
+            }
+        }
+    }
+    else if (event.what() == REventZdpMgmtBindResponse)
+    {
+        uint8_t buf[128];
+        if (event.hasData() && event.dataSize() >= 5 && event.dataSize() < sizeof(buf))
+        {
+            if (event.getData(buf, event.dataSize()))
+            {
+                const uint8_t seq = buf[0];
+                const uint8_t status = buf[1];
+                const uint8_t size = buf[2];
+                const uint8_t index = buf[3];
+                const uint8_t count = buf[4];
+
+                if (seq != d->zdpResult.zdpSeq)
+                {
+                    return;
+                }
+
+                if (status == deCONZ::ZdpSuccess)
+                {
+                    d->stopStateTimer(STATE_LEVEL_BINDING);
+
+                    d->binding.mgmtBindSupported = MGMT_BIND_SUPPORTED;
+
+                    if (size > index + count)
+                    {
+                        d->binding.mgmtBindStartIndex = index + count;
+                        DEV_EnqueueEvent(device, REventBindingTick); // process next
+                    }
+                    else
+                    {
+                        d->binding.bindingIter = 0;
+                        d->setState(DEV_BindingTableVerifyHandler, STATE_LEVEL_BINDING);
+                    }
+                }
+                else
+                {
+                    if (status == deCONZ::ZdpNotSupported)
+                    {
+                        d->binding.mgmtBindSupported = MGMT_BIND_NOT_SUPPORTED;
+                    }
+                    d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
+                }
+            }
+        }
+    }
+    else if (event.what() == REventStateTimeout)
+    {
+        DBG_Printf(DBG_DEV, "ZDP read binding table timeout: 0x%016llX\n", device->key());
+        d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
+    }
+}
+
 void DEV_BindingTableVerifyHandler(Device *device, const Event &event)
 {
     DevicePrivate *d = device->d;
 
-    if (event.what() != REventBindingTick)
+    if (event.what() == REventStateEnter)
+    {
+        DBG_Printf(DBG_DEV, "DEV Binding verify bindings %s/0x%016llX\n", event.resource(), event.deviceKey());
+        DEV_EnqueueEvent(device, REventBindingTick);
+    }
+    else if (event.what() != REventBindingTick)
     {
 
     }
     else if (d->binding.bindingIter >= d->binding.bindings.size())
     {
         d->binding.bindingCheckRound++;
-        d->setState(DEV_BindingIdleHandler, STATE_LEVEL_BINDING);
+        d->setState(DEV_BindingRemoveHandler, STATE_LEVEL_BINDING);
     }
     else
     {
         auto &ddfBinding = d->binding.bindings[d->binding.bindingIter];
         auto &tracker = d->binding.bindingTrackers[d->binding.bindingIter];
 
-        if (ddfBinding.dstExtAddress == 0)
+        if (ddfBinding.dstExtAddress == 0 && ddfBinding.isUnicastBinding)
         {
             ddfBinding.dstExtAddress = d->apsCtrl->getParameter(deCONZ::ParamMacAddress);
             DBG_Assert(ddfBinding.dstExtAddress != 0);
@@ -863,8 +975,43 @@ void DEV_BindingTableVerifyHandler(Device *device, const Event &event)
                 return;
             }
         }
+        else if (ddfBinding.isGroupBinding)
+        {
+            bool ok = false;
 
-        const auto bindingTable = device->node()->bindingTable();
+            // update destination group based on RConfigGroup
+            for (const auto &sub : device->subDevices())
+            {
+                ResourceItem *configGroup = sub->item(RConfigGroup);
+                if (!configGroup)
+                {
+                    continue;
+                }
+
+                const auto ls = configGroup->toString().split(',', SKIP_EMPTY_PARTS);
+                if (ddfBinding.configGroup >= ls.size())
+                {
+                    ddfBinding.dstGroup = 0; // clear
+                    break;
+                }
+
+                uint group = ls[ddfBinding.configGroup].toUShort(&ok, 0);
+                if (ok && group != 0)
+                {
+                    ddfBinding.dstGroup = group;
+                }
+                break;
+            }
+
+            if (!ok)
+            {
+                d->binding.bindingIter++; // process next
+                DEV_EnqueueEvent(device, REventBindingTick);
+                return;
+            }
+        }
+
+        const auto &bindingTable = device->node()->bindingTable();
         const auto bnd = DEV_ToCoreBinding(ddfBinding, d->deviceKey);
 
         const auto i = std::find(bindingTable.const_begin(), bindingTable.const_end(), bnd);
@@ -903,12 +1050,17 @@ void DEV_BindingTableVerifyHandler(Device *device, const Event &event)
 
         if (needBind)
         {
-            d->setState(DEV_CreatebindingHandler, STATE_LEVEL_BINDING);
+            d->setState(DEV_BindingCreateHandler, STATE_LEVEL_BINDING);
         }
-        else
+        else if (i->dstAddressMode() == deCONZ::ApsExtAddress)
         {
             d->binding.reportIter = 0;
             d->setState(DEV_ReadReportConfigurationHandler, STATE_LEVEL_BINDING);
+        }
+        else if (i->dstAddressMode() == deCONZ::ApsGroupAddress)
+        {
+            d->binding.bindingIter++; // process next
+            DEV_EnqueueEvent(device, REventBindingTick);
         }
     }
 }
@@ -919,10 +1071,9 @@ static void DEV_ProcessNextBinding(Device *device)
 
     d->binding.bindingIter++;
     d->setState(DEV_BindingTableVerifyHandler, STATE_LEVEL_BINDING);
-    DEV_EnqueueEvent(device, REventBindingTick);
 }
 
-void DEV_CreatebindingHandler(Device *device, const Event &event)
+void DEV_BindingCreateHandler(Device *device, const Event &event)
 {
     DevicePrivate *d = device->d;
 
@@ -972,8 +1123,7 @@ void DEV_CreatebindingHandler(Device *device, const Event &event)
             {
                 BindingTracker &tracker = d->binding.bindingTrackers[d->binding.bindingIter];
                 tracker.tBound = deCONZ::steadyTimeRef();
-                d->binding.reportIter = 0;
-                d->setState(DEV_ReadReportConfigurationHandler, STATE_LEVEL_BINDING);
+                d->setState(DEV_BindingTableVerifyHandler, STATE_LEVEL_BINDING);
             }
             else
             {
@@ -984,6 +1134,96 @@ void DEV_CreatebindingHandler(Device *device, const Event &event)
     else if (event.what() == REventStateTimeout)
     {
         DBG_Printf(DBG_DEV, "ZDP create binding timeout: 0x%016llX\n", device->key());
+        d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
+    }
+}
+
+void DEV_BindingRemoveHandler(Device *device, const Event &event)
+{
+    DevicePrivate *d = device->d;
+
+    if (event.what() == REventStateEnter)
+    {
+        const auto &bindingTable = device->node()->bindingTable();
+        auto i = bindingTable.const_begin();
+        auto end = bindingTable.const_end();
+
+        for (; i != end; ++i)
+        {
+            if (i->dstAddressMode() == deCONZ::ApsGroupAddress)
+            {
+                bool hasDdfBinding = false;
+                bool hasDdfGroup = false;
+
+                for (const auto &ddfBinding : d->binding.bindings)
+                {
+                    if (ddfBinding.isGroupBinding &&
+                        i->clusterId() == ddfBinding.clusterId &&
+                        i->srcEndpoint() == ddfBinding.srcEndpoint)
+                    {
+                        hasDdfBinding = true;
+                        if (i->dstAddress().group() == ddfBinding.dstGroup)
+                        {
+                            hasDdfGroup = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (hasDdfBinding && !hasDdfGroup)
+                {
+                    break;
+                }
+            }
+        }
+
+        if (i == bindingTable.const_end())
+        {
+            d->setState(DEV_BindingIdleHandler, STATE_LEVEL_BINDING);
+            return;
+        }
+
+        d->zdpResult = ZDP_UnbindReq(*i, d->apsCtrl);
+
+        if (d->zdpResult.isEnqueued)
+        {
+            d->startStateTimer(MaxConfirmTimeout, STATE_LEVEL_BINDING);
+        }
+        else
+        {
+            d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
+        }
+    }
+    else if (event.what() == REventStateLeave)
+    {
+        d->stopStateTimer(STATE_LEVEL_BINDING);
+    }
+    else if (event.what() == REventApsConfirm)
+    {
+        if (d->zdpResult.apsReqId == EventApsConfirmId(event))
+        {
+            if (EventApsConfirmStatus(event) == deCONZ::ApsSuccessStatus)
+            {
+                d->stopStateTimer(STATE_LEVEL_BINDING);
+                d->startStateTimer(d->maxResponseTime, STATE_LEVEL_BINDING);
+            }
+            else
+            {
+                d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
+            }
+        }
+    }
+    else if (event.what() == REventZdpResponse)
+    {
+        if (EventZdpResponseSequenceNumber(event) == d->zdpResult.zdpSeq)
+        {
+            d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
+            DEV_EnqueueEvent(device, REventBindingTick);
+        }
+    }
+    else if (event.what() == REventStateTimeout)
+    {
+        DBG_Printf(DBG_DEV, "ZDP remove binding timeout: 0x%016llX\n", device->key());
         d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
     }
 }
@@ -1671,7 +1911,7 @@ const deCONZ::Node *Device::node() const
 
 bool Device::managed() const
 {
-    return devManaged > 0 && d->managed && d->flags.hasDdf;
+    return d->managed && d->flags.hasDdf;
 }
 
 void Device::setManaged(bool managed)
@@ -1697,6 +1937,7 @@ void Device::handleEvent(const Event &event, DEV_StateLevel level)
     else if (event.what() == REventDDFReload)
     {
         d->setState(DEV_InitStateHandler);
+        d->binding.bindingCheckRound = 0;
         d->startStateTimer(50, StateLevel0);
     }
     else if (d->state[level])
@@ -1826,7 +2067,7 @@ bool isSame(const DDF_Binding &a, const DDF_Binding &b)
     return a.clusterId == b.clusterId &&
            a.srcEndpoint == b.srcEndpoint &&
            (
-            (a.isGroupBinding && b.isGroupBinding && a.dstGroup == b.dstGroup) ||
+            (a.isGroupBinding && b.isGroupBinding && a.configGroup == b.configGroup) ||
             (a.isUnicastBinding && b.isUnicastBinding && a.dstExtAddress == b.dstExtAddress)
            );
 }
@@ -1866,7 +2107,7 @@ void Device::addBinding(const DDF_Binding &bnd)
         d->binding.bindings.push_back(bnd);
         d->binding.bindingTrackers.push_back(tracker);
         Q_ASSERT(d->binding.bindings.size() == d->binding.bindingTrackers.size());
-        if (bnd.dstEndpoint == 0)
+        if (bnd.dstEndpoint == 0 && bnd.isUnicastBinding)
         {
             d->binding.bindings.back().dstEndpoint = 0x01; // todo query coordinator endpoint
         }

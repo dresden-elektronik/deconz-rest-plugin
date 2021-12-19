@@ -14,6 +14,7 @@
 #include <QUrlQuery>
 #include <QVariantMap>
 #include <QtCore/qmath.h>
+#include "database.h"
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "json.h"
@@ -652,6 +653,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     TaskItem task;
     QString id = req.path[3];
     Sensor *sensor = id.length() < MIN_UNIQUEID_LENGTH ? getSensorNodeForId(id) : getSensorNodeForUniqueId(id);
+    Device *device = sensor->parentResource() ? static_cast<Device*>(sensor->parentResource()) : nullptr;
     bool ok;
     bool updated;
     bool save = false;
@@ -906,45 +908,59 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 else if (rid.suffix == RConfigOffset) // Signed integer
                 {
                     data.integer = data.integer / 10;
-
-                    if ((R_GetProductId(sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
-                         R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
-                         R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
-                         R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
-                         R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV")) ||
-                         R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV"))
+                    
+                    if (R_GetProductId(sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
+                        R_GetProductId(sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
+                        R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
+                        R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                        R_GetProductId(sensor) == QLatin1String("Tuya_THD NX-4911-675 TRV") ||
+                        R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
+                        R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat") ||
+                        R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV"))
                     {
                         QByteArray tuyaData;
                         bool alternative = false;
+                        
+                        qint32 offset2 = data.integer / 10;
+                        
+                        if (offset2 > 6)  { offset2 = 6;  } // offset, min = -60, max = 60
+                        if (offset2 < -6) { offset2 = -6; }
 
-                        if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV"))
+                        if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat")) // Moes
                         {
-                            if (data.integer > 6)  { data.integer = 6;  } // offset, min = -60, max = 60
-                            if (data.integer < -6) { data.integer = -6; }
+                            if (offset2 < 0)
+                            {
+                                offset2 = 4096 + offset2;
+                            }
 
                             alternative = true;
                         }
-                        else
+                        else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") || // Saswell
+                                 R_GetProductId(sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                                 R_GetProductId(sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV"))
                         {
-                            if (data.integer > 90)  { data.integer = 90;  } // offset, min = -90, max = 90
-                            if (data.integer < -90) { data.integer = -90; }
+                            alternative = true;
+                        }
+                        else // others
+                        {
+                            offset2 = offset2 * 10;
                         }
 
-                        tuyaData.append((qint8)((offset >> 24) & 0xff));
-                        tuyaData.append((qint8)((offset >> 16) & 0xff));
-                        tuyaData.append((qint8)((offset >> 8) & 0xff));
-                        tuyaData.append((qint8)(offset & 0xff));
+                        tuyaData.append((qint8)((offset2 >> 24) & 0xff));
+                        tuyaData.append((qint8)((offset2 >> 16) & 0xff));
+                        tuyaData.append((qint8)((offset2 >> 8) & 0xff));
+                        tuyaData.append((qint8)(offset2 & 0xff));
 
                         if (!alternative)
                         {
-                            if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_VALUE, 0x2c, tuyaData))
+                            if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_VALUE, DP_IDENTIFIER_THERMOSTAT_CALIBRATION_2, tuyaData)) // Others
                             {
                                 updated = true;
                             }
                         }
                         else
                         {
-                            if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_VALUE, 0x1b, tuyaData))
+                            if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_VALUE, DP_IDENTIFIER_THERMOSTAT_CALIBRATION_1, tuyaData)) // Moes and Saswell
                             {
                                 updated = true;
                             }
@@ -1822,8 +1838,18 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigGroup) // String
                 {
-                    checkSensorBindingsForClientClusters(sensor);
-                    continue;
+                    data.valid = isValidRConfigGroup(data.string);
+                    if (data.valid)
+                    {
+                        updated = true;
+                        checkSensorBindingsForClientClusters(sensor);
+
+                        if (device && device->managed())
+                        {
+                            // if the device has groupcast bindings check for reconfiguration
+                            enqueueEvent(Event(RDevices, REventDDFReload, 0, sensor->address().ext()));
+                        }
+                    }
                 }
                 else if (QString(rid.suffix).startsWith("config/ubisys_j1_")) // Unsigned integer
                 {
@@ -1922,6 +1948,11 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         rsp.list.append(rspItem);
                         Event e(RSensors, rid.suffix, id, item);
                         enqueueEvent(e);
+
+                        if (device && device->managed())
+                        {
+                            DB_StoreSubDeviceItem(sensor, item);
+                        }
                     }
 
                     save = true;
@@ -3387,6 +3418,12 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
     }
 
     if (DEV_TestManaged())
+    {
+        return;
+    }
+
+    Device *device = DEV_GetDevice(m_devices, ind.srcAddress().ext());
+    if (device && device->managed())
     {
         return;
     }

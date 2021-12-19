@@ -54,6 +54,7 @@ public:
     quint16 clusterId;
     quint8 srcEndpoint;
     quint8 dstEndpoint;
+    quint8 configGroup;
     struct
     {
         unsigned int isGroupBinding : 1;
@@ -231,6 +232,8 @@ class DeviceDescriptions : public QObject
 public:
     explicit DeviceDescriptions(QObject *parent = nullptr);
     ~DeviceDescriptions();
+    void setEnabledStatusFilter(const QStringList &filter);
+    const QStringList &enabledStatusFilter() const;
     const DeviceDescription &get(const Resource *resource) const;
     void put(const DeviceDescription &ddf);
     const DeviceDescription &load(const QString &path);

@@ -591,7 +591,11 @@ bool ddfSerializeV1(JsonDoc &doc, const DeviceDescription &ddf, char *buf, size_
             JsonObject binding = bindings.createNestedObject();
 
             if      (bnd.isUnicastBinding) { binding["bind"] = "unicast"; }
-            else if (bnd.isGroupBinding)   { binding["bind"] = "groupcast"; }
+            else if (bnd.isGroupBinding)
+            {
+                binding["bind"] = "groupcast";
+                binding["config.group"] = bnd.configGroup;
+            }
 
             binding["src.ep"] = bnd.srcEndpoint;
 

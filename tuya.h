@@ -74,6 +74,9 @@
 
 #define DP_IDENTIFIER_THERMOSTAT_BOOST 0x04 // Boost for Moes
 
+#define DP_IDENTIFIER_THERMOSTAT_CALIBRATION_1 0x1B // Calibration offset used by Moes and Saswell
+#define DP_IDENTIFIER_THERMOSTAT_CALIBRATION_2 0x2C // Calibration offset used by others
+
 // Value for dp_identifier for covering
 //-----------------------------------
 

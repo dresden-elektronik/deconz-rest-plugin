@@ -87,7 +87,7 @@ GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.13.02\\\"
+DEFINES += GW_SW_VERSION=\\\"2.13.04\\\"
 DEFINES += GW_SW_DATE=$$GIT_COMMIT_DATE
 DEFINES += GW_API_VERSION=\\\"1.16.0\\\"
 DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
@@ -106,6 +106,7 @@ DEFINES += GW_MIN_DERFUSB23E0X_FW_VERSION=0x22030300
 DEFINES += GW_DEFAULT_NAME=\\\"Phoscon-GW\\\"
 
 HEADERS  = bindings.h \
+           air_quality.h \
            alarm_system.h \
            alarm_system_device_table.h \
            alarm_system_event_handler.h \
@@ -170,6 +171,7 @@ HEADERS  = bindings.h \
            utils/stringcache.h \
            utils/utils.h \
            websocket_server.h \
+           xiaomi.h \
            zcl/zcl.h \
            zdp/zdp.h \
            zdp/zdp_handlers.h
