@@ -4,5 +4,6 @@
 	"datatype": "Bool",
 	"access": "R",
 	"public": true,
-	"description": "True when the device tampered alarm was triggered."
+	"description": "True when the device tampered alarm was triggered.",
+	"parse": {"fn": "ias:zonestatus"}
 }

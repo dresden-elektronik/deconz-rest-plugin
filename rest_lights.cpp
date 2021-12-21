@@ -518,7 +518,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
     // FIXME: use cluster instead of device type.
     if (taskRef.lightNode->type() == QLatin1String("Window covering controller") ||
-        taskRef.lightNode->type() == QLatin1String("Window covering device"))
+        taskRef.lightNode->type() == QLatin1String("Window covering device") ||
+        taskRef.lightNode->modelId() == QLatin1String("lumi.curtain.acn002"))
     {
         return setWindowCoveringState(req, rsp, taskRef, map);
     }
@@ -1540,7 +1541,8 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     QString id = req.path[3];
     quint16 cluster = WINDOW_COVERING_CLUSTER_ID;
     // if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain"))) // FIXME - for testing only.
-    if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain.hagl04")))
+    if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain.hagl04")) ||
+        taskRef.lightNode->modelId() == QLatin1String("lumi.curtain.acn002"))
     {
         cluster = ANALOG_OUTPUT_CLUSTER_ID;
     }
@@ -1716,6 +1718,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     {
         if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain")) ||
             R_GetProductId(taskRef.lightNode) == QLatin1String("11830304 Switch") ||
+            R_GetProductId(taskRef.lightNode) == QLatin1String("Covering Switch ESW-2ZAD-EU") ||
             R_GetProductId(taskRef.lightNode) == QLatin1String("QS-Zigbee-C01 Module") ||
             R_GetProductId(taskRef.lightNode) == QLatin1String("Zigbee curtain switch") ||
             R_GetProductId(taskRef.lightNode) == QLatin1String("Tuya_COVD YS-MT750") ||

@@ -34,6 +34,8 @@
 extern const std::array<KeyValMap, 6> RConfigModeLegrandValues;
 extern const std::array<KeyValMapTuyaSingle, 3> RConfigModeValuesTuya1;
 extern const std::array<KeyValMapTuyaSingle, 2> RConfigModeValuesTuya2;
+extern const std::array<KeyValMapTuyaSingle, 4> RConfigModeValuesTuya3;
+extern const std::array<KeyValMapTuyaSingle, 2> RConfigModeValuesTuya4;
 extern const std::array<KeyValMap, 9> RConfigModeValues;
 extern const std::array<KeyValMapTuyaSingle, 7> RConfigPresetValuesTuya;
 extern const std::array<KeyMap, 2> RConfigPresetValuesTuya2;
