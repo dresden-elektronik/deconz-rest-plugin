@@ -1207,6 +1207,7 @@
                 <value name="Out of Service" value="0x08"></value>
             </attribute>
             <attribute id="0x0100" name="Application Type" type="u32" required="o" access="r"></attribute>
+            <attribute id="0xf000" name="Xiaomi 0xf000" type="u32" required="o" access="r"></attribute>
         </server>
         <client>
         </client>
@@ -4120,6 +4121,7 @@ Attribute 0x0205 has range between 1 and 50 only</description>
 				<attribute id="0x020E" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x023B" name="Unknown" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x023E" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0409" name="Charging" type="u8" mfcode="0x115f" access="r" required="o"> </attribute>
 				<attribute id="0x0700" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0701" name="Unknown" type="s8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0702" name="Unknown" type="s8" mfcode="0x115f" access="rw" required="m"> </attribute>
