@@ -114,6 +114,7 @@ extern const char *RStateBattery;
 extern const char *RStateBri;
 extern const char *RStateButtonEvent;
 extern const char *RStateCarbonMonoxide;
+extern const char *RStateCharging;
 extern const char *RStateColorMode;
 extern const char *RStateConsumption;
 extern const char *RStateAction;

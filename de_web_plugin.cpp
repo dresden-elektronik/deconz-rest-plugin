@@ -285,6 +285,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_XIAOMI, "lumi.plug", xiaomiMacPrefix }, // Xiaomi smart plugs (router)
     { VENDOR_XIAOMI, "lumi.switch.b1naus01", xiaomiMacPrefix }, // Xiaomi Aqara ZB3.0 Smart Wall Switch Single Rocker WS-USC03
     // { VENDOR_XIAOMI, "lumi.curtain", jennicMacPrefix}, // Xiaomi curtain controller (router) - exposed only as light
+    { VENDOR_XIAOMI, "lumi.curtain.acn002", lumiMacPrefix}, // Xiaomi roller shade driver E1
     { VENDOR_XIAOMI, "lumi.curtain.hagl04", xiaomiMacPrefix}, // Xiaomi B1 curtain controller
     { VENDOR_XIAOMI, "lumi.remote.cagl01", xiaomiMacPrefix },  // Xiaomi Aqara T1 Cube MFKZQ11LM
     { VENDOR_XIAOMI, "lumi.sensor_magnet.agl02", xiaomiMacPrefix}, // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
@@ -499,7 +500,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_ALERTME, "SLT3", computimeMacPrefix }, // Hive thermostat
     { VENDOR_DANFOSS, "TRV001", silabs2MacPrefix }, // Hive thermostat (From Danfoss)
     { VENDOR_SUNRICHER, "45127", silabs2MacPrefix }, // Namron 1/2/4-ch remote controller
-    { VENDOR_SUNRICHER, "S57003", silabs2MacPrefix }, // SLC 4-ch remote controller	
+    { VENDOR_SUNRICHER, "S57003", silabs2MacPrefix }, // SLC 4-ch remote controller
     { VENDOR_SENGLED_OPTOELEC, "E13-", zhejiangMacPrefix }, // Sengled PAR38 Bulbs
     { VENDOR_SENGLED_OPTOELEC, "E1D-", zhejiangMacPrefix }, // Sengled contact sensor
     { VENDOR_SENGLED_OPTOELEC, "E1E-", zhejiangMacPrefix }, // Sengled Smart Light Switch
@@ -2435,7 +2436,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     }
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_KEEN_HOME || // Keen Home Vent
         node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC || // Xiaomi lumi.ctrl_neutral1, lumi.ctrl_neutral2
-        node->nodeDescriptor().manufacturerCode() == VENDOR_XIAOMI || // Xiaomi lumi.curtain.hagl04
+        node->nodeDescriptor().manufacturerCode() == VENDOR_XIAOMI || // Xiaomi lumi.curtain.hagl04, lumi.curtain.acn002
         node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER || // atsmart Z6-03 switch + Heiman plug + Tuya stuff
         (!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == VENDOR_NONE) || // Climax Siren
         node->nodeDescriptor().manufacturerCode() == VENDOR_DEVELCO || // Develco Smoke sensor with siren
@@ -5737,7 +5738,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpDoorLockSensor.inClusters.push_back(DOOR_LOCK_CLUSTER_ID);
                     }
-                    
+
                     fpAirQualitySensor.inClusters.push_back(ci->id());
                     fpAlarmSensor.inClusters.push_back(ci->id());
                     fpBatterySensor.inClusters.push_back(ci->id());
@@ -5776,11 +5777,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     fpAlarmSensor.inClusters.push_back(ci->id());
                     if (node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA &&
                         (modelId.startsWith(QLatin1String("FYRTUR")) || modelId.startsWith(QLatin1String("KADRILJ"))))
-                    {
-                        fpBatterySensor.inClusters.push_back(ci->id());
-                    }
-                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_XIAOMI &&
-                        modelId.startsWith(QLatin1String("lumi.curtain.hagl04")))
                     {
                         fpBatterySensor.inClusters.push_back(ci->id());
                     }
@@ -6448,6 +6444,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpSwitch.inClusters.push_back(ci->id());
                         fpTemperatureSensor.inClusters.push_back(ci->id());
                         fpThermostatSensor.inClusters.push_back(ci->id());
+                        if (modelId.startsWith(QLatin1String("lumi.curtain")))
+                        {
+                            fpBatterySensor.inClusters.push_back(ci->id());
+                        }
                     }
                 }
                     break;
@@ -6678,11 +6678,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 checkSensorNodeReachable(sensor);
             }
         }
-        
+
         //ZHAAncillaryControl
         if (fpAncillaryControlSensor.hasOutCluster(IAS_ACE_CLUSTER_ID))
         {
-            
+
             fpAncillaryControlSensor.endpoint = i->endpoint();
             fpAncillaryControlSensor.deviceId = i->deviceId();
             fpAncillaryControlSensor.profileId = i->profileId();
@@ -6830,7 +6830,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 checkSensorNodeReachable(sensor);
             }
         }
-        
+
         // ZHAMoisture
         if (fpMoistureSensor.hasInCluster(SOIL_MOISTURE_CLUSTER_ID))
         {
@@ -7026,6 +7026,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
         // ZHABattery
         if (fpBatterySensor.hasInCluster(POWER_CONFIGURATION_CLUSTER_ID) ||
+            fpBatterySensor.hasInCluster(XIAOMI_CLUSTER_ID) ||
             fpBatterySensor.hasInCluster(TUYA_CLUSTER_ID))
         {
             fpBatterySensor.endpoint = i->endpoint();
@@ -7295,7 +7296,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.addItem(DataTypeInt16, RStateTemperature);
         item = sensorNode.addItem(DataTypeInt16, RConfigOffset);
         item->setValue(0);
-        
+
         if (R_GetProductId(&sensorNode).startsWith(QLatin1String("Tuya_SEN")))
         {
             // Enable reporting in "blind mode"
@@ -7768,11 +7769,19 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = POWER_CONFIGURATION_CLUSTER_ID;
         }
+        else if (sensorNode.fingerPrint().hasInCluster(XIAOMI_CLUSTER_ID))
+        {
+            clusterId = XIAOMI_CLUSTER_ID;
+        }
         else if (sensorNode.fingerPrint().hasInCluster(TUYA_CLUSTER_ID))
         {
             clusterId = TUYA_CLUSTER_ID;
         }
         sensorNode.addItem(DataTypeUInt8, RStateBattery);
+        if (modelId.startsWith(QLatin1String("lumi.curtain.acn002")))
+        {
+            sensorNode.addItem(DataTypeBool, RStateCharging);
+        }
     }
     else if (sensorNode.type().endsWith(QLatin1String("Time")))
     {
@@ -8560,7 +8569,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
     {
         return;
     }
-    
+
     // filter for relevant clusters
     if (event.profileId() == HA_PROFILE_ID || event.profileId() == ZLL_PROFILE_ID)
     {
@@ -8972,7 +8981,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         pressure += item2->toNumber();
                                     }
-                                    
+
                                     item->setValue(pressure);
                                     i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
@@ -9223,7 +9232,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 continue;
                             }
-                            
+
                             // Correct incomplete sensor fingerprint
                             if (!i->fingerPrint().hasInCluster(BASIC_CLUSTER_ID))
                             {
@@ -10974,12 +10983,12 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         if (item)
         {
             quint64 sensitivity = item->toNumber();
-            
+
             if (nd.manufacturerCode() == VENDOR_PHILIPS)
             {
                 deCONZ::ZclAttribute attr(0x0030, deCONZ::Zcl8BitUint, "sensitivity", deCONZ::ZclReadWrite, true);
                 attr.setValue(sensitivity);
-    
+
                 if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attr, VENDOR_PHILIPS))
                 {
                     sensorNode->setNextReadTime(WRITE_SENSITIVITY, tNow.addSecs(7200));
@@ -10990,7 +10999,7 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
             {
                 deCONZ::ZclAttribute attr(XIAOMI_ATTRID_MOTION_SENSITIVITY, deCONZ::Zcl8BitUint, "sensitivity", deCONZ::ZclReadWrite, true);
                 attr.setValue(sensitivity);
-    
+
                 if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, XIAOMI_CLUSTER_ID, attr, VENDOR_XIAOMI))
                 {
                     sensorNode->setNextReadTime(WRITE_SENSITIVITY, tNow.addSecs(3300)); // Default special reporting intervall
@@ -15907,9 +15916,9 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         {
             std::vector<uint16_t> attributes;
             auto *item = sensor->item(RConfigSensitivity);
-            
+
             if (item) { attributes.push_back(XIAOMI_ATTRID_MOTION_SENSITIVITY); }
-            
+
             if (!attributes.empty() && readAttributes(sensor, sensor->fingerPrint().endpoint, XIAOMI_CLUSTER_ID, attributes, VENDOR_XIAOMI))
             {
                 DBG_Printf(DBG_INFO, "Read 0x%016llX motion sensitivity attribute 0x010C...\n", sensor->address().ext());
