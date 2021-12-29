@@ -192,6 +192,7 @@ using namespace deCONZ::literals;
 #define ANALOG_OUTPUT_CLUSTER_ID              0x000D
 #define BINARY_INPUT_CLUSTER_ID               0x000F
 #define MULTISTATE_INPUT_CLUSTER_ID           0x0012
+#define MULTISTATE_OUTPUT_CLUSTER_ID          0x0013
 #define OTAU_CLUSTER_ID                       0x0019
 #define POLL_CONTROL_CLUSTER_ID               0x0020
 #define DOOR_LOCK_CLUSTER_ID                  0x0101
