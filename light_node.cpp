@@ -475,16 +475,14 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                         }
                         removeItem(RStateAlert);
                         addItem(DataTypeBool, RStateOpen);
-                        // FIXME: removeItem(RStateOn);
+                        removeItem(RStateOn);
                         if (hasLift)
                         {
                             addItem(DataTypeUInt8, RStateLift);
-                            addItem(DataTypeUInt8, RStateBri); // FIXME: deprecate
                         }
                         if (hasTilt)
                         {
                             addItem(DataTypeUInt8, RStateTilt);
-                            addItem(DataTypeUInt8, RStateSat); // FIXME: deprecate
                         }
                     }
                 }

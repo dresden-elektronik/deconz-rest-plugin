@@ -554,16 +554,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 item->setValue(open);
                 enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
             }
-            // FIXME: deprecate
-            item = lightNode.item(RStateBri);
-            if (item)
-            {
-                const uint bri = lift * 254 / 100;
-                item->setValue(bri);
-                enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
-                stateOnOff = bri != 0;
-            }
-            // END FIXME: deprecate
         }
         else if (onOff != UINT8_MAX)
         {
