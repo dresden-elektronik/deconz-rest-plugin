@@ -182,6 +182,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     quint8 structIndex = 0; // only attribute id 0xff02
     quint16 structSize = 0; // only attribute id 0xff02
 
+    quint8 batteryPercentage = UINT8_MAX;
     quint16 battery = 0;
     quint8 charging = UINT8_MAX;
     quint32 lightlevel = UINT32_MAX; // use 32-bit to mark invalid and support 0xffff value
@@ -362,14 +363,15 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             DBG_Printf(DBG_INFO, "\t65 on/off %d\n", u8);
             onOff2 = u8;
         }
+        else if (tag == 0x65 && dataType == deCONZ::Zcl8BitUint)
+        {
+            DBG_Printf(DBG_INFO, "\t65 battery %u%%\n", u8);
+            batteryPercentage = u8;
+        }
         else if (tag == 0x65 && dataType == deCONZ::Zcl16BitUint)
         {
             DBG_Printf(DBG_INFO, "\t65 humidity %u\n", u16); // Mi
             humidity = u16;
-        }
-        else if (tag == 0x65 && dataType == deCONZ::Zcl8BitUint)
-        {
-            DBG_Printf(DBG_INFO, "\t65 unknown %u (0x%02X)\n", u8, u8);
         }
         else if (tag == 0x66)
         {
@@ -633,6 +635,22 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 enqueueEvent(Event(RSensors, RConfigBattery, sensor.id(), item));
                 q_ptr->nodeUpdated(sensor.address().ext(), QLatin1String(item->descriptor().suffix), QString::number(bat));
 
+                if (item->lastSet() == item->lastChanged())
+                {
+                    updated = true;
+                }
+            }
+        }
+
+        if (batteryPercentage != UINT8_MAX)
+        {
+            item = sensor.item(RStateBattery);
+            if (item)
+            {
+                item->setValue(batteryPercentage);
+                enqueueEvent(Event(RSensors, RStateBattery, sensor.id(), item));
+                q_ptr->nodeUpdated(sensor.address().ext(), QLatin1String(item->descriptor().suffix), QString::number(batteryPercentage));
+                sensor.updateStateTimestamp();
                 if (item->lastSet() == item->lastChanged())
                 {
                     updated = true;
