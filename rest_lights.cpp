@@ -518,8 +518,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
     // FIXME: use cluster instead of device type.
     if (taskRef.lightNode->type() == QLatin1String("Window covering controller") ||
-        taskRef.lightNode->type() == QLatin1String("Window covering device") ||
-        taskRef.lightNode->modelId() == QLatin1String("lumi.curtain.acn002"))
+        taskRef.lightNode->type() == QLatin1String("Window covering device"))
     {
         return setWindowCoveringState(req, rsp, taskRef, map);
     }
@@ -1541,8 +1540,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     QString id = req.path[3];
     quint16 cluster = WINDOW_COVERING_CLUSTER_ID;
     // if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain"))) // FIXME - for testing only.
-    if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain.hagl04")) ||
-        taskRef.lightNode->modelId() == QLatin1String("lumi.curtain.acn002"))
+    if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain.")))
     {
         cluster = ANALOG_OUTPUT_CLUSTER_ID;
     }
@@ -1707,7 +1705,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         return REQ_READY_SEND;
     }
 
-    if (cluster == ANALOG_OUTPUT_CLUSTER_ID && hasOpen && !hasLift)
+    if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain.hagl04")) && hasOpen && !hasLift)
     {
         hasLift = true;
         targetLift = targetOpen ? 0 : 100;
@@ -2041,7 +2039,7 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
                 hasAlert = true;
             }
         }
-        
+
         //Not used but can cause error
         else if (p.key() == "transitiontime")
         {
