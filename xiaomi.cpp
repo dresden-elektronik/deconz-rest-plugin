@@ -624,7 +624,23 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             }
         }
 
-        if (battery != 0)
+        // Battery percentage trumps battery voltage.
+        if (batteryPercentage != UINT8_MAX)
+        {
+            item = sensor.item(RStateBattery);
+            if (item)
+            {
+                item->setValue(batteryPercentage);
+                enqueueEvent(Event(RSensors, RStateBattery, sensor.id(), item));
+                q_ptr->nodeUpdated(sensor.address().ext(), QLatin1String(item->descriptor().suffix), QString::number(batteryPercentage));
+                sensor.updateStateTimestamp();
+                if (item->lastSet() == item->lastChanged())
+                {
+                    updated = true;
+                }
+            }
+        }
+        else if (battery != 0)
         {
             item = sensor.item(RConfigBattery);
             // DBG_Assert(item != 0); // expected - no, lumi.ctrl_neutral2
@@ -648,22 +664,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 enqueueEvent(Event(RSensors, RConfigBattery, sensor.id(), item));
                 q_ptr->nodeUpdated(sensor.address().ext(), QLatin1String(item->descriptor().suffix), QString::number(bat));
 
-                if (item->lastSet() == item->lastChanged())
-                {
-                    updated = true;
-                }
-            }
-        }
-
-        if (batteryPercentage != UINT8_MAX)
-        {
-            item = sensor.item(RStateBattery);
-            if (item)
-            {
-                item->setValue(batteryPercentage);
-                enqueueEvent(Event(RSensors, RStateBattery, sensor.id(), item));
-                q_ptr->nodeUpdated(sensor.address().ext(), QLatin1String(item->descriptor().suffix), QString::number(batteryPercentage));
-                sensor.updateStateTimestamp();
                 if (item->lastSet() == item->lastChanged())
                 {
                     updated = true;
