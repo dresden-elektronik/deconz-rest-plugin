@@ -1840,10 +1840,10 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
                     value = MultiStateOutputValue::Stop;
                 } else if (targetLiftInc > 0)
                 {
-                    value = MultiStateOutputValue::StepUp;
+                    value = MultiStateOutputValue::StepDown;
                     targetLiftInc = 1;
                 } else {
-                    value = MultiStateOutputValue::StepDown;
+                    value = MultiStateOutputValue::StepUp;
                     targetLiftInc = -1;
                 }
                 deCONZ::ZclAttribute attr(0x0055, deCONZ::Zcl16BitUint, "value", deCONZ::ZclReadWrite, true);
