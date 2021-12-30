@@ -7771,7 +7771,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             clusterId = TUYA_CLUSTER_ID;
         }
         sensorNode.addItem(DataTypeUInt8, RStateBattery);
-        if (modelId.startsWith(QLatin1String("lumi.curtain.acn002")))
+        if (modelId.startsWith(QLatin1String("lumi.curtain.")))
         {
             sensorNode.addItem(DataTypeBool, RStateCharging);
         }
