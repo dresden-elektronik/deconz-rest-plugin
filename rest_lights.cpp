@@ -1530,6 +1530,16 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     return REQ_READY_SEND;
 }
 
+enum MultiStateOutputValue {
+  Down = 0,
+  Up = 1,
+  Stop = 2,
+  Toggle = 3,
+  // Unknown = 4,
+  StepDown = 5,
+  StepUp = 6
+};
+
 /*! PUT, PATCH /api/<apikey>/lights/<id>/state for Window covering "lights".
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
@@ -1555,11 +1565,11 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     bool hasOpen = false;
     bool targetOpen = false;
     bool hasLift = false;
+    bool hasLiftInc = false;
     bool hasStop = false;
-    bool hasUp = false;
-    bool hasDown = false;
     quint8 targetLift = 0;
     quint8 targetLiftZigBee = 0;
+    qint8 targetLiftInc = 0;
     bool hasTilt = false;
     quint8 targetTilt = 0;
 
@@ -1590,47 +1600,14 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
                 hasStop = true;
             }
         }
-        else if (param == "up" && taskRef.lightNode->item(RStateOpen))
-        {
-            paramOk = true;
-            hasCmd = true;
-            if (map[param].type() == QVariant::Bool)
-            {
-                valueOk = true;
-                hasUp = true;
-            }
-        }
-        else if (param == "down" && taskRef.lightNode->item(RStateOpen))
-        {
-            paramOk = true;
-            hasCmd = true;
-            if (map[param].type() == QVariant::Bool)
-            {
-                valueOk = true;
-                hasDown = true;
-            }
-        }
         else if (param == "lift" && taskRef.lightNode->item(RStateLift))
         {
             paramOk = true;
             hasCmd = true;
-            if (map[param].type() == QVariant::String)
+            if (map[param].type() == QVariant::String && map[param].toString() == "stop")
             {
-                if (map[param].toString() == "stop")
-                {
-                    valueOk = true;
-                    hasStop = true;
-                }
-                else if (map[param].toString() == "up")
-                {
-                    valueOk = true;
-                    hasUp = true;
-                }
-                if (map[param].toString() == "down")
-                {
-                    valueOk = true;
-                    hasDown = true;
-                }
+                valueOk = true;
+                hasStop = true;
             }
             else if (map[param].type() == QVariant::Double)
             {
@@ -1640,6 +1617,26 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
                     valueOk = true;
                     hasLift = true;
                     targetLift = lift;
+                }
+            }
+        }
+        else if (param == "lift_inc" && taskRef.lightNode->item(RStateLift))
+        {
+            paramOk = true;
+            hasCmd = true;
+            if (map[param].type() == QVariant::Double)
+            {
+                const int liftInc = map[param].toUInt(&ok);
+                if (ok && liftInc == 0)
+                {
+                    valueOk = true;
+                    hasStop = true;
+                }
+                else if (ok && liftInc >= -100 && liftInc <= 100 && cluster == ANALOG_OUTPUT_CLUSTER_ID)
+                {
+                    valueOk = true;
+                    hasLiftInc = true;
+                    targetLiftInc = liftInc;
                 }
             }
         }
@@ -1678,12 +1675,6 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     {
         rsp.httpStatus = HttpStatusBadRequest;
         return REQ_READY_SEND;
-    }
-
-    if (cluster == ANALOG_OUTPUT_CLUSTER_ID && hasOpen && !hasLift)
-    {
-        hasLift = true;
-        targetLift = targetOpen ? 0 : 100;
     }
 
     // Some devices invert LiftPct.
@@ -1741,7 +1732,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         }
     }
 
-    // Send command(s) to device.  Stop trumps LiftPct trumps Open/Close.
+    // Send command(s) to device.  stop trumps lift trumps lift_inc trumps open.
     if (hasStop)
     {
         bool ok;
@@ -1762,7 +1753,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         }
         else if (cluster == ANALOG_OUTPUT_CLUSTER_ID)
         {
-            quint16 value = 2; // Stop
+            quint16 value = MultiStateOutputValue::Stop;
 
             deCONZ::ZclAttribute attr(0x0055, deCONZ::Zcl16BitUint, "value", deCONZ::ZclReadWrite, true);
             attr.setValue(QVariant(value));
@@ -1839,6 +1830,34 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/lift").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
     }
+    else if (hasLiftInc)
+        {
+            if (cluster == ANALOG_OUTPUT_CLUSTER_ID)
+            {
+                quint16 value;
+                if (targetLiftInc == 0)
+                {
+                    value = MultiStateOutputValue::Stop;
+                } else if (targetLiftInc > 0)
+                {
+                    value = MultiStateOutputValue::StepUp;
+                    targetLiftInc = 1;
+                } else {
+                    value = MultiStateOutputValue::StepDown;
+                    targetLiftInc = -1;
+                }
+                deCONZ::ZclAttribute attr(0x0055, deCONZ::Zcl16BitUint, "value", deCONZ::ZclReadWrite, true);
+                attr.setValue(QVariant(value));
+                if (writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), MULTISTATE_OUTPUT_CLUSTER_ID, attr))
+                {
+                    QVariantMap rspItem;
+                    QVariantMap rspItemState;
+                    rspItemState[QString("/lights/%1/state/lift_inc").arg(id)] = targetLiftInc;
+                    rspItem["success"] = rspItemState;
+                    rsp.list.append(rspItem);
+                }
+            }
+        }
     else if (hasOpen)
     {
         bool ok;
@@ -1871,6 +1890,14 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
                 }
             }
         }
+        else if (cluster == ANALOG_OUTPUT_CLUSTER_ID)
+        {
+            quint16 value = targetOpen ? MultiStateOutputValue::Up : MultiStateOutputValue::Down;
+
+            deCONZ::ZclAttribute attr(0x0055, deCONZ::Zcl16BitUint, "value", deCONZ::ZclReadWrite, true);
+            attr.setValue(QVariant(value));
+            ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), MULTISTATE_OUTPUT_CLUSTER_ID, attr);
+        }
         else
         {
             ok = addTaskWindowCovering(task, targetOpen ? WINDOW_COVERING_COMMAND_OPEN : WINDOW_COVERING_COMMAND_CLOSE, 0, 0);
@@ -1901,26 +1928,8 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/open").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
     }
-    else if (hasUp || hasDown)
-    {
-        if (cluster == ANALOG_OUTPUT_CLUSTER_ID)
-        {
-            quint16 value = hasUp ? 6 : 5;
 
-            deCONZ::ZclAttribute attr(0x0055, deCONZ::Zcl16BitUint, "value", deCONZ::ZclReadWrite, true);
-            attr.setValue(QVariant(value));
-            if (writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), MULTISTATE_OUTPUT_CLUSTER_ID, attr))
-            {
-                QVariantMap rspItem;
-                QVariantMap rspItemState;
-                rspItemState[QString("/lights/%1/state/%2").arg(id).arg(hasUp ? "up" : "down")] = true;
-                rspItem["success"] = rspItemState;
-                rsp.list.append(rspItem);
-            }
-        }
-    }
-
-    // Handle TiltPct independent from Stop - LiftPct - Open/Close.
+    // Handle tilt independently from stop/lift/lift_inc/open.
     if (hasTilt)
     {
         TaskItem task;
