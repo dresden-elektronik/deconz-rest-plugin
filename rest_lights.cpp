@@ -1405,50 +1405,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         TaskItem task;
         copyTaskReq(taskRef, task);
 
-        // FIXME: The following low-level code is needed because ZclAttribute is broken for Zcl8BitEnum.
+        deCONZ::ZclAttribute attr(0x0000, deCONZ::Zcl8BitEnum, "speed", deCONZ::ZclReadWrite, true);
+        attr.setValue(QVariant(targetSpeed));
 
-        const quint16 cluster = FAN_CONTROL_CLUSTER_ID;
-        const quint16 attr = 0x0000; // Fan Mode
-        const quint8 type = deCONZ::Zcl8BitEnum;
-        const quint8 value = targetSpeed;
-
-        task.taskType = TaskWriteAttribute;
-
-        task.req.setClusterId(cluster);
-        task.req.setProfileId(HA_PROFILE_ID);
-        task.zclFrame.setSequenceNumber(zclSeq++);
-        task.zclFrame.setCommandId(deCONZ::ZclWriteAttributesId);
-        task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-                                      deCONZ::ZclFCDirectionClientToServer |
-                                      deCONZ::ZclFCDisableDefaultResponse);
-
-        DBG_Printf(DBG_INFO, "write attribute of 0x%016llX ep: 0x%02X cluster: 0x%04X: 0x%04X\n", taskRef.lightNode->address().ext(), taskRef.lightNode->haEndpoint().endpoint(), cluster, attr);
-
-        { // payload
-            QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
-            stream.setByteOrder(QDataStream::LittleEndian);
-            stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
-
-            stream << attr;
-            stream << type;
-            stream << value;
-        }
-
-        { // ZCL frame
-            QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
-            stream.setByteOrder(QDataStream::LittleEndian);
-            task.zclFrame.writeToStream(stream);
-        }
-
-        ok = addTask(task);
-
-        // FIXME: Use following code once ZclAttribute has been fixed.
-
-        // deCONZ::ZclAttribute attr(0x0000, type, "speed", deCONZ::ZclReadWrite, true);
-        // attr.setValue(value);
-        // ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), cluster, attr);
-
-        if (ok)
+        if (writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), FAN_CONTROL_CLUSTER_ID, attr))
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;
@@ -1850,33 +1810,40 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         }
     }
     else if (hasLiftInc)
+    {
+        TaskItem task;
+        copyTaskReq(taskRef, task);
+
+        if (cluster == ANALOG_OUTPUT_CLUSTER_ID)
         {
-            if (cluster == ANALOG_OUTPUT_CLUSTER_ID)
+            quint16 value;
+            if (targetLiftInc == 0)
             {
-                quint16 value;
-                if (targetLiftInc == 0)
-                {
-                    value = MultiStateOutputValue::Stop;
-                } else if (targetLiftInc > 0)
-                {
-                    value = MultiStateOutputValue::StepDown;
-                    targetLiftInc = 1;
-                } else {
-                    value = MultiStateOutputValue::StepUp;
-                    targetLiftInc = -1;
-                }
-                deCONZ::ZclAttribute attr(0x0055, deCONZ::Zcl16BitUint, "value", deCONZ::ZclReadWrite, true);
-                attr.setValue(QVariant(value));
-                if (writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), MULTISTATE_OUTPUT_CLUSTER_ID, attr))
-                {
-                    QVariantMap rspItem;
-                    QVariantMap rspItemState;
-                    rspItemState[QString("/lights/%1/state/lift_inc").arg(id)] = targetLiftInc;
-                    rspItem["success"] = rspItemState;
-                    rsp.list.append(rspItem);
-                }
+                value = MultiStateOutputValue::Stop;
+            } else if (targetLiftInc > 0)
+            {
+                value = MultiStateOutputValue::StepDown;
+                targetLiftInc = 1;
+            } else {
+                value = MultiStateOutputValue::StepUp;
+                targetLiftInc = -1;
+            }
+            deCONZ::ZclAttribute attr(0x0055, deCONZ::Zcl16BitUint, "value", deCONZ::ZclReadWrite, true);
+            attr.setValue(QVariant(value));
+            if (writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), MULTISTATE_OUTPUT_CLUSTER_ID, attr))
+            {
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
+                rspItemState[QString("/lights/%1/state/lift_inc").arg(id)] = targetLiftInc;
+                rspItem["success"] = rspItemState;
+                rsp.list.append(rspItem);
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/lift_inc").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
             }
         }
+    }
     else if (hasOpen)
     {
         bool ok;
@@ -1976,6 +1943,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         copyTaskReq(taskRef, task);
         task.taskType = TaskIdentify;
         task.identifyTime = alert == "select" ? 2 : 0;
+
         if (addTaskIdentify(task, task.identifyTime))
         {
             QVariantMap rspItem;
@@ -1985,6 +1953,10 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             rsp.list.append(rspItem);
 
             // Don't update write-only state.alert.
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/alert").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
     }
 
@@ -2004,6 +1976,10 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             rsp.list.append(rspItem);
 
             // Rely on attribute reporting to update the light state.
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/speed").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
     }
 
