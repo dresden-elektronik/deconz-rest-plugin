@@ -1546,6 +1546,9 @@ enum MultiStateOutputValue {
  */
 int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map)
 {
+    static const QStringList alertList({
+        "none", "select"
+    });
     bool ok;
     QString id = req.path[3];
     quint16 cluster = WINDOW_COVERING_CLUSTER_ID;
@@ -1561,7 +1564,6 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     }
 
     bool requestOk = true;
-    bool hasCmd = false;
     bool hasOpen = false;
     bool targetOpen = false;
     bool hasLift = false;
@@ -1572,6 +1574,9 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     qint8 targetLiftInc = 0;
     bool hasTilt = false;
     quint8 targetTilt = 0;
+    QString alert;
+    bool hasSpeed = false;
+    quint8 targetSpeed = 0;
 
     // Check parameters.
     for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
@@ -1582,7 +1587,6 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         if (param == "open" && taskRef.lightNode->item(RStateOpen))
         {
             paramOk = true;
-            hasCmd = true;
             if (map[param].type() == QVariant::Bool)
             {
                 valueOk = true;
@@ -1593,7 +1597,6 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         else if (param == "stop" && taskRef.lightNode->item(RStateOpen))
         {
             paramOk = true;
-            hasCmd = true;
             if (map[param].type() == QVariant::Bool)
             {
                 valueOk = true;
@@ -1603,7 +1606,6 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         else if (param == "lift" && taskRef.lightNode->item(RStateLift))
         {
             paramOk = true;
-            hasCmd = true;
             if (map[param].type() == QVariant::String && map[param].toString() == "stop")
             {
                 valueOk = true;
@@ -1623,7 +1625,6 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         else if (param == "lift_inc" && taskRef.lightNode->item(RStateLift))
         {
             paramOk = true;
-            hasCmd = true;
             if (map[param].type() == QVariant::Double)
             {
                 const int liftInc = map[param].toUInt(&ok);
@@ -1643,7 +1644,6 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         else if (param == "tilt" && taskRef.lightNode->item(RStateTilt))
         {
             paramOk = true;
-            hasCmd = true;
             if (map[param].type() == QVariant::Double)
             {
                 const uint tilt = map[param].toUInt(&ok);
@@ -1655,6 +1655,30 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
                 }
             }
         }
+        else if (param == "alert" && taskRef.lightNode->item(RStateAlert))
+        {
+            paramOk = true;
+            if (map[param].type() == QVariant::String)
+            {
+                alert = map[param].toString();
+                valueOk = alertList.contains(alert);
+            }
+        }
+        else if (param == "speed" && taskRef.lightNode->item(RStateSpeed))
+        {
+            paramOk = true;
+            if (map[param].type() == QVariant::Double)
+            {
+                const uint speed = map[param].toUInt(&ok);
+                if (ok && speed <= 0xFF)
+                {
+                    valueOk = true;
+                    hasSpeed = true;
+                    targetSpeed = speed > 2 ? 2 : speed;
+                }
+            }
+        }
+
         if (!paramOk)
         {
             rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state").arg(id), QString("parameter, %1, not available").arg(param)));
@@ -1665,11 +1689,6 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state").arg(id), QString("invalid value, %1, for parameter, %2").arg(map[param].toString()).arg(param)));
             requestOk = false;
         }
-    }
-    if (requestOk && !hasCmd)
-    {
-        rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, QString("/lights/%1/state").arg(id), QString("missing parameter to set window covering device state")));
-        requestOk = false;
     }
     if (!requestOk)
     {
@@ -1948,6 +1967,43 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         else
         {
             rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/tilt").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+        }
+    }
+
+    if (!alert.isEmpty())
+    {
+        TaskItem task;
+        copyTaskReq(taskRef, task);
+        task.taskType = TaskIdentify;
+        task.identifyTime = alert == "select" ? 2 : 0;
+        if (addTaskIdentify(task, task.identifyTime))
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/alert").arg(id)] = alert;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+
+            // Don't update write-only state.alert.
+        }
+    }
+
+    if (hasSpeed)
+    {
+        TaskItem task;
+        copyTaskReq(taskRef, task);
+
+        deCONZ::ZclAttribute attr(0x0408, deCONZ::Zcl8BitUint, "speed", deCONZ::ZclReadWrite, true);
+        attr.setValue(QVariant(targetSpeed));
+        if (writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), XIAOMI_CLUSTER_ID, attr, VENDOR_XIAOMI))
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/speed").arg(id)] = targetSpeed;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+
+            // Rely on attribute reporting to update the light state.
         }
     }
 

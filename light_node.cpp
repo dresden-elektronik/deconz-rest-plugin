@@ -473,7 +473,10 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                                 }
                             }
                         }
-                        removeItem(RStateAlert);
+                        if (manufacturerCode() != VENDOR_XIAOMI)
+                        {
+                            removeItem(RStateAlert);
+                        }
                         addItem(DataTypeBool, RStateOpen);
                         removeItem(RStateOn);
                         if (hasLift)
@@ -531,6 +534,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             {
                 // Fix wrong deviceId for lumi.curtain.acn002, but modelId hasn't yet been read.
                 deviceId = DEV_ID_HA_WINDOW_COVERING_DEVICE;
+                addItem(DataTypeUInt8, RStateSpeed);
             }
 
             switch (deviceId)

@@ -88,6 +88,19 @@ void DeRestPluginPrivate::handleXiaomiLumiClusterIndication(const deCONZ::ApsDat
             }
                 break;
 
+            case XIAOMI_ATTRID_SPEED:
+            {
+                LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
+
+                if (lightNode)
+                {
+                    lightNode->setZclValue(updateType, ind.srcEndpoint(), XIAOMI_CLUSTER_ID, XIAOMI_ATTRID_SPEED, attr.numericValue());
+                    quint8 speed = attr.numericValue().u8;
+                    lightNode->setValue(RStateSpeed, speed);
+                }
+            }
+                break;
+
             case XIAOMI_ATTRID_CHARGING:
             {
                 Sensor *sensor = getSensorNodeForAddressEndpointAndCluster(ind.srcAddress(), ind.srcEndpoint(), XIAOMI_CLUSTER_ID);
@@ -318,7 +331,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x0d && dataType == deCONZ::Zcl32BitUint) // lumi.switch.n2aeu1
         {
-            DBG_Printf(DBG_INFO, "\t0d unknown %u (0x%08X)\n", u32, u32);
+            DBG_Printf(DBG_INFO, "\t0d firmware %u%u (0x%08X)\n", (u32 & 0x0000FF00) >> 8, u32 & 0xFF, u32);
         }
         else if (tag == 0x0e && dataType == deCONZ::Zcl32BitUint) // lumi.switch.n2aeu1
         {
