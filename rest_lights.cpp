@@ -1510,12 +1510,14 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         "none", "select"
     });
     bool ok;
+    bool aqaraE1 = false;
     QString id = req.path[3];
     quint16 cluster = WINDOW_COVERING_CLUSTER_ID;
     // if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain"))) // FIXME - for testing only.
     if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain.")))
     {
         cluster = ANALOG_OUTPUT_CLUSTER_ID;
+        aqaraE1 = taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain.acn002"));
     }
 
     if (R_GetProductId(taskRef.lightNode).startsWith(QLatin1String("Tuya_COVD")))
@@ -1593,7 +1595,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
                     valueOk = true;
                     hasStop = true;
                 }
-                else if (ok && liftInc >= -100 && liftInc <= 100 && cluster == ANALOG_OUTPUT_CLUSTER_ID)
+                else if (ok && liftInc >= -100 && liftInc <= 100 && aqaraE1)
                 {
                     valueOk = true;
                     hasLiftInc = true;
