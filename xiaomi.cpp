@@ -209,6 +209,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     quint32 consumption = UINT32_MAX;
     quint32 current = UINT32_MAX;
     quint32 voltage = UINT32_MAX;
+    QString firmware;
 
     DBG_Printf(DBG_INFO, "0x%016llX extract Xiaomi special attribute 0x%04X\n", ind.srcAddress().ext(), attrId);
 
@@ -331,7 +332,13 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x0d && dataType == deCONZ::Zcl32BitUint) // lumi.switch.n2aeu1
         {
-            DBG_Printf(DBG_INFO, "\t0d firmware %u%u (0x%08X)\n", (u32 & 0x0000FF00) >> 8, u32 & 0xFF, u32);
+            firmware = QString("%1.%2.%3_%4%5")
+                .arg((u32 & 0xF0000000) >> 28)
+                .arg((u32 & 0x0F000000) >> 24)
+                .arg((u32 & 0x00FF0000) >> 16)
+                .arg((u32 & 0x0000FF00) >> 8)
+                .arg(u32 & 0xFF);
+            DBG_Printf(DBG_INFO, "\t0d firmware %s (0x%08X)\n", qPrintable(firmware), u32);
         }
         else if (tag == 0x0e && dataType == deCONZ::Zcl32BitUint) // lumi.switch.n2aeu1
         {
@@ -568,6 +575,14 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             {
                 item->setValue(open);
                 enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
+            }
+            item = lightNode.item(RAttrSwVersion);
+            if (item && !firmware.isEmpty() && firmware != item->toString())
+            {
+                item->setValue(firmware);
+                enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
+                Q_Q(DeRestPlugin);
+                emit q->nodeUpdated(lightNode.address().ext(), QLatin1String("version"), firmware);
             }
         }
         else if (onOff != UINT8_MAX)
@@ -852,6 +867,14 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
 
         item = sensor.item(RAttrSwVersion);
+        if (item && !firmware.isEmpty() && firmware != item->toString())
+        {
+            item->setValue(firmware);
+            enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
+            updated = true;
+            Q_Q(DeRestPlugin);
+            emit q->nodeUpdated(sensor.address().ext(), QLatin1String("version"), firmware);
+        }
         if (item && dateCode.isEmpty() && !item->toString().isEmpty() && !item->toString().startsWith("3000"))
         {
             dateCode = item->toString();
