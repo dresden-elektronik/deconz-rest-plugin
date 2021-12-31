@@ -3975,6 +3975,11 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             updated = true;
                             setLightNodeStaticCapabilities(lightNode);
                             enqueueEvent({lightNode->prefix(), item->descriptor().suffix, lightNode->id(), item, lightNode->address().ext()});
+
+                            {
+                                Q_Q(DeRestPlugin);
+                                emit q->nodeUpdated(lightNode->address().ext(), QLatin1String("vendor"), str);
+                            }
                         }
                     }
                     else if (ia->id() == 0x0005) // Model identifier
@@ -4018,6 +4023,11 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             setLightNodeStaticCapabilities(lightNode);
                             enqueueEvent({lightNode->prefix(), item->descriptor().suffix, lightNode->id(), item, lightNode->address().ext()});
                         }
+
+                        {
+                            Q_Q(DeRestPlugin);
+                            emit q->nodeUpdated(lightNode->address().ext(), QLatin1String("modelid"), str);
+                        }
                     }
                     else if (ia->id() == 0x0006) // Date code
                     {
@@ -4033,6 +4043,11 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                                 updated = true;
                             }
                             item->setValue(str); // always needed to refresh set timestamp
+
+                            {
+                                Q_Q(DeRestPlugin);
+                                emit q->nodeUpdated(lightNode->address().ext(), QLatin1String("version"), str);
+                            }
                         }
                     }
                     else if (ia->id() == 0x4000) // Software build identifier
