@@ -1510,14 +1510,14 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         "none", "select"
     });
     bool ok;
-    bool aqaraE1 = false;
+    bool supportsLiftInc = false;
     QString id = req.path[3];
     quint16 cluster = WINDOW_COVERING_CLUSTER_ID;
     // if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain"))) // FIXME - for testing only.
     if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain.")))
     {
         cluster = ANALOG_OUTPUT_CLUSTER_ID;
-        aqaraE1 = taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain.acn002"));
+        supportsLiftInc = taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain.acn002"));
     }
 
     if (R_GetProductId(taskRef.lightNode).startsWith(QLatin1String("Tuya_COVD")))
@@ -1595,7 +1595,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
                     valueOk = true;
                     hasStop = true;
                 }
-                else if (ok && liftInc >= -100 && liftInc <= 100 && aqaraE1)
+                else if (ok && liftInc >= -100 && liftInc <= 100 && supportsLiftInc)
                 {
                     valueOk = true;
                     hasLiftInc = true;
@@ -1738,6 +1738,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
 
             deCONZ::ZclAttribute attr(0x0055, deCONZ::Zcl16BitUint, "value", deCONZ::ZclReadWrite, true);
             attr.setValue(QVariant(value));
+            taskRef.lightNode->rx(); // Tell writeAttribute() device is awake.
             ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), MULTISTATE_OUTPUT_CLUSTER_ID, attr);
         }
         else
@@ -1778,6 +1779,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
 
             deCONZ::ZclAttribute attr(0x0055, deCONZ::ZclSingleFloat, "value", deCONZ::ZclReadWrite, true);
             attr.setValue(QVariant(value));
+            taskRef.lightNode->rx(); // Tell writeAttribute() device is awake.
             ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), cluster, attr);
         }
         else
@@ -1832,6 +1834,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             }
             deCONZ::ZclAttribute attr(0x0055, deCONZ::Zcl16BitUint, "value", deCONZ::ZclReadWrite, true);
             attr.setValue(QVariant(value));
+            taskRef.lightNode->rx(); // Tell writeAttribute() device is awake.
             if (writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), MULTISTATE_OUTPUT_CLUSTER_ID, attr))
             {
                 QVariantMap rspItem;
@@ -1884,6 +1887,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
 
             deCONZ::ZclAttribute attr(0x0055, deCONZ::Zcl16BitUint, "value", deCONZ::ZclReadWrite, true);
             attr.setValue(QVariant(value));
+            taskRef.lightNode->rx(); // Tell writeAttribute() device is awake.
             ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), MULTISTATE_OUTPUT_CLUSTER_ID, attr);
         }
         else
@@ -1969,6 +1973,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
 
         deCONZ::ZclAttribute attr(0x0408, deCONZ::Zcl8BitUint, "speed", deCONZ::ZclReadWrite, true);
         attr.setValue(QVariant(targetSpeed));
+        taskRef.lightNode->rx(); // Tell writeAttribute() device is awake.
         if (writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), XIAOMI_CLUSTER_ID, attr, VENDOR_XIAOMI))
         {
             QVariantMap rspItem;
