@@ -11345,11 +11345,7 @@ bool DeRestPluginPrivate::writeAttribute(RestNodeBase *restNode, quint8 endpoint
         return false;
     }
 
-    if (clusterId == ANALOG_OUTPUT_CLUSTER_ID || clusterId == MULTISTATE_OUTPUT_CLUSTER_ID || clusterId == XIAOMI_CLUSTER_ID)
-    {
-        // FIXME: should check for light sleeper instead
-    }
-    else if (!restNode->node()->nodeDescriptor().receiverOnWhenIdle())
+    if (!restNode->node()->nodeDescriptor().receiverOnWhenIdle())
     {
         QDateTime now = QDateTime::currentDateTime();
         if (!restNode->lastRx().isValid() || (restNode->lastRx().secsTo(now) > 3))
