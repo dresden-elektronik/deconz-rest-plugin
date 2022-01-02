@@ -120,7 +120,7 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                 // Specifies the remaining battery life as a half integer percentage of the full battery capacity (e.g., 34.5%, 45%,
                 // 68.5%, 90%) with a range between zero and 100%, with 0x00 = 0%, 0x64 = 50%, and 0xC8 = 100%. This is
                 // particularly suited for devices with rechargeable batteries.
-                
+
                 uint divider = 2;
 
                 if (sensor.modelId().startsWith(QLatin1String("TRADFRI")) || // IKEA
@@ -170,18 +170,21 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
 
                 if (sensor.type().endsWith(QLatin1String("Battery")))
                 {
-                    sensor.setValue(RStateBattery, bat);
+                    if (sensor.setValue(RStateBattery, bat) || updateType == NodeValue::UpdateByZclReport)
+                    {
+                        sensor.updateStateTimestamp();
+                    }
                     item = sensor.item(RStateBattery);
                 }
                 else
                 {
                     item = sensor.item(RConfigBattery);
-    
+
                     if (!item && attr.numericValue().u8 > 0) // valid value: create resource item
                     {
                         item = sensor.addItem(DataTypeUInt8, RConfigBattery);
                     }
-    
+
                     sensor.setValue(RConfigBattery, bat);
                 }
 
@@ -196,7 +199,7 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                         DDF_AnnoteZclParse(&sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "Item.val = Attr.val / 2");
                     }
                 }
-                
+
                 // Correct incomplete sensor fingerprint
                 if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
                 {
@@ -276,7 +279,7 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                 {
                     sensor.addItem(DataTypeUInt8, RConfigBattery);
                 }
-                
+
                 // Correct incomplete sensor fingerprint
                 if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
                 {
