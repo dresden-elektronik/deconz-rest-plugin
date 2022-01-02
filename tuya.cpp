@@ -338,6 +338,17 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     lightNode = nullptr;
                 }
             }
+            if (productId == QLatin1String("Smart Energy Meter"))
+            {
+                if (dp == 0x0101) // State
+                {
+                    sensorNode = nullptr;
+                }
+                else
+                {
+                    lightNode = nullptr;
+                }
+            }
         }
 
         //Some device are more than 1 sensors for the same endpoint, so trying to take the good one
@@ -365,7 +376,25 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 break;
             }
         }
-
+        if (sensorNode && productId == QLatin1String("Smart Energy Meter"))
+        {
+            switch (dp)
+            {
+                //Energy Sensor
+                case 0x0211:
+                {
+                    sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint(), QLatin1String("ZHAConsumption"));
+                }
+                break;
+                default:
+                // All other are for the power sensor
+                {
+                    sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint(), QLatin1String("ZHAPower"));
+                }
+                break;
+            }
+        }
+        
         //Some device have sensor created on other endpoint and other cluster but are using the endpoint 0x01 and the cluster 0xEF00
         if (sensorNode && R_GetProductId(sensorNode) == QLatin1String("Tuya_SEN Multi-sensor"))
         {
@@ -1075,6 +1104,66 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
+                    case 0x0211: // TotalEnergy
+                    {
+                        quint32 energy = static_cast<quint32>(data & 0xFFFFFFFF);
+                        
+                        ResourceItem *item = sensorNode->item(RStateConsumption);
+
+                        if (item && item->toNumber() != energy)
+                        {
+                            item->setValue(energy);
+                            Event e(RSensors, RStateConsumption, sensorNode->id(), item);
+                            enqueueEvent(e);
+                            update = true;
+                        }
+                    }
+                    break;
+                    case 0x0212: // Current
+                    {
+                        qint16 current = static_cast<qint16>(data & 0xFFFF) / 1000;
+                        
+                        ResourceItem *item = sensorNode->item(RStateCurrent);
+
+                        if (item && item->toNumber() != current)
+                        {
+                            item->setValue(current);
+                            Event e(RSensors, RStateCurrent, sensorNode->id(), item);
+                            enqueueEvent(e);
+                            update = true;
+                        }
+                    }
+                    break;
+                    case 0x0213: // Power
+                    {
+                        qint16 power = static_cast<qint16>(data & 0xFFFF) / 10;
+                        
+                        ResourceItem *item = sensorNode->item(RStatePower);
+
+                        if (item && item->toNumber() != power)
+                        {
+                            item->setValue(power);
+                            Event e(RSensors, RStatePower, sensorNode->id(), item);
+                            enqueueEvent(e);
+                            update = true;
+                        }
+                    }
+                    break;
+                    case 0x0214: // Voltage
+                    {
+                        qint16 voltage = static_cast<qint16>(data & 0xFFFF) / 10;
+                        
+                        ResourceItem *item = sensorNode->item(RStateVoltage);
+
+                        if (item && item->toNumber() != voltage)
+                        {
+                            item->setValue(voltage);
+                            Event e(RSensors, RStateVoltage, sensorNode->id(), item);
+                            enqueueEvent(e);
+                            update = true;
+                        }
+                    }
+                    break;
                     case 0x020E: // battery
                     case 0x0215: // battery
                     {
@@ -1510,9 +1599,18 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         if (sensorNode)
         {
             updateSensorEtag(&*sensorNode);
-
             sensorNode->updateStateTimestamp();
+            
             enqueueEvent(Event(RSensors, RStateLastUpdated, sensorNode->id()));
+            
+            //The classic way don't work for tuya device using fake cluster
+            sensorNode->rx();
+            ResourceItem *item3 = sensorNode->item(RConfigReachable);
+            if (item3 && !item3->toBool())
+            {
+                item3->setValue(true);
+                enqueueEvent(Event(RSensors, RConfigReachable, sensorNode->id(), item3));
+            }
 
             sensorNode->setNeedSaveDatabase(true);
         }

@@ -95,6 +95,7 @@ static const ProductMap products[] =
     // Other
     {"_TYST11_d0yu2xgi", "0yu2xgi", "NEO/Tuya", "NAS-AB02B0 Siren"},
     {"_TZE200_d0yu2xgi", "TS0601", "NEO/Tuya", "NAS-AB02B0 Siren"},
+    {"_TZE200_byzdayie", "TS0601", "Tuya", "Smart Energy Meter"},
     {"_TZ3000_m0vaazab", "TS0207", "Tuya", "Tuya_RPT Repeater"},
     
     // Sensor

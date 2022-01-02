@@ -455,6 +455,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "TS0202", ikea2MacPrefix }, // Tuya multi sensor
     { VENDOR_NONE, "0yu2xgi", silabs5MacPrefix }, // Tuya siren
     { VENDOR_EMBER, "TS0601", silabs9MacPrefix }, // Tuya siren
+    { VENDOR_EMBER, "TS0601", silabs8MacPrefix }, // Single Phase 65A Din Rail Smart Energy Meter
     { VENDOR_EMBER, "TS0222", silabs9MacPrefix }, // TYZB01 light sensor
     { VENDOR_OWON, "CTHS317ET", casaiaPrefix }, // CASA.ia Temperature probe CTHS-317-ET
     { VENDOR_NONE, "eaxp72v", ikea2MacPrefix }, // Tuya TRV Wesmartify Thermostat Essentials Premium
@@ -4288,55 +4289,59 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ:
                 reachable = true;
             }
 
-            // check that all clusters from fingerprint are present
-            for (const deCONZ::SimpleDescriptor &sd : sensor->node()->simpleDescriptors())
+            //Don't do that for tuya device, can use fake cluster
+            if (!sensor->fingerPrint().hasInCluster(TUYA_CLUSTER_ID))
             {
-                if (!reachable)
+                // check that all clusters from fingerprint are present
+                for (const deCONZ::SimpleDescriptor &sd : sensor->node()->simpleDescriptors())
                 {
-                    break;
-                }
-
-                if (sd.endpoint() != sensor->fingerPrint().endpoint)
-                {
-                    continue;
-                }
-
-                for (quint16 clusterId : sensor->fingerPrint().inClusters)
-                {
-                    bool found = false;
-                    for (const deCONZ::ZclCluster &cl : sd.inClusters())
+                    if (!reachable)
                     {
-                        if (clusterId == cl.id())
+                        break;
+                    }
+
+                    if (sd.endpoint() != sensor->fingerPrint().endpoint)
+                    {
+                        continue;
+                    }
+
+                    for (quint16 clusterId : sensor->fingerPrint().inClusters)
+                    {
+                        bool found = false;
+                        for (const deCONZ::ZclCluster &cl : sd.inClusters())
                         {
-                            found = true;
+                            if (clusterId == cl.id())
+                            {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found)
+                        {
+                            reachable = false;
                             break;
                         }
                     }
-                    if (!found)
-                    {
-                        reachable = false;
-                        break;
-                    }
-                }
 
-                for (quint16 clusterId : sensor->fingerPrint().outClusters)
-                {
-                    bool found = false;
-                    for (const deCONZ::ZclCluster &cl : sd.outClusters())
+                    for (quint16 clusterId : sensor->fingerPrint().outClusters)
                     {
-                        if (clusterId == cl.id())
+                        bool found = false;
+                        for (const deCONZ::ZclCluster &cl : sd.outClusters())
                         {
-                            found = true;
+                            if (clusterId == cl.id())
+                            {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found)
+                        {
+                            reachable = false;
                             break;
                         }
                     }
-                    if (!found)
-                    {
-                        reachable = false;
-                        break;
-                    }
-                }
 
+                }
             }
         }
     }
@@ -6319,6 +6324,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpBatterySensor.inClusters.push_back(TUYA_CLUSTER_ID);
                     }
+                    if (manufacturer == QLatin1String("_TZE200_byzdayie"))
+                    {
+                        fpConsumptionSensor.inClusters.push_back(TUYA_CLUSTER_ID);
+                        fpConsumptionSensor.inClusters.push_back(METERING_CLUSTER_ID);
+                        fpPowerSensor.inClusters.push_back(TUYA_CLUSTER_ID);
+                        fpPowerSensor.inClusters.push_back(ELECTRICAL_MEASUREMENT_CLUSTER_ID);
+                    }
                     if (manufacturer == QLatin1String("_TZE200_aycxwiau"))
                     {
                         fpFireSensor.inClusters.push_back(TUYA_CLUSTER_ID);
@@ -7498,6 +7510,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 (modelId != QLatin1String("lumi.switch.b1naus01")) &&
                 (modelId != QLatin1String("lumi.switch.n0agl1")) &&
                 (modelId != QLatin1String("Connected socket outlet")) &&
+                (manufacturer != QLatin1String("_TZE200_byzdayie")) &&
                 (!modelId.startsWith(QLatin1String("SPW35Z"))))
             {
                 item = sensorNode.addItem(DataTypeInt16, RStatePower);
