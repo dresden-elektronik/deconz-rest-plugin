@@ -154,7 +154,7 @@ public:
     {
         if (str.size() <= int(size()))
         {
-            return startsWith(QLatin1String(c_str(), int(size())), str);
+            return ::startsWith(QLatin1String(c_str(), int(size())), str);
         }
         return false;
     }

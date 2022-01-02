@@ -4,7 +4,7 @@
   "modelid": "SP 120",
   "product": "SP 120",
   "sleeper": false,
-  "status": "Bronze",
+  "status": "Silver",
   "path": "/devices/innr/sp_120.json",
   "subdevices": [
     {
@@ -52,7 +52,7 @@
           "refresh.interval": 60,
           "parse": {
             "at": "0x0000",
-            "cl": "0x0008",
+            "cl": "0x0006",
             "ep": 1,
             "eval": "Item.val = Attr.val",
             "fn": "zcl"

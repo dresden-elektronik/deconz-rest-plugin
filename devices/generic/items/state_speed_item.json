@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/speed",
+	"datatype": "UInt8",
+	"access": "RW",
+	"public": true,
+	"description": "The fan speed for mains powered devices."
+}

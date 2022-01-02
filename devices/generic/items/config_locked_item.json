@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/locked",
+	"datatype": "Bool",
+	"access": "RW",
+	"public": true,
+	"description": "Locks or unlocks the device. This item has to be understood as child-lock."
+}

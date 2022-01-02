@@ -1,11 +1,10 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "dresden elektronik",
-  "modelid": "FLS-PP3",
+  "manufacturername": ["dresden elektronik", "dresden elektronik"],
+  "modelid": ["FLS-PP3", "FLS-PP3 White"],
   "product": "FLS-PP lp",
   "sleeper": false,
-  "status": "Draft",
-  "path": "/devices/dresden_elektronik/fls_pp3.json",
+  "status": "Silver",
   "subdevices": [
     {
       "type": "$TYPE_EXTENDED_COLOR_LIGHT",
@@ -28,7 +27,9 @@
           "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid"
+          "name": "attr/modelid",
+          "static": "FLS-PP3",
+          "parse": {"fn": "zcl", "ep": 10, "cl": "0x0000", "at": "0x0005", "eval": "Item.val = Attr.val"}
         },
         {
           "name": "attr/name"
@@ -134,7 +135,9 @@
           "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid"
+          "name": "attr/modelid",
+          "static": "FLS-PP3 White",
+          "parse": {"fn": "zcl", "ep": 11, "cl": "0x0000", "at": "0x0005", "eval": "Item.val = Attr.val"}
         },
         {
           "name": "attr/name"

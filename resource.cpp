@@ -50,6 +50,7 @@ const char *REventTick = "event/tick";
 const char *REventTimerFired = "event/timerfired";
 const char *REventZclResponse = "event/zcl.response";
 const char *REventZclReadReportConfigResponse = "event/zcl.read.report.config.response";
+const char *REventZdpMgmtBindResponse = "event/zdp.mgmt.bind.response";
 const char *REventZdpResponse = "event/zdp.response";
 
 const char *RInvalidSuffix = "invalid/suffix";
@@ -121,6 +122,7 @@ const char *RStateOrientationZ = "state/orientation_z";
 const char *RStatePanel = "state/panel";
 const char *RStatePresence = "state/presence";
 const char *RStatePressure = "state/pressure";
+const char *RStateMoisture = "state/moisture";
 const char *RStatePower = "state/power";
 const char *RStateReachable = "state/reachable";
 const char *RStateSat = "state/sat";
@@ -294,12 +296,13 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateAlert));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateLockState));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateAllOn));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateAngle));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateAngle));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateAnyOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::String, RStateArmState));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateBattery, 0, 100));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateBri));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt32, QVariant::Double, RStateButtonEvent));
+    rItemDescriptors.back().flags |= ResourceItem::FlagPushOnSet;
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateCarbonMonoxide));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateColorMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateAction));
@@ -337,6 +340,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStatePanel));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStatePresence));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStatePressure, 0, 32767));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateMoisture));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStatePower));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateReachable));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateSat));
@@ -767,7 +771,8 @@ ResourceItem::ResourceItem(const ResourceItemDescriptor &rid) :
         m_str = new QString;
     }
 
-    m_flags = FlagPushOnChange;
+    m_flags = rid.flags;
+    m_flags |= FlagPushOnChange;
 }
 
 const QString &ResourceItem::toString() const
@@ -1466,30 +1471,24 @@ QLatin1String R_DataTypeToString(ApiDataType type)
     return QLatin1String("unknown");
 }
 
-/*! Creates a unique Resource handle.
+/*! Returns true if \p str contains a valid list of group identifiers.
+
+    Valid values are:
+      ""          empty
+      "45"        single group
+      "343,123"   two groups
  */
-Resource::Handle R_CreateResourceHandle(const Resource *r, size_t containerIndex)
+bool isValidRConfigGroup(const QString &str)
 {
-    Q_ASSERT(r->prefix() != nullptr);
-    Q_ASSERT(!r->item(RAttrUniqueId)->toString().isEmpty());
+    int result = 0;
+    const QStringList groupList = str.split(',', SKIP_EMPTY_PARTS);
 
-    Resource::Handle result;
-    result.hash = qHash(r->item(RAttrUniqueId)->toString());
-    result.index = containerIndex;
-    result.type = r->prefix()[1];
-    result.order = 0;
-
-    Q_ASSERT(result.type == 's' || result.type == 'l' || result.type == 'd' || result.type == 'g');
-    Q_ASSERT(isValid(result));
-
-    if (result.type == 's' || result.type == 'l')
+    for (const auto &groupId : groupList)
     {
-        const ResourceItem *type = r->item(RAttrType);
-        if (type)
-        {
-            result.order = DDF_GetSubDeviceOrder(type->toString());
-        }
+        bool ok = false;
+        auto gid = groupId.toUInt(&ok, 0);
+        if (ok && gid <= UINT16_MAX) { result++; }
     }
 
-    return result;
+    return result == groupList.size();
 }

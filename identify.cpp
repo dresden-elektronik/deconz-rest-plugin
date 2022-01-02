@@ -10,9 +10,10 @@
 
 #include "de_web_plugin_private.h"
 
-#define IDENTIFY_COMMAND_IDENTIFY_QUERY quint8(0x01)
+#define IDENTIFY_COMMAND_IDENTIFY_QUERY          0x01
+#define IDENTIFY_COMMAND_IDENTIFY_QUERY_RESPONSE 0x00
 
-void DeRestPluginPrivate::handleIdentifyClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+void DeRestPluginPrivate::handleIdentifyClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame)
 {
 
     if (zclFrame.commandId() == IDENTIFY_COMMAND_IDENTIFY_QUERY &&
@@ -35,6 +36,47 @@ void DeRestPluginPrivate::handleIdentifyClusterIndication(const deCONZ::ApsDataI
                     attr.setValue(static_cast<quint64>(1));
                     writeAttribute(sensor, 0x01, 0xFCC0, attr, VENDOR_XIAOMI);
                     item->setValue(item->toNumber() & ~R_PENDING_MODE);
+                }
+                return;
+            }
+
+            if (permitJoinFlag)
+            {
+                // send Idendify Query Response if requested during pairing
+                deCONZ::ApsDataRequest req;
+                deCONZ::ZclFrame outZclFrame;
+
+                req.dstAddress() = ind.srcAddress();
+                req.setDstAddressMode(deCONZ::ApsExtAddress);
+                req.setClusterId(ind.clusterId());
+                req.setProfileId(ind.profileId());
+                req.setDstEndpoint(ind.srcEndpoint());
+                req.setSrcEndpoint(endpoint());
+
+                outZclFrame.setSequenceNumber(zclFrame.sequenceNumber());
+                outZclFrame.setCommandId(IDENTIFY_COMMAND_IDENTIFY_QUERY_RESPONSE);
+
+
+                outZclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                                            deCONZ::ZclFCDirectionServerToClient |
+                                            deCONZ::ZclFCDisableDefaultResponse);
+
+                { // payload
+                    QDataStream stream(&outZclFrame.payload(), QIODevice::WriteOnly);
+                    stream.setByteOrder(QDataStream::LittleEndian);
+
+                    stream << quint16(60); // our identify time
+                }
+
+                { // ZCL frame
+                    QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
+                    stream.setByteOrder(QDataStream::LittleEndian);
+                    outZclFrame.writeToStream(stream);
+                }
+
+                if (apsCtrlWrapper.apsdeDataRequest(req) == deCONZ::Success)
+                {
+                    DBG_Printf(DBG_INFO, "send identify query response to 0x%016llX\n", ind.srcAddress().ext());
                 }
             }
         }

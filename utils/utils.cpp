@@ -173,6 +173,11 @@ RestData verifyRestData(const ResourceItemDescriptor &rid, const QVariant &val)
                 data.valid = true;
                 return data;
             }
+            else if (rid.suffix == RConfigGroup)
+            {
+                data.valid = true; // empty string allowed
+                return data;
+            }
             else
             {
                 return data;
@@ -341,4 +346,19 @@ bool copyString(char *dst, size_t dstSize, const char *src, ssize_t srcSize)
     dst[srcSize] = '\0';
 
     return true;
+}
+
+quint8 calculateBatteryPercentageRemaining(const quint8 batteryVoltage, const float vmin, const float vmax)
+{
+    float batteryPercentage = batteryVoltage;
+
+    if      (batteryPercentage > vmax) { batteryPercentage = vmax; }
+    else if (batteryPercentage < vmin) { batteryPercentage = vmin; }
+
+    batteryPercentage = ((batteryPercentage - vmin) / (vmax - vmin)) * 100;
+
+    if      (batteryPercentage > 100) { batteryPercentage = 100; }
+    else if (batteryPercentage <= 0)  { batteryPercentage = 1; } // ?
+
+    return static_cast<quint8>(batteryPercentage);
 }

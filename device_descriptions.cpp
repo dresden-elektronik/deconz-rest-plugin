@@ -14,6 +14,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <QSettings>
 #include <deconz/dbg_trace.h>
 #include "device_ddf_init.h"
 #include "device_descriptions.h"
@@ -58,6 +59,8 @@ public:
 
     DeviceDescription invalidDescription;
     DeviceDescription::Item invalidItem;
+
+    QStringList enabledStatusFilter;
 
     std::vector<DDF_SubDeviceDescriptor> subDevices;
 
@@ -205,6 +208,66 @@ DeviceDescriptions::DeviceDescriptions(QObject *parent) :
 
     {
         DDF_FunctionDescriptor fn;
+        fn.name = "ias:zonestatus";
+        fn.description = "Generic function to parse IAS ZONE status change notifications or zone status from read/report command.";
+
+        DDF_FunctionDescriptor::Parameter param;
+
+        param.name = "IAS Zone status mask";
+        param.key = "mask";
+        param.description = "Sets the bitmask for Alert1 and Alert2 item of the IAS Zone status.";
+        param.dataType = DataTypeString;
+        param.defaultValue = QLatin1String("alarm1,alarm2");
+        param.isOptional = 1;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        d_ptr2->parseFunctions.push_back(fn);
+    }
+
+    {
+        DDF_FunctionDescriptor fn;
+        fn.name = "numtostr";
+        fn.description = "Generic function to to convert number to string.";
+
+        DDF_FunctionDescriptor::Parameter param;
+
+        param.name = "Source item";
+        param.key = "srcitem";
+        param.description = "The source item holding the number.";
+        param.dataType = DataTypeString;
+        param.defaultValue = 0;
+        param.isOptional = 0;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Operator";
+        param.key = "op";
+        param.description = "Comparison operator (lt | le | eq | gt | ge)";
+        param.dataType = DataTypeString;
+        param.defaultValue = 0;
+        param.isOptional = 0;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Mapping";
+        param.key = "to";
+        param.description = "Array of (num, string) mappings";
+        param.dataType = DataTypeString;
+        param.defaultValue = 0;
+        param.isOptional = 0;
+        param.isHexString = 0;
+        param.supportsArray = 1;
+        fn.parameters.push_back(param);
+
+        d_ptr2->parseFunctions.push_back(fn);
+    }
+
+    {
+        DDF_FunctionDescriptor fn;
         fn.name = "xiaomi:special";
         fn.description = "Generic function to parse custom Xiaomi attributes and commands.";
 
@@ -263,6 +326,16 @@ DeviceDescriptions::~DeviceDescriptions()
     Q_ASSERT(d_ptr2);
     delete d_ptr2;
     d_ptr2 = nullptr;
+}
+
+void DeviceDescriptions::setEnabledStatusFilter(const QStringList &filter)
+{
+    d_ptr2->enabledStatusFilter = filter;
+}
+
+const QStringList &DeviceDescriptions::enabledStatusFilter() const
+{
+    return d_ptr2->enabledStatusFilter;
 }
 
 /*! Returns the DeviceDescriptions singleton instance.
@@ -842,7 +915,11 @@ void DeviceDescriptions::handleDDFInitRequest(const Event &event)
         {
             result = 0;
 
-            if (DEV_InitDeviceFromDescription(static_cast<Device*>(resource), ddf))
+            if (!DEV_TestManaged() && !d->enabledStatusFilter.contains(ddf.status))
+            {
+                result = 2;
+            }
+            else if (DEV_InitDeviceFromDescription(static_cast<Device*>(resource), ddf))
             {
                 result = 1; // ok
 
@@ -1234,9 +1311,12 @@ static DDF_Binding DDF_ParseBinding(const QJsonObject &obj)
     {
         result.isUnicastBinding = 1;
     }
+    else if (type == QLatin1String("groupcast"))
+    {
+        result.isGroupBinding = 1;
+    }
     else
     {
-        // TODO group cast
         return {};
     }
 
@@ -1272,6 +1352,20 @@ static DDF_Binding DDF_ParseBinding(const QJsonObject &obj)
     else
     {
         result.dstEndpoint = 0;
+    }
+
+    if (result.isGroupBinding && obj.contains(QLatin1String("config.group")))
+    {
+        const auto configGroup = obj.value(QLatin1String("config.group")).toInt(-1);
+        if (configGroup < 0 || configGroup >= 255)
+        {
+            return {};
+        }
+        result.configGroup = configGroup;
+    }
+    else
+    {
+        result.configGroup = 0;
     }
 
     const auto report = obj.value(QLatin1String("report"));
@@ -1705,4 +1799,32 @@ uint8_t DDF_GetSubDeviceOrder(const QString &type)
 #endif
 
     return SUBDEVICE_DEFAULT_ORDER;
+}
+
+/*! Creates a unique Resource handle.
+ */
+Resource::Handle R_CreateResourceHandle(const Resource *r, size_t containerIndex)
+{
+    Q_ASSERT(r->prefix() != nullptr);
+    Q_ASSERT(!r->item(RAttrUniqueId)->toString().isEmpty());
+
+    Resource::Handle result;
+    result.hash = qHash(r->item(RAttrUniqueId)->toString());
+    result.index = containerIndex;
+    result.type = r->prefix()[1];
+    result.order = 0;
+
+    Q_ASSERT(result.type == 's' || result.type == 'l' || result.type == 'd' || result.type == 'g');
+    Q_ASSERT(isValid(result));
+
+    if (result.type == 's' || result.type == 'l')
+    {
+        const ResourceItem *type = r->item(RAttrType);
+        if (type)
+        {
+            result.order = DDF_GetSubDeviceOrder(type->toString());
+        }
+    }
+
+    return result;
 }
