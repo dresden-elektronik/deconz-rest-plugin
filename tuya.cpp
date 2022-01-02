@@ -1106,7 +1106,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     break;
                     case 0x0211: // TotalEnergy
                     {
-                        quint32 energy = static_cast<quint32>(data & 0xFFFFFFFF);
+                        quint32 energy = static_cast<quint32>(data & 0xFFFFFFFF) * 10;
                         
                         ResourceItem *item = sensorNode->item(RStateConsumption);
 
