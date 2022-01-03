@@ -1495,7 +1495,7 @@ enum MultiStateOutputValue {
   Up = 1,
   Stop = 2,
   Toggle = 3,
-  // Unknown = 4,
+  Blocked = 4,
   StepDown = 5,
   StepUp = 6
 };
