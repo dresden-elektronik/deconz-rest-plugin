@@ -2694,9 +2694,10 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
     
     // Hack : Need to disable reporting for thoses devices, else It will enable a auto power off after 2mn.
     // see https://github.com/dresden-elektronik/deconz-rest-plugin/issues/3693
-    if (lightNode->manufacturer() == QLatin1String("_TZ3000_fvh3pjaz") ||
+    if (lightNode->manufacturer().startsWith('_') &&
+       (lightNode->manufacturer() == QLatin1String("_TZ3000_fvh3pjaz") ||
         lightNode->manufacturer() == QLatin1String("_TZ3000_9hpxg80k") ||
-        lightNode->manufacturer() == QLatin1String("_TZ3000_wyhuocal"))
+        lightNode->manufacturer() == QLatin1String("_TZ3000_wyhuocal")))
     {
         return;
     }
