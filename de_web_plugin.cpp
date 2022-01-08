@@ -6227,7 +6227,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
-                    else if (modelId == QLatin1String("lumi.sensor_switch.aq3"))
+                    else if (modelId == QLatin1String("lumi.sensor_switch.aq3") || modelId == QLatin1String("lumi.remote.b1acn01"))
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
