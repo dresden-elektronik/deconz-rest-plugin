@@ -1177,6 +1177,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                     if (lastUpdated)
                     {
                         lastUpdated->setValue(item->lastSet());
+                        enqueueEvent(Event(r->prefix(), lastUpdated->descriptor().suffix, idItem->toString(), device->key()));
                     }
                 }
             }
