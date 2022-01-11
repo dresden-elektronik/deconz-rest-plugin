@@ -367,7 +367,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 {
                     if ((manufacturerCode() == VENDOR_NONE && deviceId == DEV_ID_ZLL_DIMMABLE_LIGHT) ||
                         (manufacturerCode() == VENDOR_NONE && deviceId == DEV_ID_LEVEL_CONTROL_SWITCH) ||
-                        (manufacturer() == QLatin1String("iluminize") && deviceId == DEV_ID_HA_DIMMABLE_LIGHT))
+                        (manufacturer() == QLatin1String("iluminize") && modelId() == QLatin1String("511.012")))
                     {
                         // GLEDOPTO GL-C-009 advertises non-functional color cluster
                         // ORVIBO T10D1ZW in-wall dimmer does the same
