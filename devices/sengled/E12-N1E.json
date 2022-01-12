@@ -5,7 +5,7 @@
   "vendor": "sengled",
   "product": "E12-N1E",
   "sleeper": false,
-  "status": "Gold",
+  "status": "Bronze",
   "subdevices": [
     {
       "type": "$TYPE_COLOR_DIMMABLE_LIGHT",
