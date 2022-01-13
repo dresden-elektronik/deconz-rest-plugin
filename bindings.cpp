@@ -3700,7 +3700,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     }
 
     std::vector<quint8> srcEndpoints;
-    QStringList gids = item->toString().split(',', QString::SkipEmptyParts);
+    QStringList gids = item->toString().split(',', SKIP_EMPTY_PARTS);
 
     //quint8 srcEndpoint = sensor->fingerPrint().endpoint;
     std::vector<quint16> clusters;
@@ -4022,9 +4022,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     bool ret = false;
     for (int j = 0; j < (int)srcEndpoints.size() && j < gids.size(); j++)
     {
-        QString gid = gids[j];
         quint8 srcEndpoint = srcEndpoints[j];
-        Group *group = getGroupForId(gid);
+        Group *group = getGroupForId(gids[j]);
 
         if (!group)
         {
@@ -4474,7 +4473,7 @@ void DeRestPluginPrivate::processUbisysBinding(Sensor *sensor, const Binding &bn
 
         // remove group bindings which aren't configured via 'config.group'
         QString dstGroup = QString::number(bnd.dstAddress.group);
-        QStringList gids = item->toString().split(',');
+        QStringList gids = item->toString().split(',', SKIP_EMPTY_PARTS);
 
         if (!gids.contains(dstGroup) || (pos == -1) || (gids.size() < (pos + 1)) || gids[pos] != dstGroup)
         {

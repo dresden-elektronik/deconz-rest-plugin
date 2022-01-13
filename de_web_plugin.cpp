@@ -10445,10 +10445,9 @@ Group *DeRestPluginPrivate::getGroupForName(const QString &name)
  */
 Group *DeRestPluginPrivate::getGroupForId(const QString &id)
 {
-    DBG_Assert(id.isEmpty() == false);
-    if (id.isEmpty())
+    if (id.isEmpty() || !id.front().isDigit())
     {
-        return 0;
+        return nullptr;
     }
 
     // check valid 16-bit group id 0..0xFFFF
@@ -10457,25 +10456,22 @@ Group *DeRestPluginPrivate::getGroupForId(const QString &id)
     if (!ok || (gid > 0xFFFFUL))
     {
         DBG_Printf(DBG_INFO, "Get group for id error: invalid group id %s\n", qPrintable(id));
-        return 0;
+        return nullptr;
     }
     if (gid == 0)
     {
         gid = gwGroup0;
     }
 
-    std::vector<Group>::iterator i = groups.begin();
-    std::vector<Group>::iterator end = groups.end();
-
-    for (; i != end; ++i)
+    for (auto &group : groups)
     {
-        if (i->address() == gid)
+        if (group.address() == gid)
         {
-            return &(*i);
+            return &group;
         }
     }
 
-    return 0;
+    return nullptr;
 }
 
 /*! Delete a group of a switch from database permanently.
