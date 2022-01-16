@@ -1857,7 +1857,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 43200;
             rq.reportableChange8bit = 1;
         }
-        else if (modelId == QLatin1String("HG06323") || // LIDL
+        else if (sensor && (sensor->manufacturer() == QLatin1String("_TYZB01_bngwdjsr")) ||
+                 modelId == QLatin1String("HG06323") || // LIDL
                  modelId == QLatin1String("lumi.sensor_magnet.agl02") || // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
                  modelId == QLatin1String("lumi.flood.agl02"))           // Xiaomi Aqara T1 water leak sensor SJCGQ12LM
         {
@@ -3192,6 +3193,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("SWO-MOS1PA") ||
         // LIDL
         sensor->modelId() == QLatin1String("HG06323") ||
+        sensor->modelId() == QLatin1String("TS1001") ||
+        sensor->modelId() == QLatin1String("TS0211") ||
         // Xfinity
         sensor->modelId() == QLatin1String("URC4450BC0-X-R") ||
         // Iris
