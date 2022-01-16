@@ -1097,6 +1097,23 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
         { }
         else if (!device->managed())
         {
+            if (r->prefix() == RSensors)
+            {
+                // keep sensors reachable which are not handled in updateSensorNode()
+                ResourceItem *reachable = r->item(RConfigReachable);
+
+                if (reachable)
+                {
+                    Sensor *s = static_cast<Sensor*>(r);
+                    Q_ASSERT(s);
+                    s->rx();
+                    if (!reachable->toBool())
+                    {
+                        reachable->setValue(true);
+                        enqueueEvent(Event(r->prefix(), reachable->descriptor().suffix, r->item(RAttrId)->toString(), device->key()));
+                    }
+                }
+            }
             break;
         }
 
@@ -1110,6 +1127,8 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
             }
             else if (r->prefix() == RSensors)
             {
+                Sensor *s = static_cast<Sensor*>(r);
+                s->rx();
                 reachable = r->item(RConfigReachable);
             }
 
@@ -1174,7 +1193,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                 if (item->descriptor().suffix[0] == 's') // state/*
                 {
                     ResourceItem *lastUpdated = r->item(RStateLastUpdated);
-                    if (lastUpdated)
+                    if (lastUpdated && idItem)
                     {
                         lastUpdated->setValue(item->lastSet());
                         enqueueEvent(Event(r->prefix(), lastUpdated->descriptor().suffix, idItem->toString(), device->key()));
@@ -1469,14 +1488,6 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
             if (sensorNode)
             {
-                sensorNode->rx();
-                ResourceItem *item = sensorNode->item(RConfigReachable);
-                if (item && !item->toBool())
-                {
-                    item->setValue(true);
-                    Event e(RSensors, RConfigReachable, sensorNode->id(), item);
-                    enqueueEvent(e);
-                }
                 checkSensorButtonEvent(sensorNode, ind, zclFrame);
             }
         }
@@ -2365,60 +2376,44 @@ void DeRestPluginPrivate::handleMacDataRequest(const deCONZ::NodeEvent &event)
         return;
     }
 
-    if (event.node()->address().hasExt())
+    if (!event.node()->address().hasExt())
     {
-        auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, event.node()->address().ext());
-        Q_ASSERT(device);
-        enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
+        return;
     }
 
-    for (auto &s : sensors)
+    auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, event.node()->address().ext());
+    Q_ASSERT(device);
+    enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
+
+    auto subDevices = device->subDevices();
+
+    for (auto &r : subDevices)
     {
-        if (s.deletedState() != Sensor::StateNormal)
+        if (r->prefix() == RSensors)
         {
-            continue;
-        }
+            Sensor *s = static_cast<Sensor*>(r);
+            Q_ASSERT(s);
+            s->rx();
 
-        if (s.address().ext() != event.node()->address().ext())
-        {
-            continue;
-        }
-
-        s.rx();
-        checkSensorNodeReachable(&s, &event);
-        //checkSensorBindingsForAttributeReporting(&s);
-        if (searchSensorsState == SearchSensorsActive && fastProbeAddr.ext() == s.address().ext())
-        {
-            delayedFastEnddeviceProbe(&event);
-            checkSensorBindingsForClientClusters(&s);
-        }
-
-        checkIasEnrollmentStatus(&s);
-
-        if (s.lastAttributeReportBind() < (idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT))
-        {
-            if (checkSensorBindingsForAttributeReporting(&s))
+            if (searchSensorsState == SearchSensorsActive && fastProbeAddr.ext() == s->address().ext())
             {
-                s.setLastAttributeReportBind(idleTotalCounter);
+                // Following calls are quite heavy, so only exec while sensor search is active.
+                // Since MAC data requests are only received from directly connected devices, this is "extra" anyway.
+                // TODO(mpi): we might remove this entirely after testing in favor for DDF.
+                checkSensorBindingsForAttributeReporting(s);
+                delayedFastEnddeviceProbe(&event);
+                checkSensorBindingsForClientClusters(s);
+                checkIasEnrollmentStatus(s);
+
+                if (s->lastAttributeReportBind() < (idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT))
+                {
+                    if (checkSensorBindingsForAttributeReporting(s))
+                    {
+                        s->setLastAttributeReportBind(idleTotalCounter);
+                    }
+                }
             }
         }
-    }
-
-    for (auto &l : nodes)
-    {
-        if (l.state() != LightNode::StateNormal)
-        {
-            continue;
-        }
-
-        if (l.address().ext() != event.node()->address().ext())
-        {
-            continue;
-        }
-
-        l.rx();
-
-        // FIXME: probably need to do some more light stuff here.
     }
 }
 
@@ -8570,7 +8565,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
     {
         return;
     }
-    
+
     // filter for relevant clusters
     if (event.profileId() == HA_PROFILE_ID || event.profileId() == ZLL_PROFILE_ID)
     {
