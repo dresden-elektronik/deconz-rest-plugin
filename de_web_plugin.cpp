@@ -291,7 +291,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_XIAOMI, "lumi.motion.agl04", lumiMacPrefix}, // Xiaomi Aqara RTCGQ13LM high precision motion sensor
     { VENDOR_XIAOMI, "lumi.flood.agl02", xiaomiMacPrefix}, // Xiaomi Aqara T1 water leak sensor SJCGQ12LM
     { VENDOR_XIAOMI, "lumi.switch.n0agl1", lumiMacPrefix}, // Xiaomi Aqara Single Switch Module T1 (With Neutral)
-    { VENDOR_UBISYS, "C4", ubisysMacPrefix },
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
     { VENDOR_UBISYS, "J1", ubisysMacPrefix },
     { VENDOR_UBISYS, "S1", ubisysMacPrefix },
@@ -6512,7 +6511,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         if ((modelId.startsWith(QLatin1String("D1")) && i->endpoint() == 0x02) ||
                             (modelId.startsWith(QLatin1String("J1")) && i->endpoint() == 0x02) ||
-                            (modelId.startsWith(QLatin1String("C4")) && i->endpoint() == 0x01) ||
                             (modelId.startsWith(QLatin1String("S1")) && i->endpoint() == 0x02) ||
                             (modelId.startsWith(QLatin1String("S2")) && i->endpoint() == 0x03))
                         {
@@ -9987,36 +9985,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             updateSensorEtag(&*i);
                         }
                     }
-                    else if (event.clusterId() == UBISYS_DEVICE_SETUP_CLUSTER_ID && event.endpoint() == 0xE8 &&
-                            existDevicesWithVendorCodeForMacPrefix(event.node()->address(), VENDOR_UBISYS)) // ubisys device management
-                    {
-//                        bool updated = false;
-                        for (;ia != enda; ++ia)
-                        {
-                            if (std::find(event.attributeIds().begin(),
-                                          event.attributeIds().end(),
-                                          ia->id()) == event.attributeIds().end())
-                            {
-                                continue;
-                            }
-
-                            if (ia->id() == 0x0000 && ia->dataType() == deCONZ::ZclArray) // Input configurations
-                            {
-                                QByteArray arr = ia->toVariant().toByteArray();
-                                qDebug() << arr.toHex();
-                            }
-                            else if (ia->id() == 0x0001 && ia->dataType() == deCONZ::ZclArray) // Input actions
-                            {
-                                QByteArray arr = ia->toVariant().toByteArray();
-                                qDebug() << arr.toHex();
-                            }
-
-                            if (i->modelId().startsWith(QLatin1String("C4")))
-                            {
-                                processUbisysC4Configuration(&*i);
-                            }
-                        }
-                    }
                     else if (event.clusterId() == VENDOR_CLUSTER_ID && i->modelId() == QLatin1String("de_spect"))
                     {
                         bool updated = false;
@@ -10796,8 +10764,7 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         // whitelist by Model ID
         if (sensorNode->modelId().startsWith(QLatin1String("FLS-NB")) ||
             sensorNode->modelId().startsWith(QLatin1String("D1")) || sensorNode->modelId().startsWith(QLatin1String("S1")) ||
-            sensorNode->modelId().startsWith(QLatin1String("S2")) || sensorNode->manufacturer().startsWith(QLatin1String("BEGA")) ||
-            sensorNode->modelId().startsWith(QLatin1String("C4")))
+            sensorNode->modelId().startsWith(QLatin1String("S2")) || sensorNode->manufacturer().startsWith(QLatin1String("BEGA")))
         {
             ok = true;
         }
