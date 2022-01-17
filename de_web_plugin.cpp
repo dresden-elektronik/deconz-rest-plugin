@@ -5157,6 +5157,10 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     {
                         ok = true;
                     }
+                    else if (zclFrame.commandId() == 0x00 && zclFrame.payload().size() >= 3 && buttonMap.zclParam0 == zclFrame.payload().at(0))
+                    {
+                        ok = true;
+                    }
                     else if (zclFrame.commandId() == 0x02 && zclFrame.payload().isEmpty())
                     {
                         ok = true;
