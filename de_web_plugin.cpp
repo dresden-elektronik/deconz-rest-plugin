@@ -4660,8 +4660,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         }
     }
     else if (sensor->modelId() == QLatin1String("HG06323") || // LIDL Remote Control
-             sensor->modelId() == QLatin1String("TS1001") || // LIDL Remote Control
-             sensor->modelId() == QLatin1String("TS0211") ) // Tuya Remote Control
+             sensor->modelId() == QLatin1String("TS1001"))    // LIDL Remote Control
     {
         checkReporting = true;
     }
@@ -15920,8 +15919,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             }
         }
         else if (sensor->modelId() == QLatin1String("HG06323") ||  // LIDL Remote Control
-                 sensor->manufacturer() == QLatin1String("_TYZB01_bngwdjsr") ||  // LIDL Remote Control
-                 sensor->manufacturer() == QLatin1String("_TZ1800_ladpngdx")) // LIDL Remote Control
+                 sensor->manufacturer() == QLatin1String("_TYZB01_bngwdjsr"))  // LIDL Remote Control
         {
             ResourceItem *item = sensor->item(RConfigGroup);
             if (!item)
