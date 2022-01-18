@@ -1381,10 +1381,13 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                 sensorNode = getSensorNodeForAddress(ind.srcAddress());
                 if (sensorNode)
                 {
+                    quint16 mfCode = sensorNode->node() ? sensorNode->node()->nodeDescriptor().manufacturerCode() : 0;
                     if (zclFrame.manufacturerCode() == VENDOR_PHILIPS)
                     {
                         // Hue dimmer switch
                     }
+                    else if (mfCode == VENDOR_SCHNEIDER)
+                    {  }
                     else if (sensorNode->modelId().startsWith(QLatin1String("C4")) || // ubisys
                              sensorNode->modelId().startsWith(QLatin1String("RC 110")) || // innr RC 110
                              sensorNode->modelId().startsWith(QLatin1String("ICZB-RM")) || // icasa remote
