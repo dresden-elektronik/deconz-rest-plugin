@@ -5157,7 +5157,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     {
                         ok = true;
                     }
-                    else if (zclFrame.commandId() == 0x00 && zclFrame.payload().size() >= 3 && buttonMap.zclParam0 == zclFrame.payload().at(0))
+                    else if (zclFrame.commandId() == 0x00 && zclFrame.payload().size() > 3 && buttonMap.zclParam0 == zclFrame.payload().at(0))
                     {
                         ok = true;
                     }
@@ -15925,13 +15925,14 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         else if (sensor->modelId() == QLatin1String("HG06323") ||  // LIDL Remote Control
                  sensor->manufacturer() == QLatin1String("_TYZB01_bngwdjsr"))  // LIDL Remote Control
         {
+            DBG_Printf(DBG_INFO, "Debug switch 1");
             ResourceItem *item = sensor->item(RConfigGroup);
             if (!item)
             {
                 item = sensor->addItem(DataTypeString, RConfigGroup);
                 Group *group = addGroup();
                 QString gid = group->id();
-
+                DBG_Printf(DBG_INFO, "Debug switch 2");
                 DBG_Printf(DBG_INFO, "create group %s for sensor %s\n", qPrintable(gid), qPrintable(sensor->id()));
                 group->setName(sensor->name());
                 ResourceItem *item2 = group->addItem(DataTypeString, RAttrUniqueId);
@@ -15944,7 +15945,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 if (group->addDeviceMembership(sensor->id()))
                 {
                 }
-
+                DBG_Printf(DBG_INFO, "Debug switch 3");
                 // Binding of client clusters doesn't work for endpoint 0x01.
                 // Need to add the group to the server Groups cluster instead.
                 TaskItem task;
