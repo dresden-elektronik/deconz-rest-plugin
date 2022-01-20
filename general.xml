@@ -3419,6 +3419,8 @@ devices can operate on either battery or mains power, and can have a wide variet
 				<!-- TODO -->
 			</attribute-set>
 			<attribute-set id="0x0100" description="TOU Information Set">
+                <attribute id="0x0100" name="Index HCHC/EJPHN/BBRHCJB, Current Summation Delivered (1)" type="u48" access="r" required="m"></attribute>
+                <attribute id="0x0102" name="Index HCHP/EJPHPM/BBRHPJB, Current Summation Delivered(2)" type="u48" access="r" required="m"></attribute>
 			<!-- TODO -->
 			</attribute-set>
 			<attribute-set id="0x0200" description="Meter Status">
