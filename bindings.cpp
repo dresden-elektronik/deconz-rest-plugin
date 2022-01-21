@@ -2949,6 +2949,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("TY0203") ||  // Door sensor
         sensor->modelId() == QLatin1String("TY0202") || // Motion Sensor
         sensor->modelId() == QLatin1String("TS0211") || // Door bell
+        sensor->modelId() == QLatin1String("HG06323") ||
+        sensor->modelId() == QLatin1String("TS1001") ||
         // DIYRuZ
         sensor->modelId() == QLatin1String("DIYRuZ_Flower") || // DIYRuZ_Flower
         // Konke
@@ -3191,10 +3193,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("0x8035") ||
         // Swann
         sensor->modelId() == QLatin1String("SWO-MOS1PA") ||
-        // LIDL
-        sensor->modelId() == QLatin1String("HG06323") ||
-        sensor->modelId() == QLatin1String("TS1001") ||
-        sensor->modelId() == QLatin1String("TS0211") ||
         // Xfinity
         sensor->modelId() == QLatin1String("URC4450BC0-X-R") ||
         // Iris
