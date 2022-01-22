@@ -83,7 +83,7 @@ void DeRestPluginPrivate::handleThermostatUiConfigurationClusterIndication(const
 
             case THERM_UI_ATTRID_VIEWING_DIRECTION:
             {
-                if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001"))
+                if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001") || sensor->modelId() == QLatin1String("eT093WRO"))
                 {
                     bool displayflipped = attr.numericValue().u8 > 0 ? true : false;
                     item = sensor->item(RConfigDisplayFlipped);
