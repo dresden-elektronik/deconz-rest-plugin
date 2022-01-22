@@ -787,7 +787,7 @@
         "ubisysS2Map": {
             "vendor": "Ubisys",
             "doc": "Power switch S2",
-            "modelids": ["S2"],
+            "modelids": ["S2 (5502)", "S2", "S2-R"],
             "map": [
                 [1, "0x03", "ONOFF", "TOGGLE", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Toggle"],
                 [1, "0x03", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Move up (with on/off)"],

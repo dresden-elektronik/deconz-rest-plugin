@@ -294,7 +294,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
     { VENDOR_UBISYS, "J1", ubisysMacPrefix },
     { VENDOR_UBISYS, "S1", ubisysMacPrefix },
-    { VENDOR_UBISYS, "S2", ubisysMacPrefix },
+    { VENDOR_UBISYS, "S2-R", ubisysMacPrefix },
     { VENDOR_NONE, "Z716A", netvoxMacPrefix },
     // { VENDOR_OSRAM_STACK, "Plug", osramMacPrefix }, // OSRAM plug - exposed only as light
     { VENDOR_OSRAM, "Lightify Switch Mini", emberMacPrefix }, // Osram 3 button remote
@@ -1222,6 +1222,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
     if ((ind.profileId() == HA_PROFILE_ID) || (ind.profileId() == ZLL_PROFILE_ID))
     {
+        const bool devManaged = device && device->managed();
         {
             QDataStream stream(ind.asdu());
             stream.setByteOrder(QDataStream::LittleEndian);
@@ -1260,11 +1261,11 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case METERING_CLUSTER_ID:
-            if (!DEV_TestStrict()) { handleSimpleMeteringClusterIndication(ind, zclFrame); }
+            if (!DEV_TestStrict() && !devManaged) { handleSimpleMeteringClusterIndication(ind, zclFrame); }
             break;
 
         case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
-            if (!DEV_TestStrict()) { handleElectricalMeasurementClusterIndication(ind, zclFrame); }
+            if (!DEV_TestStrict() && !devManaged) { handleElectricalMeasurementClusterIndication(ind, zclFrame); }
             break;
 
         case IAS_ZONE_CLUSTER_ID:
@@ -1300,7 +1301,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case WINDOW_COVERING_CLUSTER_ID:
-            if (!DEV_TestStrict()) { handleWindowCoveringClusterIndication(ind, zclFrame); }
+            if (!DEV_TestStrict() && !devManaged) { handleWindowCoveringClusterIndication(ind, zclFrame); }
             break;
 
         case TUYA_CLUSTER_ID:
@@ -6517,7 +6518,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         if ((modelId.startsWith(QLatin1String("D1")) && i->endpoint() == 0x02) ||
                             (modelId.startsWith(QLatin1String("J1")) && i->endpoint() == 0x02) ||
                             (modelId.startsWith(QLatin1String("S1")) && i->endpoint() == 0x02) ||
-                            (modelId.startsWith(QLatin1String("S2")) && i->endpoint() == 0x03))
+                            (modelId.startsWith(QLatin1String("S2-R")) && i->endpoint() == 0x03))
                         {
                             // Combine multiple switch endpoints into a single ZHASwitch resource
                             fpSwitch.outClusters.push_back(ci->id());
@@ -10770,7 +10771,7 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         // whitelist by Model ID
         if (sensorNode->modelId().startsWith(QLatin1String("FLS-NB")) ||
             sensorNode->modelId().startsWith(QLatin1String("D1")) || sensorNode->modelId().startsWith(QLatin1String("S1")) ||
-            sensorNode->modelId().startsWith(QLatin1String("S2")) || sensorNode->manufacturer().startsWith(QLatin1String("BEGA")))
+            sensorNode->modelId().startsWith(QLatin1String("S2-R")) || sensorNode->manufacturer().startsWith(QLatin1String("BEGA")))
         {
             ok = true;
         }
