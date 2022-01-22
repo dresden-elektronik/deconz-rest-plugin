@@ -844,7 +844,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
 
                             ResourceItem *item = sensorNode->item(RConfigPreset);
 
-                            if (item && item->toString() != preset && preset == QLatin1String("boost"))
+                            if (item && item->toString() != preset) // check if preset will change
                             {
                                 // only change preset if it's not boosting or was boosting before
                                 if (preset == QLatin1String("boost") || item->toString() == QLatin1String("boost"))
