@@ -1701,7 +1701,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     if (data.valid)
                     {
                         updated = true;
-                        checkSensorBindingsForClientClusters(sensor);
 
                         if (device && device->managed())
                         {
@@ -2798,6 +2797,11 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         ResourceItem *item = sensor->item(e.what());
         if (item && item->isPublic())
         {
+            if (e.what() == RConfigGroup)
+            {
+                checkSensorBindingsForClientClusters(sensor);
+            }
+
             if (!(item->needPushSet() || item->needPushChange()))
             {
                 return; // already pushed
