@@ -4,8 +4,7 @@
   "modelid": "C4 (5504)",
   "product": "C4 (5504)",
   "sleeper": false,
-  "status": "Silver",
-  "path": "/devices/ubisys/c4_5504.json",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_SWITCH",
