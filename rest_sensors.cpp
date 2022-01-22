@@ -966,6 +966,24 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                         }
                     }
+                    else if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BRT-100"))
+                    {
+                        QByteArray tuyaData;
+                        qint32 offset2 = data.integer / 10;
+
+                        if (data.integer < -9) { data.integer = -9; }
+                        if (data.integer > 9)  { data.integer = 9; }
+
+                        tuyaData.append((qint8)((offset2 >> 24) & 0xff));
+                        tuyaData.append((qint8)((offset2 >> 16) & 0xff));
+                        tuyaData.append((qint8)((offset2 >> 8) & 0xff));
+                        tuyaData.append((qint8)(offset2 & 0xff));
+
+                        if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_VALUE, DP_IDENTIFIER_THERMOSTAT_CALIBRATION_3, tuyaData))
+                        {
+                            updated = true;
+                        }
+                    }
                     else if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001"))
                     {
                         if (data.integer < -25) { data.integer = -25; }

@@ -1215,6 +1215,20 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                                 update = true;
                             }
                         }
+
+                        if (productId == "Tuya_THD BRT-100") // temperature calibration (offset in degree) for Moes Tuya BRT-100
+                        {
+                            qint16 temp = static_cast<qint16>(data & 0xFFFF) * 100;
+                            ResourceItem *item = sensorNode->item(RConfigOffset);
+
+                            if (item && item->toNumber() != temp)
+                            {
+                                item->setValue(temp);
+                                Event e(RSensors, RConfigOffset, sensorNode->id(), item);
+                                enqueueEvent(e);
+                                update = true;
+                            }
+                        }
                     }
                     break;
                     case 0x026B: // Temperature for Multi sensor
