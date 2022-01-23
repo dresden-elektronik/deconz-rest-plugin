@@ -4,7 +4,7 @@
   "modelid": "LK Switch",
   "product": "LK Fuga Doube Relay Switch",
   "sleeper": false,
-  "status": "Bronze",
+  "status": "Gold",
   "path": "/devices/wiser/fuga_double_relay_switch.json",
   "subdevices": [
     {

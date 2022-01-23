@@ -291,7 +291,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_XIAOMI, "lumi.motion.agl04", lumiMacPrefix}, // Xiaomi Aqara RTCGQ13LM high precision motion sensor
     { VENDOR_XIAOMI, "lumi.flood.agl02", xiaomiMacPrefix}, // Xiaomi Aqara T1 water leak sensor SJCGQ12LM
     { VENDOR_XIAOMI, "lumi.switch.n0agl1", lumiMacPrefix}, // Xiaomi Aqara Single Switch Module T1 (With Neutral)
-    { VENDOR_UBISYS, "C4", ubisysMacPrefix },
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
     { VENDOR_UBISYS, "J1", ubisysMacPrefix },
     { VENDOR_UBISYS, "S1", ubisysMacPrefix },
@@ -532,6 +531,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SCHNEIDER, "iTRV", silabs3MacPrefix }, // Drayton Wiser Radiator Thermostat
     { VENDOR_SCHNEIDER, "CCT593011_AS", emberMacPrefix }, // LK Wiser Temperature and Humidity Sensor
     { VENDOR_SCHNEIDER, "CCT595011_AS", emberMacPrefix }, // LK Wiser Motion Sensor
+    { VENDOR_DANFOSS, "eT093WRO", silabs5MacPrefix }, // POPP Smart Thermostat
     { VENDOR_DANFOSS, "eTRV0100", silabs2MacPrefix }, // Danfoss Ally thermostat
     { VENDOR_DANFOSS, "0x8020", silabs6MacPrefix }, // Danfoss RT24V Display thermostat
     { VENDOR_DANFOSS, "0x8021", silabs6MacPrefix }, // Danfoss RT24V Display thermostat with floor sensor
@@ -1381,10 +1381,13 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                 sensorNode = getSensorNodeForAddress(ind.srcAddress());
                 if (sensorNode)
                 {
+                    quint16 mfCode = sensorNode->node() ? sensorNode->node()->nodeDescriptor().manufacturerCode() : 0;
                     if (zclFrame.manufacturerCode() == VENDOR_PHILIPS)
                     {
                         // Hue dimmer switch
                     }
+                    else if (mfCode == VENDOR_SCHNEIDER)
+                    {  }
                     else if (sensorNode->modelId().startsWith(QLatin1String("C4")) || // ubisys
                              sensorNode->modelId().startsWith(QLatin1String("RC 110")) || // innr RC 110
                              sensorNode->modelId().startsWith(QLatin1String("ICZB-RM")) || // icasa remote
@@ -6395,7 +6398,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 {
                     // Many Xiaomi devices advertise non-functional Time cluster, so better use whitelist.
                     if (modelId == QLatin1String("Thermostat") || // eCozy
-                        modelId == QLatin1String("eTRV0100")) // Danfoss
+                        modelId == QLatin1String("eTRV0100") ||   // Danfoss
+                        modelId == QLatin1String("eT093WRO"))     // POPP smart thermostat
                     {
                         fpTimeSensor.inClusters.push_back(ci->id());
                     }
@@ -6512,7 +6516,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         if ((modelId.startsWith(QLatin1String("D1")) && i->endpoint() == 0x02) ||
                             (modelId.startsWith(QLatin1String("J1")) && i->endpoint() == 0x02) ||
-                            (modelId.startsWith(QLatin1String("C4")) && i->endpoint() == 0x01) ||
                             (modelId.startsWith(QLatin1String("S1")) && i->endpoint() == 0x02) ||
                             (modelId.startsWith(QLatin1String("S2")) && i->endpoint() == 0x03))
                         {
@@ -7708,8 +7711,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.addItem(DataTypeString, RConfigMode);
                 sensorNode.addItem(DataTypeString, RConfigFanMode);
             }
-            else if ((modelId == QLatin1String("eTRV0100")) || // Danfoss Ally
-                     (modelId == QLatin1String("TRV001")) )    // Hive TRV
+            else if (modelId == QLatin1String("eTRV0100") || // Danfoss Ally
+                     modelId == QLatin1String("TRV001") ||   // Hive TRV
+                     modelId == QLatin1String("eT093WRO"))   // POPP smart thermostat
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
                 sensorNode.addItem(DataTypeString, RStateWindowOpen);
@@ -9987,36 +9991,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             updateSensorEtag(&*i);
                         }
                     }
-                    else if (event.clusterId() == UBISYS_DEVICE_SETUP_CLUSTER_ID && event.endpoint() == 0xE8 &&
-                            existDevicesWithVendorCodeForMacPrefix(event.node()->address(), VENDOR_UBISYS)) // ubisys device management
-                    {
-//                        bool updated = false;
-                        for (;ia != enda; ++ia)
-                        {
-                            if (std::find(event.attributeIds().begin(),
-                                          event.attributeIds().end(),
-                                          ia->id()) == event.attributeIds().end())
-                            {
-                                continue;
-                            }
-
-                            if (ia->id() == 0x0000 && ia->dataType() == deCONZ::ZclArray) // Input configurations
-                            {
-                                QByteArray arr = ia->toVariant().toByteArray();
-                                qDebug() << arr.toHex();
-                            }
-                            else if (ia->id() == 0x0001 && ia->dataType() == deCONZ::ZclArray) // Input actions
-                            {
-                                QByteArray arr = ia->toVariant().toByteArray();
-                                qDebug() << arr.toHex();
-                            }
-
-                            if (i->modelId().startsWith(QLatin1String("C4")))
-                            {
-                                processUbisysC4Configuration(&*i);
-                            }
-                        }
-                    }
                     else if (event.clusterId() == VENDOR_CLUSTER_ID && i->modelId() == QLatin1String("de_spect"))
                     {
                         bool updated = false;
@@ -10445,10 +10419,9 @@ Group *DeRestPluginPrivate::getGroupForName(const QString &name)
  */
 Group *DeRestPluginPrivate::getGroupForId(const QString &id)
 {
-    DBG_Assert(id.isEmpty() == false);
-    if (id.isEmpty())
+    if (id.isEmpty() || !id.front().isDigit())
     {
-        return 0;
+        return nullptr;
     }
 
     // check valid 16-bit group id 0..0xFFFF
@@ -10457,25 +10430,22 @@ Group *DeRestPluginPrivate::getGroupForId(const QString &id)
     if (!ok || (gid > 0xFFFFUL))
     {
         DBG_Printf(DBG_INFO, "Get group for id error: invalid group id %s\n", qPrintable(id));
-        return 0;
+        return nullptr;
     }
     if (gid == 0)
     {
         gid = gwGroup0;
     }
 
-    std::vector<Group>::iterator i = groups.begin();
-    std::vector<Group>::iterator end = groups.end();
-
-    for (; i != end; ++i)
+    for (auto &group : groups)
     {
-        if (i->address() == gid)
+        if (group.address() == gid)
         {
-            return &(*i);
+            return &group;
         }
     }
 
-    return 0;
+    return nullptr;
 }
 
 /*! Delete a group of a switch from database permanently.
@@ -10800,8 +10770,7 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         // whitelist by Model ID
         if (sensorNode->modelId().startsWith(QLatin1String("FLS-NB")) ||
             sensorNode->modelId().startsWith(QLatin1String("D1")) || sensorNode->modelId().startsWith(QLatin1String("S1")) ||
-            sensorNode->modelId().startsWith(QLatin1String("S2")) || sensorNode->manufacturer().startsWith(QLatin1String("BEGA")) ||
-            sensorNode->modelId().startsWith(QLatin1String("C4")))
+            sensorNode->modelId().startsWith(QLatin1String("S2")) || sensorNode->manufacturer().startsWith(QLatin1String("BEGA")))
         {
             ok = true;
         }
@@ -16808,6 +16777,7 @@ void DeRestPlugin::idleTimerFired()
                                 sensorNode->modelId().startsWith(QLatin1String("TH112")) ||     // Sinope devices
                                 sensorNode->modelId().startsWith(QLatin1String("TH1300ZB")) ||  // Sinope devices
                                 sensorNode->modelId().startsWith(QLatin1String("eTRV0100")) ||  // Danfoss Ally
+                                sensorNode->modelId().startsWith(QLatin1String("eT093WRO")) ||  // POPP smart thermostat
                                 sensorNode->modelId().startsWith(QLatin1String("0x8020")) ||    // Danfoss RT24V Display thermostat
                                 sensorNode->modelId().startsWith(QLatin1String("0x8021")) ||    // Danfoss RT24V Display thermostat with floor sensor
                                 sensorNode->modelId().startsWith(QLatin1String("0x8030")) ||    // Danfoss RTbattery Display thermostat
