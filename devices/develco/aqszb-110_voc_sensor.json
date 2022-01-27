@@ -35,10 +35,12 @@
           "name": "attr/lastseen"
         },
         {
-          "name": "attr/manufacturername"
+          "name": "attr/manufacturername",
+          "awake": true
         },
         {
-          "name": "attr/modelid"
+          "name": "attr/modelid",
+          "awake": true
         },
         {
           "name": "attr/name"
@@ -137,10 +139,12 @@
           "name": "attr/lastseen"
         },
         {
-          "name": "attr/manufacturername"
+          "name": "attr/manufacturername",
+          "awake": true
         },
         {
-          "name": "attr/modelid"
+          "name": "attr/modelid",
+          "awake": true
         },
         {
           "name": "attr/name"
@@ -227,10 +231,12 @@
           "name": "attr/lastseen"
         },
         {
-          "name": "attr/manufacturername"
+          "name": "attr/manufacturername",
+          "awake": true
         },
         {
-          "name": "attr/modelid"
+          "name": "attr/modelid",
+          "awake": true
         },
         {
           "name": "attr/name"
