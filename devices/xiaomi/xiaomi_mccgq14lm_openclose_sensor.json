@@ -37,7 +37,8 @@
           "name": "attr/lastseen"
         },
         {
-          "name": "attr/manufacturername"
+          "name": "attr/manufacturername",
+          "awake": true
         },
         {
           "name": "attr/modelid",
