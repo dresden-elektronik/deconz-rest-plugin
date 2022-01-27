@@ -88,5 +88,21 @@
         }
       ]
     }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 7200,
+          "max": 7200,
+          "change": "0x00"
+        }
+      ]
+    }
   ]
 }
