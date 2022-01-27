@@ -5054,9 +5054,13 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         }
                     }
                 }
-                else if (ind.clusterId() == ONOFF_CLUSTER_ID && sensor->modelId() == QLatin1String("Remote Control N2") && sensor->previousCommandId == 0x09)
+                else if (ind.clusterId() == ONOFF_CLUSTER_ID && sensor->previousCommandId == 0x09 && sensor->modelId() == QLatin1String("Remote Control N2"))
                 {
+                    // for left and right buttons long press, the Ikea Styrbar sends:
+                    // 0x09 -> ON -> 0x07 -> 0x08 -> 0x09
+                    // disable to not trigger 1002 and 2002 button events
                     ok = false;
+                    sensor->previousCommandId = 0xFF;
                 }
                 else if (ind.clusterId() == LEVEL_CLUSTER_ID && zclFrame.commandId() == 0x04 && // move to level (with on/off)
                          sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer
