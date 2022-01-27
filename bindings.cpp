@@ -2897,7 +2897,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("easyCodeTouch_v1") ||
         // ubisys
         sensor->modelId().startsWith(QLatin1String("D1")) ||
-        sensor->modelId().startsWith(QLatin1String("S1")) ||
+        sensor->modelId().startsWith(QLatin1String("S1-R")) ||
         sensor->modelId().startsWith(QLatin1String("S2")) ||
         // IKEA
         sensor->modelId().startsWith(QLatin1String("TRADFRI")) ||
@@ -3930,7 +3930,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(0x03);
         sensor->setMgmtBindSupported(true);
     }
-    else if (sensor->modelId().startsWith(QLatin1String("S1")))
+    else if (sensor->modelId().startsWith(QLatin1String("S1-R")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
@@ -4438,7 +4438,7 @@ void DeRestPluginPrivate::processUbisysBinding(Sensor *sensor, const Binding &bn
             else if  (bnd.srcEndpoint == 0x03) { pos = 1; }
 
         }
-        else if (sensor->modelId().startsWith(QLatin1String("S1")))
+        else if (sensor->modelId().startsWith(QLatin1String("S1-R")))
         {
             DBG_Assert(sensor->fingerPrint().endpoint == 0x02);
 

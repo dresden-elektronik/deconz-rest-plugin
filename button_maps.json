@@ -740,10 +740,22 @@
                 [1, "0x01", "DOOR_LOCK", "ATTRIBUTE_REPORT", "3", "S_BUTTON_1", "S_BUTTON_ACTION_DROP", "Drop"]
             ]
         },
+        "ubisysS1Map": {
+            "vendor": "Ubisys",
+            "doc": "Universal power switch S1 (5501)",
+            "modelids": ["S1 (5501)"],
+            "map": [
+                [1, "0x02", "ONOFF", "TOGGLE", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Toggle"],
+                [1, "0x02", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Move up (with on/off)"],
+                [1, "0x02", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_ (with on/off)"],
+                [1, "0x02", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "1", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Move down (with on/off)"],
+                [1, "0x02", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "1", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_ (with on/off)"]                
+            ]
+        },
         "ubisysD1Map": {
             "vendor": "Ubisys",
-            "doc": "Universal dimmer D1 and power switch S1",
-            "modelids": ["D1", "S1"],
+            "doc": "Universal dimmer D1 and power switch S1-R",
+            "modelids": ["D1", "S1-R", "S1"],
             "map": [
                 [1, "0x02", "ONOFF", "TOGGLE", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Toggle"],
                 [1, "0x02", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Move up (with on/off)"],
