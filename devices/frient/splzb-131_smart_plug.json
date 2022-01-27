@@ -36,7 +36,6 @@
         },
         {
           "name": "attr/swversion",
-          "awake": true,
           "refresh.interval": 84000,
           "read": {
             "at": "0x8000",
@@ -112,7 +111,6 @@
         },
         {
           "name": "attr/swversion",
-          "awake": true,
           "refresh.interval": 84000,
           "read": {
             "at": "0x8000",
@@ -195,7 +193,6 @@
         },
         {
           "name": "attr/swversion",
-          "awake": true,
           "refresh.interval": 84000,
           "read": {
             "at": "0x8000",
