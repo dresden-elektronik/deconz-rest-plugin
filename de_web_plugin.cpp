@@ -10419,7 +10419,7 @@ Group *DeRestPluginPrivate::getGroupForName(const QString &name)
  */
 Group *DeRestPluginPrivate::getGroupForId(const QString &id)
 {
-    if (id.isEmpty() || !id.front().isDigit())
+    if (id.isEmpty() || !id.at(0).isDigit())
     {
         return nullptr;
     }
