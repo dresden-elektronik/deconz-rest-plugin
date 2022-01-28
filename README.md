@@ -26,7 +26,7 @@ deCONZ beta releases are scheduled roughly once per week. After 2–3 betas a st
 Current Beta: **v2.14.0-beta**  
 Current Stable: **v2.13.4**
 
-Next Beta: **v2.14.1-beta**  expected half February
+Next Beta: **v2.14.1-beta**  expected half February  
 Next Stable: **v2.14.1** expected half February.
 
 Installation
