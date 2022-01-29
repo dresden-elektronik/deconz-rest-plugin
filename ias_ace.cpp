@@ -124,6 +124,8 @@ static quint8 handleArmCommand(AlarmSystem *alarmSys, quint8 armMode, const QStr
         return IAS_ACE_ARM_NOTF_NOT_READY_TO_ARM;
     }
 
+    // TO DO : To remove later, security
+    DBG_Printf(DBG_IAS, "[IAS ACE] code : %s\n", qPrintable(pinCode));
     if (!alarmSys->isValidCode(pinCode, srcAddress))
     {
         return IAS_ACE_ARM_NOTF_INVALID_ARM_DISARM_CODE;

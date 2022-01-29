@@ -459,6 +459,8 @@ bool AlarmSystem::isValidCode(const QString &code, quint64 srcExtAddress)
     }
 
     DB_Secret sec;
+    
+    //check master code
     sec.uniqueId = QString(AS_ID_CODE0).arg(id()).toStdString();
 
     if (DB_LoadSecret(sec))
@@ -466,6 +468,23 @@ bool AlarmSystem::isValidCode(const QString &code, quint64 srcExtAddress)
         if (CRYPTO_ScryptVerify(sec.secret, code.toStdString()))
         {
             return true;
+        }
+    }
+    
+    //check other codes.
+    quint8 index = 1;
+    for (; index < 10; index++)
+    {
+        sec.uniqueId = QString("as_%1_code%2").arg(id()).arg(index).toStdString();
+        
+        DBG_Printf(DBG_INFO, "test %s\n",qPrintable(sec.uniqueId));
+
+        if (DB_LoadSecret(sec))
+        {
+            if (CRYPTO_ScryptVerify(sec.secret, code.toStdString()))
+            {
+                return true;
+            }
         }
     }
 
@@ -578,10 +597,15 @@ bool AlarmSystem::setCode(int index, const QString &code)
 
     if (DB_StoreSecret(sec))
     {
-        setValue(RConfigConfigured, true);
+        if (index == 0)
+        {
+            setValue(RConfigConfigured, true);
+        }
+        DBG_Printf(DBG_INFO, "Added code succesfull, index %u\n",index);
         return true;
     }
-
+    
+    DBG_Printf(DBG_INFO, "Added code failed, index %u\n",index);
     return false;
 }
 

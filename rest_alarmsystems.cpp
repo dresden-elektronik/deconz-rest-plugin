@@ -25,6 +25,7 @@ static const QLatin1String paramName("name");
 static int getAllAlarmSystems(const ApiRequest &req, ApiResponse &rsp, const AlarmSystems &alarmSystems);
 static int getAlarmSystem(const ApiRequest &req, ApiResponse &rsp, const AlarmSystems &alarmSystems);
 static int putAlarmSystemConfig(const ApiRequest &req, ApiResponse &rsp, AlarmSystems &alarmSystems);
+static int putAlarmSystemCode(const ApiRequest &req, ApiResponse &rsp, AlarmSystems &alarmSystems);
 static int putAlarmSystemAttributes(const ApiRequest &req, ApiResponse &rsp, AlarmSystems &alarmSystems);
 static int putAlarmSystemArmMode(const ApiRequest &req, ApiResponse &rsp, AlarmSystems &alarmSystems);
 static int putAlarmSystemDevice(const ApiRequest &req, ApiResponse &rsp, AlarmSystems &alarmSystems);
@@ -207,6 +208,12 @@ int AS_handleAlarmSystemsApi(const ApiRequest &req, ApiResponse &rsp, AlarmSyste
     {
         return putAlarmSystemConfig(req, rsp, alarmSystems);
     }
+    
+    // PUT /api/<apikey>/alarmsystems/<id>/config/code
+    if (req.hdr.pathComponentsCount() == 6 && req.hdr.httpMethod() == HttpPut && req.hdr.pathAt(5) == QLatin1String("code"))
+    {
+        return putAlarmSystemCode(req, rsp, alarmSystems);
+    }
 
     // PUT /api/<apikey>/alarmsystems/<id>/device/<uniqueid>
     if (req.hdr.pathComponentsCount() == 6 && req.hdr.httpMethod() == HttpPut && req.hdr.pathAt(4) == QLatin1String("device"))
@@ -296,6 +303,71 @@ QVariantMap addSuccessEntry(int id, const char *suffix, const QVariant &value)
     result[QLatin1String("success")] = item;
 
     return result;
+}
+
+// PUT /api/<apikey>/alarmsystems/<id>/config/code
+static int putAlarmSystemCode(const ApiRequest &req, ApiResponse &rsp, AlarmSystems &alarmSystems)
+{
+    const int id = alarmSystemIdToInteger(req.hdr.pathAt(3));
+
+    AlarmSystem *alarmSys = AS_GetAlarmSystem(id, alarmSystems);
+
+    if (!alarmSys)
+    {
+        rsp.list.append(errAlarmSystemNotAvailable(req.hdr.pathAt(3)));
+        rsp.httpStatus = HttpStatusNotFound;
+        return REQ_READY_SEND;
+    }
+
+    bool ok = false;
+    QVariant var = Json::parse(req.content, ok);
+    QVariantMap map = var.toMap();
+
+    if (!ok || map.isEmpty())
+    {
+        rsp.list.append(errBodyContainsInvalidJson(id));
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
+    }
+
+    rsp.httpStatus = HttpStatusOk;
+
+    const auto keys = map.keys();
+
+    for (const auto &key : keys)
+    {
+        bool ok;
+        uint index = key.toUInt(&ok);
+        
+        if (!ok || index < 1)
+        {
+            rsp.list.append(errInvalidValue(id, "Bad index %s", qPrintable(key)));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+        
+        const QString code = map.value(key).toString();
+
+        if (code.size() < 4 || code.size() > 16)
+        {
+            rsp.list.append(errInvalidValue(id, "Bad code lenght", code));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+
+        if (alarmSys->setCode(index, code))
+        {
+            rsp.list.append(addSuccessEntry(id, RConfigConfigured, true));
+        }
+        else
+        {
+            rsp.list.append(errInternalError(id, QLatin1String("failed to set code")));
+            rsp.httpStatus = HttpStatusServiceUnavailable;
+            return REQ_READY_SEND;
+        }
+    }
+
+    return REQ_READY_SEND;
 }
 
 // PUT /api/<apikey>/alarmsystems/<id>/config
