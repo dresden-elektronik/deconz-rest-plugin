@@ -15926,7 +15926,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         else if (sensor->modelId() == QLatin1String("HG06323") ||                // LIDL Remote Control
                  sensor->manufacturer() == QLatin1String("_TYZB01_bngwdjsr") ||  // LIDL Remote Control
                  sensor->manufacturer() == QLatin1String("_TZ3000_xabckq1v"))    // Tuya 4 Gang scene switch
-
+        {
             ResourceItem *item = sensor->item(RConfigGroup);
             if (!item)
             {
