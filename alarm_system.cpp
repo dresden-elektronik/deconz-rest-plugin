@@ -477,7 +477,7 @@ bool AlarmSystem::isValidCode(const QString &code, quint64 srcExtAddress)
     {
         sec.uniqueId = QString("as_%1_code%2").arg(id()).arg(index).toStdString();
         
-        DBG_Printf(DBG_INFO, "test %s\n",qPrintable(sec.uniqueId));
+        DBG_Printf(DBG_INFO, "test %s\n",sec.uniqueId);
 
         if (DB_LoadSecret(sec))
         {
