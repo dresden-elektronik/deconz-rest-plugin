@@ -1,6 +1,10 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "THIRDREALITY",
+  "manufacturername": [
+    "THIRDREALITY",
+    "Third Reality",
+    " Inc"
+   ],
   "modelid": "3RMS16BZ",
   "product": "Wireless Motion Sensor",
   "sleeper": true,
