@@ -3941,7 +3941,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeString, RConfigFanMode);
                 }
                 else if (sensor.modelId() == QLatin1String("eTRV0100") || // Danfoss Ally
-                         sensor.modelId() == QLatin1String("TRV001"))     // Hive TRV
+                         sensor.modelId() == QLatin1String("TRV001") ||   // Hive TRV
+                         sensor.modelId() == QLatin1String("eT093WRO"))   // POPP smart thermostat
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
                     sensor.addItem(DataTypeString, RStateWindowOpen);
@@ -4300,31 +4301,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 item->setValue(supportedModes.first());
             }
-
-//            QStringList gids;
-//            item = sensor.addItem(DataTypeString, RConfigGroup);
-//            if (!item->toString().isEmpty())
-//            {
-//                gids = item->toString().split(',');
-//            }
-
-//            int n = 0;
-//            if      (sensor.modelId().startsWith(QLatin1String("D1"))) { n = 2; }
-//            else if (sensor.modelId().startsWith(QLatin1String("S1-R"))) { n = 2; }
-//            else if (sensor.modelId().startsWith(QLatin1String("S1"))) { n = 1; }
-//            else if (sensor.modelId().startsWith(QLatin1String("S2"))) { n = 2; }
-//            else if (sensor.modelId().startsWith(QLatin1String("C4"))) { n = 4; }
-
-//            while (gids.size() < n)
-//            {
-//                gids.append("-1"); // not configured, TODO extract from BIND rules if available
-//            }
-
-//            QString out = gids.join(',');
-//            if (item->toString() != out)
-//            {
-//                item->setValue(out);
-//            }
         }
 
         if (extAddr != 0)

@@ -966,7 +966,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                         }
                     }
-                    else if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001"))
+                    else if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001") ||
+                             sensor->modelId() == QLatin1String("eT093WRO"))
                     {
                         if (data.integer < -25) { data.integer = -25; }
                         if (data.integer > 25)  { data.integer = 25; }
@@ -1058,7 +1059,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             updated = true;
                         }
                     }
-                    else if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001"))
+                    else if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001") ||
+                             sensor->modelId() == QLatin1String("eT093WRO"))
                     {
                         if (addTaskThermostatCmd(task, VENDOR_DANFOSS, 0x40, data.integer, 0))
                         {
@@ -1664,7 +1666,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigDisplayFlipped) // Boolean
                 {
-                    if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001"))
+                    if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001") ||
+                        sensor->modelId() == QLatin1String("eT093WRO"))
                     {
                         data.uinteger = data.boolean; // Use integer representation
 
@@ -1842,7 +1845,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     if (data.valid)
                     {
                         updated = true;
-                        checkSensorBindingsForClientClusters(sensor);
 
                         if (device && device->managed())
                         {
@@ -2943,6 +2945,11 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         ResourceItem *item = sensor->item(e.what());
         if (item && item->isPublic())
         {
+            if (e.what() == RConfigGroup)
+            {
+                checkSensorBindingsForClientClusters(sensor);
+            }
+
             if (!(item->needPushSet() || item->needPushChange()))
             {
                 return; // already pushed

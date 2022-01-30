@@ -859,35 +859,20 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     break;
                     case 0x0101: // off / running for Moe, or state for other
                     {
-                        if (productId == "Tuya_OTH R7049 Smoke Alarm")
-                        {
-                            bool fire = (data == 0) ? false : true;
-                            ResourceItem *item = sensorNode->item(RStateFire);
-
-                            if (item && item->toBool() != fire)
-                            {
-                                item->setValue(fire);
-                                Event e(RSensors, RStateFire, sensorNode->id(), item);
-                                enqueueEvent(e);
-                            }
-                        }
+                        QString mode;
+                        if      (data == 0) { mode = QLatin1String("off"); }
+                        else if (data == 1) { mode = QLatin1String("heat"); }
                         else
                         {
-                            QString mode;
-                            if      (data == 0) { mode = QLatin1String("off"); }
-                            else if (data == 1) { mode = QLatin1String("heat"); }
-                            else
-                            {
-                                return;
-                            }
+                            return;
+                        }
 
-                            ResourceItem *item = sensorNode->item(RConfigMode);
+                        ResourceItem *item = sensorNode->item(RConfigMode);
 
-                            if (item && item->toString() != mode)
-                            {
-                                item->setValue(mode);
-                                enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
-                            }
+                        if (item && item->toString() != mode)
+                        {
+                            item->setValue(mode);
+                            enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
                         }
                     }
                     break;
@@ -923,6 +908,20 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             item->setValue(locked);
                             Event e(RSensors, RConfigLocked, sensorNode->id(), item);
                             enqueueEvent(e);
+                        }
+                    }
+                    break;
+                    case 0x0108 : // Woox test alarm
+                    {
+                        bool fire = (data == 0) ? false : true;
+                        ResourceItem *item = sensorNode->item(RStateFire);
+
+                        if (item && item->toBool() != fire)
+                        {
+                            item->setValue(fire);
+                            Event e(RSensors, RStateFire, sensorNode->id(), item);
+                            enqueueEvent(e);
+                            update = true;
                         }
                     }
                     break;
@@ -1376,8 +1375,21 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
-                    case 0x0401: // Preset for Moes
-                        if (productId == "Tuya_THD BRT-100")
+                    case 0x0401: // Preset for Moes or Alamr for Woox
+                        if (productId == "Tuya_OTH R7049 Smoke Alarm")
+                        {
+                            bool fire = (data == 0) ? false : true;
+                            ResourceItem *item = sensorNode->item(RStateFire);
+
+                            if (item && item->toBool() != fire)
+                            {
+                                item->setValue(fire);
+                                Event e(RSensors, RStateFire, sensorNode->id(), item);
+                                enqueueEvent(e);
+                                update = true;
+                            }
+                        }
+                        else if (productId == "Tuya_THD BRT-100")
                         {
                             QString mode;
                             QString preset;
@@ -1545,7 +1557,27 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             }
                         }
                     }
-                        break;
+                    break;
+                    case 0x040E: // Low battery
+                    {
+                        // 2 above 2,8v
+                        // 1 above 2.6v
+                        // 0 at 2.6v and below (beeps ocassionally)
+
+                        bool lowbat = true;
+                        if (data == 2) { lowbat = false; }
+
+                        ResourceItem *item = sensorNode->item(RStateLowBattery);
+
+                        if (item && item->toBool() != lowbat)
+                        {
+                            item->setValue(lowbat);
+                            Event e(RSensors, RStateLowBattery, sensorNode->id(), item);
+                            enqueueEvent(e);
+                            update = true;
+                        }
+                    }
+                    break;
                     case 0x046a : // Force mode : normal/open/close
                     {
                         QString mode;

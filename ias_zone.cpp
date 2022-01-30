@@ -202,8 +202,6 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
         return;
     }
 
-    sensor->rx(); // mark rx here so that Read Attributes will work early on
-
     IAS_EnsureValidState(itemIasState);
 
     bool isReadAttr = false;
@@ -631,11 +629,16 @@ bool DeRestPluginPrivate::sendIasZoneEnrollResponse(const deCONZ::ApsDataIndicat
 void DeRestPluginPrivate::checkIasEnrollmentStatus(Sensor *sensor)
 {
     ResourceItem *itemIasState = sensor->item(RConfigEnrolled); // holds per device IAS state variable
-    ResourceItem *itemPending = sensor->item(RConfigPending);
 
-    if (!itemIasState || !itemPending)
+    if (!itemIasState)
     {
-        // All IAS devices should have these items.
+        return;
+    }
+
+    ResourceItem *itemPending = sensor->item(RConfigPending);
+    if (!itemPending)
+    {
+        // All IAS devices should have config.enrolled and config.pending items.
         // Bail out early for non IAS devices.
         return;
     }
