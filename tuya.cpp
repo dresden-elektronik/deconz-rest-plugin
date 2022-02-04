@@ -1017,14 +1017,25 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         if (productId == "Tuya_THD BRT-100")
                         {
                             temp = temp * 10;
-                            
-                            //change the mode too ? only if temp <5°C change it to off
+
+                            // If temp <= 5°C change mode to off
                             ResourceItem *item = sensorNode->item(RConfigMode);
 
                             if (temp <= 500) {
                                 QString mode = QLatin1String("off");
                                 if (item && item->toString() != mode)
                                 {
+                                    item->setValue(mode);
+                                    enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                                }
+                            }
+                            // If temp >5°C and mode was off, change it back to heat
+                            else
+                            {
+                                QString mode = QLatin1String("off");
+                                if (item && item->toString() == mode)
+                                {
+                                    QString mode = QLatin1String("heat");
                                     item->setValue(mode);
                                     enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
                                 }
