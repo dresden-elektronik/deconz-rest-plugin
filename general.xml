@@ -4099,7 +4099,9 @@ Child lock off: 0 - false, 1 - true
 Report Consumer Connected: 1 - false, 0 - true
 Motion sensitivity: 1 - low, 2 - medium, 3 - high
 Multiclick mode: 1 - false, 2 - true
-Attribute 0x0205 has range between 1 and 50 only</description>
+Attribute 0x0205 has range between 1 and 50 only
+Motion cool off time: Time in seconds when RTCGQ13LM sets motion to false if no further motion has been detected
+TVOC unit config: 0 - mg/m³ + °C, 1 - mg/m³ + °F, 16 - ppb + °C, 17 - ppb + °F</description>
 			<server>
 				<attribute id="0x0001" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0002" name="Power Outages" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
@@ -4137,7 +4139,9 @@ Attribute 0x0205 has range between 1 and 50 only</description>
 				<attribute id="0x00FE" name="Serial Number" type="cstring" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x00FF" name="Unknown (write only)" type="ostring" mfcode="0x115f" access="w" required="m"> </attribute>
 				<attribute id="0x0100" name="Unknown" type="u8" mfcode="0x115f" access="r" required="m"> </attribute>
+				<attribute id="0x0102" name="Motion cool off time" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x010C" name="Motion sensitivity" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0114" name="TVOC unit config" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0125" name="Multiclick mode" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0135" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0136" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
