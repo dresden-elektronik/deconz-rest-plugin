@@ -17881,6 +17881,17 @@ const deCONZ::Node *DEV_GetCoreNode(uint64_t extAddress)
     return nullptr;
 }
 
+/* Returns number of APS requests currently in the queue. */
+int DEV_ApsQueueSize()
+{
+#if DECONZ_LIB_VERSION >= 0x011103
+    deCONZ::ApsController *ctrl = deCONZ::ApsController::instance();
+    return ctrl->apsQueueSize();
+#else
+    return 1;
+#endif
+}
+
 void DeRestPluginPrivate::pollSwUpdateStateTimerFired()
 {
     if (gwSwUpdateState != swUpdateState.transferring &&
