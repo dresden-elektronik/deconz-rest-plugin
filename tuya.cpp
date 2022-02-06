@@ -1115,6 +1115,16 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     {
                         qint16 temp = static_cast<qint16>(data & 0xFFFF) * 100;
                         
+                        //ignored for this device is we are on auto mode.
+                        if (productId == "Tuya_THD SilverCrest Smart Radiator Thermostat")
+                        {
+                            ResourceItem *item2 = sensorNode->item(RConfigMode);
+                            if (item2 && item2->toString() == QLatin1String("auto"))
+                            {
+                                break;
+                            }
+                        }
+                        
                         if (productId == "Tuya_THD MOES TRV" ||
                             productId == "Tuya_THD SilverCrest Smart Radiator Thermostat")
                         {
@@ -1305,6 +1315,17 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     break;
                     case 0x0269: // Boost time in second or Heatpoint
                     {
+
+                        //ignored for this device is we are not auto mode.
+                        if (productId == "Tuya_THD SilverCrest Smart Radiator Thermostat")
+                        {
+                            ResourceItem *item2 = sensorNode->item(RConfigMode);
+                            if (item2 && item2->toString() != QLatin1String("auto"))
+                            {
+                                break;
+                            }
+                        }
+
                         if (productId == "Tuya_THD MOES TRV" ||
                             productId == "Tuya_THD SilverCrest Smart Radiator Thermostat")
                         {
