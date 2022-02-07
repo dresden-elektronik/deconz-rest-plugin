@@ -19,6 +19,8 @@
 #define TICK_INTERVAL_JOIN 500
 #define TICK_INTERVAL_IDLE 1000
 
+extern int DEV_ApsQueueSize();
+
 struct JoinDevice
 {
     DeviceKey deviceKey;
@@ -156,7 +158,10 @@ static void DT_StateIdle(DeviceTickPrivate *d, const Event &event)
     {
         if (event.what() == REventStateTimeout)
         {
-            DT_PollNextIdleDevice(d);
+            if (DEV_ApsQueueSize() < 4)
+            {
+                DT_PollNextIdleDevice(d);
+            }
             DT_StartTimer(d, TICK_INTERVAL_IDLE);
         }
         else if (event.what() == REventStateEnter)

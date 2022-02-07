@@ -1521,6 +1521,7 @@ QLatin1String R_DataTypeToString(ApiDataType type)
       ""          empty
       "45"        single group
       "343,123"   two groups
+      "1,null,null,null"  4 groups but only first set
  */
 bool isValidRConfigGroup(const QString &str)
 {
@@ -1532,6 +1533,7 @@ bool isValidRConfigGroup(const QString &str)
         bool ok = false;
         auto gid = groupId.toUInt(&ok, 0);
         if (ok && gid <= UINT16_MAX) { result++; }
+        else if (!ok && groupId == QLatin1String("null")) { result++; }
     }
 
     return result == groupList.size();

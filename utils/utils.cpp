@@ -315,6 +315,36 @@ quint64 extAddressFromUniqueId(const QString &uniqueId)
     return result;
 }
 
+unsigned endpointFromUniqueId(const QString &uniqueId)
+{
+    unsigned result = 0;
+
+    if (uniqueId.size() < 26)
+    {
+        return result;
+    }
+
+    // 28:6d:97:00:01:06:41:79-01-0500  31 characters
+
+    if (uniqueId.at(23) != '-') // expect delimeter before endpoint
+    {
+        return result;
+    }
+
+    char buf[2 + 1];
+
+    buf[0] = uniqueId.at(24).toLatin1();
+    buf[1] = uniqueId.at(25).toLatin1();
+    buf[2] = '\0';
+
+    if (isHexChar(buf[0]) && isHexChar(buf[1]))
+    {
+        result = strtoull(buf, nullptr, 16);
+    }
+
+    return result;
+}
+
 bool copyString(char *dst, size_t dstSize, const char *src, ssize_t srcSize)
 {
     if (!dst || dstSize == 0)
