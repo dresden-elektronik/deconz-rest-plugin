@@ -98,6 +98,10 @@ const std::array<KeyValMapTuyaSingle, 3> RConfigModeValuesTuya1 = { { {QLatin1St
 
 const std::array<KeyValMapTuyaSingle, 2> RConfigModeValuesTuya2 = { { {QLatin1String("off"), {0x00}}, {QLatin1String("heat"), {0x01}} } };
 
+const std::array<KeyValMapTuyaSingle, 4> RConfigModeValuesTuya3 = { { {QLatin1String("auto"), {0x00}}, {QLatin1String("manual"), {0x01}}, {QLatin1String("boost"), {0x02}}, {QLatin1String("holiday"), {0x03}}} };
+
+const std::array<KeyValMapTuyaSingle, 2> RConfigModeValuesTuya4 = { { {QLatin1String("auto"), {0x00}}, {QLatin1String("heat"), {0x01}} } };
+
 const std::array<KeyValMap, 9> RConfigModeValues = { { {QLatin1String("off"), 0}, {QLatin1String("auto"), 1}, {QLatin1String("cool"), 3}, {QLatin1String("heat"), 4},
                                                               {QLatin1String("emergency heating"), 5}, {QLatin1String("precooling"), 6}, {QLatin1String("fan only"), 7},
                                                               {QLatin1String("dry"), 8}, {QLatin1String("sleep"), 9} } };
@@ -429,6 +433,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             {
                 if (sensor->modelId().startsWith(QLatin1String("SPZB")) || // Eurotronic Spirit
                     sensor->modelId() == QLatin1String("eTRV0100") ||      // Danfoss Ally
+                    sensor->modelId() == QLatin1String("eT093WRO") ||      // POPP smart thermostat
                     sensor->modelId() == QLatin1String("TRV001") ||        // Hive TRV
                     sensor->modelId() == QLatin1String("Thermostat"))      // eCozy
                 {
@@ -881,7 +886,8 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
                 // External Window Open signal
                 if (zclFrame.manufacturerCode() == VENDOR_DANFOSS && (sensor->modelId() == QLatin1String("eTRV0100") ||
-                                                                      sensor->modelId() == QLatin1String("TRV001")))
+                                                                      sensor->modelId() == QLatin1String("TRV001") ||
+                                                                      sensor->modelId() == QLatin1String("eT093WRO")))
                 {
                     bool enabled = attr.numericValue().u8 > 0 ? true : false;
                     item = sensor->item(RConfigExternalWindowOpen);
@@ -942,7 +948,8 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             case 0x4012: // Mounting mode active
             {
                 if (zclFrame.manufacturerCode() == VENDOR_DANFOSS && (sensor->modelId() == QLatin1String("eTRV0100") ||
-                                                                      sensor->modelId() == QLatin1String("TRV001")))
+                                                                      sensor->modelId() == QLatin1String("TRV001") ||
+                                                                      sensor->modelId() == QLatin1String("eT093WRO")))
                 {
                     bool enabled = attr.numericValue().u8 > 0 ? true : false;
                     item = sensor->item(RStateMountingModeActive);
@@ -960,7 +967,8 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             case 0x4013: // Mounting mode control
             {
                 if (zclFrame.manufacturerCode() == VENDOR_DANFOSS && (sensor->modelId() == QLatin1String("eTRV0100") ||
-                                                                      sensor->modelId() == QLatin1String("TRV001")))
+                                                                      sensor->modelId() == QLatin1String("TRV001") ||
+                                                                      sensor->modelId() == QLatin1String("eT093WRO")))
                 {
                     bool enabled = attr.numericValue().u8 > 0 ? true : false;
                     item = sensor->item(RConfigMountingMode);
@@ -978,7 +986,8 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             case 0x4015: // External Measured Room Sensor
             {
                 if (zclFrame.manufacturerCode() == VENDOR_DANFOSS && (sensor->modelId() == QLatin1String("eTRV0100") ||
-                                                                      sensor->modelId() == QLatin1String("TRV001")))
+                                                                      sensor->modelId() == QLatin1String("TRV001") ||
+                                                                      sensor->modelId() == QLatin1String("eT093WRO")))
                 {
                     qint16 externalMeasurement = attr.numericValue().s16;
                     item = sensor->item(RConfigExternalTemperatureSensor);
@@ -1282,7 +1291,7 @@ void DeRestPluginPrivate::addTaskThermostatGetScheduleTimer()
    \return true - on success
            false - on error
  */
-bool DeRestPluginPrivate::addTaskThermostatReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t mfrCode, uint16_t attrId, uint8_t attrType, uint32_t attrValue)
+bool DeRestPluginPrivate::addTaskThermostatReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t mfrCode, uint16_t attrId, uint8_t attrType, int attrValue)
 {
     if (readOrWriteCmd != deCONZ::ZclReadAttributesId && readOrWriteCmd != deCONZ::ZclWriteAttributesId)
     {

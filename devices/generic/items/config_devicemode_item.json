@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/devicemode",
+	"datatype": "String",
+	"access": "RW",
+	"public": true,
+	"description": "Mode of the Hue wall switch module with possible values 'singlerocker', 'singlepushbutton', 'dualrocker', 'dualpushbutton'."
+}

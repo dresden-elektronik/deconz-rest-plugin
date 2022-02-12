@@ -15,6 +15,8 @@
 #include "database.h"
 #include "utils/utils.h"
 
+void DEV_AllocateGroup(const Device *device, Resource *rsub, ResourceItem *item);
+
 static QString uniqueIdFromTemplate(const QStringList &templ, const quint64 extAddress)
 {
     bool ok = false;
@@ -82,7 +84,10 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
     }
     else if (ddfItem.defaultValue.isValid())
     {
-        item->setValue(ddfItem.defaultValue);
+        if (ddfItem.isStatic || !item->lastSet().isValid())
+        {
+            item->setValue(ddfItem.defaultValue);
+        }
     }
 
     assert(ddfItem.handle != DeviceDescription::Item::InvalidItemHandle);
@@ -172,6 +177,15 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
                     stateChange.setChangeTimeoutMs(1000 * 60 * 60);
                     rsub->addStateChange(stateChange);
                 }
+            }
+
+            if (item->descriptor().suffix == RConfigGroup)
+            {
+                if (item->toString().isEmpty() && !ddfItem.defaultValue.isNull())
+                {
+                    item->setValue(ddfItem.defaultValue.toString());
+                }
+                DEV_AllocateGroup(device, rsub, item);
             }
 
 //            if (item->descriptor().suffix == RConfigCheckin)

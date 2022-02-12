@@ -70,7 +70,7 @@ ZCL_Result ZCL_ReadAttributes(const ZCL_Param &param, quint64 extAddress, quint1
     zclFrame.setSequenceNumber(zclNextSequenceNumber());
     zclFrame.setCommandId(deCONZ::ZclReadAttributesId);
 
-    DBG_Printf(DBG_INFO, "ZCL read attr 0x%016llX, ep: 0x%02X, cl: 0x%04X, attr: 0x%04X, mfcode: 0x%04X, aps.id: %u, zcl.seq: %u\n",
+    DBG_Printf(DBG_ZCL, "ZCL read attr 0x%016llX, ep: 0x%02X, cl: 0x%04X, attr: 0x%04X, mfcode: 0x%04X, aps.id: %u, zcl.seq: %u\n",
                extAddress, param.endpoint, param.clusterId, param.attributes.front(), param.manufacturerCode, req.id(), zclFrame.sequenceNumber());
 
     result.sequenceNumber = zclFrame.sequenceNumber();
@@ -134,7 +134,7 @@ ZCL_Result ZCL_ReadReportConfiguration(const ZCL_ReadReportConfigurationParam &p
     zclFrame.setSequenceNumber(zclNextSequenceNumber());
     zclFrame.setCommandId(deCONZ::ZclReadReportingConfigId);
 
-    DBG_Printf(DBG_INFO, "ZCL read report config, ep: 0x%02X, cl: 0x%04X, mfcode: 0x%04X, aps.id: %u, zcl.seq: %u\n",
+    DBG_Printf(DBG_ZCL, "ZCL read report config, ep: 0x%02X, cl: 0x%04X, mfcode: 0x%04X, aps.id: %u, zcl.seq: %u\n",
                param.endpoint, param.clusterId, param.manufacturerCode, req.id(), zclFrame.sequenceNumber());
 
     result.sequenceNumber = zclFrame.sequenceNumber();
@@ -280,7 +280,7 @@ ZCL_Result ZCL_ConfigureReporting(const ZCL_ConfigureReportingParam &param, deCO
     zclFrame.setSequenceNumber(zclNextSequenceNumber());
     zclFrame.setCommandId(deCONZ::ZclConfigureReportingId);
 
-    DBG_Printf(DBG_INFO, "ZCL configure reporting ep: 0x%02X, cl: 0x%04X, mfcode: 0x%04X, aps.id: %u, zcl.seq: %u\n",
+    DBG_Printf(DBG_ZCL, "ZCL configure reporting ep: 0x%02X, cl: 0x%04X, mfcode: 0x%04X, aps.id: %u, zcl.seq: %u\n",
                param.endpoint, param.clusterId, param.manufacturerCode, req.id(), zclFrame.sequenceNumber());
 
     result.sequenceNumber = zclFrame.sequenceNumber();

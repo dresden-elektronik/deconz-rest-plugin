@@ -64,6 +64,36 @@ static int sqliteLoadAllGatewaysCallback(void *user, int ncols, char **colval , 
                     Implementation
 ******************************************************************************/
 
+static QString dbEscapeString(const QString &str)
+{
+    QString result;
+    result.reserve(str.size());
+
+    for (const QChar &ch : str)
+    {
+        if (ch.isNonCharacter() || ch < ' ')
+        {
+            result.push_back('.');
+            continue;
+        }
+
+        switch (ch.unicode())
+        {
+        case u'\'':
+            result.push_back(ch);
+            result.push_back(ch);
+            break;
+
+        default:
+            result.push_back(ch);
+            break;
+        }
+    }
+
+    return result;
+}
+
+
 /*! Inits the database and creates tables/columns if necessary.
  */
 void DeRestPluginPrivate::initDb()
@@ -2648,8 +2678,8 @@ static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , ch
         lightNode->setName(name);
     }
 
-    QStringList::const_iterator gi = groupIds.begin();
-    QStringList::const_iterator gend = groupIds.end();
+    auto gi = groupIds.cbegin();
+    const auto gend = groupIds.cend();
 
     for (; gi != gend; ++gi)
     {
@@ -2662,8 +2692,8 @@ static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , ch
         }
 
         // already known?
-        std::vector<GroupInfo>::const_iterator k = lightNode->groups().begin();
-        std::vector<GroupInfo>::const_iterator kend = lightNode->groups().end();
+        auto k = lightNode->groups().cbegin();
+        const auto kend = lightNode->groups().cend();
 
         for (; k != kend; ++k)
         {
@@ -3181,30 +3211,42 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         quint64 extAddr = 0;
         quint16 clusterId = 0;
         quint8 endpoint = sensor.fingerPrint().endpoint;
+
+
+        if (!isClip && sensor.type() == QLatin1String("Daylight"))
+        {
+            isClip = true;
+        }
+
         DBG_Printf(DBG_INFO_L2, "DB found sensor %s %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()));
 
-        if (DEV_TestManaged())
+        if (!isClip)
         {
             const auto ddf = d->deviceDescriptions->get(&sensor);
             if (ddf.isValid())
             {
+                unsigned ep = endpointFromUniqueId(sensor.uniqueId());
+                if (ep == 0xFF || ep == 0)
+                {
+                    // in earlier versions the sensor was created from an DDF draft device with not yet set endpoint
+                    // TODO(mpi): delete sensor from DB
+                    // SELECT * FROM sensors where uniqueid LIKE '%-ff-%'
+                    DBG_Printf(DBG_INFO, "DB skip loading sensor %s %s, invalid endpoint 0xff\n", qPrintable(sensor.name()), qPrintable(sensor.uniqueId()));
+                    return 0;
+                }
+
                 const int itemCount = DB_GetSubDeviceItemCount(sensor.item(RAttrUniqueId)->toLatin1String());
 
                 if (itemCount == 0)
                 {
                     DBG_Printf(DBG_INFO, "DB legacy loading sensor %s %s, later handled by DDF %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()), qPrintable(ddf.product));
                 }
-                else
+                else if (DEV_TestManaged() || d->deviceDescriptions->enabledStatusFilter().contains(ddf.status))
                 {
                     DBG_Printf(DBG_INFO, "DB skip loading sensor %s %s, handled by DDF %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()), qPrintable(ddf.product));
                     return 0;
                 }
             }
-        }
-
-        if (!isClip && sensor.type() == QLatin1String("Daylight"))
-        {
-            isClip = true;
         }
 
         if (isClip)
@@ -3430,6 +3472,15 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeInt16, RStatePressure);
             item->setValue(0);
             item = sensor.addItem(DataTypeInt16, RConfigOffset);
+            item->setValue(0);
+        }
+        else if (sensor.type().endsWith(QLatin1String("Moisture")))
+        {
+            if (sensor.fingerPrint().hasInCluster(SOIL_MOISTURE_CLUSTER_ID))
+            {
+                clusterId = clusterId ? clusterId : SOIL_MOISTURE_CLUSTER_ID;
+            }
+            item = sensor.addItem(DataTypeInt16, RStateMoisture);
             item->setValue(0);
         }
         else if (sensor.type().endsWith(QLatin1String("Presence")))
@@ -3674,6 +3725,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 else if (sensor.modelId() == QLatin1String("ZB-ONOFFPlug-D0005") ||
                          sensor.modelId() == QLatin1String("Plug-230V-ZB3.0") ||
                          sensor.modelId() == QLatin1String("lumi.switch.b1nacn02") ||
+                         sensor.modelId() == QLatin1String("lumi.switch.b2nacn02") ||
                          sensor.modelId() == QLatin1String("lumi.switch.b1naus01") ||
                          sensor.modelId() == QLatin1String("lumi.plug.maeu01") ||
                          sensor.modelId() == QLatin1String("lumi.switch.n0agl1") ||
@@ -3748,6 +3800,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD MOES TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD BRT-100") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                 {
                     sensor.addItem(DataTypeString, RConfigMode);
@@ -3758,6 +3811,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD BRT-100") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV"))
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
@@ -3773,6 +3827,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD MOES TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD BRT-100") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                 {
                     sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
@@ -3786,6 +3841,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD BRT-100") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD BTH-002 Thermostat"))
                 {
                     sensor.addItem(DataTypeString, RConfigPreset);
@@ -3810,6 +3866,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD Smart radiator TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD GS361A-H04 TRV") ||
+                    R_GetProductId(&sensor) == QLatin1String("Tuya_THD BRT-100") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV"))
                 {
                     sensor.addItem(DataTypeBool, RConfigWindowOpen)->setValue(false);
@@ -3875,7 +3932,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeString, RConfigFanMode);
                 }
                 else if (sensor.modelId() == QLatin1String("eTRV0100") || // Danfoss Ally
-                         sensor.modelId() == QLatin1String("TRV001"))     // Hive TRV
+                         sensor.modelId() == QLatin1String("TRV001") ||   // Hive TRV
+                         sensor.modelId() == QLatin1String("eT093WRO"))   // POPP smart thermostat
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
                     sensor.addItem(DataTypeString, RStateWindowOpen);
@@ -4040,8 +4098,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeString, RConfigAlert);
             item->setValue(R_ALERT_DEFAULT);
         }
-        else if (sensor.modelId() == QLatin1String("lumi.sensor_magnet.agl02") || // skip
-                 sensor.modelId() == QLatin1String("lumi.flood.agl02"))
+        // Skip legacy Xiaomi items
+        else if (sensor.modelId() == QLatin1String("lumi.sensor_magnet.agl02") || sensor.modelId() == QLatin1String("lumi.flood.agl02") ||
+                 sensor.modelId() == QLatin1String("lumi.motion.agl04") || sensor.modelId() == QLatin1String("lumi.switch.b1nacn02") ||
+                 sensor.modelId() == QLatin1String("lumi.switch.b2nacn02") || sensor.modelId() == QLatin1String("lumi.switch.n1aeu1") ||
+                 sensor.modelId() == QLatin1String("lumi.switch.n2aeu1") || sensor.modelId() == QLatin1String("lumi.switch.l1aeu1") ||
+                 sensor.modelId() == QLatin1String("lumi.switch.l2aeu1") || sensor.modelId() == QLatin1String("lumi.switch.b1naus01") ||
+                 sensor.modelId() == QLatin1String("lumi.switch.n0agl1") || sensor.modelId() == QLatin1String("lumi.switch.b1lacn02") ||
+                 sensor.modelId() == QLatin1String("lumi.switch.b2lacn02"))
         {
         }
         else if (sensor.modelId().startsWith(QLatin1String("lumi.")))
@@ -4050,9 +4114,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 !sensor.modelId().startsWith(QLatin1String("lumi.plug")) &&
                 sensor.modelId() != QLatin1String("lumi.curtain") &&
                 sensor.modelId() != QLatin1String("lumi.sensor_natgas") &&
-                sensor.modelId() != QLatin1String("lumi.switch.b1nacn02") &&
-                sensor.modelId() != QLatin1String("lumi.switch.b1naus01") &&
-                sensor.modelId() != QLatin1String("lumi.switch.n0agl1") &&
                 !sensor.modelId().startsWith(QLatin1String("lumi.relay.c")) &&
                 !sensor.type().endsWith(QLatin1String("Battery")))
             {
@@ -4231,31 +4292,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 item->setValue(supportedModes.first());
             }
-
-//            QStringList gids;
-//            item = sensor.addItem(DataTypeString, RConfigGroup);
-//            if (!item->toString().isEmpty())
-//            {
-//                gids = item->toString().split(',');
-//            }
-
-//            int n = 0;
-//            if      (sensor.modelId().startsWith(QLatin1String("D1"))) { n = 2; }
-//            else if (sensor.modelId().startsWith(QLatin1String("S1-R"))) { n = 2; }
-//            else if (sensor.modelId().startsWith(QLatin1String("S1"))) { n = 1; }
-//            else if (sensor.modelId().startsWith(QLatin1String("S2"))) { n = 2; }
-//            else if (sensor.modelId().startsWith(QLatin1String("C4"))) { n = 4; }
-
-//            while (gids.size() < n)
-//            {
-//                gids.append("-1"); // not configured, TODO extract from BIND rules if available
-//            }
-
-//            QString out = gids.join(',');
-//            if (item->toString() != out)
-//            {
-//                item->setValue(out);
-//            }
         }
 
         if (extAddr != 0)
@@ -5130,13 +5166,13 @@ void DeRestPluginPrivate::saveDb()
                 }
             }
 
-            const QString lightState = "normal";
-            QString ritems = i->resourceItemsToJson();
+            const QLatin1String lightState("normal");
+            QString ritems = dbEscapeString(i->resourceItemsToJson());
             QString sql = QString(QLatin1String("REPLACE INTO nodes (id, state, mac, name, groups, endpoint, modelid, manufacturername, swbuildid, ritems) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10')"))
                     .arg(i->id())
                     .arg(lightState)
                     .arg(i->uniqueId().toLower())
-                    .arg(i->name())
+                    .arg(dbEscapeString(i->name()))
                     .arg(groupIds.join(","))
                     .arg(i->haEndpoint().endpoint())
                     .arg(i->modelId())
@@ -5253,7 +5289,7 @@ void DeRestPluginPrivate::saveDb()
 
             QString sql = QString(QLatin1String("REPLACE INTO groups (gid, name, state, mids, devicemembership, lightsequence, hidden, type, class, uniqueid) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10')"))
                     .arg(gid)
-                    .arg(i->name())
+                    .arg(dbEscapeString(i->name()))
                     .arg(grpState)
                     .arg(i->midsToString())
                     .arg(i->dmToString())
@@ -5303,7 +5339,7 @@ void DeRestPluginPrivate::saveDb()
                             .arg(gsid)
                             .arg(gid)
                             .arg(sid)
-                            .arg(si->name)
+                            .arg(dbEscapeString(si->name))
                             .arg(si->transitiontime())
                             .arg(lights);
                     }
@@ -5541,6 +5577,16 @@ void DeRestPluginPrivate::saveDb()
                 continue;
             }
 
+            // don't store incomplete DDF draft sensors
+            if (i->type().startsWith('Z'))
+            {
+                unsigned ep = endpointFromUniqueId(i->uniqueId());
+                if (ep == 0xFF || ep == 0)
+                {
+                    continue;
+                }
+            }
+
             QString stateJSON = i->stateToString();
             QString configJSON = i->configToString();
             QString fingerPrintJSON = i->fingerPrint().toString();
@@ -5548,7 +5594,7 @@ void DeRestPluginPrivate::saveDb()
 
             QString sql = QString(QLatin1String("REPLACE INTO sensors (sid, name, type, modelid, manufacturername, uniqueid, swversion, state, config, fingerprint, deletedState, mode, lastseen, lastannounced) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10', '%11', '%12', '%13', '%14')"))
                     .arg(i->id())
-                    .arg(i->name())
+                    .arg(dbEscapeString(i->name()))
                     .arg(i->type())
                     .arg(i->modelId())
                     .arg(i->manufacturer())
@@ -5965,32 +6011,6 @@ void DeRestPluginPrivate::checkConsistency()
     if (gwProxyAddress == QLatin1String("none"))
     {
         gwProxyPort = 0;
-    }
-
-    {
-        std::vector<Group>::iterator i = groups.begin();
-        std::vector<Group>::iterator end = groups.end();
-
-        for (; i != end; ++i)
-        {
-            for (size_t j = 0; j < i->m_deviceMemberships.size(); j++)
-            {
-                const QString &sid = i->m_deviceMemberships[j];
-                Sensor *sensor = getSensorNodeForId(sid);
-
-                if (!sensor || sensor->deletedState() != Sensor::StateNormal)
-                {
-                    // sensor isn't available anymore
-                    DBG_Printf(DBG_INFO, "remove sensor %s from group 0x%04X\n", qPrintable(sid), i->address());
-                    i->m_deviceMemberships[j] = i->m_deviceMemberships.back();
-                    i->m_deviceMemberships.pop_back();
-                }
-                else
-                {
-                    j++;
-                }
-            }
-        }
     }
 }
 
@@ -6451,6 +6471,12 @@ bool DB_StoreSubDevice(const QString &parentUniqueId, const QString &uniqueId)
         return false;
     }
 
+    unsigned ep = endpointFromUniqueId(uniqueId);
+    if (ep == 0xFF || ep == 0) // incomplete DDF sub device uniqueid template
+    {
+        return false;
+    }
+
     DeRestPluginPrivate::instance()->openDb();
 
     if (!db)
@@ -6518,7 +6544,7 @@ bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item)
 
     int ret = 0;
     const uint64_t timestamp = item->lastChanged().toMSecsSinceEpoch() / 1000;
-    const QString value = item->toVariant().toString();
+    const auto value = dbEscapeString(item->toVariant().toString()).toUtf8();
 
     // 1) check insert or update needed
 
@@ -6528,7 +6554,7 @@ bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item)
                    " AND item = '%s' AND value = '%s' AND timestamp = %" PRIu64,
                    uniqueId->toCString(),
                    item->descriptor().suffix,
-                   qPrintable(value), timestamp);
+                   value.constData(), timestamp);
 
 
     assert(size_t(ret) < sizeof(sqlBuf));
@@ -6570,7 +6596,7 @@ bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item)
                        " SELECT id, '%s', '%s', 'dev', %" PRIu64
                        " FROM sub_devices WHERE uniqueid = '%s'",
                        item->descriptor().suffix,
-                       qPrintable(item->toVariant().toString()),
+                       value.constData(),
                        timestamp, uniqueId->toCString());
 
     assert(size_t(ret) < sizeof(sqlBuf));

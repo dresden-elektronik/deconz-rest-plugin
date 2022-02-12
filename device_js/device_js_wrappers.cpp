@@ -154,16 +154,28 @@ QVariant JsZclAttribute::value() const
     case deCONZ::Zcl56BitBitMap:
     case deCONZ::Zcl56BitData:
     case deCONZ::Zcl56BitUint:
+        return QVariant::fromValue(quint64(attr->numericValue().u64));
+
     case deCONZ::Zcl64BitBitMap:
     case deCONZ::Zcl64BitUint:
     case deCONZ::Zcl64BitData:
     case deCONZ::ZclIeeeAddress:
-        return QString::number(attr->numericValue().u64);
+        return QString::number(quint64(attr->numericValue().u64));
 
+    case deCONZ::Zcl8BitInt:
+    case deCONZ::Zcl16BitInt:
+    case deCONZ::Zcl24BitInt:
+    case deCONZ::Zcl32BitInt:
     case deCONZ::Zcl48BitInt:
     case deCONZ::Zcl56BitInt:
+        return QVariant::fromValue(qint64(attr->numericValue().s64));
+
     case deCONZ::Zcl64BitInt:
-        return QString::number(attr->numericValue().s64);
+        return QString::number(qint64(attr->numericValue().u64));
+
+    case deCONZ::ZclSingleFloat:
+        return attr->numericValue().real;
+
     default:
         break;
     }
@@ -229,4 +241,14 @@ int JsZclFrame::payloadSize() const
         return zclFrame->payload().size();
     }
     return 0;
+}
+
+bool JsZclFrame::isClCmd() const
+{
+    if (zclFrame)
+    {
+        return zclFrame->isClusterCommand();
+    }
+
+    return false;
 }

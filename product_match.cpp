@@ -48,6 +48,7 @@ static const ProductMap products[] =
 
     // Tuya Thermostat / TRV
     {"_TYST11_zuhszj9s", "uhszj9s", "HiHome", "Tuya_THD WZB-TRVL TRV"},
+    {"_TZE200_zuhszj9s", "TS0601", "HiHome", "Tuya_THD WZB-TRVL TRV"},
     {"_TYST11_KGbxAXL2", "GbxAXL2", "Saswell", "Tuya_THD SEA801-ZIGBEE TRV"},
     {"_TYST11_c88teujp", "88teujp", "Saswell", "Tuya_THD SEA801-ZIGBEE TRV"},
     {"_TZE200_c88teujp", "TS0601", "Saswell", "Tuya_THD SEA801-ZIGBEE TRV"},
@@ -65,6 +66,7 @@ static const ProductMap products[] =
     {"_TYST11_yw7cahqs", "w7cahqs", "Hama", "Tuya_THD Smart radiator TRV"},
     {"_TZE200_yw7cahqs", "TS0601", "Hama", "Tuya_THD Smart radiator TRV"},
     {"_TZE200_cwnjrr72", "TS0601", "MOES", "Tuya_THD HY368 TRV"},
+    {"_TZE200_b6wax7g0", "TS0601", "MOES", "Tuya_THD BRT-100"},
 
     // Tuya Covering
     {"_TYST11_wmcdj3aq", "mcdj3aq", "Zemismart", "Tuya_COVD ZM25TQ"},
@@ -88,6 +90,8 @@ static const ProductMap products[] =
     {"_TZ3000_xzqbrqk1", "TS130F", "Lonsonho", "Zigbee curtain switch"}, // https://github.com/dresden-elektronik/deconz-rest-plugin/issues/3757#issuecomment-776201454
     {"_TZ3000_ltiqubue", "TS130F", "Tuya", "Zigbee curtain switch"},
     {"_TZ3000_vd43bbfq", "TS130F", "Tuya", "QS-Zigbee-C01 Module"}, // Curtain module QS-Zigbee-C01
+    {"_TZ3000_kpve0q1p", "TS130F", "Tuya", "Covering Switch ESW-2ZAD-EU"},
+    {"_TZ3000_fccpjz5z", "TS130F", "Tuya", "QS-Zigbee-C01 Module"}, // Curtain module QS-Zigbee-C01
 
     // Other
     {"_TYST11_d0yu2xgi", "0yu2xgi", "NEO/Tuya", "NAS-AB02B0 Siren"},
