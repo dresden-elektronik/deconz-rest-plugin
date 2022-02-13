@@ -409,13 +409,13 @@ static int putAlarmSystemLearncode(const ApiRequest &req, ApiResponse &rsp, Alar
     
     if (index < 1 || index > 9)
     {
-        rsp.list.append(errInvalidValue(id, "Bad index %s", qPrintable(key)));
+        rsp.list.append(errInvalidValue(id, "Bad index %d", index));
         rsp.httpStatus = HttpStatusBadRequest;
         return REQ_READY_SEND;
     }
     
     DBG_Printf(DBG_INFO, "Enable learn mode for code\n");
-    alarmSys->learn = true;
+    alarmSys->Learnmode = true;
     
     rsp.list.append(errInternalError(id, QLatin1String("failed to set learn mode")));
     rsp.httpStatus = HttpStatusServiceUnavailable;
