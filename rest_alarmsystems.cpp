@@ -409,7 +409,7 @@ static int putAlarmSystemLearncode(const ApiRequest &req, ApiResponse &rsp, Alar
     
     if (index < 1 || index > 9)
     {
-        rsp.list.append(errInvalidValue(id, "Bad index used\n"));
+        rsp.list.append(errInvalidValue(id, "Bad index used\n","x"));
         rsp.httpStatus = HttpStatusBadRequest;
         return REQ_READY_SEND;
     }
