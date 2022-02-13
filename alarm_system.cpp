@@ -351,6 +351,8 @@ AlarmSystem::AlarmSystem(AlarmSystemId id, EventEmitter *eventEmitter, AS_Device
     addItem(DataTypeUInt8, RConfigArmedAwayTriggerDuration)->setValue(120);
 
     d->updateTargetStateValues();
+    
+    Learnmode = false;
 
     connect(this, &AlarmSystem::eventNotify, eventEmitter, &EventEmitter::enqueueEvent);
 }

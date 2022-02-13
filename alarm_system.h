@@ -95,6 +95,7 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void timerFired();
+    bool Learnmode;
 
 private:
     AlarmSystemPrivate *d = nullptr;
