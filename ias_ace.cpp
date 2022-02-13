@@ -125,7 +125,23 @@ static quint8 handleArmCommand(AlarmSystem *alarmSys, quint8 armMode, const QStr
     }
 
     // TO DO : To remove later, security
-    DBG_Printf(DBG_IAS, "[IAS ACE] code : %s\n", qPrintable(pinCode));
+    //DBG_Printf(DBG_IAS, "[IAS ACE] code : %s\n", qPrintable(pinCode));
+    
+    //if we are on learn mode
+    if (alarmSys->LearnModeIndex > 0)
+    {
+        //memorise it
+        if (alarmSys->setCode(alarmSys->LearnModeIndex, pinCode))
+        {
+            DBG_Printf(DBG_IAS, "[IAS ACE] code added\n");
+        }
+        
+        //quit
+        alarmSys->LearnModeIndex = 0;
+        return IAS_ACE_ARM_NOTF_INVALID_ARM_DISARM_CODE;
+        
+    }
+    
     if (!alarmSys->isValidCode(pinCode, srcAddress))
     {
         return IAS_ACE_ARM_NOTF_INVALID_ARM_DISARM_CODE;

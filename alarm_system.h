@@ -89,7 +89,7 @@ public:
     const AS_DeviceTable *deviceTable() const;
     bool setCode(int index, const QString &code);
     void start();
-    bool Learnmode;
+    quint8 LearnModeIndex;
 
 Q_SIGNALS:
     void eventNotify(const Event&);

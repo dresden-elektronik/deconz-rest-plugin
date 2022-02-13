@@ -415,7 +415,7 @@ static int putAlarmSystemLearncode(const ApiRequest &req, ApiResponse &rsp, Alar
     }
     
     DBG_Printf(DBG_INFO, "Enable learn mode for code\n");
-    alarmSys->Learnmode = true;
+    alarmSys->LearnModeIndex = index;
     
     rsp.list.append(errInternalError(id, QLatin1String("failed to set learn mode")));
     rsp.httpStatus = HttpStatusServiceUnavailable;
