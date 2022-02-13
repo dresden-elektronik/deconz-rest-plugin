@@ -89,13 +89,13 @@ public:
     const AS_DeviceTable *deviceTable() const;
     bool setCode(int index, const QString &code);
     void start();
+    bool Learnmode;
 
 Q_SIGNALS:
     void eventNotify(const Event&);
 
 private Q_SLOTS:
     void timerFired();
-    bool Learnmode;
 
 private:
     AlarmSystemPrivate *d = nullptr;
