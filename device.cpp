@@ -527,7 +527,7 @@ bool DEV_FillItemFromSubdevices(Device *device, const char *itemSuffix, const st
         if (sitem && sitem->lastSet().isValid())
         {
             // copy from sub-device into device
-            if (ditem->setValue(sitem->toVariant()))
+            if (sitem->toVariant() != QLatin1String("Unknown") && ditem->setValue(sitem->toVariant()))
             {
                 return true;
             }

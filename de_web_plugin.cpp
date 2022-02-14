@@ -16709,7 +16709,7 @@ void DeRestPlugin::idleTimerFired()
 
                 if (!sensorNode->mustRead(READ_VENDOR_NAME) &&
                    (sensorNode->manufacturer().isEmpty() ||
-                    sensorNode->manufacturer() == QLatin1String("unknown")))
+                    sensorNode->manufacturer() == QLatin1String("Unknown")))
                 {
                     sensorNode->setLastRead(READ_VENDOR_NAME, d->idleTotalCounter);
                     sensorNode->setNextReadTime(READ_VENDOR_NAME, d->queryTime);
