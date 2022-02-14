@@ -6,7 +6,6 @@
   "product": "SPLZB-131",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/frient/splzb-131_smart_plug.json",
   "subdevices": [
     {
       "type": "$TYPE_SMART_PLUG",
@@ -41,13 +40,15 @@
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 2,
-            "fn": "zcl"
+            "fn": "zcl",
+            "mf": "0x1015"
           },
           "parse": {
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 2,
             "fn": "zcl",
+            "mf": "0x1015",
             "script": "develco_firmware.js"
           }
         },
@@ -116,13 +117,15 @@
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 2,
-            "fn": "zcl"
+            "fn": "zcl",
+            "mf": "0x1015"
           },
           "parse": {
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 2,
             "fn": "zcl",
+            "mf": "0x1015",
             "script": "develco_firmware.js"
           }
         },
@@ -198,13 +201,15 @@
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 2,
-            "fn": "zcl"
+            "fn": "zcl",
+            "mf": "0x1015"
           },
           "parse": {
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 2,
             "fn": "zcl",
+            "mf": "0x1015",
             "script": "develco_firmware.js"
           }
         },
