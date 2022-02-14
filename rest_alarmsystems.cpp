@@ -393,8 +393,6 @@ static int putAlarmSystemLearncode(const ApiRequest &req, ApiResponse &rsp, Alar
     }
 
     rsp.httpStatus = HttpStatusOk;
-
-    const auto keys = map.keys();
     
     if (index < 1 || index > 9)
     {
