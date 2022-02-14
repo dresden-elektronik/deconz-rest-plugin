@@ -4,7 +4,14 @@
 	"datatype": "Int16",
 	"access": "RW",
 	"public": true,
-    "default": 0,
+	"default": 0,
 	"description": "Target temperature of a thermostat.",
+	"parse": {
+		"at": "0x0012",
+		"cl": "0x0201",
+		"ep": 0,
+		"eval": "Item.val = Attr.val;",
+		"fn": "zcl"
+	},
 	"range": [500, 3200]
 }
