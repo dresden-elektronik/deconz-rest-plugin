@@ -392,17 +392,6 @@ static int putAlarmSystemLearncode(const ApiRequest &req, ApiResponse &rsp, Alar
         return REQ_READY_SEND;
     }
 
-    bool ok = false;
-    QVariant var = Json::parse(req.content, ok);
-    QVariantMap map = var.toMap();
-
-    if (!ok || map.isEmpty())
-    {
-        rsp.list.append(errBodyContainsInvalidJson(id));
-        rsp.httpStatus = HttpStatusBadRequest;
-        return REQ_READY_SEND;
-    }
-
     rsp.httpStatus = HttpStatusOk;
 
     const auto keys = map.keys();
