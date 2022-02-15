@@ -1393,7 +1393,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
             // Don't update write-only state.alert.
         }
-        else
+        else if (task.taskType == TaskIdentify || task.taskType == TaskTriggerEffect)
         {
             rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
