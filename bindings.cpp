@@ -2013,7 +2013,10 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             modelId == QLatin1String("SKHMP30-I1") ||              // GS smart plug
             modelId.startsWith(QLatin1String("E13-")) ||           // Sengled PAR38 Bulbs
             modelId.startsWith(QLatin1String("Z01-A19")) ||        // Sengled smart led
-            modelId == QLatin1String("Connected socket outlet"))   // Niko smart socket
+            modelId == QLatin1String("Connected socket outlet") ||   // Niko smart socket
+            modelId == QLatin1String("SP2600ZB") ||                  // Sinope Smart Plug
+            modelId == QLatin1String("SP2610ZB") ||                  // Sinope Smart Wall Plug
+            modelId == QLatin1String("RM3250ZB"))                    // Sinope Smart Controller
         {
             rq.reportableChange48bit = 10; // 0.001 kWh (1 Wh)
         }
@@ -2066,11 +2069,14 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             modelId == QLatin1String("SKHMP30-I1") ||                  // GS smart plug
             modelId == QLatin1String("SZ-ESW01-AU") ||                 // Sercomm / Telstra smart plug
             modelId == QLatin1String("Connected socket outlet") ||     // Niko smart socket
+            modelId == QLatin1String("SP2600ZB") ||                    // Sinope Smart Plug
+            modelId == QLatin1String("SP2610ZB") ||                    // Sinope Smart Wall Plug
             modelId.startsWith(QLatin1String("ROB_200")) ||            // ROBB Smarrt micro dimmer
             modelId.startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
             modelId.startsWith(QLatin1String("lumi.plug.maeu")) ||     // Xiaomi Aqara ZB3.0 smart plug
             modelId.startsWith(QLatin1String("lumi.switch.n0agl1")) || // Xiaomi Aqara Single Switch Module T1 (With Neutral)
             modelId.startsWith(QLatin1String("lumi.switch.b1naus01"))) // Xiaomi ZB3.0 Smart Wall Switch
+		
         {
             rq.reportableChange16bit = 10; // 1 W
         }
@@ -2089,6 +2095,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             modelId == QLatin1String("SKHMP30-I1") ||          // GS smart plug
             modelId == QLatin1String("SMRZB-1") ||             // Develco smart cable
             modelId == QLatin1String("Smart16ARelay51AU") ||   // Aurora (Develco) smart plug
+            modelId == QLatin1String("SP2600ZB") ||            // Sinope Smart Plug
+            modelId == QLatin1String("SP2610ZB") ||            // Sinope Smart Wall Plug
             modelId.startsWith(QLatin1String("SPLZB-1")))      // Develco smart plug
         {
             rq2.reportableChange16bit = 100; // 1 V
@@ -2130,7 +2138,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                  modelId.startsWith(QLatin1String("EMIZB-1")) || // Develco EMI
                  modelId == QLatin1String("SKHMP30-I1") ||       // GS smart plug
                  modelId.startsWith(QLatin1String("SPW35Z")) ||  // RT-RK OBLO SPW35ZD0 smart plug
-                 modelId == QLatin1String("TH1300ZB"))           // Sinope thermostat
+                 modelId == QLatin1String("TH1300ZB") ||           // Sinope thermostat
+                 modelId == QLatin1String("SP2600ZB") ||           // Sinope Smart Plug
+                 modelId == QLatin1String("SP2610ZB"))             // Sinope Smart Wall Plug
         {
             rq3.reportableChange16bit = 10; // 0.1 A
         }
@@ -3005,6 +3015,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("WL4200")) || // water leak sensor
         sensor->modelId().startsWith(QLatin1String("TH112")) || // thermostat
         sensor->modelId().startsWith(QLatin1String("TH1300ZB")) || // thermostat
+        sensor->modelId() ==  QLatin1String("RM3250ZB") ||         // Sinope Smart Controller
+        sensor->modelId() ==  QLatin1String("SP2600ZB") ||         // Sinope Smart Plug
+        sensor->modelId() ==  QLatin1String("SP2610ZB") ||         // Sinope Smart Wall Plug
         //LifeControl smart plug
         sensor->modelId() == QLatin1String("RICI01") ||
         //LifeControl enviroment sensor
