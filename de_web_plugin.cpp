@@ -334,6 +334,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "CSW_ADUROLIGHT", jennicMacPrefix }, // Trust contact sensor ZMST-808
     { VENDOR_JENNIC, "ZYCT-202", jennicMacPrefix }, // Trust remote control ZYCT-202 (older model)
     { VENDOR_ADUROLIGHT, "ZLL-NonColorController", jennicMacPrefix }, // Trust remote control ZYCT-202 (newer model)
+    { VENDOR_ADUROLIGHT, "AD-SmartPlug3001", jennicMacPrefix }, // AduroSmart Eira SmartPlug 3001
     { VENDOR_INNR, "RC 110", jennicMacPrefix }, // innr remote RC 110
     { VENDOR_VISONIC, "MCT-340", emberMacPrefix }, // Visonic MCT-340 E temperature/motion
     { VENDOR_SUNRICHER, "ED-1001", silabs2MacPrefix }, // EcoDim wireless switches
@@ -7516,6 +7517,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 (modelId != QLatin1String("lumi.switch.b1naus01")) &&
                 (modelId != QLatin1String("lumi.switch.n0agl1")) &&
                 (modelId != QLatin1String("Connected socket outlet")) &&
+                (modelId != QLatin1String("AD-SmartPlug3001")) &&
                 (!modelId.startsWith(QLatin1String("SPW35Z"))))
             {
                 item = sensorNode.addItem(DataTypeInt16, RStatePower);
@@ -12221,6 +12223,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
             existDevicesWithVendorCodeForMacPrefix(ind.srcAddress(), VENDOR_IKEA) ||
             existDevicesWithVendorCodeForMacPrefix(ind.srcAddress(), VENDOR_OSRAM_STACK) ||
             existDevicesWithVendorCodeForMacPrefix(ind.srcAddress(), VENDOR_JENNIC) ||
+            existDevicesWithVendorCodeForMacPrefix(ind.srcAddress(), VENDOR_ADUROLIGHT) ||
             existDevicesWithVendorCodeForMacPrefix(ind.srcAddress(), VENDOR_SI_LABS) ||
             existDevicesWithVendorCodeForMacPrefix(ind.srcAddress(), VENDOR_CENTRALITE))
     {

@@ -94,6 +94,7 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                         modelId.startsWith(QLatin1String("outlet")) ||                        // Samsung SmartThings IM6001-OTP/IM6001-OTP01
                         modelId == QLatin1String("3200-Sgb") ||                               // Samsung/Centralite smart outlet
                         modelId == QLatin1String("3200-de") ||                                // Samsung/Centralite smart outlet
+                        modelId == QLatin1String("AD-SmartPlug3001") ||                       // AduroSmart Eira SmartPlug 3001
                         modelId.startsWith(QLatin1String("lumi.switch.n0agl1")) ||            // Xiaomi Aqara Single Switch Module T1 (With Neutral)
                         modelId.startsWith(QLatin1String("lumi.switch.b1naus01")))            // Xiaomi ZB3.0 Smart Wall Switch
                     {
@@ -149,6 +150,7 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                         modelId.startsWith(QLatin1String("SMRZB-1")) ||                                // Develco smart cable
                         modelId.startsWith(QLatin1String("SKHMP30")) ||                                // GS smart plug
                         modelId == QLatin1String("Smart16ARelay51AU") ||                               // Aurora (Develco) smart plug
+                        modelId == QLatin1String("AD-SmartPlug3001") ||                                // AduroSmart Eira SmartPlug 3001
                         modelId == QLatin1String("PoP"))                                               // Apex Smart Plug
                     {
                         voltage = static_cast<quint16>(round((double)voltage / 100.0)); // 0.01V -> V
@@ -204,6 +206,7 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                         modelId.startsWith(QLatin1String("ROB_200")) ||                           // ROBB Smarrt micro dimmer
                         modelId.startsWith(QLatin1String("Micro Smart Dimmer")) ||                // Sunricher Micro Smart Dimmer
                         modelId == QLatin1String("Connected socket outlet") ||                    // Niko smart socket
+                        modelId == QLatin1String("AD-SmartPlug3001") ||                           // AduroSmart Eira SmartPlug 3001
                         modelId == QLatin1String("SMRZB-1") ||                                    // Develco smart cable
                         modelId == QLatin1String("PoP") ||                                        // Apex Smart Plug
                         modelId == QLatin1String("TS011F") ||                                     // Tuya plugs
