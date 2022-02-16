@@ -1556,6 +1556,17 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
                 targetOpen = map[param].toBool();
             }
         }
+        else if (param == "on" && taskRef.lightNode->item(RStateOn))
+        {
+            paramOk = true;
+            hasCmd = true;
+            if (map[param].type() == QVariant::Bool)
+            {
+                valueOk = true;
+                hasOpen = true;
+                targetOpen = !(map[param].toBool());
+            }
+        }
         else if (param == "stop" && taskRef.lightNode->item(RStateOpen))
         {
             paramOk = true;
@@ -1603,6 +1614,40 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
                 }
             }
         }
+        else if (param == "bri" && taskRef.lightNode->item(RStateBri))
+        {
+            paramOk = true;
+            hasCmd = true;
+            if (map[param].type() == QVariant::String && map[param].toString() == "stop")
+            {
+                valueOk = true;
+                hasStop = true;
+            }
+            else if (map[param].type() == QVariant::Double)
+            {
+                const uint bri = map[param].toUInt(&ok);
+                if (ok && bri <= 0xFF)
+                {
+                    valueOk = true;
+                    hasLift = true;
+                    targetLift = bri * 100 / 254;
+                }
+            }
+        }
+        else if (param == "bri_inc" && taskRef.lightNode->item(RStateBri))
+        {
+            paramOk = true;
+            hasCmd = true;
+            if (map[param].type() == QVariant::Double)
+            {
+                const int bri_inc = map[param].toInt(&ok);
+                if (ok && bri_inc == 0)
+                {
+                    valueOk = true;
+                    hasStop = true;
+                }
+            }
+        }
         else if (param == "tilt" && taskRef.lightNode->item(RStateTilt))
         {
             paramOk = true;
@@ -1614,6 +1659,21 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
                     valueOk = true;
                     hasTilt = true;
                     targetTilt = tilt;
+                }
+            }
+        }
+        else if (param == "sat" && taskRef.lightNode->item(RStateSat))
+        {
+            paramOk = true;
+            hasCmd = true;
+            if (map[param].type() == QVariant::Double)
+            {
+                const uint sat = map[param].toUInt(&ok);
+                if (ok && sat <= 255)
+                {
+                    valueOk = true;
+                    hasTilt = true;
+                    targetTilt = sat * 100 / 254;
                 }
             }
         }

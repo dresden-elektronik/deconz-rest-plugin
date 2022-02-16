@@ -4109,6 +4109,13 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         }
                         lightNode->setValue(RStateOpen, open);
 
+                        // FIXME: deprecate
+                        quint8 level = 254 * lift / 100;
+                        bool on = level > 0;
+                        lightNode->setValue(RStateBri, level);
+                        lightNode->setValue(RStateOn, on);
+                        // END FIXME: deprecate
+
                         break;
                     }
                 }

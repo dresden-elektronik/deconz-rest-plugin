@@ -197,6 +197,13 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
                     pushZclValueDb(lightNode->address().ext(), lightNode->haEndpoint().endpoint(), WINDOW_COVERING_CLUSTER_ID, attrid, attrValue);
                 }
                 lightNode->setValue(RStateOpen, open);
+
+                // FIXME: deprecate
+                quint8 level = lift * 254 / 100;
+                bool on = level > 0;
+                lightNode->setValue(RStateBri, level);
+                lightNode->setValue(RStateOn, on);
+                // END FIXME: deprecate
             }
             else if (attrid == 0x0009) // current CurrentPositionTiltPercentage 0-100
             {
@@ -208,6 +215,11 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
                 {
                     pushZclValueDb(lightNode->address().ext(), lightNode->haEndpoint().endpoint(), WINDOW_COVERING_CLUSTER_ID, attrid, attrValue);
                 }
+
+                // FIXME: deprecate
+                quint8 sat = attrValue * 254 / 100;
+                lightNode->setValue(RStateSat, sat);
+                // END FIXME: deprecate
             }
             else if (attrid == 0x000A)  // read attribute 0x000A OperationalStatus
             {
