@@ -1559,7 +1559,6 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         else if (param == "on" && taskRef.lightNode->item(RStateOn))
         {
             paramOk = true;
-            hasCmd = true;
             if (map[param].type() == QVariant::Bool)
             {
                 valueOk = true;
@@ -1617,7 +1616,6 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         else if (param == "bri" && taskRef.lightNode->item(RStateBri))
         {
             paramOk = true;
-            hasCmd = true;
             if (map[param].type() == QVariant::String && map[param].toString() == "stop")
             {
                 valueOk = true;
@@ -1637,7 +1635,6 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         else if (param == "bri_inc" && taskRef.lightNode->item(RStateBri))
         {
             paramOk = true;
-            hasCmd = true;
             if (map[param].type() == QVariant::Double)
             {
                 const int bri_inc = map[param].toInt(&ok);
@@ -1665,7 +1662,6 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         else if (param == "sat" && taskRef.lightNode->item(RStateSat))
         {
             paramOk = true;
-            hasCmd = true;
             if (map[param].type() == QVariant::Double)
             {
                 const uint sat = map[param].toUInt(&ok);
