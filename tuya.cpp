@@ -502,7 +502,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             }
 
                             //Find model id if missing (modelId().isEmpty ?) and complete it
-                            if (lightNode->modelId().isNull() || lightNode->modelId() == QLatin1String("Unknown") || lightNode->manufacturer() == QLatin1String("Unknown"))
+                            if (lightNode->modelId().isNull() || lightNode->manufacturer().isNull())
                             {
                                 DBG_Printf(DBG_INFO, "Tuya debug 10 : Updating model ID\n");
                                 if (!lightNode2->modelId().isNull())

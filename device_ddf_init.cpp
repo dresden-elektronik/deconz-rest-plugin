@@ -218,7 +218,7 @@ bool DEV_InitBaseDescriptionForDevice(Device *device, DeviceDescription &ddf)
     ddf.manufacturerNames.push_back(device->item(RAttrManufacturerName)->toString());
     ddf.modelIds.push_back(device->item(RAttrModelId)->toString());
 
-    if (ddf.manufacturerNames.last().isEmpty() || ddf.manufacturerNames.last() == QLatin1String("Unknown") || ddf.modelIds.isEmpty() || ddf.modelIds.front().isEmpty())
+    if (ddf.manufacturerNames.last().isEmpty() || ddf.modelIds.isEmpty() || ddf.modelIds.front().isEmpty())
     {
         return false;
     }

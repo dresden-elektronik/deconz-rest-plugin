@@ -2617,7 +2617,7 @@ static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , ch
             }
             else if (strcmp(colname[i], "modelid") == 0)
             {
-                if (!val.isEmpty() && 0 != val.compare(QLatin1String("Unknown"), Qt::CaseInsensitive))
+                if (!val.isEmpty())
                 {
                     lightNode->setModelId(val);
                     lightNode->item(RAttrModelId)->setValue(val);
@@ -2627,7 +2627,7 @@ static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , ch
             }
             else if (strcmp(colname[i], "manufacturername") == 0)
             {
-                if (!val.isEmpty() && 0 != val.compare(QLatin1String("Unknown"), Qt::CaseInsensitive))
+                if (!val.isEmpty())
                 {
                     lightNode->setManufacturerName(val);
                     lightNode->clearRead(READ_VENDOR_NAME);
