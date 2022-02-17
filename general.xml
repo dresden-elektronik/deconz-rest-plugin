@@ -4134,15 +4134,15 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 					<attribute id="0x00FE" name="Serial Number" type="cstring" mfcode="0x115f" access="rw" required="m"> </attribute>
 					<attribute id="0x00FF" name="Unknown (write only)" type="ostring" mfcode="0x115f" access="w" required="m"> </attribute>
 					<attribute id="0x0100" name="Unknown" type="u8" mfcode="0x115f" access="r" required="m"> </attribute>
-          <attribute id="0x0102" name="Motion cool off time" type="u8" mfcode="0x115f" access="rw" required="m">
-            <description>Time in seconds when RTCGQ13LM sets motion to false if no further motion has been detected</description>
-          </attribute>
+					<attribute id="0x0102" name="Motion cool off time" type="u8" mfcode="0x115f" access="rw" required="m">
+						<description>Time in seconds when RTCGQ13LM sets motion to false if no further motion has been detected</description>
+					</attribute>
 					<attribute id="0x010C" name="Motion sensitivity" type="u8" mfcode="0x115f" access="rw" required="m">
 						<description>Motion sensitivity: 1 - low, 2 - medium, 3 - high</description>
 					</attribute>
-          <attribute id="0x0114" name="TVOC unit config" type="u8" mfcode="0x115f" access="rw" required="m">
-            <description>0 - µg/m³ + °C, 1 - µg/m³ + °F, 16 - ppb + °C, 17 - ppb + °F</description>
-          </attribute>
+					<attribute id="0x0114" name="TVOC unit config" type="u8" mfcode="0x115f" access="rw" required="m">
+						<description>0 - µg/m³ + °C, 1 - µg/m³ + °F, 16 - ppb + °C, 17 - ppb + °F</description>
+					</attribute>
 					<attribute id="0x0125" name="Multiclick mode" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 					<attribute id="0x0135" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 					<attribute id="0x0136" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
