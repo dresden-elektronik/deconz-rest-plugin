@@ -40,6 +40,7 @@
                 },
                 {
                     "name": "config/battery",
+                    "parse": {"fn": "xiaomi:special", "ep": 1, "at": "0x00f7", "idx": "0x01", "script": "xiaomi_battery.js"},
                     "awake": true
                 },
                 {
@@ -52,12 +53,9 @@
                     "name": "config/tholdoffset"
                 },
                 {
-                    "name": "config/temperature",
-                    "_c1": "might not be send?",
-                    "public": false
-                },
-                {
-                    "name": "state/lightlevel"
+                    "name": "state/lightlevel",
+                    "parse": {"ep": 1, "cl": "0x0400", "at": "0x0000", "script": "../generic/illuminance_cluster/sml_light_level.js"},
+                    "awake": true
                 },
                 {
                     "name": "state/dark"
