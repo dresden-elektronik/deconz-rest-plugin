@@ -580,21 +580,19 @@ const AS_DeviceTable *AlarmSystem::deviceTable() const
  */
 bool AlarmSystem::setCode(int index, const QString &code)
 {
-    if (code.isEmpty())
-    {
-        return false;
-    }
-
-    const std::string code0 = code.toStdString();
-
     DB_Secret sec;
     sec.uniqueId = QString("as_%1_code%2").arg(id()).arg(index).toStdString();
-    sec.secret = CRYPTO_ScryptPassword(code0, CRYPTO_GenerateSalt());
-    sec.state = 1;
-
-    if (sec.secret.empty())
+    
+    // No code, so delete the entry
+    if (code.isEmpty())
     {
-        return false;
+    }
+    else
+    {
+        const std::string code0 = code.toStdString();
+
+        sec.secret = CRYPTO_ScryptPassword(code0, CRYPTO_GenerateSalt());
+        sec.state = 1;
     }
 
     if (DB_StoreSecret(sec))
@@ -603,11 +601,11 @@ bool AlarmSystem::setCode(int index, const QString &code)
         {
             setValue(RConfigConfigured, true);
         }
-        DBG_Printf(DBG_INFO, "Added code succesfull, index %u\n",index);
+        DBG_Printf(DBG_INFO, "Update code succesfull, index %u\n",index);
         return true;
     }
     
-    DBG_Printf(DBG_INFO, "Added code failed, index %u\n",index);
+    DBG_Printf(DBG_INFO, "Update code failed, index %u\n",index);
     return false;
 }
 
