@@ -379,7 +379,7 @@ static int deleteAlarmSystemCode(const ApiRequest &req, ApiResponse &rsp, AlarmS
             }
         }
 
-        alarmSys->setCode(index, code)
+        alarmSys->setCode(index, code);
 
     }
 
