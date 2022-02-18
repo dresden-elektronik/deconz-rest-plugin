@@ -652,33 +652,29 @@ int DeRestPluginPrivate::setScheduleAttributes(const ApiRequest &req, ApiRespons
                 }
             }
 
+            QVariantMap rspItem;
             if (map.contains(QLatin1String("localtime")))
             {
                 i->localtime = map["localtime"].toString();
                 i->jsonMap["localtime"] = i->localtime;
+
+                QVariantMap rspItemState;
+                rspItemState[QString("/schedules/%1/localtime").arg(id)] = map["localtime"];
+                rspItem["success"] = rspItemState;
+                rsp.list.append(rspItem);
             }
 
             if (map.contains(QLatin1String("time")))
             {
                 i->time = map["time"].toString();
                 i->jsonMap["time"] = i->time;
-            }
 
-            QVariantMap rspItem;
-            QVariantMap rspItemState;
-            if (map.contains(QLatin1String("localtime")))
-            {
-                rspItemState[QString("/schedules/%1/localtime").arg(id)] = map["localtime"];
-                rspItem["success"] = rspItemState;
-                rsp.list.append(rspItem);
-            }
-            rspItemState.clear();
-            if (map.contains(QLatin1String("time")))
-            {
+                QVariantMap rspItemState;
                 rspItemState[QString("/schedules/%1/time").arg(id)] = map["time"];
                 rspItem["success"] = rspItemState;
                 rsp.list.append(rspItem);
             }
+
             rsp.httpStatus = HttpStatusOk;
         }
 
