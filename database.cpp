@@ -4183,16 +4183,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 item = sensor.addItem(DataTypeBool, RStateLowBattery);
                 item->setValue(false);
-                if (sensor.modelId().startsWith(QLatin1String("SMSZB-1"))) // Develco smoke detector
-                {
-                    item = sensor.addItem(DataTypeBool, RStateTest);
-                    item->setValue(false);
-                }
-                else
-                {
-                    item = sensor.addItem(DataTypeBool, RStateTampered);
-                    item->setValue(false);
-                }
+                item = sensor.addItem(DataTypeBool, RStateTampered);
+                item->setValue(false);
             }
             sensor.addItem(DataTypeUInt16, RConfigPending)->setValue(0);
             sensor.addItem(DataTypeUInt32, RConfigEnrolled)->setValue(IAS_STATE_INIT);

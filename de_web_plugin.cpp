@@ -366,7 +366,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_STELPRO, "STZB402", xalMacPrefix }, // Stelpro baseboard thermostat
     { VENDOR_STELPRO, "SORB", xalMacPrefix }, // Stelpro Orleans Fan
     { VENDOR_DEVELCO, "AQSZB-1", develcoMacPrefix }, // Develco air quality sensor
-    { VENDOR_DEVELCO, "SMSZB-1", develcoMacPrefix }, // Develco smoke sensor
     { VENDOR_DEVELCO, "HESZB-1", develcoMacPrefix }, // Develco heat sensor
     { VENDOR_DEVELCO, "SPLZB-1", develcoMacPrefix }, // Develco smart plug
     { VENDOR_DEVELCO, "WISZB-1", develcoMacPrefix }, // Develco window sensor
@@ -5989,7 +5988,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("SMOK_")) ||                   // Heiman fire sensor
                              modelId.startsWith(QLatin1String("Smoke")) ||                   // Heiman fire sensor (newer model)
                              modelId.startsWith(QLatin1String("902010/24")) ||               // Bitron smoke detector
-                             modelId.startsWith(QLatin1String("SMSZB-1")) ||                 // Develco smoke detector
                              modelId.startsWith(QLatin1String("HESZB-1")) ||                 // Develco heat detector
                              modelId.startsWith(QLatin1String("SF2")) ||                     // ORVIBO (Heiman) smoke sensor
                              modelId == QLatin1String("358e4e3e03c644709905034dae81433e") || // Orvibo Combustible Gas Sensor
@@ -8179,16 +8177,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             item = sensorNode.addItem(DataTypeBool, RStateLowBattery);
             item->setValue(false);
-            if (modelId.startsWith(QLatin1String("SMSZB-1"))) // Develco smoke detector
-            {
-                item = sensorNode.addItem(DataTypeBool, RStateTest);
-                item->setValue(false);
-            }
-            else
-            {
-                item = sensorNode.addItem(DataTypeBool, RStateTampered);
-                item->setValue(false);
-            }
+            item = sensorNode.addItem(DataTypeBool, RStateTampered);
+            item->setValue(false);
         }
         sensorNode.addItem(DataTypeUInt16, RConfigPending)->setValue(0);
         sensorNode.addItem(DataTypeUInt32, RConfigEnrolled)->setValue(IAS_STATE_INIT);
