@@ -2180,6 +2180,72 @@ Note: It does not clear or delete previous weekly schedule programming configura
 			<attribute id="0x401C" name="System mode" type="enum8" access="rw" required="m"></attribute>
 		</attribute-set>
 
+        <!-- Sunrichee manufacturer specific -->
+        <attribute-set id="0x1000" description="Sunricher Specific Attributes" mfcode="0x1224">
+            <attribute id="0x1000" name="Display LED Brightness" type="enum8" access="rw" default="0x01" required="m" mfcode="0x1224">
+              <description>OLED brightness when operating the buttons.  Default: Medium.</description>
+              <value name="Low" value="0x00"></value>
+              <value name="Medium" value="0x01"></value>
+              <value name="High" value="0x02"></value>
+            </attribute>
+            <attribute id="0x1001" name="Button Vibration Level" type="enum8" access="rw" default="0x00" required="m" mfcode="0x1224">
+              <description>Key beep volume and vibration level.  Default: Low.</description>
+              <value name="Off" value="0x0000"></value>
+              <value name="Low" value="0x0001"></value>
+              <value name="High" value="0x0002"></value>
+            </attribute>
+            <attribute id="0x1002" name="Floor Sensor Type" type="enum8" access="rw" default="0x01" required="m" mfcode="0x1224">
+              <description>Type of the external floor sensor.  Default: NTC 10K/25.</description>
+              <value name="NTC 10K/25" value="0x01"></value>
+              <value name="NTC 15K/25" value="0x02"></value>
+              <value name="NTC 50K/25" value="0x03"></value>
+              <value name="NTC 100K/25" value="0x04"></value>
+              <value name="NTC 12K/25" value="0x05"></value>
+            </attribute>
+            <attribute id="0x1003" name="Control Type" type="enum8" access="rw" default="0x00" required="m" mfcode="0x1224">
+              <description>The sensor used for heat control.  Default: Room Sensor.</description>
+              <value name="Room Sensor" value="0x00"></value>
+              <value name="Floor Sensor" value="0x01"></value>
+              <value name="Room Sensor + Floor Sensor" value="0x02"></value>
+            </attribute>
+            <attribute id="0x1004" name="PowerUp Status" type="enum8" access="rw" default="0x00" required="m" mfcode="0x1224">
+              <description>The mode after a power reset.  Default: Previous Mode.</description>
+              <value name="Default Mode" value="0x00"></value>
+              <value name="Previous Mode" value="0x01"></value>
+            </attribute>
+            <attribute id="0x1005" name="Floor Sensor Calibration" type="s8" access="rw" default="0" range="-30,30" required="m" mfcode="0x1224">
+              <description>The tempearatue calibration for the exernal floor sensor, between -30 and 30 in 0.1°C.  Default: 0.</description>
+            </attribute>
+            <attribute id="0x1006" name="Dry Time" type="u8" access="rw" default="5" range="5,100" required="m" mfcode="0x1224">
+              <description>The duration of Dry Mode, between 5 and 100 minutes.  Default: 5.</description>
+            </attribute>
+            <attribute id="0x1007" name="Mode After Dry" type="enum8" access="rw" default="0x02" required="m" mfcode="0x1224">
+              <description>The mode after Dry Mode.  Default: Schedule.</description>
+              <value name="Off" value="0x00"></value>
+              <value name="Manual" value="0x01"></value>
+              <value name="Schedule" value="0x02"></value>
+              <value name="Away" value="0x03"></value>
+            </attribute>
+            <attribute id="0x1008" name="Temperature Display" type="enum8" access="rw" default="0x02" required="m" mfcode="0x1224">
+              <description>The temperature on the display.  Default: Room Temperature.</description>
+              <value name="Room Temperature" value="0x00"></value>
+              <value name="Floor Temperature" value="0x01"></value>
+            </attribute>
+            <attribute id="0x1009" name="Window Open Detection" type="u8" access="rw" default="0" range="0,8" required="m" mfcode="0x1224">
+              <description>The threshold to detect window open, between 3 and 8 in 0.5 °C.  Default: 0 (disabled).</description>
+            </attribute>
+            <attribute id="0x100A" name="Hysteresis" type="u8" access="rw" default="5" range="5,20" required="m" mfcode="0x1224">
+              <description>Hysteresis setting, between 5 and 20 in 0.1 °C.  Default: 5.</description>
+            </attribute>
+            <attribute id="0x2001" name="Alarm Air Temperature" type="u8" access="rw" default="45" range="0,60" required="m" mfcode="0x1224">
+              <description>Room temperature alarm threshold, between 20 and 60 in °C.  0 means disabled.  Default: 45.</description>
+            </attribute>
+            <attribute id="0x2002" name="Away Mode" type="enum8" access="rw" default="0x00" required="m" mfcode="0x1224">
+              <description>Set Away Mode.  Default: Home.</description>
+              <value name="Home" value="0x00"></value>
+              <value name="Away" value="0x01"></value>
+            </attribute>
+        </attribute-set>
         <!-- Danfoss manufacturer specific -->
         <attribute-set id="0x4100" description="Danfoss specific" mfcode="0x1246">
             <attribute id="0x4100" name="Room Status Code" type="enum16" default="0x0000" access="r" required="o" mfcode="0x1246">
