@@ -367,7 +367,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_STELPRO, "SORB", xalMacPrefix }, // Stelpro Orleans Fan
     { VENDOR_DEVELCO, "AQSZB-1", develcoMacPrefix }, // Develco air quality sensor
     { VENDOR_DEVELCO, "SMSZB-1", develcoMacPrefix }, // Develco smoke sensor
-    { VENDOR_DEVELCO, "HESZB-1", develcoMacPrefix }, // Develco heat sensor
     { VENDOR_DEVELCO, "SPLZB-1", develcoMacPrefix }, // Develco smart plug
     { VENDOR_DEVELCO, "WISZB-1", develcoMacPrefix }, // Develco window sensor
     { VENDOR_DEVELCO, "MOSZB-1", develcoMacPrefix }, // Develco motion sensor
@@ -5990,7 +5989,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("Smoke")) ||                   // Heiman fire sensor (newer model)
                              modelId.startsWith(QLatin1String("902010/24")) ||               // Bitron smoke detector
                              modelId.startsWith(QLatin1String("SMSZB-1")) ||                 // Develco smoke detector
-                             modelId.startsWith(QLatin1String("HESZB-1")) ||                 // Develco heat detector
                              modelId.startsWith(QLatin1String("SF2")) ||                     // ORVIBO (Heiman) smoke sensor
                              modelId == QLatin1String("358e4e3e03c644709905034dae81433e") || // Orvibo Combustible Gas Sensor
                              modelId == QLatin1String("c3442b4ac59b4ba1a83119d938f283ab") || // ORVIBO SF30 smoke sensor

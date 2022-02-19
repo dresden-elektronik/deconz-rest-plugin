@@ -1077,7 +1077,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         if (modelId.startsWith(QLatin1String("AQSZB-1")) ||         // Develco air quality sensor
             modelId.startsWith(QLatin1String("SMSZB-1")) ||         // Develco smoke sensor
-            modelId.startsWith(QLatin1String("HESZB-1")) ||         // Develco heat sensor
             modelId.startsWith(QLatin1String("MOSZB-1")) ||         // Develco motion sensor
             modelId.startsWith(QLatin1String("WISZB-1")) ||         // Develco window sensor
             modelId.startsWith(QLatin1String("FLSZB-1")) ||         // Develco water leak sensor
@@ -1920,7 +1919,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (modelId.startsWith(QLatin1String("AQSZB-1")) ||         // Develco air quality sensor
                  modelId.startsWith(QLatin1String("SMSZB-1")) ||         // Develco smoke sensor
-                 modelId.startsWith(QLatin1String("HESZB-1")) ||         // Develco heat sensor
                  modelId.startsWith(QLatin1String("MOSZB-1")) ||         // Develco motion sensor
                  modelId.startsWith(QLatin1String("WISZB-1")) ||         // Develco window sensor
                  modelId.startsWith(QLatin1String("FLSZB-1")) ||         // Develco water leak sensor
@@ -2985,7 +2983,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Develco
         sensor->modelId().startsWith(QLatin1String("AQSZB-1")) ||   // air quality sensor
         sensor->modelId().startsWith(QLatin1String("SMSZB-1")) ||   // smoke sensor
-        sensor->modelId().startsWith(QLatin1String("HESZB-1")) ||   // heat sensor
         sensor->modelId().startsWith(QLatin1String("WISZB-1")) ||   // window sensor
         sensor->modelId().startsWith(QLatin1String("FLSZB-1")) ||   // water leak sensor
         sensor->modelId().startsWith(QLatin1String("MOSZB-1")) ||   // motion sensor
@@ -3347,7 +3344,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             else if (sensor->modelId() == QLatin1String("Motion Sensor-A") ||
                      sensor->modelId().startsWith(QLatin1String("AQSZB-1")) ||
                      sensor->modelId().startsWith(QLatin1String("SMSZB-1")) ||
-                     sensor->modelId().startsWith(QLatin1String("HESZB-1")) ||
                      sensor->modelId().startsWith(QLatin1String("WISZB-1")) ||
                      sensor->modelId().startsWith(QLatin1String("MOSZB-1")) ||
                      sensor->modelId().startsWith(QLatin1String("FLSZB-1")) ||
