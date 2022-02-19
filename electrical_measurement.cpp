@@ -110,11 +110,6 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                         power = static_cast<qint16>(round(((double)power * 128) / 1000.0));
                         DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "if (Attr.val != -32768) { Item.val = Math.round(Attr.val * 128 / 1000); } ");
                     }
-                    else if (modelId == QLatin1String("Connected socket outlet"))             // Niko smart socket
-                    {
-                        power = static_cast<qint16>(round(((double)power * 1123) / 10000.0));
-                        DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "if (Attr.val != -32768) { Item.val = Math.round(Attr.val * 1123 / 10000); } ");
-                    }
                     else if (modelId.startsWith(QLatin1String("lumi.relay.c2acn")))           // Xiaomi relay
                     {
                         continue;   // Device seems to always report -1 via this cluster/attribute
@@ -158,7 +153,6 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                              modelId.startsWith(QLatin1String("outlet")) ||                            // Samsung SmartThings IM6001-OTP/IM6001-OTP01
                              modelId.startsWith(QLatin1String("ROB_200")) ||                           // ROBB Smarrt micro dimmer
                              modelId.startsWith(QLatin1String("Micro Smart Dimmer")) ||                // Sunricher Micro Smart Dimmer
-                             modelId == QLatin1String("Connected socket outlet") ||                    // Niko smart socket
                              modelId.startsWith(QLatin1String("TH112")))                               // Sinope Thermostats
                     {
                         voltage = static_cast<quint16>(round((double)voltage / 10.0)); // 0.1V -> V
@@ -203,7 +197,6 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                         modelId == QLatin1String("TS0121") ||                                     // Tuya smart plug
                         modelId.startsWith(QLatin1String("ROB_200")) ||                           // ROBB Smarrt micro dimmer
                         modelId.startsWith(QLatin1String("Micro Smart Dimmer")) ||                // Sunricher Micro Smart Dimmer
-                        modelId == QLatin1String("Connected socket outlet") ||                    // Niko smart socket
                         modelId == QLatin1String("SMRZB-1") ||                                    // Develco smart cable
                         modelId == QLatin1String("PoP") ||                                        // Apex Smart Plug
                         modelId == QLatin1String("TS011F") ||                                     // Tuya plugs

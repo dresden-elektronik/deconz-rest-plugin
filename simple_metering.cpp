@@ -88,8 +88,7 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
                     modelId.startsWith(QLatin1String("PSMP5_")) ||                // Climax
                     modelId.startsWith(QLatin1String("SKHMP30")) ||               // GS smart plug
                     modelId.startsWith(QLatin1String("E13-")) ||                  // Sengled PAR38 Bulbs
-                    modelId.startsWith(QLatin1String("Z01-A19")) ||               // Sengled smart led
-                    modelId == QLatin1String("Connected socket outlet"))          // Niko smart socket
+                    modelId.startsWith(QLatin1String("Z01-A19")))                 // Sengled smart led
                 {
                     consumption = static_cast<quint64>(round((double)consumption / 10.0)); // 0.1 Wh -> Wh
                     DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "Item.val = Math.round(Attr.val / 10)");
