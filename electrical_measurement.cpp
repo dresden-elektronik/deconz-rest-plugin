@@ -193,8 +193,7 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
 
                 if (item && current != 65535)
                 {
-                    if (modelId == QLatin1String("SP 120") ||                                     // innr
-                        modelId.startsWith(QLatin1String("outlet")) ||                            // Samsung SmartThings IM6001-OTP/IM6001-OTP01
+                    if (modelId.startsWith(QLatin1String("outlet")) ||                            // Samsung SmartThings IM6001-OTP/IM6001-OTP01
                         modelId == QLatin1String("DoubleSocket50AU") ||                           // Aurora
                         modelId.startsWith(QLatin1String("SPLZB-1")) ||                           // Develco smart plug
                         modelId == QLatin1String("Smart16ARelay51AU") ||                          // Aurora (Develco) smart plug

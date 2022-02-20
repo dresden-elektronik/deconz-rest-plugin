@@ -2114,8 +2114,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq3.attributeId = 0x0508; // RMS Current
         rq3.minInterval = 1;
         rq3.maxInterval = 300;
-        if (modelId == QLatin1String("SP 120") ||                  // innr
-            modelId == QLatin1String("PoP") ||                     // Apex Smart Plug
+        if (modelId == QLatin1String("PoP") ||                     // Apex Smart Plug
             modelId == QLatin1String("DoubleSocket50AU") ||        // Aurora
             modelId.startsWith(QLatin1String("SPLZB-1")) ||        // Develco smart plug
             modelId == QLatin1String("Smart16ARelay51AU") ||       // Aurora (Develco) smart plug

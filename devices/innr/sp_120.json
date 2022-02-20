@@ -2,9 +2,10 @@
   "schema": "devcap1.schema.json",
   "manufacturername": "innr",
   "modelid": "SP 120",
+  "vendor": "innr",
   "product": "SP 120",
   "sleeper": false,
-  "status": "Silver",
+  "status": "Gold",
   "path": "/devices/innr/sp_120.json",
   "subdevices": [
     {
@@ -43,20 +44,10 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "state/alert",
-          "description": "The currently active alert effect.",
-          "default": "none"
+          "name": "state/alert"
         },
         {
-          "name": "state/on",
-          "refresh.interval": 60,
-          "parse": {
-            "at": "0x0000",
-            "cl": "0x0006",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl"
-          }
+          "name": "state/on"
         },
         {
           "name": "state/reachable"
@@ -107,7 +98,12 @@
         },
         {
           "name": "state/consumption",
-          "refresh.interval": 300
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0702",
+            "ep": 1,
+            "eval": "Item.val = Attr.val * 10;"
+          }
         },
         {
           "name": "state/lastupdated"
@@ -157,19 +153,16 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/current",
-          "refresh.interval": 300
+          "name": "state/current"
         },
         {
           "name": "state/lastupdated"
         },
         {
-          "name": "state/power",
-          "refresh.interval": 300
+          "name": "state/power"
         },
         {
-          "name": "state/voltage",
-          "refresh.interval": 300
+          "name": "state/voltage"
         }
       ]
     }
@@ -184,7 +177,7 @@
           "at": "0x0000",
           "dt": "0x10",
           "min": 1,
-          "max": 1800
+          "max": 300
         }
       ]
     },
@@ -211,22 +204,22 @@
           "at": "0x0505",
           "dt": "0x21",
           "min": 1,
-          "max": 500,
-          "change": "0x00000003"
+          "max": 300,
+          "change": "0x00000001"
         },
         {
           "at": "0x0508",
           "dt": "0x21",
           "min": 1,
           "max": 300,
-          "change": "0x0000000F"
+          "change": "0x00000064"
         },
         {
           "at": "0x050B",
           "dt": "0x29",
           "min": 1,
           "max": 300,
-          "change": "0x00000003"
+          "change": "0x00000001"
         }
       ]
     }
