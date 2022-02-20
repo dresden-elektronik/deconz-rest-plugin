@@ -5,7 +5,7 @@
   "vendor": "Develco Products",
   "product": "MOSZB-140 motion sensor",
   "sleeper": true,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_PRESENCE_SENSOR",
@@ -52,13 +52,15 @@
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 35,
-            "fn": "zcl"
+            "fn": "zcl",
+            "mf": "0x1015"
           },
           "parse": {
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 35,
             "fn": "zcl",
+            "mf": "0x1015",
             "script": "develco_firmware.js"
           }
         },
@@ -160,13 +162,15 @@
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 35,
-            "fn": "zcl"
+            "fn": "zcl",
+            "mf": "0x1015"
           },
           "parse": {
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 35,
             "fn": "zcl",
+            "mf": "0x1015",
             "script": "develco_firmware.js"
           }
         },
@@ -178,7 +182,7 @@
         },
         {
           "name": "config/battery",
-		  "awake": true,
+          "awake": true,
           "parse": {
             "at": "0x0020",
             "cl": "0x0001",
@@ -267,13 +271,15 @@
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 35,
-            "fn": "zcl"
+            "fn": "zcl",
+            "mf": "0x1015"
           },
           "parse": {
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 35,
             "fn": "zcl",
+            "mf": "0x1015",
             "script": "develco_firmware.js"
           }
         },
@@ -306,7 +312,7 @@
           "default": 0
         },
         {
-          "name": "config/enrolled",
+          "name": "config/enrolled"
         },
         {
           "name": "config/on"
@@ -379,13 +385,15 @@
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 35,
-            "fn": "zcl"
+            "fn": "zcl",
+            "mf": "0x1015"
           },
           "parse": {
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 35,
             "fn": "zcl",
+            "mf": "0x1015",
             "script": "develco_firmware.js"
           }
         },
@@ -397,7 +405,7 @@
         },
         {
           "name": "config/battery",
-		  "awake": true,
+          "awake": true,
           "parse": {
             "at": "0x0020",
             "cl": "0x0001",
@@ -485,13 +493,15 @@
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 35,
-            "fn": "zcl"
+            "fn": "zcl",
+            "mf": "0x1015"
           },
           "parse": {
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 35,
             "fn": "zcl",
+            "mf": "0x1015",
             "script": "develco_firmware.js"
           }
         },
@@ -503,7 +513,7 @@
         },
         {
           "name": "config/battery",
-		  "awake": true,
+          "awake": true,
           "parse": {
             "at": "0x0020",
             "cl": "0x0001",
@@ -596,13 +606,15 @@
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 35,
-            "fn": "zcl"
+            "fn": "zcl",
+            "mf": "0x1015"
           },
           "parse": {
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 35,
             "fn": "zcl",
+            "mf": "0x1015",
             "script": "develco_firmware.js"
           }
         },
@@ -638,6 +650,94 @@
         {
           "name": "state/temperature",
           "awake": true
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 34,
+      "cl": "0x0406",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x18",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 35,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0020",
+          "dt": "0x20",
+          "min": 300,
+          "max": 43200,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 35,
+      "cl": "0x0500"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 38,
+      "cl": "0x0402",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x29",
+          "min": 60,
+          "max": 600,
+          "change": "0x0000000A"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 39,
+      "cl": "0x0400",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x21",
+          "min": 0,
+          "max": 600,
+          "change": "0x0000FFFF"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 40,
+      "cl": "0x0406",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x18",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 41,
+      "cl": "0x0406",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x18",
+          "min": 1,
+          "max": 300
         }
       ]
     }
