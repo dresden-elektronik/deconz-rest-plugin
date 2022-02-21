@@ -355,6 +355,11 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
         return;
     }
 
+    // Temporary hack to make the device working, the device send itself reporting on this cluster without bind, no way to block them.
+    if (sensor->manufacturer() == QLatin1String("_TZE200_chyvmhay")) {
+       return;
+    }
+    
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
 
