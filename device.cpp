@@ -671,11 +671,12 @@ void DEV_PublishToCore(Device *device)
         const char *mapped;
     };
 
-    std::array<CoreItem, 3> coreItems = {
+    std::array<CoreItem, 4> coreItems = {
         {
             { RAttrName, "name" },
             { RAttrModelId, "modelid" },
-            { RAttrManufacturerName, "vendor" }
+            { RAttrManufacturerName, "vendor" },
+            { RAttrSwVersion, "version" }
         }
     };
 
@@ -771,6 +772,10 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
     else if (event.what() != RAttrLastSeen && event.what() != REventPoll)
     {
         // DBG_Printf(DBG_DEV, "DEV Idle event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
+        if (event.what() == RAttrSwVersion || event.what() == RAttrName)
+        {
+            DEV_PublishToCore(device);
+        }
     }
 
     if (!device->reachable() && !device->item(RAttrSleeper)->toBool())

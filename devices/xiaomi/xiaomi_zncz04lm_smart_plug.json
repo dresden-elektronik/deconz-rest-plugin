@@ -1,9 +1,9 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "frient A/S",
-  "modelid": "SPLZB-131",
-  "vendor": "Develco Products",
-  "product": "SPLZB-131",
+  "manufacturername": "$MF_LUMI",
+  "modelid": "lumi.plug.mmeu01",
+  "vendor": "Xiaomi Mija",
+  "product": "ZNCZ04LM",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -12,7 +12,7 @@
       "restapi": "/lights",
       "uuid": [
         "$address.ext",
-        "0x02"
+        "0x01"
       ],
       "items": [
         {
@@ -37,19 +37,17 @@
           "name": "attr/swversion",
           "refresh.interval": 84000,
           "read": {
-            "at": "0x8000",
+            "at": "0x0006",
             "cl": "0x0000",
-            "ep": 2,
-            "fn": "zcl",
-            "mf": "0x1015"
+            "ep": 1,
+            "fn": "zcl"
           },
           "parse": {
-            "at": "0x8000",
+            "at": "0x0006",
             "cl": "0x0000",
-            "ep": 2,
-            "fn": "zcl",
-            "mf": "0x1015",
-            "script": "develco_firmware.js"
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl"
           }
         },
         {
@@ -76,19 +74,15 @@
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
-        "0x02",
-        "0x0b04"
+        "0x15",
+        "0x000C"
       ],
       "fingerprint": {
         "profile": "0x0104",
         "device": "0x0051",
-        "endpoint": "0x02",
+        "endpoint": "0x15",
         "in": [
-          "0x0B04"
-        ],
-        "out": [
-          "0x0019",
-          "0x000A"
+          "0x000C"
         ]
       },
       "items": [
@@ -114,19 +108,17 @@
           "name": "attr/swversion",
           "refresh.interval": 84000,
           "read": {
-            "at": "0x8000",
+            "at": "0x0006",
             "cl": "0x0000",
-            "ep": 2,
-            "fn": "zcl",
-            "mf": "0x1015"
+            "ep": 1,
+            "fn": "zcl"
           },
           "parse": {
-            "at": "0x8000",
+            "at": "0x0006",
             "cl": "0x0000",
-            "ep": 2,
-            "fn": "zcl",
-            "mf": "0x1015",
-            "script": "develco_firmware.js"
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl"
           }
         },
         {
@@ -142,16 +134,50 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/current"
+          "name": "config/temperature"
+        },
+        {
+          "name": "state/current",
+          "parse": {
+            "at": "0x00F7",
+            "eval": "Item.val = Math.round(Attr.val);",
+            "fn": "xiaomi:special",
+            "idx": "0x97"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "state/lastupdated"
         },
         {
-          "name": "state/power"
+          "name": "state/power",
+          "refresh.interval": 10,
+          "read": {
+            "at": "0x0055",
+            "cl": "0x000C",
+            "ep": 21,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0055",
+            "cl": "0x000C",
+            "ep": 21,
+            "eval": "Item.val = Math.round(Attr.val);"
+          }
         },
         {
-          "name": "state/voltage"
+          "name": "state/voltage",
+          "parse": {
+            "at": "0x00F7",
+            "eval": "Item.val = Math.round(Attr.val / 10);",
+            "fn": "xiaomi:special",
+            "idx": "0x96"
+          },
+          "read": {
+            "fn": "none"
+          }
         }
       ]
     },
@@ -160,19 +186,15 @@
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
-        "0x02",
-        "0x0702"
+        "0x16",
+        "0x000C"
       ],
       "fingerprint": {
         "profile": "0x0104",
         "device": "0x0051",
-        "endpoint": "0x02",
+        "endpoint": "0x16",
         "in": [
-          "0x0702"
-        ],
-        "out": [
-          "0x0019",
-          "0x000A"
+          "0x000C"
         ]
       },
       "items": [
@@ -198,19 +220,17 @@
           "name": "attr/swversion",
           "refresh.interval": 84000,
           "read": {
-            "at": "0x8000",
+            "at": "0x0006",
             "cl": "0x0000",
-            "ep": 2,
-            "fn": "zcl",
-            "mf": "0x1015"
+            "ep": 1,
+            "fn": "zcl"
           },
           "parse": {
-            "at": "0x8000",
+            "at": "0x0006",
             "cl": "0x0000",
-            "ep": 2,
-            "fn": "zcl",
-            "mf": "0x1015",
-            "script": "develco_firmware.js"
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl"
           }
         },
         {
@@ -226,13 +246,26 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/consumption"
+          "name": "config/temperature"
+        },
+        {
+          "name": "state/consumption",
+          "refresh.interval": 300,
+          "read": {
+            "at": "0x0055",
+            "cl": "0x000C",
+            "ep": 22,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0055",
+            "cl": "0x000C",
+            "ep": 22,
+            "eval": "Item.val = Math.round(Attr.val * 1000);"
+          }
         },
         {
           "name": "state/lastupdated"
-        },
-        {
-          "name": "state/power"
         }
       ]
     }
@@ -240,7 +273,7 @@
   "bindings": [
     {
       "bind": "unicast",
-      "src.ep": 2,
+      "src.ep": 1,
       "dst.ep": 1,
       "cl": "0x0006",
       "report": [
@@ -249,57 +282,6 @@
           "dt": "0x10",
           "min": 1,
           "max": 300
-        }
-      ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 2,
-      "dst.ep": 1,
-      "cl": "0x0B04",
-      "report": [
-        {
-          "at": "0x050B",
-          "dt": "0x29",
-          "min": 1,
-          "max": 300,
-          "change": "0x00000001"
-        },
-        {
-          "at": "0x0505",
-          "dt": "0x21",
-          "min": 1,
-          "max": 300,
-          "change": "0x00000064"
-        },
-        {
-          "at": "0x0508",
-          "dt": "0x21",
-          "min": 1,
-          "max": 300,
-          "change": "0x00000064"
-        }
-      ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 2,
-      "dst.ep": 1,
-      "cl": "0x0702",
-      "report": [
-        {
-          "at": "0x0000",
-          "dt": "0x25",
-          "min": 1,
-          "max": 300,
-          "change": "0x00000001"
-        },
-        {
-          "at": "0x0400",
-          "dt": "0x2A",
-          "min": 1,
-          "max": 300,
-          "change": "0x00000001"
         }
       ]
     }

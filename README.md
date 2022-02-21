@@ -33,8 +33,8 @@ Installation
 ============
 
 ##### Supported platforms
-* Raspbian ~~Jessie~~, Stretch, Buster and Bullseye
-* Ubuntu Xenial, Bionic and Focal Fossa (AMD64)
+* Raspbian ~~Jessie~~, ~~Stretch~~, Buster and Bullseye
+* Ubuntu ~~Xenial~~, Bionic and Focal Fossa (AMD64)
 * Windows 7, 10, 11
 
 ### Install deCONZ

@@ -1399,7 +1399,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     case 0x0401: // Preset for Moes or Alamr for Woox
                         if (productId == "Tuya_OTH R7049 Smoke Alarm")
                         {
-                            bool fire = (data == 0) ? false : true;
+                            bool fire = (data == 0) ? true : false;
                             ResourceItem *item = sensorNode->item(RStateFire);
 
                             if (item && item->toBool() != fire)

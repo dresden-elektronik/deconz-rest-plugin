@@ -5039,6 +5039,11 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         if (zclFrame.payload().at(0) == 0x00 && zclFrame.payload().at(1) == 0x00)
                         {
                             sensor->previousCommandId = 0x09;
+                            ResourceItem *item = sensor->item(RStateButtonEvent);
+                            if (item)
+                            {
+                                item->setLastZclReport(deCONZ::steadyTimeRef());
+                            }
                         }
                         else
                         {
@@ -5049,14 +5054,23 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                                 ok = true;
                             }
                         }
+
                     }
                 }
                 else if (ind.clusterId() == ONOFF_CLUSTER_ID && sensor->previousCommandId == 0x09 && sensor->modelId() == QLatin1String("Remote Control N2"))
                 {
                     // for left and right buttons long press, the Ikea Styrbar sends:
                     // 0x09 -> ON -> 0x07 -> 0x08 -> 0x09
-                    // disable to not trigger 1002 and 2002 button events
-                    ok = false;
+                    // disable to not trigger 1002 and 2002 button events, if last 0x09 was received within 2 seconds
+                    // check that ON is received within 2 seconds is needed, since user can abort long press after 0x09 command
+
+                    ResourceItem *item = sensor->item(RStateButtonEvent);
+
+                    if (item && deCONZ::steadyTimeRef() - item->lastZclReport() < deCONZ::TimeMs{2000})
+                    {
+                        ok = false; // part of long press
+                    }
+
                     sensor->previousCommandId = 0xFF;
                 }
                 else if (ind.clusterId() == LEVEL_CLUSTER_ID && zclFrame.commandId() == 0x04 && // move to level (with on/off)
@@ -17893,6 +17907,17 @@ const deCONZ::Node *DEV_GetCoreNode(uint64_t extAddress)
     }
 
     return nullptr;
+}
+
+/* Returns number of APS requests currently in the queue. */
+int DEV_ApsQueueSize()
+{
+#if DECONZ_LIB_VERSION >= 0x011103
+    deCONZ::ApsController *ctrl = deCONZ::ApsController::instance();
+    return ctrl->apsQueueSize();
+#else
+    return 1;
+#endif
 }
 
 void DeRestPluginPrivate::pollSwUpdateStateTimerFired()

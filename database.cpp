@@ -3211,12 +3211,30 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         quint64 extAddr = 0;
         quint16 clusterId = 0;
         quint8 endpoint = sensor.fingerPrint().endpoint;
+
+
+        if (!isClip && sensor.type() == QLatin1String("Daylight"))
+        {
+            isClip = true;
+        }
+
         DBG_Printf(DBG_INFO_L2, "DB found sensor %s %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()));
 
+        if (!isClip)
         {
             const auto ddf = d->deviceDescriptions->get(&sensor);
             if (ddf.isValid())
             {
+                unsigned ep = endpointFromUniqueId(sensor.uniqueId());
+                if (ep == 0xFF || ep == 0)
+                {
+                    // in earlier versions the sensor was created from an DDF draft device with not yet set endpoint
+                    // TODO(mpi): delete sensor from DB
+                    // SELECT * FROM sensors where uniqueid LIKE '%-ff-%'
+                    DBG_Printf(DBG_INFO, "DB skip loading sensor %s %s, invalid endpoint 0xff\n", qPrintable(sensor.name()), qPrintable(sensor.uniqueId()));
+                    return 0;
+                }
+
                 const int itemCount = DB_GetSubDeviceItemCount(sensor.item(RAttrUniqueId)->toLatin1String());
 
                 if (itemCount == 0)
@@ -3229,11 +3247,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     return 0;
                 }
             }
-        }
-
-        if (!isClip && sensor.type() == QLatin1String("Daylight"))
-        {
-            isClip = true;
         }
 
         if (isClip)
@@ -5586,6 +5599,16 @@ void DeRestPluginPrivate::saveDb()
                 continue;
             }
 
+            // don't store incomplete DDF draft sensors
+            if (i->type().startsWith('Z'))
+            {
+                unsigned ep = endpointFromUniqueId(i->uniqueId());
+                if (ep == 0xFF || ep == 0)
+                {
+                    continue;
+                }
+            }
+
             QString stateJSON = i->stateToString();
             QString configJSON = i->configToString();
             QString fingerPrintJSON = i->fingerPrint().toString();
@@ -6466,6 +6489,12 @@ bool DB_DeleteAlarmSystemDevice(const std::string &uniqueId)
 bool DB_StoreSubDevice(const QString &parentUniqueId, const QString &uniqueId)
 {
     if (parentUniqueId.isEmpty() || uniqueId.isEmpty())
+    {
+        return false;
+    }
+
+    unsigned ep = endpointFromUniqueId(uniqueId);
+    if (ep == 0xFF || ep == 0) // incomplete DDF sub device uniqueid template
     {
         return false;
     }
