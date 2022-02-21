@@ -84,7 +84,10 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
     }
     else if (ddfItem.defaultValue.isValid())
     {
-        item->setValue(ddfItem.defaultValue);
+        if (ddfItem.isStatic || !item->lastSet().isValid())
+        {
+            item->setValue(ddfItem.defaultValue);
+        }
     }
 
     assert(ddfItem.handle != DeviceDescription::Item::InvalidItemHandle);
