@@ -485,10 +485,11 @@ const DeviceDescription &DeviceDescriptions::get(const Resource *resource) const
     Q_D(const DeviceDescriptions);
 
     const auto modelId = resource->item(RAttrModelId)->toString();
+    const auto modelIdConstant = stringToConstant(modelId);
 
-    const auto i = std::find_if(d->descriptions.begin(), d->descriptions.end(), [&modelId](const DeviceDescription &ddf)
+    const auto i = std::find_if(d->descriptions.begin(), d->descriptions.end(), [&modelId, &modelIdConstant](const DeviceDescription &ddf)
     {
-        return ddf.modelIds.contains(modelId);
+        return ddf.modelIds.contains(modelId) || (modelId != modelIdConstant && ddf.modelIds.contains(modelIdConstant));
     });
 
     if (i != d->descriptions.end())
