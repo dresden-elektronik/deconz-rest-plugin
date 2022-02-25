@@ -84,7 +84,7 @@ private:
 void fallbackRandom(unsigned char *buf, unsigned int size)
 {
    std::random_device rd;
-   std::uniform_int_distribution<int> dist(1, 255); //range is 1-255
+   std::uniform_int_distribution<int> dist(0, 255); //range is 0-255
 
    for (unsigned i = 0; i < size; i++)
    {
