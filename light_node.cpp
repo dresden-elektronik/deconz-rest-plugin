@@ -494,7 +494,6 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 else if (i->id() == IAS_WD_CLUSTER_ID)
                 {
                     if (modelId().startsWith(QLatin1String("902010/24")) ||   // Bitron Smoke Detector with siren
-                        modelId().startsWith(QLatin1String("SMSZB-1")) ||     // Develco Smoke Alarm with siren
                         modelId().startsWith(QLatin1String("HESZB-1")) ||     // Develco heat sensor with siren
                         modelId().startsWith(QLatin1String("FLSZB-1")) ||     // Develco water leak sensor with siren
                         modelId().startsWith(QLatin1String("SIRZB-1")) ||     // Develco siren
