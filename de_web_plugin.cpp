@@ -10657,7 +10657,7 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
 
     if (lightNode->mustRead(READ_VENDOR_NAME) && tNow > lightNode->nextReadTime(READ_VENDOR_NAME))
     {
-        if (!lightNode->manufacturer().isEmpty() && lightNode->manufacturer() != QLatin1String("Unknown"))
+        if (!lightNode->manufacturer().isEmpty())
         {
             lightNode->clearRead(READ_VENDOR_NAME);
             processed++;
@@ -16482,7 +16482,7 @@ void DeRestPlugin::idleTimerFired()
                             d->queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
                         }
 
-                        if ((lightNode->manufacturer().isEmpty() || lightNode->manufacturer() == QLatin1String("Unknown")) && lightNode->manufacturer() != l.manufacturer())
+                        if (lightNode->manufacturer().isEmpty() && !l.manufacturer().isEmpty())
                         {
                             lightNode->setManufacturerName(l.manufacturer());
                             lightNode->setNeedSaveDatabase(true);
@@ -16560,7 +16560,7 @@ void DeRestPlugin::idleTimerFired()
                     }
                 }
 
-                if (lightNode->manufacturer().isEmpty() || (lightNode->manufacturer() == QLatin1String("Unknown")))
+                if (lightNode->manufacturer().isEmpty())
                 {
                     lightNode->setLastRead(READ_VENDOR_NAME, d->idleTotalCounter);
                     lightNode->enableRead(READ_VENDOR_NAME);
@@ -16705,9 +16705,7 @@ void DeRestPlugin::idleTimerFired()
                     break;
                 }
 
-                if (!sensorNode->mustRead(READ_VENDOR_NAME) &&
-                   (sensorNode->manufacturer().isEmpty() ||
-                    sensorNode->manufacturer() == QLatin1String("unknown")))
+                if (!sensorNode->mustRead(READ_VENDOR_NAME) && sensorNode->manufacturer().isEmpty())
                 {
                     sensorNode->setLastRead(READ_VENDOR_NAME, d->idleTotalCounter);
                     sensorNode->setNextReadTime(READ_VENDOR_NAME, d->queryTime);

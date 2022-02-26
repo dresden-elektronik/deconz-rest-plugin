@@ -40,8 +40,6 @@ LightNode::LightNode() :
     addItem(DataTypeString, RAttrUniqueId);
     addItem(DataTypeTime, RAttrLastAnnounced);
     addItem(DataTypeTime, RAttrLastSeen);
-
-    setManufacturerName(QLatin1String("Unknown"));
 }
 
 /*! Returns the LightNode state.
@@ -82,7 +80,7 @@ void LightNode::setManufacturerCode(uint16_t code)
     {
         m_manufacturerCode = code;
 
-        if (!manufacturer().isEmpty() && (manufacturer() != QLatin1String("Unknown")))
+        if (!manufacturer().isEmpty())
         {
             return;
         }
@@ -110,12 +108,12 @@ void LightNode::setManufacturerCode(uint16_t code)
         case VENDOR_SCHLAGE: name = QLatin1String("Schlage"); break;
         case VENDOR_DEVELCO: name = QLatin1String("Develco Products A/S"); break;
         case VENDOR_NETVOX:   name = QLatin1String("netvox"); break;
-        default:
-            name = QLatin1String("Unknown");
-            break;
         }
 
-        setManufacturerName(name);
+        if (!manufacturer().isEmpty())
+        {
+            setManufacturerName(name);
+        }
     }
 }
 
