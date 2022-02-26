@@ -2013,7 +2013,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             modelId == QLatin1String("SKHMP30-I1") ||              // GS smart plug
             modelId.startsWith(QLatin1String("E13-")) ||           // Sengled PAR38 Bulbs
             modelId.startsWith(QLatin1String("Z01-A19")) ||        // Sengled smart led
-            modelId == QLatin1String("Connected socket outlet"))   // Niko smart socket
         {
             rq.reportableChange48bit = 10; // 0.001 kWh (1 Wh)
         }
@@ -2065,7 +2064,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         if (modelId == QLatin1String("SmartPlug") ||                   // Heiman
             modelId == QLatin1String("SKHMP30-I1") ||                  // GS smart plug
             modelId == QLatin1String("SZ-ESW01-AU") ||                 // Sercomm / Telstra smart plug
-            modelId == QLatin1String("Connected socket outlet") ||     // Niko smart socket
             modelId.startsWith(QLatin1String("ROB_200")) ||            // ROBB Smarrt micro dimmer
             modelId.startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
             modelId.startsWith(QLatin1String("lumi.plug.maeu")) ||     // Xiaomi Aqara ZB3.0 smart plug
@@ -2099,7 +2097,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (modelId.startsWith(QLatin1String("ROB_200")) ||            // ROBB Smarrt micro dimmer
                  modelId.startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
-                 modelId == QLatin1String("Connected socket outlet") ||     // Niko smart socket
                  modelId.startsWith(QLatin1String("TH112")))                // Sinope Thermostats
         {
             rq2.reportableChange16bit = 10; // 1 V
@@ -2119,7 +2116,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             modelId.startsWith(QLatin1String("SPLZB-1")) ||        // Develco smart plug
             modelId == QLatin1String("Smart16ARelay51AU") ||       // Aurora (Develco) smart plug
             modelId == QLatin1String("SZ-ESW01-AU") ||             // Sercomm / Telstra smart plug
-            modelId == QLatin1String("Connected socket outlet") || // Niko smart socket
             modelId == QLatin1String("SMRZB-1") ||                 // Develco smart cable
             modelId == QLatin1String("TS0121"))                    // Tuya / Blitzwolf
         {
@@ -3163,7 +3159,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("FNB56-")) ||
         sensor->modelId().startsWith(QLatin1String("FB56-")) ||
         // Niko
-        sensor->modelId() == QLatin1String("Connected socket outlet") ||
         sensor->modelId() == QLatin1String("Smart plug Zigbee PE") ||
         // Sage
         sensor->modelId() == QLatin1String("Bell") ||
