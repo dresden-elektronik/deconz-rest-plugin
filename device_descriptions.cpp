@@ -481,14 +481,17 @@ const DeviceDescription &DeviceDescriptions::get(const Resource *resource) const
 {
     Q_ASSERT(resource);
     Q_ASSERT(resource->item(RAttrModelId));
+    Q_ASSERT(resource->item(RAttrManufacturerName));
 
     Q_D(const DeviceDescriptions);
 
     const auto modelId = resource->item(RAttrModelId)->toString();
+    const auto manufacturer = resource->item(RAttrManufacturerName)->toString();
+    const auto manufacturerConstant = stringToConstant(manufacturer);
 
-    const auto i = std::find_if(d->descriptions.begin(), d->descriptions.end(), [&modelId](const DeviceDescription &ddf)
+    const auto i = std::find_if(d->descriptions.begin(), d->descriptions.end(), [&modelId, &manufacturer, &manufacturerConstant](const DeviceDescription &ddf)
     {
-        return ddf.modelIds.contains(modelId);
+        return (ddf.modelIds.contains(modelId) && (ddf.manufacturerNames.contains(manufacturer) || ddf.manufacturerNames.contains(manufacturerConstant)));
     });
 
     if (i != d->descriptions.end())
