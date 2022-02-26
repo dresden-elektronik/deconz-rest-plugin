@@ -2012,7 +2012,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         if (modelId == QLatin1String("SmartPlug") ||               // Heiman
             modelId == QLatin1String("SKHMP30-I1") ||              // GS smart plug
             modelId.startsWith(QLatin1String("E13-")) ||           // Sengled PAR38 Bulbs
-            modelId.startsWith(QLatin1String("Z01-A19")) ||        // Sengled smart led
+            modelId.startsWith(QLatin1String("Z01-A19")))          // Sengled smart led
         {
             rq.reportableChange48bit = 10; // 0.001 kWh (1 Wh)
         }
