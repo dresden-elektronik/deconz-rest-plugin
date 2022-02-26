@@ -62,11 +62,14 @@
           "parse": {"fn": "xiaomi:special", "ep": 1, "at": "0xff01", "idx": "0x01", "script": "xiaomi_battery.js"}
         },
         {
+          "name": "config/enrolled",
+          "default": 1
+        },
+        {
           "name": "config/on"
         },
         {
-          "name": "config/pending",
-          "description": "Pending tasks to configure the device."
+          "name": "config/pending"
         },
         {
           "name": "config/reachable"

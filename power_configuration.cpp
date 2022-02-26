@@ -234,7 +234,6 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                     sensor.modelId() == QLatin1String("lumi.remote.b28ac1") || // Aqara wireless remote switch H1 (double rocker)
                     sensor.modelId().endsWith(QLatin1String("86opcn01")) ||    // Aqara Opple
                     sensor.modelId().startsWith(QLatin1String("AQSZB-1")) ||   // Develco air quality sensor
-                    sensor.modelId().startsWith(QLatin1String("SMSZB-1")) ||   // Develco smoke sensor
                     sensor.modelId().startsWith(QLatin1String("MOSZB-1")) ||   // Develco motion sensor
                     sensor.modelId().startsWith(QLatin1String("WISZB-1")) ||   // Develco window sensor
                     sensor.modelId().startsWith(QLatin1String("FLSZB-1")) ||   // Develco water leak sensor

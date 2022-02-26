@@ -244,7 +244,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SAMJIN, "outlet", samjinMacPrefix }, // Smarthings (Samjin) Outlet
     { VENDOR_JENNIC, "lumi.lock.v1", jennicMacPrefix }, // Xiaomi A6121 Vima Smart Lock
     { VENDOR_JENNIC, "lumi.sensor_ht", jennicMacPrefix },
-    { VENDOR_JENNIC, "lumi.weather", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_magnet", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_motion", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_switch.aq2", jennicMacPrefix }, // Xiaomi WXKG11LM 2016
@@ -329,7 +328,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_LUTRON, "Z3-1BRL", lutronMacPrefix }, // Lutron Aurora Friends-of-Hue dimmer
     { VENDOR_KEEN_HOME , "SV01-", celMacPrefix}, // Keen Home Vent
     { VENDOR_KEEN_HOME , "SV02-", celMacPrefix}, // Keen Home Vent
-    { VENDOR_INNR, "SP 120", jennicMacPrefix}, // innr smart plug
     { VENDOR_JENNIC, "VMS_ADUROLIGHT", jennicMacPrefix }, // Trust motion sensor ZPIR-8000
     { VENDOR_JENNIC, "CSW_ADUROLIGHT", jennicMacPrefix }, // Trust contact sensor ZMST-808
     { VENDOR_JENNIC, "ZYCT-202", jennicMacPrefix }, // Trust remote control ZYCT-202 (older model)
@@ -366,7 +364,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_STELPRO, "STZB402", xalMacPrefix }, // Stelpro baseboard thermostat
     { VENDOR_STELPRO, "SORB", xalMacPrefix }, // Stelpro Orleans Fan
     { VENDOR_DEVELCO, "AQSZB-1", develcoMacPrefix }, // Develco air quality sensor
-    { VENDOR_DEVELCO, "SMSZB-1", develcoMacPrefix }, // Develco smoke sensor
     { VENDOR_DEVELCO, "SPLZB-1", develcoMacPrefix }, // Develco smart plug
     { VENDOR_DEVELCO, "WISZB-1", develcoMacPrefix }, // Develco window sensor
     { VENDOR_DEVELCO, "MOSZB-1", develcoMacPrefix }, // Develco motion sensor
@@ -511,7 +508,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBERTEC, "BQZ10-AU", embertecMacPrefix }, // Embertec smart plug
     { VENDOR_MUELLER, "ZBT-Remote-ALL-RGBW", jennicMacPrefix }, // Tint remote control
     { VENDOR_PLUGWISE_BV, "160-01", emberMacPrefix }, // Plugwise smart plug
-    { VENDOR_NIKO_NV, "Connected socket outlet", konkeMacPrefix }, // Niko smart socket 170-33505
     { VENDOR_NIKO_NV, "Smart plug Zigbee PE", silabs9MacPrefix }, // Niko Smart Plug 552-80699
     { VENDOR_ATMEL, "Bell", dishMacPrefix }, // Sage doorbell sensor
     { VENDOR_UNIVERSAL2, "4655BC0", emberMacPrefix }, // Ecolink contact sensor
@@ -5988,7 +5984,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("SMOK_")) ||                   // Heiman fire sensor
                              modelId.startsWith(QLatin1String("Smoke")) ||                   // Heiman fire sensor (newer model)
                              modelId.startsWith(QLatin1String("902010/24")) ||               // Bitron smoke detector
-                             modelId.startsWith(QLatin1String("SMSZB-1")) ||                 // Develco smoke detector
                              modelId.startsWith(QLatin1String("SF2")) ||                     // ORVIBO (Heiman) smoke sensor
                              modelId == QLatin1String("358e4e3e03c644709905034dae81433e") || // Orvibo Combustible Gas Sensor
                              modelId == QLatin1String("c3442b4ac59b4ba1a83119d938f283ab") || // ORVIBO SF30 smoke sensor
@@ -7500,8 +7495,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             {
                 item = sensorNode.addItem(DataTypeUInt64, RStateConsumption);
             }
-            if ((modelId != QLatin1String("SP 120")) &&
-                (modelId != QLatin1String("ZB-ONOFFPlug-D0005")) &&
+            if ((modelId != QLatin1String("ZB-ONOFFPlug-D0005")) &&
                 (modelId != QLatin1String("TS0121")) &&
                 (!modelId.startsWith(QLatin1String("BQZ10-AU"))) &&
                 (!modelId.startsWith(QLatin1String("ROB_200"))) &&
@@ -7513,7 +7507,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 (modelId != QLatin1String("lumi.switch.n2aeu1")) &&
                 (modelId != QLatin1String("lumi.switch.b1naus01")) &&
                 (modelId != QLatin1String("lumi.switch.n0agl1")) &&
-                (modelId != QLatin1String("Connected socket outlet")) &&
                 (!modelId.startsWith(QLatin1String("SPW35Z"))))
             {
                 item = sensorNode.addItem(DataTypeInt16, RStatePower);
@@ -8034,7 +8027,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
         if (!sensorNode.item(RStateTemperature) &&
             sensorNode.modelId() != QLatin1String("lumi.sensor_switch") &&
-            !sensorNode.modelId().contains(QLatin1String("weather")) &&
             !sensorNode.modelId().startsWith(QLatin1String("lumi.sensor_ht")) &&
             !sensorNode.modelId().endsWith(QLatin1String("86opcn01"))) // exclude Aqara Opple
         {
@@ -8177,16 +8169,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             item = sensorNode.addItem(DataTypeBool, RStateLowBattery);
             item->setValue(false);
-            if (modelId.startsWith(QLatin1String("SMSZB-1"))) // Develco smoke detector
-            {
-                item = sensorNode.addItem(DataTypeBool, RStateTest);
-                item->setValue(false);
-            }
-            else
-            {
-                item = sensorNode.addItem(DataTypeBool, RStateTampered);
-                item->setValue(false);
-            }
+            item = sensorNode.addItem(DataTypeBool, RStateTampered);
+            item->setValue(false);
         }
         sensorNode.addItem(DataTypeUInt16, RConfigPending)->setValue(0);
         sensorNode.addItem(DataTypeUInt32, RConfigEnrolled)->setValue(IAS_STATE_INIT);
@@ -8854,10 +8838,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (item)
                                 {
-                                    if (temp == -10000 && i->modelId().startsWith(QLatin1String("lumi.weather")))
-                                    {
-                                        continue;
-                                    }
                                     ResourceItem *item2 = i->item(RConfigOffset);
                                     if (item2 && item2->toNumber() != 0)
                                     {

@@ -623,8 +623,7 @@ bool DeRestPluginPrivate::sendBindRequest(BindingTask &bt)
             // Whitelist sensors which don't seem to have a valid node descriptor.
             // This is a workaround currently only required for Develco smoke sensor
             // and potentially Bosch motion sensor
-            if (s.modelId().startsWith(QLatin1String("SMSZB-1")) ||      // Develco smoke sensor
-                s.modelId().startsWith(QLatin1String("EMIZB-1")) ||      // Develco EMI Norwegian HAN
+            if (s.modelId().startsWith(QLatin1String("EMIZB-1")) ||      // Develco EMI Norwegian HAN
                 s.modelId().startsWith(QLatin1String("ISW-ZPR1-WP13")))  // Bosch motion sensor
             {
             }
@@ -1076,7 +1075,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.attributeId = 0x0000;       // measured value
 
         if (modelId.startsWith(QLatin1String("AQSZB-1")) ||         // Develco air quality sensor
-            modelId.startsWith(QLatin1String("SMSZB-1")) ||         // Develco smoke sensor
             modelId.startsWith(QLatin1String("MOSZB-1")) ||         // Develco motion sensor
             modelId.startsWith(QLatin1String("WISZB-1")) ||         // Develco window sensor
             modelId.startsWith(QLatin1String("FLSZB-1")) ||         // Develco water leak sensor
@@ -1918,7 +1916,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.reportableChange8bit = 0;
         }
         else if (modelId.startsWith(QLatin1String("AQSZB-1")) ||         // Develco air quality sensor
-                 modelId.startsWith(QLatin1String("SMSZB-1")) ||         // Develco smoke sensor
                  modelId.startsWith(QLatin1String("MOSZB-1")) ||         // Develco motion sensor
                  modelId.startsWith(QLatin1String("WISZB-1")) ||         // Develco window sensor
                  modelId.startsWith(QLatin1String("FLSZB-1")) ||         // Develco water leak sensor
@@ -2010,8 +2007,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         if (modelId == QLatin1String("SmartPlug") ||               // Heiman
             modelId == QLatin1String("SKHMP30-I1") ||              // GS smart plug
             modelId.startsWith(QLatin1String("E13-")) ||           // Sengled PAR38 Bulbs
-            modelId.startsWith(QLatin1String("Z01-A19")) ||        // Sengled smart led
-            modelId == QLatin1String("Connected socket outlet"))   // Niko smart socket
+            modelId.startsWith(QLatin1String("Z01-A19")))          // Sengled smart led
         {
             rq.reportableChange48bit = 10; // 0.001 kWh (1 Wh)
         }
@@ -2063,7 +2059,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         if (modelId == QLatin1String("SmartPlug") ||                   // Heiman
             modelId == QLatin1String("SKHMP30-I1") ||                  // GS smart plug
             modelId == QLatin1String("SZ-ESW01-AU") ||                 // Sercomm / Telstra smart plug
-            modelId == QLatin1String("Connected socket outlet") ||     // Niko smart socket
             modelId.startsWith(QLatin1String("ROB_200")) ||            // ROBB Smarrt micro dimmer
             modelId.startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
             modelId.startsWith(QLatin1String("lumi.plug.maeu")) ||     // Xiaomi Aqara ZB3.0 smart plug
@@ -2097,7 +2092,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (modelId.startsWith(QLatin1String("ROB_200")) ||            // ROBB Smarrt micro dimmer
                  modelId.startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
-                 modelId == QLatin1String("Connected socket outlet") ||     // Niko smart socket
                  modelId.startsWith(QLatin1String("TH112")))                // Sinope Thermostats
         {
             rq2.reportableChange16bit = 10; // 1 V
@@ -2112,13 +2106,11 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq3.attributeId = 0x0508; // RMS Current
         rq3.minInterval = 1;
         rq3.maxInterval = 300;
-        if (modelId == QLatin1String("SP 120") ||                  // innr
-            modelId == QLatin1String("PoP") ||                     // Apex Smart Plug
+        if (modelId == QLatin1String("PoP") ||                     // Apex Smart Plug
             modelId == QLatin1String("DoubleSocket50AU") ||        // Aurora
             modelId.startsWith(QLatin1String("SPLZB-1")) ||        // Develco smart plug
             modelId == QLatin1String("Smart16ARelay51AU") ||       // Aurora (Develco) smart plug
             modelId == QLatin1String("SZ-ESW01-AU") ||             // Sercomm / Telstra smart plug
-            modelId == QLatin1String("Connected socket outlet") || // Niko smart socket
             modelId == QLatin1String("SMRZB-1") ||                 // Develco smart cable
             modelId == QLatin1String("TS0121"))                    // Tuya / Blitzwolf
         {
@@ -2825,8 +2817,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Whitelist sensors which don't seem to have a valid node descriptor.
         // This is a workaround currently only required for Develco smoke sensor
         // and potentially Bosch motion sensor
-        if (sensor->modelId().startsWith(QLatin1String("SMSZB-1")) ||     // Develco smoke sensor
-            sensor->modelId().startsWith(QLatin1String("EMIZB-1")) ||     // Develco EMI Norwegian HAN
+        if (sensor->modelId().startsWith(QLatin1String("EMIZB-1")) ||     // Develco EMI Norwegian HAN
             sensor->modelId().startsWith(QLatin1String("ISW-ZPR1-WP13"))) // Bosch motion sensor
         {
         }
@@ -2982,7 +2973,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("902010")) ||
         // Develco
         sensor->modelId().startsWith(QLatin1String("AQSZB-1")) ||   // air quality sensor
-        sensor->modelId().startsWith(QLatin1String("SMSZB-1")) ||   // smoke sensor
         sensor->modelId().startsWith(QLatin1String("WISZB-1")) ||   // window sensor
         sensor->modelId().startsWith(QLatin1String("FLSZB-1")) ||   // water leak sensor
         sensor->modelId().startsWith(QLatin1String("MOSZB-1")) ||   // motion sensor
@@ -3161,7 +3151,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("FNB56-")) ||
         sensor->modelId().startsWith(QLatin1String("FB56-")) ||
         // Niko
-        sensor->modelId() == QLatin1String("Connected socket outlet") ||
         sensor->modelId() == QLatin1String("Smart plug Zigbee PE") ||
         // Sage
         sensor->modelId() == QLatin1String("Bell") ||
@@ -3343,7 +3332,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             }
             else if (sensor->modelId() == QLatin1String("Motion Sensor-A") ||
                      sensor->modelId().startsWith(QLatin1String("AQSZB-1")) ||
-                     sensor->modelId().startsWith(QLatin1String("SMSZB-1")) ||
                      sensor->modelId().startsWith(QLatin1String("WISZB-1")) ||
                      sensor->modelId().startsWith(QLatin1String("MOSZB-1")) ||
                      sensor->modelId().startsWith(QLatin1String("FLSZB-1")) ||
