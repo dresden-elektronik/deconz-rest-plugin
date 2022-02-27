@@ -1860,7 +1860,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (modelId == QLatin1String("HG06323") || // LIDL
                  modelId == QLatin1String("lumi.sensor_magnet.agl02") || // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
-                 modelId == QLatin1String("lumi.flood.agl02"))           // Xiaomi Aqara T1 water leak sensor SJCGQ12LM
+                 modelId == QLatin1String("lumi.flood.agl02") ||         // Xiaomi Aqara T1 water leak sensor SJCGQ12LM
+                 modelId == QLatin1String("RBSH-WS-ZB-EU"))              // Bosch BWA-1 water sensor
         {
             rq.minInterval = 7200;
             rq.maxInterval = 7200;
@@ -3036,6 +3037,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("ISW-ZPR1-WP13")) ||
         sensor->modelId().startsWith(QLatin1String("RFDL-ZB-MS")) ||
         (sensor->node()->nodeDescriptor().manufacturerCode() == VENDOR_BOSCH2 && sensor->modelId() == QLatin1String("AIR")) ||
+        sensor->modelId() == QLatin1String("RBSH-WS-ZB-EU") || // Bosch BWA-1 water sensor
         // Salus
         sensor->modelId().contains(QLatin1String("SP600")) ||
         sensor->modelId().contains(QLatin1String("SPE600")) ||

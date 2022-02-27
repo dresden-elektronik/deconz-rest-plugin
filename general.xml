@@ -4251,6 +4251,20 @@ Outdoor Temp to Display Timeout: set 30 for 'off' and 10800 for 'on'</descriptio
 			</client>
 		</cluster>
 
+		<!-- BOSCH -->
+		<cluster id="0xfcac" name="Bosch specific" mfcode="0x1209">
+			<description>Bosch specific attributes.</description>
+			<server>
+				<attribute id="0x0000" name="Device setup time remaining" type="u16" mfcode="0x1209" access="rw" required="m"> </attribute>
+				<attribute id="0x0001" name="Motion alert reset" type="u16" mfcode="0x1209" access="rw" required="m"> </attribute>
+				<attribute id="0x0002" name="Device setup time" type="u16" mfcode="0x1209" access="rw" required="m"> </attribute>
+				<attribute id="0x0003" name="Audio alert on motion" type="bool" mfcode="0x1209" access="rw" required="m"> </attribute>
+				<attribute id="0xfffd" name="Cluster Revision" type="u16" mfcode="0x1209" access="r" required="m"> </attribute>
+			</server>
+			<client>
+			</client>
+		</cluster>
+
 		<cluster id="0xfdee" name="AIR Measurement Config" mfcode="0x1155">
 			<description>BOSCH Thermotechnik indoor air quality configuration</description>
 			<server>
@@ -4260,7 +4274,7 @@ Outdoor Temp to Display Timeout: set 30 for 'off' and 10800 for 'on'</descriptio
 			<attribute id="0x4002" name="Unknown" type="lcstring" access="r" required="m">
 				<description></description>
 			</attribute>
-			<attribute id="0x4003" name="Unkown" type="ostring" required="m" access="r">
+			<attribute id="0x4003" name="Unknown" type="ostring" required="m" access="r">
 				<description></description>
 			</attribute>
 			<attribute id="0x4004" name="Unknown" type="u8" required="m" access="r" default="0">

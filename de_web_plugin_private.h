@@ -372,6 +372,7 @@ using namespace deCONZ::literals;
 #define VENDOR_SINOPE               0x119C
 #define VENDOR_JIUZHOU              0x119D
 #define VENDOR_PAULMANN             0x119D // branded
+#define VENDOR_BOSCH3               0x1209
 #define VENDOR_HEIMAN               0x120B
 #define VENDOR_CHINA_FIRE_SEC       0x1214
 #define VENDOR_MUELLER              0x121B // Used by Mueller Licht
@@ -510,6 +511,7 @@ extern const quint64 silabs7MacPrefix;
 extern const quint64 silabs8MacPrefix;
 extern const quint64 silabs9MacPrefix;
 extern const quint64 silabs10MacPrefix;
+extern const quint64 silabs11MacPrefix;
 extern const quint64 silabs12MacPrefix;
 extern const quint64 silabs13MacPrefix;
 extern const quint64 instaMacPrefix;
