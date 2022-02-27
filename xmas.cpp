@@ -307,7 +307,8 @@ int DeRestPluginPrivate::setXmasLightStripState(const ApiRequest &req, ApiRespon
     QList<QList<quint8>> effectColours;
 
     // Check parameters.
-    for (auto p = map.constBegin(); p != map.constEnd(); p++)
+    const auto mapEnd = map.cend();
+    for (auto p = map.cbegin(); p != mapEnd; ++p)
     {
         bool paramOk = false;
         bool valueOk = false;
