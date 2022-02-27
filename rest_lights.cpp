@@ -1860,6 +1860,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
                 taskRef.lightNode->modelId() == QLatin1String("Shutter SW with level control"))
             {
                 taskRef.lightNode->setValue(RStateLift, 50);
+                taskRef.lightNode->setValue(RStateBri, 127);
             }
 
             // Rely on attribute reporting to update the light state.
@@ -1967,6 +1968,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
                 taskRef.lightNode->modelId() == QLatin1String("Shutter SW with level control"))
             {
                 taskRef.lightNode->setValue(RStateLift, 50);
+                taskRef.lightNode->setValue(RStateBri, 127);
             }
 
             // Rely on attribute reporting to update the light state.
