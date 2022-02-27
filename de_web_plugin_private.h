@@ -192,6 +192,7 @@ using namespace deCONZ::literals;
 #define ANALOG_OUTPUT_CLUSTER_ID              0x000D
 #define BINARY_INPUT_CLUSTER_ID               0x000F
 #define MULTISTATE_INPUT_CLUSTER_ID           0x0012
+#define MULTISTATE_OUTPUT_CLUSTER_ID          0x0013
 #define OTAU_CLUSTER_ID                       0x0019
 #define POLL_CONTROL_CLUSTER_ID               0x0020
 #define DOOR_LOCK_CLUSTER_ID                  0x0101
@@ -223,6 +224,7 @@ using namespace deCONZ::literals;
 #define DEVELCO_AIR_QUALITY_CLUSTER_ID        0xFC03
 #define SENGLED_CLUSTER_ID                    0xFC10
 #define LEGRAND_CONTROL_CLUSTER_ID            0xFC40
+#define XIAOMI_CLUSTER_ID                     0xFCC0
 #define ADUROLIGHT_CLUSTER_ID                 0xFCCC
 #define XAL_CLUSTER_ID                        0xFCCE
 #define BOSCH_AIR_QUALITY_CLUSTER_ID          quint16(0xFDEF)

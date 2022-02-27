@@ -3625,7 +3625,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 clusterId = clusterId ? clusterId : TUYA_CLUSTER_ID;
                 sensor.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
             }
-            
+
             item = sensor.addItem(DataTypeBool, RStateFire);
             item->setValue(false);
         }
@@ -3987,12 +3987,20 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = POWER_CONFIGURATION_CLUSTER_ID;
             }
+            else if (sensor.fingerPrint().hasInCluster(XIAOMI_CLUSTER_ID))
+            {
+                clusterId = XIAOMI_CLUSTER_ID;
+            }
             else if (sensor.fingerPrint().hasInCluster(TUYA_CLUSTER_ID))
             {
                 clusterId = TUYA_CLUSTER_ID;
             }
             item = sensor.addItem(DataTypeUInt8, RStateBattery);
             item->setValue(100);
+            if (sensor.modelId().startsWith(QLatin1String("lumi.curtain.acn002")))
+            {
+                sensor.addItem(DataTypeBool, RStateCharging);
+            }
         }
         else if (sensor.type() == QLatin1String("CLIPDaylightOffset"))
         {
@@ -4145,7 +4153,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item = sensor.addItem(DataTypeUInt16, RConfigPending);
                 item->setValue(item->toNumber() | R_PENDING_MODE);
             }
-            
+
             if (sensor.modelId() == QLatin1String("lumi.switch.n0agl1"))
             {
                 sensor.removeItem(RConfigBattery);

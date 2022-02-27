@@ -832,6 +832,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     updated = true;
                 }
+                else if (rid.suffix == RConfigSunriseOffset || rid.suffix == RConfigSunsetOffset)
+                {
+                    updated = true;
+                }
                 else if (rid.suffix == RConfigOn) // Boolean
                 {
                     updated = true;
@@ -908,7 +912,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 else if (rid.suffix == RConfigOffset) // Signed integer
                 {
                     data.integer = data.integer / 10;
-                    
+
                     if (R_GetProductId(sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
                         R_GetProductId(sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
                         R_GetProductId(sensor) == QLatin1String("Tuya_THD Essentials TRV") ||
@@ -920,9 +924,9 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         QByteArray tuyaData;
                         bool alternative = false;
-                        
+
                         qint32 offset2 = data.integer / 10;
-                        
+
                         if (offset2 > 6)  { offset2 = 6;  } // offset, min = -60, max = 60
                         if (offset2 < -6) { offset2 = -6; }
 
@@ -1013,7 +1017,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         // UPD 16-11-2020: Since there is no way to reckognize older and newer models correctly and a new firmware version is on its way this
                         //                 'fix' is changed to a more robust but ugly implementation by simply sending both codes to the device. One of the commands
                         //                 will be accepted while the other one will be refused. Let's hope this code can be removed in a future release.
-                        
+
                         TaskItem task2 ;
                         task2.req.dstAddress() = sensor->address();
                         task2.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
@@ -1312,7 +1316,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                      sensor->modelId() == QLatin1String("SLR1b"))
                             {
                                 attributeList.insert(THERM_ATTRID_SYSTEM_MODE, (quint32)match.value);
-                                
+
                                 // Change automatically the Setpoint Hold
                                 // Add a timer for Boost mode
                                 if      (match.value == 0x00) { attributeList.insert(THERM_ATTRID_TEMPERATURE_SETPOINT_HOLD, (quint32)0x00); }

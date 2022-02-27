@@ -1422,7 +1422,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.minInterval = 1;
             rq.maxInterval = 600;
             rq.reportableChange16bit = 50;
-            
+
             ConfigureReportingRequest rq2;
             rq2.dataType = deCONZ::Zcl8BitUint;
             rq2.attributeId = 0x0008;        // Pi heating demand
@@ -1548,7 +1548,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.minInterval = 0;
             rq.maxInterval = 300;
             rq.reportableChange16bit = 10;
-            
+
             ConfigureReportingRequest rq2;
             rq2.dataType = deCONZ::Zcl16BitInt;
             rq2.attributeId = 0x0011;        // Occupied cooling setpoint
@@ -2578,6 +2578,10 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         }
         else if (lightNode->manufacturerCode() == VENDOR_XIAOMI)
         {
+            if (lightNode->modelId().startsWith(QLatin1String("lumi.curtain.acn002")))
+            {
+                return;
+            }
         }
         else if (lightNode->manufacturerCode() == VENDOR_STELPRO)
         {
@@ -3060,7 +3064,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("TS0041")) ||
         sensor->modelId().startsWith(QLatin1String("TS0044")) ||
         sensor->modelId().startsWith(QLatin1String("TS0203")) ||
-        sensor->modelId().startsWith(QLatin1String("TS0222")) || // TYZB01 light sensor 
+        sensor->modelId().startsWith(QLatin1String("TS0222")) || // TYZB01 light sensor
         sensor->modelId().startsWith(QLatin1String("TS004F")) || // 4 Gang Tuya ZigBee Wireless 12 Scene Switch
         sensor->modelId().startsWith(QLatin1String("TS011F")) || // Plugs
         // Tuyatec
