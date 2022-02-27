@@ -82,12 +82,12 @@ static void tlvColour(QDataStream &stream, quint16 hue, quint8 sat, quint8 bri)
     stream.writeRawData(s, strlen(s));
 }
 
-static void tlvEffect(QDataStream &stream, XmasLightStripEffect effect, quint8 speed, QList<QList<quint8>> &colours)
+static void tlvEffect(QDataStream &stream, XmasLightStripEffect effect, quint8 speed, const QList<QList<quint8>> &colours)
 {
     char s[41];
     sprintf(s, "%02x%02x", effect, speed);
     int i = 4;
-    for (const QList<quint8> colour: colours)
+    for (const QList<quint8> &colour: colours)
     {
         sprintf(s + i, "%02x%02x%02x", colour[0], colour[1], colour[2]);
         i += 6;
@@ -242,7 +242,7 @@ bool DeRestPluginPrivate::addTaskXmasLightStripColour(TaskItem &task, quint16 hu
     \param colours - a list of 0 to 6 RGB colours.  Each colour is a list of 3 quint8 values.
     \note The lightstrip uses RGB values to set the effect colours.
  */
-bool DeRestPluginPrivate::addTaskXmasLightStripEffect(TaskItem &task, XmasLightStripEffect effect, quint8 speed, QList<QList<quint8>> &colours)
+bool DeRestPluginPrivate::addTaskXmasLightStripEffect(TaskItem &task, XmasLightStripEffect effect, quint8 speed, const QList<QList<quint8>> &colours)
 {
     const quint8 seq = zclSeq++;
     initTask(task, seq);
@@ -307,7 +307,7 @@ int DeRestPluginPrivate::setXmasLightStripState(const ApiRequest &req, ApiRespon
     QList<QList<quint8>> effectColours;
 
     // Check parameters.
-    for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
+    for (auto p = map.constBegin(); p != map.constEnd(); p++)
     {
         bool paramOk = false;
         bool valueOk = false;
@@ -397,14 +397,16 @@ int DeRestPluginPrivate::setXmasLightStripState(const ApiRequest &req, ApiRespon
             ok = true;
             if (map[param].type() == QVariant::List)
             {
-                QVariantList colours = map["effectColours"].toList();
-                if (colours.length() <= 6) {
-                    for (const QVariant colour: colours)
+                const QVariantList colours = map["effectColours"].toList();
+                if (colours.length() <= 6)
+                {
+                    for (const QVariant &colour: colours)
                     {
                         if (colour.type() == QVariant::List)
                         {
                             QVariantList rgb = colour.toList();
-                            if (rgb.length() != 3) {
+                            if (rgb.length() != 3)
+                            {
                                 ok = false;
                                 break;
                             }

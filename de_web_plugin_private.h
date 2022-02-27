@@ -1556,7 +1556,7 @@ public:
     bool addTaskXmasLightStripMode(TaskItem &task, XmasLightStripMode mode);
     bool addTaskXmasLightStripWhite(TaskItem &task, quint8 bri);
     bool addTaskXmasLightStripColour(TaskItem &task, quint16 hue, quint8 sat, quint8 bri);
-    bool addTaskXmasLightStripEffect(TaskItem &task, XmasLightStripEffect effect, quint8 speed, QList<QList<quint8>> &colours);
+    bool addTaskXmasLightStripEffect(TaskItem &task, XmasLightStripEffect effect, quint8 speed, const QList<QList<quint8> > &colours);
     int setXmasLightStripState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
 
     void handleGroupClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
