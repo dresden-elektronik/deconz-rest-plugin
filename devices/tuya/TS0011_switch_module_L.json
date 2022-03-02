@@ -6,7 +6,6 @@
   "product": "1CH Switch module L no neutral",
   "sleeper": false,
   "status": "Bronze",
-  "path": "/devices/SML-01Z-L.json",
   "subdevices": [
     {
       "type": "$TYPE_ON_OFF_OUTPUT",
