@@ -1,12 +1,12 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "_TZ3000_ji4araar",
+  "manufacturername": "TS0011",
   "modelid": "TS0011",
-  "vendor": "Tuya",
-  "product": "TS0011",
+  "vendor": "SML-01Z-L",
+  "product": "1CH Switch module L no neutral",
   "sleeper": false,
   "status": "Bronze",
-  "path": "/devices/ts0011.json",
+  "path": "/devices/SML-01Z-L.json",
   "subdevices": [
     {
       "type": "$TYPE_ON_OFF_OUTPUT",
