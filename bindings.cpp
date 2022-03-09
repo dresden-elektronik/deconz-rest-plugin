@@ -2578,10 +2578,6 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         }
         else if (lightNode->manufacturerCode() == VENDOR_XIAOMI)
         {
-            if (lightNode->modelId().startsWith(QLatin1String("lumi.curtain.acn002")))
-            {
-                return;
-            }
         }
         else if (lightNode->manufacturerCode() == VENDOR_STELPRO)
         {

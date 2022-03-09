@@ -179,6 +179,16 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
                 }
             }
 
+            // DDF enforce sub device "type" (enables overwriting the type from C++ code)
+            if (item->descriptor().suffix == RAttrType)
+            {
+                const QString type = DeviceDescriptions::instance()->constantToString(sub.type);
+                if (type != item->toString() && !type.startsWith('$'))
+                {
+                    item->setValue(type);
+                }
+            }
+
             if (item->descriptor().suffix == RConfigGroup)
             {
                 if (item->toString().isEmpty() && !ddfItem.defaultValue.isNull())

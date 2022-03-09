@@ -1541,7 +1541,8 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     quint8 targetSpeed = 0;
 
     // Check parameters.
-    for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
+    const auto mapEnd = map.cend();
+    for (auto p = map.cbegin(); p != mapEnd; ++p)
     {
         bool paramOk = false;
         bool valueOk = false;
