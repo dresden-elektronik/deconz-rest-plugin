@@ -766,6 +766,22 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         sensor->setNextReadTime(WRITE_DEVICEMODE, QTime::currentTime());
                         updated = true;
                     }
+                    else if (!data.string.isEmpty())
+                    {
+                        StateChange change(StateChange::StateWaitSync, SC_WriteZclAttribute, task.req.dstEndpoint());
+                        change.addTargetValue(rid.suffix, data.string);
+                        Resource *rsub = DEV_GetSubDevice(device, nullptr, sensor->uniqueId());
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
+                }
+                else if (rid.suffix == RConfigClickMode && !data.string.isEmpty()) // String
+                {
+                    StateChange change(StateChange::StateWaitSync, SC_WriteZclAttribute, task.req.dstEndpoint());
+                    change.addTargetValue(rid.suffix, data.string);
+                    Resource *rsub = DEV_GetSubDevice(device, nullptr, sensor->uniqueId());
+                    rsub->addStateChange(change);
+                    updated = true;
                 }
                 else if (rid.suffix == RConfigTholdDark || rid.suffix == RConfigTholdOffset) // Unsigned integer
                 {

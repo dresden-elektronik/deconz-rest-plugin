@@ -171,6 +171,7 @@ const char *RConfigAlert = "config/alert";
 const char *RConfigAllowTouchlink = "config/allowtouchlink";
 const char *RConfigLock = "config/lock";
 const char *RConfigBattery = "config/battery";
+const char *RConfigClickMode = "config/clickmode";
 const char *RConfigColorCapabilities = "config/colorcapabilities";
 const char *RConfigConfigured = "config/configured";
 const char *RConfigControlSequence = "config/controlsequence";
@@ -384,6 +385,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigArmedNightTriggerDuration, 0, 255));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigLock));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigBattery, 0, 100));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigClickMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigColorCapabilities));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigCtMin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigCtMax));
