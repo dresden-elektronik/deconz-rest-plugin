@@ -1074,9 +1074,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.dataType = deCONZ::Zcl16BitInt;
         rq.attributeId = 0x0000;       // measured value
 
-        if (modelId.startsWith(QLatin1String("AQSZB-1")) ||         // Develco air quality sensor
-            modelId.startsWith(QLatin1String("MOSZB-1")) ||         // Develco motion sensor
-            modelId.startsWith(QLatin1String("WISZB-1")) ||         // Develco window sensor
+        if (modelId.startsWith(QLatin1String("MOSZB-1")) ||         // Develco motion sensor
             modelId.startsWith(QLatin1String("FLSZB-1")) ||         // Develco water leak sensor
             modelId.startsWith(QLatin1String("ZHMS101")) ||         // Wattle (Develco) magnetic sensor
             modelId.startsWith(QLatin1String("MotionSensor51AU")))  // Aurora (Develco) motion sensor
@@ -1757,13 +1755,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.maxInterval = 300;
         rq.reportableChange16bit = 100; // resolution: 1%
 
-        if (modelId.startsWith(QLatin1String("AQSZB-1")) ||  // Develco air quality sensor
-            modelId.startsWith(QLatin1String("HMSZB-1")))    // Develco temp/hum sensor
-        {
-            rq.minInterval = 60;
-            rq.maxInterval = 600;
-        }
-
         return sendConfigureReportingRequest(bt, {rq});
     }
     else if (bt.binding.clusterId == PRESSURE_MEASUREMENT_CLUSTER_ID)
@@ -1916,12 +1907,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 21600;
             rq.reportableChange8bit = 0;
         }
-        else if (modelId.startsWith(QLatin1String("AQSZB-1")) ||         // Develco air quality sensor
-                 modelId.startsWith(QLatin1String("MOSZB-1")) ||         // Develco motion sensor
-                 modelId.startsWith(QLatin1String("WISZB-1")) ||         // Develco window sensor
+        else if (modelId.startsWith(QLatin1String("MOSZB-1")) ||         // Develco motion sensor
                  modelId.startsWith(QLatin1String("FLSZB-1")) ||         // Develco water leak sensor
                  modelId.startsWith(QLatin1String("SIRZB-1")) ||         // Develco siren
-                 modelId.startsWith(QLatin1String("HMSZB-1")) ||         // Develco temp/hum sensor
                  modelId.startsWith(QLatin1String("ZHMS101")) ||         // Wattle (Develco) magnetic sensor
                  modelId.startsWith(QLatin1String("MotionSensor51AU")))  // Aurora (Develco) motion sensor
         {
@@ -2082,8 +2070,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             modelId == QLatin1String("PoP") ||                 // Apex Smart Plug
             modelId == QLatin1String("SKHMP30-I1") ||          // GS smart plug
             modelId == QLatin1String("SMRZB-1") ||             // Develco smart cable
-            modelId == QLatin1String("Smart16ARelay51AU") ||   // Aurora (Develco) smart plug
-            modelId.startsWith(QLatin1String("SPLZB-1")))      // Develco smart plug
+            modelId == QLatin1String("Smart16ARelay51AU"))     // Aurora (Develco) smart plug
         {
             rq2.reportableChange16bit = 100; // 1 V
         }
@@ -2109,7 +2096,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq3.maxInterval = 300;
         if (modelId == QLatin1String("PoP") ||                     // Apex Smart Plug
             modelId == QLatin1String("DoubleSocket50AU") ||        // Aurora
-            modelId.startsWith(QLatin1String("SPLZB-1")) ||        // Develco smart plug
             modelId == QLatin1String("Smart16ARelay51AU") ||       // Aurora (Develco) smart plug
             modelId == QLatin1String("SZ-ESW01-AU") ||             // Sercomm / Telstra smart plug
             modelId == QLatin1String("SMRZB-1") ||                 // Develco smart cable
@@ -2478,19 +2464,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
         }
     }
-    else if (bt.binding.clusterId == DEVELCO_AIR_QUALITY_CLUSTER_ID)
-    {
-        if (modelId == QLatin1String("AQSZB-110")) // Develco air quality sensor
-        {
-            rq.dataType = deCONZ::Zcl16BitUint;
-            rq.attributeId = 0x0000;       // Measured value
-            rq.minInterval = 60;
-            rq.maxInterval = 600;
-            rq.reportableChange16bit = 10; // According to technical manual
 
-            return sendConfigureReportingRequest(bt, {rq});
-        }
-    }
     return false;
 }
 
@@ -2977,8 +2951,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Bitron
         sensor->modelId().startsWith(QLatin1String("902010")) ||
         // Develco
-        sensor->modelId().startsWith(QLatin1String("AQSZB-1")) ||   // air quality sensor
-        sensor->modelId().startsWith(QLatin1String("WISZB-1")) ||   // window sensor
         sensor->modelId().startsWith(QLatin1String("FLSZB-1")) ||   // water leak sensor
         sensor->modelId().startsWith(QLatin1String("MOSZB-1")) ||   // motion sensor
         sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
@@ -2987,8 +2959,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("SMRZB-3")) ||   // Smart Relay DIN
         sensor->modelId().startsWith(QLatin1String("SMRZB-1")) ||   // Smart Cable
         sensor->modelId().startsWith(QLatin1String("SIRZB-1")) ||   // siren
-        sensor->modelId().startsWith(QLatin1String("SPLZB-1")) ||   // smart plug
-        sensor->modelId().startsWith(QLatin1String("HMSZB-1")) ||   // temp/hum sensor
         sensor->modelId() == QLatin1String("MotionSensor51AU") ||   // Aurora (Develco) motion sensor
         sensor->modelId() == QLatin1String("Smart16ARelay51AU") ||  // Aurora (Develco) smart plug
         // LG
@@ -3512,17 +3482,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         {
             val = sensor->getZclValue(*i, 0x0012); // Acceleration X
         }
-        else if (*i == DEVELCO_AIR_QUALITY_CLUSTER_ID)
-        {
-            if (sensor->modelId() == QLatin1String("AQSZB-110"))     // Develco air quality sensor
-            {
-                val = sensor->getZclValue(*i, 0x0000); // Measured value
-            }
-            else
-            {
-                continue;
-            }
-        }
 
         quint16 maxInterval = val.maxInterval > 0 && val.maxInterval < 65535 ? (val.maxInterval * 3 / 2) : (60 * 15);
 
@@ -3581,7 +3540,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         case SAMJIN_CLUSTER_ID:
         case DOOR_LOCK_CLUSTER_ID:
         case BOSCH_AIR_QUALITY_CLUSTER_ID:
-        case DEVELCO_AIR_QUALITY_CLUSTER_ID:
         {
             // For the moment reserved to doorlock device
             if (*i == DOOR_LOCK_CLUSTER_ID && sensor->type() != QLatin1String("ZHADoorLock"))

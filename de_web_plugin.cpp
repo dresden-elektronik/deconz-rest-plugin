@@ -366,16 +366,11 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_STELPRO, "ST218", xalMacPrefix }, // Stelpro Thermostat
     { VENDOR_STELPRO, "STZB402", xalMacPrefix }, // Stelpro baseboard thermostat
     { VENDOR_STELPRO, "SORB", xalMacPrefix }, // Stelpro Orleans Fan
-    { VENDOR_DEVELCO, "AQSZB-1", develcoMacPrefix }, // Develco air quality sensor
-    { VENDOR_DEVELCO, "SPLZB-1", develcoMacPrefix }, // Develco smart plug
-    { VENDOR_DEVELCO, "WISZB-1", develcoMacPrefix }, // Develco window sensor
-    { VENDOR_DEVELCO, "MOSZB-1", develcoMacPrefix }, // Develco motion sensor
     { VENDOR_DEVELCO, "FLSZB-1", develcoMacPrefix }, // Develco water leak sensor
     { VENDOR_DEVELCO, "EMIZB-1", develcoMacPrefix }, // Develco EMI Norwegian HAN
     { VENDOR_DEVELCO, "SMRZB-3", develcoMacPrefix }, // Develco Smart Relay DIN
     { VENDOR_DEVELCO, "SMRZB-1", develcoMacPrefix }, // Develco Smart Cable
     { VENDOR_DEVELCO, "SIRZB-1", develcoMacPrefix }, // Develco siren
-    { VENDOR_DEVELCO, "HMSZB-1", develcoMacPrefix }, // Develco temp/hum sensor
     { VENDOR_DEVELCO, "ZHMS101", develcoMacPrefix }, // Wattle (Develco) magnetic sensor
     { VENDOR_DEVELCO, "ZHEMI101", develcoMacPrefix }, // Wattle (Develco) External Meter Interface
     { VENDOR_DEVELCO, "MotionSensor51AU", develcoMacPrefix }, // Aurora (Develco) motion sensor
@@ -1350,7 +1345,6 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             handleIdentifyClusterIndication(ind, zclFrame);
             break;
 
-        case DEVELCO_AIR_QUALITY_CLUSTER_ID: // Develco specific -> VOC Management
         case BOSCH_AIR_QUALITY_CLUSTER_ID: // Bosch Air quality sensor
             if (!DEV_TestStrict()) { handleAirQualityClusterIndication(ind, zclFrame); }
             break;
@@ -5947,7 +5941,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId == QLatin1String("3AFE130104020015") ||                    // Konke door/window sensor
                              modelId == QLatin1String("e70f96b3773a4c9283c6862dbafb6a99") ||    // Orvibo door/window sensor
                              modelId.startsWith(QLatin1String("902010/21")) ||                  // Bitron door/window sensor
-                             modelId.startsWith(QLatin1String("WISZB-1")) ||                    // Develco door/window sensor
                              modelId.startsWith(QLatin1String("ZHMS101")) ||                    // Wattle (Develco) door/window sensor
                              modelId.startsWith(QLatin1String("4655BC0")) ||                    // Ecolink contact sensor
                              modelId.startsWith(QLatin1String("3300")) ||                       // Centralite contact sensor
@@ -6423,15 +6416,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         modelId == QLatin1String("eT093WRO"))     // POPP smart thermostat
                     {
                         fpTimeSensor.inClusters.push_back(ci->id());
-                    }
-                }
-                    break;
-
-                case DEVELCO_AIR_QUALITY_CLUSTER_ID:
-                {
-                    if (modelId == QLatin1String("AQSZB-110"))  // Develco air quality sensor
-                    {
-                        fpAirQualitySensor.inClusters.push_back(ci->id());
                     }
                 }
                     break;
@@ -7092,8 +7076,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         }
 
         // ZHAAirQuality
-        if (fpAirQualitySensor.hasInCluster(DEVELCO_AIR_QUALITY_CLUSTER_ID) || // Develco specific -> VOC Management
-            fpAirQualitySensor.hasInCluster(ANALOG_INPUT_CLUSTER_ID) ||        // Xiaomi Aqara TVOC Air Quality Monitor
+        if (fpAirQualitySensor.hasInCluster(ANALOG_INPUT_CLUSTER_ID) ||        // Xiaomi Aqara TVOC Air Quality Monitor
             fpAirQualitySensor.hasInCluster(BOSCH_AIR_QUALITY_CLUSTER_ID))     // Bosch Air quality sensor
         {
             fpAirQualitySensor.endpoint = i->endpoint();
@@ -7823,11 +7806,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     }
     else if (sensorNode.type().endsWith(QLatin1String("AirQuality")))
     {
-        if (sensorNode.fingerPrint().hasInCluster(DEVELCO_AIR_QUALITY_CLUSTER_ID))
-        {
-            clusterId = DEVELCO_AIR_QUALITY_CLUSTER_ID;
-        }
-        else if (sensorNode.fingerPrint().hasInCluster(BOSCH_AIR_QUALITY_CLUSTER_ID))
+        if (sensorNode.fingerPrint().hasInCluster(BOSCH_AIR_QUALITY_CLUSTER_ID))
         {
             clusterId = BOSCH_AIR_QUALITY_CLUSTER_ID;
 
@@ -7840,8 +7819,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             clusterId = ANALOG_INPUT_CLUSTER_ID;
         }
 
-        if (modelId == QLatin1String("AQSZB-110") ||                // Develco air quality sensor
-            modelId == QLatin1String("lumi.airmonitor.acn01") ||    // Xiaomi Aqara TVOC Air Quality Monitor
+        if (modelId == QLatin1String("lumi.airmonitor.acn01") ||    // Xiaomi Aqara TVOC Air Quality Monitor
             (node->nodeDescriptor().manufacturerCode() == VENDOR_BOSCH2 && modelId == QLatin1String("AIR")))  // Bosch air quality sensor
         {
             item = sensorNode.addItem(DataTypeString, RStateAirQuality);
