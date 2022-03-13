@@ -4,7 +4,7 @@
   "modelid": "SMARTPLUG/1",
   "product": "SMARTPLUG/1",
   "sleeper": false,
-  "status": "Bronze",
+  "status": "Silver",
   "path": "/devices/schneider.json",
   "subdevices": [
     {
@@ -180,8 +180,8 @@
         {
           "at": "0x0000",
           "dt": "0x25",
-          "min": 300,
-          "max": 43200,
+          "min": 1,
+          "max": 60,
           "change": "0x00000001"
         }
       ]
@@ -194,9 +194,36 @@
         {
           "at": "0x050B",
           "dt": "0x29",
-          "min": 300,
-          "max": 43200,
+          "min": 1,
+          "max": 60,
           "change": "0x00000001"
+        },
+        {
+          "at": "0x0508",
+          "dt": "0x21",
+          "min": 1,
+          "max": 60,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0505",
+          "dt": "0x21",
+          "min": 1,
+          "max": 60,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 1800
         }
       ]
     }
