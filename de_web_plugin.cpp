@@ -162,7 +162,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_BOSCH, "ISW-ZPR1-WP13", boschMacPrefix },
     { VENDOR_BOSCH, "RFDL-ZB-MS", emberMacPrefix }, // Bosch motion sensor
     { VENDOR_BOSCH2, "AIR", tiMacPrefix }, // Bosch Air quality sensor
-    { VENDOR_BOSCH3, "RBSH-WS-ZB-EU", silabs11MacPrefix }, // Bosch BWA-1 water sensor
     { VENDOR_CENTRALITE, "Motion Sensor-A", emberMacPrefix },
     { VENDOR_CENTRALITE, "3321-S", emberMacPrefix }, // Centralite multipurpose sensor
     { VENDOR_CENTRALITE, "3325-S", emberMacPrefix }, // Centralite motion sensor
@@ -6010,7 +6009,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("lumi.sensor_wleak")) || // Xiaomi Aqara flood sensor
                              modelId == QLatin1String("lumi.flood.agl02") ||          // Xiaomi Aqara T1 water leak sensor SJCGQ12LM
                              modelId == QLatin1String("CCT592011_AS") ||              // LK Wiser Water Leak Sensor
-                             modelId == QLatin1String("RBSH-WS-ZB-EU") ||             // Bosch BWA-1 water sensor
                              modelId.startsWith(QLatin1String("moisturev4")) ||       // SmartThings water leak sensor
                              modelId.startsWith(QLatin1String("WL4200")) ||           // Sinope Water Leak detector
                              modelId.startsWith(QLatin1String("3315")) ||             // Centralite water sensor
