@@ -91,12 +91,23 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         return;
     }
 
-    // Note(mpi) DDF devices that aren't using {"parse": "fn": "tuya"} might have troubles here?
+    // Note(mpi) DDF devices that are using {"parse": "fn": "tuya"} are expected
+    // to not use this function other than for time sync.
     if (device && device->managed())
     {
         if (zclFrame.commandId() != TUYA_TIME_SYNCHRONISATION)
         {
-            return;
+            // clumsy workaround to not interfere with DDF handlers
+            for (const Resource *r : device->subDevices())
+            {
+                for (int i = 0; i < r->itemCount(); i++)
+                {
+                    if (r->itemForIndex(size_t(i))->parseFunction() == parseTuyaData)
+                    {
+                        return;
+                    }
+                }
+            }
         }
     }
 

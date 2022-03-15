@@ -35,6 +35,8 @@ typedef bool (*ParseFunction_t)(Resource *r, ResourceItem *item, const deCONZ::A
 typedef DA_ReadResult (*ReadFunction_t)(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, const QVariant &readParameters);
 typedef bool (*WriteFunction_t)(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, const QVariant &writeParameters);
 
+// temporary expose parseTuyaData for check in tuya.cpp
+bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, const QVariant &parseParameters);
 ParseFunction_t DA_GetParseFunction(const QVariant &params);
 ReadFunction_t DA_GetReadFunction(const QVariant &params);
 WriteFunction_t DA_GetWriteFunction(const QVariant &params);
