@@ -87,7 +87,7 @@
             "at": "0x0125",
             "cl": "0xfcc0",
             "ep": 1,
-            "eval": "if (Attr.val == 1) { Item.val = 'highspeed' } else if (Attr.val == 2) { Item.val = 'multiclick' } else { Item.val == 'unknown' }",
+            "eval": "if (Attr.val == 1) { Item.val = 'highspeed' } else if (Attr.val == 2) { Item.val = 'multiclick' } else { Item.val = 'unknown' }",
             "fn": "zcl",
             "mf": "0x115f"
           },
@@ -119,7 +119,7 @@
             "at": "0x0009",
             "cl": "0xfcc0",
             "ep": 1,
-            "eval": "if (Attr.val == 1) { Item.val = 'compatibility' } else if (Attr.val == 2) { Item.val = 'zigbee' } else { Item.val == 'unknown' }",
+            "eval": "if (Attr.val == 1) { Item.val = 'compatibility' } else if (Attr.val == 2) { Item.val = 'zigbee' } else { Item.val = 'unknown' }",
             "fn": "zcl",
             "mf": "0x115f"
           },
