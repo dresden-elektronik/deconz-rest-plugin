@@ -15,6 +15,7 @@
 #include <QVariantMap>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
+#include "device_descriptions.h"
 #include "json.h"
 #include "connectivity.h"
 #include "colorspace.h"
@@ -487,6 +488,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
+    Device *device = static_cast<Device*>(taskRef.lightNode->parentResource());
     rsp.httpStatus = HttpStatusOk;
 
     if (!taskRef.lightNode->isAvailable())
@@ -535,6 +537,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         // light, don't use tuya stuff (for the moment)
         else if (taskRef.lightNode->item(RStateColorMode))
+        {
+        }
+        // handle by device code
+        else if (device && device->managed())
         {
         }
         //switch and siren
@@ -931,15 +937,6 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                     ? ONOFF_COMMAND_ON_WITH_TIMED_OFF
                     : ONOFF_COMMAND_ON;
             ok = addTaskSetOnOff(task, cmd, taskRef.onTime, 0);
-
-            StateChange change(StateChange::StateWaitSync, SC_SetOnOff, task.req.dstEndpoint());
-            change.addTargetValue(RStateOn, 0x01);
-            change.addParameter(QLatin1String("cmd"), cmd);
-            if (cmd == ONOFF_COMMAND_ON_WITH_TIMED_OFF)
-            {
-                change.addParameter(QLatin1String("ontime"), taskRef.onTime);
-            }
-            taskRef.lightNode->addStateChange(change);
         }
 
         if (ok)
@@ -1453,11 +1450,6 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                     ? ONOFF_COMMAND_OFF_WITH_EFFECT
                     : ONOFF_COMMAND_OFF;
             ok = addTaskSetOnOff(task, cmd, 0, 0);
-
-            StateChange change(StateChange::StateWaitSync, SC_SetOnOff, task.req.dstEndpoint());
-            change.addTargetValue(RStateOn, 0x00);
-            change.addParameter(QLatin1String("cmd"), cmd);
-            taskRef.lightNode->addStateChange(change);
         }
 
         if (ok)

@@ -1323,7 +1323,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         case TUYA_CLUSTER_ID:
             // Tuya manfacture cluster:
-            handleTuyaClusterIndication(ind, zclFrame);
+            handleTuyaClusterIndication(ind, zclFrame, device);
             break;
 
         case THERMOSTAT_CLUSTER_ID:
