@@ -69,22 +69,6 @@ void DeRestPluginPrivate::handleAirQualityClusterIndication(const deCONZ::ApsDat
 
             switch (attrId)
             {
-            case 0x0000: // Measured value
-            {
-                if (ind.clusterId() == 0xFC03 && sensor->modelId() == QLatin1String("AQSZB-110"))    // Develco air quality sensor
-                {
-                    level = attr.numericValue().u16;
-
-                    const auto match = lessThenKeyValue(level, RStateAirQualityVocLevelGer);
-
-                    if (match.key)
-                    {
-                        airquality = match.value;
-                    }
-                }
-            }
-                break;
-
             case 0x4004:
             {
                 // Bosch air quality sensor
