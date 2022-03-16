@@ -1873,8 +1873,34 @@ by the Poll Control Cluster Client.</description>
 				<value name="Off" value="0"></value>
 				<value name="On" value="1"></value>
 			</attribute>
-            <attribute id="0xf003" name="Calibration time (tenth of a second)" type="u16" default="0x0000" required="m" access="rw"></attribute>
-        </attribute-set>
+			<attribute id="0xf003" name="Calibration time (tenth of a second)" type="u16" default="0x0000" required="m" access="rw"></attribute>
+		</attribute-set>
+
+		<attribute-set id="0xe000" description="Merten specific" mfcode="0x105e">
+			<attribute id="0xe000" name="Cover run time" type="u16" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
+			<attribute id="0xe010" name="Unknown" type="bmp8" required="m" access="r" mfcode="0x105e">
+				<value name="Unknown" value="0"></value>
+				<value name="Unknown" value="1"></value>
+				<value name="Unknown" value="2"></value>
+				<value name="Unknown" value="3"></value>
+				<value name="Unknown" value="4"></value>
+				<value name="Unknown" value="5"></value>
+				<value name="Unknown" value="6"></value>
+				<value name="Unknown" value="7"></value>
+			</attribute>
+			<attribute id="0xe012" name="Unknown" type="u16" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
+			<attribute id="0xe013" name="Unknown" type="bmp8" required="m" access="r" mfcode="0x105e">
+				<value name="Unknown" value="0"></value>
+				<value name="Unknown" value="1"></value>
+				<value name="Unknown" value="2"></value>
+				<value name="Unknown" value="3"></value>
+				<value name="Unknown" value="4"></value>
+				<value name="Unknown" value="5"></value>
+				<value name="Unknown" value="6"></value>
+				<value name="Unknown" value="7"></value>
+			</attribute>
+		</attribute-set>
+
         <command id="0x00" dir="recv" name="Up / Open" required="m"></command>
         <command id="0x01" dir="recv" name="Down / Close" required="m"></command>
         <command id="0x02" dir="recv" name="Stop" required="m"></command>
@@ -4519,6 +4545,40 @@ Writing 1 to 0x0202 and 0x0302 makes 0x0300 writable. Then writing 1 to 0x0300 s
 				<attribute id="0x0102" name="Electrical measurement noise w load" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
 				<attribute id="0x0103" name="Electrical measurement noise w/o load" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
 				<attribute id="0xFFFD" name="Cluster revision" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
+			</server>
+			<client>
+			</client>
+		</cluster>
+
+		<!-- MERTEN WISER -->
+		<cluster id="0xff17" name="Merten specific" mfcode="0x105e">
+			<description>Merten specific attributes.</description>
+			<server>
+				<attribute id="0x0000" name="Unknown" type="enum8" mfcode="0x105e" access="rw" required="m">
+					<value name="Unknown" value="0"></value>
+					<value name="Unknown" value="1"></value>
+					<value name="Unknown" value="2"></value>
+					<value name="Unknown" value="3"></value>
+					<value name="Unknown" value="4"></value>
+					<value name="Unknown" value="5"></value>
+					<value name="Unknown" value="6"></value>
+					<value name="Unknown" value="7"></value>
+				</attribute>
+				<attribute id="0x0001" name="Unknown" type="enum8" mfcode="0x105e" access="rw" required="m">
+					<value name="Unknown" value="0"></value>
+					<value name="Unknown" value="1"></value>
+					<value name="Unknown" value="2"></value>
+					<value name="Unknown" value="3"></value>
+					<value name="Unknown" value="4"></value>
+					<value name="Unknown" value="5"></value>
+					<value name="Unknown" value="6"></value>
+					<value name="Unknown" value="7"></value>
+				</attribute>
+				<attribute id="0x0010" name="Unknown" type="u8" mfcode="0x105e" access="rw" required="m"> </attribute>
+				<attribute id="0x0011" name="Unknown" type="u16" mfcode="0x105e" access="rw" required="m"> </attribute>
+				<attribute id="0x0020" name="Unknown" type="u8" mfcode="0x105e" access="rw" required="m"> </attribute>
+				<attribute id="0x0021" name="Unknown" type="u16" mfcode="0x105e" access="rw" required="m"> </attribute>
+				<attribute id="0xfffd" name="Cluster Revision" type="u16" mfcode="0x105e" access="r" required="m"> </attribute>
 			</server>
 			<client>
 			</client>
