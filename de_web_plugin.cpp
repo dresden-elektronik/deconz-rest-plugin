@@ -285,7 +285,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_XIAOMI, "lumi.plug", xiaomiMacPrefix }, // Xiaomi smart plugs (router)
     { VENDOR_XIAOMI, "lumi.switch.b1naus01", xiaomiMacPrefix }, // Xiaomi Aqara ZB3.0 Smart Wall Switch Single Rocker WS-USC03
     // { VENDOR_XIAOMI, "lumi.curtain", jennicMacPrefix}, // Xiaomi curtain controller (router) - exposed only as light
-    { VENDOR_XIAOMI, "lumi.curtain.acn002", lumiMacPrefix}, // Xiaomi roller shade driver E1
     { VENDOR_XIAOMI, "lumi.curtain.hagl04", xiaomiMacPrefix}, // Xiaomi B1 curtain controller
     { VENDOR_XIAOMI, "lumi.remote.cagl01", xiaomiMacPrefix },  // Xiaomi Aqara T1 Cube MFKZQ11LM
     { VENDOR_XIAOMI, "lumi.sensor_magnet.agl02", xiaomiMacPrefix}, // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
@@ -2426,7 +2425,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     }
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_KEEN_HOME || // Keen Home Vent
         node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC || // Xiaomi lumi.ctrl_neutral1, lumi.ctrl_neutral2
-        node->nodeDescriptor().manufacturerCode() == VENDOR_XIAOMI || // Xiaomi lumi.curtain.hagl04, lumi.curtain.acn002
+        node->nodeDescriptor().manufacturerCode() == VENDOR_XIAOMI || // Xiaomi lumi.curtain.hagl04
         node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER || // atsmart Z6-03 switch + Heiman plug + Tuya stuff
         (!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == VENDOR_NONE) || // Climax Siren
         node->nodeDescriptor().manufacturerCode() == VENDOR_DEVELCO || // Develco Smoke sensor with siren
@@ -4078,20 +4077,27 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
             }
             else if (ic->id() == ANALOG_OUTPUT_CLUSTER_ID && (event.clusterId() == ANALOG_OUTPUT_CLUSTER_ID))
             {
-                if (!(lightNode->modelId().startsWith(QLatin1String("lumi.curtain"))))
+                if (!lightNode->modelId().startsWith(QLatin1String("lumi.curtain")))
                 {
                     continue; // ignore except for lumi.curtain
                 }
 
-                std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
-                std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
+                auto ia = ic->attributes().cbegin();
+                const auto enda = ic->attributes().cend();
+
                 for (;ia != enda; ++ia)
                 {
                     if (ia->id() == 0x0055) // Present Value
                     {
+                        if (ia->numericValue().real < 0.0f || ia->numericValue().real > 100.0f)
+                        {
+                            // invalid value range
+                            break;
+                        }
+
                         lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
 
-                        quint8 lift = 100 - ia->numericValue().real;
+                        int lift = 100 - int(ia->numericValue().real);
                         bool open = lift < 100;
                         if (lightNode->setValue(RStateLift, lift))
                         {
