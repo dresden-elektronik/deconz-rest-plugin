@@ -187,6 +187,7 @@
 				<description>Set to 0x22 (0xFE) to connect (disconnect) the left button to (from) the relay.</description>
 			</attribute>
 			<!-- <attribute id="0xff0d" name="Xiaomi Sensitivity" type="u8" access="rw" required="o" mfcode="0x1037"></attribute> -->
+			<attribute id="0xfffd" name="Cluster Revision" type="u16" default="0" access="rw" required="o"></attribute>
 		</attribute-set>
 		<attribute-set id="0x0010" description="Basic Device Settings">
 			<attribute id="0x0010" name="Location Description" type="cstring" range="0,16" access="rw" required="o"></attribute>
@@ -266,7 +267,12 @@
 			<attribute id="0xFF54" name="Unknown" type="ostring" access="rw" required="o" mfcode="0x115f"></attribute>
 			<attribute id="0xFFF0" name="Unknown" type="ostring" access="rw" required="o" mfcode="0x115f"></attribute>
 		</attribute-set>
-		<attribute id="0xfffd" name="Cluster Revision" type="u16" default="0" access="rw" required="o"></attribute>
+		<attribute-set id="0xFF00" description="Tuya specific" mfcode="0x1002">
+			<attribute id="0xffde" name="Reporting1" type="u8" default="0" access="rw" required="o"></attribute>
+			<attribute id="0xffe2" name="Unknown1" type="u8" default="0" access="rw" required="o"></attribute>
+			<attribute id="0xffe4" name="Unknown2" type="u8" default="0" access="rw" required="o"></attribute>
+			<attribute id="0xfffe" name="Unknown3" type="enum8" default="0" access="rw" required="o"></attribute>
+		</attribute-set>
 		<command id="00" dir="recv" name="Reset to Factory Defaults" required="o"></command>
 		</server>
 		<client>
@@ -3919,21 +3925,30 @@ devices can operate on either battery or mains power, and can have a wide variet
     </cluster>
 
 		<!-- Tuya -->
-		<cluster id="0xef00" name="Tuya specific Cluster" mfcode="0x1002">
+		<cluster id="0xef00" name="Tuya specific" mfcode="0x1002">
 			<description>Tuya Specific clusters.</description>
 			<server>
+				<command id="00" dir="recv" name="Data Request" required="m">
+					<description>Request datapoint (fields are big-endian!)</description>
+					<payload>
+						<attribute id="0x0000" type="u16" name="Sequence number" required="m" showas="hex" default="0"></attribute>
+						<attribute id="0x0001" type="u8" name="DPID" required="m" showas="hex" default="0x00"></attribute>
+						<attribute id="0x0002" type="enum8" name="Type" required="m" showas="hex" default="0x00">
+							<value name="Raw" value="0x00"/>
+							<value name="Bool" value="0x01"/>
+							<value name="Value" value="0x02"/>
+							<value name="String" value="0x03"/>
+							<value name="Enum" value="0x04"/>
+							<value name="Bitmap" value="0x05"/>
+						</attribute>
+						<attribute id="0x0003" type="u16" name="Length" required="m" showas="hex" default="0x00"></attribute>
+						<attribute id="0x0004" type="u32" name="Value" required="m" showas="hex" default="0"></attribute>
+					</payload>
+				</command>
 
-			<command id="00" dir="recv" name="Unknow" required="m">
-				<description>Command</description>
-				<payload>
-					<attribute id="0x0000" type="u8" name="Status" required="m" showas="hex" default="0x00"></attribute>
-					<attribute id="0x0001" type="u8" name="TransID" required="m" showas="hex" default="0x00"></attribute>
-					<attribute id="0x0002" type="u16" name="Dp" required="m" showas="hex" default="0x0000"></attribute>
-					<attribute id="0x0003" type="u8" name="fn" required="m" showas="hex" default="0x00"></attribute>
-					<attribute id="0x0004" type="ostring" name="data" required="m" default="1,0x0000"></attribute>
-				</payload>
-			</command>
-
+				<command id="0x03" dir="recv" name="Data Query" required="m">
+					<description>Trigger report all datapoints.</description>
+				</command>
 			</server>
 			<client>
 			</client>
