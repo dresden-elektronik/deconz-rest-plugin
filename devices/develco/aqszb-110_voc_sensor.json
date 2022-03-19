@@ -95,7 +95,7 @@
             "ep": 38,
             "fn": "zcl",
             "mf": "0x1015",
-            "eval": "Item.val = Attr.val;"
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val; }"
           }
         },
         {
