@@ -654,6 +654,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     QString id = req.path[3];
     Sensor *sensor = id.length() < MIN_UNIQUEID_LENGTH ? getSensorNodeForId(id) : getSensorNodeForUniqueId(id);
     Device *device = sensor->parentResource() ? static_cast<Device*>(sensor->parentResource()) : nullptr;
+    Resource *rsub = DEV_GetSubDevice(device, nullptr, sensor->uniqueId());
+    const bool devManaged = device && device->managed();
     bool ok;
     bool updated;
     bool save = false;
@@ -698,6 +700,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     task.req.setDstEndpoint(sensor->fingerPrint().endpoint);
     task.req.setSrcEndpoint(getSrcEndpoint(sensor, task.req));
     task.req.setDstAddressMode(deCONZ::ApsExtAddress);
+    
+    StateChange change(StateChange::StateWaitSync, SC_WriteZclAttribute, task.req.dstEndpoint());
 
     //check invalid parameter
     auto pi = map.cbegin();
@@ -768,12 +772,9 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (!data.string.isEmpty())
                     {
-                        StateChange change(StateChange::StateWaitSync, SC_WriteZclAttribute, task.req.dstEndpoint());
-                        change.addTargetValue(rid.suffix, data.string);
-                        Resource *rsub = DEV_GetSubDevice(device, nullptr, sensor->uniqueId());
-                        
-                        if (rsub)
+                        if (devManaged && rsub)
                         {
+                            change.addTargetValue(rid.suffix, data.string);
                             rsub->addStateChange(change);
                             updated = true;
                         }
@@ -781,12 +782,9 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigClickMode && !data.string.isEmpty()) // String
                 {
-                    StateChange change(StateChange::StateWaitSync, SC_WriteZclAttribute, task.req.dstEndpoint());
-                    change.addTargetValue(rid.suffix, data.string);
-                    Resource *rsub = DEV_GetSubDevice(device, nullptr, sensor->uniqueId());
-                    
-                    if (rsub)
+                    if (devManaged && rsub)
                     {
+                        change.addTargetValue(rid.suffix, data.string);
                         rsub->addStateChange(change);
                         updated = true;
                     }
