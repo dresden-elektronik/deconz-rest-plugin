@@ -145,7 +145,13 @@
           "default": "auto"
         },
         {
-          "name": "config/mode"
+          "name": "config/mode",
+          "default" : "momentary",
+          "values": [
+            ["\"momentary\"", "Momentary mode"],
+		    ["\"rocker\"", "Rocker mode"],
+		    ["\"custom\"", "Custom mode"]
+          ]
         },
         {
           "name": "config/on"
@@ -154,7 +160,8 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/windowcoveringtype"
+          "name": "config/windowcoveringtype",
+          "default" : 0
         },
         {
           "name": "state/buttonevent"
