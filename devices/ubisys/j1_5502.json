@@ -149,8 +149,8 @@
           "default" : "momentary",
           "values": [
             ["\"momentary\"", "Momentary mode"],
-		    ["\"rocker\"", "Rocker mode"],
-		    ["\"custom\"", "Custom mode"]
+            ["\"rocker\"", "Rocker mode"],
+            ["\"custom\"", "Custom mode"]
           ]
         },
         {
