@@ -5,7 +5,7 @@
   "vendor": "Danfoss",
   "product": "Ally",
   "sleeper": false,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_THERMOSTAT",
@@ -60,7 +60,8 @@
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2;"
+            "eval": "Item.val = Attr.val / 2;",
+            "fn": "zcl"
           }
         },
         {
@@ -70,39 +71,90 @@
         },
         {
           "name": "config/displayflipped",
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0x4000",
+            "cl": "0x0204",
+            "ep": 1,
+            "fn": "zcl",
+            "mf": "0x1246"
+          },
           "parse": {
             "at": "0x4000",
             "cl": "0x0204",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
+            "fn": "zcl",
+            "mf": "0x1246"
+          },
+          "write": {
+            "at": "0x4000",
+            "cl": "0x0204",
+            "dt": "0x30",
+            "ep": 1,
+            "eval": "Item.val",
+            "fn": "zcl",
             "mf": "0x1246"
           },
           "default": false
         },
         {
           "name": "config/externalsensortemp",
-          "refresh.interval": 1800,
+          "refresh.interval": 86400,
           "read": {
             "at": "0x4015",
             "cl": "0x0201",
             "ep": 1,
+            "fn": "zcl",
             "mf": "0x1246"
           },
           "parse": {
             "at": "0x4015",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Attr.val == -8000 ? Item.val = 0 : Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl",
             "mf": "0x1246"
-          }
+          },
+          "write": {
+            "at": "0x4015",
+            "cl": "0x0201",
+            "dt": "0x29",
+            "ep": 1,
+            "eval": "Item.val",
+            "fn": "zcl",
+            "mf": "0x1246"
+          },
+          "values": [
+            [-8000, "Disabled"]
+          ],
+          "default": -8000
         },
         {
           "name": "config/externalwindowopen",
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0x4003",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl",
+            "mf": "0x1246"
+          },
           "parse": {
             "at": "0x4003",
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
+            "fn": "zcl",
+            "mf": "0x1246"
+          },
+          "write": {
+            "at": "0x4003",
+            "cl": "0x0201",
+            "dt": "0x10",
+            "ep": 1,
+            "eval": "Item.val",
+            "fn": "zcl",
             "mf": "0x1246"
           },
           "default": false
@@ -112,41 +164,65 @@
         },
         {
           "name": "config/locked",
-          "parse": {
-            "at": "0x0001",
-            "cl": "0x0204",
-            "ep": 1,
-            "eval": "Item.val = Attr.val;"
-          },
-          "default": false
+          "refresh.interval": 86400
         },
         {
           "name": "config/mountingmode",
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0x4013",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl",
+            "mf": "0x1246"
+          },
           "parse": {
             "at": "0x4013",
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
+            "fn": "zcl",
+            "mf": "0x1246"
+          },
+          "write": {
+            "at": "0x4013",
+            "cl": "0x0201",
+            "dt": "0x10",
+            "ep": 1,
+            "eval": "Item.val",
+            "fn": "zcl",
             "mf": "0x1246"
           },
           "default": false
         },
         {
           "name": "config/offset",
-          "refresh.interval": 3600,
+          "refresh.interval": 86400,
           "read": {
-            "at": "0x404b",
+            "at": "0x404B",
             "cl": "0x0201",
             "ep": 1,
+            "fn": "zcl",
             "mf": "0x1246"
           },
           "parse": {
-            "at": "0x404b",
+            "at": "0x404B",
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
+            "fn": "zcl",
             "mf": "0x1246"
           },
+          "write": {
+            "at": "0x404B",
+            "cl": "0x0201",
+            "dt": "0x28",
+            "ep": 1,
+            "eval": "Item.val",
+            "fn": "zcl",
+            "mf": "0x1246"
+          },
+          "range": [-25, 25],
           "default": 0
         },
         {
@@ -165,9 +241,10 @@
           "name": "state/errorcode",
           "parse": {
             "at": "0x4000",
-            "cl": "0x0b05",
+            "cl": "0x0B05",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
+            "fn": "zcl",
             "mf": "0x1246"
           }
         },
@@ -181,13 +258,13 @@
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
+            "fn": "zcl",
             "mf": "0x1246"
           },
           "default": false
         },
         {
           "name": "state/on",
-          "refresh.interval": 5,
           "parse": {
             "at": "0x0008",
             "cl": "0x0201",
@@ -205,7 +282,8 @@
             "at": "0x0000",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;"
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl"
           }
         },
         {
@@ -217,6 +295,7 @@
             "at": "0x4000",
             "cl": "0x0201",
             "ep": 1,
+            "fn": "zcl",
             "mf": "0x1246",
             "script": "danfoss_windowopen_state.js"
           },
@@ -275,7 +354,8 @@
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2;"
+            "eval": "Item.val = Attr.val / 2;",
+            "fn": "zcl"
           }
         },
         {
@@ -285,52 +365,16 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/lastset",
-          "refresh.interval": 3600,
-          "read": {
-            "at": "0x0008",
-            "cl": "0x000a",
-            "ep": 1
-          },
-          "parse": {
-            "at": "0x0008",
-            "cl": "0x000a",
-            "ep": 1,
-            "fn": "zcl"
-          }
+          "name": "state/lastset"
         },
         {
           "name": "state/lastupdated"
         },
         {
-          "name": "state/localtime",
-          "refresh.interval": 3600,
-          "read": {
-            "at": "0x0007",
-            "cl": "0x000a",
-            "ep": 1
-          },
-          "parse": {
-            "at": "0x0007",
-            "cl": "0x000a",
-            "ep": 1,
-            "fn": "zcl"
-          }
+          "name": "state/localtime"
         },
         {
-          "name": "state/utc",
-          "refresh.interval": 3600,
-          "read": {
-            "at": "0x0000",
-            "cl": "0x000a",
-            "ep": 1
-          },
-          "parse": {
-            "at": "0x0000",
-            "cl": "0x000a",
-            "ep": 1,
-            "fn": "zcl"
-          }
+          "name": "state/utc"
         }
       ]
     }
@@ -433,6 +477,7 @@
     {
       "bind": "unicast",
       "src.ep": 1,
+      "dst.ep": 1,
       "cl": "0x000A",
       "report": [
         {

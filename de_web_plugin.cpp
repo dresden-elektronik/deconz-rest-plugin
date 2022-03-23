@@ -532,7 +532,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SCHNEIDER, "CCT593011_AS", emberMacPrefix }, // LK Wiser Temperature and Humidity Sensor
     { VENDOR_SCHNEIDER, "CCT595011_AS", emberMacPrefix }, // LK Wiser Motion Sensor
     { VENDOR_DANFOSS, "eT093WRO", silabs5MacPrefix }, // POPP Smart Thermostat
-    { VENDOR_DANFOSS, "eTRV0100", silabs2MacPrefix }, // Danfoss Ally thermostat
     { VENDOR_DANFOSS, "0x8020", silabs6MacPrefix }, // Danfoss RT24V Display thermostat
     { VENDOR_DANFOSS, "0x8021", silabs6MacPrefix }, // Danfoss RT24V Display thermostat with floor sensor
     { VENDOR_DANFOSS, "0x8030", silabs6MacPrefix }, // Danfoss RTbattery Display thermostat
@@ -1308,7 +1307,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case POWER_CONFIGURATION_CLUSTER_ID:
-            if (!DEV_TestStrict()) { handlePowerConfigurationClusterIndication(ind, zclFrame); }
+            if (!DEV_TestStrict() && !devManaged) { handlePowerConfigurationClusterIndication(ind, zclFrame); }
             break;
 
         case XAL_CLUSTER_ID:
@@ -1329,7 +1328,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case THERMOSTAT_CLUSTER_ID:
-            if (!DEV_TestStrict()) { handleThermostatClusterIndication(ind, zclFrame); }
+            if (!DEV_TestStrict() && !devManaged) { handleThermostatClusterIndication(ind, zclFrame); }
             break;
 
         case BASIC_CLUSTER_ID:
@@ -1341,11 +1340,11 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID:
-            if (!DEV_TestStrict()) { handleThermostatUiConfigurationClusterIndication(ind, zclFrame); }
+            if (!DEV_TestStrict() && !devManaged) { handleThermostatUiConfigurationClusterIndication(ind, zclFrame); }
             break;
 
         case DIAGNOSTICS_CLUSTER_ID:
-            if (!DEV_TestStrict()) { handleDiagnosticsClusterIndication(ind, zclFrame); }
+            if (!DEV_TestStrict() && !devManaged) { handleDiagnosticsClusterIndication(ind, zclFrame); }
             break;
 
         case IDENTIFY_CLUSTER_ID:
@@ -1378,7 +1377,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case OCCUPANCY_SENSING_CLUSTER_ID:
-            if (!DEV_TestStrict()) { handleOccupancySensingClusterIndication(ind, zclFrame); }
+            if (!DEV_TestStrict() && !devManaged) { handleOccupancySensingClusterIndication(ind, zclFrame); }
             break;
 
         default:
@@ -6412,7 +6411,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 {
                     // Many Xiaomi devices advertise non-functional Time cluster, so better use whitelist.
                     if (modelId == QLatin1String("Thermostat") || // eCozy
-                        modelId == QLatin1String("eTRV0100") ||   // Danfoss
                         modelId == QLatin1String("eT093WRO"))     // POPP smart thermostat
                     {
                         fpTimeSensor.inClusters.push_back(ci->id());
@@ -7725,8 +7723,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.addItem(DataTypeString, RConfigMode);
                 sensorNode.addItem(DataTypeString, RConfigFanMode);
             }
-            else if (modelId == QLatin1String("eTRV0100") || // Danfoss Ally
-                     modelId == QLatin1String("TRV001") ||   // Hive TRV
+            else if (modelId == QLatin1String("TRV001") ||   // Hive TRV
                      modelId == QLatin1String("eT093WRO"))   // POPP smart thermostat
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
@@ -16790,7 +16787,6 @@ void DeRestPlugin::idleTimerFired()
                                 sensorNode->modelId().startsWith(QLatin1String("TRV001")) ||    // Hive TRV
                                 sensorNode->modelId().startsWith(QLatin1String("TH112")) ||     // Sinope devices
                                 sensorNode->modelId().startsWith(QLatin1String("TH1300ZB")) ||  // Sinope devices
-                                sensorNode->modelId().startsWith(QLatin1String("eTRV0100")) ||  // Danfoss Ally
                                 sensorNode->modelId().startsWith(QLatin1String("eT093WRO")) ||  // POPP smart thermostat
                                 sensorNode->modelId().startsWith(QLatin1String("0x8020")) ||    // Danfoss RT24V Display thermostat
                                 sensorNode->modelId().startsWith(QLatin1String("0x8021")) ||    // Danfoss RT24V Display thermostat with floor sensor
