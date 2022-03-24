@@ -8594,7 +8594,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
         case BINARY_INPUT_CLUSTER_ID:
         case DOOR_LOCK_CLUSTER_ID:
         case SAMJIN_CLUSTER_ID:
-        case TIME_CLUSTER_ID:
         case VENDOR_CLUSTER_ID:
         case BOSCH_AIR_QUALITY_CLUSTER_ID:
             break;
@@ -10056,84 +10055,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             }
                         }
 
-                        if (updated)
-                        {
-                            i->updateStateTimestamp();
-                            i->setNeedSaveDatabase(true);
-                            enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
-                            updateSensorEtag(&*i);
-                        }
-                    }
-                    else if (event.clusterId() == TIME_CLUSTER_ID)
-                    {
-                        bool updated = false;
-                        const QDateTime epoch = QDateTime(QDate(2000, 1, 1), QTime(0, 0), Qt::UTC);
-
-                        if (!DEV_TestStrict())
-                        {
-                            for (;ia != enda; ++ia)
-                            {
-                                if (ia->id() == 0x0000) // Time (utc, in UTC)
-                                {
-                                    if (updateType != NodeValue::UpdateInvalid)
-                                    {
-                                        i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
-                                    }
-                                    QDateTime time = epoch.addSecs(ia->numericValue().u32);
-                                    ResourceItem *item = i->item(RStateUtc);
-                                    if (item && item->toVariant().toDateTime().toMSecsSinceEpoch() != time.toMSecsSinceEpoch())
-                                    {
-                                        item->setValue(time);
-                                        enqueueEvent(Event(RSensors, RStateUtc, i->id(), item));
-                                        updated = true;
-                                    }
-                                    const qint32 drift = QDateTime::currentDateTimeUtc().secsTo(time);
-                                    DBG_Printf(DBG_INFO, "  >>> %s sensor %s: drift %d\n", qPrintable(i->type()), qPrintable(i->name()), drift);
-
-                                    if (!i->mustRead(WRITE_TIME))
-                                    {
-                                        if (drift < -10 || drift > 10)
-                                        {
-                                            DBG_Printf(DBG_INFO, "  >>> %s sensor %s: drift: %d: set WRITE_TIME\n", qPrintable(i->type()), qPrintable(i->name()), drift);
-                                            i->setNextReadTime(WRITE_TIME, queryTime);
-                                            i->setLastRead(WRITE_TIME, idleTotalCounter);
-                                            i->enableRead(WRITE_TIME);
-                                            queryTime = queryTime.addSecs(1);
-                                        }
-                                    }
-                                }
-                                else if (ia->id() == 0x0007) // Local Time (u32, in local time)
-                                {
-                                    if (updateType != NodeValue::UpdateInvalid)
-                                    {
-                                        i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
-                                    }
-                                    QDateTime time = epoch.addSecs(ia->numericValue().u32 - QDateTime::currentDateTime().offsetFromUtc());
-                                    ResourceItem *item = i->item(RStateLocaltime);
-                                    if (item && item->toVariant().toDateTime().toMSecsSinceEpoch() != time.toMSecsSinceEpoch())
-                                    {
-                                        item->setValue(time);
-                                        enqueueEvent(Event(RSensors, RStateLocaltime, i->id(), item));
-                                        updated = true;
-                                    }
-                                }
-                                else if (ia->id() == 0x0008) // Last set time (utc, in UTC)
-                                {
-                                  if (updateType != NodeValue::UpdateInvalid)
-                                  {
-                                      i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
-                                  }
-                                  QDateTime time = epoch.addSecs(ia->numericValue().u32);
-                                  ResourceItem *item = i->item(RStateLastSet);
-                                  if (item && item->toVariant().toDateTime().toMSecsSinceEpoch() != time.toMSecsSinceEpoch())
-                                  {
-                                      item->setValue(time);
-                                      enqueueEvent(Event(RSensors, RStateLastSet, i->id(), item));
-                                      updated = true;
-                                  }
-                                }
-                            }
-                        }
                         if (updated)
                         {
                             i->updateStateTimestamp();
@@ -16722,6 +16643,9 @@ void DeRestPlugin::idleTimerFired()
 
                 if ((d->otauLastBusyTimeDelta() > OTA_LOW_PRIORITY_TIME) && (sensorNode->lastRead(READ_BINDING_TABLE) < (d->idleTotalCounter - IDLE_READ_LIMIT)))
                 {
+                    Device *device = sensorNode->parentResource() ? static_cast<Device*>(sensorNode->parentResource()) : nullptr;
+                    const bool devManaged = device && device->managed();
+                    
                     std::vector<quint16>::const_iterator ci = sensorNode->fingerPrint().inClusters.begin();
                     std::vector<quint16>::const_iterator cend = sensorNode->fingerPrint().inClusters.end();
                     for (;ci != cend; ++ci)
@@ -16768,7 +16692,7 @@ void DeRestPlugin::idleTimerFired()
                             }
                         }
 
-                        if (*ci == THERMOSTAT_CLUSTER_ID)
+                        if (*ci == THERMOSTAT_CLUSTER_ID && !devManaged)
                         {
                             if (sensorNode->modelId() == QLatin1String("Thermostat")) // eCozy
                             {

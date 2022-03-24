@@ -64,23 +64,159 @@ void getTime(quint32 *time, qint32 *tz, quint32 *dstStart, quint32 *dstEnd, qint
  */
 void DeRestPluginPrivate::handleTimeClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    if (zclFrame.isProfileWideCommand())
+    if (zclFrame.commandId() == deCONZ::ZclReadAttributesId)
     {
-        if (zclFrame.commandId() == deCONZ::ZclReadAttributesId)
+           sendTimeClusterResponse(ind, zclFrame);
+    }
+    else
+    {
+        Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint(), QLatin1String("ZHATime"));
+    
+        if (!sensor)
         {
-        	   sendTimeClusterResponse(ind, zclFrame);
+            DBG_Printf(DBG_INFO, "0x%016llX No sensor having time cluster found for endpoint: 0x%02X\n", ind.srcAddress().ext(), ind.srcEndpoint());
+            return;
         }
-        else if (zclFrame.commandId() == deCONZ::ZclWriteAttributesResponseId)
+    
+        bool isReadAttr = false;
+        bool isReporting = false;
+        bool isWriteResponse = false;
+    
+        if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReadAttributesResponseId)
         {
-            Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint(), QLatin1String("ZHATime"));
-            if (sensor)
+            isReadAttr = true;
+        }
+        if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId)
+        {
+            isReporting = true;
+        }
+        if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclWriteAttributesResponseId)
+        {
+            isWriteResponse = true;
+        }
+    
+        // Read ZCL reporting and ZCL Read Attributes Response
+        if (isReadAttr || isReporting)
+        {
+            const NodeValue::UpdateType updateType = isReadAttr ? NodeValue::UpdateByZclRead : NodeValue::UpdateByZclReport;
+    
+            bool stateUpdated = false;
+            const QDateTime epoch = QDateTime(QDate(2000, 1, 1), QTime(0, 0), Qt::UTC);
+    
+            QDataStream stream(zclFrame.payload());
+            stream.setByteOrder(QDataStream::LittleEndian);
+    
+            while (!stream.atEnd())
             {
-                DBG_Printf(DBG_INFO, "  >>> %s sensor %s: set READ_TIME from handleTimeClusterIndication()\n", qPrintable(sensor->type()), qPrintable(sensor->name()));
-                sensor->setNextReadTime(READ_TIME, queryTime);
-                sensor->setLastRead(READ_TIME, idleTotalCounter);
-                sensor->enableRead(READ_TIME);
-                queryTime = queryTime.addSecs(1);
+                quint16 attrId;
+                quint8 attrTypeId;
+    
+                stream >> attrId;
+                if (isReadAttr)
+                {
+                    quint8 status;
+                    stream >> status;  // Read Attribute Response status
+                    if (status != deCONZ::ZclSuccessStatus)
+                    {
+                        continue;
+                    }
+                }
+                stream >> attrTypeId;
+    
+                deCONZ::ZclAttribute attr(attrId, attrTypeId, QLatin1String(""), deCONZ::ZclRead, false);
+    
+                if (!attr.readFromStream(stream))
+                {
+                    continue;
+                }
+    
+                switch (attrId)
+                {
+                    case 0x0000: // Time (utc, in UTC)
+                    {
+                        QDateTime time = epoch.addSecs(attr.numericValue().u32);
+                        ResourceItem *item = sensor->item(RStateUtc);
+    
+                        if (item && item->toVariant().toDateTime().toMSecsSinceEpoch() != time.toMSecsSinceEpoch())
+                        {
+                            item->setValue(time);
+                            enqueueEvent(Event(RSensors, RStateUtc, sensor->id(), item));
+                            stateUpdated = true;
+                        }
+    
+                        const qint32 drift = QDateTime::currentDateTimeUtc().secsTo(time);
+                        DBG_Printf(DBG_INFO, "  >>> %s sensor %s: drift %d\n", qPrintable(sensor->type()), qPrintable(sensor->name()), drift);
+    
+                        if (drift < -10 || drift > 10)
+                        {
+                            DBG_Printf(DBG_INFO, "  >>> %s sensor %s: drift: %d: set WRITE_TIME\n", qPrintable(sensor->type()), qPrintable(sensor->name()), drift);
+                            sensor->setNextReadTime(WRITE_TIME, queryTime);
+                            sensor->setLastRead(WRITE_TIME, idleTotalCounter);
+                            sensor->enableRead(WRITE_TIME);
+                            queryTime = queryTime.addSecs(1);
+                        }
+                        else
+                        {
+                            DBG_Printf(DBG_INFO, "  >>> %s sensor %s: NO CONSIDERABLE TIME DRIFT\n", qPrintable(sensor->type()), qPrintable(sensor->name()));
+                        }
+    
+                        sensor->setZclValue(updateType, ind.srcEndpoint(), TIME_CLUSTER_ID, attrId, attr.numericValue());
+                    }
+                        break;
+    
+                    case 0x0007: // Local Time (u32, in local time)
+                    {
+                        QDateTime time = epoch.addSecs(attr.numericValue().u32 - QDateTime::currentDateTime().offsetFromUtc());
+                        ResourceItem *item = sensor->item(RStateLocaltime);
+    
+                        if (item && item->toVariant().toDateTime().toMSecsSinceEpoch() != time.toMSecsSinceEpoch())
+                        {
+                            item->setValue(time);
+                            enqueueEvent(Event(RSensors, RStateLocaltime, sensor->id(), item));
+                            stateUpdated = true;
+                        }
+    
+                        sensor->setZclValue(updateType, ind.srcEndpoint(), TIME_CLUSTER_ID, attrId, attr.numericValue());
+                    }
+                        break;
+    
+                    case 0x0008: // Last set time (utc, in UTC)
+                    {
+                        QDateTime time = epoch.addSecs(attr.numericValue().u32);
+                        ResourceItem *item = sensor->item(RStateLastSet);
+    
+                        if (item && item->toVariant().toDateTime().toMSecsSinceEpoch() != time.toMSecsSinceEpoch())
+                        {
+                            item->setValue(time);
+                            enqueueEvent(Event(RSensors, RStateLastSet, sensor->id(), item));
+                            stateUpdated = true;
+                        }
+                    }
+                        break;
+    
+                    default:
+                        break;
+                }
             }
+    
+            if (stateUpdated)
+            {
+                sensor->updateStateTimestamp();
+                enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
+                updateSensorEtag(&*sensor);
+                sensor->setNeedSaveDatabase(true);
+                queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+            }
+        }
+    
+        // ZCL Write Attributes Response
+        if (isWriteResponse)
+        {
+            DBG_Printf(DBG_INFO, "  >>> %s sensor %s: set READ_TIME from handleTimeClusterIndication()\n", qPrintable(sensor->type()), qPrintable(sensor->name()));
+            sensor->setNextReadTime(READ_TIME, queryTime);
+            sensor->setLastRead(READ_TIME, idleTotalCounter);
+            sensor->enableRead(READ_TIME);
+            queryTime = queryTime.addSecs(1);
         }
     }
 }
