@@ -30,6 +30,7 @@ struct ButtonMeta
     {
         QString name;
         int button;
+        int endpoint;
     };
 
     std::vector<ButtonMeta::Button> buttons;

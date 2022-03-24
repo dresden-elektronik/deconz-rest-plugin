@@ -819,7 +819,6 @@ QVariantMap RIS_IntrospectButtonEventItem(const ResourceItemDescriptor &rid, con
     const auto &buttonMapButtons = plugin->buttonMeta;
     const auto &buttonMapData = plugin->buttonMaps;
     const auto &buttonMapForModelId = plugin->buttonProductMap;
-
     const auto *buttonData = BM_ButtonMapForProduct(productHash(r), buttonMapData, buttonMapForModelId);
 
     if (!buttonData)
@@ -829,23 +828,52 @@ QVariantMap RIS_IntrospectButtonEventItem(const ResourceItemDescriptor &rid, con
 
     int buttonBits = 0; // button 1 = 1 << 1, button 2 = 1 << 2 ...
 
+    unsigned uidEndpoint = 0;
+    {
+        const ResourceItem *uid = sensor->item(RAttrUniqueId);
+        if (uid)
+        {
+            uidEndpoint = endpointFromUniqueId(uid->toString());
+        }
+    }
+
+    const auto buttonsMeta = std::find_if(buttonMapButtons.cbegin(), buttonMapButtons.cend(),
+                                          [buttonData](const auto &meta){ return meta.buttonMapRef.hash == buttonData->buttonMapRef.hash; });
+
     {
         QVariantMap values;
 
         for (const auto &btn : buttonData->buttons)
         {
-            buttonBits |= 1 << int(btn.button / 1000);
+            int button = btn.button / 1000;
+            buttonBits |= 1 << button;
 
             QVariantMap m;
-            m[QLatin1String("button")] = int(btn.button / 1000);
+            m[QLatin1String("button")] = button;
             m[QLatin1String("action")] = RIS_ButtonEventActionToString(btn.button);
-            values[QString::number(btn.button)] = m;
+
+            // Filter returned buttons and events for multi sensor switches.
+            // The endpoint for a button can optionally be set in the button_maps.json file if a sensor only
+            // handles a limited set of events, like the 8 button Sunricher switch.
+            unsigned suffixEndpoint = uidEndpoint;
+            if (buttonsMeta != buttonMapButtons.cend())
+            {
+                const auto mb = std::find_if(buttonsMeta->buttons.cbegin(), buttonsMeta->buttons.cend(),
+                                      [&button](const ButtonMeta::Button &b){ return b.button == button; });
+                if (mb != buttonsMeta->buttons.cend() && mb->endpoint != 0)
+                {
+                    suffixEndpoint = mb->endpoint;
+                }
+            }
+
+            if (suffixEndpoint == uidEndpoint)
+            {
+                values[QString::number(btn.button)] = m;
+            }
         }
         result[QLatin1String("values")] = values;
     }
 
-    const auto buttonsMeta = std::find_if(buttonMapButtons.cbegin(), buttonMapButtons.cend(),
-                                          [buttonData](const auto &meta){ return meta.buttonMapRef.hash == buttonData->buttonMapRef.hash; });
 
     QVariantMap buttons;
 
@@ -853,9 +881,13 @@ QVariantMap RIS_IntrospectButtonEventItem(const ResourceItemDescriptor &rid, con
     {
         for (const auto &button : buttonsMeta->buttons)
         {
-            QVariantMap m;
-            m[QLatin1String("name")] = button.name;
-            buttons[QString::number(button.button)] = m;
+            if (button.endpoint == 0 || button.endpoint == int(uidEndpoint))
+            {
+
+                QVariantMap m;
+                m[QLatin1String("name")] = button.name;
+                buttons[QString::number(button.button)] = m;
+            }
         }
     }
     else // fallback if no "buttons" is defined in the button map, generate a generic one

@@ -565,22 +565,37 @@ std::vector<ButtonMeta> loadButtonMetaJson(const QJsonDocument &buttonMapsDoc, c
 
             const QJsonObject buttonObj = j->toObject();
             const auto keys = buttonObj.keys();
+
+            bool ok = false;
+            ButtonMeta::Button b{};
+
+            Q_ASSERT(b.button == 0);
+            Q_ASSERT(b.endpoint == 0);
+
             for (const auto &k : keys)
             {
-                if (!k.startsWith(buttonPrefix))
+                if (k.startsWith(buttonPrefix))
                 {
-                    continue;
+                    b.button = k.midRef(buttonPrefix.size()).toInt(&ok);
+
+                    if (ok)
+                    {
+                        b.name = buttonObj.value(k).toString();
+                    }
                 }
-
-                bool ok = false;
-                ButtonMeta::Button b;
-                b.button = k.midRef(buttonPrefix.size()).toInt(&ok);
-
-                if (ok)
+                else if (k == QLatin1String("ep"))
                 {
-                    b.name = buttonObj.value(k).toString();
-                    meta.buttons.push_back(b);
+                    b.endpoint = buttonObj.value(k).toInt(0);
+                    if (b.endpoint < 0 || b.endpoint > 255)
+                    {
+                        b.endpoint = 0;
+                    }
                 }
+            }
+
+            if (b.button > 0 && !b.name.isEmpty())
+            {
+                meta.buttons.push_back(b);
             }
         }
 
