@@ -1328,7 +1328,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case THERMOSTAT_CLUSTER_ID:
-            if (!DEV_TestStrict() && !devManaged) { handleThermostatClusterIndication(ind, zclFrame); }
+            if (!DEV_TestStrict()) { handleThermostatClusterIndication(ind, zclFrame); }
             break;
 
         case BASIC_CLUSTER_ID:
@@ -1377,7 +1377,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case OCCUPANCY_SENSING_CLUSTER_ID:
-            if (!DEV_TestStrict() && !devManaged) { handleOccupancySensingClusterIndication(ind, zclFrame); }
+            if (!DEV_TestStrict()) { handleOccupancySensingClusterIndication(ind, zclFrame); }
             break;
 
         default:
