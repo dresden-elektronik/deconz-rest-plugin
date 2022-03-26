@@ -337,6 +337,12 @@
       ]
     },
     {
+      "bind": "groupcast",
+      "config.group": 0,
+      "src.ep": 2,
+      "cl": "0x0102"
+    },
+    {
       "bind": "unicast",
       "src.ep": 3,
       "cl": "0x0702",
