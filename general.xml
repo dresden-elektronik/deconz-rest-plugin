@@ -3036,6 +3036,7 @@ controller device, that supports a keypad and LCD screen.</description>
 			<attribute-set id="0x0500" description="AC (Single Phase or Phase A) Measurements">
 				<attribute id="0x0505" name="RMS Voltage" type="u16" access="r" required="o" default="0xFFFF"></attribute>
 				<attribute id="0x0508" name="RMS Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+                <attribute id="0x050a" name="Max Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
 				<attribute id="0x050b" name="Active Power" type="s16" access="r" required="o" default="0x8000">
 					<description>Represents the single phase or Phase A, current demand of active power delivered or received at the premises, in Watts (W). Positive values indicate power delivered to the premises where negative values indicate power received from the premises.</description>
 				</attribute>
@@ -3054,10 +3055,14 @@ controller device, that supports a keypad and LCD screen.</description>
 			<attribute-set id="0x0900" description="AC (Phase B) Measurements">
 				<attribute id="0x0905" name="RMS Voltage" type="u16" access="r" required="o" default="0xFFFF"></attribute>
 				<attribute id="0x0908" name="RMS Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+                <attribute id="0x090a" name="Max Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+                <attribute id="0x090f" name="RMS Power" type="u16" access="r" required="o" default="0xFFFF"></attribute>
 			</attribute-set>
 			<attribute-set id="0x0a00" description="AC (Phase C) Measurements">
 				<attribute id="0x0a05" name="RMS Voltage" type="u16" access="r" required="o" default="0xFFFF"></attribute>
 				<attribute id="0x0a08" name="RMS Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+                <attribute id="0x0a0a" name="Max Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+                <attribute id="0x0a0f" name="RMS Power" type="u16" access="r" required="o" default="0xFFFF"></attribute>
 			</attribute-set>
 		</server>
 		<client>
@@ -3947,6 +3952,11 @@ devices can operate on either battery or mains power, and can have a wide variet
         <attribute id="0x0006" type="u16" name="Avertissement de Dépassement D'intensité P1" access="r" required="m" default="0x00"/>
         <attribute id="0x0007" type="u16" name="Avertissement de Dépassement D'intensité P2" access="r" required="m" default="0x00"/>
         <attribute id="0x0008" type="u16" name="Avertissement de Dépassement D'intensité P3" access="r" required="m" default="0x00"/>
+        <attribute id="0x0200" type="cstring" name="Libellé tarif fournisseur en cours" access="r" required="m"/>
+        <attribute id="0x0203" type="u32" name="Energie active soutirée Distributeur, index 01" access="r" required="m" default="0x00"/>
+        <attribute id="0x0203" type="u32" name="Energie active soutirée Distributeur, index 01" access="r" required="m" default="0x00"/>
+        <attribute id="0x0207" type="u16" name="Puissance app. Instantanée injectée" access="r" required="m" default="0x00"/>
+        <attribute id="0x0300" type="u8" name="Protocole Linky" access="r" required="m" default="0x00"/>
       </server>
     </cluster>
 
