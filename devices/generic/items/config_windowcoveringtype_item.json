@@ -15,6 +15,6 @@
 		[6, "Shutter"],
 		[7, "Tilt Blind Lift only"],
 		[8, "Tilt Blind lift & tilt"],
-		[9, "Projector Screen"],
+		[9, "Projector Screen"]
 	]
 }
