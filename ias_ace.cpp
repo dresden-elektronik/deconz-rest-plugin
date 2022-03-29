@@ -128,24 +128,24 @@ static quint8 handleArmCommand(AlarmSystem *alarmSys, quint8 armMode, const QStr
     //DBG_Printf(DBG_IAS, "[IAS ACE] code : %s\n", qPrintable(pinCode));
     
     //if we are on learn mode
-    if (alarmSys->LearnModeIndex > 0)
+    if (alarmSys->learnModeIndex > 0)
     {
         //Check timer
         auto tnow = deCONZ::steadyTimeRef();
-        if ((tnow - LearnTimer) > deCONZ::TimeSeconds{60})
+        if ((tnow - alarmSys->learnTimer) > deCONZ::TimeSeconds{60})
         {
-            alarmSys->LearnModeIndex = 0;
+            alarmSys->learnModeIndex = 0;
         }
         else
         {
             //memorise it
-            if (alarmSys->setCode(alarmSys->LearnModeIndex, pinCode))
+            if (alarmSys->setCode(alarmSys->learnModeIndex, pinCode))
             {
                 DBG_Printf(DBG_IAS, "[IAS ACE] code added\n");
             }
             
             //quit
-            alarmSys->LearnModeIndex = 0;
+            alarmSys->learnModeIndex = 0;
             return IAS_ACE_ARM_NOTF_INVALID_ARM_DISARM_CODE;
         }
     }

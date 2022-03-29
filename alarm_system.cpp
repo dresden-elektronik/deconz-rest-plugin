@@ -352,7 +352,7 @@ AlarmSystem::AlarmSystem(AlarmSystemId id, EventEmitter *eventEmitter, AS_Device
 
     d->updateTargetStateValues();
     
-    LearnModeIndex = 0;
+    learnModeIndex = 0;
 
     connect(this, &AlarmSystem::eventNotify, eventEmitter, &EventEmitter::enqueueEvent);
 }
