@@ -179,6 +179,16 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
                 }
             }
 
+            // DDF enforce sub device "type" (enables overwriting the type from C++ code)
+            if (item->descriptor().suffix == RAttrType)
+            {
+                const QString type = DeviceDescriptions::instance()->constantToString(sub.type);
+                if (type != item->toString() && !type.startsWith('$'))
+                {
+                    item->setValue(type);
+                }
+            }
+
             if (item->descriptor().suffix == RConfigGroup)
             {
                 if (item->toString().isEmpty() && !ddfItem.defaultValue.isNull())
@@ -218,7 +228,7 @@ bool DEV_InitBaseDescriptionForDevice(Device *device, DeviceDescription &ddf)
     ddf.manufacturerNames.push_back(device->item(RAttrManufacturerName)->toString());
     ddf.modelIds.push_back(device->item(RAttrModelId)->toString());
 
-    if (ddf.manufacturerNames.last().isEmpty() || ddf.manufacturerNames.last() == QLatin1String("Unknown") || ddf.modelIds.isEmpty() || ddf.modelIds.front().isEmpty())
+    if (ddf.manufacturerNames.last().isEmpty() || ddf.modelIds.isEmpty() || ddf.modelIds.front().isEmpty())
     {
         return false;
     }

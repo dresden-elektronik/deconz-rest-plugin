@@ -1,0 +1,11 @@
+{
+    "schema": "resourceitem1.schema.json",
+    "id": "state/consumption_2",
+    "datatype": "UInt64",
+    "access": "RW",
+    "public": true,
+    "description": "The measured consumption (in Wh).",
+    "read": {"at": "0x0000", "cl": "0x0702", "ep": 0, "fn": "zcl" },
+    "parse": {"at": "0x0000", "cl": "0x0702", "ep": 0, "eval": "Item.val = Attr.val"},
+    "refresh.interval": 300
+}

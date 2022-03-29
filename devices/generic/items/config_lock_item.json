@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/lock",
+	"datatype": "Bool",
+	"access": "RW",
+	"public": true,
+	"description": "Locks or unlocks the door lock."
+}

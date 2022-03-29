@@ -76,13 +76,13 @@
     },
     {
       "bind": "unicast",
-      "src.ep": 23,
-      "cl": "0x0006"
+      "src.ep": 21,
+      "cl": "0x0008"
     },
     {
       "bind": "unicast",
-      "src.ep": 24,
-      "cl": "0x0006"
+      "src.ep": 22,
+      "cl": "0x0008"
     },
     {
       "bind": "unicast",

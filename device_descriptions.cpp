@@ -315,6 +315,53 @@ DeviceDescriptions::DeviceDescriptions(QObject *parent) :
 
         d_ptr2->parseFunctions.push_back(fn);
     }
+
+    {
+        DDF_FunctionDescriptor fn;
+        fn.name = "tuya";
+        fn.description = "Generic function to read all Tuya datapoints. It has no parameters.";
+        d_ptr2->readFunctions.push_back(fn);
+    }
+
+    {
+        DDF_FunctionDescriptor fn;
+        fn.name = "tuya";
+        fn.description = "Generic function to parse Tuya data.";
+
+        DDF_FunctionDescriptor::Parameter param;
+
+        param.name = "Datapoint";
+        param.key = "dpid";
+        param.description = "1-255 the datapoint ID.";
+        param.dataType = DataTypeUInt8;
+        param.defaultValue = 0;
+        param.isOptional = 0;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Javascript file";
+        param.key = "script";
+        param.description = "Relative path of a Javascript .js file.";
+        param.dataType = DataTypeString;
+        param.defaultValue = {};
+        param.isOptional = 1;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Expression";
+        param.key = "eval";
+        param.description = "Javascript expression to transform the raw value.";
+        param.dataType = DataTypeString;
+        param.defaultValue = QLatin1String("Item.val = Attr.val");
+        param.isOptional = 1;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        d_ptr2->parseFunctions.push_back(fn);
+    }
 }
 
 /*! Destructor. */
@@ -481,14 +528,17 @@ const DeviceDescription &DeviceDescriptions::get(const Resource *resource) const
 {
     Q_ASSERT(resource);
     Q_ASSERT(resource->item(RAttrModelId));
+    Q_ASSERT(resource->item(RAttrManufacturerName));
 
     Q_D(const DeviceDescriptions);
 
     const auto modelId = resource->item(RAttrModelId)->toString();
+    const auto manufacturer = resource->item(RAttrManufacturerName)->toString();
+    const auto manufacturerConstant = stringToConstant(manufacturer);
 
-    const auto i = std::find_if(d->descriptions.begin(), d->descriptions.end(), [&modelId](const DeviceDescription &ddf)
+    const auto i = std::find_if(d->descriptions.begin(), d->descriptions.end(), [&modelId, &manufacturer, &manufacturerConstant](const DeviceDescription &ddf)
     {
-        return ddf.modelIds.contains(modelId);
+        return (ddf.modelIds.contains(modelId) && (ddf.manufacturerNames.contains(manufacturer) || ddf.manufacturerNames.contains(manufacturerConstant)));
     });
 
     if (i != d->descriptions.end())

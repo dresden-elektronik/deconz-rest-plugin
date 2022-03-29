@@ -425,9 +425,7 @@ void PollManager::pollTimerFired()
     else if (suffix == RAttrModelId)
     {
         item = r->item(RAttrModelId);
-        if (item && (item->toString().isEmpty() || item->toString() == QLatin1String("unknown") ||
-             (item->lastSet().secsTo(now) > READ_MODEL_ID_INTERVAL && item->toString().startsWith("FLS-A")) // dynamic model ids
-            ))
+        if (item && (item->toString().isEmpty() || (item->lastSet().secsTo(now) > READ_MODEL_ID_INTERVAL && item->toString().startsWith("FLS-A")))) // dynamic model ids
         {
             clusterId = BASIC_CLUSTER_ID;
             //attributes.push_back(0x0004); // manufacturer
