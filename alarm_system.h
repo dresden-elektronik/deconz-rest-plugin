@@ -92,7 +92,7 @@ public:
 
     //Used for learn mode
     quint8 learnModeIndex;
-    deCONZ::SteadyTimeRef learnTimer;
+    deCONZ::TimeSeconds learnTimer;
 
 Q_SIGNALS:
     void eventNotify(const Event&);
