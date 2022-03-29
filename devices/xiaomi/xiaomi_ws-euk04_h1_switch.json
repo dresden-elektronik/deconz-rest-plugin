@@ -3,7 +3,7 @@
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.switch.n2aeu1",
   "vendor": "Xiaomi",
-  "product": "Aqara H1 2-gang switch (neutral wire) WS-EUK04",
+  "product": "Aqara H1 dual rocker switch (neutral wire) WS-EUK04",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -35,7 +35,7 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 84000,
+          "refresh.interval": 86400,
           "read": {
             "at": "0x0006",
             "cl": "0x0000",
@@ -60,7 +60,8 @@
           "name": "state/alert"
         },
         {
-          "name": "state/on"
+          "name": "state/on",
+          "refresh.interval": 86400
         },
         {
           "name": "state/reachable"
@@ -95,7 +96,7 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 84000,
+          "refresh.interval": 86400,
           "read": {
             "at": "0x0006",
             "cl": "0x0000",
@@ -120,7 +121,8 @@
           "name": "state/alert"
         },
         {
-          "name": "state/on"
+          "name": "state/on",
+          "refresh.interval": 86400
         },
         {
           "name": "state/reachable"
@@ -165,7 +167,7 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 84000,
+          "refresh.interval": 86400,
           "read": {
             "at": "0x0006",
             "cl": "0x0000",
@@ -188,7 +190,7 @@
         },
         {
           "name": "config/devicemode",
-          "public": false,
+          "refresh.interval": 86400,
           "read": {
             "at": "0x0009",
             "cl": "0xfcc0",
@@ -214,12 +216,14 @@
             "mf": "0x115f"
           },
           "values": [
-            ["compatibility", 1], ["zigbee", 2]
+            ["\"compatibility\"", "Default mode for Xiaomi devices"],
+            ["\"zigbee\"", "Closer to zigbee standard"] 
           ],
           "default": "compatibility"
         },
         {
           "name": "config/ledindication",
+          "refresh.interval": 86400,
           "read": {
             "at": "0x0203",
             "cl": "0xfcc0",
@@ -244,7 +248,11 @@
             "fn": "zcl",
             "mf": "0x115f"
           },
-          "default": false
+          "values": [
+            [true, "Device LED always on"],
+            [false, "Device LED off from 9pm - 9am"] 
+          ],
+          "default": true
         },
         {
           "name": "config/on"
@@ -298,7 +306,7 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 84000,
+          "refresh.interval": 86400,
           "read": {
             "at": "0x0006",
             "cl": "0x0000",
@@ -384,7 +392,7 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 84000,
+          "refresh.interval": 86400,
           "read": {
             "at": "0x0006",
             "cl": "0x0000",
