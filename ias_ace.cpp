@@ -131,8 +131,7 @@ static quint8 handleArmCommand(AlarmSystem *alarmSys, quint8 armMode, const QStr
     if (alarmSys->learnModeIndex > 0)
     {
         //Check timer
-        auto tnow = deCONZ::TimeSeconds();
-        if ((tnow - alarmSys->learnTimer) > deCONZ::TimeSeconds{60})
+        if ((deCONZ::steadyTimeRef() - alarmSys->learnTimer) > deCONZ::TimeSeconds{60})
         {
             alarmSys->learnModeIndex = 0;
         }
