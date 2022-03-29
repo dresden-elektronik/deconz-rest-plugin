@@ -477,6 +477,7 @@ static int putAlarmSystemLearncode(const ApiRequest &req, ApiResponse &rsp, Alar
     
     DBG_Printf(DBG_INFO, "Enable learn mode for code\n");
     alarmSys->LearnModeIndex = index;
+    alarmSys->LearnTimer = deCONZ::steadyTimeRef();
 
     return REQ_READY_SEND;
 }

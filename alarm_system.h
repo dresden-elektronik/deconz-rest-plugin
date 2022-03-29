@@ -89,7 +89,10 @@ public:
     const AS_DeviceTable *deviceTable() const;
     bool setCode(int index, const QString &code);
     void start();
+
+    //Used for learn mode
     quint8 LearnModeIndex;
+    deCONZ::SteadyTimeRef LearnTimer;
 
 Q_SIGNALS:
     void eventNotify(const Event&);
