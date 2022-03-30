@@ -5,7 +5,6 @@
   "product": "THS317-ET",
   "sleeper": true,
   "status": "Bronze",
-  "path": "/devices/ths317-et.json",
   "subdevices": [
     {
       "type": "$TYPE_TEMPERATURE_SENSOR",
