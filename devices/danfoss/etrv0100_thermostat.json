@@ -62,6 +62,9 @@
             "ep": 1,
             "eval": "Item.val = Attr.val / 2;",
             "fn": "zcl"
+          },
+          "read": {
+            "fn": "none",
           }
         },
         {
@@ -160,7 +163,8 @@
           "default": false
         },
         {
-          "name": "config/heatsetpoint"
+          "name": "config/heatsetpoint",
+          "refresh.interval": 86400
         },
         {
           "name": "config/locked",
@@ -235,15 +239,24 @@
           "name": "config/schedule"
         },
         {
-          "name": "config/schedule_on"
+          "name": "config/schedule_on",
+          "refresh.interval": 86400
         },
         {
           "name": "state/errorcode",
+          "refresh.interval": 86400,
           "parse": {
             "at": "0x4000",
             "cl": "0x0B05",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
+            "fn": "zcl",
+            "mf": "0x1246"
+          },
+          "read": {
+            "at": "0x4000",
+            "cl": "0x0B05",
+            "ep": 1,
             "fn": "zcl",
             "mf": "0x1246"
           }
@@ -253,11 +266,19 @@
         },
         {
           "name": "state/mountingmodeactive",
+          "refresh.interval": 86400,
           "parse": {
             "at": "0x4012",
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
+            "fn": "zcl",
+            "mf": "0x1246"
+          },
+          "read": {
+            "at": "0x4012",
+            "cl": "0x0201",
+            "ep": 1,
             "fn": "zcl",
             "mf": "0x1246"
           },
@@ -287,10 +308,12 @@
           }
         },
         {
-          "name": "state/valve"
+          "name": "state/valve",
+          "refresh.interval": 86400
         },
         {
           "name": "state/windowopen",
+          "refresh.interval": 86400,
           "parse": {
             "at": "0x4000",
             "cl": "0x0201",
@@ -298,6 +321,13 @@
             "fn": "zcl",
             "mf": "0x1246",
             "script": "danfoss_windowopen_state.js"
+          },
+          "read": {
+            "at": "0x4000",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl",
+            "mf": "0x1246"
           },
           "default": "Quarantine"
         }
@@ -356,6 +386,9 @@
             "ep": 1,
             "eval": "Item.val = Attr.val / 2;",
             "fn": "zcl"
+          },
+          "read": {
+            "fn": "none"
           }
         },
         {

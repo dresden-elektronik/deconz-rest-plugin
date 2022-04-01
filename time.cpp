@@ -191,6 +191,8 @@ void DeRestPluginPrivate::handleTimeClusterIndication(const deCONZ::ApsDataIndic
                             enqueueEvent(Event(RSensors, RStateLastSet, sensor->id(), item));
                             stateUpdated = true;
                         }
+                        
+                        sensor->setZclValue(updateType, ind.srcEndpoint(), TIME_CLUSTER_ID, attrId, attr.numericValue());
                     }
                         break;
     
