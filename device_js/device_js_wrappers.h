@@ -28,7 +28,9 @@ namespace deCONZ
 
 class JsResource : public QObject
 {
-Q_OBJECT
+    Q_OBJECT
+
+    Q_PROPERTY(QVariant endpoints READ endpoints CONSTANT)
 
 public:
     Resource *r = nullptr;
@@ -38,6 +40,7 @@ public:
 
 public Q_SLOTS:
     QJSValue item(const QString &suffix);
+    QVariant endpoints();
 };
 
 class JsResourceItem : public QObject
@@ -45,7 +48,7 @@ class JsResourceItem : public QObject
     Q_OBJECT
 
     Q_PROPERTY(QVariant val READ value WRITE setValue NOTIFY valueChanged)
-    Q_PROPERTY(QString name READ name)
+    Q_PROPERTY(QString name READ name CONSTANT)
 
 public:
     ResourceItem *item = nullptr;
@@ -67,9 +70,9 @@ class JsZclAttribute : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(QVariant val READ value)
-    Q_PROPERTY(int id READ id)
-    Q_PROPERTY(int dataType READ dataType)
+    Q_PROPERTY(QVariant val READ value CONSTANT)
+    Q_PROPERTY(int id READ id CONSTANT)
+    Q_PROPERTY(int dataType READ dataType CONSTANT)
 
 public:
     const deCONZ::ZclAttribute *attr = nullptr;
@@ -86,9 +89,9 @@ class JsZclFrame : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(int cmd READ cmd)
-    Q_PROPERTY(int payloadSize READ payloadSize)
-    Q_PROPERTY(bool isClCmd READ isClCmd)
+    Q_PROPERTY(int cmd READ cmd CONSTANT)
+    Q_PROPERTY(int payloadSize READ payloadSize CONSTANT)
+    Q_PROPERTY(bool isClCmd READ isClCmd CONSTANT)
 
 public:
     const deCONZ::ZclFrame *zclFrame = nullptr;

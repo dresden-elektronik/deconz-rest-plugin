@@ -3222,7 +3222,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (!isClip)
         {
-            const auto ddf = d->deviceDescriptions->get(&sensor);
+            // ignore DDF "matchexpr" at this stage since the node is not yet fully loaded
+            const auto &ddf = d->deviceDescriptions->get(&sensor, DDF_IgnoreMatchExpr);
             if (ddf.isValid())
             {
                 unsigned ep = endpointFromUniqueId(sensor.uniqueId());

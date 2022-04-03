@@ -10,6 +10,24 @@
 
 #include "resource.h"
 #include "device_js_wrappers.h"
+#include "device.h"
+#include "utils/utils.h"
+
+static const deCONZ::Node *getResourceCoreNode(const Resource *r)
+{
+    if (r)
+    {
+        const ResourceItem *uuid = r->item(RAttrUniqueId);
+
+        if (uuid && !uuid->toString().isEmpty())
+        {
+            const uint64_t extAddr = extAddressFromUniqueId(uuid->toString());
+
+            return DEV_GetCoreNode(extAddr);
+        }
+    }
+    return nullptr;
+}
 
 JsResource::JsResource(QJSEngine *parent) :
     QObject(parent)
@@ -38,6 +56,24 @@ QJSValue JsResource::item(const QString &suffix)
     }
 
     return {};
+}
+
+QVariant JsResource::endpoints()
+{
+    QVariantList result;
+    if (cr)
+    {
+        const deCONZ::Node *node = getResourceCoreNode(cr);
+        if (node)
+        {
+            for (auto ep : node->endpoints())
+            {
+                result.push_back(int(ep));
+            }
+        }
+    }
+
+    return result;
 }
 
 JsResourceItem::JsResourceItem(QObject *parent) :

@@ -99,6 +99,7 @@ public:
     QString vendor; // optional: friendly name of manufacturer
     QString product;
     QString status;
+    QString matchExpr;
 
     int handle = -1; // index in container
     int sleeper = -1;
@@ -225,6 +226,12 @@ class DeviceDescriptionsPrivate;
 
 using DDF_Items = std::vector<DeviceDescription::Item>;
 
+enum DDF_MatchControl
+{
+    DDF_EvalMatchExpr,
+    DDF_IgnoreMatchExpr
+};
+
 class DeviceDescriptions : public QObject
 {
     Q_OBJECT
@@ -234,7 +241,7 @@ public:
     ~DeviceDescriptions();
     void setEnabledStatusFilter(const QStringList &filter);
     const QStringList &enabledStatusFilter() const;
-    const DeviceDescription &get(const Resource *resource) const;
+    const DeviceDescription &get(const Resource *resource, DDF_MatchControl match = DDF_EvalMatchExpr) const;
     void put(const DeviceDescription &ddf);
     const DeviceDescription &load(const QString &path);
 
