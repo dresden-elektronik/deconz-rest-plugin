@@ -173,6 +173,7 @@ public:
         QString type;
         QString restApi;
         QStringList uniqueId; // [ "$address.ext", "01", "0405"],
+        QVariantMap meta;
         std::vector<Item> items;
         SensorFingerprint fingerPrint;
     };
@@ -244,6 +245,8 @@ public:
     const DeviceDescription &get(const Resource *resource, DDF_MatchControl match = DDF_EvalMatchExpr) const;
     void put(const DeviceDescription &ddf);
     const DeviceDescription &load(const QString &path);
+
+    const DeviceDescription::SubDevice &getSubDevice(const Resource *resource) const;
 
     QString constantToString(const QString &constant) const;
     QString stringToConstant(const QString &str) const;
