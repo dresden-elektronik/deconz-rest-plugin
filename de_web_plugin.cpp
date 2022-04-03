@@ -1392,7 +1392,12 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             {
                 // No sensorNode found for endpoint - check for multiple endpoints mapped to the same resource
                 sensorNode = getSensorNodeForAddress(ind.srcAddress());
-                if (sensorNode)
+
+                if (sensorNode && device && device->subDevices().size() == 1)
+                {
+                    // no need to string match if there is only one sub-device
+                }
+                else if (sensorNode)
                 {
                     quint16 mfCode = sensorNode->node() ? sensorNode->node()->nodeDescriptor().manufacturerCode() : 0;
                     if (zclFrame.manufacturerCode() == VENDOR_PHILIPS)
@@ -4447,6 +4452,30 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         if (buttonMapEntry)
         {
             sensor->setButtonMapRef(buttonMapEntry->buttonMapRef);
+
+            // fix sensor.mode legacy cruft, if the complete button map only uses one mode
+            // (true for most switches) set it as sensor.mode
+            uint modes = 0;
+            uint modesCount = 0;
+
+            for (const auto &btn : buttonMapEntry->buttons)
+            {
+                if ((modes & (1 << btn.mode)) == 0)
+                {
+                    modes |= 1 << btn.mode;
+                    modesCount++;
+                }
+            }
+
+            if (modesCount == 1 && !buttonMapEntry->buttons.empty())
+            {
+                if (buttonMapEntry->buttons[0].mode != sensor->mode())
+                {
+                    sensor->setMode(Sensor::SensorMode(buttonMapEntry->buttons[0].mode));
+                    updateSensorEtag(sensor);
+                    sensor->setNeedSaveDatabase(true);
+                }
+            }
         }
     }
     else
