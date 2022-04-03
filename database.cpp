@@ -3997,10 +3997,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             item = sensor.addItem(DataTypeUInt8, RStateBattery);
             item->setValue(100);
-            if (sensor.modelId().startsWith(QLatin1String("lumi.curtain.acn002")))
-            {
-                sensor.addItem(DataTypeBool, RStateCharging);
-            }
         }
         else if (sensor.type() == QLatin1String("CLIPDaylightOffset"))
         {

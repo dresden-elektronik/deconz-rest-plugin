@@ -653,7 +653,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     TaskItem task;
     QString id = req.path[3];
     Sensor *sensor = id.length() < MIN_UNIQUEID_LENGTH ? getSensorNodeForId(id) : getSensorNodeForUniqueId(id);
-    Device *device = sensor->parentResource() ? static_cast<Device*>(sensor->parentResource()) : nullptr;
+    Device *device = (sensor && sensor->parentResource()) ? static_cast<Device*>(sensor->parentResource()) : nullptr;
     Resource *rsub = DEV_GetSubDevice(device, nullptr, sensor->uniqueId());
     const bool devManaged = device && device->managed();
     bool ok;

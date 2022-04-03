@@ -187,6 +187,7 @@
 				<description>Set to 0x22 (0xFE) to connect (disconnect) the left button to (from) the relay.</description>
 			</attribute>
 			<!-- <attribute id="0xff0d" name="Xiaomi Sensitivity" type="u8" access="rw" required="o" mfcode="0x1037"></attribute> -->
+			<attribute id="0xfffd" name="Cluster Revision" type="u16" default="0" access="rw" required="o"></attribute>
 		</attribute-set>
 		<attribute-set id="0x0010" description="Basic Device Settings">
 			<attribute id="0x0010" name="Location Description" type="cstring" range="0,16" access="rw" required="o"></attribute>
@@ -266,7 +267,12 @@
 			<attribute id="0xFF54" name="Unknown" type="ostring" access="rw" required="o" mfcode="0x115f"></attribute>
 			<attribute id="0xFFF0" name="Unknown" type="ostring" access="rw" required="o" mfcode="0x115f"></attribute>
 		</attribute-set>
-		<attribute id="0xfffd" name="Cluster Revision" type="u16" default="0" access="rw" required="o"></attribute>
+		<attribute-set id="0xFF00" description="Tuya specific" mfcode="0x1002">
+			<attribute id="0xffde" name="Reporting1" type="u8" default="0" access="rw" required="o"></attribute>
+			<attribute id="0xffe2" name="Unknown1" type="u8" default="0" access="rw" required="o"></attribute>
+			<attribute id="0xffe4" name="Unknown2" type="u8" default="0" access="rw" required="o"></attribute>
+			<attribute id="0xfffe" name="Unknown3" type="enum8" default="0" access="rw" required="o"></attribute>
+		</attribute-set>
 		<command id="00" dir="recv" name="Reset to Factory Defaults" required="o"></command>
 		</server>
 		<client>
@@ -1873,8 +1879,34 @@ by the Poll Control Cluster Client.</description>
 				<value name="Off" value="0"></value>
 				<value name="On" value="1"></value>
 			</attribute>
-            <attribute id="0xf003" name="Calibration time (tenth of a second)" type="u16" default="0x0000" required="m" access="rw"></attribute>
-        </attribute-set>
+			<attribute id="0xf003" name="Calibration time (tenth of a second)" type="u16" default="0x0000" required="m" access="rw"></attribute>
+		</attribute-set>
+
+		<attribute-set id="0xe000" description="Merten specific" mfcode="0x105e">
+			<attribute id="0xe000" name="Cover run time" type="u16" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
+			<attribute id="0xe010" name="Unknown" type="bmp8" required="m" access="r" mfcode="0x105e">
+				<value name="Unknown" value="0"></value>
+				<value name="Unknown" value="1"></value>
+				<value name="Unknown" value="2"></value>
+				<value name="Unknown" value="3"></value>
+				<value name="Unknown" value="4"></value>
+				<value name="Unknown" value="5"></value>
+				<value name="Unknown" value="6"></value>
+				<value name="Unknown" value="7"></value>
+			</attribute>
+			<attribute id="0xe012" name="Unknown" type="u16" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
+			<attribute id="0xe013" name="Unknown" type="bmp8" required="m" access="r" mfcode="0x105e">
+				<value name="Unknown" value="0"></value>
+				<value name="Unknown" value="1"></value>
+				<value name="Unknown" value="2"></value>
+				<value name="Unknown" value="3"></value>
+				<value name="Unknown" value="4"></value>
+				<value name="Unknown" value="5"></value>
+				<value name="Unknown" value="6"></value>
+				<value name="Unknown" value="7"></value>
+			</attribute>
+		</attribute-set>
+
         <command id="0x00" dir="recv" name="Up / Open" required="m"></command>
         <command id="0x01" dir="recv" name="Down / Close" required="m"></command>
         <command id="0x02" dir="recv" name="Stop" required="m"></command>
@@ -3004,6 +3036,7 @@ controller device, that supports a keypad and LCD screen.</description>
 			<attribute-set id="0x0500" description="AC (Single Phase or Phase A) Measurements">
 				<attribute id="0x0505" name="RMS Voltage" type="u16" access="r" required="o" default="0xFFFF"></attribute>
 				<attribute id="0x0508" name="RMS Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+                <attribute id="0x050a" name="Max Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
 				<attribute id="0x050b" name="Active Power" type="s16" access="r" required="o" default="0x8000">
 					<description>Represents the single phase or Phase A, current demand of active power delivered or received at the premises, in Watts (W). Positive values indicate power delivered to the premises where negative values indicate power received from the premises.</description>
 				</attribute>
@@ -3022,10 +3055,14 @@ controller device, that supports a keypad and LCD screen.</description>
 			<attribute-set id="0x0900" description="AC (Phase B) Measurements">
 				<attribute id="0x0905" name="RMS Voltage" type="u16" access="r" required="o" default="0xFFFF"></attribute>
 				<attribute id="0x0908" name="RMS Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+                <attribute id="0x090a" name="Max Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+                <attribute id="0x090f" name="RMS Power" type="u16" access="r" required="o" default="0xFFFF"></attribute>
 			</attribute-set>
 			<attribute-set id="0x0a00" description="AC (Phase C) Measurements">
 				<attribute id="0x0a05" name="RMS Voltage" type="u16" access="r" required="o" default="0xFFFF"></attribute>
 				<attribute id="0x0a08" name="RMS Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+                <attribute id="0x0a0a" name="Max Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+                <attribute id="0x0a0f" name="RMS Power" type="u16" access="r" required="o" default="0xFFFF"></attribute>
 			</attribute-set>
 		</server>
 		<client>
@@ -3915,25 +3952,39 @@ devices can operate on either battery or mains power, and can have a wide variet
         <attribute id="0x0006" type="u16" name="Avertissement de Dépassement D'intensité P1" access="r" required="m" default="0x00"/>
         <attribute id="0x0007" type="u16" name="Avertissement de Dépassement D'intensité P2" access="r" required="m" default="0x00"/>
         <attribute id="0x0008" type="u16" name="Avertissement de Dépassement D'intensité P3" access="r" required="m" default="0x00"/>
+        <attribute id="0x0200" type="cstring" name="Libellé tarif fournisseur en cours" access="r" required="m"/>
+        <attribute id="0x0203" type="u32" name="Energie active soutirée Distributeur, index 01" access="r" required="m" default="0x00"/>
+        <attribute id="0x0203" type="u32" name="Energie active soutirée Distributeur, index 01" access="r" required="m" default="0x00"/>
+        <attribute id="0x0207" type="u16" name="Puissance app. Instantanée injectée" access="r" required="m" default="0x00"/>
+        <attribute id="0x0300" type="u8" name="Protocole Linky" access="r" required="m" default="0x00"/>
       </server>
     </cluster>
 
 		<!-- Tuya -->
-		<cluster id="0xef00" name="Tuya specific Cluster" mfcode="0x1002">
+		<cluster id="0xef00" name="Tuya specific" mfcode="0x1002">
 			<description>Tuya Specific clusters.</description>
 			<server>
+				<command id="00" dir="recv" name="Data Request" required="m">
+					<description>Request datapoint (fields are big-endian!)</description>
+					<payload>
+						<attribute id="0x0000" type="u16" name="Sequence number" required="m" showas="hex" default="0"></attribute>
+						<attribute id="0x0001" type="u8" name="DPID" required="m" showas="hex" default="0x00"></attribute>
+						<attribute id="0x0002" type="enum8" name="Type" required="m" showas="hex" default="0x00">
+							<value name="Raw" value="0x00"/>
+							<value name="Bool" value="0x01"/>
+							<value name="Value" value="0x02"/>
+							<value name="String" value="0x03"/>
+							<value name="Enum" value="0x04"/>
+							<value name="Bitmap" value="0x05"/>
+						</attribute>
+						<attribute id="0x0003" type="u16" name="Length" required="m" showas="hex" default="0x00"></attribute>
+						<attribute id="0x0004" type="u32" name="Value" required="m" showas="hex" default="0"></attribute>
+					</payload>
+				</command>
 
-			<command id="00" dir="recv" name="Unknow" required="m">
-				<description>Command</description>
-				<payload>
-					<attribute id="0x0000" type="u8" name="Status" required="m" showas="hex" default="0x00"></attribute>
-					<attribute id="0x0001" type="u8" name="TransID" required="m" showas="hex" default="0x00"></attribute>
-					<attribute id="0x0002" type="u16" name="Dp" required="m" showas="hex" default="0x0000"></attribute>
-					<attribute id="0x0003" type="u8" name="fn" required="m" showas="hex" default="0x00"></attribute>
-					<attribute id="0x0004" type="ostring" name="data" required="m" default="1,0x0000"></attribute>
-				</payload>
-			</command>
-
+				<command id="0x03" dir="recv" name="Data Query" required="m">
+					<description>Trigger report all datapoints.</description>
+				</command>
 			</server>
 			<client>
 			</client>
@@ -4519,6 +4570,40 @@ Writing 1 to 0x0202 and 0x0302 makes 0x0300 writable. Then writing 1 to 0x0300 s
 				<attribute id="0x0102" name="Electrical measurement noise w load" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
 				<attribute id="0x0103" name="Electrical measurement noise w/o load" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
 				<attribute id="0xFFFD" name="Cluster revision" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
+			</server>
+			<client>
+			</client>
+		</cluster>
+
+		<!-- MERTEN WISER -->
+		<cluster id="0xff17" name="Merten specific" mfcode="0x105e">
+			<description>Merten specific attributes.</description>
+			<server>
+				<attribute id="0x0000" name="Unknown" type="enum8" mfcode="0x105e" access="rw" required="m">
+					<value name="Unknown" value="0"></value>
+					<value name="Unknown" value="1"></value>
+					<value name="Unknown" value="2"></value>
+					<value name="Unknown" value="3"></value>
+					<value name="Unknown" value="4"></value>
+					<value name="Unknown" value="5"></value>
+					<value name="Unknown" value="6"></value>
+					<value name="Unknown" value="7"></value>
+				</attribute>
+				<attribute id="0x0001" name="Unknown" type="enum8" mfcode="0x105e" access="rw" required="m">
+					<value name="Unknown" value="0"></value>
+					<value name="Unknown" value="1"></value>
+					<value name="Unknown" value="2"></value>
+					<value name="Unknown" value="3"></value>
+					<value name="Unknown" value="4"></value>
+					<value name="Unknown" value="5"></value>
+					<value name="Unknown" value="6"></value>
+					<value name="Unknown" value="7"></value>
+				</attribute>
+				<attribute id="0x0010" name="Unknown" type="u8" mfcode="0x105e" access="rw" required="m"> </attribute>
+				<attribute id="0x0011" name="Unknown" type="u16" mfcode="0x105e" access="rw" required="m"> </attribute>
+				<attribute id="0x0020" name="Unknown" type="u8" mfcode="0x105e" access="rw" required="m"> </attribute>
+				<attribute id="0x0021" name="Unknown" type="u16" mfcode="0x105e" access="rw" required="m"> </attribute>
+				<attribute id="0xfffd" name="Cluster Revision" type="u16" mfcode="0x105e" access="r" required="m"> </attribute>
 			</server>
 			<client>
 			</client>

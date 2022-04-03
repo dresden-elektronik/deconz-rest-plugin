@@ -235,12 +235,8 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                     sensor.modelId() == QLatin1String("3AFE28010402000D") ||   // Konke motion sensor v2
                     sensor.modelId() == QLatin1String("FB56-DOS06HM1.3") ||    // Feibit FB56-DOS06HM1.3 door/window sensor
                     sensor.modelId().endsWith(QLatin1String("86opcn01")) ||    // Aqara Opple
-                    sensor.modelId().startsWith(QLatin1String("AQSZB-1")) ||   // Develco air quality sensor
-                    sensor.modelId().startsWith(QLatin1String("MOSZB-1")) ||   // Develco motion sensor
-                    sensor.modelId().startsWith(QLatin1String("WISZB-1")) ||   // Develco window sensor
                     sensor.modelId().startsWith(QLatin1String("FLSZB-1")) ||   // Develco water leak sensor
                     sensor.modelId().startsWith(QLatin1String("SIRZB-1")) ||   // Develco siren
-                    sensor.modelId().startsWith(QLatin1String("HMSZB-1")) ||   // Develco temp/hum sensor
                     sensor.modelId().startsWith(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
                     sensor.modelId().startsWith(QLatin1String("MotionSensor51AU")) || // Aurora (Develco) motion sensor
                     sensor.modelId().startsWith(QLatin1String("RFDL-ZB-MS")) ||// Bosch motion sensor
