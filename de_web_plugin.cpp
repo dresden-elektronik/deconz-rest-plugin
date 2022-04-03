@@ -40,6 +40,7 @@
 #include "device_ddf_init.h"
 #include "device_descriptions.h"
 #include "device_tick.h"
+#include "device_js/device_js.h"
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "de_web_widget.h"
@@ -669,6 +670,8 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
 
     alarmSystems.reset(new AlarmSystems);
 
+    deviceJs = new DeviceJs();
+
     deviceDescriptions = new DeviceDescriptions(this);
     connect(deviceDescriptions, &DeviceDescriptions::eventNotify, eventEmitter, &EventEmitter::enqueueEvent);
     connect(eventEmitter, &EventEmitter::eventNotify, deviceDescriptions, &DeviceDescriptions::handleEvent);
@@ -993,6 +996,8 @@ DeRestPluginPrivate::~DeRestPluginPrivate()
         inetDiscoveryManager->deleteLater();
         inetDiscoveryManager = 0;
     }
+    delete deviceJs;
+    deviceJs = nullptr;
     eventEmitter = nullptr;
 }
 
