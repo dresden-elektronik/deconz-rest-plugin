@@ -469,6 +469,11 @@ bool ddfSerializeV1(JsonDoc &doc, const DeviceDescription &ddf, char *buf, size_
 
     doc["status"] = ddf.status.toStdString();
 
+    if (!ddf.matchExpr.isEmpty())
+    {
+        doc["matchexpr"] = ddf.matchExpr.toStdString();
+    }
+
     if (!ddf.path.isEmpty())
     {
         int idx = ddf.path.indexOf(QLatin1String("/devices/"));

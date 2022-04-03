@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2022 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -18,6 +18,7 @@
 #include <deconz/dbg_trace.h>
 #include "device_ddf_init.h"
 #include "device_descriptions.h"
+#include "device_js/device_js.h"
 #include "event.h"
 #include "resource.h"
 
@@ -524,7 +525,7 @@ void DeviceDescriptions::handleEvent(const Event &event)
 /*! Get the DDF object for a \p resource.
     \returns The DDF object, DeviceDescription::isValid() to check for success.
  */
-const DeviceDescription &DeviceDescriptions::get(const Resource *resource) const
+const DeviceDescription &DeviceDescriptions::get(const Resource *resource, DDF_MatchControl match) const
 {
     Q_ASSERT(resource);
     Q_ASSERT(resource->item(RAttrModelId));
@@ -543,7 +544,29 @@ const DeviceDescription &DeviceDescriptions::get(const Resource *resource) const
 
     if (i != d->descriptions.end())
     {
-        return *i;
+        if (!i->matchExpr.isEmpty() && match == DDF_EvalMatchExpr)
+        {
+            DeviceJs *djs = DeviceJs::instance();
+            djs->reset();
+            djs->setResource(resource->parentResource() ? resource->parentResource() : resource);
+            if (djs->evaluate(i->matchExpr) == JsEvalResult::Ok)
+            {
+                const auto res = djs->result();
+                DBG_Printf(DBG_DDF, "matchexpr: %s --> %s\n", qPrintable(i->matchExpr), qPrintable(res.toString()));
+                if (res.toBool()) // needs to evaluate to true
+                {
+                    return *i;
+                }
+            }
+            else
+            {
+                DBG_Printf(DBG_DDF, "failed to evaluate matchexpr for %s: %s, err: %s\n", qPrintable(resource->item(RAttrUniqueId)->toString()), qPrintable(i->matchExpr), qPrintable(djs->errorString()));
+            }
+        }
+        else
+        {
+            return *i;
+        }
     }
 
     return d->invalidDescription;
@@ -1504,6 +1527,11 @@ static DeviceDescription DDF_ParseDeviceObject(const QJsonObject &obj, const QSt
     if (obj.contains(QLatin1String("sleeper")))
     {
         result.sleeper = obj.value(QLatin1String("sleeper")).toBool() ? 1 : 0;
+    }
+
+    if (obj.contains(QLatin1String("matchexpr")))
+    {
+        result.matchExpr = obj.value(QLatin1String("matchexpr")).toString();
     }
 
     const auto keys = obj.keys();
