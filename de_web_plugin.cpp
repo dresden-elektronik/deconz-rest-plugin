@@ -244,7 +244,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SAMJIN, "button", samjinMacPrefix }, // Smarthings (Samjin) Button
     { VENDOR_SAMJIN, "outlet", samjinMacPrefix }, // Smarthings (Samjin) Outlet
     { VENDOR_JENNIC, "lumi.lock.v1", jennicMacPrefix }, // Xiaomi A6121 Vima Smart Lock
-    { VENDOR_JENNIC, "lumi.sensor_ht", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_magnet", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_motion", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_switch.aq2", jennicMacPrefix }, // Xiaomi WXKG11LM 2016
@@ -8033,7 +8032,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
         if (!sensorNode.item(RStateTemperature) &&
             sensorNode.modelId() != QLatin1String("lumi.sensor_switch") &&
-            !sensorNode.modelId().startsWith(QLatin1String("lumi.sensor_ht")) &&
             !sensorNode.modelId().endsWith(QLatin1String("86opcn01"))) // exclude Aqara Opple
         {
             sensorNode.addItem(DataTypeInt16, RConfigTemperature);
