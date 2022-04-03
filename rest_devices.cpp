@@ -820,6 +820,13 @@ QVariantMap RIS_IntrospectButtonEventItem(const ResourceItemDescriptor &rid, con
         return result;
     }
 
+    const deCONZ::Node *node = getCoreNode(sensor->address().ext(), deCONZ::ApsController::instance());
+
+    if (!node)
+    {
+        return result;
+    }
+
     // TODO dependency on plugin needs to be removed to make this testable
     const auto &buttonMapButtons = plugin->buttonMeta;
     const auto &buttonMapData = plugin->buttonMaps;
@@ -839,6 +846,15 @@ QVariantMap RIS_IntrospectButtonEventItem(const ResourceItemDescriptor &rid, con
 
         for (const auto &btn : buttonData->buttons)
         {
+
+            const auto sd = std::find_if(node->simpleDescriptors().cbegin(), node->simpleDescriptors().cend(),
+                                         [&btn](const deCONZ::SimpleDescriptor &x){ return x.endpoint() == btn.endpoint; });
+
+            if (sd == node->simpleDescriptors().cend())
+            {
+                continue;
+            }
+
             buttonBits |= 1 << int(btn.button / 1000);
 
             QVariantMap m;
@@ -858,9 +874,12 @@ QVariantMap RIS_IntrospectButtonEventItem(const ResourceItemDescriptor &rid, con
     {
         for (const auto &button : buttonsMeta->buttons)
         {
-            QVariantMap m;
-            m[QLatin1String("name")] = button.name;
-            buttons[QString::number(button.button)] = m;
+            if (buttonBits & (1 << button.button))
+            {
+                QVariantMap m;
+                m[QLatin1String("name")] = button.name;
+                buttons[QString::number(button.button)] = m;
+            }
         }
     }
     else // fallback if no "buttons" is defined in the button map, generate a generic one
