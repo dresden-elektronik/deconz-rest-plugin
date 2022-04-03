@@ -289,10 +289,11 @@ struct MapMfCode
     quint16 serverMask;
 };
 
-static const std::array<MapMfCode, 2> mapMfCode = {
+static const std::array<MapMfCode, 3> mapMfCode = {
     {
         { 0x04cf8c0000000000ULL, 0x115F, 0x0040}, // Xiaomi
-        { 0x54ef440000000000ULL, 0x115F, 0x0040}  // Xiaomi
+        { 0x54ef440000000000ULL, 0x115F, 0x0040},  // Xiaomi
+        { 0x54ef440000000000ULL, 0x1234, 0x0040}  // Xiaomi
     }
 };
 
