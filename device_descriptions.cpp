@@ -60,6 +60,7 @@ public:
 
     DeviceDescription invalidDescription;
     DeviceDescription::Item invalidItem;
+    DeviceDescription::SubDevice invalidSubDevice;
 
     QStringList enabledStatusFilter;
 
@@ -642,6 +643,51 @@ const DeviceDescription &DeviceDescriptions::load(const QString &path)
     return d->invalidDescription;
 }
 
+/*! Returns the DDF sub device belonging to a resource. */
+const DeviceDescription::SubDevice &DeviceDescriptions::getSubDevice(const Resource *resource) const
+{
+    Q_D(const DeviceDescriptions);
+
+    if (resource)
+    {
+        ItemHandlePack h;
+        for (int i = 0; i < resource->itemCount(); i++)
+        {
+            const ResourceItem *item = resource->itemForIndex(size_t(i));
+            assert(item);
+
+            h.handle = item->ddfItemHandle();
+            if (h.handle == DeviceDescription::Item::InvalidItemHandle)
+            {
+                continue;
+            }
+
+            if (h.loadCounter != d->loadCounter)
+            {
+                return d->invalidSubDevice;
+            }
+
+            DBG_Assert(h.description < d->descriptions.size());
+            if (h.description >= d->descriptions.size())
+            {
+                return d->invalidSubDevice;
+            }
+
+            auto &ddf = d->descriptions[h.description];
+
+            DBG_Assert(h.subDevice < ddf.subDevices.size());
+            if (h.subDevice >= ddf.subDevices.size())
+            {
+                return d->invalidSubDevice;
+            }
+
+            return ddf.subDevices[h.subDevice];
+        }
+    }
+
+    return d->invalidSubDevice;
+}
+
 /*! Turns a string constant into it's value.
     \returns The constant value on success, or the constant itself on error.
  */
@@ -1199,6 +1245,15 @@ static DeviceDescription::SubDevice DDF_ParseSubDevice(const QJsonObject &obj)
     if (result.restApi.isEmpty())
     {
         return result;
+    }
+
+    if (obj.contains(QLatin1String("meta")))
+    {
+        auto meta = obj.value(QLatin1String("meta"));
+        if (meta.isObject())
+        {
+            result.meta = meta.toVariant().toMap();
+        }
     }
 
     const auto uniqueId = obj.value(QLatin1String("uuid"));
