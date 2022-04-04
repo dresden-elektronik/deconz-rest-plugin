@@ -840,6 +840,16 @@ bool writeTuyaData(const Resource *r, const ResourceItem *item, deCONZ::ApsContr
     default:
         return result; // unsupported datatype
     }
+    
+    uint16_t clusterId = TUYA_CLUSTER_ID;
+    if (map.contains(QLatin1String("dpid")))
+    {
+        clusterId = variantToUint(map.value["cl"], UINT16_MAX, &ok) : 0;
+        if (!ok)
+        {
+            clusterId = TUYA_CLUSTER_ID;
+        }
+    }
 
     const auto expr = map.value("eval").toString();
 
@@ -859,14 +869,7 @@ bool writeTuyaData(const Resource *r, const ResourceItem *item, deCONZ::ApsContr
     req.setDstAddressMode(deCONZ::ApsNwkAddress);
     req.dstAddress().setNwk(nwkAddr->toNumber());
     req.dstAddress().setExt(extAddr->toNumber());
-    if (param.clusterId > 0)
-    {
-        req.setClusterId(param.clusterId);
-    }
-    else
-    {
-        req.setClusterId(TUYA_CLUSTER_ID);
-    }
+    req.setClusterId(clusterId);
     req.setProfileId(HA_PROFILE_ID);
     req.setSrcEndpoint(1); // TODO
 
