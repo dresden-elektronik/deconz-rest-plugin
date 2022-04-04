@@ -844,7 +844,7 @@ bool writeTuyaData(const Resource *r, const ResourceItem *item, deCONZ::ApsContr
     uint16_t clusterId = TUYA_CLUSTER_ID;
     if (map.contains(QLatin1String("dpid")))
     {
-        clusterId = variantToUint(map.value["cl"], UINT16_MAX, &ok) : 0;
+        clusterId = variantToUint(map.value("cl"), UINT16_MAX, &ok) : 0;
         if (!ok)
         {
             clusterId = TUYA_CLUSTER_ID;
