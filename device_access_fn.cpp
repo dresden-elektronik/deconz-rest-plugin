@@ -80,6 +80,7 @@
 
 */
 #define TUYA_CLUSTER_ID 0xEF00
+#define TUYA_CLUSTER_ID_2 0xE001
 
 enum TuyaCommandId : unsigned char
 {
@@ -591,7 +592,8 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
 {
     bool result = false;
 
-    if (ind.clusterId() != TUYA_CLUSTER_ID || !(zclFrame.commandId() == TY_DATA_REPORT || zclFrame.commandId() ==  TY_DATA_RESPONSE))
+    if ((ind.clusterId() != TUYA_CLUSTER_ID && ind.clusterId() != TUYA_CLUSTER_ID_2)
+        || !(zclFrame.commandId() == TY_DATA_REPORT || zclFrame.commandId() ==  TY_DATA_RESPONSE))
     {
         return result;
     }

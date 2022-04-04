@@ -217,6 +217,7 @@ using namespace deCONZ::literals;
 #define DIAGNOSTICS_CLUSTER_ID                0x0B05
 #define COMMISSIONING_CLUSTER_ID              0x1000
 #define TUYA_CLUSTER_ID                       0xEF00
+#define TUYA_CLUSTER_2_ID                     0xE001
 #define DE_CLUSTER_ID                         0xFC00
 #define VENDOR_CLUSTER_ID                     0xFC00
 #define UBISYS_DEVICE_SETUP_CLUSTER_ID        0xFC00
