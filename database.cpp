@@ -3923,7 +3923,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeString, RConfigMode);
                     sensor.addItem(DataTypeString, RConfigFanMode);
                 }
-                else if (sensor.modelId() == QLatin1String("3157100"))
+                else if (sensor.modelId().startsWith(QLatin1String("3157100")))
                 {
                     sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);
                     sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
