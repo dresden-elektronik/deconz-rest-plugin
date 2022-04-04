@@ -711,14 +711,14 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
     Important: This function should be attached to only one item!
     The item->readParameters() is expected to be an object (given in the device description file).
 
-    { "fn": "tuya"}
+    { "fn": "tuya", "cl": clusterId}
 
-    Example: { "read": {"fn": "tuya"} }
+    Example: { "read": {"fn": "tuya", "cl": clusterId} }
  */
 static DA_ReadResult readTuyaAllData(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, const QVariant &readParameters)
 {
     Q_UNUSED(item)
-    Q_UNUSED(readParameters);
+    //Q_UNUSED(readParameters);
 
     DA_ReadResult result{};
 
@@ -734,6 +734,17 @@ static DA_ReadResult readTuyaAllData(const Resource *r, const ResourceItem *item
     }
 
     lastReadGlobal = now;
+    
+    const auto map = readParameters.toMap();
+    uint16_t clusterId = TUYA_CLUSTER_ID;
+    if (map.contains(QLatin1String("cl")))
+    {
+        clusterId = variantToUint(map.value("cl"), UINT16_MAX, &ok);
+        if (!ok)
+        {
+            clusterId = TUYA_CLUSTER_ID;
+        }
+    }
 
     auto *rTop = r->parentResource() ? r->parentResource() : r;
 
@@ -753,7 +764,7 @@ static DA_ReadResult readTuyaAllData(const Resource *r, const ResourceItem *item
     req.setDstAddressMode(deCONZ::ApsNwkAddress);
     req.dstAddress().setNwk(nwkAddr->toNumber());
     req.dstAddress().setExt(extAddr->toNumber());
-    req.setClusterId(TUYA_CLUSTER_ID);
+    req.setClusterId(clusterId);
     req.setProfileId(HA_PROFILE_ID);
     req.setSrcEndpoint(1); // TODO
 
