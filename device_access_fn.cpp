@@ -780,7 +780,7 @@ static DA_ReadResult readTuyaAllData(const Resource *r, const ResourceItem *item
 /*! A generic function to write Tuya data.
     The \p writeParameters is expected to contain one object (given in the device description file).
 
-    { "fn": "tuya", "dpid": datapointId, "dt": dataType, "eval": expression }
+    { "fn": "tuya", "dpid": datapointId, "dt": dataType, "cl": clusterId, "eval": expression }
 
     - datapointId: number
     - dataType: string hex value
@@ -859,7 +859,14 @@ bool writeTuyaData(const Resource *r, const ResourceItem *item, deCONZ::ApsContr
     req.setDstAddressMode(deCONZ::ApsNwkAddress);
     req.dstAddress().setNwk(nwkAddr->toNumber());
     req.dstAddress().setExt(extAddr->toNumber());
-    req.setClusterId(TUYA_CLUSTER_ID);
+    if (param.clusterId > 0)
+    {
+        req.setClusterId(param.clusterId);
+    }
+    else
+    {
+        req.setClusterId(TUYA_CLUSTER_ID);
+    }
     req.setProfileId(HA_PROFILE_ID);
     req.setSrcEndpoint(1); // TODO
 
