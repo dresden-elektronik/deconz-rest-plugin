@@ -132,7 +132,6 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                     sensor.modelId().startsWith(QLatin1String("ZGR904-S")) || // Envilar remote
                     sensor.modelId().startsWith(QLatin1String("ED-1001")) || // EcoDim wireless switches
                     sensor.modelId().startsWith(QLatin1String("ZGRC-KEY")) || //  Sunricher wireless CCT remote
-                    sensor.modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
                     sensor.modelId().startsWith(QLatin1String("iTRV")) || // Drayton Wiser Radiator Thermostat
                     sensor.modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
                     sensor.modelId().startsWith(QLatin1String("SV02-")) || // Keen Home vent

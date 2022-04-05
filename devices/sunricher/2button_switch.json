@@ -4,22 +4,20 @@
     "EcoDim",
     "EcoDim",
     "Sunricher",
+    "Sunricher",
     "NAMRON AS",
-    "NAMRON AS",
-    "ROBB smarrt",
     "ROBB smarrt"
   ],
   "modelid": [
-    "ED-10012",
-    "ED-10013",
-    "ZG2833K4_EU06",
-    "4512719",
-    "4512729",
-    "ROB_200-008",
-    "ROB_200-008-0"
+    "ED-10010",
+    "ED-10011",
+    "ZGRC-KEY-007",
+    "ZG2833K2_EU07",
+    "4512702",
+    "ROB_200-009-0"
   ],
-  "matchexpr": "R.endpoints.length === 2",
-  "product": "4 Button Wall Switch",
+  "matchexpr": "R.endpoints.length === 1",
+  "product": "2 Button Wall Switch",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -46,7 +44,7 @@
           "0x0008"
         ]
       },
-      "meta": {"group.endpoints": [1, 2] },
+      "meta": {"group.endpoints": [1] },
       "items": [
         {
           "name": "attr/id"
@@ -83,7 +81,7 @@
         },
         {
           "name": "config/group",
-          "default": "auto,auto"
+          "default": "auto"
         },
         {
           "name": "config/on"
@@ -126,18 +124,6 @@
       "bind": "groupcast",
       "config.group": 0,
       "src.ep": 1,
-      "cl": "0x0008"
-    },
-    {
-      "bind": "groupcast",
-      "config.group": 1,
-      "src.ep": 2,
-      "cl": "0x0006"
-    },
-    {
-      "bind": "groupcast",
-      "config.group": 1,
-      "src.ep": 2,
       "cl": "0x0008"
     }
   ]
