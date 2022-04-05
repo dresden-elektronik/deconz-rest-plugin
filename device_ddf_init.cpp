@@ -191,10 +191,6 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
 
             if (item->descriptor().suffix == RConfigGroup)
             {
-                if (item->toString().isEmpty() && !ddfItem.defaultValue.isNull())
-                {
-                    item->setValue(ddfItem.defaultValue.toString());
-                }
                 DEV_AllocateGroup(device, rsub, item);
             }
 
