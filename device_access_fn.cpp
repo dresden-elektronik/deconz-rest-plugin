@@ -710,6 +710,8 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
 /*! A generic function to trigger Tuya device reporting all datapoints.
     Important: This function should be attached to only one item!
     The item->readParameters() is expected to be an object (given in the device description file).
+    
+    "cl" is optional.
 
     { "fn": "tuya", "cl": clusterId}
 
@@ -806,6 +808,7 @@ static DA_ReadResult readTuyaAllData(const Resource *r, const ResourceItem *item
           32-bit bitmap  0x1b
 
     - expression: to transform the item value
+    - clusterId is optionnal.
 
     Example: "write": {"fn":"tuya", "dpid": 1,  "dt": "0x10", "eval": "Item.val == 1"}
  */
@@ -871,8 +874,8 @@ bool writeTuyaData(const Resource *r, const ResourceItem *item, deCONZ::ApsContr
         return result;
     }
 
-    DBG_Printf(DBG_INFO, "writeTuyaData, dpid: 0x%02X, type: 0x%02X, expr: %s\n",
-               dpid & 0xFF, dataType & 0xFF, qPrintable(expr));
+    DBG_Printf(DBG_INFO, "writeTuyaData, cluster: 0x%04X, dpid: 0x%02X, type: 0x%02X, expr: %s\n",
+               clusterId & 0xFFFF, dpid & 0xFF, dataType & 0xFF, qPrintable(expr));
 
     deCONZ::ApsDataRequest req;
     deCONZ::ZclFrame zclFrame;
