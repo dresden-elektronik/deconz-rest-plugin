@@ -282,7 +282,8 @@ bool evalZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndi
 
     if (!expr.isEmpty())
     {
-        DeviceJs engine;
+        DeviceJs &engine = *DeviceJs::instance();
+        engine.reset();
         engine.setResource(r);
         engine.setItem(item);
         engine.setZclAttribute(attr);
@@ -316,7 +317,8 @@ bool evalZclFrame(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicati
 
     if (!expr.isEmpty())
     {
-        DeviceJs engine;
+        DeviceJs &engine = *DeviceJs::instance();
+        engine.reset();
         engine.setResource(r);
         engine.setItem(item);
         engine.setZclFrame(zclFrame);
@@ -871,7 +873,8 @@ bool writeTuyaData(const Resource *r, const ResourceItem *item, deCONZ::ApsContr
 
     { // payload
         QVariant value;
-        DeviceJs engine;
+        DeviceJs &engine = *DeviceJs::instance();
+        engine.reset();
         engine.setResource(r);
         engine.setItem(item);
 
@@ -1448,7 +1451,8 @@ bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsC
 
         if (!expr.isEmpty())
         {
-            DeviceJs engine;
+            DeviceJs &engine = *DeviceJs::instance();
+            engine.reset();
             engine.setResource(r);
             engine.setItem(item);
 

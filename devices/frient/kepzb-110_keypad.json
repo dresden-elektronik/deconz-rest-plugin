@@ -5,7 +5,6 @@
    "product":"KEPZB-110",
    "sleeper":false,
    "status":"Bronze",
-   "path":"/devices/frient/kepzb-110_keypad.json",
    "subdevices":[
       {
          "type":"ZHAAncillaryControl",
@@ -57,20 +56,17 @@
                "name":"attr/uniqueid"
             },
             {
-               "name":"config/battery",
-               "description":"The current device battery level in 0–100 %."
+               "name":"config/battery"
             },
             {
                "name":"config/enrolled",
-               "public":false,
-               "description":"State of IAS enrollment process."
+               "public":false
             },
             {
                "name":"config/on"
             },
             {
-               "name":"config/pending",
-               "description":"Pending tasks to configure the device."
+               "name":"config/pending"
             },
             {
                "name":"config/reachable"
@@ -83,8 +79,7 @@
                "name":"state/lastupdated"
             },
             {
-               "name":"state/lowbattery",
-               "description":"True when the device battery runs low."
+               "name":"state/lowbattery"
             },
             {
                "name":"state/panel",
@@ -132,8 +127,7 @@
                "name":"attr/uniqueid"
             },
             {
-               "name":"config/duration",
-               "description":"The duration until presence is automatically turned back to false."
+               "name":"config/duration"
             },
             {
                "name":"config/on"
@@ -145,8 +139,7 @@
                "name":"state/lastupdated"
             },
             {
-               "name":"state/presence",
-               "description":"True when presence is detected."
+               "name":"state/presence"
             }
          ]
       }

@@ -119,7 +119,7 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                         DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "if (Attr.val != -32768) { Item.val = Attr.val; } ");
                     }
 
-                    if (item->toNumber() != power)
+                    if (!item->lastSet().isValid() || item->toNumber() != power)
                     {
                         item->setValue(power); // in W
                         enqueueEvent(Event(RSensors, RStatePower, sensor->id(), item));
@@ -167,7 +167,7 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                         DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "if (Attr.val != 65535) { Item.val = Attr.val; } ");
                     }
 
-                    if (item->toNumber() != voltage)
+                    if (!item->lastSet().isValid() || item->toNumber() != voltage)
                     {
                         item->setValue(voltage); // in V
                         enqueueEvent(Event(RSensors, RStateVoltage, sensor->id(), item));
@@ -222,7 +222,7 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                         DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "if (Attr.val != 65535) { Item.val = Attr.val * 1000; } ");
                     }
 
-                    if (item->toNumber() != current)
+                    if (!item->lastSet().isValid() || item->toNumber() != current)
                     {
                         item->setValue(current); // in mA
                         enqueueEvent(Event(RSensors, RStateCurrent, sensor->id(), item));
@@ -251,7 +251,7 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                         DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "if (Attr.val != 65535) { Item.val = Attr.val; } ");
                     }
 
-                    if (item->toNumber() != power)
+                    if (!item->lastSet().isValid() || item->toNumber() != power)
                     {
                         item->setValue(power); // in W
                         enqueueEvent(Event(RSensors, RStatePower, sensor->id(), item));

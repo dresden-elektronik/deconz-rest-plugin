@@ -6,6 +6,7 @@
 	"public": true,
 	"description": "The measured power (in W).",
     "read": {"at": "0x050b", "cl": "0x0b04", "ep": 0, "fn": "zcl" },
-    "parse": {"at": "0x050b", "cl": "0x0b04", "ep": 0, "eval": "if (Attr.val != -32768) { Item.val = Attr.val; }"},
-    "refresh.interval": 300
+    "parse": {"at": "0x050b", "cl": "0x0b04", "ep": 0, "eval": "if (Attr.val != -32768 && Attr.val != 32768) { Item.val = Attr.val; }"},
+    "refresh.interval": 300,
+    "default": 0
 }

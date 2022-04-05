@@ -234,7 +234,6 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                     sensor.modelId() == QLatin1String("3AFE14010402000D") ||   // Konke motion sensor
                     sensor.modelId() == QLatin1String("3AFE28010402000D") ||   // Konke motion sensor v2
                     sensor.modelId() == QLatin1String("FB56-DOS06HM1.3") ||    // Feibit FB56-DOS06HM1.3 door/window sensor
-                    sensor.modelId() == QLatin1String("lumi.remote.b28ac1") || // Aqara wireless remote switch H1 (double rocker)
                     sensor.modelId().endsWith(QLatin1String("86opcn01")) ||    // Aqara Opple
                     sensor.modelId().startsWith(QLatin1String("FLSZB-1")) ||   // Develco water leak sensor
                     sensor.modelId().startsWith(QLatin1String("SIRZB-1")) ||   // Develco siren

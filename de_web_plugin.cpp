@@ -40,6 +40,7 @@
 #include "device_ddf_init.h"
 #include "device_descriptions.h"
 #include "device_tick.h"
+#include "device_js/device_js.h"
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "de_web_widget.h"
@@ -244,7 +245,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SAMJIN, "button", samjinMacPrefix }, // Smarthings (Samjin) Button
     { VENDOR_SAMJIN, "outlet", samjinMacPrefix }, // Smarthings (Samjin) Outlet
     { VENDOR_JENNIC, "lumi.lock.v1", jennicMacPrefix }, // Xiaomi A6121 Vima Smart Lock
-    { VENDOR_JENNIC, "lumi.sensor_ht", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_magnet", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_motion", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_switch.aq2", jennicMacPrefix }, // Xiaomi WXKG11LM 2016
@@ -271,7 +271,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_XIAOMI, "lumi.switch.l1aeu1", lumiMacPrefix }, // Xiaomi Aqara H1 1-gang (no neutral wire) WS-EUK01
     { VENDOR_XIAOMI, "lumi.switch.l2aeu1", lumiMacPrefix }, // Xiaomi Aqara H1 2-gang (no neutral wire) WS-EUK02
     { VENDOR_XIAOMI, "lumi.switch.n1aeu1", lumiMacPrefix }, // Xiaomi Aqara H1 1-gang (neutral wire) WS-EUK03
-    { VENDOR_XIAOMI, "lumi.remote.b28ac1", lumiMacPrefix }, // Aqara Wireless Remote Switch H1 (Double Rocker) WRS-R02
     { VENDOR_XIAOMI, "lumi.plug", jennicMacPrefix }, // Xiaomi smart plug (router)
     { VENDOR_XIAOMI, "lumi.ctrl_ln", jennicMacPrefix}, // Xiaomi Wall Switch (router)
     { VENDOR_XIAOMI, "lumi.plug.maeu01", xiaomiMacPrefix}, // Xiaomi Aqara outlet
@@ -670,6 +669,8 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
 
     alarmSystems.reset(new AlarmSystems);
 
+    deviceJs = new DeviceJs();
+
     deviceDescriptions = new DeviceDescriptions(this);
     connect(deviceDescriptions, &DeviceDescriptions::eventNotify, eventEmitter, &EventEmitter::enqueueEvent);
     connect(eventEmitter, &EventEmitter::eventNotify, deviceDescriptions, &DeviceDescriptions::handleEvent);
@@ -994,6 +995,8 @@ DeRestPluginPrivate::~DeRestPluginPrivate()
         inetDiscoveryManager->deleteLater();
         inetDiscoveryManager = 0;
     }
+    delete deviceJs;
+    deviceJs = nullptr;
     eventEmitter = nullptr;
 }
 
@@ -1388,7 +1391,12 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             {
                 // No sensorNode found for endpoint - check for multiple endpoints mapped to the same resource
                 sensorNode = getSensorNodeForAddress(ind.srcAddress());
-                if (sensorNode)
+
+                if (sensorNode && device && device->subDevices().size() == 1)
+                {
+                    // no need to string match if there is only one sub-device
+                }
+                else if (sensorNode)
                 {
                     quint16 mfCode = sensorNode->node() ? sensorNode->node()->nodeDescriptor().manufacturerCode() : 0;
                     if (zclFrame.manufacturerCode() == VENDOR_PHILIPS)
@@ -4443,6 +4451,30 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         if (buttonMapEntry)
         {
             sensor->setButtonMapRef(buttonMapEntry->buttonMapRef);
+
+            // fix sensor.mode legacy cruft, if the complete button map only uses one mode
+            // (true for most switches) set it as sensor.mode
+            uint modes = 0;
+            uint modesCount = 0;
+
+            for (const auto &btn : buttonMapEntry->buttons)
+            {
+                if ((modes & (1 << btn.mode)) == 0)
+                {
+                    modes |= 1 << btn.mode;
+                    modesCount++;
+                }
+            }
+
+            if (modesCount == 1 && !buttonMapEntry->buttons.empty())
+            {
+                if (buttonMapEntry->buttons[0].mode != sensor->mode())
+                {
+                    sensor->setMode(Sensor::SensorMode(buttonMapEntry->buttons[0].mode));
+                    updateSensorEtag(sensor);
+                    sensor->setNeedSaveDatabase(true);
+                }
+            }
         }
     }
     else
@@ -5716,8 +5748,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpWaterSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
                     }
                     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_XIAOMI &&
-                             (modelId.endsWith(QLatin1String("86opcn01")) ||   // Aqara Opple switches
-                              modelId == QLatin1String("lumi.remote.b28ac1"))) // Aqara wireless remote switch H1 (double rocker)
+                             modelId.endsWith(QLatin1String("86opcn01")))   // Aqara Opple switches
                     {
                         fpSwitch.inClusters.push_back(MULTISTATE_INPUT_CLUSTER_ID);
                     }
@@ -6498,8 +6529,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("ZG2833PAC")) || // Sunricher C4
                              modelId.startsWith(QLatin1String("ED-1001")) ||  // EcoDim switches
                              modelId.startsWith(QLatin1String("45127")) ||    // Namron switches
-                             modelId.startsWith(QLatin1String("S57003")) ||   // SLC 4 ch remote switch
-                             modelId == QLatin1String("lumi.remote.b28ac1"))  // Aqara Wireless Remote Switch H1 (Double Rocker)
+                             modelId.startsWith(QLatin1String("S57003")))     // SLC 4 ch remote switch
                     {
                         if (i->endpoint() == 0x01) // create sensor only for first endpoint
                         {
@@ -8033,14 +8063,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
         if (!sensorNode.item(RStateTemperature) &&
             sensorNode.modelId() != QLatin1String("lumi.sensor_switch") &&
-            !sensorNode.modelId().startsWith(QLatin1String("lumi.sensor_ht")) &&
             !sensorNode.modelId().endsWith(QLatin1String("86opcn01"))) // exclude Aqara Opple
         {
             sensorNode.addItem(DataTypeInt16, RConfigTemperature);
             //sensorNode.addItem(DataTypeInt16, RConfigOffset);
         }
 
-        if (sensorNode.modelId().endsWith(QLatin1String("86opcn01")) || sensorNode.modelId() == QLatin1String("lumi.remote.b28ac1"))
+        if (sensorNode.modelId().endsWith(QLatin1String("86opcn01")))
         {
             // Aqara switches need to be configured to send proper button events
             // write basic cluster attribute 0x0009 value 1
@@ -15848,7 +15877,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             }
         }
         // Aqara Opple and Aqara Wireless Remote Switch H1 (Double Rocker)
-        else if (sensor->modelId().endsWith(QLatin1String("86opcn01")) || sensor->modelId() == QLatin1String("lumi.remote.b28ac1"))
+        else if (sensor->modelId().endsWith(QLatin1String("86opcn01")))
         {
             auto *item = sensor->item(RConfigPending);
             if (item && (item->toNumber() & R_PENDING_MODE))
@@ -15858,12 +15887,6 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 deCONZ::ZclAttribute attr(0x0009, deCONZ::Zcl8BitUint, QLatin1String("mode"), deCONZ::ZclReadWrite, false);
                 attr.setValue(static_cast<quint64>(1));
                 writeAttribute(sensor, sensor->fingerPrint().endpoint, XIAOMI_CLUSTER_ID, attr, VENDOR_XIAOMI);
-
-                // Activate multiclick mode
-                DBG_Printf(DBG_INFO, "Write Aqara switch 0x%016llX multiclick mode attribute 0x0125 = 2\n", sensor->address().ext());
-                deCONZ::ZclAttribute attr2(0x0125, deCONZ::Zcl8BitUint, QLatin1String("multiclick mode"), deCONZ::ZclReadWrite, false);
-                attr2.setValue(static_cast<quint64>(2));
-                writeAttribute(sensor, sensor->fingerPrint().endpoint, XIAOMI_CLUSTER_ID, attr2, VENDOR_XIAOMI);
 
                 item->setValue(item->toNumber() & ~R_PENDING_MODE);
             }

@@ -200,7 +200,11 @@ void DEV_InitStateHandler(Device *device, const Event &event)
 
         if ((event.deviceKey() & 0x00212E0000000000LLU) == 0x00212E0000000000LLU)
         {
-            d->node = DEV_GetCoreNode(device->key());
+            if (!d->node)
+            {
+                d->node = DEV_GetCoreNode(device->key());
+            }
+
             if (d->node && d->node->isCoordinator())
             {
                 d->setState(DEV_DeadStateHandler);

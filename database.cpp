@@ -3222,7 +3222,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (!isClip)
         {
-            const auto ddf = d->deviceDescriptions->get(&sensor);
+            // ignore DDF "matchexpr" at this stage since the node is not yet fully loaded
+            const auto &ddf = d->deviceDescriptions->get(&sensor, DDF_IgnoreMatchExpr);
             if (ddf.isValid())
             {
                 unsigned ep = endpointFromUniqueId(sensor.uniqueId());
@@ -4142,7 +4143,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 //item->setValue(0);
             }
 
-            if (sensor.modelId().endsWith(QLatin1String("86opcn01")) || sensor.modelId() == QLatin1String("lumi.remote.b28ac1"))
+            if (sensor.modelId().endsWith(QLatin1String("86opcn01")))
             {
                 // Aqara switches need to be configured to send proper button events
                 item = sensor.addItem(DataTypeUInt16, RConfigPending);
