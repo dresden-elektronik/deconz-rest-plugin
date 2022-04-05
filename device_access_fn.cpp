@@ -736,7 +736,9 @@ static DA_ReadResult readTuyaAllData(const Resource *r, const ResourceItem *item
     }
 
     lastReadGlobal = now;
-    
+
+    bool ok = false;
+
     const auto map = readParameters.toMap();
     uint16_t clusterId = TUYA_CLUSTER_ID;
     if (map.contains(QLatin1String("cl")))
