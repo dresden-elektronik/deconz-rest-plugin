@@ -1451,8 +1451,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5});
         }
-        else if (modelId == QLatin1String("eTRV0100") || // Danfoss Ally
-                 modelId == QLatin1String("TRV001") ||   // Hive TRV
+        else if (modelId == QLatin1String("TRV001") ||   // Hive TRV
                  modelId == QLatin1String("eT093WRO"))   // POPP smart thermostat
         {
             rq.dataType = deCONZ::Zcl16BitInt;
@@ -1682,8 +1681,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     }
     else if (bt.binding.clusterId == THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID)
     {
-        if (modelId == QLatin1String("eTRV0100") || // Danfoss Ally
-            modelId == QLatin1String("TRV001") ||   // Hive TRV
+        if (modelId == QLatin1String("TRV001") ||   // Hive TRV
             modelId == QLatin1String("eT093WRO"))   // POPP smart thermostat
         {
             rq.dataType = deCONZ::Zcl8BitEnum;
@@ -1721,8 +1719,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     }
     else if (bt.binding.clusterId == DIAGNOSTICS_CLUSTER_ID)
     {
-        if (modelId == QLatin1String("eTRV0100") || // Danfoss Ally
-            modelId == QLatin1String("TRV001") ||   // Hive TRV
+        if (modelId == QLatin1String("TRV001") ||   // Hive TRV
             modelId == QLatin1String("eT093WRO"))   // POPP smart thermostat
         {
             rq.dataType = deCONZ::Zcl16BitBitMap;
@@ -1820,8 +1817,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 900;        // value used by Hue bridge
             rq.reportableChange8bit = 4; // value used by Hue bridge
         }
-        else if (modelId == QLatin1String("eTRV0100") || // Danfoss Ally
-                 modelId == QLatin1String("eT093WRO") || // POPP smart thermostat
+        else if (modelId == QLatin1String("eT093WRO") || // POPP smart thermostat
                  modelId == QLatin1String("TRV001") ||   // Hive TRV
                  modelId == QLatin1String("0x8020") ||   // Danfoss RT24V Display thermostat
                  modelId == QLatin1String("0x8021") ||   // Danfoss RT24V Display thermostat with floor sensor
@@ -3138,7 +3134,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("TH01") ||
         sensor->modelId() == QLatin1String("DS01") ||
         // Danfoss
-        sensor->modelId() == QLatin1String("eTRV0100") ||
         sensor->modelId() == QLatin1String("0x8020") ||
         sensor->modelId() == QLatin1String("0x8021") ||
         sensor->modelId() == QLatin1String("0x8030") ||
@@ -3459,8 +3454,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         }
         else if (*i == DIAGNOSTICS_CLUSTER_ID)
         {
-            if (sensor->modelId() == QLatin1String("eTRV0100") || // Danfoss Ally
-                sensor->modelId() == QLatin1String("TRV001") ||   // Hive TRV
+            if (sensor->modelId() == QLatin1String("TRV001") ||   // Hive TRV
                 sensor->modelId() == QLatin1String("eT093WRO"))   // POPP smart thermostat
             {
                 val = sensor->getZclValue(*i, 0x4000); // SW error code
