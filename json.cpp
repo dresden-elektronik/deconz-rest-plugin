@@ -137,10 +137,14 @@ QByteArray Json::serialize(const QVariant &data, bool &success)
 		.toAscii();
 #endif
 	}
-	else if(data.type() == QVariant::Double) // double?
-	{
-		str = QByteArray::number(data.toDouble());
-	}
+    else if(data.type() == QVariant::Double) // double?
+    {
+#if (QT_VERSION >= QT_VERSION_CHECK(5,7, 0))
+        str = QByteArray::number(data.toDouble(), 'f', QLocale::FloatingPointShortest);
+#else
+        str = QByteArray::number(data.toDouble());
+#endif
+    }
 	else if (data.type() == QVariant::Bool) // boolean value?
 	{
 		str = data.toBool() ? "true" : "false";
