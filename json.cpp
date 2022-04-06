@@ -3,6 +3,7 @@
  */
  
 #include "json.h"
+#include <QLocale>
 
 static QString sanitizeString(QString str)
 {
