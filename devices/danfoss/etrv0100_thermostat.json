@@ -213,7 +213,7 @@
             "at": "0x404B",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val * 10;",
             "fn": "zcl",
             "mf": "0x1246"
           },
@@ -222,11 +222,11 @@
             "cl": "0x0201",
             "dt": "0x28",
             "ep": 1,
-            "eval": "Item.val",
+            "eval": "Item.val / 10;",
             "fn": "zcl",
             "mf": "0x1246"
           },
-          "range": [-25, 25],
+          "range": [-250, 250],
           "default": 0
         },
         {

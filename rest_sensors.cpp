@@ -1016,7 +1016,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                         else if (devManaged && rsub)
                         {
-                            change.addTargetValue(rid.suffix, data.integer);
+                            change.addTargetValue(rid.suffix, data.integer * 10);
                             rsub->addStateChange(change);
                             updated = true;
                         }
