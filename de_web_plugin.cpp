@@ -1429,6 +1429,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                              sensorNode->manufacturer() == QLatin1String("_TZ3000_rrjr1q0u") ||
                              sensorNode->manufacturer() == QLatin1String("_TZ3000_abci1hiu") ||
                              sensorNode->manufacturer() == QLatin1String("_TZ3000_vp6clf9d") ||
+                             sensorNode->manufacturer() == QLatin1String("_TZ3000_wkai4ga5") ||
                              sensorNode->manufacturer() == QLatin1String("_TZ3000_peszejy7") ||
                              sensorNode->manufacturer() == QLatin1String("_TZ3000_qzjcsmar") ||
                              sensorNode->manufacturer() == QLatin1String("_TZ3000_owgcnkrh") ||
@@ -2740,6 +2741,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 lightNode.manufacturer() == QLatin1String("_TZ3000_rrjr1q0u") ||
                 lightNode.manufacturer() == QLatin1String("_TZ3400_key8kk7r") ||
                 lightNode.manufacturer() == QLatin1String("_TZ3000_vp6clf9d") ||
+                lightNode.manufacturer() == QLatin1String("_TZ3000_wkai4ga5") ||
                 lightNode.manufacturer() == QLatin1String("_TZ3000_peszejy7") ||
                 lightNode.manufacturer() == QLatin1String("_TZ3000_qzjcsmar") ||
                 lightNode.manufacturer() == QLatin1String("_TZ3000_owgcnkrh") ||
@@ -5924,6 +5926,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              manufacturer == QLatin1String("_TZ3000_rrjr1q0u") ||
                              manufacturer == QLatin1String("_TZ3000_abci1hiu") ||
                              manufacturer == QLatin1String("_TZ3000_vp6clf9d") ||
+                             manufacturer == QLatin1String("_TZ3000_wkai4ga5") ||
                              manufacturer == QLatin1String("_TZ3400_key8kk7r") ||
                              manufacturer == QLatin1String("_TZ3000_peszejy7") ||
                              manufacturer == QLatin1String("_TZ3000_qzjcsmar") ||
