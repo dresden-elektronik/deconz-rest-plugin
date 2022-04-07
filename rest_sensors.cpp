@@ -831,10 +831,22 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigLedIndication) // Boolean
                 {
-                    pendingMask |= R_PENDING_LEDINDICATION;
-                    sensor->enableRead(WRITE_LEDINDICATION);
-                    sensor->setNextReadTime(WRITE_LEDINDICATION, QTime::currentTime());
-                    updated = true;
+                    if (!devManaged)
+                    {
+                        pendingMask |= R_PENDING_LEDINDICATION;
+                        sensor->enableRead(WRITE_LEDINDICATION);
+                        sensor->setNextReadTime(WRITE_LEDINDICATION, QTime::currentTime());
+                        updated = true;
+                    }
+                    else
+                    {
+                        if (rsub)
+                        {
+                            change.addTargetValue(rid.suffix, data.boolean);
+                            rsub->addStateChange(change);
+                            updated = true;
+                        }
+                    }
                 }
                 else if (rid.suffix == RConfigSensitivity) // Unsigned integer
                 {
