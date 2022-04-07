@@ -1,18 +1,18 @@
 {
   "schema": "devcap1.schema.json",
   "manufacturername": "Schneider Electric",
-  "modelid": "LK Switch",
-  "product": "LK Fuga Double Relay Switch",
+  "modelid": "LK Dimmer",
+  "product": "LK Fuga Dimmer Switch",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/wiser/fuga_double_relay_switch.json",
+  "path": "/devices/wiser/fuga_dimmer_switch.json",
   "subdevices": [
     {
-      "type": "$TYPE_ON_OFF_LIGHT",
+      "type": "$TYPE_DIMMABLE_LIGHT",
       "restapi": "/lights",
       "uuid": [
         "$address.ext",
-        "0x01"
+        "0x03"
       ],
       "items": [
         {
@@ -51,51 +51,7 @@
           "refresh.interval": 5
         },
         {
-          "name": "state/reachable"
-        }
-      ]
-    },
-    {
-      "type": "$TYPE_ON_OFF_LIGHT",
-      "restapi": "/lights",
-      "uuid": [
-        "$address.ext",
-        "0x02"
-      ],
-      "items": [
-        {
-          "name": "attr/id"
-        },
-        {
-          "name": "attr/lastannounced"
-        },
-        {
-          "name": "attr/lastseen"
-        },
-        {
-          "name": "attr/manufacturername"
-        },
-        {
-          "name": "attr/modelid"
-        },
-        {
-          "name": "attr/name"
-        },
-        {
-          "name": "attr/swversion"
-        },
-        {
-          "name": "attr/type"
-        },
-        {
-          "name": "attr/uniqueid"
-        },
-        {
-          "name": "state/alert",
-          "default": "none"
-        },
-        {
-          "name": "state/on",
+          "name": "state/bri",
           "refresh.interval": 5
         },
         {
@@ -167,17 +123,27 @@
     },
     {
       "bind": "unicast",
+      "src.ep": 21,
+      "cl": "0x0008"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 22,
+      "cl": "0x0008"
+    },
+    {
+      "bind": "unicast",
       "src.ep": 23,
-      "cl": "0x0006"
+      "cl": "0x0005"
     },
     {
       "bind": "unicast",
       "src.ep": 24,
-      "cl": "0x0006"
+      "cl": "0x0005"
     },
     {
       "bind": "unicast",
-      "src.ep": 1,
+      "src.ep": 3,
       "cl": "0x0006",
       "report": [
         {
@@ -190,8 +156,8 @@
     },
     {
       "bind": "unicast",
-      "src.ep": 2,
-      "cl": "0x0006",
+      "src.ep": 3,
+      "cl": "0x0008",
       "report": [
         {
           "at": "0x0000",
@@ -201,5 +167,6 @@
         }
       ]
     }
+
   ]
 }
