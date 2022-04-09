@@ -702,6 +702,14 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     task.req.setDstAddressMode(deCONZ::ApsExtAddress);
     
     DBG_Printf(DBG_INFO_L2, "debug test 3\n");
+    if (devManaged)
+    {
+        DBG_Printf(DBG_INFO_L2, "Device managed by DDF\n");
+    }
+    if (rsub)
+    {
+        DBG_Printf(DBG_INFO_L2, "ressource ok\n");
+    }
     
     StateChange change(StateChange::StateWaitSync, SC_WriteZclAttribute, task.req.dstEndpoint());
 
@@ -1059,6 +1067,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigHeatSetpoint) // Signed integer
                 {
+                    DBG_Printf(DBG_INFO_L2, "debug test 4\n");
                     if (sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
                     {
                         // Older models of the Eurotroninc Spirit updated the heat set point via the manufacturer custom attribute 0x4003.
@@ -1173,6 +1182,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (devManaged && rsub) // Managed by DDF ?
                     {
+                        DBG_Printf(DBG_INFO_L2, "debug test 5\n");
                         change.addTargetValue(rid.suffix, data.integer);
                         rsub->addStateChange(change);
                         updated = true;

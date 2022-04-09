@@ -55,7 +55,7 @@ StateChange::State StateChange::tick(Resource *r, deCONZ::ApsController *apsCtrl
             {
                 if (i.verified == VerifyUnknown) // didn't receive a ZCL attribute read or report command
                 {
-                    DBG_Printf(DBG_INFO, "SC tick --> StateRead\n");
+                    DBG_Printf(DBG_INFO_L2, "SC tick --> StateRead\n");
                     m_state = StateRead;
                     break;
                 }
@@ -73,7 +73,7 @@ StateChange::State StateChange::tick(Resource *r, deCONZ::ApsController *apsCtrl
     }
     else if (m_state == StateCallFunction && m_changeFunction)
     {
-        DBG_Printf(DBG_INFO, "SC tick --> StateCallFunction\n");
+        DBG_Printf(DBG_INFO_L2, "SC tick --> StateCallFunction\n");
         if (m_changeFunction(r, this, apsCtrl) == 0)
         {
             m_stateTimer.start();
@@ -130,6 +130,8 @@ void StateChange::verifyItemChange(const ResourceItem *item)
     Q_ASSERT(item);
 
     size_t syncedItems = 0;
+    
+    DBG_Printf(DBG_INFO_L2, "debug test 7\n");
 
     if (item->valueSource() != ResourceItem::SourceDevice)
     {
