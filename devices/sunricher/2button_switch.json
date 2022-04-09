@@ -24,11 +24,7 @@
     {
       "type": "$TYPE_SWITCH",
       "restapi": "/sensors",
-      "uuid": [
-        "$address.ext",
-        "0x01",
-        "0x1000"
-      ],
+      "uuid": ["$address.ext", "0x01", "out.cluster", "0x1000", "0x0006"],
       "fingerprint": {
         "profile": "0x0104",
         "device": "0x0001",
