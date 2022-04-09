@@ -196,7 +196,7 @@
         },
         {
           "name": "state/alarm",
-          "refresh.interval": 30,
+          "refresh.interval": 300,
           "read": {
             "at": "0x0005",
             "cl": "0xff66",
@@ -227,14 +227,14 @@
         {
           "at": "0x0508",
           "dt": "0x21",
-          "min": 1,
+          "min": 5,
           "max": 300,
           "change": "0x00000001"
         },
         {
           "at": "0x050F",
           "dt": "0x21",
-          "min": 1,
+          "min": 5,
           "max": 300,
           "change": "0x00000001"
         }
@@ -248,7 +248,7 @@
         {
           "at": "0x0000",
           "dt": "0x23",
-          "min": 1,
+          "min": 5,
           "max": 300,
           "change": "0x00000001"
         }
@@ -262,7 +262,7 @@
         {
           "at": "0x0005",
           "dt": "0x21",
-          "min": 1,
+          "min": 5,
           "max": 300,
           "change": "0x00000001"
         }
