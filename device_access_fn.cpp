@@ -848,7 +848,7 @@ bool writeTuyaData(const Resource *r, const ResourceItem *item, deCONZ::ApsContr
         return result;
     }
 
-    DBG_Printf(DBG_INFO, "writeTuyaData, dpid: 0x%02X, type: 0x%02X, expr: %s\n",
+    DBG_Printf(DBG_INFO_L2, "writeTuyaData, dpid: 0x%02X, type: 0x%02X, expr: %s\n",
                dpid & 0xFF, dataType & 0xFF, qPrintable(expr));
 
     deCONZ::ApsDataRequest req;
@@ -881,11 +881,11 @@ bool writeTuyaData(const Resource *r, const ResourceItem *item, deCONZ::ApsContr
         if (engine.evaluate(expr) == JsEvalResult::Ok)
         {
             value = engine.result();
-            DBG_Printf(DBG_INFO, "Tuya write expression: %s --> %s\n", qPrintable(expr), qPrintable(value.toString()));
+            DBG_Printf(DBG_INFO_L2, "Tuya write expression: %s --> %s\n", qPrintable(expr), qPrintable(value.toString()));
         }
         else
         {
-            DBG_Printf(DBG_INFO, "failed to evaluate Tuya write expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
+            DBG_Printf(DBG_INFO_L2, "failed to evaluate Tuya write expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
             return result;
         }
 
@@ -1576,6 +1576,8 @@ ReadFunction_t DA_GetReadFunction(const QVariant &params)
 WriteFunction_t DA_GetWriteFunction(const QVariant &params)
 {
     WriteFunction_t result = nullptr;
+    
+    DBG_Printf(DBG_INFO_L2, "debug test 1\n");
 
     const std::array<WriteFunction, 2> functions =
     {

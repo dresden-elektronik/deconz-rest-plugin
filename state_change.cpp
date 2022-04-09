@@ -143,12 +143,12 @@ void StateChange::verifyItemChange(const ResourceItem *item)
             if (i.targetValue == item->toVariant())
             {
                 i.verified = VerifySynced;
-                DBG_Printf(DBG_INFO, "SC %s: synced\n", i.suffix);
+                DBG_Printf(DBG_INFO_L2, "SC %s: synced\n", i.suffix);
             }
             else
             {
                 i.verified = VerifyNotSynced;
-                DBG_Printf(DBG_INFO, "SC %s: not synced\n", i.suffix);
+                DBG_Printf(DBG_INFO_L2, "SC %s: not synced\n", i.suffix);
             }
         }
 
@@ -161,7 +161,7 @@ void StateChange::verifyItemChange(const ResourceItem *item)
     if (syncedItems == m_items.size() && m_state != StateFinished)
     {
         m_state = StateFinished;
-        DBG_Printf(DBG_INFO, "SC --> StateFinished\n");
+        DBG_Printf(DBG_INFO_L2, "SC --> StateFinished\n");
     }
 }
 
@@ -213,6 +213,8 @@ int SC_WriteZclAttribute(const Resource *r, const StateChange *stateChange, deCO
     Q_ASSERT(r);
     Q_ASSERT(stateChange);
     Q_ASSERT(apsCtrl);
+    
+    DBG_Printf(DBG_INFO_L2, "debug test 2\n");
 
     int written = 0;
 
