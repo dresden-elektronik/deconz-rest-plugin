@@ -134,7 +134,7 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                     sensor.modelId().startsWith(QLatin1String("iTRV")) || // Drayton Wiser Radiator Thermostat
                     sensor.modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
                     sensor.modelId().startsWith(QLatin1String("SV02-")) || // Keen Home vent
-                    sensor.modelId().startsWith(QLatin1String("45127")) || // Namron 1/2/4-ch remote controller
+                    sensor.modelId() == QLatin1String("4512705") || // Namron remote control
                     sensor.modelId().startsWith(QLatin1String("S57003")) || // SLC 4-ch remote controller
                     sensor.modelId().startsWith(QLatin1String("RGBgenie ZB-5")) || // RGBgenie remote control
                     sensor.modelId().startsWith(QLatin1String("VOC_Sensor")) || // LifeControl Enviroment sensor
