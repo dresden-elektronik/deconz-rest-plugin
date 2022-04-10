@@ -3,23 +3,19 @@
   "manufacturername": [
     "EcoDim",
     "EcoDim",
-    "Sunricher",
-    "Sunricher",
+    "EcoDim",
     "Namron AS",
-    "Namron AS",
-    "ROBB smarrt"
+    "Namron AS"
   ],
   "modelid": [
-    "ED-10010",
-    "ED-10011",
-    "ZGRC-KEY-007",
-    "ZG2833K2_EU07",
-    "4512701",
-    "4512702",
-    "ROB_200-009-0"
+    "ED-10013",
+    "ED-10014",
+    "ED-10015",
+    "4512703",
+    "4512721"
   ],
-  "matchexpr": "R.endpoints.length === 1",
-  "product": "2 Button Wall Switch",
+  "matchexpr": "R.endpoints.length === 4",
+  "product": "8 Button Wall Switch",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -42,7 +38,7 @@
           "0x0008"
         ]
       },
-      "meta": {"group.endpoints": [1] },
+      "meta": {"group.endpoints": [1, 2, 3, 4] },
       "items": [
         {
           "name": "attr/id"
@@ -79,7 +75,7 @@
         },
         {
           "name": "config/group",
-          "default": "auto"
+          "default": "auto,auto,auto,auto"
         },
         {
           "name": "config/on"
@@ -122,6 +118,42 @@
       "bind": "groupcast",
       "config.group": 0,
       "src.ep": 1,
+      "cl": "0x0008"
+    },
+    {
+      "bind": "groupcast",
+      "config.group": 1,
+      "src.ep": 2,
+      "cl": "0x0006"
+    },
+    {
+      "bind": "groupcast",
+      "config.group": 1,
+      "src.ep": 2,
+      "cl": "0x0008"
+    },
+    {
+      "bind": "groupcast",
+      "config.group": 2,
+      "src.ep": 3,
+      "cl": "0x0006"
+    },
+    {
+      "bind": "groupcast",
+      "config.group": 2,
+      "src.ep": 3,
+      "cl": "0x0008"
+    },
+    {
+      "bind": "groupcast",
+      "config.group": 3,
+      "src.ep": 4,
+      "cl": "0x0006"
+    },
+    {
+      "bind": "groupcast",
+      "config.group": 3,
+      "src.ep": 4,
       "cl": "0x0008"
     }
   ]

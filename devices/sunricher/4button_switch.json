@@ -1,21 +1,15 @@
 {
   "schema": "devcap1.schema.json",
   "manufacturername": [
-    "EcoDim",
-    "EcoDim",
     "Sunricher",
     "NAMRON AS",
     "NAMRON AS",
-    "ROBB smarrt",
     "ROBB smarrt"
   ],
   "modelid": [
-    "ED-10012",
-    "ED-10013",
     "ZG2833K4_EU06",
     "4512719",
     "4512729",
-    "ROB_200-008",
     "ROB_200-008-0"
   ],
   "matchexpr": "R.endpoints.length === 2",
@@ -26,7 +20,7 @@
     {
       "type": "$TYPE_SWITCH",
       "restapi": "/sensors",
-      "uuid": ["$address.ext", "0x01", "out.cluster", "0x1000", "0x0006"],
+      "uuid": ["$address.ext", "0x01", "0x1000"],
       "fingerprint": {
         "profile": "0x0104",
         "device": "0x0001",

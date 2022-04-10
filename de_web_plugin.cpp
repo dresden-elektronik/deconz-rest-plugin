@@ -338,7 +338,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SUNRICHER, "ICZB-RM", silabs2MacPrefix }, // iCasa remote
     { VENDOR_SUNRICHER, "ZGRC-KEY", emberMacPrefix }, // Sunricher wireless CCT remote
     { VENDOR_SUNRICHER, "RGBgenie ZB-5", emberMacPrefix }, // RGBgenie remote control
-    { VENDOR_SUNRICHER, "ROB_200", silabs3MacPrefix }, // Sunricher SR-ZG9040A built-in dimmer, whitelabeled by Robbshop
+    { VENDOR_SUNRICHER, "ROB_200-010-0", silabs3MacPrefix }, // Robbshop window covering controller
+    { VENDOR_SUNRICHER, "ROB_200-014-0", silabs3MacPrefix }, // Robbshop rotary dimmer
     { VENDOR_SUNRICHER, "Micro Smart Dimmer", silabs3MacPrefix }, // Sunricher SR-ZG9040A built-in dimmer
     { VENDOR_SUNRICHER, "ZG2835", silabs6MacPrefix }, // SR-ZG2835 Zigbee Rotary Switch
     { VENDOR_SUNRICHER, "ZGRC-TEUR-", emberMacPrefix }, // iluminize wall switch 511.524
