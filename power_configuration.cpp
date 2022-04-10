@@ -130,7 +130,6 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                     sensor.modelId().startsWith(QLatin1String("Remote Control N2")) || // IKEA
                     sensor.modelId().startsWith(QLatin1String("ICZB-")) || // iCasa keypads and remote
                     sensor.modelId().startsWith(QLatin1String("ZGR904-S")) || // Envilar remote
-                    sensor.modelId().startsWith(QLatin1String("ED-1001")) || // EcoDim wireless switches
                     sensor.modelId().startsWith(QLatin1String("ZGRC-KEY")) || //  Sunricher wireless CCT remote
                     sensor.modelId().startsWith(QLatin1String("iTRV")) || // Drayton Wiser Radiator Thermostat
                     sensor.modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent

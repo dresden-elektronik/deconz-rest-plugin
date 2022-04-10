@@ -333,7 +333,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_ADUROLIGHT, "ZLL-NonColorController", jennicMacPrefix }, // Trust remote control ZYCT-202 (newer model)
     { VENDOR_INNR, "RC 110", jennicMacPrefix }, // innr remote RC 110
     { VENDOR_VISONIC, "MCT-340", emberMacPrefix }, // Visonic MCT-340 E temperature/motion
-    { VENDOR_SUNRICHER, "ED-1001", silabs2MacPrefix }, // EcoDim wireless switches
     { VENDOR_SUNRICHER, "ZGR904-S", emberMacPrefix }, // Envilar remote
     { VENDOR_SUNRICHER, "ICZB-KPD1", emberMacPrefix }, // iCasa keypad
     { VENDOR_SUNRICHER, "ICZB-RM", silabs2MacPrefix }, // iCasa remote
@@ -1409,7 +1408,6 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                              sensorNode->modelId().startsWith(QLatin1String("ZGR904-S")) || // Envilar remote
                              sensorNode->modelId().startsWith(QLatin1String("ZGRC-KEY")) || // Sunricher remote
                              sensorNode->modelId().startsWith(QLatin1String("ZG2833PAC")) || // Sunricher C4
-                             sensorNode->modelId().startsWith(QLatin1String("ED-1001")) || // EcoDim switches
                              sensorNode->modelId().startsWith(QLatin1String("45127")) || // Namron switches
                              sensorNode->modelId().startsWith(QLatin1String("S57003")) || // SLC 4 ch remote switch
                              sensorNode->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
@@ -4925,7 +4923,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                  sensor->modelId().startsWith(QLatin1String("ZGR904-S")) ||         // Envilar remote
                  sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")) ||         // Sunricher remote
                  sensor->modelId().startsWith(QLatin1String("ZG2833PAC")) ||        // Sunricher C4
-                 sensor->modelId().startsWith(QLatin1String("ED-1001")) ||          // EcoDim switches
                  sensor->modelId().startsWith(QLatin1String("45127")) ||            // Namron switches
                  sensor->modelId().startsWith(QLatin1String("S57003")) ||           // SLC 4 ch remote switche
                  sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5001")) || // RGBGenie remote
@@ -6657,7 +6654,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("ZGR904-S")) || // Envilar remote
                              modelId.startsWith(QLatin1String("ZGRC-KEY")) || // Sunricher remote
                              modelId.startsWith(QLatin1String("ZG2833PAC")) || // Sunricher C4
-                             modelId.startsWith(QLatin1String("ED-1001")) ||  // EcoDim switches
                              modelId.startsWith(QLatin1String("45127")) ||    // Namron switches
                              modelId.startsWith(QLatin1String("S57003")))     // SLC 4 ch remote switch
                     {
