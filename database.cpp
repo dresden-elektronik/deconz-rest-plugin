@@ -1277,8 +1277,12 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
     {
         if (!val.isEmpty())
         {
-            d->gwAnnounceUrl = val;
-            d->gwConfig["announceurl"] = val;
+            // ignore old gce entry, use default
+            if (!val.contains(QLatin1String("dresden-light.appspot.com")))
+            {
+                d->gwAnnounceUrl = val;
+                d->gwConfig["announceurl"] = val;
+            }
         }
     }
     else if (strcmp(colval[0], "rfconnect") == 0)
