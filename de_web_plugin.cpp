@@ -7744,7 +7744,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.addItem(DataTypeString, RConfigMode);
                 sensorNode.addItem(DataTypeString, RConfigFanMode);
             }
-            else if (modelId == QLatin1String("3157100"))
+            else if (modelId.startsWith(QLatin1String("3157100")))
             {
                 sensorNode.addItem(DataTypeInt16, RConfigCoolSetpoint);
                 sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
