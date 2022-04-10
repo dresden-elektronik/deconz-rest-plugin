@@ -487,6 +487,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_ALERTME, "SLT3", computimeMacPrefix }, // Hive thermostat
     { VENDOR_DANFOSS, "TRV001", silabs2MacPrefix }, // Hive thermostat (From Danfoss)
     { VENDOR_SUNRICHER, "4512705", silabs2MacPrefix }, // Namron remote control
+    { VENDOR_SUNRICHER, "4512726", silabs2MacPrefix }, // Namron rotary switch
     { VENDOR_SUNRICHER, "S57003", silabs2MacPrefix }, // SLC 4-ch remote controller
     { VENDOR_SENGLED_OPTOELEC, "E13-", zhejiangMacPrefix }, // Sengled PAR38 Bulbs
     { VENDOR_SENGLED_OPTOELEC, "E1D-", zhejiangMacPrefix }, // Sengled contact sensor
@@ -1410,6 +1411,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                              sensorNode->modelId().startsWith(QLatin1String("ZGRC-KEY")) || // Sunricher remote
                              sensorNode->modelId().startsWith(QLatin1String("ZG2833PAC")) || // Sunricher C4
                              sensorNode->modelId() == QLatin1String("4512705") || // Namron remote control
+                             sensorNode->modelId() == QLatin1String("4512726") || // Namron rotary switch
                              sensorNode->modelId().startsWith(QLatin1String("S57003")) || // SLC 4 ch remote switch
                              sensorNode->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
                              sensorNode->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
@@ -4925,6 +4927,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                  sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")) ||         // Sunricher remote
                  sensor->modelId().startsWith(QLatin1String("ZG2833PAC")) ||        // Sunricher C4
                  sensor->modelId() == QLatin1String("4512705") ||                   // Namron remote control
+                 sensor->modelId() == QLatin1String("4512726") ||                   // Namron rotary switch
                  sensor->modelId().startsWith(QLatin1String("S57003")) ||           // SLC 4 ch remote switche
                  sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5001")) || // RGBGenie remote
                  sensor->modelId().startsWith(QLatin1String("ZGRC-TEUR-")))         // iluminize wall switch 511.524
@@ -6656,6 +6659,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("ZGRC-KEY")) || // Sunricher remote
                              modelId.startsWith(QLatin1String("ZG2833PAC")) || // Sunricher C4
                              modelId == QLatin1String("4512705") ||           // Namron remote control
+                             modelId == QLatin1String("4512726") ||           // Namron rotary switch
                              modelId.startsWith(QLatin1String("S57003")))     // SLC 4 ch remote switch
                     {
                         if (i->endpoint() == 0x01) // create sensor only for first endpoint
@@ -8231,7 +8235,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("Heiman");
     }
-    else if (modelId == QLatin1String("4512705"))
+    else if (modelId == QLatin1String("4512705") ||
+             modelId == QLatin1String("4512726")) // Namron rotary switch
     {
         sensorNode.setManufacturer("Namron AS");
     }
