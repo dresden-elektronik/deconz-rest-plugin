@@ -114,7 +114,19 @@ StateChange::State StateChange::tick(Resource *r, deCONZ::ApsController *apsCtrl
                     m_stateTimer.start();
                     m_state = StateWaitSync;
                 }
+                else
+                {
+                    DBG_Printf(DBG_INFO_L2, "debug test 1 : Queue issue\n");
+                }
             }
+            else
+            {
+                DBG_Printf(DBG_INFO_L2, "debug test 1 : DDF not valid \n");
+            }
+        }
+        else
+        {
+            DBG_Printf(DBG_INFO_L2, "debug test 1 : no item \n");
         }
     }
 
