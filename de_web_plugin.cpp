@@ -331,14 +331,13 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_ADUROLIGHT, "ZLL-NonColorController", jennicMacPrefix }, // Trust remote control ZYCT-202 (newer model)
     { VENDOR_INNR, "RC 110", jennicMacPrefix }, // innr remote RC 110
     { VENDOR_VISONIC, "MCT-340", emberMacPrefix }, // Visonic MCT-340 E temperature/motion
-    { VENDOR_SUNRICHER, "ED-1001", silabs2MacPrefix }, // EcoDim wireless switches
     { VENDOR_SUNRICHER, "ZGR904-S", emberMacPrefix }, // Envilar remote
     { VENDOR_SUNRICHER, "ICZB-KPD1", emberMacPrefix }, // iCasa keypad
     { VENDOR_SUNRICHER, "ICZB-RM", silabs2MacPrefix }, // iCasa remote
     { VENDOR_SUNRICHER, "ZGRC-KEY", emberMacPrefix }, // Sunricher wireless CCT remote
-    { VENDOR_SUNRICHER, "ZG2833K", emberMacPrefix }, // Sunricher remote controller
     { VENDOR_SUNRICHER, "RGBgenie ZB-5", emberMacPrefix }, // RGBgenie remote control
-    { VENDOR_SUNRICHER, "ROB_200", silabs3MacPrefix }, // Sunricher SR-ZG9040A built-in dimmer, whitelabeled by Robbshop
+    { VENDOR_SUNRICHER, "ROB_200-010-0", silabs3MacPrefix }, // Robbshop window covering controller
+    { VENDOR_SUNRICHER, "ROB_200-014-0", silabs3MacPrefix }, // Robbshop rotary dimmer
     { VENDOR_SUNRICHER, "Micro Smart Dimmer", silabs3MacPrefix }, // Sunricher SR-ZG9040A built-in dimmer
     { VENDOR_SUNRICHER, "ZG2835", silabs6MacPrefix }, // SR-ZG2835 Zigbee Rotary Switch
     { VENDOR_SUNRICHER, "ZGRC-TEUR-", emberMacPrefix }, // iluminize wall switch 511.524
@@ -485,7 +484,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_ALERTME, "SLT2", computimeMacPrefix }, // Hive thermostat
     { VENDOR_ALERTME, "SLT3", computimeMacPrefix }, // Hive thermostat
     { VENDOR_DANFOSS, "TRV001", silabs2MacPrefix }, // Hive thermostat (From Danfoss)
-    { VENDOR_SUNRICHER, "45127", silabs2MacPrefix }, // Namron 1/2/4-ch remote controller
+    { VENDOR_SUNRICHER, "4512705", silabs2MacPrefix }, // Namron remote control
+    { VENDOR_SUNRICHER, "4512726", silabs2MacPrefix }, // Namron rotary switch
     { VENDOR_SUNRICHER, "S57003", silabs2MacPrefix }, // SLC 4-ch remote controller
     { VENDOR_SENGLED_OPTOELEC, "E13-", zhejiangMacPrefix }, // Sengled PAR38 Bulbs
     { VENDOR_SENGLED_OPTOELEC, "E1D-", zhejiangMacPrefix }, // Sengled contact sensor
@@ -1408,8 +1408,8 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                              sensorNode->modelId().startsWith(QLatin1String("ZGR904-S")) || // Envilar remote
                              sensorNode->modelId().startsWith(QLatin1String("ZGRC-KEY")) || // Sunricher remote
                              sensorNode->modelId().startsWith(QLatin1String("ZG2833PAC")) || // Sunricher C4
-                             sensorNode->modelId().startsWith(QLatin1String("ED-1001")) || // EcoDim switches
-                             sensorNode->modelId().startsWith(QLatin1String("45127")) || // Namron switches
+                             sensorNode->modelId() == QLatin1String("4512705") || // Namron remote control
+                             sensorNode->modelId() == QLatin1String("4512726") || // Namron rotary switch
                              sensorNode->modelId().startsWith(QLatin1String("S57003")) || // SLC 4 ch remote switch
                              sensorNode->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
                              sensorNode->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
@@ -4425,6 +4425,134 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ:
     }
 }
 
+/*! On reception of an group command, check that the config.group entries are set properly.
+
+    - This requires the DDF has { "meta": { "group.endpoints": [<endpoints>] }} set,
+      or as alternative the DDF has group bindings specified.
+    - This takes into account if there are also matching bindings set in the DDF.
+    - "auto" entries are replaced based on the index in group.ednpoints.
+    - Existing group entries are replaced if the device hasn't configured bindings in the DDF.
+ */
+void DEV_CheckConfigGroupIndication(Resource *rsub, uint8_t srcEndpoint, uint dstGroup, const DeviceDescription::SubDevice &ddfSubDevice)
+{
+    if (!rsub || !rsub->parentResource())
+    {
+        return;
+    }
+
+    ResourceItem *configGroup = rsub->item(RConfigGroup);
+    if (!configGroup)
+    {
+        return;
+    }
+
+    const auto ddfItem = std::find_if(ddfSubDevice.items.cbegin(), ddfSubDevice.items.cend(),
+                                      [configGroup](const auto &x){ return x.descriptor.suffix == RConfigGroup; });
+
+    if (ddfItem == ddfSubDevice.items.cend())
+    {
+        return;
+    }
+
+    Device *device = static_cast<Device*>(rsub->parentResource());
+
+    QVariantList epList;
+    if (ddfSubDevice.meta.contains(QLatin1String("group.endpoints")))
+    {
+        epList = ddfSubDevice.meta.value(QLatin1String("group.endpoints")).toList();
+    }
+    else if (ddfItem->defaultValue.toString().contains(QLatin1String("auto")))
+    {
+        // try to extract from bindings, todo cache
+        for (const auto &bnd : device->bindings())
+        {
+            const QVariant ep(uint(bnd.srcEndpoint));
+            if (bnd.isGroupBinding && !epList.contains(ep))
+            {
+               epList.push_back(ep);
+            }
+        }
+    }
+
+    if (epList.isEmpty())
+    {
+        return;
+    }
+
+    bool updated = false;
+    QStringList groupList = configGroup->toString().split(',', SKIP_EMPTY_PARTS);
+
+    for (int i = 0; i < epList.size(); i++) // i is index in config.group
+    {
+        if (epList[i].toUInt() != srcEndpoint)
+        {
+            continue;
+        }
+
+        if (i >= groupList.size())
+        {
+            // more entries in group.endpoints as in config.group
+            break;
+        }
+
+        QString groupId = QString::number(dstGroup);
+
+        if (groupList[i] == groupId)
+        {
+            return; // verified
+        }
+
+        if (groupList[i] == QLatin1String("null"))
+        {
+            return; // ignore
+        }
+
+        if (groupList[i] == QLatin1String("auto"))
+        {
+            // already receiving group casts for the source endpoint
+            // repleace auto with group id
+            groupList[i] = groupId;
+            updated = true;
+            break;
+        }
+
+        // at this point groupList[i] has a group which is different from the received one
+
+        for (const auto &bnd : device->bindings())
+        {
+            if (bnd.isGroupBinding && bnd.srcEndpoint == srcEndpoint && bnd.configGroup == i)
+            {
+                // don't overwrite config.group, device supports bindings and maintains
+                // what's configured in config.group
+                return;
+            }
+        }
+
+        DBG_Printf(DBG_DDF, "config.group at index %d changed, ep: %u, %u --> %u\n", i, unsigned(srcEndpoint), groupList[i].toUInt(), dstGroup);
+
+        // no suitable binding found, repleace
+        groupList[i] = groupId;
+        updated = true;
+        break;
+    }
+
+    if (updated)
+    {
+        configGroup->setValue(groupList.join(','));
+        DB_StoreSubDeviceItem(rsub, configGroup);
+
+        if (rsub->prefix() == RSensors)
+        {
+            Sensor *s = static_cast<Sensor*>(rsub);
+            if (s)
+            {
+                s->setNeedSaveDatabase(true);
+                plugin->queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+            }
+        }
+    }
+}
+
 void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame)
 {
     DBG_Assert(sensor != nullptr);
@@ -4441,6 +4569,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
     bool checkReporting = false;
     bool checkClientCluster = false;
+    bool doLegacyGroupStuff = true;
 
     const ButtonMap *buttonMapEntry = nullptr;
 
@@ -4509,8 +4638,31 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         return;
     }
 
+    {
+        Device *device = static_cast<Device*>(sensor->parentResource());
+        if (device && device->managed())
+        {
+            // check if group configuration is handled by DDF
+            const auto &ddfSubDevice = DeviceDescriptions::instance()->getSubDevice(sensor);
+
+            if (ddfSubDevice.isValid())
+            {
+                doLegacyGroupStuff = false;
+                if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
+                {
+                    // TODO make this async as event and handle later
+                    DEV_CheckConfigGroupIndication(sensor, ind.srcEndpoint(), ind.dstAddress().group(), ddfSubDevice);
+                }
+            }
+        }
+    }
+
+    if (!doLegacyGroupStuff)
+    {
+        // DDF managed devices handle this in another place
+    }
     // DE Lighting Switch: probe for mode changes
-    if (sensor->modelId() == QLatin1String("Lighting Switch") && ind.dstAddressMode() == deCONZ::ApsGroupAddress)
+    else if (sensor->modelId() == QLatin1String("Lighting Switch") && ind.dstAddressMode() == deCONZ::ApsGroupAddress)
     {
         Sensor::SensorMode mode = sensor->mode();
 
@@ -4729,7 +4881,11 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
     sensor->previousSequenceNumber = zclFrame.sequenceNumber();
 
-    if ((ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() != 0) &&
+    if (!doLegacyGroupStuff)
+    {
+        // DDF managed devices handle this in another place
+    }
+    else if ((ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() != 0) &&
        sensor->modelId() != QLatin1String("Pocket remote") && // Need to prevent this device use group feature, just without avoiding the RConfigGroup creation.
        !(ind.srcEndpoint() == 2 && sensor->modelId() == QLatin1String("Kobold"))) // managed via REST API and "auto" config.group, check src.endpoint:2 to skip modelId check
     {
@@ -4794,8 +4950,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                  sensor->modelId().startsWith(QLatin1String("ZGR904-S")) ||         // Envilar remote
                  sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")) ||         // Sunricher remote
                  sensor->modelId().startsWith(QLatin1String("ZG2833PAC")) ||        // Sunricher C4
-                 sensor->modelId().startsWith(QLatin1String("ED-1001")) ||          // EcoDim switches
-                 sensor->modelId().startsWith(QLatin1String("45127")) ||            // Namron switches
+                 sensor->modelId() == QLatin1String("4512705") ||                   // Namron remote control
+                 sensor->modelId() == QLatin1String("4512726") ||                   // Namron rotary switch
                  sensor->modelId().startsWith(QLatin1String("S57003")) ||           // SLC 4 ch remote switche
                  sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5001")) || // RGBGenie remote
                  sensor->modelId().startsWith(QLatin1String("ZGRC-TEUR-")))         // iluminize wall switch 511.524
@@ -6526,8 +6682,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("ZGR904-S")) || // Envilar remote
                              modelId.startsWith(QLatin1String("ZGRC-KEY")) || // Sunricher remote
                              modelId.startsWith(QLatin1String("ZG2833PAC")) || // Sunricher C4
-                             modelId.startsWith(QLatin1String("ED-1001")) ||  // EcoDim switches
-                             modelId.startsWith(QLatin1String("45127")) ||    // Namron switches
+                             modelId == QLatin1String("4512705") ||           // Namron remote control
+                             modelId == QLatin1String("4512726") ||           // Namron rotary switch
                              modelId.startsWith(QLatin1String("S57003")))     // SLC 4 ch remote switch
                     {
                         if (i->endpoint() == 0x01) // create sensor only for first endpoint
@@ -8095,7 +8251,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("Heiman");
     }
-    else if (modelId.startsWith(QLatin1String("45127")))
+    else if (modelId == QLatin1String("4512705") ||
+             modelId == QLatin1String("4512726")) // Namron rotary switch
     {
         sensorNode.setManufacturer("Namron AS");
     }
@@ -17684,34 +17841,120 @@ void DEV_AllocateGroup(const Device *device, Resource *rsub, ResourceItem *item)
 {
     assert(device);
     assert(rsub);
+    assert(rsub->item(RAttrId));
     assert(item);
     assert(item->descriptor().suffix == RConfigGroup);
 
-    if (!device || !rsub || !item || item->descriptor().suffix != RConfigGroup)
+    if (!device || !rsub || !rsub->item(RAttrId) || !item || item->descriptor().suffix != RConfigGroup)
     {
         return;
     }
 
-    if (isValidRConfigGroup(item->toString()))
-    {
-        return;
-    }
+    const auto &ddfItem = DeviceDescriptions::instance()->getItem(item);
+    QStringList groupList = item->toString().split(',', SKIP_EMPTY_PARTS);
 
-    const auto &rId = rsub->item(RAttrId)->toString();
-    auto &groups = plugin->groups;
-    auto ls = item->toString().split(',', SKIP_EMPTY_PARTS);
-
-    int allocated = 0;
-    for (int i = 0; i < ls.size(); i++)
+    if (ddfItem.isValid() && !ddfItem.defaultValue.isNull())
     {
-        if (ls[i] == QLatin1String("auto"))
+        const QStringList defaultList = ddfItem.defaultValue.toString().split(',', SKIP_EMPTY_PARTS);
+
+        if (defaultList.isEmpty())
         {
-            QString gUniqueId = device->item(RAttrUniqueId)->toString();
-            if (ls.size() > 1)
+            return;
+        }
+
+        if (groupList.isEmpty())
+        {
+            // set "auto[,auto,..]"
+            item->setValue(ddfItem.defaultValue.toString());
+            groupList = defaultList;
+        }
+        else if (groupList.size() != defaultList.size())
+        {
+            QStringList ls;
+
+            // fill in missing default entries if needed
+            for (int i = 0; i < defaultList.size(); i++)
             {
-                gUniqueId += "-" + QString::number(i);
+                if (i < groupList.size())
+                {
+                    ls.push_back(groupList[i]);
+                }
+                else if (groupList.size() <= i)
+                {
+                    ls.push_back(defaultList[i]);
+                }
             }
 
+            item->setValue(ls.join(','));
+            groupList = ls;
+        }
+    }
+
+    auto &groups = plugin->groups;
+    const auto &rId = rsub->item(RAttrId)->toString();
+    const auto &devUniqueId = device->item(RAttrUniqueId)->toString();
+
+    int allocated = 0;
+    for (int i = 0; i < groupList.size(); i++)
+    {
+        QString gUniqueId = devUniqueId;
+        if (i > 0)
+        {
+            gUniqueId += "-" + QString::number(i);
+        }
+
+        if (groupList[i] != QLatin1String("auto") && groupList[i] != QLatin1String("null"))
+        {
+            // verify group exists
+            auto g = std::find_if(groups.begin(), groups.end(), [&](const Group &x)
+                                 { return x.state() == Group::StateNormal && x.id() == groupList[i]; });
+
+            if (g == groups.cend())
+            {
+                bool ok;
+                uint gid = groupList[i].toUInt(&ok, 0);
+
+                if (!ok || gid >= UINT16_MAX)
+                {
+                    DBG_Printf(DBG_INFO, "config.group contains unsupported group id: %s\n", qPrintable(groupList[i]));
+                    continue; // should never happen(?)
+                }
+                else
+                {
+                    DBG_Printf(DBG_INFO, "config.group refers to non existing group: %s --> create missing group\n", qPrintable(groupList[i]));
+                }
+
+                // if an config.group entry doesn't have an actual group, create one
+                Group group;
+
+                group.setAddress(gid);
+                group.addItem(DataTypeString, RAttrUniqueId)->setValue(gUniqueId);
+                group.addDeviceMembership(rId);
+                group.setName(rsub->item(RAttrName)->toString() + " " + QString::number(i));
+
+                groups.push_back(group);
+                plugin->updateGroupEtag(&groups.back());
+                allocated++;
+                continue;
+            }
+            else
+            {
+                // if and only if a group.uniqueid starts with the device mac address
+                // verify/correct that it follows group.uniqueid pattern -1, -2 ...
+                ResourceItem *uid = g->item(RAttrUniqueId);
+
+                if (uid && uid->toString().startsWith(devUniqueId) && uid->toString() != gUniqueId)
+                {
+                    uid->setValue(gUniqueId);
+                    plugin->updateGroupEtag(&*g);
+                    allocated++;
+                    continue;
+                }
+            }
+        }
+
+        if (groupList[i] == QLatin1String("auto"))
+        {
             auto g = groups.begin();
             const auto gend = groups.end();
 
@@ -17726,7 +17969,7 @@ void DEV_AllocateGroup(const Device *device, Resource *rsub, ResourceItem *item)
 
                 if (uid && uid->toString() == gUniqueId)
                 {
-                    ls[i] = g->id(); // device group already exists, grab group id
+                    groupList[i] = g->id(); // device group already exists, grab group id
                     g->addDeviceMembership(rId);
                     allocated++;
                     break;
@@ -17737,7 +17980,8 @@ void DEV_AllocateGroup(const Device *device, Resource *rsub, ResourceItem *item)
             {
                 for (quint16 gid = 20000 ; gid < 25000; gid++)
                 {
-                    const auto match = std::find_if(groups.cbegin(), groups.cend(), [gid](const Group &x) { return x.address() == gid; });
+                    const auto match = std::find_if(groups.cbegin(), groups.cend(), [gid](const Group &x)
+                                                   { return x.state() == Group::StateNormal && x.address() == gid; });
 
                     if (match == groups.cend())
                     {
@@ -17747,11 +17991,10 @@ void DEV_AllocateGroup(const Device *device, Resource *rsub, ResourceItem *item)
                         group.addItem(DataTypeString, RAttrUniqueId)->setValue(gUniqueId);
                         group.addDeviceMembership(rId);
                         group.setName(rsub->item(RAttrName)->toString() + " " + QString::number(i));
-                        ls[i] = group.id();
+                        groupList[i] = group.id();
 
                         groups.push_back(group);
                         plugin->updateGroupEtag(&groups.back());
-                        plugin->queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
                         allocated++;
                         break;
                     }
@@ -17762,8 +18005,9 @@ void DEV_AllocateGroup(const Device *device, Resource *rsub, ResourceItem *item)
 
     if (allocated > 0)
     {
-        item->setValue(ls.join(','));
+        item->setValue(groupList.join(','));
         DB_StoreSubDeviceItem(rsub, item);
+        plugin->queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
 
         if (rsub->prefix() == RSensors)
         {
