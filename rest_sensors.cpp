@@ -1171,7 +1171,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (devManaged && rsub) // Managed by DDF ?
                     {
-                        DBG_Printf(DBG_INFO_L2, "debug test 5\n");
+                        DBG_Printf(DBG_INFO_L2, "debug test send Heatsetpoint\n");
                         StateChange change2(StateChange::StateCallFunction, SC_WriteZclAttribute, task.req.dstEndpoint());
                         change2.addTargetValue(rid.suffix, data.integer);
                         rsub->addStateChange(change2);
@@ -1571,11 +1571,12 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             updated = true;
                         }
                     }
-                    else if (devManaged && rsub)
+                    else if (devManaged && rsub) // Managed by DDF ?
                     {
-                        data.uinteger = data.boolean; // Use integer representation
-                        change.addTargetValue(rid.suffix, data.uinteger);
-                        rsub->addStateChange(change);
+                        DBG_Printf(DBG_INFO_L2, "debug test send Childlock\n");
+                        StateChange change2(StateChange::StateCallFunction, SC_WriteZclAttribute, task.req.dstEndpoint());
+                        change2.addTargetValue(rid.suffix, data.uinteger);
+                        rsub->addStateChange(change2);
                         updated = true;
                     }
                     else
@@ -1699,20 +1700,31 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigWindowOpen) // Boolean
                 {
-                    QByteArray tuyaData = QByteArray("\x00", 1); // Config on / off
-
-                    if (data.boolean) { tuyaData = QByteArray("\x01", 1); }
-
-                    qint8 dpIdentifier = DP_IDENTIFIER_WINDOW_OPEN;
-
-                    if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
-                        R_GetProductId(sensor) == QLatin1String("Tuya_THD BRT-100"))
+                    if (!devManaged)
                     {
-                        dpIdentifier = DP_IDENTIFIER_WINDOW_OPEN2;
+                        QByteArray tuyaData = QByteArray("\x00", 1); // Config on / off
+
+                        if (data.boolean) { tuyaData = QByteArray("\x01", 1); }
+
+                        qint8 dpIdentifier = DP_IDENTIFIER_WINDOW_OPEN;
+
+                        if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
+                            R_GetProductId(sensor) == QLatin1String("Tuya_THD BRT-100"))
+                        {
+                            dpIdentifier = DP_IDENTIFIER_WINDOW_OPEN2;
+                        }
+
+                        if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, dpIdentifier, tuyaData))
+                        {
+                            updated = true;
+                        }
                     }
-
-                    if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, dpIdentifier, tuyaData))
+                    else if (devManaged && rsub) // Managed by DDF ?
                     {
+                        DBG_Printf(DBG_INFO_L2, "debug test send wndowsopen\n");
+                        StateChange change2(StateChange::StateCallFunction, SC_WriteZclAttribute, task.req.dstEndpoint());
+                        change2.addTargetValue(rid.suffix, data.uinteger);
+                        rsub->addStateChange(change2);
                         updated = true;
                     }
                 }

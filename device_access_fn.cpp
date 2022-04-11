@@ -590,6 +590,8 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
 bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, const QVariant &parseParameters)
 {
     bool result = false;
+    
+    DBG_Printf(DBG_INFO_L2, "Tuya parse expression\n");
 
     if (ind.clusterId() != TUYA_CLUSTER_ID || !(zclFrame.commandId() == TY_DATA_REPORT || zclFrame.commandId() ==  TY_DATA_RESPONSE))
     {
