@@ -4429,7 +4429,8 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ:
 
 /*! On reception of an group command, check that the config.group entries are set properly.
 
-    - This requires the DDF has { "meta": { "group.endpoints": [<endpoints>] }} set.
+    - This requires the DDF has { "meta": { "group.endpoints": [<endpoints>] }} set,
+      or as alternative the DDF has group bindings specified.
     - This takes into account if there are also matching bindings set in the DDF.
     - "auto" entries are replaced based on the index in group.ednpoints.
     - Existing group entries are replaced if the device hasn't configured bindings in the DDF.
@@ -4447,7 +4448,34 @@ void DEV_CheckConfigGroupIndication(Resource *rsub, uint8_t srcEndpoint, uint ds
         return;
     }
 
-    const QVariantList epList = ddfSubDevice.meta.value(QLatin1String("group.endpoints")).toList();
+    const auto ddfItem = std::find_if(ddfSubDevice.items.cbegin(), ddfSubDevice.items.cend(),
+                                      [configGroup](const auto &x){ return x.descriptor.suffix == RConfigGroup; });
+
+    if (ddfItem == ddfSubDevice.items.cend())
+    {
+        return;
+    }
+
+    Device *device = static_cast<Device*>(rsub->parentResource());
+
+    QVariantList epList;
+    if (ddfSubDevice.meta.contains(QLatin1String("group.endpoints")))
+    {
+        epList = ddfSubDevice.meta.value(QLatin1String("group.endpoints")).toList();
+    }
+    else if (ddfItem->defaultValue.toString().contains(QLatin1String("auto")))
+    {
+        // try to extract from bindings, todo cache
+        for (const auto &bnd : device->bindings())
+        {
+            const QVariant ep(uint(bnd.srcEndpoint));
+            if (bnd.isGroupBinding && !epList.contains(ep))
+            {
+               epList.push_back(ep);
+            }
+        }
+    }
+
     if (epList.isEmpty())
     {
         return;
@@ -4491,8 +4519,6 @@ void DEV_CheckConfigGroupIndication(Resource *rsub, uint8_t srcEndpoint, uint ds
         }
 
         // at this point groupList[i] has a group which is different from the received one
-
-        Device *device = static_cast<Device*>(rsub->parentResource());
 
         for (const auto &bnd : device->bindings())
         {
@@ -4621,7 +4647,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             // check if group configuration is handled by DDF
             const auto &ddfSubDevice = DeviceDescriptions::instance()->getSubDevice(sensor);
 
-            if (ddfSubDevice.isValid() && ddfSubDevice.meta.contains(QLatin1String("group.endpoints")))
+            if (ddfSubDevice.isValid())
             {
                 doLegacyGroupStuff = false;
                 if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
