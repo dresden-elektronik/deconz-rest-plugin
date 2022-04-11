@@ -4255,9 +4255,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         // check for older setups with multiple ZHASwitch sensors per device
         if (sensor.manufacturer() == QLatin1String("ubisys") && sensor.type() == QLatin1String("ZHASwitch"))
         {
-            if ((sensor.modelId().startsWith(QLatin1String("D1")) && sensor.fingerPrint().endpoint != 0x02) ||
-                (sensor.modelId().startsWith(QLatin1String("S2")) && sensor.fingerPrint().endpoint != 0x03) ||
-                (sensor.modelId().startsWith(QLatin1String("C4")) && sensor.fingerPrint().endpoint != 0x01))
+            if ((sensor.modelId().startsWith(QLatin1String("D1")) && sensor.fingerPrint().endpoint != 0x02))
             {
                 DBG_Printf(DBG_INFO, "ubisys sensor id: %s, endpoint 0x%02X (%s) ignored loading from database\n", qPrintable(sensor.id()), sensor.fingerPrint().endpoint, qPrintable(sensor.modelId()));
                 return 0;
@@ -4266,22 +4264,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             QStringList supportedModes({"momentary", "rocker", "custom"});
             item = sensor.addItem(DataTypeString, RConfigMode);
 
-            bool isWindowCovering = sensor.modelId().startsWith(QLatin1String("J1"));
-            ResourceItem *itemWindowCovering = 0;
-            if (isWindowCovering)
-            {
-                itemWindowCovering = sensor.addItem(DataTypeUInt8, RConfigWindowCoveringType);
-            }
-
             if (configCol >= 0)
             {
                 sensor.jsonToConfig(QLatin1String(colval[configCol])); // needed again otherwise item isEmpty
-            }
-
-            if (isWindowCovering)
-            {
-                int val = itemWindowCovering->toNumber(); // prevent null value
-                itemWindowCovering->setValue(val);
             }
 
             if (item->toString().isEmpty() || !supportedModes.contains(item->toString()))

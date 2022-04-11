@@ -290,9 +290,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_XIAOMI, "lumi.flood.agl02", xiaomiMacPrefix}, // Xiaomi Aqara T1 water leak sensor SJCGQ12LM
     { VENDOR_XIAOMI, "lumi.switch.n0agl1", lumiMacPrefix}, // Xiaomi Aqara Single Switch Module T1 (With Neutral)
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
-    { VENDOR_UBISYS, "J1", ubisysMacPrefix },
     { VENDOR_UBISYS, "S1", ubisysMacPrefix },
-    { VENDOR_UBISYS, "S2-R", ubisysMacPrefix },
     { VENDOR_NONE, "Z716A", netvoxMacPrefix },
     // { VENDOR_OSRAM_STACK, "Plug", osramMacPrefix }, // OSRAM plug - exposed only as light
     { VENDOR_OSRAM, "Lightify Switch Mini", emberMacPrefix }, // Osram 3 button remote
@@ -6558,9 +6556,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_UBISYS)
                     {
                         if ((modelId.startsWith(QLatin1String("D1")) && i->endpoint() == 0x02) ||
-                            (modelId.startsWith(QLatin1String("J1")) && i->endpoint() == 0x02) ||
-                            (modelId.startsWith(QLatin1String("S1-R")) && i->endpoint() == 0x02) ||
-                            (modelId.startsWith(QLatin1String("S2-R")) && i->endpoint() == 0x03))
+                            (modelId.startsWith(QLatin1String("S1-R")) && i->endpoint() == 0x02))
                         {
                             // Combine multiple switch endpoints into a single ZHASwitch resource
                             fpSwitch.outClusters.push_back(ci->id());
@@ -7912,12 +7908,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             sensorNode.addItem(DataTypeString, RConfigGroup);
             item = sensorNode.addItem(DataTypeString, RConfigMode);
             item->setValue(QString("momentary"));
-
-            if (sensorNode.modelId().startsWith(QLatin1String("J1")))
-            {
-                item = sensorNode.addItem(DataTypeUInt8, RConfigWindowCoveringType);
-                item->setValue(0);
-            }
         }
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_BUSCH_JAEGER)
@@ -10716,7 +10706,7 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         // whitelist by Model ID
         if (sensorNode->modelId().startsWith(QLatin1String("FLS-NB")) ||
             sensorNode->modelId().startsWith(QLatin1String("D1")) || sensorNode->modelId().startsWith(QLatin1String("S1-R")) ||
-            sensorNode->modelId().startsWith(QLatin1String("S2-R")) || sensorNode->manufacturer().startsWith(QLatin1String("BEGA")))
+            sensorNode->manufacturer().startsWith(QLatin1String("BEGA")))
         {
             ok = true;
         }
@@ -17906,7 +17896,7 @@ void DeRestPluginPrivate::pushSensorInfoToCore(Sensor *sensor)
     if (sensor->modelId().startsWith(QLatin1String("FLS-NB")))
     { } // use name from light
     else if (sensor->modelId().startsWith(QLatin1String("D1")) || sensor->modelId().startsWith(QLatin1String("S1-R")) ||
-             sensor->modelId().startsWith(QLatin1String("S2")) ||sensor->modelId().startsWith(QLatin1String("lumi.ctrl_")))
+             sensor->modelId().startsWith(QLatin1String("lumi.ctrl_")))
     { } // use name from light
     else if (sensor->type() == QLatin1String("ZHAConsumption") || sensor->type() == QLatin1String("ZHAPower"))
     { } // use name from light
