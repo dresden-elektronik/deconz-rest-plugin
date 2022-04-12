@@ -1350,6 +1350,14 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                         }
                     }
+                    else if (devManaged && rsub) // Managed by DDF ?
+                    {
+                        DBG_Printf(DBG_INFO_L2, "debug test send mode\n");
+                        StateChange change2(StateChange::StateCallFunction, SC_WriteZclAttribute, task.req.dstEndpoint());
+                        change2.addTargetValue(rid.suffix, data.integer);
+                        rsub->addStateChange(change2);
+                        updated = true;
+                    }
                     else
                     {
                         const auto match = matchKeyValue(data.string, RConfigModeValues);
