@@ -538,13 +538,20 @@ const DeviceDescription &DeviceDescriptions::get(const Resource *resource, DDF_M
     const auto manufacturer = resource->item(RAttrManufacturerName)->toString();
     const auto manufacturerConstant = stringToConstant(manufacturer);
 
-    const auto i = std::find_if(d->descriptions.begin(), d->descriptions.end(), [&modelId, &manufacturer, &manufacturerConstant](const DeviceDescription &ddf)
-    {
-        return (ddf.modelIds.contains(modelId) && (ddf.manufacturerNames.contains(manufacturer) || ddf.manufacturerNames.contains(manufacturerConstant)));
-    });
+    auto i = d->descriptions.begin();
 
-    if (i != d->descriptions.end())
+    for (;;)
     {
+        i = std::find_if(i, d->descriptions.end(), [&modelId, &manufacturer, &manufacturerConstant](const DeviceDescription &ddf)
+        {
+            return (ddf.modelIds.contains(modelId) && (ddf.manufacturerNames.contains(manufacturer) || ddf.manufacturerNames.contains(manufacturerConstant)));
+        });
+
+        if (i == d->descriptions.end())
+        {
+            break;
+        }
+
         if (!i->matchExpr.isEmpty() && match == DDF_EvalMatchExpr)
         {
             DeviceJs *djs = DeviceJs::instance();
@@ -563,6 +570,7 @@ const DeviceDescription &DeviceDescriptions::get(const Resource *resource, DDF_M
             {
                 DBG_Printf(DBG_DDF, "failed to evaluate matchexpr for %s: %s, err: %s\n", qPrintable(resource->item(RAttrUniqueId)->toString()), qPrintable(i->matchExpr), qPrintable(djs->errorString()));
             }
+            i++; // proceed search
         }
         else
         {
