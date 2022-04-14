@@ -200,7 +200,11 @@ void DEV_InitStateHandler(Device *device, const Event &event)
 
         if ((event.deviceKey() & 0x00212E0000000000LLU) == 0x00212E0000000000LLU)
         {
-            d->node = DEV_GetCoreNode(device->key());
+            if (!d->node)
+            {
+                d->node = DEV_GetCoreNode(device->key());
+            }
+
             if (d->node && d->node->isCoordinator())
             {
                 d->setState(DEV_DeadStateHandler);
@@ -804,12 +808,6 @@ void DEV_BindingHandler(Device *device, const Event &event)
     if (event.what() == REventStateEnter)
     {
         DBG_Printf(DBG_DEV, "DEV Binding enter %s/0x%016llX\n", event.resource(), event.deviceKey());
-
-        if (!d->node->isRouter())
-        {
-            // most end devices support it, however disable for now until further testing
-            d->binding.mgmtBindSupported = MGMT_BIND_NOT_SUPPORTED;
-        }
     }
     else if (event.what() == REventPoll || event.what() == REventAwake || event.what() == REventBindingTick)
     {

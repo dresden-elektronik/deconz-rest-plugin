@@ -1451,8 +1451,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5});
         }
-        else if (modelId == QLatin1String("eTRV0100") || // Danfoss Ally
-                 modelId == QLatin1String("TRV001") ||   // Hive TRV
+        else if (modelId == QLatin1String("TRV001") ||   // Hive TRV
                  modelId == QLatin1String("eT093WRO"))   // POPP smart thermostat
         {
             rq.dataType = deCONZ::Zcl16BitInt;
@@ -1682,8 +1681,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     }
     else if (bt.binding.clusterId == THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID)
     {
-        if (modelId == QLatin1String("eTRV0100") || // Danfoss Ally
-            modelId == QLatin1String("TRV001") ||   // Hive TRV
+        if (modelId == QLatin1String("TRV001") ||   // Hive TRV
             modelId == QLatin1String("eT093WRO"))   // POPP smart thermostat
         {
             rq.dataType = deCONZ::Zcl8BitEnum;
@@ -1721,8 +1719,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     }
     else if (bt.binding.clusterId == DIAGNOSTICS_CLUSTER_ID)
     {
-        if (modelId == QLatin1String("eTRV0100") || // Danfoss Ally
-            modelId == QLatin1String("TRV001") ||   // Hive TRV
+        if (modelId == QLatin1String("TRV001") ||   // Hive TRV
             modelId == QLatin1String("eT093WRO"))   // POPP smart thermostat
         {
             rq.dataType = deCONZ::Zcl16BitBitMap;
@@ -1820,8 +1817,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 900;        // value used by Hue bridge
             rq.reportableChange8bit = 4; // value used by Hue bridge
         }
-        else if (modelId == QLatin1String("eTRV0100") || // Danfoss Ally
-                 modelId == QLatin1String("eT093WRO") || // POPP smart thermostat
+        else if (modelId == QLatin1String("eT093WRO") || // POPP smart thermostat
                  modelId == QLatin1String("TRV001") ||   // Hive TRV
                  modelId == QLatin1String("0x8020") ||   // Danfoss RT24V Display thermostat
                  modelId == QLatin1String("0x8021") ||   // Danfoss RT24V Display thermostat with floor sensor
@@ -1834,8 +1830,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 43200;        // Vendor defaults
             rq.reportableChange8bit = 2;   // Vendor defaults
         }
-        else if (modelId.startsWith(QLatin1String("ED-1001")) || // EcoDim switches
-                 modelId.startsWith(QLatin1String("45127")) ||   // Namron switches
+        else if (modelId == QLatin1String("4512705") ||          // Namron remote control
+                 modelId == QLatin1String("4512726") ||          // Namron rotary switch
                  modelId == QLatin1String("CCT591011_AS") ||     // LK Wiser Door / Window Sensor
                  modelId == QLatin1String("CCT592011_AS") ||     // LK Wiser Water Leak Sensor
                  modelId.startsWith(QLatin1String("S57003")) ||  // SLC switches
@@ -1924,8 +1920,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 21600;
             rq.reportableChange8bit = 10;
         }
-        else if (modelId == QLatin1String("lumi.remote.b28ac1") ||              // Aqara Wireless Remote Switch H1 (Double Rocker)
-                 modelId == QLatin1String("lumi.motion.agl04"))                 // Xiaomi Aqara RTCGQ13LM high precision motion sensor
+        else if (modelId == QLatin1String("lumi.motion.agl04"))                 // Xiaomi Aqara RTCGQ13LM high precision motion sensor
         {
             rq.attributeId = 0x0020;   // battery voltage
             rq.minInterval = 3;
@@ -3044,7 +3039,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("lumi.motion.agl04") ||
         sensor->modelId() == QLatin1String("lumi.flood.agl02") ||
         sensor->modelId() == QLatin1String("lumi.switch.n0agl1") ||
-        sensor->modelId() == QLatin1String("lumi.remote.b28ac1") ||
         // iris
         sensor->modelId().startsWith(QLatin1String("1116-S")) ||
         sensor->modelId().startsWith(QLatin1String("1117-S")) ||
@@ -3105,14 +3099,11 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("ROB_200")) ||
         // Sunricher
         sensor->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) ||
-        sensor->modelId().startsWith(QLatin1String("45127")) ||
+        sensor->modelId() == QLatin1String("4512705") || // Namron remote control
+        sensor->modelId() == QLatin1String("4512726") || // Namron rotary switch
         sensor->modelId().startsWith(QLatin1String("ZG2835")) ||
-        // EcoDim
-        sensor->modelId().startsWith(QLatin1String("ED-1001")) ||
         // RT-RK
         sensor->modelId().startsWith(QLatin1String("SPW35Z")) ||
-        // Namron
-        sensor->modelId().startsWith(QLatin1String("45127")) ||
         // SLC
         sensor->modelId().startsWith(QLatin1String("S57003")) ||
         // Plugwise
@@ -3140,7 +3131,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("TH01") ||
         sensor->modelId() == QLatin1String("DS01") ||
         // Danfoss
-        sensor->modelId() == QLatin1String("eTRV0100") ||
         sensor->modelId() == QLatin1String("0x8020") ||
         sensor->modelId() == QLatin1String("0x8021") ||
         sensor->modelId() == QLatin1String("0x8030") ||
@@ -3461,8 +3451,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         }
         else if (*i == DIAGNOSTICS_CLUSTER_ID)
         {
-            if (sensor->modelId() == QLatin1String("eTRV0100") || // Danfoss Ally
-                sensor->modelId() == QLatin1String("TRV001") ||   // Hive TRV
+            if (sensor->modelId() == QLatin1String("TRV001") ||   // Hive TRV
                 sensor->modelId() == QLatin1String("eT093WRO"))   // POPP smart thermostat
             {
                 val = sensor->getZclValue(*i, 0x4000); // SW error code
@@ -3852,8 +3841,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(0x03);
         srcEndpoints.push_back(0x04);
     }
-    else if (sensor->modelId().startsWith(QLatin1String("ED-1001")) ||
-             sensor->modelId().startsWith(QLatin1String("45127")) ||
+    else if (sensor->modelId() == QLatin1String("4512705") || // Namron remote control
+             sensor->modelId() == QLatin1String("4512726") || // Namron rotary switch
              sensor->modelId().startsWith(QLatin1String("S57003")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);

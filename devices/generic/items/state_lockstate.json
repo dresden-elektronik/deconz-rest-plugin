@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/lockstate",
+	"datatype": "String",
+	"access": "R",
+	"public": true,
+	"description": "Door lock state."
+}

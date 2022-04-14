@@ -119,7 +119,7 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                         DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "if (Attr.val != -32768) { Item.val = Attr.val; } ");
                     }
 
-                    if (item->toNumber() != power)
+                    if (!item->lastSet().isValid() || item->toNumber() != power)
                     {
                         item->setValue(power); // in W
                         enqueueEvent(Event(RSensors, RStatePower, sensor->id(), item));
@@ -167,7 +167,7 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                         DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "if (Attr.val != 65535) { Item.val = Attr.val; } ");
                     }
 
-                    if (item->toNumber() != voltage)
+                    if (!item->lastSet().isValid() || item->toNumber() != voltage)
                     {
                         item->setValue(voltage); // in V
                         enqueueEvent(Event(RSensors, RStateVoltage, sensor->id(), item));
@@ -198,8 +198,6 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                         modelId == QLatin1String("PoP") ||                                        // Apex Smart Plug
                         modelId == QLatin1String("TS011F") ||                                     // Tuya plugs
                         modelId.startsWith(QLatin1String("S1-R")) ||                              // Ubisys S1-R
-                        modelId.startsWith(QLatin1String("S2-R")) ||                              // Ubisys S2-R
-                        modelId.startsWith(QLatin1String("J1")) ||                                // Ubisys J1/J1-R
                         modelId.startsWith(QLatin1String("D1")))                                  // Ubisys D1/D1-R
                     {
                         // already in mA
@@ -222,7 +220,7 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                         DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "if (Attr.val != 65535) { Item.val = Attr.val * 1000; } ");
                     }
 
-                    if (item->toNumber() != current)
+                    if (!item->lastSet().isValid() || item->toNumber() != current)
                     {
                         item->setValue(current); // in mA
                         enqueueEvent(Event(RSensors, RStateCurrent, sensor->id(), item));
@@ -251,7 +249,7 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                         DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "if (Attr.val != 65535) { Item.val = Attr.val; } ");
                     }
 
-                    if (item->toNumber() != power)
+                    if (!item->lastSet().isValid() || item->toNumber() != power)
                     {
                         item->setValue(power); // in W
                         enqueueEvent(Event(RSensors, RStatePower, sensor->id(), item));

@@ -99,6 +99,7 @@ public:
     QString vendor; // optional: friendly name of manufacturer
     QString product;
     QString status;
+    QString matchExpr;
 
     int handle = -1; // index in container
     int sleeper = -1;
@@ -172,6 +173,7 @@ public:
         QString type;
         QString restApi;
         QStringList uniqueId; // [ "$address.ext", "01", "0405"],
+        QVariantMap meta;
         std::vector<Item> items;
         SensorFingerprint fingerPrint;
     };
@@ -225,6 +227,12 @@ class DeviceDescriptionsPrivate;
 
 using DDF_Items = std::vector<DeviceDescription::Item>;
 
+enum DDF_MatchControl
+{
+    DDF_EvalMatchExpr,
+    DDF_IgnoreMatchExpr
+};
+
 class DeviceDescriptions : public QObject
 {
     Q_OBJECT
@@ -234,9 +242,11 @@ public:
     ~DeviceDescriptions();
     void setEnabledStatusFilter(const QStringList &filter);
     const QStringList &enabledStatusFilter() const;
-    const DeviceDescription &get(const Resource *resource) const;
+    const DeviceDescription &get(const Resource *resource, DDF_MatchControl match = DDF_EvalMatchExpr) const;
     void put(const DeviceDescription &ddf);
     const DeviceDescription &load(const QString &path);
+
+    const DeviceDescription::SubDevice &getSubDevice(const Resource *resource) const;
 
     QString constantToString(const QString &constant) const;
     QString stringToConstant(const QString &str) const;

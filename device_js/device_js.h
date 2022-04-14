@@ -48,6 +48,7 @@ namespace deCONZ
     ### Object Methods
 
     R.item(suffix) -> gets Item object, for example the 'config.offset'
+    R.endpoints    -> array of active device endpoints, e.g. [1, 2]  (read only)
     Item.val       -> ResourceItem value (read/write)
     Item.name      -> ResourceItem name like 'state/on' (read only)
     Attr.id        -> attribute id (number, read only)
@@ -102,6 +103,7 @@ public:
     QVariant result();
     void reset();
     QString errorString() const;
+    static DeviceJs *instance();
 
 private:
     std::unique_ptr<DeviceJsPrivate> d;

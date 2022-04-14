@@ -84,6 +84,13 @@
         {
           "name": "config/delay",
           "awake": true,
+          "refresh.interval": 3600,
+          "read": {
+            "at": "0x0010",
+            "cl": "0x0406",
+            "ep": 41,
+            "fn": "zcl"
+          },
           "parse": {
             "at": "0x0010",
             "cl": "0x0406",
@@ -91,7 +98,14 @@
             "eval": "Item.val = Attr.val;",
             "fn": "zcl"
           },
-          "default": 0
+          "write": {
+            "at": "0x0010",
+            "cl": "0x0406",
+            "dt": "0x21",
+            "ep": 41,
+            "eval": "Item.val",
+            "fn": "zcl"
+          }
         },
         {
           "name": "config/on"
@@ -194,12 +208,28 @@
         {
           "name": "config/delay",
           "awake": true,
+          "refresh.interval": 3600,
+          "read": {
+            "at": "0x0010",
+            "cl": "0x0406",
+            "ep": 40,
+            "fn": "zcl"
+          },
           "parse": {
             "at": "0x0010",
             "cl": "0x0406",
-            "ep": 40
+            "ep": 40,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl"
           },
-          "default": 0
+          "write": {
+            "at": "0x0010",
+            "cl": "0x0406",
+            "dt": "0x21",
+            "ep": 40,
+            "eval": "Item.val",
+            "fn": "zcl"
+          }
         },
         {
           "name": "config/on"
@@ -302,14 +332,33 @@
         {
           "name": "config/delay",
           "awake": true,
+          "refresh.interval": 3600,
+          "read": {
+            "at": "0x8001",
+            "cl": "0x0500",
+            "ep": 35,
+            "fn": "zcl",
+            "mf": "0x1015"
+          },
           "parse": {
             "at": "0x8001",
             "cl": "0x0500",
             "ep": 35,
             "eval": "Item.val = Attr.val;",
+            "fn": "zcl",
             "mf": "0x1015"
           },
-          "default": 0
+          "write": {
+            "at": "0x8001",
+            "cl": "0x0500",
+            "dt": "0x21",
+            "ep": 35,
+            "eval": "Item.val",
+            "fn": "zcl",
+            "mf": "0x1015"
+          },
+          "range": [20, 65535],
+          "default": 20
         },
         {
           "name": "config/enrolled"
@@ -416,13 +465,28 @@
         {
           "name": "config/delay",
           "awake": true,
+          "refresh.interval": 3600,
+          "read": {
+            "at": "0x0010",
+            "cl": "0x0406",
+            "ep": 34,
+            "fn": "zcl"
+          },
           "parse": {
             "at": "0x0010",
             "cl": "0x0406",
             "ep": 34,
-            "eval": "Item.val = Attr.val;"
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl"
           },
-          "default": 0
+          "write": {
+            "at": "0x0010",
+            "cl": "0x0406",
+            "dt": "0x21",
+            "ep": 34,
+            "eval": "Item.val",
+            "fn": "zcl"
+          }
         },
         {
           "name": "config/on"

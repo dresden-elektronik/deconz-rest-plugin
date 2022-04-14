@@ -722,6 +722,7 @@ extern const char *HttpContentSVG;
 // Forward declarations
 class DeviceDescriptions;
 class DeviceWidget;
+class DeviceJs;
 class Gateway;
 class GatewayScanner;
 class QUdpSocket;
@@ -2134,6 +2135,7 @@ public:
     std::vector<BindingTableReader> bindingTableReaders;
 
     DeviceDescriptions *deviceDescriptions = nullptr;
+    DeviceJs *deviceJs = nullptr;
 
     // IAS
     std::unique_ptr<AS_DeviceTable> alarmSystemDeviceTable;

@@ -21,6 +21,11 @@
 
 using JsonDoc = StaticJsonDocument<1024 * 1024 * 2>; // 2 megabytes
 
+
+static void putJsonQVariantValue(JsonObject &obj, std::string key, const QVariant &value);
+static void putJsonArrayQVariantValue(JsonArray &arr, const QVariant &value);
+
+
 static RestDevicesPrivate *priv_;
 
 class RestDevicesPrivate
@@ -346,9 +351,31 @@ static void putJsonArrayQVariantValue(JsonArray &arr, const QVariant &value)
     {
         arr.add(int64_t(value.toLongLong()));
     }
+    else if (value.type() == QVariant::List)
+    {
+        JsonArray arr1 = arr.createNestedArray();
+        const QVariantList ls = value.toList();
+
+        for (const auto &v : ls)
+        {
+            putJsonArrayQVariantValue(arr1, v);
+        }
+    }
+    else if (value.type() == QVariant::Map)
+    {
+        JsonObject obj1 = arr.createNestedObject();
+        const QVariantMap map = value.toMap();
+
+        auto i = map.constBegin();
+        const auto end = map.constEnd();
+        for (; i != end; ++i)
+        {
+            putJsonQVariantValue(obj1, i.key().toStdString(), i.value());
+        }
+    }
     else
     {
-        DBG_Printf(DBG_INFO, "DDF TODO %s:%d arr add type: %s\n", __FILE__, __LINE__, QVariant::typeToName(value.type()));
+        DBG_Printf(DBG_DDF, "DDF TODO %s:%d arr add type: %s\n", __FILE__, __LINE__, QVariant::typeToName(value.type()));
     }
 }
 
@@ -392,9 +419,21 @@ static void putJsonQVariantValue(JsonObject &obj, std::string key, const QVarian
             putJsonArrayQVariantValue(arr, v);
         }
     }
+    else if (value.type() == QVariant::Map)
+    {
+        JsonObject obj1 = obj.createNestedObject(key);
+        const QVariantMap map = value.toMap();
+
+        auto i = map.constBegin();
+        const auto end = map.constEnd();
+        for (; i != end; ++i)
+        {
+            putJsonQVariantValue(obj1, i.key().toStdString(), i.value());
+        }
+    }
     else
     {
-        DBG_Printf(DBG_INFO, "DDF TODO %s:%d obj.%s type: %s\n", __FILE__, __LINE__, key.c_str(), QVariant::typeToName(value.type()));
+        DBG_Printf(DBG_DDF, "DDF TODO %s:%d obj.%s type: %s\n", __FILE__, __LINE__, key.c_str(), QVariant::typeToName(value.type()));
     }
 }
 
@@ -469,6 +508,11 @@ bool ddfSerializeV1(JsonDoc &doc, const DeviceDescription &ddf, char *buf, size_
 
     doc["status"] = ddf.status.toStdString();
 
+    if (!ddf.matchExpr.isEmpty())
+    {
+        doc["matchexpr"] = ddf.matchExpr.toStdString();
+    }
+
     if (!ddf.path.isEmpty())
     {
         int idx = ddf.path.indexOf(QLatin1String("/devices/"));
@@ -493,6 +537,11 @@ bool ddfSerializeV1(JsonDoc &doc, const DeviceDescription &ddf, char *buf, size_
             for (const QString &i : sub.uniqueId)
             {
                 uuid.add(i.toStdString());
+            }
+
+            if (!sub.meta.isEmpty())
+            {
+                putJsonQVariantValue(subDevice, "meta", sub.meta);
             }
 
             if (isValid(sub.fingerPrint))
@@ -815,6 +864,13 @@ QVariantMap RIS_IntrospectButtonEventItem(const ResourceItemDescriptor &rid, con
         return result;
     }
 
+    const deCONZ::Node *node = getCoreNode(sensor->address().ext(), deCONZ::ApsController::instance());
+
+    if (!node)
+    {
+        return result;
+    }
+
     // TODO dependency on plugin needs to be removed to make this testable
     const auto &buttonMapButtons = plugin->buttonMeta;
     const auto &buttonMapData = plugin->buttonMaps;
@@ -834,6 +890,15 @@ QVariantMap RIS_IntrospectButtonEventItem(const ResourceItemDescriptor &rid, con
 
         for (const auto &btn : buttonData->buttons)
         {
+
+            const auto sd = std::find_if(node->simpleDescriptors().cbegin(), node->simpleDescriptors().cend(),
+                                         [&btn](const deCONZ::SimpleDescriptor &x){ return x.endpoint() == btn.endpoint; });
+
+            if (sd == node->simpleDescriptors().cend())
+            {
+                continue;
+            }
+
             buttonBits |= 1 << int(btn.button / 1000);
 
             QVariantMap m;
@@ -853,9 +918,12 @@ QVariantMap RIS_IntrospectButtonEventItem(const ResourceItemDescriptor &rid, con
     {
         for (const auto &button : buttonsMeta->buttons)
         {
-            QVariantMap m;
-            m[QLatin1String("name")] = button.name;
-            buttons[QString::number(button.button)] = m;
+            if (buttonBits & (1 << button.button))
+            {
+                QVariantMap m;
+                m[QLatin1String("name")] = button.name;
+                buttons[QString::number(button.button)] = m;
+            }
         }
     }
     else // fallback if no "buttons" is defined in the button map, generate a generic one

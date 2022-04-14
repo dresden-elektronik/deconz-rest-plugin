@@ -130,13 +130,12 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                     sensor.modelId().startsWith(QLatin1String("Remote Control N2")) || // IKEA
                     sensor.modelId().startsWith(QLatin1String("ICZB-")) || // iCasa keypads and remote
                     sensor.modelId().startsWith(QLatin1String("ZGR904-S")) || // Envilar remote
-                    sensor.modelId().startsWith(QLatin1String("ED-1001")) || // EcoDim wireless switches
                     sensor.modelId().startsWith(QLatin1String("ZGRC-KEY")) || //  Sunricher wireless CCT remote
-                    sensor.modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
                     sensor.modelId().startsWith(QLatin1String("iTRV")) || // Drayton Wiser Radiator Thermostat
                     sensor.modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
                     sensor.modelId().startsWith(QLatin1String("SV02-")) || // Keen Home vent
-                    sensor.modelId().startsWith(QLatin1String("45127")) || // Namron 1/2/4-ch remote controller
+                    sensor.modelId() == QLatin1String("4512705") || // Namron remote control
+                    sensor.modelId() == QLatin1String("4512726") || // Namron rotary switch
                     sensor.modelId().startsWith(QLatin1String("S57003")) || // SLC 4-ch remote controller
                     sensor.modelId().startsWith(QLatin1String("RGBgenie ZB-5")) || // RGBgenie remote control
                     sensor.modelId().startsWith(QLatin1String("VOC_Sensor")) || // LifeControl Enviroment sensor
@@ -234,7 +233,6 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                     sensor.modelId() == QLatin1String("3AFE14010402000D") ||   // Konke motion sensor
                     sensor.modelId() == QLatin1String("3AFE28010402000D") ||   // Konke motion sensor v2
                     sensor.modelId() == QLatin1String("FB56-DOS06HM1.3") ||    // Feibit FB56-DOS06HM1.3 door/window sensor
-                    sensor.modelId() == QLatin1String("lumi.remote.b28ac1") || // Aqara wireless remote switch H1 (double rocker)
                     sensor.modelId().endsWith(QLatin1String("86opcn01")) ||    // Aqara Opple
                     sensor.modelId().startsWith(QLatin1String("FLSZB-1")) ||   // Develco water leak sensor
                     sensor.modelId().startsWith(QLatin1String("SIRZB-1")) ||   // Develco siren
