@@ -18,6 +18,7 @@
         "$TYPE_COLOR_DIMMABLE_LIGHT": "Color dimmable light",
         "$TYPE_DIMMABLE_LIGHT": "Dimmable light",
         "$TYPE_DIMMABLE_PLUGIN_UNIT": "Dimmable plug-in unit",
+        "$TYPE_DOOR_LOCK": "Door Lock",
         "$TYPE_EXTENDED_COLOR_LIGHT": "Extended color light",
         "$TYPE_SMART_PLUG": "Smart plug",
         "$TYPE_ON_OFF_LIGHT": "On/Off light",

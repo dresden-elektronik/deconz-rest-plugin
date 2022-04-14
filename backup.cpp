@@ -17,6 +17,7 @@
 #include <deconz.h>
 #include "backup.h"
 #include "json.h"
+#include "crypto/random.h"
 
 #define EXT_PROCESS_TIMEOUT 10000
 
@@ -524,9 +525,10 @@ bool BAK_ResetConfiguration(deCONZ::ApsController *apsCtrl, bool resetGW, bool d
 
     if (resetGW)
     {
-        qsrand(QDateTime::currentMSecsSinceEpoch());
+        uint16_t panId;
+        CRYPTO_RandomBytes((unsigned char*)&panId, sizeof(panId));
+
         uint8_t deviceType = deCONZ::Coordinator;
-        uint16_t panId = qrand();
         quint64 apsUseExtPanId = 0x0000000000000000;
         uint16_t nwkAddress = 0x0000;
         //uint32_t channelMask = 33554432; // 25
@@ -540,13 +542,8 @@ bool BAK_ResetConfiguration(deCONZ::ApsController *apsCtrl, bool resetGW, bool d
             return false;
         }
 
-        QByteArray nwkKey1 = QByteArray::number(qrand(), 16);
-        QByteArray nwkKey2 = QByteArray::number(qrand(), 16);
-        QByteArray nwkKey3 = QByteArray::number(qrand(), 16);
-        QByteArray nwkKey4 = QByteArray::number(qrand(), 16);
-
-        QByteArray nwkKey = nwkKey1.append(nwkKey2).append(nwkKey3).append(nwkKey4);
-        nwkKey.resize(16);
+        QByteArray nwkKey(16, '\x00');
+        CRYPTO_RandomBytes((unsigned char*)nwkKey.data(), nwkKey.size());
 
         QByteArray tcLinkKey = QByteArray::fromHex("5a6967426565416c6c69616e63653039");
         uint8_t nwkUpdateId = 1;

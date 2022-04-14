@@ -2,7 +2,7 @@
   "schema": "devcap1.schema.json",
   "manufacturername": "Schneider Electric",
   "modelid": "LK Switch",
-  "product": "LK Fuga Doube Relay Switch",
+  "product": "LK Fuga Double Relay Switch",
   "sleeper": false,
   "status": "Gold",
   "path": "/devices/wiser/fuga_double_relay_switch.json",
@@ -146,13 +146,7 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/buttonevent",
-          "parse": {
-            "cl": "0x0006",
-            "ep": 255,
-            "eval": "if (SrcEp >= 21 && SrcEp <= 24) { Item.val = (SrcEp - 20) * 1000 + 2; }",
-            "fn": "zcl"
-          }
+          "name": "state/buttonevent"
         },
         {
           "name": "state/lastupdated"

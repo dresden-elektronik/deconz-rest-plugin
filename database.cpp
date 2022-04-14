@@ -1277,8 +1277,12 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
     {
         if (!val.isEmpty())
         {
-            d->gwAnnounceUrl = val;
-            d->gwConfig["announceurl"] = val;
+            // ignore old gce entry, use default
+            if (!val.contains(QLatin1String("dresden-light.appspot.com")))
+            {
+                d->gwAnnounceUrl = val;
+                d->gwConfig["announceurl"] = val;
+            }
         }
     }
     else if (strcmp(colval[0], "rfconnect") == 0)
@@ -2617,7 +2621,7 @@ static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , ch
             }
             else if (strcmp(colname[i], "modelid") == 0)
             {
-                if (!val.isEmpty() && 0 != val.compare(QLatin1String("Unknown"), Qt::CaseInsensitive))
+                if (!val.isEmpty())
                 {
                     lightNode->setModelId(val);
                     lightNode->item(RAttrModelId)->setValue(val);
@@ -2627,7 +2631,7 @@ static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , ch
             }
             else if (strcmp(colname[i], "manufacturername") == 0)
             {
-                if (!val.isEmpty() && 0 != val.compare(QLatin1String("Unknown"), Qt::CaseInsensitive))
+                if (!val.isEmpty())
                 {
                     lightNode->setManufacturerName(val);
                     lightNode->clearRead(READ_VENDOR_NAME);
@@ -3222,7 +3226,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (!isClip)
         {
-            const auto ddf = d->deviceDescriptions->get(&sensor);
+            // ignore DDF "matchexpr" at this stage since the node is not yet fully loaded
+            const auto &ddf = d->deviceDescriptions->get(&sensor, DDF_IgnoreMatchExpr);
             if (ddf.isValid())
             {
                 unsigned ep = endpointFromUniqueId(sensor.uniqueId());
@@ -3625,7 +3630,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 clusterId = clusterId ? clusterId : TUYA_CLUSTER_ID;
                 sensor.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
             }
-            
+
             item = sensor.addItem(DataTypeBool, RStateFire);
             item->setValue(false);
         }
@@ -3675,8 +3680,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.fingerPrint().hasInCluster(METERING_CLUSTER_ID))
             {
                 clusterId = clusterId ? clusterId : METERING_CLUSTER_ID;
-                if ((sensor.modelId() != QLatin1String("SP 120")) &&
-                    (sensor.modelId() != QLatin1String("ZB-ONOFFPlug-D0005")) &&
+                if ((sensor.modelId() != QLatin1String("ZB-ONOFFPlug-D0005")) &&
                     (sensor.modelId() != QLatin1String("TS0121")) &&
                     (!sensor.modelId().startsWith(QLatin1String("BQZ10-AU"))) &&
                     (!sensor.modelId().startsWith(QLatin1String("ROB_200"))) &&
@@ -3684,7 +3688,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     (sensor.modelId() != QLatin1String("Plug-230V-ZB3.0")) &&
                     (sensor.modelId() != QLatin1String("lumi.switch.b1naus01")) &&
                     (sensor.modelId() != QLatin1String("lumi.switch.n0agl1")) &&
-                    (sensor.modelId() != QLatin1String("Connected socket outlet")) &&
                     (!sensor.modelId().startsWith(QLatin1String("SPW35Z"))))
                 {
                     item = sensor.addItem(DataTypeInt16, RStatePower);
@@ -3946,15 +3949,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeString, RConfigMode);
                     sensor.addItem(DataTypeString, RConfigFanMode);
                 }
-                else if (sensor.modelId() == QLatin1String("3157100"))
+                else if (sensor.modelId().startsWith(QLatin1String("3157100")))
                 {
                     sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);
                     sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                     sensor.addItem(DataTypeString, RConfigMode);
                     sensor.addItem(DataTypeString, RConfigFanMode);
                 }
-                else if (sensor.modelId() == QLatin1String("eTRV0100") || // Danfoss Ally
-                         sensor.modelId() == QLatin1String("TRV001") ||   // Hive TRV
+                else if (sensor.modelId() == QLatin1String("TRV001") ||   // Hive TRV
                          sensor.modelId() == QLatin1String("eT093WRO"))   // POPP smart thermostat
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
@@ -4010,6 +4012,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
             {
                 clusterId = POWER_CONFIGURATION_CLUSTER_ID;
+            }
+            else if (sensor.fingerPrint().hasInCluster(XIAOMI_CLUSTER_ID))
+            {
+                clusterId = XIAOMI_CLUSTER_ID;
             }
             else if (sensor.fingerPrint().hasInCluster(TUYA_CLUSTER_ID))
             {
@@ -4124,10 +4130,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         else if (sensor.modelId() == QLatin1String("lumi.sensor_magnet.agl02") || sensor.modelId() == QLatin1String("lumi.flood.agl02") ||
                  sensor.modelId() == QLatin1String("lumi.motion.agl04") || sensor.modelId() == QLatin1String("lumi.switch.b1nacn02") ||
                  sensor.modelId() == QLatin1String("lumi.switch.b2nacn02") || sensor.modelId() == QLatin1String("lumi.switch.n1aeu1") ||
-                 sensor.modelId() == QLatin1String("lumi.switch.n2aeu1") || sensor.modelId() == QLatin1String("lumi.switch.l1aeu1") ||
                  sensor.modelId() == QLatin1String("lumi.switch.l2aeu1") || sensor.modelId() == QLatin1String("lumi.switch.b1naus01") ||
                  sensor.modelId() == QLatin1String("lumi.switch.n0agl1") || sensor.modelId() == QLatin1String("lumi.switch.b1lacn02") ||
-                 sensor.modelId() == QLatin1String("lumi.switch.b2lacn02"))
+                 sensor.modelId() == QLatin1String("lumi.switch.l1aeu1") || sensor.modelId() == QLatin1String("lumi.switch.b2lacn02"))
         {
         }
         else if (sensor.modelId().startsWith(QLatin1String("lumi.")))
@@ -4154,7 +4159,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
             if (!sensor.item(RStateTemperature) &&
                 sensor.modelId() != QLatin1String("lumi.sensor_switch") &&
-                !sensor.modelId().contains(QLatin1String("weather")) &&
                 !sensor.modelId().startsWith(QLatin1String("lumi.sensor_ht")) &&
                 !sensor.modelId().endsWith(QLatin1String("86opcn01"))) // exclude Aqara Opple
             {
@@ -4164,13 +4168,13 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 //item->setValue(0);
             }
 
-            if (sensor.modelId().endsWith(QLatin1String("86opcn01")) || sensor.modelId() == QLatin1String("lumi.remote.b28ac1"))
+            if (sensor.modelId().endsWith(QLatin1String("86opcn01")))
             {
                 // Aqara switches need to be configured to send proper button events
                 item = sensor.addItem(DataTypeUInt16, RConfigPending);
                 item->setValue(item->toNumber() | R_PENDING_MODE);
             }
-            
+
             if (sensor.modelId() == QLatin1String("lumi.switch.n0agl1"))
             {
                 sensor.removeItem(RConfigBattery);
@@ -4205,16 +4209,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 item = sensor.addItem(DataTypeBool, RStateLowBattery);
                 item->setValue(false);
-                if (sensor.modelId().startsWith(QLatin1String("SMSZB-1"))) // Develco smoke detector
-                {
-                    item = sensor.addItem(DataTypeBool, RStateTest);
-                    item->setValue(false);
-                }
-                else
-                {
-                    item = sensor.addItem(DataTypeBool, RStateTampered);
-                    item->setValue(false);
-                }
+                item = sensor.addItem(DataTypeBool, RStateTampered);
+                item->setValue(false);
             }
             sensor.addItem(DataTypeUInt16, RConfigPending)->setValue(0);
             sensor.addItem(DataTypeUInt32, RConfigEnrolled)->setValue(IAS_STATE_INIT);
@@ -4281,9 +4277,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         // check for older setups with multiple ZHASwitch sensors per device
         if (sensor.manufacturer() == QLatin1String("ubisys") && sensor.type() == QLatin1String("ZHASwitch"))
         {
-            if ((sensor.modelId().startsWith(QLatin1String("D1")) && sensor.fingerPrint().endpoint != 0x02) ||
-                (sensor.modelId().startsWith(QLatin1String("S2")) && sensor.fingerPrint().endpoint != 0x03) ||
-                (sensor.modelId().startsWith(QLatin1String("C4")) && sensor.fingerPrint().endpoint != 0x01))
+            if ((sensor.modelId().startsWith(QLatin1String("D1")) && sensor.fingerPrint().endpoint != 0x02))
             {
                 DBG_Printf(DBG_INFO, "ubisys sensor id: %s, endpoint 0x%02X (%s) ignored loading from database\n", qPrintable(sensor.id()), sensor.fingerPrint().endpoint, qPrintable(sensor.modelId()));
                 return 0;
@@ -4292,22 +4286,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             QStringList supportedModes({"momentary", "rocker", "custom"});
             item = sensor.addItem(DataTypeString, RConfigMode);
 
-            bool isWindowCovering = sensor.modelId().startsWith(QLatin1String("J1"));
-            ResourceItem *itemWindowCovering = 0;
-            if (isWindowCovering)
-            {
-                itemWindowCovering = sensor.addItem(DataTypeUInt8, RConfigWindowCoveringType);
-            }
-
             if (configCol >= 0)
             {
                 sensor.jsonToConfig(QLatin1String(colval[configCol])); // needed again otherwise item isEmpty
-            }
-
-            if (isWindowCovering)
-            {
-                int val = itemWindowCovering->toNumber(); // prevent null value
-                itemWindowCovering->setValue(val);
             }
 
             if (item->toString().isEmpty() || !supportedModes.contains(item->toString()))

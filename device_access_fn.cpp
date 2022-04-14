@@ -15,6 +15,97 @@
 #include "resource.h"
 #include "zcl/zcl.h"
 
+/*
+    Documentation for manufacturer specific Tuya cluster (0xEF00)
+
+        https://developer.tuya.com/en/docs/iot-device-dev/tuya-zigbee-universal-docking-access-standard?id=K9ik6zvofpzql
+
+    Tuya ZCL insights
+
+        https://github.com/TuyaInc/tuya_zigbee_sdk/blob/master/silicon_labs_zigbee/include/zigbee_attr.h
+
+    Basic cluster (0x0000)
+    -------------
+
+    0x0001 Application version:: 0b 01 00 0001 = 1.0.1 ie 0x41 for 1.0.1
+
+    0x0004 Manufacturer name:  XXX…XXX (16 bytes in length, consisting of an 8-byte prefix and an 8-byte PID)
+                               0-7 bytes: _ TZE600_
+                               8-16 bytes: PID (created and provided by the product manager in the platform or self-service)
+
+    Tuya cluster (0xEF00)
+    ---------------------
+
+    https://developer.tuya.com/en/docs/iot-device-dev/tuya-zigbee-universal-docking-access-standard?id=K9ik6zvofpzql
+
+    Zigbee generic docking is suitable for scenarios where the Zigbee standard protocol is not supported or not very suitable.
+
+    ZDP Simple Descriptor Device Id (0x0051)
+
+    Frame control for outgoing commands:
+
+        deCONZ::ZclFCClusterCommand
+        deCONZ::ZclFCDirectionClientToServer
+        deCONZ::ZclFCDisableDefaultResponse
+
+    DP data format
+    --------------
+
+    DPID  U8        Datapoint serial number
+    Type  U8        Datatype in value
+
+          Name  Id   Length
+          ------------------------------
+          raw     0x00
+          bool    0x01
+          value   0x02
+          string  0x03
+          enum    0x04
+          bitmap  0x05
+
+    Length U16      Length of Value
+    Value  1/2/4/N  The value as big endian
+
+
+    ZCL Payload of comamnds
+    -----------------------
+
+    Example MoesGo switch TY_DATA_REPORT
+
+    00 4c        sequence number
+    02           DPID
+    02           Type: Value
+    00 04        Length: 4
+    00 00 00 15
+
+*/
+#define TUYA_CLUSTER_ID 0xEF00
+
+enum TuyaCommandId : unsigned char
+{
+    TY_DATA_REQUEST              = 0x00,
+    TY_DATA_RESPONSE             = 0x01,
+    TY_DATA_REPORT               = 0x02,
+    TY_DATA_QUERY                = 0x03,
+    TUYA_MCU_VERSION_REQ         = 0x10,
+    TUYA_MCU_VERSION_RSP         = 0x11,
+    TUYA_MCU_OTA_NOTIFY          = 0x12,
+    TUYA_MCU_OTA_BLOCK_DATA_REQ  = 0x13,
+    TUYA_MCU_OTA_BLOCK_DATA_RSP  = 0x14,
+    TUYA_MCU_OTA_RESULT          = 0x15,
+    TUYA_MCU_SYNC_TIME           = 0x24
+};
+
+enum TuyaDataType : unsigned char
+{
+    TuyaDataTypeRaw              = 0x00,
+    TuyaDataTypeBool             = 0x01,
+    TuyaDataTypeValue            = 0x02,
+    TuyaDataTypeString           = 0x03,
+    TuyaDataTypeEnum             = 0x04,
+    TuyaDataTypeBitmap           = 0x05
+};
+
 enum DA_Constants
 {
     BroadcastEndpoint = 255, //! Accept incoming commands from any endpoint.
@@ -191,7 +282,8 @@ bool evalZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndi
 
     if (!expr.isEmpty())
     {
-        DeviceJs engine;
+        DeviceJs &engine = *DeviceJs::instance();
+        engine.reset();
         engine.setResource(r);
         engine.setItem(item);
         engine.setZclAttribute(attr);
@@ -225,7 +317,8 @@ bool evalZclFrame(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicati
 
     if (!expr.isEmpty())
     {
-        DeviceJs engine;
+        DeviceJs &engine = *DeviceJs::instance();
+        engine.reset();
         engine.setResource(r);
         engine.setItem(item);
         engine.setZclFrame(zclFrame);
@@ -480,6 +573,395 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
             result = true;
         }
     }
+
+    return result;
+}
+
+/*! A generic function to parse Tuya private cluster values from response/report commands.
+    The item->parseParameters() is expected to be an object (given in the device description file).
+
+    {"fn": "tuya", "dpid": datapointId, "eval": expression}
+
+    - datapointId: 1-255 the datapoint identifier (DPID) to extract
+    - expression: Javascript expression to transform the raw value
+
+    Example: { "parse": {"fn": "tuya", "dpid:" 1, "eval": "Attr.val + R.item('config/offset').val" } }
+ */
+bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, const QVariant &parseParameters)
+{
+    bool result = false;
+
+    if (ind.clusterId() != TUYA_CLUSTER_ID || !(zclFrame.commandId() == TY_DATA_REPORT || zclFrame.commandId() ==  TY_DATA_RESPONSE))
+    {
+        return result;
+    }
+
+    if (!item->parseFunction()) // init on first call
+    {
+        const auto map = parseParameters.toMap();
+        if (map.isEmpty())
+        {
+            return result;
+        }
+
+        if (!map.contains(QLatin1String("dpid")) || !map.contains(QLatin1String("eval")))
+        {
+            return result;
+        }
+
+        bool ok = false;
+        ZCL_Param param{};
+        param.attributes[0] = variantToUint(map.value(QLatin1String("dpid")), 255, &ok);
+        if (!ok)
+        {
+            return result;
+        }
+        param.valid = 1;
+        param.endpoint = ind.srcEndpoint();
+        param.clusterId = ind.clusterId();
+        param.attributeCount = 1;
+
+        item->setParseFunction(parseTuyaData);
+        item->setZclProperties(param);
+    }
+
+    quint16 seq;
+    quint8 dpid;
+    quint8 dataType;
+    quint16 dataLength;
+    quint8 zclDataType = 0;
+    const auto &zclParam = item->zclParam();
+
+    QDataStream stream(zclFrame.payload());
+    stream.setByteOrder(QDataStream::BigEndian); // tuya is big endian!
+
+    stream >> seq;
+
+    while (!stream.atEnd()) // a message can contain multiple datapoints
+    {
+        stream >> dpid;
+        stream >> dataType;
+        stream >> dataLength;
+
+        if (stream.status() != QDataStream::Ok)
+        {
+            return result;
+        }
+
+        deCONZ::NumericUnion num{0};
+
+        switch (dataType)
+        {
+        case TuyaDataTypeRaw:
+        case TuyaDataTypeString:
+            return result; // TODO implement?
+
+        case TuyaDataTypeBool:
+        { stream >> num.u8; zclDataType = deCONZ::ZclBoolean; }
+            break;
+
+        case TuyaDataTypeEnum:
+        { stream >> num.u8; zclDataType = deCONZ::Zcl8BitEnum; }
+            break;
+
+        case TuyaDataTypeValue: // docs aren't clear, assume signed
+        {  stream >> num.s32; zclDataType = deCONZ::Zcl32BitInt; }
+            break;
+
+        case TuyaDataTypeBitmap:
+        {
+            switch (dataLength)
+            {
+            case 1: { stream >> num.u8;  zclDataType = deCONZ::Zcl8BitBitMap; } break;
+            case 2: { stream >> num.u16; zclDataType = deCONZ::Zcl16BitBitMap; } break;
+            case 4: { stream >> num.u32; zclDataType = deCONZ::Zcl32BitBitMap; } break;
+            }
+        }
+            break;
+
+        default:
+            return result; // unkown datatype
+        }
+
+        if (dpid == zclParam.attributes[0])
+        {
+            // map datapoint into ZCL attribute
+            deCONZ::ZclAttribute attr(dpid, zclDataType, QLatin1String(""), deCONZ::ZclReadWrite, true);
+            attr.setNumericValue(num);
+
+            if (evalZclAttribute(r, item, ind, zclFrame, attr, parseParameters))
+            {
+                item->setLastZclReport(deCONZ::steadyTimeRef().ref);
+                result = true;
+            }
+        }
+
+        const char *rt = zclFrame.commandId() == TY_DATA_REPORT ? "REPORT" : "RESPONSE";
+
+        DBG_Printf(DBG_INFO, "TY_DATA_%s: seq %u, dpid: 0x%02X, type: 0x%02X, length: %u, val: %d\n",
+                   rt, seq, dpid, dataType, dataLength, num.s32);
+    }
+
+    return result;
+}
+
+/*! A generic function to trigger Tuya device reporting all datapoints.
+    Important: This function should be attached to only one item!
+    The item->readParameters() is expected to be an object (given in the device description file).
+
+    { "fn": "tuya"}
+
+    Example: { "read": {"fn": "tuya"} }
+ */
+static DA_ReadResult readTuyaAllData(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, const QVariant &readParameters)
+{
+    Q_UNUSED(item)
+    Q_UNUSED(readParameters);
+
+    DA_ReadResult result{};
+
+    // Workaround: dont't query too quickly, reports will only be send a few seconds after receiving the query command.
+    // The device report timer resets on each received query.
+    // Not the ideal solution since this is global across all devices but should do the trick for now.
+    static deCONZ::SteadyTimeRef lastReadGlobal{};
+
+    auto now = deCONZ::steadyTimeRef();
+    if (now - lastReadGlobal < deCONZ::TimeSeconds{15})
+    {
+        return result;
+    }
+
+    lastReadGlobal = now;
+
+    auto *rTop = r->parentResource() ? r->parentResource() : r;
+
+    const auto *extAddr = rTop->item(RAttrExtAddress);
+    const auto *nwkAddr = rTop->item(RAttrNwkAddress);
+
+    if (!extAddr || !nwkAddr)
+    {
+        return result;
+    }
+
+    deCONZ::ApsDataRequest req;
+    deCONZ::ZclFrame zclFrame;
+
+    req.setDstEndpoint(1); // TODO is this always 1? if not search simple descriptor for Tuya cluster
+    req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+    req.setDstAddressMode(deCONZ::ApsNwkAddress);
+    req.dstAddress().setNwk(nwkAddr->toNumber());
+    req.dstAddress().setExt(extAddr->toNumber());
+    req.setClusterId(TUYA_CLUSTER_ID);
+    req.setProfileId(HA_PROFILE_ID);
+    req.setSrcEndpoint(1); // TODO
+
+    zclFrame.setSequenceNumber(zclNextSequenceNumber());
+    zclFrame.setCommandId(TY_DATA_QUERY);
+
+    zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                             deCONZ::ZclFCDirectionClientToServer |
+                             deCONZ::ZclFCDisableDefaultResponse);
+
+    // no payload
+
+    { // ZCL frame
+        QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        zclFrame.writeToStream(stream);
+    }
+
+    result.isEnqueued = apsCtrl->apsdeDataRequest(req) == deCONZ::Success;
+    result.apsReqId = req.id();
+    result.sequenceNumber = zclFrame.sequenceNumber();
+
+    return result;
+}
+
+/*! A generic function to write Tuya data.
+    The \p writeParameters is expected to contain one object (given in the device description file).
+
+    { "fn": "tuya", "dpid": datapointId, "dt": dataType, "eval": expression }
+
+    - datapointId: number
+    - dataType: string hex value
+
+          bool           0x10
+          s32 value      0x2b
+          enum           0x30
+          8-bit bitmap   0x18
+          16-bit bitmap  0x19
+          32-bit bitmap  0x1b
+
+    - expression: to transform the item value
+
+    Example: "write": {"fn":"tuya", "dpid": 1,  "dt": "0x10", "eval": "Item.val == 1"}
+ */
+bool writeTuyaData(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, const QVariant &writeParameters)
+{
+    Q_ASSERT(r);
+    Q_ASSERT(item);
+    Q_ASSERT(apsCtrl);
+
+    bool result = false;
+    const auto rParent = r->parentResource() ? r->parentResource() : r;
+    const auto *extAddr = rParent->item(RAttrExtAddress);
+    const auto *nwkAddr = rParent->item(RAttrNwkAddress);
+
+    if (!extAddr || !nwkAddr)
+    {
+        return result;
+    }
+
+    const auto map = writeParameters.toMap();
+
+    if (!map.contains(QLatin1String("dpid")) || !map.contains(QLatin1String("dt")) || !map.contains(QLatin1String("eval")))
+    {
+        return result;
+    }
+
+    bool ok = false;
+
+    const auto dpid = variantToUint(map.value(QLatin1String("dpid")), 255, &ok);
+    if (!ok)
+    {
+        return result;
+    }
+    const auto dataType = variantToUint(map.value("dt"), UINT8_MAX, &ok);
+    switch (dataType)
+    {
+    case deCONZ::ZclBoolean:
+    case deCONZ::Zcl32BitInt:
+    case deCONZ::Zcl8BitEnum:
+    case deCONZ::Zcl8BitBitMap:
+    case deCONZ::Zcl16BitBitMap:
+    case deCONZ::Zcl32BitBitMap:
+        break;
+
+    default:
+        return result; // unsupported datatype
+    }
+
+    const auto expr = map.value("eval").toString();
+
+    if (!ok || expr.isEmpty())
+    {
+        return result;
+    }
+
+    DBG_Printf(DBG_INFO, "writeTuyaData, dpid: 0x%02X, type: 0x%02X, expr: %s\n",
+               dpid & 0xFF, dataType & 0xFF, qPrintable(expr));
+
+    deCONZ::ApsDataRequest req;
+    deCONZ::ZclFrame zclFrame;
+
+    req.setDstEndpoint(1); // TODO is this always 1? if not search simple descriptor for Tuya cluster
+    req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+    req.setDstAddressMode(deCONZ::ApsNwkAddress);
+    req.dstAddress().setNwk(nwkAddr->toNumber());
+    req.dstAddress().setExt(extAddr->toNumber());
+    req.setClusterId(TUYA_CLUSTER_ID);
+    req.setProfileId(HA_PROFILE_ID);
+    req.setSrcEndpoint(1); // TODO
+
+    zclFrame.setSequenceNumber(zclNextSequenceNumber());
+    zclFrame.setCommandId(TY_DATA_REQUEST);
+
+    zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                             deCONZ::ZclFCDirectionClientToServer |
+                             deCONZ::ZclFCDisableDefaultResponse);
+
+
+    { // payload
+        QVariant value;
+        DeviceJs &engine = *DeviceJs::instance();
+        engine.reset();
+        engine.setResource(r);
+        engine.setItem(item);
+
+        if (engine.evaluate(expr) == JsEvalResult::Ok)
+        {
+            value = engine.result();
+            DBG_Printf(DBG_INFO, "Tuya write expression: %s --> %s\n", qPrintable(expr), qPrintable(value.toString()));
+        }
+        else
+        {
+            DBG_Printf(DBG_INFO, "failed to evaluate Tuya write expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
+            return result;
+        }
+
+        if (!value.isValid())
+        {
+            return result;
+        }
+
+        QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::BigEndian); // Tuya is big endian
+
+        stream << quint16(req.id()); // use as sequence number
+        stream << quint8(dpid);
+
+        switch (dataType)
+        {
+        case deCONZ::ZclBoolean:
+        {
+            stream << quint8(TuyaDataTypeBool);
+            stream << quint16(1); // length
+            stream << quint8(value.toUInt());
+        }
+            break;
+
+        case deCONZ::Zcl32BitInt:
+        {
+            stream << quint8(TuyaDataTypeValue);
+            stream << quint16(4); // length
+            stream << qint32(value.toInt());
+        }
+            break;
+
+        case deCONZ::Zcl8BitEnum:
+        {
+            stream << quint8(TuyaDataTypeEnum);
+            stream << quint16(1); // length
+            stream << quint8(value.toUInt());
+        }
+            break;
+
+        case deCONZ::Zcl8BitBitMap:
+        {
+            stream << quint8(TuyaDataTypeBitmap);
+            stream << quint16(1); // length
+            stream << quint8(value.toUInt());
+        }
+            break;
+
+        case deCONZ::Zcl16BitBitMap:
+        {
+            stream << quint8(TuyaDataTypeBitmap);
+            stream << quint16(2); // length
+            stream << quint16(value.toUInt());
+        }
+            break;
+
+        case deCONZ::Zcl32BitBitMap:
+        {
+            stream << quint8(TuyaDataTypeBitmap);
+            stream << quint16(4); // length
+            stream << quint32(value.toUInt());
+        }
+            break;
+
+        default: // TODO unsupported datatype
+            return result;
+        }
+    }
+
+    { // ZCL frame
+        QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        zclFrame.writeToStream(stream);
+    }
+
+    result = apsCtrl->apsdeDataRequest(req) == deCONZ::Success;
 
     return result;
 }
@@ -969,7 +1451,8 @@ bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsC
 
         if (!expr.isEmpty())
         {
-            DeviceJs engine;
+            DeviceJs &engine = *DeviceJs::instance();
+            engine.reset();
             engine.setResource(r);
             engine.setItem(item);
 
@@ -1013,12 +1496,13 @@ ParseFunction_t DA_GetParseFunction(const QVariant &params)
 {
     ParseFunction_t result = nullptr;
 
-    const std::array<ParseFunction, 4> functions =
+    const std::array<ParseFunction, 5> functions =
     {
-        ParseFunction("zcl", 1, parseZclAttribute),
-        ParseFunction("xiaomi:special", 1, parseXiaomiSpecial),
-        ParseFunction("ias:zonestatus", 1, parseIasZoneNotificationAndStatus),
-        ParseFunction("numtostr", 1, parseNumericToString)
+        ParseFunction(QLatin1String("zcl"), 1, parseZclAttribute),
+        ParseFunction(QLatin1String("xiaomi:special"), 1, parseXiaomiSpecial),
+        ParseFunction(QLatin1String("ias:zonestatus"), 1, parseIasZoneNotificationAndStatus),
+        ParseFunction(QLatin1String("tuya"), 1, parseTuyaData),
+        ParseFunction(QLatin1String("numtostr"), 1, parseNumericToString)
     };
 
     QString fnName;
@@ -1028,13 +1512,13 @@ ParseFunction_t DA_GetParseFunction(const QVariant &params)
         const auto params1 = params.toMap();
         if (params1.isEmpty())
         {  }
-        else if (params1.contains("fn"))
+        else if (params1.contains(QLatin1String("fn")))
         {
             fnName = params1["fn"].toString();
         }
         else
         {
-            fnName = "zcl"; // default
+            fnName = QLatin1String("zcl"); // default
         }
     }
 
@@ -1054,9 +1538,10 @@ ReadFunction_t DA_GetReadFunction(const QVariant &params)
 {
     ReadFunction_t result = nullptr;
 
-    const std::array<ReadFunction, 1> functions =
+    const std::array<ReadFunction, 2> functions =
     {
-        ReadFunction("zcl", 1, readZclAttribute)
+        ReadFunction(QLatin1String("zcl"), 1, readZclAttribute),
+        ReadFunction(QLatin1String("tuya"), 1, readTuyaAllData)
     };
 
     QString fnName;
@@ -1066,13 +1551,13 @@ ReadFunction_t DA_GetReadFunction(const QVariant &params)
         const auto params1 = params.toMap();
         if (params1.isEmpty())
         {  }
-        else if (params1.contains("fn"))
+        else if (params1.contains(QLatin1String("fn")))
         {
             fnName = params1["fn"].toString();
         }
         else
         {
-            fnName = "zcl"; // default
+            fnName = QLatin1String("zcl"); // default
         }
     }
 
@@ -1092,9 +1577,10 @@ WriteFunction_t DA_GetWriteFunction(const QVariant &params)
 {
     WriteFunction_t result = nullptr;
 
-    const std::array<WriteFunction, 1> functions =
+    const std::array<WriteFunction, 2> functions =
     {
-        WriteFunction("zcl", 1, writeZclAttribute)
+        WriteFunction(QLatin1String("zcl"), 1, writeZclAttribute),
+        WriteFunction(QLatin1String("tuya"), 1, writeTuyaData)
     };
 
     QString fnName;
@@ -1104,13 +1590,13 @@ WriteFunction_t DA_GetWriteFunction(const QVariant &params)
         const auto params1 = params.toMap();
         if (params1.isEmpty())
         {  }
-        else if (params1.contains("fn"))
+        else if (params1.contains(QLatin1String("fn")))
         {
             fnName = params1["fn"].toString();
         }
         else
         {
-            fnName = "zcl"; // default
+            fnName = QLatin1String("zcl"); // default
         }
     }
 

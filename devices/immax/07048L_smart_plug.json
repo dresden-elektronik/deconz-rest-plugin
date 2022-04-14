@@ -3,9 +3,9 @@
   "manufacturername": "Immax",
   "modelid": "Plug-230V-ZB3.0",
   "vendor": "Immax Neo",
-  "product": "07048L",
+  "product": "07048L smart plug",
   "sleeper": false,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_SMART_PLUG",
@@ -43,12 +43,10 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "state/alert",
-          "default": "none"
+          "name": "state/alert"
         },
         {
-          "name": "state/on",
-          "refresh.interval": 5
+          "name": "state/on"
         },
         {
           "name": "state/reachable"
@@ -109,20 +107,7 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/power",
-          "refresh.interval": 360,
-          "read": {
-            "at": "0x050b",
-            "cl": "0x0b04",
-            "ep": 1,
-            "fn": "zcl"
-          },
-          "parse": {
-            "at": "0x050b",
-            "cl": "0x0b04",
-            "ep": 1,
-            "eval": "if (Attr.val != -32768) { Item.val = Attr.val; }"
-          }
+          "name": "state/power"
         }
       ]
     },
@@ -177,20 +162,7 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/consumption",
-          "refresh.interval": 360,
-          "read": {
-            "at": "0x0000",
-            "cl": "0x0702",
-            "ep": 1,
-            "fn": "zcl"
-          },
-          "parse": {
-            "at": "0x0000",
-            "cl": "0x0702",
-            "ep": 1,
-            "eval": "Item.val = Attr.val * 10;"
-          }
+          "name": "state/consumption"
         },
         {
           "name": "state/lastupdated"

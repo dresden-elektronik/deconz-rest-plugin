@@ -17,21 +17,66 @@
 
 void DEV_AllocateGroup(const Device *device, Resource *rsub, ResourceItem *item);
 
-static QString uniqueIdFromTemplate(const QStringList &templ, const quint64 extAddress)
+static QString uniqueIdFromTemplate(const QStringList &templ, const Device *device)
 {
     bool ok = false;
     quint8 endpoint = 0;
     quint16 clusterId = 0;
+    quint64 extAddress;
+
+    extAddress = device->item(RAttrExtAddress)->toNumber();
 
     // <mac>-<endpoint>
     // <mac>-<endpoint>-<cluster>
+
+    /* supported templates
+
+       ["$address.ext", <endpoint>]
+       ["$address.ext", <endpoint>, <cluster>]
+       ["$address.ext", <endpoint>, "out.cluster", <cluster1>, <cluster2>, ...]
+       ["$address.ext", <endpoint>, "in.cluster", <cluster1>, <cluster2>, ...]
+    */
+
     if (templ.size() > 1 && templ.first() == QLatin1String("$address.ext"))
     {
         endpoint = templ.at(1).toUInt(&ok, 0);
 
         if (ok && templ.size() > 2)
         {
-            clusterId = templ.at(2).toUInt(&ok, 0);
+            ok = false;
+            const QString pos2 = templ.at(2);
+            if (pos2.at(0).isDigit())
+            {
+                clusterId = pos2.toUInt(&ok, 0);
+            }
+            else if (device->node() && (pos2 == QLatin1String("out.cluster") || pos2 == QLatin1String("in.cluster")))
+            {
+                // select clusterId if endpoint contains cluster from list
+                // the cluster list, ordered by priority
+                const auto clusterSide = pos2.at(0) == 'o' ? deCONZ::ClientCluster : deCONZ::ServerCluster;
+                const  auto &simpleDescriptors = device->node()->simpleDescriptors();
+                const auto sd = std::find_if(simpleDescriptors.cbegin(), simpleDescriptors.cend(),
+                                             [endpoint](const auto &x) { return x.endpoint() == endpoint; });
+                if (sd != simpleDescriptors.cend())
+                {
+                    const auto &clusters = sd->clusters(clusterSide);
+
+                    for (int i = 3; i < templ.size(); i++)
+                    {
+                        clusterId = templ.at(i).toUInt(&ok, 0);
+                        if (!ok) { break; } // no clusterId, maybe in future other commands follow (doh)
+
+                        const auto cl = std::find_if(clusters.cbegin(), clusters.cend(),
+                                                     [clusterId](const auto &x){ return x.id() == clusterId; });
+
+                        ok = cl != clusters.cend();
+                        if (ok)
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -56,11 +101,11 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
 
     if (item)
     {
-        DBG_Printf(DBG_INFO, "sub-device: %s, has item: %s\n", uniqueId, ddfItem.descriptor.suffix);
+        DBG_Printf(DBG_DDF, "sub-device: %s, has item: %s\n", uniqueId, ddfItem.descriptor.suffix);
     }
     else
     {
-        DBG_Printf(DBG_INFO, "sub-device: %s, create item: %s\n", uniqueId, ddfItem.descriptor.suffix);
+        DBG_Printf(DBG_DDF, "sub-device: %s, create item: %s\n", uniqueId, ddfItem.descriptor.suffix);
         item = rsub->addItem(ddfItem.descriptor.type, ddfItem.descriptor.suffix);
 
         DBG_Assert(item);
@@ -122,7 +167,13 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
     {
         Q_ASSERT(sub.isValid());
 
-        const auto uniqueId = uniqueIdFromTemplate(sub.uniqueId, device->item(RAttrExtAddress)->toNumber());
+        const auto uniqueId = uniqueIdFromTemplate(sub.uniqueId, device);
+        if (uniqueId.isEmpty())
+        {
+            DBG_Printf(DBG_DDF, "failed to init sub-device uniqueid: %s, %s\n", qPrintable(sub.uniqueId.join('-')), qPrintable(sub.type));
+            return false;
+        }
+
         Resource *rsub = DEV_GetSubDevice(device, nullptr, uniqueId);
 
         if (!rsub)
@@ -132,7 +183,7 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
 
         if (!rsub)
         {
-            DBG_Printf(DBG_INFO, "sub-device: %s, failed to setup: %s\n", qPrintable(uniqueId), qPrintable(sub.type));
+            DBG_Printf(DBG_DDF, "sub-device: %s, failed to setup: %s\n", qPrintable(uniqueId), qPrintable(sub.type));
             return false;
         }
 
@@ -179,12 +230,18 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
                 }
             }
 
+            // DDF enforce sub device "type" (enables overwriting the type from C++ code)
+            if (item->descriptor().suffix == RAttrType)
+            {
+                const QString type = DeviceDescriptions::instance()->constantToString(sub.type);
+                if (type != item->toString() && !type.startsWith('$'))
+                {
+                    item->setValue(type);
+                }
+            }
+
             if (item->descriptor().suffix == RConfigGroup)
             {
-                if (item->toString().isEmpty() && !ddfItem.defaultValue.isNull())
-                {
-                    item->setValue(ddfItem.defaultValue.toString());
-                }
                 DEV_AllocateGroup(device, rsub, item);
             }
 
@@ -218,7 +275,7 @@ bool DEV_InitBaseDescriptionForDevice(Device *device, DeviceDescription &ddf)
     ddf.manufacturerNames.push_back(device->item(RAttrManufacturerName)->toString());
     ddf.modelIds.push_back(device->item(RAttrModelId)->toString());
 
-    if (ddf.manufacturerNames.last().isEmpty() || ddf.manufacturerNames.last() == QLatin1String("Unknown") || ddf.modelIds.isEmpty() || ddf.modelIds.front().isEmpty())
+    if (ddf.manufacturerNames.last().isEmpty() || ddf.modelIds.isEmpty() || ddf.modelIds.front().isEmpty())
     {
         return false;
     }

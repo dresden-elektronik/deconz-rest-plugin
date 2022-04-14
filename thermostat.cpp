@@ -439,7 +439,6 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             case 0x0008:  // Pi Heating Demand
             {
                 if (sensor->modelId().startsWith(QLatin1String("SPZB")) || // Eurotronic Spirit
-                    sensor->modelId() == QLatin1String("eTRV0100") ||      // Danfoss Ally
                     sensor->modelId() == QLatin1String("eT093WRO") ||      // POPP smart thermostat
                     sensor->modelId() == QLatin1String("TRV001") ||        // Hive TRV
                     sensor->modelId() == QLatin1String("Thermostat"))      // eCozy
@@ -850,7 +849,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                     }
                     if (item && item->toString() != windowmodeSet)
                     {
-                        item->setValue(windowmodeSet);
+                        item->setValue(windowmodeSet, ResourceItem::SourceDevice);
                         enqueueEvent(Event(RSensors, RStateWindowOpen, sensor->id(), item));
                         stateUpdated = true;
                     }
@@ -892,8 +891,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 }
 
                 // External Window Open signal
-                if (zclFrame.manufacturerCode() == VENDOR_DANFOSS && (sensor->modelId() == QLatin1String("eTRV0100") ||
-                                                                      sensor->modelId() == QLatin1String("TRV001") ||
+                if (zclFrame.manufacturerCode() == VENDOR_DANFOSS && (sensor->modelId() == QLatin1String("TRV001") ||
                                                                       sensor->modelId() == QLatin1String("eT093WRO")))
                 {
                     bool enabled = attr.numericValue().u8 > 0 ? true : false;
@@ -901,7 +899,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                     
                     if (item && item->toBool() != enabled)
                     {
-                        item->setValue(enabled);
+                        item->setValue(enabled, ResourceItem::SourceDevice);
                         enqueueEvent(Event(RSensors, RConfigExternalWindowOpen, sensor->id(), item));
                         configUpdated = true;
                     }
@@ -954,15 +952,14 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
             case 0x4012: // Mounting mode active
             {
-                if (zclFrame.manufacturerCode() == VENDOR_DANFOSS && (sensor->modelId() == QLatin1String("eTRV0100") ||
-                                                                      sensor->modelId() == QLatin1String("TRV001") ||
+                if (zclFrame.manufacturerCode() == VENDOR_DANFOSS && (sensor->modelId() == QLatin1String("TRV001") ||
                                                                       sensor->modelId() == QLatin1String("eT093WRO")))
                 {
                     bool enabled = attr.numericValue().u8 > 0 ? true : false;
                     item = sensor->item(RStateMountingModeActive);
                     if (item && item->toBool() != enabled)
                     {
-                        item->setValue(enabled);
+                        item->setValue(enabled, ResourceItem::SourceDevice);
                         enqueueEvent(Event(RSensors, RStateMountingModeActive, sensor->id(), item));
                         configUpdated = true;
                     }
@@ -973,15 +970,14 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
             case 0x4013: // Mounting mode control
             {
-                if (zclFrame.manufacturerCode() == VENDOR_DANFOSS && (sensor->modelId() == QLatin1String("eTRV0100") ||
-                                                                      sensor->modelId() == QLatin1String("TRV001") ||
+                if (zclFrame.manufacturerCode() == VENDOR_DANFOSS && (sensor->modelId() == QLatin1String("TRV001") ||
                                                                       sensor->modelId() == QLatin1String("eT093WRO")))
                 {
                     bool enabled = attr.numericValue().u8 > 0 ? true : false;
                     item = sensor->item(RConfigMountingMode);
                     if (item && item->toBool() != enabled)
                     {
-                        item->setValue(enabled);
+                        item->setValue(enabled, ResourceItem::SourceDevice);
                         enqueueEvent(Event(RSensors, RConfigMountingMode, sensor->id(), item));
                         configUpdated = true;
                     }
@@ -992,8 +988,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
             case 0x4015: // External Measured Room Sensor
             {
-                if (zclFrame.manufacturerCode() == VENDOR_DANFOSS && (sensor->modelId() == QLatin1String("eTRV0100") ||
-                                                                      sensor->modelId() == QLatin1String("TRV001") ||
+                if (zclFrame.manufacturerCode() == VENDOR_DANFOSS && (sensor->modelId() == QLatin1String("TRV001") ||
                                                                       sensor->modelId() == QLatin1String("eT093WRO")))
                 {
                     qint16 externalMeasurement = attr.numericValue().s16;
@@ -1006,7 +1001,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                         }
                         if (item->toNumber() != externalMeasurement)
                         {
-                            item->setValue(externalMeasurement);
+                            item->setValue(externalMeasurement, ResourceItem::SourceDevice);
                             enqueueEvent(Event(RSensors, RConfigExternalTemperatureSensor, sensor->id(), item));
                             configUpdated = true;
                         }
@@ -1023,7 +1018,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
                 if (item && item->toNumber() != config)
                 {
-                    item->setValue(config);
+                    item->setValue(config, ResourceItem::SourceDevice);
                     enqueueEvent(Event(RSensors, RConfigOffset, sensor->id(), item));
                     configUpdated = true;
                 }
