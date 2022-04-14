@@ -1094,7 +1094,12 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     }
     else if (bt.binding.clusterId == THERMOSTAT_CLUSTER_ID)
     {
-        if (modelId.startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
+        if (sensor->manufacturer() == QLatin1String("_TZE200_chyvmhay"))
+        {
+            //This device have but don't use this cluster.
+            return false;
+        }
+        else if (modelId.startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
         {
             rq.dataType = deCONZ::Zcl16BitInt;
             rq.attributeId = 0x0000;        // Local Temperature
@@ -3439,6 +3444,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         }
         else if (*i == THERMOSTAT_CLUSTER_ID)
         {
+            if (sensor->manufacturer() == QLatin1String("_TZE200_chyvmhay"))
+            {
+                continue;
+            }
             val = sensor->getZclValue(*i, 0x0000); // Local temperature
         }
         else if (*i == FAN_CONTROL_CLUSTER_ID)

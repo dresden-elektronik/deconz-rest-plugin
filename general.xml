@@ -3981,7 +3981,6 @@ devices can operate on either battery or mains power, and can have a wide variet
 						<attribute id="0x0004" type="u32" name="Value" required="m" showas="hex" default="0"></attribute>
 					</payload>
 				</command>
-
 				<command id="0x03" dir="recv" name="Data Query" required="m">
 					<description>Trigger report all datapoints.</description>
 				</command>

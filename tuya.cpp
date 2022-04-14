@@ -228,67 +228,112 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             quint8 part = 0;
             QList<int> listday;
             
-            switch (dp)
+            if (productId == "Tuya_THD SilverCrest Smart Radiator Thermostat")
             {
-                case 0x0070: //work days (6)
+                switch (dp)
                 {
-                    part = 1;
-                    listday << 124;
-                    values_to_read = 3;
-                    blocklength = length / values_to_read;
-                }
-                break;
-                case 0x0071: // holiday = Not working day (6)
-                {
-                    part = 1;
-                    listday << 3;
-                    values_to_read = 3;
-                    blocklength = length / values_to_read;
-                }
-                break;
-                case 0x0065: // Moe thermostat W124 (4) + W002 (4) + W001 (4)
-                {
-                    part = length / 3;
-                    listday << 124 << 2 << 1;
-                    values_to_read = 3;
-                    blocklength = length / values_to_read;
-                }
-                break;
-                // Daily schedule (mode 8)(minut 16)(temperature 16)(minut 16)(temperature 16)(minut 16)(temperature 16)(minut 16)(temperature 16)
-                case 0x007B: // Sunday
-                case 0x007C: // Monday
-                case 0x007D: // Thuesday
-                case 0x007E: // Wednesday
-                case 0x007F: // Thursday
-                case 0x0080: // Friday
-                case 0x0081: // Saturday
-                {
-                    const std::array<int, 7> t = {1,64,32,46,8,4,2};
-                    part = 1;
-                    
-                    if (dp < 0x007B || (dp - 0x007B) >= static_cast<int>(t.size()))
+                    // Daily schedule (day 8)(minut 8)(temperature 8)(minut 8)(temperature 8)(minut 8)(temperature 8)(minut 8)(temperature 8).... (temperature 8)
+                    // 20:34:34:284 Tuya debug 4 : Address 0x0C4314FFFE73C758 Payload (006d 6d00 00 12) 01 24-18 2b-33 23-44 2b-5c 22-60 2a-60 22-60 2a-60 22
+                    case 0x0073: // Sunday
+                    case 0x006D: // Monday
+                    case 0x006E: // Thuesday
+                    case 0x006F: // Wednesday
+                    case 0x0070: // Thursday
+                    case 0x0071: // Friday
+                    case 0x0072: // Saturday
                     {
-                        DBG_Printf(DBG_INFO, "Tuya unsupported daily schedule dp value: 0x%04X\n", dp);
-                        return; // bail out early
-                    }
-                    
-                    listday << t[dp - 0x007B];
-                    
-                    values_to_read = 2;
-                    blocklength = (length - 1) / values_to_read;
-                    
-                    quint8 mode;
-                    stream >> mode; // First octet is the mode
-                    Scheduledatalength-=1;
-                    
-                    break;
+                        const std::array<int, 7> t = {64,32,16,8,4,2,1};
+                        part = 1;
+                        
+                        if (dp < 0x006D || (dp - 0x006D) >= static_cast<int>(t.size()))
+                        {
+                            DBG_Printf(DBG_INFO, "Tuya unsupported daily schedule dp value: 0x%04X\n", dp);
+                            return; // bail out early
+                        }
+                        
+                        listday << t[dp - 0x006D];
+                        
+                        values_to_read = 2;
+                        blocklength = (length - 2) / values_to_read;
+                        
+                        quint8 day;
+                        stream >> day; // First octet is the day
+                        Scheduledatalength-=1;
+                        
+                        break;
 
+                    }
+                    default:
+                    {
+                        DBG_Printf(DBG_INFO, "Tuya : Unknow Schedule mode\n");
+                    }
+                    break;
                 }
-                default:
+            }                
+            else
+            {
+                switch (dp)
                 {
-                    DBG_Printf(DBG_INFO, "Tuya : Unknow Schedule mode\n");
+                    case 0x0070: //work days (6)
+                    {
+                        part = 1;
+                        listday << 124;
+                        values_to_read = 3;
+                        blocklength = length / values_to_read;
+                    }
+                    break;
+                    case 0x0071: // holiday = Not working day (6)
+                    {
+                        part = 1;
+                        listday << 3;
+                        values_to_read = 3;
+                        blocklength = length / values_to_read;
+                    }
+                    break;
+                    case 0x0065: // Moe thermostat W124 (4) + W002 (4) + W001 (4)
+                    {
+                        part = length / 3;
+                        listday << 124 << 2 << 1;
+                        values_to_read = 3;
+                        blocklength = length / values_to_read;
+                    }
+                    break;
+                    // Daily schedule (mode 8)(minut 16)(temperature 16)(minut 16)(temperature 16)(minut 16)(temperature 16)(minut 16)(temperature 16)
+                    case 0x007B: // Sunday
+                    case 0x007C: // Monday
+                    case 0x007D: // Thuesday
+                    case 0x007E: // Wednesday
+                    case 0x007F: // Thursday
+                    case 0x0080: // Friday
+                    case 0x0081: // Saturday
+                    {
+                        const std::array<int, 7> t = {1,64,32,16,8,4,2};
+                        part = 1;
+                        
+                        if (dp < 0x007B || (dp - 0x007B) >= static_cast<int>(t.size()))
+                        {
+                            DBG_Printf(DBG_INFO, "Tuya unsupported daily schedule dp value: 0x%04X\n", dp);
+                            return; // bail out early
+                        }
+                        
+                        listday << t[dp - 0x007B];
+                        
+                        values_to_read = 2;
+                        blocklength = (length - 1) / values_to_read;
+                        
+                        quint8 mode;
+                        stream >> mode; // First octet is the mode
+                        Scheduledatalength-=1;
+                        
+                        break;
+
+                    }
+                    default:
+                    {
+                        DBG_Printf(DBG_INFO, "Tuya : Unknow Schedule mode\n");
+                    }
+                    break;
                 }
-                break;
             }
             
             //Sanitary check
@@ -303,7 +348,19 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             {
                 for (; blocklength > 0; blocklength--)
                 {
-                    if (dp >= 0x007B && dp <= 0x0081)
+                    if (productId == "Tuya_THD SilverCrest Smart Radiator Thermostat" &&
+                        dp >= 0x006D && dp <= 0x0073)
+                    {
+                        stream >> heatSetpoint;
+                        
+                        quint8 value;
+                        stream >> value;
+                        
+                        hour = static_cast<quint8>((value / 4) & 0xff);
+                        minut = static_cast<quint8>(((value % 4)*15) & 0xff);
+                        heatSetpoint = static_cast<quint8>((heatSetpoint / 2) & 0xff);
+                    }
+                    else if (dp >= 0x007B && dp <= 0x0081)
                     {
                         stream >> minut16;
                         stream >> heatSetpoint16;
@@ -1073,17 +1130,29 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
-                    case 0x0210: // Thermostat heatsetpoint for moe
+                    case 0x0210: // Thermostat heatsetpoint for moe and lidl in manu mode
                     {
                         qint16 temp = static_cast<qint16>(data & 0xFFFF) * 100;
                         
-                        if (productId == "Tuya_THD MOES TRV")
+                        //ignored for this device is we are on auto mode.
+                        if (productId == "Tuya_THD SilverCrest Smart Radiator Thermostat")
+                        {
+                            ResourceItem *item2 = sensorNode->item(RConfigMode);
+                            if (item2 && item2->toString() == QLatin1String("auto"))
+                            {
+                                break;
+                            }
+                        }
+                        
+                        if (productId == "Tuya_THD MOES TRV" ||
+                            productId == "Tuya_THD SilverCrest Smart Radiator Thermostat")
                         {
                             temp = static_cast<qint16>(data & 0xFFFF) * 100 / 2;
                         }
                         
                         ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
 
+                        // This part is skipped if values are out of range
                         if (item && item->toNumber() != temp)
                         {
                             item->setValue(temp);
@@ -1091,10 +1160,29 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             enqueueEvent(e);
                             update = true;
                         }
+                        
+                        if (productId == "Tuya_THD SilverCrest Smart Radiator Thermostat" && (temp == 0 || temp == 3000))
+                        {
+                            DBG_Printf(DBG_INFO, "Tuya magic change 1: %u\n", temp);
+                            QString mode = QLatin1String("auto");
+                            if (temp == 0) { mode = QLatin1String("off"); }
+                            if (temp == 3000) { mode = QLatin1String("heat"); }
+                            
+                            ResourceItem *item2 = sensorNode->item(RConfigMode);
+
+                            if (item2 && item2->toString() != mode)
+                            {
+                                DBG_Printf(DBG_INFO, "Tuya magic change 2: %s\n", qPrintable(mode));
+                                item2->setValue(mode);
+                                enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item2));
+                                update = true;
+                            }
+                        }
                     }
                     break;
                     case 0x020E: // battery
                     case 0x0215: // battery
+                    case 0x0223: // Battery for Moe lidl
                     {
                         quint8 bat = static_cast<qint8>(data & 0xFF);
                         if (bat > 100) { bat = 100; }
@@ -1165,6 +1253,21 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
+                    case 0x0265: // Comfort temperature
+                        if (productId == "Tuya_THD SilverCrest Smart Radiator Thermostat")
+                        {
+                            qint16 temp = static_cast<qint16>(data & 0xFFFF) * 100 / 2;
+                            ResourceItem *item = sensorNode->item(RConfigComfortHeatSetpoint);
+
+                            if (item && item->toNumber() != temp)
+                            {
+                                item->setValue(temp);
+                                Event e(RSensors, RConfigComfortHeatSetpoint, sensorNode->id(), item);
+                                enqueueEvent(e);
+                                update = true;
+                            }
+                        }
+                    break;
                     case 0x0266: // min temperature limit
                     {
                         //Can be Temperature for some device
@@ -1181,6 +1284,19 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                                 Event e(RSensors, RStateTemperature, sensorNode->id(), item);
                                 enqueueEvent(e);
 
+                            }
+                        }
+                        else if (productId == "Tuya_THD SilverCrest Smart Radiator Thermostat") // Eco temperature
+                        {
+                            qint16 temp = static_cast<qint16>(data & 0xFFFF) * 100 / 2;
+                            ResourceItem *item = sensorNode->item(RConfigEcoHeatSetpoint);
+
+                            if (item && item->toNumber() != temp)
+                            {
+                                item->setValue(temp);
+                                Event e(RSensors, RConfigEcoHeatSetpoint, sensorNode->id(), item);
+                                enqueueEvent(e);
+                                update = true;
                             }
                         }
                     }
@@ -1200,7 +1316,6 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                                 item->setValue(temp);
                                 Event e(RSensors, RConfigHeatSetpoint, sensorNode->id(), item);
                                 enqueueEvent(e);
-
                             }
                         }
                     }
@@ -1219,7 +1334,19 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     break;
                     case 0x0269: // Boost time in second or Heatpoint
                     {
-                        if (productId == "Tuya_THD MOES TRV")
+
+                        //ignored for this device is we are not auto mode.
+                        if (productId == "Tuya_THD SilverCrest Smart Radiator Thermostat")
+                        {
+                            ResourceItem *item2 = sensorNode->item(RConfigMode);
+                            if (item2 && item2->toString() != QLatin1String("auto"))
+                            {
+                                break;
+                            }
+                        }
+
+                        if (productId == "Tuya_THD MOES TRV" ||
+                            productId == "Tuya_THD SilverCrest Smart Radiator Thermostat")
                         {
                             qint16 temp = static_cast<qint16>(data & 0xFFFF) * 100 / 2;
    
@@ -1367,6 +1494,50 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                                 enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
                             }
                         }
+                        else if (productId == "Tuya_THD SilverCrest Smart Radiator Thermostat")
+                        {
+                            QString preset;
+                            if (data == 0) { preset = QLatin1String("auto"); }
+                            else if (data == 1) { preset = QLatin1String("manual"); }
+                            else if (data == 2) { preset = QLatin1String("away"); }
+                            else
+                            {
+                                return;
+                            }
+                            
+                            ResourceItem *item;
+                            //Do the device is in "auto" mode
+                            item = sensorNode->item(RConfigMode);
+                            if (item && item->toString() != QLatin1String("auto"))
+                            {
+                                DBG_Printf(DBG_INFO, "Tuya magic change 3: skip\n");
+                                return;
+                            }
+                            
+                            DBG_Printf(DBG_INFO, "Tuya magic change 5: not skipped %s\n", qPrintable(item->toString()));
+                            
+                            item = sensorNode->item(RConfigPreset);
+
+                            if (item && item->toString() != preset)
+                            {
+                                item->setValue(preset);
+                                enqueueEvent(Event(RSensors, RConfigPreset, sensorNode->id(), item));
+                                update = true;
+                                
+                                // Force mode
+                                ResourceItem *item2 = sensorNode->item(RConfigMode);
+                                QString mode = QLatin1String("auto");
+
+                                if (item2 && item2->toString() != mode)
+                                {
+                                    DBG_Printf(DBG_INFO, "Tuya magic change 4: %s\n", qPrintable(mode));
+                                    item2->setValue(mode);
+                                    enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item2));
+                                }
+                                
+                                
+                            }
+                        }
                         else
                         {
                             QString preset;
@@ -1383,6 +1554,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             {
                                 item->setValue(preset);
                                 enqueueEvent(Event(RSensors, RConfigPreset, sensorNode->id(), item));
+                                update = true;
                             }
                         }
                     }
@@ -1563,6 +1735,54 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         }
     }
 
+}
+
+bool DeRestPluginPrivate::sendTuyaRequestThermostatSetWeeklyScheduleLIDL(TaskItem &taskRef, quint8 weekdays, const QString &transitions)
+{
+    QByteArray data;
+
+    const QStringList list = transitions.split("T", QString::SkipEmptyParts);
+
+    quint8 hh;
+    quint8 mm;
+    quint8 heatSetpoint;
+    
+    qint8 Dp_identifier = DP_IDENTIFIER_THERMOSTAT_SCHEDULE_4;
+
+    if (list.size() != 8)
+    {
+        DBG_Printf(DBG_INFO, "Tuya : Schedule command error, need to have 8 values for this device\n");
+        return false;
+    }
+    
+    DBG_Printf(DBG_INFO, "Tuya : Schedule debug %u\n", weekdays);
+    
+    return false;
+    
+    //Append day
+    data.append(QByteArray("\x01", 1));
+
+    for (const QString &entry : list)
+    {
+        QStringList attributes = entry.split("|");
+        if (attributes.size() != 2)
+        {
+            return false;
+        }
+
+        hh = attributes.at(0).midRef(0, 2).toUInt();
+        mm = attributes.at(0).midRef(3, 2).toUInt();
+        heatSetpoint = attributes.at(1).toInt();
+
+        data.append(QByteArray::number(hh, 16));
+        data.append(QByteArray::number(mm, 16));
+        data.append(QByteArray::number(heatSetpoint, 16));
+    }
+    
+    //Append unknow temperature
+    data.append(QByteArray("\x22", 1));
+
+    return sendTuyaRequest(taskRef, TaskThermostat, DP_TYPE_RAW, Dp_identifier, data);
 }
 
 bool DeRestPluginPrivate::sendTuyaRequestThermostatSetWeeklySchedule(TaskItem &taskRef, quint8 weekdays, const QString &transitions, qint8 Dp_identifier)
