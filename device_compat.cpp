@@ -15,6 +15,7 @@
 #include "resource.h"
 #include "sensor.h"
 #include "light_node.h"
+#include "utils/utils.h"
 
 int getFreeSensorId();
 int getFreeLightId();
@@ -30,17 +31,45 @@ Resource *DEV_AddResource(const LightNode &lightNode);
 
 /*! V1 compatibility function to create SensorNodes based on sub-device description.
  */
-static Resource *DEV_InitSensorNodeFromDescription(Device *device, const DeviceDescription::SubDevice &sub, const QString &uniqueId)
+static Resource *DEV_InitSensorNodeFromDescription(Device *device, const DeviceDescription &ddf, const DeviceDescription::SubDevice &sub, const QString &uniqueId)
 {
     Sensor sensor;
+    QString rUniqueId = uniqueId;
+    DeviceDescriptions *dd = DeviceDescriptions::instance();
+    QString type = dd->constantToString(sub.type);
+
+    /*  There are sub-devices which may have a different uniqueid as the DDF template states.
+        For example: Sunricher ZHASwitches with -1000 or -0006 cluster id. The legacy code created these
+                     based on the simple descriptor clusters, which differed between firmware versions.
+
+        This function handles the case that there is only once sub-device in the DDF.
+
+          1. Check if there is already a ZHASwitch with same "type" and uniqueid endpoint in 'sensors' table.
+          2. If so keep using it even if the uniqueid cluster is different.
+     */
+    if (ddf.subDevices.size() == 1 && type == QLatin1String("ZHASwitch") && sub.uniqueId.size() > 1)
+    {
+        const auto uniqueIds =  DB_LoadLegacySensorUniqueIds(device->item(RAttrUniqueId)->toLatin1String(), qPrintable(type));
+
+        if (uniqueIds.size() == 1 && uniqueIds.front() != uniqueId.toStdString())
+        {
+            const QString u = QString::fromStdString(uniqueIds.front());
+
+            unsigned ep = endpointFromUniqueId(u);
+            if (ep == sub.uniqueId.at(1).toUInt(nullptr, 0))
+            {
+                rUniqueId = u;
+            }
+        }
+    }
 
     sensor.fingerPrint() = sub.fingerPrint;
     sensor.address().setExt(device->item(RAttrExtAddress)->toNumber());
     sensor.address().setNwk(device->item(RAttrNwkAddress)->toNumber());
     sensor.setModelId(device->item(RAttrModelId)->toCString());
     sensor.setManufacturer(device->item(RAttrManufacturerName)->toCString());
-    sensor.setType(DeviceDescriptions::instance()->constantToString(sub.type));
-    sensor.setUniqueId(uniqueId);
+    sensor.setType(type);
+    sensor.setUniqueId(rUniqueId);
     sensor.setNode(const_cast<deCONZ::Node*>(device->node()));
     R_SetValue(&sensor, RConfigOn, true, ResourceItem::SourceApi);
 
@@ -199,11 +228,11 @@ static Resource *DEV_InitLightNodeFromDescription(Device *device, const DeviceDe
 
     \returns Resource pointer of the related node.
  */
-Resource *DEV_InitCompatNodeFromDescription(Device *device, const DeviceDescription::SubDevice &sub, const QString &uniqueId)
+Resource *DEV_InitCompatNodeFromDescription(Device *device, const DeviceDescription &ddf, const DeviceDescription::SubDevice &sub, const QString &uniqueId)
 {
     if (sub.restApi == QLatin1String("/sensors"))
     {
-        return DEV_InitSensorNodeFromDescription(device, sub, uniqueId);
+        return DEV_InitSensorNodeFromDescription(device, ddf, sub, uniqueId);
     }
     else if (sub.restApi == QLatin1String("/lights"))
     {
