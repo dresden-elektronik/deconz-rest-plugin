@@ -17800,22 +17800,32 @@ Resource *DEV_GetResource(Resource::Handle hnd)
 // Testing code uses a mocked implementation.
 Resource *DEV_AddResource(const Sensor &sensor)
 {
-    plugin->sensors.push_back(sensor);
-    auto &s = plugin->sensors.back();
-    s.setHandle(R_CreateResourceHandle(&s, plugin->sensors.size() - 1));
+    Resource *r = DEV_GetResource(sensor.prefix(), sensor.item(RAttrUniqueId)->toString());
 
-    return &s;
+    if (!r)
+    {
+        plugin->sensors.push_back(sensor);
+        r = &plugin->sensors.back();
+        r->setHandle(R_CreateResourceHandle(r, plugin->sensors.size() - 1));
+    }
+
+    return r;
 }
 
 // Used by Device class when creating LightNodes.
 // Testing code uses a mocked implementation.
 Resource *DEV_AddResource(const LightNode &lightNode)
 {
-    plugin->nodes.push_back(lightNode);
-    auto &l = plugin->nodes.back();
-    l.setHandle(R_CreateResourceHandle(&l, plugin->nodes.size() - 1));
+    Resource *r = DEV_GetResource(lightNode.prefix(), lightNode.item(RAttrUniqueId)->toString());
 
-    return &l;
+    if (!r)
+    {
+        plugin->nodes.push_back(lightNode);
+        r = &plugin->nodes.back();
+        r->setHandle(R_CreateResourceHandle(r, plugin->nodes.size() - 1));
+    }
+
+    return r;
 }
 
 /*!  Called by init DDF to allocate new groups for config.group = "auto [,auto, ...]".
