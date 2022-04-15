@@ -89,6 +89,7 @@ bool DB_StoreSubDeviceItems(const Resource *sub);
 std::vector<DB_ResourceItem> DB_LoadSubDeviceItemsOfDevice(QLatin1String deviceUniqueId);
 std::vector<DB_ResourceItem> DB_LoadSubDeviceItems(QLatin1String uniqueId);
 bool DB_LoadLegacySensorValue(DB_LegacyItem *litem);
+std::vector<std::string> DB_LoadLegacySensorUniqueIds(QLatin1String deviceUniqueId, const char *type);
 bool DB_LoadLegacyLightValue(DB_LegacyItem *litem);
 
 

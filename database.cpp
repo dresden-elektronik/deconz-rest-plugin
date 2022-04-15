@@ -6777,7 +6777,7 @@ bool DB_LoadLegacySensorValue(DB_LegacyItem *litem)
 
     litem->value.clear();
 
-    int ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT %s FROM sensors WHERE uniqueid = '%s'",
+    int ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT %s FROM sensors WHERE uniqueid = '%s' AND deletedState = 'normal'",
                        litem->column.c_str(), litem->uniqueId.c_str());
 
     assert(size_t(ret) < sizeof(sqlBuf));
@@ -6794,6 +6794,51 @@ bool DB_LoadLegacySensorValue(DB_LegacyItem *litem)
         else
         {
             result = !litem->value.empty();
+        }
+    }
+
+    DeRestPluginPrivate::instance()->closeDb();
+
+    return result;
+}
+
+static int DB_LoadLegacySensorUniqueIdsCallback(void *user, int ncols, char **colval , char **)
+{
+    auto *result = static_cast<std::vector<std::string>*>(user);
+    Q_ASSERT(result);
+    Q_ASSERT(ncols == 1);
+    if (colval[0][0])
+    {
+        result->push_back(colval[0]);
+    }
+
+    return 0;
+};
+
+std::vector<std::string> DB_LoadLegacySensorUniqueIds(QLatin1String deviceUniqueId, const char *type)
+{
+    std::vector<std::string> result;
+
+    DeRestPluginPrivate::instance()->openDb();
+
+    if (!db)
+    {
+        return result;
+    }
+
+    int ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT uniqueid FROM sensors WHERE uniqueid LIKE '%%%s%%' AND type = '%s' AND deletedState = 'normal'",
+                       deviceUniqueId.data(), type);
+
+    assert(size_t(ret) < sizeof(sqlBuf));
+    if (size_t(ret) < sizeof(sqlBuf))
+    {
+        char *errmsg = nullptr;
+        int rc = sqlite3_exec(db, sqlBuf, DB_LoadLegacySensorUniqueIdsCallback, &result, &errmsg);
+
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sqlBuf, errmsg, rc);
+            sqlite3_free(errmsg);
         }
     }
 
