@@ -2,8 +2,8 @@
   "schema": "devcap1.schema.json",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.weather",
-  "vendor": "Xiaomi Aqara",
-  "product": "WSDCGQ11LM",
+  "vendor": "Xiaomi",
+  "product": "Aqara temp./hum./press. sensor WSDCGQ11LM",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

@@ -3,7 +3,7 @@
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.remote.b28ac1",
   "vendor": "Xiaomi",
-  "product": "Aqara WRS-R02 Wireless Remote Switch H1 (Double Rocker)",
+  "product": "Aqara H1 dual rocker wireless remote switch WRS-R02",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -62,27 +62,20 @@
         {
           "name": "config/battery",
           "awake": true,
-          "read": {
-            "fn": "None"
-          },
           "parse": {
             "at": "0x0020",
             "cl": "0x0001",
             "ep": 1,
             "fn": "zcl",
             "script": "xiaomi_battery.js"
+          },
+          "read": {
+            "fn": "None"
           }
         },
         {
           "name": "config/clickmode",
           "awake": true,
-          "read": {
-            "at": "0x0125",
-            "cl": "0xfcc0",
-            "ep": 1,
-            "fn": "zcl",
-            "mf": "0x115f"
-          },
           "parse": {
             "at": "0x0125",
             "cl": "0xfcc0",
@@ -91,30 +84,31 @@
             "fn": "zcl",
             "mf": "0x115f"
           },
+          "read": {
+            "at": "0x0125",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
           "write": {
             "at": "0x0125",
             "cl": "0xfcc0",
             "dt": "0x20",
             "ep": 1,
-            "eval": "if (Item.val == 'highspeed') { 1 } else if (Item.val == 'multiclick') { 2 } else { 'unknown' }",
+            "eval": "if (Item.val == 'highspeed') { 1 } else if (Item.val == 'multiclick') { 2 }",
             "fn": "zcl",
             "mf": "0x115f"
           },
           "values": [
-            ["highspeed", 1], ["multiclick", 2]
+            ["\"highspeed\"", "Buttons emit only single click events, but fast"],
+            ["\"multiclick\"", "Emits single, double and treble presses"] 
           ],
           "default": "multiclick"
         },
         {
           "name": "config/devicemode",
           "awake": true,
-          "read": {
-            "at": "0x0009",
-            "cl": "0xfcc0",
-            "ep": 1,
-            "fn": "zcl",
-            "mf": "0x115f"
-          },
           "parse": {
             "at": "0x0009",
             "cl": "0xfcc0",
@@ -123,17 +117,25 @@
             "fn": "zcl",
             "mf": "0x115f"
           },
+          "read": {
+            "at": "0x0009",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
           "write": {
             "at": "0x0009",
             "cl": "0xfcc0",
             "dt": "0x20",
             "ep": 1,
-            "eval": "if (Item.val == 'compatibility') { 1 } else if (Item.val == 'zigbee') { 2 } else { 'unknown' }",
+            "eval": "if (Item.val == 'compatibility') { 1 } else if (Item.val == 'zigbee') { 2 }",
             "fn": "zcl",
             "mf": "0x115f"
           },
           "values": [
-            ["compatibility", 1], ["zigbee", 2]
+            ["\"compatibility\"", "Default mode for Xiaomi devices"],
+            ["\"zigbee\"", "Closer to zigbee standard"] 
           ],
           "default": "compatibility"
         },
