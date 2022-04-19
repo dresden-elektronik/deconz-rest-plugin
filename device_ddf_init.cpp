@@ -124,8 +124,16 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
 
     if (!ddfItem.isStatic && dbItem != dbItems.cend())
     {
-        item->setValue(dbItem->value);
-        item->setTimeStamps(QDateTime::fromMSecsSinceEpoch(dbItem->timestampMs));
+        if (item->descriptor().suffix == RAttrId && !item->toString().isEmpty())
+        {
+            // keep 'id', it might have been loaded from legacy db
+            // and will be updated in 'resource_items' table on next write
+        }
+        else
+        {
+            item->setValue(dbItem->value);
+            item->setTimeStamps(QDateTime::fromMSecsSinceEpoch(dbItem->timestampMs));
+        }
     }
     else if (ddfItem.defaultValue.isValid())
     {
