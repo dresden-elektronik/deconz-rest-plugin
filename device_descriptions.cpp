@@ -544,7 +544,11 @@ const DeviceDescription &DeviceDescriptions::get(const Resource *resource, DDF_M
     {
         i = std::find_if(i, d->descriptions.end(), [&modelId, &manufacturer, &manufacturerConstant](const DeviceDescription &ddf)
         {
-            return (ddf.modelIds.contains(modelId) && (ddf.manufacturerNames.contains(manufacturer) || ddf.manufacturerNames.contains(manufacturerConstant)));
+            // compare manufacturer name case insensitive
+            const auto m = std::find_if(ddf.manufacturerNames.cbegin(), ddf.manufacturerNames.cend(),
+                                       [&](const auto &x){ return x.compare(manufacturer, Qt::CaseInsensitive) == 0; });
+
+            return (ddf.modelIds.contains(modelId) && (m != ddf.manufacturerNames.cend() || ddf.manufacturerNames.contains(manufacturerConstant)));
         });
 
         if (i == d->descriptions.end())
