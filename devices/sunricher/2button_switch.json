@@ -75,7 +75,8 @@
           "name": "config/battery",
           "parse": {"at": "0x0021", "cl": "0x0001", "ep": 1, "eval": "Item.val = Attr.val"},
           "read": {"fn": "zcl", "ep": 1, "cl": "0x0001", "at": "0x0021"},
-          "refresh.interval": 4000
+          "refresh.interval": 4000,
+          "awake": true
         },
         {
           "name": "config/group",
