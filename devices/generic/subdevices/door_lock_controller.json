@@ -1,0 +1,12 @@
+{
+    "schema": "subdevice1.schema.json",
+    "type": "$TYPE_DOOR_LOCK_CONTROLLER",
+    "name": "Door Lock Controller",
+    "restapi": "/lights",
+    "order": 11,
+    "uuid": ["$address.ext", "0x01"],
+    "items": [
+        "state/reachable",
+        "state/on"
+    ]
+}

@@ -19,6 +19,7 @@
         "$TYPE_DIMMABLE_LIGHT": "Dimmable light",
         "$TYPE_DIMMABLE_PLUGIN_UNIT": "Dimmable plug-in unit",
         "$TYPE_DOOR_LOCK": "Door Lock",
+        "$TYPE_DOOR_LOCK_CONTROLLER": "Door lock controller",
         "$TYPE_EXTENDED_COLOR_LIGHT": "Extended color light",
         "$TYPE_SMART_PLUG": "Smart plug",
         "$TYPE_ON_OFF_LIGHT": "On/Off light",
@@ -39,6 +40,7 @@
         "$TYPE_TEMPERATURE_SENSOR": "ZHATemperature",
         "$TYPE_THERMOSTAT": "ZHAThermostat",
         "$TYPE_VIBRATION_SENSOR": "ZHAVibration",
+        "$TYPE_WARNING_DEVICE": "Warning device",
         "$TYPE_WINDOW_COVERING_DEVICE": "Window covering device",
         "$TYPE_ZGP_SWITCH": "ZGPSwitch",
         "$TYPE_SPECTRAL_SENSOR": "ZHASpectral"
