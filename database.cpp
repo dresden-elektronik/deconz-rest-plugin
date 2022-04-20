@@ -6715,7 +6715,7 @@ static int DB_LoadSubDeviceItemsCallback(void *user, int ncols, char **colval , 
 
 std::vector<DB_ResourceItem> DB_LoadSubDeviceItemsOfDevice(QLatin1String deviceUniqueId)
 {
-    assert(deviceUniqueId.size() == 23); // 64 bit uniqueId with : after each byte
+    DBG_Assert(deviceUniqueId.size() == 23); // 64 bit uniqueId with : after each byte
 
     std::vector<DB_ResourceItem> result;
 
