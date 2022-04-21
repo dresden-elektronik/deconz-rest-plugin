@@ -12327,8 +12327,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
                     sensor.setLastAttributeReportBind(idleTotalCounter);
                 }
             }
-
-            checkPollControlClusterTask(&sensor);
         }
     }
 

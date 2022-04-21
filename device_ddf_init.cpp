@@ -13,6 +13,7 @@
 #include "device_descriptions.h"
 #include "device_ddf_init.h"
 #include "database.h"
+#include "poll_control.h"
 #include "utils/utils.h"
 
 void DEV_AllocateGroup(const Device *device, Resource *rsub, ResourceItem *item);
@@ -254,13 +255,17 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
                 DEV_AllocateGroup(device, rsub, item);
             }
 
-//            if (item->descriptor().suffix == RConfigCheckin)
-//            {
-//                StateChange stateChange(StateChange::StateWaitSync, SC_WriteZclAttribute, sub.uniqueId.at(1).toUInt());
-//                stateChange.addTargetValue(RConfigCheckin, ddfItem.defaultValue);
-//                stateChange.setChangeTimeoutMs(1000 * 60 * 60);
-//                rsub->addStateChange(stateChange);
-//            }
+            if (item->descriptor().suffix == RConfigCheckin)
+            {
+                if (PC_GetPollControlEndpoint(device->node()) > 0)
+                {
+                    auto *itemPending = rsub->item(RConfigPending);
+                    if (itemPending) // TODO long poll interval via StateChange
+                    {
+                        itemPending->setValue(itemPending->toNumber() | R_PENDING_SET_LONG_POLL_INTERVAL);
+                    }
+                }
+            }
         }
     }
 
