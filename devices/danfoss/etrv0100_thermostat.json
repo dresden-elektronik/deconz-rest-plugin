@@ -3,7 +3,7 @@
   "manufacturername": "Danfoss",
   "modelid": "eTRV0100",
   "vendor": "Danfoss",
-  "product": "Ally",
+  "product": "Ally thermostat",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -74,7 +74,7 @@
         },
         {
           "name": "config/displayflipped",
-          "refresh.interval": 86400,
+          "refresh.interval": 3660,
           "read": {
             "at": "0x4000",
             "cl": "0x0204",
@@ -103,7 +103,7 @@
         },
         {
           "name": "config/externalsensortemp",
-          "refresh.interval": 86400,
+          "refresh.interval": 3660,
           "read": {
             "at": "0x4015",
             "cl": "0x0201",
@@ -135,7 +135,7 @@
         },
         {
           "name": "config/externalwindowopen",
-          "refresh.interval": 86400,
+          "refresh.interval": 3660,
           "read": {
             "at": "0x4003",
             "cl": "0x0201",
@@ -164,15 +164,15 @@
         },
         {
           "name": "config/heatsetpoint",
-          "refresh.interval": 86400
+          "refresh.interval": 3660
         },
         {
           "name": "config/locked",
-          "refresh.interval": 86400
+          "refresh.interval": 3660
         },
         {
           "name": "config/mountingmode",
-          "refresh.interval": 86400,
+          "refresh.interval": 3660,
           "read": {
             "at": "0x4013",
             "cl": "0x0201",
@@ -201,7 +201,7 @@
         },
         {
           "name": "config/offset",
-          "refresh.interval": 86400,
+          "refresh.interval": 3660,
           "read": {
             "at": "0x404B",
             "cl": "0x0201",
@@ -240,11 +240,11 @@
         },
         {
           "name": "config/schedule_on",
-          "refresh.interval": 86400
+          "refresh.interval": 3660
         },
         {
           "name": "state/errorcode",
-          "refresh.interval": 86400,
+          "refresh.interval": 3660,
           "parse": {
             "at": "0x4000",
             "cl": "0x0B05",
@@ -266,7 +266,7 @@
         },
         {
           "name": "state/mountingmodeactive",
-          "refresh.interval": 86400,
+          "refresh.interval": 3660,
           "parse": {
             "at": "0x4012",
             "cl": "0x0201",
@@ -299,6 +299,7 @@
         },
         {
           "name": "state/temperature",
+          "refresh.interval": 3660,
           "parse": {
             "at": "0x0000",
             "cl": "0x0201",
@@ -309,11 +310,11 @@
         },
         {
           "name": "state/valve",
-          "refresh.interval": 86400
+          "refresh.interval": 3660
         },
         {
           "name": "state/windowopen",
-          "refresh.interval": 86400,
+          "refresh.interval": 3660,
           "parse": {
             "at": "0x4000",
             "cl": "0x0201",
@@ -398,16 +399,19 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/lastset"
+          "name": "state/lastset",
+          "refresh.interval": 10900
         },
         {
           "name": "state/lastupdated"
         },
         {
-          "name": "state/localtime"
+          "name": "state/localtime",
+          "refresh.interval": 10900
         },
         {
-          "name": "state/utc"
+          "name": "state/utc",
+          "refresh.interval": 10900
         }
       ]
     }
@@ -517,19 +521,19 @@
           "at": "0x0000",
           "dt": "0xE2",
           "min": 3600,
-          "max": 21600
+          "max": 10800
         },
         {
           "at": "0x0007",
           "dt": "0x23",
           "min": 3600,
-          "max": 21600
+          "max": 10800
         },
         {
           "at": "0x0008",
           "dt": "0xE2",
           "min": 3600,
-          "max": 21600
+          "max": 10800
         }
       ]
     }

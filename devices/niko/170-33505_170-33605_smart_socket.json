@@ -3,7 +3,7 @@
   "manufacturername": "NIKO NV",
   "modelid": "Connected socket outlet",
   "vendor": "Niko NV",
-  "product": "170-33505/170-33605",
+  "product": "170-33505/170-33605 smart socket",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -46,7 +46,8 @@
           "name": "state/alert"
         },
         {
-          "name": "state/on"
+          "name": "state/on",
+          "refresh.interval": 360
         },
         {
           "name": "state/reachable"
@@ -105,13 +106,15 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/current"
+          "name": "state/current",
+          "refresh.interval": 360
         },
         {
           "name": "state/lastupdated"
         },
         {
           "name": "state/power",
+          "refresh.interval": 360,
           "parse": {
             "at": "0x050B",
             "cl": "0x0B04",
@@ -122,6 +125,7 @@
         },
         {
           "name": "state/voltage",
+          "refresh.interval": 360,
           "parse": {
             "at": "0x0505",
             "cl": "0x0B04",
@@ -185,6 +189,7 @@
         },
         {
           "name": "state/consumption",
+          "refresh.interval": 360,
           "parse": {
             "at": "0x0000",
             "cl": "0x0702",

@@ -46,7 +46,8 @@
           "name": "state/alert"
         },
         {
-          "name": "state/on"
+          "name": "state/on",
+          "refresh.interval": 360
         },
         {
           "name": "state/reachable"
@@ -107,7 +108,8 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/power"
+          "name": "state/power",
+          "refresh.interval": 360
         }
       ]
     },
@@ -162,7 +164,15 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/consumption"
+          "name": "state/consumption",
+          "refresh.interval": 360,
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0702",
+            "ep": 1,
+            "eval": "Item.val = Attr.val * 10;",
+            "fn": "zcl"
+          }
         },
         {
           "name": "state/lastupdated"

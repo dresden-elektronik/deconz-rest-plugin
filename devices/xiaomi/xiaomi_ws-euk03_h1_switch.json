@@ -36,17 +36,17 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 86400,
-          "read": {
-            "at": "0x0006",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl"
-          },
           "parse": {
             "at": "0x0006",
             "cl": "0x0000",
             "ep": 1,
             "eval": "Item.val = Attr.val",
+            "fn": "zcl"
+          },
+          "read": {
+            "at": "0x0006",
+            "cl": "0x0000",
+            "ep": 1,
             "fn": "zcl"
           }
         },
@@ -61,7 +61,7 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 86400
+          "refresh.interval": 300
         },
         {
           "name": "state/reachable"
@@ -106,17 +106,17 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 86400,
-          "read": {
-            "at": "0x0006",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl"
-          },
           "parse": {
             "at": "0x0006",
             "cl": "0x0000",
             "ep": 1,
             "eval": "Item.val = Attr.val",
+            "fn": "zcl"
+          },
+          "read": {
+            "at": "0x0006",
+            "cl": "0x0000",
+            "ep": 1,
             "fn": "zcl"
           }
         },
@@ -128,14 +128,7 @@
         },
         {
           "name": "config/clickmode",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0200",
-            "cl": "0xfcc0",
-            "ep": 1,
-            "fn": "zcl",
-            "mf": "0x115f"
-          },
+          "refresh.interval": 300,
           "parse": {
             "at": "0x0200",
             "cl": "0xfcc0",
@@ -144,12 +137,19 @@
             "fn": "zcl",
             "mf": "0x115f"
           },
+          "read": {
+            "at": "0x0200",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
           "write": {
             "at": "0x0200",
             "cl": "0xfcc0",
             "dt": "0x20",
             "ep": 1,
-            "eval": "if (Item.val == 'decoupled') { 0 } else if (Item.val == 'coupled') { 1 } else { 'unknown' }",
+            "eval": "if (Item.val == 'decoupled') { 0 } else if (Item.val == 'coupled') { 1 }",
             "fn": "zcl",
             "mf": "0x115f"
           },
@@ -161,14 +161,7 @@
         },
         {
           "name": "config/devicemode",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0009",
-            "cl": "0xfcc0",
-            "ep": 1,
-            "fn": "zcl",
-            "mf": "0x115f"
-          },
+          "refresh.interval": 300,
           "parse": {
             "at": "0x0009",
             "cl": "0xfcc0",
@@ -177,12 +170,19 @@
             "fn": "zcl",
             "mf": "0x115f"
           },
+          "read": {
+            "at": "0x0009",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
           "write": {
             "at": "0x0009",
             "cl": "0xfcc0",
             "dt": "0x20",
             "ep": 1,
-            "eval": "if (Item.val == 'compatibility') { 1 } else if (Item.val == 'zigbee') { 2 } else { 'unknown' }",
+            "eval": "if (Item.val == 'compatibility') { 1 } else if (Item.val == 'zigbee') { 2 }",
             "fn": "zcl",
             "mf": "0x115f"
           },
@@ -194,19 +194,19 @@
         },
         {
           "name": "config/ledindication",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0203",
-            "cl": "0xfcc0",
-            "ep": 1,
-            "fn": "zcl",
-            "mf": "0x115f"
-          },
+          "refresh.interval": 300,
           "parse": {
             "at": "0x0203",
             "cl": "0xfcc0",
             "ep": 1,
             "eval": "Attr.val ? Item.val = false : Item.val = true",
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "read": {
+            "at": "0x0203",
+            "cl": "0xfcc0",
+            "ep": 1,
             "fn": "zcl",
             "mf": "0x115f"
           },
@@ -277,17 +277,17 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 86400,
-          "read": {
-            "at": "0x0006",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl"
-          },
           "parse": {
             "at": "0x0006",
             "cl": "0x0000",
             "ep": 1,
             "eval": "Item.val = Attr.val",
+            "fn": "zcl"
+          },
+          "read": {
+            "at": "0x0006",
+            "cl": "0x0000",
+            "ep": 1,
             "fn": "zcl"
           }
         },
@@ -309,17 +309,17 @@
         {
           "name": "state/power",
           "refresh.interval": 10,
-          "read": {
-            "at": "0x0055",
-            "cl": "0x000C",
-            "ep": 21,
-            "fn": "zcl"
-          },
           "parse": {
             "at": "0x0055",
             "cl": "0x000C",
             "ep": 21,
             "eval": "Item.val = Math.round(Attr.val);"
+          },
+          "read": {
+            "at": "0x0055",
+            "cl": "0x000C",
+            "ep": 21,
+            "fn": "zcl"
           }
         }
       ]
@@ -362,17 +362,17 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 86400,
-          "read": {
-            "at": "0x0006",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl"
-          },
           "parse": {
             "at": "0x0006",
             "cl": "0x0000",
             "ep": 1,
             "eval": "Item.val = Attr.val",
+            "fn": "zcl"
+          },
+          "read": {
+            "at": "0x0006",
+            "cl": "0x0000",
+            "ep": 1,
             "fn": "zcl"
           }
         },
@@ -391,17 +391,17 @@
         {
           "name": "state/consumption",
           "refresh.interval": 300,
-          "read": {
-            "at": "0x0055",
-            "cl": "0x000C",
-            "ep": 31,
-            "fn": "zcl"
-          },
           "parse": {
             "at": "0x0055",
             "cl": "0x000C",
             "ep": 31,
             "eval": "Item.val = Math.round(Attr.val * 1000);"
+          },
+          "read": {
+            "at": "0x0055",
+            "cl": "0x000C",
+            "ep": 31,
+            "fn": "zcl"
           }
         },
         {
