@@ -48,7 +48,7 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 86400
+          "refresh.interval": 360
         },
         {
           "name": "state/reachable"
@@ -99,7 +99,7 @@
         },
         {
           "name": "state/consumption",
-          "refresh.interval": 86400,
+          "refresh.interval": 360,
           "parse": {
             "at": "0x0000",
             "cl": "0x0702",
@@ -156,18 +156,18 @@
         },
         {
           "name": "state/current",
-          "refresh.interval": 86400
+          "refresh.interval": 360
         },
         {
           "name": "state/lastupdated"
         },
         {
           "name": "state/power",
-          "refresh.interval": 86400
+          "refresh.interval": 360
         },
         {
           "name": "state/voltage",
-          "refresh.interval": 86400
+          "refresh.interval": 360
         }
       ]
     }

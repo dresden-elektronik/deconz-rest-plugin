@@ -61,7 +61,7 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 86400
+          "refresh.interval": 300
         },
         {
           "name": "state/reachable"
@@ -128,7 +128,7 @@
         },
         {
           "name": "config/clickmode",
-          "refresh.interval": 86400,
+          "refresh.interval": 300,
           "parse": {
             "at": "0x0200",
             "cl": "0xfcc0",
@@ -161,7 +161,7 @@
         },
         {
           "name": "config/devicemode",
-          "refresh.interval": 86400,
+          "refresh.interval": 300,
           "parse": {
             "at": "0x0009",
             "cl": "0xfcc0",
@@ -194,7 +194,7 @@
         },
         {
           "name": "config/ledindication",
-          "refresh.interval": 86400,
+          "refresh.interval": 300,
           "parse": {
             "at": "0x0203",
             "cl": "0xfcc0",
