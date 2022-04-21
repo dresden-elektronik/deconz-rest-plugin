@@ -24,8 +24,8 @@ static quint8 calculateBatteryPercentageRemaining(const Resource *r, ResourceIte
         const int maxSize = 384;
         auto jsEval = std::make_unique<char[]>(maxSize);
         int ret = snprintf(jsEval.get(), maxSize,
-                          "const vmin = %.1f;"
-                          " const vmax = %.1f;"
+                          "const vmin = %u;"
+                          " const vmax = %u;"
                           " let bat = Attr.val;"
 
                           " if (bat > vmax) { bat = vmax; }"
@@ -36,7 +36,7 @@ static quint8 calculateBatteryPercentageRemaining(const Resource *r, ResourceIte
                           " if (bat > 100) { bat = 100; }"
                           " else if (bat <= 0)  { bat = 1; }"
 
-                          " Item.val = bat;", vmin, vmax);
+                          " Item.val = bat;", unsigned(vmin), unsigned(vmax));
 
         DBG_Assert(ret < maxSize);
         if (ret > 0 && ret < maxSize && jsEval[ret] == '\0')
@@ -227,7 +227,6 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                     sensor.modelId() == QLatin1String("lumi.motion.agl04") ||        // Xiaomi Aqara RTCGQ13LM high precision motion sensor
                     sensor.modelId() == QLatin1String("Zen-01") ||           // Zen thermostat
                     sensor.modelId() == QLatin1String("Thermostat") ||       // eCozy thermostat
-                    sensor.modelId() == QLatin1String("Motion Sensor-A") ||  // Osram motion sensor
                     sensor.modelId() == QLatin1String("Bell") ||             // Sage doorbell sensor
                     sensor.modelId() == QLatin1String("ISW-ZPR1-WP13") ||    // Bosch motion sensor
                     sensor.modelId() == QLatin1String("3AFE14010402000D") ||   // Konke motion sensor

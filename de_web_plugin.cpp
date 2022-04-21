@@ -163,7 +163,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_BOSCH, "ISW-ZPR1-WP13", boschMacPrefix },
     { VENDOR_BOSCH, "RFDL-ZB-MS", emberMacPrefix }, // Bosch motion sensor
     { VENDOR_BOSCH2, "AIR", tiMacPrefix }, // Bosch Air quality sensor
-    { VENDOR_CENTRALITE, "Motion Sensor-A", emberMacPrefix },
     { VENDOR_CENTRALITE, "3321-S", emberMacPrefix }, // Centralite multipurpose sensor
     { VENDOR_CENTRALITE, "3325-S", emberMacPrefix }, // Centralite motion sensor
     { VENDOR_CENTRALITE, "3305-S", emberMacPrefix }, // Centralite motion sensor
@@ -8338,8 +8337,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         if (modelId == QLatin1String("button") ||
             modelId.startsWith(QLatin1String("multi")) ||
             modelId == QLatin1String("water") ||
-            R_GetProductId(&sensorNode) == QLatin1String("NAS-AB02B0 Siren") ||
-            modelId == QLatin1String("Motion Sensor-A"))
+            R_GetProductId(&sensorNode) == QLatin1String("NAS-AB02B0 Siren"))
         {
             // no support for some IAS flags
         }
@@ -12329,8 +12327,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
                     sensor.setLastAttributeReportBind(idleTotalCounter);
                 }
             }
-
-            checkPollControlClusterTask(&sensor);
         }
     }
 
