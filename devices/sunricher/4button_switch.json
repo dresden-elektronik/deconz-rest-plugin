@@ -1,15 +1,21 @@
 {
   "schema": "devcap1.schema.json",
   "manufacturername": [
+    "EcoDim",
+    "EcoDim",
     "Sunricher",
     "NAMRON AS",
     "NAMRON AS",
+    "ROBB smarrt",
     "ROBB smarrt"
   ],
   "modelid": [
+    "ED-10012",
+    "ED-10013",
     "ZG2833K4_EU06",
     "4512719",
     "4512729",
+    "ROB_200-008",
     "ROB_200-008-0"
   ],
   "matchexpr": "R.endpoints.length === 2",
@@ -20,7 +26,7 @@
     {
       "type": "$TYPE_SWITCH",
       "restapi": "/sensors",
-      "uuid": ["$address.ext", "0x01", "0x1000"],
+      "uuid": ["$address.ext", "0x01", "0x0006"],
       "fingerprint": {
         "profile": "0x0104",
         "device": "0x0001",
@@ -69,7 +75,8 @@
           "name": "config/battery",
           "parse": {"at": "0x0021", "cl": "0x0001", "ep": 1, "eval": "Item.val = Attr.val"},
           "read": {"fn": "zcl", "ep": 1, "cl": "0x0001", "at": "0x0021"},
-          "refresh.interval": 4000
+          "refresh.interval": 4000,
+          "awake": true
         },
         {
           "name": "config/group",

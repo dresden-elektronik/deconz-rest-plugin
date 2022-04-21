@@ -124,8 +124,16 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
 
     if (!ddfItem.isStatic && dbItem != dbItems.cend())
     {
-        item->setValue(dbItem->value);
-        item->setTimeStamps(QDateTime::fromMSecsSinceEpoch(dbItem->timestampMs));
+        if (item->descriptor().suffix == RAttrId && !item->toString().isEmpty())
+        {
+            // keep 'id', it might have been loaded from legacy db
+            // and will be updated in 'resource_items' table on next write
+        }
+        else
+        {
+            item->setValue(dbItem->value);
+            item->setTimeStamps(QDateTime::fromMSecsSinceEpoch(dbItem->timestampMs));
+        }
     }
     else if (ddfItem.defaultValue.isValid())
     {
@@ -162,6 +170,7 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
     Q_ASSERT(ddf.isValid());
 
     size_t subCount = 0;
+    auto *dd = DeviceDescriptions::instance();
 
     for (const auto &sub : ddf.subDevices)
     {
@@ -178,7 +187,7 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
 
         if (!rsub)
         {
-            rsub = DEV_InitCompatNodeFromDescription(device, sub, uniqueId);
+            rsub = DEV_InitCompatNodeFromDescription(device, ddf, sub, uniqueId);
         }
 
         if (!rsub)
@@ -192,11 +201,11 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
         auto *mf = rsub->item(RAttrManufacturerName);
         if (mf && mf->toLatin1String().size() == 0)
         {
-            mf->setValue(DeviceDescriptions::instance()->constantToString(device->item(RAttrManufacturerName)->toString()));
+            mf->setValue(dd->constantToString(device->item(RAttrManufacturerName)->toString()));
         }
 
         // TODO storing should be done else where, since this is init code
-        DB_StoreSubDevice(device->item(RAttrUniqueId)->toLatin1String(), uniqueId);
+        DB_StoreSubDevice(device->item(RAttrUniqueId)->toLatin1String(), rsub->item(RAttrUniqueId)->toString());
         DB_StoreSubDeviceItem(rsub, rsub->item(RAttrManufacturerName));
         DB_StoreSubDeviceItem(rsub, rsub->item(RAttrModelId));
 
