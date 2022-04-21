@@ -227,7 +227,6 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                     sensor.modelId() == QLatin1String("lumi.motion.agl04") ||        // Xiaomi Aqara RTCGQ13LM high precision motion sensor
                     sensor.modelId() == QLatin1String("Zen-01") ||           // Zen thermostat
                     sensor.modelId() == QLatin1String("Thermostat") ||       // eCozy thermostat
-                    sensor.modelId() == QLatin1String("Motion Sensor-A") ||  // Osram motion sensor
                     sensor.modelId() == QLatin1String("Bell") ||             // Sage doorbell sensor
                     sensor.modelId() == QLatin1String("ISW-ZPR1-WP13") ||    // Bosch motion sensor
                     sensor.modelId() == QLatin1String("3AFE14010402000D") ||   // Konke motion sensor

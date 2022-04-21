@@ -1862,8 +1862,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 1800;
             rq.reportableChange8bit = 0xFF;
         }
-        else if (modelId == QLatin1String("Motion Sensor-A") ||
-                 modelId == QLatin1String("tagv4") ||
+        else if (modelId == QLatin1String("tagv4") ||
                  modelId == QLatin1String("motionv4") ||
                  modelId == QLatin1String("moisturev4") ||
                  modelId == QLatin1String("multiv4") ||
@@ -2818,7 +2817,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("PSMP5_")) ||
         sensor->modelId().startsWith(QLatin1String("PCM_")) ||
         // CentraLite
-        sensor->modelId().startsWith(QLatin1String("Motion Sensor-A")) ||
         sensor->modelId().startsWith(QLatin1String("3300")) ||
         sensor->modelId().startsWith(QLatin1String("332")) ||
         sensor->modelId().startsWith(QLatin1String("3200-Sgb")) ||
@@ -3258,10 +3256,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         }
         else if (*i == OCCUPANCY_SENSING_CLUSTER_ID)
         {
-            if (sensor->modelId() == QLatin1String("Motion Sensor-A"))
-            {
-                continue; // use ias zone cluster
-            }
             val = sensor->getZclValue(*i, 0x0000); // occupied state
         }
         else if (*i == POWER_CONFIGURATION_CLUSTER_ID)
@@ -3290,8 +3284,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             {
                 val = sensor->getZclValue(*i, 0x0035); // battery alarm mask
             }
-            else if (sensor->modelId() == QLatin1String("Motion Sensor-A") ||
-                     sensor->modelId().startsWith(QLatin1String("AQSZB-1")) ||
+            else if (sensor->modelId().startsWith(QLatin1String("AQSZB-1")) ||
                      sensor->modelId().startsWith(QLatin1String("WISZB-1")) ||
                      sensor->modelId().startsWith(QLatin1String("MOSZB-1")) ||
                      sensor->modelId().startsWith(QLatin1String("FLSZB-1")) ||
