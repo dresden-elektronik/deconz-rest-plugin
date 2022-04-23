@@ -789,7 +789,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         updated = true;
                     }
                 }
-                else if (rid.suffix == RConfigTempToDisplay && !data.string.isEmpty()) // String
+                else if (rid.suffix == RConfigClickMode && !data.string.isEmpty()) // String
                 {
                     if (devManaged && rsub)
                     {
