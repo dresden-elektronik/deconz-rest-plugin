@@ -199,6 +199,7 @@ extern const char *RConfigAllowTouchlink;
 extern const char *RConfigLock;
 extern const char *RConfigBattery;
 extern const char *RConfigClickMode;
+extern const char *RConfigTempToDisplay;
 extern const char *RConfigColorCapabilities;
 extern const char *RConfigConfigured;
 extern const char *RConfigControlSequence;
