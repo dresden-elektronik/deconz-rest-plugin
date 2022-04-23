@@ -780,7 +780,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
                 }
-                else if (rid.suffix == RConfigClickMode) // Signed integer
+                else if (rid.suffix == RConfigTempToDisplay) // Signed integer
                 {
                     if (devManaged && rsub)
                     {
