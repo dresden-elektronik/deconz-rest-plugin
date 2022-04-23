@@ -4,6 +4,6 @@
 	"datatype": "UInt16",
 	"access": "RW",
 	"public": true,
-    "default": 0,
+    "default": 60,
 	"description": "The occupied to unoccupied delay in seconds."
 }
