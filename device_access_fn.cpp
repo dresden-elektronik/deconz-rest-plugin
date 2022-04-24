@@ -690,14 +690,13 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
             // map datapoint into ZCL attribute
             deCONZ::ZclAttribute attr(dpid, zclDataType, QLatin1String(""), deCONZ::ZclReadWrite, true);
             attr.setNumericValue(num);
+            
             if (dataType == TuyaDataTypeValue)
             {
-                attr.setNumericValue(num.s32);
+                deCONZ::ZclAttribute attr2(num.s32, zclDataType, QLatin1String(""), deCONZ::ZclReadWrite, true);
+                attr = attr2;
             }
-            else
-            {
-                attr.setNumericValue(num);
-            }
+
 
             if (evalZclAttribute(r, item, ind, zclFrame, attr, parseParameters))
             {
