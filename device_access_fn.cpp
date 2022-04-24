@@ -693,8 +693,11 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
             
             if (dataType == TuyaDataTypeValue)
             {
-                deCONZ::ZclAttribute attr2(num.s32, zclDataType, QLatin1String(""), deCONZ::ZclReadWrite, true);
-                attr = attr2;
+                attr.setValue(num.s32);
+            }
+            else
+            {
+                attr.setNumericValue(num);
             }
 
 
