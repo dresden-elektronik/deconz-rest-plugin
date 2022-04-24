@@ -1830,8 +1830,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 43200;        // Vendor defaults
             rq.reportableChange8bit = 2;   // Vendor defaults
         }
-        else if (modelId.startsWith(QLatin1String("ED-1001")) || // EcoDim switches
-                 modelId.startsWith(QLatin1String("45127")) ||   // Namron switches
+        else if (modelId == QLatin1String("4512705") ||          // Namron remote control
+                 modelId == QLatin1String("4512726") ||          // Namron rotary switch
                  modelId == QLatin1String("CCT591011_AS") ||     // LK Wiser Door / Window Sensor
                  modelId == QLatin1String("CCT592011_AS") ||     // LK Wiser Water Leak Sensor
                  modelId.startsWith(QLatin1String("S57003")) ||  // SLC switches
@@ -1862,8 +1862,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 1800;
             rq.reportableChange8bit = 0xFF;
         }
-        else if (modelId == QLatin1String("Motion Sensor-A") ||
-                 modelId == QLatin1String("tagv4") ||
+        else if (modelId == QLatin1String("tagv4") ||
                  modelId == QLatin1String("motionv4") ||
                  modelId == QLatin1String("moisturev4") ||
                  modelId == QLatin1String("multiv4") ||
@@ -2818,7 +2817,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("PSMP5_")) ||
         sensor->modelId().startsWith(QLatin1String("PCM_")) ||
         // CentraLite
-        sensor->modelId().startsWith(QLatin1String("Motion Sensor-A")) ||
         sensor->modelId().startsWith(QLatin1String("3300")) ||
         sensor->modelId().startsWith(QLatin1String("332")) ||
         sensor->modelId().startsWith(QLatin1String("3200-Sgb")) ||
@@ -3099,14 +3097,11 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("ROB_200")) ||
         // Sunricher
         sensor->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) ||
-        sensor->modelId().startsWith(QLatin1String("45127")) ||
+        sensor->modelId() == QLatin1String("4512705") || // Namron remote control
+        sensor->modelId() == QLatin1String("4512726") || // Namron rotary switch
         sensor->modelId().startsWith(QLatin1String("ZG2835")) ||
-        // EcoDim
-        sensor->modelId().startsWith(QLatin1String("ED-1001")) ||
         // RT-RK
         sensor->modelId().startsWith(QLatin1String("SPW35Z")) ||
-        // Namron
-        sensor->modelId().startsWith(QLatin1String("45127")) ||
         // SLC
         sensor->modelId().startsWith(QLatin1String("S57003")) ||
         // Plugwise
@@ -3261,10 +3256,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         }
         else if (*i == OCCUPANCY_SENSING_CLUSTER_ID)
         {
-            if (sensor->modelId() == QLatin1String("Motion Sensor-A"))
-            {
-                continue; // use ias zone cluster
-            }
             val = sensor->getZclValue(*i, 0x0000); // occupied state
         }
         else if (*i == POWER_CONFIGURATION_CLUSTER_ID)
@@ -3293,8 +3284,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             {
                 val = sensor->getZclValue(*i, 0x0035); // battery alarm mask
             }
-            else if (sensor->modelId() == QLatin1String("Motion Sensor-A") ||
-                     sensor->modelId().startsWith(QLatin1String("AQSZB-1")) ||
+            else if (sensor->modelId().startsWith(QLatin1String("AQSZB-1")) ||
                      sensor->modelId().startsWith(QLatin1String("WISZB-1")) ||
                      sensor->modelId().startsWith(QLatin1String("MOSZB-1")) ||
                      sensor->modelId().startsWith(QLatin1String("FLSZB-1")) ||
@@ -3844,8 +3834,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(0x03);
         srcEndpoints.push_back(0x04);
     }
-    else if (sensor->modelId().startsWith(QLatin1String("ED-1001")) ||
-             sensor->modelId().startsWith(QLatin1String("45127")) ||
+    else if (sensor->modelId() == QLatin1String("4512705") || // Namron remote control
+             sensor->modelId() == QLatin1String("4512726") || // Namron rotary switch
              sensor->modelId().startsWith(QLatin1String("S57003")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);

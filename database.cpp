@@ -172,6 +172,100 @@ void DeRestPluginPrivate::checkDbUserVersion()
     }
 }
 
+static int DB_LoadDuplSensorsCallback(void *user, int ncols, char **colval , char **)
+{
+    auto *result = static_cast<std::vector<std::string>*>(user);
+    Q_ASSERT(result);
+    Q_ASSERT(ncols == 1);
+
+    if (colval[0] && colval[0][0])
+    {
+        result->push_back(std::string(colval[0]));
+    }
+    return 0;
+};
+
+/*! Remove sensors with duplicated uniqueid, keeping the one with lowest 'id'
+    in the assumption it was the first one created. (fix for db regressions before v2.15.2).
+ */
+static void DB_CleanupDuplSensors(sqlite3 *db)
+{
+    if (!db)
+    {
+        return;
+    }
+
+    int ret;
+    std::vector<std::string> uniqueids;
+
+    ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT uniqueid"
+                                 " FROM sensors"
+                                 " WHERE type NOT LIKE 'CLIP%%'"
+                                 " GROUP BY uniqueid"
+                                 " HAVING COUNT(uniqueid) > 1");
+    assert(size_t(ret) < sizeof(sqlBuf));
+    if (size_t(ret) < sizeof(sqlBuf))
+    {
+        char *errmsg = nullptr;
+        int rc = sqlite3_exec(db, sqlBuf, DB_LoadDuplSensorsCallback, &uniqueids, &errmsg);
+
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sqlBuf, errmsg, rc);
+            sqlite3_free(errmsg);
+        }
+    }
+
+    if (uniqueids.empty())
+    {
+        return;
+    }
+
+    for (const auto &uniqueid : uniqueids)
+    {
+        std::vector<std::string> result;
+
+        // get the lowest sensor.id for uniqueid, likely the first one which was created (we keep it)
+        ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT sid"
+                                     " FROM sensors"
+                                     " WHERE uniqueid = '%s'"
+                                     " ORDER BY sid DESC LIMIT 1", uniqueid.c_str());
+        assert(size_t(ret) < sizeof(sqlBuf));
+        if (size_t(ret) < sizeof(sqlBuf))
+        {
+            char *errmsg = nullptr;
+            int rc = sqlite3_exec(db, sqlBuf, DB_LoadDuplSensorsCallback, &result, &errmsg);
+
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sqlBuf, errmsg, rc);
+                sqlite3_free(errmsg);
+            }
+        }
+
+        if (result.size() != 1)
+        {
+            continue;
+        }
+
+        // delete sensors with same uniqueid which have a higher 'sid' as lowest known one
+        ret = snprintf(sqlBuf, sizeof(sqlBuf), "DELETE FROM sensors"
+                                     " WHERE uniqueid = '%s' and sid != '%s'", uniqueid.c_str(), result.front().c_str());
+        assert(size_t(ret) < sizeof(sqlBuf));
+        if (size_t(ret) < sizeof(sqlBuf))
+        {
+            char *errmsg = nullptr;
+            int rc = sqlite3_exec(db, sqlBuf, DB_LoadDuplSensorsCallback, &result, &errmsg);
+
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sqlBuf, errmsg, rc);
+                sqlite3_free(errmsg);
+            }
+        }
+    }
+}
+
 /*! Cleanup tasks for database maintenance.
  */
 void DeRestPluginPrivate::cleanUpDb()
@@ -219,6 +313,8 @@ void DeRestPluginPrivate::cleanUpDb()
             }
         }
     }
+
+    DB_CleanupDuplSensors(db);
 }
 
 /*! Creates temporary views only valid during this session.
@@ -1277,8 +1373,12 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
     {
         if (!val.isEmpty())
         {
-            d->gwAnnounceUrl = val;
-            d->gwConfig["announceurl"] = val;
+            // ignore old gce entry, use default
+            if (!val.contains(QLatin1String("dresden-light.appspot.com")))
+            {
+                d->gwAnnounceUrl = val;
+                d->gwConfig["announceurl"] = val;
+            }
         }
     }
     else if (strcmp(colval[0], "rfconnect") == 0)
@@ -3923,7 +4023,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeString, RConfigMode);
                     sensor.addItem(DataTypeString, RConfigFanMode);
                 }
-                else if (sensor.modelId() == QLatin1String("3157100"))
+                else if (sensor.modelId().startsWith(QLatin1String("3157100")))
                 {
                     sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);
                     sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
@@ -4170,8 +4270,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.modelId() == QLatin1String("button") ||
                 sensor.modelId().startsWith(QLatin1String("multi")) ||
                 sensor.modelId() == QLatin1String("water") ||
-                R_GetProductId(&sensor) == QLatin1String("NAS-AB02B0 Siren") ||
-                sensor.modelId() == QLatin1String("Motion Sensor-A"))
+                R_GetProductId(&sensor) == QLatin1String("NAS-AB02B0 Siren"))
             {
                 // no support for some IAS Zone flags
             }
@@ -4251,9 +4350,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         // check for older setups with multiple ZHASwitch sensors per device
         if (sensor.manufacturer() == QLatin1String("ubisys") && sensor.type() == QLatin1String("ZHASwitch"))
         {
-            if ((sensor.modelId().startsWith(QLatin1String("D1")) && sensor.fingerPrint().endpoint != 0x02) ||
-                (sensor.modelId().startsWith(QLatin1String("S2")) && sensor.fingerPrint().endpoint != 0x03) ||
-                (sensor.modelId().startsWith(QLatin1String("C4")) && sensor.fingerPrint().endpoint != 0x01))
+            if ((sensor.modelId().startsWith(QLatin1String("D1")) && sensor.fingerPrint().endpoint != 0x02))
             {
                 DBG_Printf(DBG_INFO, "ubisys sensor id: %s, endpoint 0x%02X (%s) ignored loading from database\n", qPrintable(sensor.id()), sensor.fingerPrint().endpoint, qPrintable(sensor.modelId()));
                 return 0;
@@ -4262,22 +4359,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             QStringList supportedModes({"momentary", "rocker", "custom"});
             item = sensor.addItem(DataTypeString, RConfigMode);
 
-            bool isWindowCovering = sensor.modelId().startsWith(QLatin1String("J1"));
-            ResourceItem *itemWindowCovering = 0;
-            if (isWindowCovering)
-            {
-                itemWindowCovering = sensor.addItem(DataTypeUInt8, RConfigWindowCoveringType);
-            }
-
             if (configCol >= 0)
             {
                 sensor.jsonToConfig(QLatin1String(colval[configCol])); // needed again otherwise item isEmpty
-            }
-
-            if (isWindowCovering)
-            {
-                int val = itemWindowCovering->toNumber(); // prevent null value
-                itemWindowCovering->setValue(val);
             }
 
             if (item->toString().isEmpty() || !supportedModes.contains(item->toString()))
@@ -4315,7 +4399,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
             if (!isClip)
             {
-                s = d->getSensorNodeForFingerPrint(extAddr, sensor.fingerPrint(), sensor.type());
+                s = d->getSensorNodeForUniqueId(sensor.uniqueId());
             }
 
             if (!s)
@@ -4541,28 +4625,25 @@ int getFreeLightId()
 static int sqliteGetAllSensorIdsCallback(void *user, int ncols, char **colval , char **colname)
 {
     DBG_Assert(user != 0);
+    DBG_Assert(ncols == 1);
+    Q_UNUSED(colname)
 
-    if (!user || (ncols <= 0))
+    if (!user || ncols != 1)
     {
         return 0;
     }
 
     auto *sensorIds = static_cast<std::vector<int>*>(user);
 
-    for (int i = 0; i < ncols; i++)
+    errno = 0;
+    unsigned long id = strtoul(colval[0], nullptr, 10);
+    if (errno == 0)
     {
-        if (colval[i] && (colval[i][0] != '\0'))
-        {
-            if (strcmp(colname[i], "sid") == 0)
-            {
-                bool ok;
-                int id = QString(colval[i]).toInt(&ok);
+        const auto j = std::find(sensorIds->cbegin(), sensorIds->cend(), int(id));
 
-                if (ok)
-                {
-                    sensorIds->push_back(id);
-                }
-            }
+        if (j == sensorIds->cend())
+        {
+            sensorIds->push_back(int(id));
         }
     }
 
@@ -4684,8 +4765,8 @@ int getFreeSensorId()
         }
     }
 
-    // append all deleted ids from database (dublicates are ok here)
-    const char * sql = "SELECT sid FROM sensors WHERE deletedState = 'deleted'";
+    // append all ids from database (also deleted ones)
+    const char * sql = "SELECT sid FROM sensors";
 
     DBG_Printf(DBG_INFO_L2, "sql exec %s\n", sql);
     char *errmsg = nullptr;
@@ -6633,7 +6714,7 @@ static int DB_LoadSubDeviceItemsCallback(void *user, int ncols, char **colval , 
 
 std::vector<DB_ResourceItem> DB_LoadSubDeviceItemsOfDevice(QLatin1String deviceUniqueId)
 {
-    assert(deviceUniqueId.size() == 23); // 64 bit uniqueId with : after each byte
+    DBG_Assert(deviceUniqueId.size() == 23); // 64 bit uniqueId with : after each byte
 
     std::vector<DB_ResourceItem> result;
 
@@ -6788,7 +6869,7 @@ bool DB_LoadLegacySensorValue(DB_LegacyItem *litem)
 
     litem->value.clear();
 
-    int ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT %s FROM sensors WHERE uniqueid = '%s'",
+    int ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT %s FROM sensors WHERE uniqueid = '%s' AND deletedState = 'normal'",
                        litem->column.c_str(), litem->uniqueId.c_str());
 
     assert(size_t(ret) < sizeof(sqlBuf));
@@ -6805,6 +6886,51 @@ bool DB_LoadLegacySensorValue(DB_LegacyItem *litem)
         else
         {
             result = !litem->value.empty();
+        }
+    }
+
+    DeRestPluginPrivate::instance()->closeDb();
+
+    return result;
+}
+
+static int DB_LoadLegacySensorUniqueIdsCallback(void *user, int ncols, char **colval , char **)
+{
+    auto *result = static_cast<std::vector<std::string>*>(user);
+    Q_ASSERT(result);
+    Q_ASSERT(ncols == 1);
+    if (colval[0][0])
+    {
+        result->push_back(colval[0]);
+    }
+
+    return 0;
+};
+
+std::vector<std::string> DB_LoadLegacySensorUniqueIds(QLatin1String deviceUniqueId, const char *type)
+{
+    std::vector<std::string> result;
+
+    DeRestPluginPrivate::instance()->openDb();
+
+    if (!db)
+    {
+        return result;
+    }
+
+    int ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT uniqueid FROM sensors WHERE uniqueid LIKE '%%%s%%' AND type = '%s' AND deletedState = 'normal'",
+                       deviceUniqueId.data(), type);
+
+    assert(size_t(ret) < sizeof(sqlBuf));
+    if (size_t(ret) < sizeof(sqlBuf))
+    {
+        char *errmsg = nullptr;
+        int rc = sqlite3_exec(db, sqlBuf, DB_LoadLegacySensorUniqueIdsCallback, &result, &errmsg);
+
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sqlBuf, errmsg, rc);
+            sqlite3_free(errmsg);
         }
     }
 

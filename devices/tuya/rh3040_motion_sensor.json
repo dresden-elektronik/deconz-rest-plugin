@@ -1,11 +1,12 @@
 {
     "schema": "devcap1.schema.json",
     "doc:path": "tuya/rh3040_motion_sensor.md",
-    "doc:hdr": "Motion sensor ESS-SI-PIR-6101",
-    "manufacturername": "$MF_TUYA",
-    "modelid": "RH3040",
-    "product": "Motion Sensor (ESS-SI-PIR-6101)",
-    "status": "Bronze",
+    "doc:hdr": "Motion sensor RH3040",
+    "manufacturername": ["TUYATEC-zn9wyqtr", "TUYATEC-lakq7nse", "TUYATEC-53o41joc"],
+    "modelid": ["RH3040", "RH3040", "RH3040"],
+    "vendor": "$MF_TUYA",
+    "product": "Motion Sensor RH3040",
+    "status": "Gold",
     "supportsMgmtBind": true,
     "subdevices": [
         {
@@ -14,6 +15,9 @@
             "uuid": [ "$address.ext", "0x01", "0x0500"],
             "fingerprint": { "profile": "0x0104", "device": "0x0402", "endpoint": "0x01", "in": ["0x0001", "0x0500"] },
             "items": [
+                {
+                    "name": "attr/id"
+                },
                 {
                     "name": "attr/manufacturername"
                 },
@@ -24,8 +28,9 @@
                     "name": "attr/name"
                 },
                 {
-                    "name": "attr/swversion",
-                    "description": "Todo not shown in output?"
+                  "name": "attr/swversion",
+                  "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+                  "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
                 },
                 {
                     "name": "attr/type"
@@ -44,6 +49,9 @@
                 {
                     "name": "config/duration",
                     "default": 120
+                },
+                {
+                    "name": "config/enrolled"
                 },
                 {
                     "name": "config/on"
@@ -77,7 +85,7 @@
                     "reachable": true
                 },
                 "lastseen": "2020-12-29T14:47Z",
-                "manufacturername": "Tuyatec",
+                "manufacturername": "TUYATEC-lakq7nse",
                 "modelid": "RH3040",
                 "name": "Presence 68",
                 "state": {
@@ -87,6 +95,7 @@
                     "tampered": false
                 },
                 "type": "ZHAPresence",
+                "swversion": "1.0.3",
                 "uniqueid": "14:b4:57:ff:fe:15:66:fc-01-0500"
             }
         }

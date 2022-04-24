@@ -2,7 +2,8 @@
    "schema":"devcap1.schema.json",
    "manufacturername":"Develco Products A/S",
    "modelid":"KEPZB-110",
-   "product":"KEPZB-110",
+   "vendor": "Develco Products",
+   "product":"KEPZB-110 Keypad",
    "sleeper":false,
    "status":"Bronze",
    "subdevices":[

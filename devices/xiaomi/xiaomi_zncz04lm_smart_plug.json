@@ -2,8 +2,8 @@
   "schema": "devcap1.schema.json",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.plug.mmeu01",
-  "vendor": "Xiaomi Mija",
-  "product": "ZNCZ04LM",
+  "vendor": "Xiaomi",
+  "product": "Mija smart plug ZNCZ04LM",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

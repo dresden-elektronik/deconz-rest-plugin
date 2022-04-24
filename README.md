@@ -23,11 +23,11 @@ The Phoscon App is a browser based web application and supports lights, sensors 
 
 deCONZ beta releases are scheduled roughly once per week. After 2–3 betas a stable version is released and a new beta cycle begins. The stable release is usually published between 1st — 15th of the month.
 
-Current Beta: **v2.15.0-beta**  
+Current Beta: **v2.15.2-beta**  
 Current Stable: **v2.14.1**
 
-Next Beta: **v2.15.2-beta** Expected in March.
-Next Stable: **v2.15.x** Expected in March.
+Next Beta: **v2.16.0-beta** Expected in May.
+Next Stable: **v2.15.x** Expected in April.
 
 Installation
 ============
@@ -124,6 +124,7 @@ Hardware requirements
 -------------------
 The following libraries are used by the plugin:
 
+* [ArduinoJSON](https://arduinojson.org)
 * [SQLite](http://www.sqlite.org)
 * [qt-json](https://github.com/lawand/droper/tree/master/qt-json)
 * [colorspace](http://www.getreuer.info/home/colorspace)

@@ -4,7 +4,8 @@
     "doc:hdr": "Light sensor GZCGQ01LM",
     "manufacturername": "$MF_XIAOMI",
     "modelid": "lumi.sen_ill.mgl01",
-    "product": "Light Sensor (GZCGQ01LM)",
+    "vendor": "Xiaomi",
+    "product": "Mija Light Sensor GZCGQ01LM",
     "status": "Silver",
     "md:known_issues": [ ],
     "subdevices": [

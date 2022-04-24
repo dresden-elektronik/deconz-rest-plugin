@@ -1,79 +1,29 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "ubisys",
-  "modelid": "S1 (5501)",
-  "vendor": "ubisys",
-  "product": "S1 (5501) power switch",
+  "manufacturername": "Sinope",
+  "modelid": "TH1124ZB",
+  "product": "TH1124ZB",
   "sleeper": false,
-  "status": "Gold",
+  "status": "Silver",
+  "path": "/devices/th1124zb.json",
   "subdevices": [
     {
-      "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
-      "restapi": "/lights",
-      "uuid": [
-        "$address.ext",
-        "0x01"
-      ],
-      "items": [
-        {
-          "name": "attr/id"
-        },
-        {
-          "name": "attr/lastannounced"
-        },
-        {
-          "name": "attr/lastseen"
-        },
-        {
-          "name": "attr/manufacturername"
-        },
-        {
-          "name": "attr/modelid"
-        },
-        {
-          "name": "attr/name"
-        },
-        {
-          "name": "attr/swversion"
-        },
-        {
-          "name": "attr/type"
-        },
-        {
-          "name": "attr/uniqueid"
-        },
-        {
-          "name": "state/alert",
-          "default": "none"
-        },
-        {
-          "name": "state/on",
-          "refresh.interval": 305
-        },
-        {
-          "name": "state/reachable"
-        }
-      ]
-    },
-    {
-      "type": "$TYPE_SWITCH",
+      "type": "$TYPE_THERMOSTAT",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
-        "0x02",
-        "0x0006"
+        "0x01",
+        "0x0201"
       ],
       "fingerprint": {
         "profile": "0x0104",
-        "device": "0x0001",
-        "endpoint": "0x02",
+        "device": "0x0301",
+        "endpoint": "0x01",
         "in": [
-          "0x0000"
-        ],
-        "out": [
-          "0x0005",
-          "0x0006",
-          "0x0008"
+          "0x0000",
+          "0x0201",
+          "0x0204",
+          "0x0B05"
         ]
       },
       "items": [
@@ -105,11 +55,18 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/group",
-          "default": "auto"
+          "name": "config/heatsetpoint",
+          "description": "Target temperature of a thermostat.",
+          "default": 0
         },
         {
-          "name": "config/mode"
+          "name": "config/mode",
+          "description": "Mode of the device."
+        },
+        {
+          "name": "config/offset",
+          "description": "Relative offset to the main measured value.",
+          "default": 0
         },
         {
           "name": "config/on"
@@ -118,10 +75,25 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/buttonevent"
+          "name": "config/schedule",
+          "description": "On-device heating schedules."
+        },
+        {
+          "name": "config/schedule_on",
+          "description": "Determines if on-device schedules for setting the heatsetpoint are currently used or if the thermostat is operated manually."
         },
         {
           "name": "state/lastupdated"
+        },
+        {
+          "name": "state/on",
+          "description": "True when device is on; false when off.",
+          "refresh.interval": 5
+        },
+        {
+          "name": "state/temperature",
+          "description": "The current temperature in °C &times; 100.",
+          "default": 0
         }
       ]
     },
@@ -130,13 +102,13 @@
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
-        "0x03",
+        "0x01",
         "0x0b04"
       ],
       "fingerprint": {
         "profile": "0x0104",
-        "device": "0x0501",
-        "endpoint": "0x03",
+        "device": "0x0301",
+        "endpoint": "0x01",
         "in": [
           "0x0000",
           "0x0B04"
@@ -178,41 +150,23 @@
         },
         {
           "name": "state/current",
-          "refresh.interval": 30,
-          "read": {
-            "at": "0x0508",
-            "cl": "0x0b04",
-            "ep": 3,
-            "fn": "zcl"
-          },
-          "parse": {
-            "at": "0x0508",
-            "cl": "0x0b04",
-            "ep": 3,
-            "eval": "if (Attr.val != 65535) { Item.val = Attr.val; }"
-          }
+          "refresh.interval": 300
         },
         {
           "name": "state/lastupdated"
         },
         {
           "name": "state/power",
-          "refresh.interval": 30,
-          "read": {
-            "at": "0x050b",
-            "cl": "0x0b04",
-            "ep": 3,
-            "fn": "zcl"
-          }
+          "refresh.interval": 300
         },
         {
           "name": "state/voltage",
-          "refresh.interval": 30,
-          "read": {
+          "refresh.interval": 300,
+          "parse": {
             "at": "0x0505",
             "cl": "0x0b04",
-            "ep": 3,
-            "fn": "zcl"
+            "ep": 0,
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val / 10 ; }"
           }
         }
       ]
@@ -222,13 +176,13 @@
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
-        "0x03",
+        "0x01",
         "0x0702"
       ],
       "fingerprint": {
         "profile": "0x0104",
-        "device": "0x0501",
-        "endpoint": "0x03",
+        "device": "0x0301",
+        "endpoint": "0x01",
         "in": [
           "0x0000",
           "0x0702"
@@ -270,78 +224,116 @@
         },
         {
           "name": "state/consumption",
-          "refresh.interval": 30,
-          "read": {
-            "at": "0x0000",
-            "cl": "0x0702",
-            "ep": 3,
-            "fn": "zcl"
-          },
-          "parse": {
-            "at": "0x0000",
-            "cl": "0x0702",
-            "ep": 3,
-            "eval": "Item.val = Attr.val"
-          }
+          "refresh.interval": 300
         },
         {
           "name": "state/lastupdated"
         },
         {
           "name": "state/power",
-          "refresh.interval": 305,
-          "read": {
-            "at": "0x0400",
-            "cl": "0x0702",
-            "ep": 3,
-            "fn": "zcl"
-          },
-          "parse": {
-            "at": "0x0400",
-            "cl": "0x0702",
-            "ep": 3,
-            "eval": "Item.val = Attr.val"
-          }
+          "refresh.interval": 300
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_TEMPERATURE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0402"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0301",
+        "endpoint": "0x01",
+        "in": [
+          "0x0000",
+          "0x0402"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/offset",
+          "description": "Relative offset to the main measured value.",
+          "default": 0
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/temperature",
+          "default": 0
         }
       ]
     }
   ],
-  "bindings": [
+    "bindings": [
     {
       "bind": "unicast",
       "src.ep": 1,
-      "cl": "0x0006",
-      "report": [
-        {
-          "at": "0x0000",
-          "dt": "0x10",
-          "min": 1,
-          "max": 300
-        }
-      ]
-    },
-    {
-      "bind": "groupcast",
-      "config.group": 0,
-      "src.ep": 2,
-      "cl": "0x0006"
-    },
-    {
-      "bind": "groupcast",
-      "config.group": 0,
-      "src.ep": 2,
-      "cl": "0x0008"
+      "dst.ep": 1,
+      "cl": "0x0204"
     },
     {
       "bind": "unicast",
-      "src.ep": 3,
-      "cl": "0x0702",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0B04",
       "report": [
         {
-          "at": "0x0400",
-          "dt": "0x2A",
+          "at": "0x050B",
+          "dt": "0x29",
           "min": 1,
-          "max": 300
+          "max": 300,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0505",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x0000000A"
+        },
+        {
+          "at": "0x0508",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
         }
       ]
     }

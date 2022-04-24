@@ -2,8 +2,8 @@
   "schema": "devcap1.schema.json",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.curtain.acn002",
-  "vendor": "Aqara",
-  "product": "Roller Shade Driver E1",
+  "vendor": "Xiaomi",
+  "product": "Aqara Roller Shade Driver E1 RSD-M01",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

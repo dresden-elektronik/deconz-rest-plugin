@@ -2,8 +2,8 @@
   "schema": "devcap1.schema.json",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.airmonitor.acn01",
-  "vendor": "Aqara",
-  "product": "TVOC Air Quality Monitor",
+  "vendor": "Xiaomi",
+  "product": "Aqara TVOC Air Quality Monitor VOCKQJK11LM",
   "sleeper": true,
   "status": "Silver",
   "subdevices": [
