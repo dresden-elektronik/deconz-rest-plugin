@@ -207,7 +207,7 @@ QVariant JsZclAttribute::value() const
         {
             DBG_Printf(DBG_INFO,"1 > %s",qPrintable(attr->toString()));
             DBG_Printf(DBG_INFO,"2 > %s",qPrintable(attr->toVariant()));
-            DBG_Printf(DBG_INFO,"3 > %s",qPrintable(QVariant::fromValue(quint64(attr->numericValue().u64))));
+            DBG_Printf(DBG_INFO,"3 > %s",qPrintable(QVariant::fromValue(quint64(attr->numericValue().u64))->toString()));
             return attr->toVariant();
         }
 
