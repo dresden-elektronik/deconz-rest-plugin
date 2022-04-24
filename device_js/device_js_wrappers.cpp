@@ -205,10 +205,8 @@ QVariant JsZclAttribute::value() const
     case deCONZ::Zcl32BitInt:
     case deCONZ::Zcl48BitInt:
         {
-            DBG_Printf(DBG_INFO,"1 > %s",qPrintable(attr->toString()));
-            QVariant q = QVariant::fromValue(quint64(attr->numericValue().u64));
-            DBG_Printf(DBG_INFO,"3 > %s",qPrintable(q.toString()));
-            return attr->toVariant();
+            //return attr->toVariant();
+            return QVariant::fromValue(qint64(attr->numericValue().s64));
         }
 
     case deCONZ::Zcl56BitInt:
