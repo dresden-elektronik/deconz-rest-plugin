@@ -648,7 +648,10 @@
                 <value name="Previous" value="0xff"></value>
 				  	</attribute>
 				</attribute-set>
-        <attribute-set id="0x8000" description="Xiaomi" mfcode="0x1037">
+	<attribute-set id="0x5000" description="CTM special" mfcode="0x1337">
+	  <attribute id="0x5000" name="Current flag" type="u8" access="r" required="m" mfcode="0x1337"> </attribute>
+	</attribute-set>
+	<attribute-set id="0x8000" description="Xiaomi" mfcode="0x1037">
           <attribute id="0x8000" name="Button Press" type="u8" access="r" required="o"/>
         </attribute-set>
         <attribute-set id="0x8001" description="Tuya special">
@@ -2120,6 +2123,44 @@ Note: It does not clear or delete previous weekly schedule programming configura
 			<attribute id="0x0419" name="Unknown" type="u8" access="rw" required="m"></attribute>
 		</attribute-set>
 
+		<!-- CTM specific -->
+		<attribute-set id="0x0400" description="CTM specific" mfcode="0x1337">
+			<attribute id="0x0402" name="Display text" type="cstring" access="rw" required="m"></attribute>
+			<attribute id="0x0403" name="Temperature sensor" type="enum8" access="r" required="m">
+				<value name="Air sensor" value="0x00"></value>
+				<value name="Floor sensor" value="0x01"></value>
+				<value name="External sensor" value="0x02"></value>
+				<value name="Regulator" value="0x03"></value>
+			</attribute>
+			<attribute id="0x0405" name="Regulator mode enabled" type="bool" access="r" required="m"></attribute>
+			<attribute id="0x0406" name="Power status" type="bool" access="r" required="m"></attribute>
+			<attribute id="0x0408" name="Mean power" type="u16" access="r" required="m"></attribute>
+			<attribute id="0x0409" name="External temperature" type="s16" access="r" required="m"></attribute>
+			<attribute id="0x0411" name="Night switching enabled" type="bool" access="rw" required="m"></attribute>
+			<attribute id="0x0412" name="Frost guard enabled" type="bool" access="rw" required="m"></attribute>
+			<attribute id="0x0413" name="Child lock enabled" type="bool" access="r" required="m"></attribute>
+			<attribute id="0x0414" name="Maximum floor temperature" type="u8" access="r" required="m"></attribute>
+			<attribute id="0x0420" name="Regulator setpoint" type="u8" access="rw" required="m"></attribute>
+			<attribute id="0x0421" name="Regulation mode" type="u8" access="rw" required="m">
+				<value name="Thermostat" value="0x00"></value>
+				<value name="Regulator" value="0x01"></value>
+				<value name="Zzilent" value="0x02"></value>
+			</attribute>
+			<attribute id="0x0422" name="Operation mode" type="u8" access="rw" required="m">
+				<value name="OFF" value="0x00"></value>
+				<value name="Anti-Freeze Mode" value="0x01"></value>
+				<value name="Night Saving Mode" value="0x02"></value>
+				<value name="Comfort/ON" value="0x03"></value>
+			</attribute>
+			<attribute id="0x0423" name="Maximum floor temp guard" type="bool" access="r" required="m"></attribute>
+			<attribute id="0x0424" name="Weekly timer enabled" type="bool" access="rw" required="m"></attribute>
+			<attribute id="0x0425" name="Frost guard setpoint" type="u8" access="r" required="m"></attribute>
+			<attribute id="0x0426" name="Current floor temperature" type="s16" access="r" required="m"></attribute>
+			<attribute id="0x0428" name="Exteral sensor source" type="u16" access="rw" required="m"></attribute>
+			<attribute id="0x0429" name="Current air temperature" type="s16" access="r" required="m"></attribute>
+			<attribute id="0x042a" name="Heating element power" type="u16" access="rw" required="m"></attribute>
+		</attribute-set>
+
 		<!-- Eurotronic manufacturer specific -->
 		<attribute-set id="0x4000" description="Eurotronic" mfcode="0x1037">
 			<attribute id="0x4000" name="TRV Mode" type="enum8" default="0x02" access="rw" required="m" mfcode="0x1037">
@@ -2913,6 +2954,9 @@ controller device, that supports a keypad and LCD screen.</description>
 					<attribute id="0x0001" name="Min Measured Value" type="s16" access="r" required="m" range="0x954d,0x7ffe"></attribute>
 					<attribute id="0x0002" name="Max Measured Value" type="s16" access="r" required="m" range="0x954e,0x7ffe"></attribute>
 					<attribute id="0x0003" name="Tolerance" type="u16" access="r" required="o" range="0x0000,0x0800"></attribute>
+				</attribute-set>
+				<attribute-set id="0x0400" description="CTM special" mfcode="0x1337">
+					<attribute id="0x0400" name="Temperature offset" type="s8" access="rw" default="0" required="m" mfcode="0x1337"> </attribute>
 				</attribute-set>
 			</server>
 			<client>
@@ -4563,15 +4607,114 @@ Writing 1 to 0x0202 and 0x0302 makes 0x0300 writable. Then writing 1 to 0x0300 s
 				<attribute id="0x0003" name="Last hop LQI" type="u8" mfcode="0x1337" access="r" required="m"> </attribute>
 				<attribute id="0x0004" name="Last hop RSSI" type="s8" mfcode="0x1337" access="r" required="m"> </attribute>
 				<attribute id="0x0005" name="Tx power" type="s8" mfcode="0x1337" access="r" required="m"> </attribute>
+				<attribute id="0x0006" name="Parent node id" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
 				<attribute id="0x0010" name="Button 0 click counter" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
 				<attribute id="0x0020" name="Button 0 ms click counter" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
 				<attribute id="0x0100" name="Electrical measurement avg" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
 				<attribute id="0x0101" name="Electrical measurement raw" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
 				<attribute id="0x0102" name="Electrical measurement noise w load" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
 				<attribute id="0x0103" name="Electrical measurement noise w/o load" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
+				<attribute id="0x0401" name="Debug int" type="u32" mfcode="0x1337" access="r" required="m"> </attribute>
 				<attribute id="0xFFFD" name="Cluster revision" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
 			</server>
 			<client>
+			</client>
+		</cluster>
+
+		<!-- CTM Lyng -->
+		<cluster id="0xfea7" name="CTM groups and scenes config" mfcode="0x1337">
+			<description>CTM groups and scenes config attributes.</description>
+			<server>
+				<attribute id="0x0000" name="Group id 1" type="u16" mfcode="0x1337" access="r" default="0xfff8" showas="hex" required="m"> </attribute>
+				<attribute id="0x0100" name="Allow store scene" type="bool" mfcode="0x1337" access="r" default="0x01" required="m"> </attribute>
+				<attribute id="0x0101" name="Scene id 1" type="u8" mfcode="0x1337" access="r" default="0x01" showas="hex" required="m"> </attribute>
+				<attribute id="0x0102" name="Scene id 2" type="u8" mfcode="0x1337" access="r" default="0x02" showas="hex" required="m"> </attribute>
+				<attribute id="0xFFFD" name="Cluster revision" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
+			</server>
+			<client>
+			</client>
+		</cluster>
+		<cluster id="0xffc9" name="CTM Komfyrvakt" mfcode="0x1337">
+			<description>Komfyrvakt informasjon.</description>
+			<server>
+				<attribute id="0x0001" name="Alarm status" type="u8" mfcode="0x1337" access="r" default="0x00" showas="hex" required="m">
+					<value name="OK" value="0x00"></value>
+					<value name="Tamper" value="0x01"></value>
+					<value name="High Temperatur" value="0x02"></value>
+					<value name="Timer" value="0x03"></value>
+					<value name="Battery alarm" value="0x07"></value>
+					<value name="Error" value="0x08"></value>
+				</attribute>
+				<attribute id="0x0002" name="Change battery" type="u8" mfcode="0x1337" access="r" default="0x00" showas="hex" required="m">
+					<value name="Battery OK" value="0x00"></value>
+					<value name="Change battery" value="0x01"></value>
+				</attribute>
+				<attribute id="0x0003" name="Temperature" type="u16" mfcode="0x1337" access="r" default="0x0000" required="m"></attribute>
+				<attribute id="0x0004" name="Ambient temperature" type="u8" mfcode="0x1337" access="r" default="0x00" required="m"></attribute>
+				<attribute id="0x0005" name="Active" type="u8" mfcode="0x1337" access="r" default="0x00" showas="hex" required="m">
+					<value name="Inactive" value="0x00"></value>
+					<value name="Active" value="0x01"></value>
+				</attribute>
+				<attribute id="0x0006" name="Runtime" type="u16" mfcode="0x1337" access="r" default="0x0000" required="m"></attribute>
+				<attribute id="0x0007" name="Runtime timeout" type="u16" mfcode="0x1337" access="r" default="0x0000" required="m"></attribute>
+				<attribute id="0x0008" name="Reset_reason" type="u8" mfcode="0x1337" access="r" default="0x00" showas="hex" required="m">
+					<value name="Unknown" value="0x00"></value>
+					<value name="Power-on Reset" value="0x01"></value>
+					<value name="External Reset" value="0x02"></value>
+					<value name="Brown-Out Reset" value="0x03"></value>
+					<value name="Watchdog Reset" value="0x04"></value>
+					<value name="Program and debug interface reset" value="0x05"></value>
+					<value name="Software reset" value="0x06"></value>
+				</attribute>
+				<attribute id="0x0009" name="Dip switch" type="u8" mfcode="0x1337" access="r" default="0x00" showas="bin" required="m"></attribute>
+				<attribute id="0x000a" name="Software version" type="u8" mfcode="0x1337" access="r" default="0x00" required="m"></attribute>
+				<attribute id="0x000b" name="Hardware version" type="u8" mfcode="0x1337" access="r" default="0x00" required="m"></attribute>
+				<attribute id="0x000c" name="Bootloader version" type="u8" mfcode="0x1337" access="r" default="0x00" required="m"></attribute>
+				<attribute id="0x000d" name="Model" type="u16" mfcode="0x1337" access="r" default="0x0000" showas="hex" required="m">
+					<value name="mKomfy 1.8" value="0x01"></value>
+					<value name="mKomfy Infinity" value="0x0002"></value>
+					<value name="mKomfy Hybrid" value="000x03"></value>
+					<value name="mKomfy Tak" value="0x0004"></value>
+					<value name="mKomfy 1.8Slim" value="000x05"></value>
+					<value name="mKomfy 1.8Mini" value="0x0006"></value>
+				</attribute>
+				<attribute id="0x0010" name="Relay address" type="uid" mfcode="0x1337" access="rw" default="0xffffffffffffffff" required="m"></attribute>
+				<attribute id="0x0100" name="Relay current flag" type="u8" mfcode="0x1337" access="r" default="0xFF" showas="hex" required="m">
+					<value name="False" value="0x00"></value>
+					<value name="True" value="0x01"></value>
+					<value name="Unknown" value="0xFF"></value>
+				</attribute>
+				<attribute id="0x0101" name="Relay current" type="u8" mfcode="0x1337" access="r" default="0x00" required="m"></attribute>
+				<attribute id="0x0102" name="Relay status" type="u8" mfcode="0x1337" access="r" default="0xFF" showas="hex" required="m">
+					<value name="OFF" value="0x00"></value>
+					<value name="ON" value="0x01"></value>
+					<value name="Not present" value="0x02"></value>
+					<value name="Unknown" value="0xFF"></value>
+				</attribute>
+				<attribute id="0x0103" name="Relay external button" type="u8" mfcode="0x1337" access="r" default="0xFF" showas="hex" required="m">
+					<value name="Not clicked" value="0x00"></value>
+					<value name="Button clicked" value="0x01"></value>
+					<value name="Unknown" value="0xFF"></value>
+				</attribute>
+				<attribute id="0x0104" name="Relay alarm" type="u8" mfcode="0x1337" access="r" default="0x00" showas="hex" required="m">
+					<value name="OK" value="0x00"></value>
+					<value name="No communication" value="0x01"></value>
+					<value name="Over Current" value="0x02"></value>
+					<value name="Over Temperature" value="0x03"></value>
+				</attribute>
+				<attribute id="0x0105" name="Relay sensor alarm" type="u8" mfcode="0x1337" access="r" default="0x00" showas="hex" required="m">
+					<value name="OK" value="0x00"></value>
+					<value name="Tamper" value="0x01"></value>
+					<value name="High Temperatur" value="0x02"></value>
+					<value name="Timer" value="0x03"></value>
+					<value name="Battery alarm" value="0x07"></value>
+					<value name="Error" value="0x08"></value>
+				</attribute>
+				<attribute id="0xFFFD" name="Cluster revision" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
+			</server>
+			<client>
+				<attribute id="0x0010" name="Sensor address" type="uid" mfcode="0x1337" access="rw" default="0xffffffffffffffff" required="m"></attribute>
+				<attribute id="0xFFFD" name="Cluster revision" type="u16" mfcode="0x1337" access="r" required="m"> </attribute>
 			</client>
 		</cluster>
 
