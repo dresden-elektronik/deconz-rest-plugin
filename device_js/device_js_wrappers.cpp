@@ -205,8 +205,8 @@ QVariant JsZclAttribute::value() const
     case deCONZ::Zcl32BitInt:
     case deCONZ::Zcl48BitInt:
         {
-            //return attr->toVariant();
-            return QVariant::fromValue(qint64(attr->numericValue().s64));
+            return attr->toVariant();
+            //return QVariant::fromValue(qint64(attr->numericValue().s64));
         }
 
     case deCONZ::Zcl56BitInt:
