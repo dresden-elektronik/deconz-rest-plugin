@@ -693,7 +693,7 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
             
             if (dataType == TuyaDataTypeValue)
             {
-                attr.setValue(static_cast<quint64>(num.s32));
+                attr.setValue(QVariant(num.s32));
             }
             else
             {
