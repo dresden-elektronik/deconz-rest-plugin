@@ -541,6 +541,45 @@ bool DEV_FillItemFromSubdevices(Device *device, const char *itemSuffix, const st
     return false;
 }
 
+/*! Try to fill \c ResourceItem value from Basic cluster attributes if not already set.
+ */
+bool DEV_FillItemFromBasicCluster(Device *device, const char *itemSuffix, deCONZ::ZclClusterId_t clusterId,  deCONZ::ZclAttributeId_t attrId)
+{
+    ResourceItem *ditem = device->item(itemSuffix);
+
+    if (!ditem || !device->node())
+    {
+        return false;
+    }
+
+    if (ditem->lastSet().isValid())
+    {
+        return true;
+    }
+
+    for (const auto &sd : device->node()->simpleDescriptors())
+    {
+        const auto cl = std::find_if(sd.inClusters().cbegin(), sd.inClusters().cend(),
+                                     [clusterId](const auto &x) { return x.id_t() == clusterId; });
+
+        if (cl == sd.inClusters().cend()) { continue; }
+
+        const auto at = std::find_if(cl->attributes().cbegin(), cl->attributes().cend(),
+                                     [attrId](const auto &x){ return x.id_t() == attrId; });
+
+        if (at == cl->attributes().cend()) { continue; }
+
+        const QVariant v = at->toVariant();
+
+        if (!v.isNull() && ditem->setValue(v))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 /*! Sends a ZCL Read Attributes request for \p clusterId and \p attrId.
     This also configures generic read and parse handlers for an \p item if not already set.
  */
@@ -607,6 +646,11 @@ void DEV_BasicClusterStateHandler(Device *device, const Event &event)
         for (const auto &it : items)
         {
             if (DEV_FillItemFromSubdevices(device, it.suffix, subDevices))
+            {
+                okCount++;
+                continue;
+            }
+            else if (DEV_FillItemFromBasicCluster(device, it.suffix, it.clusterId,  it.attrId))
             {
                 okCount++;
                 continue;
