@@ -1,13 +1,31 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "config/temp_to_display",
-	"datatype": "Int16",
-	"access": "RW",
-	"public": true,
-	"default": 0,
-	"description": "Temperature to display on device.",
-	"parse": {"at": "0x0010", "cl": "0xff01", "ep": 1, "eval": "Item.val = Attr.val;", "fn": "zcl"},
-	"read": {"at": "0x0010", "cl": "0xff01", "ep": 1, "fn": "zcl"},
-	"write": {"at": "0x0010", "cl": "0xff01", "ep": 1, "fn": "zcl", "dt": "0x29", "mf": "0x119c", "eval": "Item.val"},
-	"range": [500, 3200]
+  "schema": "resourceitem1.schema.json",
+  "id": "config/temp_to_display",
+  "datatype": "Int16",
+  "access": "RW",
+  "public": true,
+  "default": -32768,
+  "description": "Temperature to display on device.",
+  "parse": {
+    "at": "0x0010",
+    "cl": "0xff01",
+    "ep": 1,
+    "eval": "Item.val = Attr.val;",
+    "fn": "zcl"
+  },
+  "read": {
+    "at": "0x0010",
+    "cl": "0xff01",
+    "ep": 1,
+    "fn": "zcl"
+  },
+  "write": {
+    "at": "0x0010",
+    "cl": "0xff01",
+    "ep": 1,
+    "fn": "zcl",
+    "dt": "0x29",
+    "mf": "0x119c",
+    "eval": "Item.val"
+  }
 }
