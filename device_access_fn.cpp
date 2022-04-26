@@ -8,12 +8,21 @@
  *
  */
 
+#include <QTimeZone>
 #include "air_quality.h"
+#include "device.h"
 #include "device_access_fn.h"
+#include "device_descriptions.h"
 #include "device_js/device_js.h"
 #include "ias_zone.h"
 #include "resource.h"
 #include "zcl/zcl.h"
+
+#define TIME_CLUSTER_ID     0x000A
+
+#define TIME_ATTRID_TIME                    0x0000
+#define TIME_ATTRID_LOCAL_TIME              0x0007
+#define TIME_ATTRID_LAST_SET_TIME           0x0008
 
 /*
     Documentation for manufacturer specific Tuya cluster (0xEF00)
@@ -1287,6 +1296,283 @@ bool parseIasZoneNotificationAndStatus(Resource *r, ResourceItem *item, const de
     return result;
 }
 
+/*! A function to write current time data to the time server cluster, syncing on-device RTC. Time calculations are borrowed from time.cpp.
+
+    {"fn": "time"}
+
+    - The function does not require any further parameters
+
+    Example: { "write": {"fn": "time"} }
+ */
+bool writeTimeData(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, const QVariant &writeParameters)
+{
+    Q_UNUSED(writeParameters);
+    Q_UNUSED(item);
+
+    Q_ASSERT(r);
+    Q_ASSERT(apsCtrl);
+
+    bool result = false;
+    const auto rParent = r->parentResource() ? r->parentResource() : r;
+    const auto *extAddr = rParent->item(RAttrExtAddress);
+    const auto *nwkAddr = rParent->item(RAttrNwkAddress);
+
+    if (!extAddr || !nwkAddr)
+    {
+        return result;
+    }
+
+    quint8 endpoint = resolveAutoEndpoint(r);
+
+    if (endpoint == AutoEndpoint)
+    {
+        return result;
+    }
+    
+    DBG_Printf(DBG_DDF, "%s correcting time drift...\n", r->item(RAttrUniqueId)->toCString());
+
+    const QDateTime now = QDateTime::currentDateTimeUtc();
+    const QDateTime yearStart(QDate(QDate::currentDate().year(), 1, 1), QTime(0, 0), Qt::UTC);
+    const QTimeZone timeZone(QTimeZone::systemTimeZoneId());
+
+    QDateTime epoch;
+
+    quint32 time_now = 0xFFFFFFFF;              // id 0x0000 Time
+    qint8 time_status = 0x0D;                   // id 0x0001 TimeStatus Master|MasterZoneDst|Superseding
+    qint32 time_zone = 0xFFFFFFFF;              // id 0x0002 TimeZone
+    quint32 time_dst_start = 0xFFFFFFFF;        // id 0x0003 DstStart
+    quint32 time_dst_end = 0xFFFFFFFF;          // id 0x0004 DstEnd
+    qint32 time_dst_shift = 0xFFFFFFFF;         // id 0x0005 DstShift
+    quint32 time_valid_until_time = 0xFFFFFFFF; // id 0x0009 ValidUntilTime
+
+    epoch = QDateTime(QDate(2000, 1, 1), QTime(0, 0), Qt::UTC);;
+    time_now = epoch.secsTo(now);
+    time_zone = timeZone.offsetFromUtc(yearStart);
+
+    if (timeZone.hasTransitions())
+    {
+        const QTimeZone::OffsetData dstStartOffsetData = timeZone.nextTransition(yearStart);
+        const QTimeZone::OffsetData dstEndOffsetData = timeZone.nextTransition(dstStartOffsetData.atUtc);
+        time_dst_start = epoch.secsTo(dstStartOffsetData.atUtc);
+        time_dst_end = epoch.secsTo(dstEndOffsetData.atUtc);
+        time_dst_shift = dstStartOffsetData.daylightTimeOffset;
+    }
+
+    time_valid_until_time = time_now + (3600 * 24);
+
+    deCONZ::ApsDataRequest req;
+    deCONZ::ZclFrame zclFrame;
+
+    req.setDstEndpoint(endpoint);
+    req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+    req.setDstAddressMode(deCONZ::ApsExtAddress);
+    req.dstAddress().setNwk(nwkAddr->toNumber());
+    req.dstAddress().setExt(extAddr->toNumber());
+    req.setClusterId(TIME_CLUSTER_ID);
+    req.setProfileId(HA_PROFILE_ID);
+    req.setSrcEndpoint(1); // TODO
+
+    zclFrame.setSequenceNumber(zclNextSequenceNumber());
+    zclFrame.setCommandId(deCONZ::ZclWriteAttributesId);
+
+    zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                             deCONZ::ZclFCDirectionClientToServer |
+                             deCONZ::ZclFCDisableDefaultResponse);
+
+    { // payload
+        QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        stream << (quint16) 0x0000; // Time
+        stream << (quint8) deCONZ::ZclUtcTime;
+        stream << time_now;
+
+        stream << (quint16) 0x0001; // Time Status
+        stream << (quint8) deCONZ::Zcl8BitBitMap;
+        stream << time_status;
+
+        stream << (quint16) 0x0002; // Time Zone
+        stream << (quint8) deCONZ::Zcl32BitInt;
+        stream << time_zone;
+
+        stream << (quint16) 0x0003; // Dst Start
+        stream << (quint8) deCONZ::Zcl32BitUint;
+        stream << time_dst_start;
+
+        stream << (quint16) 0x0004; // Dst End
+        stream << (quint8) deCONZ::Zcl32BitUint;
+        stream << time_dst_end;
+
+        stream << (quint16) 0x0005; // Dst Shift
+        stream << (quint8) deCONZ::Zcl32BitInt;
+        stream << time_dst_shift;
+
+        stream << (quint16) 0x0009; // Valid Until Time
+        stream << (quint8) deCONZ::ZclUtcTime;
+        stream << time_valid_until_time;
+    }
+
+    { // ZCL frame
+        QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        zclFrame.writeToStream(stream);
+    }
+
+    result = apsCtrl->apsdeDataRequest(req) == deCONZ::Success;
+
+    return result;
+}
+
+/*! A function to parse read/report commands time (utc), local and last set time of the time cluster.
+    The item->parseParameters() is expected to be an object (given in the device description file).
+
+    {"fn": "time"}
+
+    - The function does not require any further parameters
+
+    Example: { "parse": {"fn": "time"} }
+ */
+bool parseAndSyncTime(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, const QVariant &parseParameters)
+{
+    Q_UNUSED(parseParameters);
+    bool result = false;
+
+    if (ind.clusterId() != TIME_CLUSTER_ID)
+    {
+        return result;
+    }
+
+    if (ind.srcEndpoint() != resolveAutoEndpoint(r))
+    {
+        return result;
+    }
+
+    if (zclFrame.commandId() != deCONZ::ZclReadAttributesResponseId && zclFrame.commandId() != deCONZ::ZclReportAttributesId) // is read or report?
+    {
+        return result;
+    }
+
+    if (!item->parseFunction()) // init on first call
+    {
+        item->setParseFunction(parseAndSyncTime);
+    }
+
+    QDataStream stream(zclFrame.payload());
+    stream.setByteOrder(QDataStream::LittleEndian);
+
+    const QDateTime epoch = QDateTime(QDate(2000, 1, 1), QTime(0, 0), Qt::UTC);
+    const char *suffix = item->descriptor().suffix;
+
+    while (!stream.atEnd())
+    {
+        quint16 attrId;
+        quint8 status;
+        quint8 dataType;
+
+        stream >> attrId;
+
+        if (zclFrame.commandId() == deCONZ::ZclReadAttributesResponseId)
+        {
+            stream >> status;
+            if (status != deCONZ::ZclSuccessStatus)
+            {
+                continue;
+            }
+        }
+
+        stream >> dataType;
+        deCONZ::ZclAttribute attr(attrId, dataType, QLatin1String(""), deCONZ::ZclReadWrite, true);
+
+        if (!attr.readFromStream(stream))
+        {
+            break;
+        }
+
+        switch (attrId) {
+        case TIME_ATTRID_TIME:
+        {
+            if (suffix == RStateUtc)
+            {
+                QDateTime time = epoch.addSecs(attr.numericValue().u32);
+                const qint32 drift = QDateTime::currentDateTimeUtc().secsTo(time);
+
+                if (item->toVariant().toDateTime().toMSecsSinceEpoch() != time.toMSecsSinceEpoch())
+                {
+                    item->setValue(time, ResourceItem::SourceDevice);
+                }
+
+                if (drift < -10 || drift > 10)
+                {
+                    DBG_Printf(DBG_DDF, "%s/%s : time drift detected, %d seconds to now\n", r->item(RAttrUniqueId)->toCString(), suffix, drift);
+
+                    Device *device = (r && r->parentResource()) ? static_cast<Device*>(r->parentResource()) : nullptr;
+
+                    if (device)
+                    {
+                        DevicePrivate *d = device->d;
+                        if (writeTimeData(r, item, d->apsCtrl, item->toVariant())) // last parameter's content is irrelevant
+                        {
+                            // Check if drift got eliminated
+                            const auto &ddfItem = DDF_GetItem(item);
+                            const auto readFunction = DA_GetReadFunction(ddfItem.readParameters);
+                            auto res = readFunction(r, item, d->apsCtrl, ddfItem.readParameters);
+
+                            if (res.isEnqueued)
+                            {
+                                DBG_Printf(DBG_DDF, "%s time verification queued...\n", r->item(RAttrUniqueId)->toCString());
+                            }
+                        }
+                    }
+                }
+
+                item->setLastZclReport(deCONZ::steadyTimeRef().ref);    // Treat as report
+
+                result = true;
+            }
+        }
+            break;
+
+        case TIME_ATTRID_LOCAL_TIME:
+        {
+            if (suffix == RStateLocaltime)
+            {
+                QDateTime time = epoch.addSecs(attr.numericValue().u32 - QDateTime::currentDateTime().offsetFromUtc());
+
+                if (item->toVariant().toDateTime().toMSecsSinceEpoch() != time.toMSecsSinceEpoch())
+                {
+                    item->setValue(time, ResourceItem::SourceDevice);
+                }
+
+                item->setLastZclReport(deCONZ::steadyTimeRef().ref);     // Treat as report
+
+                result = true;
+            }
+        }
+            break;
+
+        case TIME_ATTRID_LAST_SET_TIME:
+        {
+            if (suffix == RStateLastSet)
+            {
+                QDateTime time = epoch.addSecs(attr.numericValue().u32);
+
+                if (item->toVariant().toDateTime().toMSecsSinceEpoch() != time.toMSecsSinceEpoch())
+                {
+                    item->setValue(time, ResourceItem::SourceDevice);
+                }
+
+                item->setLastZclReport(deCONZ::steadyTimeRef().ref);     // Treat as report
+
+                result = true;
+            }
+        }
+            break;
+        }
+    }
+
+    return result;
+}
+
 /*! A generic function to read ZCL attributes.
     The item->readParameters() is expected to be an object (given in the device description file).
 
@@ -1496,13 +1782,14 @@ ParseFunction_t DA_GetParseFunction(const QVariant &params)
 {
     ParseFunction_t result = nullptr;
 
-    const std::array<ParseFunction, 5> functions =
+    const std::array<ParseFunction, 6> functions =
     {
         ParseFunction(QLatin1String("zcl"), 1, parseZclAttribute),
         ParseFunction(QLatin1String("xiaomi:special"), 1, parseXiaomiSpecial),
         ParseFunction(QLatin1String("ias:zonestatus"), 1, parseIasZoneNotificationAndStatus),
         ParseFunction(QLatin1String("tuya"), 1, parseTuyaData),
-        ParseFunction(QLatin1String("numtostr"), 1, parseNumericToString)
+        ParseFunction(QLatin1String("numtostr"), 1, parseNumericToString),
+        ParseFunction(QLatin1String("time"), 1, parseAndSyncTime)
     };
 
     QString fnName;
@@ -1577,10 +1864,11 @@ WriteFunction_t DA_GetWriteFunction(const QVariant &params)
 {
     WriteFunction_t result = nullptr;
 
-    const std::array<WriteFunction, 2> functions =
+    const std::array<WriteFunction, 3> functions =
     {
         WriteFunction(QLatin1String("zcl"), 1, writeZclAttribute),
-        WriteFunction(QLatin1String("tuya"), 1, writeTuyaData)
+        WriteFunction(QLatin1String("tuya"), 1, writeTuyaData),
+        WriteFunction(QLatin1String("time"), 1, writeTimeData)
     };
 
     QString fnName;

@@ -8,7 +8,6 @@
  *
  */
 
-#include <QBasicTimer>
 #include <QElapsedTimer>
 #include <QTimer>
 #include <QTimerEvent>
@@ -23,17 +22,6 @@
 #include "event.h"
 #include "event_emitter.h"
 #include "utils/utils.h"
-#include "zcl/zcl.h"
-#include "zdp/zdp.h"
-
-#define STATE_LEVEL_BINDING  StateLevel1
-#define STATE_LEVEL_POLL     StateLevel2
-
-#define MGMT_BIND_SUPPORT_UNKNOWN -1
-#define MGMT_BIND_SUPPORTED        1
-#define MGMT_BIND_NOT_SUPPORTED    0
-
-typedef void (*DeviceStateHandler)(Device *, const Event &);
 
 /*! Device state machine description can be found in the wiki:
 
@@ -60,103 +48,12 @@ void DEV_PollNextStateHandler(Device *device, const Event &event);
 void DEV_PollBusyStateHandler(Device *device, const Event &event);
 void DEV_DeadStateHandler(Device *device, const Event &event);
 
-// enable domain specific string literals
-using namespace deCONZ::literals;
-
-constexpr int RxOnWhenIdleResponseTime = 2000; // Expect shorter response delay for rxOnWhenIdle devices
-constexpr int RxOffWhenIdleResponseTime = 8000; // 7680 ms + some space for timeout
-constexpr int MaxConfirmTimeout = 20000; // If for some reason no APS-DATA.confirm is received (should almost
-constexpr int BindingAutoCheckInterval = 1000 * 60 * 60;
-constexpr int MaxPollItemRetries = 3;
-constexpr int MaxSubResources = 8;
-
 static int devManaged = -1;
-
-struct DEV_PollItem
-{
-    explicit DEV_PollItem(const Resource *r, const ResourceItem *i, const QVariant &p) :
-        resource(r), item(i), readParameters(p) {}
-    size_t retry = 0;
-    const Resource *resource = nullptr;
-    const ResourceItem *item = nullptr;
-    QVariant readParameters;
-};
 
 // special value for ReportTracker::lastConfigureCheck during zcl configure reporting step
 constexpr int64_t MarkZclConfigureBusy = 21;
 
-struct ReportTracker
-{
-    deCONZ::SteadyTimeRef lastReport;
-    deCONZ::SteadyTimeRef lastConfigureCheck;
-    uint16_t clusterId = 0;
-    uint16_t attributeId = 0;
-    uint8_t endpoint = 0;
-};
-
-struct BindingTracker
-{
-    deCONZ::SteadyTimeRef tBound;
-};
-
-struct BindingContext
-{
-    size_t bindingCheckRound = 0;
-    size_t bindingIter = 0;
-    size_t reportIter = 0;
-    int mgmtBindSupported = MGMT_BIND_SUPPORT_UNKNOWN;
-    uint8_t mgmtBindStartIndex = 0;
-    std::vector<BindingTracker> bindingTrackers;
-    std::vector<DDF_Binding> bindings;
-    std::vector<ReportTracker> reportTrackers;
-    ZCL_ReadReportConfigurationParam readReportParam;
-    ZCL_Result zclResult;
-    ZDP_Result zdpResult;
-};
-
 static ReportTracker &DEV_GetOrCreateReportTracker(Device *device, uint16_t clusterId, uint16_t attrId, uint8_t endpoint);
-
-class DevicePrivate
-{
-public:
-    void setState(DeviceStateHandler newState, DEV_StateLevel level = StateLevel0);
-    void startStateTimer(int IntervalMs, DEV_StateLevel level);
-    void stopStateTimer(DEV_StateLevel level);
-    bool hasRxOnWhenIdle() const;
-
-    Device *q = nullptr; //! reference to public interface
-    deCONZ::ApsController *apsCtrl = nullptr; //! opaque instance pointer forwarded to external functions
-
-    /*! sub-devices are not yet referenced via pointers since these may become dangling.
-        This is a helper to query the actual sub-device Resource* on demand via Resource::Handle.
-    */
-    std::array<Resource::Handle, MaxSubResources> subResourceHandles;
-    std::vector<Resource*> subResources;
-    const deCONZ::Node *node = nullptr; //! a reference to the deCONZ core node
-    DeviceKey deviceKey = 0; //! for physical devices this is the MAC address
-
-    /*! The currently active state handler function(s).
-        Indexes >0 represent sub states of StateLevel0 running in parallel.
-    */
-    std::array<DeviceStateHandler, StateLevelMax> state{};
-
-    std::array<QBasicTimer, StateLevelMax> timer; //! internal single shot timer one for each state level
-    QElapsedTimer awake; //! time to track when an end-device was last awake
-    BindingContext binding; //! only used by binding sub state machine
-    std::vector<DEV_PollItem> pollItems; //! queue of items to poll
-    bool managed = false; //! a managed device doesn't rely on legacy implementation of polling etc.
-    ZDP_Result zdpResult; //! keep track of a running ZDP request
-    DA_ReadResult readResult; //! keep track of a running "read" request
-
-    int maxResponseTime = RxOffWhenIdleResponseTime;
-
-    struct
-    {
-        unsigned char hasDdf : 1;
-        unsigned char initialRun : 1;
-        unsigned char reserved : 6;
-    } flags{};
-};
 
 //! Forward device attribute changes to core.
 void DEV_ForwardNodeChange(Device *device, const QString &key, const QString &value)

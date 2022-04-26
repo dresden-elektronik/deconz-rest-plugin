@@ -5,7 +5,7 @@
 	"access": "R",
 	"public": true,
 	"description": "Timestamp when the time attribute was last set on the device.",
-	"parse": {"at": "0x0008", "cl": "0x000A", "ep": 0, "eval": "Item.val = Attr.val;", "fn": "zcl"},
+	"parse": {"fn": "time"},
 	"read": {"at": "0x0008", "cl": "0x000A", "ep": 0, "fn": "zcl"},
 	"refresh.interval": 3600
 }
