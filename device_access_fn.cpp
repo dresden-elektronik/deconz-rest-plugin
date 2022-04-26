@@ -1423,7 +1423,7 @@ bool writeTimeData(const Resource *r, const ResourceItem *item, deCONZ::ApsContr
     return result;
 }
 
-/*! A function to parse read/report commands time (utc), local and last set time of the time cluster.
+/*! A specialized function to parse time (utc), local and last set time from read/report commands of the time cluster and auto-sync time if needed.
     The item->parseParameters() is expected to be an object (given in the device description file).
 
     {"fn": "time"}
@@ -1523,6 +1523,10 @@ bool parseAndSyncTime(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndi
                             }
                         }
                     }
+                }
+                else
+                {
+                    DBG_Printf(DBG_DDF, "%s/%s : NO considerable time drift detected, %d seconds to now\n", r->item(RAttrUniqueId)->toCString(), suffix, drift);
                 }
 
                 item->setLastZclReport(deCONZ::steadyTimeRef().ref);    // Treat as report

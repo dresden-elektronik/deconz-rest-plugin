@@ -267,6 +267,14 @@ DeviceDescriptions::DeviceDescriptions(QObject *parent) :
 
         d_ptr2->parseFunctions.push_back(fn);
     }
+    
+    {
+        DDF_FunctionDescriptor fn;
+        fn.name = "time";
+        fn.description = "Specialized function to parse time, local and last set time from read/report commands of the time cluster and auto-sync time if needed.";
+
+        d_ptr2->parseFunctions.push_back(fn);
+    }
 
     {
         DDF_FunctionDescriptor fn;
