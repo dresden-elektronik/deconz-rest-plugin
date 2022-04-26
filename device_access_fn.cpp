@@ -1868,11 +1868,10 @@ WriteFunction_t DA_GetWriteFunction(const QVariant &params)
 {
     WriteFunction_t result = nullptr;
 
-    const std::array<WriteFunction, 3> functions =
+    const std::array<WriteFunction, 2> functions =
     {
         WriteFunction(QLatin1String("zcl"), 1, writeZclAttribute),
-        WriteFunction(QLatin1String("tuya"), 1, writeTuyaData),
-        WriteFunction(QLatin1String("time"), 1, writeTimeData)
+        WriteFunction(QLatin1String("tuya"), 1, writeTuyaData)
     };
 
     QString fnName;
