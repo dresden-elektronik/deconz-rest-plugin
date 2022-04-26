@@ -7,6 +7,5 @@
 	"description": "Current timestamp in UTC set on the device.",
 	"parse": {"fn": "time"},
 	"read": {"at": "0x0000", "cl": "0x000A", "ep": 0, "fn": "zcl"},
-    "write": {"fn": "time"},
 	"refresh.interval": 3600
 }
