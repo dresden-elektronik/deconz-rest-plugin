@@ -938,15 +938,13 @@ void DEV_BindingTableReadHandler(Device *device, const Event &event)
     else if (event.what() == REventZdpMgmtBindResponse)
     {
         uint8_t buf[128];
-        if (event.hasData() && event.dataSize() >= 5 && event.dataSize() < sizeof(buf))
+        if (event.hasData() && event.dataSize() >= 2 && event.dataSize() < sizeof(buf))
         {
             if (event.getData(buf, event.dataSize()))
             {
                 const uint8_t seq = buf[0];
                 const uint8_t status = buf[1];
-                const uint8_t size = buf[2];
-                const uint8_t index = buf[3];
-                const uint8_t count = buf[4];
+
 
                 if (seq != d->zdpResult.zdpSeq)
                 {
@@ -958,6 +956,17 @@ void DEV_BindingTableReadHandler(Device *device, const Event &event)
                     d->stopStateTimer(STATE_LEVEL_BINDING);
 
                     d->binding.mgmtBindSupported = MGMT_BIND_SUPPORTED;
+
+                    uint8_t size = 0;
+                    uint8_t index = 0;
+                    uint8_t count = 0;
+
+                    if (event.dataSize() >= 5)
+                    {
+                        size = buf[2];
+                        index = buf[3];
+                        count = buf[4];
+                    }
 
                     if (size > index + count)
                     {
