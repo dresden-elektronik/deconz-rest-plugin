@@ -1730,7 +1730,7 @@ void DEV_PollIdleStateHandler(Device *device, const Event &event)
     {
         DBG_Printf(DBG_DEV, "DEV Poll Idle enter %s/0x%016llX\n", event.resource(), event.deviceKey());
     }
-    else if (event.what() == REventPoll)
+    else if (event.what() == REventPoll || event.what() == REventAwake)
     {
         d->pollItems = DEV_GetPollItems(device);
 
