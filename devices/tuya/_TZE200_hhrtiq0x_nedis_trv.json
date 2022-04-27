@@ -44,7 +44,9 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/battery"
+          "name": "config/battery",
+          "parse": {"fn": "tuya", "dpid": 15, "eval": "Item.val = Attr.val;"},
+          "read": {"fn": "none"}
         },
         {
           "name": "config/heatsetpoint",
