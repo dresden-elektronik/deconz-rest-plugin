@@ -1,11 +1,10 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "Sinope",
+  "manufacturername": "Sinope Technologies",
   "modelid": "TH1124ZB",
   "product": "TH1124ZB",
   "sleeper": false,
-  "status": "Silver",
-  "path": "/devices/th1124zb.json",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_THERMOSTAT",
@@ -80,7 +79,38 @@
         },
         {
           "name": "config/schedule_on",
-          "description": "Determines if on-device schedules for setting the heatsetpoint are currently used or if the thermostat is operated manually."
+          "description": "Determines if on-device schedules for setting the heatsetpoint are currently used or if the thermostat is operated manually.",
+          "default": false
+        },
+                {
+          "name": "config/temp_to_display",
+          "description": "Outdoor temperature on display",
+          "refresh.interval": 300,
+          "read": {
+            "at": "0x0010",
+            "cl": "0xff01",
+            "ep": 1,
+            "fn": "zcl",
+            "mf": "0x119c"
+          },
+          "parse": {
+            "at": "0x0010",
+            "cl": "0xff01",
+            "ep": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl",
+            "mf": "0x119c"
+          },
+          "write": {
+              "at": "0x0010",
+              "cl": "0xff01",
+              "ep": 1,
+              "fn": "zcl",
+              "dt": "0x29",
+              "mf": "0x119c",
+              "eval": "Item.val"
+          },
+          "default": -32768
         },
         {
           "name": "state/lastupdated"
@@ -150,14 +180,22 @@
         },
         {
           "name": "state/current",
-          "refresh.interval": 300
+	      "description": "The measured current (in A).",
+          "refresh.interval": 300,
+          "parse": {
+            "at": "0x0508",
+            "cl": "0x0b04",
+            "ep": 1,
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val / 1000; }"
+          },
+          "default": 0
         },
         {
           "name": "state/lastupdated"
         },
-        {
           "name": "state/power",
-          "refresh.interval": 300
+          "refresh.interval": 300,
+          "default": 0
         },
         {
           "name": "state/voltage",
@@ -167,7 +205,8 @@
             "cl": "0x0b04",
             "ep": 0,
             "eval": "if (Attr.val != 65535) { Item.val = Attr.val / 10 ; }"
-          }
+          },
+          "default": 0
         }
       ]
     },
@@ -224,14 +263,18 @@
         },
         {
           "name": "state/consumption",
-          "refresh.interval": 300
+          "refresh.interval": 300,
+          "default": 0
         },
         {
           "name": "state/lastupdated"
         },
         {
           "name": "state/power",
-          "refresh.interval": 300
+          "description": "The measured power (in W).",
+          "refresh.interval": 300,
+          "default": 0,
+           "parse": {"at": "0x050B", "cl": "0x0B04", "ep": 1, "eval": "if (Attr.val != -32768 && Attr.val != 32768) { Item.val = Attr.val; }", "fn": "zcl"}
         }
       ]
     },
