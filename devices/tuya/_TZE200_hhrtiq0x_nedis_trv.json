@@ -45,7 +45,7 @@
         },
         {
           "name": "config/battery",
-          "parse": {"fn": "tuya", "dpid": 15, "eval": "Item.val = Attr.val;"},
+          "parse": {"fn": "tuya", "dpid": 21, "eval": "Item.val = Attr.val;"},
           "read": {"fn": "none"}
         },
         {
@@ -92,7 +92,9 @@
           "read": {"fn": "none"}
         },
         {
-          "name": "state/valve"
+          "name": "state/valve",
+          "parse": {"fn": "tuya", "dpid": 109, "eval": "Item.val = Attr.val > 5;"},
+          "read": {"fn": "none"}
         }
       ]
     }
