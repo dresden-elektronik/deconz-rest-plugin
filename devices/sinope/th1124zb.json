@@ -193,6 +193,7 @@
         {
           "name": "state/lastupdated"
         },
+        {
           "name": "state/power",
           "refresh.interval": 300,
           "default": 0
