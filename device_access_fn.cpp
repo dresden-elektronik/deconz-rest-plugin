@@ -10,7 +10,6 @@
 
 #include <QTimeZone>
 #include "air_quality.h"
-#include "device.h"
 #include "device_access_fn.h"
 #include "device_descriptions.h"
 #include "device_js/device_js.h"
@@ -1505,22 +1504,18 @@ bool parseAndSyncTime(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndi
                 {
                     DBG_Printf(DBG_DDF, "%s/%s : time drift detected, %d seconds to now\n", r->item(RAttrUniqueId)->toCString(), suffix, drift);
 
-                    Device *device = (r && r->parentResource()) ? static_cast<Device*>(r->parentResource()) : nullptr;
+                    auto *apsCtrl = deCONZ::ApsController::instance();
 
-                    if (device)
+                    if (writeTimeData(r, item, apsCtrl, item->toVariant())) // last parameter's content is irrelevant
                     {
-                        DevicePrivate *d = device->d;
-                        if (writeTimeData(r, item, d->apsCtrl, item->toVariant())) // last parameter's content is irrelevant
-                        {
-                            // Check if drift got eliminated
-                            const auto &ddfItem = DDF_GetItem(item);
-                            const auto readFunction = DA_GetReadFunction(ddfItem.readParameters);
-                            auto res = readFunction(r, item, d->apsCtrl, ddfItem.readParameters);
+                        // Check if drift got eliminated
+                        const auto &ddfItem = DDF_GetItem(item);
+                        const auto readFunction = DA_GetReadFunction(ddfItem.readParameters);
+                        auto res = readFunction(r, item, apsCtrl, ddfItem.readParameters);
 
-                            if (res.isEnqueued)
-                            {
-                                DBG_Printf(DBG_DDF, "%s time verification queued...\n", r->item(RAttrUniqueId)->toCString());
-                            }
+                        if (res.isEnqueued)
+                        {
+                            DBG_Printf(DBG_DDF, "%s time verification queued...\n", r->item(RAttrUniqueId)->toCString());
                         }
                     }
                 }
