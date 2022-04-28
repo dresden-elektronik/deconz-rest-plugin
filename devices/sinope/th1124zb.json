@@ -4,7 +4,7 @@
   "modelid": "TH1124ZB",
   "product": "TH1124ZB",
   "sleeper": false,
-  "status": "Gold",
+  "status": "Silver",
   "subdevices": [
     {
       "type": "$TYPE_THERMOSTAT",
@@ -84,7 +84,7 @@
         },
                 {
           "name": "config/externalsensortemp",
-          "description": "External sensor temperature.",
+          "description": "External sensor temperature used as Outdoor temperature on display.",
           "refresh.interval": 300,
           "read": {
             "at": "0x0010",
