@@ -1731,7 +1731,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         DBG_Printf(DBG_INFO_L2, "debug test send wndowsopen\n");
                         StateChange change2(StateChange::StateCallFunction, SC_WriteZclAttribute, task.req.dstEndpoint());
-                        change2.addTargetValue(rid.suffix, data.uinteger);
+                        change2.addTargetValue(rid.suffix, data.boolean);
                         rsub->addStateChange(change2);
                         updated = true;
                     }
