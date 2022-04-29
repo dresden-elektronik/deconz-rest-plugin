@@ -201,6 +201,7 @@ static void DB_CleanupDuplSensors(sqlite3 *db)
     ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT uniqueid"
                                  " FROM sensors"
                                  " WHERE type NOT LIKE 'CLIP%%'"
+                                 " AND deletedState == 'normal'"
                                  " GROUP BY uniqueid"
                                  " HAVING COUNT(uniqueid) > 1");
     assert(size_t(ret) < sizeof(sqlBuf));
@@ -229,6 +230,7 @@ static void DB_CleanupDuplSensors(sqlite3 *db)
         ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT sid"
                                      " FROM sensors"
                                      " WHERE uniqueid = '%s'"
+                                     " AND deletedState == 'normal'"
                                      " ORDER BY sid DESC LIMIT 1", uniqueid.c_str());
         assert(size_t(ret) < sizeof(sqlBuf));
         if (size_t(ret) < sizeof(sqlBuf))
@@ -243,7 +245,7 @@ static void DB_CleanupDuplSensors(sqlite3 *db)
             }
         }
 
-        if (result.size() != 1)
+        if (result.size() != 1 || result.front().empty())
         {
             continue;
         }
