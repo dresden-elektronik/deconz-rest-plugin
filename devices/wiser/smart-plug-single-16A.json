@@ -4,8 +4,7 @@
   "modelid": "SMARTPLUG/1",
   "product": "SMARTPLUG/1",
   "sleeper": false,
-  "status": "Silver",
-  "path": "/devices/schneider.json",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_SMART_PLUG",
@@ -44,12 +43,10 @@
         },
         {
           "name": "state/alert",
-          "description": "The currently active alert effect.",
           "default": "none"
         },
         {
           "name": "state/on",
-          "description": "True when device is on; false when off.",
           "refresh.interval": 5
         },
         {
@@ -101,7 +98,6 @@
         },
         {
           "name": "state/current",
-          "description": "The measured current (in mA).",
           "refresh.interval": 300
         },
         {
@@ -109,12 +105,10 @@
         },
         {
           "name": "state/power",
-          "description": "The measured power (in W).",
           "refresh.interval": 300
         },
         {
           "name": "state/voltage",
-          "description": "The measured voltage (in V).",
           "refresh.interval": 300
         }
       ]
