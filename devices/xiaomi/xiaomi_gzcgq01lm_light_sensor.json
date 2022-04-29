@@ -6,8 +6,9 @@
     "modelid": "lumi.sen_ill.mgl01",
     "vendor": "Xiaomi",
     "product": "Mija Light Sensor GZCGQ01LM",
-    "status": "Silver",
+    "status": "Gold",
     "md:known_issues": [ ],
+    "sleeper": true,
     "subdevices": [
         {
             "type": "$TYPE_LIGHT_LEVEL_SENSOR",
@@ -22,7 +23,8 @@
                     "name": "attr/manufacturername"
                 },
                 {
-                    "name": "attr/modelid"
+                    "name": "attr/modelid",
+                    "awake": true
                 },
                 {
                     "name": "attr/name"
@@ -55,8 +57,7 @@
                 },
                 {
                     "name": "state/lightlevel",
-                    "parse": {"ep": 1, "cl": "0x0400", "at": "0x0000", "script": "../generic/illuminance_cluster/sml_light_level.js"},
-                    "awake": true
+                    "parse": {"ep": 1, "cl": "0x0400", "at": "0x0000", "script": "../generic/illuminance_cluster/sml_light_level.js"}
                 },
                 {
                     "name": "state/dark"
@@ -96,6 +97,22 @@
                 "type": "ZHALightLevel",
                 "uniqueid": "04:cf:8c:df:3c:7f:1f:80-01-0400"
             }
+        }
+    ],
+    "bindings": [
+        {
+          "bind": "unicast",
+          "src.ep": 1,
+          "cl": "0x0400",
+          "report": [
+            {
+              "at": "0x0000",
+              "dt": "0x21",
+              "min": 10,
+              "max": 3600,
+              "change": "0x0064"
+            }
+          ]
         }
     ]
 }
