@@ -1732,6 +1732,15 @@ void DEV_PollIdleStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventPoll || event.what() == REventAwake)
     {
+        if (device->node()) // update nwk address if needed
+        {
+            const auto &addr = device->node()->address();
+            if (addr.hasNwk() && addr.nwk() != device->item(RAttrNwkAddress)->toNumber())
+            {
+                device->item(RAttrNwkAddress)->setValue(addr.nwk());
+            }
+        }
+
         d->pollItems = DEV_GetPollItems(device);
 
         if (!d->pollItems.empty())
