@@ -657,7 +657,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             {
                 item->setValue(batteryPercentage);
                 enqueueEvent(Event(RSensors, RStateBattery, sensor.id(), item));
-                q_ptr->nodeUpdated(sensor.address().ext(), QLatin1String(item->descriptor().suffix), QString::number(batteryPercentage));
                 sensor.updateStateTimestamp();
                 if (item->lastSet() == item->lastChanged())
                 {
@@ -687,7 +686,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
                 item->setValue(quint8(bat));
                 enqueueEvent(Event(RSensors, RConfigBattery, sensor.id(), item));
-                emit q_ptr->nodeUpdated(sensor.address().ext(), QLatin1String(item->descriptor().suffix), QString::number(bat));
 
                 if (item->lastSet() == item->lastChanged())
                 {

@@ -255,6 +255,11 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
                 DEV_AllocateGroup(device, rsub, item);
             }
 
+            if (item->descriptor().suffix == RConfigBattery || item->descriptor().suffix == RStateBattery)
+            {
+                DEV_ForwardNodeChange(device, QLatin1String(item->descriptor().suffix), QString::number(item->toNumber()));
+            }
+
             if (item->descriptor().suffix == RConfigCheckin)
             {
                 if (PC_GetPollControlEndpoint(device->node()) > 0)

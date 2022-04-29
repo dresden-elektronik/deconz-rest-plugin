@@ -158,11 +158,24 @@ public:
     } flags{};
 };
 
+Device *DEV_ParentDevice(Resource *r)
+{
+    if (r && r->parentResource() && r->parentResource()->prefix() == RDevices)
+    {
+        return static_cast<Device*>(r->parentResource());
+    }
+
+    return nullptr;
+}
+
 //! Forward device attribute changes to core.
 void DEV_ForwardNodeChange(Device *device, const QString &key, const QString &value)
 {
-    QMetaObject::invokeMethod(device->d->apsCtrl, "onRestNodeUpdated", Qt::DirectConnection,
+    if (device)
+    {
+        QMetaObject::invokeMethod(device->d->apsCtrl, "onRestNodeUpdated", Qt::DirectConnection,
                               Q_ARG(quint64, device->key()), Q_ARG(QString, key), Q_ARG(QString, value));
+    }
 }
 
 void DEV_EnqueueEvent(Device *device, const char *event)
