@@ -5,9 +5,8 @@
     "manufacturername": "$MF_PHILIPS",
     "modelid": ["RWL021", "RWL021"],
     "product": "Dimmer Switch 1. Gen EU/US",
-    "status": "Silver",
+    "status": "Gold",
     "sleeper": true,
-    "md:known_issues": [ ],
     "subdevices": [
          {
             "type": "$TYPE_SWITCH",
