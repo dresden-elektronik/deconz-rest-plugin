@@ -15272,6 +15272,11 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
 
         if (!hasNodeDescriptor)
         {
+            if (DEV_TestManaged())
+            {
+                return; // Device code handles this
+            }
+
             DBG_Printf(DBG_INFO, "[1] get node descriptor for 0x%016llx\n", sc->address.ext());
 
             if (ZDP_NodeDescriptorReq(sc->address, apsCtrl))
@@ -15287,6 +15292,11 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
 
         if (!hasActiveEndpoints)
         {
+            if (DEV_TestManaged())
+            {
+                return; // Device code handles this
+            }
+
             DBG_Printf(DBG_INFO, "[2] get active endpoints for 0x%016llx\n", sc->address.ext());
 
             if (ZDP_ActiveEndpointsReq(sc->address, apsCtrl))
@@ -15315,7 +15325,12 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                     }
                 }
 
-                if (ep) // fetch this
+                if (DEV_TestManaged())
+                {
+                    return; // Device code handles this
+                }
+
+                if (ep) // fetch
                 {
                     DBG_Printf(DBG_INFO, "[3] get simple descriptor 0x%02X for 0x%016llx\n", ep, sc->address.ext());
 
