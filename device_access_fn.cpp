@@ -987,6 +987,7 @@ deCONZ::ZclAttribute parseXiaomiZclTag(const quint8 rtag, const deCONZ::ZclFrame
     quint16 attrId = 0;
     quint8 dataType = 0;
     quint8 length = 0;
+    quint16 structElements = 0;
 
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
@@ -1009,7 +1010,8 @@ deCONZ::ZclAttribute parseXiaomiZclTag(const quint8 rtag, const deCONZ::ZclFrame
         }
         else if (a == 0xff02 && dataType == 0x4c /*deCONZ::ZclStruct*/)
         {
-//            attrId = a;
+            attrId = a;
+            stream >> structElements;
         }
         else if (a == 0x00f7 && dataType == deCONZ::ZclOctedString)
         {
@@ -1031,10 +1033,10 @@ deCONZ::ZclAttribute parseXiaomiZclTag(const quint8 rtag, const deCONZ::ZclFrame
         return result;
     }
 
+    quint8 tag = 0;
+
     while (!stream.atEnd())
     {
-        quint8 tag = 0;
-
         if (attrId == 0xff01 || attrId == 0x00f7)
         {
             stream >> tag;
@@ -1053,6 +1055,11 @@ deCONZ::ZclAttribute parseXiaomiZclTag(const quint8 rtag, const deCONZ::ZclFrame
         {
             result = atmp;
             break;
+        }
+
+        if (structElements > 0)
+        {
+            tag++; // running struct index
         }
     }
 
