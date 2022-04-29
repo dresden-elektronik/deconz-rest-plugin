@@ -400,18 +400,18 @@
         },
         {
           "name": "state/lastset",
-          "refresh.interval": 10900
+          "refresh.interval": 3700
         },
         {
           "name": "state/lastupdated"
         },
         {
           "name": "state/localtime",
-          "refresh.interval": 10900
+          "refresh.interval": 3700
         },
         {
           "name": "state/utc",
-          "refresh.interval": 10900
+          "refresh.interval": 3700
         }
       ]
     }

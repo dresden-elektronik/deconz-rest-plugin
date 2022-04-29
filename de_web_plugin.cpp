@@ -4378,7 +4378,11 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ:
 
             updated = true;
         }
-        if (!DEV_TestStrict())
+
+        auto *device = DEV_GetDevice(m_devices, sensor->address().ext());
+        const bool devManaged = device && device->managed();
+
+        if (!DEV_TestStrict() && !devManaged)
         {
             if (sensor->type() == QLatin1String("ZHATime") && !sensor->mustRead(READ_TIME))
             {
@@ -11184,7 +11188,10 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         }
     }
 
-    if (!DEV_TestStrict())
+    auto *device = DEV_GetDevice(m_devices, sensorNode->address().ext());
+    const bool devManaged = device && device->managed();
+
+    if (!DEV_TestStrict() && !devManaged)
     {
         if (sensorNode->mustRead(READ_TIME) && tNow > sensorNode->nextReadTime(READ_TIME))
         {
@@ -16894,7 +16901,7 @@ void DeRestPlugin::idleTimerFired()
                             }
                         }
 
-                        if (!DEV_TestStrict())
+                        if (!DEV_TestStrict() && !devManaged)
                         {
                             if (*ci == TIME_CLUSTER_ID)
                             {

@@ -637,7 +637,7 @@ void DEV_BasicClusterStateHandler(Device *device, const Event &event)
         d->stopStateTimer(StateLevel0);
     }
     else if (event.what() == REventApsConfirm)
-    {       
+    {
         if (d->readResult.apsReqId == EventApsConfirmId(event))
         {
             if (EventApsConfirmStatus(event) == deCONZ::ApsSuccessStatus)
