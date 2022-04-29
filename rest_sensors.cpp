@@ -2773,6 +2773,8 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         return;
     }
 
+    Device *device = DEV_ParentDevice(sensor);
+
     // speedup sensor state check
     if ((e.what() == RStatePresence || e.what() == RStateButtonEvent) &&
         sensor && sensor->durationDue.isValid())
@@ -2789,6 +2791,11 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             if (item->descriptor().suffix == RStatePresence && item->toBool())
             {
                 globalLastMotion = item->lastSet(); // remember
+            }
+
+            if (e.what() == RStateBattery)
+            {
+                DEV_ForwardNodeChange(device, QLatin1String(e.what()), QString::number(item->toNumber()));
             }
 
             if (!(item->needPushSet() || item->needPushChange()))
@@ -2894,6 +2901,11 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             if (e.what() == RConfigGroup)
             {
                 checkSensorBindingsForClientClusters(sensor);
+            }
+
+            if (e.what() == RConfigBattery)
+            {
+                DEV_ForwardNodeChange(device, QLatin1String(e.what()), QString::number(item->toNumber()));
             }
 
             if (!(item->needPushSet() || item->needPushChange()))
