@@ -279,6 +279,7 @@ private:
 #define DDF_AnnoteZclParse(resource, item, ep, cl, at, eval) \
     DDF_AnnoteZclParse1(__LINE__, __FILE__, resource, item, ep, cl, at, eval)
 
+bool DDF_IsStatusEnabled(const QString &status);
 void DDF_AnnoteZclParse1(int line, const char* file, const Resource *resource, ResourceItem *item, quint8 ep, quint16 clusterId, quint16 attributeId, const char *eval);
 const DeviceDescription::Item &DDF_GetItem(const ResourceItem *item);
 Resource::Handle R_CreateResourceHandle(const Resource *r, size_t containerIndex);

@@ -682,7 +682,14 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
 
         if (filterBronze) { filter.append("Bronze"); }
         if (filterSilver) { filter.append("Silver"); }
-        if (filterGold) { filter.append("Gold"); }
+        if (filterGold)
+        {
+            filter.append("Gold");
+        }
+        else
+        {
+            DBG_Printf(DBG_INFO, "Warning: DDF Gold status is not enabled\n");
+        }
 
         deviceDescriptions->setEnabledStatusFilter(filter);
     }
@@ -2984,7 +2991,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         if (DB_GetSubDeviceItemCount(lightNode.item(RAttrUniqueId)->toLatin1String()) > 0)
         {
             const DeviceDescription &ddf = deviceDescriptions->get(&lightNode);
-            if (ddf.isValid() && (DEV_TestManaged() || deviceDescriptions->enabledStatusFilter().contains(ddf.status)))
+            if (ddf.isValid() && (DEV_TestManaged() || DDF_IsStatusEnabled(ddf.status)))
             {
                 if (ddf.path.isEmpty())
                 {
