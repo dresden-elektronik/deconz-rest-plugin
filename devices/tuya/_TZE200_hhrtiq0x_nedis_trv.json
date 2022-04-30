@@ -75,13 +75,13 @@
         {
           "name": "config/mode",
           "parse": {"fn": "tuya", "dpid": 106, "eval": "if (Attr.val == 0) { Item.val = 'auto' } else if (Attr.val == 1) { Item.val = 'heat' } else { Item.val = 'off' }"},
-          "write": {"fn": "tuya", "dpid": 106, "eval": "if (Item.val == 'auto') { 0 } else if (Item.val == 'heat') { 1 } else { 2 }"},
+          "write": {"fn": "tuya", "dpid": 106, "dt": "0x30", "eval": "if (Item.val == 'auto') { 0 } else if (Item.val == 'heat') { 1 } else { 2 }"},
           "read": {"fn": "none"}
         },
         {
           "name": "config/preset",
           "parse": {"fn": "tuya", "dpid": 4, "script": "tuya_trv_preset.js"},
-          "write": {"fn": "tuya", "dpid": 4, "script": "tuya_trv_preset_set.js"},
+          "write": {"fn": "tuya", "dpid": 4, "dt": "0x30", "script": "tuya_trv_preset_set.js"},
           "read": {"fn": "none"}
         },
         {
