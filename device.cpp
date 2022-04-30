@@ -1719,7 +1719,13 @@ std::vector<DEV_PollItem> DEV_GetPollItems(Device *device)
                 }
             }
 
-            if (ddfItem.readParameters.toMap().empty())
+            const auto m = ddfItem.readParameters.toMap();
+            if (m.empty())
+            {
+                continue;
+            }
+
+            if (m.contains(QLatin1String("fn")) && m.value(QLatin1String("fn")).toString() == QLatin1String("none"))
             {
                 continue;
             }
@@ -1797,6 +1803,8 @@ void DEV_PollNextStateHandler(Device *device, const Event &event)
         {
             DBG_Printf(DBG_DEV, "DEV: Poll Next no read function for item: %s / 0x%016llX\n", poll.item->descriptor().suffix, device->key());
             d->pollItems.pop_back();
+            d->startStateTimer(5, STATE_LEVEL_POLL); // try next
+            return;
         }
 
         if (d->readResult.isEnqueued)
