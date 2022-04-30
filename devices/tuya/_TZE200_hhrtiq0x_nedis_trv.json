@@ -81,6 +81,7 @@
         {
           "name": "config/preset",
           "parse": {"fn": "tuya", "dpid": 4, "script": "tuya_trv_preset.js"},
+          "write": {"fn": "tuya", "dpid": 4, "script": "tuya_trv_preset_set.js"},
           "read": {"fn": "none"}
         },
         {
