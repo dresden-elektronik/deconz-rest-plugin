@@ -1194,6 +1194,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigMode) // String
                 {
+                    DBG_Printf(DBG_INFO_L2, "tuya debug test 1\n");
                     if (sensor->modelId() == QLatin1String("Cable outlet")) // Legrand cable outlet
                     {
                         const auto match = matchKeyValue(data.string, RConfigModeLegrandValues);
