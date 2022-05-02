@@ -192,6 +192,7 @@ using namespace deCONZ::literals;
 #define ANALOG_OUTPUT_CLUSTER_ID              0x000D
 #define BINARY_INPUT_CLUSTER_ID               0x000F
 #define MULTISTATE_INPUT_CLUSTER_ID           0x0012
+#define MULTISTATE_OUTPUT_CLUSTER_ID          0x0013
 #define OTAU_CLUSTER_ID                       0x0019
 #define POLL_CONTROL_CLUSTER_ID               0x0020
 #define DOOR_LOCK_CLUSTER_ID                  0x0101
@@ -223,6 +224,7 @@ using namespace deCONZ::literals;
 #define DEVELCO_AIR_QUALITY_CLUSTER_ID        0xFC03
 #define SENGLED_CLUSTER_ID                    0xFC10
 #define LEGRAND_CONTROL_CLUSTER_ID            0xFC40
+#define XIAOMI_CLUSTER_ID                     0xFCC0
 #define ADUROLIGHT_CLUSTER_ID                 0xFCCC
 #define XAL_CLUSTER_ID                        0xFCCE
 #define BOSCH_AIR_QUALITY_CLUSTER_ID          quint16(0xFDEF)
@@ -372,6 +374,7 @@ using namespace deCONZ::literals;
 #define VENDOR_SINOPE               0x119C
 #define VENDOR_JIUZHOU              0x119D
 #define VENDOR_PAULMANN             0x119D // branded
+#define VENDOR_BOSCH3               0x1209
 #define VENDOR_HEIMAN               0x120B
 #define VENDOR_CHINA_FIRE_SEC       0x1214
 #define VENDOR_MUELLER              0x121B // Used by Mueller Licht
@@ -510,6 +513,7 @@ extern const quint64 silabs7MacPrefix;
 extern const quint64 silabs8MacPrefix;
 extern const quint64 silabs9MacPrefix;
 extern const quint64 silabs10MacPrefix;
+extern const quint64 silabs11MacPrefix;
 extern const quint64 silabs12MacPrefix;
 extern const quint64 silabs13MacPrefix;
 extern const quint64 instaMacPrefix;
@@ -718,6 +722,7 @@ extern const char *HttpContentSVG;
 // Forward declarations
 class DeviceDescriptions;
 class DeviceWidget;
+class DeviceJs;
 class Gateway;
 class GatewayScanner;
 class QUdpSocket;
@@ -1317,7 +1322,6 @@ public Q_SLOTS:
     void checkOldSensorGroups(Sensor *sensor);
     void deleteGroupsWithDeviceMembership(const QString &id);
     void processUbisysBinding(Sensor *sensor, const Binding &bnd);
-    void processUbisysC4Configuration(Sensor *sensor);
     void bindingTimerFired();
     void bindingToRuleTimerFired();
     void bindingTableReaderTimerFired();
@@ -1555,7 +1559,7 @@ public:
     bool addTaskXmasLightStripMode(TaskItem &task, XmasLightStripMode mode);
     bool addTaskXmasLightStripWhite(TaskItem &task, quint8 bri);
     bool addTaskXmasLightStripColour(TaskItem &task, quint16 hue, quint8 sat, quint8 bri);
-    bool addTaskXmasLightStripEffect(TaskItem &task, XmasLightStripEffect effect, quint8 speed, QList<QList<quint8>> &colours);
+    bool addTaskXmasLightStripEffect(TaskItem &task, XmasLightStripEffect effect, quint8 speed, const QList<QList<quint8> > &colours);
     int setXmasLightStripState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
 
     void handleGroupClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
@@ -1597,7 +1601,7 @@ public:
     void handleBasicClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendBasicClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handlePhilipsClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, Device *device);
-    void handleTuyaClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleTuyaClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, Device *device);
     void handleZclAttributeReportIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclConfigureReportingResponseIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void taskToLocalData(const TaskItem &task);
@@ -2131,6 +2135,7 @@ public:
     std::vector<BindingTableReader> bindingTableReaders;
 
     DeviceDescriptions *deviceDescriptions = nullptr;
+    DeviceJs *deviceJs = nullptr;
 
     // IAS
     std::unique_ptr<AS_DeviceTable> alarmSystemDeviceTable;

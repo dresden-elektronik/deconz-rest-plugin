@@ -15,6 +15,8 @@
 #include <QJSEngine>
 #include <QMetaProperty>
 
+static DeviceJs *_djs = nullptr; // singleton
+
 class DeviceJsPrivate
 {
 public:
@@ -30,6 +32,8 @@ public:
 DeviceJs::DeviceJs() :
     d(new DeviceJsPrivate)
 {
+    Q_ASSERT(_djs == nullptr); // enforce singleton
+
 #if QT_VERSION > 0x050700
     d->engine.installExtensions(QJSEngine::ConsoleExtension);
 #endif
@@ -48,9 +52,20 @@ DeviceJs::DeviceJs() :
     d->jsItem = new JsResourceItem(&d->engine);
     auto jsItem = d->engine.newQObject(d->jsItem);
     d->engine.globalObject().setProperty("Item", jsItem);
+
+    _djs = this;
 }
 
-DeviceJs::~DeviceJs() = default;
+DeviceJs::~DeviceJs()
+{
+    _djs = nullptr;
+}
+
+DeviceJs *DeviceJs::instance()
+{
+    Q_ASSERT(_djs);
+    return _djs;
+}
 
 JsEvalResult DeviceJs::evaluate(const QString &expr)
 {
@@ -110,7 +125,11 @@ QVariant DeviceJs::result()
 
 void DeviceJs::reset()
 {
+    d->apsInd = nullptr;
+    d->jsItem->item = nullptr;
+    d->jsItem->citem = nullptr;
     d->jsResource->r = nullptr;
+    d->jsResource->cr = nullptr;
     d->jsZclAttribute->attr = nullptr;
     d->jsZclFrame->zclFrame = nullptr;
     d->engine.collectGarbage();

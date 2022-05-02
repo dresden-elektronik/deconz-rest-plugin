@@ -5,7 +5,7 @@
     "manufacturername": "$MF_PHILIPS",
     "modelid": "SML001",
     "product": "Motion Sensor 1. Gen (SML001)",
-    "status": "Silver",
+    "status": "Gold",
     "sleeper": false,
     "md:known_issues": [ ],
     "subdevices": [
@@ -195,7 +195,7 @@
                 },
                 {
                     "name": "state/lightlevel",
-                    "parse": {"ep": 2, "cl": "0x0400", "at": "0x0000", "script": "sml_light_level.js"},
+                    "parse": {"ep": 2, "cl": "0x0400", "at": "0x0000", "script": "../generic/illuminance_cluster/sml_light_level.js"},
                     "awake": true
                 },
                 {

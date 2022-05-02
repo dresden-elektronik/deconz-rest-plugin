@@ -76,15 +76,42 @@ void DeRestPluginPrivate::handleXiaomiLumiClusterIndication(const deCONZ::ApsDat
 
             case XIAOMI_ATTRID_MOTION_SENSITIVITY:
             {
-                Sensor *sensor = getSensorNodeForAddressEndpointAndCluster(ind.srcAddress(), ind.srcEndpoint(), XIAOMI_CLUSTER_ID );
+                Sensor *sensor = getSensorNodeForAddressEndpointAndCluster(ind.srcAddress(), ind.srcEndpoint(), XIAOMI_CLUSTER_ID);
 
                 if (sensor)
                 {
                     sensor->setZclValue(updateType, ind.srcEndpoint(), XIAOMI_CLUSTER_ID, XIAOMI_ATTRID_MOTION_SENSITIVITY, attr.numericValue());
-                    
+
                     quint8 sensitivity = attr.numericValue().u8;
                     sensor->setValue(RConfigSensitivity, sensitivity);
                 }
+            }
+                break;
+
+            case XIAOMI_ATTRID_SPEED:
+            {
+                LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
+
+                if (lightNode)
+                {
+                    lightNode->setZclValue(updateType, ind.srcEndpoint(), XIAOMI_CLUSTER_ID, XIAOMI_ATTRID_SPEED, attr.numericValue());
+                    quint8 speed = attr.numericValue().u8;
+                    lightNode->setValue(RStateSpeed, speed);
+                }
+            }
+                break;
+
+            case XIAOMI_ATTRID_CHARGING:
+            {
+                Sensor *sensor = getSensorNodeForAddressEndpointAndCluster(ind.srcAddress(), ind.srcEndpoint(), XIAOMI_CLUSTER_ID);
+
+                if (sensor)
+                {
+                    sensor->setZclValue(updateType, ind.srcEndpoint(), XIAOMI_CLUSTER_ID, XIAOMI_ATTRID_CHARGING, attr.numericValue());
+                    bool charging = attr.numericValue().u8 == 1;
+                    sensor->setValue(RStateCharging, charging);
+                }
+
             }
                 break;
 
@@ -168,7 +195,9 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     quint8 structIndex = 0; // only attribute id 0xff02
     quint16 structSize = 0; // only attribute id 0xff02
 
+    quint8 batteryPercentage = UINT8_MAX;
     quint16 battery = 0;
+    quint8 charging = UINT8_MAX;
     quint32 lightlevel = UINT32_MAX; // use 32-bit to mark invalid and support 0xffff value
     qint16 temperature = INT16_MIN;
     quint16 humidity = UINT16_MAX;
@@ -180,6 +209,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     quint32 consumption = UINT32_MAX;
     quint32 current = UINT32_MAX;
     quint32 voltage = UINT32_MAX;
+    QString firmware;
 
     DBG_Printf(DBG_INFO, "0x%016llX extract Xiaomi special attribute 0x%04X\n", ind.srcAddress().ext(), attrId);
 
@@ -302,7 +332,13 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x0d && dataType == deCONZ::Zcl32BitUint) // lumi.switch.n2aeu1
         {
-            DBG_Printf(DBG_INFO, "\t0d unknown %u (0x%08X)\n", u32, u32);
+            firmware = QString("%1.%2.%3_%4%5")
+                .arg((u32 & 0xF0000000) >> 28)
+                .arg((u32 & 0x0F000000) >> 24)
+                .arg((u32 & 0x00FF0000) >> 16)
+                .arg((u32 & 0x0000FF00) >> 8)
+                .arg(u32 & 0xFF);
+            DBG_Printf(DBG_INFO, "\t0d firmware %s (0x%08X)\n", qPrintable(firmware), u32);
         }
         else if (tag == 0x0e && dataType == deCONZ::Zcl32BitUint) // lumi.switch.n2aeu1
         {
@@ -311,6 +347,10 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         else if (tag == 0x0f && dataType == deCONZ::Zcl32BitUint) // lumi.switch.n2aeu1
         {
             DBG_Printf(DBG_INFO, "\t0f unknown %u (0x%08X)\n", u32, u32);
+        }
+        else if (tag == 0x011 && dataType == deCONZ::Zcl32BitUint) // lumi.curtain.acn002
+        {
+            DBG_Printf(DBG_INFO, "\t11 unknown %u (0x%08X)\n", u32, u32);
         }
         else if ((tag == 0x64 || structIndex == 0x01) && dataType == deCONZ::ZclBoolean) // lumi.ctrl_ln2 endpoint 01
         {
@@ -343,14 +383,15 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             DBG_Printf(DBG_INFO, "\t65 on/off %d\n", u8);
             onOff2 = u8;
         }
+        else if (tag == 0x65 && dataType == deCONZ::Zcl8BitUint)
+        {
+            DBG_Printf(DBG_INFO, "\t65 battery %u%%\n", u8);
+            batteryPercentage = u8;
+        }
         else if (tag == 0x65 && dataType == deCONZ::Zcl16BitUint)
         {
             DBG_Printf(DBG_INFO, "\t65 humidity %u\n", u16); // Mi
             humidity = u16;
-        }
-        else if (tag == 0x65 && dataType == deCONZ::Zcl8BitUint)
-        {
-            DBG_Printf(DBG_INFO, "\t65 unknown %u (0x%02X)\n", u8, u8);
         }
         else if (tag == 0x66)
         {
@@ -367,6 +408,23 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 pressure = (s32 + 50) / 100;
                 DBG_Printf(DBG_INFO, "\t66 pressure %d (%d)\n", s32, pressure);
             }
+        }
+        else if (tag == 0x67 && dataType == deCONZ::Zcl8BitUint) // lumi.switch.n2aeu1
+        {
+            DBG_Printf(DBG_INFO, "\t67 unknown %u (0x%02X)\n", u8, u8);
+        }
+        else if (tag == 0x69 && dataType == deCONZ::Zcl8BitUint) // lumi.switch.n2aeu1
+        {
+            charging = u8;
+            DBG_Printf(DBG_INFO, "\t69 charging %u (0x%02X)\n", u8, u8);
+        }
+        else if (tag == 0x6a && dataType == deCONZ::Zcl16BitUint) // lumi.switch.n2aeu1
+        {
+            DBG_Printf(DBG_INFO, "\t6a unknown %u (0x%04X)\n", u16, u16);
+        }
+        else if (tag == 0x6b && dataType == deCONZ::Zcl8BitUint) // lumi.switch.n2aeu1
+        {
+            DBG_Printf(DBG_INFO, "\t6b unknown %u (0x%02X)\n", u8, u8);
         }
         else if (tag == 0x6e && dataType == deCONZ::Zcl8BitUint) // lumi.ctrl_neutral2
         {
@@ -511,13 +569,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 item->setValue(lift);
                 enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
             }
-            item = lightNode.item(RStateOpen);
-            bool open = lift < 100;
-            if (item)
-            {
-                item->setValue(open);
-                enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
-            }
             // FIXME: deprecate
             item = lightNode.item(RStateBri);
             if (item)
@@ -528,6 +579,21 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 stateOnOff = bri != 0;
             }
             // END FIXME: deprecate
+            item = lightNode.item(RStateOpen);
+            bool open = lift < 100;
+            if (item)
+            {
+                item->setValue(open);
+                enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
+            }
+            item = lightNode.item(RAttrSwVersion);
+            if (item && !firmware.isEmpty() && firmware != item->toString())
+            {
+                item->setValue(firmware);
+                enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
+                Q_Q(DeRestPlugin);
+                emit q->nodeUpdated(lightNode.address().ext(), QLatin1String("version"), firmware);
+            }
         }
         else if (onOff != UINT8_MAX)
         {
@@ -545,11 +611,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         if (item && stateOnOff != UINT8_MAX) // updated?
         {
             DBG_Assert(stateOnOff == 0 || stateOnOff == 1);
-            
+
             deCONZ::NumericUnion onOffValue;
             onOffValue.u8 = stateOnOff;
             lightNode.setZclValue(NodeValue::UpdateByZclReport, ind.srcEndpoint(), ONOFF_CLUSTER_ID, 0x0000, onOffValue);
-            
+
             item->setValue(stateOnOff);
             enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
         }
@@ -583,7 +649,22 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             }
         }
 
-        if (battery != 0)
+        // Battery percentage trumps battery voltage.
+        if (batteryPercentage != UINT8_MAX)
+        {
+            item = sensor.item(RStateBattery);
+            if (item)
+            {
+                item->setValue(batteryPercentage);
+                enqueueEvent(Event(RSensors, RStateBattery, sensor.id(), item));
+                sensor.updateStateTimestamp();
+                if (item->lastSet() == item->lastChanged())
+                {
+                    updated = true;
+                }
+            }
+        }
+        else if (battery != 0)
         {
             item = sensor.item(RConfigBattery);
             // DBG_Assert(item != 0); // expected - no, lumi.ctrl_neutral2
@@ -605,8 +686,23 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
                 item->setValue(quint8(bat));
                 enqueueEvent(Event(RSensors, RConfigBattery, sensor.id(), item));
-                q_ptr->nodeUpdated(sensor.address().ext(), QLatin1String(item->descriptor().suffix), QString::number(bat));
 
+                if (item->lastSet() == item->lastChanged())
+                {
+                    updated = true;
+                }
+            }
+        }
+
+        if (charging != UINT8_MAX)
+        {
+            item = sensor.item(RStateCharging);
+            if (item)
+            {
+                item->setValue(charging == 1);
+                enqueueEvent(Event(RSensors, RStateCharging, sensor.id(), item));
+                emit q_ptr->nodeUpdated(sensor.address().ext(), QLatin1String(item->descriptor().suffix), QString::number(charging));
+                sensor.updateStateTimestamp();
                 if (item->lastSet() == item->lastChanged())
                 {
                     updated = true;
@@ -779,6 +875,14 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
 
         item = sensor.item(RAttrSwVersion);
+        if (item && !firmware.isEmpty() && firmware != item->toString())
+        {
+            item->setValue(firmware);
+            enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
+            updated = true;
+            Q_Q(DeRestPlugin);
+            emit q->nodeUpdated(sensor.address().ext(), QLatin1String("version"), firmware);
+        }
         if (item && dateCode.isEmpty() && !item->toString().isEmpty() && !item->toString().startsWith("3000"))
         {
             dateCode = item->toString();
@@ -804,18 +908,18 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
     Resource *r = dynamic_cast<Resource*>(restNodePending);
     DBG_Assert(r != nullptr);
-    
+
     if (!r)
     {
         return;
     }
-    
+
     item = r->item(RAttrModelId);
 
-    if (item && (item->toString().endsWith(QLatin1String("86opcn01")) || item->toString() == QLatin1String("lumi.remote.b28ac1")))
+    if (item && item->toString().endsWith(QLatin1String("86opcn01")))
     {
         auto *item2 = r->item(RConfigPending);
-        
+
         if (item2 && (item2->toNumber() & R_PENDING_MODE))
         {
             // Aqara switches need to be configured to send proper button events
@@ -824,11 +928,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             deCONZ::ZclAttribute attr(0x0009, deCONZ::Zcl8BitUint, QLatin1String("mode"), deCONZ::ZclReadWrite, false);
             attr.setValue(static_cast<quint64>(1));
             writeAttribute(restNodePending, 0x01, XIAOMI_CLUSTER_ID, attr, VENDOR_XIAOMI);
-
-            DBG_Printf(DBG_INFO, "Write Aqara switch 0x%016llX multiclick mode attribute 0x0125 = 2\n", ind.srcAddress().ext());
-            deCONZ::ZclAttribute attr2(0x0125, deCONZ::Zcl8BitUint, QLatin1String("multiclick mode"), deCONZ::ZclReadWrite, false);
-            attr2.setValue(static_cast<quint64>(2));
-            writeAttribute(restNodePending, 0x01, XIAOMI_CLUSTER_ID, attr2, VENDOR_XIAOMI);
 
             item2->setValue(item2->toNumber() & ~R_PENDING_MODE);
         }
@@ -847,7 +946,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         ResourceItem *item3 = r->item(RConfigSensitivity);
         DBG_Assert(item2);
         DBG_Assert(item3);
-        
+
         if (!item3->lastSet().isValid() || item2->toNumber() == 0)
         {
             if (readAttributes(restNodePending, ind.srcEndpoint(), BASIC_CLUSTER_ID, { 0xff0d }, VENDOR_XIAOMI))
@@ -861,7 +960,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             {
                 deCONZ::ZclAttribute attr(0xff0d, deCONZ::Zcl8BitUint, "sensitivity", deCONZ::ZclReadWrite, true);
                 attr.setValue(static_cast<quint64>(item3->toNumber()));
-                
+
                 if (writeAttribute(restNodePending, ind.srcEndpoint(), BASIC_CLUSTER_ID, attr, VENDOR_XIAOMI))
                 {
                     item2->setValue(item2->toNumber() & ~R_PENDING_SENSITIVITY);

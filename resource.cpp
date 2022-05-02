@@ -85,9 +85,15 @@ const char *RStateBattery = "state/battery";
 const char *RStateBri = "state/bri";
 const char *RStateButtonEvent = "state/buttonevent";
 const char *RStateCarbonMonoxide = "state/carbonmonoxide";
+const char *RStateCharging = "state/charging";
 const char *RStateColorMode = "state/colormode";
 const char *RStateConsumption = "state/consumption";
+const char *RStateConsumption_2 = "state/consumption_2";
+const char *RStateProduction = "state/production";
 const char *RStateCurrent = "state/current";
+const char *RStateCurrent_P1 = "state/current_P1";
+const char *RStateCurrent_P2 = "state/current_P2";
+const char *RStateCurrent_P3 = "state/current_P3";
 const char *RStateCt = "state/ct";
 const char *RStateAction = "state/action";
 const char *RStateDark = "state/dark";
@@ -170,6 +176,7 @@ const char *RConfigAlert = "config/alert";
 const char *RConfigAllowTouchlink = "config/allowtouchlink";
 const char *RConfigLock = "config/lock";
 const char *RConfigBattery = "config/battery";
+const char *RConfigClickMode = "config/clickmode";
 const char *RConfigColorCapabilities = "config/colorcapabilities";
 const char *RConfigConfigured = "config/configured";
 const char *RConfigControlSequence = "config/controlsequence";
@@ -304,10 +311,16 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt32, QVariant::Double, RStateButtonEvent));
     rItemDescriptors.back().flags |= ResourceItem::FlagPushOnSet;
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateCarbonMonoxide));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateCharging));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateColorMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateAction));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt64, QVariant::Double, RStateConsumption));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt64, QVariant::Double, RStateConsumption_2));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt64, QVariant::Double, RStateProduction));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateCurrent));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateCurrent_P1));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateCurrent_P2));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateCurrent_P3));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateCt));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateDark));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateDaylight));
@@ -382,6 +395,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigArmedNightTriggerDuration, 0, 255));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigLock));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigBattery, 0, 100));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigClickMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigColorCapabilities));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigCtMin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigCtMax));
@@ -1477,6 +1491,7 @@ QLatin1String R_DataTypeToString(ApiDataType type)
       ""          empty
       "45"        single group
       "343,123"   two groups
+      "1,null,null,null"  4 groups but only first set
  */
 bool isValidRConfigGroup(const QString &str)
 {
@@ -1488,6 +1503,7 @@ bool isValidRConfigGroup(const QString &str)
         bool ok = false;
         auto gid = groupId.toUInt(&ok, 0);
         if (ok && gid <= UINT16_MAX) { result++; }
+        else if (!ok && groupId == QLatin1String("null")) { result++; }
     }
 
     return result == groupList.size();
