@@ -2,7 +2,8 @@
   "schema": "devcap1.schema.json",
   "manufacturername": "ubisys",
   "modelid": "S2 (5502)",
-  "product": "S2 (5502)",
+  "vendor": "ubisys",
+  "product": "S2 (5502) power switch",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

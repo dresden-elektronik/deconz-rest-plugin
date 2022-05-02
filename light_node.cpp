@@ -40,8 +40,6 @@ LightNode::LightNode() :
     addItem(DataTypeString, RAttrUniqueId);
     addItem(DataTypeTime, RAttrLastAnnounced);
     addItem(DataTypeTime, RAttrLastSeen);
-
-    setManufacturerName(QLatin1String("Unknown"));
 }
 
 /*! Returns the LightNode state.
@@ -82,7 +80,7 @@ void LightNode::setManufacturerCode(uint16_t code)
     {
         m_manufacturerCode = code;
 
-        if (!manufacturer().isEmpty() && (manufacturer() != QLatin1String("Unknown")))
+        if (!manufacturer().isEmpty())
         {
             return;
         }
@@ -110,12 +108,12 @@ void LightNode::setManufacturerCode(uint16_t code)
         case VENDOR_SCHLAGE: name = QLatin1String("Schlage"); break;
         case VENDOR_DEVELCO: name = QLatin1String("Develco Products A/S"); break;
         case VENDOR_NETVOX:   name = QLatin1String("netvox"); break;
-        default:
-            name = QLatin1String("Unknown");
-            break;
         }
 
-        setManufacturerName(name);
+        if (!manufacturer().isEmpty())
+        {
+            setManufacturerName(name);
+        }
     }
 }
 
@@ -473,7 +471,10 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                                 }
                             }
                         }
-                        removeItem(RStateAlert);
+                        if (manufacturerCode() != VENDOR_IKEA) // IKEA FYRTUR and KADRILJ
+                        {
+                            removeItem(RStateAlert);
+                        }
                         addItem(DataTypeBool, RStateOpen);
                         // FIXME: removeItem(RStateOn);
                         if (hasLift)
@@ -496,8 +497,6 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 else if (i->id() == IAS_WD_CLUSTER_ID)
                 {
                     if (modelId().startsWith(QLatin1String("902010/24")) ||   // Bitron Smoke Detector with siren
-                        modelId().startsWith(QLatin1String("SMSZB-1")) ||     // Develco Smoke Alarm with siren
-                        modelId().startsWith(QLatin1String("HESZB-1")) ||     // Develco heat sensor with siren
                         modelId().startsWith(QLatin1String("FLSZB-1")) ||     // Develco water leak sensor with siren
                         modelId().startsWith(QLatin1String("SIRZB-1")) ||     // Develco siren
                         modelId() == QLatin1String("902010/29") ||            // Bitron outdoor siren

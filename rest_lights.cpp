@@ -15,6 +15,7 @@
 #include <QVariantMap>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
+#include "device_descriptions.h"
 #include "json.h"
 #include "connectivity.h"
 #include "colorspace.h"
@@ -514,6 +515,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
+    Device *device = static_cast<Device*>(taskRef.lightNode->parentResource());
     rsp.httpStatus = HttpStatusOk;
 
     if (!taskRef.lightNode->isAvailable())
@@ -545,8 +547,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
     // FIXME: use cluster instead of device type.
     if (taskRef.lightNode->type() == QLatin1String("Window covering controller") ||
-        taskRef.lightNode->type() == QLatin1String("Window covering device") ||
-        taskRef.lightNode->modelId() == QLatin1String("lumi.curtain.acn002"))
+        taskRef.lightNode->type() == QLatin1String("Window covering device"))
     {
         return setWindowCoveringState(req, rsp, taskRef, map);
     }
@@ -563,6 +564,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         // light, don't use tuya stuff (for the moment)
         else if (taskRef.lightNode->item(RStateColorMode))
+        {
+        }
+        // handle by device code
+        else if (device && device->managed())
         {
         }
         //switch and siren
@@ -1289,15 +1294,6 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                     ? ONOFF_COMMAND_ON_WITH_TIMED_OFF
                     : ONOFF_COMMAND_ON;
             ok = addTaskSetOnOff(task, cmd, taskRef.onTime, 0);
-
-            StateChange change(StateChange::StateWaitSync, SC_SetOnOff, task.req.dstEndpoint());
-            change.addTargetValue(RStateOn, 0x01);
-            change.addParameter(QLatin1String("cmd"), cmd);
-            if (cmd == ONOFF_COMMAND_ON_WITH_TIMED_OFF)
-            {
-                change.addParameter(QLatin1String("ontime"), taskRef.onTime);
-            }
-            taskRef.lightNode->addStateChange(change);
         }
 
         if (ok)
@@ -1751,7 +1747,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
             // Don't update write-only state.alert.
         }
-        else
+        else if (task.taskType == TaskIdentify || task.taskType == TaskTriggerEffect)
         {
             rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
@@ -1763,50 +1759,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         TaskItem task;
         copyTaskReq(taskRef, task);
 
-        // FIXME: The following low-level code is needed because ZclAttribute is broken for Zcl8BitEnum.
+        deCONZ::ZclAttribute attr(0x0000, deCONZ::Zcl8BitEnum, "speed", deCONZ::ZclReadWrite, true);
+        attr.setValue(QVariant(targetSpeed));
 
-        const quint16 cluster = FAN_CONTROL_CLUSTER_ID;
-        const quint16 attr = 0x0000; // Fan Mode
-        const quint8 type = deCONZ::Zcl8BitEnum;
-        const quint8 value = targetSpeed;
-
-        task.taskType = TaskWriteAttribute;
-
-        task.req.setClusterId(cluster);
-        task.req.setProfileId(HA_PROFILE_ID);
-        task.zclFrame.setSequenceNumber(zclSeq++);
-        task.zclFrame.setCommandId(deCONZ::ZclWriteAttributesId);
-        task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-                                      deCONZ::ZclFCDirectionClientToServer |
-                                      deCONZ::ZclFCDisableDefaultResponse);
-
-        DBG_Printf(DBG_INFO, "write attribute of 0x%016llX ep: 0x%02X cluster: 0x%04X: 0x%04X\n", taskRef.lightNode->address().ext(), taskRef.lightNode->haEndpoint().endpoint(), cluster, attr);
-
-        { // payload
-            QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
-            stream.setByteOrder(QDataStream::LittleEndian);
-            stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
-
-            stream << attr;
-            stream << type;
-            stream << value;
-        }
-
-        { // ZCL frame
-            QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
-            stream.setByteOrder(QDataStream::LittleEndian);
-            task.zclFrame.writeToStream(stream);
-        }
-
-        ok = addTask(task);
-
-        // FIXME: Use following code once ZclAttribute has been fixed.
-
-        // deCONZ::ZclAttribute attr(0x0000, type, "speed", deCONZ::ZclReadWrite, true);
-        // attr.setValue(value);
-        // ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), cluster, attr);
-
-        if (ok)
+        if (writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), FAN_CONTROL_CLUSTER_ID, attr))
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;
@@ -1851,11 +1807,6 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                     ? ONOFF_COMMAND_OFF_WITH_EFFECT
                     : ONOFF_COMMAND_OFF;
             ok = addTaskSetOnOff(task, cmd, 0, 0);
-
-            StateChange change(StateChange::StateWaitSync, SC_SetOnOff, task.req.dstEndpoint());
-            change.addTargetValue(RStateOn, 0x00);
-            change.addParameter(QLatin1String("cmd"), cmd);
-            taskRef.lightNode->addStateChange(change);
         }
 
         if (ok)
@@ -1888,20 +1839,34 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     return REQ_READY_SEND;
 }
 
+enum MultiStateOutputValue {
+  Down = 0,
+  Up = 1,
+  Stop = 2,
+  Toggle = 3,
+  Blocked = 4,
+  StepDown = 5,
+  StepUp = 6
+};
+
 /*! PUT, PATCH /api/<apikey>/lights/<id>/state for Window covering "lights".
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
 int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map)
 {
+    static const QStringList alertList({
+        "none", "select"
+    });
     bool ok;
+    bool supportsLiftInc = false;
     QString id = req.path[3];
     quint16 cluster = WINDOW_COVERING_CLUSTER_ID;
     // if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain"))) // FIXME - for testing only.
-    if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain.hagl04")) ||
-        taskRef.lightNode->modelId() == QLatin1String("lumi.curtain.acn002"))
+    if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain.")))
     {
         cluster = ANALOG_OUTPUT_CLUSTER_ID;
+        supportsLiftInc = taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain.acn002"));
     }
 
     if (R_GetProductId(taskRef.lightNode).startsWith(QLatin1String("Tuya_COVD")))
@@ -1910,18 +1875,23 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     }
 
     bool requestOk = true;
-    bool hasCmd = false;
     bool hasOpen = false;
     bool targetOpen = false;
     bool hasLift = false;
+    bool hasLiftInc = false;
     bool hasStop = false;
     quint8 targetLift = 0;
     quint8 targetLiftZigBee = 0;
+    qint8 targetLiftInc = 0;
     bool hasTilt = false;
     quint8 targetTilt = 0;
+    QString alert;
+    bool hasSpeed = false;
+    quint8 targetSpeed = 0;
 
     // Check parameters.
-    for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
+    const auto mapEnd = map.cend();
+    for (auto p = map.cbegin(); p != mapEnd; ++p)
     {
         bool paramOk = false;
         bool valueOk = false;
@@ -1929,7 +1899,6 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         if (param == "open" && taskRef.lightNode->item(RStateOpen))
         {
             paramOk = true;
-            hasCmd = true;
             if (map[param].type() == QVariant::Bool)
             {
                 valueOk = true;
@@ -1940,7 +1909,6 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         else if (param == "on" && taskRef.lightNode->item(RStateOn))
         {
             paramOk = true;
-            hasCmd = true;
             if (map[param].type() == QVariant::Bool)
             {
                 valueOk = true;
@@ -1948,10 +1916,9 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
                 targetOpen = !(map[param].toBool());
             }
         }
-        else if (param == "stop" && taskRef.lightNode->item(RStateOn))
+        else if (param == "stop" && taskRef.lightNode->item(RStateOpen))
         {
             paramOk = true;
-            hasCmd = true;
             if (map[param].type() == QVariant::Bool)
             {
                 valueOk = true;
@@ -1961,7 +1928,6 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         else if (param == "lift" && taskRef.lightNode->item(RStateLift))
         {
             paramOk = true;
-            hasCmd = true;
             if (map[param].type() == QVariant::String && map[param].toString() == "stop")
             {
                 valueOk = true;
@@ -1978,10 +1944,28 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
                 }
             }
         }
+        else if (param == "lift_inc" && taskRef.lightNode->item(RStateLift))
+        {
+            paramOk = true;
+            if (map[param].type() == QVariant::Double)
+            {
+                const int liftInc = map[param].toUInt(&ok);
+                if (ok && liftInc == 0)
+                {
+                    valueOk = true;
+                    hasStop = true;
+                }
+                else if (ok && liftInc >= -100 && liftInc <= 100 && supportsLiftInc)
+                {
+                    valueOk = true;
+                    hasLiftInc = true;
+                    targetLiftInc = liftInc;
+                }
+            }
+        }
         else if (param == "bri" && taskRef.lightNode->item(RStateBri))
         {
             paramOk = true;
-            hasCmd = true;
             if (map[param].type() == QVariant::String && map[param].toString() == "stop")
             {
                 valueOk = true;
@@ -2001,7 +1985,6 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         else if (param == "bri_inc" && taskRef.lightNode->item(RStateBri))
         {
             paramOk = true;
-            hasCmd = true;
             if (map[param].type() == QVariant::Double)
             {
                 const int bri_inc = map[param].toInt(&ok);
@@ -2015,7 +1998,6 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         else if (param == "tilt" && taskRef.lightNode->item(RStateTilt))
         {
             paramOk = true;
-            hasCmd = true;
             if (map[param].type() == QVariant::Double)
             {
                 const uint tilt = map[param].toUInt(&ok);
@@ -2030,7 +2012,6 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         else if (param == "sat" && taskRef.lightNode->item(RStateSat))
         {
             paramOk = true;
-            hasCmd = true;
             if (map[param].type() == QVariant::Double)
             {
                 const uint sat = map[param].toUInt(&ok);
@@ -2042,6 +2023,30 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
                 }
             }
         }
+        else if (param == "alert" && taskRef.lightNode->item(RStateAlert))
+        {
+            paramOk = true;
+            if (map[param].type() == QVariant::String)
+            {
+                alert = map[param].toString();
+                valueOk = alertList.contains(alert);
+            }
+        }
+        else if (param == "speed" && taskRef.lightNode->item(RStateSpeed))
+        {
+            paramOk = true;
+            if (map[param].type() == QVariant::Double)
+            {
+                const uint speed = map[param].toUInt(&ok);
+                if (ok && speed <= 0xFF)
+                {
+                    valueOk = true;
+                    hasSpeed = true;
+                    targetSpeed = speed > 2 ? 2 : speed;
+                }
+            }
+        }
+
         if (!paramOk)
         {
             rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state").arg(id), QString("parameter, %1, not available").arg(param)));
@@ -2053,21 +2058,10 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             requestOk = false;
         }
     }
-    if (requestOk && !hasCmd)
-    {
-        rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, QString("/lights/%1/state").arg(id), QString("missing parameter to set window covering device state")));
-        requestOk = false;
-    }
     if (!requestOk)
     {
         rsp.httpStatus = HttpStatusBadRequest;
         return REQ_READY_SEND;
-    }
-
-    if (cluster == ANALOG_OUTPUT_CLUSTER_ID && hasOpen && !hasLift)
-    {
-        hasLift = true;
-        targetLift = targetOpen ? 0 : 100;
     }
 
     // Some devices invert LiftPct.
@@ -2125,7 +2119,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         }
     }
 
-    // Send command(s) to device.  Stop trumps LiftPct trumps Open/Close.
+    // Send command(s) to device.  stop trumps lift trumps lift_inc trumps open.
     if (hasStop)
     {
         bool ok;
@@ -2143,6 +2137,15 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             {
                 ok = sendTuyaRequest(task, TaskTuyaRequest, DP_TYPE_ENUM, DP_IDENTIFIER_CONTROL, QByteArray("\x01", 1));
             }
+        }
+        else if (cluster == ANALOG_OUTPUT_CLUSTER_ID)
+        {
+            quint16 value = MultiStateOutputValue::Stop;
+
+            deCONZ::ZclAttribute attr(0x0055, deCONZ::Zcl16BitUint, "value", deCONZ::ZclReadWrite, true);
+            attr.setValue(QVariant(value));
+            taskRef.lightNode->rx(); // Tell writeAttribute() device is awake.
+            ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), MULTISTATE_OUTPUT_CLUSTER_ID, attr);
         }
         else
         {
@@ -2178,47 +2181,12 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         }
         else if (cluster == ANALOG_OUTPUT_CLUSTER_ID)
         {
-            // FIXME: The following low-level code is needed because ZclAttribute is broken for ZclSingleFloat.
-
-            const quint16 attr = 0x0055; // Present value;
-            const quint8 type = deCONZ::ZclSingleFloat;
             float value = targetLiftZigBee;
 
-            task.taskType = TaskWriteAttribute;
-
-            task.req.setClusterId(cluster);
-            task.req.setProfileId(HA_PROFILE_ID);
-            task.zclFrame.setSequenceNumber(zclSeq++);
-            task.zclFrame.setCommandId(deCONZ::ZclWriteAttributesId);
-            task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-                                          deCONZ::ZclFCDirectionClientToServer |
-                                          deCONZ::ZclFCDisableDefaultResponse);
-
-            DBG_Printf(DBG_INFO, "write attribute of 0x%016llX ep: 0x%02X cluster: 0x%04X: 0x%04X\n", taskRef.lightNode->address().ext(), taskRef.lightNode->haEndpoint().endpoint(), cluster, attr);
-
-            { // payload
-                QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
-                stream.setByteOrder(QDataStream::LittleEndian);
-                stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
-
-                stream << attr;
-                stream << type;
-                stream << value;
-            }
-
-            { // ZCL frame
-                QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
-                stream.setByteOrder(QDataStream::LittleEndian);
-                task.zclFrame.writeToStream(stream);
-            }
-
-            ok = addTask(task);
-
-            // FIXME: Use following code once ZclAttribute has been fixed.
-
-            // deCONZ::ZclAttribute attr(0x0055, deCONZ::ZclSingleFloat, "value", deCONZ::ZclReadWrite, true);
-            // attr.setValue(QVariant(value));
-            // ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), cluster, attr);
+            deCONZ::ZclAttribute attr(0x0055, deCONZ::ZclSingleFloat, "value", deCONZ::ZclReadWrite, true);
+            attr.setValue(QVariant(value));
+            taskRef.lightNode->rx(); // Tell writeAttribute() device is awake.
+            ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), cluster, attr);
         }
         else
         {
@@ -2250,6 +2218,42 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         else
         {
             rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/lift").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+        }
+    }
+    else if (hasLiftInc)
+    {
+        TaskItem task;
+        copyTaskReq(taskRef, task);
+
+        if (cluster == ANALOG_OUTPUT_CLUSTER_ID)
+        {
+            quint16 value;
+            if (targetLiftInc == 0)
+            {
+                value = MultiStateOutputValue::Stop;
+            } else if (targetLiftInc > 0)
+            {
+                value = MultiStateOutputValue::StepDown;
+                targetLiftInc = 1;
+            } else {
+                value = MultiStateOutputValue::StepUp;
+                targetLiftInc = -1;
+            }
+            deCONZ::ZclAttribute attr(0x0055, deCONZ::Zcl16BitUint, "value", deCONZ::ZclReadWrite, true);
+            attr.setValue(QVariant(value));
+            taskRef.lightNode->rx(); // Tell writeAttribute() device is awake.
+            if (writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), MULTISTATE_OUTPUT_CLUSTER_ID, attr))
+            {
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
+                rspItemState[QString("/lights/%1/state/lift_inc").arg(id)] = targetLiftInc;
+                rspItem["success"] = rspItemState;
+                rsp.list.append(rspItem);
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/lift_inc").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+            }
         }
     }
     else if (hasOpen)
@@ -2284,6 +2288,15 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
                 }
             }
         }
+        else if (cluster == ANALOG_OUTPUT_CLUSTER_ID)
+        {
+            quint16 value = targetOpen ? MultiStateOutputValue::Up : MultiStateOutputValue::Down;
+
+            deCONZ::ZclAttribute attr(0x0055, deCONZ::Zcl16BitUint, "value", deCONZ::ZclReadWrite, true);
+            attr.setValue(QVariant(value));
+            taskRef.lightNode->rx(); // Tell writeAttribute() device is awake.
+            ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), MULTISTATE_OUTPUT_CLUSTER_ID, attr);
+        }
         else
         {
             ok = addTaskWindowCovering(task, targetOpen ? WINDOW_COVERING_COMMAND_OPEN : WINDOW_COVERING_COMMAND_CLOSE, 0, 0);
@@ -2316,7 +2329,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         }
     }
 
-    // Handle TiltPct independent from Stop - LiftPct - Open/Close.
+    // Handle tilt independently from stop/lift/lift_inc/open.
     if (hasTilt)
     {
         TaskItem task;
@@ -2335,6 +2348,53 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         else
         {
             rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/tilt").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+        }
+    }
+
+    if (!alert.isEmpty())
+    {
+        TaskItem task;
+        copyTaskReq(taskRef, task);
+        task.taskType = TaskIdentify;
+        task.identifyTime = alert == "select" ? 2 : 0;
+
+        if (addTaskIdentify(task, task.identifyTime))
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/alert").arg(id)] = alert;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+
+            // Don't update write-only state.alert.
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/alert").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+        }
+    }
+
+    if (hasSpeed)
+    {
+        TaskItem task;
+        copyTaskReq(taskRef, task);
+
+        deCONZ::ZclAttribute attr(0x0408, deCONZ::Zcl8BitUint, "speed", deCONZ::ZclReadWrite, true);
+        attr.setValue(QVariant(targetSpeed));
+        taskRef.lightNode->rx(); // Tell writeAttribute() device is awake.
+        if (writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), XIAOMI_CLUSTER_ID, attr, VENDOR_XIAOMI))
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/speed").arg(id)] = targetSpeed;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+
+            // Rely on attribute reporting to update the light state.
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/speed").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
     }
 
@@ -2398,7 +2458,7 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
                 hasAlert = true;
             }
         }
-        
+
         //Not used but can cause error
         else if (p.key() == "transitiontime")
         {

@@ -15,6 +15,6 @@
 
 class Device;
 
-Resource *DEV_InitCompatNodeFromDescription(Device *device, const DeviceDescription::SubDevice &sub, const QString &uniqueId);
+Resource *DEV_InitCompatNodeFromDescription(Device *device, const DeviceDescription &ddf, const DeviceDescription::SubDevice &sub, const QString &uniqueId);
 
 #endif // DEVICE_COMPAT_H

@@ -1,0 +1,9 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/lastcheckin",
+	"datatype": "ISO 8601 timestamp",
+	"access": "R",
+	"public": false,
+	"managed": true,
+	"description": "Timestamp of last Poll Control cluster checkin."
+}

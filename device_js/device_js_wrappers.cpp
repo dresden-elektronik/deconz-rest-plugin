@@ -10,6 +10,24 @@
 
 #include "resource.h"
 #include "device_js_wrappers.h"
+#include "device.h"
+#include "utils/utils.h"
+
+static const deCONZ::Node *getResourceCoreNode(const Resource *r)
+{
+    if (r)
+    {
+        const ResourceItem *uuid = r->item(RAttrUniqueId);
+
+        if (uuid && !uuid->toString().isEmpty())
+        {
+            const uint64_t extAddr = extAddressFromUniqueId(uuid->toString());
+
+            return DEV_GetCoreNode(extAddr);
+        }
+    }
+    return nullptr;
+}
 
 JsResource::JsResource(QJSEngine *parent) :
     QObject(parent)
@@ -38,6 +56,24 @@ QJSValue JsResource::item(const QString &suffix)
     }
 
     return {};
+}
+
+QVariant JsResource::endpoints()
+{
+    QVariantList result;
+    if (cr)
+    {
+        const deCONZ::Node *node = getResourceCoreNode(cr);
+        if (node)
+        {
+            for (auto ep : node->endpoints())
+            {
+                result.push_back(int(ep));
+            }
+        }
+    }
+
+    return result;
 }
 
 JsResourceItem::JsResourceItem(QObject *parent) :
@@ -129,6 +165,7 @@ QVariant JsZclAttribute::value() const
         return attr->numericValue().u8 > 0;
     }
 
+    // JS supports integers 2^52, therefore types above 48-bit are converted to strings
     switch (type)
     {
     case deCONZ::Zcl8BitBitMap:
@@ -151,30 +188,30 @@ QVariant JsZclAttribute::value() const
     case deCONZ::Zcl48BitBitMap:
     case deCONZ::Zcl48BitData:
     case deCONZ::Zcl48BitUint:
+        { return QVariant::fromValue(quint64(attr->numericValue().u64)); }
+
     case deCONZ::Zcl56BitBitMap:
     case deCONZ::Zcl56BitData:
     case deCONZ::Zcl56BitUint:
-        return QVariant::fromValue(quint64(attr->numericValue().u64));
-
     case deCONZ::Zcl64BitBitMap:
     case deCONZ::Zcl64BitUint:
     case deCONZ::Zcl64BitData:
     case deCONZ::ZclIeeeAddress:
-        return QString::number(quint64(attr->numericValue().u64));
+        { return QString::number(quint64(attr->numericValue().u64)); }
 
     case deCONZ::Zcl8BitInt:
     case deCONZ::Zcl16BitInt:
     case deCONZ::Zcl24BitInt:
     case deCONZ::Zcl32BitInt:
     case deCONZ::Zcl48BitInt:
-    case deCONZ::Zcl56BitInt:
-        return QVariant::fromValue(qint64(attr->numericValue().s64));
+        { return attr->toVariant(); }
 
+    case deCONZ::Zcl56BitInt:
     case deCONZ::Zcl64BitInt:
-        return QString::number(qint64(attr->numericValue().u64));
+        { return QString::number(qint64(attr->numericValue().s64)); }
 
     case deCONZ::ZclSingleFloat:
-        return attr->numericValue().real;
+        { return attr->numericValue().real; }
 
     default:
         break;

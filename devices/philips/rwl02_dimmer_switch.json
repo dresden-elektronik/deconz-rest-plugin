@@ -2,12 +2,11 @@
     "schema": "devcap1.schema.json",
     "doc:path": "philips/rwl02_gen1_dimmer_switch.md",
     "doc:hdr": "Dimmer Switch 1. Gen EU/US",
-    "manufacturername": "$MF_PHILIPS",
-    "modelid": ["RWL021", "RWL021"],
+    "manufacturername": ["$MF_PHILIPS", "$MF_PHILIPS"],
+    "modelid": ["RWL021", "RWL020"],
     "product": "Dimmer Switch 1. Gen EU/US",
-    "status": "Silver",
+    "status": "Gold",
     "sleeper": true,
-    "md:known_issues": [ ],
     "subdevices": [
          {
             "type": "$TYPE_SWITCH",
