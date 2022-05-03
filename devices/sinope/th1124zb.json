@@ -58,8 +58,7 @@
           "description": "Target temperature of a thermostat.",
           "default": 0
         },
-	             {
-
+	{
           "name": "config/local_occupancy",
           "refresh.interval": 300,
           "description": "Use it to address Occupancy specific attribute.\nfalse = Unoccupied\ntrue = Occupied",
