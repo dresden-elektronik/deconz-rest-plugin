@@ -1,0 +1,12 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/unoccupiedheatsetpoint",
+	"datatype": "Int16",
+	"access": "RW",
+	"public": true,
+	"default": 0,
+	"description": "Target temperature of a thermostat when local is unoccupied.",
+	"parse": {"at": "0x0014", "cl": "0x0201", "ep": 0, "eval": "Item.val = Attr.val;", "fn": "zcl"},
+	"read": {"at": "0x0014", "cl": "0x0201", "ep": 0, "fn": "zcl"},
+	"range": [500, 3200]
+}

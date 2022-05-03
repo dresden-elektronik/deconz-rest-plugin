@@ -1,0 +1,33 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/local_occupancy",
+  "datatype": "enum8",
+  "access": "RW",
+  "public": true,
+  "default": 1,
+  "description": "Use it to address Occupancy specific attribute.\n0 = Unoccupied\n1 = Occupied",
+  "parse": {
+    "at": "0x0400",
+    "cl": "0x0201",
+    "ep": 1,
+    "mf": "0x119c",
+    "eval": "Item.val = Attr.val;",
+    "fn": "zcl"
+  },
+  "read": {
+    "at": "0x0400",
+    "cl": "0x0201",
+    "ep": 1,
+    "mf": "0x119c",
+    "fn": "zcl"
+  },
+  "write": {
+    "at": "0x0400",
+    "cl": "0x0201",
+    "ep": 1,
+    "fn": "zcl",
+    "dt": "0x30",
+    "mf": "0x119c",
+    "eval": "Item.val"
+  }
+}
