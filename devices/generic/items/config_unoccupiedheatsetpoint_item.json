@@ -11,16 +11,14 @@
             "at": "0x0014",
             "cl": "0x0201",
             "ep": 1,
-            "fn": "zcl",
-            "mf": "0x119c"
+            "fn": "zcl"
           },
           "parse": {
             "at": "0x0014",
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl",
-            "mf": "0x119c"
+            "fn": "zcl"
           },
             "write": {
 	    "at": "0x0014",
@@ -28,8 +26,7 @@
             "dt": "0x29",
             "ep": 1,
             "eval": "Item.val",
-            "fn": "zcl",
-            "mf": "0x119c"
+            "fn": "zcl"
           },
 	"range": [500, 3200]
 }
