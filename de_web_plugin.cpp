@@ -940,7 +940,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     initResetDeviceApi();
     initFirmwareUpdate();
     //restoreWifiState();
-    indexRulesTriggers();
+    needRuleCheck = RULE_CHECK_DELAY;
 
     QTimer::singleShot(3000, this, SLOT(initWiFi()));
 
@@ -2245,7 +2245,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             enqueueEvent(e);
             queSaveDb(DB_SENSORS , DB_SHORT_SAVE_DELAY);
 
-            indexRulesTriggers();
+            needRuleCheck = RULE_CHECK_DELAY;
             gpProcessButtonEvent(ind);
         }
         else if (sensor && sensor->deletedState() == Sensor::StateNormal)
@@ -3222,7 +3222,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             enqueueEvent(e);
         }
 
-        indexRulesTriggers();
+        needRuleCheck = RULE_CHECK_DELAY;
 
         q->startZclAttributeTimer(checkZclAttributesDelay);
         updateLightEtag(lightNode2);
@@ -8477,7 +8477,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensors.push_back(sensorNode);
         sensor2 = &sensors.back();
         updateSensorEtag(sensor2);
-        indexRulesTriggers();
+        needRuleCheck = RULE_CHECK_DELAY;
         device->addSubDevice(sensor2);
     }
 
@@ -16431,6 +16431,15 @@ void DeRestPlugin::idleTimerFired()
     {
         localTime->setValue(QDateTime::currentDateTime());
         enqueueEvent(Event(RConfig, RConfigLocalTime, 0));
+    }
+
+    if (d->needRuleCheck > 0) // count down from RULE_CHECK_DELAY
+    {
+        d->needRuleCheck--;
+        if (d->needRuleCheck == 0)
+        {
+            d->indexRulesTriggers();
+        }
     }
 
     if (d->idleLastActivity < IDLE_USER_LIMIT)

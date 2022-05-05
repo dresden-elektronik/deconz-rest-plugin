@@ -4032,7 +4032,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
 
             if (changed)
             {
-                indexRulesTriggers();
+                needRuleCheck = RULE_CHECK_DELAY;
                 queSaveDb(DB_RULES, DB_SHORT_SAVE_DELAY);
             }
         }
