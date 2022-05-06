@@ -606,7 +606,7 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
             return result;
         }
         
-        if (map.contains(QLatin1String("script"))
+        if (map.contains(QLatin1String("script")))
         {
             const auto script = map["script"].toString();
 
@@ -843,7 +843,7 @@ bool writeTuyaData(const Resource *r, const ResourceItem *item, deCONZ::ApsContr
 
     const auto map = writeParameters.toMap();
 
-    if (map.contains(QLatin1String("script"))
+    if (map.contains(QLatin1String("script")))
     {
         const auto script = map["script"].toString();
 
