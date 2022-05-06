@@ -605,6 +605,23 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
         {
             return result;
         }
+        
+        if (map.contains(QLatin1String("script"))
+        {
+            const auto script = map["script"].toString();
+
+            const QFileInfo fi(path);
+            QFile f(fi.canonicalPath() + "/" + script);
+
+            if (f.exists() && f.open(QFile::ReadOnly))
+            {
+                const auto content = f.readAll();
+                if (!content.isEmpty())
+                {
+                    map["eval"] = content;
+                }
+            }
+        }
 
         if (!map.contains(QLatin1String("dpid")) || !map.contains(QLatin1String("eval")))
         {
@@ -825,6 +842,23 @@ bool writeTuyaData(const Resource *r, const ResourceItem *item, deCONZ::ApsContr
     }
 
     const auto map = writeParameters.toMap();
+
+    if (map.contains(QLatin1String("script"))
+    {
+        const auto script = map["script"].toString();
+
+        const QFileInfo fi(path);
+        QFile f(fi.canonicalPath() + "/" + script);
+
+        if (f.exists() && f.open(QFile::ReadOnly))
+        {
+            const auto content = f.readAll();
+            if (!content.isEmpty())
+            {
+                map["eval"] = content;
+            }
+        }
+    }
 
     if (!map.contains(QLatin1String("dpid")) || !map.contains(QLatin1String("dt")) || !map.contains(QLatin1String("eval")))
     {
