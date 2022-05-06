@@ -1355,7 +1355,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         DBG_Printf(DBG_INFO_L2, "debug test send mode\n");
                         StateChange change2(StateChange::StateCallFunction, SC_WriteZclAttribute, task.req.dstEndpoint());
-                        change2.addTargetValue(rid.suffix, data.integer);
+                        change2.addTargetValue(rid.suffix, data.string);
                         rsub->addStateChange(change2);
                         updated = true;
                     }
@@ -1527,7 +1527,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         DBG_Printf(DBG_INFO_L2, "debug test send preset\n");
                         StateChange change2(StateChange::StateCallFunction, SC_WriteZclAttribute, task.req.dstEndpoint());
-                        change2.addTargetValue(rid.suffix, data.integer);
+                        change2.addTargetValue(rid.suffix, data.string);
                         rsub->addStateChange(change2);
                         updated = true;
                     }
