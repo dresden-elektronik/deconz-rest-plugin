@@ -15,6 +15,7 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QSettings>
+#include <QFileInfo>
 #include <deconz/dbg_trace.h>
 #include "device_ddf_init.h"
 #include "device_descriptions.h"

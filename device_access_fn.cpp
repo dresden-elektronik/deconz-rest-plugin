@@ -8,6 +8,7 @@
  *
  */
 
+#include <QFileInfo>
 #include "air_quality.h"
 #include "device_access_fn.h"
 #include "device_js/device_js.h"
