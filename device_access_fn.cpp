@@ -656,7 +656,8 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
             return result;
         }
 
-        deCONZ::NumericUnion num{0};
+        deCONZ::NumericUnion num;
+        num.u64 = 0;
 
         switch (dataType)
         {
@@ -669,7 +670,7 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
             break;
 
         case TuyaDataTypeEnum:
-        { stream >> num.u8; zclDataType = deCONZ::Zcl8BitEnum; }
+        { stream >> num.u8; zclDataType = deCONZ::Zcl8BitUint; }
             break;
 
         case TuyaDataTypeValue: // docs aren't clear, assume signed
@@ -680,9 +681,9 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
         {
             switch (dataLength)
             {
-            case 1: { stream >> num.u8;  zclDataType = deCONZ::Zcl8BitBitMap; } break;
-            case 2: { stream >> num.u16; zclDataType = deCONZ::Zcl16BitBitMap; } break;
-            case 4: { stream >> num.u32; zclDataType = deCONZ::Zcl32BitBitMap; } break;
+            case 1: { stream >> num.u8;  zclDataType = deCONZ::Zcl8BitUint; } break;
+            case 2: { stream >> num.u16; zclDataType = deCONZ::Zcl16BitUint; } break;
+            case 4: { stream >> num.u32; zclDataType = deCONZ::Zcl32BitUint; } break;
             }
         }
             break;
@@ -695,7 +696,15 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
         {
             // map datapoint into ZCL attribute
             deCONZ::ZclAttribute attr(dpid, zclDataType, QLatin1String(""), deCONZ::ZclReadWrite, true);
-            attr.setNumericValue(num);
+
+            if (zclDataType == deCONZ::Zcl32BitInt)
+            {
+                attr.setValue(qint64(num.s32));
+            }
+            else
+            {
+                attr.setValue(quint64(num.u32));
+            }
 
             if (evalZclAttribute(r, item, ind, zclFrame, attr, parseParameters))
             {
