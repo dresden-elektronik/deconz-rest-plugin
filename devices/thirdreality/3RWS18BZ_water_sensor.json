@@ -1,14 +1,10 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": [
-    "Third Reality",
-    " Inc"
-  ],
+  "manufacturername": "Third Reality, Inc",
   "modelid": "3RWS18BZ",
   "product": "3RWS18BZ",
   "sleeper": true,
   "status": "Bronze",
-  "path": "/devices/thirdreality/3RWS18BZ_water_sensor.json",
   "subdevices": [
     {
       "type": "ZHAWater",
