@@ -2125,6 +2125,7 @@ Note: It does not clear or delete previous weekly schedule programming configura
 
 		<!-- CTM specific -->
 		<attribute-set id="0x0400" description="CTM specific" mfcode="0x1337">
+			<attribute id="0x0401" name="Load" type="u16" access="rw" required="m"></attribute>
 			<attribute id="0x0402" name="Display text" type="cstring" access="rw" required="m"></attribute>
 			<attribute id="0x0403" name="Temperature sensor" type="enum8" access="r" required="m">
 				<value name="Air sensor" value="0x00"></value>
@@ -2135,11 +2136,12 @@ Note: It does not clear or delete previous weekly schedule programming configura
 			<attribute id="0x0405" name="Regulator mode enabled" type="bool" access="r" required="m"></attribute>
 			<attribute id="0x0406" name="Power status" type="bool" access="r" required="m"></attribute>
 			<attribute id="0x0408" name="Mean power" type="u16" access="r" required="m"></attribute>
-			<attribute id="0x0409" name="External temperature" type="s16" access="r" required="m"></attribute>
+			<attribute id="0x0409" name="Current floor temperature" type="s16" access="r" required="m"></attribute>
 			<attribute id="0x0411" name="Night switching enabled" type="bool" access="rw" required="m"></attribute>
 			<attribute id="0x0412" name="Frost guard enabled" type="bool" access="rw" required="m"></attribute>
 			<attribute id="0x0413" name="Child lock enabled" type="bool" access="r" required="m"></attribute>
 			<attribute id="0x0414" name="Maximum floor temperature" type="u8" access="r" required="m"></attribute>
+			<attribute id="0x0415" name="Heating active/inactive" type="bool" access="rw" required="m"></attribute>
 			<attribute id="0x0420" name="Regulator setpoint" type="u8" access="rw" required="m"></attribute>
 			<attribute id="0x0421" name="Regulation mode" type="u8" access="rw" required="m">
 				<value name="Thermostat" value="0x00"></value>
@@ -2155,10 +2157,9 @@ Note: It does not clear or delete previous weekly schedule programming configura
 			<attribute id="0x0423" name="Maximum floor temp guard" type="bool" access="r" required="m"></attribute>
 			<attribute id="0x0424" name="Weekly timer enabled" type="bool" access="rw" required="m"></attribute>
 			<attribute id="0x0425" name="Frost guard setpoint" type="u8" access="r" required="m"></attribute>
-			<attribute id="0x0426" name="Current floor temperature" type="s16" access="r" required="m"></attribute>
+			<attribute id="0x0426" name="External temperature" type="s16" access="r" required="m"></attribute>
 			<attribute id="0x0428" name="Exteral sensor source" type="u16" access="rw" required="m"></attribute>
 			<attribute id="0x0429" name="Current air temperature" type="s16" access="r" required="m"></attribute>
-			<attribute id="0x042a" name="Heating element power" type="u16" access="rw" required="m"></attribute>
 		</attribute-set>
 
 		<!-- Eurotronic manufacturer specific -->
