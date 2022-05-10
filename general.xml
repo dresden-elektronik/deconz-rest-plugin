@@ -2141,7 +2141,7 @@ Note: It does not clear or delete previous weekly schedule programming configura
 			<attribute id="0x0412" name="Frost guard enabled" type="bool" access="rw" required="m"></attribute>
 			<attribute id="0x0413" name="Child lock enabled" type="bool" access="r" required="m"></attribute>
 			<attribute id="0x0414" name="Maximum floor temperature" type="u8" access="r" required="m"></attribute>
-			<attribute id="0x0415" name="Heating active/inactive" type="bool" access="rw" required="m"></attribute>
+			<attribute id="0x0415" name="Heating active/inactive" type="bool" access="r" required="m"></attribute>
 			<attribute id="0x0420" name="Regulator setpoint" type="u8" access="rw" required="m"></attribute>
 			<attribute id="0x0421" name="Regulation mode" type="u8" access="rw" required="m">
 				<value name="Thermostat" value="0x00"></value>
