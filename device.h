@@ -117,6 +117,11 @@ Q_SIGNALS:
     void eventNotify(const Event&); //! The device emits an event, which needs to be enqueued in a higher layer.
 };
 
+Device *DEV_ParentDevice(Resource *r);
+
+/*! Helper to forward attributes to core (modelid, battery, etc.). */
+void DEV_ForwardNodeChange(Device *device, const QString &key, const QString &value);
+
 using DeviceContainer = std::vector<std::unique_ptr<Device>>;
 
 Resource *DEV_GetSubDevice(Device *device, const char *prefix, const QString &identifier);

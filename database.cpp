@@ -22,6 +22,7 @@
 #include "gateway.h"
 #include "json.h"
 #include "product_match.h"
+#include "utils/ArduinoJson.h"
 #include "utils/utils.h"
 
 constexpr size_t MAX_SQL_LEN = 2048;
@@ -33,6 +34,8 @@ static const char *pragmaFreeListCount = "PRAGMA freelist_count";
 
 static sqlite3 *db = nullptr; // TODO should be member of Database class
 static char sqlBuf[MAX_SQL_LEN];
+
+static StaticJsonDocument<1024 * 1024 * 2> dbJson; /* 2 mega bytes*/
 
 struct DB_Callback {
   DeRestPluginPrivate *d = nullptr;
@@ -201,6 +204,7 @@ static void DB_CleanupDuplSensors(sqlite3 *db)
     ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT uniqueid"
                                  " FROM sensors"
                                  " WHERE type NOT LIKE 'CLIP%%'"
+                                 " AND deletedState == 'normal'"
                                  " GROUP BY uniqueid"
                                  " HAVING COUNT(uniqueid) > 1");
     assert(size_t(ret) < sizeof(sqlBuf));
@@ -229,6 +233,7 @@ static void DB_CleanupDuplSensors(sqlite3 *db)
         ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT sid"
                                      " FROM sensors"
                                      " WHERE uniqueid = '%s'"
+                                     " AND deletedState == 'normal'"
                                      " ORDER BY sid DESC LIMIT 1", uniqueid.c_str());
         assert(size_t(ret) < sizeof(sqlBuf));
         if (size_t(ret) < sizeof(sqlBuf))
@@ -243,7 +248,7 @@ static void DB_CleanupDuplSensors(sqlite3 *db)
             }
         }
 
-        if (result.size() != 1)
+        if (result.size() != 1 || result.front().empty())
         {
             continue;
         }
@@ -723,7 +728,6 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion9()
     return setDbUserVersion(9);
 }
 
-#if DECONZ_LIB_VERSION >= 0x010E00
 /*! Stores a source route.
     Any existing source route with the same uuid will be replaced automatically.
  */
@@ -883,7 +887,6 @@ void DeRestPluginPrivate::restoreSourceRoutes()
 
     closeDb();
 }
-#endif // DECONZ_LIB_VERSION >= 0x010E00
 
 /*! Puts a new top level device entry in the db (mac address) or refreshes nwk address.
 */
@@ -3342,7 +3345,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 {
                     DBG_Printf(DBG_INFO, "DB legacy loading sensor %s %s, later handled by DDF %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()), qPrintable(ddf.product));
                 }
-                else if (DEV_TestManaged() || d->deviceDescriptions->enabledStatusFilter().contains(ddf.status))
+                else if (DEV_TestManaged() || DDF_IsStatusEnabled(ddf.status))
                 {
                     DBG_Printf(DBG_INFO, "DB skip loading sensor %s %s, handled by DDF %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()), qPrintable(ddf.product));
                     return 0;
@@ -5227,6 +5230,15 @@ void DeRestPluginPrivate::saveDb()
                 continue;
             }
 
+            if (i->parentResource())
+            {
+                Device *device = static_cast<Device*>(i->parentResource());
+                if (device && device->managed())
+                {
+                    DB_StoreSubDeviceItems(&*i);
+                }
+            }
+
             std::vector<GroupInfo>::const_iterator gi = i->groups().begin();
             std::vector<GroupInfo>::const_iterator gend = i->groups().end();
 
@@ -5657,6 +5669,15 @@ void DeRestPluginPrivate::saveDb()
                 if (ep == 0xFF || ep == 0)
                 {
                     continue;
+                }
+            }
+
+            if (i->parentResource())
+            {
+                Device *device = static_cast<Device*>(i->parentResource());
+                if (device && device->managed())
+                {
+                    DB_StoreSubDeviceItems(&*i);
                 }
             }
 
@@ -6852,9 +6873,53 @@ static int DB_LoadLegacyValueCallback(void *user, int ncols, char **colval , cha
     Q_ASSERT(result);
     Q_ASSERT(ncols == 1);
 
-    result->value.setString(colval[0]);
+    if (colval[0][0] == '{') // state and config json objects
+    {
+        BufString<32> key; // config/offset -> offset
+        for (size_t i = 0; i < result->column.size(); i++)
+        {
+            if (result->column.c_str()[i] == '/')
+            {
+                key.setString(&result->column.c_str()[i + 1]);
+                break;
+            }
+        }
 
-    return 0;
+        if (!key.empty() && DeserializationError::Ok == deserializeJson(dbJson, static_cast<const char*>(colval[0])))
+        {
+            if (dbJson.containsKey(key.c_str()))
+            {
+                auto var = dbJson[key.c_str()];
+                if (var.is<int>())
+                {
+                    result->value.setString(std::to_string(var.as<int>()).c_str());
+                    return 0;
+                }
+                else if (var.is<double>())
+                {
+                    result->value.setString(std::to_string(var.as<double>()).c_str());
+                    return 0;
+                }
+                else if (var.is<const char*>())
+                {
+                    result->value.setString(var.as<const char*>());
+                    return 0;
+                }
+                else if (var.is<bool>())
+                {
+                    result->value.setString((var.as<bool>() ? "true" : "false"));
+                    return 0;
+                }
+            }
+        }
+    }
+    else if (colval[0][0])
+    {
+        result->value.setString(colval[0]);
+        return 0;
+    }
+
+    return 1;
 };
 
 bool DB_LoadLegacySensorValue(DB_LegacyItem *litem)
@@ -6869,8 +6934,23 @@ bool DB_LoadLegacySensorValue(DB_LegacyItem *litem)
 
     litem->value.clear();
 
+    BufString<32> column; // config/* -> config, state/* -> state
+    for (size_t i = 0; i < litem->column.size(); i++)
+    {
+        if (litem->column.c_str()[i] == '/')
+        {
+            column.setString(litem->column.c_str(), i);
+            break;
+        }
+    }
+
+    if (column.empty())
+    {
+        column = litem->column;
+    }
+
     int ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT %s FROM sensors WHERE uniqueid = '%s' AND deletedState = 'normal'",
-                       litem->column.c_str(), litem->uniqueId.c_str());
+                       column.c_str(), litem->uniqueId.c_str());
 
     assert(size_t(ret) < sizeof(sqlBuf));
     if (size_t(ret) < sizeof(sqlBuf))

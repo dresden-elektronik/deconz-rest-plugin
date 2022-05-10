@@ -1,9 +1,8 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "Schneider Electric",
-  "modelid": "CCT591011_AS",
-  "vendor": "LK Wiser",
-  "product": "Contact sensor CCT591011_AS",
+  "manufacturername": "Sunricher",
+  "modelid": "TERNCY-DC01",
+  "product": "TERNCY-DC01 contact sensor",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -15,16 +14,6 @@
         "0x01",
         "0x0500"
       ],
-      "fingerprint": {
-        "profile": "0x0104",
-        "device": "0x0402",
-        "endpoint": "0x01",
-        "in": [
-          "0x0000",
-          "0x0001",
-          "0x0500"
-        ]
-      },
       "items": [
         {
           "name": "attr/id"
@@ -55,8 +44,7 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
-          "refresh.interval": 3700,
+          "refresh.interval": 3600,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -67,26 +55,13 @@
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "fn": "zcl",
-            "eval": "Item.val = Attr.val / 2"
-          }
-        },
-        {
-          "name": "config/checkin",
-          "public": false,
-          "awake": true,
-          "refresh.interval": 3600,
-          "static": 3600
-        },
-        {
-          "name": "config/enrolled",
-          "public": false
+            "eval": "Item.val = Attr.val / 2",
+            "fn": "zcl"
+          },
+          "default": 0
         },
         {
           "name": "config/on"
-        },
-        {
-          "name": "config/pending"
         },
         {
           "name": "config/reachable"
@@ -95,16 +70,14 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/lowbattery"
-        },
-        {
           "name": "state/open",
           "awake": true,
           "parse": {
-            "at": "0x0002",
-            "cl": "0x0500",
+            "at": "0x0055",
+            "cl": "0x000f",
             "ep": 1,
-            "eval": "Item.val = (Attr.val & 0x3) != 0"
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl"
           }
         }
       ]
@@ -114,13 +87,26 @@
     {
       "bind": "unicast",
       "src.ep": 1,
+      "cl": "0x000F",
+      "report": [
+        {
+          "at": "0x0055",
+          "dt": "0x10",
+          "min": 1,
+          "max": 3600
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
       "cl": "0x0001",
       "report": [
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 3600,
-          "max": 43200,
+          "min": 1,
+          "max": 3600,
           "change": "0x00000001"
         }
       ]

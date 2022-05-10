@@ -4,7 +4,7 @@
   "modelid": "lumi.sensor_ht",
   "vendor": "Xiaomi",
   "product": "Aqara temp./hum. sensor WSDCGQ01LM",
-  "sleeper": false,
+  "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
@@ -80,6 +80,10 @@
         },
         {
           "name": "config/reachable"
+        },
+        {
+          "name": "config/temperature",
+          "public": false
         },
         {
           "name": "state/lastupdated"
@@ -163,6 +167,10 @@
         },
         {
           "name": "config/reachable"
+        },
+        {
+          "name": "config/temperature",
+          "public": false
         },
         {
           "name": "state/humidity",

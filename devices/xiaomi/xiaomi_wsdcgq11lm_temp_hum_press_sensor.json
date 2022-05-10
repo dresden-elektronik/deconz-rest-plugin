@@ -46,7 +46,21 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "refresh.interval": 84000,
+          "read": {
+            "at": "0x0006",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0006",
+            "cl": "0x0000",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl"
+          }
         },
         {
           "name": "attr/type"
@@ -67,6 +81,10 @@
         },
         {
           "name": "config/reachable"
+        },
+        {
+          "name": "config/temperature",
+          "public": false
         },
         {
           "name": "state/humidity"
@@ -104,18 +122,24 @@
           "name": "attr/lastseen"
         },
         {
-          "name": "attr/manufacturername",
-          "awake": true
+          "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid",
-          "awake": true
+          "name": "attr/modelid"
         },
         {
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "read": {"fn": "none"},
+          "parse": {
+            "at": "0x0006",
+            "cl": "0x0000",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl"
+          }
         },
         {
           "name": "attr/type"
@@ -125,7 +149,6 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
           "parse": {"fn": "xiaomi:special", "at": "0xff01", "idx": "0x01", "script": "xiaomi_battery.js"}
         },
         {
@@ -136,6 +159,10 @@
         },
         {
           "name": "config/reachable"
+        },
+        {
+          "name": "config/temperature",
+          "public": false
         },
         {
           "name": "state/lastupdated"
@@ -173,18 +200,24 @@
           "name": "attr/lastseen"
         },
         {
-          "name": "attr/manufacturername",
-          "awake": true
+          "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid",
-          "awake": true
+          "name": "attr/modelid"
         },
         {
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "read": {"fn": "none"},
+          "parse": {
+            "at": "0x0006",
+            "cl": "0x0000",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl"
+          }
         },
         {
           "name": "attr/type"
@@ -194,7 +227,6 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
           "parse": {"fn": "xiaomi:special", "at": "0xff01", "idx": "0x01", "script": "xiaomi_battery.js"}
         },
         {
@@ -205,6 +237,10 @@
         },
         {
           "name": "config/reachable"
+        },
+        {
+          "name": "config/temperature",
+          "public": false
         },
         {
           "name": "state/lastupdated"
