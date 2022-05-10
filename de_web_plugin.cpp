@@ -835,20 +835,18 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
         queSaveDb(DB_GROUPS, DB_LONG_SAVE_DELAY);
     }
 
-    connect(apsCtrl, SIGNAL(apsdeDataConfirm(const deCONZ::ApsDataConfirm&)),
-            this, SLOT(apsdeDataConfirm(const deCONZ::ApsDataConfirm&)));
+    connect(apsCtrl, SIGNAL(apsdeDataConfirm(deCONZ::ApsDataConfirm)),
+            this, SLOT(apsdeDataConfirm(deCONZ::ApsDataConfirm)));
 
-    connect(apsCtrl, SIGNAL(apsdeDataIndication(const deCONZ::ApsDataIndication&)),
-            this, SLOT(apsdeDataIndication(const deCONZ::ApsDataIndication&)));
+    connect(apsCtrl, SIGNAL(apsdeDataIndication(deCONZ::ApsDataIndication)),
+            this, SLOT(apsdeDataIndication(deCONZ::ApsDataIndication)));
 
     connect(apsCtrl, SIGNAL(nodeEvent(deCONZ::NodeEvent)),
             this, SLOT(nodeEvent(deCONZ::NodeEvent)));
 
-#if DECONZ_LIB_VERSION >= 0x010E00
-    connect(apsCtrl, &deCONZ::ApsController::sourceRouteCreated, this, &DeRestPluginPrivate::storeSourceRoute);
-    connect(apsCtrl, &deCONZ::ApsController::sourceRouteDeleted, this, &DeRestPluginPrivate::deleteSourceRoute);
-    connect(apsCtrl, &deCONZ::ApsController::nodesRestored, this, &DeRestPluginPrivate::restoreSourceRoutes, Qt::QueuedConnection);
-#endif
+    connect(apsCtrl, SIGNAL(sourceRouteCreated(deCONZ::SourceRoute)), this, SLOT(storeSourceRoute(deCONZ::SourceRoute)));
+    connect(apsCtrl, SIGNAL(sourceRouteDeleted(QString)), this, SLOT(deleteSourceRoute(QString)));
+    connect(apsCtrl, SIGNAL(nodesRestored()), this, SLOT(restoreSourceRoutes()), Qt::QueuedConnection);
 
     deCONZ::GreenPowerController *gpCtrl = deCONZ::GreenPowerController::instance();
 

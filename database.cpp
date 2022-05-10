@@ -728,7 +728,6 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion9()
     return setDbUserVersion(9);
 }
 
-#if DECONZ_LIB_VERSION >= 0x010E00
 /*! Stores a source route.
     Any existing source route with the same uuid will be replaced automatically.
  */
@@ -888,7 +887,6 @@ void DeRestPluginPrivate::restoreSourceRoutes()
 
     closeDb();
 }
-#endif // DECONZ_LIB_VERSION >= 0x010E00
 
 /*! Puts a new top level device entry in the db (mac address) or refreshes nwk address.
 */
