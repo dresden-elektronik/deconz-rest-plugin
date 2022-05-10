@@ -55,7 +55,7 @@ StateChange::State StateChange::tick(Resource *r, deCONZ::ApsController *apsCtrl
             {
                 if (i.verified == VerifyUnknown) // didn't receive a ZCL attribute read or report command
                 {
-                    DBG_Printf(DBG_INFO, "SC tick --> StateRead\n");
+                    DBG_Printf(DBG_INFO_L2, "SC tick --> StateRead\n");
                     m_state = StateRead;
                     break;
                 }
@@ -73,7 +73,7 @@ StateChange::State StateChange::tick(Resource *r, deCONZ::ApsController *apsCtrl
     }
     else if (m_state == StateCallFunction && m_changeFunction)
     {
-        DBG_Printf(DBG_INFO, "SC tick --> StateCallFunction\n");
+        DBG_Printf(DBG_INFO_L2, "SC tick --> StateCallFunction\n");
         if (m_changeFunction(r, this, apsCtrl) == 0)
         {
             m_stateTimer.start();
@@ -143,12 +143,12 @@ void StateChange::verifyItemChange(const ResourceItem *item)
             if (i.targetValue == item->toVariant())
             {
                 i.verified = VerifySynced;
-                DBG_Printf(DBG_INFO, "SC %s: synced\n", i.suffix);
+                DBG_Printf(DBG_INFO_L2, "SC %s: synced\n", i.suffix);
             }
             else
             {
                 i.verified = VerifyNotSynced;
-                DBG_Printf(DBG_INFO, "SC %s: not synced\n", i.suffix);
+                DBG_Printf(DBG_INFO_L2, "SC %s: not synced\n", i.suffix);
             }
         }
 
@@ -161,7 +161,7 @@ void StateChange::verifyItemChange(const ResourceItem *item)
     if (syncedItems == m_items.size() && m_state != StateFinished)
     {
         m_state = StateFinished;
-        DBG_Printf(DBG_INFO, "SC --> StateFinished\n");
+        DBG_Printf(DBG_INFO_L2, "SC --> StateFinished\n");
     }
 }
 
