@@ -1,6 +1,6 @@
 {
 	"schema": "resourceitem1.schema.json",
-	"id": "config/windowsopen_set",
+	"id": "config/windowopen_set",
 	"datatype": "Bool",
 	"access": "RW",
 	"public": true,
