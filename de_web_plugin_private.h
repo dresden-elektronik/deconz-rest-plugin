@@ -1345,11 +1345,9 @@ public Q_SLOTS:
     void pollNextDevice();
 
     // database
-#if DECONZ_LIB_VERSION >= 0x010E00
     void storeSourceRoute(const deCONZ::SourceRoute &sourceRoute);
     void deleteSourceRoute(const QString &uuid);
     void restoreSourceRoutes();
-#endif
 
     // touchlink
     void touchlinkDisconnectNetwork();
