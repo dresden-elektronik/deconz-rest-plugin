@@ -605,15 +605,6 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
         {
             return result;
         }
-        
-        if (!map.contains(QLatin1String("eval")))
-        {
-            DBG_Printf(DBG_INFO_L2, "debug test no eval\n");
-        }
-        if (!map.contains(QLatin1String("script")))
-        {
-            DBG_Printf(DBG_INFO_L2, "debug test no script\n");
-        }
 
         if (!map.contains(QLatin1String("dpid")) || !map.contains(QLatin1String("eval")))
         {
@@ -1606,8 +1597,6 @@ ReadFunction_t DA_GetReadFunction(const QVariant &params)
 WriteFunction_t DA_GetWriteFunction(const QVariant &params)
 {
     WriteFunction_t result = nullptr;
-    
-    DBG_Printf(DBG_INFO_L2, "debug test 1\n");
 
     const std::array<WriteFunction, 2> functions =
     {

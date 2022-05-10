@@ -114,19 +114,7 @@ StateChange::State StateChange::tick(Resource *r, deCONZ::ApsController *apsCtrl
                     m_stateTimer.start();
                     m_state = StateWaitSync;
                 }
-                else
-                {
-                    DBG_Printf(DBG_INFO_L2, "debug test 1 : Queue issue\n");
-                }
             }
-            else
-            {
-                DBG_Printf(DBG_INFO_L2, "debug test 1 : DDF not valid \n");
-            }
-        }
-        else
-        {
-            DBG_Printf(DBG_INFO_L2, "debug test 1 : no item \n");
         }
     }
 
@@ -142,8 +130,6 @@ void StateChange::verifyItemChange(const ResourceItem *item)
     Q_ASSERT(item);
 
     size_t syncedItems = 0;
-    
-    DBG_Printf(DBG_INFO_L2, "debug test 7\n");
 
     if (item->valueSource() != ResourceItem::SourceDevice)
     {
@@ -227,8 +213,6 @@ int SC_WriteZclAttribute(const Resource *r, const StateChange *stateChange, deCO
     Q_ASSERT(r);
     Q_ASSERT(stateChange);
     Q_ASSERT(apsCtrl);
-    
-    DBG_Printf(DBG_INFO_L2, "debug test 2\n");
 
     int written = 0;
 
