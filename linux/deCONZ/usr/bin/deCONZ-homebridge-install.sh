@@ -378,7 +378,6 @@ function installHomebridge {
 		npm -g install homebridge-lib | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 	fi
 
-	putHomebridgeUpdated "homebridgeupdateversion" "$hb_hue_version"
 	all_installed=true
 }
 
