@@ -16,6 +16,7 @@
 #include "ias_zone.h"
 #include "resource.h"
 #include "zcl/zcl.h"
+#include "de_web_plugin_private.h"
 
 #define TIME_CLUSTER_ID     0x000A
 
@@ -1438,6 +1439,61 @@ bool writeTimeData(const Resource *r, const ResourceItem *item, deCONZ::ApsContr
     return result;
 }
 
+/*! A specialized function to parse TUYA_MCU_SYNC_TIME and sync the time on the device.
+
+    {"fn": "tuyatime"}
+
+    - The function should only be contained once in the DDF file for the device
+    - The function does not require any further parameters
+
+    Example: { "parse": {"fn": "tuyatime"} }
+ */
+bool parseTuyaTime(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, const QVariant &parseParameters)
+{
+    Q_UNUSED(parseParameters);
+    Q_UNUSED(r);
+    Q_UNUSED(item);
+
+    if (zclFrame.isDefaultResponse() || zclFrame.commandId() != TUYA_MCU_SYNC_TIME)
+    {
+        return false;
+    }
+
+    DBG_Printf(DBG_INFO, "Tuya Time sync request received\n");
+    
+    QDataStream stream(zclFrame.payload());
+    stream.setByteOrder(QDataStream::BigEndian);
+
+    quint16 sequenceNumber;
+    stream >> sequenceNumber;
+
+    // "Timestamps" contained in the ZCL Payload will be always zero.
+    // The Tuya protocol does not send the local time of the device
+    // quint32 standardTimeStamp;
+    // stream >> standardTimeStamp;
+    // quint32 localTimeStamp;
+    // stream >> localTimeStamp;
+
+    QByteArray data;
+    QDataStream stream2(&data, QIODevice::WriteOnly);
+    stream2.setByteOrder(QDataStream::BigEndian);
+
+    stream2 << sequenceNumber;
+    // Add UTC time
+    const quint32 timeNow = QDateTime::currentSecsSinceEpoch();
+    stream2 << timeNow;
+    
+    // Add local time
+    const quint32 timeLocalTime = QDateTime::currentDateTime().toSecsSinceEpoch();
+    stream2 << timeLocalTime;
+
+    DeRestPluginPrivate *app = DeRestPluginPrivate::instance();
+    app->sendTuyaCommand(ind, TUYA_MCU_SYNC_TIME, data);
+
+    return true;
+
+}
+
 /*! A specialized function to parse time (utc), local and last set time from read/report commands of the time cluster and auto-sync time if needed.
     The item->parseParameters() is expected to be an object (given in the device description file).
 
@@ -1797,14 +1853,15 @@ ParseFunction_t DA_GetParseFunction(const QVariant &params)
 {
     ParseFunction_t result = nullptr;
 
-    const std::array<ParseFunction, 6> functions =
+    const std::array<ParseFunction, 7> functions =
     {
         ParseFunction(QLatin1String("zcl"), 1, parseZclAttribute),
         ParseFunction(QLatin1String("xiaomi:special"), 1, parseXiaomiSpecial),
         ParseFunction(QLatin1String("ias:zonestatus"), 1, parseIasZoneNotificationAndStatus),
         ParseFunction(QLatin1String("tuya"), 1, parseTuyaData),
         ParseFunction(QLatin1String("numtostr"), 1, parseNumericToString),
-        ParseFunction(QLatin1String("time"), 1, parseAndSyncTime)
+        ParseFunction(QLatin1String("time"), 1, parseAndSyncTime),
+        ParseFunction(QLatin1String("tuyatime"), 1, parseTuyaTime)
     };
 
     QString fnName;
