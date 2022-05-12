@@ -163,7 +163,7 @@ function checkHomebridge {
 	local HOMEBRIDGE=""
 	local IP_ADDRESS=""
 	local HOMEBRIDGE_PIN=""
-	local hb_hue_version=$(npm list -g homebridge-hue | grep homebridge-hue | cut -d@ -f2 | xargs)
+	local hb_hue_version=""
 
 	## get database config
 	params=( [0]="homebridge" [1]="ipaddress" [2]="homebridge-pin")
@@ -288,6 +288,7 @@ function checkHomebridge {
 	## check installed components
 	hb_installed=false
 	hb_hue_installed=false
+	config_ui_x_installed=false
 	node_installed=false
 	npm_installed=false
 	node_ver=""
@@ -326,7 +327,12 @@ function checkHomebridge {
 		fi
 	fi
 
-	if [[ $hb_installed = false || $hb_hue_installed = false || $node_installed = false || $npm_installed = false ]]; then
+	which homebridge-config-ui-x &> /dev/null
+	if [ $? -eq 0 ]; then
+		config_ui_x_installed=true
+	fi
+
+	if [[ $hb_installed = false || $hb_hue_installed = false || $config_ui_x_installed = false || $node_installed = false || $npm_installed = false ]]; then
 		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}Not everything installed yet. Waiting..."
 		return
 	fi
@@ -453,25 +459,26 @@ function checkHomebridge {
 		chown $MAINUSER /home/$MAINUSER/.homebridge/config.json
 	fi
 
-	## check for backuped homebridge data before homebridge starts
-	local restart=false
-	for filename in $DECONZ_DATA_DIR/*; do
-	    if [ -f "$filename" ]; then
-            file="${filename##*/}"
-            if [[ "$file" == AccessoryInfo* ]]; then
-                [[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}found accessoryInfo - copy it to homebridge persist dir"
-                mkdir -p "/home/$MAINUSER/.homebridge/persist"
-                mv "$DECONZ_DATA_DIR/$file" "/home/$MAINUSER/.homebridge/persist/$file"
-                restart=true
-            fi
-            if [[ "$file" == IdentifierCache* ]]; then
-                [[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}found IdentifierCache - copy it to homebridge persist dir"
-                mkdir -p "/home/$MAINUSER/.homebridge/persist"
-                mv "$DECONZ_DATA_DIR/$file" "/home/$MAINUSER/.homebridge/persist/$file"
-                restart=true
-            fi
-	    fi
-	done
+	## check for backuped homebridge data before homebridge starts - Don't apply backuped files automatically!
+	## TODO: load backup when deCONZ backup is loaded
+	#local restart=false
+	#for filename in $DECONZ_DATA_DIR/*; do
+	#    if [ -f "$filename" ]; then
+    #        file="${filename##*/}"
+    #        if [[ "$file" == AccessoryInfo* ]]; then
+    #            [[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}found accessoryInfo - copy it to homebridge persist dir"
+    #            mkdir -p "/home/$MAINUSER/.homebridge/persist"
+    #            mv "$DECONZ_DATA_DIR/$file" "/home/$MAINUSER/.homebridge/persist/$file"
+    #            restart=true
+    #        fi
+    #        if [[ "$file" == IdentifierCache* ]]; then
+    #            [[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}found IdentifierCache - copy it to homebridge persist dir"
+    #            mkdir -p "/home/$MAINUSER/.homebridge/persist"
+    #            mv "$DECONZ_DATA_DIR/$file" "/home/$MAINUSER/.homebridge/persist/$file"
+    #            restart=true
+    #        fi
+	#    fi
+	#done
 
 	## start homebridge
 	systemctl -q is-active homebridge
