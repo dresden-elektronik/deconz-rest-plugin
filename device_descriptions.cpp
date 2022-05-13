@@ -1791,17 +1791,23 @@ static DDF_SubDeviceDescriptor DDF_ReadSubDeviceFile(const QString &path)
 QVariant DDF_ResolveParamScript(const QVariant &param, const QString &path)
 {
     auto result = param;
+    
+    DBG_Printf(DBG_INFO_L2, "Tuya debug script 1\n");
 
     if (param.type() != QVariant::Map)
     {
         return result;
     }
+    
+    DBG_Printf(DBG_INFO_L2, "Tuya debug script 2\n");
 
     auto map = param.toMap();
 
     if (map.contains("script"))
     {
         const auto script = map["script"].toString();
+        
+        DBG_Printf(DBG_INFO_L2, "Tuya debug script 3\n");
 
         const QFileInfo fi(path);
         QFile f(fi.canonicalPath() + "/" + script);
