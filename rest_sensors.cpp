@@ -1171,7 +1171,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (devManaged && rsub) // Managed by DDF ?
                     {
-                        DBG_Printf(DBG_INFO_L2, "debug test send Heatsetpoint\n");
                         StateChange change2(StateChange::StateCallFunction, SC_WriteZclAttribute, task.req.dstEndpoint());
                         change2.addTargetValue(rid.suffix, data.integer);
                         rsub->addStateChange(change2);
@@ -1352,7 +1351,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (devManaged && rsub) // Managed by DDF ?
                     {
-                        DBG_Printf(DBG_INFO_L2, "debug test send mode\n");
                         StateChange change2(StateChange::StateCallFunction, SC_WriteZclAttribute, task.req.dstEndpoint());
                         change2.addTargetValue(rid.suffix, data.string);
                         rsub->addStateChange(change2);
@@ -1588,7 +1586,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (devManaged && rsub) // Managed by DDF ?
                     {
-                        DBG_Printf(DBG_INFO_L2, "debug test send Childlock\n");
                         StateChange change2(StateChange::StateCallFunction, SC_WriteZclAttribute, task.req.dstEndpoint());
                         change2.addTargetValue(rid.suffix, data.boolean);
                         rsub->addStateChange(change2);
@@ -1736,7 +1733,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (devManaged && rsub) // Managed by DDF ?
                     {
-                        DBG_Printf(DBG_INFO_L2, "debug test send wndowsopen\n");
                         StateChange change2(StateChange::StateCallFunction, SC_WriteZclAttribute, task.req.dstEndpoint());
                         change2.addTargetValue(rid.suffix, data.boolean);
                         rsub->addStateChange(change2);

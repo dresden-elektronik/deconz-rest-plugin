@@ -598,8 +598,6 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
 bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, const QVariant &parseParameters)
 {
     bool result = false;
-    
-    DBG_Printf(DBG_INFO_L2, "Tuya parse expression\n");
 
     if (ind.clusterId() != TUYA_CLUSTER_ID || !(zclFrame.commandId() == TY_DATA_REPORT || zclFrame.commandId() ==  TY_DATA_RESPONSE))
     {
@@ -832,15 +830,6 @@ bool writeTuyaData(const Resource *r, const ResourceItem *item, deCONZ::ApsContr
     }
 
     const auto map = writeParameters.toMap();
-    
-    if (!map.contains(QLatin1String("eval")))
-    {
-        DBG_Printf(DBG_INFO_L2, "debug test no eval\n");
-    }
-    if (!map.contains(QLatin1String("script")))
-    {
-        DBG_Printf(DBG_INFO_L2, "debug test no script\n");
-    }
 
     if (!map.contains(QLatin1String("dpid")) || !map.contains(QLatin1String("dt")) || !map.contains(QLatin1String("eval")))
     {
@@ -876,7 +865,7 @@ bool writeTuyaData(const Resource *r, const ResourceItem *item, deCONZ::ApsContr
         return result;
     }
 
-    DBG_Printf(DBG_INFO_L2, "writeTuyaData, dpid: 0x%02X, type: 0x%02X, expr: %s\n",
+    DBG_Printf(DBG_INFO, "writeTuyaData, dpid: 0x%02X, type: 0x%02X, expr: %s\n",
                dpid & 0xFF, dataType & 0xFF, qPrintable(expr));
 
     deCONZ::ApsDataRequest req;
@@ -909,11 +898,11 @@ bool writeTuyaData(const Resource *r, const ResourceItem *item, deCONZ::ApsContr
         if (engine.evaluate(expr) == JsEvalResult::Ok)
         {
             value = engine.result();
-            DBG_Printf(DBG_INFO_L2, "Tuya write expression: %s --> %s\n", qPrintable(expr), qPrintable(value.toString()));
+            DBG_Printf(DBG_INFO, "Tuya write expression: %s --> %s\n", qPrintable(expr), qPrintable(value.toString()));
         }
         else
         {
-            DBG_Printf(DBG_INFO_L2, "failed to evaluate Tuya write expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
+            DBG_Printf(DBG_INFO, "failed to evaluate Tuya write expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
             return result;
         }
 
