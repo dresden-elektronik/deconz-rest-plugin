@@ -18265,7 +18265,7 @@ void DeRestPluginPrivate::pollNextDevice()
                 if (l.parentResource())
                 {
                     Device *device = static_cast<Device*>(l.parentResource());
-                    if (device->managed())
+                    if (device && device->managed())
                     {
                         continue;
                     }
@@ -18283,7 +18283,7 @@ void DeRestPluginPrivate::pollNextDevice()
                 if (s.parentResource())
                 {
                     Device *device = static_cast<Device*>(s.parentResource());
-                    if (device->managed())
+                    if (device && device->managed())
                     {
                         continue;
                     }
