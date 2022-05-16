@@ -187,6 +187,11 @@ void DEV_EnqueueEvent(Device *device, const char *event)
 
 Resource *DEV_GetSubDevice(Device *device, const char *prefix, const QString &identifier)
 {
+    if (!device)
+    {
+        return nullptr;
+    }
+    
     for (auto &sub : device->subDevices())
     {
         if (prefix && sub->prefix() != prefix)
