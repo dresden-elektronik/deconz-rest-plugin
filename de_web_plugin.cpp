@@ -1133,6 +1133,9 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
             }
         }
 
+        // for state/* changes, only emit the state/lastupdated event once for the first state/* item.
+        bool eventLastUpdatedEmitted = false;
+
         for (int i = 0; i < r->itemCount(); i++)
         {
             ResourceItem *item = r->itemForIndex(i);
@@ -1184,11 +1187,12 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                     }
                 }
 
-                if (item->descriptor().suffix[0] == 's') // state/*
+                if (!eventLastUpdatedEmitted && item->descriptor().suffix[0] == 's') // state/*
                 {
                     ResourceItem *lastUpdated = r->item(RStateLastUpdated);
                     if (lastUpdated && idItem)
                     {
+                        eventLastUpdatedEmitted = true;
                         lastUpdated->setValue(item->lastSet());
                         enqueueEvent(Event(r->prefix(), lastUpdated->descriptor().suffix, idItem->toString(), device->key()));
                     }
