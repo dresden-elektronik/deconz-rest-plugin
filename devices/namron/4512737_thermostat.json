@@ -84,7 +84,6 @@
         },
         {
           "name": "state/temperature",
-          "description": "The current temperature in °C &times; 100.",
           "default": 0
         }
       ]
@@ -167,7 +166,7 @@
             "at": "0x0505",
             "cl": "0x0b04",
             "ep": 0,
-            "eval": "if (Attr.val != 65535) { Item.val = Attr.val * 10 ; }"
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val * 100 ; }"
           },
           "default": 0
         }
@@ -240,7 +239,7 @@
       "bind": "unicast",
       "src.ep": 1,
       "dst.ep": 1,
-      "cl": "0x0204",
+      "cl": "0x0201",
      "report": [
         {
           "at": "0x0000",
@@ -248,20 +247,6 @@
           "min": 300,
           "max": 3600,
           "change": "0x00000032"
-        },
-        {
-          "at": "0x0008",
-          "dt": "0x20",
-          "min": 60,
-          "max": 3600,
-          "change": "0x00000001"
-        },
-        {
-          "at": "0x0012",
-          "dt": "0x29",
-          "min": 1,
-          "max": 3600,
-          "change": "0x00000001"
         }
       ]
     },
