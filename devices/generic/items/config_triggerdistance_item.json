@@ -1,0 +1,9 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/triggerdistance",
+	"datatype": "UInt8",
+	"access": "RW",
+	"public": true,
+	"range": [0, 255],
+	"description": "A device specific distance setting when it triggers the associated function (e.g. detect presence or motion)."
+}
