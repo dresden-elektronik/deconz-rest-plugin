@@ -36,7 +36,6 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 84000,
           "read": {
             "at": "0x0006",
             "cl": "0x0000",
@@ -64,7 +63,7 @@
             "at": "0x0146",
             "cl": "0xfcc0",
             "ep": 1,
-            "eval": "if (Attr.val == 0) { Item.val = 'far' } else if (Attr.val == 1) { Item.val = 'medium' } else if (Attr.val == 2) { Item.val = 'near' }",
+            "eval": "if (Attr.val == 0) { Item.val = 'far' } else if (Attr.val == 1) { Item.val = 'medium' } else if (Attr.val == 2) { Item.val = 'near' } else { Item.val = 'unknown' }",
             "fn": "zcl"
           },
           "read": {
@@ -82,9 +81,9 @@
             "fn": "zcl"
           },
           "values": [
-            ["\"far\"", ""],
-            ["\"medium\"", ""],
-            ["\"near\"", ""] 
+            ["\"far\"", "Someone approaching is detected on high distance"],
+            ["\"medium\"", "Someone approaching is detected on medium distance"],
+            ["\"near\"", "Someone approaching is detected on low distance"] 
           ],
           "default": "far"
         },
@@ -127,14 +126,11 @@
         {
           "name": "config/resetpresence",
           "parse": {
-            "at": "0x0157",
-            "cl": "0xfcc0",
+            "at": "0xff07",
             "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl"
-          },
-          "read": {
-            "fn": "none"
+            "eval": "Item.val = false",
+            "fn": "xiaomi:special",
+            "idx": "0x03"
           },
           "write": {
             "at": "0x0157",
@@ -143,8 +139,7 @@
             "ep": 1,
             "eval": "Item.val",
             "fn": "zcl"
-          },
-          "default": false
+          }
         },
         {
           "name": "config/sensitivity",
@@ -182,7 +177,6 @@
         },
         {
           "name": "state/presence",
-          "refresh.interval": 300,
           "read": {
             "fn": "none"
           },
@@ -190,10 +184,9 @@
             "at": "0x0143",
             "cl": "0xfcc0",
             "ep": 1,
-            "eval": "Attr.val != 1 ? Item.val = true : Item.val = false",
+            "eval": "(Attr.val != 0 && Attr.val != 1 && Attr.val != 3 && Attr.val != 5) ? Item.val = true : Item.val = false",
             "fn": "zcl"
-          },
-          "default": false
+          }
         },
         {
           "name": "state/presenceevent",
@@ -207,7 +200,7 @@
             "script": "xiaomi_rtczcgq11lm_presenceevent.js",
             "fn": "zcl"
           },
-          "default": "away"
+          "default": "leave"
         }
       ]
     }

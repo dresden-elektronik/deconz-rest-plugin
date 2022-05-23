@@ -4258,7 +4258,7 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 						<description>Motion sensitivity: 1 - low, 2 - medium, 3 - high</description>
 					</attribute>
 					<attribute id="0x0114" name="TVOC unit config" type="u8" mfcode="0x115f" access="rw" required="m">
-						<description>0 - µg/m³ + °C, 1 - µg/m³ + °F, 16 - ppb + °C, 17 - ppb + °F</description>
+						<description>0 - µg/m³ + °C, 1 - ppb + °C, 16 - µg/m³ + °F, 17 - ppb + °F</description>
 					</attribute>
 					<attribute id="0x0125" name="Multiclick mode" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 					<attribute id="0x0135" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
@@ -4357,7 +4357,7 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 					<attribute id="0x0154" name="Unknown" type="u32" access="rw" required="m"> </attribute>
 					<attribute id="0x0155" name="Unknown" type="u8" access="rw" required="m"> </attribute>
 					<attribute id="0x0156" name="Unknown" type="u32" access="rw" required="m"> </attribute>
-					<attribute id="0x0157" name="Unknown" type="u8" access="rw" required="m"> </attribute>
+					<attribute id="0x0157" name="Unknown" type="u8" access="w" required="m"> </attribute>
 				</attribute-set>
 			</server>
 			<client>
