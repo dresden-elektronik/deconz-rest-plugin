@@ -135,7 +135,7 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/triggerdistance",
+          "name": "config/sensitivity",
           "refresh.interval": 3600,
           "awake": true,
           "parse": {

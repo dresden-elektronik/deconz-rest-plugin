@@ -860,11 +860,11 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
                 }
-                else if (rid.suffix == RConfigTriggerDistance) // Unsigned integer
+                else if (rid.suffix == RConfigTriggerDistance && !data.string.isEmpty()) // String
                 {
                     if (devManaged && rsub)
                     {
-                        change.addTargetValue(rid.suffix, data.uinteger);
+                        change.addTargetValue(rid.suffix, data.string);
                         rsub->addStateChange(change);
                         updated = true;
                     }
