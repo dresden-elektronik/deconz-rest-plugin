@@ -259,6 +259,7 @@ extern const char *RConfigTemperature;
 extern const char *RConfigTemperatureMeasurement;
 extern const char *RConfigTholdDark;
 extern const char *RConfigTholdOffset;
+extern const char *RConfigTriggerDistance;
 extern const char *RConfigUrl;
 extern const char *RConfigUsertest;
 extern const char *RConfigWindowCoveringType;
