@@ -1565,7 +1565,7 @@
         "lidlDoorbellMap": {
             "vendor": "LIDL Silvercrest",
             "doc": "Lidl / Silvercrest doorbell (_TZ1800_ladpngdx)",
-            "modelids": ["HG06668","_TZ1800_ladpngdx"],
+            "modelids": ["HG06668","_TZ1800_ladpngdx", "TS0211"],
             "buttons": [
                 {"S_BUTTON_1": "Button"}
             ],
