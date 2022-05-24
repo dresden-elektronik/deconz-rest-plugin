@@ -1,7 +1,7 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "_TZ1800_ladpngdx",
-  "modelid": "TS0211",
+  "manufacturername": ["_TZ1800_ladpngdx", "LIDL Silvercrest", "LIDL Silvercrest"],
+  "modelid": ["TS0211", "TS0211", "HG06668"],
   "product": "Silvercrest Doorbell",
   "sleeper": true,
   "status": "Gold",
@@ -54,26 +54,22 @@
         },
         {
           "name": "config/battery",
-          "description": "The current device battery level in 0–100 %.",
           "default": 0
         },
         {
-          "name": "config/enrolled",
-          "description": "State of IAS enrollment process."
+          "name": "config/enrolled"
         },
         {
           "name": "config/on"
         },
         {
-          "name": "config/pending",
-          "description": "Pending tasks to configure the device."
+          "name": "config/pending"
         },
         {
           "name": "config/reachable"
         },
         {
-          "name": "state/buttonevent",
-          "description": "The last received button event."
+          "name": "state/buttonevent"
         },
         {
           "name": "state/lastupdated"
