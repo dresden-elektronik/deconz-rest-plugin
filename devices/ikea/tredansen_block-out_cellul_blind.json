@@ -65,7 +65,12 @@
         },
         {
           "name": "state/open",
-          "description": "True when open is detected."
+          "parse": {
+            "at": "0x0008",
+            "cl": "0x0102",
+            "eval": "Item.val = Attr.val < 100",
+            "fn": "zcl"
+          }
         },
         {
           "name": "state/reachable"
