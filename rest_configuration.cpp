@@ -241,35 +241,64 @@ void DeRestPluginPrivate::initTimezone()
 {
 #ifdef Q_OS_LINUX
 #ifdef ARCH_ARM
-    if (gwTimezone.isEmpty())
-    {
-        // set timezone in system and save it in db
-        gwTimezone = QLatin1String("Etc/GMT");
+    QFile file;
+    QString timezone;
+    file.setFileName("/etc/timezone");
 
-        if (getenv("TZ") == NULL)
+    if (file.exists())
+    {
+        file.open(QIODevice::ReadOnly | QIODevice::Text);
+        QTextStream stream(&file);
+
+        if (!stream.readLineInto(&timezone, 100))
         {
-            setenv("TZ", qPrintable(gwTimezone), 1);
+            DBG_Printf(DBG_INFO, "[ERROR] - Timezone could not be read from file system (/etc/timezone)...\n");
         }
         else
         {
-            gwTimezone = getenv("TZ");
+            DBG_Printf(DBG_INFO, "[INFO] - Timezone read is '%s'\n", qPrintable(timezone));
         }
-        queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+
+        file.close();
+    }
+
+    if (!timezone.isEmpty())
+    {
+        gwTimezone = timezone;
     }
     else
     {
-        // set system timezone from db
-        if (getenv("TZ") != gwTimezone)
+        if (gwTimezone.isEmpty())
         {
-            setenv("TZ", qPrintable(gwTimezone), 1);
-            //also set zoneinfo on RPI
-            char param1[100];
-            strcpy(param1, "/usr/share/zoneinfo/");
-            strcpy(param1, qPrintable(gwTimezone));
-            symlink(param1, "/etc/localtime");
+            gwTimezone = QLatin1String("Etc/GMT");
         }
     }
-    tzset();
+
+    if (getenv("TZ") == NULL)
+    {
+        file.setFileName("/etc/localtime");
+        QString tzValue;
+
+        if (file.exists())
+        {
+            tzValue = ":/etc/localtime";
+        }
+        else if (!timezone.isEmpty())
+        {
+            tzValue = timezone;
+        }
+        else
+        {
+            tzValue = gwTimezone;
+        }
+
+        DBG_Printf(DBG_INFO, "[INFO] - Setting environment variable 'TZ=%s'...\n", qPrintable(tzValue));
+        setenv("TZ", qPrintable(tzValue), 1);
+    }
+    else
+    {
+        DBG_Printf(DBG_INFO, "[INFO] - Environment variable TZ found: %s...\n", qPrintable(getenv("TZ")));
+    }
 #endif
 #endif
 
