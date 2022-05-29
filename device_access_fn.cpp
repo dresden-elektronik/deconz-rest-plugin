@@ -16,6 +16,7 @@
 #include "ias_zone.h"
 #include "resource.h"
 #include "zcl/zcl.h"
+#include "utils/timecluster.h"
 #include "de_web_plugin_private.h"
 
 #define TIME_CLUSTER_ID     0x000A
@@ -1452,11 +1453,15 @@ bool parseTuyaTime(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
 {
     Q_UNUSED(parseParameters);
     Q_UNUSED(r);
-    Q_UNUSED(item);
 
     if (zclFrame.isDefaultResponse() || zclFrame.commandId() != TUYA_MCU_SYNC_TIME)
     {
         return false;
+    }
+
+    if (!item->parseFunction())
+    {
+        item->setParseFunction(parseTuyaTime);
     }
 
     DBG_Printf(DBG_INFO, "Tuya Time sync request received\n");
@@ -1479,13 +1484,10 @@ bool parseTuyaTime(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
     stream2.setByteOrder(QDataStream::BigEndian);
 
     stream2 << sequenceNumber;
-    // Add UTC time
-    const quint32 timeNow = QDateTime::currentSecsSinceEpoch();
-    stream2 << timeNow;
-    
-    // Add local time
-    const quint32 timeLocalTime = QDateTime::currentDateTime().toSecsSinceEpoch();
-    stream2 << timeLocalTime;
+
+    Timecluster now = Timecluster::getCurrentTime(false);
+    stream2 << now.utc_time;
+    stream2 << now.local_time;
 
     DeRestPluginPrivate *app = DeRestPluginPrivate::instance();
     app->sendTuyaCommand(ind, TUYA_MCU_SYNC_TIME, data);
@@ -1861,7 +1863,7 @@ ParseFunction_t DA_GetParseFunction(const QVariant &params)
         ParseFunction(QLatin1String("tuya"), 1, parseTuyaData),
         ParseFunction(QLatin1String("numtostr"), 1, parseNumericToString),
         ParseFunction(QLatin1String("time"), 1, parseAndSyncTime),
-        ParseFunction(QLatin1String("tuyatime"), 1, parseTuyaTime)
+        ParseFunction(QLatin1String("tuyatime"), 0, parseTuyaTime)
     };
 
     QString fnName;
