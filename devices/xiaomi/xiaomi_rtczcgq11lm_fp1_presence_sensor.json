@@ -58,13 +58,13 @@
         },
         {
           "name": "config/triggerdistance",
-          "refresh.interval": 300,
+          "refresh.interval": 360,
           "parse": {
-            "at": "0x0146",
-            "cl": "0xfcc0",
+            "at": "0xff07",
             "ep": 1,
             "eval": "if (Attr.val == 0) { Item.val = 'far' } else if (Attr.val == 1) { Item.val = 'medium' } else if (Attr.val == 2) { Item.val = 'near' } else { Item.val = 'unknown' }",
-            "fn": "zcl"
+            "fn": "xiaomi:special",
+            "idx": "0x69"
           },
           "read": {
             "at": "0x0146",
@@ -89,13 +89,13 @@
         },
         {
           "name": "config/devicemode",
-          "refresh.interval": 300,
+          "refresh.interval": 360,
           "parse": {
-            "at": "0x0144",
-            "cl": "0xfcc0",
+            "at": "0xff07",
             "ep": 1,
             "eval": "if (Attr.val == 0) { Item.val = 'undirected' } else if (Attr.val == 1) { Item.val = 'leftright' } else { Item.val = 'unknown' }",
-            "fn": "zcl"
+            "fn": "xiaomi:special",
+            "idx": "0x67"
           },
           "read": {
             "at": "0x0144",
@@ -143,13 +143,13 @@
         },
         {
           "name": "config/sensitivity",
-          "refresh.interval": 300,
+          "refresh.interval": 360,
           "parse": {
-            "at": "0x010C",
-            "cl": "0xfcc0",
+            "at": "0xff07",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl"
+            "fn": "xiaomi:special",
+            "idx": "0x66"
           },
           "read": {
             "at": "0x010C",
@@ -184,7 +184,7 @@
             "at": "0x0143",
             "cl": "0xfcc0",
             "ep": 1,
-            "eval": "(Attr.val != 0 && Attr.val != 1 && Attr.val != 3 && Attr.val != 5) ? Item.val = true : Item.val = false",
+            "eval": "(Attr.val != 1 && Attr.val != 3 && Attr.val != 5) ? Item.val = true : Item.val = false",
             "fn": "zcl"
           }
         },
