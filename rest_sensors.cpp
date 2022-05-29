@@ -890,10 +890,22 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigUsertest) // Boolean
                 {
-                    pendingMask |= R_PENDING_USERTEST;
-                    sensor->enableRead(WRITE_USERTEST);
-                    sensor->setNextReadTime(WRITE_USERTEST, QTime::currentTime());
-                    updated = true;
+                    if (!devManaged)
+                    {
+                        pendingMask |= R_PENDING_USERTEST;
+                        sensor->enableRead(WRITE_USERTEST);
+                        sensor->setNextReadTime(WRITE_USERTEST, QTime::currentTime());
+                        updated = true;
+                    }
+                    else
+                    {
+                        if (rsub)
+                        {
+                            change.addTargetValue(rid.suffix, data.boolean);
+                            rsub->addStateChange(change);
+                            updated = true;
+                        }
+                    }
                 }
                 else if (rid.suffix == RConfigLat || rid.suffix == RConfigLong) // String
                 {
