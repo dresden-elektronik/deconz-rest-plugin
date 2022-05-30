@@ -61,6 +61,12 @@
           "default": 0
         },
         {
+          "name": "config/battery",
+          "parse": {"fn": "tuya", "dpid": 4, "eval": "Item.val = Attr.val;" },
+          "read": {"fn": "none"},
+          "default": 0
+        },
+        {
           "name": "state/lastupdated"
         }
       ]
@@ -104,6 +110,12 @@
         {
           "name": "config/offset",
           "description": "Relative offset to the main measured value.",
+          "default": 0
+        },
+        {
+          "name": "config/battery",
+          "parse": {"fn": "tuya", "dpid": 4, "eval": "Item.val = Attr.val;" },
+          "read": {"fn": "none"},
           "default": 0
         },
         {
