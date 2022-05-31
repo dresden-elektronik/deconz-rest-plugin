@@ -14,35 +14,43 @@
  *                       LocalTime = StandardTime + DstShift (during summer time)
  * 0x0008 LastSetTime
  * 0x0009 ValidUnilTime
-*/
-
-enum TimeStatus : quint8
-{
-	MASTER = 1U << 1, 
-	SYNCHRONIZED = 1U << 2,
-	SUPERSEEDING = 1U << 3, 
-	MASTER_ZONE_DST = 1U << 4, 
-	
-};
+ */
 
 class Timecluster
 {
-	static const quint32 default_validity_period = (3600 * 24);
-
 public:
+	enum TimeStatus : quint8
+	{
+		MASTER = 1U << 1,
+		SYNCHRONIZED = 1U << 2,
+		SUPERSEEDING = 1U << 3,
+		MASTER_ZONE_DST = 1U << 4,
 
-	quint32 utc_time;              // id 0x0000 Time
-	quint8 time_status;                   // id 0x0001 TimeStatus Master|MasterZoneDst|Superseding
-	qint32 timezone;              // id 0x0002 TimeZone
-	quint32 dst_start;        // id 0x0003 DstStart
-	quint32 dst_end;          // id 0x0004 DstEnd
-	qint32 dst_shift;         // id 0x0005 DstShift
-	quint32 standard_time;          // id 0x0006 StandardTime / StandardTime = Time + TimeZone
-	quint32 local_time;             // id 0x0007 LocalTime
+	};
+
+	enum class Epoch : bool
+	{
+		UNIX = false,
+		J2000 = true
+	};
+
+	quint32 utc_time;		  // id 0x0000 Time
+	quint8 time_status;		  // id 0x0001 TimeStatus Master|MasterZoneDst|Superseding
+	qint32 timezone;		  // id 0x0002 TimeZone
+	quint32 dst_start;		  // id 0x0003 DstStart
+	quint32 dst_end;		  // id 0x0004 DstEnd
+	qint32 dst_shift;		  // id 0x0005 DstShift
+	quint32 standard_time;	  // id 0x0006 StandardTime / StandardTime = Time + TimeZone
+	quint32 local_time;		  // id 0x0007 LocalTime
 	quint32 time_valid_until; // id 0x0009 ValidUntilTime
 
-public:
-	Timecluster();
+	QDateTime getEpoch();
+	static Timecluster getCurrentTime(Epoch epochbase);
 
-	static Timecluster getCurrentTime(bool useJ200Epoch);
+private:
+	static const quint32 default_validity_period = (3600 * 24);
+	
+	const Epoch epoch_base;
+	
+	Timecluster(Epoch epochBase) : epoch_base(epochBase) {};
 };

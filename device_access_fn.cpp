@@ -1485,7 +1485,7 @@ bool parseTuyaTime(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
 
     stream2 << sequenceNumber;
 
-    Timecluster now = Timecluster::getCurrentTime(false);
+    Timecluster now = Timecluster::getCurrentTime(Timecluster::Epoch::UNIX);
     stream2 << now.utc_time;
     stream2 << now.local_time;
 

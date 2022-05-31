@@ -1,22 +1,20 @@
 #include "timecluster.h"
 
-Timecluster::Timecluster()
-{
-    this->time_status = {MASTER | SUPERSEEDING | MASTER_ZONE_DST};
-};
+QDateTime Timecluster::getEpoch() {
+    return (this->epoch_base == Epoch::J2000)
+                    ? QDateTime(QDate(2000, 1, 1), QTime(0, 0), Qt::UTC)
+                    : QDateTime(QDate(1970, 1, 1), QTime(0, 0), Qt::UTC);
+}
 
-Timecluster Timecluster::getCurrentTime(bool useJ200Epoch = true)
+Timecluster Timecluster::getCurrentTime(Epoch epochBase = Epoch::J2000)
 {
-    Timecluster cluster;
+    Timecluster cluster(epochBase);
     cluster.time_status = {MASTER | SUPERSEEDING | MASTER_ZONE_DST};
 
     const QDateTime now = QDateTime::currentDateTimeUtc();
     const QDateTime yearStart(QDate(QDate::currentDate().year(), 1, 1), QTime(0, 0), Qt::UTC);
     const QTimeZone timeZone(QTimeZone::systemTimeZoneId());
-
-    auto epoch = (useJ200Epoch)
-                    ? QDateTime(QDate(2000, 1, 1), QTime(0, 0), Qt::UTC)
-                    : QDateTime(QDate(1970, 1, 1), QTime(0, 0), Qt::UTC);
+    const auto epoch = cluster.getEpoch();
 
     cluster.utc_time = cluster.standard_time = cluster.local_time = epoch.secsTo(now);
     cluster.timezone = timeZone.offsetFromUtc(yearStart);
