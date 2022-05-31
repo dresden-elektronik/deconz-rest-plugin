@@ -859,6 +859,17 @@
                 [1, "0x04", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "1", "S_BUTTON_2", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_ (with on/off)"]
             ]
         },
+        "ubisysJ1Map": {
+            "vendor": "Ubisys",
+            "doc": "Cover controller J1 (5502)",
+            "modelids": ["J1 (5502)"],
+            "map": [
+                [1, "0x02", "WINDOW_COVERING", "OPEN", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Open"],
+                [1, "0x02", "WINDOW_COVERING", "STOP", "0", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Stop"],
+                [1, "0x02", "WINDOW_COVERING", "CLOSE", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Close"],
+                [1, "0x02", "WINDOW_COVERING", "STOP", "1", "S_BUTTON_2", "S_BUTTON_ACTION_LONG_RELEASED", "Stop"]
+            ]
+        },
         "lutronLZL4BWHLSwitchMap": {
             "vendor": "Lutron",
             "doc": "LZL4BWHL remote",
