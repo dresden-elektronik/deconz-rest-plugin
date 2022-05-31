@@ -17,7 +17,7 @@
 #include "resource.h"
 #include "zcl/zcl.h"
 #include "utils/timecluster.h"
-#include "de_web_plugin_private.h"
+
 
 #define TIME_CLUSTER_ID     0x000A
 
@@ -585,6 +585,39 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
     }
 
     return result;
+}
+
+bool sendTuyaZclCommand(const TuyaCommandId commandID, const QByteArray &data, const deCONZ::Address &dstAddr, deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance())
+{
+    if (apsCtrl == nullptr) {
+        DBG_Printf(DBG_INFO, "sendTuyaZclCommand: Could not aquire ApsController\n");
+        return false;
+    }
+
+    deCONZ::ApsDataRequest req;
+    req.setDstEndpoint(1); // TODO is this always 1? if not search simple descriptor for Tuya cluster
+    req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+    req.setDstAddressMode(deCONZ::ApsNwkAddress);
+    req.dstAddress().setNwk(dstAddr.nwk());
+    req.dstAddress().setExt(dstAddr.ext());
+    req.setClusterId(TUYA_CLUSTER_ID);
+    req.setProfileId(HA_PROFILE_ID);
+    req.setSrcEndpoint(1); // TODO
+
+    deCONZ::ZclFrame zclFrame;
+    zclFrame.setSequenceNumber(zclNextSequenceNumber());
+    zclFrame.setCommandId(commandID);
+
+    zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                             deCONZ::ZclFCDirectionClientToServer |
+                             deCONZ::ZclFCDisableDefaultResponse);
+    zclFrame.setPayload(data);
+
+    QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
+    stream.setByteOrder(QDataStream::LittleEndian);
+    zclFrame.writeToStream(stream);
+
+    return apsCtrl->apsdeDataRequest(req) == deCONZ::Success;
 }
 
 /*! A generic function to parse Tuya private cluster values from response/report commands.
@@ -1440,6 +1473,7 @@ bool writeTimeData(const Resource *r, const ResourceItem *item, deCONZ::ApsContr
     return result;
 }
 
+
 /*! A specialized function to parse TUYA_MCU_SYNC_TIME and sync the time on the device.
 
     {"fn": "tuyatime"}
@@ -1489,12 +1523,9 @@ bool parseTuyaTime(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
     stream2 << now.utc_time;
     stream2 << now.local_time;
 
-    DeRestPluginPrivate *app = DeRestPluginPrivate::instance();
-    app->sendTuyaCommand(ind, TUYA_MCU_SYNC_TIME, data);
+    return sendTuyaZclCommand(TUYA_MCU_SYNC_TIME, data, ind.srcAddress());
+   }
 
-    return true;
-
-}
 
 /*! A specialized function to parse time (utc), local and last set time from read/report commands of the time cluster and auto-sync time if needed.
     The item->parseParameters() is expected to be an object (given in the device description file).
