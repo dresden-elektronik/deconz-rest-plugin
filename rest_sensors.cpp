@@ -701,7 +701,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     task.req.setSrcEndpoint(getSrcEndpoint(sensor, task.req));
     task.req.setDstAddressMode(deCONZ::ApsExtAddress);
     
-    StateChange change(StateChange::StateWaitSync, SC_WriteZclAttribute, task.req.dstEndpoint());
+    StateChange change(StateChange::StateCallFunction, SC_WriteZclAttribute, task.req.dstEndpoint());
 
     //check invalid parameter
     auto pi = map.cbegin();
@@ -833,6 +833,11 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             continue;
                         }
                     }
+                    else if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.uinteger);
+                        rsub->addStateChange(change);
+                    }
 
                     updated = true;
                 }
@@ -855,12 +860,33 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
                 }
+                else if (rid.suffix == RConfigTriggerDistance && !data.string.isEmpty()) // String
+                {
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.string);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
+                }
                 else if (rid.suffix == RConfigSensitivity) // Unsigned integer
                 {
-                    pendingMask |= R_PENDING_SENSITIVITY;
-                    sensor->enableRead(WRITE_SENSITIVITY);
-                    sensor->setNextReadTime(WRITE_SENSITIVITY, QTime::currentTime());
-                    updated = true;
+                    if (!devManaged)
+                    {
+                        pendingMask |= R_PENDING_SENSITIVITY;
+                        sensor->enableRead(WRITE_SENSITIVITY);
+                        sensor->setNextReadTime(WRITE_SENSITIVITY, QTime::currentTime());
+                        updated = true;
+                    }
+                    else
+                    {
+                        if (rsub)
+                        {
+                            change.addTargetValue(rid.suffix, data.uinteger);
+                            rsub->addStateChange(change);
+                            updated = true;
+                        }
+                    }
                 }
                 else if (rid.suffix == RConfigUsertest) // Boolean
                 {
@@ -880,6 +906,15 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 else if (rid.suffix == RConfigOn) // Boolean
                 {
                     updated = true;
+                }
+                else if (rid.suffix == RConfigResetPresence) // Boolean
+                {
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.boolean);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
                 }
                 else if (rid.suffix == RConfigAlert) // String
                 {
@@ -4050,7 +4085,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
 
             if (changed)
             {
-                indexRulesTriggers();
+                needRuleCheck = RULE_CHECK_DELAY;
                 queSaveDb(DB_RULES, DB_SHORT_SAVE_DELAY);
             }
         }

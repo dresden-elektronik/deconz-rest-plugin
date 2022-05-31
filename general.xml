@@ -4257,14 +4257,16 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 					<attribute id="0x010C" name="Motion sensitivity" type="u8" mfcode="0x115f" access="rw" required="m">
 						<description>Motion sensitivity: 1 - low, 2 - medium, 3 - high</description>
 					</attribute>
+					<attribute id="0x0112" name="Unknown" type="u32" mfcode="0x115f" access="r" required="m"> </attribute>
 					<attribute id="0x0114" name="TVOC unit config" type="u8" mfcode="0x115f" access="rw" required="m">
-						<description>0 - µg/m³ + °C, 1 - µg/m³ + °F, 16 - ppb + °C, 17 - ppb + °F</description>
+						<description>0 - µg/m³ + °C, 1 - ppb + °C, 16 - µg/m³ + °F, 17 - ppb + °F</description>
 					</attribute>
 					<attribute id="0x0125" name="Multiclick mode" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 					<attribute id="0x0135" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 					<attribute id="0x0136" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
 					<attribute id="0x0137" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 					<attribute id="0x0138" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
+					<attribute id="0x0152" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 					<attribute id="0x0200" name="Child lock off" type="u8" mfcode="0x115f" access="rw" required="m">
 						<description>Child lock off: 0 - false, 1 - true</description>
 					</attribute>
@@ -4321,6 +4323,43 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 					<attribute id="0xF002" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"> </attribute>
 					<attribute id="0xFFF2" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"> </attribute>
 					<attribute id="0xFFFD" name="Cluster Revision" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
+				</attribute-set>
+			</server>
+			<client>
+			</client>
+		</cluster>
+
+		<!-- AQARA -->
+		<cluster id="0xfcc0" name="Aqara specific" mfcode="0x1234">
+			<description>Aqara specific attributes.</description>
+			<server>
+				<attribute-set id="0x0000" description="Unknown">
+					<attribute id="0x0006" name="Unknown" type="ostring" access="rw" required="m"> </attribute>
+					<attribute id="0x0007" name="Unknown" type="ostring" access="rw" required="m"> </attribute>
+					<attribute id="0x00E4" name="Unknown" type="u32" access="rw" required="m"> </attribute>
+					<attribute id="0x00F7" name="Unknown" type="ostring" access="r" required="m"> </attribute>
+					<attribute id="0x00FA" name="Unknown" type="bool" access="rw" required="m"> </attribute>
+					<attribute id="0x00FC" name="Unknown" type="bool" access="rw" required="m"> </attribute>
+					<attribute id="0x00FE" name="Serial Number" type="cstring" access="rw" required="m"> </attribute>
+					<attribute id="0x00FF" name="Unknown" type="ostring" access="rw" required="m"> </attribute>
+					<attribute id="0x010C" name="Unknown" type="u8" access="rw" required="m"> </attribute>
+					<attribute id="0x0133" name="Unknown" type="u8" access="rw" required="m"> </attribute>
+					<attribute id="0x0134" name="Unknown" type="ostring" access="rw" required="m"> </attribute>
+					<attribute id="0x0142" name="Unknown" type="u8" access="rw" required="m"> </attribute>
+					<attribute id="0x0143" name="Unknown" type="u8" access="rw" required="m"> </attribute>
+					<attribute id="0x0144" name="Unknown" type="u8" access="rw" required="m"> </attribute>
+					<attribute id="0x0145" name="Unknown" type="bool" access="rw" required="m"> </attribute>
+					<attribute id="0x0146" name="Unknown" type="u8" access="rw" required="m"> </attribute>
+					<attribute id="0x0147" name="Unknown" type="u8" access="rw" required="m"> </attribute>
+					<attribute id="0x0148" name="Unknown" type="u8" access="rw" required="m"> </attribute>
+					<attribute id="0x0149" name="Unknown" type="u8" access="rw" required="m"> </attribute>
+					<attribute id="0x0150" name="Unknown" type="ostring" access="rw" required="m"> </attribute>
+					<attribute id="0x0151" name="Unknown" type="ostring" access="rw" required="m"> </attribute>
+					<attribute id="0x0153" name="Unknown" type="u32" access="rw" required="m"> </attribute>
+					<attribute id="0x0154" name="Unknown" type="u32" access="rw" required="m"> </attribute>
+					<attribute id="0x0155" name="Unknown" type="u8" access="rw" required="m"> </attribute>
+					<attribute id="0x0156" name="Unknown" type="u32" access="rw" required="m"> </attribute>
+					<attribute id="0x0157" name="Unknown" type="u8" access="w" required="m"> </attribute>
 				</attribute-set>
 			</server>
 			<client>

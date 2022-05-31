@@ -835,20 +835,18 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
         queSaveDb(DB_GROUPS, DB_LONG_SAVE_DELAY);
     }
 
-    connect(apsCtrl, SIGNAL(apsdeDataConfirm(const deCONZ::ApsDataConfirm&)),
-            this, SLOT(apsdeDataConfirm(const deCONZ::ApsDataConfirm&)));
+    connect(apsCtrl, SIGNAL(apsdeDataConfirm(deCONZ::ApsDataConfirm)),
+            this, SLOT(apsdeDataConfirm(deCONZ::ApsDataConfirm)));
 
-    connect(apsCtrl, SIGNAL(apsdeDataIndication(const deCONZ::ApsDataIndication&)),
-            this, SLOT(apsdeDataIndication(const deCONZ::ApsDataIndication&)));
+    connect(apsCtrl, SIGNAL(apsdeDataIndication(deCONZ::ApsDataIndication)),
+            this, SLOT(apsdeDataIndication(deCONZ::ApsDataIndication)));
 
     connect(apsCtrl, SIGNAL(nodeEvent(deCONZ::NodeEvent)),
             this, SLOT(nodeEvent(deCONZ::NodeEvent)));
 
-#if DECONZ_LIB_VERSION >= 0x010E00
-    connect(apsCtrl, &deCONZ::ApsController::sourceRouteCreated, this, &DeRestPluginPrivate::storeSourceRoute);
-    connect(apsCtrl, &deCONZ::ApsController::sourceRouteDeleted, this, &DeRestPluginPrivate::deleteSourceRoute);
-    connect(apsCtrl, &deCONZ::ApsController::nodesRestored, this, &DeRestPluginPrivate::restoreSourceRoutes, Qt::QueuedConnection);
-#endif
+    connect(apsCtrl, SIGNAL(sourceRouteCreated(deCONZ::SourceRoute)), this, SLOT(storeSourceRoute(deCONZ::SourceRoute)));
+    connect(apsCtrl, SIGNAL(sourceRouteDeleted(QString)), this, SLOT(deleteSourceRoute(QString)));
+    connect(apsCtrl, SIGNAL(nodesRestored()), this, SLOT(restoreSourceRoutes()), Qt::QueuedConnection);
 
     deCONZ::GreenPowerController *gpCtrl = deCONZ::GreenPowerController::instance();
 
@@ -940,7 +938,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     initResetDeviceApi();
     initFirmwareUpdate();
     //restoreWifiState();
-    indexRulesTriggers();
+    needRuleCheck = RULE_CHECK_DELAY;
 
     QTimer::singleShot(3000, this, SLOT(initWiFi()));
 
@@ -1135,6 +1133,9 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
             }
         }
 
+        // for state/* changes, only emit the state/lastupdated event once for the first state/* item.
+        bool eventLastUpdatedEmitted = false;
+
         for (int i = 0; i < r->itemCount(); i++)
         {
             ResourceItem *item = r->itemForIndex(i);
@@ -1186,11 +1187,12 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                     }
                 }
 
-                if (item->descriptor().suffix[0] == 's') // state/*
+                if (!eventLastUpdatedEmitted && item->descriptor().suffix[0] == 's') // state/*
                 {
                     ResourceItem *lastUpdated = r->item(RStateLastUpdated);
                     if (lastUpdated && idItem)
                     {
+                        eventLastUpdatedEmitted = true;
                         lastUpdated->setValue(item->lastSet());
                         enqueueEvent(Event(r->prefix(), lastUpdated->descriptor().suffix, idItem->toString(), device->key()));
                     }
@@ -2245,7 +2247,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             enqueueEvent(e);
             queSaveDb(DB_SENSORS , DB_SHORT_SAVE_DELAY);
 
-            indexRulesTriggers();
+            needRuleCheck = RULE_CHECK_DELAY;
             gpProcessButtonEvent(ind);
         }
         else if (sensor && sensor->deletedState() == Sensor::StateNormal)
@@ -3222,7 +3224,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             enqueueEvent(e);
         }
 
-        indexRulesTriggers();
+        needRuleCheck = RULE_CHECK_DELAY;
 
         q->startZclAttributeTimer(checkZclAttributesDelay);
         updateLightEtag(lightNode2);
@@ -8477,7 +8479,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensors.push_back(sensorNode);
         sensor2 = &sensors.back();
         updateSensorEtag(sensor2);
-        indexRulesTriggers();
+        needRuleCheck = RULE_CHECK_DELAY;
         device->addSubDevice(sensor2);
     }
 
@@ -16433,6 +16435,15 @@ void DeRestPlugin::idleTimerFired()
         enqueueEvent(Event(RConfig, RConfigLocalTime, 0));
     }
 
+    if (d->needRuleCheck > 0) // count down from RULE_CHECK_DELAY
+    {
+        d->needRuleCheck--;
+        if (d->needRuleCheck == 0)
+        {
+            d->indexRulesTriggers();
+        }
+    }
+
     if (d->idleLastActivity < IDLE_USER_LIMIT)
     {
         return;
@@ -18258,7 +18269,7 @@ void DeRestPluginPrivate::pollNextDevice()
                 if (l.parentResource())
                 {
                     Device *device = static_cast<Device*>(l.parentResource());
-                    if (device->managed())
+                    if (device && device->managed())
                     {
                         continue;
                     }
@@ -18276,7 +18287,7 @@ void DeRestPluginPrivate::pollNextDevice()
                 if (s.parentResource())
                 {
                     Device *device = static_cast<Device*>(s.parentResource());
-                    if (device->managed())
+                    if (device && device->managed())
                     {
                         continue;
                     }

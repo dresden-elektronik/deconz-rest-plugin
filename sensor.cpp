@@ -271,7 +271,10 @@ void Sensor::setModelId(const QString &mid)
 void Sensor::didSetValue(ResourceItem *i)
 {
     enqueueEvent(Event(RSensors, i->descriptor().suffix, id(), i));
-    setNeedSaveDatabase(true);
+    if (i->descriptor().suffix != RAttrLastSeen) // prevent flooding database writes
+    {
+        setNeedSaveDatabase(true);
+    }
 }
 
 /*! Mark received command and update lastseen. */
