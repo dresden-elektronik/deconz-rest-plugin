@@ -170,6 +170,7 @@ HEADERS  = bindings.h \
            utils/bufstring.h \
            utils/stringcache.h \
            utils/utils.h \
+           utils/timecluster.h \
            websocket_server.h \
            xiaomi.h \
            zcl/zcl.h \
@@ -272,6 +273,7 @@ SOURCES  = air_quality.cpp \
            utils/bufstring.cpp \
            utils/stringcache.cpp \
            utils/utils.cpp \
+           utils/timecluster.cpp \
            xiaomi.cpp \
            window_covering.cpp \
            websocket_server.cpp \
