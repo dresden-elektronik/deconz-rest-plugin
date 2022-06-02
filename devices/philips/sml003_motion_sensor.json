@@ -1,13 +1,11 @@
 {
     "schema": "devcap1.schema.json",
-    "doc:path": "philips/sml003_motion_sensor.md",
-    "doc:hdr": "Motion sensor 2. Gen (SML003)",
-    "manufacturername": "$MF_PHILIPS",
+    "manufacturername": "Signify Netherlands B.V.",
     "modelid": "SML003",
-    "product": "Motion Sensor 2. Gen (SML003)",
+    "vendor": "Philips",
+    "product": "Hue motion sensor 2. Gen (SML003)",
     "status": "Gold",
     "sleeper": false,
-    "md:known_issues": [ ],
     "subdevices": [
          {
             "type": "$TYPE_PRESENCE_SENSOR",
@@ -42,22 +40,23 @@
                 },
                 {
                     "name": "config/battery",
-                    "parse": {"ep": 2, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"},
-                    "read": {"ep": 2, "cl": "0x0001", "at": "0x0021"},
-                    "refresh.interval": 7300,
-                    "awake": true
+                    "parse": {"at": "0x0021", "cl": "0x0001", "ep": 2, "eval": "Item.val = Attr.val / 2"},
+                    "read": {"at": "0x0021", "cl": "0x0001", "ep": 2},
+                    "refresh.interval": 7300
                 },
                 {
                     "name": "config/delay",
-                    "read": {"ep": 2, "cl": "0x0406", "at": "0x0010"},
-                    "parse": {"ep": 2, "cl": "0x0406", "at": "0x0010", "eval": "Item.val = Attr.val"},
-                    "refresh.interval": 84000
+                    "parse": {"at": "0x0010", "cl": "0x0406", "ep": 2, "eval": "Item.val = Attr.val"},
+                    "read": {"at": "0x0010", "cl": "0x0406", "ep": 2},
+                    "write": {"at": "0x0010", "cl": "0x0406", "dt": "0x21", "ep": 2, "eval": "Item.val"},
+                    "refresh.interval": 86400
                 },
                 {
                     "name": "config/ledindication",
-                    "read": {"ep": 2, "cl": "0x0000", "at": "0x0033", "mf": "0x100b"},
-                    "parse": {"ep": 2, "cl": "0x0000", "at": "0x0033", "mf": "0x100b", "eval": "Item.val = Attr.val"},
-                    "refresh.interval": 84000
+                    "parse": {"at": "0x0033", "cl": "0x0000", "ep": 2, "eval": "Item.val = Attr.val", "mf": "0x100b"},
+                    "read": {"at": "0x0033", "cl": "0x0000", "ep": 2, "mf": "0x100b"},
+                    "write": {"at": "0x0033", "cl": "0x0000", "dt": "0x10", "ep": 2, "eval": "Item.val", "mf": "0x100b"},
+                    "refresh.interval": 86400
                 },
                 {
                     "name": "config/on"
@@ -70,16 +69,17 @@
                 },
                 {
                     "name": "config/sensitivity",
+                    "parse": {"at": "0x0030", "cl": "0x0406", "ep": 2, "eval": "Item.val = Attr.val", "mf": "0x100b"},
+                    "read": {"at": "0x0030", "cl": "0x0406", "ep": 2, "mf": "0x100b"},
+                    "write": {"at": "0x0030", "cl": "0x0406", "dt": "0x20", "ep": 2, "eval": "Item.val", "mf": "0x100b"},
                     "values": [
                         [0, "verylow"],
                         [1, "low"],
                         [2, "medium"],
-						[3, "high"],
-						[4, "veryhigh"]
+                        [3, "high"],
+                        [4, "veryhigh"]
                     ],
-                    "read": {"ep": 2, "cl": "0x0406", "at": "0x0030", "mf": "0x100b"},
-                    "parse": {"ep": 2, "cl": "0x0406", "at": "0x0030", "mf": "0x100b", "eval": "Item.val == 0 ? Item.val = Attr.val : Item.val"},
-                    "refresh.interval": 84000
+                    "refresh.interval": 86400
                 },
                 {
                     "name": "config/sensitivitymax",
@@ -87,46 +87,19 @@
                 },
                 {
                     "name": "config/usertest",
-                    "read": {"ep": 2, "cl": "0x0000", "at": "0x0032", "mf": "0x100b"},
-                    "parse": {"ep": 2, "cl": "0x0000", "at": "0x0032", "mf": "0x100b", "eval": "Item.val = Attr.val"},
-                    "refresh.interval": 84000
+                    "parse": {"at": "0x0032", "cl": "0x0000", "ep": 2, "mf": "0x100b", "eval": "Item.val = Attr.val"},
+                    "read": {"at": "0x0032", "cl": "0x0000", "ep": 2, "mf": "0x100b"},
+                    "write": {"at": "0x0032", "cl": "0x0000", "dt": "0x10", "ep": 2, "mf": "0x100b", "eval": "Item.val"},
+                    "refresh.interval": 86400
                 },
                 {
                     "name": "state/lastupdated"
                 },
                 {
                     "name": "state/presence",
-                    "parse": {"ep": 2, "cl": "0x0406", "at": "0x0000", "eval": "Item.val = Attr.val"},
-                    "awake": true
+                    "parse": {"at": "0x0000", "cl": "0x0406", "ep": 2, "eval": "Item.val = Attr.val"}
                 }
-            ],
-            "example": {
-                "config": {
-                    "alert": "none",
-                    "battery": 0,
-                    "delay": 0,
-                    "ledindication": false,
-                    "on": true,
-                    "pending": [],
-                    "reachable": true,
-                    "sensitivity": 2,
-                    "sensitivitymax": 4,
-                    "usertest": false
-                },
-                "ep": 2,
-                "etag": "7f0d4873bf1bf93df92948fe160460e6",
-                "lastseen": "2022-01-13T13:20Z",
-                "manufacturername": "Philips",
-                "modelid": "SML003",
-                "name": "Motion Sensor (2)",
-                "state": {
-                    "lastupdated": "2022-01-13T13:20:06.879",
-                    "presence": false
-                },
-                "swversion": "2.53.6",
-                "type": "ZHAPresence",
-                "uniqueid": "00:17:88:01:02:00:21:f4-02-0406"
-            }
+            ]
         },
         {
             "type": "$TYPE_LIGHT_LEVEL_SENSOR",
@@ -147,7 +120,8 @@
                     "name": "attr/name"
                 },
                 {
-                    "name": "attr/swversion"
+                    "name": "attr/swversion",
+                    "read": {"fn": "none"}
                 },
                 {
                     "name": "attr/type"
@@ -161,11 +135,15 @@
                 },
                 {
                     "name": "config/battery",
-                    "parse": {"ep": 2, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"}
+                    "parse": {"at": "0x0021", "cl": "0x0001", "ep": 2, "eval": "Item.val = Attr.val / 2"},
+                    "read": {"fn": "none"}
                 },
                 {
                     "name": "config/ledindication",
-                    "parse": {"ep": 2, "cl": "0x0000", "at": "0x0033", "mf": "0x100b", "eval": "Item.val = Attr.val"}
+                    "parse": {"at": "0x0033", "cl": "0x0000", "ep": 2, "eval": "Item.val = Attr.val", "mf": "0x100b"},
+                    "read": {"at": "0x0033", "cl": "0x0000", "ep": 2, "mf": "0x100b"},
+                    "write": {"at": "0x0033", "cl": "0x0000", "dt": "0x10", "ep": 2, "eval": "Item.val", "mf": "0x100b"},
+                    "refresh.interval": 86400
                 },
                 {
                     "name": "config/on"
@@ -184,7 +162,10 @@
                 },
                 {
                     "name": "config/usertest",
-                    "parse": {"ep": 2, "cl": "0x0000", "at": "0x0032", "mf": "0x100b", "eval": "Item.val = Attr.val"}
+                    "parse": {"at": "0x0032", "cl": "0x0000", "ep": 2, "eval": "Item.val = Attr.val", "mf": "0x100b"},
+                    "read": {"at": "0x0032", "cl": "0x0000", "ep": 2, "mf": "0x100b"},
+                    "write": {"at": "0x0032", "cl": "0x0000", "dt": "0x10", "ep": 2, "eval": "Item.val", "mf": "0x100b"},
+                    "refresh.interval": 86400
                 },
                 {
                     "name": "state/dark"
@@ -197,42 +178,12 @@
                 },
                 {
                     "name": "state/lightlevel",
-                    "parse": {"ep": 2, "cl": "0x0400", "at": "0x0000", "script": "../generic/illuminance_cluster/sml_light_level.js"},
-                    "awake": true
+                    "parse": {"at": "0x0000", "cl": "0x0400", "ep": 2, "script": "../generic/illuminance_cluster/sml_light_level.js"}
                 },
                 {
                     "name": "state/lux"
                 }
-            ],
-            "example": {
-                "config": {
-                    "alert": "none",
-                    "battery": 0,
-                    "ledindication": false,
-                    "on": true,
-                    "pending": [],
-                    "reachable": true,
-                    "tholddark": 12000,
-                    "tholdoffset": 7000,
-                    "usertest": false
-                },
-                "ep": 2,
-                "etag": "58197854b7469e88cbb22afbe5ecf8d0",
-                "lastseen": "2022-01-13T13:20Z",
-                "manufacturername": "Philips",
-                "modelid": "SML003",
-                "name": "Motion Sensor (2)",
-                "state": {
-                    "dark": false,
-                    "daylight": true,
-                    "lastupdated": "2022-01-13T13:19:58.655",
-                    "lightlevel": 30063,
-                    "lux": 1014
-                },
-                "swversion": "2.53.6",
-                "type": "ZHALightLevel",
-                "uniqueid": "00:17:88:01:02:00:21:f4-02-0400"
-            }
+            ]
         },
         {
             "type": "$TYPE_TEMPERATURE_SENSOR",
@@ -253,7 +204,8 @@
                     "name": "attr/name"
                 },
                 {
-                    "name": "attr/swversion"
+                    "name": "attr/swversion",
+                    "read": {"fn": "none"}
                 },
                 {
                     "name": "attr/type"
@@ -267,11 +219,15 @@
                 },
                 {
                     "name": "config/battery",
-                    "parse": {"ep": 2, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"}
+                    "parse": {"at": "0x0021", "cl": "0x0001", "ep": 2, "eval": "Item.val = Attr.val / 2"},
+                    "read": {"fn": "none"}
                 },
                 {
                     "name": "config/ledindication",
-                    "parse": {"ep": 2, "cl": "0x0000", "at": "0x0033", "mf": "0x100b", "eval": "Item.val = Attr.val"}
+                    "parse": {"at": "0x0033", "cl": "0x0000", "ep": 2, "eval": "Item.val = Attr.val", "mf": "0x100b"},
+                    "read": {"at": "0x0033", "cl": "0x0000", "ep": 2, "mf": "0x100b"},
+                    "write": {"at": "0x0033", "cl": "0x0000", "dt": "0x10", "ep": 2, "eval": "Item.val", "mf": "0x100b"},
+                    "refresh.interval": 86400
                 },
                 {
                     "name": "config/offset"
@@ -287,42 +243,19 @@
                 },
                 {
                     "name": "config/usertest",
-                    "parse": {"ep": 2, "cl": "0x0000", "at": "0x0032", "mf": "0x100b", "eval": "Item.val = Attr.val"}
+                    "parse": {"at": "0x0032", "cl": "0x0000", "ep": 2, "eval": "Item.val = Attr.val", "mf": "0x100b"},
+                    "read": {"at": "0x0032", "cl": "0x0000", "ep": 2, "mf": "0x100b"},
+                    "write": {"at": "0x0032", "cl": "0x0000", "dt": "0x10", "ep": 2, "eval": "Item.val", "mf": "0x100b"},
+                    "refresh.interval": 86400
                 },
                 {
                     "name": "state/lastupdated"
                 },
                 {
                     "name": "state/temperature",
-                    "parse": {"ep": 2, "cl": "0x0402", "at": "0x0000", "eval": "Item.val = Attr.val + R.item('config/offset').val"},
-                    "awake": true
+                    "parse": {"at": "0x0000", "cl": "0x0402", "ep": 2, "eval": "Item.val = Attr.val + R.item('config/offset').val"}
                 }
-            ],
-            "example": {
-                "config": {
-                    "alert": "none",
-                    "battery": 0,
-                    "ledindication": false,
-                    "offset": 0,
-                    "on": true,
-                    "pending": [],
-                    "reachable": true,
-                    "usertest": false
-                },
-                "ep": 2,
-                "etag": "0f14835ede4aac034a6022f956aea426",
-                "lastseen": "2022-01-13T13:20Z",
-                "manufacturername": "Philips",
-                "modelid": "SML003",
-                "name": "Motion Sensor (2)",
-                "state": {
-                    "lastupdated": "2022-01-13T13:17:44.861",
-                    "temperature": 2142
-                },
-                "swversion": "2.53.6",
-                "type": "ZHATemperature",
-                "uniqueid": "00:17:88:01:02:00:21:f4-02-0402"
-            }
+            ]
         }
     ],
     "bindings": [
