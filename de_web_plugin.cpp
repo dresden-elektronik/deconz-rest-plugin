@@ -1108,7 +1108,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                     }
                 }
             }
-            break;
+            continue;
         }
 
         {   // TODO this is too messy
