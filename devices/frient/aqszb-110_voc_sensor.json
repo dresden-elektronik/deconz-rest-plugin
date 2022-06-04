@@ -188,7 +188,6 @@
         },
         {
           "name": "config/offset",
-          "description": "Relative offset to the main measured value.",
           "default": 0
         },
         {

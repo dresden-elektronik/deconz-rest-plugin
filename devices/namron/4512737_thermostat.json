@@ -55,17 +55,14 @@
         },
         {
           "name": "config/heatsetpoint",
-          "description": "Target temperature of a thermostat.",
           "default": 0
         },
         {
           "name": "config/mode",
-          "description": "Mode of the device.",
          "default": "off"
         },
         {
           "name": "config/offset",
-          "description": "Relative offset to the main measured value.",
           "default": 0
         },
         {
@@ -79,7 +76,6 @@
         },
         {
           "name": "state/on",
-          "description": "True when device is on; false when off.",
           "refresh.interval": 5
         },
         {
@@ -141,7 +137,7 @@
         },
         {
           "name": "state/current",
-	      "description": "The measured current (in A).",
+          "description": "The measured current (in A).",
           "refresh.interval": 300,
           "parse": {
             "at": "0x0508",

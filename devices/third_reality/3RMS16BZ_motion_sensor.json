@@ -56,8 +56,7 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/alert",
-          "description": "The currently active alert."
+          "name": "config/alert"
         },
         {
           "name": "config/battery",

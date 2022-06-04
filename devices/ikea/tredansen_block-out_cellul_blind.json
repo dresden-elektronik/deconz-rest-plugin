@@ -44,23 +44,19 @@
         },
         {
           "name": "state/alert",
-          "description": "The currently active alert effect.",
           "default": "none"
         },
         {
           "name": "state/bri",
-          "description": "The current brightness.",
           "refresh.interval": 5
         },
         {
           "name": "state/lift",
-          "description": "The lift state of a roller blind.",
           "refresh.interval": 300,
           "default": 0
         },
         {
           "name": "state/on",
-          "description": "True when device is on; false when off.",
           "refresh.interval": 5
         },
         {

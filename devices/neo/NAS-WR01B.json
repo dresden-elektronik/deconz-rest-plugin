@@ -44,7 +44,6 @@
           },
           {
             "name": "state/alert",
-            "description": "The currently active alert effect.",
             "default": "none"
           },
           {
@@ -98,7 +97,8 @@
             "name": "config/reachable"
           },
           {
-            "name": "state/consumption"        },
+            "name": "state/consumption"
+          },
           {
             "name": "state/lastupdated"
           }

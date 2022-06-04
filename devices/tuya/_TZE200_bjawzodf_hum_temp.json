@@ -44,7 +44,6 @@
         },
         {
           "name": "config/offset",
-          "description": "Relative offset to the main measured value.",
           "default": 0
         },
         {
@@ -55,7 +54,6 @@
         },
         {
           "name": "state/humidity",
-          "description": "The current relative humidity in percent.",
           "parse": {"fn": "tuya", "dpid": 2, "eval": "Item.val = 10 * Attr.val;" },
           "read": {"fn": "tuya"},
           "default": 0
@@ -109,7 +107,6 @@
         },
         {
           "name": "config/offset",
-          "description": "Relative offset to the main measured value.",
           "default": 0
         },
         {

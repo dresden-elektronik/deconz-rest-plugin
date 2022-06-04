@@ -44,35 +44,28 @@
         },
         {
           "name": "state/alert",
-          "description": "The currently active alert effect.",
           "default": "none"
         },
         {
           "name": "state/bri",
-          "description": "The current brightness.",
           "refresh.interval": 5
         },
         {
-          "name": "state/colormode",
-          "description": "The currently active color mode."
+          "name": "state/colormode"
         },
         {
           "name": "state/ct",
-          "description": "The current Mired color temperature of the light. Where Mired is 1000000 / color temperature (in kelvins).",
           "refresh.interval": 5
         },
         {
           "name": "state/effect",
-          "description": "The currently active effect.",
           "default": "none"
         },
         {
-          "name": "state/hue",
-          "description": "The current color hue."
+          "name": "state/hue"
         },
         {
           "name": "state/on",
-          "description": "True when device is on; false when off.",
           "refresh.interval": 5
         },
         {
@@ -80,17 +73,14 @@
         },
         {
           "name": "state/sat",
-          "description": "The current color saturation.",
           "refresh.interval": 5
         },
         {
           "name": "state/x",
-          "description": "The current color x coordinate.",
           "refresh.interval": 5
         },
         {
-          "name": "state/y",
-          "description": "The current color y coordinate."
+          "name": "state/y"
         }
       ]
     }
