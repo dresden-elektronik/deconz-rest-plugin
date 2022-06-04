@@ -5,7 +5,6 @@
   "product": "TREDANSEN block-out cellul blind",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/tredansen_block-out_cellul_blind.json",
   "subdevices": [
     {
       "type": "$TYPE_WINDOW_COVERING_DEVICE",
@@ -48,16 +47,32 @@
         },
         {
           "name": "state/bri",
-          "refresh.interval": 5
+          "parse": {
+            "at": "0x0008",
+            "cl": "0x0102",
+            "ep": 1,
+            "eval": "Item.val = (254 * Attr.val) / 100;",
+            "fn": "zcl"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "state/lift",
-          "refresh.interval": 300,
-          "default": 0
+          "refresh.interval": 360
         },
         {
           "name": "state/on",
-          "refresh.interval": 5
+          "parse": {
+            "at": "0x0008",
+            "cl": "0x0102",
+            "eval": "Item.val = Attr.val < 100",
+            "fn": "zcl"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "state/open",
@@ -66,6 +81,9 @@
             "cl": "0x0102",
             "eval": "Item.val = Attr.val < 100",
             "fn": "zcl"
+          },
+          "read": {
+            "fn": "none"
           }
         },
         {
@@ -101,7 +119,10 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "attr/type"
@@ -117,7 +138,7 @@
         },
         {
           "name": "state/battery",
-          "refresh.interval": 3600,
+          "refresh.interval": 1900,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -137,20 +158,6 @@
       "bind": "unicast",
       "src.ep": 1,
       "dst.ep": 1,
-      "cl": "0x0000",
-      "report": [
-        {
-          "at": "0x4000",
-          "dt": "0x42",
-          "min": 0,
-          "max": 65535
-        }
-      ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "dst.ep": 1,
       "cl": "0x0102",
       "report": [
         {
@@ -159,20 +166,6 @@
           "min": 1,
           "max": 300,
           "change": "0x00000001"
-        }
-      ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0006",
-      "report": [
-        {
-          "at": "0x0000",
-          "dt": "0x10",
-          "min": 1,
-          "max": 1800
         }
       ]
     },
