@@ -4,5 +4,6 @@
 	"datatype": "Bool",
 	"access": "R",
 	"public": true,
-	"description": "True when <code class=\"api-attribute\">lightlevel</code> is lower than <code class=\"api-attribute\">tholddark</code>."
+	"description": "True when <code class=\"api-attribute\">lightlevel</code> is lower than <code class=\"api-attribute\">tholddark</code>.",
+	"default": false
 }
