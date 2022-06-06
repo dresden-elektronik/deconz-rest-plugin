@@ -131,7 +131,10 @@ void JsResourceItem::setValue(const QVariant &val)
     if (item)
     {
 //        DBG_Printf(DBG_INFO, "JsResourceItem.setValue(%s) = %s\n", item->descriptor().suffix, qPrintable(val.toString()));
-        item->setValue(val, ResourceItem::SourceDevice);
+        if (!item->setValue(val, ResourceItem::SourceDevice))
+        {
+            DBG_Printf(DBG_DDF, "JS failed to set Item.val for %s\n", item->descriptor().suffix);
+        }
     }
 }
 
