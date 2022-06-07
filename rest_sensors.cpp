@@ -2341,6 +2341,20 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
                         }
                     }
                 }
+
+                if (rid.suffix == RStateLocaltime)
+                {
+                    // convert to QDateTime here, otherwise the time string would be interpretet
+                    // as UTC in item->setValue()
+                    const auto str = val.toString();
+                    auto fmt = str.contains('.') ? QLatin1String("yyyy-MM-ddTHH:mm:ss.zzz")
+                                                 : QLatin1String("yyyy-MM-ddTHH:mm:ss");
+                    auto dt = QDateTime::fromString(str, fmt);
+
+                    if (dt.isValid()) { val = dt; }
+                    else              { val = ""; } // mark invalid but keep processing to return proper error
+                }
+
                 if (item->setValue(val))
                 {
                     rspItemState[QString("/sensors/%1/state/%2").arg(id).arg(pi.key())] = val;
