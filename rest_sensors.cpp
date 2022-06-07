@@ -15,6 +15,7 @@
 #include <QVariantMap>
 #include <QtCore/qmath.h>
 #include "database.h"
+#include "device_descriptions.h"
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "json.h"
@@ -25,6 +26,45 @@
 #include "thermostat.h"
 #include "thermostat_ui_configuration.h"
 #include "utils/utils.h"
+
+/*! In a DDF a sub device can specify valid keyvalue pairs for a ResourceItem.suffix in the meta object.
+
+    Example of Ikea Starkvind:
+
+    "meta": {
+      "values": {
+        "config/mode": {"off": 0, "auto": 1, "speed_1": 10, "speed_2": 20, "speed_3": 30, "speed_4": 40, "speed_5": 50}
+      }
+    }
+
+    This function returns the map for the ResourceItem.
+*/
+static QVariantMap DDF_GetMetaKeyValues(const Resource *r, const ResourceItem *item)
+{
+    QVariantMap m;
+
+    if (!r || !item)
+    {
+        return m;
+    }
+
+    auto *dd = DeviceDescriptions::instance();
+    const auto &sub = dd->getSubDevice(r);
+
+    const QLatin1String kvalues("values");
+    const QLatin1String ksuffix(item->descriptor().suffix);
+
+    if (sub.isValid() && sub.meta.contains(kvalues))
+    {
+        m = sub.meta.value(kvalues).toMap();
+        if (m.contains(ksuffix))
+        {
+            m = m.value(ksuffix).toMap();
+        }
+    }
+
+    return m;
+}
 
 /*! Sensors REST API broker.
     \param req - request data
@@ -1233,7 +1273,26 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigMode) // String
                 {
-                    if (sensor->modelId() == QLatin1String("Cable outlet")) // Legrand cable outlet
+                    ok = false;
+
+                    if (devManaged)
+                    {
+                        const QVariantMap m = DDF_GetMetaKeyValues(sensor, item);
+
+                        if (m.contains(data.string))
+                        {
+                            change.addTargetValue(rid.suffix, data.string);
+                            rsub->addStateChange(change);
+                            updated = true;
+                            ok = true; // mark handled
+                        }
+                    }
+
+                    if (ok)
+                    {
+                        // handled by DDF "meta": { "<item.suffix>": {...}}
+                    }
+                    else if (sensor->modelId() == QLatin1String("Cable outlet")) // Legrand cable outlet
                     {
                         const auto match = matchKeyValue(data.string, RConfigModeLegrandValues);
 
