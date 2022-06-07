@@ -2209,7 +2209,12 @@ Note: It does not clear or delete previous weekly schedule programming configura
 		<!-- Stelpro manufacturer specific -->
 		<attribute-set id="0x4000" description="Stelpro specific" mfcode="0x1185">
 			<attribute id="0x4001" name="Outdoor temp" type="s16" access="rw" required="m" mfcode="0x1185"></attribute>
-			<attribute id="0x401C" name="System mode" type="enum8" access="rw" required="m"></attribute>
+			<attribute id="0x401c" name="System Mode" type="enum8" default="0x04" access="rw" required="m" mfcode="0x1185">
+				<value name="Off" value="0x00"/>
+				<value name="Heat" value="0x04"/>
+				<value name="Eco" value="0x05"/>
+				<description>States only supportedb by Stelpro thermostats (useless for Maestro).</description>
+			</attribute>
 		</attribute-set>
 
         <!-- Sunrichee manufacturer specific -->
