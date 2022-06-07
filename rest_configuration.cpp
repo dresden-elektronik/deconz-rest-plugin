@@ -243,9 +243,36 @@ void DeRestPluginPrivate::initTimezone()
 #ifdef ARCH_ARM
     QFile file;
     QString timezone;
+    QString timedatectl("/usr/bin/timedatectl");
     file.setFileName("/etc/timezone");
 
-    if (file.exists())
+    // first try to query systemd via timedatectl
+    // needed on distributions not having /etc/timezone, or being it a directory (Arch Linux)
+    if (QFile::exists(timedatectl))
+    {
+        QProcess pr;
+        pr.start(timedatectl, {"status"});
+        pr.waitForFinished();
+        QTextStream ts(&pr);
+
+        QString line;
+        while (ts.readLineInto(&line, 1024))
+        {
+            line = line.trimmed();
+            if (line.startsWith(QLatin1String("Time zone:")))
+            {
+                // split at first space after timezone value
+                // Europe/Berlin (CEST, +0200) --> Europe/Berlin
+                int beg = line.indexOf(':') + 1;
+                int end = line.indexOf(' ', beg + 4); // might be -1 (ok)
+                int length = end > beg ? end - beg : -1;
+                timezone = line.mid(beg, length).trimmed();
+                break;
+            }
+        }
+    }
+
+    if (timezone.isEmpty() && file.exists())
     {
         file.open(QIODevice::ReadOnly | QIODevice::Text);
         QTextStream stream(&file);
