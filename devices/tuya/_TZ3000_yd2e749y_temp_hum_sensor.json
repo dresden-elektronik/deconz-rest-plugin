@@ -1,7 +1,7 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "_TZ3000_yd2e749y",
-  "modelid": "TS0201",
+  "manufacturername": ["_TZ3000_yd2e749y", "_TZ3000_fllyghyj"],
+  "modelid": ["TS0201", "TS0201"],
   "vendor": "Tuya",
   "product": "Temperature and humidity sensor",
   "sleeper": true,
