@@ -1,16 +1,12 @@
 #!/bin/bash
 
-UPDATE_VERSION_HB="1.3.4"
-UPDATE_VERSION_HB_HUE="0.13.5"
-UPDATE_VERSION_HB_LIB="5.1.1"
-UPDATE_VERSION_NPM="6.14.12"
-UPDATE_VERSION_NODE="14.16.0"
+UPDATE_VERSION_NODE="16.14.2"
 
 # when increasing major version of node adjust downoload link
-NODE_DOWNLOAD_LINK="https://deb.nodesource.com/setup_14.x"
+NODE_DOWNLOAD_LINK="https://deb.nodesource.com/setup_16.x"
 
 TIMEOUT=0
-LOG_LEVEL=3
+LOG_LEVEL=7
 ZLLDB=""
 SQL_RESULT=
 OWN_PID=$$
@@ -22,6 +18,8 @@ DECONZ_PORT=
 PROXY_ADDRESS=""
 PROXY_PORT=""
 AUTO_UPDATE=false #auto update active status
+
+all_installed=false
 
 LOG_EMERG=
 LOG_ALERT=
@@ -47,6 +45,7 @@ LOG_VER_NODEJS=
 LOG_VER_NPM=
 LOG_VER_HOMEBRIDGE=
 LOG_VER_HOMEBRIDGE_HUE=
+LOG_VER_CONFIG_UI_X=
 LOGFILE_DATE=
 
 # $1 = key $2 = value
@@ -61,15 +60,12 @@ function logInstallVersion {
 		LOGFILE_DATE=$(date +%Y-%m-%d)
 		echo "Logging started $(date +%Y-%m-%dT%H:%M:%S)" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 		echo "-----------------------------------" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-		echo "UPDATE_VERSION_HB = $UPDATE_VERSION_HB" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-		echo "UPDATE_VERSION_HB_HUE = $UPDATE_VERSION_HB_HUE" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-		echo "UPDATE_VERSION_HB_LIB = $UPDATE_VERSION_HB_LIB" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-		echo "UPDATE_VERSION_NPM = $UPDATE_VERSION_NPM" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 		echo "UPDATE_VERSION_NODE = $UPDATE_VERSION_NODE" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 		LOG_VER_NODEJS=
 		LOG_VER_NPM=
 		LOG_VER_HOMEBRIDGE=
 		LOG_VER_HOMEBRIDGE_HUE=
+		LOG_VER_CONFIG_UI_X=
 	fi
 
 	if [[ "$1" = "nodejs" ]]; then
@@ -95,6 +91,12 @@ function logInstallVersion {
 			[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} $1 installed version $2"
 			echo "$1 installed version $2" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 			LOG_VER_HOMEBRIDGE_HUE="$2"
+		fi
+	elif [[ "$1" = "config_ui_x" ]]; then
+		if [[ "$LOG_VER_CONFIG_UI_X" != "$2" ]]; then
+			[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} $1 installed version $2"
+			echo "$1 installed version $2" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+			LOG_VER_CONFIG_UI_X="$2"
 		fi
 	fi
 }
@@ -182,13 +184,15 @@ function installHomebridge {
 	hb_hue_installed=false
 	node_installed=false
 	npm_installed=false
+	config_ui_x_installed=false
 	node_ver=""
 	hb_hue_version=""
+	config_ui_x_ver=""
 
 	which homebridge &> /dev/null
 	if [ $? -eq 0 ]; then
 		hb_installed=true
-		logInstallVersion "homebridge" "$(homebridge --version)"
+		logInstallVersion "homebridge" "$(homebridge --version | sed -n 2p)"
 		# look for homebridge-hue installation
 		hb_hue_version=$(npm list -g homebridge-hue | grep homebridge-hue | cut -d@ -f2 | xargs)
 		if [ -n "$hb_hue_version" ]; then
@@ -203,13 +207,21 @@ function installHomebridge {
 		logInstallVersion "homebridge" "not-installed"
 	fi
 
+	# search for nodejs or node install
 	which nodejs &> /dev/null
-	if [ $? -eq 0 ]; then
-		node_installed=true
-		node_ver=$(node --version | cut -dv -f2) # strip the v
-		logInstallVersion "nodejs" "$node_ver"
+	if [ $? -ne 0 ]; then
+		which node &> /dev/null
+		if [ $? -eq 0 ]; then
+			node_installed=true
+			node_ver=$(node --version | cut -dv -f2) # strip the v
+			logInstallVersion "nodejs" "$node_ver"
+		else
+			logInstallVersion "nodejs" "not-installed"
+		fi
 	else
-		logInstallVersion "nodejs" "not-installed"
+		node_installed=true
+		node_ver=$(nodejs --version | cut -dv -f2) # strip the v
+		logInstallVersion "nodejs" "$node_ver"
 	fi
 
 	which npm &> /dev/null
@@ -220,7 +232,16 @@ function installHomebridge {
 		logInstallVersion "npm" "not-installed"
 	fi
 
-	if [[ $hb_installed = false || $hb_hue_installed = false || $node_installed = false ]]; then
+	which homebridge-config-ui-x &> /dev/null
+	if [ $? -eq 0 ]; then
+		config_ui_x_installed=true
+		config_ui_x_ver=$(npm list -g homebridge-config-ui-x | grep config | cut -d@ -f2 | xargs)
+		logInstallVersion "config_ui_x" "$config_ui_x_ver"
+	else
+		logInstallVersion "config_ui_x" "not-installed"
+	fi
+
+	if [[ $hb_installed = false || $config_ui_x_installed = false || $hb_hue_installed = false || $node_installed = false ]]; then
 		[[ $LOG_INFO ]] && echo "${LOG_INFO}check inet connectivity"
 		echo "check inet connectivity" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 
@@ -267,7 +288,7 @@ function installHomebridge {
 			curl -sL "$NODE_DOWNLOAD_LINK" | bash -
 			apt-get update
 			if [ $? -eq 0 ]; then
-				apt-get install -y nodejs | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+				apt install -y nodejs | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 				if [ $? -ne 0 ]; then
 					[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install nodejs"
 					echo "could not install nodejs" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
@@ -306,9 +327,9 @@ function installHomebridge {
 
 		# install homebridge if not installed
 		if [[ $hb_installed = false ]]; then
-			npm -g install npm@"$UPDATE_VERSION_NPM" | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+			npm -g install npm | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 			if [ $? -eq 0 ]; then
-				npm -g install homebridge@"$UPDATE_VERSION_HB" | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+				npm -g install homebridge | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 				if [ $? -ne 0 ]; then
 					[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install homebridge"
 					echo "could not install homebridge" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
@@ -325,162 +346,45 @@ function installHomebridge {
 
 		# install homebridge-hue if not installed
 		if [[ $hb_hue_installed = false ]]; then
-			npm -g install homebridge-lib@"$UPDATE_VERSION_HB_LIB" homebridge-hue@"$UPDATE_VERSION_HB_HUE" | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+			npm -g install homebridge-lib homebridge-hue | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 			if [ $? -ne 0 ]; then
 				[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install homebridge hue"
 				echo "could not install homebridge hue" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 				putHomebridgeUpdated "homebridge" "install-error"
 				return
 			else
-				putHomebridgeUpdated "homebridgeversion" "$UPDATE_VERSION_HB_HUE"
+				hb_hue_version=$(npm list -g homebridge-hue | grep homebridge-hue | cut -d@ -f2 | xargs)
+				putHomebridgeUpdated "homebridgeversion" "$hb_hue_version"
+			fi
+		fi
+
+		# install homebridge-config-ui-x if not installed
+		if [[ $config_ui_x_installed = false ]]; then
+			npm -g install homebridge-config-ui-x | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+			if [ $? -ne 0 ]; then
+				[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install homebridge-config-ui-x"
+				echo "could not install homebridge-config-ui-x" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+				putHomebridgeUpdated "homebridge" "install-error"
+				return
+			else
+				config_ui_x_ver=$(npm list -g homebridge-config-ui-x | grep config | cut -d@ -f2 | xargs)
+				logInstallVersion "config-ui-x" "$config_ui_x_ver"
 			fi
 		fi
 	fi
 
 	# fix missing homebridge-lib
 	if [[ -n $(npm list -g homebridge-lib | grep empty) ]]; then
-		npm -g install homebridge-lib@"$UPDATE_VERSION_HB_LIB" | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+		npm -g install homebridge-lib | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 	fi
 
-	putHomebridgeUpdated "homebridgeupdateversion" "$UPDATE_VERSION_HB_HUE"
-}
-
-function checkUpdate {
-
-	# delete old Log files
-	if [ $(ls -1 "${LOG_DIR}" | wc -l) -gt 10 ]; then
-		oldest=$(ls "${LOG_DIR}" -t | tail -n1)
-		rm -f "${LOG_DIR}/$oldest"
-    fi
-
-	if [[ $AUTO_UPDATE = false ]] || [ -z $AUTO_UPDATE ]; then
-		echo "check for updates is deactivated" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-		return
-	fi
-
-	[[ $LOG_INFO ]] && echo "${LOG_INFO}check for homebridge updates"
-	echo "check for homebridge updates" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-	hb_version=""
-	hb_hue_version=""
-	node_version=""
-	npm_version=""
-
-	curl --head --connect-timeout 20 -k https://www.npmjs.com/ &> /dev/null
-	if [ $? -ne 0 ]; then
-		if [[ ! -z "$PROXY_ADDRESS" && ! -z "$PROXY_PORT" && "$PROXY_ADDRESS" != "none" ]]; then
-			export http_proxy="http://${PROXY_ADDRESS}:${PROXY_PORT}"
-			export https_proxy="http://${PROXY_ADDRESS}:${PROXY_PORT}"
-			[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}set proxy: ${PROXY_ADDRESS}:${PROXY_PORT}"
-			echo "set proxy: ${PROXY_ADDRESS}:${PROXY_PORT}" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-		else
-			[[ $LOG_WARN ]] && echo "${LOG_WARN}no internet connection. Abort update check."
-			echo "no internet connection. Abort update check." >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-			return
-		fi
-	fi
-
-	# check correct timezone
-	sysTimezone=$(timedatectl | grep zone | cut -d':' -f2 | cut -d '(' -f1 | xargs)
-	[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} System TZ: $sysTimezone"
-	echo "System TZ: $sysTimezone" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-	dbTimezone=$(sqliteSelect "select value from config2 where key=\"timezone\"")
-	[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} TZ from db: $dbTimezone"
-	echo "TZ from db: $dbTimezone" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-
-	if [[ "$sysTimezone" != "$dbTimezone" && "$dbTimezone" != '' ]]; then
-		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} Setting sys timezone to db timezone"
-		echo "${LOG_DEBUG} Setting sys timezone to db timezone" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-		timedatectl set-timezone "$dbTimezone"
-	fi
-
-	hb_version=$(npm list -g homebridge | grep homebridge | cut -d@ -f2 | xargs)
-	hb_hue_version=$(npm list -g homebridge-hue | grep homebridge-hue | cut -d@ -f2 | xargs)
-	putHomebridgeUpdated "homebridgeversion" "$hb_hue_version"
-	npm_version=$(npm --version)
-	node_version=$(node --version | cut -dv -f2) # strip the v
-
-	# check if installed versions are smaller than update veresions
-
-	# update node
-	dpkg --compare-versions "$node_version" lt "$UPDATE_VERSION_NODE"
-	if [ $? -eq 0 ]; then
-		[[ $LOG_INFO ]] && echo "${LOG_INFO}installed node version: $node_version - latest supported: $UPDATE_VERSION_NODE"
-		echo "installed node version: $node_version - latest supported: $UPDATE_VERSION_NODE" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-		[[ $LOG_INFO ]] && echo "${LOG_INFO}update nodejs"
-		echo "update nodejs" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-
-		curl -sL "$NODE_DOWNLOAD_LINK" | bash -
-		apt-get update
-		if [ $? -eq 0 ]; then
-			apt-get install -y nodejs | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-			if [ $? -ne 0 ]; then
-				[[ $LOG_WARN ]] && echo "${LOG_WARN}could not update nodejs"
-				echo "could not update nodejs" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-				return
-			fi
-		else
-			[[ $LOG_WARN ]] && echo "${LOG_WARN}could not download node setup."
-			echo "could not download node setup." >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-			return
-		fi
-	fi
-
-	# update npm
-	dpkg --compare-versions "$npm_version" lt "$UPDATE_VERSION_NPM"
-	if [ $? -eq 0 ]; then
-		[[ $LOG_INFO ]] && echo "${LOG_INFO}installed npm version: $npm_version - latest: $UPDATE_VERSION_NPM"
-		echo "installed npm version: $npm_version - latest: $UPDATE_VERSION_NPM" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-		[[ $LOG_INFO ]] && echo "${LOG_INFO}update npm"
-		echo "update npm" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-
-		npm -g install npm@"$UPDATE_VERSION_NPM" | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-		if [ $? -ne 0 ]; then
-			[[ $LOG_WARN ]] && echo "${LOG_WARN}could not update npm"
-			echo "could not update npm" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-			return
-		fi
-	fi
-
-	# update homebridge
-	dpkg --compare-versions "$hb_version" lt "$UPDATE_VERSION_HB"
-	if [ $? -eq 0 ]; then
-		[[ $LOG_INFO ]] && echo "${LOG_INFO}installed homebridge version: $hb_version - latest: $UPDATE_VERSION_HB"
-		echo "installed homebridge version: $hb_version - latest: $UPDATE_VERSION_HB" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-		[[ $LOG_INFO ]] && echo "${LOG_INFO}update homebridge"
-		echo "update homebridge" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-
-		npm -g install homebridge@"$UPDATE_VERSION_HB" | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-		if [ $? -ne 0 ]; then
-			[[ $LOG_WARN ]] && echo "${LOG_WARN}could not update homebridge"
-			echo "could not update homebridge" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-			return
-		fi
-
-	fi
-
-	# update homebridge hue
-	dpkg --compare-versions "$hb_hue_version" lt "$UPDATE_VERSION_HB_HUE"
-	if [ $? -eq 0 ]; then
-		[[ $LOG_INFO ]] && echo "${LOG_INFO}installed homebridge-hue version: $hb_hue_version - latest: $UPDATE_VERSION_HB_HUE"
-		echo "installed homebridge-hue version: $hb_hue_version - latest: $UPDATE_VERSION_HB_HUE" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-		[[ $LOG_INFO ]] && echo "${LOG_INFO}update homebridge-hue"
-		echo "update homebridge-hue" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-
-		npm -g install homebridge-lib@"$UPDATE_VERSION_HB_LIB" homebridge-hue@"$UPDATE_VERSION_HB_HUE" | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-		if [ $? -ne 0 ]; then
-			[[ $LOG_WARN ]] && echo "${LOG_WARN}could not update homebridge hue"
-			echo "could not update homebridge hue" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
-		else
-			putHomebridgeUpdated "homebridge" "updated"
-			putHomebridgeUpdated "homebridgeversion" "$UPDATE_VERSION_HB_HUE"
-		fi
-	fi
+	all_installed=true
 }
 
 # break loop on SIGUSR1
 trap 'TIMEOUT=0' SIGUSR1
 
-COUNTER=5
+COUNTER=0
 
 while [ 1 ]
 do
@@ -494,18 +398,14 @@ do
 		TIMEOUT=$((TIMEOUT - 1))
 	done
 
-	TIMEOUT=600 # 10 minutes
+		TIMEOUT=30 # 1/2 minute
+		[[ -z "$ZLLDB" ]] && continue
+		[[ ! -f "$ZLLDB" ]] && continue
+		[[ -z "$DECONZ_PORT" ]] && continue
 
-	[[ -z "$ZLLDB" ]] && continue
-	[[ ! -f "$ZLLDB" ]] && continue
-	[[ -z "$DECONZ_PORT" ]] && continue
+		installHomebridge
 
-    installHomebridge
-
-    COUNTER=$((COUNTER + 1))
-	if [ $COUNTER -ge 6 ]; then
-		# check for updates every hour
-		COUNTER=0
-		checkUpdate
-	fi
+		if [[ $all_installed == true ]]; then
+			TIMEOUT=3600 # 1 hour
+		fi
 done
