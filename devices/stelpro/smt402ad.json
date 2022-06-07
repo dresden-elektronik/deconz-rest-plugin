@@ -81,7 +81,6 @@
         },
         {
           "name": "config/offset",
-          "description": "Relative offset to the main measured value.",
           "default": 0
         },
         {
@@ -122,12 +121,10 @@
         },
         {
           "name": "state/on",
-          "description": "True when device is on; false when off.",
           "refresh.interval": 5
         },
         {
           "name": "state/temperature",
-          "description": "The current temperature in °C (*100).",
           "parse": {
             "at": "0x0000",
             "cl": "0x0201",
@@ -139,7 +136,7 @@
         },
         {
           "name": "state/valve",
-          "description": "PI Heating Demand\nIf below 10, then device is Idle, else device is Heating.",
+          "description": "PI Heating Demand. If below 10, then device is Idle, else device is Heating.",
           "refresh.interval": 300,
           "read": {
             "at": "0x0008",
@@ -206,7 +203,6 @@
         },
         {
           "name": "state/humidity",
-          "description": "The current relative humidity in percent (*100).",
           "refresh.interval": 300,
           "read": {
             "at": "0x0000",
