@@ -14,6 +14,19 @@
         "0x01",
         "0xfc7d"
       ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0007",
+        "endpoint": "0x01",
+        "in": [
+          "0x0000",
+          "0x0003",
+          "0x0004",
+          "0x0005",
+          "0xFC7D"
+  ]
+},
+
       "meta": {
         "values": {
           "config/mode": {"off": 0, "auto": 1, "speed_1": 10, "speed_2": 20, "speed_3": 30, "speed_4": 40, "speed_5": 50}
@@ -77,22 +90,18 @@
           "name": "config/reachable"
         },
         {
+           "name": "state/pm2_5",
+           "parse": {"at": "0x0004", "cl": "0xfc7d", "ep": 1, "fn": "zcl", "mf": "0x117c", "eval": "Item.val = Attr.val"},
+           "read": {"fn": "zcl", "ep": 1, "cl": "0xfc7d", "at": "0x0004", "mf": "0x117c"},
+           "refresh.interval": 30
+        },
+        {
           "name": "state/airquality",
-          "parse": {
-            "fn": "numtostr",
-            "op": "le",
-            "srcitem": "state/pm2_5",
-            "to": [10, "excellent", 20, "good", 25, "moderate", 50, "poor", 75, "unhealthy", 1000, "out of scale", 65536, "unknown"]
-          }
+          "parse": {"at": "0x0004", "cl": "0xfc7d", "ep": 1, "fn": "zcl", "mf": "0x117c", "script": "starkvind_parse_pm2_5.js" },
+          "default": "unknown"
         },
         {
           "name": "state/lastupdated"
-        },
-        {
-          "name": "state/pm2_5",
-          "parse": {"at": "0x0004", "cl": "0xfc7d", "ep": 1, "fn": "zcl", "mf": "0x117c", "eval": "Item.val = Attr.val === 65535 ? null : Attr.val"},
-          "read": {"fn": "zcl", "ep": 1, "cl": "0xfc7d", "at": "0x0004", "mf": "0x117c"},
-          "refresh.interval": 30
         },
         {
           "name": "state/speed",
