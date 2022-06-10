@@ -7,7 +7,7 @@
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_AIR_QUALITY_SENSOR",
+      "type": "$TYPE_AIR_PURIFIER",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
@@ -48,7 +48,16 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/on"
+          "name": "config/ledindication",
+          "parse": {"at": "0x0003", "cl": "0xfc7d", "ep": 1, "fn": "zcl", "mf": "0x117c", "eval": "Item.val = !Attr.val"},
+          "write": {"at": "0x0003", "cl": "0xfc7d", "dt": "0x10", "ep": 1, "fn": "zcl", "mf": "0x117c", "eval": "!Item.val"},
+          "default": true
+        },
+        {
+          "name": "config/locked",
+          "parse": {"at": "0x0005", "cl": "0xfc7d", "ep": 1, "fn": "zcl", "mf": "0x117c", "eval": "Item.val = Attr.val"},
+          "write": {"at": "0x0005", "cl": "0xfc7d", "dt": "0x10", "ep": 1, "fn": "zcl", "mf": "0x117c", "eval": "Item.val"},
+          "default": false
         },
         {
           "name": "config/mode",
@@ -62,24 +71,28 @@
           "default": "off"
         },
         {
-          "name": "config/reachable"
+          "name": "config/on"
         },
         {
-          "name": "state/airqualityppb",
-          "parse": {"at": "0x0004", "cl": "0xfc7d", "ep": 1, "fn": "zcl", "mf": "0x117c", "eval": "if (Attr.val != 65535) { Item.val = Attr.val; }"},
-          "read": {"fn": "zcl", "ep": 1, "cl": "0xfc7d", "at": "0x0004", "mf": "0x117c"},
-          "refresh.interval": 30
+          "name": "config/reachable"
         },
         {
           "name": "state/airquality",
           "parse": {
             "fn": "numtostr",
-            "srcitem": "state/airqualityppb",
-            "op": "le", "to": [65, "excellent", 220, "good", 660, "moderate", 5000, "unhealthy", 65535, "out of scale"]
+            "op": "le",
+            "srcitem": "state/pm2_5",
+            "to": [10, "excellent", 20, "good", 25, "moderate", 50, "poor", 75, "unhealthy", 1000, "out of scale", 65536, "unknown"]
           }
         },
         {
           "name": "state/lastupdated"
+        },
+        {
+          "name": "state/pm2_5",
+          "parse": {"at": "0x0004", "cl": "0xfc7d", "ep": 1, "fn": "zcl", "mf": "0x117c", "eval": "Item.val = Attr.val === 65535 ? null : Attr.val"},
+          "read": {"fn": "zcl", "ep": 1, "cl": "0xfc7d", "at": "0x0004", "mf": "0x117c"},
+          "refresh.interval": 30
         },
         {
           "name": "state/speed",
@@ -98,9 +111,15 @@
             "src.ep": 1,
             "cl": "0xfc7d",
             "report": [
-                {"at": "0x0004", "dt": "0x21", "mf": "0x117c", "min": 5, "max": 1800, "change": "0x0005" },
-                {"at": "0x0006", "dt": "0x20", "mf": "0x117c", "min": 1, "max": 1800, "change": "0x0001" },
-                {"at": "0x0007", "dt": "0x20", "mf": "0x117c", "min": 1, "max": 1800, "change": "0x0001" }
+                {"at": "0x0000", "dt": "0x23", "mf": "0x117c", "min": 1, "max": 300, "change": "0x0001"},
+                {"at": "0x0001", "dt": "0x20", "mf": "0x117c", "min": 1, "max": 300, "change": "0x0001"},
+                {"at": "0x0002", "dt": "0x23", "mf": "0x117c", "min": 1, "max": 300, "change": "0x0001"},
+                {"at": "0x0003", "dt": "0x10", "mf": "0x117c", "min": 1, "max": 300},
+                {"at": "0x0004", "dt": "0x21", "mf": "0x117c", "min": 5, "max": 1800, "change": "0x0001"},
+                {"at": "0x0005", "dt": "0x10", "mf": "0x117c", "min": 1, "max": 300},
+                {"at": "0x0006", "dt": "0x20", "mf": "0x117c", "min": 1, "max": 1800, "change": "0x0001"},
+                {"at": "0x0007", "dt": "0x20", "mf": "0x117c", "min": 1, "max": 1800, "change": "0x0001"},
+                {"at": "0x0008", "dt": "0x23", "mf": "0x117c", "min": 1, "max": 300, "change": "0x0001"}
             ]
         }
     ]

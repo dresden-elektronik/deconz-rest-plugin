@@ -1,8 +1,8 @@
 {
 	"schema": "resourceitem1.schema.json",
-	"id": "state/airqualityppb",
+	"id": "state/pm2_5",
 	"datatype": "UInt16",
 	"access": "R",
 	"public": true,
-	"description": "Measured TVOC in ppb."
+	"description": "Measured PM2.5 in µg/m³."
 }
