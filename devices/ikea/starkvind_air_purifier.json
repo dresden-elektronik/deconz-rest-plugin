@@ -61,6 +61,13 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "config/filterlifetime",
+          "parse": {"at": "0x0002", "cl": "0xfc7d", "ep": 1, "fn": "zcl", "mf": "0x117c", "eval": "Item.val = Attr.val"},
+          "read": {"fn": "zcl", "ep": 1, "cl": "0xfc7d", "at": "0x0002", "mf": "0x117c"},
+          "write": {"at": "0x0002", "cl": "0xfc7d", "dt": "0x23", "ep": 1, "fn": "zcl", "mf": "0x117c", "eval": "Item.val"},
+          "refresh.interval": 360
+        },
+        {
           "name": "config/ledindication",
           "parse": {"at": "0x0003", "cl": "0xfc7d", "ep": 1, "fn": "zcl", "mf": "0x117c", "eval": "Item.val = !Attr.val"},
           "read": {"fn": "zcl", "ep": 1, "cl": "0xfc7d", "at": "0x0003", "mf": "0x117c"},
@@ -73,8 +80,7 @@
           "parse": {"at": "0x0005", "cl": "0xfc7d", "ep": 1, "fn": "zcl", "mf": "0x117c", "eval": "Item.val = Attr.val"},
           "read": {"fn": "zcl", "ep": 1, "cl": "0xfc7d", "at": "0x0005", "mf": "0x117c"},
           "write": {"at": "0x0005", "cl": "0xfc7d", "dt": "0x10", "ep": 1, "fn": "zcl", "mf": "0x117c", "eval": "Item.val"},
-          "refresh.interval": 360,
-          "default": false
+          "refresh.interval": 360
         },
         {
           "name": "config/mode",
@@ -94,18 +100,36 @@
           "name": "config/reachable"
         },
         {
+          "name": "state/airquality",
+          "parse": {"at": "0x0004", "cl": "0xfc7d", "ep": 1, "fn": "zcl", "mf": "0x117c", "script": "starkvind_parse_pm2_5.js" },
+          "default": "unknown"
+        },
+        {
+          "name": "state/deviceruntime",
+          "parse": {"at": "0x0008", "cl": "0xfc7d", "ep": 1, "fn": "zcl", "mf": "0x117c", "eval": "Item.val = Attr.val" },
+          "read": {"fn": "zcl", "ep": 1, "cl": "0xfc7d", "at": "0x0008", "mf": "0x117c"},
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/filterruntime",
+          "parse": {"at": "0x0000", "cl": "0xfc7d", "ep": 1, "fn": "zcl", "mf": "0x117c", "eval": "Item.val = Attr.val" },
+          "read": {"fn": "zcl", "ep": 1, "cl": "0xfc7d", "at": "0x0000", "mf": "0x117c"},
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
            "name": "state/pm2_5",
            "parse": {"at": "0x0004", "cl": "0xfc7d", "ep": 1, "fn": "zcl", "mf": "0x117c", "eval": "Item.val = Attr.val"},
            "read": {"fn": "zcl", "ep": 1, "cl": "0xfc7d", "at": "0x0004", "mf": "0x117c"},
            "refresh.interval": 360
         },
         {
-          "name": "state/airquality",
-          "parse": {"at": "0x0004", "cl": "0xfc7d", "ep": 1, "fn": "zcl", "mf": "0x117c", "script": "starkvind_parse_pm2_5.js" },
-          "default": "unknown"
-        },
-        {
-          "name": "state/lastupdated"
+          "name": "state/replacefilter",
+          "parse": {"at": "0x0001", "cl": "0xfc7d", "ep": 1, "fn": "zcl", "mf": "0x117c", "eval": "Item.val = Attr.val !== 0" },
+          "read": {"fn": "zcl", "ep": 1, "cl": "0xfc7d", "at": "0x0001", "mf": "0x117c"},
+          "refresh.interval": 360
         },
         {
           "name": "state/speed",
