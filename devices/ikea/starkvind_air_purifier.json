@@ -63,13 +63,17 @@
         {
           "name": "config/ledindication",
           "parse": {"at": "0x0003", "cl": "0xfc7d", "ep": 1, "fn": "zcl", "mf": "0x117c", "eval": "Item.val = !Attr.val"},
+          "read": {"fn": "zcl", "ep": 1, "cl": "0xfc7d", "at": "0x0003", "mf": "0x117c"},
           "write": {"at": "0x0003", "cl": "0xfc7d", "dt": "0x10", "ep": 1, "fn": "zcl", "mf": "0x117c", "eval": "!Item.val"},
+          "refresh.interval": 360,
           "default": true
         },
         {
           "name": "config/locked",
           "parse": {"at": "0x0005", "cl": "0xfc7d", "ep": 1, "fn": "zcl", "mf": "0x117c", "eval": "Item.val = Attr.val"},
+          "read": {"fn": "zcl", "ep": 1, "cl": "0xfc7d", "at": "0x0005", "mf": "0x117c"},
           "write": {"at": "0x0005", "cl": "0xfc7d", "dt": "0x10", "ep": 1, "fn": "zcl", "mf": "0x117c", "eval": "Item.val"},
+          "refresh.interval": 360,
           "default": false
         },
         {
@@ -80,7 +84,7 @@
           "parse": {"at": "0x0006", "cl": "0xfc7d", "ep": 1, "fn": "zcl", "mf": "0x117c", "script": "starkvind_parse_target_mode.js"},
           "read": {"fn": "zcl", "ep": 1, "cl": "0xfc7d", "at": "0x0006", "mf": "0x117c"},
           "write": {"at": "0x0006", "cl": "0xfc7d", "dt": "0x20", "ep": 1, "mf": "0x117c", "script": "starkvind_write_target_mode.js"},
-          "refresh.interval": 30,
+          "refresh.interval": 360,
           "default": "off"
         },
         {
@@ -93,7 +97,7 @@
            "name": "state/pm2_5",
            "parse": {"at": "0x0004", "cl": "0xfc7d", "ep": 1, "fn": "zcl", "mf": "0x117c", "eval": "Item.val = Attr.val"},
            "read": {"fn": "zcl", "ep": 1, "cl": "0xfc7d", "at": "0x0004", "mf": "0x117c"},
-           "refresh.interval": 30
+           "refresh.interval": 360
         },
         {
           "name": "state/airquality",
@@ -108,7 +112,7 @@
           "access": "R",
           "parse": {"at": "0x0007", "cl": "0xfc7d", "ep": 1, "fn": "zcl", "mf": "0x117c", "script": "starkvind_parse_speed.js"},
           "read": {"fn": "zcl", "ep": 1, "cl": "0xfc7d", "at": "0x0007", "mf": "0x117c"},
-          "refresh.interval": 30,
+          "refresh.interval": 360,
           "default": 0
         }
       ]
@@ -124,10 +128,10 @@
                 {"at": "0x0001", "dt": "0x20", "mf": "0x117c", "min": 1, "max": 300, "change": "0x0001"},
                 {"at": "0x0002", "dt": "0x23", "mf": "0x117c", "min": 1, "max": 300, "change": "0x0001"},
                 {"at": "0x0003", "dt": "0x10", "mf": "0x117c", "min": 1, "max": 300},
-                {"at": "0x0004", "dt": "0x21", "mf": "0x117c", "min": 5, "max": 1800, "change": "0x0001"},
+                {"at": "0x0004", "dt": "0x21", "mf": "0x117c", "min": 1, "max": 300, "change": "0x0001"},
                 {"at": "0x0005", "dt": "0x10", "mf": "0x117c", "min": 1, "max": 300},
-                {"at": "0x0006", "dt": "0x20", "mf": "0x117c", "min": 1, "max": 1800, "change": "0x0001"},
-                {"at": "0x0007", "dt": "0x20", "mf": "0x117c", "min": 1, "max": 1800, "change": "0x0001"},
+                {"at": "0x0006", "dt": "0x20", "mf": "0x117c", "min": 1, "max": 300, "change": "0x0001"},
+                {"at": "0x0007", "dt": "0x20", "mf": "0x117c", "min": 1, "max": 300, "change": "0x0001"},
                 {"at": "0x0008", "dt": "0x23", "mf": "0x117c", "min": 1, "max": 300, "change": "0x0001"}
             ]
         }
