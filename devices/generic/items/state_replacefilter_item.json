@@ -5,5 +5,5 @@
 	"access": "R",
 	"public": true,
 	"default": false,
-	"description": "True when device filter needs changing."
+	"description": "True when device filter needs to be replaced."
 }

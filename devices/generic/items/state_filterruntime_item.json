@@ -1,9 +1,9 @@
 {
 	"schema": "resourceitem1.schema.json",
-	"id": "config/filterlifetime",
+	"id": "state/filterruntime",
 	"datatype": "UInt32",
-	"access": "RW",
+	"access": "R",
 	"public": true,
 	"default": 0,
-	"description": "Filter life time in minutes."
+	"description": "Filter run time in minutes."
 }

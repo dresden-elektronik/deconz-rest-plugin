@@ -1,9 +1,9 @@
 {
 	"schema": "resourceitem1.schema.json",
-	"id": "state/filterruntime",
+	"id": "config/filterlifetime",
 	"datatype": "UInt32",
-	"access": "R",
+	"access": "RW",
 	"public": true,
 	"default": 259200,
-	"description": "Filter run time in minutes (default: 6 months)."
+	"description": "Filter life time in minutes (default: 6 months).  Set this to indicate that the filter has been replaced."
 }
