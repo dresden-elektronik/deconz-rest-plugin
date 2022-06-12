@@ -4,6 +4,7 @@ Snipped to download current IKEA ZLL OTA files into ~/otau
 compatible with python 3.
 """
 
+import logging
 import os
 import json
 try:
@@ -12,29 +13,30 @@ except ImportError:
 	from urllib2 import urlopen
 	from urllib import urlretrieve
 
+@service
+def update_ikea_zll_ota_files():
+	f = await hass.async_add_executor_job(urlopen,"http://fw.ota.homesmart.ikea.net/feed/version_info.json")
+	data = f.read()
 
-f = urlopen("http://fw.ota.homesmart.ikea.net/feed/version_info.json")
-data = f.read()
+	arr = json.loads(data.decode('utf-8'))
 
-arr = json.loads(data.decode('utf-8'))
+	otapath = '%s/otau' % os.path.expanduser('~')
 
-otapath = '%s/otau' % os.path.expanduser('~')
+	if not os.path.exists(otapath):
+		os.makedirs(otapath)
 
-if not os.path.exists(otapath):
-	os.makedirs(otapath)
+	for i in arr:
+		if 'fw_binary_url' in i:
+			url = i['fw_binary_url']
+			ls = url.split('/')
+			fname = ls[len(ls) - 1]
+			path = '%s/%s' % (otapath, fname)
 
-for i in arr:
-	if 'fw_binary_url' in i:
-		url = i['fw_binary_url']
-		ls = url.split('/')
-		fname = ls[len(ls) - 1]
-		path = '%s/%s' % (otapath, fname)
-
-		if not os.path.isfile(path):
-			urlretrieve(url, path)
-			print(path)
-		else:
-		    print('%s already exists' % fname)
+			if not os.path.isfile(path):
+				await hass.async_add_executor_job(urlretrieve, url, path)
+				logging.info("updated: " + path)
+			else:
+			    logging.info('already had file: ' + fname)
 
 
 
