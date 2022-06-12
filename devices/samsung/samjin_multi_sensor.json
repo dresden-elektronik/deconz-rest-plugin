@@ -36,10 +36,6 @@
                     "name": "attr/uniqueid"
                 },
                 {
-                    "name": "config/battery",
-                    "awake": true
-                },
-                {
                     "name": "config/on"
                 },
                 {
@@ -47,6 +43,9 @@
                 },
                 {
                     "name": "config/reachable"
+                },
+                {
+                    "name": "state/battery"
                 },
                 {
                     "name": "state/lastupdated"
@@ -57,7 +56,6 @@
             ],
             "example": {
                 "config": {
-                    "battery": 100,
                     "enrolled": 1,
                     "on": true,
                     "pending": [],
@@ -70,6 +68,7 @@
                 "modelid": "multi",
                 "name": "Multipurpose Sensor",
                 "state": {
+                    "battery": 100,
                     "lastupdated": "2021-01-14T11:13:45.367",
                     "open": false
                 },
@@ -105,9 +104,6 @@
                     "name": "attr/uniqueid"
                 },
                 {
-                    "name": "config/battery"
-                },
-                {
                     "name": "config/offset"
                 },
                 {
@@ -115,6 +111,9 @@
                 },
                 {
                     "name": "config/reachable"
+                },
+                {
+                    "name": "state/battery"
                 },
                 {
                     "name": "state/lastupdated"
@@ -125,7 +124,6 @@
             ],
             "example": {
                 "config": {
-                    "battery": 100,
                     "offset": 0,
                     "on": true,
                     "reachable": true
@@ -137,6 +135,7 @@
                 "modelid": "multi",
                 "name": "Multipurpose Sensor",
                 "state": {
+                    "battery": 100,
                     "lastupdated": "2021-01-14T11:34:57.853",
                     "temperature": 2096
                 },
@@ -172,13 +171,13 @@
                     "name": "attr/uniqueid"
                 },
                 {
-                    "name": "config/battery"
-                },
-                {
                     "name": "config/on"
                 },
                 {
                     "name": "config/reachable"
+                },
+                {
+                    "name": "state/battery"
                 },
                 {
                     "name": "state/orientation",
@@ -202,7 +201,6 @@
             ],
             "example": {
                 "config": {
-                    "battery": 100,
                     "on": true,
                     "reachable": true
                 },
@@ -213,6 +211,7 @@
                 "modelid": "multi",
                 "name": "Multipurpose Sensor",
                 "state": {
+                    "battery": 100,
                     "lastupdated": "2021-01-14T11:35:42.744",
                     "orientation": [
                         12,
