@@ -39,7 +39,8 @@
                     "name": "config/battery",
                     "awake": true,
                     "parse": {"fn": "zcl", "ep": 0, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"},
-                    "read": {"fn": "zcl", "ep": 0, "cl": "0x0001", "at": "0x0021"}
+                    "read": {"fn": "zcl", "ep": 0, "cl": "0x0001", "at": "0x0021"},
+                    "refresh.interval": 3600
                 },
                 {
                     "name": "config/on"
@@ -109,7 +110,8 @@
                 {
                     "name": "config/battery",
                     "parse": {"fn": "zcl", "ep": 0, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"},
-                    "read": {"fn": "zcl", "ep": 0, "cl": "0x0001", "at": "0x0021"}
+                    "read": {"fn": "zcl", "ep": 0, "cl": "0x0001", "at": "0x0021"},
+                    "refresh.interval": 3600
                 },
                 {
                     "name": "config/offset"
@@ -178,7 +180,8 @@
                 {
                     "name": "config/battery",
                     "parse": {"fn": "zcl", "ep": 0, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"},
-                    "read": {"fn": "zcl", "ep": 0, "cl": "0x0001", "at": "0x0021"}
+                    "read": {"fn": "zcl", "ep": 0, "cl": "0x0001", "at": "0x0021"},
+                    "refresh.interval": 3600
                 },
                 {
                     "name": "config/on"
