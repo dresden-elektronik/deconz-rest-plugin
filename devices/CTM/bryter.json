@@ -1,0 +1,240 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "CTM Lyng",
+  "modelid": "mTouch Bryter",
+  "vendor": "CTM Lyng",
+  "product": "mTouch Bryter",
+  "sleeper": true,
+  "status": "Gold",
+  "path": "/devices/bryter.json",
+  "subdevices": [
+    {
+      "type": "$TYPE_SWITCH",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0006"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "at": "0x0020",
+            "cl": "0x0001",
+            "ep": 1,
+            "fn": "zcl",
+            "script": "ctm_battery.js"
+          },
+          "default": 100
+        },
+        {
+          "name": "config/group",
+          "read": {
+            "at": "0x0000",
+            "cl": "0xfea7",
+            "ep": 1,
+            "fn": "zcl",
+            "mf": "0x1337"
+          },
+          "parse": {
+            "at": "0x0000",
+            "cl": "0xfea7",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl",
+            "mf": "0x1337"
+          },
+          "default": "auto"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/buttonevent"
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_TEMPERATURE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0402"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "at": "0x0200",
+            "cl": "0x0001",
+            "ep": 1,
+            "fn": "zcl",
+            "script": "ctm_battery.js"
+          },
+          "default": 100
+        },
+        {
+          "name": "config/offset",
+          "read": {
+            "at": "0x0400",
+            "cl": "0x0402",
+            "ep": 1,
+            "fn": "zcl",
+            "mf": "0x1337"
+          },
+          "parse": {
+            "at": "0x0400",
+            "cl": "0x0402",
+            "ep": 1,
+            "eval": "Item.val = Attr.val; if ((Attr.val & 0x80) > 0) {\nItem.val = Attr.val - 0x100;\n}",
+            "fn": "zcl",
+            "mf": "0x1337"
+          },
+          "default": 0
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/temperature",
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0402",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl"
+          }
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "groupcast",
+      "config.group": 0,
+      "src.ep": 1,
+      "cl": "0x0006"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0005"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0008"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0xFEA7",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x21",
+          "mf": "0x1337",
+          "min": 1,
+          "max": 43200,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0020",
+          "dt": "0x20",
+          "min": 300,
+          "max": 43200,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0402",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x29",
+          "min": 1,
+          "max": 3600,
+          "change": "0x0000000A"
+        }
+      ]
+    }
+  ]
+}

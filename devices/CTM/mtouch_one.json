@@ -1,0 +1,330 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "CTM Lyng",
+  "modelid": "mTouch One",
+  "vendor": "CTM Lyng",
+  "product": "mTouch One",
+  "sleeper": false,
+  "status": "Gold",
+  "path": "/devices/mtouch_one.json",
+  "subdevices": [
+    {
+      "type": "$TYPE_THERMOSTAT",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0201"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/heatsetpoint",
+          "read": {
+            "at": "0x0012",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0012",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl"
+          },
+          "default": 0
+        },
+        {
+          "name": "config/locked",
+          "read": {
+            "at": "0x0413",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0413",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl"
+          },
+          "default": false
+        },
+        {
+          "name": "config/mode",
+          "read": {
+            "at": "0x001c",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x001c",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl",
+            "script": "ctm_mode.js"
+          },
+          "default": "heat"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "config/schedule_on",
+          "parse": {
+            "at": "0x0411",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl"
+          },
+          "default": false
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 4,
+          "read": {
+            "at": "0x0422",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0422",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "if (Attr.val < 2) {Item.val = false;\r\n} else {Item.val = true;\n} \r",
+            "fn": "zcl"
+          }
+        },
+        {
+          "name": "state/temperature",
+          "read": {
+            "at": "0x0000",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl"
+          }
+        },
+        {
+          "name": "state/valve",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_TEMPERATURE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0402"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/temperature",
+          "description": "Air temperature",
+          "parse": {
+            "at": "0x0429",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl"
+          }
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_POWER_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0b04"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/power",
+          "refresh.interval": 300,
+          "parse": {
+            "at": "0x0408",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val"
+          }
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0201",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x29",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0012",
+          "dt": "0x29",
+          "min": 1,
+          "max": 43200,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0413",
+          "dt": "0x10",
+          "min": 1,
+          "max": 43200,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x001C",
+          "dt": "0x30",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0429",
+          "dt": "0x29",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0408",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0008",
+          "dt": "0x20",
+          "min": 0,
+          "max": 0
+        }
+      ]
+    }
+  ]
+}

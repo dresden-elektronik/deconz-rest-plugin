@@ -1,0 +1,103 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "CTM Lyng",
+  "modelid": "AX Water Sensor",
+  "vendor": "CTM Lyng",
+  "product": "AX Water Sensor",
+  "sleeper": true,
+  "status": "Gold",
+  "path": "/devices/ax_water_sensor.json",
+  "subdevices": [
+    {
+      "type": "ZHAWater",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0500"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "at": "0x0020",
+            "cl": "0x0001",
+            "ep": 0,
+            "fn": "zcl",
+            "script": "ctm_battery.js"
+          },
+          "default": 100
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/water"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0500",
+      "report": [
+        {
+          "at": "0x0002",
+          "dt": "0x19",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0020",
+          "dt": "0x20",
+          "min": 300,
+          "max": 43200,
+          "change": "0x00000001"
+        }
+      ]
+    }
+  ]
+}

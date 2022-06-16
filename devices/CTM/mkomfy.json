@@ -1,0 +1,213 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "CTM Lyng",
+  "modelid": "mKomfy",
+  "vendor": "CTM Lyng",
+  "product": "mKomfy",
+  "sleeper": true,
+  "status": "Gold",
+  "path": "/devices/mkomfy.json",
+  "subdevices": [
+    {
+      "type": "$TYPE_FIRE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0500"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 0,
+            "fn": "zcl"
+          },
+          "default": 100
+        },
+        {
+          "name": "config/enrolled",
+          "public": false
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/pending"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/fire",
+          "parse": {
+            "at": "0x0105",
+            "cl": "0xffc9",
+            "ep": 0,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl"
+          },
+          "default": false
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/lowbattery"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_TEMPERATURE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0402"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 0,
+            "fn": "zcl"
+          },
+          "default": 100
+        },
+        {
+          "name": "config/offset",
+          "description": "Relative offset to the main measured value.",
+          "default": 0
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/temperature",
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0402",
+            "ep": 0,
+            "eval": "Item.val = Attr.val + R.item('config/offset').val",
+            "fn": "zcl"
+          }
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 300,
+          "max": 43200
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0402",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x29",
+          "min": 60,
+          "max": 600
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0xFFC9",
+      "report": [
+        {
+          "at": "0x0001",
+          "dt": "0x20",
+          "mf": "0x1337",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0105",
+          "dt": "0x20",
+          "mf": "0x1337",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        }
+      ]
+    }
+  ]
+}

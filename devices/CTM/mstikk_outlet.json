@@ -1,0 +1,241 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "CTM Lyng",
+  "modelid": "mStikk Outlet",
+  "vendor": "CTM Lyng",
+  "product": "mStikk Outlet",
+  "sleeper": false,
+  "status": "Gold",
+  "path": "/devices/mstikk_outlet.json",
+  "subdevices": [
+    {
+      "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 5
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_POWER_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0b04"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/current",
+          "refresh.interval": 300,
+          "parse": {
+            "at": "0x0508",
+            "cl": "0x0b04",
+            "ep": 0,
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val*10; } if (Attr.val < 15) { Item.val = 0; }"
+          }
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/power",
+          "refresh.interval": 300,
+          "parse": {
+            "at": "0x050b",
+            "cl": "0x0b04",
+            "ep": 0,
+            "eval": "if (Attr.val != -32768) { Item.val = Attr.val; } if (Attr.val < 5) { Item.val = 0; }"
+          }
+        },
+        {
+          "name": "state/voltage",
+          "refresh.interval": 300,
+          "parse": {
+            "at": "0x0505",
+            "cl": "0x0b04",
+            "ep": 0,
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val/100; }"
+          }
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_CONSUMPTION_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0702"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/consumption",
+          "refresh.interval": 300
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0702",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x25",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0B04",
+      "report": [
+        {
+          "at": "0x0505",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x0000000A"
+        },
+        {
+          "at": "0x0508",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x0000000A"
+        },
+        {
+          "at": "0x050B",
+          "dt": "0x29",
+          "min": 1,
+          "max": 300,
+          "change": "0x0000000A"
+        }
+      ]
+    }
+  ]
+}

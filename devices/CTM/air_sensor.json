@@ -1,0 +1,215 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "CTM Lyng",
+  "modelid": "Air Sensor",
+  "vendor": "CTM Lyng",
+  "product": "Air Sensor",
+  "sleeper": true,
+  "status": "Gold",
+  "path": "/devices/air_sensor.json",
+  "subdevices": [
+    {
+      "type": "$TYPE_TEMPERATURE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0402"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "at": "0x0020",
+            "cl": "0x0001",
+            "ep": 0,
+            "fn": "zcl",
+            "script": "ctm_battery.js"
+          },
+          "default": 100
+        },
+        {
+          "name": "config/offset",
+          "description": "Relative offset to the main measured value.",
+          "default": 0
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/temperature",
+          "read": {
+            "at": "0x0000",
+            "cl": "0x0402",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0402",
+            "ep": 1,
+            "eval": "Item.val = Attr.val + R.item('config/offset').val",
+            "fn": "zcl"
+          }
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_HUMIDITY_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0405"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "at": "0x0020",
+            "cl": "0x0001",
+            "ep": 0,
+            "fn": "zcl",
+            "script": "ctm_battery.js"
+          },
+          "default": 100
+        },
+        {
+          "name": "config/offset",
+          "description": "Relative offset to the main measured value.",
+          "default": 0
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/humidity",
+          "read": {
+            "at": "0x0000",
+            "cl": "0x0405",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0405",
+            "ep": 1,
+            "eval": "Item.val = Attr.val + R.item('config/offset').val",
+            "fn": "zcl"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0402",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x29",
+          "min": 1,
+          "max": 300,
+          "change": "0x0000000A"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0405",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x21",
+          "min": 1,
+          "max": 3600,
+          "change": "0x0000000A"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0020",
+          "dt": "0x20",
+          "min": 300,
+          "max": 43200,
+          "change": "0x00000001"
+        }
+      ]
+    }
+  ]
+}
