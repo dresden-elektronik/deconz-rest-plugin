@@ -648,6 +648,16 @@
                 <value name="Previous" value="0xff"></value>
 				  	</attribute>
 				</attribute-set>
+	<attribute-set id="0x2200" description="CTM special" mfcode="0x1337">
+	  <attribute id="0x2200" name="Device Mode" type="u8" access="r" required="m">
+	    <value name="AU" value="0x00"></value>
+	    <value name="TM" value="0x01"></value>
+	    <value name="DU" value="0x02"></value>
+	    <value name="UU" value="0x03"></value>
+	  </attribute>
+	  <attribute id="0x2201" name="Device Enabled" type="bool" access="rw" required="m"> </attribute>
+	  <attribute id="0x2202" name="Tamper Lock Enabled" type="bool" access="r" required="m"> </attribute>
+	</attribute-set>
 	<attribute-set id="0x5000" description="CTM special" mfcode="0x1337">
 	  <attribute id="0x5000" name="Current flag" type="u8" access="r" required="m" mfcode="0x1337"> </attribute>
 	</attribute-set>
@@ -2132,6 +2142,9 @@ Note: It does not clear or delete previous weekly schedule programming configura
 				<value name="Floor sensor" value="0x01"></value>
 				<value name="External sensor" value="0x02"></value>
 				<value name="Regulator" value="0x03"></value>
+				<value name="MV Air" value="0x04"></value>
+				<value name="MV External Air" value="0x05"></value>
+				<value name="MV Regulator" value="0x06"></value>
 			</attribute>
 			<attribute id="0x0405" name="Regulator mode enabled" type="bool" access="r" required="m"></attribute>
 			<attribute id="0x0406" name="Power status" type="bool" access="r" required="m"></attribute>
@@ -2139,8 +2152,8 @@ Note: It does not clear or delete previous weekly schedule programming configura
 			<attribute id="0x0409" name="Current floor temperature" type="s16" access="r" required="m"></attribute>
 			<attribute id="0x0411" name="Night switching enabled" type="bool" access="rw" required="m"></attribute>
 			<attribute id="0x0412" name="Frost guard enabled" type="bool" access="rw" required="m"></attribute>
-			<attribute id="0x0413" name="Child lock enabled" type="bool" access="r" required="m"></attribute>
-			<attribute id="0x0414" name="Maximum floor temperature" type="u8" access="r" required="m"></attribute>
+			<attribute id="0x0413" name="Child lock enabled" type="bool" access="rw" required="m"></attribute>
+			<attribute id="0x0414" name="Maximum floor temperature" type="u8" access="rw" required="m"></attribute>
 			<attribute id="0x0415" name="Heating active/inactive" type="bool" access="r" required="m"></attribute>
 			<attribute id="0x0420" name="Regulator setpoint" type="u8" access="rw" required="m"></attribute>
 			<attribute id="0x0421" name="Regulation mode" type="u8" access="rw" required="m">
@@ -2158,8 +2171,10 @@ Note: It does not clear or delete previous weekly schedule programming configura
 			<attribute id="0x0424" name="Weekly timer enabled" type="bool" access="rw" required="m"></attribute>
 			<attribute id="0x0425" name="Frost guard setpoint" type="u8" access="r" required="m"></attribute>
 			<attribute id="0x0426" name="External temperature" type="s16" access="r" required="m"></attribute>
-			<attribute id="0x0428" name="Exteral sensor source" type="u16" access="rw" required="m"></attribute>
+			<attribute id="0x0428" name="Exteral sensor source" type="u16" access="rw" showas="hex" required="m"></attribute>
 			<attribute id="0x0429" name="Current air temperature" type="s16" access="r" required="m"></attribute>
+			<attribute id="0x042B" name="Floor Sensor Error" type="bool" access="r" required="m"></attribute>
+			<attribute id="0x042C" name="External Air Sensor Error" type="bool" access="r" required="m"></attribute>
 		</attribute-set>
 
 		<!-- Eurotronic manufacturer specific -->
