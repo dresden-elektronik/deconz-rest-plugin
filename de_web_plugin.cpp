@@ -267,9 +267,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.switch.b2lacn02", jennicMacPrefix }, // Xiaomi Aqara D1 2-gang (no neutral wire) QBKG22LM
     { VENDOR_XIAOMI, "lumi.switch.b1nacn02", jennicMacPrefix }, // Xiaomi Aqara D1 1-gang (neutral wire) QBKG23LM
     { VENDOR_XIAOMI, "lumi.switch.b2nacn02", jennicMacPrefix }, // Xiaomi Aqara D1 2-gang (neutral wire) QBKG24LM
-    { VENDOR_XIAOMI, "lumi.switch.l1aeu1", lumiMacPrefix }, // Xiaomi Aqara H1 1-gang (no neutral wire) WS-EUK01
-    { VENDOR_XIAOMI, "lumi.switch.l2aeu1", lumiMacPrefix }, // Xiaomi Aqara H1 2-gang (no neutral wire) WS-EUK02
-    { VENDOR_XIAOMI, "lumi.switch.n1aeu1", lumiMacPrefix }, // Xiaomi Aqara H1 1-gang (neutral wire) WS-EUK03
     { VENDOR_XIAOMI, "lumi.plug", jennicMacPrefix }, // Xiaomi smart plug (router)
     { VENDOR_XIAOMI, "lumi.ctrl_ln", jennicMacPrefix}, // Xiaomi Wall Switch (router)
     { VENDOR_XIAOMI, "lumi.plug.maeu01", xiaomiMacPrefix}, // Xiaomi Aqara outlet
@@ -6400,17 +6397,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                             fpConsumptionSensor.inClusters.push_back(ci->id());
                         }
                     }
-                    else if (modelId == QLatin1String("lumi.switch.n1aeu1"))
-                    {
-                        if (i->endpoint() == 0x15)
-                        {
-                            fpPowerSensor.inClusters.push_back(ci->id());
-                        }
-                        else if (i->endpoint() == 0x1F)
-                        {
-                            fpConsumptionSensor.inClusters.push_back(ci->id());
-                        }
-                    }
                     else if (modelId.startsWith(QLatin1String("lumi.ctrl_ln2")) || modelId == QLatin1String("lumi.switch.b2nacn02"))
                     {
                         if (i->endpoint() == 0x03)
@@ -6448,11 +6434,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpSwitch.inClusters.push_back(ci->id());
                     }
                     else if (modelId == QLatin1String("lumi.sensor_switch.aq3") || modelId == QLatin1String("lumi.remote.b1acn01"))
-                    {
-                        fpSwitch.inClusters.push_back(ci->id());
-                    }
-                    else if ((modelId == QLatin1String("lumi.switch.l1aeu1") || modelId == QLatin1String("lumi.switch.l2aeu1") ||
-                             modelId == QLatin1String("lumi.switch.n1aeu1")) && i->endpoint() == 0x29)
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
@@ -7703,7 +7684,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 (modelId != QLatin1String("Plug-230V-ZB3.0")) &&
                 (modelId != QLatin1String("lumi.switch.b1nacn02")) &&
                 (modelId != QLatin1String("lumi.switch.b2nacn02")) &&
-                (modelId != QLatin1String("lumi.switch.n1aeu1")) &&
                 (modelId != QLatin1String("lumi.switch.b1naus01")) &&
                 (modelId != QLatin1String("lumi.switch.n0agl1")) &&
                 (!modelId.startsWith(QLatin1String("SPW35Z"))))
@@ -8200,10 +8180,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     // Skip legacy Xiaomi items
     else if (sensorNode.modelId() == QLatin1String("lumi.sensor_magnet.agl02") || sensorNode.modelId() == QLatin1String("lumi.flood.agl02") ||
              sensorNode.modelId() == QLatin1String("lumi.motion.agl04") || sensorNode.modelId() == QLatin1String("lumi.switch.b1nacn02") ||
-             sensorNode.modelId() == QLatin1String("lumi.switch.b2nacn02") || sensorNode.modelId() == QLatin1String("lumi.switch.n1aeu1") ||
-             sensorNode.modelId() == QLatin1String("lumi.switch.l2aeu1") || sensorNode.modelId() == QLatin1String("lumi.switch.b1naus01") ||
-             sensorNode.modelId() == QLatin1String("lumi.switch.n0agl1") || sensorNode.modelId() == QLatin1String("lumi.switch.b1lacn02") ||
-             sensorNode.modelId() == QLatin1String("lumi.switch.l1aeu1") || sensorNode.modelId() == QLatin1String("lumi.switch.b2lacn02"))
+             sensorNode.modelId() == QLatin1String("lumi.switch.b2nacn02") || 
+             sensorNode.modelId() == QLatin1String("lumi.switch.b1naus01") || sensorNode.modelId() == QLatin1String("lumi.switch.n0agl1") || 
+             sensorNode.modelId() == QLatin1String("lumi.switch.b1lacn02") || sensorNode.modelId() == QLatin1String("lumi.switch.b2lacn02"))
     {
     }
     else if (modelId.startsWith(QLatin1String("lumi")))
@@ -9742,7 +9721,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                          (i->modelId() == QLatin1String("lumi.plug") && event.endpoint() == 2) ||
                                          (i->modelId() == QLatin1String("lumi.switch.b1nacn02") && event.endpoint() == 2) ||
                                          (i->modelId() == QLatin1String("lumi.switch.b2nacn02") && event.endpoint() == 3) ||
-                                         (i->modelId() == QLatin1String("lumi.switch.n1aeu1") && event.endpoint() == 21) ||
                                          (i->modelId().startsWith(QLatin1String("lumi.ctrl_")) && event.endpoint() == 2) ||
                                           i->modelId().startsWith(QLatin1String("lumi.relay.c")))
                                 {
@@ -9766,7 +9744,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                          (i->modelId() == QLatin1String("lumi.plug") && event.endpoint() == 3) ||
                                          (i->modelId() == QLatin1String("lumi.switch.b1nacn02") && event.endpoint() == 3) ||
                                          (i->modelId() == QLatin1String("lumi.switch.b2nacn02") && event.endpoint() == 4) ||
-                                         (i->modelId() == QLatin1String("lumi.switch.n1aeu1") && event.endpoint() == 31) ||
                                          (i->modelId().startsWith(QLatin1String("lumi.ctrl_")) && event.endpoint() == 3))
                                 {
                                     if (i->type() == QLatin1String("ZHAConsumption"))
