@@ -1,0 +1,138 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "Develco Products A/S",
+  "modelid": "WISZB-121",
+  "vendor": "Develco Products",
+  "product": "WISZB-121 open/close sensor",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_OPEN_CLOSE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x23",
+        "0x0500"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0402",
+        "endpoint": "0x23",
+        "in": [
+          "0x0000",
+          "0x0001",
+          "0x0500"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername",
+          "awake": true
+        },
+        {
+          "name": "attr/modelid",
+          "awake": true
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "awake": true,
+          "refresh.interval": 84000,
+          "read": {
+            "at": "0x8000",
+            "cl": "0x0000",
+            "ep": 35,
+            "fn": "zcl",
+            "mf": "0x1015"
+          },
+          "parse": {
+            "at": "0x8000",
+            "cl": "0x0000",
+            "ep": 35,
+            "fn": "zcl",
+            "mf": "0x1015",
+            "script": "develco_firmware.js"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "parse": {
+            "at": "0x0020",
+            "cl": "0x0001",
+            "ep": 35,
+            "fn": "zcl",
+            "script": "develco_battery.js"
+          }
+        },
+        {
+          "name": "config/enrolled",
+          "public": true
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/pending"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/lowbattery",
+          "awake": true
+        },
+        {
+          "name": "state/open",
+          "awake": true
+        },
+        {
+          "name": "state/tampered",
+          "awake": true
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 35,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0020",
+          "dt": "0x20",
+          "min": 300,
+          "max": 43200,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 35,
+      "cl": "0x0500"
+    }
+  ]
+}
