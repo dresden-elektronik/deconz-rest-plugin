@@ -5102,13 +5102,13 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     quint8 dataType;
                     stream >> attrId;
                     stream >> dataType;
+                    ok = false;
 
                     // Xiaomi
                     if (ind.clusterId() == ONOFF_CLUSTER_ID && sensor->manufacturer() == QLatin1String("LUMI"))
                     {
                         quint8 value;
                         stream >> value;
-                        ok = false;
                         // payload: u16 attrId, u8 datatype, u8 data
                         if (attrId == 0x0000 && dataType == deCONZ::ZclBoolean && // onoff attribute
                             buttonMap.zclParam0 == value)
@@ -5123,9 +5123,10 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
                         // the round button (lumi.sensor_switch) sends a release command regardless if it is a short press or a long release
                         // figure it out here to decide if it is a short release (1002) or a long release (1003)
-                        if (ok && sensor->modelId() == QLatin1String("lumi.sensor_switch"))
+                        if (sensor->modelId() == QLatin1String("lumi.sensor_switch"))
                         {
                             const QDateTime now = QDateTime::currentDateTime();
+                            ok = true;
 
                             if (buttonMap.button == (S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS))
                             {
@@ -5152,7 +5153,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     else if ((ind.clusterId() == DOOR_LOCK_CLUSTER_ID && sensor->manufacturer() == QLatin1String("LUMI")) ||
                              ind.clusterId() == MULTISTATE_INPUT_CLUSTER_ID)
                     {
-                        ok = false;
                         if (attrId == MULTI_STATE_INPUT_PRESENT_VALUE_ATTRIBUTE_ID &&
                             dataType == deCONZ::Zcl16BitUint)
                         {
@@ -5165,7 +5165,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     {
                         qint16 value;
                         stream >> value;
-                        ok = false;
 
                         if (value > 0)
                         {
