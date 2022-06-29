@@ -1,7 +1,7 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "$MF_IKEA",
-  "modelid": "STARKVIND Air purifier",
+  "manufacturername": ["$MF_IKEA", "$MF_IKEA"],
+  "modelid": ["STARKVIND Air purifier", "STARKVIND Air purifier table"],
   "product": "STARKVIND Air purifier",
   "sleeper": false,
   "status": "Gold",
