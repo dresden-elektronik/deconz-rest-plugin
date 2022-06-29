@@ -109,7 +109,7 @@ public:
     void verifyItemChange(const ResourceItem *item);
     void addTargetValue(const char *suffix, const QVariant &value);
     void addParameter(const QString &name, const QVariant &value);
-    bool operator==(const StateChange &other) const { return m_changeFunction == other.m_changeFunction; }
+    bool operator==(const StateChange &other) const;
     const std::vector<Item> &items() const { return m_items; }
     const std::vector<Param> &parameters() const { return m_parameters; }
     quint8 dstEndpoint() const { return m_dstEndpoint; }

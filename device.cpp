@@ -158,11 +158,24 @@ public:
     } flags{};
 };
 
+Device *DEV_ParentDevice(Resource *r)
+{
+    if (r && r->parentResource() && r->parentResource()->prefix() == RDevices)
+    {
+        return static_cast<Device*>(r->parentResource());
+    }
+
+    return nullptr;
+}
+
 //! Forward device attribute changes to core.
 void DEV_ForwardNodeChange(Device *device, const QString &key, const QString &value)
 {
-    QMetaObject::invokeMethod(device->d->apsCtrl, "onRestNodeUpdated", Qt::DirectConnection,
+    if (device)
+    {
+        QMetaObject::invokeMethod(device->d->apsCtrl, "onRestNodeUpdated", Qt::DirectConnection,
                               Q_ARG(quint64, device->key()), Q_ARG(QString, key), Q_ARG(QString, value));
+    }
 }
 
 void DEV_EnqueueEvent(Device *device, const char *event)
@@ -174,6 +187,11 @@ void DEV_EnqueueEvent(Device *device, const char *event)
 
 Resource *DEV_GetSubDevice(Device *device, const char *prefix, const QString &identifier)
 {
+    if (!device)
+    {
+        return nullptr;
+    }
+    
     for (auto &sub : device->subDevices())
     {
         if (prefix && sub->prefix() != prefix)
@@ -200,7 +218,11 @@ void DEV_InitStateHandler(Device *device, const Event &event)
 
         if ((event.deviceKey() & 0x00212E0000000000LLU) == 0x00212E0000000000LLU)
         {
-            d->node = DEV_GetCoreNode(device->key());
+            if (!d->node)
+            {
+                d->node = DEV_GetCoreNode(device->key());
+            }
+
             if (d->node && d->node->isCoordinator())
             {
                 d->setState(DEV_DeadStateHandler);
@@ -537,6 +559,45 @@ bool DEV_FillItemFromSubdevices(Device *device, const char *itemSuffix, const st
     return false;
 }
 
+/*! Try to fill \c ResourceItem value from Basic cluster attributes if not already set.
+ */
+bool DEV_FillItemFromBasicCluster(Device *device, const char *itemSuffix, deCONZ::ZclClusterId_t clusterId,  deCONZ::ZclAttributeId_t attrId)
+{
+    ResourceItem *ditem = device->item(itemSuffix);
+
+    if (!ditem || !device->node())
+    {
+        return false;
+    }
+
+    if (ditem->lastSet().isValid())
+    {
+        return true;
+    }
+
+    for (const auto &sd : device->node()->simpleDescriptors())
+    {
+        const auto cl = std::find_if(sd.inClusters().cbegin(), sd.inClusters().cend(),
+                                     [clusterId](const auto &x) { return x.id_t() == clusterId; });
+
+        if (cl == sd.inClusters().cend()) { continue; }
+
+        const auto at = std::find_if(cl->attributes().cbegin(), cl->attributes().cend(),
+                                     [attrId](const auto &x){ return x.id_t() == attrId; });
+
+        if (at == cl->attributes().cend()) { continue; }
+
+        const QVariant v = at->toVariant();
+
+        if (!v.isNull() && ditem->setValue(v))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 /*! Sends a ZCL Read Attributes request for \p clusterId and \p attrId.
     This also configures generic read and parse handlers for an \p item if not already set.
  */
@@ -607,6 +668,11 @@ void DEV_BasicClusterStateHandler(Device *device, const Event &event)
                 okCount++;
                 continue;
             }
+            else if (DEV_FillItemFromBasicCluster(device, it.suffix, it.clusterId,  it.attrId))
+            {
+                okCount++;
+                continue;
+            }
 
             if (DEV_ZclRead(device, device->item(it.suffix), it.clusterId, it.attrId))
             {
@@ -633,7 +699,7 @@ void DEV_BasicClusterStateHandler(Device *device, const Event &event)
         d->stopStateTimer(StateLevel0);
     }
     else if (event.what() == REventApsConfirm)
-    {       
+    {
         if (d->readResult.apsReqId == EventApsConfirmId(event))
         {
             if (EventApsConfirmStatus(event) == deCONZ::ApsSuccessStatus)
@@ -804,12 +870,6 @@ void DEV_BindingHandler(Device *device, const Event &event)
     if (event.what() == REventStateEnter)
     {
         DBG_Printf(DBG_DEV, "DEV Binding enter %s/0x%016llX\n", event.resource(), event.deviceKey());
-
-        if (!d->node->isRouter())
-        {
-            // most end devices support it, however disable for now until further testing
-            d->binding.mgmtBindSupported = MGMT_BIND_NOT_SUPPORTED;
-        }
     }
     else if (event.what() == REventPoll || event.what() == REventAwake || event.what() == REventBindingTick)
     {
@@ -896,15 +956,13 @@ void DEV_BindingTableReadHandler(Device *device, const Event &event)
     else if (event.what() == REventZdpMgmtBindResponse)
     {
         uint8_t buf[128];
-        if (event.hasData() && event.dataSize() >= 5 && event.dataSize() < sizeof(buf))
+        if (event.hasData() && event.dataSize() >= 2 && event.dataSize() < sizeof(buf))
         {
             if (event.getData(buf, event.dataSize()))
             {
                 const uint8_t seq = buf[0];
                 const uint8_t status = buf[1];
-                const uint8_t size = buf[2];
-                const uint8_t index = buf[3];
-                const uint8_t count = buf[4];
+
 
                 if (seq != d->zdpResult.zdpSeq)
                 {
@@ -916,6 +974,17 @@ void DEV_BindingTableReadHandler(Device *device, const Event &event)
                     d->stopStateTimer(STATE_LEVEL_BINDING);
 
                     d->binding.mgmtBindSupported = MGMT_BIND_SUPPORTED;
+
+                    uint8_t size = 0;
+                    uint8_t index = 0;
+                    uint8_t count = 0;
+
+                    if (event.dataSize() >= 5)
+                    {
+                        size = buf[2];
+                        index = buf[3];
+                        count = buf[4];
+                    }
 
                     if (size > index + count)
                     {
@@ -1655,7 +1724,13 @@ std::vector<DEV_PollItem> DEV_GetPollItems(Device *device)
                 }
             }
 
-            if (ddfItem.readParameters.toMap().empty())
+            const auto m = ddfItem.readParameters.toMap();
+            if (m.empty())
+            {
+                continue;
+            }
+
+            if (m.contains(QLatin1String("fn")) && m.value(QLatin1String("fn")).toString() == QLatin1String("none"))
             {
                 continue;
             }
@@ -1679,8 +1754,17 @@ void DEV_PollIdleStateHandler(Device *device, const Event &event)
     {
         DBG_Printf(DBG_DEV, "DEV Poll Idle enter %s/0x%016llX\n", event.resource(), event.deviceKey());
     }
-    else if (event.what() == REventPoll)
+    else if (event.what() == REventPoll || event.what() == REventAwake)
     {
+        if (device->node()) // update nwk address if needed
+        {
+            const auto &addr = device->node()->address();
+            if (addr.hasNwk() && addr.nwk() != device->item(RAttrNwkAddress)->toNumber())
+            {
+                device->item(RAttrNwkAddress)->setValue(addr.nwk());
+            }
+        }
+
         d->pollItems = DEV_GetPollItems(device);
 
         if (!d->pollItems.empty())
@@ -1724,6 +1808,8 @@ void DEV_PollNextStateHandler(Device *device, const Event &event)
         {
             DBG_Printf(DBG_DEV, "DEV: Poll Next no read function for item: %s / 0x%016llX\n", poll.item->descriptor().suffix, device->key());
             d->pollItems.pop_back();
+            d->startStateTimer(5, STATE_LEVEL_POLL); // try next
+            return;
         }
 
         if (d->readResult.isEnqueued)

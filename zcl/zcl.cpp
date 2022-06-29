@@ -65,6 +65,7 @@ ZCL_Result ZCL_ReadAttributes(const ZCL_Param &param, quint64 extAddress, quint1
     req.setProfileId(HA_PROFILE_ID);
     req.setSrcEndpoint(0x01); // todo dynamic
 
+    uint fcDirection = deCONZ::ZclFCDirectionClientToServer;
     deCONZ::ZclFrame zclFrame;
 
     zclFrame.setSequenceNumber(zclNextSequenceNumber());
@@ -75,18 +76,23 @@ ZCL_Result ZCL_ReadAttributes(const ZCL_Param &param, quint64 extAddress, quint1
 
     result.sequenceNumber = zclFrame.sequenceNumber();
 
+    if (param.clusterId == 0x0019) // assume device only has client OTA cluster
+    {
+        fcDirection = deCONZ::ZclFCDirectionServerToClient;
+    }
+
     if (param.manufacturerCode)
     {
         zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
                                       deCONZ::ZclFCManufacturerSpecific |
-                                      deCONZ::ZclFCDirectionClientToServer |
+                                      fcDirection |
                                       deCONZ::ZclFCDisableDefaultResponse);
         zclFrame.setManufacturerCode(param.manufacturerCode);
     }
     else
     {
         zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-                                      deCONZ::ZclFCDirectionClientToServer |
+                                      fcDirection |
                                       deCONZ::ZclFCDisableDefaultResponse);
     }
 
