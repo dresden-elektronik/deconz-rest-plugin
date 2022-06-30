@@ -224,18 +224,23 @@ ZCL_ReadReportConfigurationRsp ZCL_ParseReadReportConfigurationRsp(const deCONZ:
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
 
-    while (!stream.atEnd() && result.recordCount < ZCL_ReadReportConfigurationRsp::MaxRecords)
+    while (stream.status() == QDataStream::Ok && result.recordCount < ZCL_ReadReportConfigurationRsp::MaxRecords)
     {
         auto &record = result.records[result.recordCount];
-        result.recordCount++;
 
         stream >> record.status;
         stream >> record.direction;
         stream >> record.attributeId;
 
+        if (stream.status() != QDataStream::Ok)
+        {
+            break;
+        }
+
         if (record.status != deCONZ::ZclSuccessStatus)
         {
             // If the status field is not set to SUCCESS, all fields except the direction and attribute identifier fields SHALL be omitted.
+            result.recordCount++;
             continue;
         }
 
@@ -260,6 +265,11 @@ ZCL_ReadReportConfigurationRsp ZCL_ParseReadReportConfigurationRsp(const deCONZ:
                 stream >> tmp;
                 record.reportableChange |= quint64(tmp) << (i * 8);
             }
+        }
+
+        if (stream.status() == QDataStream::Ok)
+        {
+            result.recordCount++;
         }
     }
 
