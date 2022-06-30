@@ -105,4 +105,15 @@ public Q_SLOTS:
     bool isClCmd() const;
 };
 
+class JsUtils : public QObject
+{
+    Q_OBJECT
+
+public:
+    JsUtils(QObject *parent = nullptr);
+
+public Q_SLOTS:
+    double log10(double x) const;
+};
+
 #endif // DEVICE_JS_WRAPPERS_H
