@@ -53,6 +53,7 @@ void DEV_BindingCreateHandler(Device *device, const Event &event);
 void DEV_BindingRemoveHandler(Device *device, const Event &event);
 void DEV_ReadReportConfigurationHandler(Device *device, const Event &event);
 void DEV_ReadNextReportConfigurationHandler(Device *device, const Event &event);
+void DEV_ConfigureNextReportConfigurationHandler(Device *device, const Event &event);
 void DEV_ConfigureReportingHandler(Device *device, const Event &event);
 void DEV_BindingIdleHandler(Device *device, const Event &event);
 void DEV_PollIdleStateHandler(Device *device, const Event &event);
@@ -104,6 +105,7 @@ struct BindingContext
     size_t bindingCheckRound = 0;
     size_t bindingIter = 0;
     size_t reportIter = 0;
+    size_t configIter = 0;
     int mgmtBindSupported = MGMT_BIND_SUPPORT_UNKNOWN;
     uint8_t mgmtBindStartIndex = 0;
     std::vector<BindingTracker> bindingTrackers;
@@ -1128,6 +1130,7 @@ void DEV_BindingTableVerifyHandler(Device *device, const Event &event)
         }
         else if (i->dstAddressMode() == deCONZ::ApsExtAddress)
         {
+            d->binding.configIter = 0;
             d->binding.reportIter = 0;
             d->setState(DEV_ReadReportConfigurationHandler, STATE_LEVEL_BINDING);
         }
@@ -1415,6 +1418,11 @@ void DEV_ReadReportConfigurationHandler(Device *device, const Event &event)
             record.direction = report.direction;
 
             param.records.push_back(record);
+
+            if (param.records.size() == ZCL_ReadReportConfigurationParam::MaxRecords)
+            {
+                break;
+            }
         }
 
         if (param.records.empty())
@@ -1501,6 +1509,17 @@ void DEV_ReadNextReportConfigurationHandler(Device *device, const Event &event)
     }
 }
 
+/*! Helper state to proceed with the next configure reporting. */
+void DEV_ConfigureNextReportConfigurationHandler(Device *device, const Event &event)
+{
+    DevicePrivate *d = device->d;
+
+    if (event.what() == REventStateEnter)
+    {
+        d->setState(DEV_ConfigureReportingHandler, STATE_LEVEL_BINDING);
+    }
+}
+
 void DEV_ConfigureReportingHandler(Device *device, const Event &event)
 {
     DevicePrivate *d = device->d;
@@ -1518,8 +1537,11 @@ void DEV_ConfigureReportingHandler(Device *device, const Event &event)
         param.manufacturerCode = d->binding.readReportParam.manufacturerCode;
         param.endpoint = bnd.srcEndpoint;
 
-        for (const auto &report : bnd.reporting)
+        for (size_t i = d->binding.configIter; i < d->binding.reportIter && i < bnd.reporting.size(); i++)
         {
+            const DDF_ZclReport &report = bnd.reporting[i];
+            d->binding.configIter++;
+
             if (report.manufacturerCode != param.manufacturerCode)
             {
                 continue;
@@ -1536,6 +1558,11 @@ void DEV_ConfigureReportingHandler(Device *device, const Event &event)
             record.timeout = 0; // TODO
 
             param.records.push_back(record);
+
+            if (param.records.size() == ZCL_ConfigureReportingParam::MaxRecords)
+            {
+                break; // prevent too large APS frames
+            }
         }
 
         d->binding.zclResult.isEnqueued = false;
@@ -1584,7 +1611,11 @@ void DEV_ConfigureReportingHandler(Device *device, const Event &event)
             {
                 auto &bnd = d->binding.bindings[d->binding.bindingIter];
 
-                if (d->binding.reportIter < bnd.reporting.size())
+                if (d->binding.configIter < d->binding.reportIter)
+                {
+                    d->setState(DEV_ConfigureNextReportConfigurationHandler, STATE_LEVEL_BINDING);
+                }
+                else if (d->binding.reportIter < bnd.reporting.size())
                 {
                     d->setState(DEV_ReadNextReportConfigurationHandler, STATE_LEVEL_BINDING);
                 }
