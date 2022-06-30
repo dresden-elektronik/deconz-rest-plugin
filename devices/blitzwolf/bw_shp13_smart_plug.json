@@ -1,7 +1,7 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "_TZ3000_g5xawfcq",
-  "modelid": "TS0121",
+  "manufacturername": ["_TZ3000_g5xawfcq", "_TZ3000_amdymr7l"],
+  "modelid": ["TS0121", "TS011F"],
   "product": "BW-SHP13",
   "vendor": "Blitzwolf",
   "sleeper": false,
