@@ -5104,7 +5104,11 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     stream >> dataType;
 
                     // Xiaomi
-                    if (ind.clusterId() == ONOFF_CLUSTER_ID && sensor->manufacturer() == QLatin1String("LUMI"))
+                    if (ind.clusterId() == XIAOMI_CLUSTER_ID && zclFrame.payload().size() > 12)
+                    {
+                        ok = false;
+                    }
+                    else if (ind.clusterId() == ONOFF_CLUSTER_ID && sensor->manufacturer() == QLatin1String("LUMI"))
                     {
                         quint8 value;
                         stream >> value;
