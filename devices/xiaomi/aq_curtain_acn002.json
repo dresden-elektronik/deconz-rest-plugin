@@ -147,8 +147,7 @@
         },
         {
           "name": "state/charging",
-          "parse": {"fn": "xiaomi:special", "ep": 1, "at": "0x00f7", "idx": "0x69", "eval": "Item.val = Attr.val == 1;"},
-          "public": false
+          "parse": {"fn": "xiaomi:special", "ep": 1, "at": "0x00f7", "idx": "0x69", "eval": "Item.val = Attr.val == 1;"}
         },
         {
           "name": "state/lastupdated"
