@@ -8,6 +8,7 @@
  *
  */
 
+#include <math.h>
 #include "resource.h"
 #include "device_js_wrappers.h"
 #include "device.h"
@@ -291,4 +292,15 @@ bool JsZclFrame::isClCmd() const
     }
 
     return false;
+}
+
+JsUtils::JsUtils(QObject *parent) :
+    QObject(parent)
+{
+
+}
+
+double JsUtils::log10(double x) const
+{
+    return ::log10(x);
 }
