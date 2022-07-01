@@ -1,9 +1,9 @@
 {
   "schema": "devcap1.schema.json",
   "manufacturername": "$MF_LUMI",
-  "modelid": "lumi.switch.n2aeu1",
+  "modelid": "lumi.switch.l2aeu1",
   "vendor": "Xiaomi",
-  "product": "Aqara H1 dual rocker switch (neutral wire) WS-EUK04",
+  "product": "Aqara H1 dual rocker switch (no neutral wire) WS-EUK02",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -36,17 +36,17 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 86400,
+          "read": {
+            "at": "0x0006",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl"
+          },
           "parse": {
             "at": "0x0006",
             "cl": "0x0000",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl"
-          },
-          "read": {
-            "at": "0x0006",
-            "cl": "0x0000",
-            "ep": 1,
             "fn": "zcl"
           }
         },
@@ -61,7 +61,7 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 300
+          "refresh.interval": 86400
         },
         {
           "name": "state/reachable"
@@ -169,6 +169,13 @@
         {
           "name": "config/devicemode",
           "refresh.interval": 300,
+          "read": {
+            "at": "0x0009",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
           "parse": {
             "at": "0x0009",
             "cl": "0xfcc0",
@@ -177,19 +184,12 @@
             "fn": "zcl",
             "mf": "0x115f"
           },
-          "read": {
-            "at": "0x0009",
-            "cl": "0xfcc0",
-            "ep": 1,
-            "fn": "zcl",
-            "mf": "0x115f"
-          },
           "write": {
             "at": "0x0009",
             "cl": "0xfcc0",
             "dt": "0x20",
             "ep": 1,
-            "eval": "if (Item.val == 'compatibility') { 1 } else if (Item.val == 'zigbee') { 2 }",
+            "eval": "if (Item.val == 'compatibility') { 1 } else if (Item.val == 'zigbee') { 2 } else { 'unknown' }",
             "fn": "zcl",
             "mf": "0x115f"
           },
@@ -202,18 +202,18 @@
         {
           "name": "config/ledindication",
           "refresh.interval": 300,
+          "read": {
+            "at": "0x0203",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
           "parse": {
             "at": "0x0203",
             "cl": "0xfcc0",
             "ep": 1,
             "eval": "Attr.val ? Item.val = false : Item.val = true",
-            "fn": "zcl",
-            "mf": "0x115f"
-          },
-          "read": {
-            "at": "0x0203",
-            "cl": "0xfcc0",
-            "ep": 1,
             "fn": "zcl",
             "mf": "0x115f"
           },
@@ -240,156 +240,6 @@
         },
         {
           "name": "state/buttonevent"
-        },
-        {
-          "name": "state/lastupdated"
-        }
-      ]
-    },
-    {
-      "type": "$TYPE_POWER_SENSOR",
-      "restapi": "/sensors",
-      "uuid": [
-        "$address.ext",
-        "0x15",
-        "0x000c"
-      ],
-      "fingerprint": {
-        "profile": "0x0104",
-        "device": "0x0100",
-        "endpoint": "0x15",
-        "in": [
-          "0x000C",
-          "0x0000"
-        ]
-      },
-      "items": [
-        {
-          "name": "attr/id"
-        },
-        {
-          "name": "attr/lastannounced"
-        },
-        {
-          "name": "attr/lastseen"
-        },
-        {
-          "name": "attr/manufacturername"
-        },
-        {
-          "name": "attr/modelid"
-        },
-        {
-          "name": "attr/name"
-        },
-        {
-          "name": "attr/swversion",
-          "read": {
-            "fn": "none"
-          }
-        },
-        {
-          "name": "attr/type"
-        },
-        {
-          "name": "attr/uniqueid"
-        },
-        {
-          "name": "config/on"
-        },
-        {
-          "name": "config/reachable"
-        },
-        {
-          "name": "state/lastupdated"
-        },
-        {
-          "name": "state/power",
-          "refresh.interval": 10,
-          "parse": {
-            "at": "0x0055",
-            "cl": "0x000C",
-            "ep": 21,
-            "eval": "Item.val = Math.round(Attr.val);"
-          },
-          "read": {
-            "at": "0x0055",
-            "cl": "0x000C",
-            "ep": 21,
-            "fn": "zcl"
-          }
-        }
-      ]
-    },
-    {
-      "type": "$TYPE_CONSUMPTION_SENSOR",
-      "restapi": "/sensors",
-      "uuid": [
-        "$address.ext",
-        "0x1f",
-        "0x000c"
-      ],
-      "fingerprint": {
-        "profile": "0x0104",
-        "device": "0x0100",
-        "endpoint": "0x1F",
-        "in": [
-          "0x000C",
-          "0x0000"
-        ]
-      },
-      "items": [
-        {
-          "name": "attr/id"
-        },
-        {
-          "name": "attr/lastannounced"
-        },
-        {
-          "name": "attr/lastseen"
-        },
-        {
-          "name": "attr/manufacturername"
-        },
-        {
-          "name": "attr/modelid"
-        },
-        {
-          "name": "attr/name"
-        },
-        {
-          "name": "attr/swversion",
-          "read": {
-            "fn": "none"
-          }
-        },
-        {
-          "name": "attr/type"
-        },
-        {
-          "name": "attr/uniqueid"
-        },
-        {
-          "name": "config/on"
-        },
-        {
-          "name": "config/reachable"
-        },
-        {
-          "name": "state/consumption",
-          "refresh.interval": 300,
-          "parse": {
-            "at": "0x0055",
-            "cl": "0x000C",
-            "ep": 31,
-            "eval": "Item.val = Math.round(Attr.val * 1000);"
-          },
-          "read": {
-            "at": "0x0055",
-            "cl": "0x000C",
-            "ep": 31,
-            "fn": "zcl"
-          }
         },
         {
           "name": "state/lastupdated"
