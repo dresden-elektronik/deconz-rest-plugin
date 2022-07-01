@@ -449,7 +449,7 @@ function checkHomebridge {
   \"sudo\": false,
   \"log\": {
     \"method\": \"systemd\",
-    \"command\": \"deconz-homebridge\"
+    \"service\": \"deconz-homebridge\"
   },
   \"restart\": \"sudo systemctl restart deconz-homebridge\"
 }
