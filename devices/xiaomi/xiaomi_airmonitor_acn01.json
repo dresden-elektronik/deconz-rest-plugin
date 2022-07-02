@@ -5,7 +5,7 @@
   "vendor": "Xiaomi",
   "product": "Aqara TVOC Air Quality Monitor VOCKQJK11LM",
   "sleeper": true,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_AIR_QUALITY_SENSOR",
@@ -39,13 +39,25 @@
           "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid"
+          "name": "attr/modelid",
+          "awake": true
         },
         {
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "awake": true,
+          "parse": {
+            "at": "0x00f7",
+            "ep": 1,
+            "eval": "let b = Attr.val.toString(16); c = [0,2].map(function(o) {if (b.length % 2) {b = '0' + b} return b.slice(o,o+2)}); f = parseInt(c[1], 16).toString(); x = ''; for (i = 0; i < (f.length % 4); i++) {x += '0'}; Item.val = '0.0.0_' + x + f;",
+            "fn": "xiaomi:special",
+            "idx": "0x08"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "attr/type"
@@ -81,11 +93,14 @@
         {
           "name": "state/airquality",
           "parse": {
-            "fn": "numtostr",
-            "op": "le",
-            "srcitem": "state/airqualityppb",
-            "to": [65, "excellent", 220, "good", 660, "moderate", 10000, "unhealthy", 65535, "out of scale"]
-          }
+            "at": "0x0129",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "eval": "if (Attr.val === 1) {Item.val = 'excellent'} else if (Attr.val === 2) {Item.val = 'good'} else if (Attr.val === 3) {Item.val = 'moderate'} else if (Attr.val === 4) {Item.val = 'poor'} else if (Attr.val === 5) {Item.val = 'unhealthy'}",
+            "fn": "zcl",
+            "mfc": "0x115f"
+          },
+          "default": "excellent"
         },
         {
           "name": "state/lastupdated"
@@ -125,13 +140,25 @@
           "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid"
+          "name": "attr/modelid",
+          "awake": true
         },
         {
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "awake": true,
+          "parse": {
+            "at": "0x00f7",
+            "ep": 1,
+            "eval": "let b = Attr.val.toString(16); c = [0,2].map(function(o) {if (b.length % 2) {b = '0' + b} return b.slice(o,o+2)}); f = parseInt(c[1], 16).toString(); x = ''; for (i = 0; i < (f.length % 4); i++) {x += '0'}; Item.val = '0.0.0_' + x + f;",
+            "fn": "xiaomi:special",
+            "idx": "0x08"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "attr/type"
@@ -198,13 +225,25 @@
           "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid"
+          "name": "attr/modelid",
+          "awake": true
         },
         {
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "awake": true,
+          "parse": {
+            "at": "0x00f7",
+            "ep": 1,
+            "eval": "let b = Attr.val.toString(16); c = [0,2].map(function(o) {if (b.length % 2) {b = '0' + b} return b.slice(o,o+2)}); f = parseInt(c[1], 16).toString(); x = ''; for (i = 0; i < (f.length % 4); i++) {x += '0'}; Item.val = '0.0.0_' + x + f;",
+            "fn": "xiaomi:special",
+            "idx": "0x08"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "attr/type"
@@ -232,6 +271,23 @@
         {
           "name": "state/temperature",
           "default": 0
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x000C",
+      "report": [
+        {
+          "at": "0x0055",
+          "dt": "0x39",
+          "min": 60,
+          "max": 1800,
+          "change": "0x41200000"
         }
       ]
     }
