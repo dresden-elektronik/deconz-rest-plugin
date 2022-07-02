@@ -1,0 +1,65 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "_TZE200_2wg5qrjy",
+  "modelid": "TS0601",
+  "vendor": "Mercator",
+  "product": "Mercator SSWM-DIMZ",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_ON_OFF_OUTPUT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/alert",
+          "default": "none",
+          "public": false
+        },
+        {
+          "name": "state/on",
+          "parse": {"fn": "tuya", "dpid": 1, "eval": "Item.val = Attr.val;" },
+          "write": {"fn": "tuya", "dpid": 1, "dt": "0x10", "eval": "Item.val == 1 ? 1 : 0;"},
+          "read": {"fn": "tuya"},
+          "refresh.interval": 300
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    }
+  ]
+}
