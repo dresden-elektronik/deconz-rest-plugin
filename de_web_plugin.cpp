@@ -230,10 +230,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NYCE, "3014", emberMacPrefix }, // NYCE garage door/tilt sensor
     { VENDOR_NYCE, "3041", emberMacPrefix }, // NYCE motion sensor
     { VENDOR_NYCE, "3043", emberMacPrefix }, // NYCE ceiling motion sensor
-    { VENDOR_PHILIPS, "RWL02", philipsMacPrefix }, // Hue dimmer switch
-    { VENDOR_PHILIPS, "ROM00", philipsMacPrefix }, // Hue smart button
-    { VENDOR_PHILIPS, "RDM00", philipsMacPrefix }, // Hue wall switch module
-    { VENDOR_PHILIPS, "SML00", philipsMacPrefix }, // Hue motion sensor
     { VENDOR_PHYSICAL, "tagv4", stMacPrefix}, // SmartThings Arrival sensor
     { VENDOR_PHYSICAL, "motionv4", stMacPrefix}, // SmartThings motion sensor
     { VENDOR_PHYSICAL, "moisturev4", stMacPrefix}, // SmartThings water leak sensor
@@ -1292,14 +1288,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         case VENDOR_CLUSTER_ID:
         // case DE_CLUSTER_ID:
-            if (zclFrame.manufacturerCode() == VENDOR_PHILIPS)
-            {
-                handlePhilipsClusterIndication(ind, zclFrame, device);
-            }
-            else // Shouldn't we check for DE manufacturer code?
-            {
-                handleDEClusterIndication(ind, zclFrame);
-            }
+            handleDEClusterIndication(ind, zclFrame);
             break;
 
         case POWER_CONFIGURATION_CLUSTER_ID:
@@ -1401,11 +1390,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                 else if (sensorNode)
                 {
                     quint16 mfCode = sensorNode->node() ? sensorNode->node()->nodeDescriptor().manufacturerCode() : 0;
-                    if (zclFrame.manufacturerCode() == VENDOR_PHILIPS)
-                    {
-                        // Hue dimmer switch
-                    }
-                    else if (mfCode == VENDOR_SCHNEIDER)
+                    if (mfCode == VENDOR_SCHNEIDER)
                     {  }
                     else if (sensorNode->modelId().startsWith(QLatin1String("C4")) || // ubisys
                              sensorNode->modelId().startsWith(QLatin1String("RC 110")) || // innr RC 110
@@ -3059,7 +3044,9 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
         if (existDevicesWithVendorCodeForMacPrefix(node->address(), VENDOR_PHILIPS))
         {
-            if (lightNode.manufacturer() != QLatin1String("Philips"))
+            if (lightNode.manufacturer() != QLatin1String("Philips") &&
+                lightNode.manufacturer() != QLatin1String("Signify Netherlands B.V.")
+               )
             { // correct vendor name, was atmel, de sometimes
                 lightNode.setManufacturerName(QLatin1String("Philips"));
                 lightNode.setNeedSaveDatabase(true);
@@ -4794,13 +4781,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         checkClientCluster = true;
     }
     else if (sensor->modelId() == QLatin1String("Pocket remote")) // legrand 4x scene remote
-    {
-        checkReporting = true;
-    }
-    else if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
-             sensor->modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
-             sensor->modelId().startsWith(QLatin1String("RDM00")) || // Hue wall switch module
-             sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
     {
         checkReporting = true;
     }
@@ -6569,14 +6549,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case VENDOR_CLUSTER_ID:
                 {
-                    if (modelId.startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
-                        modelId.startsWith(QLatin1String("ROM00")) || // Hue smart button
-                        modelId.startsWith(QLatin1String("RDM00")) || // Hue wall switch module
-                        modelId.startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora FoH dimmer switch
-                    {
-                        fpSwitch.inClusters.push_back(ci->id());
-                    }
-                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL && modelId == QLatin1String("de_spect"))
+                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL && modelId == QLatin1String("de_spect"))
                     {
                         if (i->endpoint() <= 0x03)
                         {
@@ -7413,14 +7386,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             sensorNode.addItem(DataTypeInt32, RStateGesture);
         }
-        else if (modelId.startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
-                 modelId.startsWith(QLatin1String("ROM00")) || // Hue smart button
-                 modelId.startsWith(QLatin1String("RDM00")) || // Hue wall switch module
-                 modelId.startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Firends-of-Hue dimmer switch
-        {
-            clusterId = VENDOR_CLUSTER_ID;
-            sensorNode.addItem(DataTypeUInt16, RStateEventDuration);
-        }
         else if (modelId.startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")))
         {
             sensorNode.addItem(DataTypeUInt16, RStateX);
@@ -8088,69 +8053,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             sensorNode.setMode(Sensor::ModeDimmer);
         }
     }
-    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_PHILIPS)
-    {
-        if (modelId == QLatin1String("RWL022") || modelId.startsWith(QLatin1String("RDM00")))
-        {
-            sensorNode.setManufacturer(QLatin1String("Signify Netherlands B.V."));
-        }
-        else
-        {
-            sensorNode.setManufacturer(QLatin1String("Philips"));
-        }
-
-        if (modelId.startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
-        {
-            if (modelId != QLatin1String("RWL022")) // new model with one endpoint
-            {
-                sensorNode.fingerPrint().endpoint = 2;
-            }
-            clusterId = VENDOR_CLUSTER_ID;
-
-            if (!sensorNode.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
-            {   // this cluster is on endpoint 2 and hence not detected
-                sensorNode.fingerPrint().inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
-            }
-
-            if (!sensorNode.fingerPrint().hasInCluster(VENDOR_CLUSTER_ID)) // for realtime button feedback
-            {   // this cluster is on endpoint 2 and hence not detected
-                sensorNode.fingerPrint().inClusters.push_back(VENDOR_CLUSTER_ID);
-            }
-        }
-        else if (modelId.startsWith(QLatin1String("SML00"))) // Hue motion sensor
-        {
-            if (type == QLatin1String("ZHASwitch"))
-            {
-                // not supported yet
-                return;
-            }
-            else if (type == QLatin1String("ZHAPresence"))
-            {
-                item = sensorNode.addItem(DataTypeUInt8, RConfigSensitivity);
-                item->setValue(0);
-                item = sensorNode.addItem(DataTypeUInt8, RConfigSensitivityMax);
-                item->setValue(R_SENSITIVITY_MAX_DEFAULT);
-                sensorNode.removeItem(RConfigDuration);
-                item = sensorNode.addItem(DataTypeUInt16, RConfigDelay);
-                item->setValue(0);
-            }
-            item = sensorNode.addItem(DataTypeString, RConfigAlert);
-            item->setValue(R_ALERT_DEFAULT);
-            item = sensorNode.addItem(DataTypeBool, RConfigLedIndication);
-            item->setValue(false);
-            item = sensorNode.addItem(DataTypeUInt16, RConfigPending);
-            item->setValue(0);
-            item = sensorNode.addItem(DataTypeBool, RConfigUsertest);
-            item->setValue(false);
-        }
-        else if (modelId.startsWith(QLatin1String("RDM00"))) // Hue wall switch module
-        {
-            item = sensorNode.addItem(DataTypeString, RConfigDeviceMode);
-            item->setValue(RConfigDeviceModeValues[0]);
-            item = sensorNode.addItem(DataTypeUInt16, RConfigPending);
-            item->setValue(0);
-        }
-    }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_BEGA)
     {
         sensorNode.setManufacturer("BEGA Gantenbrink-Leuchten KG");
@@ -8184,8 +8086,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     // Skip legacy Xiaomi items
     else if (sensorNode.modelId() == QLatin1String("lumi.sensor_magnet.agl02") || sensorNode.modelId() == QLatin1String("lumi.flood.agl02") ||
              sensorNode.modelId() == QLatin1String("lumi.motion.agl04") || sensorNode.modelId() == QLatin1String("lumi.switch.b1nacn02") ||
-             sensorNode.modelId() == QLatin1String("lumi.switch.b2nacn02") || 
-             sensorNode.modelId() == QLatin1String("lumi.switch.b1naus01") || sensorNode.modelId() == QLatin1String("lumi.switch.n0agl1") || 
+             sensorNode.modelId() == QLatin1String("lumi.switch.b2nacn02") ||
+             sensorNode.modelId() == QLatin1String("lumi.switch.b1naus01") || sensorNode.modelId() == QLatin1String("lumi.switch.n0agl1") ||
              sensorNode.modelId() == QLatin1String("lumi.switch.b1lacn02") || sensorNode.modelId() == QLatin1String("lumi.switch.b2lacn02"))
     {
     }
@@ -9564,20 +9466,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     enqueueEvent(e);
                                 }
 
-                                if (i->mustRead(WRITE_USERTEST))
-                                {
-                                    ResourceItem *item = i->item(RConfigPending);
-                                    if (item)
-                                    {
-                                        quint16 mask = item->toNumber();
-                                        mask &= ~R_PENDING_USERTEST;
-                                        item->setValue(mask);
-                                        Event e(RSensors, RConfigPending, i->id(), item);
-                                        enqueueEvent(e);
-                                    }
-                                    i->clearRead(WRITE_USERTEST);
-                                }
-
                                 updateSensorEtag(&*i);
                             }
                             else if (ia->id() == 0x0033) // ledindication
@@ -9598,20 +9486,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     enqueueEvent(e);
                                 }
 
-                                if (i->mustRead(WRITE_LEDINDICATION))
-                                {
-                                    ResourceItem *item = i->item(RConfigPending);
-                                    if (item)
-                                    {
-                                        quint16 mask = item->toNumber();
-                                        mask &= ~R_PENDING_LEDINDICATION;
-                                        item->setValue(mask);
-                                        Event e(RSensors, RConfigPending, i->id(), item);
-                                        enqueueEvent(e);
-                                    }
-                                    i->clearRead(WRITE_LEDINDICATION);
-                                }
-
                                 updateSensorEtag(&*i);
                             }
                             else if (ia->id() == 0x0034) // devicemode
@@ -9630,20 +9504,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->setNeedSaveDatabase(true);
                                     Event e(RSensors, RConfigDeviceMode, i->id(), item);
                                     enqueueEvent(e);
-                                }
-
-                                if (i->mustRead(WRITE_DEVICEMODE))
-                                {
-                                    ResourceItem *item = i->item(RConfigPending);
-                                    if (item)
-                                    {
-                                        quint16 mask = item->toNumber();
-                                        mask &= ~R_PENDING_DEVICEMODE;
-                                        item->setValue(mask);
-                                        Event e(RSensors, RConfigPending, i->id(), item);
-                                        enqueueEvent(e);
-                                    }
-                                    i->clearRead(WRITE_DEVICEMODE);
                                 }
 
                                 updateSensorEtag(&*i);
@@ -10992,35 +10852,6 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         }
     }
 
-    if (sensorNode->mustRead(WRITE_LEDINDICATION) && tNow > sensorNode->nextReadTime(WRITE_LEDINDICATION))
-    {
-        ResourceItem *item = sensorNode->item(RConfigLedIndication);
-
-        DBG_Printf(DBG_INFO_L2, "handle pending ledindication for 0x%016llX\n", sensorNode->address().ext());
-        if (item)
-        {
-            bool ledindication = (item->toNumber() != 0);
-            // ledindication
-            deCONZ::ZclAttribute attr(0x0033, deCONZ::ZclBoolean, "ledindication", deCONZ::ZclReadWrite, true);
-            attr.setValue(ledindication);
-
-            if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, BASIC_CLUSTER_ID, attr, VENDOR_PHILIPS))
-            {
-                // ResourceItem *item = sensorNode->item(RConfigPending);
-                // quint16 mask = item->toNumber();
-                // mask &= ~R_PENDING_LEDINDICATION;
-                // item->setValue(mask);
-                // sensorNode->clearRead(WRITE_LEDINDICATION);
-                sensorNode->setNextReadTime(WRITE_LEDINDICATION, tNow.addSecs(7200));
-                processed++;
-            }
-        }
-        else
-        {
-            sensorNode->clearRead(WRITE_LEDINDICATION);
-        }
-    }
-
     if (sensorNode->mustRead(WRITE_SENSITIVITY) && tNow > sensorNode->nextReadTime(WRITE_SENSITIVITY))
     {
         ResourceItem *item = sensorNode->item(RConfigSensitivity);
@@ -11056,65 +10887,6 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         else
         {
             sensorNode->clearRead(WRITE_SENSITIVITY);
-        }
-    }
-
-    if (sensorNode->mustRead(WRITE_USERTEST) && tNow > sensorNode->nextReadTime(WRITE_USERTEST))
-    {
-        ResourceItem *item = sensorNode->item(RConfigUsertest);
-
-        DBG_Printf(DBG_INFO_L2, "handle pending usertest for 0x%016llX\n", sensorNode->address().ext());
-        if (item)
-        {
-            bool usertest = (item->toNumber() != 0);
-            // usertest
-            deCONZ::ZclAttribute attr(0x0032, deCONZ::ZclBoolean, "usertest", deCONZ::ZclReadWrite, true);
-            attr.setValue(usertest);
-
-            if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, BASIC_CLUSTER_ID, attr, VENDOR_PHILIPS))
-            {
-                // ResourceItem *item = sensorNode->item(RConfigPending);
-                // quint16 mask = item->toNumber();
-                // mask &= ~R_PENDING_USERTEST;
-                // item->setValue(mask);
-                // sensorNode->clearRead(WRITE_USERTEST);
-                sensorNode->setNextReadTime(WRITE_USERTEST, tNow.addSecs(7200));
-                processed++;
-            }
-        }
-        else
-        {
-            sensorNode->clearRead(WRITE_USERTEST);
-        }
-    }
-
-    if (sensorNode->mustRead(WRITE_DEVICEMODE) && tNow > sensorNode->nextReadTime(WRITE_DEVICEMODE))
-    {
-        ResourceItem *item = sensorNode->item(RConfigDeviceMode);
-
-        DBG_Printf(DBG_INFO_L2, "handle pending devicemode for 0x%016llX\n", sensorNode->address().ext());
-        if (item)
-        {
-            quint64 devicemode = RConfigDeviceModeValues.indexOf(item->toString());
-            // devicemode
-            deCONZ::ZclAttribute attr(0x0034, deCONZ::Zcl8BitEnum, "devicemode", deCONZ::ZclReadWrite, true);
-            attr.setValue(devicemode);
-
-            DBG_Printf(DBG_INFO_L2, "write %lu to devicemode for 0x%016llX\n", devicemode, sensorNode->address().ext());
-            if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, BASIC_CLUSTER_ID, attr, VENDOR_PHILIPS))
-            {
-                // ResourceItem *item = sensorNode->item(RConfigPending);
-                // quint16 mask = item->toNumber();
-                // mask &= ~R_PENDING_DEVICEMODE;
-                // item->setValue(mask);
-                // sensorNode->clearRead(WRITE_DEVICEMODE);
-                sensorNode->setNextReadTime(WRITE_DEVICEMODE, tNow.addSecs(7200));
-                processed++;
-            }
-        }
-        else
-        {
-            sensorNode->clearRead(WRITE_DEVICEMODE);
         }
     }
 
@@ -14556,98 +14328,6 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(const deCONZ::ApsDataIndi
     }
 }
 
-/*! Handle packets related to the Philips 0xFC00 cluster.
-    \param ind the APS level data indication containing the ZCL packet
-    \param zclFrame the actual ZCL frame which holds the scene cluster reponse
- */
-void DeRestPluginPrivate::handlePhilipsClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, Device *device)
-{
-    if (zclFrame.isDefaultResponse() || zclFrame.manufacturerCode() != VENDOR_PHILIPS || zclFrame.commandId() != 0x00)
-    {
-        return;
-    }
-
-    if (device && device->managed())
-    {
-        return;
-    }
-
-    Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
-
-    if (!sensorNode)
-    {
-        return;
-    }
-
-    /* Philips Hue dimmer switch and Lutron Aurora Friends-of-Hue dimmer send following payload:
-       For buttonevents: 0b00 00 30 0e 21 dddd
-       For rotaryevents: 1400 01 30 0e 29 rrrr 21 dddd 29 rrrr 21 dddd 29 rrrr 21 dddd
-       Where b is the button; e is the event; dddd is the duration and rrrr is the rotation.
-     */
-
-    if (zclFrame.payload().size() >= 5)
-    {
-        QDataStream stream(zclFrame.payload());
-        stream.setByteOrder(QDataStream::LittleEndian);
-
-        uint16_t button;
-        uint8_t buttonType;
-        uint8_t dataType;
-        uint8_t event = 0xFF;
-        int16_t rotation = -0x7FFF;
-        uint16_t duration = 0xFFFF;
-
-        stream >> button;
-        stream >> buttonType;
-        stream >> dataType;
-        if (dataType == deCONZ::Zcl8BitEnum)
-        {
-            stream >> event;
-            while (!stream.atEnd())
-            {
-                stream >> dataType;
-                if      (dataType == deCONZ::Zcl16BitInt)  stream >> rotation;
-                else if (dataType == deCONZ::Zcl16BitUint) stream >> duration;
-                else                                       break;
-            }
-            if (buttonType == 0 && event != 0xFF && duration != 0xFFFF)
-            {
-                button *= 1000;
-                button += event;
-
-                DBG_Printf(DBG_INFO, "[INFO] - Button %u - %s endpoint: 0x%02X cluster: PHILIPS_SPECIFIC (0x%04X)\n", button,
-                           qPrintable(sensorNode->modelId()), ind.srcEndpoint(), ind.clusterId());
-
-                ResourceItem *item = sensorNode->item(RStateButtonEvent);
-                if (item)
-                {
-                    updateSensorEtag(sensorNode);
-                    sensorNode->updateStateTimestamp();
-                    item->setValue(button);
-                    Event e(RSensors, RStateButtonEvent, sensorNode->id(), item);
-                    enqueueEvent(e);
-                    ResourceItem *item = sensorNode->item(RStateEventDuration);
-                    if (item)
-                    {
-                        item->setValue(duration);
-                        Event e(RSensors, RStateEventDuration, sensorNode->id(), item);
-                        enqueueEvent(e);
-                    }
-                    enqueueEvent(Event(RSensors, RStateLastUpdated, sensorNode->id()));
-                }
-            }
-            else if (buttonType == 1 && event != 0xFF && rotation != -0x7FFF && duration != 0xFFFF)
-            {
-                DBG_Printf(DBG_INFO_L2, "%s: Philips cluster command: rotaryevent: %d, expectedrotation: %d, expectedeventduration: %d\n", qPrintable(sensorNode->address().toStringExt()), event, rotation, duration);
-            }
-            else
-            {
-                DBG_Printf(DBG_INFO_L2, "%s: Philips cluster command: %s\n", qPrintable(sensorNode->address().toStringExt()), qPrintable(zclFrame.payload()));
-            }
-        }
-    }
-}
-
 /*! Handle packets related to the ZCL Commissioning cluster.
     \param ind the APS level data indication containing the ZCL packet
     \param zclFrame the actual ZCL frame which holds the Commissioning cluster reponse
@@ -15596,125 +15276,6 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         if (!sensor || searchSensorsState != SearchSensorsActive)
         {
             // do nothing
-        }
-        else if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
-                 sensor->modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
-                 sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
-
-        {
-            NodeValue val = sensor->getZclValue(VENDOR_CLUSTER_ID, 0x0000);
-            if (!val.isValid())
-            {
-                if (checkSensorBindingsForAttributeReporting(sensor))
-                {
-                    return;
-                }
-            }
-
-            // Stop the Hue dimmer from touchlinking when holding the On button.
-            deCONZ::ZclAttribute attr(0x0031, deCONZ::Zcl16BitBitMap, "mode", deCONZ::ZclReadWrite, false);
-            attr.setBitmap(0x000b);
-
-            val = sensor->getZclValue(BASIC_CLUSTER_ID, 0x0031);
-
-            if (val.isValid()) // already done
-            {
-            }
-            else if (writeAttribute(sensor, sensor->fingerPrint().endpoint, BASIC_CLUSTER_ID, attr, VENDOR_PHILIPS))
-            {
-                queryTime = queryTime.addSecs(1);
-
-                // mark done
-                deCONZ::NumericUnion touchLink;
-                touchLink.u64 = 0x000b;
-                sensor->setZclValue(NodeValue::UpdateByZclRead, sensor->fingerPrint().endpoint, BASIC_CLUSTER_ID, 0x0031, touchLink);
-                return;
-            }
-
-            checkSensorGroup(sensor);
-            checkSensorBindingsForClientClusters(sensor);
-        }
-        else if (sensor->modelId().startsWith(QLatin1String("RDM00"))) // Hue wall switch module
-        {
-            NodeValue val = sensor->getZclValue(VENDOR_CLUSTER_ID, 0x0000);
-            if (!val.isValid())
-            {
-                if (checkSensorBindingsForAttributeReporting(sensor))
-                {
-                }
-            }
-
-            // Stop the Hue dimmer from touchlinking when holding the On button.
-            deCONZ::ZclAttribute attr(0x0031, deCONZ::Zcl16BitBitMap, "mode", deCONZ::ZclReadWrite, false);
-            attr.setBitmap(0x000b);
-
-            val = sensor->getZclValue(BASIC_CLUSTER_ID, 0x0031);
-
-            if (val.isValid()) // already done
-            {
-            }
-            else if (writeAttribute(sensor, sensor->fingerPrint().endpoint, BASIC_CLUSTER_ID, attr, VENDOR_PHILIPS))
-            {
-                queryTime = queryTime.addSecs(1);
-
-                // mark done
-                deCONZ::NumericUnion touchLink;
-                touchLink.u64 = 0x000b;
-                sensor->setZclValue(NodeValue::UpdateByZclRead, sensor->fingerPrint().endpoint, BASIC_CLUSTER_ID, 0x0031, touchLink);
-            }
-
-            std::vector<uint16_t> attributes;
-            const NodeValue &devicemode = sensor->getZclValue(BASIC_CLUSTER_ID, 0x0034);
-            if (!devicemode.timestamp.isValid())
-            {
-                attributes.push_back(0x0034); // devicemode
-            }
-
-            if (!attributes.empty() &&
-                readAttributes(sensor, sensor->fingerPrint().endpoint, BASIC_CLUSTER_ID, attributes, VENDOR_PHILIPS))
-            {
-                queryTime = queryTime.addSecs(1);
-            }
-        }
-        else if (sensor->modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
-        {
-            std::vector<uint16_t> attributes;
-            const NodeValue &sensitivity = sensor->getZclValue(OCCUPANCY_SENSING_CLUSTER_ID, 0x0030);
-            if (!sensitivity.timestamp.isValid())
-            {
-                attributes.push_back(0x0030); // sensitivity
-            }
-
-            const NodeValue &sensitivitymax = sensor->getZclValue(OCCUPANCY_SENSING_CLUSTER_ID, 0x0031);
-            if (!sensitivitymax.timestamp.isValid())
-            {
-                attributes.push_back(0x0031); // sensitivitymax
-            }
-
-            if (!attributes.empty() &&
-                 readAttributes(sensor, sensor->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attributes, VENDOR_PHILIPS))
-            {
-                queryTime = queryTime.addSecs(1);
-            }
-
-            attributes = {};
-            const NodeValue &usertest = sensor->getZclValue(BASIC_CLUSTER_ID, 0x0032);
-            if (!usertest.timestamp.isValid())
-            {
-                attributes.push_back(0x0032); // usertest
-            }
-
-            const NodeValue &ledindication = sensor->getZclValue(BASIC_CLUSTER_ID, 0x0033);
-            if (!ledindication.timestamp.isValid())
-            {
-                attributes.push_back(0x0033); // ledindication
-            }
-
-            if (!attributes.empty() &&
-                readAttributes(sensor, sensor->fingerPrint().endpoint, BASIC_CLUSTER_ID, attributes, VENDOR_PHILIPS))
-            {
-                queryTime = queryTime.addSecs(1);
-            }
         }
         else if (sensor->modelId() == QLatin1String("TRADFRI wireless dimmer") && // IKEA dimmer
                  sensor->fingerPrint().profileId == ZLL_PROFILE_ID) // old ZLL firmware
@@ -16815,7 +16376,7 @@ void DeRestPlugin::idleTimerFired()
                 {
                     Device *device = sensorNode->parentResource() ? static_cast<Device*>(sensorNode->parentResource()) : nullptr;
                     const bool devManaged = device && device->managed();
-                    
+
                     std::vector<quint16>::const_iterator ci = sensorNode->fingerPrint().inClusters.begin();
                     std::vector<quint16>::const_iterator cend = sensorNode->fingerPrint().inClusters.end();
                     for (;ci != cend; ++ci)

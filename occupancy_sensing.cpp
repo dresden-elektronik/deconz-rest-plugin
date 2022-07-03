@@ -212,20 +212,6 @@ void DeRestPluginPrivate::handleOccupancySensingClusterIndication(const deCONZ::
                 configUpdated = true;
             }
 
-            if (sensor->mustRead(WRITE_SENSITIVITY))
-            {
-                ResourceItem *item = sensor->item(RConfigPending);
-                if (item)
-                {
-                    quint16 mask = item->toNumber();
-                    mask &= ~R_PENDING_SENSITIVITY;
-                    item->setValue(mask);
-                    Event e(RSensors, RConfigPending, sensor->id(), item);
-                    enqueueEvent(e);
-                }
-                sensor->clearRead(WRITE_SENSITIVITY);
-            }
-
             sensor->setZclValue(updateType, ind.srcEndpoint(), OCCUPANCY_SENSING_CLUSTER_ID, HUE_SENSITIVITY, attr.numericValue());
         }
             break;
