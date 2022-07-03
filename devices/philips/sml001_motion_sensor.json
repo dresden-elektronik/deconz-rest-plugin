@@ -1,20 +1,16 @@
 {
     "schema": "devcap1.schema.json",
-    "doc:path": "philips/sml001_motion_sensor.md",
-    "doc:hdr": "Motion sensor 1. Gen (SML001)",
     "manufacturername": "$MF_PHILIPS",
     "modelid": "SML001",
     "vendor": "Philips",
-    "product": "Hue motion sensor 1. Gen (SML001)",
+    "product": "Hue motion sensor",
     "status": "Gold",
     "sleeper": false,
-    "md:known_issues": [ ],
     "subdevices": [
          {
             "type": "$TYPE_PRESENCE_SENSOR",
             "restapi": "/sensors",
             "uuid": [ "$address.ext", "0x02", "0x0406"],
-            "fingerprint": { "profile": "0x0104", "device": "0x0107", "endpoint": "0x02", "in": ["0x0000", "0x0001", "0x0406"] },
             "items": [
                 {
                     "name": "attr/lastseen"
@@ -43,38 +39,64 @@
                 },
                 {
                     "name": "config/battery",
-                    "parse": {"at": "0x0021", "cl": "0x0001", "ep": 2, "eval": "Item.val = Attr.val / 2"},
-                    "read": {"at": "0x0021", "cl": "0x0001", "ep": 2},
+                    "parse": {
+                        "ep": 2, "cl": "0x0001", "at": "0x0021",
+                        "eval": "Item.val = Attr.val / 2"
+                    },
+                    "read": {
+                        "ep": 2, "cl": "0x0001", "at": "0x0021"
+                    },
                     "refresh.interval": 7300
                 },
                 {
                     "name": "config/delay",
-                    "parse": {"at": "0x0010", "cl": "0x0406", "ep": 2, "eval": "Item.val = Attr.val"},
-                    "read": {"at": "0x0010", "cl": "0x0406", "ep": 2},
-                    "write": {"at": "0x0010", "cl": "0x0406", "dt": "0x21", "ep": 2, "eval": "Item.val"},
+                    "parse": {
+                        "ep": 2, "cl": "0x0406", "at": "0x0010",
+                        "eval": "Item.val = Attr.val"
+                    },
+                    "read": {
+                        "ep": 2, "cl": "0x0406", "at": "0x0010"
+                    },
+                    "write": {
+                        "ep": 2, "cl": "0x0406", "at": "0x0010", "dt": "0x21",
+                        "eval": "Item.val"
+                    },
                     "refresh.interval": 86400
                 },
                 {
                     "name": "config/ledindication",
-                    "parse": {"at": "0x0033", "cl": "0x0000", "ep": 2, "eval": "Item.val = Attr.val", "mf": "0x100b"},
-                    "read": {"at": "0x0033", "cl": "0x0000", "ep": 2, "mf": "0x100b"},
-                    "write": {"at": "0x0033", "cl": "0x0000", "dt": "0x10", "ep": 2, "eval": "Item.val", "mf": "0x100b"},
+                    "parse": {
+                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0033",
+                        "eval": "Item.val = Attr.val"
+                    },
+                    "read": {
+                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0033"
+                    },
+                    "write": {
+                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0033", "dt": "0x10",
+                        "eval": "Item.val"
+                    },
                     "refresh.interval": 86400
                 },
                 {
                     "name": "config/on"
                 },
                 {
-                    "name": "config/pending"
-                },
-                {
                     "name": "config/reachable"
                 },
                 {
                     "name": "config/sensitivity",
-                    "parse": {"at": "0x0030", "cl": "0x0406", "ep": 2, "eval": "Item.val = Attr.val", "mf": "0x100b"},
-                    "read": {"at": "0x0030", "cl": "0x0406", "ep": 2, "mf": "0x100b"},
-                    "write": {"at": "0x0030", "cl": "0x0406", "dt": "0x20", "ep": 2, "eval": "Item.val", "mf": "0x100b"},
+                    "parse": {
+                        "ep": 2, "cl": "0x0406", "mf": "0x100b", "at": "0x0030",
+                        "eval": "Item.val = Attr.val"
+                    },
+                    "read": {
+                        "ep": 2, "cl": "0x0406", "mf": "0x100b", "at": "0x0030"
+                    },
+                    "write": {
+                        "ep": 2, "cl": "0x0406", "mf": "0x100b", "at": "0x0030", "dt": "0x20",
+                        "eval": "Item.val"
+                    },
                     "values": [
                         [0, "low"],
                         [1, "medium"],
@@ -88,9 +110,17 @@
                 },
                 {
                     "name": "config/usertest",
-                    "parse": {"at": "0x0032", "cl": "0x0000", "ep": 2, "mf": "0x100b", "eval": "Item.val = Attr.val"},
-                    "read": {"at": "0x0032", "cl": "0x0000", "ep": 2, "mf": "0x100b"},
-                    "write": {"at": "0x0032", "cl": "0x0000", "dt": "0x10", "ep": 2, "mf": "0x100b", "eval": "Item.val"},
+                    "parse": {
+                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0032",
+                        "eval": "Item.val = Attr.val"
+                    },
+                    "read": {
+                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0032"
+                    },
+                    "write": {
+                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0032", "dt": "0x10",
+                        "eval": "Item.val"
+                    },
                     "refresh.interval": 86400
                 },
                 {
@@ -98,42 +128,17 @@
                 },
                 {
                     "name": "state/presence",
-                    "parse": {"at": "0x0000", "cl": "0x0406", "ep": 2, "eval": "Item.val = Attr.val"}
+                    "parse": {
+                        "ep": 2, "cl": "0x0406", "at": "0x0000",
+                        "eval": "Item.val = Attr.val"
+                    }
                 }
-            ],
-            "example": {
-                "config": {
-                    "alert": "none",
-                    "battery": 0,
-                    "delay": 0,
-                    "ledindication": false,
-                    "on": true,
-                    "pending": [],
-                    "reachable": true,
-                    "sensitivity": 2,
-                    "sensitivitymax": 2,
-                    "usertest": false
-                },
-                "ep": 2,
-                "etag": "7f0d4873bf1bf93df92948fe160460e6",
-                "lastseen": "2021-01-13T13:20Z",
-                "manufacturername": "Philips",
-                "modelid": "SML001",
-                "name": "Motion Sensor (2)",
-                "state": {
-                    "lastupdated": "2021-01-13T13:20:06.879",
-                    "presence": false
-                },
-                "swversion": "6.1.1.27575",
-                "type": "ZHAPresence",
-                "uniqueid": "00:17:88:01:02:00:21:f4-02-0406"
-            }
+            ]
         },
         {
             "type": "$TYPE_LIGHT_LEVEL_SENSOR",
             "restapi": "/sensors",
             "uuid": [ "$address.ext", "0x02", "0x0400"],
-            "fingerprint": { "profile": "0x0104", "device": "0x0107", "endpoint": "0x02", "in": ["0x0000", "0x0001", "0x0400"] },
             "items": [
                 {
                     "name": "attr/lastseen"
@@ -163,21 +168,32 @@
                 },
                 {
                     "name": "config/battery",
-                    "parse": {"at": "0x0021", "cl": "0x0001", "ep": 2, "eval": "Item.val = Attr.val / 2"},
-                    "read": {"fn": "none"}
+                    "parse": {
+                        "ep": 2, "cl": "0x0001", "at": "0x0021",
+                        "eval": "Item.val = Attr.val / 2"
+                    },
+                    "read": {
+                        "ep": 2, "cl": "0x0001", "at": "0x0021"
+                    },
+                    "refresh.interval": 7300
                 },
                 {
                     "name": "config/ledindication",
-                    "parse": {"at": "0x0033", "cl": "0x0000", "ep": 2, "eval": "Item.val = Attr.val", "mf": "0x100b"},
-                    "read": {"at": "0x0033", "cl": "0x0000", "ep": 2, "mf": "0x100b"},
-                    "write": {"at": "0x0033", "cl": "0x0000", "dt": "0x10", "ep": 2, "eval": "Item.val", "mf": "0x100b"},
+                    "parse": {
+                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0033",
+                        "eval": "Item.val = Attr.val"
+                    },
+                    "read": {
+                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0033"
+                    },
+                    "write": {
+                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0033", "dt": "0x10",
+                        "eval": "Item.val"
+                    },
                     "refresh.interval": 86400
                 },
                 {
                     "name": "config/on"
-                },
-                {
-                    "name": "config/pending"
                 },
                 {
                     "name": "config/reachable"
@@ -190,9 +206,17 @@
                 },
                 {
                     "name": "config/usertest",
-                    "parse": {"at": "0x0032", "cl": "0x0000", "ep": 2, "eval": "Item.val = Attr.val", "mf": "0x100b"},
-                    "read": {"at": "0x0032", "cl": "0x0000", "ep": 2, "mf": "0x100b"},
-                    "write": {"at": "0x0032", "cl": "0x0000", "dt": "0x10", "ep": 2, "eval": "Item.val", "mf": "0x100b"},
+                    "parse": {
+                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0032",
+                        "eval": "Item.val = Attr.val"
+                    },
+                    "read": {
+                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0032"
+                    },
+                    "write": {
+                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0032", "dt": "0x10",
+                        "eval": "Item.val"
+                    },
                     "refresh.interval": 86400
                 },
                 {
@@ -206,47 +230,20 @@
                 },
                 {
                     "name": "state/lightlevel",
-                    "parse": {"at": "0x0000", "cl": "0x0400", "ep": 2, "script": "../generic/illuminance_cluster/sml_light_level.js"}
+                    "parse": {
+                        "ep": 2, "cl": "0x0400", "at": "0x0000",
+                        "script": "0400_lightlevel.js"
+                    }
                 },
                 {
                     "name": "state/lux"
                 }
-            ],
-            "example": {
-                "config": {
-                    "alert": "none",
-                    "battery": 0,
-                    "ledindication": false,
-                    "on": true,
-                    "pending": [],
-                    "reachable": true,
-                    "tholddark": 12000,
-                    "tholdoffset": 7000,
-                    "usertest": false
-                },
-                "ep": 2,
-                "etag": "58197854b7469e88cbb22afbe5ecf8d0",
-                "lastseen": "2021-01-13T13:20Z",
-                "manufacturername": "Philips",
-                "modelid": "SML001",
-                "name": "Motion Sensor (2)",
-                "state": {
-                    "dark": false,
-                    "daylight": true,
-                    "lastupdated": "2021-01-13T13:19:58.655",
-                    "lightlevel": 30063,
-                    "lux": 1014
-                },
-                "swversion": "6.1.1.27575",
-                "type": "ZHALightLevel",
-                "uniqueid": "00:17:88:01:02:00:21:f4-02-0400"
-            }
+            ]
         },
         {
             "type": "$TYPE_TEMPERATURE_SENSOR",
             "restapi": "/sensors",
             "uuid": [ "$address.ext", "0x02", "0x0402"],
-            "fingerprint": { "profile": "0x0104", "device": "0x0107", "endpoint": "0x02", "in": ["0x0000", "0x0001", "0x0402"] },
             "items": [
                 {
                     "name": "attr/lastseen"
@@ -276,14 +273,28 @@
                 },
                 {
                     "name": "config/battery",
-                    "parse": {"at": "0x0021", "cl": "0x0001", "ep": 2, "eval": "Item.val = Attr.val / 2"},
-                    "read": {"fn": "none"}
+                    "parse": {
+                        "ep": 2, "cl": "0x0001", "at": "0x0021",
+                        "eval": "Item.val = Attr.val / 2"
+                    },
+                    "read": {
+                        "ep": 2, "cl": "0x0001", "at": "0x0021"
+                    },
+                    "refresh.interval": 7300
                 },
                 {
                     "name": "config/ledindication",
-                    "parse": {"at": "0x0033", "cl": "0x0000", "ep": 2, "eval": "Item.val = Attr.val", "mf": "0x100b"},
-                    "read": {"at": "0x0033", "cl": "0x0000", "ep": 2, "mf": "0x100b"},
-                    "write": {"at": "0x0033", "cl": "0x0000", "dt": "0x10", "ep": 2, "eval": "Item.val", "mf": "0x100b"},
+                    "parse": {
+                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0033",
+                        "eval": "Item.val = Attr.val"
+                    },
+                    "read": {
+                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0033"
+                    },
+                    "write": {
+                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0033", "dt": "0x10",
+                        "eval": "Item.val"
+                    },
                     "refresh.interval": 86400
                 },
                 {
@@ -293,16 +304,21 @@
                     "name": "config/on"
                 },
                 {
-                    "name": "config/pending"
-                },
-                {
                     "name": "config/reachable"
                 },
                 {
                     "name": "config/usertest",
-                    "parse": {"at": "0x0032", "cl": "0x0000", "ep": 2, "eval": "Item.val = Attr.val", "mf": "0x100b"},
-                    "read": {"at": "0x0032", "cl": "0x0000", "ep": 2, "mf": "0x100b"},
-                    "write": {"at": "0x0032", "cl": "0x0000", "dt": "0x10", "ep": 2, "eval": "Item.val", "mf": "0x100b"},
+                    "parse": {
+                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0032",
+                        "eval": "Item.val = Attr.val"
+                    },
+                    "read": {
+                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0032"
+                    },
+                    "write": {
+                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0032", "dt": "0x10",
+                        "eval": "Item.val"
+                    },
                     "refresh.interval": 86400
                 },
                 {
@@ -310,34 +326,12 @@
                 },
                 {
                     "name": "state/temperature",
-                    "parse": {"at": "0x0000", "cl": "0x0402", "ep": 2, "eval": "Item.val = Attr.val + R.item('config/offset').val"}
+                    "parse": {
+                        "ep": 2, "cl": "0x0402", "at": "0x0000",
+                        "eval": "Item.val = Attr.val + R.item('config/offset').val"
+                    }
                 }
-            ],
-            "example": {
-                "config": {
-                    "alert": "none",
-                    "battery": 0,
-                    "ledindication": false,
-                    "offset": 0,
-                    "on": true,
-                    "pending": [],
-                    "reachable": true,
-                    "usertest": false
-                },
-                "ep": 2,
-                "etag": "0f14835ede4aac034a6022f956aea426",
-                "lastseen": "2021-01-13T13:20Z",
-                "manufacturername": "Philips",
-                "modelid": "SML001",
-                "name": "Motion Sensor (2)",
-                "state": {
-                    "lastupdated": "2021-01-13T13:17:44.861",
-                    "temperature": 2142
-                },
-                "swversion": "6.1.1.27575",
-                "type": "ZHATemperature",
-                "uniqueid": "00:17:88:01:02:00:21:f4-02-0402"
-            }
+            ]
         }
     ],
     "bindings": [
@@ -345,25 +339,37 @@
             "bind": "unicast",
             "src.ep": 2,
             "cl": "0x0406",
-            "report": [ {"at": "0x0000", "dt": "0x18", "min": 1, "max": 300 } ]
+            "report": [
+                { "at": "0x0000", "dt": "0x18", "min": 1, "max": 300 },
+                { "mf": "0x100b", "at": "0x0030", "dt": "0x20", "min": 5, "max": 7200, "change": "0x01" }
+            ]
         },
         {
             "bind": "unicast",
             "src.ep": 2,
             "cl": "0x0400",
-            "report": [ {"at": "0x0000", "dt": "0x21", "min": 5, "max": 300, "change": "0x07d0" } ]
+            "report": [{ "at": "0x0000", "dt": "0x21", "min": 5, "max": 300, "change": "0x07d0" }]
         },
         {
             "bind": "unicast",
             "src.ep": 2,
             "cl": "0x0402",
-            "report": [ {"at": "0x0000", "dt": "0x29", "min": 10, "max": 300, "change": "0x14" } ]
+            "report": [{ "at": "0x0000", "dt": "0x29", "min": 10, "max": 300, "change": "0x14" }]
         },
         {
             "bind": "unicast",
             "src.ep": 2,
             "cl": "0x0001",
-            "report": [ {"at": "0x0021", "dt": "0x20", "min": 7200, "max": 7200, "change": "0x00" } ]
+            "report": [{ "at": "0x0021", "dt": "0x20", "min": 7200, "max": 7200, "change": "0x00" }]
+        },
+        {
+            "bind": "unicast",
+            "src.ep": 2,
+            "cl": "0x0000",
+            "report": [
+                { "mf": "0x100b", "at": "0x0032", "dt": "0x10", "min": 5, "max": 7200 },
+                { "mf": "0x100b", "at": "0x0033", "dt": "0x10", "min": 5, "max": 7200 }
+            ]
         }
     ]
 }
