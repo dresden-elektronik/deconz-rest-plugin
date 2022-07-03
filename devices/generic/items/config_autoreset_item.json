@@ -1,0 +1,8 @@
+{
+    "schema": "resourceitem1.schema.json",
+    "id": "config/autoreset",
+    "datatype": "Bool",
+    "access": "R",
+    "public": true,
+    "description": "Reset presence or vibration state automatically to false if not supported by the device."
+}

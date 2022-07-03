@@ -3371,7 +3371,34 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
             continue;
         }
 
-        if (sensor->durationDue.isValid())
+        if (sensor->item(RConfigAutoReset) && sensor->item(RConfigAutoReset)->toBool() && sensor->item(RConfigDuration))
+        {
+            ResourceItem *item = nullptr;
+
+            if (sensor->item(RStatePresence))
+            {
+                item = sensor->item(RStatePresence);    // automatically set presence to false, if not triggered in config.duration
+            }
+            else if (sensor->item(RStateVibration))
+            {
+                item = sensor->item(RStateVibration);   // automatically set vibration to false, if not triggered in config.duration
+            }
+
+            if (item && item->toBool() && deCONZ::steadyTimeRef().ref > item->lastZclReport().ref + (sensor->item(RConfigDuration)->toNumber() * 1000))
+            {
+                item->setValue(false, ResourceItem::SourceDevice);
+                item->setLastZclReport(deCONZ::steadyTimeRef().ref);
+                sensor->updateStateTimestamp();
+                enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor->id(), item));
+                enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
+                updateSensorEtag(sensor);
+            }
+            else
+            {
+                sensorCheckFast = CHECK_SENSOR_FAST_ROUNDS;
+            }
+        }
+        else if (sensor->durationDue.isValid())
         {
             if (sensor->durationDue <= QDateTime::currentDateTime())
             {

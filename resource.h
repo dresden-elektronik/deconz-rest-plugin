@@ -201,6 +201,7 @@ extern const char *RConfigArmedStayTriggerDuration;
 extern const char *RConfigArmedNightEntryDelay;
 extern const char *RConfigArmedNightExitDelay;
 extern const char *RConfigArmedNightTriggerDuration;
+extern const char *RConfigAutoReset;
 extern const char *RConfigBattery;
 extern const char *RConfigClickMode;
 extern const char *RConfigColorCapabilities;

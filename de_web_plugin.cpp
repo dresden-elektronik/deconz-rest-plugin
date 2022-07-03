@@ -1372,7 +1372,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case OCCUPANCY_SENSING_CLUSTER_ID:
-            if (!DEV_TestStrict()) { handleOccupancySensingClusterIndication(ind, zclFrame); }
+            if (!DEV_TestStrict() && !devManaged) { handleOccupancySensingClusterIndication(ind, zclFrame); }
             break;
 
         default:

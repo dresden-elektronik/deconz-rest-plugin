@@ -4,7 +4,7 @@
   "modelid": "lumi.sensor_motion.aq2",
   "vendor": "Xiaomi",
   "product": "Aqara motion sensor RTCGQ11LM",
-  "sleeper": false,
+  "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
@@ -52,6 +52,10 @@
         },
         {
           "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/autoreset",
+          "static": true
         },
         {
           "name": "config/battery",

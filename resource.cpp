@@ -167,6 +167,8 @@ const QStringList RStateEffectValuesMueller({
     "none", "colorloop", "sunset", "party", "worklight", "campfire", "romance", "nightlight"
 });
 
+const char *RConfigAlert = "config/alert";
+const char *RConfigAllowTouchlink = "config/allowtouchlink";
 const char *RConfigArmMode = "config/armmode";
 const char *RConfigArmedAwayEntryDelay = "config/armed_away_entry_delay";
 const char *RConfigArmedAwayExitDelay = "config/armed_away_exit_delay";
@@ -177,9 +179,7 @@ const char *RConfigArmedStayTriggerDuration = "config/armed_stay_trigger_duratio
 const char *RConfigArmedNightEntryDelay = "config/armed_night_entry_delay";
 const char *RConfigArmedNightExitDelay = "config/armed_night_exit_delay";
 const char *RConfigArmedNightTriggerDuration = "config/armed_night_trigger_duration";
-const char *RConfigAlert = "config/alert";
-const char *RConfigAllowTouchlink = "config/allowtouchlink";
-const char *RConfigLock = "config/lock";
+const char *RConfigAutoReset = "config/autoreset";
 const char *RConfigBattery = "config/battery";
 const char *RConfigClickMode = "config/clickmode";
 const char *RConfigColorCapabilities = "config/colorcapabilities";
@@ -212,6 +212,7 @@ const char *RConfigLat = "config/lat";
 const char *RConfigLedIndication = "config/ledindication";
 const char *RConfigLevelMin = "config/levelmin";
 const char *RConfigLocalTime = "config/localtime";
+const char *RConfigLock = "config/lock";
 const char *RConfigLocked = "config/locked";
 const char *RConfigLong = "config/long";
 const char *RConfigMode = "config/mode";
@@ -406,6 +407,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigArmedNightEntryDelay, 0, 255));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigArmedNightExitDelay, 0, 255));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigArmedNightTriggerDuration, 0, 255));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigAutoReset));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigLock));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigBattery, 0, 100));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigClickMode));
