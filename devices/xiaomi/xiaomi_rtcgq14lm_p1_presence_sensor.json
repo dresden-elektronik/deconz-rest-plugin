@@ -55,6 +55,11 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "config/autoreset",
+          "static": true,
+          "public": false
+        },
+        {
           "name": "config/battery",
           "awake": true,
           "parse": {
