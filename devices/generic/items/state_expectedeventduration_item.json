@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/expectedeventduration",
+	"datatype": "UInt16",
+	"access": "R",
+	"public": true,
+	"description": "The expected duration of the last received rotary event."
+}
