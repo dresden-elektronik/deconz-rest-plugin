@@ -15,6 +15,7 @@
 #include <QVariantMap>
 #include <QtCore/qmath.h>
 #include "database.h"
+#include "device_descriptions.h"
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "json.h"
@@ -25,6 +26,45 @@
 #include "thermostat.h"
 #include "thermostat_ui_configuration.h"
 #include "utils/utils.h"
+
+/*! In a DDF a sub device can specify valid keyvalue pairs for a ResourceItem.suffix in the meta object.
+
+    Example of Ikea Starkvind:
+
+    "meta": {
+      "values": {
+        "config/mode": {"off": 0, "auto": 1, "speed_1": 10, "speed_2": 20, "speed_3": 30, "speed_4": 40, "speed_5": 50}
+      }
+    }
+
+    This function returns the map for the ResourceItem.
+*/
+static QVariantMap DDF_GetMetaKeyValues(const Resource *r, const ResourceItem *item)
+{
+    QVariantMap m;
+
+    if (!r || !item)
+    {
+        return m;
+    }
+
+    auto *dd = DeviceDescriptions::instance();
+    const auto &sub = dd->getSubDevice(r);
+
+    const QLatin1String kvalues("values");
+    const QLatin1String ksuffix(item->descriptor().suffix);
+
+    if (sub.isValid() && sub.meta.contains(kvalues))
+    {
+        m = sub.meta.value(kvalues).toMap();
+        if (m.contains(ksuffix))
+        {
+            m = m.value(ksuffix).toMap();
+        }
+    }
+
+    return m;
+}
 
 /*! Sensors REST API broker.
     \param req - request data
@@ -701,7 +741,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     task.req.setSrcEndpoint(getSrcEndpoint(sensor, task.req));
     task.req.setDstAddressMode(deCONZ::ApsExtAddress);
     
-    StateChange change(StateChange::StateWaitSync, SC_WriteZclAttribute, task.req.dstEndpoint());
+    StateChange change(StateChange::StateCallFunction, SC_WriteZclAttribute, task.req.dstEndpoint());
 
     //check invalid parameter
     auto pi = map.cbegin();
@@ -833,6 +873,11 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             continue;
                         }
                     }
+                    else if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.uinteger);
+                        rsub->addStateChange(change);
+                    }
 
                     updated = true;
                 }
@@ -855,19 +900,52 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
                 }
+                else if (rid.suffix == RConfigTriggerDistance && !data.string.isEmpty()) // String
+                {
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.string);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
+                }
                 else if (rid.suffix == RConfigSensitivity) // Unsigned integer
                 {
-                    pendingMask |= R_PENDING_SENSITIVITY;
-                    sensor->enableRead(WRITE_SENSITIVITY);
-                    sensor->setNextReadTime(WRITE_SENSITIVITY, QTime::currentTime());
-                    updated = true;
+                    if (!devManaged)
+                    {
+                        pendingMask |= R_PENDING_SENSITIVITY;
+                        sensor->enableRead(WRITE_SENSITIVITY);
+                        sensor->setNextReadTime(WRITE_SENSITIVITY, QTime::currentTime());
+                        updated = true;
+                    }
+                    else
+                    {
+                        if (rsub)
+                        {
+                            change.addTargetValue(rid.suffix, data.uinteger);
+                            rsub->addStateChange(change);
+                            updated = true;
+                        }
+                    }
                 }
                 else if (rid.suffix == RConfigUsertest) // Boolean
                 {
-                    pendingMask |= R_PENDING_USERTEST;
-                    sensor->enableRead(WRITE_USERTEST);
-                    sensor->setNextReadTime(WRITE_USERTEST, QTime::currentTime());
-                    updated = true;
+                    if (!devManaged)
+                    {
+                        pendingMask |= R_PENDING_USERTEST;
+                        sensor->enableRead(WRITE_USERTEST);
+                        sensor->setNextReadTime(WRITE_USERTEST, QTime::currentTime());
+                        updated = true;
+                    }
+                    else
+                    {
+                        if (rsub)
+                        {
+                            change.addTargetValue(rid.suffix, data.boolean);
+                            rsub->addStateChange(change);
+                            updated = true;
+                        }
+                    }
                 }
                 else if (rid.suffix == RConfigLat || rid.suffix == RConfigLong) // String
                 {
@@ -880,6 +958,15 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 else if (rid.suffix == RConfigOn) // Boolean
                 {
                     updated = true;
+                }
+                else if (rid.suffix == RConfigResetPresence) // Boolean
+                {
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.boolean);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
                 }
                 else if (rid.suffix == RConfigAlert) // String
                 {
@@ -1186,7 +1273,26 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigMode) // String
                 {
-                    if (sensor->modelId() == QLatin1String("Cable outlet")) // Legrand cable outlet
+                    ok = false;
+
+                    if (devManaged)
+                    {
+                        const QVariantMap m = DDF_GetMetaKeyValues(sensor, item);
+
+                        if (m.contains(data.string))
+                        {
+                            change.addTargetValue(rid.suffix, data.string);
+                            rsub->addStateChange(change);
+                            updated = true;
+                            ok = true; // mark handled
+                        }
+                    }
+
+                    if (ok)
+                    {
+                        // handled by DDF "meta": { "<item.suffix>": {...}}
+                    }
+                    else if (sensor->modelId() == QLatin1String("Cable outlet")) // Legrand cable outlet
                     {
                         const auto match = matchKeyValue(data.string, RConfigModeLegrandValues);
 
@@ -2235,6 +2341,20 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
                         }
                     }
                 }
+
+                if (rid.suffix == RStateLocaltime)
+                {
+                    // convert to QDateTime here, otherwise the time string would be interpretet
+                    // as UTC in item->setValue()
+                    const auto str = val.toString();
+                    auto fmt = str.contains('.') ? QLatin1String("yyyy-MM-ddTHH:mm:ss.zzz")
+                                                 : QLatin1String("yyyy-MM-ddTHH:mm:ss");
+                    auto dt = QDateTime::fromString(str, fmt);
+
+                    if (dt.isValid()) { val = dt; }
+                    else              { val = ""; } // mark invalid but keep processing to return proper error
+                }
+
                 if (item->setValue(val))
                 {
                     rspItemState[QString("/sensors/%1/state/%2").arg(id).arg(pi.key())] = val;
@@ -4032,7 +4152,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
 
             if (changed)
             {
-                indexRulesTriggers();
+                needRuleCheck = RULE_CHECK_DELAY;
                 queSaveDb(DB_RULES, DB_SHORT_SAVE_DELAY);
             }
         }

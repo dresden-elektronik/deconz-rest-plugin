@@ -90,6 +90,7 @@ using namespace deCONZ::literals;
 #define IDLE_ATTR_REPORT_BIND_LIMIT_SHORT 5
 #define BUTTON_ATTR_REPORT_BIND_LIMIT 120
 #define WARMUP_TIME 120
+#define RULE_CHECK_DELAY 4 // seconds
 
 #define MAX_UNLOCK_GATEWAY_TIME 600
 #define MAX_RECOVER_ENTRY_AGE 600
@@ -1347,11 +1348,9 @@ public Q_SLOTS:
     void pollNextDevice();
 
     // database
-#if DECONZ_LIB_VERSION >= 0x010E00
     void storeSourceRoute(const deCONZ::SourceRoute &sourceRoute);
     void deleteSourceRoute(const QString &uuid);
     void restoreSourceRoutes();
-#endif
 
     // touchlink
     void touchlinkDisconnectNetwork();
@@ -2082,6 +2081,7 @@ public:
     std::vector<Resourcelinks> resourcelinks;
 
     // rules
+    int needRuleCheck;
     std::vector<int> fastRuleCheck;
     QTimer *fastRuleCheckTimer;
 

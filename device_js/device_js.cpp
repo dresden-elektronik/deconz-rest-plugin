@@ -26,6 +26,7 @@ public:
     JsZclAttribute *jsZclAttribute = nullptr;
     JsZclFrame *jsZclFrame = nullptr;
     JsResourceItem *jsItem = nullptr;
+    JsUtils *jsUtils = nullptr;
     const deCONZ::ApsDataIndication *apsInd = nullptr;
 };
 
@@ -52,6 +53,10 @@ DeviceJs::DeviceJs() :
     d->jsItem = new JsResourceItem(&d->engine);
     auto jsItem = d->engine.newQObject(d->jsItem);
     d->engine.globalObject().setProperty("Item", jsItem);
+
+    d->jsUtils = new JsUtils(&d->engine);
+    auto jsUtils = d->engine.newQObject(d->jsUtils);
+    d->engine.globalObject().setProperty("Utils", jsUtils);
 
     _djs = this;
 }

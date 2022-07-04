@@ -268,9 +268,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.switch.b2lacn02", jennicMacPrefix }, // Xiaomi Aqara D1 2-gang (no neutral wire) QBKG22LM
     { VENDOR_XIAOMI, "lumi.switch.b1nacn02", jennicMacPrefix }, // Xiaomi Aqara D1 1-gang (neutral wire) QBKG23LM
     { VENDOR_XIAOMI, "lumi.switch.b2nacn02", jennicMacPrefix }, // Xiaomi Aqara D1 2-gang (neutral wire) QBKG24LM
-    { VENDOR_XIAOMI, "lumi.switch.l1aeu1", lumiMacPrefix }, // Xiaomi Aqara H1 1-gang (no neutral wire) WS-EUK01
-    { VENDOR_XIAOMI, "lumi.switch.l2aeu1", lumiMacPrefix }, // Xiaomi Aqara H1 2-gang (no neutral wire) WS-EUK02
-    { VENDOR_XIAOMI, "lumi.switch.n1aeu1", lumiMacPrefix }, // Xiaomi Aqara H1 1-gang (neutral wire) WS-EUK03
     { VENDOR_XIAOMI, "lumi.plug", jennicMacPrefix }, // Xiaomi smart plug (router)
     { VENDOR_XIAOMI, "lumi.ctrl_ln", jennicMacPrefix}, // Xiaomi Wall Switch (router)
     { VENDOR_XIAOMI, "lumi.plug.maeu01", xiaomiMacPrefix}, // Xiaomi Aqara outlet
@@ -836,20 +833,18 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
         queSaveDb(DB_GROUPS, DB_LONG_SAVE_DELAY);
     }
 
-    connect(apsCtrl, SIGNAL(apsdeDataConfirm(const deCONZ::ApsDataConfirm&)),
-            this, SLOT(apsdeDataConfirm(const deCONZ::ApsDataConfirm&)));
+    connect(apsCtrl, SIGNAL(apsdeDataConfirm(deCONZ::ApsDataConfirm)),
+            this, SLOT(apsdeDataConfirm(deCONZ::ApsDataConfirm)));
 
-    connect(apsCtrl, SIGNAL(apsdeDataIndication(const deCONZ::ApsDataIndication&)),
-            this, SLOT(apsdeDataIndication(const deCONZ::ApsDataIndication&)));
+    connect(apsCtrl, SIGNAL(apsdeDataIndication(deCONZ::ApsDataIndication)),
+            this, SLOT(apsdeDataIndication(deCONZ::ApsDataIndication)));
 
     connect(apsCtrl, SIGNAL(nodeEvent(deCONZ::NodeEvent)),
             this, SLOT(nodeEvent(deCONZ::NodeEvent)));
 
-#if DECONZ_LIB_VERSION >= 0x010E00
-    connect(apsCtrl, &deCONZ::ApsController::sourceRouteCreated, this, &DeRestPluginPrivate::storeSourceRoute);
-    connect(apsCtrl, &deCONZ::ApsController::sourceRouteDeleted, this, &DeRestPluginPrivate::deleteSourceRoute);
-    connect(apsCtrl, &deCONZ::ApsController::nodesRestored, this, &DeRestPluginPrivate::restoreSourceRoutes, Qt::QueuedConnection);
-#endif
+    connect(apsCtrl, SIGNAL(sourceRouteCreated(deCONZ::SourceRoute)), this, SLOT(storeSourceRoute(deCONZ::SourceRoute)));
+    connect(apsCtrl, SIGNAL(sourceRouteDeleted(QString)), this, SLOT(deleteSourceRoute(QString)));
+    connect(apsCtrl, SIGNAL(nodesRestored()), this, SLOT(restoreSourceRoutes()), Qt::QueuedConnection);
 
     deCONZ::GreenPowerController *gpCtrl = deCONZ::GreenPowerController::instance();
 
@@ -941,7 +936,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     initResetDeviceApi();
     initFirmwareUpdate();
     //restoreWifiState();
-    indexRulesTriggers();
+    needRuleCheck = RULE_CHECK_DELAY;
 
     QTimer::singleShot(3000, this, SLOT(initWiFi()));
 
@@ -1111,7 +1106,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                     }
                 }
             }
-            break;
+            continue;
         }
 
         {   // TODO this is too messy
@@ -1135,6 +1130,9 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                 enqueueEvent(Event(r->prefix(), reachable->descriptor().suffix, r->item(RAttrId)->toString(), device->key()));
             }
         }
+
+        // for state/* changes, only emit the state/lastupdated event once for the first state/* item.
+        bool eventLastUpdatedEmitted = false;
 
         for (int i = 0; i < r->itemCount(); i++)
         {
@@ -1187,11 +1185,12 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                     }
                 }
 
-                if (item->descriptor().suffix[0] == 's') // state/*
+                if (!eventLastUpdatedEmitted && item->descriptor().suffix[0] == 's') // state/*
                 {
                     ResourceItem *lastUpdated = r->item(RStateLastUpdated);
                     if (lastUpdated && idItem)
                     {
+                        eventLastUpdatedEmitted = true;
                         lastUpdated->setValue(item->lastSet());
                         enqueueEvent(Event(r->prefix(), lastUpdated->descriptor().suffix, idItem->toString(), device->key()));
                     }
@@ -2246,7 +2245,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             enqueueEvent(e);
             queSaveDb(DB_SENSORS , DB_SHORT_SAVE_DELAY);
 
-            indexRulesTriggers();
+            needRuleCheck = RULE_CHECK_DELAY;
             gpProcessButtonEvent(ind);
         }
         else if (sensor && sensor->deletedState() == Sensor::StateNormal)
@@ -3250,7 +3249,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             enqueueEvent(e);
         }
 
-        indexRulesTriggers();
+        needRuleCheck = RULE_CHECK_DELAY;
 
         q->startZclAttributeTimer(checkZclAttributesDelay);
         updateLightEtag(lightNode2);
@@ -5133,7 +5132,11 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     stream >> dataType;
 
                     // Xiaomi
-                    if (ind.clusterId() == ONOFF_CLUSTER_ID && sensor->manufacturer() == QLatin1String("LUMI"))
+                    if (ind.clusterId() == XIAOMI_CLUSTER_ID && zclFrame.payload().size() > 12)
+                    {
+                        ok = false;
+                    }
+                    else if (ind.clusterId() == ONOFF_CLUSTER_ID && sensor->manufacturer() == QLatin1String("LUMI"))
                     {
                         quint8 value;
                         stream >> value;
@@ -6426,17 +6429,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                             fpConsumptionSensor.inClusters.push_back(ci->id());
                         }
                     }
-                    else if (modelId == QLatin1String("lumi.switch.n1aeu1"))
-                    {
-                        if (i->endpoint() == 0x15)
-                        {
-                            fpPowerSensor.inClusters.push_back(ci->id());
-                        }
-                        else if (i->endpoint() == 0x1F)
-                        {
-                            fpConsumptionSensor.inClusters.push_back(ci->id());
-                        }
-                    }
                     else if (modelId.startsWith(QLatin1String("lumi.ctrl_ln2")) || modelId == QLatin1String("lumi.switch.b2nacn02"))
                     {
                         if (i->endpoint() == 0x03)
@@ -6474,11 +6466,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpSwitch.inClusters.push_back(ci->id());
                     }
                     else if (modelId == QLatin1String("lumi.sensor_switch.aq3") || modelId == QLatin1String("lumi.remote.b1acn01"))
-                    {
-                        fpSwitch.inClusters.push_back(ci->id());
-                    }
-                    else if ((modelId == QLatin1String("lumi.switch.l1aeu1") || modelId == QLatin1String("lumi.switch.l2aeu1") ||
-                             modelId == QLatin1String("lumi.switch.n1aeu1")) && i->endpoint() == 0x29)
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
@@ -7729,7 +7716,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 (modelId != QLatin1String("Plug-230V-ZB3.0")) &&
                 (modelId != QLatin1String("lumi.switch.b1nacn02")) &&
                 (modelId != QLatin1String("lumi.switch.b2nacn02")) &&
-                (modelId != QLatin1String("lumi.switch.n1aeu1")) &&
                 (modelId != QLatin1String("lumi.switch.b1naus01")) &&
                 (modelId != QLatin1String("lumi.switch.n0agl1")) &&
                 (!modelId.startsWith(QLatin1String("SPW35Z"))))
@@ -8226,10 +8212,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     // Skip legacy Xiaomi items
     else if (sensorNode.modelId() == QLatin1String("lumi.sensor_magnet.agl02") || sensorNode.modelId() == QLatin1String("lumi.flood.agl02") ||
              sensorNode.modelId() == QLatin1String("lumi.motion.agl04") || sensorNode.modelId() == QLatin1String("lumi.switch.b1nacn02") ||
-             sensorNode.modelId() == QLatin1String("lumi.switch.b2nacn02") || sensorNode.modelId() == QLatin1String("lumi.switch.n1aeu1") ||
-             sensorNode.modelId() == QLatin1String("lumi.switch.l2aeu1") || sensorNode.modelId() == QLatin1String("lumi.switch.b1naus01") ||
-             sensorNode.modelId() == QLatin1String("lumi.switch.n0agl1") || sensorNode.modelId() == QLatin1String("lumi.switch.b1lacn02") ||
-             sensorNode.modelId() == QLatin1String("lumi.switch.l1aeu1") || sensorNode.modelId() == QLatin1String("lumi.switch.b2lacn02"))
+             sensorNode.modelId() == QLatin1String("lumi.switch.b2nacn02") || 
+             sensorNode.modelId() == QLatin1String("lumi.switch.b1naus01") || sensorNode.modelId() == QLatin1String("lumi.switch.n0agl1") || 
+             sensorNode.modelId() == QLatin1String("lumi.switch.b1lacn02") || sensorNode.modelId() == QLatin1String("lumi.switch.b2lacn02"))
     {
     }
     else if (modelId.startsWith(QLatin1String("lumi")))
@@ -8505,7 +8490,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensors.push_back(sensorNode);
         sensor2 = &sensors.back();
         updateSensorEtag(sensor2);
-        indexRulesTriggers();
+        needRuleCheck = RULE_CHECK_DELAY;
         device->addSubDevice(sensor2);
     }
 
@@ -9768,7 +9753,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                          (i->modelId() == QLatin1String("lumi.plug") && event.endpoint() == 2) ||
                                          (i->modelId() == QLatin1String("lumi.switch.b1nacn02") && event.endpoint() == 2) ||
                                          (i->modelId() == QLatin1String("lumi.switch.b2nacn02") && event.endpoint() == 3) ||
-                                         (i->modelId() == QLatin1String("lumi.switch.n1aeu1") && event.endpoint() == 21) ||
                                          (i->modelId().startsWith(QLatin1String("lumi.ctrl_")) && event.endpoint() == 2) ||
                                           i->modelId().startsWith(QLatin1String("lumi.relay.c")))
                                 {
@@ -9792,7 +9776,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                          (i->modelId() == QLatin1String("lumi.plug") && event.endpoint() == 3) ||
                                          (i->modelId() == QLatin1String("lumi.switch.b1nacn02") && event.endpoint() == 3) ||
                                          (i->modelId() == QLatin1String("lumi.switch.b2nacn02") && event.endpoint() == 4) ||
-                                         (i->modelId() == QLatin1String("lumi.switch.n1aeu1") && event.endpoint() == 31) ||
                                          (i->modelId().startsWith(QLatin1String("lumi.ctrl_")) && event.endpoint() == 3))
                                 {
                                     if (i->type() == QLatin1String("ZHAConsumption"))
@@ -16461,6 +16444,15 @@ void DeRestPlugin::idleTimerFired()
         enqueueEvent(Event(RConfig, RConfigLocalTime, 0));
     }
 
+    if (d->needRuleCheck > 0) // count down from RULE_CHECK_DELAY
+    {
+        d->needRuleCheck--;
+        if (d->needRuleCheck == 0)
+        {
+            d->indexRulesTriggers();
+        }
+    }
+
     if (d->idleLastActivity < IDLE_USER_LIMIT)
     {
         return;
@@ -18286,7 +18278,7 @@ void DeRestPluginPrivate::pollNextDevice()
                 if (l.parentResource())
                 {
                     Device *device = static_cast<Device*>(l.parentResource());
-                    if (device->managed())
+                    if (device && device->managed())
                     {
                         continue;
                     }
@@ -18304,7 +18296,7 @@ void DeRestPluginPrivate::pollNextDevice()
                 if (s.parentResource())
                 {
                     Device *device = static_cast<Device*>(s.parentResource());
-                    if (device->managed())
+                    if (device && device->managed())
                     {
                         continue;
                     }

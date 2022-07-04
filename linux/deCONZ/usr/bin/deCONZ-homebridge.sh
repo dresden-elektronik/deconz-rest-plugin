@@ -10,7 +10,7 @@ DECONZ_PORT=
 BRIDGEID=
 LAST_MAX_TIMESTAMP=0
 TIMEOUT=0      # main loop iteration timeout, can be controlled by SIGUSR1
-LOG_LEVEL=3
+LOG_LEVEL=6
 
 LOG_EMERG=
 LOG_ALERT=
@@ -163,15 +163,7 @@ function checkHomebridge {
 	local HOMEBRIDGE=""
 	local IP_ADDRESS=""
 	local HOMEBRIDGE_PIN=""
-	local hb_hue_version=$(npm list -g homebridge-hue | grep homebridge-hue | cut -d@ -f2 | xargs)
-
-	#hostline used in config
-	local hostline="\"hosts\": [\"127.0.0.1\"],"
-	if [ $(echo "$hb_hue_version" | cut -d'.' -f 2) -le 13 ]; then
-		if [ $(echo "$hb_hue_version" | cut -d'.' -f 3) -lt 2 ]; then
-			hostline="\"host\": \"127.0.0.1\","
-		fi
-	fi
+	local hb_hue_version=""
 
 	## get database config
 	params=( [0]="homebridge" [1]="ipaddress" [2]="homebridge-pin")
@@ -296,6 +288,7 @@ function checkHomebridge {
 	## check installed components
 	hb_installed=false
 	hb_hue_installed=false
+	config_ui_x_installed=false
 	node_installed=false
 	npm_installed=false
 	node_ver=""
@@ -324,9 +317,22 @@ function checkHomebridge {
 		# get version and strip it to only major part: v8.11.2 -> 8
 		node_ver=$(nodejs --version | cut -d. -f1 | cut -c 2-)
 		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} nodejs ver. $node_ver"
+	else
+		which node &> /dev/null
+		if [ $? -eq 0 ]; then
+			node_installed=true
+			# get version and strip it to only major part: v8.11.2 -> 8
+			node_ver=$(node --version | cut -d. -f1 | cut -c 2-)
+			[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} nodejs ver. $node_ver"
+		fi
 	fi
 
-	if [[ $hb_installed = false || $hb_hue_installed = false || $node_installed = false || $npm_installed = false ]]; then
+	which homebridge-config-ui-x &> /dev/null
+	if [ $? -eq 0 ]; then
+		config_ui_x_installed=true
+	fi
+
+	if [[ $hb_installed = false || $hb_hue_installed = false || $config_ui_x_installed = false || $node_installed = false || $npm_installed = false ]]; then
 		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}Not everything installed yet. Waiting..."
 		return
 	fi
@@ -386,18 +392,7 @@ function checkHomebridge {
 				sed -i "/\"pin\":/c\    \"pin\": \"${HB_PIN}\"" /home/$MAINUSER/.homebridge/config.json
 				updated=true
 			fi
-			# check if hostline is still correct
-			local hostline2="\"host\": \"127.0.0.1\""
-			if [[ $hostline == "\"hosts\": [\"127.0.0.1\"]," ]]; then
-                hostline2="\"hosts\": \[\"127.0.0.1\"\],"
-            fi
-            # hostline2 only needed for grep
-			if [ -z "$(cat /home/$MAINUSER/.homebridge/config.json | grep "$hostline2")" ]; then
-				# hostline is wrong format for this hb hue version
-				[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}update hostline format in config file for this hb hue version"
-				sed -i "/\"host/c\  $hostline" /home/$MAINUSER/.homebridge/config.json
-				updated=true
-			fi
+
 			if [[ $updated = true ]]; then
 				putHomebridgeUpdated "homebridge" "updated"
 			else
@@ -424,7 +419,6 @@ function checkHomebridge {
 		mkdir /home/$MAINUSER/.homebridge
 		touch /home/$MAINUSER/.homebridge/config.json
 		chown -R $MAINUSER /home/$MAINUSER/.homebridge
-
 		local HB_PIN="${HOMEBRIDGE_PIN:0:3}-${HOMEBRIDGE_PIN:3:2}-${HOMEBRIDGE_PIN:5:3}"
 		echo "{
 \"bridge\": {
@@ -437,7 +431,9 @@ function checkHomebridge {
 \"platforms\": [
 {
   \"platform\": \"Hue\",
-  ${hostline}
+  \"hosts\": [
+    \"127.0.0.1\"
+  ],
   \"users\": {
     \"${BRIDGEID}\": \"${APIKEY}\"
   },
@@ -445,6 +441,17 @@ function checkHomebridge {
   \"excludeSensorTypes\": [\"CLIP\", \"Geofence\"],
   \"lights\": true,
   \"hueMotionTemperatureHistory\": true
+},
+{
+  \"platform\": \"config\",
+  \"name\": \"Config\",
+  \"port\": 8081,
+  \"sudo\": false,
+  \"log\": {
+    \"method\": \"systemd\",
+    \"command\": \"deconz-homebridge\"
+  },
+  \"restart\": \"sudo systemctl restart deconz-homebridge\"
 }
 ]
 }" > /home/$MAINUSER/.homebridge/config.json
@@ -452,25 +459,26 @@ function checkHomebridge {
 		chown $MAINUSER /home/$MAINUSER/.homebridge/config.json
 	fi
 
-	## check for backuped homebridge data before homebridge starts
-	local restart=false
-	for filename in $DECONZ_DATA_DIR/*; do
-	    if [ -f "$filename" ]; then
-            file="${filename##*/}"
-            if [[ "$file" == AccessoryInfo* ]]; then
-                [[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}found accessoryInfo - copy it to homebridge persist dir"
-                mkdir -p "/home/$MAINUSER/.homebridge/persist"
-                mv "$DECONZ_DATA_DIR/$file" "/home/$MAINUSER/.homebridge/persist/$file"
-                restart=true
-            fi
-            if [[ "$file" == IdentifierCache* ]]; then
-                [[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}found IdentifierCache - copy it to homebridge persist dir"
-                mkdir -p "/home/$MAINUSER/.homebridge/persist"
-                mv "$DECONZ_DATA_DIR/$file" "/home/$MAINUSER/.homebridge/persist/$file"
-                restart=true
-            fi
-	    fi
-	done
+	## check for backuped homebridge data before homebridge starts - Don't apply backuped files automatically!
+	## TODO: load backup when deCONZ backup is loaded
+	#local restart=false
+	#for filename in $DECONZ_DATA_DIR/*; do
+	#    if [ -f "$filename" ]; then
+    #        file="${filename##*/}"
+    #        if [[ "$file" == AccessoryInfo* ]]; then
+    #            [[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}found accessoryInfo - copy it to homebridge persist dir"
+    #            mkdir -p "/home/$MAINUSER/.homebridge/persist"
+    #            mv "$DECONZ_DATA_DIR/$file" "/home/$MAINUSER/.homebridge/persist/$file"
+    #            restart=true
+    #        fi
+    #        if [[ "$file" == IdentifierCache* ]]; then
+    #            [[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}found IdentifierCache - copy it to homebridge persist dir"
+    #            mkdir -p "/home/$MAINUSER/.homebridge/persist"
+    #            mv "$DECONZ_DATA_DIR/$file" "/home/$MAINUSER/.homebridge/persist/$file"
+    #            restart=true
+    #        fi
+	#    fi
+	#done
 
 	## start homebridge
 	systemctl -q is-active homebridge

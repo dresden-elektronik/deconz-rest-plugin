@@ -8,6 +8,7 @@
  *
  */
 
+#include <math.h>
 #include "resource.h"
 #include "device_js_wrappers.h"
 #include "device.h"
@@ -131,7 +132,10 @@ void JsResourceItem::setValue(const QVariant &val)
     if (item)
     {
 //        DBG_Printf(DBG_INFO, "JsResourceItem.setValue(%s) = %s\n", item->descriptor().suffix, qPrintable(val.toString()));
-        item->setValue(val, ResourceItem::SourceDevice);
+        if (!item->setValue(val, ResourceItem::SourceDevice))
+        {
+            DBG_Printf(DBG_DDF, "JS failed to set Item.val for %s\n", item->descriptor().suffix);
+        }
     }
 }
 
@@ -288,4 +292,15 @@ bool JsZclFrame::isClCmd() const
     }
 
     return false;
+}
+
+JsUtils::JsUtils(QObject *parent) :
+    QObject(parent)
+{
+
+}
+
+double JsUtils::log10(double x) const
+{
+    return ::log10(x);
 }

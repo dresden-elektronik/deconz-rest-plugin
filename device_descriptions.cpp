@@ -1184,8 +1184,6 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
     }
     else if (getResourceItemDescriptor(result.name, result.descriptor))
     {
-        DBG_Printf(DBG_DDF, "DDF loaded resource item descriptor: %s\n", result.descriptor.suffix);
-
         if (obj.contains(QLatin1String("access")))
         {
             const auto access = obj.value(QLatin1String("access")).toString();
@@ -1202,6 +1200,7 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
         if (obj.contains(QLatin1String("public")))
         {
             result.isPublic = obj.value(QLatin1String("public")).toBool() ? 1 : 0;
+            result.hasIsPublic = 1;
         }
 
         if (obj.contains(QLatin1String("implicit")))
@@ -1252,6 +1251,8 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
         {
             result.defaultValue = obj.value(QLatin1String("default")).toVariant();
         }
+
+        DBG_Printf(DBG_DDF, "DDF loaded resource item descriptor: %s, public: %u\n", result.descriptor.suffix, (result.isPublic ? 1 : 0));
     }
     else
     {
@@ -1926,7 +1927,10 @@ static DeviceDescription DDF_MergeGenericItems(const std::vector<DeviceDescripti
             {
                 item.descriptor.access = genItem->descriptor.access;
             }
-            item.isPublic = genItem->isPublic;
+            if (!item.hasIsPublic)
+            {
+                item.isPublic = genItem->isPublic;
+            }
             if (item.refreshInterval == DeviceDescription::Item::NoRefreshInterval && genItem->refreshInterval != item.refreshInterval)
             {
                 item.refreshInterval = genItem->refreshInterval;

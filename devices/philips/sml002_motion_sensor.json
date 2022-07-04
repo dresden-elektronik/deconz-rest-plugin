@@ -1,0 +1,287 @@
+{
+    "schema": "devcap1.schema.json",
+    "manufacturername": "$MF_PHILIPS",
+    "modelid": "SML002",
+    "vendor": "Philips",
+    "product": "Hue outdoor sensor 1. Gen (SML002)",
+    "status": "Gold",
+    "sleeper": false,
+    "subdevices": [
+         {
+            "type": "$TYPE_PRESENCE_SENSOR",
+            "restapi": "/sensors",
+            "uuid": [ "$address.ext", "0x02", "0x0406"],
+            "fingerprint": { "profile": "0x0104", "device": "0x0107", "endpoint": "0x02", "in": ["0x0000", "0x0001", "0x0406"] },
+            "items": [
+                {
+                    "name": "attr/lastseen"
+                },
+                {
+                    "name": "attr/manufacturername"
+                },
+                {
+                    "name": "attr/modelid"
+                },
+                {
+                    "name": "attr/name"
+                },
+                {
+                    "name": "attr/swversion"
+                },
+                {
+                    "name": "attr/type"
+                },
+                {
+                    "name": "attr/uniqueid"
+                },
+                {
+                    "name": "config/alert",
+                    "default": "none"
+                },
+                {
+                    "name": "config/battery",
+                    "parse": {"at": "0x0021", "cl": "0x0001", "ep": 2, "eval": "Item.val = Attr.val / 2"},
+                    "read": {"at": "0x0021", "cl": "0x0001", "ep": 2},
+                    "refresh.interval": 7300
+                },
+                {
+                    "name": "config/delay",
+                    "parse": {"at": "0x0010", "cl": "0x0406", "ep": 2, "eval": "Item.val = Attr.val"},
+                    "read": {"at": "0x0010", "cl": "0x0406", "ep": 2},
+                    "write": {"at": "0x0010", "cl": "0x0406", "dt": "0x21", "ep": 2, "eval": "Item.val"},
+                    "refresh.interval": 86400
+                },
+                {
+                    "name": "config/ledindication",
+                    "parse": {"at": "0x0033", "cl": "0x0000", "ep": 2, "eval": "Item.val = Attr.val", "mf": "0x100b"},
+                    "read": {"at": "0x0033", "cl": "0x0000", "ep": 2, "mf": "0x100b"},
+                    "write": {"at": "0x0033", "cl": "0x0000", "dt": "0x10", "ep": 2, "eval": "Item.val", "mf": "0x100b"},
+                    "refresh.interval": 86400
+                },
+                {
+                    "name": "config/on"
+                },
+                {
+                    "name": "config/pending"
+                },
+                {
+                    "name": "config/reachable"
+                },
+                {
+                    "name": "config/sensitivity",
+                    "parse": {"at": "0x0030", "cl": "0x0406", "ep": 2, "eval": "Item.val = Attr.val", "mf": "0x100b"},
+                    "read": {"at": "0x0030", "cl": "0x0406", "ep": 2, "mf": "0x100b"},
+                    "write": {"at": "0x0030", "cl": "0x0406", "dt": "0x20", "ep": 2, "eval": "Item.val", "mf": "0x100b"},
+                    "values": [
+                        [0, "verylow"],
+                        [1, "low"],
+                        [2, "medium"],
+                        [3, "high"],
+                        [4, "veryhigh"]
+                    ],
+                    "refresh.interval": 86400
+                },
+                {
+                    "name": "config/sensitivitymax",
+                    "static": 4
+                },
+                {
+                    "name": "config/usertest",
+                    "parse": {"at": "0x0032", "cl": "0x0000", "ep": 2, "mf": "0x100b", "eval": "Item.val = Attr.val"},
+                    "read": {"at": "0x0032", "cl": "0x0000", "ep": 2, "mf": "0x100b"},
+                    "write": {"at": "0x0032", "cl": "0x0000", "dt": "0x10", "ep": 2, "mf": "0x100b", "eval": "Item.val"},
+                    "refresh.interval": 86400
+                },
+                {
+                    "name": "state/lastupdated"
+                },
+                {
+                    "name": "state/presence",
+                    "parse": {"at": "0x0000", "cl": "0x0406", "ep": 2, "eval": "Item.val = Attr.val"}
+                }
+            ]
+        },
+        {
+            "type": "$TYPE_LIGHT_LEVEL_SENSOR",
+            "restapi": "/sensors",
+            "uuid": [ "$address.ext", "0x02", "0x0400"],
+            "fingerprint": { "profile": "0x0104", "device": "0x0107", "endpoint": "0x02", "in": ["0x0000", "0x0001", "0x0400"] },
+            "items": [
+                {
+                    "name": "attr/lastseen"
+                },
+                {
+                    "name": "attr/manufacturername"
+                },
+                {
+                    "name": "attr/modelid"
+                },
+                {
+                    "name": "attr/name"
+                },
+                {
+                    "name": "attr/swversion",
+                    "read": {"fn": "none"}
+                },
+                {
+                    "name": "attr/type"
+                },
+                {
+                    "name": "attr/uniqueid"
+                },
+                {
+                    "name": "config/alert",
+                    "default": "none"
+                },
+                {
+                    "name": "config/battery",
+                    "parse": {"at": "0x0021", "cl": "0x0001", "ep": 2, "eval": "Item.val = Attr.val / 2"},
+                    "read": {"fn": "none"}
+                },
+                {
+                    "name": "config/ledindication",
+                    "parse": {"at": "0x0033", "cl": "0x0000", "ep": 2, "eval": "Item.val = Attr.val", "mf": "0x100b"},
+                    "read": {"at": "0x0033", "cl": "0x0000", "ep": 2, "mf": "0x100b"},
+                    "write": {"at": "0x0033", "cl": "0x0000", "dt": "0x10", "ep": 2, "eval": "Item.val", "mf": "0x100b"},
+                    "refresh.interval": 86400
+                },
+                {
+                    "name": "config/on"
+                },
+                {
+                    "name": "config/pending"
+                },
+                {
+                    "name": "config/reachable"
+                },
+                {
+                    "name": "config/tholddark"
+                },
+                {
+                    "name": "config/tholdoffset"
+                },
+                {
+                    "name": "config/usertest",
+                    "parse": {"at": "0x0032", "cl": "0x0000", "ep": 2, "eval": "Item.val = Attr.val", "mf": "0x100b"},
+                    "read": {"at": "0x0032", "cl": "0x0000", "ep": 2, "mf": "0x100b"},
+                    "write": {"at": "0x0032", "cl": "0x0000", "dt": "0x10", "ep": 2, "eval": "Item.val", "mf": "0x100b"},
+                    "refresh.interval": 86400
+                },
+                {
+                    "name": "state/dark"
+                },
+                {
+                    "name": "state/daylight"
+                },
+                {
+                    "name": "state/lastupdated"
+                },
+                {
+                    "name": "state/lightlevel",
+                    "parse": {"at": "0x0000", "cl": "0x0400", "ep": 2, "script": "../generic/illuminance_cluster/sml_light_level.js"}
+                },
+                {
+                    "name": "state/lux"
+                }
+            ]
+        },
+        {
+            "type": "$TYPE_TEMPERATURE_SENSOR",
+            "restapi": "/sensors",
+            "uuid": [ "$address.ext", "0x02", "0x0402"],
+            "fingerprint": { "profile": "0x0104", "device": "0x0107", "endpoint": "0x02", "in": ["0x0000", "0x0001", "0x0402"] },
+            "items": [
+                {
+                    "name": "attr/lastseen"
+                },
+                {
+                    "name": "attr/manufacturername"
+                },
+                {
+                    "name": "attr/modelid"
+                },
+                {
+                    "name": "attr/name"
+                },
+                {
+                    "name": "attr/swversion",
+                    "read": {"fn": "none"}
+                },
+                {
+                    "name": "attr/type"
+                },
+                {
+                    "name": "attr/uniqueid"
+                },
+                {
+                    "name": "config/alert",
+                    "default": "none"
+                },
+                {
+                    "name": "config/battery",
+                    "parse": {"at": "0x0021", "cl": "0x0001", "ep": 2, "eval": "Item.val = Attr.val / 2"},
+                    "read": {"fn": "none"}
+                },
+                {
+                    "name": "config/ledindication",
+                    "parse": {"at": "0x0033", "cl": "0x0000", "ep": 2, "eval": "Item.val = Attr.val", "mf": "0x100b"},
+                    "read": {"at": "0x0033", "cl": "0x0000", "ep": 2, "mf": "0x100b"},
+                    "write": {"at": "0x0033", "cl": "0x0000", "dt": "0x10", "ep": 2, "eval": "Item.val", "mf": "0x100b"},
+                    "refresh.interval": 86400
+                },
+                {
+                    "name": "config/offset"
+                },
+                {
+                    "name": "config/on"
+                },
+                {
+                    "name": "config/pending"
+                },
+                {
+                    "name": "config/reachable"
+                },
+                {
+                    "name": "config/usertest",
+                    "parse": {"at": "0x0032", "cl": "0x0000", "ep": 2, "eval": "Item.val = Attr.val", "mf": "0x100b"},
+                    "read": {"at": "0x0032", "cl": "0x0000", "ep": 2, "mf": "0x100b"},
+                    "write": {"at": "0x0032", "cl": "0x0000", "dt": "0x10", "ep": 2, "eval": "Item.val", "mf": "0x100b"},
+                    "refresh.interval": 86400
+                },
+                {
+                    "name": "state/lastupdated"
+                },
+                {
+                    "name": "state/temperature",
+                    "parse": {"at": "0x0000", "cl": "0x0402", "ep": 2, "eval": "Item.val = Attr.val + R.item('config/offset').val"}
+                }
+            ]
+        }
+    ],
+    "bindings": [
+        {
+            "bind": "unicast",
+            "src.ep": 2,
+            "cl": "0x0406",
+            "report": [ {"at": "0x0000", "dt": "0x18", "min": 1, "max": 300 } ]
+        },
+        {
+            "bind": "unicast",
+            "src.ep": 2,
+            "cl": "0x0400",
+            "report": [ {"at": "0x0000", "dt": "0x21", "min": 5, "max": 300, "change": "0x07d0" } ]
+        },
+        {
+            "bind": "unicast",
+            "src.ep": 2,
+            "cl": "0x0402",
+            "report": [ {"at": "0x0000", "dt": "0x29", "min": 10, "max": 300, "change": "0x14" } ]
+        },
+        {
+            "bind": "unicast",
+            "src.ep": 2,
+            "cl": "0x0001",
+            "report": [ {"at": "0x0021", "dt": "0x20", "min": 7200, "max": 7200, "change": "0x00" } ]
+        }
+    ]
+}

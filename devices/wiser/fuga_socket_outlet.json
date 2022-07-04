@@ -4,7 +4,7 @@
 	"modelid": "LK/OUTLET/1",
 	"product": "LK/OUTLET/1",
 	"sleeper": false,
-	"status": "Bronze",
+	"status": "Gold",
 	"path": "/devices/wiser/fuga_socket_outlet.json",
 	"subdevices": [
 		{
@@ -44,7 +44,6 @@
 				},
 				{
 					"name": "state/alert",
-					"description": "The currently active alert effect.",
 					"default": "none"
 				},
 				{

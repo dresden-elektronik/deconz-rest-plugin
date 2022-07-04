@@ -41,6 +41,13 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
     Q_ASSERT(device);
     enqueueEvent(Event(device->prefix(), REventDeviceAnnounce, int(macCapabilities), device->key()));
 
+    const QDateTime now = QDateTime::currentDateTimeUtc();
+
+    for (Resource *r : device->subDevices())
+    {
+        r->setValue(RAttrLastAnnounced, now);
+    }
+
     for (; i != end; ++i)
     {
         if (i->state() != LightNode::StateNormal)
@@ -51,7 +58,6 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
         if (i->address().ext() == ext)
         {
             i->rx();
-            i->setValue(RAttrLastAnnounced, i->lastRx().toUTC());
 
             // clear to speedup polling
             for (NodeValue &val : i->zclValues())
@@ -167,7 +173,6 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
         if (si->address().ext() == ext)
         {
             si->rx();
-            si->setValue(RAttrLastAnnounced, si->lastRx().toUTC());
             found++;
             DBG_Printf(DBG_INFO, "DeviceAnnce of SensorNode: 0x%016llX [1]\n", si->address().ext());
 

@@ -105,19 +105,8 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 86400,
-          "parse": {
-            "at": "0x0006",
-            "cl": "0x0000",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl"
-          },
           "read": {
-            "at": "0x0006",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl"
+            "fn": "none"
           }
         },
         {
@@ -276,19 +265,8 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 86400,
-          "parse": {
-            "at": "0x0006",
-            "cl": "0x0000",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl"
-          },
           "read": {
-            "at": "0x0006",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl"
+            "fn": "none"
           }
         },
         {
@@ -361,19 +339,8 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 86400,
-          "parse": {
-            "at": "0x0006",
-            "cl": "0x0000",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl"
-          },
           "read": {
-            "at": "0x0006",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl"
+            "fn": "none"
           }
         },
         {
