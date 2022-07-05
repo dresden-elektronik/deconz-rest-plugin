@@ -495,6 +495,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_PHILIO, "PST03A-v2.2.5", emberMacPrefix }, // Philio pst03-a
     { VENDOR_EMBERTEC, "BQZ10-AU", embertecMacPrefix }, // Embertec smart plug
     { VENDOR_MUELLER, "ZBT-Remote-ALL-RGBW", jennicMacPrefix }, // Tint remote control
+    { VENDOR_MUELLER, "tint-Remote-white", jennicMacPrefix }, // Tint remote control
     { VENDOR_PLUGWISE_BV, "160-01", emberMacPrefix }, // Plugwise smart plug
     { VENDOR_NIKO_NV, "Smart plug Zigbee PE", silabs9MacPrefix }, // Niko Smart Plug 552-80699
     { VENDOR_ATMEL, "Bell", dishMacPrefix }, // Sage doorbell sensor
@@ -4994,7 +4995,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             Event e(RSensors, REventValidGroup, sensor->id());
             enqueueEvent(e);
         }
-        else if (sensor->modelId().startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")))
+        else if (sensor->modelId().startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")) ||
+                 sensor->modelId().startsWith(QLatin1String("tint-Remote-white")))
         {
             bool changed = true;
             if (gids.length() != 3)
@@ -5194,7 +5196,9 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     stream >> dataType;
                     stream >> pl3;
 
-                    if (ind.clusterId() == BASIC_CLUSTER_ID && sensor->modelId().startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")))
+                    if (ind.clusterId() == BASIC_CLUSTER_ID &&
+                       (sensor->modelId().startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")) ||
+                        sensor->modelId().startsWith(QLatin1String("tint-Remote-white"))))
                     {
                         ok = attrId == 0x4005 && dataType == deCONZ::Zcl8BitUint && buttonMap.zclParam0 == pl3;
                     }
@@ -5391,7 +5395,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 }
                 else if (ind.clusterId() == COLOR_CLUSTER_ID &&
                          zclFrame.commandId() == 0x07 && zclFrame.payload().size() >= 4 && // Move to Color
-                         sensor->modelId().startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")))
+                         (sensor->modelId().startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")) ||
+                          sensor->modelId().startsWith(QLatin1String("tint-Remote-white"))))
                 {
                     quint16 x;
                     quint16 y;
@@ -5470,7 +5475,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 }
                 else if (ind.clusterId() == COLOR_CLUSTER_ID &&
                          zclFrame.commandId() == 0x0a && zclFrame.payload().size() >= 2 && // Move to Color Temperature
-                         sensor->modelId().startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")))
+                         (sensor->modelId().startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")) ||
+                          sensor->modelId().startsWith(QLatin1String("tint-Remote-white"))))
                 {
                     quint16 ct;
                     QDataStream stream(zclFrame.payload());
@@ -7421,7 +7427,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             clusterId = VENDOR_CLUSTER_ID;
             sensorNode.addItem(DataTypeUInt16, RStateEventDuration);
         }
-        else if (modelId.startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")))
+        else if (modelId.startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")) ||
+                 modelId.startsWith(QLatin1String("tint-Remote-white")))
         {
             sensorNode.addItem(DataTypeUInt16, RStateX);
             sensorNode.addItem(DataTypeUInt16, RStateY);

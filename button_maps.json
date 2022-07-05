@@ -1400,7 +1400,7 @@
         "tintMap": {
             "vendor": "Tint",
             "doc": "Remote",
-            "modelids": ["ZBT-Remote-ALL-RGBW"],
+            "modelids": ["ZBT-Remote-ALL-RGBW", "tint-Remote-white"],
             "map": [
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],

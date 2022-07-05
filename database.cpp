@@ -3479,7 +3479,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 sensor.addItem(DataTypeUInt16, RStateEventDuration);
             }
-            else if (sensor.modelId().startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")))
+            else if (sensor.modelId().startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")) ||
+                     sensor.modelId().startsWith(QLatin1String("tint-Remote-white")))
             {
                 sensor.addItem(DataTypeUInt16, RStateX);
                 sensor.addItem(DataTypeUInt16, RStateY);
