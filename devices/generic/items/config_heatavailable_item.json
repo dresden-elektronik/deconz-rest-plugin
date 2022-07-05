@@ -1,0 +1,9 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/heatavailable",
+	"datatype": "Bool",
+	"access": "RW",
+	"public": true,
+	"description": "Indicate if central heating is active. Set to true when heating period ends to prevent unnecessary valve adjustments.",
+	"default": true
+}
