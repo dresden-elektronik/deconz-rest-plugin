@@ -131,8 +131,7 @@ static quint8 handleArmCommand(AlarmSystem *alarmSys, quint8 armMode, const QStr
     if (alarmSys->learnModeIndex > 0)
     {
         //Check timer
-        //if ((deCONZ::steadyTimeRef() - alarmSys->learnTimer) > deCONZ::TimeSeconds{60})
-        if (false)
+        if ((deCONZ::steadyTimeRef() - alarmSys->learnTimer) > deCONZ::TimeSeconds{60})
         {
             alarmSys->learnModeIndex = 0;
         }
@@ -146,7 +145,7 @@ static quint8 handleArmCommand(AlarmSystem *alarmSys, quint8 armMode, const QStr
             
             //quit
             alarmSys->learnModeIndex = 0;
-            return IAS_ACE_ARM_NOTF_INVALID_ARM_DISARM_CODE;
+            return IAS_ACE_ARM_NOTF_NOT_READY_TO_ARM;
         }
     }
     
