@@ -124,16 +124,17 @@ static quint8 handleArmCommand(AlarmSystem *alarmSys, quint8 armMode, const QStr
         return IAS_ACE_ARM_NOTF_NOT_READY_TO_ARM;
     }
 
-    // TO DO : To remove later, security
+    // WARNING : Only use for dev, security issue
     //DBG_Printf(DBG_IAS, "[IAS ACE] code : %s\n", qPrintable(pinCode));
     
     //if we are on learn mode
     if (alarmSys->learnModeIndex > 0)
     {
         //Check timer
-        if ((deCONZ::steadyTimeRef() - alarmSys->learnTimer) > deCONZ::TimeSeconds{60})
+        if (deCONZ::TimeSeconds{60} < (deCONZ::steadyTimeRef() - alarmSys->learnTimer))
         {
             alarmSys->learnModeIndex = 0;
+            DBG_Printf(DBG_IAS, "[IAS ACE] Timer exceed to set new code\n");
         }
         else
         {
@@ -141,6 +142,10 @@ static quint8 handleArmCommand(AlarmSystem *alarmSys, quint8 armMode, const QStr
             if (alarmSys->setCode(alarmSys->learnModeIndex, pinCode))
             {
                 DBG_Printf(DBG_IAS, "[IAS ACE] code added\n");
+            }
+            else
+            {
+                DBG_Printf(DBG_IAS, "[IAS ACE] adding code failed\n");
             }
             
             //quit
