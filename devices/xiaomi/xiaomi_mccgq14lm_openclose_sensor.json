@@ -2,8 +2,8 @@
   "schema": "devcap1.schema.json",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.magnet.acn001",
-  "vendor": "Xiaomi Aqara",
-  "product": "Open/close sensor MCCGQ14LM",
+  "vendor": "Xiaomi",
+  "product": "Aqara open/close sensor MCCGQ14LM",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

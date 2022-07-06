@@ -2,7 +2,8 @@
   "schema": "devcap1.schema.json",
   "manufacturername": "ubisys",
   "modelid": "C4 (5504)",
-  "product": "C4 (5504)",
+  "vendor": "ubisys",
+  "product": "C4 (5504) control unit",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

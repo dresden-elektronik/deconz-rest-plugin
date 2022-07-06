@@ -4,5 +4,5 @@
 	"datatype": "UInt16",
 	"access": "R",
 	"public": true,
-	"description": "Measured air quality in PPB."
+	"description": "Measured TVOC in ppb."
 }

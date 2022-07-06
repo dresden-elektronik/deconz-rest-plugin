@@ -88,6 +88,48 @@ void DeRestPluginPrivate::handleXiaomiLumiClusterIndication(const deCONZ::ApsDat
             }
                 break;
 
+            case XIAOMI_ATTRID_P1_MOTION_DETECTION:
+            {
+                // Workaround to set P1 presence sensor back to unoccupied, as the pure reception of this report is considered
+                // as presence = true state, but this is not reset by the device automatically. Ideally, deCONZ will have some timers
+                // for such cases available in future.
+                Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
+                
+                if (sensor)
+                {
+                    bool occupancy = true;
+                    ResourceItem *item = nullptr;
+                    item = sensor->item(RStatePresence);
+                    
+                    if (item)
+                    {
+                        item->setValue(occupancy);
+                        enqueueEvent(Event(RSensors, RStatePresence, sensor->id(), item));
+    
+                        ResourceItem *item2 = nullptr;
+                        item2 = sensor->item(RConfigDuration);
+    
+                        if (item2 && item2->toNumber() > 0)
+                        {
+                            // As unoccupied state is not reportable, add duration seconds after a occupied = true to automatically set to false
+                            sensor->durationDue = item->lastSet().addSecs(item2->toNumber());
+                        }
+                    }
+    
+                    deCONZ::NumericUnion occ;
+                    occ.u64 = occupancy;
+    
+                    sensor->setZclValue(updateType, ind.srcEndpoint(), OCCUPANCY_SENSING_CLUSTER_ID, XIAOMI_ATTRID_P1_MOTION_DETECTION, occ);
+    
+                    sensor->updateStateTimestamp();
+                    enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
+                    updateSensorEtag(&*sensor);
+                    sensor->setNeedSaveDatabase(true);
+                    queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+                }
+            }
+                break;
+
             case XIAOMI_ATTRID_SPEED:
             {
                 LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
@@ -657,7 +699,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             {
                 item->setValue(batteryPercentage);
                 enqueueEvent(Event(RSensors, RStateBattery, sensor.id(), item));
-                q_ptr->nodeUpdated(sensor.address().ext(), QLatin1String(item->descriptor().suffix), QString::number(batteryPercentage));
                 sensor.updateStateTimestamp();
                 if (item->lastSet() == item->lastChanged())
                 {
@@ -687,7 +728,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
                 item->setValue(quint8(bat));
                 enqueueEvent(Event(RSensors, RConfigBattery, sensor.id(), item));
-                emit q_ptr->nodeUpdated(sensor.address().ext(), QLatin1String(item->descriptor().suffix), QString::number(bat));
 
                 if (item->lastSet() == item->lastChanged())
                 {
@@ -918,7 +958,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
     item = r->item(RAttrModelId);
 
-    if (item && (item->toString().endsWith(QLatin1String("86opcn01")) || item->toString() == QLatin1String("lumi.remote.b28ac1")))
+    if (item && item->toString().endsWith(QLatin1String("86opcn01")))
     {
         auto *item2 = r->item(RConfigPending);
 
@@ -930,11 +970,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             deCONZ::ZclAttribute attr(0x0009, deCONZ::Zcl8BitUint, QLatin1String("mode"), deCONZ::ZclReadWrite, false);
             attr.setValue(static_cast<quint64>(1));
             writeAttribute(restNodePending, 0x01, XIAOMI_CLUSTER_ID, attr, VENDOR_XIAOMI);
-
-            DBG_Printf(DBG_INFO, "Write Aqara switch 0x%016llX multiclick mode attribute 0x0125 = 2\n", ind.srcAddress().ext());
-            deCONZ::ZclAttribute attr2(0x0125, deCONZ::Zcl8BitUint, QLatin1String("multiclick mode"), deCONZ::ZclReadWrite, false);
-            attr2.setValue(static_cast<quint64>(2));
-            writeAttribute(restNodePending, 0x01, XIAOMI_CLUSTER_ID, attr2, VENDOR_XIAOMI);
 
             item2->setValue(item2->toNumber() & ~R_PENDING_MODE);
         }

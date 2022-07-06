@@ -8,8 +8,27 @@
  *
  */
 
+#include <math.h>
 #include "resource.h"
 #include "device_js_wrappers.h"
+#include "device.h"
+#include "utils/utils.h"
+
+static const deCONZ::Node *getResourceCoreNode(const Resource *r)
+{
+    if (r)
+    {
+        const ResourceItem *uuid = r->item(RAttrUniqueId);
+
+        if (uuid && !uuid->toString().isEmpty())
+        {
+            const uint64_t extAddr = extAddressFromUniqueId(uuid->toString());
+
+            return DEV_GetCoreNode(extAddr);
+        }
+    }
+    return nullptr;
+}
 
 JsResource::JsResource(QJSEngine *parent) :
     QObject(parent)
@@ -38,6 +57,24 @@ QJSValue JsResource::item(const QString &suffix)
     }
 
     return {};
+}
+
+QVariant JsResource::endpoints()
+{
+    QVariantList result;
+    if (cr)
+    {
+        const deCONZ::Node *node = getResourceCoreNode(cr);
+        if (node)
+        {
+            for (auto ep : node->endpoints())
+            {
+                result.push_back(int(ep));
+            }
+        }
+    }
+
+    return result;
 }
 
 JsResourceItem::JsResourceItem(QObject *parent) :
@@ -95,7 +132,10 @@ void JsResourceItem::setValue(const QVariant &val)
     if (item)
     {
 //        DBG_Printf(DBG_INFO, "JsResourceItem.setValue(%s) = %s\n", item->descriptor().suffix, qPrintable(val.toString()));
-        item->setValue(val, ResourceItem::SourceDevice);
+        if (!item->setValue(val, ResourceItem::SourceDevice))
+        {
+            DBG_Printf(DBG_DDF, "JS failed to set Item.val for %s\n", item->descriptor().suffix);
+        }
     }
 }
 
@@ -252,4 +292,15 @@ bool JsZclFrame::isClCmd() const
     }
 
     return false;
+}
+
+JsUtils::JsUtils(QObject *parent) :
+    QObject(parent)
+{
+
+}
+
+double JsUtils::log10(double x) const
+{
+    return ::log10(x);
 }

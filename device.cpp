@@ -53,6 +53,7 @@ void DEV_BindingCreateHandler(Device *device, const Event &event);
 void DEV_BindingRemoveHandler(Device *device, const Event &event);
 void DEV_ReadReportConfigurationHandler(Device *device, const Event &event);
 void DEV_ReadNextReportConfigurationHandler(Device *device, const Event &event);
+void DEV_ConfigureNextReportConfigurationHandler(Device *device, const Event &event);
 void DEV_ConfigureReportingHandler(Device *device, const Event &event);
 void DEV_BindingIdleHandler(Device *device, const Event &event);
 void DEV_PollIdleStateHandler(Device *device, const Event &event);
@@ -104,6 +105,7 @@ struct BindingContext
     size_t bindingCheckRound = 0;
     size_t bindingIter = 0;
     size_t reportIter = 0;
+    size_t configIter = 0;
     int mgmtBindSupported = MGMT_BIND_SUPPORT_UNKNOWN;
     uint8_t mgmtBindStartIndex = 0;
     std::vector<BindingTracker> bindingTrackers;
@@ -158,11 +160,24 @@ public:
     } flags{};
 };
 
+Device *DEV_ParentDevice(Resource *r)
+{
+    if (r && r->parentResource() && r->parentResource()->prefix() == RDevices)
+    {
+        return static_cast<Device*>(r->parentResource());
+    }
+
+    return nullptr;
+}
+
 //! Forward device attribute changes to core.
 void DEV_ForwardNodeChange(Device *device, const QString &key, const QString &value)
 {
-    QMetaObject::invokeMethod(device->d->apsCtrl, "onRestNodeUpdated", Qt::DirectConnection,
+    if (device)
+    {
+        QMetaObject::invokeMethod(device->d->apsCtrl, "onRestNodeUpdated", Qt::DirectConnection,
                               Q_ARG(quint64, device->key()), Q_ARG(QString, key), Q_ARG(QString, value));
+    }
 }
 
 void DEV_EnqueueEvent(Device *device, const char *event)
@@ -174,6 +189,11 @@ void DEV_EnqueueEvent(Device *device, const char *event)
 
 Resource *DEV_GetSubDevice(Device *device, const char *prefix, const QString &identifier)
 {
+    if (!device)
+    {
+        return nullptr;
+    }
+    
     for (auto &sub : device->subDevices())
     {
         if (prefix && sub->prefix() != prefix)
@@ -200,7 +220,11 @@ void DEV_InitStateHandler(Device *device, const Event &event)
 
         if ((event.deviceKey() & 0x00212E0000000000LLU) == 0x00212E0000000000LLU)
         {
-            d->node = DEV_GetCoreNode(device->key());
+            if (!d->node)
+            {
+                d->node = DEV_GetCoreNode(device->key());
+            }
+
             if (d->node && d->node->isCoordinator())
             {
                 d->setState(DEV_DeadStateHandler);
@@ -537,6 +561,45 @@ bool DEV_FillItemFromSubdevices(Device *device, const char *itemSuffix, const st
     return false;
 }
 
+/*! Try to fill \c ResourceItem value from Basic cluster attributes if not already set.
+ */
+bool DEV_FillItemFromBasicCluster(Device *device, const char *itemSuffix, deCONZ::ZclClusterId_t clusterId,  deCONZ::ZclAttributeId_t attrId)
+{
+    ResourceItem *ditem = device->item(itemSuffix);
+
+    if (!ditem || !device->node())
+    {
+        return false;
+    }
+
+    if (ditem->lastSet().isValid())
+    {
+        return true;
+    }
+
+    for (const auto &sd : device->node()->simpleDescriptors())
+    {
+        const auto cl = std::find_if(sd.inClusters().cbegin(), sd.inClusters().cend(),
+                                     [clusterId](const auto &x) { return x.id_t() == clusterId; });
+
+        if (cl == sd.inClusters().cend()) { continue; }
+
+        const auto at = std::find_if(cl->attributes().cbegin(), cl->attributes().cend(),
+                                     [attrId](const auto &x){ return x.id_t() == attrId; });
+
+        if (at == cl->attributes().cend()) { continue; }
+
+        const QVariant v = at->toVariant();
+
+        if (!v.isNull() && ditem->setValue(v))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 /*! Sends a ZCL Read Attributes request for \p clusterId and \p attrId.
     This also configures generic read and parse handlers for an \p item if not already set.
  */
@@ -607,6 +670,11 @@ void DEV_BasicClusterStateHandler(Device *device, const Event &event)
                 okCount++;
                 continue;
             }
+            else if (DEV_FillItemFromBasicCluster(device, it.suffix, it.clusterId,  it.attrId))
+            {
+                okCount++;
+                continue;
+            }
 
             if (DEV_ZclRead(device, device->item(it.suffix), it.clusterId, it.attrId))
             {
@@ -633,7 +701,7 @@ void DEV_BasicClusterStateHandler(Device *device, const Event &event)
         d->stopStateTimer(StateLevel0);
     }
     else if (event.what() == REventApsConfirm)
-    {       
+    {
         if (d->readResult.apsReqId == EventApsConfirmId(event))
         {
             if (EventApsConfirmStatus(event) == deCONZ::ApsSuccessStatus)
@@ -804,12 +872,6 @@ void DEV_BindingHandler(Device *device, const Event &event)
     if (event.what() == REventStateEnter)
     {
         DBG_Printf(DBG_DEV, "DEV Binding enter %s/0x%016llX\n", event.resource(), event.deviceKey());
-
-        if (!d->node->isRouter())
-        {
-            // most end devices support it, however disable for now until further testing
-            d->binding.mgmtBindSupported = MGMT_BIND_NOT_SUPPORTED;
-        }
     }
     else if (event.what() == REventPoll || event.what() == REventAwake || event.what() == REventBindingTick)
     {
@@ -896,15 +958,13 @@ void DEV_BindingTableReadHandler(Device *device, const Event &event)
     else if (event.what() == REventZdpMgmtBindResponse)
     {
         uint8_t buf[128];
-        if (event.hasData() && event.dataSize() >= 5 && event.dataSize() < sizeof(buf))
+        if (event.hasData() && event.dataSize() >= 2 && event.dataSize() < sizeof(buf))
         {
             if (event.getData(buf, event.dataSize()))
             {
                 const uint8_t seq = buf[0];
                 const uint8_t status = buf[1];
-                const uint8_t size = buf[2];
-                const uint8_t index = buf[3];
-                const uint8_t count = buf[4];
+
 
                 if (seq != d->zdpResult.zdpSeq)
                 {
@@ -916,6 +976,17 @@ void DEV_BindingTableReadHandler(Device *device, const Event &event)
                     d->stopStateTimer(STATE_LEVEL_BINDING);
 
                     d->binding.mgmtBindSupported = MGMT_BIND_SUPPORTED;
+
+                    uint8_t size = 0;
+                    uint8_t index = 0;
+                    uint8_t count = 0;
+
+                    if (event.dataSize() >= 5)
+                    {
+                        size = buf[2];
+                        index = buf[3];
+                        count = buf[4];
+                    }
 
                     if (size > index + count)
                     {
@@ -1059,6 +1130,7 @@ void DEV_BindingTableVerifyHandler(Device *device, const Event &event)
         }
         else if (i->dstAddressMode() == deCONZ::ApsExtAddress)
         {
+            d->binding.configIter = 0;
             d->binding.reportIter = 0;
             d->setState(DEV_ReadReportConfigurationHandler, STATE_LEVEL_BINDING);
         }
@@ -1346,6 +1418,11 @@ void DEV_ReadReportConfigurationHandler(Device *device, const Event &event)
             record.direction = report.direction;
 
             param.records.push_back(record);
+
+            if (param.records.size() == ZCL_ReadReportConfigurationParam::MaxRecords)
+            {
+                break;
+            }
         }
 
         if (param.records.empty())
@@ -1432,6 +1509,17 @@ void DEV_ReadNextReportConfigurationHandler(Device *device, const Event &event)
     }
 }
 
+/*! Helper state to proceed with the next configure reporting. */
+void DEV_ConfigureNextReportConfigurationHandler(Device *device, const Event &event)
+{
+    DevicePrivate *d = device->d;
+
+    if (event.what() == REventStateEnter)
+    {
+        d->setState(DEV_ConfigureReportingHandler, STATE_LEVEL_BINDING);
+    }
+}
+
 void DEV_ConfigureReportingHandler(Device *device, const Event &event)
 {
     DevicePrivate *d = device->d;
@@ -1449,8 +1537,11 @@ void DEV_ConfigureReportingHandler(Device *device, const Event &event)
         param.manufacturerCode = d->binding.readReportParam.manufacturerCode;
         param.endpoint = bnd.srcEndpoint;
 
-        for (const auto &report : bnd.reporting)
+        for (size_t i = d->binding.configIter; i < d->binding.reportIter && i < bnd.reporting.size(); i++)
         {
+            const DDF_ZclReport &report = bnd.reporting[i];
+            d->binding.configIter++;
+
             if (report.manufacturerCode != param.manufacturerCode)
             {
                 continue;
@@ -1467,6 +1558,11 @@ void DEV_ConfigureReportingHandler(Device *device, const Event &event)
             record.timeout = 0; // TODO
 
             param.records.push_back(record);
+
+            if (param.records.size() == ZCL_ConfigureReportingParam::MaxRecords)
+            {
+                break; // prevent too large APS frames
+            }
         }
 
         d->binding.zclResult.isEnqueued = false;
@@ -1515,7 +1611,11 @@ void DEV_ConfigureReportingHandler(Device *device, const Event &event)
             {
                 auto &bnd = d->binding.bindings[d->binding.bindingIter];
 
-                if (d->binding.reportIter < bnd.reporting.size())
+                if (d->binding.configIter < d->binding.reportIter)
+                {
+                    d->setState(DEV_ConfigureNextReportConfigurationHandler, STATE_LEVEL_BINDING);
+                }
+                else if (d->binding.reportIter < bnd.reporting.size())
                 {
                     d->setState(DEV_ReadNextReportConfigurationHandler, STATE_LEVEL_BINDING);
                 }
@@ -1655,7 +1755,13 @@ std::vector<DEV_PollItem> DEV_GetPollItems(Device *device)
                 }
             }
 
-            if (ddfItem.readParameters.toMap().empty())
+            const auto m = ddfItem.readParameters.toMap();
+            if (m.empty())
+            {
+                continue;
+            }
+
+            if (m.contains(QLatin1String("fn")) && m.value(QLatin1String("fn")).toString() == QLatin1String("none"))
             {
                 continue;
             }
@@ -1679,8 +1785,17 @@ void DEV_PollIdleStateHandler(Device *device, const Event &event)
     {
         DBG_Printf(DBG_DEV, "DEV Poll Idle enter %s/0x%016llX\n", event.resource(), event.deviceKey());
     }
-    else if (event.what() == REventPoll)
+    else if (event.what() == REventPoll || event.what() == REventAwake)
     {
+        if (device->node()) // update nwk address if needed
+        {
+            const auto &addr = device->node()->address();
+            if (addr.hasNwk() && addr.nwk() != device->item(RAttrNwkAddress)->toNumber())
+            {
+                device->item(RAttrNwkAddress)->setValue(addr.nwk());
+            }
+        }
+
         d->pollItems = DEV_GetPollItems(device);
 
         if (!d->pollItems.empty())
@@ -1724,6 +1839,8 @@ void DEV_PollNextStateHandler(Device *device, const Event &event)
         {
             DBG_Printf(DBG_DEV, "DEV: Poll Next no read function for item: %s / 0x%016llX\n", poll.item->descriptor().suffix, device->key());
             d->pollItems.pop_back();
+            d->startStateTimer(5, STATE_LEVEL_POLL); // try next
+            return;
         }
 
         if (d->readResult.isEnqueued)

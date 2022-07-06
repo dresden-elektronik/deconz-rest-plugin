@@ -266,7 +266,10 @@ uint8_t LightNode::colorLoopSpeed() const
 void LightNode::didSetValue(ResourceItem *i)
 {
     enqueueEvent(Event(RLights, i->descriptor().suffix, id(), i));
-    setNeedSaveDatabase(true);
+    if (i->descriptor().suffix != RAttrLastSeen) // prevent flooding database writes
+    {
+        setNeedSaveDatabase(true);
+    }
 }
 
 /*! Mark received command and update lastseen. */

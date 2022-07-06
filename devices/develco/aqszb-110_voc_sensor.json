@@ -3,7 +3,7 @@
   "manufacturername": "Develco Products A/S",
   "modelid": "AQSZB-110",
   "vendor": "Develco Products",
-  "product": "AQSZB-110",
+  "product": "AQSZB-110 TVOC sensor",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -95,7 +95,7 @@
             "ep": 38,
             "fn": "zcl",
             "mf": "0x1015",
-            "eval": "Item.val = Attr.val;"
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val; }"
           }
         },
         {

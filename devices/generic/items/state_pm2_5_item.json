@@ -1,0 +1,9 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/pm2_5",
+	"datatype": "UInt16",
+	"access": "R",
+	"public": true,
+	"description": "Measured PM2.5 in µg/m³.",
+  "default": 0
+}
