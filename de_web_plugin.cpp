@@ -9448,66 +9448,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     }
                                 }
                             }
-                            else if (ia->id() == 0x0032) // usertest
-                            {
-                                if (updateType != NodeValue::UpdateInvalid)
-                                {
-                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
-                                }
-
-                                bool usertest = ia->numericValue().u8 == 1;
-                                ResourceItem *item = i->item(RConfigUsertest);
-
-                                if (item && item->toNumber() != usertest)
-                                {
-                                    item->setValue(usertest);
-                                    i->setNeedSaveDatabase(true);
-                                    Event e(RSensors, RConfigUsertest, i->id(), item);
-                                    enqueueEvent(e);
-                                }
-
-                                updateSensorEtag(&*i);
-                            }
-                            else if (ia->id() == 0x0033) // ledindication
-                            {
-                                if (updateType != NodeValue::UpdateInvalid)
-                                {
-                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
-                                }
-
-                                bool ledindication = ia->numericValue().u8 == 1;
-                                ResourceItem *item = i->item(RConfigLedIndication);
-
-                                if (item && item->toNumber() != ledindication)
-                                {
-                                    item->setValue(ledindication);
-                                    i->setNeedSaveDatabase(true);
-                                    Event e(RSensors, RConfigLedIndication, i->id(), item);
-                                    enqueueEvent(e);
-                                }
-
-                                updateSensorEtag(&*i);
-                            }
-                            else if (ia->id() == 0x0034) // devicemode
-                            {
-                                if (updateType != NodeValue::UpdateInvalid)
-                                {
-                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
-                                }
-
-                                QString devicemode = RConfigDeviceModeValues[ia->numericValue().u8];
-                                ResourceItem *item = i->item(RConfigDeviceMode);
-
-                                if (item && item->toString() != devicemode)
-                                {
-                                    item->setValue(devicemode);
-                                    i->setNeedSaveDatabase(true);
-                                    Event e(RSensors, RConfigDeviceMode, i->id(), item);
-                                    enqueueEvent(e);
-                                }
-
-                                updateSensorEtag(&*i);
-                            }
                             else if (ia->id() == 0xff0d && i->modelId().startsWith(QLatin1String("lumi.vibration"))) // sensitivity
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
