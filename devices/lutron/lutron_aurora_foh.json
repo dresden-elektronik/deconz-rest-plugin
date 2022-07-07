@@ -43,7 +43,27 @@
                     "name": "attr/uniqueid"
                 },
                 {
+                    "name": "config/allowtouchlink",
+                    "read": {
+                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0031"
+                    },
+                    "parse": {
+                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0031",
+                        "eval": "Item.val = Attr.val != 0x000b"
+                    },
+                    "write": {
+                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0031", "dt": "0x19",
+                        "eval": "Item.val ? 0x0000 : 0x000b"
+                    },
+                    "default": false,
+                    "refresh.interval": 84000
+                },
+                {
                     "name": "config/battery",
+                    "parse": {
+                        "ep": 1, "cl": "0x0001", "at": "0x0021",
+                        "eval": "Item.val = Attr.val / 2"
+                    },
                     "awake": true
                 },
                 {
@@ -71,12 +91,6 @@
             "src.ep": 1,
             "cl": "0x0001",
             "report": [ {"at": "0x0021", "dt": "0x20", "min": 300, "max": 300, "change": "0x01" } ]
-        },
-        {
-            "bind": "groupcast",
-            "src.ep": 1,
-            "cl": "0x0006",
-            "config.group": 0
         },
         {
             "bind": "groupcast",

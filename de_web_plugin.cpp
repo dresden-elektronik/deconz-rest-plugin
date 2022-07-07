@@ -314,7 +314,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_HEIMAN, "RC-EM", emberMacPrefix }, // Heiman IAS ACE remote control
     { VENDOR_HEIMAN, "RC-EF-3.0", silabs5MacPrefix }, // Heiman IAS ACE remote control
     { VENDOR_LUTRON, "LZL4BWHL01", lutronMacPrefix }, // Lutron LZL-4B-WH-L01 Connected Bulb Remote
-    { VENDOR_LUTRON, "Z3-1BRL", lutronMacPrefix }, // Lutron Aurora Friends-of-Hue dimmer
     { VENDOR_KEEN_HOME , "SV01-", celMacPrefix}, // Keen Home Vent
     { VENDOR_KEEN_HOME , "SV02-", celMacPrefix}, // Keen Home Vent
     { VENDOR_JENNIC, "VMS_ADUROLIGHT", jennicMacPrefix }, // Trust motion sensor ZPIR-8000
