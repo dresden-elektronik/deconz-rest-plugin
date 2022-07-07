@@ -801,16 +801,13 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                 }
 
-                if (rid.suffix == RConfigDeviceMode) // String
+                if (rid.suffix == RConfigDeviceMode && !data.string.isEmpty() && RConfigDeviceModeValues.indexOf(data.string) >= 0)
                 {
-                    if (!data.string.isEmpty() && RConfigDeviceModeValues.indexOf(data.string) >= 0)
+                    if (devManaged && rsub)
                     {
-                        if (devManaged && rsub)
-                        {
-                            change.addTargetValue(rid.suffix, data.string);
-                            rsub->addStateChange(change);
-                            updated = true;
-                        }
+                        change.addTargetValue(rid.suffix, data.string);
+                        rsub->addStateChange(change);
+                        updated = true;
                     }
                 }
                 else if (rid.suffix == RConfigClickMode && !data.string.isEmpty()) // String
