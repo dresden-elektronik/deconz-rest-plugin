@@ -194,7 +194,7 @@ function installHomebridge {
 		hb_installed=true
 		logInstallVersion "homebridge" "$(homebridge --version | sed -n 2p)"
 		# look for homebridge-hue installation
-		hb_hue_version=$(npm list -g homebridge-hue | grep homebridge-hue | cut -d@ -f2 | xargs)
+		hb_hue_version=$(npm list --location=global homebridge-hue | grep homebridge-hue | cut -d@ -f2 | xargs)
 		if [ -n "$hb_hue_version" ]; then
 			# homebridge-hue installation found
 			hb_hue_installed=true
@@ -235,7 +235,7 @@ function installHomebridge {
 	which homebridge-config-ui-x &> /dev/null
 	if [ $? -eq 0 ]; then
 		config_ui_x_installed=true
-		config_ui_x_ver=$(npm list -g homebridge-config-ui-x | grep config | cut -d@ -f2 | xargs)
+		config_ui_x_ver=$(npm list --location=global homebridge-config-ui-x | grep config | cut -d@ -f2 | xargs)
 		logInstallVersion "config_ui_x" "$config_ui_x_ver"
 	else
 		logInstallVersion "config_ui_x" "not-installed"
@@ -327,9 +327,9 @@ function installHomebridge {
 
 		# install homebridge if not installed
 		if [[ $hb_installed = false ]]; then
-			npm -g install npm | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+			npm --location=global install npm | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 			if [ $? -eq 0 ]; then
-				npm -g install homebridge | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+				npm --location=global install homebridge | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 				if [ $? -ne 0 ]; then
 					[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install homebridge"
 					echo "could not install homebridge" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
@@ -346,38 +346,43 @@ function installHomebridge {
 
 		# install homebridge-hue if not installed
 		if [[ $hb_hue_installed = false ]]; then
-			npm -g install homebridge-lib homebridge-hue | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+			npm --location=global install homebridge-lib homebridge-hue | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 			if [ $? -ne 0 ]; then
 				[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install homebridge hue"
 				echo "could not install homebridge hue" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 				putHomebridgeUpdated "homebridge" "install-error"
 				return
 			else
-				hb_hue_version=$(npm list -g homebridge-hue | grep homebridge-hue | cut -d@ -f2 | xargs)
+				hb_hue_version=$(npm list --location=global homebridge-hue | grep homebridge-hue | cut -d@ -f2 | xargs)
 				putHomebridgeUpdated "homebridgeversion" "$hb_hue_version"
 			fi
 		fi
 
 		# install homebridge-config-ui-x if not installed
 		if [[ $config_ui_x_installed = false ]]; then
-			npm -g install homebridge-config-ui-x | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+			npm --location=global install homebridge-config-ui-x | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 			if [ $? -ne 0 ]; then
 				[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install homebridge-config-ui-x"
 				echo "could not install homebridge-config-ui-x" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 				putHomebridgeUpdated "homebridge" "install-error"
 				return
 			else
-				config_ui_x_ver=$(npm list -g homebridge-config-ui-x | grep config | cut -d@ -f2 | xargs)
+				config_ui_x_ver=$(npm list --location=global homebridge-config-ui-x | grep config | cut -d@ -f2 | xargs)
 				logInstallVersion "config-ui-x" "$config_ui_x_ver"
 			fi
 		fi
 	fi
 
 	# fix missing homebridge-lib
-	if [[ -n $(npm list -g homebridge-lib | grep empty) ]]; then
-		npm -g install homebridge-lib | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+	if [[ -n $(npm list --location=global homebridge-lib | grep empty) ]]; then
+		npm --location=global install homebridge-lib | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 	fi
-
+	
+	# fix missing bonjour-hap
+	if [[ -n $(npm list --location=global bonjour-hap | grep empty) ]]; then
+		npm --location=global install bonjour-hap | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+	fi
+	
 	all_installed=true
 }
 
