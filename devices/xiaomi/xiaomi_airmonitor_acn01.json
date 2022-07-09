@@ -51,9 +51,9 @@
           "parse": {
             "at": "0x00f7",
             "ep": 1,
-            "eval": "let b = Attr.val.toString(16); c = [0,2].map(function(o) {if (b.length % 2) {b = '0' + b} return b.slice(o,o+2)}); f = parseInt(c[1], 16).toString(); x = ''; for (i = 0; i < (f.length % 4); i++) {x += '0'}; Item.val = '0.0.0_' + x + f;",
             "fn": "xiaomi:special",
-            "idx": "0x08"
+            "idx": "0x08",
+            "script": "xiaomi_swversion.js"
           },
           "read": {
             "fn": "none"
@@ -152,9 +152,9 @@
           "parse": {
             "at": "0x00f7",
             "ep": 1,
-            "eval": "let b = Attr.val.toString(16); c = [0,2].map(function(o) {if (b.length % 2) {b = '0' + b} return b.slice(o,o+2)}); f = parseInt(c[1], 16).toString(); x = ''; for (i = 0; i < (f.length % 4); i++) {x += '0'}; Item.val = '0.0.0_' + x + f;",
             "fn": "xiaomi:special",
-            "idx": "0x08"
+            "idx": "0x08",
+            "script": "xiaomi_swversion.js"
           },
           "read": {
             "fn": "none"
@@ -237,9 +237,9 @@
           "parse": {
             "at": "0x00f7",
             "ep": 1,
-            "eval": "let b = Attr.val.toString(16); c = [0,2].map(function(o) {if (b.length % 2) {b = '0' + b} return b.slice(o,o+2)}); f = parseInt(c[1], 16).toString(); x = ''; for (i = 0; i < (f.length % 4); i++) {x += '0'}; Item.val = '0.0.0_' + x + f;",
             "fn": "xiaomi:special",
-            "idx": "0x08"
+            "idx": "0x08",
+            "script": "xiaomi_swversion.js"
           },
           "read": {
             "fn": "none"
