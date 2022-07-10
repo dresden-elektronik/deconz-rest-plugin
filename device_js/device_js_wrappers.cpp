@@ -300,7 +300,51 @@ JsUtils::JsUtils(QObject *parent) :
 
 }
 
+/*! Polyfill for Math.log10(x)
+ */
 double JsUtils::log10(double x) const
 {
     return ::log10(x);
+}
+
+/*! Polyfill for ECMAScript String.prototype.padStart(targetLength, padString)
+    https://tc39.es/ecma262/multipage/text-processing.html#sec-string.prototype.padstart
+ */
+QString JsUtils::padStart(const QString &str, QJSValue targetLength, QJSValue padString)
+{
+    int len = 0;
+    QString pad;
+    QString result;
+
+    len = targetLength.toInt();
+    if (!targetLength.isNumber() || len < 1 || str.length() >= len)
+    {
+        return str;
+    }
+
+    result.reserve(len);
+
+    len = len - str.length();
+
+    if (padString.isString())
+    {
+        pad = padString.toString();
+    }
+
+    if (pad.isEmpty())
+    {
+        pad = QLatin1Char(' '); // default is space
+    }
+
+    while (len)
+    {
+        for (int i = 0; i < pad.length() && len; i++, len--)
+        {
+            result.append(pad.at(i));
+        }
+    }
+
+    result = result.append(str);
+
+    return result;
 }
