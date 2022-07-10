@@ -30,6 +30,11 @@ public:
     const deCONZ::ApsDataIndication *apsInd = nullptr;
 };
 
+// Polyfills for older Qt versions
+static const char *PF_String_prototype_padStart = "String.prototype.padString = String.prototype.padString || "
+                                     "function (targetLength, padString) { return Utils.padStart(this, targetLength, padString); } ";
+static const char *PF_Math_log10 = "Math.log10 = Math.log10 || function(x) { return Utils.log10(x) };";
+
 DeviceJs::DeviceJs() :
     d(new DeviceJsPrivate)
 {
@@ -57,6 +62,11 @@ DeviceJs::DeviceJs() :
     d->jsUtils = new JsUtils(&d->engine);
     auto jsUtils = d->engine.newQObject(d->jsUtils);
     d->engine.globalObject().setProperty("Utils", jsUtils);
+
+
+    // apply polyfills
+    d->engine.evaluate(PF_String_prototype_padStart);
+    d->engine.evaluate(PF_Math_log10);
 
     _djs = this;
 }
