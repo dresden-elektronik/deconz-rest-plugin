@@ -1285,11 +1285,6 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             IAS_IasAceClusterIndication(ind, zclFrame, alarmSystems.get(), apsCtrlWrapper);
             break;
 
-        case VENDOR_CLUSTER_ID:
-        // case DE_CLUSTER_ID:
-            handleDEClusterIndication(ind, zclFrame);
-            break;
-
         case POWER_CONFIGURATION_CLUSTER_ID:
             if (!DEV_TestStrict() && !devManaged) { handlePowerConfigurationClusterIndication(ind, zclFrame); }
             break;
@@ -11867,27 +11862,6 @@ bool DeRestPluginPrivate::callScene(Group *group, uint8_t sceneId)
     }
 
     return false;
-}
-
-/*! Handle incoming DE cluster commands.
- */
-void DeRestPluginPrivate::handleDEClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
-{
-    LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
-
-    if (!lightNode)
-    {
-        return;
-    }
-
-    if (zclFrame.isClusterCommand() && zclFrame.commandId() == 0x03)
-    {
-    }
-
-    if (zclFrame.isDefaultResponse())
-    {
-        DBG_Printf(DBG_INFO, "DE cluster default response cmd 0x%02X, status 0x%02X\n", zclFrame.defaultResponseCommandId(), zclFrame.defaultResponseStatus());
-    }
 }
 
 /*! Handle incoming XAL cluster commands.
