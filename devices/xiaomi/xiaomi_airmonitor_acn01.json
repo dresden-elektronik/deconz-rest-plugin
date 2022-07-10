@@ -76,11 +76,7 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/temperature"
-        },
-        {
           "name": "state/airqualityppb",
-          "awake": true,
           "parse": {
             "at": "0x0055",
             "cl": "0x000c",
@@ -186,9 +182,6 @@
         },
         {
           "name": "config/reachable"
-        },
-        {
-          "name": "config/temperature"
         },
         {
           "name": "state/humidity",
