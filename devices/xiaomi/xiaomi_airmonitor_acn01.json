@@ -5,7 +5,7 @@
   "vendor": "Xiaomi",
   "product": "Aqara TVOC Air Quality Monitor VOCKQJK11LM",
   "sleeper": true,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_AIR_QUALITY_SENSOR",
@@ -39,13 +39,25 @@
           "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid"
+          "name": "attr/modelid",
+          "awake": true
         },
         {
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "awake": true,
+          "parse": {
+            "at": "0x00f7",
+            "ep": 1,
+            "fn": "xiaomi:special",
+            "idx": "0x08",
+            "script": "xiaomi_swversion.js"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "attr/type"
@@ -64,11 +76,7 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/temperature"
-        },
-        {
           "name": "state/airqualityppb",
-          "awake": true,
           "parse": {
             "at": "0x0055",
             "cl": "0x000c",
@@ -81,11 +89,21 @@
         {
           "name": "state/airquality",
           "parse": {
-            "fn": "numtostr",
-            "op": "le",
-            "srcitem": "state/airqualityppb",
-            "to": [65, "excellent", 220, "good", 660, "moderate", 10000, "unhealthy", 65535, "out of scale"]
-          }
+            "at": "0x0129",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "eval": "Item.val = ['excellent', 'good', 'moderate', 'poor', 'unhealthy'][Attr.val]",
+            "fn": "zcl",
+            "mfc": "0x115f"
+          },
+          "default": "excellent",
+          "values": [
+            [1, "excellent"],
+            [2, "good"],
+            [3, "moderate"],
+            [4, "poor"],
+            [5, "unhealthy"]
+          ]
         },
         {
           "name": "state/lastupdated"
@@ -125,13 +143,25 @@
           "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid"
+          "name": "attr/modelid",
+          "awake": true
         },
         {
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "awake": true,
+          "parse": {
+            "at": "0x00f7",
+            "ep": 1,
+            "fn": "xiaomi:special",
+            "idx": "0x08",
+            "script": "xiaomi_swversion.js"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "attr/type"
@@ -152,9 +182,6 @@
         },
         {
           "name": "config/reachable"
-        },
-        {
-          "name": "config/temperature"
         },
         {
           "name": "state/humidity",
@@ -198,13 +225,25 @@
           "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid"
+          "name": "attr/modelid",
+          "awake": true
         },
         {
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "awake": true,
+          "parse": {
+            "at": "0x00f7",
+            "ep": 1,
+            "fn": "xiaomi:special",
+            "idx": "0x08",
+            "script": "xiaomi_swversion.js"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "attr/type"
@@ -232,6 +271,23 @@
         {
           "name": "state/temperature",
           "default": 0
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x000C",
+      "report": [
+        {
+          "at": "0x0055",
+          "dt": "0x39",
+          "min": 60,
+          "max": 1800,
+          "change": "0x41200000"
         }
       ]
     }
