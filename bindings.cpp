@@ -3439,7 +3439,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     std::vector<quint16> clusters;
 
     if (sensor->modelId().startsWith(QLatin1String("ElkoDimmer")) || // Elko dimmer
-        sensor->modelId().startsWith(QLatin1String("E1E-"))) // Sengled smart light switch// Busch-Jaeger
+        sensor->modelId().startsWith(QLatin1String("E1E-"))) // Sengled smart light switch
     {
         srcEndpoints.push_back(0x01);
         clusters.push_back(ONOFF_CLUSTER_ID);
