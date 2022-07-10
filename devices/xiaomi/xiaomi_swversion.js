@@ -10,9 +10,4 @@ else if (Attr.dataType == 35)
     v = (Attr.val & 0x000000ff);
 }
 
-for (i = 0; i < (v.toString().length % 4); i++)
-{
-    s += "0";
-}
-
-Item.val = s + v;
+Item.val = s + v.toString().padStart(4, "0");
