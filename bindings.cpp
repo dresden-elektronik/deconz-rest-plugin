@@ -3438,9 +3438,15 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     //quint8 srcEndpoint = sensor->fingerPrint().endpoint;
     std::vector<quint16> clusters;
 
-    // Busch-Jaeger
-    if (sensor->modelId() == QLatin1String("RB01") ||
-        sensor->modelId() == QLatin1String("RM01"))
+    if (sensor->modelId().startsWith(QLatin1String("ElkoDimmer")) || // Elko dimmer
+        sensor->modelId().startsWith(QLatin1String("E1E-"))) // Sengled smart light switch// Busch-Jaeger
+    {
+        srcEndpoints.push_back(0x01);
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+    }
+    else if (sensor->modelId() == QLatin1String("RB01") ||
+             sensor->modelId() == QLatin1String("RM01"))
     {
         quint8 firstEp = 0x0A;
 
