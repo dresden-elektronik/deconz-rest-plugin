@@ -96,11 +96,18 @@
             "at": "0x0129",
             "cl": "0xfcc0",
             "ep": 1,
-            "eval": "if (Attr.val === 1) {Item.val = 'excellent'} else if (Attr.val === 2) {Item.val = 'good'} else if (Attr.val === 3) {Item.val = 'moderate'} else if (Attr.val === 4) {Item.val = 'poor'} else if (Attr.val === 5) {Item.val = 'unhealthy'}",
+            "eval": "Item.val = ['excellent', 'good', 'moderate', 'poor', 'unhealthy'][Attr.val]",
             "fn": "zcl",
             "mfc": "0x115f"
           },
-          "default": "excellent"
+          "default": "excellent",
+          "values": [
+            [1, "excellent"],
+            [2, "good"],
+            [3, "moderate"],
+            [4, "poor"],
+            [5, "unhealthy"]
+          ]
         },
         {
           "name": "state/lastupdated"
