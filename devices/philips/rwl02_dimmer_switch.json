@@ -102,7 +102,7 @@
                     "name": "state/eventduration"
                 },
                 {
-                      "name": "state/lastupdated"
+                    "name": "state/lastupdated"
                 }
             ]
         }
