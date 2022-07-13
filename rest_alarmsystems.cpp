@@ -379,7 +379,8 @@ static int deleteAlarmSystemCode(const ApiRequest &req, ApiResponse &rsp, AlarmS
             }
         }
 
-        alarmSys->setCode(index, code);
+        //Use empty vaue to clear it
+        alarmSys->setCode(index, QString::null);
 
     }
 
