@@ -12331,35 +12331,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
     {
         handleZclAttributeReportIndicationXiaomiSpecial(ind, zclFrame);
     }
-
-    if (otauLastBusyTimeDelta() < (60 * 60))
-    {
-        if ((idleTotalCounter - otauUnbindIdleTotalCounter) > 5)
-        {
-            LightNode *lightNode = getLightNodeForAddress(ind.srcAddress());
-
-            if (lightNode && lightNode->modelId().startsWith(QLatin1String("FLS-")))
-            {
-                otauUnbindIdleTotalCounter = idleTotalCounter;
-                DBG_Printf(DBG_INFO, "ZCL attribute report 0x%016llX for cluster 0x%04X --> unbind (otau busy)\n", ind.srcAddress().ext(), ind.clusterId());
-
-                BindingTask bindingTask;
-                Binding &bnd = bindingTask.binding;
-
-                bindingTask.action = BindingTask::ActionUnbind;
-                bindingTask.state = BindingTask::StateIdle;
-
-                bnd.srcAddress = lightNode->address().ext();
-                bnd.srcEndpoint = ind.srcEndpoint();
-                bnd.clusterId = ind.clusterId();
-                bnd.dstAddress.ext = apsCtrl->getParameter(deCONZ::ParamMacAddress);
-                bnd.dstAddrMode = deCONZ::ApsExtAddress;
-                bnd.dstEndpoint = endpoint();
-
-                queueBindingTask(bindingTask);
-            }
-        }
-    }
 }
 
 void DeRestPluginPrivate::queuePollNode(RestNodeBase *node)
@@ -16394,7 +16365,6 @@ void DeRestPlugin::idleTimerFired()
     {
         d->idleTotalCounter = 0;
         d->otauIdleTotalCounter = 0;
-        d->otauUnbindIdleTotalCounter = 0;
         d->saveDatabaseIdleTotalCounter = 0;
         d->recoverOnOff.clear();
     }

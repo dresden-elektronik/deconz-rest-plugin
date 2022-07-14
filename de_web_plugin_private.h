@@ -1891,7 +1891,6 @@ public:
     int otauIdleTicks;
     int otauBusyTicks;
     int otauIdleTotalCounter;
-    int otauUnbindIdleTotalCounter;
 
     // touchlink
 

@@ -18,8 +18,10 @@
 #define DEV_TICK_BOOT_TIME 8000
 #define TICK_INTERVAL_JOIN 500
 #define TICK_INTERVAL_IDLE 1000
+#define TICK_INTERVAL_IDLE_OTAU 6000
 
 extern int DEV_ApsQueueSize();
+extern bool DEV_OtauBusy();
 
 struct JoinDevice
 {
@@ -158,11 +160,12 @@ static void DT_StateIdle(DeviceTickPrivate *d, const Event &event)
     {
         if (event.what() == REventStateTimeout)
         {
+            int timeout = DEV_OtauBusy() ? TICK_INTERVAL_IDLE_OTAU : TICK_INTERVAL_IDLE;
             if (DEV_ApsQueueSize() < 4)
             {
                 DT_PollNextIdleDevice(d);
             }
-            DT_StartTimer(d, TICK_INTERVAL_IDLE);
+            DT_StartTimer(d, timeout);
         }
         else if (event.what() == REventStateEnter)
         {
