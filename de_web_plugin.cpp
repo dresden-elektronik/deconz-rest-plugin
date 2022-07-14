@@ -942,7 +942,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     connect(pollManager, &PollManager::done, this, &DeRestPluginPrivate::pollNextDevice);
 
     auto *deviceTick = new DeviceTick(m_devices, this);
-    connect(this, &DeRestPluginPrivate::eventNotify, deviceTick, &DeviceTick::handleEvent);
+    connect(eventEmitter, &EventEmitter::eventNotify, deviceTick, &DeviceTick::handleEvent);
     connect(deviceTick, &DeviceTick::eventNotify, eventEmitter, &EventEmitter::enqueueEvent);
 
     const deCONZ::Node *node;
@@ -17794,6 +17794,15 @@ Resource *DEV_AddResource(const Sensor &sensor)
         plugin->sensors.push_back(sensor);
         r = &plugin->sensors.back();
         r->setHandle(R_CreateResourceHandle(r, plugin->sensors.size() - 1));
+
+        if (plugin->searchSensorsState == DeRestPluginPrivate::SearchSensorsActive || plugin->permitJoinFlag)
+        {
+            const ResourceItem *idItem = r->item(RAttrId);
+            if (idItem)
+            {
+                enqueueEvent(Event(sensor.prefix(), REventAdded, idItem->toString()));
+            }
+        }
     }
 
     return r;
@@ -17810,6 +17819,15 @@ Resource *DEV_AddResource(const LightNode &lightNode)
         plugin->nodes.push_back(lightNode);
         r = &plugin->nodes.back();
         r->setHandle(R_CreateResourceHandle(r, plugin->nodes.size() - 1));
+
+        if (plugin->searchLightsState == DeRestPluginPrivate::SearchLightsActive || plugin->permitJoinFlag)
+        {
+            const ResourceItem *idItem = r->item(RAttrId);
+            if (idItem)
+            {
+                enqueueEvent(Event(r->prefix(), REventAdded, idItem->toString()));
+            }
+        }
     }
 
     return r;
