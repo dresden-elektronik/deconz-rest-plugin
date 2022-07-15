@@ -3036,17 +3036,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             }
         }
 
-        if (existDevicesWithVendorCodeForMacPrefix(node->address(), VENDOR_PHILIPS))
-        {
-            if (lightNode.manufacturer() != QLatin1String("Philips") &&
-                lightNode.manufacturer() != QLatin1String("Signify Netherlands B.V.")
-               )
-            { // correct vendor name, was atmel, de sometimes
-                lightNode.setManufacturerName(QLatin1String("Philips"));
-                lightNode.setNeedSaveDatabase(true);
-            }
-        }
-
         if (lightNode.modelId() == QLatin1String("FLS-PP3 White"))
         { } // only push data from FLS-PP3 color endpoint
         else
