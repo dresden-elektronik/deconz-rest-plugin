@@ -3936,6 +3936,32 @@ devices can operate on either battery or mains power, and can have a wide variet
       </server>
     </cluster>
 
+    <!-- Hue for Lutron Aurora -->
+    <cluster id="0xfc00" name="Hue" mfcode="0x1144">
+      <description>Hue-specific cluster.</description>
+      <server>
+        <command id="0x00" dir="send" name="Button Action Notification" required="m">
+          <payload>
+            <attribute id="0x0000" type="u16" name="Button" required="m"/>
+            <attribute id="0x0001" type="enum8" name="Type" required="m">
+              <value name="Push" value="0x00"/>
+              <value name="Rotary" value="0x01"/>
+            </attribute>
+            <attribute id="0x0002" type="u8" name="" showas="hex" required="m"/>
+            <attribute id="0x0003" type="enum8" name="Action" required="m">
+              <value name="Press" value="0x00"/>
+              <value name="Hold" value="0x01"/>
+              <value name="Release" value="0x02"/>
+              <value name="Long Release" value="0x03"/>
+            </attribute>
+            <attribute id="0x0004" type="u8" name="" showas="hex" required="m"/>
+            <attribute id="0x0000" type="u16" name="Duration" required="m"/>
+          </payload>
+        </command>
+      </server>
+    </cluster>
+
+
     <!-- Sunricher C4 -->
     <cluster id="0xfc00" name="Device Setup" mfcode="0x1224">
       <description>Sunricher-specific cluster.</description>
