@@ -5546,11 +5546,11 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 {
                     ok = false;
 
-                    if (buttonMap.zclParam0 == zclFrame.payload().at(1))
+                    if (zclFrame.payload().size() > 1 && buttonMap.zclParam0 == zclFrame.payload().at(1))
                     {
                         ok = true;
                     }
-                    else if (buttonMap.zclParam0 == zclFrame.payload().at(0) && zclFrame.payload().size() == 1 && zclFrame.manufacturerCode() == VENDOR_XIAOYAN)
+                    else if (zclFrame.payload().size() == 1 && buttonMap.zclParam0 == zclFrame.payload().at(0) && zclFrame.manufacturerCode() == VENDOR_XIAOYAN)
                     {
                         ok = true;
                     }

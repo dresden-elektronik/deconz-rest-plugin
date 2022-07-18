@@ -7,6 +7,7 @@
     "Sunricher",
     "Namron AS",
     "Namron AS",
+    "Namron AS",
     "ROBB smarrt"
   ],
   "modelid": [
@@ -16,6 +17,7 @@
     "ZG2833K2_EU07",
     "4512701",
     "4512702",
+    "4512728",
     "ROB_200-009-0"
   ],
   "matchexpr": "R.endpoints.length === 1",
