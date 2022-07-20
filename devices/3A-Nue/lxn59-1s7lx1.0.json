@@ -2,10 +2,9 @@
   "schema": "devcap1.schema.json",
   "manufacturername": "3A Smart Home DE",
   "modelid": "LXN59-1S7LX1.0",
-  "product": "LXN59-1S7LX1.0",
+  "product": "Another Smart socket plug",
   "sleeper": false,
   "status": "Silver",
-  "path": "/devices/lxn59-1s7lx1.0.json",
   "subdevices": [
     {
       "type": "$TYPE_SMART_PLUG",
@@ -44,7 +43,6 @@
         },
         {
           "name": "state/on",
-          "description": "True when device is on; false when off.",
           "refresh.interval": 5
         },
         {
@@ -57,7 +55,15 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "cl": "0x0006"
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 5,
+          "max": 300
+        }
+      ]
     }
   ]
 }
