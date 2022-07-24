@@ -142,7 +142,6 @@ HEADERS  = bindings.h \
            ias_ace.h \
            ias_zone.h \
            light_node.h \
-           mfspecific_cluster_xiaoyan.h \
            poll_control.h \
            poll_manager.h \
            product_match.h \
@@ -223,7 +222,6 @@ SOURCES  = air_quality.cpp \
            identify.cpp \
            json.cpp \
            light_node.cpp \
-           mfspecific_cluster_xiaoyan.cpp \
            occupancy_sensing.cpp \
            poll_control.cpp \
            poll_manager.cpp \

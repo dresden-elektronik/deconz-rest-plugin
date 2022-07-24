@@ -3465,11 +3465,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.addItem(DataTypeUInt16, RStateY);
                 sensor.addItem(DataTypeInt16, RStateAngle);
             }
-            else if (sensor.modelId() == QLatin1String("TERNCY-SD01"))
-            {
-                sensor.addItem(DataTypeInt16, RStateAngle);
-                sensor.addItem(DataTypeUInt16, RStateEventDuration);
-            }
         }
         else if (sensor.type().endsWith(QLatin1String("AncillaryControl")))
         {

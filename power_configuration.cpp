@@ -141,8 +141,7 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                     sensor.modelId().startsWith(QLatin1String("VOC_Sensor")) || // LifeControl Enviroment sensor
                     sensor.modelId().startsWith(QLatin1String("TY0203")) || // SilverCrest / lidl
                     sensor.modelId().startsWith(QLatin1String("TY0202")) || // SilverCrest / lidl
-                    sensor.modelId().startsWith(QLatin1String("ZG2835")) || // SR-ZG2835 Zigbee Rotary Switch
-                    sensor.modelId() == QLatin1String("TERNCY-SD01"))       // TERNCY smart button
+                    sensor.modelId().startsWith(QLatin1String("ZG2835")))   // SR-ZG2835 Zigbee Rotary Switch
                 {
                     divider = 1;
                 }
