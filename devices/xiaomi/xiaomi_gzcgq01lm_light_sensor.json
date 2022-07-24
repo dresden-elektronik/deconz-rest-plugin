@@ -127,7 +127,7 @@
           "lightlevel": 13425,
           "lux": 22
         },
-        "swversion": "0.0.0_0008",
+        "swversion": "0.0.0_0027",
         "type": "ZHALightLevel",
         "uniqueid": "04:cf:8c:df:3c:7f:1f:80-01-0400"
       }
