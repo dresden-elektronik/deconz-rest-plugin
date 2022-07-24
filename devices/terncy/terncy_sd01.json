@@ -1,7 +1,7 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "Xiaoyan",
-  "modelid": "TERNCY-SD01",
+  "manufacturername": ["Xiaoyan", "TERNCY"],
+  "modelid": ["TERNCY-SD01", "TERNCY-SD01"],
   "vendor": "Terncy",
   "product": "Terncy Smart Dial SD01",
   "sleeper": true,
