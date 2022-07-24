@@ -1,7 +1,5 @@
 {
   "schema": "devcap1.schema.json",
-  "doc:path": "xiaomi/aq_vibration_sensor.md",
-  "doc:hdr": "Vibration sensor DJT11LM",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.vibration.aq1",
   "vendor": "Xiaomi",
@@ -40,19 +38,16 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0006",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl"
-          },
+          "awake": true,
           "parse": {
-            "at": "0x0006",
-            "cl": "0x0000",
+            "at": "0xff01",
             "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl"
+            "fn": "xiaomi:special",
+            "idx": "0x08",
+            "script": "xiaomi_firmware.js"
+          },
+          "read": {
+            "fn": "none"
           }
         },
         {
@@ -67,21 +62,21 @@
           "public": false
         },
         {
-          "name": "config/duration",
-          "default": 65
-        },
-        {
-          "name": "config/on"
-        },
-        {
           "name": "config/battery",
+          "awake": true,
           "parse": {
             "at": "0xff01",
             "fn": "xiaomi:special",
             "idx": "0x01",
             "script": "xiaomi_battery.js"
-          },
-          "awake": true
+          }
+        },
+        {
+          "name": "config/duration",
+          "default": 65
+        },
+        {
+          "name": "config/on"
         },
         {
           "name": "config/sensitivity",
@@ -90,31 +85,34 @@
             "at": "0xff0d",
             "cl": "0x0000",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl",
+            "mf": "0x115f"
           },
           "parse": {
             "at": "0xff0d",
             "cl": "0x0000",
             "ep": 1,
-            "eval": "Item.val == 0 ? Item.val = Attr.val : Item.val",
-            "fn": "zcl"
+            "eval": "Item.val = [3, 2, 1][Attr.val - 1]",
+            "fn": "zcl",
+            "mf": "0x115f"
           },
           "write": {
             "at": "0xff0d",
             "cl": "0x0000",
             "dt": "0x20",
             "ep": 1,
-            "eval": "Item.val",
-            "fn": "zcl"
+            "eval": "Item.val = [3, 2, 1][Item.val - 1]",
+            "fn": "zcl",
+            "mf": "0x115f"
           },
           "values": [
-              ["low", 21], ["medium", 11], ["high", 1]
+              [1, "low"], [2, "medium"], [3, "high"]
           ],
-          "default": 1
+          "default": 3
         },
         {
           "name": "config/sensitivitymax",
-          "default": 21
+          "default": 3
         },
         {
           "name": "state/orientation"
@@ -152,7 +150,7 @@
             "at": "0x0055",
             "cl": "0x0101",
             "ep": 1,
-            "eval": "if (Attr.val == 1) ? Item.val = true : Item.val = false",
+            "eval": "Item.val = Attr.val == 1 ? true : false",
             "fn": "zcl"
           },
           "default": false
@@ -171,33 +169,7 @@
         {
           "name": "state/lastupdated"
         }
-      ],
-      "example": {
-        "config": {
-          "battery": 95,
-          "duration": 65,
-          "on": true,
-          "reachable": true,
-          "sensitivity": 1,
-          "sensitivitymax": 21
-        },
-        "lastseen": "2020-12-29T22:03Z",
-        "manufacturername": "LUMI",
-        "modelid": "lumi.vibration.aq1",
-        "name": "Vibration Sensor",
-        "state": {
-          "lastupdated": "2020-12-29T22:02:50.534",
-          "orientation": [
-            81, 1, 9
-          ],
-          "tiltangle": 84,
-          "vibration": false,
-          "vibrationstrength": 11
-        },
-        "swversion": "20180130",
-        "type": "ZHAVibration",
-        "uniqueid": "00:15:8d:00:02:af:95:f9-01-0101"
-      }
+      ]
     }
   ]
 }
