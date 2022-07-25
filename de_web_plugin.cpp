@@ -2440,6 +2440,16 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, node->address().ext());
     Q_ASSERT(device);
 
+    if (permitJoinFlag)
+    {
+        // during pairing only proceed when device code has finished query Basic Cluster
+        if (device->item(RAttrManufacturerName)->toString().isEmpty() ||
+            device->item(RAttrModelId)->toString().isEmpty())
+        {
+            return;
+        }
+    }
+
     bool hasTuyaCluster = false;
     QString manufacturer;
 
@@ -2965,19 +2975,11 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         loadLightNodeFromDb(&lightNode);
         closeDb();
 
-        // check if this device is already handled by Device code
-        if (DB_GetSubDeviceItemCount(lightNode.item(RAttrUniqueId)->toLatin1String()) > 0)
+        const DeviceDescription &ddf = deviceDescriptions->get(&lightNode);
+        if (ddf.isValid() && DDF_IsStatusEnabled(ddf.status))
         {
-            const DeviceDescription &ddf = deviceDescriptions->get(&lightNode);
-            if (ddf.isValid() && (DEV_TestManaged() || DDF_IsStatusEnabled(ddf.status)))
-            {
-                if (ddf.path.isEmpty())
-                {
-                    DBG_Printf(DBG_INFO, "TODO %s has partial ddf\n", qPrintable(lightNode.uniqueId()));
-                }
-                DBG_Printf(DBG_INFO, "skip classic loading %s / %s \n", qPrintable(lightNode.uniqueId()), qPrintable(lightNode.name()));
-                return;
-            }
+            DBG_Printf(DBG_INFO, "skip legacy loading %s / %s \n", qPrintable(lightNode.uniqueId()), qPrintable(lightNode.modelId()));
+            return;
         }
 
         setLightNodeStaticCapabilities(&lightNode);
@@ -3012,10 +3014,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
         if (lightNode.id().isEmpty())
         {
-            if (deCONZ::appArgumentNumeric("--always-add-lights", 0) == 1)
-            {
-            }
-            else if (!(searchLightsState == SearchLightsActive || permitJoinFlag))
+            if (!(searchLightsState == SearchLightsActive || permitJoinFlag))
             {
                 // don't add new light node when search is not active
                 return;
@@ -7267,6 +7266,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     if (!manufacturer.isEmpty())
     {
         sensorNode.setManufacturer(manufacturer);
+    }
+
+    const auto &ddf = deviceDescriptions->get(&sensorNode);
+    if (ddf.isValid() && DDF_IsStatusEnabled(ddf.status))
+    {
+        DBG_Printf(DBG_DDF, "skip create %s via legacy code for: %s (use DDF)\n", qPrintable(type), qPrintable(modelId));
+        return;
     }
 
     // simple check if existing device needs to be updated
