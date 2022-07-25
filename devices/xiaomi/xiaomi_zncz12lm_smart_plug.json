@@ -66,13 +66,13 @@
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
-        "0x15",
+        "0x02",
         "0x000C"
       ],
       "fingerprint": {
         "profile": "0x0104",
         "device": "0x0051",
-        "endpoint": "0x15",
+        "endpoint": "0x02",
         "in": [
           "0x000C"
         ]
@@ -145,13 +145,13 @@
           "read": {
             "at": "0x0055",
             "cl": "0x000C",
-            "ep": 21,
+            "ep": 2,
             "fn": "zcl"
           },
           "parse": {
             "at": "0x0055",
             "cl": "0x000C",
-            "ep": 21,
+            "ep": 2,
             "eval": "Item.val = Math.round(Attr.val);"
           }
         },
@@ -174,13 +174,13 @@
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
-        "0x1F",
+        "0x03",
         "0x000C"
       ],
       "fingerprint": {
         "profile": "0x0104",
         "device": "0x0051",
-        "endpoint": "0x1F",
+        "endpoint": "0x03",
         "in": [
           "0x000C"
         ]
@@ -238,13 +238,13 @@
           "read": {
             "at": "0x0055",
             "cl": "0x000C",
-            "ep": 31,
+            "ep": 3,
             "fn": "zcl"
           },
           "parse": {
             "at": "0x0055",
             "cl": "0x000C",
-            "ep": 31,
+            "ep": 3,
             "eval": "Item.val = Math.round(Attr.val * 1000);"
           }
         },
