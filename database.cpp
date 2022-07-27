@@ -4171,10 +4171,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 // no support for some IAS Zone flags
             }
-            else if (sensor.modelId() == QLatin1String("Keyfob-ZB3.0"))
-            {
-                sensor.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
-            }
             else
             {
                 item = sensor.addItem(DataTypeBool, RStateLowBattery);
