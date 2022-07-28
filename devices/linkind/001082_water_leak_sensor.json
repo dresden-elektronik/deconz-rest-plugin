@@ -1,14 +1,14 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "$MF_LUMI",
-  "modelid": "lumi.magnet.acn001",
-  "vendor": "Xiaomi",
-  "product": "Aqara open/close sensor MCCGQ14LM",
+  "manufacturername": "LK",
+  "modelid": "A001082",
+  "vendor": "Linkind",
+  "product": "Zigbee Water Leak Sensor",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_OPEN_CLOSE_SENSOR",
+      "type": "$TYPE_WATER_LEAK_SENSOR",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
@@ -18,12 +18,11 @@
       "fingerprint": {
         "profile": "0x0104",
         "device": "0x0402",
-        "endpoint": "0x01",
+        "endpoint": "0x23",
         "in": [
           "0x0000",
           "0x0001",
-          "0x0500",
-          "0xFCC0"
+          "0x0500"
         ]
       },
       "items": [
@@ -37,8 +36,7 @@
           "name": "attr/lastseen"
         },
         {
-          "name": "attr/manufacturername",
-          "awake": true
+          "name": "attr/manufacturername"
         },
         {
           "name": "attr/modelid",
@@ -48,18 +46,7 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion",
-          "awake": true,
-          "parse": {
-            "at": "0x00f7",
-            "ep": 1,
-            "fn": "xiaomi:special",
-            "idx": "0x08",
-            "script": "xiaomi_swversion.js"
-          },
-          "read": {
-            "fn": "none"
-          }
+          "name": "attr/swversion"
         },
         {
           "name": "attr/type"
@@ -70,11 +57,21 @@
         {
           "name": "config/battery",
           "awake": true,
-          "parse": {"fn": "xiaomi:special", "ep": 1, "at": "0xff01", "idx": "0x01", "script": "xiaomi_battery.js"}
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2",
+            "fn": "zcl"
+          }
+        },
+        {
+          "name": "config/checkin",
+          "awake": true
         },
         {
           "name": "config/enrolled",
-          "default": 1
+          "public": true
         },
         {
           "name": "config/on"
@@ -89,9 +86,31 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/open"
+          "name": "state/water",
+          "awake": true
         }
       ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 300,
+          "max": 43200,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0500"
     }
   ]
 }

@@ -1,20 +1,20 @@
 {
     "schema": "devcap1.schema.json",
-    "manufacturername": ["$MF_PHILIPS", "$MF_PHILIPS"],
-    "modelid": ["RWL021", "RWL020"],
-    "product": "Hue dimmer switch",
+    "manufacturername": "$MF_SIGNIFY",
+    "modelid": "RWL022",
+    "product": "Hue dimmer switch (2021)",
     "status": "Gold",
     "sleeper": true,
     "subdevices": [
          {
             "type": "$TYPE_SWITCH",
             "restapi": "/sensors",
-            "uuid": [ "$address.ext", "0x02", "0xfc00"],
+            "uuid": [ "$address.ext", "0x01", "0xfc00"],
             "buttons": {
-                "1": {"name": "On"},
+                "1": {"name": "On/Off"},
                 "2": {"name": "DimUp"},
                 "3": {"name": "DimDown"},
-                "4": {"name": "Off"}
+                "4": {"name": "Hue"}
             },
             "buttonevents": {
                 "1000": {"action": "PRESS", "button": 1},
@@ -59,14 +59,14 @@
                 {
                     "name": "config/allowtouchlink",
                     "read": {
-                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0031"
+                        "ep": 1, "cl": "0x0000", "mf": "0x100b", "at": "0x0031"
                     },
                     "parse": {
-                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0031",
+                        "ep": 1, "cl": "0x0000", "mf": "0x100b", "at": "0x0031",
                         "eval": "Item.val = Attr.val != 0x000b"
                     },
                     "write": {
-                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0031", "dt": "0x19",
+                        "ep": 1, "cl": "0x0000", "mf": "0x100b", "at": "0x0031", "dt": "0x19",
                         "eval": "Item.val ? 0x0000 : 0x000b"
                     },
                     "default": false,
@@ -75,7 +75,7 @@
                 {
                     "name": "config/battery",
                     "parse": {
-                        "ep": 2, "cl": "0x0001", "at": "0x0021",
+                        "ep": 1, "cl": "0x0001", "at": "0x0021",
                         "eval": "Item.val = Attr.val / 2"
                     },
                     "awake": true
@@ -93,7 +93,7 @@
                 {
                     "name": "state/buttonevent",
                     "parse": {
-                        "ep": 2, "cl": "0xfc00", "mf": "0x100b", "cmd": "0x00",
+                        "ep": 1, "cl": "0xfc00", "mf": "0x100b", "cmd": "0x00",
                         "script": "fc00_buttonevent.js"
                     },
                     "awake": true
@@ -109,11 +109,11 @@
     ],
     "bindings": [
         {
-            "bind": "unicast", "src.ep": 2, "cl": "0xfc00"
+            "bind": "unicast", "src.ep": 1, "cl": "0xfc00"
         },
         {
             "bind": "unicast",
-            "src.ep": 2,
+            "src.ep": 1,
             "cl": "0x0001",
             "report": [{ "at": "0x0021", "dt": "0x20", "min": 300, "max": 300, "change": "0x01" }]
         },

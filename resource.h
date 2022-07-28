@@ -130,6 +130,8 @@ extern const char *RStateDeviceRunTime;
 extern const char *RStateEffect;
 extern const char *RStateErrorCode;
 extern const char *RStateEventDuration;
+extern const char *RStateExpectedEventDuration;
+extern const char *RStateExpectedRotation;
 extern const char *RStateFilterRunTime;
 extern const char *RStateFire;
 extern const char *RStateFlag;
@@ -165,6 +167,7 @@ extern const char *RStatePressure;
 extern const char *RStateProduction;
 extern const char *RStateReachable;
 extern const char *RStateReplaceFilter;
+extern const char *RStateRotaryEvent;
 extern const char *RStateSat;
 extern const char *RStateSecondsRemaining;
 extern const char *RStateSpectralX;
@@ -310,15 +313,12 @@ extern const QStringList RConfigLastChangeSourceValues;
 extern const QStringList RConfigDeviceModeValues;
 
 #define R_PENDING_DELAY             (1 << 0)
-#define R_PENDING_LEDINDICATION     (1 << 1)
 #define R_PENDING_SENSITIVITY       (1 << 2)
-#define R_PENDING_USERTEST          (1 << 3)
 #define R_PENDING_WRITE_CIE_ADDRESS (1 << 4)
 #define R_PENDING_ENROLL_RESPONSE   (1 << 5)
 #define R_PENDING_MODE              (1 << 6)
 #define R_PENDING_WRITE_POLL_CHECKIN_INTERVAL  (1 << 6)
 #define R_PENDING_SET_LONG_POLL_INTERVAL       (1 << 7)
-#define R_PENDING_DEVICEMODE        (1 << 8)
 
 // after device announce is received lights can be brought into a defined state
 // this might be useful for powerloss and OTA updates or simply providing a default power on configuration

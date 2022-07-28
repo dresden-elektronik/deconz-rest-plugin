@@ -83,6 +83,9 @@
                "name":"state/lowbattery"
             },
             {
+              "name": "state/seconds_remaining"
+            },
+            {
                "name":"state/panel",
                "default":"exit_delay"
             },

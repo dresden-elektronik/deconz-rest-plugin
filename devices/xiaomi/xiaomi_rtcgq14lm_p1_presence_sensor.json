@@ -46,7 +46,18 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "awake": true,
+          "parse": {
+            "at": "0x00f7",
+            "ep": 1,
+            "fn": "xiaomi:special",
+            "idx": "0x08",
+            "script": "xiaomi_swversion.js"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "attr/type"
@@ -227,6 +238,14 @@
         },
         {
           "name": "attr/swversion",
+          "awake": true,
+          "parse": {
+            "at": "0x00f7",
+            "ep": 1,
+            "fn": "xiaomi:special",
+            "idx": "0x08",
+            "script": "xiaomi_swversion.js"
+          },
           "read": {
             "fn": "none"
           }

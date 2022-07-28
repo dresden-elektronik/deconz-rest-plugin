@@ -298,15 +298,12 @@ using namespace deCONZ::literals;
 #define WRITE_OCCUPANCY_CONFIG (1 << 11)
 #define READ_GROUP_IDENTIFIERS (1 << 12)
 #define WRITE_DELAY            (1 << 13)
-#define WRITE_LEDINDICATION    (1 << 14)
 #define WRITE_SENSITIVITY      (1 << 15)
-#define WRITE_USERTEST         (1 << 16)
 #define READ_THERMOSTAT_STATE  (1 << 17)
 #define READ_BATTERY           (1 << 18)
 #define READ_TIME              (1 << 19)
 #define WRITE_TIME             (1 << 20)
 #define READ_THERMOSTAT_SCHEDULE (1 << 21)
-#define WRITE_DEVICEMODE       (1 << 22)
 
 #define READ_MODEL_ID_INTERVAL   (60 * 60) // s
 #define READ_SWBUILD_ID_INTERVAL (60 * 60) // s
@@ -1583,7 +1580,6 @@ public:
     void handleBindAndUnbindRspIndication(const deCONZ::ApsDataIndication &ind);
     void handleMgmtLeaveRspIndication(const deCONZ::ApsDataIndication &ind);
     void handleMgmtLqiRspIndication(const deCONZ::ApsDataIndication &ind);
-    void handleDEClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleXalClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleWindowCoveringClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handlePollControlIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
@@ -1599,7 +1595,6 @@ public:
     void sendTimeClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleBasicClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendBasicClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    void handlePhilipsClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, Device *device);
     void handleTuyaClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, Device *device);
     void handleZclAttributeReportIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclConfigureReportingResponseIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
@@ -1891,7 +1886,6 @@ public:
     int otauIdleTicks;
     int otauBusyTicks;
     int otauIdleTotalCounter;
-    int otauUnbindIdleTotalCounter;
 
     // touchlink
 

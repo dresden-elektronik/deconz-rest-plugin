@@ -1712,6 +1712,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     {
         if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain")) ||
             R_GetProductId(taskRef.lightNode) == QLatin1String("11830304 Switch") ||
+            R_GetProductId(taskRef.lightNode) == QLatin1String("Zigbee dual curtain switch") ||
             R_GetProductId(taskRef.lightNode) == QLatin1String("Covering Switch ESW-2ZAD-EU") ||
             R_GetProductId(taskRef.lightNode) == QLatin1String("QS-Zigbee-C01 Module") ||
             R_GetProductId(taskRef.lightNode) == QLatin1String("Zigbee curtain switch") ||
