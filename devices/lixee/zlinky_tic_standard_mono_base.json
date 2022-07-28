@@ -135,7 +135,7 @@
           "name": "state/consumption",
           "refresh.interval": 300,
           "read": {
-            "at": "0x0000",
+            "at": "0x0100",
             "cl": "0x0702",
             "ep": 1,
             "fn": "zcl"
@@ -246,7 +246,7 @@
       "cl": "0x0702",
       "report": [
         {
-          "at": "0x0000",
+          "at": "0x0100",
           "dt": "0x23",
           "min": 60,
           "max": 300,
