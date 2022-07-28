@@ -74,7 +74,7 @@
             },
             {
                "name":"state/action",
-               "public":false
+               "public":true
             },
             {
                "name":"state/lastupdated"
