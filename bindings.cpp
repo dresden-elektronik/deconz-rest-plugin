@@ -2003,7 +2003,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             modelId == QLatin1String("SZ-ESW01-AU") ||                 // Sercomm / Telstra smart plug
             modelId.startsWith(QLatin1String("ROB_200")) ||            // ROBB Smarrt micro dimmer
             modelId.startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
-            modelId.startsWith(QLatin1String("lumi.plug.maeu")) ||     // Xiaomi Aqara ZB3.0 smart plug
             modelId.startsWith(QLatin1String("lumi.switch.n0agl1")) || // Xiaomi Aqara Single Switch Module T1 (With Neutral)
             modelId.startsWith(QLatin1String("lumi.switch.b1naus01"))) // Xiaomi ZB3.0 Smart Wall Switch
         {
@@ -2883,7 +2882,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("RH3001")) ||
         sensor->modelId().startsWith(QLatin1String("RH3052")) ||
         // Xiaomi
-        sensor->modelId().startsWith(QLatin1String("lumi.plug.maeu01")) ||
         sensor->modelId().startsWith(QLatin1String("lumi.switch.b1naus01")) ||
         sensor->modelId() == QLatin1String("lumi.airmonitor.acn01") ||
         sensor->modelId() == QLatin1String("lumi.sensor_magnet.agl02") ||
@@ -2927,7 +2925,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("Plug-230V-ZB3.0") ||
         sensor->modelId() == QLatin1String("4in1-Sensor-ZB3.0") ||
         sensor->modelId() == QLatin1String("DoorWindow-Sensor-ZB3.0") ||
-        sensor->modelId() == QLatin1String("Keyfob-ZB3.0") ||
         // Casa.IA
         sensor->modelId().startsWith(QLatin1String("CTHS317ET")) ||
         // Sercomm

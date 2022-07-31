@@ -89,7 +89,6 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                         modelId.startsWith(QLatin1String("SKHMP30")) ||                       // GS smart plug
                         modelId.startsWith(QLatin1String("ROB_200")) ||                       // ROBB Smarrt micro dimmer
                         modelId.startsWith(QLatin1String("Micro Smart Dimmer")) ||            // Sunricher Micro Smart Dimmer
-                        modelId.startsWith(QLatin1String("lumi.plug.maeu")) ||                // Xiaomi Aqara ZB3.0 smart plug
                         modelId == QLatin1String("RICI01") ||                                 // LifeControl Smart Plug
                         modelId.startsWith(QLatin1String("outlet")) ||                        // Samsung SmartThings IM6001-OTP/IM6001-OTP01
                         modelId == QLatin1String("3200-Sgb") ||                               // Samsung/Centralite smart outlet

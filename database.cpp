@@ -3799,7 +3799,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                          sensor.modelId() == QLatin1String("lumi.switch.b1nacn02") ||
                          sensor.modelId() == QLatin1String("lumi.switch.b2nacn02") ||
                          sensor.modelId() == QLatin1String("lumi.switch.b1naus01") ||
-                         sensor.modelId() == QLatin1String("lumi.plug.maeu01") ||
                          sensor.modelId() == QLatin1String("lumi.switch.n0agl1") ||
                          sensor.manufacturer() == QLatin1String("Legrand"))
                 {
@@ -4170,10 +4169,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 R_GetProductId(&sensor) == QLatin1String("NAS-AB02B0 Siren"))
             {
                 // no support for some IAS Zone flags
-            }
-            else if (sensor.modelId() == QLatin1String("Keyfob-ZB3.0"))
-            {
-                sensor.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
             }
             else
             {
