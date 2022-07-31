@@ -2882,7 +2882,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("RH3001")) ||
         sensor->modelId().startsWith(QLatin1String("RH3052")) ||
         // Xiaomi
-        sensor->modelId().startsWith(QLatin1String("lumi.sen_ill.mgl01")) ||
         sensor->modelId().startsWith(QLatin1String("lumi.switch.b1naus01")) ||
         sensor->modelId() == QLatin1String("lumi.airmonitor.acn01") ||
         sensor->modelId() == QLatin1String("lumi.sensor_magnet.agl02") ||
