@@ -693,9 +693,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     TaskItem task;
     QString id = req.path[3];
     Sensor *sensor = id.length() < MIN_UNIQUEID_LENGTH ? getSensorNodeForId(id) : getSensorNodeForUniqueId(id);
-    Device *device = (sensor && sensor->parentResource()) ? static_cast<Device*>(sensor->parentResource()) : nullptr;
-    Resource *rsub = DEV_GetSubDevice(device, nullptr, sensor->uniqueId());
-    const bool devManaged = device && device->managed();
     bool ok;
     bool updated;
     bool save = false;
@@ -707,9 +704,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     quint16 pendingMask = 0;
     QVariant var = Json::parse(req.content, ok);
     QVariantMap map = var.toMap();
-
-//    QRegExp latitude("^\\d{3,3}\\.\\d{4,4}(W|E)$");
-//    QRegExp longitude("^\\d{3,3}\\.\\d{4,4}(N|S)$");
 
     rsp.httpStatus = HttpStatusOk;
 
@@ -725,6 +719,16 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
         rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/sensors/%1").arg(id), QString("resource, /sensors/%1, not available").arg(id)));
         rsp.httpStatus = HttpStatusNotFound;
         return REQ_READY_SEND;
+    }
+
+    Device *device = static_cast<Device*>(sensor->parentResource());
+    Resource *rsub = sensor;
+    bool devManaged = false;
+
+    if (device)
+    {
+        rsub = DEV_GetSubDevice(device, nullptr, sensor->uniqueId());
+        devManaged = device->managed();
     }
 
     bool isClip = sensor->type().startsWith(QLatin1String("CLIP"));
