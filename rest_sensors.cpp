@@ -923,6 +923,13 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigLat || rid.suffix == RConfigLong) // String
                 {
+                    double coordinate = data.string.toDouble(&ok);
+                    if (!ok || data.string.isEmpty())
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
+                        continue;
+                    }
                     updated = true;
                 }
                 else if (rid.suffix == RConfigSunriseOffset || rid.suffix == RConfigSunsetOffset)
