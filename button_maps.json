@@ -861,8 +861,8 @@
         },
         "ubisysJ1Map": {
             "vendor": "Ubisys",
-            "doc": "Cover controller J1 (5502)",
-            "modelids": ["J1 (5502)"],
+            "doc": "Cover controller J1 (5502), J1-R (5602)",
+            "modelids": ["J1 (5502)", "J1-R (5602)"],
             "map": [
                 [1, "0x02", "WINDOW_COVERING", "OPEN", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Open"],
                 [1, "0x02", "WINDOW_COVERING", "STOP", "0", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Stop"],
