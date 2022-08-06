@@ -109,6 +109,7 @@ void DeviceJs::setApsIndication(const deCONZ::ApsDataIndication &ind)
 {
     d->apsInd = &ind;
     d->engine.globalObject().setProperty("SrcEp", int(ind.srcEndpoint()));
+    d->engine.globalObject().setProperty("ClusterId", int(ind.clusterId()));
 }
 
 void DeviceJs::setZclFrame(const deCONZ::ZclFrame &zclFrame)
