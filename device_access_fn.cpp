@@ -1760,12 +1760,12 @@ bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsC
             if (engine.evaluate(expr) == JsEvalResult::Ok)
             {
                 const auto res = engine.result();
-                DBG_Printf(DBG_INFO, "expression: %s --> %s\n", qPrintable(expr), qPrintable(res.toString()));
+                DBG_Printf(DBG_DDF, "%s/%s expression: %s --> %s\n", r->item(RAttrUniqueId)->toCString(), item->descriptor().suffix, qPrintable(expr), qPrintable(res.toString()));
                 attribute.setValue(res);
             }
             else
             {
-                DBG_Printf(DBG_INFO, "failed to evaluate expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
+                DBG_Printf(DBG_DDF, "failed to evaluate expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
                 return result;
             }
         }

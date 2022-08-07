@@ -1,0 +1,168 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "$MF_LUMI",
+  "modelid": "lumi.sensor_smoke",
+  "vendor": "Xiaomi",
+  "product": "Mijia Honeywell smoke detector JTYJ-GD-01LM/BW",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_FIRE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0500"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0402",
+        "endpoint": "0x01",
+        "in": [
+          "0x0500",
+          "0x0001"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "at": "0xff01",
+            "ep": 1,
+            "fn": "xiaomi:special",
+            "idx": "0x08",
+            "script": "xiaomi_swversion.js"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "at": "0xff01",
+            "fn": "xiaomi:special",
+            "idx": "0x01",
+            "script": "xiaomi_battery.js"
+          }
+        },
+        {
+          "name": "config/enrolled",
+          "public": false,
+          "static": 1
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/pending"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "config/selftest",
+          "parse": {
+            "cl": "0x0500",
+            "cmd": "0x04",
+            "ep": 1,
+            "eval": "Item.val = (ZclFrame.payloadSize == 1 && ZclFrame.at(0) == 0x00) ? false : true;",
+            "fn": "zcl",
+            "mf": "0x115F"
+          },
+          "read": {
+            "fn": "none"
+          },
+          "write": {
+            "at": "0xFFF1",
+            "cl": "0x0500",
+            "dt": "0x23",
+            "ep": 1,
+            "eval": "if (Item.val) { 0x03010000 }",
+            "fn": "zcl",
+            "mf": "0x115F"
+          },
+          "values": [
+            [true, "Initiate self-test"],
+            [false, "Self-test not initiated"]
+          ]
+        },
+        {
+          "name": "config/sensitivity",
+          "refresh.interval": 3600,
+          "parse": {
+            "at": "0xFFF0",
+            "cl": "0x0500",
+            "ep": 1,
+            "eval": "const i = Number(Attr.val).toString(16)[2]; Item.val = [0, 1, 2][i - 1];",
+            "fn": "zcl",
+            "mf": "0x115F"
+          },
+          "read": {
+            "at": "0xFFF0",
+            "cl": "0x0500",
+            "ep": 1,
+            "fn": "zcl",
+            "mf": "0x115F"
+          },
+          "write": {
+            "at": "0xFFF1",
+            "cl": "0x0500",
+            "dt": "0x23",
+            "ep": 1,
+            "eval": "0x04000000 + [0x00010000, 0x00020000, 0x00030000][Item.val];",
+            "fn": "zcl",
+            "mf": "0x115F"
+          },
+          "values": [
+            [0, "Low"],
+            [1, "Medium"],
+            [2, "High"]
+          ],
+          "default": 1
+        },
+        {
+          "name": "state/fire"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/lowbattery"
+        },
+        {
+          "name": "state/test",
+          "parse": {
+            "fn": "ias:zonestatus",
+            "mask": "alarm2"
+          }
+        }
+      ]
+    }
+  ]
+}

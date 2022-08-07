@@ -3041,7 +3041,7 @@ controller device, that supports a keypad and LCD screen.</description>
 			<attribute-set id="0x0500" description="AC (Single Phase or Phase A) Measurements">
 				<attribute id="0x0505" name="RMS Voltage" type="u16" access="r" required="o" default="0xFFFF"></attribute>
 				<attribute id="0x0508" name="RMS Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
-                <attribute id="0x050a" name="Max Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+				<attribute id="0x050a" name="Max Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
 				<attribute id="0x050b" name="Active Power" type="s16" access="r" required="o" default="0x8000">
 					<description>Represents the single phase or Phase A, current demand of active power delivered or received at the premises, in Watts (W). Positive values indicate power delivered to the premises where negative values indicate power received from the premises.</description>
 				</attribute>
@@ -3060,14 +3060,14 @@ controller device, that supports a keypad and LCD screen.</description>
 			<attribute-set id="0x0900" description="AC (Phase B) Measurements">
 				<attribute id="0x0905" name="RMS Voltage" type="u16" access="r" required="o" default="0xFFFF"></attribute>
 				<attribute id="0x0908" name="RMS Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
-                <attribute id="0x090a" name="Max Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
-                <attribute id="0x090f" name="RMS Power" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+				<attribute id="0x090a" name="Max Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+				<attribute id="0x090f" name="RMS Power" type="u16" access="r" required="o" default="0xFFFF"></attribute>
 			</attribute-set>
 			<attribute-set id="0x0a00" description="AC (Phase C) Measurements">
 				<attribute id="0x0a05" name="RMS Voltage" type="u16" access="r" required="o" default="0xFFFF"></attribute>
 				<attribute id="0x0a08" name="RMS Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
-                <attribute id="0x0a0a" name="Max Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
-                <attribute id="0x0a0f" name="RMS Power" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+				<attribute id="0x0a0a" name="Max Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+				<attribute id="0x0a0f" name="RMS Power" type="u16" access="r" required="o" default="0xFFFF"></attribute>
 			</attribute-set>
 		</server>
 		<client>
@@ -3167,9 +3167,8 @@ controller device, that supports a keypad and LCD screen.</description>
 					<attribute id="0x8000" name="Zone Status Interval" type="u16" access="rw" required="o" mfcode="0x1015"></attribute>
 					<attribute id="0x8001" name="Alarm Off Delay" type="u16" access="rw" required="o" mfcode="0x1015"></attribute>
 				</attribute-set>
-                <attribute-set id="0xf000" description="Xiaomi specific" mfcode="0x1037">
-                    <attribute id="0xfff0" name="Sensitivity" type="u32" access="r" required="o" mfcode="0x1037"></attribute>
-					<attribute id="0xfff1" name="Selftest/Density" type="u32" access="rw" required="o" mfcode="0x1037"></attribute>
+				<attribute-set id="0xf000" description="Xiaomi specific" mfcode="0x1037">
+					<attribute id="0xfff0" name="Device config" type="u64" access="r" required="o" mfcode="0x115f"></attribute>
 				</attribute-set>
 				<command id="0x00" dir="recv" name="Zone Enroll Response" required="m">
 					<payload>
