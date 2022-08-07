@@ -337,13 +337,16 @@ bool evalZclFrame(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicati
             const auto res = engine.result();
             if (res.isValid())
             {
-                DBG_Printf(DBG_INFO, "expression: %s --> %s\n", qPrintable(expr), qPrintable(res.toString()));
+                if (DBG_IsEnabled(DBG_DDF))
+                {
+                    DBG_Printf(DBG_DDF, "expression: %s --> %s\n", qPrintable(expr), qPrintable(res.toString()));
+                }
                 return true;
             }
         }
         else
         {
-            DBG_Printf(DBG_INFO, "failed to evaluate expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
+            DBG_Printf(DBG_DDF, "failed to evaluate expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
         }
     }
     return false;
@@ -493,6 +496,10 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
         if (param.hasCommandId && param.commandId != zclFrame.commandId())
         {
             return result;
+        }
+        else if (!param.hasCommandId && param.attributeCount == 0)
+        {
+            // catch all handler
         }
         else if (!param.hasCommandId && zclFrame.commandId() != deCONZ::ZclReadAttributesResponseId && zclFrame.commandId() != deCONZ::ZclReportAttributesId)
         {
