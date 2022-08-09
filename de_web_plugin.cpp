@@ -4276,7 +4276,9 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ:
                 reachable = true;
             }
 
-            // check that all clusters from fingerprint are present
+            bool found = false;
+
+            // check if any cluster from fingerprint is present
             for (const deCONZ::SimpleDescriptor &sd : sensor->node()->simpleDescriptors())
             {
                 if (!reachable)
@@ -4291,7 +4293,6 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ:
 
                 for (quint16 clusterId : sensor->fingerPrint().inClusters)
                 {
-                    bool found = false;
                     for (const deCONZ::ZclCluster &cl : sd.inClusters())
                     {
                         if (clusterId == cl.id())
@@ -4300,31 +4301,32 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ:
                             break;
                         }
                     }
-                    if (!found)
+                    if (found)
                     {
-                        reachable = false;
+                        reachable = true;
                         break;
                     }
                 }
 
-                for (quint16 clusterId : sensor->fingerPrint().outClusters)
+                if (!found)
                 {
-                    bool found = false;
-                    for (const deCONZ::ZclCluster &cl : sd.outClusters())
+                    for (quint16 clusterId : sensor->fingerPrint().outClusters)
                     {
-                        if (clusterId == cl.id())
+                        for (const deCONZ::ZclCluster &cl : sd.outClusters())
                         {
-                            found = true;
+                            if (clusterId == cl.id())
+                            {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (found)
+                        {
+                            reachable = true;
                             break;
                         }
                     }
-                    if (!found)
-                    {
-                        reachable = false;
-                        break;
-                    }
                 }
-
             }
         }
     }
