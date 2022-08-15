@@ -270,6 +270,7 @@ const char *RConfigUbisysJ1AdditionalSteps = "config/ubisys_j1_additionalsteps";
 const char *RConfigUbisysJ1InactivePowerThreshold = "config/ubisys_j1_inactivepowerthreshold";
 const char *RConfigUbisysJ1StartupSteps = "config/ubisys_j1_startupsteps";
 const char *RConfigAlarmSystemId = "config/alarmsystemid";
+const char *RConfigXiaomiSpecial = "config/xiaomispecial";
 
 const QStringList RConfigDeviceModeValues({
     "singlerocker", "singlepushbutton", "dualrocker", "dualpushbutton"
@@ -501,6 +502,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigUbisysJ1InactivePowerThreshold));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigUbisysJ1StartupSteps));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigAlarmSystemId));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RConfigXiaomiSpecial));
 }
 
 const char *getResourcePrefix(const QString &str)

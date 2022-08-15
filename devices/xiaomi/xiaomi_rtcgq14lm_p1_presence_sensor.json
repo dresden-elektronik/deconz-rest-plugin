@@ -66,6 +66,17 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "config/xiaomispecial",
+          "awake": true,
+          "parse": {
+            "at": "0xff07",
+            "ep": 1,
+            "eval": "if (Attr.id == 0x69) { R.item('config/duration').val = Attr.val; } else if (Attr.id == 0x6b) { R.item('config/ledindication').val = Attr.val; } else if (Attr.id == 0x6a) { R.item('config/sensitivity').val = Attr.val; }",
+            "fn": "xiaomi:special",
+            "idx": ["0x69", "0x6b", "0x6a"]
+          }
+        },
+        {
           "name": "config/battery",
           "awake": true,
           "parse": {
@@ -79,13 +90,13 @@
         {
           "name": "config/duration",
           "refresh.interval": 3600,
-          "awake": true,
           "parse": {
-            "at": "0xff07",
+            "at": "0x0102",
+            "cl": "0xFCC0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "xiaomi:special",
-            "idx": "0x69"
+            "fn": "zcl",
+            "mf": "0x115F"
           },
           "read": {
             "at": "0x0102",
@@ -109,13 +120,13 @@
         {
           "name": "config/ledindication",
           "refresh.interval": 3600,
-          "awake": true,
           "parse": {
-            "at": "0xff07",
+            "at": "0x0152",
+            "cl": "0xFCC0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "xiaomi:special",
-            "idx": "0x6b"
+            "fn": "zcl",
+            "mf": "0x115F"
           },
           "read": {
             "at": "0x0152",
@@ -148,13 +159,13 @@
         {
           "name": "config/sensitivity",
           "refresh.interval": 3600,
-          "awake": true,
           "parse": {
-            "at": "0xff07",
+            "at": "0x010C",
+            "cl": "0xFCC0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "xiaomi:special",
-            "idx": "0x6a"
+            "fn": "zcl",
+            "mf": "0x115F"
           },
           "read": {
             "at": "0x010C",
@@ -257,6 +268,17 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "config/xiaomispecial",
+          "awake": true,
+          "parse": {
+            "at": "0xff07",
+            "ep": 1,
+            "eval": "if (Attr.id == 0x6b) { R.item('config/ledindication').val = Attr.val; }",
+            "fn": "xiaomi:special",
+            "idx": "0x6b"
+          }
+        },
+        {
           "name": "config/battery",
           "awake": true,
           "parse": {
@@ -270,13 +292,13 @@
         {
           "name": "config/ledindication",
           "refresh.interval": 3600,
-          "awake": true,
           "parse": {
-            "at": "0xff07",
+            "at": "0x0152",
+            "cl": "0xFCC0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "xiaomi:special",
-            "idx": "0x6b"
+            "fn": "zcl",
+            "mf": "0x115F"
           },
           "read": {
             "at": "0x0152",

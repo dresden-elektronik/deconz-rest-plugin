@@ -292,6 +292,7 @@ extern const char *RConfigUbisysJ1AdditionalSteps;
 extern const char *RConfigUbisysJ1InactivePowerThreshold;
 extern const char *RConfigUbisysJ1StartupSteps;
 extern const char *RConfigAlarmSystemId;
+extern const char *RConfigXiaomiSpecial;
 
 #define R_ALERT_DEFAULT             QVariant(QLatin1String("none"))
 #define R_SENSITIVITY_MAX_DEFAULT   2

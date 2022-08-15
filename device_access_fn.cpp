@@ -1102,8 +1102,8 @@ bool parseXiaomiSpecial(Resource *r, ResourceItem *item, const deCONZ::ApsDataIn
     {
         return result;
     }
-
-    if (ind.clusterId() != 0x0000 && ind.clusterId() != 0xfcc0) // must be basic or lumi specific cluster
+    
+    if (!(ind.clusterId() == 0x0000 || ind.clusterId() == 0xfcc0) || zclFrame.payload().isEmpty()) // must be basic or lumi specific cluster
     {
         return result;
     }
@@ -1127,7 +1127,7 @@ bool parseXiaomiSpecial(Resource *r, ResourceItem *item, const deCONZ::ApsDataIn
         if (ind.clusterId() == 0xfcc0)
         {
             param.clusterId = 0xfcc0;
-            param.manufacturerCode = 0x115f;
+            //param.manufacturerCode = 0x115f;
         }
 
         if (map.contains(QLatin1String("ep")))
@@ -1135,7 +1135,6 @@ bool parseXiaomiSpecial(Resource *r, ResourceItem *item, const deCONZ::ApsDataIn
             param.endpoint = variantToUint(map["ep"], UINT8_MAX, &ok);
         }
         const auto at = ok ? variantToUint(map["at"], UINT16_MAX, &ok) : 0;
-        const auto idx = ok ? variantToUint(map["idx"], UINT16_MAX, &ok) : 0;
 
         DBG_Assert(at == 0xff01 || at == 0xff02 || at == 0x00f7);
         if (!ok)
@@ -1143,10 +1142,38 @@ bool parseXiaomiSpecial(Resource *r, ResourceItem *item, const deCONZ::ApsDataIn
             return result;
         }
 
-        param.attributeCount = 2;
         param.attributes[0] = at;
-        // keep tag/idx as second "attribute id"
-        param.attributes[1] = idx;
+        const auto idx = map["idx"];
+
+        if (idx.type() == QVariant::String)
+        {
+            param.attributes[1] = ok ? variantToUint(idx, UINT16_MAX, &ok) : 0;
+            param.attributeCount = 2;
+        }
+        else if (idx.type() == QVariant::List)
+        {
+            const auto arr = idx.toList();
+            param.attributeCount = arr.size() + 1;
+            int i = 1;
+            
+            for (const auto &at : arr)
+            {
+                if (arr.size() > ZCL_Param::MaxAttributes - 1)
+                {
+                    break;
+                }
+
+                if (at.type() == QVariant::String)
+                {
+                    param.attributes[i] = ok ? variantToUint(at, UINT16_MAX, &ok) : 0;
+                    i++;
+                }
+            }
+        }
+        else
+        {
+            return result;
+        }
 
         if (param.endpoint == AutoEndpoint)
         {
@@ -1164,22 +1191,21 @@ bool parseXiaomiSpecial(Resource *r, ResourceItem *item, const deCONZ::ApsDataIn
 
     const auto &zclParam = item->zclParam();
 
-    if (!(ind.clusterId() == 0x0000 || ind.clusterId() == 0xfcc0) || zclFrame.payload().isEmpty())
-    {
-        return result;
-    }
-
     if (zclParam.endpoint < BroadcastEndpoint && zclParam.endpoint != ind.srcEndpoint())
     {
         return result;
     }
 
-    Q_ASSERT(zclParam.attributeCount == 2); // attribute id + tag/idx
-    const auto attr = parseXiaomiZclTag(zclParam.attributes[1], zclFrame);
+    Q_ASSERT(zclParam.attributeCount > 1); // attribute id + up to 3x tag/idx
 
-    if (evalZclAttribute(r, item, ind, zclFrame, attr, parseParameters))
+    for (int i = 1; i < zclParam.attributeCount; i++)
     {
-        result = true;
+        const auto attr = parseXiaomiZclTag(zclParam.attributes[i], zclFrame);
+
+        if (evalZclAttribute(r, item, ind, zclFrame, attr, parseParameters))
+        {
+            result = true;
+        }
     }
 
     return result;

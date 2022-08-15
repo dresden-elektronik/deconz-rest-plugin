@@ -1,0 +1,8 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/xiaomispecial",
+  "datatype": "UInt32",
+  "access": "RW",
+  "public": false,
+  "description": "Non-public dummy item to allow more extensive extraction of Xiaomi special reporting."
+}
