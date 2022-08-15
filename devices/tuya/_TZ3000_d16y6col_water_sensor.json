@@ -5,7 +5,7 @@
   "vendor": "Tuya",
   "product": "Tuya water sensor",
   "sleeper": true,
-  "status": "Bronze",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "ZHAWater",
