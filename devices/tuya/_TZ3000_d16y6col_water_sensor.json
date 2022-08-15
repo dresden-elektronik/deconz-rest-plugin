@@ -1,7 +1,7 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "_TZ3000_d16y6col",
-  "modelid": "TS0207",
+  "manufacturername": ["_TZ3000_d16y6col", "_TZ3000_ww9i3e0y"],
+  "modelid": ["TS0207", "TS0207"],
   "vendor": "Tuya",
   "product": "Tuya water sensor",
   "sleeper": true,
