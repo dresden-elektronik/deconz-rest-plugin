@@ -12,6 +12,7 @@ QMAKE_CXXFLAGS += -Wno-attributes \
 
 CONFIG(debug, debug|release) {
     LIBS += -L../../debug
+    DEFINES += DECONZ_DEBUG_BUILD
 }
 
 CONFIG(release, debug|release) {

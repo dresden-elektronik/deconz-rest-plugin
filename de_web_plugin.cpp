@@ -35,7 +35,6 @@
 #include <cmath>
 #include "air_quality.h"
 #include "alarm_system_device_table.h"
-#include "colorspace.h"
 #include "database.h"
 #include "device_ddf_init.h"
 #include "device_descriptions.h"
@@ -636,6 +635,10 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
 
     DEV_SetTestManaged(deCONZ::appArgumentNumeric("--dev-test-managed", 0));
 
+#ifdef DECONZ_DEBUG_BUILD
+    EventTestZclPacking();
+#endif
+
     pollManager = new PollManager(this);
 
     databaseTimer = new QTimer(this);
@@ -1027,12 +1030,12 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
         else if (zclFrame.commandId() == deCONZ::ZclReadAttributesResponseId && zclFrame.payload().size() >= 3)
         {
             const auto status = quint8(zclFrame.payload().at(2));
-            enqueueEvent(Event(device->prefix(), REventZclResponse, EventZclResponsePack(zclFrame.sequenceNumber(), status), device->key()));
+            enqueueEvent(Event(device->prefix(), REventZclResponse, EventZclResponsePack(ind.clusterId(), zclFrame.sequenceNumber(), status), device->key()));
         }
         else if (zclFrame.commandId() == deCONZ::ZclConfigureReportingResponseId && zclFrame.payload().size() >= 1)
         {
             const auto status = quint8(zclFrame.payload().at(0));
-            enqueueEvent(Event(device->prefix(), REventZclResponse, EventZclResponsePack(zclFrame.sequenceNumber(), status), device->key()));
+            enqueueEvent(Event(device->prefix(), REventZclResponse, EventZclResponsePack(ind.clusterId(), zclFrame.sequenceNumber(), status), device->key()));
         }
         else if (zclFrame.commandId() == deCONZ::ZclReadReportingConfigResponseId)
         {
