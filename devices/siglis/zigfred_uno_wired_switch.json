@@ -5,7 +5,6 @@
   "product": "zigfred uno",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/zigfred_uno.json",
   "subdevices": [
     {
       "type": "$TYPE_SWITCH",
