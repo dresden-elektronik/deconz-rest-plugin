@@ -107,7 +107,7 @@ StateChange::State StateChange::tick(Resource *r, deCONZ::ApsController *apsCtrl
             const auto readFunction = DA_GetReadFunction(ddfItem.readParameters);
             if (readFunction && ddfItem.isValid())
             {
-                m_readResult = readFunction(r, item, apsCtrl, ddfItem.parseParameters);
+                m_readResult = readFunction(r, item, apsCtrl, ddfItem.readParameters);
 
                 if (m_readResult.isEnqueued)
                 {

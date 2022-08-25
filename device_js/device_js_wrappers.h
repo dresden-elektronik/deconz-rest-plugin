@@ -105,4 +105,15 @@ public Q_SLOTS:
     bool isClCmd() const;
 };
 
+class JsUtils : public QObject
+{
+    Q_OBJECT
+
+public:
+    JsUtils(QObject *parent = nullptr);
+
+    Q_INVOKABLE double log10(double x) const;
+    Q_INVOKABLE QString padStart(const QString &str, QJSValue targetLength, QJSValue padString);
+};
+
 #endif // DEVICE_JS_WRAPPERS_H

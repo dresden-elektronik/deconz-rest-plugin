@@ -88,6 +88,48 @@ void DeRestPluginPrivate::handleXiaomiLumiClusterIndication(const deCONZ::ApsDat
             }
                 break;
 
+            case XIAOMI_ATTRID_P1_MOTION_DETECTION:
+            {
+                // Workaround to set P1 presence sensor back to unoccupied, as the pure reception of this report is considered
+                // as presence = true state, but this is not reset by the device automatically. Ideally, deCONZ will have some timers
+                // for such cases available in future.
+                Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
+                
+                if (sensor)
+                {
+                    bool occupancy = true;
+                    ResourceItem *item = nullptr;
+                    item = sensor->item(RStatePresence);
+                    
+                    if (item)
+                    {
+                        item->setValue(occupancy);
+                        enqueueEvent(Event(RSensors, RStatePresence, sensor->id(), item));
+    
+                        ResourceItem *item2 = nullptr;
+                        item2 = sensor->item(RConfigDuration);
+    
+                        if (item2 && item2->toNumber() > 0)
+                        {
+                            // As unoccupied state is not reportable, add duration seconds after a occupied = true to automatically set to false
+                            sensor->durationDue = item->lastSet().addSecs(item2->toNumber());
+                        }
+                    }
+    
+                    deCONZ::NumericUnion occ;
+                    occ.u64 = occupancy;
+    
+                    sensor->setZclValue(updateType, ind.srcEndpoint(), OCCUPANCY_SENSING_CLUSTER_ID, XIAOMI_ATTRID_P1_MOTION_DETECTION, occ);
+    
+                    sensor->updateStateTimestamp();
+                    enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
+                    updateSensorEtag(&*sensor);
+                    sensor->setNeedSaveDatabase(true);
+                    queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+                }
+            }
+                break;
+
             case XIAOMI_ATTRID_SPEED:
             {
                 LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());

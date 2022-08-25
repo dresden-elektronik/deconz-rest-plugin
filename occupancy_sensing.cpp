@@ -4,8 +4,6 @@
 
 #define OCCUPIED_STATE                  0x0000
 #define OCCUPIED_TO_UNOCCUPIED_DELAY    0x0010
-#define HUE_SENSITIVITY                 0x0030
-#define HUE_SENSITIVITY_MAX             0x0031
 
 /*! Handle packets related to the ZCL occupancy sensing cluster.
     \param ind the APS level data indication containing the ZCL packet
@@ -189,60 +187,6 @@ void DeRestPluginPrivate::handleOccupancySensingClusterIndication(const deCONZ::
             }
 
             sensor->setZclValue(updateType, ind.srcEndpoint(), OCCUPANCY_SENSING_CLUSTER_ID, OCCUPIED_TO_UNOCCUPIED_DELAY, attr.numericValue());
-        }
-            break;
-
-        case HUE_SENSITIVITY:
-        {
-            NodeValue &val = sensor->getZclValue(OCCUPANCY_SENSING_CLUSTER_ID, HUE_SENSITIVITY);
-            // allow proper binding checks
-            if (val.minInterval == 0 || val.maxInterval == 0)
-            {
-                val.minInterval = 5;      // value used by Hue bridge
-                val.maxInterval = 7200;   // value used by Hue bridge
-            }
-
-            quint8 sensitivity = attr.numericValue().u8;
-            item = sensor->item(RConfigSensitivity);
-
-            if (item && item->toNumber() != sensitivity)
-            {
-                item->setValue(sensitivity);
-                enqueueEvent(Event(RSensors, RConfigSensitivity, sensor->id(), item));
-                configUpdated = true;
-            }
-
-            if (sensor->mustRead(WRITE_SENSITIVITY))
-            {
-                ResourceItem *item = sensor->item(RConfigPending);
-                if (item)
-                {
-                    quint16 mask = item->toNumber();
-                    mask &= ~R_PENDING_SENSITIVITY;
-                    item->setValue(mask);
-                    Event e(RSensors, RConfigPending, sensor->id(), item);
-                    enqueueEvent(e);
-                }
-                sensor->clearRead(WRITE_SENSITIVITY);
-            }
-
-            sensor->setZclValue(updateType, ind.srcEndpoint(), OCCUPANCY_SENSING_CLUSTER_ID, HUE_SENSITIVITY, attr.numericValue());
-        }
-            break;
-
-        case HUE_SENSITIVITY_MAX:
-        {
-            quint8 sensitivitymax = attr.numericValue().u8;
-            item = sensor->item(RConfigSensitivityMax);
-
-            if (item && item->toNumber() != sensitivitymax)
-            {
-                item->setValue(sensitivitymax);
-                enqueueEvent(Event(RSensors, RConfigSensitivityMax, sensor->id(), item));
-                configUpdated = true;
-            }
-
-            sensor->setZclValue(updateType, ind.srcEndpoint(), OCCUPANCY_SENSING_CLUSTER_ID, HUE_SENSITIVITY_MAX, attr.numericValue());
         }
             break;
 

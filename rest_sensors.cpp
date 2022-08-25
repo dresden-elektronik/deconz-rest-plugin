@@ -15,6 +15,7 @@
 #include <QVariantMap>
 #include <QtCore/qmath.h>
 #include "database.h"
+#include "device_descriptions.h"
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "json.h"
@@ -25,6 +26,45 @@
 #include "thermostat.h"
 #include "thermostat_ui_configuration.h"
 #include "utils/utils.h"
+
+/*! In a DDF a sub device can specify valid keyvalue pairs for a ResourceItem.suffix in the meta object.
+
+    Example of Ikea Starkvind:
+
+    "meta": {
+      "values": {
+        "config/mode": {"off": 0, "auto": 1, "speed_1": 10, "speed_2": 20, "speed_3": 30, "speed_4": 40, "speed_5": 50}
+      }
+    }
+
+    This function returns the map for the ResourceItem.
+*/
+static QVariantMap DDF_GetMetaKeyValues(const Resource *r, const ResourceItem *item)
+{
+    QVariantMap m;
+
+    if (!r || !item)
+    {
+        return m;
+    }
+
+    auto *dd = DeviceDescriptions::instance();
+    const auto &sub = dd->getSubDevice(r);
+
+    const QLatin1String kvalues("values");
+    const QLatin1String ksuffix(item->descriptor().suffix);
+
+    if (sub.isValid() && sub.meta.contains(kvalues))
+    {
+        m = sub.meta.value(kvalues).toMap();
+        if (m.contains(ksuffix))
+        {
+            m = m.value(ksuffix).toMap();
+        }
+    }
+
+    return m;
+}
 
 /*! Sensors REST API broker.
     \param req - request data
@@ -653,9 +693,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     TaskItem task;
     QString id = req.path[3];
     Sensor *sensor = id.length() < MIN_UNIQUEID_LENGTH ? getSensorNodeForId(id) : getSensorNodeForUniqueId(id);
-    Device *device = (sensor && sensor->parentResource()) ? static_cast<Device*>(sensor->parentResource()) : nullptr;
-    Resource *rsub = DEV_GetSubDevice(device, nullptr, sensor->uniqueId());
-    const bool devManaged = device && device->managed();
     bool ok;
     bool updated;
     bool save = false;
@@ -667,9 +704,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     quint16 pendingMask = 0;
     QVariant var = Json::parse(req.content, ok);
     QVariantMap map = var.toMap();
-
-//    QRegExp latitude("^\\d{3,3}\\.\\d{4,4}(W|E)$");
-//    QRegExp longitude("^\\d{3,3}\\.\\d{4,4}(N|S)$");
 
     rsp.httpStatus = HttpStatusOk;
 
@@ -687,6 +721,16 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
         return REQ_READY_SEND;
     }
 
+    Device *device = static_cast<Device*>(sensor->parentResource());
+    Resource *rsub = sensor;
+    bool devManaged = false;
+
+    if (device)
+    {
+        rsub = DEV_GetSubDevice(device, nullptr, sensor->uniqueId());
+        devManaged = device->managed();
+    }
+
     bool isClip = sensor->type().startsWith(QLatin1String("CLIP"));
 
     if (req.sock)
@@ -700,8 +744,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     task.req.setDstEndpoint(sensor->fingerPrint().endpoint);
     task.req.setSrcEndpoint(getSrcEndpoint(sensor, task.req));
     task.req.setDstAddressMode(deCONZ::ApsExtAddress);
-    
-    StateChange change(StateChange::StateWaitSync, SC_WriteZclAttribute, task.req.dstEndpoint());
+
+    StateChange change(StateChange::StateCallFunction, SC_WriteZclAttribute, task.req.dstEndpoint());
 
     //check invalid parameter
     auto pi = map.cbegin();
@@ -761,23 +805,13 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                 }
 
-                if (rid.suffix == RConfigDeviceMode) // String
+                if (rid.suffix == RConfigDeviceMode && !data.string.isEmpty() && RConfigDeviceModeValues.indexOf(data.string) >= 0)
                 {
-                    if (RConfigDeviceModeValues.indexOf(data.string) >= 0)
+                    if (devManaged && rsub)
                     {
-                        pendingMask |= R_PENDING_DEVICEMODE;
-                        sensor->enableRead(WRITE_DEVICEMODE);
-                        sensor->setNextReadTime(WRITE_DEVICEMODE, QTime::currentTime());
+                        change.addTargetValue(rid.suffix, data.string);
+                        rsub->addStateChange(change);
                         updated = true;
-                    }
-                    else if (!data.string.isEmpty())
-                    {
-                        if (devManaged && rsub)
-                        {
-                            change.addTargetValue(rid.suffix, data.string);
-                            rsub->addStateChange(change);
-                            updated = true;
-                        }
                     }
                 }
                 else if (rid.suffix == RConfigClickMode && !data.string.isEmpty()) // String
@@ -796,8 +830,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigDelay) // Unsigned integer
                 {
-                    if (!devManaged && (sensor->modelId().startsWith(QLatin1String("SML00")) ||   // Hue motion sensor
-                        sensor->modelId() == QLatin1String("lumi.motion.agl04")))  // Xiaomi Aqara RTCGQ13LM high precision motion sensor
+                    if (!devManaged &&
+                        sensor->modelId() == QLatin1String("lumi.motion.agl04"))  // Xiaomi Aqara RTCGQ13LM high precision motion sensor
                     {
                         pendingMask |= R_PENDING_DELAY;
                         sensor->enableRead(WRITE_DELAY);
@@ -833,44 +867,69 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             continue;
                         }
                     }
+                    else if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.uinteger);
+                        rsub->addStateChange(change);
+                    }
 
                     updated = true;
                 }
                 else if (rid.suffix == RConfigLedIndication) // Boolean
                 {
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.boolean);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
+                }
+                else if (rid.suffix == RConfigTriggerDistance && !data.string.isEmpty()) // String
+                {
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.string);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
+                }
+                else if (rid.suffix == RConfigSensitivity) // Unsigned integer
+                {
                     if (!devManaged)
                     {
-                        pendingMask |= R_PENDING_LEDINDICATION;
-                        sensor->enableRead(WRITE_LEDINDICATION);
-                        sensor->setNextReadTime(WRITE_LEDINDICATION, QTime::currentTime());
+                        pendingMask |= R_PENDING_SENSITIVITY;
+                        sensor->enableRead(WRITE_SENSITIVITY);
+                        sensor->setNextReadTime(WRITE_SENSITIVITY, QTime::currentTime());
                         updated = true;
                     }
                     else
                     {
                         if (rsub)
                         {
-                            change.addTargetValue(rid.suffix, data.boolean);
+                            change.addTargetValue(rid.suffix, data.uinteger);
                             rsub->addStateChange(change);
                             updated = true;
                         }
                     }
                 }
-                else if (rid.suffix == RConfigSensitivity) // Unsigned integer
-                {
-                    pendingMask |= R_PENDING_SENSITIVITY;
-                    sensor->enableRead(WRITE_SENSITIVITY);
-                    sensor->setNextReadTime(WRITE_SENSITIVITY, QTime::currentTime());
-                    updated = true;
-                }
                 else if (rid.suffix == RConfigUsertest) // Boolean
                 {
-                    pendingMask |= R_PENDING_USERTEST;
-                    sensor->enableRead(WRITE_USERTEST);
-                    sensor->setNextReadTime(WRITE_USERTEST, QTime::currentTime());
-                    updated = true;
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.boolean);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
                 }
                 else if (rid.suffix == RConfigLat || rid.suffix == RConfigLong) // String
                 {
+                    double coordinate = data.string.toDouble(&ok);
+                    if (!ok || data.string.isEmpty())
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
+                        continue;
+                    }
                     updated = true;
                 }
                 else if (rid.suffix == RConfigSunriseOffset || rid.suffix == RConfigSunsetOffset)
@@ -880,6 +939,15 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 else if (rid.suffix == RConfigOn) // Boolean
                 {
                     updated = true;
+                }
+                else if (rid.suffix == RConfigResetPresence) // Boolean
+                {
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.boolean);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
                 }
                 else if (rid.suffix == RConfigAlert) // String
                 {
@@ -952,6 +1020,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigOffset) // Signed integer
                 {
+                    offset = data.integer - item->toNumber();
+
                     data.integer = data.integer / 10;
 
                     if (R_GetProductId(sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
@@ -1027,7 +1097,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             if (data.integer < -25) { data.integer = -25; }
                             if (data.integer > 25)  { data.integer = 25; }
-    
+
                             if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, THERM_ATTRID_LOCAL_TEMPERATURE_CALIBRATION, deCONZ::Zcl8BitInt, data.integer))
                             {
                                 updated = true;
@@ -1193,7 +1263,26 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigMode) // String
                 {
-                    if (sensor->modelId() == QLatin1String("Cable outlet")) // Legrand cable outlet
+                    ok = false;
+
+                    if (devManaged)
+                    {
+                        const QVariantMap m = DDF_GetMetaKeyValues(sensor, item);
+
+                        if (m.contains(data.string))
+                        {
+                            change.addTargetValue(rid.suffix, data.string);
+                            rsub->addStateChange(change);
+                            updated = true;
+                            ok = true; // mark handled
+                        }
+                    }
+
+                    if (ok)
+                    {
+                        // handled by DDF "meta": { "<item.suffix>": {...}}
+                    }
+                    else if (sensor->modelId() == QLatin1String("Cable outlet")) // Legrand cable outlet
                     {
                         const auto match = matchKeyValue(data.string, RConfigModeLegrandValues);
 
@@ -2266,6 +2355,20 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
                         }
                     }
                 }
+
+                if (rid.suffix == RStateLocaltime)
+                {
+                    // convert to QDateTime here, otherwise the time string would be interpretet
+                    // as UTC in item->setValue()
+                    const auto str = val.toString();
+                    auto fmt = str.contains('.') ? QLatin1String("yyyy-MM-ddTHH:mm:ss.zzz")
+                                                 : QLatin1String("yyyy-MM-ddTHH:mm:ss");
+                    auto dt = QDateTime::fromString(str, fmt);
+
+                    if (dt.isValid()) { val = dt; }
+                    else              { val = ""; } // mark invalid but keep processing to return proper error
+                }
+
                 if (item->setValue(val))
                 {
                     rspItemState[QString("/sensors/%1/state/%2").arg(id).arg(pi.key())] = val;
@@ -2593,21 +2696,9 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
                 {
                     pending.append(QLatin1String("delay"));
                 }
-                if (value & R_PENDING_LEDINDICATION)
-                {
-                    pending.append(QLatin1String("ledindication"));
-                }
                 if (value & R_PENDING_SENSITIVITY)
                 {
                     pending.append(QLatin1String("sensitivity"));
-                }
-                if (value & R_PENDING_USERTEST)
-                {
-                    pending.append(QLatin1String("usertest"));
-                }
-                if (value & R_PENDING_DEVICEMODE)
-                {
-                    pending.append(QLatin1String("devicemode"));
                 }
                 config[key] = pending;
             }
@@ -2993,21 +3084,9 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                             {
                                 pending.append(QLatin1String("delay"));
                             }
-                            if (value & R_PENDING_LEDINDICATION)
-                            {
-                                pending.append(QLatin1String("ledindication"));
-                            }
                             if (value & R_PENDING_SENSITIVITY)
                             {
                                 pending.append(QLatin1String("sensitivity"));
-                            }
-                            if (value & R_PENDING_USERTEST)
-                            {
-                                pending.append(QLatin1String("usertest"));
-                            }
-                            if (value & R_PENDING_DEVICEMODE)
-                            {
-                                pending.append(QLatin1String("devicemode"));
                             }
                             config[key] = pending;
                         }

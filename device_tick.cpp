@@ -11,6 +11,7 @@
 #include <QElapsedTimer>
 #include <QTimer>
 #include <deconz/dbg_trace.h>
+#include <deconz/timeref.h>
 #include "event.h"
 #include "resource.h"
 #include "device_tick.h"
@@ -18,8 +19,10 @@
 #define DEV_TICK_BOOT_TIME 8000
 #define TICK_INTERVAL_JOIN 500
 #define TICK_INTERVAL_IDLE 1000
+#define TICK_INTERVAL_IDLE_OTAU 6000
 
 extern int DEV_ApsQueueSize();
+extern bool DEV_OtauBusy();
 
 struct JoinDevice
 {
@@ -40,6 +43,7 @@ class DeviceTickPrivate
 public:
     DT_StateHandler stateHandler = DT_StateInit;
     std::vector<JoinDevice> joinDevices;
+    deCONZ::SteadyTimeRef joinDisabledTime;
     DeviceTick *q = nullptr;
     QTimer *timer = nullptr;
     size_t devIter = 0;
@@ -158,11 +162,12 @@ static void DT_StateIdle(DeviceTickPrivate *d, const Event &event)
     {
         if (event.what() == REventStateTimeout)
         {
+            int timeout = DEV_OtauBusy() ? TICK_INTERVAL_IDLE_OTAU : TICK_INTERVAL_IDLE;
             if (DEV_ApsQueueSize() < 4)
             {
                 DT_PollNextIdleDevice(d);
             }
-            DT_StartTimer(d, TICK_INTERVAL_IDLE);
+            DT_StartTimer(d, timeout);
         }
         else if (event.what() == REventStateEnter)
         {
@@ -224,7 +229,7 @@ static void DT_StateJoin(DeviceTickPrivate *d, const Event &event)
 {
     if (event.what() == REventPermitjoinDisabled)
     {
-        DT_SetState(d, DT_StateIdle);
+        d->joinDisabledTime = deCONZ::steadyTimeRef();
     }
     else if (event.what() == REventDeviceAnnounce)
     {
@@ -235,11 +240,20 @@ static void DT_StateJoin(DeviceTickPrivate *d, const Event &event)
     {
         if (event.what() == REventStateTimeout)
         {
+            if (deCONZ::isValid(d->joinDisabledTime) &&
+                deCONZ::TimeSeconds{20} < (deCONZ::steadyTimeRef() - d->joinDisabledTime))
+            {
+                // leave state after delay to let fast polling finish even then permit join is disabled again
+                DT_SetState(d, DT_StateIdle);
+                return;
+            }
+
             DT_PollNextJoiningDevice(d);
             DT_StartTimer(d, TICK_INTERVAL_JOIN);
         }
         else if (event.what() == REventStateEnter)
         {
+            d->joinDisabledTime = {};
             DT_StartTimer(d, TICK_INTERVAL_JOIN);
         }
         else if (event.what() == REventStateLeave)

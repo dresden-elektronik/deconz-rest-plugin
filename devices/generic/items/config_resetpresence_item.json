@@ -1,0 +1,9 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/resetpresence",
+	"datatype": "Bool",
+	"access": "RW",
+	"public": true,
+	"description": "Reset the presence state for devices supporting it (e.g. Aqara FP1).",
+	"default": false
+}

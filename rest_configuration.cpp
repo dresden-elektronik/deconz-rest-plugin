@@ -28,6 +28,7 @@
 #include <QProcess>
 #include "backup.h"
 #include "gateway.h"
+#include "utils/utils.h"
 #ifdef Q_OS_LINUX
   #include <unistd.h>
   #include <sys/time.h>
@@ -241,35 +242,91 @@ void DeRestPluginPrivate::initTimezone()
 {
 #ifdef Q_OS_LINUX
 #ifdef ARCH_ARM
-    if (gwTimezone.isEmpty())
-    {
-        // set timezone in system and save it in db
-        gwTimezone = QLatin1String("Etc/GMT");
+    QFile file;
+    QString timezone;
+    QString timedatectl("/usr/bin/timedatectl");
+    file.setFileName("/etc/timezone");
 
-        if (getenv("TZ") == NULL)
+    // first try to query systemd via timedatectl
+    // needed on distributions not having /etc/timezone, or being it a directory (Arch Linux)
+    if (QFile::exists(timedatectl))
+    {
+        QProcess pr;
+        pr.start(timedatectl, {"status"});
+        pr.waitForFinished();
+        QTextStream ts(&pr);
+
+        QString line;
+        while (ts.readLineInto(&line, 1024))
         {
-            setenv("TZ", qPrintable(gwTimezone), 1);
+            line = line.trimmed();
+            if (line.startsWith(QLatin1String("Time zone:")))
+            {
+                // split at first space after timezone value
+                // Europe/Berlin (CEST, +0200) --> Europe/Berlin
+                int beg = line.indexOf(':') + 1;
+                int end = line.indexOf(' ', beg + 4); // might be -1 (ok)
+                int length = end > beg ? end - beg : -1;
+                timezone = line.mid(beg, length).trimmed();
+                break;
+            }
+        }
+    }
+
+    if (timezone.isEmpty() && file.exists())
+    {
+        file.open(QIODevice::ReadOnly | QIODevice::Text);
+        QTextStream stream(&file);
+
+        if (!stream.readLineInto(&timezone, 100))
+        {
+            DBG_Printf(DBG_INFO, "[ERROR] - Timezone could not be read from file system (/etc/timezone)...\n");
         }
         else
         {
-            gwTimezone = getenv("TZ");
+            DBG_Printf(DBG_INFO, "[INFO] - Timezone read is '%s'\n", qPrintable(timezone));
         }
-        queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+
+        file.close();
+    }
+
+    if (!timezone.isEmpty())
+    {
+        gwTimezone = timezone;
     }
     else
     {
-        // set system timezone from db
-        if (getenv("TZ") != gwTimezone)
+        if (gwTimezone.isEmpty())
         {
-            setenv("TZ", qPrintable(gwTimezone), 1);
-            //also set zoneinfo on RPI
-            char param1[100];
-            strcpy(param1, "/usr/share/zoneinfo/");
-            strcpy(param1, qPrintable(gwTimezone));
-            symlink(param1, "/etc/localtime");
+            gwTimezone = QLatin1String("Etc/GMT");
         }
     }
-    tzset();
+
+    if (getenv("TZ") == NULL)
+    {
+        file.setFileName("/etc/localtime");
+        QString tzValue;
+
+        if (file.exists())
+        {
+            tzValue = ":/etc/localtime";
+        }
+        else if (!timezone.isEmpty())
+        {
+            tzValue = timezone;
+        }
+        else
+        {
+            tzValue = gwTimezone;
+        }
+
+        DBG_Printf(DBG_INFO, "[INFO] - Setting environment variable 'TZ=%s'...\n", qPrintable(tzValue));
+        setenv("TZ", qPrintable(tzValue), 1);
+    }
+    else
+    {
+        DBG_Printf(DBG_INFO, "[INFO] - Environment variable TZ found: %s...\n", qPrintable(getenv("TZ")));
+    }
 #endif
 #endif
 
@@ -295,6 +352,10 @@ void DeRestPluginPrivate::initTimezone()
         item->setValue(QVariant());
         item = dl.addItem(DataTypeInt32, RStateStatus);
         item->setValue(QVariant());
+        item = dl.addItem(DataTypeString, RConfigLat);
+        item->setIsPublic(false);
+        item = dl.addItem(DataTypeString, RConfigLong);
+        item->setIsPublic(false);
 
         dl.removeItem(RConfigReachable);
         dl.removeItem(RAttrLastAnnounced);
@@ -2927,7 +2988,7 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
         gwWifiLastUpdated = currentDateTime.toTime_t();
 
         updateEtag(gwConfigEtag);
-        queSaveDb(DB_CONFIG | DB_SYNC, DB_SHORT_SAVE_DELAY);
+        queSaveDb(DB_CONFIG | DB_SYNC, DB_FAST_SAVE_DELAY);
     }
 
     QVariantMap rspItem;
@@ -3705,47 +3766,58 @@ bool DeRestPluginPrivate::checkDaylightSensorConfiguration(Sensor *sensor, const
         return false;
     }
 
-    {   // TODO the following code is excecuted on every iteration and rather expensive
-
-        // check uniqueid
-        // note: might change if device is changed
-        ResourceItem *item = sensor->item(RAttrUniqueId);
-        QString uniqueid = gwBridgeId.toLower() + QLatin1String("-01");
-        // 00:21:2e:ff:ff:00:aa:bb-01
-        for (int i = 0; i < (7 * 3); i += 3)
-        {
-            uniqueid.insert(i + 2, ':');
-        }
-
-        if (!item || (item->toString() != uniqueid))
-        {
-            item = sensor->addItem(DataTypeString, RAttrUniqueId);
-            item->setValue(uniqueid);
-        }
-    }
-
     ResourceItem *configured = sensor->item(RConfigConfigured);
+    ResourceItem *ilat = sensor->item(RConfigLat);
+    ResourceItem *ilng = sensor->item(RConfigLong);
+
     DBG_Assert(configured != nullptr);
-    if (!configured || !configured->toBool())
+    DBG_Assert(ilat != nullptr);
+    DBG_Assert(ilng != nullptr);
+    if (!configured || !ilat || !ilng)
     {
         return false;
     }
 
-    ResourceItem *ilat = sensor->item(RConfigLat);
-    ResourceItem *ilng = sensor->item(RConfigLong);
+    bool ok;
+    static bool uidChecked = false;
+
+    // check uniqueid once per deCONZ start
+    if (!uidChecked && !gwBridgeId.isEmpty())
+    {
+        qulonglong extAddr = gwBridgeId.toULongLong(&ok, 16);
+        if (ok && extAddr != 0)
+        {
+            // 00:21:2e:ff:ff:00:aa:bb-01
+            // note: might change if device is changed
+            QString uniqueid = generateUniqueId(extAddr, 1, 0);
+            ResourceItem *item = sensor->item(RAttrUniqueId);
+
+            if (!item || (item->toString() != uniqueid))
+            {
+                item = sensor->addItem(DataTypeString, RAttrUniqueId);
+                item->setValue(uniqueid);
+                sensor->setNeedSaveDatabase(true);
+                queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+            }
+
+            uidChecked = true;
+        }
+    }
 
     bool ok1 = false;
     bool ok2 = false;
-    *lat = ilat ? ilat->toString().toDouble(&ok1) : nan("");
-    *lng = ilng ? ilng->toString().toDouble(&ok2) : nan("");
-    if (ok1 && ok2)
+    *lat = ilat->toString().toDouble(&ok1);
+    *lng = ilng->toString().toDouble(&ok2);
+    ok = ok1 && ok2;
+
+    if (ok != configured->toBool())
     {
-        return true;
+        configured->setValue(ok);
+        sensor->setNeedSaveDatabase(true);
+        queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
     }
 
-    DBG_Printf(DBG_INFO, "The daylight sensor seems to be configured with invalid values\n");
-    // TODO should configured be set to false?
-    return false;
+    return ok;
 }
 
 size_t DeRestPluginPrivate::calcDaylightOffsets(Sensor *daylightSensor, size_t iter)

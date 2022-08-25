@@ -4,5 +4,6 @@
 	"datatype": "Bool",
 	"access": "RW",
 	"public": true,
-	"description": "Activates the LED indicator."
+	"description": "Activates the LED indicator.",
+	"default": false
 }
