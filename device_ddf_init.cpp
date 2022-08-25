@@ -257,9 +257,18 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
 
                 if (writeFunction.isEmpty() || writeFunction == QLatin1String("zcl"))
                 {
+                    bool ok;
+                    const auto stateTimeout = ddfItem.writeParameters.toMap()[QLatin1String("state.timeout")].toUInt(&ok);
+                    
                     StateChange stateChange(StateChange::StateWaitSync, SC_WriteZclAttribute, sub.uniqueId.at(1).toUInt());
                     stateChange.addTargetValue(item->descriptor().suffix, item->toVariant());
                     stateChange.setChangeTimeoutMs(1000 * 60 * 60);
+
+                    if (ok && stateTimeout > 0)
+                    {
+                        stateChange.setStateTimeoutMs(1000 * stateTimeout);
+                    }
+
                     rsub->addStateChange(stateChange);
                 }
             }
