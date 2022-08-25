@@ -30,6 +30,7 @@ Event::Event()
     m_num = 0;
     m_numPrev = 0;
     m_hasData = 0;
+    m_urgent = 0;
 }
 
 Event::Event(const char *resource, const char *what, const QString &id, ResourceItem *item, DeviceKey deviceKey) :
@@ -39,7 +40,8 @@ Event::Event(const char *resource, const char *what, const QString &id, Resource
     m_num(0),
     m_numPrev(0),
     m_deviceKey(deviceKey),
-    m_hasData(0)
+    m_hasData(0),
+    m_urgent(0)
 {
     DBG_Assert(item != 0);
     if (item)
@@ -58,7 +60,8 @@ Event::Event(const char *resource, const char *what, const QString &id, DeviceKe
     m_num(0),
     m_numPrev(0),
     m_deviceKey(deviceKey),
-    m_hasData(0)
+    m_hasData(0),
+    m_urgent(0)
 {
 
 }
@@ -72,7 +75,8 @@ Event::Event(const char *resource, const char *what, const QString &id, int num,
     m_num(num),
     m_numPrev(0),
     m_deviceKey(deviceKey),
-    m_hasData(0)
+    m_hasData(0),
+    m_urgent(0)
 {
 
 }
@@ -85,7 +89,8 @@ Event::Event(const char *resource, const char *what, int num, DeviceKey deviceKe
     m_num(num),
     m_numPrev(0),
     m_deviceKey(deviceKey),
-    m_hasData(0)
+    m_hasData(0),
+    m_urgent(0)
 {
     if (resource == RGroups)
     {
@@ -97,7 +102,8 @@ Event::Event(const char *resource, const char *what, const void *data, size_t si
     m_resource(resource),
     m_what(what),
     m_deviceKey(deviceKey),
-    m_hasData(1)
+    m_hasData(1),
+    m_urgent(0)
 {
     Q_ASSERT(data);
     Q_ASSERT(size > 0 && size <= MaxEventDataSize);

@@ -30,6 +30,8 @@ public:
     bool hasData() const;
     quint16 dataSize() const { return m_dataSize; }
     bool getData(void *dst, size_t size) const;
+    bool isUrgent() const { return m_urgent == 1; }
+    void setUrgent(bool urgent) { m_urgent = urgent ? 1 : 0; }
 
 private:
     const char *m_resource = nullptr;
@@ -54,7 +56,8 @@ private:
     struct
     {
         unsigned char m_hasData : 1;
-        unsigned char _pad : 7;
+        unsigned char m_urgent : 1;
+        unsigned char _pad : 6;
     };
 };
 

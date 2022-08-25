@@ -146,6 +146,9 @@ public:
     QElapsedTimer awake; //! time to track when an end-device was last awake
     BindingContext binding; //! only used by binding sub state machine
     std::vector<DEV_PollItem> pollItems; //! queue of items to poll
+    /*! True while a new state waits for the state enter event, which must arrive first.
+        This is for debug asserting that the order of events is valid - it doesn't drive logic. */
+    bool stateEnterLock[StateLevelMax] = {};
     bool managed = false; //! a managed device doesn't rely on legacy implementation of polling etc.
     ZDP_Result zdpResult; //! keep track of a running ZDP request
     DA_ReadResult readResult; //! keep track of a running "read" request
@@ -2049,12 +2052,23 @@ void Device::handleEvent(const Event &event, DEV_StateLevel level)
         {
             return;
         }
+
         const auto level1 = static_cast<unsigned>(event.num());
         const auto fn = d->state[level1];
+        if (d->stateEnterLock[level1] && event.what() == REventStateEnter)
+        {
+            d->stateEnterLock[level1] = false;
+        }
         if (fn)
         {
             fn(this, event);
         }
+    }
+    else if (d->stateEnterLock[level])
+    {
+        // REventStateEnter must always arrive first via urgend event queue.
+        // This branch should never hit!
+        DBG_Printf(DBG_DEV, "DEV event before REventStateEnter: 0x%016llX, skip: %s\n", d->deviceKey, event.what());
     }
     else if (event.what() == REventDDFReload)
     {
@@ -2084,26 +2098,28 @@ void DevicePrivate::setState(DeviceStateHandler newState, DEV_StateLevel level)
         if (state[level])
         {
             state[level](q, Event(q->prefix(), REventStateLeave, level, q->key()));
+            stateEnterLock[level] = false;
         }
 
         state[level] = newState;
 
         if (state[level])
         {
-            emit q->eventNotify(Event(q->prefix(), REventStateEnter, level, q->key()));
+            stateEnterLock[level] = true;
+            Event e(q->prefix(), REventStateEnter, level, q->key());
+            e.setUrgent(true);
+            emit q->eventNotify(e);
         }
     }
 }
 
 void DevicePrivate::startStateTimer(int IntervalMs, DEV_StateLevel level)
 {
-    emit q->eventNotify(Event(q->prefix(), REventStartTimer, EventTimerPack(level, IntervalMs), q->key()));
     timer[level].start(IntervalMs, q);
 }
 
 void DevicePrivate::stopStateTimer(DEV_StateLevel level)
 {
-    emit q->eventNotify(Event(q->prefix(), REventStopTimer, EventTimerPack(level, 0), q->key()));
     if (timer[level].isActive())
     {
         timer[level].stop();
