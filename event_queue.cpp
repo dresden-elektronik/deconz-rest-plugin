@@ -34,6 +34,10 @@ void DeRestPluginPrivate::handleEvent(const Event &e)
             deviceWidget->handleEvent(e);
         }
     }
+    else if (e.resource() == RDevices && e.what() == REventDDFInitResponse)
+    {
+        needRuleCheck = RULE_CHECK_DELAY;
+    }
 
     if (e.deviceKey() != 0)
     {

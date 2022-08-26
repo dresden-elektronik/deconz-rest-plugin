@@ -91,6 +91,7 @@ using namespace deCONZ::literals;
 #define IDLE_ATTR_REPORT_BIND_LIMIT_SHORT 5
 #define BUTTON_ATTR_REPORT_BIND_LIMIT 120
 #define WARMUP_TIME 120
+#define RULE_CHECK_DELAY 4 // seconds
 
 #define MAX_UNLOCK_GATEWAY_TIME 600
 #define MAX_RECOVER_ENTRY_AGE 600
@@ -193,6 +194,7 @@ using namespace deCONZ::literals;
 #define ANALOG_OUTPUT_CLUSTER_ID              0x000D
 #define BINARY_INPUT_CLUSTER_ID               0x000F
 #define MULTISTATE_INPUT_CLUSTER_ID           0x0012
+#define MULTISTATE_OUTPUT_CLUSTER_ID          0x0013
 #define OTAU_CLUSTER_ID                       0x0019
 #define POLL_CONTROL_CLUSTER_ID               0x0020
 #define DOOR_LOCK_CLUSTER_ID                  0x0101
@@ -207,6 +209,7 @@ using namespace deCONZ::literals;
 #define PRESSURE_MEASUREMENT_CLUSTER_ID       0x0403
 #define RELATIVE_HUMIDITY_CLUSTER_ID          0x0405
 #define OCCUPANCY_SENSING_CLUSTER_ID          0x0406
+#define SOIL_MOISTURE_CLUSTER_ID              0x0408
 #define IAS_ZONE_CLUSTER_ID                   0x0500
 #define IAS_ACE_CLUSTER_ID                    0x0501
 #define IAS_WD_CLUSTER_ID                     0x0502
@@ -223,6 +226,7 @@ using namespace deCONZ::literals;
 #define DEVELCO_AIR_QUALITY_CLUSTER_ID        0xFC03
 #define SENGLED_CLUSTER_ID                    0xFC10
 #define LEGRAND_CONTROL_CLUSTER_ID            0xFC40
+#define XIAOMI_CLUSTER_ID                     0xFCC0
 #define ADUROLIGHT_CLUSTER_ID                 0xFCCC
 #define XAL_CLUSTER_ID                        0xFCCE
 #define BOSCH_AIR_QUALITY_CLUSTER_ID          quint16(0xFDEF)
@@ -295,15 +299,12 @@ using namespace deCONZ::literals;
 #define WRITE_OCCUPANCY_CONFIG (1 << 11)
 #define READ_GROUP_IDENTIFIERS (1 << 12)
 #define WRITE_DELAY            (1 << 13)
-#define WRITE_LEDINDICATION    (1 << 14)
 #define WRITE_SENSITIVITY      (1 << 15)
-#define WRITE_USERTEST         (1 << 16)
 #define READ_THERMOSTAT_STATE  (1 << 17)
 #define READ_BATTERY           (1 << 18)
 #define READ_TIME              (1 << 19)
 #define WRITE_TIME             (1 << 20)
 #define READ_THERMOSTAT_SCHEDULE (1 << 21)
-#define WRITE_DEVICEMODE       (1 << 22)
 
 #define READ_MODEL_ID_INTERVAL   (60 * 60) // s
 #define READ_SWBUILD_ID_INTERVAL (60 * 60) // s
@@ -372,6 +373,7 @@ using namespace deCONZ::literals;
 #define VENDOR_SINOPE               0x119C
 #define VENDOR_JIUZHOU              0x119D
 #define VENDOR_PAULMANN             0x119D // branded
+#define VENDOR_BOSCH3               0x1209
 #define VENDOR_HEIMAN               0x120B
 #define VENDOR_CHINA_FIRE_SEC       0x1214
 #define VENDOR_MUELLER              0x121B // Used by Mueller Licht
@@ -465,6 +467,7 @@ using namespace deCONZ::literals;
 #define DB_HUGE_SAVE_DELAY  (60 * 60 * 1000) // 60 minutes
 #define DB_LONG_SAVE_DELAY  (15 * 60 * 1000) // 15 minutes
 #define DB_SHORT_SAVE_DELAY (1 *  60 * 1000) // 1 minute
+#define DB_FAST_SAVE_DELAY (1 * 1000) // 1 second
 
 #define DB_CONNECTION_TTL (60 * 15) // 15 minutes
 
@@ -511,6 +514,7 @@ extern const quint64 silabs7MacPrefix;
 extern const quint64 silabs8MacPrefix;
 extern const quint64 silabs9MacPrefix;
 extern const quint64 silabs10MacPrefix;
+extern const quint64 silabs11MacPrefix;
 extern const quint64 silabs12MacPrefix;
 extern const quint64 silabs13MacPrefix;
 extern const quint64 instaMacPrefix;
@@ -719,6 +723,7 @@ extern const char *HttpContentSVG;
 // Forward declarations
 class DeviceDescriptions;
 class DeviceWidget;
+class DeviceJs;
 class Gateway;
 class GatewayScanner;
 class QUdpSocket;
@@ -1319,7 +1324,6 @@ public Q_SLOTS:
     void checkOldSensorGroups(Sensor *sensor);
     void deleteGroupsWithDeviceMembership(const QString &id);
     void processUbisysBinding(Sensor *sensor, const Binding &bnd);
-    void processUbisysC4Configuration(Sensor *sensor);
     void bindingTimerFired();
     void bindingToRuleTimerFired();
     void bindingTableReaderTimerFired();
@@ -1342,11 +1346,9 @@ public Q_SLOTS:
     void pollNextDevice();
 
     // database
-#if DECONZ_LIB_VERSION >= 0x010E00
     void storeSourceRoute(const deCONZ::SourceRoute &sourceRoute);
     void deleteSourceRoute(const QString &uuid);
     void restoreSourceRoutes();
-#endif
 
     // touchlink
     void touchlinkDisconnectNetwork();
@@ -1544,7 +1546,7 @@ public:
     bool addTaskThermostatGetSchedule(TaskItem &task);
     bool addTaskThermostatSetWeeklySchedule(TaskItem &task, quint8 weekdays, const QString &transitions);
     void updateThermostatSchedule(Sensor *sensor, quint8 newWeekdays, QString &transitions);
-    bool addTaskThermostatReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t mfrCode, uint16_t attrId, uint8_t attrType, uint32_t attrValue);
+    bool addTaskThermostatReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t mfrCode, uint16_t attrId, uint8_t attrType, int attrValue);
     bool addTaskThermostatWriteAttributeList(TaskItem &task, uint16_t mfrCode, QMap<quint16, quint32> &AttributeList );
     bool addTaskControlModeCmd(TaskItem &task, uint8_t cmdId, int8_t mode);
     bool addTaskSyncTime(Sensor *sensor);
@@ -1558,7 +1560,7 @@ public:
     bool addTaskXmasLightStripMode(TaskItem &task, XmasLightStripMode mode);
     bool addTaskXmasLightStripWhite(TaskItem &task, quint8 bri);
     bool addTaskXmasLightStripColour(TaskItem &task, quint16 hue, quint8 sat, quint8 bri);
-    bool addTaskXmasLightStripEffect(TaskItem &task, XmasLightStripEffect effect, quint8 speed, QList<QList<quint8>> &colours);
+    bool addTaskXmasLightStripEffect(TaskItem &task, XmasLightStripEffect effect, quint8 speed, const QList<QList<quint8> > &colours);
     int setXmasLightStripState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
 
     void handleGroupClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
@@ -1583,7 +1585,6 @@ public:
     void handleBindAndUnbindRspIndication(const deCONZ::ApsDataIndication &ind);
     void handleMgmtLeaveRspIndication(const deCONZ::ApsDataIndication &ind);
     void handleMgmtLqiRspIndication(const deCONZ::ApsDataIndication &ind);
-    void handleDEClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleXalClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleWindowCoveringClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handlePollControlIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
@@ -1595,12 +1596,11 @@ public:
     void handleTimeClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleDiagnosticsClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleFanControlClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    void handleIdentifyClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleIdentifyClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
     void sendTimeClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleBasicClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendBasicClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    void handlePhilipsClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, Device *device);
-    void handleTuyaClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleTuyaClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, Device *device);
     void handleZclAttributeReportIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclConfigureReportingResponseIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void taskToLocalData(const TaskItem &task);
@@ -1799,7 +1799,6 @@ public:
     bool gwRunFromShellScript;
     QString gwRunMode;
     bool gwDeleteUnknownRules;
-    bool groupDeviceMembershipChecked;
     QVariantMap gwUserParameter;
     std::vector<QString> gwUserParameterToDelete;
     deCONZ::Address gwDeviceAddress;
@@ -1892,7 +1891,6 @@ public:
     int otauIdleTicks;
     int otauBusyTicks;
     int otauIdleTotalCounter;
-    int otauUnbindIdleTotalCounter;
 
     // touchlink
 
@@ -2078,6 +2076,7 @@ public:
     std::vector<Resourcelinks> resourcelinks;
 
     // rules
+    int needRuleCheck;
     std::vector<int> fastRuleCheck;
     QTimer *fastRuleCheckTimer;
 
@@ -2135,6 +2134,7 @@ public:
     std::vector<BindingTableReader> bindingTableReaders;
 
     DeviceDescriptions *deviceDescriptions = nullptr;
+    DeviceJs *deviceJs = nullptr;
 
     // IAS
     std::unique_ptr<AS_DeviceTable> alarmSystemDeviceTable;

@@ -151,7 +151,7 @@ bool SensorFingerprint::hasOutCluster(quint16 clusterId) const
 Sensor::Sensor() :
     Resource(RSensors),
     m_deletedstate(Sensor::StateNormal),
-    m_mode(ModeTwoGroups),
+    m_mode(ModeScenes),
     m_resetRetryCount(0)
 {
     durationDue = QDateTime();
@@ -271,7 +271,10 @@ void Sensor::setModelId(const QString &mid)
 void Sensor::didSetValue(ResourceItem *i)
 {
     enqueueEvent(Event(RSensors, i->descriptor().suffix, id(), i));
-    setNeedSaveDatabase(true);
+    if (i->descriptor().suffix != RAttrLastSeen) // prevent flooding database writes
+    {
+        setNeedSaveDatabase(true);
+    }
 }
 
 /*! Mark received command and update lastseen. */

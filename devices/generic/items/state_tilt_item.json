@@ -1,0 +1,13 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/tilt",
+	"datatype": "UInt8",
+	"access": "RW",
+	"public": true,
+	"range": [0, 254],
+	"description": "The tilt state of a shutter or blind.",
+	"parse": {"at": "0x0009", "cl": "0x0102", "ep": 0, "eval": "Item.val = Attr.val;", "fn": "zcl"},
+	"read": {"at": "0x0009", "cl": "0x0102", "ep": 0, "fn": "zcl"},
+	"refresh.interval": 300,
+	"default": 0
+}

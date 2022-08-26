@@ -8,8 +8,27 @@
  *
  */
 
+#include <math.h>
 #include "resource.h"
 #include "device_js_wrappers.h"
+#include "device.h"
+#include "utils/utils.h"
+
+static const deCONZ::Node *getResourceCoreNode(const Resource *r)
+{
+    if (r)
+    {
+        const ResourceItem *uuid = r->item(RAttrUniqueId);
+
+        if (uuid && !uuid->toString().isEmpty())
+        {
+            const uint64_t extAddr = extAddressFromUniqueId(uuid->toString());
+
+            return DEV_GetCoreNode(extAddr);
+        }
+    }
+    return nullptr;
+}
 
 JsResource::JsResource(QJSEngine *parent) :
     QObject(parent)
@@ -38,6 +57,24 @@ QJSValue JsResource::item(const QString &suffix)
     }
 
     return {};
+}
+
+QVariant JsResource::endpoints()
+{
+    QVariantList result;
+    if (cr)
+    {
+        const deCONZ::Node *node = getResourceCoreNode(cr);
+        if (node)
+        {
+            for (auto ep : node->endpoints())
+            {
+                result.push_back(int(ep));
+            }
+        }
+    }
+
+    return result;
 }
 
 JsResourceItem::JsResourceItem(QObject *parent) :
@@ -95,7 +132,10 @@ void JsResourceItem::setValue(const QVariant &val)
     if (item)
     {
 //        DBG_Printf(DBG_INFO, "JsResourceItem.setValue(%s) = %s\n", item->descriptor().suffix, qPrintable(val.toString()));
-        item->setValue(val, ResourceItem::SourceDevice);
+        if (!item->setValue(val, ResourceItem::SourceDevice))
+        {
+            DBG_Printf(DBG_DDF, "JS failed to set Item.val for %s\n", item->descriptor().suffix);
+        }
     }
 }
 
@@ -129,6 +169,7 @@ QVariant JsZclAttribute::value() const
         return attr->numericValue().u8 > 0;
     }
 
+    // JS supports integers 2^52, therefore types above 48-bit are converted to strings
     switch (type)
     {
     case deCONZ::Zcl8BitBitMap:
@@ -151,6 +192,8 @@ QVariant JsZclAttribute::value() const
     case deCONZ::Zcl48BitBitMap:
     case deCONZ::Zcl48BitData:
     case deCONZ::Zcl48BitUint:
+        { return QVariant::fromValue(quint64(attr->numericValue().u64)); }
+
     case deCONZ::Zcl56BitBitMap:
     case deCONZ::Zcl56BitData:
     case deCONZ::Zcl56BitUint:
@@ -158,12 +201,22 @@ QVariant JsZclAttribute::value() const
     case deCONZ::Zcl64BitUint:
     case deCONZ::Zcl64BitData:
     case deCONZ::ZclIeeeAddress:
-        return QString::number(attr->numericValue().u64);
+        { return QString::number(quint64(attr->numericValue().u64)); }
 
+    case deCONZ::Zcl8BitInt:
+    case deCONZ::Zcl16BitInt:
+    case deCONZ::Zcl24BitInt:
+    case deCONZ::Zcl32BitInt:
     case deCONZ::Zcl48BitInt:
+        { return attr->toVariant(); }
+
     case deCONZ::Zcl56BitInt:
     case deCONZ::Zcl64BitInt:
-        return QString::number(attr->numericValue().s64);
+        { return QString::number(qint64(attr->numericValue().s64)); }
+
+    case deCONZ::ZclSingleFloat:
+        { return attr->numericValue().real; }
+
     default:
         break;
     }
@@ -229,4 +282,69 @@ int JsZclFrame::payloadSize() const
         return zclFrame->payload().size();
     }
     return 0;
+}
+
+bool JsZclFrame::isClCmd() const
+{
+    if (zclFrame)
+    {
+        return zclFrame->isClusterCommand();
+    }
+
+    return false;
+}
+
+JsUtils::JsUtils(QObject *parent) :
+    QObject(parent)
+{
+
+}
+
+/*! Polyfill for Math.log10(x)
+ */
+double JsUtils::log10(double x) const
+{
+    return ::log10(x);
+}
+
+/*! Polyfill for ECMAScript String.prototype.padStart(targetLength, padString)
+    https://tc39.es/ecma262/multipage/text-processing.html#sec-string.prototype.padstart
+ */
+QString JsUtils::padStart(const QString &str, QJSValue targetLength, QJSValue padString)
+{
+    int len = 0;
+    QString pad;
+    QString result;
+
+    len = targetLength.toInt();
+    if (!targetLength.isNumber() || len < 1 || str.length() >= len)
+    {
+        return str;
+    }
+
+    result.reserve(len);
+
+    len = len - str.length();
+
+    if (padString.isString())
+    {
+        pad = padString.toString();
+    }
+
+    if (pad.isEmpty())
+    {
+        pad = QLatin1Char(' '); // default is space
+    }
+
+    while (len)
+    {
+        for (int i = 0; i < pad.length() && len; i++, len--)
+        {
+            result.append(pad.at(i));
+        }
+    }
+
+    result = result.append(str);
+
+    return result;
 }

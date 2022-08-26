@@ -7,8 +7,11 @@ A list of supported Zigbee devices can be found on the [Supported Devices](https
 
 To communicate with Zigbee devices the [RaspBee](https://phoscon.de/raspbee?ref=gh) / [RaspBee&nbsp;II](https://phoscon.de/raspbee2?ref=gh) Zigbee shield for Raspberry Pi, or a [ConBee](https://phoscon.de/conbee?ref=gh) / [ConBee&nbsp;II](https://phoscon.de/conbee2?ref=gh) USB dongle is required.
 
-To learn more about the REST-API itself please visit the [REST-API Documentation](http://dresden-elektronik.github.io/deconz-rest-doc/) page.<br>
-The REST-API plugin is implemented in C++ using the [deCONZ C++ API Documentation](https://phoscon.de/deconz-cpp).
+### API Documentation
+
+* [REST-API Documentation](http://dresden-elektronik.github.io/deconz-rest-doc/)
+* [deCONZ C++ Plugin API Documentation](https://phoscon.de/deconz-cpp).
+* [DDF and C++ Device API Documentation](https://dresden-elektronik.github.io/deconz-dev-doc)
 
 For community based support with deCONZ or Phoscon, please visit the [deCONZ Discord server](https://discord.gg/QFhTxqN). 
 
@@ -20,19 +23,19 @@ The Phoscon App is a browser based web application and supports lights, sensors 
 
 deCONZ beta releases are scheduled roughly once per week. After 2–3 betas a stable version is released and a new beta cycle begins. The stable release is usually published between 1st — 15th of the month.
 
-Current Beta: **v2.13.1-beta**  
-Current Stable: **v2.12.6**
+Current Beta: **v2.17.1-beta**  
+Current Stable: **v2.17.1**
 
-Next Beta: **v2.13.2-beta**  
-Next Stable: **v2.13.x** expected in November.
+Next Beta: **v2.18.0-beta** Expected in July.
+Next Stable: **v2.18.x** Expected in July.
 
 Installation
 ============
 
 ##### Supported platforms
-* Raspbian ~~Jessie~~, Stretch and Buster
-* Ubuntu Xenial, Bionic and Focal Fossa (AMD64)
-* Windows 7 and 10
+* Raspbian ~~Jessie~~, ~~Stretch~~, Buster and Bullseye
+* Ubuntu ~~Xenial~~, Bionic and Focal Fossa (AMD64)
+* Windows 7, 10, 11
 
 ### Install deCONZ
 You find the instructions for your platform and device on the Phoscon website:
@@ -121,6 +124,7 @@ Hardware requirements
 -------------------
 The following libraries are used by the plugin:
 
+* [ArduinoJSON](https://arduinojson.org)
 * [SQLite](http://www.sqlite.org)
 * [qt-json](https://github.com/lawand/droper/tree/master/qt-json)
 * [colorspace](http://www.getreuer.info/home/colorspace)

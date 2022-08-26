@@ -1,0 +1,22 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/panel",
+	"datatype": "String",
+	"access": "RW",
+	"public": true,
+	"managed": true,
+	"description": "The IAS panel.",
+	"default": "disarmed",
+	"values": [
+		["\"disarmed\"", "disarmed not triggering alarm"],
+		["\"armed_stay\"", "trigger in stay mode"],
+		["\"armed_night\"", "trigger in night mode"],
+		["\"armed_away\"", "trigger in away mode"],
+		["\"exit_delay\"", "exit delay active"],
+		["\"entry_delay\"", "entry delay active"],
+		["\"not_ready\"", "alarm system not ready"],
+		["\"arming_stay\"", "arming stay mode"],
+		["\"arming_night\"", "arming night mode"],
+		["\"arming_away\"", "arming away mode"]
+	]
+}

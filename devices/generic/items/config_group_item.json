@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/group",
+	"datatype": "String",
+	"access": "RW",
+	"public": true,
+	"description": "comma seperated list of groups which a device controls."
+}

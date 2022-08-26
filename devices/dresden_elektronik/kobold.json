@@ -1,0 +1,183 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "dresden elektronik",
+  "modelid": "Kobold",
+  "product": "Kobold",
+  "sleeper": false,
+  "supportsMgmtBind": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_DIMMABLE_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/alert",
+          "default": "none"
+        },
+        {
+          "name": "state/bri",
+          "refresh.interval": 5,
+          "read": {
+            "at": "0x0000",
+            "cl": "0x0008",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0008",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl"
+          }
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 5,
+          "read": {
+            "at": "0x0000",
+            "cl": "0x0006",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0006",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl"
+          }
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_SWITCH",
+      "fingerprint": { "profile": "0x0104", "device": "0x0104", "endpoint": "0x02", "out": ["0x0006", "0x0008"] },
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x02",
+        "0x0006"
+      ],
+      "buttons": {
+        "1": {"name": "Push"}
+      },
+      "buttonevents": {
+        "1001": {"action": "HOLD", "button": 1},
+        "1002": {"action": "SHORT_RELEASE", "button": 1},
+        "1003": {"action": "LONG_RELEASE", "button": 1}
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/group",
+          "default": "auto"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/buttonevent",
+          "awake": true
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0006",
+      "report": [
+          {"at": "0x0000", "dt": "0x10", "min": 65535, "max": 65535 }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0008",
+      "report": [
+          {"at": "0x0000", "dt": "0x20", "min": 65535, "max": 65535, "change": "0x01" }
+      ]
+    },
+    {
+      "bind": "groupcast",
+      "src.ep": 2,
+      "cl": "0x0006",
+      "config.group": 0
+    },
+    {
+      "bind": "groupcast",
+      "src.ep": 2,
+      "cl": "0x0008",
+      "config.group": 0
+    }
+  ]
+}

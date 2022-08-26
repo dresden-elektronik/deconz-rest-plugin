@@ -28,6 +28,7 @@ public:
     DeviceKey deviceKey() const { return m_deviceKey; }
     void setDeviceKey(DeviceKey key) { m_deviceKey = key; }
     bool hasData() const;
+    quint16 dataSize() const { return m_dataSize; }
     bool getData(void *dst, size_t size) const;
 
 private:
@@ -62,6 +63,11 @@ Event EventWithData(const char *resource, const char *what, const D &data, Devic
 {
     static_assert (std::is_trivially_copyable<D>::value, "data needs to be trivially copyable");
     return Event(resource, what, &data, sizeof(data), deviceKey);
+}
+
+inline Event EventWithData(const char *resource, const char *what, const void *data, size_t size, DeviceKey deviceKey)
+{
+    return Event(resource, what, data, size, deviceKey);
 }
 
 //! Unpacks APS confirm id.

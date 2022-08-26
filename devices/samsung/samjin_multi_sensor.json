@@ -1,12 +1,9 @@
 {
     "schema": "devcap1.schema.json",
-    "doc:path": "samsung/samjin_multi_sensor.md",
-    "doc:hdr": "Samsung Multipurpose Sensor",
     "manufacturername": "$MF_SAMJIN",
     "modelid": "multi",
-    "product": "Samsung Multipurpose Sensor (IM6001-OTP01)",
-    "status": "Silver",
-    "md:known_issues": [ ],
+    "product": "Multipurpose Sensor (IM6001-OTP01)",
+    "status": "Gold",
     "subdevices": [
         {
             "type": "$TYPE_OPEN_CLOSE_SENSOR",
@@ -14,6 +11,10 @@
             "uuid": [ "$address.ext", "0x01", "0x0500"],
             "fingerprint": { "profile": "0x0104", "device": "0x0402", "endpoint": "0x01", "in": ["0x0001", "0x0500"] },
             "items": [
+                {
+                    "name": "config/checkin",
+                    "default": 480
+                },
                 {
                     "name": "attr/lastseen"
                 },
@@ -27,7 +28,10 @@
                     "name": "attr/name"
                 },
                 {
-                    "name": "attr/swversion"
+                    "name": "attr/swversion",
+                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "eval": "Item.val = Attr.val"},
+                    "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"},
+                    "refresh.interval": 84000
                 },
                 {
                     "name": "attr/type"
@@ -37,13 +41,20 @@
                 },
                 {
                     "name": "config/battery",
-                    "awake": true
+                    "awake": true,
+                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"},
+                    "read": {"fn": "zcl", "ep": 1, "cl": "0x0001", "at": "0x0021"},
+                    "refresh.interval": 3600
                 },
                 {
                     "name": "config/on"
                 },
                 {
-                    "name": "config/pending"
+                    "name": "config/pending",
+                    "public": false
+                },
+                {
+                    "name": "config/enrolled"
                 },
                 {
                     "name": "config/reachable"
@@ -54,28 +65,7 @@
                 {
                     "name": "state/open"
                 }
-            ],
-            "example": {
-                "config": {
-                    "battery": 100,
-                    "enrolled": 1,
-                    "on": true,
-                    "pending": [],
-                    "reachable": true
-                },
-                "ep": 1,
-                "etag": "63d006cf5722271299d75d5829a33974",
-                "lastseen": "2021-01-14T11:35Z",
-                "manufacturername": "Samjin",
-                "modelid": "multi",
-                "name": "Multipurpose Sensor",
-                "state": {
-                    "lastupdated": "2021-01-14T11:13:45.367",
-                    "open": false
-                },
-                "type": "ZHAOpenClose",
-                "uniqueid": "28:6d:97:00:01:06:ce:ae-01-0500"
-            }
+            ]
         },
         {
             "type": "$TYPE_TEMPERATURE_SENSOR",
@@ -96,7 +86,9 @@
                     "name": "attr/name"
                 },
                 {
-                    "name": "attr/swversion"
+                    "name": "attr/swversion",
+                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "eval": "Item.val = Attr.val"},
+                    "read": {"fn": "none"}
                 },
                 {
                     "name": "attr/type"
@@ -105,7 +97,10 @@
                     "name": "attr/uniqueid"
                 },
                 {
-                    "name": "config/battery"
+                    "name": "config/battery",
+                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"},
+                    "read": {"fn": "zcl", "ep": 1, "cl": "0x0001", "at": "0x0021"},
+                    "refresh.interval": 3600
                 },
                 {
                     "name": "config/offset"
@@ -122,27 +117,7 @@
                 {
                     "name": "state/temperature"
                 }
-            ],
-            "example": {
-                "config": {
-                    "battery": 100,
-                    "offset": 0,
-                    "on": true,
-                    "reachable": true
-                },
-                "ep": 1,
-                "etag": "df082b6de6637a33e750f7111b7bd336",
-                "lastseen": "2021-01-14T11:35Z",
-                "manufacturername": "Samjin",
-                "modelid": "multi",
-                "name": "Multipurpose Sensor",
-                "state": {
-                    "lastupdated": "2021-01-14T11:34:57.853",
-                    "temperature": 2096
-                },
-                "type": "ZHATemperature",
-                "uniqueid": "28:6d:97:00:01:06:ce:ae-01-0402"
-            }
+            ]
         },
         {
             "type": "$TYPE_VIBRATION_SENSOR",
@@ -163,7 +138,9 @@
                     "name": "attr/name"
                 },
                 {
-                    "name": "attr/swversion"
+                    "name": "attr/swversion",
+                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "eval": "Item.val = Attr.val"},
+                    "read": {"fn": "none"}
                 },
                 {
                     "name": "attr/type"
@@ -172,7 +149,10 @@
                     "name": "attr/uniqueid"
                 },
                 {
-                    "name": "config/battery"
+                    "name": "config/battery",
+                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"},
+                    "read": {"fn": "zcl", "ep": 1, "cl": "0x0001", "at": "0x0021"},
+                    "refresh.interval": 3600
                 },
                 {
                     "name": "config/on"
@@ -185,45 +165,96 @@
                     "description": "<p>The orientation as [X, Y, Z].</p> <p><b>Note:</b> These are the raw device values, it's not known what they represent, they are in range -1400&ndash;1400.</p>"
                 },
                 {
-                    "name": "state/orientation_x"
+                    "name": "state/orientation_x",
+                    "public": true,
+                    "parse": {"fn": "zcl", "ep": 1, "cl": "0xfc02", "at": "0x0012", "mf": "0x1241", "eval": "Item.val = Attr.val"}
                 },
                 {
-                    "name": "state/orientation_y"
+                    "name": "state/orientation_y",
+                    "public": true,
+                    "parse": {"fn": "zcl", "ep": 1, "cl": "0xfc02", "at": "0x0013", "mf": "0x1241", "eval": "Item.val = Attr.val"}
                 },
                 {
-                    "name": "state/orientation_z"
+                    "name": "state/orientation_z",
+                    "public": true,
+                    "parse": {"fn": "zcl", "ep": 1, "cl": "0xfc02", "at": "0x0014", "mf": "0x1241", "eval": "Item.val = Attr.val"}
                 },
                 {
                     "name": "state/lastupdated"
                 },
                 {
-                    "name": "state/vibration"
+                    "name": "state/vibration",
+                    "parse": {"fn": "zcl", "ep": 1, "cl": "0xfc02", "at": "0x0010", "mf": "0x1241", "eval": "Item.val = Attr.val === 1"}
                 }
-            ],
-            "example": {
-                "config": {
-                    "battery": 100,
-                    "on": true,
-                    "reachable": true
-                },
-                "ep": 1,
-                "etag": "97a223f7b2d965a8f36a02ee8b9b264e",
-                "lastseen": "2021-01-14T11:35Z",
-                "manufacturername": "Samjin",
-                "modelid": "multi",
-                "name": "Multipurpose Sensor",
-                "state": {
-                    "lastupdated": "2021-01-14T11:35:42.744",
-                    "orientation": [
-                        12,
-                        -37,
-                        -1029
-                    ],
-                    "vibration": false
-                },
-                "type": "ZHAVibration",
-                "uniqueid": "28:6d:97:00:01:06:ce:ae-01-fc02"
-            }
+            ]
         }
-    ]
+    ],
+    "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 1800,
+          "max": 3600,
+          "change": "0x01"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0402",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x29",
+          "min": 10,
+          "max": 300,
+          "change": "0x0014"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0xfc02",
+      "report": [
+        {
+          "at": "0x0010",
+          "dt": "0x18",
+          "min": 5,
+          "max": 3600,
+          "mf": "0x1241"
+        },
+        {
+          "at": "0x0012",
+          "dt": "0x29",
+          "min": 1,
+          "max": 3600,
+          "change": "0x0001",
+          "mf": "0x1241"
+        },
+        {
+          "at": "0x0013",
+          "dt": "0x29",
+          "min": 1,
+          "max": 3600,
+          "change": "0x0001",
+          "mf": "0x1241"
+        },
+        {
+          "at": "0x0014",
+          "dt": "0x29",
+          "min": 1,
+          "max": 3600,
+          "change": "0x0001",
+          "mf": "0x1241"
+        }
+      ]
+    }
+  ]
 }

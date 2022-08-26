@@ -24,8 +24,8 @@ static quint8 calculateBatteryPercentageRemaining(const Resource *r, ResourceIte
         const int maxSize = 384;
         auto jsEval = std::make_unique<char[]>(maxSize);
         int ret = snprintf(jsEval.get(), maxSize,
-                          "const vmin = %.1f;"
-                          " const vmax = %.1f;"
+                          "const vmin = %u;"
+                          " const vmax = %u;"
                           " let bat = Attr.val;"
 
                           " if (bat > vmax) { bat = vmax; }"
@@ -36,7 +36,7 @@ static quint8 calculateBatteryPercentageRemaining(const Resource *r, ResourceIte
                           " if (bat > 100) { bat = 100; }"
                           " else if (bat <= 0)  { bat = 1; }"
 
-                          " Item.val = bat;", vmin, vmax);
+                          " Item.val = bat;", unsigned(vmin), unsigned(vmax));
 
         DBG_Assert(ret < maxSize);
         if (ret > 0 && ret < maxSize && jsEval[ret] == '\0')
@@ -120,7 +120,7 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                 // Specifies the remaining battery life as a half integer percentage of the full battery capacity (e.g., 34.5%, 45%,
                 // 68.5%, 90%) with a range between zero and 100%, with 0x00 = 0%, 0x64 = 50%, and 0xC8 = 100%. This is
                 // particularly suited for devices with rechargeable batteries.
-                
+
                 uint divider = 2;
 
                 if (sensor.modelId().startsWith(QLatin1String("TRADFRI")) || // IKEA
@@ -130,13 +130,12 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                     sensor.modelId().startsWith(QLatin1String("Remote Control N2")) || // IKEA
                     sensor.modelId().startsWith(QLatin1String("ICZB-")) || // iCasa keypads and remote
                     sensor.modelId().startsWith(QLatin1String("ZGR904-S")) || // Envilar remote
-                    sensor.modelId().startsWith(QLatin1String("ED-1001")) || // EcoDim wireless switches
                     sensor.modelId().startsWith(QLatin1String("ZGRC-KEY")) || //  Sunricher wireless CCT remote
-                    sensor.modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
                     sensor.modelId().startsWith(QLatin1String("iTRV")) || // Drayton Wiser Radiator Thermostat
                     sensor.modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
                     sensor.modelId().startsWith(QLatin1String("SV02-")) || // Keen Home vent
-                    sensor.modelId().startsWith(QLatin1String("45127")) || // Namron 1/2/4-ch remote controller
+                    sensor.modelId() == QLatin1String("4512705") || // Namron remote control
+                    sensor.modelId() == QLatin1String("4512726") || // Namron rotary switch
                     sensor.modelId().startsWith(QLatin1String("S57003")) || // SLC 4-ch remote controller
                     sensor.modelId().startsWith(QLatin1String("RGBgenie ZB-5")) || // RGBgenie remote control
                     sensor.modelId().startsWith(QLatin1String("VOC_Sensor")) || // LifeControl Enviroment sensor
@@ -170,18 +169,21 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
 
                 if (sensor.type().endsWith(QLatin1String("Battery")))
                 {
-                    sensor.setValue(RStateBattery, bat);
+                    if (sensor.setValue(RStateBattery, bat) || updateType == NodeValue::UpdateByZclReport)
+                    {
+                        sensor.updateStateTimestamp();
+                    }
                     item = sensor.item(RStateBattery);
                 }
                 else
                 {
                     item = sensor.item(RConfigBattery);
-    
+
                     if (!item && attr.numericValue().u8 > 0) // valid value: create resource item
                     {
                         item = sensor.addItem(DataTypeUInt8, RConfigBattery);
                     }
-    
+
                     sensor.setValue(RConfigBattery, bat);
                 }
 
@@ -196,7 +198,7 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                         DDF_AnnoteZclParse(&sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "Item.val = Attr.val / 2");
                     }
                 }
-                
+
                 // Correct incomplete sensor fingerprint
                 if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
                 {
@@ -225,22 +227,14 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                     sensor.modelId() == QLatin1String("lumi.motion.agl04") ||        // Xiaomi Aqara RTCGQ13LM high precision motion sensor
                     sensor.modelId() == QLatin1String("Zen-01") ||           // Zen thermostat
                     sensor.modelId() == QLatin1String("Thermostat") ||       // eCozy thermostat
-                    sensor.modelId() == QLatin1String("Motion Sensor-A") ||  // Osram motion sensor
                     sensor.modelId() == QLatin1String("Bell") ||             // Sage doorbell sensor
                     sensor.modelId() == QLatin1String("ISW-ZPR1-WP13") ||    // Bosch motion sensor
                     sensor.modelId() == QLatin1String("3AFE14010402000D") ||   // Konke motion sensor
                     sensor.modelId() == QLatin1String("3AFE28010402000D") ||   // Konke motion sensor v2
                     sensor.modelId() == QLatin1String("FB56-DOS06HM1.3") ||    // Feibit FB56-DOS06HM1.3 door/window sensor
-                    sensor.modelId() == QLatin1String("lumi.remote.b28ac1") || // Aqara wireless remote switch H1 (double rocker)
                     sensor.modelId().endsWith(QLatin1String("86opcn01")) ||    // Aqara Opple
-                    sensor.modelId().startsWith(QLatin1String("AQSZB-1")) ||   // Develco air quality sensor
-                    sensor.modelId().startsWith(QLatin1String("SMSZB-1")) ||   // Develco smoke sensor
-                    sensor.modelId().startsWith(QLatin1String("HESZB-1")) ||   // Develco heat sensor
-                    sensor.modelId().startsWith(QLatin1String("MOSZB-1")) ||   // Develco motion sensor
-                    sensor.modelId().startsWith(QLatin1String("WISZB-1")) ||   // Develco window sensor
                     sensor.modelId().startsWith(QLatin1String("FLSZB-1")) ||   // Develco water leak sensor
                     sensor.modelId().startsWith(QLatin1String("SIRZB-1")) ||   // Develco siren
-                    sensor.modelId().startsWith(QLatin1String("HMSZB-1")) ||   // Develco temp/hum sensor
                     sensor.modelId().startsWith(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
                     sensor.modelId().startsWith(QLatin1String("MotionSensor51AU")) || // Aurora (Develco) motion sensor
                     sensor.modelId().startsWith(QLatin1String("RFDL-ZB-MS")) ||// Bosch motion sensor
@@ -253,7 +247,6 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                     sensor.modelId().startsWith(QLatin1String("3315")) ||      // Centralite water sensor
                     sensor.modelId().startsWith(QLatin1String("3157100")) ||      // Centralite pearl thermostat
                     sensor.modelId().startsWith(QLatin1String("4655BC0")) ||      // Ecolink contact sensor
-                    sensor.modelId().startsWith(QLatin1String("lumi.sen_ill")) || // Xiaomi ZB3.0 light sensor
                     sensor.modelId().startsWith(QLatin1String("SZ-DWS04"))   || // Sercomm open/close sensor
                     sensor.modelId().startsWith(QLatin1String("SZ-WTD02N_CAR")) || // Sercomm water sensor
                     sensor.modelId().startsWith(QLatin1String("GZ-PIR02"))   || // Sercomm motion sensor
@@ -276,7 +269,7 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                 {
                     sensor.addItem(DataTypeUInt8, RConfigBattery);
                 }
-                
+
                 // Correct incomplete sensor fingerprint
                 if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
                 {

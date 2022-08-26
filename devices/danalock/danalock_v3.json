@@ -1,0 +1,79 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "Danalock",
+  "modelid": "V3-BTZBE",
+  "product": "Danalock V3",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_DOOR_LOCK",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/swversion",
+          "refresh.interval": 84000,
+          "read": {"cl": "0x0000", "at": "0x0006", "ep": 1, "fn": "zcl"},
+          "parse": {"cl": "0x0000", "at": "0x0006", "ep": 1, "eval": "Item.val = Attr.val", "fn": "zcl"}
+        },
+        {
+          "name": "config/pending",
+          "public": false
+        },
+        {
+          "name": "config/checkin",
+          "awake": true
+        },
+        {
+          "name": "state/alert",
+          "default": "none"
+        },
+        {
+          "name": "state/reachable"
+        },
+        {
+          "name": "state/on",
+          "read": {"cl": "0x0101", "at": "0x0000", "ep": 1, "fn": "zcl"},
+          "parse": {"cl": "0x0101", "at": "0x0000", "ep": 1, "eval": "Item.val = (Attr.val === 1)", "fn": "zcl"},
+          "refresh.interval": 600,
+          "awake": true
+        },
+        {
+          "name": "state/battery",
+          "refresh.interval": 3700,
+          "public": false,
+          "awake": true
+        }
+      ]
+    }
+  ],
+  "bindings": [
+      {
+          "bind": "unicast",
+          "src.ep": 1,
+          "cl": "0x0101",
+          "report": [ {"at": "0x0000", "dt": "0x30", "min": 1, "max": 300 } ]
+      },
+      {
+          "bind": "unicast",
+          "src.ep": 1,
+          "cl": "0x0020"
+      },
+      {
+          "bind": "unicast",
+          "src.ep": 1,
+          "cl": "0x0001",
+          "report": [ {"at": "0x0021", "dt": "0x20", "min": 600, "max": 3600, "change": "0x00" } ]
+      }
+  ]
+}

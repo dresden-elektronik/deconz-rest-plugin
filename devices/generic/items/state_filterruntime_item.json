@@ -1,0 +1,9 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/filterruntime",
+	"datatype": "UInt32",
+	"access": "R",
+	"public": true,
+	"default": 0,
+	"description": "Filter run time in minutes."
+}

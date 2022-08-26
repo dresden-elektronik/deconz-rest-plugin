@@ -107,7 +107,7 @@ StateChange::State StateChange::tick(Resource *r, deCONZ::ApsController *apsCtrl
             const auto readFunction = DA_GetReadFunction(ddfItem.readParameters);
             if (readFunction && ddfItem.isValid())
             {
-                m_readResult = readFunction(r, item, apsCtrl, ddfItem.parseParameters);
+                m_readResult = readFunction(r, item, apsCtrl, ddfItem.readParameters);
 
                 if (m_readResult.isEnqueued)
                 {
@@ -186,6 +186,22 @@ void StateChange::addParameter(const QString &name, const QVariant &value)
     {
         m_parameters.push_back({name, value});
     }
+}
+
+bool StateChange::operator==(const StateChange &other) const
+{
+     if (m_changeFunction == other.m_changeFunction && m_items.size() == other.m_items.size())
+     {
+         for (size_t i = 0; i < m_items.size(); i++)
+         {
+             if (m_items[i].suffix != other.m_items[i].suffix)
+             {
+                 return false;
+             }
+         }
+         return true;
+     }
+     return false;
 }
 
 /*! Calls the ZCL write function of item(s) to write target value(s).

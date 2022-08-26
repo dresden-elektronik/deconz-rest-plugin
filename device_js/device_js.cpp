@@ -15,6 +15,8 @@
 #include <QJSEngine>
 #include <QMetaProperty>
 
+static DeviceJs *_djs = nullptr; // singleton
+
 class DeviceJsPrivate
 {
 public:
@@ -24,12 +26,20 @@ public:
     JsZclAttribute *jsZclAttribute = nullptr;
     JsZclFrame *jsZclFrame = nullptr;
     JsResourceItem *jsItem = nullptr;
+    JsUtils *jsUtils = nullptr;
     const deCONZ::ApsDataIndication *apsInd = nullptr;
 };
+
+// Polyfills for older Qt versions
+static const char *PF_String_prototype_padStart = "String.prototype.padString = String.prototype.padString || "
+                                     "function (targetLength, padString) { return Utils.padStart(this, targetLength, padString); } ";
+static const char *PF_Math_log10 = "Math.log10 = Math.log10 || function(x) { return Utils.log10(x) };";
 
 DeviceJs::DeviceJs() :
     d(new DeviceJsPrivate)
 {
+    Q_ASSERT(_djs == nullptr); // enforce singleton
+
 #if QT_VERSION > 0x050700
     d->engine.installExtensions(QJSEngine::ConsoleExtension);
 #endif
@@ -48,9 +58,29 @@ DeviceJs::DeviceJs() :
     d->jsItem = new JsResourceItem(&d->engine);
     auto jsItem = d->engine.newQObject(d->jsItem);
     d->engine.globalObject().setProperty("Item", jsItem);
+
+    d->jsUtils = new JsUtils(&d->engine);
+    auto jsUtils = d->engine.newQObject(d->jsUtils);
+    d->engine.globalObject().setProperty("Utils", jsUtils);
+
+
+    // apply polyfills
+    d->engine.evaluate(PF_String_prototype_padStart);
+    d->engine.evaluate(PF_Math_log10);
+
+    _djs = this;
 }
 
-DeviceJs::~DeviceJs() = default;
+DeviceJs::~DeviceJs()
+{
+    _djs = nullptr;
+}
+
+DeviceJs *DeviceJs::instance()
+{
+    Q_ASSERT(_djs);
+    return _djs;
+}
 
 JsEvalResult DeviceJs::evaluate(const QString &expr)
 {
@@ -79,6 +109,7 @@ void DeviceJs::setApsIndication(const deCONZ::ApsDataIndication &ind)
 {
     d->apsInd = &ind;
     d->engine.globalObject().setProperty("SrcEp", int(ind.srcEndpoint()));
+    d->engine.globalObject().setProperty("ClusterId", int(ind.clusterId()));
 }
 
 void DeviceJs::setZclFrame(const deCONZ::ZclFrame &zclFrame)
@@ -110,7 +141,11 @@ QVariant DeviceJs::result()
 
 void DeviceJs::reset()
 {
+    d->apsInd = nullptr;
+    d->jsItem->item = nullptr;
+    d->jsItem->citem = nullptr;
     d->jsResource->r = nullptr;
+    d->jsResource->cr = nullptr;
     d->jsZclAttribute->attr = nullptr;
     d->jsZclFrame->zclFrame = nullptr;
     d->engine.collectGarbage();

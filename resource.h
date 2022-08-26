@@ -78,6 +78,7 @@ extern const char *REventTick;
 extern const char *REventTimerFired;
 extern const char *REventZclResponse;
 extern const char *REventZclReadReportConfigResponse;
+extern const char *REventZdpMgmtBindResponse;
 extern const char *REventZdpResponse;
 
 // resouce suffixes: state/buttonevent, config/on, ...
@@ -101,6 +102,7 @@ extern const char *RAttrGroupAddress;
 
 extern const char *RActionScene;
 
+extern const char *RStateAction;
 extern const char *RStateAirQuality;
 extern const char *RStateAirQualityPpb;
 extern const char *RStateAlarm;
@@ -113,16 +115,24 @@ extern const char *RStateBattery;
 extern const char *RStateBri;
 extern const char *RStateButtonEvent;
 extern const char *RStateCarbonMonoxide;
+extern const char *RStateCharging;
 extern const char *RStateColorMode;
 extern const char *RStateConsumption;
-extern const char *RStateAction;
+extern const char *RStateConsumption_2;
 extern const char *RStateCt;
 extern const char *RStateCurrent;
+extern const char *RStateCurrent_P1;
+extern const char *RStateCurrent_P2;
+extern const char *RStateCurrent_P3;
 extern const char *RStateDark;
 extern const char *RStateDaylight;
+extern const char *RStateDeviceRunTime;
 extern const char *RStateEffect;
 extern const char *RStateErrorCode;
 extern const char *RStateEventDuration;
+extern const char *RStateExpectedEventDuration;
+extern const char *RStateExpectedRotation;
+extern const char *RStateFilterRunTime;
 extern const char *RStateFire;
 extern const char *RStateFlag;
 extern const char *RStateLockState;
@@ -141,9 +151,11 @@ extern const char *RStateLastSet;
 extern const char *RStateLastUpdated;
 extern const char *RStateLift;
 extern const char *RStateLightLevel;
+extern const char *RStateLockState;
 extern const char *RStateLowBattery;
 extern const char *RStateLocaltime;
 extern const char *RStateLux;
+extern const char *RStateMoisture;
 extern const char *RStateMountingModeActive;
 extern const char *RStateOn;
 extern const char *RStateOpen;
@@ -151,10 +163,15 @@ extern const char *RStateOrientationX;
 extern const char *RStateOrientationY;
 extern const char *RStateOrientationZ;
 extern const char *RStatePanel;
-extern const char *RStatePresence;
-extern const char *RStatePressure;
+extern const char *RStatePM2_5;
 extern const char *RStatePower;
+extern const char *RStatePresence;
+extern const char *RStatePresenceEvent;
+extern const char *RStatePressure;
+extern const char *RStateProduction;
 extern const char *RStateReachable;
+extern const char *RStateReplaceFilter;
+extern const char *RStateRotaryEvent;
 extern const char *RStateSat;
 extern const char *RStateSecondsRemaining;
 extern const char *RStateSpectralX;
@@ -179,6 +196,8 @@ extern const char *RStateWindowOpen;
 extern const char *RStateX;
 extern const char *RStateY;
 
+extern const char *RConfigAlert;
+extern const char *RConfigAllowTouchlink;
 extern const char *RConfigArmMode;
 extern const char *RConfigArmedAwayEntryDelay;
 extern const char *RConfigArmedAwayExitDelay;
@@ -189,10 +208,8 @@ extern const char *RConfigArmedStayTriggerDuration;
 extern const char *RConfigArmedNightEntryDelay;
 extern const char *RConfigArmedNightExitDelay;
 extern const char *RConfigArmedNightTriggerDuration;
-extern const char *RConfigAlert;
-extern const char *RConfigAllowTouchlink;
-extern const char *RConfigLock;
 extern const char *RConfigBattery;
+extern const char *RConfigClickMode;
 extern const char *RConfigColorCapabilities;
 extern const char *RConfigConfigured;
 extern const char *RConfigControlSequence;
@@ -208,6 +225,7 @@ extern const char *RConfigDisplayFlipped;
 extern const char *RConfigDuration;
 extern const char *RConfigEnrolled;
 extern const char *RConfigFanMode;
+extern const char *RConfigFilterLifeTime;
 extern const char *RConfigGPDDeviceId;
 extern const char *RConfigGPDKey;
 extern const char *RConfigGroup;
@@ -222,6 +240,7 @@ extern const char *RConfigLat;
 extern const char *RConfigLedIndication;
 extern const char *RConfigLevelMin;
 extern const char *RConfigLocalTime;
+extern const char *RConfigLock;
 extern const char *RConfigLocked;
 extern const char *RConfigLong;
 extern const char *RConfigMode;
@@ -241,6 +260,7 @@ extern const char *RConfigHumiMaxThreshold;
 extern const char *RConfigHumiMinThreshold;
 extern const char *RConfigVolume;
 extern const char *RConfigReachable;
+extern const char *RConfigResetPresence;
 extern const char *RConfigSchedule;
 extern const char *RConfigScheduleOn;
 extern const char *RConfigSensitivity;
@@ -253,6 +273,7 @@ extern const char *RConfigTemperature;
 extern const char *RConfigTemperatureMeasurement;
 extern const char *RConfigTholdDark;
 extern const char *RConfigTholdOffset;
+extern const char *RConfigTriggerDistance;
 extern const char *RConfigUrl;
 extern const char *RConfigUsertest;
 extern const char *RConfigWindowCoveringType;
@@ -296,15 +317,12 @@ extern const QStringList RConfigLastChangeSourceValues;
 extern const QStringList RConfigDeviceModeValues;
 
 #define R_PENDING_DELAY             (1 << 0)
-#define R_PENDING_LEDINDICATION     (1 << 1)
 #define R_PENDING_SENSITIVITY       (1 << 2)
-#define R_PENDING_USERTEST          (1 << 3)
 #define R_PENDING_WRITE_CIE_ADDRESS (1 << 4)
 #define R_PENDING_ENROLL_RESPONSE   (1 << 5)
 #define R_PENDING_MODE              (1 << 6)
 #define R_PENDING_WRITE_POLL_CHECKIN_INTERVAL  (1 << 6)
 #define R_PENDING_SET_LONG_POLL_INTERVAL       (1 << 7)
-#define R_PENDING_DEVICEMODE        (1 << 8)
 
 // after device announce is received lights can be brought into a defined state
 // this might be useful for powerloss and OTA updates or simply providing a default power on configuration
@@ -589,6 +607,8 @@ bool R_SetValueEventOnSet(Resource *r, const char *suffix, const V &val, Resourc
 
     return result;
 }
+
+bool isValidRConfigGroup(const QString &str);
 
 uint8_t DDF_GetSubDeviceOrder(const QString &type);
 QLatin1String R_DataTypeToString(ApiDataType type);

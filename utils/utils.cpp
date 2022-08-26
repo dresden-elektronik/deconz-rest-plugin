@@ -173,6 +173,11 @@ RestData verifyRestData(const ResourceItemDescriptor &rid, const QVariant &val)
                 data.valid = true;
                 return data;
             }
+            else if (rid.suffix == RConfigGroup)
+            {
+                data.valid = true; // empty string allowed
+                return data;
+            }
             else
             {
                 return data;
@@ -310,6 +315,36 @@ quint64 extAddressFromUniqueId(const QString &uniqueId)
     return result;
 }
 
+unsigned endpointFromUniqueId(const QString &uniqueId)
+{
+    unsigned result = 0;
+
+    if (uniqueId.size() < 26)
+    {
+        return result;
+    }
+
+    // 28:6d:97:00:01:06:41:79-01-0500  31 characters
+
+    if (uniqueId.at(23) != '-') // expect delimeter before endpoint
+    {
+        return result;
+    }
+
+    char buf[2 + 1];
+
+    buf[0] = uniqueId.at(24).toLatin1();
+    buf[1] = uniqueId.at(25).toLatin1();
+    buf[2] = '\0';
+
+    if (isHexChar(buf[0]) && isHexChar(buf[1]))
+    {
+        result = strtoull(buf, nullptr, 16);
+    }
+
+    return result;
+}
+
 bool copyString(char *dst, size_t dstSize, const char *src, ssize_t srcSize)
 {
     if (!dst || dstSize == 0)
@@ -341,4 +376,19 @@ bool copyString(char *dst, size_t dstSize, const char *src, ssize_t srcSize)
     dst[srcSize] = '\0';
 
     return true;
+}
+
+quint8 calculateBatteryPercentageRemaining(const quint8 batteryVoltage, const float vmin, const float vmax)
+{
+    float batteryPercentage = batteryVoltage;
+
+    if      (batteryPercentage > vmax) { batteryPercentage = vmax; }
+    else if (batteryPercentage < vmin) { batteryPercentage = vmin; }
+
+    batteryPercentage = ((batteryPercentage - vmin) / (vmax - vmin)) * 100;
+
+    if      (batteryPercentage > 100) { batteryPercentage = 100; }
+    else if (batteryPercentage <= 0)  { batteryPercentage = 1; } // ?
+
+    return static_cast<quint8>(batteryPercentage);
 }

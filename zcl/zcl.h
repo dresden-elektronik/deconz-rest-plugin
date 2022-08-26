@@ -53,6 +53,7 @@ struct ZCL_Result
 
 struct ZCL_ReadReportConfigurationParam
 {
+    enum Constants { MaxRecords = 6 };
     quint64 extAddress = 0;
     quint16 nwkAddress = 0;
     quint16 manufacturerCode = 0;
@@ -70,6 +71,7 @@ struct ZCL_ReadReportConfigurationParam
 
 struct ZCL_ConfigureReportingParam
 {
+    enum Constants { MaxRecords = 6 };
     quint64 extAddress = 0;
     quint16 nwkAddress = 0;
     quint16 manufacturerCode = 0;
@@ -92,7 +94,7 @@ struct ZCL_ConfigureReportingParam
 
 struct ZCL_ReadReportConfigurationRsp
 {
-    enum { MaxRecords = 8 };
+    enum { MaxRecords = 6 };
     quint16 manufacturerCode = 0;
     quint16 clusterId = 0;
     quint8 sequenceNumber = 0;

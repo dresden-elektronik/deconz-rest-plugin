@@ -87,7 +87,7 @@ GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.13.01\\\"
+DEFINES += GW_SW_VERSION=\\\"2.18.00\\\"
 DEFINES += GW_SW_DATE=$$GIT_COMMIT_DATE
 DEFINES += GW_API_VERSION=\\\"1.16.0\\\"
 DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
@@ -96,8 +96,8 @@ DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
 # which shall be used in order to support all features for this software release (case sensitive)
 DEFINES += GW_AUTO_UPDATE_AVR_FW_VERSION=0x260b0500
 DEFINES += GW_AUTO_UPDATE_R21_FW_VERSION=0x26420700
-DEFINES += GW_MIN_AVR_FW_VERSION=0x26390500
-DEFINES += GW_MIN_R21_FW_VERSION=0x26660700
+DEFINES += GW_MIN_AVR_FW_VERSION=0x26400500
+DEFINES += GW_MIN_R21_FW_VERSION=0x26720700
 
 # Minimum version of the deRFusb23E0X firmware
 # which shall be used in order to support all features for this software release
@@ -106,6 +106,7 @@ DEFINES += GW_MIN_DERFUSB23E0X_FW_VERSION=0x22030300
 DEFINES += GW_DEFAULT_NAME=\\\"Phoscon-GW\\\"
 
 HEADERS  = bindings.h \
+           air_quality.h \
            alarm_system.h \
            alarm_system_device_table.h \
            alarm_system_event_handler.h \
@@ -171,6 +172,7 @@ HEADERS  = bindings.h \
            utils/stringcache.h \
            utils/utils.h \
            websocket_server.h \
+           xiaomi.h \
            zcl/zcl.h \
            zdp/zdp.h \
            zdp/zdp_handlers.h

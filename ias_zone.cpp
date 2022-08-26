@@ -13,31 +13,6 @@
 #include "device_descriptions.h"
 #include "ias_zone.h"
 
-// server send
-#define CMD_STATUS_CHANGE_NOTIFICATION 0x00
-#define CMD_ZONE_ENROLL_REQUEST 0x01
-// server receive
-#define CMD_ZONE_ENROLL_RESPONSE 0x00
-
-// Zone status flags
-#define STATUS_ALARM1         0x0001
-#define STATUS_ALARM2         0x0002
-#define STATUS_TAMPER         0x0004
-#define STATUS_BATTERY        0x0008
-#define STATUS_SUPERVISION    0x0010
-#define STATUS_RESTORE_REP    0x0020
-#define STATUS_TROUBLE        0x0040
-#define STATUS_AC_MAINS       0x0080
-#define STATUS_TEST           0x0100
-#define STATUS_BATTERY_DEFECT 0x0200
-
-// Attributes
-#define IAS_ZONE_STATE        0x0000
-#define IAS_ZONE_TYPE         0x0001
-#define IAS_ZONE_STATUS       0x0002
-#define IAS_CIE_ADDRESS       0x0010
-#define IAS_ZONE_ID           0x0011
-
 /*
     IAS Zone Enrollment is handled in a per device state machine.
     The actual state is managed via RConfigEnrolled as state variable.
@@ -227,8 +202,6 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
         return;
     }
 
-    sensor->rx(); // mark rx here so that Read Attributes will work early on
-
     IAS_EnsureValidState(itemIasState);
 
     bool isReadAttr = false;
@@ -318,9 +291,12 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
 
                 case IAS_ZONE_STATUS:
                 {
-                    const quint16 zoneStatus = attr.numericValue().u16;   // might be reported or received via CMD_STATUS_CHANGE_NOTIFICATION
+                    if (!DEV_TestStrict())
+                    {
+                        const quint16 zoneStatus = attr.numericValue().u16;   // might be reported or received via CMD_STATUS_CHANGE_NOTIFICATION
 
-                    processIasZoneStatus(sensor, zoneStatus, updateType);
+                        processIasZoneStatus(sensor, zoneStatus, updateType);
+                    }
 
                 }
                     break;
@@ -376,18 +352,21 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
     // Read ZCL Cluster Command Response
     if (isClusterCmd && zclFrame.commandId() == CMD_STATUS_CHANGE_NOTIFICATION)
     {
-        quint16 zoneStatus;
-        quint8 extendedStatus;
-        quint8 zoneId;
-        quint16 delay;
-        stream >> zoneStatus;
-        stream >> extendedStatus; // reserved, set to 0
-        stream >> zoneId;
-        stream >> delay;
-        DBG_Assert(stream.status() == QDataStream::Ok);
-        DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Status Change, status: 0x%04X, zoneId: %u, delay: %u\n", sensor->address().ext(), zoneStatus, zoneId, delay);
+        if (!DEV_TestStrict())
+        {
+            quint16 zoneStatus;
+            quint8 extendedStatus;
+            quint8 zoneId;
+            quint16 delay;
+            stream >> zoneStatus;
+            stream >> extendedStatus; // reserved, set to 0
+            stream >> zoneId;
+            stream >> delay;
+            DBG_Assert(stream.status() == QDataStream::Ok);
+            DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Status Change, status: 0x%04X, zoneId: %u, delay: %u\n", sensor->address().ext(), zoneStatus, zoneId, delay);
 
-        processIasZoneStatus(sensor, zoneStatus, NodeValue::UpdateByZclReport);
+            processIasZoneStatus(sensor, zoneStatus, NodeValue::UpdateByZclReport);
+        }
         
         checkIasEnrollmentStatus(sensor);
     }
@@ -650,11 +629,16 @@ bool DeRestPluginPrivate::sendIasZoneEnrollResponse(const deCONZ::ApsDataIndicat
 void DeRestPluginPrivate::checkIasEnrollmentStatus(Sensor *sensor)
 {
     ResourceItem *itemIasState = sensor->item(RConfigEnrolled); // holds per device IAS state variable
-    ResourceItem *itemPending = sensor->item(RConfigPending);
 
-    if (!itemIasState || !itemPending)
+    if (!itemIasState)
     {
-        // All IAS devices should have these items.
+        return;
+    }
+
+    ResourceItem *itemPending = sensor->item(RConfigPending);
+    if (!itemPending)
+    {
+        // All IAS devices should have config.enrolled and config.pending items.
         // Bail out early for non IAS devices.
         return;
     }

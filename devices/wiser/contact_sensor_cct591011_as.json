@@ -5,7 +5,7 @@
   "vendor": "LK Wiser",
   "product": "Contact sensor CCT591011_AS",
   "sleeper": true,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_OPEN_CLOSE_SENSOR",

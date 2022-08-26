@@ -50,6 +50,7 @@ const char *REventTick = "event/tick";
 const char *REventTimerFired = "event/timerfired";
 const char *REventZclResponse = "event/zcl.response";
 const char *REventZclReadReportConfigResponse = "event/zcl.read.report.config.response";
+const char *REventZdpMgmtBindResponse = "event/zdp.mgmt.bind.response";
 const char *REventZdpResponse = "event/zdp.response";
 
 const char *RInvalidSuffix = "invalid/suffix";
@@ -72,6 +73,7 @@ const char *RAttrGroupAddress = "attr/groupaddress";
 
 const char *RActionScene = "action/scene";
 
+const char *RStateAction = "state/action";
 const char *RStateAirQuality = "state/airquality";
 const char *RStateAirQualityPpb = "state/airqualityppb";
 const char *RStateAlarm = "state/alarm";
@@ -84,16 +86,24 @@ const char *RStateBattery = "state/battery";
 const char *RStateBri = "state/bri";
 const char *RStateButtonEvent = "state/buttonevent";
 const char *RStateCarbonMonoxide = "state/carbonmonoxide";
+const char *RStateCharging = "state/charging";
 const char *RStateColorMode = "state/colormode";
 const char *RStateConsumption = "state/consumption";
+const char *RStateConsumption_2 = "state/consumption_2";
 const char *RStateCurrent = "state/current";
+const char *RStateCurrent_P1 = "state/current_P1";
+const char *RStateCurrent_P2 = "state/current_P2";
+const char *RStateCurrent_P3 = "state/current_P3";
 const char *RStateCt = "state/ct";
-const char *RStateAction = "state/action";
 const char *RStateDark = "state/dark";
 const char *RStateDaylight = "state/daylight";
+const char *RStateDeviceRunTime = "state/deviceruntime";
 const char *RStateEffect = "state/effect";
 const char *RStateErrorCode = "state/errorcode";
 const char *RStateEventDuration = "state/eventduration";
+const char *RStateExpectedEventDuration = "state/expectedeventduration";
+const char *RStateExpectedRotation = "state/expectedrotation";
+const char *RStateFilterRunTime = "state/filterruntime";
 const char *RStateFire = "state/fire";
 const char *RStateFlag = "state/flag";
 const char *RStateLockState = "state/lockstate";
@@ -112,9 +122,11 @@ const char *RStateLastSet = "state/lastset";
 const char *RStateLastUpdated = "state/lastupdated";
 const char *RStateLift = "state/lift";
 const char *RStateLightLevel = "state/lightlevel";
+const char *RStateLockState = "state/lockstate";
 const char *RStateLowBattery = "state/lowbattery";
 const char *RStateLocaltime = "state/localtime";
 const char *RStateLux = "state/lux";
+const char *RStateMoisture = "state/moisture";
 const char *RStateMountingModeActive = "state/mountingmodeactive";
 const char *RStateOn = "state/on";
 const char *RStateOpen = "state/open";
@@ -122,10 +134,15 @@ const char *RStateOrientationX = "state/orientation_x";
 const char *RStateOrientationY = "state/orientation_y";
 const char *RStateOrientationZ = "state/orientation_z";
 const char *RStatePanel = "state/panel";
-const char *RStatePresence = "state/presence";
-const char *RStatePressure = "state/pressure";
+const char *RStatePM2_5 = "state/pm2_5";
 const char *RStatePower = "state/power";
+const char *RStatePresence = "state/presence";
+const char *RStatePresenceEvent = "state/presenceevent";
+const char *RStatePressure = "state/pressure";
+const char *RStateProduction = "state/production";
 const char *RStateReachable = "state/reachable";
+const char *RStateReplaceFilter = "state/replacefilter";
+const char *RStateRotaryEvent = "state/rotaryevent";
 const char *RStateSat = "state/sat";
 const char *RStateSecondsRemaining = "state/seconds_remaining";
 const char *RStateSpectralX = "state/spectral_x";
@@ -171,6 +188,7 @@ const char *RConfigAlert = "config/alert";
 const char *RConfigAllowTouchlink = "config/allowtouchlink";
 const char *RConfigLock = "config/lock";
 const char *RConfigBattery = "config/battery";
+const char *RConfigClickMode = "config/clickmode";
 const char *RConfigColorCapabilities = "config/colorcapabilities";
 const char *RConfigConfigured = "config/configured";
 const char *RConfigControlSequence = "config/controlsequence";
@@ -186,6 +204,7 @@ const char *RConfigDisplayFlipped = "config/displayflipped";
 const char *RConfigDuration = "config/duration";
 const char *RConfigEnrolled = "config/enrolled";
 const char *RConfigFanMode = "config/fanmode";
+const char *RConfigFilterLifeTime = "config/filterlifetime";
 const char *RConfigGPDDeviceId = "config/gpd_device_id";
 const char *RConfigGPDKey = "config/gpd_key";
 const char *RConfigGroup = "config/group";
@@ -221,6 +240,7 @@ const char *RConfigTempMinThreshold = "config/temperatureminthreshold";
 const char *RConfigHumiMaxThreshold = "config/humiditymaxthreshold";
 const char *RConfigHumiMinThreshold = "config/humidityminthreshold";
 const char *RConfigReachable = "config/reachable";
+const char *RConfigResetPresence = "config/resetpresence";
 const char *RConfigSchedule = "config/schedule";
 const char *RConfigScheduleOn = "config/schedule_on";
 const char *RConfigSensitivity = "config/sensitivity";
@@ -233,6 +253,7 @@ const char *RConfigTemperature = "config/temperature";
 const char *RConfigTemperatureMeasurement = "config/temperaturemeasurement";
 const char *RConfigTholdDark = "config/tholddark";
 const char *RConfigTholdOffset = "config/tholdoffset";
+const char *RConfigTriggerDistance = "config/triggerdistance";
 const char *RConfigUrl = "config/url";
 const char *RConfigUsertest = "config/usertest";
 const char *RConfigWindowCoveringType = "config/windowcoveringtype";
@@ -300,24 +321,36 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateNotification));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStatePin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateAllOn));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateAngle));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateAngle));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateAnyOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::String, RStateArmState));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateBattery, 0, 100));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateBri));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt32, QVariant::Double, RStateButtonEvent));
     rItemDescriptors.back().flags |= ResourceItem::FlagPushOnSet;
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateRotaryEvent));
+    rItemDescriptors.back().flags |= ResourceItem::FlagPushOnSet;
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateCarbonMonoxide));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateCharging));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateColorMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateAction));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt64, QVariant::Double, RStateConsumption));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt64, QVariant::Double, RStateConsumption_2));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt64, QVariant::Double, RStateProduction));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateCurrent));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateCurrent_P1));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateCurrent_P2));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateCurrent_P3));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateCt));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateDark));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateDaylight));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RStateDeviceRunTime));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateEffect));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateErrorCode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateEventDuration));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateExpectedEventDuration));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateExpectedRotation));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RStateFilterRunTime));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateFire));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateFlag));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateFloorTemperature, -27315, 32767));
@@ -335,6 +368,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, QVariant::String, RStateLocaltime));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateLowBattery));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RStateLux));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateMoisture));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateMountingModeActive));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateOpen));
@@ -342,17 +376,20 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateOrientationY));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateOrientationZ));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStatePanel));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStatePM2_5));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStatePresence));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStatePresenceEvent));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStatePressure, 0, 32767));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStatePower));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateReachable));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateReplaceFilter));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateSat));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RStateSecondsRemaining));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RActionScene));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateSpectralX));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateSpectralY));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateSpectralZ));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateSpeed, 0, 6));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateSpeed, 0, 255));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt32, QVariant::Double, RStateStatus));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, QVariant::String, RStateSunrise));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, QVariant::String, RStateSunset));
@@ -385,6 +422,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigArmedNightTriggerDuration, 0, 255));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigLock));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigBattery, 0, 100));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigClickMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigColorCapabilities));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigCtMin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigCtMax));
@@ -400,6 +438,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigDuration));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RConfigEnrolled));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigFanMode));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RConfigFilterLifeTime));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigGPDDeviceId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigGPDKey));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigGroup));
@@ -434,6 +473,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt8, QVariant::Double, RConfigHumiMaxThreshold));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt8, QVariant::Double, RConfigHumiMinThreshold));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigReachable));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigResetPresence));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigSchedule));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigScheduleOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigSensitivity));
@@ -445,6 +485,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigTemperatureMeasurement));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigTholdDark, 0, 0xfffe));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigTholdOffset, 1, 0xfffe));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigTriggerDistance));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigUrl));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigUsertest));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigWindowCoveringType));
@@ -1472,4 +1513,28 @@ QLatin1String R_DataTypeToString(ApiDataType type)
     }
 
     return QLatin1String("unknown");
+}
+
+/*! Returns true if \p str contains a valid list of group identifiers.
+
+    Valid values are:
+      ""          empty
+      "45"        single group
+      "343,123"   two groups
+      "1,null,null,null"  4 groups but only first set
+ */
+bool isValidRConfigGroup(const QString &str)
+{
+    int result = 0;
+    const QStringList groupList = str.split(',', SKIP_EMPTY_PARTS);
+
+    for (const auto &groupId : groupList)
+    {
+        bool ok = false;
+        auto gid = groupId.toUInt(&ok, 0);
+        if (ok && gid <= UINT16_MAX) { result++; }
+        else if (!ok && groupId == QLatin1String("null")) { result++; }
+    }
+
+    return result == groupList.size();
 }

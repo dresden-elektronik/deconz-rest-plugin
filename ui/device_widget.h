@@ -43,6 +43,7 @@ private Q_SLOTS:
     void enablePermitJoin();
     void disablePermitJoin();
     void enableDDFHandlingChanged();
+    void reloadTimerFired();
 
 private:
     Ui::DeviceWidget *ui;

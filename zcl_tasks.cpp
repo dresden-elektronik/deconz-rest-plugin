@@ -13,6 +13,7 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "colorspace.h"
+#include "device_descriptions.h"
 
 /** @brief Min of A and B */
 #define MIN(A,B)	(((A) <= (B)) ? (A) : (B))
@@ -101,6 +102,43 @@ bool DeRestPluginPrivate::addTaskSetOnOff(TaskItem &task, quint8 cmd, quint16 on
     {
         return false;
     }
+
+    if (task.lightNode && task.lightNode->parentResource())
+    {
+        Device *device = static_cast<Device*>(task.lightNode->parentResource());
+
+        if (device && device->managed())
+        {
+            uint target = 0;
+            ResourceItem *onItem = task.lightNode->item(RStateOn);
+            const auto ddfItem = DDF_GetItem(onItem);
+
+            if (cmd == ONOFF_COMMAND_ON || cmd == ONOFF_COMMAND_ON_WITH_TIMED_OFF)
+            {
+                target = 1;
+            }
+
+            if (!ddfItem.writeParameters.isNull())
+            {
+                StateChange change(StateChange::StateCallFunction, SC_WriteZclAttribute, task.req.dstEndpoint());
+                change.addTargetValue(RStateOn, target);
+                task.lightNode->addStateChange(change);
+                return true;
+            }
+            else // only verify after classic command
+            {
+                StateChange change(StateChange::StateWaitSync, SC_SetOnOff, task.req.dstEndpoint());
+                change.addTargetValue(RStateOn, target);
+                change.addParameter(QLatin1String("cmd"), cmd);
+                if (cmd == ONOFF_COMMAND_ON_WITH_TIMED_OFF)
+                {
+                    change.addParameter(QLatin1String("ontime"), ontime);
+                }
+                task.lightNode->addStateChange(change);
+            }
+        }
+    }
+
     task.taskType = TaskSendOnOffToggle;
     task.onOff = cmd == ONOFF_COMMAND_ON || cmd == ONOFF_COMMAND_ON_WITH_TIMED_OFF; // FIXME - what about ONOFF_COMMAND_TOGGLE ?!
 
@@ -154,6 +192,39 @@ bool DeRestPluginPrivate::addTaskSetOnOff(TaskItem &task, quint8 cmd, quint16 on
  */
 bool DeRestPluginPrivate::addTaskSetBrightness(TaskItem &task, uint8_t bri, bool withOnOff)
 {
+    if (task.lightNode && task.lightNode->parentResource())
+    {
+        Device *device = static_cast<Device*>(task.lightNode->parentResource());
+
+        if (device && device->managed())
+        {
+            uint target = bri;
+            ResourceItem *briItem = task.lightNode->item(RStateBri);
+            const auto ddfItem = DDF_GetItem(briItem);
+
+            if (!ddfItem.writeParameters.isNull())
+            {
+                if (withOnOff) // onoff is a dependency, check if there is a write funtion for it
+                {
+                    ResourceItem *onItem = task.lightNode->item(RStateOn);
+                    const auto ddfItem2 = DDF_GetItem(onItem);
+
+                    if (!ddfItem2.writeParameters.isNull())
+                    {
+                        StateChange change(StateChange::StateCallFunction, SC_WriteZclAttribute, task.req.dstEndpoint());
+                        change.addTargetValue(RStateOn, bri > 0 ? 1 : 0);
+                        task.lightNode->addStateChange(change);
+                    }
+                }
+
+                StateChange change(StateChange::StateCallFunction, SC_WriteZclAttribute, task.req.dstEndpoint());
+                change.addTargetValue(RStateBri, target);
+                task.lightNode->addStateChange(change);
+                return true;
+            }
+        }
+    }
+
     task.taskType = TaskSetLevel;
     task.level = bri;
     task.onOff = withOnOff; // FIXME abuse of taks.onOff
