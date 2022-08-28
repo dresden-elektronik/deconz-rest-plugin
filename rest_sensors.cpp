@@ -949,6 +949,16 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         updated = true;
                     }
                 }
+                else if (rid.suffix == RConfigSelfTest) // Boolean
+                {
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.boolean);
+                        change.setChangeTimeoutMs(60000);    // 1 min
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
+                }
                 else if (rid.suffix == RConfigAlert) // String
                 {
                     const std::array<KeyValMap, 3> RConfigAlertValues = { { {QLatin1String("none"), 0}, {QLatin1String("select"), 2}, {QLatin1String("lselect"), 15} } };
