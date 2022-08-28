@@ -1025,7 +1025,13 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
 
         if (!zclFrame.isProfileWideCommand())
         {
-
+            if (zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient)
+            {
+                // Keep Device poll state machine happy for non profile wide responses.
+                // There a response is assumed by 'server to client' direction.
+                // The status is set to SUCCESS since not all responses contain a status field.
+                enqueueEvent(Event(device->prefix(), REventZclResponse, EventZclResponsePack(ind.clusterId(), zclFrame.sequenceNumber(), deCONZ::ZclSuccessStatus), device->key()));
+            }
         }
         else if (zclFrame.commandId() == deCONZ::ZclReadAttributesResponseId && zclFrame.payload().size() >= 3)
         {
