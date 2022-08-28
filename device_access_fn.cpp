@@ -539,6 +539,11 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
 
     if (zclParam.attributeCount == 0) // attributes are optional
     {
+        if (zclParam.hasCommandId && zclParam.commandId != zclFrame.commandId())
+        {
+            return result;
+        }
+        
         if (evalZclFrame(r, item, ind, zclFrame, parseParameters))
         {
             result = true;
