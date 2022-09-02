@@ -791,11 +791,19 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 
                 const auto &ddfItem = DDF_GetItem(item);
-                const auto stateTimeout = ddfItem.writeParameters.toMap()[QLatin1String("state.timeout")].toUInt(&ok);
                 
-                if (ok && stateTimeout > 0)
+                if (!ddfItem.writeParameters.isNull())
                 {
-                    change.setStateTimeoutMs(1000 * stateTimeout);
+                    const auto writeParam = ddfItem.writeParameters.toMap();
+                    if (writeParam.contains(QLatin1String("state.timeout"))
+                    {
+                        int stateTimeout = writeParam.value(QLatin1String("state.timeout")).toInt(&ok);
+
+                        if (ok && stateTimeout > 0)
+                        {
+                            change.setStateTimeoutMs(1000 * stateTimeout);
+                        }
+                    }
                 }
 
                 if (sensor->modelId().startsWith(QLatin1String("SPZB")) && hostFlags == 0) // Eurotronic Spirit

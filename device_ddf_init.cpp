@@ -247,26 +247,29 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
             if (!ddfItem.defaultValue.isNull() && !ddfItem.writeParameters.isNull())
             {
                 QString writeFunction;
+                const auto writeParam = ddfItem.writeParameters.toMap();
+                
+                if (writeParam.contains(QLatin1String("fn")))
                 {
-                    const auto writeParam = ddfItem.writeParameters.toMap();
-                    if (writeParam.contains(QLatin1String("fn")))
-                    {
-                        writeFunction = writeParam.value(QLatin1String("fn")).toString();
-                    }
+                    writeFunction = writeParam.value(QLatin1String("fn")).toString();
                 }
 
                 if (writeFunction.isEmpty() || writeFunction == QLatin1String("zcl"))
                 {
                     bool ok;
-                    const auto stateTimeout = ddfItem.writeParameters.toMap()[QLatin1String("state.timeout")].toUInt(&ok);
                     
                     StateChange stateChange(StateChange::StateWaitSync, SC_WriteZclAttribute, sub.uniqueId.at(1).toUInt());
                     stateChange.addTargetValue(item->descriptor().suffix, item->toVariant());
                     stateChange.setChangeTimeoutMs(1000 * 60 * 60);
 
-                    if (ok && stateTimeout > 0)
+                    if (writeParam.contains(QLatin1String("state.timeout"))
                     {
-                        stateChange.setStateTimeoutMs(1000 * stateTimeout);
+                        int stateTimeout = writeParam.value(QLatin1String("state.timeout")).toInt(&ok);
+
+                        if (ok && stateTimeout > 0)
+                        {
+                            stateChange.setStateTimeoutMs(1000 * stateTimeout);
+                        }
                     }
 
                     rsub->addStateChange(stateChange);
