@@ -16,6 +16,26 @@
 
 static EventEmitter *instance_ = nullptr;
 
+static bool isDuplicate(size_t pos, const std::vector<Event> &queue, const Event &e)
+{
+    for (size_t i = pos; i < queue.size(); i++)
+    {
+        const Event &x = queue[i];
+
+        if (e.deviceKey() != x.deviceKey()) {continue;}
+        if (e.resource() != x.resource()) continue;
+        if (e.what() != x.what()) continue;
+        if (e.num() != x.num()) continue;
+        if (e.id() != x.id()) continue;
+        if (e.hasData() != x.hasData()) continue;
+        if (e.hasData() && e.dataSize() != x.dataSize()) continue;
+
+        return true;
+    }
+
+    return false;
+}
+
 EventEmitter::EventEmitter(QObject *parent) :
     QObject(parent)
 {
@@ -23,7 +43,7 @@ EventEmitter::EventEmitter(QObject *parent) :
 
     m_timer = new QTimer(this);
     m_timer->setSingleShot(true);
-    m_timer->setInterval(1);
+    m_timer->setInterval(0);
     connect(m_timer, &QTimer::timeout, this, &EventEmitter::timerFired);
 
     Q_ASSERT(instance_ == nullptr);
@@ -52,15 +72,25 @@ void EventEmitter::enqueueEvent(const Event &event)
         }
     }
 
-    if (restNode && restNode->address().ext() > 0)
+    if (event.isUrgent())
     {
-        Event e2 = event;
-        e2.setDeviceKey(restNode->address().ext());
-        m_queue.push_back(e2);
+        m_urgentQueue.push_back(event);
     }
     else
     {
-        m_queue.push_back(event);
+        if (restNode && restNode->address().ext() > 0)
+        {
+            Event e2 = event;
+            e2.setDeviceKey(restNode->address().ext());
+            if (!isDuplicate(m_pos, m_queue, e2))
+            {
+                m_queue.push_back(e2);
+            }
+        }
+        else if (!isDuplicate(m_pos, m_queue, event))
+        {
+            m_queue.push_back(event);
+        }
     }
 
     if (!m_timer->isActive())
@@ -74,22 +104,45 @@ EventEmitter::~EventEmitter()
     instance_ = nullptr;
 }
 
-void EventEmitter::timerFired()
+void EventEmitter::process()
 {
     QElapsedTimer t;
     t.start();
-    while (m_pos < m_queue.size() && t.elapsed() < 10)
+
+    while (t.elapsed() < 10 && (m_urgentQueue.size() || m_queue.size()))
     {
-        emit eventNotify(m_queue[m_pos]);
-        m_pos++;
-        if (m_pos == m_queue.size())
+        size_t i = 0;
+        while (i < m_urgentQueue.size())
         {
-            m_queue.clear();
-            m_pos = 0;
+            emit eventNotify(m_urgentQueue[i]);
+            i++;
+
+            if (i == m_urgentQueue.size())
+            {
+                m_urgentQueue.clear();
+                break;
+            }
+        }
+
+        DBG_Assert(m_urgentQueue.empty());
+        if (m_pos < m_queue.size())
+        {
+            m_pos++;
+            emit eventNotify(m_queue[m_pos - 1]);
+            if (m_pos == m_queue.size())
+            {
+                m_queue.clear();
+                m_pos = 0;
+            }
         }
     }
+}
 
-    if (!m_queue.empty())
+void EventEmitter::timerFired()
+{
+    process();
+
+    if (!m_queue.empty() && !m_timer->isActive())
     {
         m_timer->start();
     }
