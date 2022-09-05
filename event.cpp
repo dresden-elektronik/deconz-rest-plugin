@@ -23,6 +23,23 @@ quint16 allocDataBuffer()
     return int(_eventDataIter);
 }
 
+#ifdef DECONZ_DEBUG_BUILD
+/*! Verify that ZCL packing functions work as expected
+    TODO(mpi) move to separate testing code.
+*/
+void EventTestZclPacking()
+{
+    uint clusterId = 0xf123;
+    uint status = 0x83;
+    uint seqno = 24;
+    Event e(RDevices, REventZclResponse, EventZclResponsePack(clusterId, seqno, status), 0x11111);
+
+    Q_ASSERT(EventZclClusterId(e) == clusterId);
+    Q_ASSERT(EventZclSequenceNumber(e) == seqno);
+    Q_ASSERT(EventZclStatus(e) == status);
+}
+#endif
+
 /*! Constructor.
  */
 Event::Event()
