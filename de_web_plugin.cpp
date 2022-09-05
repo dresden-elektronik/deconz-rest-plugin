@@ -4262,72 +4262,9 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ:
     }
     else if (sensor->node() && !sensor->node()->isZombie())
     {
-        // look if fingerprint endpoint is in active endpoint list
-        std::vector<quint8>::const_iterator it;
-
-        it = std::find(sensor->node()->endpoints().begin(),
-                       sensor->node()->endpoints().end(),
-                       sensor->fingerPrint().endpoint);
-
-        if (it != sensor->node()->endpoints().end())
+        if (sensor->lastRx().isValid() && sensor->lastRx().secsTo(now) < (60 * 60 * 24))
         {
-            if (sensor->lastRx().isValid() && sensor->lastRx().secsTo(now) < (60 * 60 * 24))
-            {
-                reachable = true;
-            }
-
-            bool found = false;
-
-            // check if any cluster from fingerprint is present
-            for (const deCONZ::SimpleDescriptor &sd : sensor->node()->simpleDescriptors())
-            {
-                if (!reachable)
-                {
-                    break;
-                }
-
-                if (sd.endpoint() != sensor->fingerPrint().endpoint)
-                {
-                    continue;
-                }
-
-                for (quint16 clusterId : sensor->fingerPrint().inClusters)
-                {
-                    for (const deCONZ::ZclCluster &cl : sd.inClusters())
-                    {
-                        if (clusterId == cl.id())
-                        {
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (found)
-                    {
-                        reachable = true;
-                        break;
-                    }
-                }
-
-                if (!found)
-                {
-                    for (quint16 clusterId : sensor->fingerPrint().outClusters)
-                    {
-                        for (const deCONZ::ZclCluster &cl : sd.outClusters())
-                        {
-                            if (clusterId == cl.id())
-                            {
-                                found = true;
-                                break;
-                            }
-                        }
-                        if (found)
-                        {
-                            reachable = true;
-                            break;
-                        }
-                    }
-                }
-            }
+            reachable = true;
         }
     }
 
