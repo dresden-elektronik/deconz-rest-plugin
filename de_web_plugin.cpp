@@ -1079,6 +1079,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
         return; // only ZCL and ZDP for now
     }
 
+    int awake = 0;
     auto resources = device->subDevices();
     resources.push_back(device); // self reference
 
@@ -1101,7 +1102,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                     if (!reachable->toBool())
                     {
                         reachable->setValue(true);
-                        enqueueEvent(Event(r->prefix(), reachable->descriptor().suffix, r->item(RAttrId)->toString(), device->key()));
+                        enqueueEvent(Event(r->prefix(), reachable->descriptor().suffix, r->item(RAttrId)->toString(), reachable, device->key()));
                     }
                 }
             }
@@ -1126,7 +1127,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
             if (reachable && !reachable->toBool())
             {
                 reachable->setValue(true);
-                enqueueEvent(Event(r->prefix(), reachable->descriptor().suffix, r->item(RAttrId)->toString(), device->key()));
+                enqueueEvent(Event(r->prefix(), reachable->descriptor().suffix, r->item(RAttrId)->toString(), reachable, device->key()));
             }
         }
 
@@ -1165,7 +1166,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
             {
                 if (item->awake())
                 {
-                    enqueueEvent(Event(RDevices, REventAwake, 0, device->key()));
+                    awake++;
                 }
 
                 auto *idItem = r->item(RAttrId);
@@ -1177,7 +1178,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                 const bool push = item->pushOnSet() || (item->pushOnChange() && item->lastChanged() == item->lastSet());
                 if (idItem)
                 {
-                    enqueueEvent(Event(r->prefix(), item->descriptor().suffix, idItem->toString(), device->key()));
+                    enqueueEvent(Event(r->prefix(), item->descriptor().suffix, idItem->toString(), item, device->key()));
                     if (push && item->lastChanged() == item->lastSet())
                     {
                         DB_StoreSubDeviceItem(r, item);
@@ -1191,7 +1192,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                     {
                         eventLastUpdatedEmitted = true;
                         lastUpdated->setValue(item->lastSet());
-                        enqueueEvent(Event(r->prefix(), lastUpdated->descriptor().suffix, idItem->toString(), device->key()));
+                        enqueueEvent(Event(r->prefix(), lastUpdated->descriptor().suffix, idItem->toString(), lastUpdated, device->key()));
                     }
                 }
             }
@@ -1203,6 +1204,11 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
 
     }
     else if (ind.clusterId() == POWER_CONFIGURATION_CLUSTER_ID) // genral assumption that the device is awake
+    {
+        awake++;
+    }
+
+    if (awake > 0)
     {
         enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
     }
@@ -1581,6 +1587,8 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
     {
         otauDataIndication(ind, deCONZ::ZclFrame());
     }
+
+    eventEmitter->process();
 }
 
 /*! APSDE-DATA.confirm callback.
