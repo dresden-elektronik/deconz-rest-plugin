@@ -262,7 +262,7 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
                     stateChange.addTargetValue(item->descriptor().suffix, item->toVariant());
                     stateChange.setChangeTimeoutMs(1000 * 60 * 60);
 
-                    if (writeParam.contains(QLatin1String("state.timeout"))
+                    if (writeParam.contains(QLatin1String("state.timeout")))
                     {
                         int stateTimeout = writeParam.value(QLatin1String("state.timeout")).toInt(&ok);
 

@@ -795,7 +795,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 if (!ddfItem.writeParameters.isNull())
                 {
                     const auto writeParam = ddfItem.writeParameters.toMap();
-                    if (writeParam.contains(QLatin1String("state.timeout"))
+                    if (writeParam.contains(QLatin1String("state.timeout")))
                     {
                         int stateTimeout = writeParam.value(QLatin1String("state.timeout")).toInt(&ok);
 
