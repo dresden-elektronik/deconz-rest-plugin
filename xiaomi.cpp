@@ -173,11 +173,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         Device *device = DEV_GetDevice(m_devices, ind.srcAddress().ext());
         if (device)
         {
+            enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
             if (device->managed())
             {
                 return;
             }
-            enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
         }
     }
 
