@@ -54,7 +54,7 @@
           "parse": {
             "cl": "0xFC42",
             "cmd": "0x02",
-            "eval": "const eventLookup = [0x03, 0x00, 0x04, 0x01]; Item.val = (ZclFrame.at(0)+1) * 1000 + eventLookup[ZclFrame.at(1)]"
+            "eval": "const eventLookup = [0x03, 0x02, 0x04, 0x01]; Item.val = (ZclFrame.at(0)+1) * 1000 + eventLookup[ZclFrame.at(1)]"
           }
         },
         {
