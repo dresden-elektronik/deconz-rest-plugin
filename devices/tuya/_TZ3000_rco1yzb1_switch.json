@@ -3,7 +3,7 @@
   "manufacturername": "_TZ3000_rco1yzb1",
   "modelid": "TS004F",
   "product": "TS004F",
-  "sleeper": false,
+  "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
