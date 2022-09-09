@@ -16,7 +16,7 @@ categories:
       - 'bug'
 
 change-template: '- $TITLE [#$NUMBER]($URL)'
-category-template: '---'
+category-template: ' '
 
 version-resolver:
   major:
