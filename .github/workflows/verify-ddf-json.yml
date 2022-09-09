@@ -1,0 +1,39 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Verify DDF JSON
+
+# Controls when the action will run.
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ master ]
+    paths:
+    - 'devices/*/*\.json'
+    - 'devices/generic/*/*\.json'
+  pull_request:
+    branches: [ master ]
+    paths:
+    - 'devices/*/*\.json'
+    - 'devices/generic/*/*\.json'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Install jsonlint
+      - name: Install jsonlint
+        run: sudo apt install jsonlint
+
+      - name: Validate genric JSON files
+        run: for j in `find devices -name '*.json'`; do jsonlint-php $j || exit 1; done
