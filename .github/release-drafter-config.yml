@@ -3,15 +3,17 @@ tag-template: 'v$RESOLVED_VERSION'
 categories:
   - title: 'Features'
     labels:
-      - 'feature'
-      - 'enhancement'
+      - 'Feature Request'
+      - 'Enhancement'
   - title: 'Bug Fixes'
     labels:
-      - 'fix'
+      - 'Fix'
       - 'bugfix'
       - 'bug'
-  - title: 'New devices'
-    label: 'device-request'
+  - title: 'Devices'
+    labels:
+    - 'Device Request'
+    - 'Device Improvement'
 
 change-template: |
   * $TITLE @$AUTHOR (#$NUMBER)
