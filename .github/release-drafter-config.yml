@@ -14,7 +14,7 @@ categories:
     label: 'device-request'
 
 change-template: |
-  **$TITLE @$AUTHOR (#$NUMBER):**  
+  * $TITLE @$AUTHOR (#$NUMBER)
 
 version-resolver:
   major:
