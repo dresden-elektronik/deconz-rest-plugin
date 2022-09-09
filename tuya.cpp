@@ -77,6 +77,50 @@ bool UseTuyaCluster(const QString &manufacturer)
     return false;
 }
 
+// Time sync command
+// https://developer.tuya.com/en/docs/iot/device-development/embedded-software-development/mcu-development-access/zigbee-general-solution/tuya-zigbee-module-uart-communication-protocol
+static void handleTuyaTimeSyncRequest(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+{
+    DBG_Printf(DBG_INFO, "Tuya Time sync request: 0x%016llx\n", ind.srcAddress().ext());
+
+    quint16 seqno;
+
+    {
+        QDataStream stream(zclFrame.payload());
+        stream.setByteOrder(QDataStream::BigEndian);
+        stream >> seqno;
+    }
+
+    // This is disabled for the moment, need investigations
+    // It seem some device send a UnknowHeader = 0x0000
+    // it s always 0x0000 for device > gateway
+    // And always 0x0008 for gateway > device (0x0008 is the payload size)
+    //
+    //if (unknowHeader == 0x0000)
+    //{
+    //}
+
+    quint32 timeNow = 0xFFFFFFFF;              // id 0x0000 Time
+    qint32 timeZone = 0xFFFFFFFF;              // id 0x0002 TimeZone
+    quint32 timeDstStart = 0xFFFFFFFF;        // id 0x0003 DstStart
+    quint32 timeDstEnd = 0xFFFFFFFF;          // id 0x0004 DstEnd
+    qint32 timeDstShift = 0xFFFFFFFF;         // id 0x0005 DstShift
+    quint32 timeStdTime = 0xFFFFFFFF;         // id 0x0006 StandardTime
+    quint32 timeLocalTime = 0xFFFFFFFF;       // id 0x0007 LocalTime
+
+    getTime(&timeNow, &timeZone, &timeDstStart, &timeDstEnd, &timeDstShift, &timeStdTime, &timeLocalTime, UNIX_EPOCH);
+
+    QByteArray data;
+    QDataStream stream(&data, QIODevice::WriteOnly);
+    stream.setByteOrder(QDataStream::BigEndian);
+
+    stream << seqno;
+    stream << timeNow;       // UTC time
+    stream << timeLocalTime; // local time
+
+    plugin->sendTuyaCommand(ind, TUYA_TIME_SYNCHRONISATION, data);
+}
+
 /*! Handle packets related to Tuya 0xEF00 cluster.
     \param ind the APS level data indication containing the ZCL packet
     \param zclFrame the actual ZCL frame which holds the scene cluster reponse
@@ -91,21 +135,24 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         return;
     }
 
+    if (zclFrame.commandId() == TUYA_TIME_SYNCHRONISATION)
+    {
+        handleTuyaTimeSyncRequest(ind, zclFrame);
+        return;
+    }
+
     // Note(mpi) DDF devices that are using {"parse": "fn": "tuya"} are expected
     // to not use this function other than for time sync.
     if (device && device->managed())
     {
-        if (zclFrame.commandId() != TUYA_TIME_SYNCHRONISATION)
+        // clumsy workaround to not interfere with DDF handlers
+        for (const Resource *r : device->subDevices())
         {
-            // clumsy workaround to not interfere with DDF handlers
-            for (const Resource *r : device->subDevices())
+            for (int i = 0; i < r->itemCount(); i++)
             {
-                for (int i = 0; i < r->itemCount(); i++)
+                if (r->itemForIndex(size_t(i))->parseFunction() == parseTuyaData)
                 {
-                    if (r->itemForIndex(size_t(i))->parseFunction() == parseTuyaData)
-                    {
-                        return;
-                    }
+                    return;
                 }
             }
         }
@@ -1492,51 +1539,6 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             DBG_Printf(DBG_INFO, "Tuya debug 6 : No device found\n");
         }
 
-    }
-    // Time sync command
-    //https://developer.tuya.com/en/docs/iot/device-development/embedded-software-development/mcu-development-access/zigbee-general-solution/tuya-zigbee-module-uart-communication-protocol
-    else if (zclFrame.commandId() == TUYA_TIME_SYNCHRONISATION)
-    {
-        DBG_Printf(DBG_INFO, "Tuya debug 1 : Time sync request\n");
-
-        quint16 seqno;
-
-        {
-            QDataStream stream(zclFrame.payload());
-            stream.setByteOrder(QDataStream::BigEndian);
-            stream >> seqno;
-        }
-
-        // This is disabled for the moment, need investigations
-        // It seem some device send a UnknowHeader = 0x0000
-        // it s always 0x0000 for device > gateway
-        // And always 0x0008 for gateway > device (0x0008 is the payload size)
-        //
-        //if (unknowHeader == 0x0000)
-        //{
-        //}
-
-        quint32 timeNow = 0xFFFFFFFF;              // id 0x0000 Time
-        qint32 timeZone = 0xFFFFFFFF;              // id 0x0002 TimeZone
-        quint32 timeDstStart = 0xFFFFFFFF;        // id 0x0003 DstStart
-        quint32 timeDstEnd = 0xFFFFFFFF;          // id 0x0004 DstEnd
-        qint32 timeDstShift = 0xFFFFFFFF;         // id 0x0005 DstShift
-        quint32 timeStdTime = 0xFFFFFFFF;         // id 0x0006 StandardTime
-        quint32 timeLocalTime = 0xFFFFFFFF;       // id 0x0007 LocalTime
-
-        getTime(&timeNow, &timeZone, &timeDstStart, &timeDstEnd, &timeDstShift, &timeStdTime, &timeLocalTime, UNIX_EPOCH);
-        
-        QByteArray data;
-        QDataStream stream(&data, QIODevice::WriteOnly);
-        stream.setByteOrder(QDataStream::BigEndian);
-
-        stream << seqno;
-        stream << timeNow;       // UTC time
-        stream << timeLocalTime; // local time
-
-        sendTuyaCommand(ind, TUYA_TIME_SYNCHRONISATION, data);
-
-        return;
     }
     else
     {
