@@ -15,8 +15,6 @@ categories:
 
 change-template: |
   **$TITLE @$AUTHOR (#$NUMBER):**  
-  $BODY  
-
 
 version-resolver:
   major:
