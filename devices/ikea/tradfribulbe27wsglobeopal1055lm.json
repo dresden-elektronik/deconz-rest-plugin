@@ -2,9 +2,10 @@
   "schema": "devcap1.schema.json",
   "manufacturername": "$MF_IKEA",
   "modelid": "TRADFRIbulbE27WSglobeopal1055lm",
-  "product": "TRADFRIbulbE27WSglobeopal1055lm",
+  "product": "Tradfri LED bulb E27 1055 lumen",
   "sleeper": false,
   "status": "Gold",
+  "path": "/devices/ikea/tradfribulbe27wsglobeopal1055lm.json",
   "subdevices": [
     {
       "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
@@ -40,10 +41,6 @@
         },
         {
           "name": "attr/uniqueid"
-        },
-        {
-          "name": "config/colorcapabilities",
-          "refresh.interval": 84000
         },
         {
           "name": "config/ctmax",
@@ -82,86 +79,41 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0000",
-      "report": [
-        {
-          "at": "0x4000",
-          "dt": "0x42",
-          "min": 0,
-          "max": 65535
-        }
-      ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "dst.ep": 1,
       "cl": "0x0006",
       "report": [
         {
           "at": "0x0000",
           "dt": "0x10",
-          "min": 1,
-          "max": 1800
+          "min": 0,
+          "max": 0
         }
       ]
     },
     {
       "bind": "unicast",
       "src.ep": 1,
-      "dst.ep": 1,
       "cl": "0x0008",
       "report": [
         {
           "at": "0x0000",
           "dt": "0x20",
-          "min": 5,
-          "max": 1800,
-          "change": "0x00000001"
+          "min": 0,
+          "max": 0
         }
       ]
     },
     {
       "bind": "unicast",
       "src.ep": 1,
-      "dst.ep": 1,
       "cl": "0x0300",
       "report": [
         {
           "at": "0x0007",
           "dt": "0x21",
-          "min": 5,
-          "max": 1800,
-          "change": "0x00000001"
-        },
-        {
-          "at": "0x0003",
-          "dt": "0x21",
-          "min": 5,
-          "max": 1795,
-          "change": "0x0000000A"
-        },
-        {
-          "at": "0x0004",
-          "dt": "0x21",
-          "min": 5,
-          "max": 1795,
-          "change": "0x0000000A"
-        },
-        {
-          "at": "0x0008",
-          "dt": "0x30",
-          "min": 1,
-          "max": 1800
+          "min": 0,
+          "max": 0
         }
       ]
-    },
-    {
-      "bind": "groupcast",
-      "config.group": 74,
-      "src.ep": 1,
-      "cl": "0x2001"
     }
   ]
 }
