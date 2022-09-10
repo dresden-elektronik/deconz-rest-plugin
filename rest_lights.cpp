@@ -225,6 +225,9 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     const ResourceItem *ix = nullptr;
     const ResourceItem *iy = nullptr;
     const ResourceItem *icc = nullptr;
+    QVariantMap startup;
+    const ResourceItem *isx = nullptr;
+    const ResourceItem *isy = nullptr;
 
     for (int i = 0; i < lightNode->itemCount(); i++)
     {
@@ -243,6 +246,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (item->descriptor().suffix == RStateSat) { state["sat"] = static_cast<double>(item->toNumber()); }
         else if (item->descriptor().suffix == RStateCt) { state["ct"] = static_cast<double>(item->toNumber()); }
         else if (item->descriptor().suffix == RStateColorMode) { state["colormode"] = item->toString(); }
+        else if (item->descriptor().suffix == RStateDynamicEffect) { state["dynamic_effect"] = item->toString(); }
         else if (item->descriptor().suffix == RStateEffect) { state["effect"] = item->toString(); }
         else if (item->descriptor().suffix == RStateSpeed) { state["speed"] = item->toNumber(); }
         else if (item->descriptor().suffix == RStateX) { ix = item; }
@@ -255,11 +259,17 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (item->descriptor().suffix == RConfigCtMax) { map["ctmax"] = item->toNumber(); }
         else if (req.apiVersion() <= ApiVersion_1_DDEL && item->descriptor().suffix == RConfigColorCapabilities) { map["colorcapabilities"] = item->toNumber(); }
         else if (req.apiVersion() >= ApiVersion_1_1_DDEL && item->descriptor().suffix == RConfigColorCapabilities) { icc = item; }
+        else if (item->descriptor().suffix == RConfigColorGamutType) { map["colorgamuttype"] = item->toString(); }
         else if (item->descriptor().suffix == RConfigPowerup) { map["powerup"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigPowerOnLevel) { map["poweronlevel"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigPowerOnCt) { map["poweronct"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigLevelMin) { map["levelmin"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigId) { map["configid"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RConfigStartupBri) { startup["bri"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RConfigStartupCt) { startup["ct"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RConfigStartupOn) { startup["on"] = item->toString(); }
+        else if (item->descriptor().suffix == RConfigStartupX) { isx = item; }
+        else if (item->descriptor().suffix == RConfigStartupY) { isy = item; }
         else if (item->descriptor().suffix == RAttrLastAnnounced) { map["lastannounced"] = item->toString(); }
         else if (item->descriptor().suffix == RAttrLastSeen) { map["lastseen"] = item->toString(); }
     }
@@ -269,6 +279,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         QVariantList xy;
         double colorX = ix->toNumber();
         double colorY = iy->toNumber();
+
         // sanity for colorX
         if (colorX > 65279)
         {
@@ -296,6 +307,18 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         if (cc & 0x01 || cc & 0x02) colorCapabilities.push_back(QLatin1String("hs"));
         if (cc & 0x08) colorCapabilities.push_back(QLatin1String("xy"));
         map["colorcapabilities"] = colorCapabilities;
+    }
+    if (isx && isy)
+    {
+        QVariantList xy;
+        double colorX = isx->toNumber();
+        double colorY = isy->toNumber();
+
+        const double x = round(colorX / 6.5535) / 10000.0; // normalize to 0 .. 1
+        const double y = round(colorY / 6.5535) / 10000.0; // normalize to 0 .. 1
+        xy.append(x);
+        xy.append(y);
+        startup["xy"] = xy;
     }
 
     map["uniqueid"] = lightNode->uniqueId();
@@ -344,6 +367,10 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     }
 
     map["state"] = state;
+    if (!startup.isEmpty())
+    {
+        map["startup"] = startup;
+    }
     return true;
 }
 
