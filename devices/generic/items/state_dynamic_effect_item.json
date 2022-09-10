@@ -1,0 +1,9 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/dynamic_effect",
+	"datatype": "String",
+	"access": "RW",
+	"public": true,
+	"description": "The currently active dynamic effect.",
+	"default": "none"
+}
