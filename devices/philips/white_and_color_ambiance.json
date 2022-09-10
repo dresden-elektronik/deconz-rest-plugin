@@ -1,0 +1,114 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": ["$MF_SIGNIFY", "$MF_SIGNIFY"],
+  "modelid": ["LCT003", "LCT007"],
+  "product": "Hue white and color ambiance",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_EXTENDED_COLOR_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x0b"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/colorcapabilities"
+        },
+        {
+          "name": "config/colorgamuttype"
+        },
+        {
+          "name": "config/ctmax"
+        },
+        {
+          "name": "config/ctmin"
+        },
+        {
+          "name": "config/startup_bri"
+        },
+        {
+          "name": "config/startup_ct"
+        },
+        {
+          "name": "config/startup_on"
+        },
+        {
+          "name": "config/startup_x"
+        },
+        {
+          "name": "config/startup_y"
+        },
+        {
+         "name": "state/alert"
+        },
+        {
+          "name": "state/bri",
+          "read": {"fn": "none"}
+        },
+        {
+          "name": "state/colormode",
+          "read": {"fn": "none"}
+        },
+        {
+          "name": "state/ct",
+          "read": {"fn": "none"}
+        },
+        {
+          "name": "state/effect"
+        },
+        {
+          "name": "state/on",
+          "parse": {
+            "ep": "0x0b", "cl": "0xfc03", "mf": "0x100b", "at": "0x0002",
+            "script": "fc03_state.js"
+          },
+          "read": {
+            "ep": "0x0b", "cl": "0xfc03", "mf": "0x100b", "at": "0x0002"
+          },
+          "refresh.interval": 5
+        },
+        {
+          "name": "state/reachable"
+        },
+        {
+          "name": "state/x",
+          "read": {"fn": "none"}
+        },
+        {
+          "name": "state/y",
+          "read": {"fn": "none"}
+        }
+      ]
+    }
+  ]
+}
