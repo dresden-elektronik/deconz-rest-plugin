@@ -27,8 +27,10 @@ namespace deCONZ {
 struct DA_ReadResult
 {
     bool isEnqueued = false;
+    bool ignoreResponseSequenceNumber = false;
     quint8 apsReqId = 0;
     quint8 sequenceNumber = 0;
+    quint16 clusterId = 0;
 };
 
 typedef bool (*ParseFunction_t)(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, const QVariant &parseParameters);

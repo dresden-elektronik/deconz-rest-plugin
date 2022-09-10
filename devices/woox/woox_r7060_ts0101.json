@@ -5,7 +5,7 @@
   "vendor": "WOOX",
   "product": "TS0101",
   "sleeper": false,
-  "status": "Bronze",
+  "status": "Gold",
   "path": "/devices/ts0101.json",
   "subdevices": [
     {

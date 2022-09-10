@@ -1,8 +1,8 @@
 {
    "schema":"devcap1.schema.json",
-   "manufacturername":"_TZ3000_msl6wxk9",
-   "modelid":"TS0202",
-   "product":"_TZ3000_MSL6wxk9 Presence sensor",
+   "manufacturername": ["_TZ3000_msl6wxk9", "_TZ3000_otvn3lne"],
+   "modelid":["TS0202", "TS0202"],
+   "product":"TS0202 Presence sensor",
    "sleeper":true,
    "status":"Gold",
    "subdevices":[
@@ -51,15 +51,13 @@
             },
             {
                "name":"config/enrolled",
-               "public":false,
-               "description":"State of IAS enrollment process."
+               "public":false
             },
             {
                "name":"config/on"
             },
             {
-               "name":"config/pending",
-               "description":"Pending tasks to configure the device."
+               "name":"config/pending"
             },
             {
                "name":"config/reachable"
@@ -68,8 +66,7 @@
                "name":"state/lastupdated"
             },
             {
-               "name":"state/lowbattery",
-               "description":"True when the device battery runs low."
+               "name":"state/lowbattery"
             },
             {
                "name":"state/presence",

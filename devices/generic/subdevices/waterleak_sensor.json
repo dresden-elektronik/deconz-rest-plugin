@@ -1,0 +1,14 @@
+{
+    "schema": "subdevice1.schema.json",
+    "type": "$TYPE_WATER_LEAK_SENSOR",
+    "name": "ZHAWater",
+    "restapi": "/sensors",
+    "order": 20,
+    "uuid": ["$address.ext", "0x01", "0x0500"],
+    "items": [
+        "config/on",
+        "config/reachable",
+        "state/water",
+        "state/lastupdated"
+    ]
+}

@@ -45,6 +45,7 @@
         "$TYPE_THERMOSTAT": "ZHAThermostat",
         "$TYPE_VIBRATION_SENSOR": "ZHAVibration",
         "$TYPE_WARNING_DEVICE": "Warning device",
+        "$TYPE_WATER_LEAK_SENSOR": "ZHAWater",
         "$TYPE_WINDOW_COVERING_DEVICE": "Window covering device",
         "$TYPE_ZGP_SWITCH": "ZGPSwitch"
     }

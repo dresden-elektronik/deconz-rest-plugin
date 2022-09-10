@@ -207,6 +207,16 @@ static ZCL_Param getZclParam(const QVariantMap &param)
         result.hasCommandId = 0;
     }
 
+    const auto ignoreSeqno = QLatin1String("noseq");
+    if (param.contains(ignoreSeqno))
+    {
+        result.ignoreResponseSeq = param.value(ignoreSeqno).toBool() ? 1 : 0;
+    }
+    else
+    {
+        result.ignoreResponseSeq = 0;
+    }
+
     result.attributeCount = 0;
     const auto attr = param[QLatin1String("at")]; // optional
 
@@ -337,13 +347,16 @@ bool evalZclFrame(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicati
             const auto res = engine.result();
             if (res.isValid())
             {
-                DBG_Printf(DBG_INFO, "expression: %s --> %s\n", qPrintable(expr), qPrintable(res.toString()));
+                if (DBG_IsEnabled(DBG_DDF))
+                {
+                    DBG_Printf(DBG_DDF, "expression: %s --> %s\n", qPrintable(expr), qPrintable(res.toString()));
+                }
                 return true;
             }
         }
         else
         {
-            DBG_Printf(DBG_INFO, "failed to evaluate expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
+            DBG_Printf(DBG_DDF, "failed to evaluate expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
         }
     }
     return false;
@@ -494,6 +507,10 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
         {
             return result;
         }
+        else if (!param.hasCommandId && param.attributeCount == 0)
+        {
+            // catch all handler
+        }
         else if (!param.hasCommandId && zclFrame.commandId() != deCONZ::ZclReadAttributesResponseId && zclFrame.commandId() != deCONZ::ZclReportAttributesId)
         {
             return result;
@@ -532,6 +549,11 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
 
     if (zclParam.attributeCount == 0) // attributes are optional
     {
+        if (zclParam.hasCommandId && zclParam.commandId != zclFrame.commandId())
+        {
+            return result;
+        }
+        
         if (evalZclFrame(r, item, ind, zclFrame, parseParameters))
         {
             result = true;
@@ -790,6 +812,7 @@ static DA_ReadResult readTuyaAllData(const Resource *r, const ResourceItem *item
     result.isEnqueued = apsCtrl->apsdeDataRequest(req) == deCONZ::Success;
     result.apsReqId = req.id();
     result.sequenceNumber = zclFrame.sequenceNumber();
+    result.clusterId = req.clusterId();
 
     return result;
 }
@@ -1591,12 +1614,13 @@ bool parseAndSyncTime(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndi
 /*! A generic function to read ZCL attributes.
     The item->readParameters() is expected to be an object (given in the device description file).
 
-    { "fn": "zcl", "ep": endpoint, "cl" : clusterId, "at": attributeId, "mf": manufacturerCode }
+    { "fn": "zcl", "ep": endpoint, "cl" : clusterId, "at": attributeId, "mf": manufacturerCode, "noseq": noSequenceNumber  }
 
     - endpoint, 0xff means any endpoint
     - clusterId: string hex value
     - attributeId: string hex value
     - manufacturerCode: (optional) string hex value, defaults to "0x0000" for non manufacturer specific commands
+    - noSequenceNumber: (optional) bool must be set to `true` and must only be present if needed
 
     Example: { "read": {"fn": "zcl", "ep": 1, "cl": "0x0402", "at": "0x0000", "mf": "0x110b"} }
  */
@@ -1604,7 +1628,7 @@ static DA_ReadResult readZclAttribute(const Resource *r, const ResourceItem *ite
 {
     Q_UNUSED(item)
 
-    DA_ReadResult result;
+    DA_ReadResult result{};
 
     Q_ASSERT(!readParameters.isNull());
     if (readParameters.isNull())
@@ -1644,6 +1668,8 @@ static DA_ReadResult readZclAttribute(const Resource *r, const ResourceItem *ite
     result.isEnqueued = zclResult.isEnqueued;
     result.apsReqId = zclResult.apsReqId;
     result.sequenceNumber = zclResult.sequenceNumber;
+    result.clusterId = param.clusterId;
+    result.ignoreResponseSequenceNumber = param.ignoreResponseSeq == 1;
 
     return result;
 }
@@ -1760,12 +1786,12 @@ bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsC
             if (engine.evaluate(expr) == JsEvalResult::Ok)
             {
                 const auto res = engine.result();
-                DBG_Printf(DBG_INFO, "expression: %s --> %s\n", qPrintable(expr), qPrintable(res.toString()));
+                DBG_Printf(DBG_DDF, "%s/%s expression: %s --> %s\n", r->item(RAttrUniqueId)->toCString(), item->descriptor().suffix, qPrintable(expr), qPrintable(res.toString()));
                 attribute.setValue(res);
             }
             else
             {
-                DBG_Printf(DBG_INFO, "failed to evaluate expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
+                DBG_Printf(DBG_DDF, "failed to evaluate expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
                 return result;
             }
         }

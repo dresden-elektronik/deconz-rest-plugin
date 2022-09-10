@@ -146,6 +146,9 @@ public:
     QElapsedTimer awake; //! time to track when an end-device was last awake
     BindingContext binding; //! only used by binding sub state machine
     std::vector<DEV_PollItem> pollItems; //! queue of items to poll
+    /*! True while a new state waits for the state enter event, which must arrive first.
+        This is for debug asserting that the order of events is valid - it doesn't drive logic. */
+    bool stateEnterLock[StateLevelMax] = {};
     bool managed = false; //! a managed device doesn't rely on legacy implementation of polling etc.
     ZDP_Result zdpResult; //! keep track of a running ZDP request
     DA_ReadResult readResult; //! keep track of a running "read" request
@@ -1865,6 +1868,21 @@ void DEV_PollNextStateHandler(Device *device, const Event &event)
     }
 }
 
+/*! Increments retry counter of an item, or throws it away if maximum is reached. */
+static void checkPollItemRetry(std::vector<DEV_PollItem> &pollItems)
+{
+    if (!pollItems.empty())
+    {
+        auto &pollItem = pollItems.back();
+        pollItem.retry++;
+
+        if (pollItem.retry >= MaxPollItemRetries)
+        {
+            pollItems.pop_back();
+        }
+    }
+}
+
 /*! This state waits for APS confirm or timeout for an ongoing poll request.
     In any case it moves back to PollNext state.
     If the request is successful the DEV_PollItem will be removed from the queue.
@@ -1883,9 +1901,8 @@ void DEV_PollBusyStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventApsConfirm && EventApsConfirmId(event) == d->readResult.apsReqId)
     {
-        DBG_Printf(DBG_DEV, "DEV Poll Busy %s/0x%016llX APS-DATA.confirm id: %u, status: 0x%02X\n",
-                   event.resource(), event.deviceKey(), d->readResult.apsReqId, EventApsConfirmStatus(event));
-        Q_ASSERT(!d->pollItems.empty());
+        DBG_Printf(DBG_DEV, "DEV Poll Busy %s/0x%016llX APS-DATA.confirm id: %u, ZCL seq: %u, status: 0x%02X\n",
+                   event.resource(), event.deviceKey(), d->readResult.apsReqId, d->readResult.sequenceNumber, EventApsConfirmStatus(event));
 
         if (EventApsConfirmStatus(event) == deCONZ::ApsSuccessStatus)
         {
@@ -1894,22 +1911,18 @@ void DEV_PollBusyStateHandler(Device *device, const Event &event)
         }
         else
         {
-            auto &pollItem = d->pollItems.back();
-            pollItem.retry++;
-
-            if (pollItem.retry >= MaxPollItemRetries)
-            {
-                d->pollItems.pop_back();
-            }
+            checkPollItemRetry(d->pollItems);
             d->setState(DEV_PollNextStateHandler, STATE_LEVEL_POLL);
         }
     }
     else if (event.what() == REventZclResponse)
     {
-        if (d->readResult.sequenceNumber == EventZclSequenceNumber(event))
+        if (d->readResult.clusterId != EventZclClusterId(event))
+        { }
+        else if (d->readResult.sequenceNumber == EventZclSequenceNumber(event) || d->readResult.ignoreResponseSequenceNumber)
         {
-            DBG_Printf(DBG_DEV, "DEV Poll Busy %s/0x%016llX ZCL response seq: %u, status: 0x%02X\n",
-                   event.resource(), event.deviceKey(), d->readResult.sequenceNumber, EventZclStatus(event));
+            DBG_Printf(DBG_DEV, "DEV Poll Busy %s/0x%016llX ZCL response seq: %u, status: 0x%02X, cluster: 0x%04X\n",
+                   event.resource(), event.deviceKey(), d->readResult.sequenceNumber, EventZclStatus(event), d->readResult.clusterId);
 
             d->pollItems.pop_back();
             d->setState(DEV_PollNextStateHandler, STATE_LEVEL_POLL);
@@ -1917,6 +1930,9 @@ void DEV_PollBusyStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventStateTimeout)
     {
+        DBG_Printf(DBG_DEV, "DEV Poll Busy %s/0x%016llX timeout seq: %u, cluster: 0x%04X\n",
+           event.resource(), event.deviceKey(), d->readResult.sequenceNumber, d->readResult.clusterId);
+        checkPollItemRetry(d->pollItems);
         d->setState(DEV_PollNextStateHandler, STATE_LEVEL_POLL);
     }
 }
@@ -2049,12 +2065,23 @@ void Device::handleEvent(const Event &event, DEV_StateLevel level)
         {
             return;
         }
+
         const auto level1 = static_cast<unsigned>(event.num());
         const auto fn = d->state[level1];
+        if (d->stateEnterLock[level1] && event.what() == REventStateEnter)
+        {
+            d->stateEnterLock[level1] = false;
+        }
         if (fn)
         {
             fn(this, event);
         }
+    }
+    else if (d->stateEnterLock[level])
+    {
+        // REventStateEnter must always arrive first via urgend event queue.
+        // This branch should never hit!
+        DBG_Printf(DBG_DEV, "DEV event before REventStateEnter: 0x%016llX, skip: %s\n", d->deviceKey, event.what());
     }
     else if (event.what() == REventDDFReload)
     {
@@ -2084,26 +2111,28 @@ void DevicePrivate::setState(DeviceStateHandler newState, DEV_StateLevel level)
         if (state[level])
         {
             state[level](q, Event(q->prefix(), REventStateLeave, level, q->key()));
+            stateEnterLock[level] = false;
         }
 
         state[level] = newState;
 
         if (state[level])
         {
-            emit q->eventNotify(Event(q->prefix(), REventStateEnter, level, q->key()));
+            stateEnterLock[level] = true;
+            Event e(q->prefix(), REventStateEnter, level, q->key());
+            e.setUrgent(true);
+            emit q->eventNotify(e);
         }
     }
 }
 
 void DevicePrivate::startStateTimer(int IntervalMs, DEV_StateLevel level)
 {
-    emit q->eventNotify(Event(q->prefix(), REventStartTimer, EventTimerPack(level, IntervalMs), q->key()));
     timer[level].start(IntervalMs, q);
 }
 
 void DevicePrivate::stopStateTimer(DEV_StateLevel level)
 {
-    emit q->eventNotify(Event(q->prefix(), REventStopTimer, EventTimerPack(level, 0), q->key()));
     if (timer[level].isActive())
     {
         timer[level].stop();

@@ -3,9 +3,11 @@
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.plug.mmeu01",
   "vendor": "Xiaomi",
-  "product": "Mija smart plug ZNCZ04LM",
+  "product": "Mijia smart plug ZNCZ04LM",
   "sleeper": false,
   "status": "Gold",
+  "comment": "DDF for device firmwares equal or below 0.0.0_0022",
+  "matchexpr": "R.endpoints.includes(0x15) && R.endpoints.includes(0x16)",
   "subdevices": [
     {
       "type": "$TYPE_SMART_PLUG",
@@ -35,19 +37,15 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 84000,
-          "read": {
-            "at": "0x0006",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl"
-          },
           "parse": {
-            "at": "0x0006",
-            "cl": "0x0000",
+            "at": "0x00f7",
             "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl"
+            "fn": "xiaomi:special",
+            "idx": "0x08",
+            "script": "xiaomi_swversion.js"
+          },
+          "read": {
+            "fn": "none"
           }
         },
         {
@@ -106,19 +104,15 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 84000,
-          "read": {
-            "at": "0x0006",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl"
-          },
           "parse": {
-            "at": "0x0006",
-            "cl": "0x0000",
+            "at": "0x00f7",
             "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl"
+            "fn": "xiaomi:special",
+            "idx": "0x08",
+            "script": "xiaomi_swversion.js"
+          },
+          "read": {
+            "fn": "none"
           }
         },
         {
@@ -218,19 +212,15 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 84000,
-          "read": {
-            "at": "0x0006",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl"
-          },
           "parse": {
-            "at": "0x0006",
-            "cl": "0x0000",
+            "at": "0x00f7",
             "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl"
+            "fn": "xiaomi:special",
+            "idx": "0x08",
+            "script": "xiaomi_swversion.js"
+          },
+          "read": {
+            "fn": "none"
           }
         },
         {

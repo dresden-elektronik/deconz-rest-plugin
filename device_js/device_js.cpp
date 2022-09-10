@@ -31,7 +31,7 @@ public:
 };
 
 // Polyfills for older Qt versions
-static const char *PF_String_prototype_padStart = "String.prototype.padString = String.prototype.padString || "
+static const char *PF_String_prototype_padStart = "String.prototype.padStart = String.prototype.padStart || "
                                      "function (targetLength, padString) { return Utils.padStart(this, targetLength, padString); } ";
 static const char *PF_Math_log10 = "Math.log10 = Math.log10 || function(x) { return Utils.log10(x) };";
 
@@ -109,6 +109,7 @@ void DeviceJs::setApsIndication(const deCONZ::ApsDataIndication &ind)
 {
     d->apsInd = &ind;
     d->engine.globalObject().setProperty("SrcEp", int(ind.srcEndpoint()));
+    d->engine.globalObject().setProperty("ClusterId", int(ind.clusterId()));
 }
 
 void DeviceJs::setZclFrame(const deCONZ::ZclFrame &zclFrame)

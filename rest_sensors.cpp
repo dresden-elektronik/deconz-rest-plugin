@@ -693,9 +693,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     TaskItem task;
     QString id = req.path[3];
     Sensor *sensor = id.length() < MIN_UNIQUEID_LENGTH ? getSensorNodeForId(id) : getSensorNodeForUniqueId(id);
-    Device *device = (sensor && sensor->parentResource()) ? static_cast<Device*>(sensor->parentResource()) : nullptr;
-    Resource *rsub = DEV_GetSubDevice(device, nullptr, sensor->uniqueId());
-    const bool devManaged = device && device->managed();
     bool ok;
     bool updated;
     bool save = false;
@@ -707,9 +704,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     quint16 pendingMask = 0;
     QVariant var = Json::parse(req.content, ok);
     QVariantMap map = var.toMap();
-
-//    QRegExp latitude("^\\d{3,3}\\.\\d{4,4}(W|E)$");
-//    QRegExp longitude("^\\d{3,3}\\.\\d{4,4}(N|S)$");
 
     rsp.httpStatus = HttpStatusOk;
 
@@ -725,6 +719,16 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
         rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/sensors/%1").arg(id), QString("resource, /sensors/%1, not available").arg(id)));
         rsp.httpStatus = HttpStatusNotFound;
         return REQ_READY_SEND;
+    }
+
+    Device *device = static_cast<Device*>(sensor->parentResource());
+    Resource *rsub = sensor;
+    bool devManaged = false;
+
+    if (device)
+    {
+        rsub = DEV_GetSubDevice(device, nullptr, sensor->uniqueId());
+        devManaged = device->managed();
     }
 
     bool isClip = sensor->type().startsWith(QLatin1String("CLIP"));
@@ -784,6 +788,22 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
                                                QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
                     continue;
+                }
+                
+                const auto &ddfItem = DDF_GetItem(item);
+                
+                if (!ddfItem.writeParameters.isNull())
+                {
+                    const auto writeParam = ddfItem.writeParameters.toMap();
+                    if (writeParam.contains(QLatin1String("state.timeout")))
+                    {
+                        int stateTimeout = writeParam.value(QLatin1String("state.timeout")).toInt(&ok);
+
+                        if (ok && stateTimeout > 0)
+                        {
+                            change.setStateTimeoutMs(1000 * stateTimeout);
+                        }
+                    }
                 }
 
                 if (sensor->modelId().startsWith(QLatin1String("SPZB")) && hostFlags == 0) // Eurotronic Spirit
@@ -919,6 +939,13 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigLat || rid.suffix == RConfigLong) // String
                 {
+                    double coordinate = data.string.toDouble(&ok);
+                    if (!ok || data.string.isEmpty())
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
+                        continue;
+                    }
                     updated = true;
                 }
                 else if (rid.suffix == RConfigSunriseOffset || rid.suffix == RConfigSunsetOffset)
@@ -934,6 +961,16 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     if (devManaged && rsub)
                     {
                         change.addTargetValue(rid.suffix, data.boolean);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
+                }
+                else if (rid.suffix == RConfigSelfTest) // Boolean
+                {
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.boolean);
+                        change.setChangeTimeoutMs(60000);    // 1 min
                         rsub->addStateChange(change);
                         updated = true;
                     }
@@ -1169,7 +1206,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         QByteArray tuyaData = QByteArray("\x00\x00", 2);
                         qint8 dp = DP_IDENTIFIER_THERMOSTAT_HEATSETPOINT;
 
-					    if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BRT-100"))
+                        if (R_GetProductId(sensor) == QLatin1String("Tuya_THD BRT-100"))
                         {
                             data.integer = data.integer / 10;
 
@@ -1824,37 +1861,55 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigPulseConfiguration) // Unsigned integer
                 {
-                    if (data.uinteger <= UINT16_MAX &&
-                        addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, METERING_ATTRID_PULSE_CONFIGURATION, deCONZ::Zcl16BitUint, data.uinteger, VENDOR_DEVELCO))
+                    if (!devManaged)
                     {
+                        if (data.uinteger <= UINT16_MAX &&
+                        addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, METERING_ATTRID_PULSE_CONFIGURATION, deCONZ::Zcl16BitUint, data.uinteger, VENDOR_DEVELCO))
+                        {
+                            updated = true;
+                        }
+                    }
+                    else if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.uinteger);
+                        rsub->addStateChange(change);
                         updated = true;
                     }
                 }
                 else if (rid.suffix == RConfigInterfaceMode) // Unsigned integer
                 {
-                    if (sensor->modelId().startsWith(QLatin1String("ZHEMI101")))
+                    if (!devManaged)
                     {
-                        const auto match = matchKeyValue(data.uinteger, RConfigInterfaceModeValuesZHEMI);
-
-                        if (match.key)
+                        if (sensor->modelId().startsWith(QLatin1String("ZHEMI101")))
                         {
-                            if (addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, METERING_ATTRID_INTERFACE_MODE, deCONZ::Zcl16BitEnum, match.value, VENDOR_DEVELCO))
+                            const auto match = matchKeyValue(data.uinteger, RConfigInterfaceModeValuesZHEMI);
+
+                            if (match.key)
                             {
-                                updated = true;
+                                if (addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, METERING_ATTRID_INTERFACE_MODE, deCONZ::Zcl16BitEnum, match.value, VENDOR_DEVELCO))
+                                {
+                                    updated = true;
+                                }
+                            }
+                        }
+                        else if (sensor->modelId().startsWith(QLatin1String("EMIZB-1")))
+                        {
+                            const auto match = matchKeyValue(data.uinteger, RConfigInterfaceModeValuesEMIZB);
+
+                            if (match.key)
+                            {
+                                if (addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, METERING_ATTRID_INTERFACE_MODE, deCONZ::Zcl16BitEnum, match.value, VENDOR_DEVELCO))
+                                {
+                                    updated = true;
+                                }
                             }
                         }
                     }
-                    else if (sensor->modelId().startsWith(QLatin1String("EMIZB-1")))
+                    else if (devManaged && rsub)
                     {
-                        const auto match = matchKeyValue(data.uinteger, RConfigInterfaceModeValuesEMIZB);
-
-                        if (match.key)
-                        {
-                            if (addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, METERING_ATTRID_INTERFACE_MODE, deCONZ::Zcl16BitEnum, match.value, VENDOR_DEVELCO))
-                            {
-                                updated = true;
-                            }
-                        }
+                        change.addTargetValue(rid.suffix, data.uinteger);
+                        rsub->addStateChange(change);
+                        updated = true;
                     }
                 }
                 if (rid.suffix == RConfigWindowCoveringType) // Unsigned integer

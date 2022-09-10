@@ -287,6 +287,9 @@ void DeRestPluginPrivate::cleanUpDb()
         // cleanup invalid ZHAAlarm resource for Xiaomi motion sensor
         "DELETE from sensors WHERE type = 'ZHAAlarm' AND modelid LIKE 'lumi.sensor_motion%'",
 
+        // cleanup invalid Tuya smart knob light resource (only has ZHASwitch)
+        "DELETE from nodes WHERE manufacturername = '_TZ3000_4fjiwweb'",
+
         // delete duplicates in device_descriptors
         //"DELETE FROM device_descriptors WHERE rowid NOT IN"
         //" (SELECT max(rowid) FROM device_descriptors GROUP BY device_id,type,endpoint)",
@@ -3799,7 +3802,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                          sensor.modelId() == QLatin1String("lumi.switch.b1nacn02") ||
                          sensor.modelId() == QLatin1String("lumi.switch.b2nacn02") ||
                          sensor.modelId() == QLatin1String("lumi.switch.b1naus01") ||
-                         sensor.modelId() == QLatin1String("lumi.plug.maeu01") ||
                          sensor.modelId() == QLatin1String("lumi.switch.n0agl1") ||
                          sensor.manufacturer() == QLatin1String("Legrand"))
                 {
@@ -4170,10 +4172,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 R_GetProductId(&sensor) == QLatin1String("NAS-AB02B0 Siren"))
             {
                 // no support for some IAS Zone flags
-            }
-            else if (sensor.modelId() == QLatin1String("Keyfob-ZB3.0"))
-            {
-                sensor.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
             }
             else
             {
