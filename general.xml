@@ -3934,6 +3934,23 @@ devices can operate on either battery or mains power, and can have a wide variet
         </command>
       </server>
     </cluster>
+    <cluster id="0xfc03" name="Hue" mfcode="0x100b">
+      <description>Hue-specific cluster.</description>
+      <server>
+        <command id="0x00" dir="recv" name="Set Dynamic Scene" vendor="0x100b" required="m">
+          <payload>
+            <attribute id="0x0000" type="u16" name="Command" showas="hex" default="0x0020" required="m"/>
+            <attribute id="0x0001" type="bool" name="Enable" required="m"/>
+            <attribute id="0x0002" type="enum8" name="Scene" required="m">
+              <value name="None" value="0x00"/>
+              <value name="Candle" value="0x01"/>
+              <value name="Fireplace" value="0x02"/>
+            </attribute>
+          </payload>
+        </command>
+        <attribute id="0x0002" name="Status" type="ostring" mfcode="0x100b" access="r" required="m"/>
+      </server>
+    </cluster>
 
     <!-- Hue for Lutron Aurora -->
     <cluster id="0xfc00" name="Hue" mfcode="0x1144">
