@@ -3177,6 +3177,10 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
             map["uniqueid"] = lightNode->uniqueId();
 
             QVariantMap attr;
+            QVariantMap startup;
+            ResourceItem *ix = nullptr;
+            ResourceItem *iy = nullptr;
+            QVariantList xy;
 
             for (int i = 0; i < lightNode->itemCount(); i++)
             {
@@ -3197,11 +3201,43 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     continue;
                 }
 
-                if (gwWebSocketNotifyAll || item->needPushChange())
+                if (rid.suffix == RConfigStartupX)
                 {
-                    attr[key] = item->toVariant();
+                    ix = item;
+                }
+                else if (rid.suffix == RConfigStartupY)
+                {
+                    iy = item;
+                }
+                else if (gwWebSocketNotifyAll || item->needPushChange())
+                {
+                    if (strncmp(key, "startup_", 8) == 0)
+                    {
+                        startup[key + 8] = item->toVariant();
+                    }
+                    else
+                    {
+                        attr[key] = item->toVariant();
+                    }
                     item->clearNeedPush();
                 }
+            }
+
+            if (ix && iy)
+            {
+                if (gwWebSocketNotifyAll || ix->needPushChange() || iy->needPushChange())
+                  {
+                      xy.append(round(ix->toNumber() / 6.5535) / 10000.0);
+                      xy.append(round(iy->toNumber() / 6.5535) / 10000.0);
+                      startup["xy"] = xy;
+                      ix->clearNeedPush();
+                      iy->clearNeedPush();
+                  }
+            }
+
+            if (!startup.isEmpty())
+            {
+                attr["startup"] = startup;
             }
 
             if (!attr.isEmpty())
