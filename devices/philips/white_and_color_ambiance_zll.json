@@ -1,0 +1,155 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": ["$MF_SIGNIFY", "$MF_SIGNIFY"],
+  "modelid": ["LCT003", "LCT007"],
+  "product": "Hue white and color ambiance (ZLL)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_EXTENDED_COLOR_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x0b"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/colorcapabilities",
+          "parse":
+          {
+            "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": "0x400a",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": { "fn": "none" }
+        },
+        {
+          "name": "config/colorgamuttype",
+          "parse": {
+            "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": "0x0032",
+            "eval": "Item.val = Attr.val === 45317 ? 'C' : Attr.val === 44236 ? 'B' : Attr.val === 46138 ? 'A' : null"
+          },
+          "read": { "fn": "zcl", "ep": 0, "cl": "0x0300", "at": ["0x0032", "0x400a", "0x400b", "0x4000c"] },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/ctmax",
+          "parse":
+          {
+            "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": "0x400c",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": { "fn": "none" }
+        },
+        {
+          "name": "config/ctmin",
+          "parse":
+          {
+            "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": "0x400b",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": { "fn": "none" }
+        },
+        {
+          "name": "config/startup_bri"
+        },
+        {
+          "name": "config/startup_ct"
+        },
+        {
+          "name": "config/startup_on"
+        },
+        {
+          "name": "config/startup_x",
+          "parse": {
+            "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "mf": "0x100b", "at": "0x0003",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": { "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "mf": "0x100b", "at": ["0x0003", "0x0004"] },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/startup_y",
+          "parse": {
+            "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "mf": "0x100b", "at": "0x0004",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": { "fn": "none" }
+        },
+        {
+         "name": "state/alert"
+        },
+        {
+          "name": "state/bri"
+        },
+        {
+          "name": "state/colormode",
+          "parse": {
+            "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": "0x4001",
+            "eval": "Item.val = ['hs', 'xy', 'ct', 'hs'][Attr.val]"
+          },
+          "read": { "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": ["0x4001", "0x4002"] },
+          "refresh.interval": 5
+        },
+        {
+          "name": "state/ct",
+          "parse": { "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": "0x0007", "eval": "Item.val = Attr.val" },
+          "read": { "fn": "none" }
+        },
+        {
+          "name": "state/effect",
+          "parse":
+          {
+            "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": "0x4002",
+            "eval": "Item.val = Attr.val ? 'colorloop' : 'none'"
+          },
+          "read": { "fn": "none" }
+        },
+        {
+          "name": "state/on"
+        },
+        {
+          "name": "state/reachable"
+        },
+        {
+          "name": "state/x",
+          "parse": {"fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": "0x0003", "eval": "Item.val = Attr.val"},
+          "read": { "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": ["0x0003", "0x0004", "0x0007"] },
+          "refresh.interval": 5
+        },
+        {
+          "name": "state/y",
+          "parse": { "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": "0x0004", "eval": "Item.val = Attr.val" },
+          "read": { "fn": "none" }
+        }
+      ]
+    }
+  ]
+}
