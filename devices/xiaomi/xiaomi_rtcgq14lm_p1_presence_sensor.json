@@ -97,6 +97,7 @@
           },
           "write": {
             "at": "0x0102",
+            "change.timeout": 3600,
             "cl": "0xFCC0",
             "dt": "0x20",
             "ep": 1,
@@ -129,6 +130,7 @@
           },
           "write": {
             "at": "0x0152",
+            "change.timeout": 3600,
             "cl": "0xFCC0",
             "dt": "0x20",
             "ep": 1,
@@ -170,6 +172,7 @@
           },
           "write": {
             "at": "0x010C",
+            "change.timeout": 3600,
             "cl": "0xFCC0",
             "dt": "0x20",
             "ep": 1,
@@ -294,6 +297,7 @@
           },
           "write": {
             "at": "0x0152",
+            "change.timeout": 3600,
             "cl": "0xFCC0",
             "dt": "0x20",
             "ep": 1,
