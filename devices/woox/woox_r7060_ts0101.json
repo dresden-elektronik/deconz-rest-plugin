@@ -6,7 +6,6 @@
   "product": "TS0101",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/ts0101.json",
   "subdevices": [
     {
       "type": "$TYPE_SMART_PLUG",
