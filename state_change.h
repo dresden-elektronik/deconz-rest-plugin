@@ -114,6 +114,7 @@ public:
     const std::vector<Param> &parameters() const { return m_parameters; }
     quint8 dstEndpoint() const { return m_dstEndpoint; }
     void setChangeTimeoutMs(int timeout) { m_changeTimeoutMs = timeout; }
+    void setStateTimeoutMs(int timeout) { m_stateTimeoutMs = timeout; }
 
 private:
     State m_state = StateCallFunction;

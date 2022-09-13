@@ -1,22 +1,21 @@
 name-template: 'v$RESOLVED_VERSION'
 tag-template: 'v$RESOLVED_VERSION'
 categories:
-  - title: 'Features'
+  - title: 'Device Support'
     labels:
-      - 'feature'
-      - 'enhancement'
+    - 'Device Request'
+    - 'Device Improvement'
+  - title: 'Enhancements'
+    labels:
+      - 'Feature Request'
+      - 'Enhancement'
   - title: 'Bug Fixes'
     labels:
-      - 'fix'
+      - 'Fix'
       - 'bugfix'
       - 'bug'
-  - title: 'New devices'
-    label: 'device-request'
 
-change-template: |
-  **$TITLE @$AUTHOR (#$NUMBER):**  
-  $BODY  
-
+change-template: '- $TITLE [#$NUMBER]($URL)'
 
 version-resolver:
   major:

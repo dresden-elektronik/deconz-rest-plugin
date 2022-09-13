@@ -5,5 +5,6 @@
 	"access": "R",
 	"public": true,
 	"description": "True when carbonmonoxide is detected.",
-	"parse": {"fn": "ias:zonestatus", "mask": "alarm1,alarm2"}
+	"parse": {"fn": "ias:zonestatus", "mask": "alarm1,alarm2"},
+	"default": false
 }

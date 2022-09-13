@@ -1,0 +1,9 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/selftest",
+	"datatype": "Bool",
+	"access": "W",
+	"public": true,
+	"description": "Activates the device self-test mode.",
+	"default": false
+}

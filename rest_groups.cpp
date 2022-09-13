@@ -2716,11 +2716,27 @@ static void ikeaTurnLightOffInSceneHack(DeRestPluginPrivate *d, LightNode *light
     d->addTaskSetOnOff(task, ONOFF_COMMAND_OFF_WITH_EFFECT, 0, 0);
 }
 
+/*! GLEDOPTO extended color lights do not correctly recall scenes that
+    were created with color temperature. Thus, RGB leds are used instead of the
+    cct. workaround is to send a unicast to switch to ct mode.
+*/
+static void gledoptoSetColorTemperatureInSceneHack(DeRestPluginPrivate *d, LightNode *lightNode)
+{
+    TaskItem task;
+    task.lightNode = lightNode;
+    task.req.dstAddress() = task.lightNode->address();
+    // task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+    task.req.setDstEndpoint(task.lightNode->haEndpoint().endpoint());
+    task.req.setSrcEndpoint(d->getSrcEndpoint(task.lightNode, task.req));
+    task.req.setDstAddressMode(deCONZ::ApsExtAddress);
+    d->addTaskSetColorTemperature(task, static_cast<double>(lightNode->item(RStateCt)->toNumber()));
+}
+
 /*! Checks the lights states in a scene:
     - Creates unicast tasks for colorloop turn on/off
     - Creates unicast tasks for IKEA lights which are off in a scene -> hack.
     - Sets group.on according to the light states
- */
+*/
 static void recallSceneCheckGroupChanges(DeRestPluginPrivate *d, Group *group, Scene *scene)
 {
     bool groupOn = false;
@@ -2829,6 +2845,11 @@ static void recallSceneCheckGroupChanges(DeRestPluginPrivate *d, Group *group, S
             }
             else if(ls->colorMode() == QLatin1String("ct"))
             {
+                if (lightNode->manufacturer() == QLatin1String("GLEDOPTO") &&
+                    lightNode->type() == QLatin1String("Extended color light"))
+                {
+                    gledoptoSetColorTemperatureInSceneHack(d, lightNode);
+                }
                 item = lightNode->item(RStateCt);
                 if (item && ls->colorTemperature() != item->toNumber())
                 {

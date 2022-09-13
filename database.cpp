@@ -287,6 +287,9 @@ void DeRestPluginPrivate::cleanUpDb()
         // cleanup invalid ZHAAlarm resource for Xiaomi motion sensor
         "DELETE from sensors WHERE type = 'ZHAAlarm' AND modelid LIKE 'lumi.sensor_motion%'",
 
+        // cleanup invalid Tuya smart knob light resource (only has ZHASwitch)
+        "DELETE from nodes WHERE manufacturername = '_TZ3000_4fjiwweb'",
+
         // delete duplicates in device_descriptors
         //"DELETE FROM device_descriptors WHERE rowid NOT IN"
         //" (SELECT max(rowid) FROM device_descriptors GROUP BY device_id,type,endpoint)",

@@ -1207,7 +1207,7 @@
         "Tuya3gangMap": {
             "vendor": "Tuya",
             "doc": "3-gang remote",
-            "modelids": ["_TZ3000_ee8nrt2l", "_TZ3000_ygvf9xzp", "_TZ3000_t8hzpgnd", "_TZ3000_wkai4ga5", "_TZ3000_bi6lpsew", "_TZ3400_keyjhapk", "_TYZB02_key8kk7r", "_TZ3400_keyjqthh", "_TZ3400_key8kk7r", "_TZ3000_vp6clf9d", "_TYZB02_keyjqthh", "_TZ3000_peszejy7", "_TZ3000_qzjcsmar", "_TZ3000_owgcnkrh", "_TZ3000_adkvzooy", "_TZ3000_arfwfgoa", "_TZ3000_a7ouggvs", "_TZ3000_rrjr1q0u", "_TZ3000_abci1hiu", "_TZ3000_dfgbtub0"],
+            "modelids": ["_TZ3000_ee8nrt2l", "_TZ3000_ygvf9xzp", "_TZ3000_t8hzpgnd", "_TZ3000_wkai4ga5", "_TZ3000_bi6lpsew", "_TZ3400_keyjhapk", "_TYZB02_key8kk7r", "_TZ3400_keyjqthh", "_TZ3400_key8kk7r", "_TZ3000_vp6clf9d", "_TYZB02_keyjqthh", "_TZ3000_peszejy7", "_TZ3000_qzjcsmar", "_TZ3000_owgcnkrh", "_TZ3000_adkvzooy", "_TZ3000_arfwfgoa", "_TZ3000_a7ouggvs", "_TZ3000_rrjr1q0u", "_TZ3000_abci1hiu", "_TZ3000_dfgbtub0", "_TZ3000_rco1yzb1"],
             "map": [
                 [1, "0x01", "ONOFF", "0xfd", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "B1 short"],
                 [1, "0x01", "ONOFF", "0xfd", "1", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "B1 double"],
