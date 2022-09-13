@@ -5,7 +5,7 @@
   "product": "Linkind A60 LED Tunable White Bulb 800 lumen",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/Linkind_zbt-cctlight-d0106.json",
+  "path": "",
   "subdevices": [
     {
       "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
