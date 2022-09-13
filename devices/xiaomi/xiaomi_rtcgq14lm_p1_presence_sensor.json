@@ -81,11 +81,12 @@
           "refresh.interval": 3600,
           "awake": true,
           "parse": {
-            "at": "0xff07",
+            "at": "0x0102",
+            "cl": "0xFCC0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "xiaomi:special",
-            "idx": "0x69"
+            "fn": "zcl",
+            "mf": "0x115F"
           },
           "read": {
             "at": "0x0102",
@@ -101,7 +102,8 @@
             "ep": 1,
             "eval": "Item.val",
             "fn": "zcl",
-            "mf": "0x115F"
+            "mf": "0x115F",
+            "state.timeout": 2
           },
           "range": [1, 200],
           "default": 30
@@ -111,11 +113,12 @@
           "refresh.interval": 3600,
           "awake": true,
           "parse": {
-            "at": "0xff07",
+            "at": "0x0152",
+            "cl": "0xFCC0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "xiaomi:special",
-            "idx": "0x6b"
+            "fn": "zcl",
+            "mf": "0x115F"
           },
           "read": {
             "at": "0x0152",
@@ -131,7 +134,8 @@
             "ep": 1,
             "eval": "Item.val",
             "fn": "zcl",
-            "mf": "0x115F"
+            "mf": "0x115F",
+            "state.timeout": 2
           },
           "values": [
             [true, "Device flashes on presence"],
@@ -150,11 +154,12 @@
           "refresh.interval": 3600,
           "awake": true,
           "parse": {
-            "at": "0xff07",
+            "at": "0x010C",
+            "cl": "0xFCC0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "xiaomi:special",
-            "idx": "0x6a"
+            "fn": "zcl",
+            "mf": "0x115F"
           },
           "read": {
             "at": "0x010C",
@@ -170,7 +175,8 @@
             "ep": 1,
             "eval": "Item.val",
             "fn": "zcl",
-            "mf": "0x115F"
+            "mf": "0x115F",
+            "state.timeout": 2
           },
           "values": [
             [1, "Low"],
@@ -272,11 +278,12 @@
           "refresh.interval": 3600,
           "awake": true,
           "parse": {
-            "at": "0xff07",
+            "at": "0x0152",
+            "cl": "0xFCC0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "xiaomi:special",
-            "idx": "0x6b"
+            "fn": "zcl",
+            "mf": "0x115F"
           },
           "read": {
             "at": "0x0152",
@@ -292,7 +299,8 @@
             "ep": 1,
             "eval": "Item.val",
             "fn": "zcl",
-            "mf": "0x115F"
+            "mf": "0x115F",
+            "state.timeout": 2
           },
           "values": [
             [true, "Device flashes on presence"],

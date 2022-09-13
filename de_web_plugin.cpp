@@ -35,7 +35,6 @@
 #include <cmath>
 #include "air_quality.h"
 #include "alarm_system_device_table.h"
-#include "colorspace.h"
 #include "database.h"
 #include "device_ddf_init.h"
 #include "device_descriptions.h"
@@ -636,6 +635,10 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
 
     DEV_SetTestManaged(deCONZ::appArgumentNumeric("--dev-test-managed", 0));
 
+#ifdef DECONZ_DEBUG_BUILD
+    EventTestZclPacking();
+#endif
+
     pollManager = new PollManager(this);
 
     databaseTimer = new QTimer(this);
@@ -1022,17 +1025,23 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
 
         if (!zclFrame.isProfileWideCommand())
         {
-
+            if (zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient)
+            {
+                // Keep Device poll state machine happy for non profile wide responses.
+                // There a response is assumed by 'server to client' direction.
+                // The status is set to SUCCESS since not all responses contain a status field.
+                enqueueEvent(Event(device->prefix(), REventZclResponse, EventZclResponsePack(ind.clusterId(), zclFrame.sequenceNumber(), deCONZ::ZclSuccessStatus), device->key()));
+            }
         }
         else if (zclFrame.commandId() == deCONZ::ZclReadAttributesResponseId && zclFrame.payload().size() >= 3)
         {
             const auto status = quint8(zclFrame.payload().at(2));
-            enqueueEvent(Event(device->prefix(), REventZclResponse, EventZclResponsePack(zclFrame.sequenceNumber(), status), device->key()));
+            enqueueEvent(Event(device->prefix(), REventZclResponse, EventZclResponsePack(ind.clusterId(), zclFrame.sequenceNumber(), status), device->key()));
         }
         else if (zclFrame.commandId() == deCONZ::ZclConfigureReportingResponseId && zclFrame.payload().size() >= 1)
         {
             const auto status = quint8(zclFrame.payload().at(0));
-            enqueueEvent(Event(device->prefix(), REventZclResponse, EventZclResponsePack(zclFrame.sequenceNumber(), status), device->key()));
+            enqueueEvent(Event(device->prefix(), REventZclResponse, EventZclResponsePack(ind.clusterId(), zclFrame.sequenceNumber(), status), device->key()));
         }
         else if (zclFrame.commandId() == deCONZ::ZclReadReportingConfigResponseId)
         {
@@ -1070,6 +1079,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
         return; // only ZCL and ZDP for now
     }
 
+    int awake = 0;
     auto resources = device->subDevices();
     resources.push_back(device); // self reference
 
@@ -1092,7 +1102,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                     if (!reachable->toBool())
                     {
                         reachable->setValue(true);
-                        enqueueEvent(Event(r->prefix(), reachable->descriptor().suffix, r->item(RAttrId)->toString(), device->key()));
+                        enqueueEvent(Event(r->prefix(), reachable->descriptor().suffix, r->item(RAttrId)->toString(), reachable, device->key()));
                     }
                 }
             }
@@ -1117,7 +1127,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
             if (reachable && !reachable->toBool())
             {
                 reachable->setValue(true);
-                enqueueEvent(Event(r->prefix(), reachable->descriptor().suffix, r->item(RAttrId)->toString(), device->key()));
+                enqueueEvent(Event(r->prefix(), reachable->descriptor().suffix, r->item(RAttrId)->toString(), reachable, device->key()));
             }
         }
 
@@ -1156,7 +1166,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
             {
                 if (item->awake())
                 {
-                    enqueueEvent(Event(RDevices, REventAwake, 0, device->key()));
+                    awake++;
                 }
 
                 auto *idItem = r->item(RAttrId);
@@ -1168,7 +1178,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                 const bool push = item->pushOnSet() || (item->pushOnChange() && item->lastChanged() == item->lastSet());
                 if (idItem)
                 {
-                    enqueueEvent(Event(r->prefix(), item->descriptor().suffix, idItem->toString(), device->key()));
+                    enqueueEvent(Event(r->prefix(), item->descriptor().suffix, idItem->toString(), item, device->key()));
                     if (push && item->lastChanged() == item->lastSet())
                     {
                         DB_StoreSubDeviceItem(r, item);
@@ -1182,7 +1192,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                     {
                         eventLastUpdatedEmitted = true;
                         lastUpdated->setValue(item->lastSet());
-                        enqueueEvent(Event(r->prefix(), lastUpdated->descriptor().suffix, idItem->toString(), device->key()));
+                        enqueueEvent(Event(r->prefix(), lastUpdated->descriptor().suffix, idItem->toString(), lastUpdated, device->key()));
                     }
                 }
             }
@@ -1194,6 +1204,11 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
 
     }
     else if (ind.clusterId() == POWER_CONFIGURATION_CLUSTER_ID) // genral assumption that the device is awake
+    {
+        awake++;
+    }
+
+    if (awake > 0)
     {
         enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
     }
@@ -1444,6 +1459,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x05);
                     }
+                    else if (sensorNode->modelId() == QLatin1String("RM01"))
+                    {
+                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x0A);
+                    }
                     else if (sensorNode->modelId() == QLatin1String("lumi.switch.l2aeu1") || sensorNode->modelId() == QLatin1String("lumi.switch.n2aeu1"))
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x29);
@@ -1572,6 +1591,8 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
     {
         otauDataIndication(ind, deCONZ::ZclFrame());
     }
+
+    eventEmitter->process();
 }
 
 /*! APSDE-DATA.confirm callback.
@@ -4262,70 +4283,9 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ:
     }
     else if (sensor->node() && !sensor->node()->isZombie())
     {
-        // look if fingerprint endpoint is in active endpoint list
-        std::vector<quint8>::const_iterator it;
-
-        it = std::find(sensor->node()->endpoints().begin(),
-                       sensor->node()->endpoints().end(),
-                       sensor->fingerPrint().endpoint);
-
-        if (it != sensor->node()->endpoints().end())
+        if (sensor->lastRx().isValid() && sensor->lastRx().secsTo(now) < (60 * 60 * 24))
         {
-            if (sensor->lastRx().isValid() && sensor->lastRx().secsTo(now) < (60 * 60 * 24))
-            {
-                reachable = true;
-            }
-
-            // check that all clusters from fingerprint are present
-            for (const deCONZ::SimpleDescriptor &sd : sensor->node()->simpleDescriptors())
-            {
-                if (!reachable)
-                {
-                    break;
-                }
-
-                if (sd.endpoint() != sensor->fingerPrint().endpoint)
-                {
-                    continue;
-                }
-
-                for (quint16 clusterId : sensor->fingerPrint().inClusters)
-                {
-                    bool found = false;
-                    for (const deCONZ::ZclCluster &cl : sd.inClusters())
-                    {
-                        if (clusterId == cl.id())
-                        {
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (!found)
-                    {
-                        reachable = false;
-                        break;
-                    }
-                }
-
-                for (quint16 clusterId : sensor->fingerPrint().outClusters)
-                {
-                    bool found = false;
-                    for (const deCONZ::ZclCluster &cl : sd.outClusters())
-                    {
-                        if (clusterId == cl.id())
-                        {
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (!found)
-                    {
-                        reachable = false;
-                        break;
-                    }
-                }
-
-            }
+            reachable = true;
         }
     }
 

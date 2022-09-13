@@ -28,6 +28,7 @@ public:
     ~EventEmitter();
 
 public Q_SLOTS:
+    void process();
     void enqueueEvent(const Event &event);
     void timerFired();
 
@@ -38,6 +39,7 @@ private:
     size_t m_pos = 0;
     QTimer *m_timer = nullptr;
     std::vector<Event> m_queue;
+    std::vector<Event> m_urgentQueue;
 };
 
 #endif // EVENT_EMITTER_H

@@ -259,6 +259,7 @@ extern const char *RConfigReachable;
 extern const char *RConfigResetPresence;
 extern const char *RConfigSchedule;
 extern const char *RConfigScheduleOn;
+extern const char *RConfigSelfTest;
 extern const char *RConfigSensitivity;
 extern const char *RConfigSensitivityMax;
 extern const char *RConfigSetValve;

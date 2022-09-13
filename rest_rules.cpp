@@ -1784,7 +1784,10 @@ void DeRestPluginPrivate::indexRulesTriggers()
     fastRuleCheck.clear();
     for (const Rule &rule : rules)
     {
-        fastRuleCheck.push_back(rule.handle());
+        if (rule.status().startsWith('e')) // enabled
+        {
+            fastRuleCheck.push_back(rule.handle());
+        }
     }
 
     if (!fastRuleCheckTimer->isActive() && !fastRuleCheck.empty())

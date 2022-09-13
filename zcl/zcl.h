@@ -33,7 +33,8 @@ struct ZCL_Param
         uint8_t valid : 1;
         uint8_t hasCommandId : 1;
         uint8_t attributeCount : 3;
-        uint8_t _pad0 : 3;
+        uint8_t ignoreResponseSeq: 1;
+        uint8_t _pad0 : 2;
     };
     uint8_t _pad1;
 };
