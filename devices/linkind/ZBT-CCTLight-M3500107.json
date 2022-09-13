@@ -5,7 +5,6 @@
   "product": "Linkind 4.8W GU10 Bulb Dimmable & Tunable",
   "sleeper": false,
   "status": "Gold",
-  "path": "",
   "subdevices": [
     {
       "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
