@@ -101,6 +101,7 @@
         },
         "COLOR_CONTROL": {
             "MOVE_HUE": 1,
+            "STEP_HUE": 2,
             "MOVE_TO_SATURATION": 3,
             "MOVE_TO_COLOR": 7,
             "MOVE_TO_COLOR_TEMPERATURE": 10,
