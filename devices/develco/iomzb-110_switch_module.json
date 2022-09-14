@@ -144,7 +144,7 @@
             "at": "0x0055",
             "cl": "0x000f",
             "ep": 112,
-            "eval": "Item.val = Attr.val > 0 ? '1003': '1001'",
+            "eval": "Item.val = Attr.val > 0 ? 1003: 1001",
             "fn": "zcl"
           }
         }
@@ -200,7 +200,7 @@
             "at": "0x0055",
             "cl": "0x000f",
             "ep": 113,
-            "eval": "Item.val = Attr.val > 0 ? '1003': '1001'",
+            "eval": "Item.val = Attr.val > 0 ? 1003: 1001",
             "fn": "zcl"
           }
         }
@@ -256,7 +256,7 @@
             "at": "0x0055",
             "cl": "0x000f",
             "ep": 114,
-            "eval": "Item.val = Attr.val > 0 ? '1003': '1001'",
+            "eval": "Item.val = Attr.val > 0 ? 1003: 1001",
             "fn": "zcl"
           }
         }
@@ -312,7 +312,7 @@
             "at": "0x0055",
             "cl": "0x000f",
             "ep": 115,
-            "eval": "Item.val = Attr.val > 0 ? '1003': '1001'",
+            "eval": "Item.val = Attr.val > 0 ? 1003: 1001",
             "fn": "zcl"
           }
         }
