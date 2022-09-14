@@ -92,7 +92,8 @@
             "at": "0xff0d",
             "cl": "0x0000",
             "ep": 1,
-            "eval": "Item.val = [3, 2, 1][Attr.val - 1]",
+            "comment": "sniffed values are 1 - high, 2 - medium, 3 - low",
+            "eval": "Item.val = [2, 1, 0][Attr.val - 1]",
             "fn": "zcl",
             "mf": "0x115f"
           },
@@ -101,18 +102,22 @@
             "cl": "0x0000",
             "dt": "0x20",
             "ep": 1,
-            "eval": "Item.val = [3, 2, 1][Item.val - 1]",
+            "eval": "[3, 2, 1][Item.val]",
             "fn": "zcl",
             "mf": "0x115f"
           },
           "values": [
-              [1, "low"], [2, "medium"], [3, "high"]
+              [0, "low"], [1, "medium"], [2, "high"]
           ],
-          "default": 3
+          "default": 2
         },
         {
           "name": "config/sensitivitymax",
-          "default": 3
+          "default": 2
+        },
+        {
+          "name": "config/temperature",
+          "parse": {"fn": "xiaomi:special", "at": "0xff01", "idx": "0x03", "eval": "Item.val = Attr.val * 100"}
         },
         {
           "name": "state/orientation"
@@ -141,8 +146,7 @@
             "ep": 1,
             "eval": "Item.val = Attr.val",
             "fn": "zcl"
-          },
-          "default": 0
+          }
         },
         {
           "name": "state/vibration",
@@ -152,8 +156,7 @@
             "ep": 1,
             "eval": "Item.val = Attr.val == 1 ? true : false",
             "fn": "zcl"
-          },
-          "default": false
+          }
         },
         {
           "name": "state/vibrationstrength",
@@ -163,8 +166,7 @@
             "ep": 1,
             "eval": "Item.val = Attr.val >> 16",
             "fn": "zcl"
-          },
-          "default": 0
+          }
         },
         {
           "name": "state/lastupdated"
