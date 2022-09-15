@@ -6,7 +6,6 @@
   "product": "EasyFingerTouch",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/easyfingertouch.json",
   "subdevices": [
     {
       "type": "ZHADoorLock",
