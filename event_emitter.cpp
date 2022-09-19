@@ -114,7 +114,10 @@ void EventEmitter::process()
         size_t i = 0;
         while (i < m_urgentQueue.size())
         {
-            emit eventNotify(m_urgentQueue[i]);
+            // create a copy of the event, m_queue can be realloced during processing
+            // which would invalidate the event reference
+            const Event ev = m_urgentQueue[i];
+            emit eventNotify(ev);
             i++;
 
             if (i == m_urgentQueue.size())
@@ -128,7 +131,8 @@ void EventEmitter::process()
         if (m_pos < m_queue.size())
         {
             m_pos++;
-            emit eventNotify(m_queue[m_pos - 1]);
+            const Event ev = m_queue[m_pos - 1];
+            emit eventNotify(ev);
             if (m_pos == m_queue.size())
             {
                 m_queue.clear();
