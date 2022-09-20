@@ -5,7 +5,6 @@
   "product": "Aqara Tunable White LED Bulb (ZNLDP12LM)",
   "sleeper": false,
   "status": "Gold",
-  "path": "",
   "subdevices": [
     {
       "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
