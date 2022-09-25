@@ -187,16 +187,17 @@
         },
         {
           "name": "state/lastupdated"
-        },
-        {
-          "name": "state/power",
-          "refresh.interval": 300,
-          "default": 0
         }
       ]
     }
   ],
   "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0000"
+    },
     {
       "bind": "unicast",
       "src.ep": 1,
@@ -212,24 +213,6 @@
       ]
     },
     {
-      "bind": "groupcast",
-      "config.group": 24,
-      "src.ep": 1,
-      "cl": "0xFFFE"
-    },
-    {
-      "bind": "groupcast",
-      "config.group": 144,
-      "src.ep": 1,
-      "cl": "0xFFFE"
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0000"
-    },
-    {
       "bind": "unicast",
       "src.ep": 1,
       "dst.ep": 1,
@@ -241,10 +224,32 @@
           "min": 1,
           "max": 300,
           "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0B04",
+      "report": [
+        {
+          "at": "0x050B",
+          "dt": "0x29",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
         },
         {
-          "at": "0x0400",
-          "dt": "0x2A",
+          "at": "0x0505",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0508",
+          "dt": "0x21",
           "min": 1,
           "max": 300,
           "change": "0x00000001"
