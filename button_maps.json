@@ -256,7 +256,7 @@
         "ikeaOnOffMap": {
             "vendor": "IKEA",
             "doc": "TRÅDFRI on/off switch",
-            "modelids": ["TRADFRI on/off switch", "TRADFRI SHORTCUT Button"],
+            "modelids": ["TRADFRI on/off switch"],
             "buttons": [
                 {"S_BUTTON_1": "On"},
                 {"S_BUTTON_2": "Off"}
@@ -268,6 +268,20 @@
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE", "1", "S_BUTTON_2", "S_BUTTON_ACTION_HOLD", "Move down"],
                 [1, "0x01", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "1", "S_BUTTON_2", "S_BUTTON_ACTION_LONG_RELEASED", "Stop"]
+            ]
+        },
+        "ikeaShortcutMap": {
+            "vendor": "IKEA",
+            "doc": "TRÅDFRI shortcut button",
+            "modelids": ["TRADFRI SHORTCUT Button"],
+            "buttons": [
+                {"S_BUTTON_1": "Button"}
+            ],
+            "map": [
+                [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
+                [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Move up (with on/off)"],
+                [1, "0x01", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Stop (with on/off)"],
+                [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_DOUBLE_PRESS", "Off"]
             ]
         },
         "ikeaOpenCloseMap": {
