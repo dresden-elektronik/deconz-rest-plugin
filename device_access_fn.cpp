@@ -541,6 +541,16 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
     {
         return result;
     }
+    
+    if (!zclParam.hasCommandId && zclFrame.commandId() != deCONZ::ZclReadAttributesResponseId && zclFrame.commandId() != deCONZ::ZclReportAttributesId)
+    {
+        return result;
+    }
+    
+    if (zclParam.manufacturerCode != zclFrame.manufacturerCode())
+    {
+        return result;
+    }
 
     if (zclParam.endpoint < BroadcastEndpoint && zclParam.endpoint != ind.srcEndpoint())
     {

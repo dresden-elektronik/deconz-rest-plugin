@@ -1134,6 +1134,8 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
         // for state/* changes, only emit the state/lastupdated event once for the first state/* item.
         bool eventLastUpdatedEmitted = false;
 
+        DeviceJs::instance()->clearItemsSet();
+
         for (int i = 0; i < r->itemCount(); i++)
         {
             ResourceItem *item = r->itemForIndex(i);
@@ -1164,34 +1166,39 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
 
             if (parseFunction(r, item, ind, zclFrame, ddfItem.parseParameters))
             {
-                if (item->awake())
+            }
+        }
+
+        auto *idItem = r->item(RAttrId);
+        if (!idItem)
+        {
+            idItem = r->item(RAttrUniqueId);
+        }
+
+        if (idItem)
+        {
+            for (ResourceItem *i : DeviceJs::instance()->itemsSet())
+            {
+                if (i->awake())
                 {
                     awake++;
                 }
 
-                auto *idItem = r->item(RAttrId);
-                if (!idItem)
+                const bool push = i->pushOnSet() || (i->pushOnChange() && i->lastChanged() == i->lastSet());
+
+                enqueueEvent(Event(r->prefix(), i->descriptor().suffix, idItem->toString(), i, device->key()));
+                if (push && i->lastChanged() == i->lastSet())
                 {
-                    idItem = r->item(RAttrUniqueId);
+                    DB_StoreSubDeviceItem(r, i);
                 }
 
-                const bool push = item->pushOnSet() || (item->pushOnChange() && item->lastChanged() == item->lastSet());
-                if (idItem)
-                {
-                    enqueueEvent(Event(r->prefix(), item->descriptor().suffix, idItem->toString(), item, device->key()));
-                    if (push && item->lastChanged() == item->lastSet())
-                    {
-                        DB_StoreSubDeviceItem(r, item);
-                    }
-                }
-
-                if (!eventLastUpdatedEmitted && item->descriptor().suffix[0] == 's') // state/*
+                if (!eventLastUpdatedEmitted && i->descriptor().suffix[0] == 's') // state/*
                 {
                     ResourceItem *lastUpdated = r->item(RStateLastUpdated);
-                    if (lastUpdated && idItem)
+                    if (lastUpdated)
                     {
                         eventLastUpdatedEmitted = true;
-                        lastUpdated->setValue(item->lastSet());
+                        lastUpdated->setValue(i->lastSet());
                         enqueueEvent(Event(r->prefix(), lastUpdated->descriptor().suffix, idItem->toString(), lastUpdated, device->key()));
                     }
                 }
