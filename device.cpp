@@ -69,6 +69,7 @@ constexpr int RxOffWhenIdleResponseTime = 8000; // 7680 ms + some space for time
 constexpr int MaxConfirmTimeout = 20000; // If for some reason no APS-DATA.confirm is received (should almost
 constexpr int BindingAutoCheckInterval = 1000 * 60 * 60;
 constexpr int MaxPollItemRetries = 3;
+constexpr int MaxIdleApsConfirmErrors = 16;
 constexpr int MaxSubResources = 8;
 
 static int devManaged = -1;
@@ -146,6 +147,7 @@ public:
     QElapsedTimer awake; //! time to track when an end-device was last awake
     BindingContext binding; //! only used by binding sub state machine
     std::vector<DEV_PollItem> pollItems; //! queue of items to poll
+    int idleApsConfirmErrors = 0;
     /*! True while a new state waits for the state enter event, which must arrive first.
         This is for debug asserting that the order of events is valid - it doesn't drive logic. */
     bool stateEnterLock[StateLevelMax] = {};
@@ -839,6 +841,25 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
         d->setState(nullptr, STATE_LEVEL_BINDING);
         d->setState(nullptr, STATE_LEVEL_POLL);
         return;
+    }
+    else if (event.what() == REventApsConfirm)
+    {
+        if (EventApsConfirmStatus(event) == deCONZ::ApsSuccessStatus)
+        {
+            d->idleApsConfirmErrors = 0;
+        }
+        else
+        {
+            d->idleApsConfirmErrors++;
+
+            if (d->idleApsConfirmErrors > MaxIdleApsConfirmErrors && device->item(RStateReachable)->toBool())
+            {
+                d->idleApsConfirmErrors = 0;
+                DBG_Printf(DBG_DEV, "DEV: Idle max APS confirm errors: 0x%016llX\n", device->key());
+                device->item(RStateReachable)->setValue(false);
+                DEV_CheckReachable(device);
+            }
+        }
     }
     else if (event.what() != RAttrLastSeen && event.what() != REventPoll)
     {
@@ -1906,6 +1927,7 @@ void DEV_PollBusyStateHandler(Device *device, const Event &event)
 
         if (EventApsConfirmStatus(event) == deCONZ::ApsSuccessStatus)
         {
+            d->idleApsConfirmErrors = 0;
             d->stopStateTimer(StateLevel0);
             d->startStateTimer(d->maxResponseTime, STATE_LEVEL_POLL);
         }
