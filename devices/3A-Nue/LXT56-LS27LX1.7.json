@@ -63,7 +63,7 @@
           "refresh.interval": 5
         },
         {
-          "name": "state/colormode",
+          "name": "state/colormode"
         },
         {
           "name": "state/ct",
@@ -74,7 +74,7 @@
           "default": "none"
         },
         {
-          "name": "state/hue",
+          "name": "state/hue"
         },
         {
           "name": "state/on",
@@ -92,7 +92,7 @@
           "refresh.interval": 5
         },
         {
-          "name": "state/y",
+          "name": "state/y"
         }
       ]
     },
