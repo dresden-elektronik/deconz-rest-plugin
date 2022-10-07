@@ -10,7 +10,7 @@
         "config/enrolled",
         "config/pending",
         "config/reachable",
-        "state/battery",
+        "config/battery",
         "state/alarm",
         "state/lowbattery",
         "state/lastupdated"
