@@ -13,6 +13,7 @@
 #include "device_access_fn.h"
 #include "device_descriptions.h"
 #include "device_js/device_js.h"
+#include "device_js/device_js_wrappers.h"
 #include "ias_zone.h"
 #include "resource.h"
 #include "zcl/zcl.h"
@@ -465,6 +466,11 @@ bool parseNumericToString(Resource *r, ResourceItem *item, const deCONZ::ApsData
                 result = true;
             }
         }
+    }
+
+    if (result)
+    {
+        DeviceJS_ResourceItemValueChanged(item);
     }
 
     return result;
@@ -1338,6 +1344,8 @@ bool parseIasZoneNotificationAndStatus(Resource *r, ResourceItem *item, const de
 
         item->setValue((zoneStatus & mask) != 0);
         item->setLastZclReport(deCONZ::steadyTimeRef().ref);    // Treat as report
+
+        DeviceJS_ResourceItemValueChanged(item); // since this isn't going through JS add item to the changed set here
         result = true;
     }
 
@@ -1616,6 +1624,11 @@ bool parseAndSyncTime(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndi
         }
             break;
         }
+    }
+
+    if (result)
+    {
+        DeviceJS_ResourceItemValueChanged(item);
     }
 
     return result;
