@@ -5,7 +5,6 @@
   "product": "H2L-ZBPH-RS",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/h2l-zbph-rs.json",
   "subdevices": [
     {
       "type": "$TYPE_WINDOW_COVERING_DEVICE",
