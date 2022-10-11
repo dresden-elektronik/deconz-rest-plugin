@@ -1099,15 +1099,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         updated = true;
                     }
                 }
-                else if (rid.suffix == RConfigLocalOccupancy) // bolean
-                {
-                    if (devManaged && rsub)
-                    {
-                        change.addTargetValue(rid.suffix, data.boolean);
-                        rsub->addStateChange(change);
-                        updated = true;
-                    }
-                }
                 else if (rid.suffix == RConfigHeatSetpoint) // Signed integer
                 {
                     if (sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
