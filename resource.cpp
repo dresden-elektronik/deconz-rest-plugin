@@ -206,7 +206,6 @@ const char *RConfigLastChangeTime = "config/lastchange_time";
 const char *RConfigLat = "config/lat";
 const char *RConfigLedIndication = "config/ledindication";
 const char *RConfigLevelMin = "config/levelmin";
-const char *RConfigLocalOccupancy = "config/local_occupancy";
 const char *RConfigLocalTime = "config/localtime";
 const char *RConfigLocked = "config/locked";
 const char *RConfigLong = "config/long";
@@ -348,7 +347,6 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateLightLevel, 0, 0xfffe));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, QVariant::String, RStateLocaltime));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateLowBattery));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigLocalOccupancy));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RStateLux));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateMountingModeActive));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateOn));
