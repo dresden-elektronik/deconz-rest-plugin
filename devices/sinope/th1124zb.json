@@ -59,7 +59,7 @@
           "default": 0
         },
 	{
-          "name": "config/local_occupancy",
+          "name": "config/resetpresence",
           "refresh.interval": 300,
           "description": "Use it to address Occupancy specific attribute.\nfalse = Unoccupied\ntrue = Occupied",
           "parse": {
