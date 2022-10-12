@@ -120,13 +120,13 @@
           "name": "state/alarm"
         },
         {
-          "name": "state/battery",
+          "name": "config/battery",
           "refresh.interval": 3600,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2",
+            "eval": "Item.val = Math.round(Attr.val / 2);",
             "fn": "zcl"
           }
         },
