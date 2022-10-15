@@ -1,14 +1,14 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "_TZ3210_eymunffl",
-  "modelid": "TS0101",
-  "vendor": "WOOX",
-  "product": "TS0101",
+  "manufacturername": "_TZ3000_llfaquvp",
+  "modelid": "TS0012",
+  "vendor": "NEO",
+  "product": "Immax NEO Smart kontroler",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_SMART_PLUG",
+      "type": "$TYPE_ON_OFF_OUTPUT",
       "restapi": "/lights",
       "uuid": [
         "$address.ext",
@@ -43,12 +43,7 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "state/alert",
-          "default": "none"
-        },
-        {
-          "name": "state/on",
-          "refresh.interval": 5
+          "name": "state/on"
         },
         {
           "name": "state/reachable"
@@ -56,12 +51,11 @@
       ]
     },
     {
-      "type": "$TYPE_BATTERY_SENSOR",
-      "restapi": "/sensors",
+      "type": "$TYPE_ON_OFF_OUTPUT",
+      "restapi": "/lights",
       "uuid": [
         "$address.ext",
-        "0x01",
-        "0x0001"
+        "0x02"
       ],
       "items": [
         {
@@ -92,46 +86,10 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/on"
+          "name": "state/on"
         },
         {
-          "name": "config/reachable"
-        },
-        {
-          "name": "state/battery",
-          "refresh.interval": 3600
-        },
-        {
-          "name": "state/lastupdated"
-        }
-      ]
-    }
-  ],
-  "bindings": [
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0006",
-      "report": [
-        {
-          "at": "0x0000",
-          "dt": "0x10",
-          "min": 1,
-          "max": 300
-        }
-      ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "cl": "0x0001",
-      "report": [
-        {
-          "at": "0x0021",
-          "dt": "0x20",
-          "min": 0,
-          "max": 0
+          "name": "state/reachable"
         }
       ]
     }
