@@ -264,9 +264,9 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (item->descriptor().suffix == RConfigPowerOnCt) { map["poweronct"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigLevelMin) { map["levelmin"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigId) { map["configid"] = item->toNumber(); }
-        else if (item->descriptor().suffix == RConfigStartupBri) { startup["bri"] = item->toNumber(); }
-        else if (item->descriptor().suffix == RConfigStartupCt) { startup["ct"] = item->toNumber(); }
-        else if (item->descriptor().suffix == RConfigStartupOn) { startup["on"] = item->toString(); }
+        else if (item->descriptor().suffix == RConfigStartupBri) { startup["bri"] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
+        else if (item->descriptor().suffix == RConfigStartupCt) { startup["ct"] = item->toNumber() == 0xFFFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
+        else if (item->descriptor().suffix == RConfigStartupOn) { startup["on"] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toBool(); }
         else if (item->descriptor().suffix == RConfigStartupX) { isx = item; }
         else if (item->descriptor().suffix == RConfigStartupY) { isy = item; }
         else if (item->descriptor().suffix == RAttrLastAnnounced) { map["lastannounced"] = item->toString(); }
@@ -313,11 +313,18 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         double colorX = isx->toNumber();
         double colorY = isy->toNumber();
 
-        const double x = round(colorX / 6.5535) / 10000.0; // normalize to 0 .. 1
-        const double y = round(colorY / 6.5535) / 10000.0; // normalize to 0 .. 1
-        xy.append(x);
-        xy.append(y);
-        startup["xy"] = xy;
+        if (colorX == 0xFFFF && colorY == 0xFFFF)
+        {
+            startup["xy"] = QLatin1String("previous");
+        }
+        else
+        {
+            const double x = round(colorX / 6.5535) / 10000.0; // normalize to 0 .. 1
+            const double y = round(colorY / 6.5535) / 10000.0; // normalize to 0 .. 1
+            xy.append(x);
+            xy.append(y);
+            startup["xy"] = xy;
+        }
     }
 
     map["uniqueid"] = lightNode->uniqueId();
@@ -3222,9 +3229,17 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                 }
                 else if (gwWebSocketNotifyAll || item->needPushChange())
                 {
-                    if (strncmp(key, "startup_", 8) == 0)
+                    if (rid.suffix == RConfigStartupOn)
                     {
-                        startup[key + 8] = item->toVariant();
+                        startup["on"] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toBool();
+                    }
+                    else if (rid.suffix == RConfigStartupBri)
+                    {
+                        startup["bri"] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toNumber();
+                    }
+                    else if (rid.suffix == RConfigStartupCt)
+                    {
+                        startup["ct"] = item->toNumber() == 0xFFFF ? QVariant(QLatin1String("previous")) : item->toNumber();
                     }
                     else
                     {
@@ -3238,9 +3253,16 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
             {
                 if (gwWebSocketNotifyAll || ix->needPushChange() || iy->needPushChange())
                   {
-                      xy.append(round(ix->toNumber() / 6.5535) / 10000.0);
-                      xy.append(round(iy->toNumber() / 6.5535) / 10000.0);
-                      startup["xy"] = xy;
+                      if (ix->toNumber() == 0xFFFF && iy->toNumber() == 0xFFFF)
+                      {
+                          startup["xy"] = QLatin1String("previous");
+                      }
+                      else
+                      {
+                          xy.append(round(ix->toNumber() / 6.5535) / 10000.0);
+                          xy.append(round(iy->toNumber() / 6.5535) / 10000.0);
+                          startup["xy"] = xy;
+                      }
                       ix->clearNeedPush();
                       iy->clearNeedPush();
                   }
