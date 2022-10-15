@@ -246,7 +246,6 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (item->descriptor().suffix == RStateSat) { state["sat"] = static_cast<double>(item->toNumber()); }
         else if (item->descriptor().suffix == RStateCt) { state["ct"] = static_cast<double>(item->toNumber()); }
         else if (item->descriptor().suffix == RStateColorMode) { state["colormode"] = item->toString(); }
-        else if (item->descriptor().suffix == RStateDynamicEffect) { state["dynamic_effect"] = item->toString(); }
         else if (item->descriptor().suffix == RStateEffect) { state["effect"] = item->toString(); }
         else if (item->descriptor().suffix == RStateSpeed) { state["speed"] = item->toNumber(); }
         else if (item->descriptor().suffix == RStateX) { ix = item; }
@@ -592,6 +591,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         "none", "select", "lselect", "blink", "breathe", "okay", "channelchange", "finish", "stop"
     });
     QStringList effectList = RStateEffectValues;
+    if (taskRef.lightNode->manufacturerCode() == VENDOR_PHILIPS && taskRef.lightNode->haEndpoint().profileId() == HA_PROFILE_ID)
+    {
+        effectList = RStateEffectValuesHue;
+    }
     if (taskRef.lightNode->manufacturerCode() == VENDOR_MUELLER)
     {
         effectList = RStateEffectValuesMueller;
@@ -1077,11 +1080,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
             QVariantMap rspItem;
             QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/state/effect").arg(id)] = RStateEffectValues[effect];
+            rspItemState[QString("/lights/%1/state/effect").arg(id)] = effectList[effect];
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            taskRef.lightNode->setValue(RStateEffect, RStateEffectValues[effect]);
+            taskRef.lightNode->setValue(RStateEffect, effectList[effect]);
         }
         else
         {
@@ -1317,11 +1320,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
             QVariantMap rspItem;
             QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/state/effect").arg(id)] = RStateEffectValues[effect];
+            rspItemState[QString("/lights/%1/state/effect").arg(id)] = effectList[effect];
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            taskRef.lightNode->setValue(RStateEffect, RStateEffectValues[effect]);
+            taskRef.lightNode->setValue(RStateEffect, effectList[effect]);
         }
         else
         {
@@ -1338,15 +1341,23 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, effect, is not modifiable. Device is set to off.")));
         }
-        else if (writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), BASIC_CLUSTER_ID, attr, VENDOR_MUELLER))
+        else if (taskRef.lightNode->manufacturerCode() == VENDOR_PHILIPS)
+        {
+            ok = addTaskHueDynamicScene(taskRef, value);
+        }
+        else if (taskRef.lightNode->manufacturerCode() == VENDOR_MUELLER)
+        {
+            ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), BASIC_CLUSTER_ID, attr, VENDOR_MUELLER);
+        }
+        if (ok)
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/state/effect").arg(id)] = RStateEffectValuesMueller[effect];
+            rspItemState[QString("/lights/%1/state/effect").arg(id)] = effectList[effect];
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            taskRef.lightNode->setValue(RStateEffect, RStateEffectValuesMueller[effect]);
+            taskRef.lightNode->setValue(RStateEffect, effectList[effect]);
         }
         else
         {
