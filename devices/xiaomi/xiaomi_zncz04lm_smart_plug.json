@@ -8,6 +8,7 @@
   "status": "Gold",
   "comment": "DDF for device firmwares equal or below 0.0.0_0022",
   "matchexpr": "R.endpoints.includes(0x15) && R.endpoints.includes(0x16)",
+  "md:known_issues": [ "xiaomi_known_issues_plugfw.md" ],
   "subdevices": [
     {
       "type": "$TYPE_SMART_PLUG",

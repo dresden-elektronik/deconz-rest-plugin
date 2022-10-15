@@ -147,7 +147,7 @@ bool startsWith(QLatin1String str, QLatin1String needle)
 RestData verifyRestData(const ResourceItemDescriptor &rid, const QVariant &val)
 {
     bool ok;
-    RestData data;
+    RestData data {};
 
     if (rid.qVariantType == val.type())
     {

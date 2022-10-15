@@ -5,7 +5,7 @@
 	"access": "RW",
 	"public": true,
 	"description": "The current color x coordinate.",
-    "parse": {"fn": "zcl", "ep": 255, "cl": "0x0300", "at": "0x0003", "eval": "Item.val = Attr.val"},
+	"parse": {"fn": "zcl", "ep": 255, "cl": "0x0300", "at": "0x0003", "eval": "Item.val = Attr.val"},
 	"read": {"fn": "zcl", "ep": 0, "cl": "0x0300", "at": ["0x0003", "0x0004"]},
 	"refresh.interval": 5
 }

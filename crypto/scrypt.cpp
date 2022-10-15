@@ -30,7 +30,7 @@
 
 /*! KDF to scrypt the \p input.
  */
-static int scryptDerive(const char *input, size_t inputLength, std::array<unsigned char, 64> &out, int N, int r, int p, const char *salt)
+static int scryptDerive(const char *input, size_t inputLength, std::array<unsigned char, 64> &out, int N, int r, int p, const unsigned char *salt, size_t saltlen)
 {
 #ifdef Q_OS_WIN
     QLibrary libCrypto(QLatin1String("libcrypto-1_1.dll"));
@@ -86,7 +86,7 @@ static int scryptDerive(const char *input, size_t inputLength, std::array<unsign
         result = -2;
     }
 
-    if (result == 0 && EVP_PKEY_CTX_set1_scrypt_salt(pctx, salt, strlen(salt)) <= 0)
+    if (result == 0 && EVP_PKEY_CTX_set1_scrypt_salt(pctx, salt, saltlen) <= 0)
     {
         result = -3;
     }
@@ -131,8 +131,8 @@ std::string CRYPTO_ScryptPassword(const std::string &input, const std::string &s
     }
 
     std::array<unsigned char, 64> out;
-
-    if (scryptDerive(input.data(), input.size(), out, N, r, p, salt.data()) != 0)
+    // We coerce the salt value to an unsigned char *, as it is no longer a string past this point.
+    if (scryptDerive(input.data(), input.size(), out, N, r, p, (const unsigned char*)salt.data(), salt.length()) != 0)
     {
         return res;
     }

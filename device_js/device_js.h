@@ -102,8 +102,10 @@ public:
     void setItem(const ResourceItem *item);
     QVariant result();
     void reset();
+    void clearItemsSet();
     QString errorString() const;
     static DeviceJs *instance();
+    const std::vector<ResourceItem*> &itemsSet() const;
 
 private:
     std::unique_ptr<DeviceJsPrivate> d;
