@@ -127,7 +127,6 @@ extern const char *RStateCurrent_P3;
 extern const char *RStateDark;
 extern const char *RStateDaylight;
 extern const char *RStateDeviceRunTime;
-extern const char *RStateDynamicEffect;
 extern const char *RStateEffect;
 extern const char *RStateErrorCode;
 extern const char *RStateEventDuration;
@@ -309,13 +308,9 @@ extern const char *RConfigAlarmSystemId;
 extern const QStringList RStateEffectValues;
 #define R_EFFECT_NONE               0
 #define R_EFFECT_COLORLOOP          1
+extern const QStringList RStateEffectValuesHue;
 extern const QStringList RStateEffectValuesMueller;
-#define R_EFFECT_SUNSET             2
-#define R_EFFECT_PARTY              3
-#define R_EFFECT_WORKLIGHT          4
-#define R_EFFECT_CAMPFIRE           5
-#define R_EFFECT_ROMANCE            6
-#define R_EFFECT_NIGHTLIGHT         7
+
 extern const QStringList RConfigLastChangeSourceValues;
 
 extern const QStringList RConfigDeviceModeValues;

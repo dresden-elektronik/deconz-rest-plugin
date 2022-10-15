@@ -98,7 +98,6 @@ const char *RStateCt = "state/ct";
 const char *RStateDark = "state/dark";
 const char *RStateDaylight = "state/daylight";
 const char *RStateDeviceRunTime = "state/deviceruntime";
-const char *RStateDynamicEffect = "state/dynamic_effect";
 const char *RStateEffect = "state/effect";
 const char *RStateErrorCode = "state/errorcode";
 const char *RStateEventDuration = "state/eventduration";
@@ -346,7 +345,6 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateDark));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateDaylight));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RStateDeviceRunTime));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateDynamicEffect));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateEffect));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateErrorCode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateEventDuration));
