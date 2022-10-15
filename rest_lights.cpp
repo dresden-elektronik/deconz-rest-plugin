@@ -1333,20 +1333,20 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     }
     else if (effect > 0)
     {
-        const quint64 value = effect - 1;
-        deCONZ::ZclAttribute attr(0x4005, deCONZ::Zcl8BitUint, "scene", deCONZ::ZclReadWrite, true);
-        attr.setValue(value);
-
         if (!isOn)
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, effect, is not modifiable. Device is set to off.")));
         }
         else if (taskRef.lightNode->manufacturerCode() == VENDOR_PHILIPS)
         {
-            ok = addTaskHueDynamicScene(taskRef, value);
+            quint8 value = effect - 1;
+            ok = addTaskHueDynamicEffect(taskRef, value);
         }
         else if (taskRef.lightNode->manufacturerCode() == VENDOR_MUELLER)
         {
+            const quint64 value = effect - 1;
+            deCONZ::ZclAttribute attr(0x4005, deCONZ::Zcl8BitUint, "scene", deCONZ::ZclReadWrite, true);
+            attr.setValue(value);
             ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), BASIC_CLUSTER_ID, attr, VENDOR_MUELLER);
         }
         if (ok)

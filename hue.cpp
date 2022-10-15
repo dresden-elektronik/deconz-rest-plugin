@@ -18,11 +18,11 @@ const QStringList RStateEffectValuesHue({
 /*! Add a Hue dynamic effect task to the queue.
 
    \param task - the task item
-   \param scene - the dynamic scene (0: none, 1: candle, 2: fireplace, 3: loop)
+   \param effect - the dynamic effect (0: none, 1: candle, 2: fireplace, 3: loop)
    \return true - on success
            false - on error
  */
-bool DeRestPluginPrivate::addTaskHueDynamicScene(TaskItem &task, quint8 scene)
+bool DeRestPluginPrivate::addTaskHueDynamicEffect(TaskItem &task, quint8 effect)
 {
     task.taskType = TaskSetColorLoop;
     task.req.setClusterId(HUE_CLUSTER_ID);
@@ -41,13 +41,13 @@ bool DeRestPluginPrivate::addTaskHueDynamicScene(TaskItem &task, quint8 scene)
         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
         stream.setByteOrder(QDataStream::LittleEndian);
 
-        if (scene == 0) {
-            stream << (quint16) 0x0020; // clear dynamic scene
+        if (effect == 0) {
+            stream << (quint16) 0x0020; // clear dynamic effect
             stream << (quint8) 0; // off
         } else {
-            stream << (quint16) 0x0021; // set dynamic scene (with on/off)
+            stream << (quint16) 0x0021; // set dynamic effect (with on/off)
             stream << (quint8) 1; // on
-            stream << scene;
+            stream << effect;
         }
     }
 

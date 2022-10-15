@@ -3937,9 +3937,9 @@ devices can operate on either battery or mains power, and can have a wide variet
     <cluster id="0xfc03" name="Hue" mfcode="0x100b">
       <description>Hue-specific cluster.</description>
       <server>
-        <command id="0x00" dir="recv" name="Set Dynamic Scene" vendor="0x100b" required="m">
+        <command id="0x00" dir="recv" name="Set Dynamic Effect" vendor="0x100b" required="m">
           <payload>
-            <attribute id="0x0000" type="u16" name="Command" showas="hex" default="0x0020" required="m"/>
+            <attribute id="0x0000" type="u16" name="Command" showas="hex" default="0x0021" required="m"/>
             <attribute id="0x0001" type="bool" name="Enable" required="m"/>
             <attribute id="0x0002" type="enum8" name="Scene" required="m">
               <value name="None" value="0x00"/>
