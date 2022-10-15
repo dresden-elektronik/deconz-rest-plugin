@@ -23,18 +23,18 @@ The Phoscon App is a browser based web application and supports lights, sensors 
 
 deCONZ beta releases are scheduled roughly once per week. After 2–3 betas a stable version is released and a new beta cycle begins. The stable release is usually published between 1st — 15th of the month.
 
-Current Beta: **v2.17.1-beta**  
-Current Stable: **v2.17.1**
+Current Beta: **v2.18.2-beta**  
+Current Stable: **v2.18.2**
 
-Next Beta: **v2.18.0-beta** Expected in July.
-Next Stable: **v2.18.x** Expected in July.
+Next Beta: **v2.19.0-beta** Expected in October.
+Next Stable: **v2.19.x** Expected in October.
 
 Installation
 ============
 
 ##### Supported platforms
 * Raspbian ~~Jessie~~, ~~Stretch~~, Buster and Bullseye
-* Ubuntu ~~Xenial~~, Bionic and Focal Fossa (AMD64)
+* Ubuntu ~~Xenial~~, Bionic, Focal Fossa and Jammy
 * Windows 7, 10, 11
 
 ### Install deCONZ
