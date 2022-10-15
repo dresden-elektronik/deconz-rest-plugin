@@ -5,7 +5,6 @@
 	"access": "RW",
 	"public": true,
 	"description": "Color temperature on device startup (power on).",
-  "default": "on",
   "parse": {
     "fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x4010",
     "eval": "Item.val = Attr.val"
