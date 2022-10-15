@@ -1140,6 +1140,7 @@ public:
     int getLightData(const ApiRequest &req, ApiResponse &rsp);
     int getLightState(const ApiRequest &req, ApiResponse &rsp);
     int setLightState(const ApiRequest &req, ApiResponse &rsp);
+    int setLightStartup(const ApiRequest &req, ApiResponse &rsp);
     int setWindowCoveringState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
     int setWarningDeviceState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
     int setTuyaDeviceState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
