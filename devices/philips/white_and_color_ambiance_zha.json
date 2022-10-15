@@ -1,7 +1,7 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["$MF_SIGNIFY", "$MF_SIGNIFY", "$MF_SIGNIFY"],
-  "modelid": ["LCA006", "LCE002", "LCG002"],
+  "manufacturername": ["$MF_SIGNIFY", "$MF_SIGNIFY", "$MF_SIGNIFY", "$MF_SIGNIFY", "$MF_SIGNIFY"],
+  "modelid": ["LCA006", "LCE002", "LCG002", "LCL003", "LCX004"],
   "product": "Hue white and color ambiance (Zigbee 3)",
   "sleeper": false,
   "status": "Gold",

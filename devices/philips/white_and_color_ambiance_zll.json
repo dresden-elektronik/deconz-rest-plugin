@@ -1,7 +1,7 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["$MF_SIGNIFY", "$MF_SIGNIFY"],
-  "modelid": ["LCT003", "LCT007"],
+  "manufacturername": ["$MF_SIGNIFY", "$MF_SIGNIFY", "$MF_SIGNIFY"],
+  "modelid": ["LCT003", "LCT007", "LCT015"],
   "product": "Hue white and color ambiance (ZLL)",
   "sleeper": false,
   "status": "Gold",
