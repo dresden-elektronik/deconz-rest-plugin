@@ -1550,6 +1550,8 @@ public:
     bool addTaskFanControlReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode=0);
     bool addTaskSimpleMeteringReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode=0);
 
+    bool addTaskHueDynamicScene(TaskItem &task, quint8 scene);
+
     // Merry Christmas!
     bool isXmasLightStrip(LightNode *lightNode);
     bool addTaskXmasLightStripOn(TaskItem &task, bool on);
