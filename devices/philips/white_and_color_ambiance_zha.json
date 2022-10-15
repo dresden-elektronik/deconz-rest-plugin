@@ -108,48 +108,34 @@
         },
         {
           "name": "state/bri",
-          "refresh.interval": 305
+          "read": { "fn": "none" }
         },
         {
           "name": "state/colormode",
-          "parse": {
-            "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": "0x4001",
-            "eval": "Item.val = ['hs', 'xy', 'ct', 'hs'][Attr.val]"
-          },
-          "read": { "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": ["0x4001", "0x4002"] },
-          "refresh.interval": 5
+          "parse": { "fn": "none" },
+          "read": { "fn": "none" }
         },
         {
           "name": "state/ct",
-          "parse": { "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": "0x0007", "eval": "Item.val = Attr.val" },
-          "read": { "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": "0x0007" },
-          "refresh.interval": 305
-        },
-        {
-          "name": "state/dynamic_effect",
-          "parse":
-          {
-            "ep": "0x0b", "cl": "0xfc03", "mf": "0x100b", "at": "0x0002",
-            "script": "fc03_dynamic_effect.js"
-          },
-          "read": { "fn": "zcl", "ep": "0x0b", "cl": "0xfc03", "mf": "0x100b", "at": "0x0002" },
-          "refresh.interval": 305,
-          "write":
-          {
-            "ep": "0x0b", "cl": "0xfc03", "mf": "0x100b", "cmd": "0x01"
-          }
+          "read": { "fn": "none" }
         },
         {
           "name": "state/effect",
           "parse":
           {
             "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": "0x4002",
-            "eval": "Item.val = Attr.val ? 'colorloop' : 'none'"
+            "eval": "if (Item.val === 'none' || Item.val === 'colorloop') Item.val = Attr.val ? 'colorloop' : 'none'"
           },
-          "read": { "fn": "none" }
+          "read": { "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": ["0x4002"] },
+          "refresh.interval": 60
         },
         {
           "name": "state/on",
+          "parse": {
+            "fn": "zcl", "ep": "0x0b", "cl": "0xfc03", "mf": "0x100b", "at": "0x0002",
+            "script": "fc03_state.js"
+          },
+          "read": { "fn": "zcl", "ep": "0x0b", "cl": "0xfc03", "mf": "0x100b", "at": "0x0002" },
           "refresh.interval": 305
         },
         {
@@ -157,41 +143,16 @@
         },
         {
           "name": "state/x",
-          "parse": {"fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": "0x0003", "eval": "Item.val = Attr.val"},
-          "read": { "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": ["0x0003", "0x0004"] },
-          "refresh.interval": 305
+          "read": { "fn": "none" }
         },
         {
           "name": "state/y",
-          "parse": { "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": "0x0004", "eval": "Item.val = Attr.val" },
           "read": { "fn": "none" }
         }
       ]
     }
   ],
   "bindings": [
-    {
-      "bind": "unicast",
-      "src.ep": 11,
-      "cl": "0x0006",
-      "report": [{ "at": "0x0000", "dt": "0x10", "min": 1, "max": 300 }]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 11,
-      "cl": "0x0008",
-      "report": [{ "at": "0x0000", "dt": "0x20", "min": 1, "max": 300, "change": "0x01" }]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 11,
-      "cl": "0x0300",
-      "report": [
-        { "at": "0x0003", "dt": "0x21", "min": 1, "max": 300, "change": "0x0001" },
-        { "at": "0x0004", "dt": "0x21", "min": 1, "max": 300, "change": "0x0001" },
-        { "at": "0x0007", "dt": "0x21", "min": 1, "max": 300, "chamge": "0x0001" }
-      ]
-    },
     {
       "bind": "unicast",
       "src.ep": 11,
