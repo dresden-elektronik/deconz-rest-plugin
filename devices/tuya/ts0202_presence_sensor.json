@@ -1,7 +1,7 @@
 {
    "schema":"devcap1.schema.json",
-   "manufacturername": ["_TZ3000_msl6wxk9", "_TZ3000_otvn3lne"],
-   "modelid":["TS0202", "TS0202"],
+   "manufacturername": ["_TZ3000_msl6wxk9", "_TZ3000_otvn3lne", "_TZ3000_mcxw5ehu"],
+   "modelid":["TS0202", "TS0202", "TS0202"],
    "product":"TS0202 Presence sensor",
    "sleeper":true,
    "status":"Gold",
@@ -14,6 +14,16 @@
             "0x01",
             "0x0500"
          ],
+         "fingerprint": {
+           "profile": "0x0104",
+           "device": "0x0402",
+           "endpoint": "0x01",
+           "in": [
+             "0x0000",
+             "0x0001",
+             "0x0500"
+           ]
+         },
          "items":[
             {
                "name":"attr/id"
