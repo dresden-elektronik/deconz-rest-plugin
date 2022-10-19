@@ -144,7 +144,7 @@
             "at": "0x0000",
             "cl": "0x0702",
             "ep": 2,
-            "eval": "Item.val = Attr.val / 1000",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl"
           }
         },
