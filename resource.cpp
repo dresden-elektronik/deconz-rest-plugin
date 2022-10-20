@@ -110,6 +110,7 @@ const char *RStateFloorTemperature = "state/floortemperature";
 const char *RStateGesture = "state/gesture";
 const char *RStateGPDFrameCounter = "state/gpd_frame_counter";
 const char *RStateGPDLastPair = "state/gpd_last_pair";
+const char *RStateGradient = "state/gradient";
 const char *RStateHeating = "state/heating";
 const char *RStateHue = "state/hue";
 const char *RStateHumidity = "state/humidity";
@@ -357,6 +358,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt32, QVariant::Double, RStateGesture));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RStateGPDFrameCounter));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt64, QVariant::Double, RStateGPDLastPair));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateGradient));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateHeating));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateHue));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateHumidity, 0, 10000));

@@ -1551,7 +1551,10 @@ public:
     bool addTaskFanControlReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode=0);
     bool addTaskSimpleMeteringReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode=0);
 
+    // Advanced features of Hue lights.
     bool addTaskHueDynamicEffect(TaskItem &task, quint8 effect);
+    bool validateGradient(QVariantMap &gradient);
+    bool addTaskHueGradient(TaskItem &task, QVariantMap &gradient);
 
     // Merry Christmas!
     bool isXmasLightStrip(LightNode *lightNode);

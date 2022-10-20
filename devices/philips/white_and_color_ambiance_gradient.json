@@ -1,8 +1,8 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["$MF_SIGNIFY", "$MF_SIGNIFY", "$MF_SIGNIFY", "$MF_SIGNIFY"],
-  "modelid": ["LCA006", "LCE002", "LCG002", "LCL003"],
-  "product": "Hue white and color ambiance (Zigbee 3)",
+  "manufacturername": ["$MF_SIGNIFY", "$MF_SIGNIFY"],
+  "modelid": ["LCX004", "915005987201"],
+  "product": "Hue white and color ambiance gradient.",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -128,6 +128,9 @@
           },
           "read": { "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": ["0x4002"] },
           "refresh.interval": 60
+        },
+        {
+          "name": "state/gradient"
         },
         {
           "name": "state/on",

@@ -139,6 +139,7 @@ extern const char *RStateFloorTemperature;
 extern const char *RStateGesture;
 extern const char *RStateGPDFrameCounter;
 extern const char *RStateGPDLastPair;
+extern const char *RStateGradient;
 extern const char *RStateHeating;
 extern const char *RStateHue;
 extern const char *RStateHumidity;

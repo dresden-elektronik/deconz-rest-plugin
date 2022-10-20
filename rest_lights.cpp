@@ -229,6 +229,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     QVariantMap state;
     const ResourceItem *ix = nullptr;
     const ResourceItem *iy = nullptr;
+    const ResourceItem *gradient = nullptr;
     const ResourceItem *icc = nullptr;
     QVariantMap startup;
     const ResourceItem *isx = nullptr;
@@ -252,6 +253,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (item->descriptor().suffix == RStateCt) { state["ct"] = static_cast<double>(item->toNumber()); }
         else if (item->descriptor().suffix == RStateColorMode) { state["colormode"] = item->toString(); }
         else if (item->descriptor().suffix == RStateEffect) { state["effect"] = item->toString(); }
+        else if (item->descriptor().suffix == RStateGradient) { gradient = item; }
         else if (item->descriptor().suffix == RStateSpeed) { state["speed"] = item->toNumber(); }
         else if (item->descriptor().suffix == RStateX) { ix = item; }
         else if (item->descriptor().suffix == RStateY) { iy = item; }
@@ -298,6 +300,16 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         xy.append(round(colorX / 6.5535) / 10000.0);
         xy.append(round(colorY / 6.5535) / 10000.0);
         state["xy"] = xy;
+    }
+    if (gradient)
+    {
+        bool ok;
+        QVariant var = Json::parse(gradient->toString(), ok);
+        if (ok)
+        {
+            QVariantMap map = var.toMap();
+            state["gradient"] = map;
+        }
     }
     if (icc)
     {
@@ -632,6 +644,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     int effect = -1;
     bool hasColorloopSpeed = false;
     quint16 colorloopSpeed = 25;
+    bool hasGradient = false;
+    QVariantMap gradient;
     QString alert;
     bool hasSpeed = false;
     quint8 targetSpeed = 0;
@@ -795,6 +809,20 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 valueOk = true;
                 hasColorloopSpeed = true;
                 colorloopSpeed = speed < 1 ? 1 : speed;
+            }
+        }
+        else if (param == "gradient" && taskRef.lightNode->item(RStateGradient))
+        {
+            paramOk = true;
+            hasCmd = true;
+            if (map[param].type() == QVariant::Map)
+            {
+                gradient = map[param].toMap();
+                // if (validateGradient(gradient))
+                // {
+                    valueOk = true;
+                    hasGradient = true;
+                // }
             }
         }
         else if (param == "colormode" && taskRef.lightNode->item(RStateColorMode))
@@ -1366,6 +1394,33 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rsp.list.append(rspItem);
 
             taskRef.lightNode->setValue(RStateEffect, effectList[effect]);
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/effect").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+        }
+    }
+
+    if (hasGradient)
+    {
+        TaskItem task;
+        copyTaskReq(taskRef, task);
+
+        if (taskRef.lightNode->manufacturerCode() == VENDOR_PHILIPS)
+        {
+            ok = addTaskHueGradient(taskRef, gradient);
+        }
+        ok = true;
+
+        if (ok)
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/gradient").arg(id)] = gradient;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+
+            // taskRef.lightNode->setValue(RStateGradient, gradient.toString());
         }
         else
         {
