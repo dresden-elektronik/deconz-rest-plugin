@@ -413,6 +413,9 @@
 				<value name="AAA" value="4"></value>
 				<value name="C" value="5"></value>
 				<value name="D" value="6"></value>
+				<value name="CR2" value="7"></value>
+				<value name="CR123A" value="8"></value>
+				<value name="Unknown" value="0xff"></value>
 			</attribute>
 			<attribute id="0x0032" name="Battery AHr Rating" type="u16" access="rw" required="o"></attribute>
 			<attribute id="0x0033" name="Battery Quantity" type="u8" access="rw" required="o"></attribute>
