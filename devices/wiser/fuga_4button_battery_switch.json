@@ -1,8 +1,8 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "Schneider Electric",
-  "modelid": "FLS/AIRLINK/4",
-  "product": "LK Fuga 4 Button Switch",
+  "manufacturername": ["Schneider Electric", "Schneider Electric"],
+  "modelid": ["FLS/AIRLINK/4", "FLS/SYSTEM-M/4"],
+  "product": "4 or 2 Button Switch wireless",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
