@@ -23,7 +23,7 @@ namespace deCONZ
 
 struct ZCL_Param
 {
-    enum Constants { MaxAttributes = 4 };
+    enum Constants { MaxAttributes = 8 };
     std::array<uint16_t, MaxAttributes> attributes;
     uint16_t clusterId = 0;
     uint16_t manufacturerCode = 0;
@@ -32,9 +32,9 @@ struct ZCL_Param
     struct {
         uint8_t valid : 1;
         uint8_t hasCommandId : 1;
-        uint8_t attributeCount : 3;
+        uint8_t attributeCount : 4;
         uint8_t ignoreResponseSeq: 1;
-        uint8_t _pad0 : 2;
+        uint8_t _pad0 : 1;
     };
     uint8_t _pad1;
 };

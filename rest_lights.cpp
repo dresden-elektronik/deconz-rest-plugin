@@ -298,6 +298,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (item->descriptor().suffix == RCapColorGamutRedX) { iredx = item; }
         else if (item->descriptor().suffix == RCapColorGamutRedY) { iredy = item; }
         else if (item->descriptor().suffix == RCapColorGamutType) { colorCapabilities["gamut_type"] = item->toString(); }
+        else if (item->descriptor().suffix == RCapGradientMaxSegments) { gradientCapabilities["max_segments"] = item->toNumber(); }
         else if (item->descriptor().suffix == RCapGradientPixelCount) { gradientCapabilities["pixel_count"] = item->toNumber(); }
         else if (item->descriptor().suffix == RCapGradientPixelLength) { gradientCapabilities["pixel_length"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigCtMin)
@@ -3822,6 +3823,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                 else if (gwWebSocketNotifyAll || item->needPushChange())
                 {
                     if (item->descriptor().suffix == RCapColorGamutType) { colorCapabilities["gamut_type"] = item->toString(); }
+                    else if (item->descriptor().suffix == RCapGradientMaxSegments) { gradientCapabilities["max_segments"] = item->toNumber(); }
                     else if (item->descriptor().suffix == RCapGradientPixelCount) { gradientCapabilities["pixel_count"] = item->toNumber(); }
                     else if (item->descriptor().suffix == RCapGradientPixelLength) { gradientCapabilities["pixel_length"] = item->toNumber(); }
                     else if (item->descriptor().suffix == RConfigCtMin)

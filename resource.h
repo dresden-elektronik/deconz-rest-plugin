@@ -200,6 +200,7 @@ extern const char *RCapColorGamutGreenY;
 extern const char *RCapColorGamutRedX;
 extern const char *RCapColorGamutRedY;
 extern const char *RCapColorGamutType;
+extern const char *RCapGradientMaxSegments;
 extern const char *RCapGradientPixelCount;
 extern const char *RCapGradientPixelLength;
 

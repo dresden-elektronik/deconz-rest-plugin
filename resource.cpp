@@ -178,6 +178,7 @@ const char *RCapColorGamutGreenY = "cap/color/gamut/green/y";;
 const char *RCapColorGamutRedX = "cap/color/gamut/red/x";;
 const char *RCapColorGamutRedY = "cap/color/gamut/red/y";;
 const char *RCapColorGamutType = "cap/color/gamut_type";
+const char *RCapGradientMaxSegments = "cap/gradient/max_segments";
 const char *RCapGradientPixelCount = "cap/gradient/pixel_count";
 const char *RCapGradientPixelLength = "cap/gradient/pixel_length";
 
@@ -426,6 +427,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorGamutRedX));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorGamutRedY));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RCapColorGamutType));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RCapGradientMaxSegments));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RCapGradientPixelCount));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapGradientPixelLength));
 
