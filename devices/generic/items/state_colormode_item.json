@@ -1,16 +1,20 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "state/colormode",
-	"datatype": "String",
-	"access": "R",
-	"public": true,
-	"description": "The currently active color mode.",
-	"parse": {"fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x0008", "eval": "Item.val = Attr.val"},
-	"read": {"fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x0008"},
-	"values": [
-		["\"hs\"", "hue and saturation"],
-		["\"xy\"", "CIE xy color space coordinates"],
-		["\"ct\"", "color temperature"]
-	],
-	"refresh.interval": 300
+  "schema": "resourceitem1.schema.json",
+  "id": "state/colormode",
+  "datatype": "String",
+  "access": "R",
+  "public": true,
+  "description": "The currently active color mode.",
+  "values": [
+    ["\"hs\"", "hue and saturation"],
+    ["\"xy\"", "CIE xy color space coordinates"],
+    ["\"ct\"", "color temperature"]
+  ],
+  "parse": {
+    "fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x0008",
+    "eval": "Item.val = ['hs', 'xy', 'ct'][Attr.val]"},
+  "read": {
+    "fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x0008"
+  },
+  "refresh.interval": 300
 }

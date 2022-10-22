@@ -171,6 +171,16 @@ const QStringList RStateEffectValuesMueller({
     "none", "colorloop", "sunset", "party", "worklight", "campfire", "romance", "nightlight"
 });
 
+const char *RCapColorGamutBlueX = "cap/color/gamut/blue/x";
+const char *RCapColorGamutBlueY = "cap/color/gamut/blue/y";;
+const char *RCapColorGamutGreenX = "cap/color/gamut/green/x";;
+const char *RCapColorGamutGreenY = "cap/color/gamut/green/y";;
+const char *RCapColorGamutRedX = "cap/color/gamut/red/x";;
+const char *RCapColorGamutRedY = "cap/color/gamut/red/y";;
+const char *RCapColorGamutType = "cap/color/gamut_type";
+const char *RCapGradientPixelCount = "cap/gradient/pixel_count";
+const char *RCapGradientPixelLength = "cap/gradient/pixel_length";
+
 const char *RConfigArmMode = "config/armmode";
 const char *RConfigArmedAwayEntryDelay = "config/armed_away_entry_delay";
 const char *RConfigArmedAwayExitDelay = "config/armed_away_exit_delay";
@@ -187,7 +197,6 @@ const char *RConfigLock = "config/lock";
 const char *RConfigBattery = "config/battery";
 const char *RConfigClickMode = "config/clickmode";
 const char *RConfigColorCapabilities = "config/colorcapabilities";
-const char *RConfigColorGamutType = "config/colorgamuttype";
 const char *RConfigConfigured = "config/configured";
 const char *RConfigControlSequence = "config/controlsequence";
 const char *RConfigCoolSetpoint = "config/coolsetpoint";
@@ -245,11 +254,11 @@ const char *RConfigSelfTest = "config/selftest";
 const char *RConfigSensitivity = "config/sensitivity";
 const char *RConfigSensitivityMax = "config/sensitivitymax";
 const char *RConfigSetValve = "config/setvalve";
-const char *RConfigStartupBri = "config/startup_bri";
-const char *RConfigStartupCt = "config/startup_ct";
-const char *RConfigStartupOn = "config/startup_on";
-const char *RConfigStartupX = "config/startup_x";
-const char *RConfigStartupY = "config/startup_y";
+const char *RConfigStartupBri = "config/startup/bri";
+const char *RConfigStartupCt = "config/startup/ct";
+const char *RConfigStartupOn = "config/startup/on";
+const char *RConfigStartupX = "config/startup/x";
+const char *RConfigStartupY = "config/startup/y";
 const char *RConfigSunriseOffset = "config/sunriseoffset";
 const char *RConfigSunsetOffset = "config/sunsetoffset";
 const char *RConfigSwingMode = "config/swingmode";
@@ -410,6 +419,16 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateX));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateY));
 
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorGamutBlueX));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorGamutBlueY));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorGamutGreenX));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorGamutGreenY));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorGamutRedX));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorGamutRedY));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RCapColorGamutType));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RCapGradientPixelCount));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapGradientPixelLength));
+
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigAlert));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool,  QVariant::Bool, RConfigAllowTouchlink));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigArmMode));
@@ -426,7 +445,6 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigBattery, 0, 100));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigClickMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigColorCapabilities));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigColorGamutType));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigCtMin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigCtMax));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RConfigCheckin));

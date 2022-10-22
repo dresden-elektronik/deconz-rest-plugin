@@ -1,20 +1,17 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "config/startup_on",
-	"datatype": "UInt8",
-	"access": "RW",
-	"public": true,
-	"description": "On/Off state on device startup (power on).",
-	"parse": {
+  "schema": "resourceitem1.schema.json",
+  "id": "config/startup/on",
+  "datatype": "UInt8",
+  "access": "RW",
+  "public": true,
+  "description": "On/Off state on device startup (power on).",
+  "default": true,
+  "parse": {
     "fn": "zcl", "ep": 0, "cl": "0x0006", "at": "0x4003",
     "eval": "Item.val = Attr.val"
   },
-	"read": {
+  "read": {
     "fn": "zcl", "ep": 0, "cl": "0x0006", "at": "0x4003"
   },
-  "write": {
-    "fn": "zcl", "ep": 0, "cl": "0x0006", "at": "0x4003", "dt": "0x30",
-    "eval": "Item.val === 'previous' ? 255 : Item.val === 'on' ? 1 : 0"
-  },
-	"refresh.interval": 86400
+  "refresh.interval": 86400
 }

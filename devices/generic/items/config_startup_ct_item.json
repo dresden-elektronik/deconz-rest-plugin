@@ -1,20 +1,17 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "config/startup_ct",
-	"datatype": "UInt16",
-	"access": "RW",
-	"public": true,
-	"description": "Color temperature on device startup (power on).",
+  "schema": "resourceitem1.schema.json",
+  "id": "config/startup/ct",
+  "datatype": "UInt16",
+  "access": "RW",
+  "public": true,
+  "description": "Color temperature on device startup (power on).",
+  "default": 336,
   "parse": {
     "fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x4010",
     "eval": "Item.val = Attr.val"
   },
   "read": {
     "fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x4010"
-  },
-  "write": {
-    "fn": "zcl", "ep": 0, "cl": "0x0008", "at": "0x4010", "dt": "0x21",
-    "eval": "Item.val"
   },
   "refresh.interval": 86400
 }

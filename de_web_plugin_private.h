@@ -863,7 +863,9 @@ enum TaskType
     TaskSyncTime = 40,
     TaskTuyaRequest = 41,
     TaskXmasLightStrip = 42,
-    TaskSimpleMetering = 43
+    TaskSimpleMetering = 43,
+    TaskHueEffect = 44,
+    TaskHueGradient = 45
 };
 
 enum XmasLightStripMode
@@ -983,6 +985,7 @@ enum ApiVersion
     ApiVersion_1_DDEL,   //!< version 1.0, "Accept: application/vnd.ddel.v1"
     ApiVersion_1_1_DDEL, //!< version 1.1, "Accept: application/vnd.ddel.v1.1"
     ApiVersion_2_DDEL,   //!< version 2.0, "Accept: application/vnd.ddel.v2"
+    ApiVersion_3_DDEL    //!< version 3.0, "Accept: application/vnd.ddel.v3"
 };
 
 enum ApiAuthorisation
@@ -1140,7 +1143,7 @@ public:
     int getLightData(const ApiRequest &req, ApiResponse &rsp);
     int getLightState(const ApiRequest &req, ApiResponse &rsp);
     int setLightState(const ApiRequest &req, ApiResponse &rsp);
-    int setLightStartup(const ApiRequest &req, ApiResponse &rsp);
+    int setLightConfig(const ApiRequest &req, ApiResponse &rsp);
     int setWindowCoveringState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
     int setWarningDeviceState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
     int setTuyaDeviceState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
@@ -1553,11 +1556,11 @@ public:
 
     // Advanced features of Hue lights.
     bool addTaskHueDynamicEffect(TaskItem &task, quint8 effect);
-    bool validateGradient(QVariantMap &gradient);
+    bool validateGradient(const ApiRequest &req, ApiResponse &rsp, QVariantMap &gradient);
     bool addTaskHueGradient(TaskItem &task, QVariantMap &gradient);
 
     // Merry Christmas!
-    bool isXmasLightStrip(LightNode *lightNode);
+    bool isXmasLightStrip(const LightNode *lightNode);
     bool addTaskXmasLightStripOn(TaskItem &task, bool on);
     bool addTaskXmasLightStripMode(TaskItem &task, XmasLightStripMode mode);
     bool addTaskXmasLightStripWhite(TaskItem &task, quint8 bri);

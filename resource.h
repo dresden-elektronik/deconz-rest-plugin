@@ -193,6 +193,16 @@ extern const char *RStateWindowOpen;
 extern const char *RStateX;
 extern const char *RStateY;
 
+extern const char *RCapColorGamutBlueX;
+extern const char *RCapColorGamutBlueY;
+extern const char *RCapColorGamutGreenX;
+extern const char *RCapColorGamutGreenY;
+extern const char *RCapColorGamutRedX;
+extern const char *RCapColorGamutRedY;
+extern const char *RCapColorGamutType;
+extern const char *RCapGradientPixelCount;
+extern const char *RCapGradientPixelLength;
+
 extern const char *RConfigAlert;
 extern const char *RConfigAllowTouchlink;
 extern const char *RConfigArmMode;
@@ -208,7 +218,6 @@ extern const char *RConfigArmedNightTriggerDuration;
 extern const char *RConfigBattery;
 extern const char *RConfigClickMode;
 extern const char *RConfigColorCapabilities;
-extern const char *RConfigColorGamutType;
 extern const char *RConfigConfigured;
 extern const char *RConfigControlSequence;
 extern const char *RConfigCoolSetpoint;
@@ -311,6 +320,7 @@ extern const QStringList RStateEffectValues;
 #define R_EFFECT_COLORLOOP          1
 extern const QStringList RStateEffectValuesHue;
 extern const QStringList RStateEffectValuesMueller;
+extern const QStringList RStateEffectValuesXmasLightStrip;
 
 extern const QStringList RConfigLastChangeSourceValues;
 

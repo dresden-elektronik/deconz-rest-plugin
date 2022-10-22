@@ -3950,6 +3950,13 @@ devices can operate on either battery or mains power, and can have a wide variet
           </payload>
         </command>
         <attribute id="0x0002" name="Status" type="ostring" mfcode="0x100b" access="r" required="m"/>
+        <attribute id="0x0030" name="Pixel Count" type="u8" mfcode="0x100b" access="r" required="m"/>
+        <attribute id="0x0031" name="Pixel Length (mm)" type="u16" mfcode="0x100b" access="r" required="m"/>
+        <attribute id="0x0032" name="Unknown 32" type="u8" mfcode="0x100b" access="rw" required="m"/>
+        <attribute id="0x0033" name="Unknown 33" type="u8" mfcode="0x100b" access="rw" required="m"/>
+        <attribute id="0x0034" name="Unknown 34" type="u8" mfcode="0x100b" access="rw" required="m"/>
+        <attribute id="0x0035" name="Unknown 35" type="u8" mfcode="0x100b" access="r" required="m"/>
+        <attribute id="0x0036" name="Max Segments" type="u8" mfcode="0x100b" access="r" required="m"/>
       </server>
     </cluster>
 

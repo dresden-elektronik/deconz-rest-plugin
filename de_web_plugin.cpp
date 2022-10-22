@@ -549,9 +549,10 @@ static ApiVersion getAcceptHeaderApiVersion(const QLatin1String &hdrValue)
         QLatin1String str;
     };
 
-    static const std::array<ApiVersionMap, 5> versions = {
+    static const std::array<ApiVersionMap, 6> versions = {
         {
             // ordered by largest version
+            { ApiVersion_3_DDEL,   QLatin1String("application/vnd.ddel.v3") },
             { ApiVersion_2_DDEL,   QLatin1String("application/vnd.ddel.v2") },
             { ApiVersion_1_1_DDEL, QLatin1String("application/vnd.ddel.v1.1") },
             { ApiVersion_1_1_DDEL, QLatin1String("vnd.ddel.v1.1") }, // backward compatibility

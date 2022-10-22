@@ -1,6 +1,6 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["$MF_SIGNIFY", "$MF_SIGNIFY", "$MF_SIGNIFY", "$MF_SIGNIFY"],
+  "manufacturername": ["$MF_SIGNIFY"],
   "modelid": ["LCA006", "LCE002", "LCG002", "LCL003"],
   "product": "Hue white and color ambiance (Zigbee 3)",
   "sleeper": false,
@@ -42,92 +42,52 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/colorcapabilities",
-          "parse":
-          {
-            "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": "0x400a",
-            "eval": "Item.val = Attr.val"
-          },
-          "read": { "fn": "none" }
+          "name": "cap/color/gamut/blue/x"
         },
         {
-          "name": "config/colorgamuttype",
-          "parse": {
-            "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": "0x0032",
-            "eval": "Item.val = Attr.val === 45317 ? 'C' : Attr.val === 44236 ? 'B' : Attr.val === 46138 ? 'A' : null"
-          },
-          "read": { "fn": "zcl", "ep": 0, "cl": "0x0300", "at": ["0x0032", "0x400a", "0x400b", "0x400c"] },
-          "refresh.interval": 86400
+          "name": "cap/color/gamut/blue/y"
         },
         {
-          "name": "config/ctmax",
-          "parse":
-          {
-            "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": "0x400c",
-            "eval": "Item.val = Attr.val"
-          },
-          "read": { "fn": "none" }
+          "name": "cap/color/gamut/green/x"
         },
         {
-          "name": "config/ctmin",
-          "parse":
-          {
-            "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": "0x400b",
-            "eval": "Item.val = Attr.val"
-          },
-          "read": { "fn": "none" }
+          "name": "cap/color/gamut/green/y"
         },
         {
-          "name": "config/startup_bri"
+          "name": "cap/color/gamut/red/x"
         },
         {
-          "name": "config/startup_ct"
+          "name": "cap/color/gamut/red/y"
         },
         {
-          "name": "config/startup_on"
+          "name": "cap/color/gamut_type"
         },
         {
-          "name": "config/startup_x",
-          "parse": {
-            "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "mf": "0x100b", "at": "0x0003",
-            "eval": "Item.val = Attr.val"
-          },
-          "read": { "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "mf": "0x100b", "at": ["0x0003", "0x0004"] },
-          "refresh.interval": 86400
+          "name": "config/colorcapabilities"
         },
         {
-          "name": "config/startup_y",
-          "parse": {
-            "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "mf": "0x100b", "at": "0x0004",
-            "eval": "Item.val = Attr.val"
-          },
-          "read": { "fn": "none" }
+          "name": "config/ctmax"
+        },
+        {
+          "name": "config/ctmin"
+        },
+        {
+          "name": "config/startup/bri"
+        },
+        {
+          "name": "config/startup/ct"
+        },
+        {
+          "name": "config/startup/on"
+        },
+        {
+          "name": "config/startup/x"
+        },
+        {
+          "name": "config/startup/y"
         },
         {
          "name": "state/alert"
-        },
-        {
-          "name": "state/bri",
-          "read": { "fn": "none" }
-        },
-        {
-          "name": "state/colormode",
-          "parse": { "fn": "none" },
-          "read": { "fn": "none" }
-        },
-        {
-          "name": "state/ct",
-          "read": { "fn": "none" }
-        },
-        {
-          "name": "state/effect",
-          "parse":
-          {
-            "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": "0x4002",
-            "eval": "if (Item.val === 'none' || Item.val === 'colorloop') Item.val = Attr.val ? 'colorloop' : 'none'"
-          },
-          "read": { "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": ["0x4002"] },
-          "refresh.interval": 60
         },
         {
           "name": "state/on",
@@ -139,7 +99,12 @@
           "refresh.interval": 305
         },
         {
-          "name": "state/reachable"
+          "name": "state/bri",
+          "read": { "fn": "none" }
+        },
+        {
+          "name": "state/ct",
+          "read": { "fn": "none" }
         },
         {
           "name": "state/x",
@@ -148,6 +113,49 @@
         {
           "name": "state/y",
           "read": { "fn": "none" }
+        },
+        {
+          "name": "state/colormode",
+          "values": [
+            ["\"ct\"", "color temperature"],
+            ["\"effect\"", "dynamic effect"],
+        		["\"hs\"", "hue and saturation"],
+        		["\"xy\"", "CIE xy color space coordinates"]
+        	],
+          "parse": {
+            "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": "0x4001",
+            "eval": "if (Item.val !== 'effect') Item.val = ['hs', 'xy', 'ct', 'xy'][Attr.val]"
+          },
+          "read": {
+            "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": ["0x4001", "0x4002", "0x4000", "0x0001"]
+          },
+          "refresh.interval": 60
+        },
+        {
+          "name": "state/effect",
+          "values": [
+            ["\"none\"", "no effect is active"],
+            ["\"colorloop\"", "colorloop through hue values"],
+            ["\"candle\"", "candlelight dynamic effect"],
+            ["\"fireplace\"", "fireplace dynamic effect"],
+            ["\"loop\"", "colorloop dynamic effect"]
+          ],
+          "parse": {
+            "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "at": "0x4002",
+            "eval": "if (Item.val === 'none' || Item.val === 'colorloop') Item.val = Attr.val ? 'colorloop' : 'none'"
+          },
+          "read": { "fn": "none" }
+        },
+        {
+          "name": "state/hue",
+          "read": { "fn": "none" }
+        },
+        {
+          "name": "state/sat",
+          "read": { "fn": "none" }
+        },
+        {
+          "name": "state/reachable"
         }
       ]
     }
