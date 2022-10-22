@@ -88,9 +88,9 @@ bool DeRestPluginPrivate::validateGradient(const ApiRequest &req, ApiResponse &r
         return false;
     }
     if (gradient["segments"].isNull()) gradient["segments"] = length;
-    if (gradient["color_adjustment"].isNull()) gradient["color_adjustment"] = length;
+    if (gradient["color_adjustment"].isNull()) gradient["color_adjustment"] = 0;
     if (gradient["offset"].isNull()) gradient["offset"] = 0;
-    if (gradient["offset_adjustment"].isNull()) gradient["offset_adjustment"] = length;
+    if (gradient["offset_adjustment"].isNull()) gradient["offset_adjustment"] = 0;
 
     for (QVariantMap::const_iterator p = gradient.begin(); p != gradient.end(); p++)
     {
