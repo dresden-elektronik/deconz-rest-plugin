@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["$MF_SIGNIFY"],
-  "modelid": ["LCT003", "LCT007", "LCT015"],
-  "product": "Hue white and color ambiance (ZLL)",
+  "manufacturername": ["$MF_SIGNIFY", "$MF_PHILIPS"],
+  "modelid": [
+    "LCT003", "LCT007", "LCT015"
+  ],
+  "product": "Hue white and color ambiance light (ZLL)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

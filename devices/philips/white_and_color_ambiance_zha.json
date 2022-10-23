@@ -1,8 +1,11 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["$MF_SIGNIFY"],
-  "modelid": ["LCA006", "LCE002", "LCG002", "LCL003"],
-  "product": "Hue white and color ambiance (Zigbee 3)",
+  "manufacturername": ["$MF_SIGNIFY", "$MF_PHILIPS"],
+  "modelid": [
+    "LCA006", "LCE002", "LCG002", "LCL003",
+    "929002375901", "929003053301_01", "929003053301_02"
+  ],
+  "product": "Hue white and color ambiance light",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
