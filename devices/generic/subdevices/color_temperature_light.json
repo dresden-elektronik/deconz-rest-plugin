@@ -9,7 +9,6 @@
         "config/ctmax",
         "config/ctmin",
         "state/alert",
-        "state/reachable",
         "state/bri",
         "state/colormode",
         "state/ct",
