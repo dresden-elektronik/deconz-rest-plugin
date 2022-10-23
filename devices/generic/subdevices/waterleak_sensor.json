@@ -8,7 +8,7 @@
     "items": [
         "config/on",
         "config/reachable",
-        "state/water",
-        "state/lastupdated"
+        "state/lastupdated",
+        "state/water"
     ]
 }

@@ -13,6 +13,7 @@
         "state/bri",
         "state/colormode",
         "state/ct",
-        "state/on"
+        "state/on",
+        "state/reachable"
     ]
 }

@@ -8,6 +8,7 @@
     "items": [
         "state/alert",
         "state/bri",
-        "state/on"
+        "state/on",
+        "state/reachable"
     ]
 }

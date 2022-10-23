@@ -6,8 +6,8 @@
     "order": 23,
     "uuid": ["$address.ext", "0x01", "0x0405"],
     "items": [
-        "config/on",
         "config/offset",
+        "config/on",
         "config/reachable",
         "state/humidity",
         "state/lastupdated"

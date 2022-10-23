@@ -6,10 +6,10 @@
     "order": 20,
     "uuid": ["$address.ext", "0x01", "0x0406"],
     "items": [
-        "config/on",
         "config/duration",
+        "config/on",
         "config/reachable",
-        "state/presence",
-        "state/lastupdated"
+        "state/lastupdated",
+        "state/presence"
     ]
 }

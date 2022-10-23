@@ -12,8 +12,8 @@
         "config/tholdoffset",
         "state/dark",
         "state/daylight",
+        "state/lastupdated",
         "state/lightlevel",
-        "state/lux",
-        "state/lastupdated"
+        "state/lux"
     ]
 }

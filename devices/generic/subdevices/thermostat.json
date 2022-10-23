@@ -11,9 +11,9 @@
         "config/offset",
         "config/on",
         "config/reachable",
+        "state/lastupdated",
         "state/on",
         "state/temperature",
-        "state/valve",
-        "state/lastupdated"
+        "state/valve"
     ]
 }

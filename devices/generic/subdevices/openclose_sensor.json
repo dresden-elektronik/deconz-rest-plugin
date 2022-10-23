@@ -8,7 +8,7 @@
     "items": [
         "config/on",
         "config/reachable",
-        "state/open",
-        "state/lastupdated"
+        "state/lastupdated",
+        "state/open"
     ]
 }

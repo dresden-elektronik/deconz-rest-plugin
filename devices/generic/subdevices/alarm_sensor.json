@@ -6,13 +6,13 @@
     "order": 30,
     "uuid": ["$address.ext", "0x01", "0x0500"],
     "items": [
+        "config/battery",
         "config/on",
         "config/enrolled",
         "config/pending",
         "config/reachable",
-        "config/battery",
         "state/alarm",
-        "state/lowbattery",
-        "state/lastupdated"
+        "state/lastupdated",
+        "state/lowbattery"
     ]
 }
