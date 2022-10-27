@@ -42,7 +42,7 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "eval": "Item.val = Attr.val"},
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
           "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
         {
@@ -93,7 +93,8 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"at": "0x0001","cl": "0x0000","ep": 1, "eval": "Item.val = Attr.val", "fn": "zcl"}
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
+          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
         {
           "name": "attr/type"
