@@ -3428,7 +3428,7 @@ void DeRestPluginPrivate::handleGroupEvent(const Event &e)
 
         for (; i != end; ++i)
         {
-            if (!isLightNodeInGroup(&*i, groupId))
+            if (!isLightNodeInGroup(&*i, group->address()))
             {
                 continue;
             }
