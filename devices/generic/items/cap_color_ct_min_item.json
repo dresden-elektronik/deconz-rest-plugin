@@ -1,11 +1,10 @@
 {
   "schema": "resourceitem1.schema.json",
-  "id": "config/ctmin",
+  "id": "cap/color/ct/min",
   "datatype": "UInt16",
   "access": "R",
   "public": true,
-  "description": "Deprecated. Minimum supported color temperature.",
-  "deprecated": "2022-11-11",
+  "description": "Minimum supported color temperature.",
   "default": 0,
   "parse": {
     "fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x400b",

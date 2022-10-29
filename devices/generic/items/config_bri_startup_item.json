@@ -1,11 +1,11 @@
 {
   "schema": "resourceitem1.schema.json",
-  "id": "config/startup/bri",
+  "id": "config/bri/startup",
   "datatype": "UInt8",
   "access": "RW",
   "public": true,
   "description": "Brightness on device startup (power on).",
-  "default": 254,
+  "default": 255,
   "parse": {
     "fn": "zcl", "ep": 0, "cl": "0x0008", "at": "0x4000",
     "eval": "Item.val = Attr.val"

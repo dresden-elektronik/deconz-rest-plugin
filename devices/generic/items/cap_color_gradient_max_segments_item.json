@@ -1,6 +1,6 @@
 {
   "schema": "resourceitem1.schema.json",
-  "id": "cap/gradient/max_segments",
+  "id": "cap/color/gradient/max_segments",
   "datatype": "UInt8",
   "access": "R",
   "public": true,

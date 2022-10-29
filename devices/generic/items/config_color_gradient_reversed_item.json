@@ -1,0 +1,13 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/color/gradient/reversed",
+  "datatype": "Bool",
+  "access": "RW",
+  "public": true,
+  "description": "Reverse gradient.",
+  "default": false,
+  "parse": {
+    "fn": "zcl", "ep": "0x0b", "cl": "0xfc03", "mf": "0x100b", "at": "0x0033",
+    "eval": "Item.val = Attr.val == 1"
+  }
+}

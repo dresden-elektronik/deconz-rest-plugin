@@ -1,0 +1,17 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/bri/min",
+  "datatype": "UInt8",
+  "access": "RW",
+  "public": true,
+  "description": "Minimum brightness supported by ballast.",
+  "default": 1,
+  "parse": {
+    "fn": "zcl", "ep": 0, "cl": "0x0301", "at": "0x0010",
+    "eval": "Item.val = Attr.val"
+  },
+  "read": {
+    "fn": "zcl", "ep": 0, "cl": "0x0301", "at": ["0x0010", "0x0011"]
+  },
+  "refresh.interval": 86400
+}

@@ -1,0 +1,13 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/bri/max",
+  "datatype": "UInt8",
+  "access": "RW",
+  "public": true,
+  "description": "Maximum brightness supported by ballast.",
+  "default": 254,
+  "parse": {
+    "fn": "zcl", "ep": 0, "cl": "0x0301", "at": "0x0011",
+    "eval": "Item.val = Attr.val"
+  }
+}

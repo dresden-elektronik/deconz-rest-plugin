@@ -1,6 +1,6 @@
 {
   "schema": "resourceitem1.schema.json",
-  "id": "config/startup/y",
+  "id": "config/color/xy/startup_y",
   "datatype": "UInt16",
   "access": "RW",
   "public": true,

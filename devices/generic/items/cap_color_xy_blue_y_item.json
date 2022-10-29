@@ -1,7 +1,7 @@
 {
   "schema": "resourceitem1.schema.json",
-  "id": "cap/color/gamut/blue/y",
-  "datatype": "String",
+  "id": "cap/color/xy/blue_y",
+  "datatype": "UInt16",
   "access": "R",
   "public": true,
   "description": "Y coordinate of blue point of color gamut.",

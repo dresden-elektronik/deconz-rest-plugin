@@ -1,0 +1,20 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/color/execute_if_off",
+  "datatype": "Bool",
+  "access": "RW",
+  "public": true,
+  "description": "Execute brightness changes when the device is off.",
+  "default": true,
+  "parse": {
+    "fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x000f",
+    "eval": "Item.val = Attr.val == 1"
+  },
+  "read": {
+    "fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x000f"
+  },
+  "refresh.interval": 86400,
+  "write": {
+    "fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x000f"
+  }
+}

@@ -1,7 +1,7 @@
 {
   "schema": "resourceitem1.schema.json",
-  "id": "cap/color/gamut/red/y",
-  "datatype": "String",
+  "id": "cap/color/xy/red_y",
+  "datatype": "UInt16",
   "access": "R",
   "public": true,
   "description": "Y coordinate of red point of color gamut.",

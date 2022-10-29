@@ -1,6 +1,6 @@
 {
   "schema": "resourceitem1.schema.json",
-  "id": "cap/gradient/pixel_length",
+  "id": "cap/color/gradient/pixel_length",
   "datatype": "UInt16",
   "access": "R",
   "public": true,
