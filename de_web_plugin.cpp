@@ -16104,7 +16104,9 @@ void DeRestPlugin::idleTimerFired()
                 {
                     if (GP_SendPairingIfNeeded(sensorNode, d->apsCtrl, d->zclSeq + 1))
                     {
+                        processSensors = true;
                         d->zclSeq++;
+                        break;
                     }
                 }
 
