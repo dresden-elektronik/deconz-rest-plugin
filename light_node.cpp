@@ -235,7 +235,7 @@ bool LightNode::isColorLoopActive() const
 
 bool LightNode::supportsColorLoop() const
 {
-    const auto *colorCapabilities = item(RConfigColorCapabilities);
+    const auto *colorCapabilities = item(RCapColorCapabilities);
 
     if (colorCapabilities)
     {
@@ -390,9 +390,9 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                     case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
                     case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: // fall through
                     {
-                        addItem(DataTypeUInt16, RConfigColorCapabilities);
-                        addItem(DataTypeUInt16, RConfigCtMin);
-                        addItem(DataTypeUInt16, RConfigCtMax)->setValue(0xFEFF);
+                        addItem(DataTypeUInt16, RCapColorCapabilities);
+                        addItem(DataTypeUInt16, RCapColorCtMin);
+                        addItem(DataTypeUInt16, RCapColorCtMax)->setValue(0xFEFF);
                         addItem(DataTypeUInt16, RStateCt);
 
                         if (deviceId == DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT ||
@@ -411,7 +411,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                     {
                     case DEV_ID_ZLL_COLOR_LIGHT:
                         {
-                            addItem(DataTypeUInt16, RConfigColorCapabilities);
+                            addItem(DataTypeUInt16, RCapColorCapabilities);
                         }
                         // fall through
                     case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
@@ -422,7 +422,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                             addItem(DataTypeUInt16, RStateY);
                             if (manufacturer() == QLatin1String("LIDL Livarno Lux"))
                             {
-                                removeItem(RConfigColorCapabilities);
+                                removeItem(RCapColorCapabilities);
                             }
                             else
                             {

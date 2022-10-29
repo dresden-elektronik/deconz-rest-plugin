@@ -437,8 +437,8 @@ bool DeRestPluginPrivate::addTaskSetColorTemperature(TaskItem &task, uint16_t ct
 
     if (task.lightNode)
     {
-        ResourceItem *ctMin = task.lightNode->item(RConfigCtMin);
-        ResourceItem *ctMax = task.lightNode->item(RConfigCtMax);
+        ResourceItem *ctMin = task.lightNode->item(RCapColorCtMin);
+        ResourceItem *ctMax = task.lightNode->item(RCapColorCtMax);
 
         // keep ct in supported bounds
         if (ctMin && ctMax && ctMin->toNumber() > 0 && ctMax->toNumber() > 0)
@@ -453,7 +453,7 @@ bool DeRestPluginPrivate::addTaskSetColorTemperature(TaskItem &task, uint16_t ct
         }
 
         // If light does not support "ct" but does suport "xy", we can emulate the former:
-        ResourceItem *colorCaps = task.lightNode->item(RConfigColorCapabilities);
+        ResourceItem *colorCaps = task.lightNode->item(RCapColorCapabilities);
         bool supportsXy = colorCaps && colorCaps->toNumber() & 0x0008;
         bool supportsCt = colorCaps && colorCaps->toNumber() & 0x0010;
         bool useXy = supportsXy && !supportsCt;
@@ -1387,8 +1387,8 @@ bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint
                         {
                             quint16 x,y;
                             quint16 enhancedHue = 0;
-                            ResourceItem *ctMin = task.lightNode->item(RConfigCtMin);
-                            ResourceItem *ctMax = task.lightNode->item(RConfigCtMax);
+                            ResourceItem *ctMin = task.lightNode->item(RCapColorCtMin);
+                            ResourceItem *ctMax = task.lightNode->item(RCapColorCtMax);
 
                             if (task.lightNode->modelId().startsWith(QLatin1String("FLS-H")))
                             {
