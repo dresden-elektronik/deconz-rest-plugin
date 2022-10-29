@@ -1,8 +1,12 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["$MF_SIGNIFY", "$MF_PHILIPS"],
+  "manufacturername": [
+    "$MF_SIGNIFY", "$MF_SIGNIFY", "$MF_SIGNIFY", "$MF_SIGNIFY", "$MF_SIGNIFY",
+    "$MF_SIGNIFY", "$MF_SIGNIFY", "$MF_SIGNIFY", "$MF_SIGNIFY"
+  ],
   "modelid": [
-    "LLC011", "LST001"
+    "LLC005", "LLC006", "LLC007", "LLC010", "LLC011",
+    "LLC012", "LLC013", "LLC014", "LST001"
   ],
   "product": "Hue color ambiance light (ZLL)",
   "sleeper": false,
@@ -44,49 +48,49 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "cap/color/gamut/blue/x"
+          "name": "cap/bri/move_with_onoff"
         },
         {
-          "name": "cap/color/gamut/blue/y"
-        },
-        {
-          "name": "cap/color/gamut/green/x"
-        },
-        {
-          "name": "cap/color/gamut/green/y"
-        },
-        {
-          "name": "cap/color/gamut/red/x"
-        },
-        {
-          "name": "cap/color/gamut/red/y"
+          "name": "cap/color/capabilities"
         },
         {
           "name": "cap/color/gamut_type"
         },
         {
-          "name": "config/colorcapabilities"
+          "name": "cap/color/xy/blue_x"
         },
         {
-          "name": "config/ctmax"
+          "name": "cap/color/xy/blue_y"
         },
         {
-          "name": "config/ctmin"
+          "name": "cap/color/xy/green_x"
         },
         {
-          "name": "config/startup/bri"
+          "name": "cap/color/xy/green_y"
         },
         {
-          "name": "config/startup/ct"
+          "name": "cap/color/xy/red_x"
         },
         {
-          "name": "config/startup/on"
+          "name": "cap/color/xy/red_y"
         },
         {
-          "name": "config/startup/x"
+          "name": "cap/on/off_with_effect"
         },
         {
-          "name": "config/startup/y"
+          "name": "cap/on/trigger_effect"
+        },
+        {
+          "name": "config/bri/startup"
+        },
+        {
+          "name": "config/color/xy/startup_x"
+        },
+        {
+          "name": "config/color/xy/startup_y"
+        },
+        {
+          "name": "config/on/startup"
         },
         {
          "name": "state/alert"

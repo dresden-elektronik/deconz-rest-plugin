@@ -1,8 +1,15 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["$MF_SIGNIFY", "$MF_PHILIPS"],
+  "manufacturername": [
+    "$MF_SIGNIFY", "$MF_SIGNIFY", "$MF_SIGNIFY", "$MF_SIGNIFY", "$MF_SIGNIFY",
+    "$MF_SIGNIFY", "$MF_SIGNIFY", "$MF_SIGNIFY", "$MF_SIGNIFY",
+    "$MF_SIGNIFY", "$MF_SIGNIFY", "$MF_SIGNIFY", "$MF_SIGNIFY",
+    "$MF_PHILIPS", "$MF_PHILIPS", "$MF_PHILIPS"
+  ],
   "modelid": [
-    "LCA006", "LCE002", "LCG002", "LCL003",
+    "LCA001", "LCA006", "LCE002", "LCG002", "LCL003",
+    "5063130P7", "5063131P7", "5063230P7", "5063231P7",
+    "5063330P7", "5063331P7", "5063430P7", "5063431P7",
     "929002375901", "929003053301_01", "929003053301_02"
   ],
   "product": "Hue white and color ambiance light",
@@ -45,49 +52,78 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "cap/color/gamut/blue/x"
+          "name": "cap/bri/move_with_onoff"
         },
         {
-          "name": "cap/color/gamut/blue/y"
+          "name": "cap/color/capabilities",
+          "read": {
+            "fn": "zcl", "ep": 0, "cl": "0x0300", "at": ["0x400a", "0x400b", "0x400c", "0x4010", "0x000f"]
+          },
+          "refresh.interval": 86400
         },
         {
-          "name": "cap/color/gamut/green/x"
+          "name": "cap/color/ct/computes_xy"
         },
         {
-          "name": "cap/color/gamut/green/y"
+          "name": "cap/color/ct/max"
         },
         {
-          "name": "cap/color/gamut/red/x"
-        },
-        {
-          "name": "cap/color/gamut/red/y"
+          "name": "cap/color/ct/min"
         },
         {
           "name": "cap/color/gamut_type"
         },
         {
-          "name": "config/colorcapabilities"
+          "name": "cap/color/xy/blue_x"
         },
         {
-          "name": "config/ctmax"
+          "name": "cap/color/xy/blue_y"
         },
         {
-          "name": "config/ctmin"
+          "name": "cap/color/xy/green_x"
         },
         {
-          "name": "config/startup/bri"
+          "name": "cap/color/xy/green_y"
         },
         {
-          "name": "config/startup/ct"
+          "name": "cap/color/xy/red_x"
         },
         {
-          "name": "config/startup/on"
+          "name": "cap/color/xy/red_y"
         },
         {
-          "name": "config/startup/x"
+          "name": "cap/on/off_with_effect"
         },
         {
-          "name": "config/startup/y"
+          "name": "cap/on/trigger_effect"
+        },
+        {
+          "name": "config/bri/execute_if_off",
+          "read": {
+            "fn": "zcl", "ep": 0, "cl": "0x0008", "at": ["0x000f", "0x4000"]
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/bri/startup",
+          "read": { "fn": "none" }
+        },
+        {
+          "name": "config/color/ct/startup",
+          "read": { "fn": "none" }
+        },
+        {
+          "name": "config/color/execute_if_off",
+          "read": { "fn": "none" }
+        },
+        {
+          "name": "config/color/xy/startup_x"
+        },
+        {
+          "name": "config/color/xy/startup_y"
+        },
+        {
+          "name": "config/on/startup"
         },
         {
          "name": "state/alert"
