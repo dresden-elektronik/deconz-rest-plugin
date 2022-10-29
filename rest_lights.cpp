@@ -225,7 +225,7 @@ static void toXy(double x,  double y, QVariantList &xy)
     \return true - on success
             false - on error
  */
-bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lightNode, QVariantMap &map)
+bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lightNode, QVariantMap &attr)
 {
     Q_UNUSED(req);
 
@@ -234,46 +234,99 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         return false;
     }
 
-    QVariantMap state;
-    const ResourceItem *ix = nullptr;
-    const ResourceItem *iy = nullptr;
-
     QVariantMap capabilities;
-    QVariantMap ctCapabilities;
-    QVariantMap colorCapabilities;
+    QVariantMap capabilitiesColor;
+    const ResourceItem *icc = nullptr;
+    QVariantMap capabilitiesColorCt;
+    QVariantMap capabilitiesColorGradient;
+    QVariantMap capabilitiesColorXy;
     const ResourceItem *ibluex = nullptr;
     const ResourceItem *ibluey = nullptr;
     const ResourceItem *igreenx = nullptr;
     const ResourceItem *igreeny = nullptr;
     const ResourceItem *iredx = nullptr;
     const ResourceItem *iredy = nullptr;
-    const ResourceItem *icc = nullptr;
-    QVariantMap gradientCapabilities;
 
     QVariantMap config;
-    QVariantMap startup;
+    QVariantMap configBri;
+    QVariantMap configColor;
+    QVariantMap configColorCt;
+    QVariantMap configColorGradient;
+    QVariantMap configColorXy;
     const ResourceItem *isx = nullptr;
     const ResourceItem *isy = nullptr;
+    QVariantMap configOn;
+
+    QVariantMap state;
+    const ResourceItem *ialert = nullptr;
+    const QStringList *capabilitiesAlerts = &RStateAlertValues;
+    const ResourceItem *ix = nullptr;
+    const ResourceItem *iy = nullptr;
 
     for (int i = 0; i < lightNode->itemCount(); i++)
     {
         const ResourceItem *item = lightNode->itemForIndex(static_cast<size_t>(i));
         DBG_Assert(item);
+        const ResourceItemDescriptor &rid = item->descriptor();
 
-        if (!item->isPublic())
+
+        if      (rid.suffix == RAttrConfigId) { attr["configid"] = item->toNumber(); }
+        else if (rid.suffix == RAttrLastAnnounced) { attr["lastannounced"] = item->toString(); }
+        else if (rid.suffix == RAttrLastSeen) { attr["lastseen"] = item->toString(); }
+        else if (rid.suffix == RAttrLevelMin) { attr["levelmin"] = item->toNumber(); }
+        else if (rid.suffix == RAttrName) { attr["name"] = item->toString(); }
+        else if (rid.suffix == RAttrPowerOnLevel) { attr["poweronlevel"] = item->toNumber(); }
+        else if (rid.suffix == RAttrPowerOnCt) { attr["poweronct"] = item->toNumber(); }
+        else if (rid.suffix == RAttrPowerup) { attr["powerup"] = item->toNumber(); }
+        else if (rid.suffix == RAttrType) { attr["type"] = item->toString(); }
+        else if (rid.suffix == RAttrUniqueId) { attr["uniqueid"] = item->toString(); }
+        else if (rid.suffix == RCapColorCapabilities || rid.suffix == RConfigColorCapabilities) { icc = item; }
+        else if (rid.suffix == RCapColorCtComputesXy) { capabilitiesColorCt["computes_xy"] = item->toBool(); }
+        else if (rid.suffix == RCapColorCtMax)
         {
-            continue;
+            if (req.apiVersion() < ApiVersion_3_DDEL)
+            {
+                attr["ctmax"] = item->toNumber();
+            }
+            capabilitiesColorCt["max"] = item->toNumber();
         }
-
-        if      (item->descriptor().suffix == RStateOn) { state["on"] = item->toBool(); }
-        else if (item->descriptor().suffix == RStateAlert) { state["alert"] = QLatin1String("none"); }
-        else if (item->descriptor().suffix == RStateBri) { state["bri"] = static_cast<double>(item->toNumber()); }
-        else if (item->descriptor().suffix == RStateHue) { state["hue"] = static_cast<double>(item->toNumber()); }
-        else if (item->descriptor().suffix == RStateSat) { state["sat"] = static_cast<double>(item->toNumber()); }
-        else if (item->descriptor().suffix == RStateCt) { state["ct"] = static_cast<double>(item->toNumber()); }
-        else if (item->descriptor().suffix == RStateColorMode) { state["colormode"] = item->toString(); }
-        else if (item->descriptor().suffix == RStateEffect) { state["effect"] = item->toString(); }
-        else if (item->descriptor().suffix == RStateGradient)
+        else if (rid.suffix == RCapColorCtMin)
+        {
+            if (req.apiVersion() < ApiVersion_3_DDEL)
+            {
+                attr["ctmin"] = item->toNumber();
+            }
+            capabilitiesColorCt["min"] = item->toNumber();
+        }
+        else if (rid.suffix == RCapColorGamutType) { capabilitiesColor["gamut_type"] = item->toString(); }
+        else if (rid.suffix == RCapColorGradientMaxSegments) { capabilitiesColorGradient["max_segments"] = item->toNumber(); }
+        else if (rid.suffix == RCapColorGradientPixelCount) { capabilitiesColorGradient["pixel_count"] = item->toNumber(); }
+        else if (rid.suffix == RCapColorGradientPixelLength) { capabilitiesColorGradient["pixel_length"] = item->toNumber(); }
+        else if (rid.suffix == RCapColorXyBlueX) { ibluex = item; }
+        else if (rid.suffix == RCapColorXyBlueY) { ibluey = item; }
+        else if (rid.suffix == RCapColorXyGreenX) { igreenx = item; }
+        else if (rid.suffix == RCapColorXyGreenY) { igreeny = item; }
+        else if (rid.suffix == RCapColorXyRedX) { iredx = item; }
+        else if (rid.suffix == RCapColorXyRedY) { iredy = item; }
+        else if (rid.suffix == RCapOnTriggerEffect) { capabilitiesAlerts = &RStateAlertValuesTriggerEffect; }
+        else if (rid.suffix == RConfigBriExecuteIfOff) { configBri["execute_if_off"] = item->toBool(); }
+        else if (rid.suffix == RConfigBriMax) { configBri["max"] = item->toNumber(); }
+        else if (rid.suffix == RConfigBriMin) { configBri["min"] = item->toNumber(); }
+        else if (rid.suffix == RConfigBriOnLevel) { configBri["on_level"] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
+        else if (rid.suffix == RConfigBriMin) { configBri["onoff_transition_time"] = item->toNumber(); }
+        else if (rid.suffix == RConfigBriStartup) { configBri["startup"] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
+        else if (rid.suffix == RConfigColorCtStartup) { configColorCt["startup"] = item->toNumber() == 0xFFFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
+        else if (rid.suffix == RConfigColorExecuteIfOff) { configColor["execute_if_off"] = item->toBool(); }
+        else if (rid.suffix == RConfigColorGradientReversed) { configColorGradient["reversed"] = item->toBool(); }
+        else if (rid.suffix == RConfigColorXyStartupX) { isx = item; }
+        else if (rid.suffix == RConfigColorXyStartupY) { isy = item; }
+        else if (rid.suffix == RConfigOnStartup) { configOn["startup"] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toBool(); }
+        else if (rid.suffix == RStateAlert) { ialert = item; }
+        else if (rid.suffix == RStateBri) { state["bri"] = static_cast<double>(item->toNumber()); }
+        else if (rid.suffix == RStateColorMode) { state["colormode"] = item->toString(); }
+        else if (rid.suffix == RStateCt) { state["ct"] = static_cast<double>(item->toNumber()); }
+        else if (rid.suffix == RStateEffect) { state["effect"] = item->toString(); }
+        else if (rid.suffix == RStateGradient)
         {
             bool ok;
             QVariant var = Json::parse(item->toString(), ok);
@@ -283,55 +336,92 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
                 state["gradient"] = map;
             }
         }
-        else if (item->descriptor().suffix == RStateSpeed) { state["speed"] = item->toNumber(); }
-        else if (item->descriptor().suffix == RStateX) { ix = item; }
-        else if (item->descriptor().suffix == RStateY) { iy = item; }
-        else if (item->descriptor().suffix == RStateOpen) { state["open"] = item->toBool(); }
-        else if (item->descriptor().suffix == RStateTilt) { state["tilt"] = item->toNumber(); }
-        else if (item->descriptor().suffix == RStateLift) { state["lift"] = item->toNumber(); }
-        else if (item->descriptor().suffix == RStateReachable) { state["reachable"] = item->toBool(); }
+        else if (rid.suffix == RStateHue) { state["hue"] = static_cast<double>(item->toNumber()); }
+        else if (rid.suffix == RStateLift) { state["lift"] = item->toNumber(); }
+        else if (rid.suffix == RStateOn) { state["on"] = item->toBool(); }
+        else if (rid.suffix == RStateOpen) { state["open"] = item->toBool(); }
+        else if (rid.suffix == RStateReachable) { state["reachable"] = item->toBool(); }
+        else if (rid.suffix == RStateSat) { state["sat"] = static_cast<double>(item->toNumber()); }
+        else if (rid.suffix == RStateSpeed) { state["speed"] = item->toNumber(); }
+        else if (rid.suffix == RStateTilt) { state["tilt"] = item->toNumber(); }
+        else if (rid.suffix == RStateX) { ix = item; }
+        else if (rid.suffix == RStateY) { iy = item; }
+    }
 
-        else if (item->descriptor().suffix == RCapColorGamutBlueX) { ibluex = item; }
-        else if (item->descriptor().suffix == RCapColorGamutBlueY) { ibluey = item; }
-        else if (item->descriptor().suffix == RCapColorGamutGreenX) { igreenx = item; }
-        else if (item->descriptor().suffix == RCapColorGamutGreenY) { igreeny = item; }
-        else if (item->descriptor().suffix == RCapColorGamutRedX) { iredx = item; }
-        else if (item->descriptor().suffix == RCapColorGamutRedY) { iredy = item; }
-        else if (item->descriptor().suffix == RCapColorGamutType) { colorCapabilities["gamut_type"] = item->toString(); }
-        else if (item->descriptor().suffix == RCapGradientMaxSegments) { gradientCapabilities["max_segments"] = item->toNumber(); }
-        else if (item->descriptor().suffix == RCapGradientPixelCount) { gradientCapabilities["pixel_count"] = item->toNumber(); }
-        else if (item->descriptor().suffix == RCapGradientPixelLength) { gradientCapabilities["pixel_length"] = item->toNumber(); }
-        else if (item->descriptor().suffix == RConfigCtMin)
+    if (icc)
+    {
+        const int cc = icc->toNumber();
+        QStringList colorModes;
+
+        if (cc & 0x10) colorModes.push_back(QLatin1String("ct"));
+        if (cc & 0x04)
         {
-            if (req.apiVersion() < ApiVersion_3_DDEL)
+            colorModes.push_back(QLatin1String("effect"));
+            const QStringList *effectList = &RStateEffectValues;
+            if (lightNode->manufacturerCode() == VENDOR_PHILIPS && lightNode->haEndpoint().profileId() == HA_PROFILE_ID)
             {
-                map["ctmin"] = item->toNumber();
+                effectList = &RStateEffectValuesHue;
             }
-            ctCapabilities["min"] = item->toNumber();
+            else if (lightNode->manufacturerCode() == VENDOR_MUELLER)
+            {
+                effectList = &RStateEffectValuesMueller;
+            }
+            capabilitiesColor["effects"] = *effectList;
         }
-        else if (item->descriptor().suffix == RConfigCtMax)
+        else if (isXmasLightStrip(lightNode))
         {
-            if (req.apiVersion() < ApiVersion_3_DDEL)
-            {
-                map["ctmax"] = item->toNumber();
-            }
-            ctCapabilities["max"] = item->toNumber();
+            colorModes.push_back(QLatin1String("effect"));
+            capabilitiesColor["effects"] = RStateEffectValuesXmasLightStrip;
         }
-        else if (item->descriptor().suffix == RConfigColorCapabilities) { icc = item; }
-        else if (item->descriptor().suffix == RConfigPowerup) { map["powerup"] = item->toNumber(); }
-        else if (item->descriptor().suffix == RConfigPowerOnLevel) { map["poweronlevel"] = item->toNumber(); }
-        else if (item->descriptor().suffix == RConfigPowerOnCt) { map["poweronct"] = item->toNumber(); }
-        else if (item->descriptor().suffix == RConfigLevelMin) { map["levelmin"] = item->toNumber(); }
-        else if (item->descriptor().suffix == RConfigId) { map["configid"] = item->toNumber(); }
+        if (!capabilitiesColorGradient.isEmpty()) colorModes.push_back(QLatin1String("gradient"));
+        if (cc & 0x01 || cc & 0x02) colorModes.push_back(QLatin1String("hs"));
+        if (cc & 0x08) colorModes.push_back(QLatin1String("xy"));
 
-        else if (item->descriptor().suffix == RConfigStartupBri) { startup["bri"] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
-        else if (item->descriptor().suffix == RConfigStartupCt) { startup["ct"] = item->toNumber() == 0xFFFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
-        else if (item->descriptor().suffix == RConfigStartupOn) { startup["on"] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toBool(); }
-        else if (item->descriptor().suffix == RConfigStartupX) { isx = item; }
-        else if (item->descriptor().suffix == RConfigStartupY) { isy = item; }
+        if (req.apiVersion() <= ApiVersion_1_DDEL)
+        {
+            attr["colorcapabilities"] = cc;
+        }
+        else if (req.apiVersion() < ApiVersion_3_DDEL)
+        {
+            attr["colorcapabilities"] = colorModes;
+        }
+        capabilitiesColor["modes"] = colorModes;
+    }
 
-        else if (item->descriptor().suffix == RAttrLastAnnounced) { map["lastannounced"] = item->toString(); }
-        else if (item->descriptor().suffix == RAttrLastSeen) { map["lastseen"] = item->toString(); }
+    if (ibluex && ibluey && igreenx && igreeny && iredx && iredy)
+    {
+        QVariantList blue, green, red;
+
+        toXy(ibluex->toNumber(), ibluey->toNumber(), blue);
+        toXy(igreenx->toNumber(), igreeny->toNumber(), green);
+        toXy(iredx->toNumber(), iredy->toNumber(), red);
+        capabilitiesColorXy["blue"] = blue;
+        capabilitiesColorXy["green"] = green;
+        capabilitiesColorXy["red"] = red;
+    }
+
+    if (isx && isy)
+    {
+        double colorX = isx->toNumber();
+        double colorY = isy->toNumber();
+
+        if (colorX == 0xFFFF && colorY == 0xFFFF)
+        {
+            configColorXy["startup"] = QLatin1String("previous");
+        }
+        else
+        {
+            QVariantList xy;
+
+            toXy(colorX, colorY, xy);
+            configColorXy["startup"] = xy;
+        }
+    }
+
+    if (ialert)
+    {
+        state["alert"] = QLatin1String("none");
+        capabilities["alerts"] = *capabilitiesAlerts;
     }
 
     if (ix && iy)
@@ -342,93 +432,16 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         state["xy"] = xy;
     }
 
-    if (ibluex && ibluey && igreenx && igreeny && iredx && iredy)
-    {
-        QVariantMap gamut;
-        QVariantList blue, green, red;
-
-        toXy(ibluex->toNumber(), ibluey->toNumber(), blue);
-        toXy(igreenx->toNumber(), igreeny->toNumber(), green);
-        toXy(iredx->toNumber(), iredy->toNumber(), red);
-        gamut["blue"] = blue;
-        gamut["green"] = green;
-        gamut["red"] = red;
-        colorCapabilities["gamut"] = gamut;
-    }
-
-    if (icc)
-    {
-        const int cc = icc->toNumber();
-        QStringList colorModes;
-        // Keep sorted by string value
-        if (cc & 0x10) colorModes.push_back(QLatin1String("ct"));
-        if (cc & 0x04)
-        {
-            colorModes.push_back(QLatin1String("effect"));
-            QStringList effectList = RStateEffectValues;
-            if (lightNode->manufacturerCode() == VENDOR_PHILIPS && lightNode->haEndpoint().profileId() == HA_PROFILE_ID)
-            {
-                effectList = RStateEffectValuesHue;
-            }
-            else if (lightNode->manufacturerCode() == VENDOR_MUELLER)
-            {
-                effectList = RStateEffectValuesMueller;
-            }
-            capabilities["effects"] = effectList;
-        }
-        else if (isXmasLightStrip(lightNode))
-        {
-            colorModes.push_back(QLatin1String("effect"));
-            capabilities["effects"] = RStateEffectValuesXmasLightStrip;
-        }
-        if (!gradientCapabilities.isEmpty()) colorModes.push_back(QLatin1String("gradient"));
-        if (cc & 0x01 || cc & 0x02) colorModes.push_back(QLatin1String("hs"));
-        if (cc & 0x08) colorModes.push_back(QLatin1String("xy"));
-
-        if (req.apiVersion() <= ApiVersion_1_DDEL)
-        {
-            map["colorcapabilities"] = cc;
-        }
-        else if (req.apiVersion() < ApiVersion_3_DDEL)
-        {
-            map["colorcapabilities"] = colorModes;
-        }
-        colorCapabilities["modes"] = colorModes;
-    }
-
-    if (isx && isy)
-    {
-        QVariantList xy;
-        double colorX = isx->toNumber();
-        double colorY = isy->toNumber();
-
-        if (colorX == 0xFFFF && colorY == 0xFFFF)
-        {
-            startup["xy"] = QLatin1String("previous");
-        }
-        else
-        {
-            QVariantList xy;
-
-            toXy(colorX, colorY, xy);
-            startup["xy"] = xy;
-        }
-    }
-
-    map["uniqueid"] = lightNode->uniqueId();
-    map["name"] = lightNode->name();
-    map["type"] = lightNode->type();
-
     // Amazon Echo quirks mode
     if (req.mode == ApiModeEcho)
     {
         // OSRAM plug + Ubisys S1/S2
         if (lightNode->type().startsWith(QLatin1String("On/Off")))
         {
-            map["modelid"] = QLatin1String("LWB010");
-            map["manufacturername"] = QLatin1String("Philips");
-            map["type"] = QLatin1String("Dimmable light");
-            state["bri"] = (double)254;
+            attr["modelid"] = QLatin1String("LWB010");
+            attr["manufacturername"] = QLatin1String("Philips");
+            attr["type"] = QLatin1String("Dimmable light");
+            state["bri"] = (double) 254;
         }
     }
 
@@ -440,15 +453,15 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     {
         if (req.mode != ApiModeEcho && req.apiVersion() < ApiVersion_3_DDEL)
         {
-            map["hascolor"] = lightNode->hasColor();
+            attr["hascolor"] = lightNode->hasColor();
         }
 
-        map["modelid"] = lightNode->modelId(); // real model id
-        map["manufacturername"] = lightNode->manufacturer();
-        map["swversion"] = lightNode->swBuildId();
+        attr["manufacturername"] = lightNode->manufacturer();
+        attr["modelid"] = lightNode->modelId(); // real model id
+        attr["swversion"] = lightNode->swBuildId();
         QString etag = lightNode->etag;
         etag.remove('"'); // no quotes allowed in string
-        map["etag"] = etag;
+        attr["etag"] = etag;
 
         if (req.apiVersion() >= ApiVersion_2_DDEL)
         {
@@ -456,35 +469,23 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
             QVariantMap self;
             self["href"] = QString("%1/%2").arg(req.hdr.path()).arg(lightNode->uniqueId());
             links["self"] = self;
-            map["_links"] = links;
+            attr["_links"] = links;
         }
     }
+    if (!state.isEmpty()) attr["state"] = state;
+    if (!capabilitiesColorCt.isEmpty()) capabilitiesColor["ct"] = capabilitiesColorCt;
+    if (!capabilitiesColorGradient.isEmpty()) capabilitiesColor["gradient"] = capabilitiesColorGradient;
+    if (!capabilitiesColorXy.isEmpty()) capabilitiesColor["xy"] = capabilitiesColorXy;
+    if (!capabilitiesColor.isEmpty()) capabilities["color"] = capabilitiesColor;
+    if (!capabilities.isEmpty()) attr["capabilities"] = capabilities;
+    if (!configBri.isEmpty()) config["bri"] = configBri;
+    if (!configColorCt.isEmpty()) configColor["ct"] = configColorCt;
+    if (!configColorGradient.isEmpty()) configColor["gradient"] = configColorGradient;
+    if (!configColorXy.isEmpty()) configColor["xy"] = configColorXy;
+    if (!configColor.isEmpty()) config["color"] = configColor;
+    if (!configOn.isEmpty()) config["on"] = configOn;
+    if (!config.isEmpty()) attr["config"] = config;
 
-    map["state"] = state;
-    if (!startup.isEmpty())
-    {
-        config["startup"] = startup;
-    }
-    if (!config.isEmpty())
-    {
-        map["config"] = config;
-    }
-    if (!ctCapabilities.isEmpty())
-    {
-        capabilities["ct"] = ctCapabilities;
-    }
-    if (!colorCapabilities.isEmpty())
-    {
-        capabilities["color"] = colorCapabilities;
-    }
-    if (!gradientCapabilities.isEmpty())
-    {
-        capabilities["gradient"] = gradientCapabilities;
-    }
-    if (!capabilities.isEmpty())
-    {
-        map["capabilities"] = capabilities;
-    }
     return true;
 }
 
@@ -702,17 +703,15 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         isDoorLockDevice = true;
     }
 
-    static const QStringList alertList({
-        "none", "select", "lselect", "blink", "breathe", "okay", "channelchange", "finish", "stop"
-    });
-    QStringList effectList = RStateEffectValues;
+    const QStringList *alertList = &RStateAlertValuesTriggerEffect; // TODO: check RCapOnTriggerEffect
+    const QStringList *effectList = &RStateEffectValues;
     if (taskRef.lightNode->manufacturerCode() == VENDOR_PHILIPS && taskRef.lightNode->haEndpoint().profileId() == HA_PROFILE_ID)
     {
-        effectList = RStateEffectValuesHue;
+        effectList = &RStateEffectValuesHue;
     }
     if (taskRef.lightNode->manufacturerCode() == VENDOR_MUELLER)
     {
-        effectList = RStateEffectValuesMueller;
+        effectList = &RStateEffectValuesMueller;
     }
 
     bool hasCmd = false;
@@ -829,8 +828,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             hasCmd = true;
             if (map[param].type() == QVariant::Double)
             {
-                const quint16 ctMin = taskRef.lightNode->toNumber(RConfigCtMin);
-                const quint16 ctMax = taskRef.lightNode->toNumber(RConfigCtMax);
+                const quint16 ctMin = taskRef.lightNode->toNumber(RCapColorCtMin);
+                const quint16 ctMax = taskRef.lightNode->toNumber(RCapColorCtMax);
                 const uint ct = map[param].toUInt(&ok);
                 if (ok && ct <= 0xFFFF)
                 {
@@ -847,8 +846,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             if (map[param].type() == QVariant::Double)
             {
                 int ct = taskRef.lightNode->toNumber(RStateCt);
-                const quint16 ctMin = taskRef.lightNode->toNumber(RConfigCtMin);
-                const quint16 ctMax = taskRef.lightNode->toNumber(RConfigCtMax);
+                const quint16 ctMin = taskRef.lightNode->toNumber(RCapColorCtMin);
+                const quint16 ctMax = taskRef.lightNode->toNumber(RCapColorCtMax);
                 const int ctInc = map[param].toInt(&ok);
                 if (ok && ctInc >= -0xFFFF && ctInc <= 0xFFFF)
                 {
@@ -891,7 +890,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             hasCmd = true;
             if (map[param].type() == QVariant::String)
             {
-                effect = effectList.indexOf(map[param].toString());
+                effect = effectList->indexOf(map[param].toString());
                 valueOk = effect >= 0;
             }
         }
@@ -933,7 +932,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             if (map[param].type() == QVariant::String)
             {
                 alert = map[param].toString();
-                valueOk = alertList.contains(alert);
+                valueOk = alertList->contains(alert);
             }
         }
         else if (param == "speed" && taskRef.lightNode->item(RStateSpeed))
@@ -1211,11 +1210,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
             QVariantMap rspItem;
             QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/state/effect").arg(id)] = effectList[effect];
+            rspItemState[QString("/lights/%1/state/effect").arg(id)] = (*effectList)[effect];
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            taskRef.lightNode->setValue(RStateEffect, effectList[effect]);
+            taskRef.lightNode->setValue(RStateEffect, (*effectList)[effect]);
         }
         else
         {
@@ -1451,11 +1450,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
             QVariantMap rspItem;
             QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/state/effect").arg(id)] = effectList[effect];
+            rspItemState[QString("/lights/%1/state/effect").arg(id)] = (*effectList)[effect];
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            taskRef.lightNode->setValue(RStateEffect, effectList[effect]);
+            taskRef.lightNode->setValue(RStateEffect, (*effectList)[effect]);
             taskRef.lightNode->setValue(RStateColorMode, QString("hs"));
         }
         else
@@ -1485,11 +1484,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/state/effect").arg(id)] = effectList[effect];
+            rspItemState[QString("/lights/%1/state/effect").arg(id)] = (*effectList)[effect];
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            taskRef.lightNode->setValue(RStateEffect, effectList[effect]);
+            taskRef.lightNode->setValue(RStateEffect, (*effectList)[effect]);
             taskRef.lightNode->setValue(RStateColorMode, QString("effect"));
         }
         else
@@ -1747,7 +1746,7 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
     {
         QString param = p.key();
 
-        if (param == "startup" && taskRef.lightNode->item(RConfigStartupOn))
+        if (param == "startup" && taskRef.lightNode->item(RConfigOnStartup))
         {
             if (map[param].type() != QVariant::Map) {
                 rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/config").arg(id), QString("invalid value, %1, for parameter, %2").arg(map[param].toString()).arg(param)));
@@ -1760,7 +1759,7 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
                 bool paramOk = false;
                 bool valueOk = false;
                 QString param = q.key();
-                if (param == "on" && taskRef.lightNode->item(RConfigStartupOn))
+                if (param == "on" && taskRef.lightNode->item(RConfigOnStartup))
                 {
                     paramOk = true;
                     hasCmd = true;
@@ -1777,14 +1776,14 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
                         targetOn = 0xFF;
                     }
                 }
-                else if (param == "bri" && taskRef.lightNode->item(RConfigStartupBri))
+                else if (param == "bri" && taskRef.lightNode->item(RConfigBriStartup))
                 {
                     paramOk = true;
                     hasCmd = true;
                     if (startup[param].type() == QVariant::Double)
                     {
                         const quint8 bri = startup[param].toUInt(&ok);
-                        if (ok && bri <= 0xFF)
+                        if (ok)
                         {
                             valueOk = true;
                             hasBri = true;
@@ -1798,7 +1797,7 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
                         targetBri = 0xFF;
                     }
                 }
-                else if (param == "xy" && taskRef.lightNode->item(RConfigStartupX) && taskRef.lightNode->item(RConfigStartupY))
+                else if (param == "xy" && taskRef.lightNode->item(RConfigColorXyStartupX) && taskRef.lightNode->item(RConfigColorXyStartupY))
                 {
                     paramOk = true;
                     hasCmd = true;
@@ -1835,16 +1834,16 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
                         targetY = 0xFFFF;
                     }
                 }
-                else if (param == "ct"  && taskRef.lightNode->item(RConfigStartupCt))
+                else if (param == "ct"  && taskRef.lightNode->item(RConfigColorCtStartup))
                 {
                     paramOk = true;
                     hasCmd = true;
                     if (startup[param].type() == QVariant::Double)
                     {
-                        const quint16 ctMin = taskRef.lightNode->toNumber(RConfigCtMin);
-                        const quint16 ctMax = taskRef.lightNode->toNumber(RConfigCtMax);
+                        const quint16 ctMin = taskRef.lightNode->toNumber(RCapColorCtMin);
+                        const quint16 ctMax = taskRef.lightNode->toNumber(RCapColorCtMax);
                         const quint16 ct = startup[param].toUInt(&ok);
-                        if (ok && ct <= 0xFFFF)
+                        if (ok)
                         {
                             valueOk = true;
                             hasCt = true;
@@ -1894,7 +1893,7 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            taskRef.lightNode->setValue(RConfigStartupOn, targetOn);
+            taskRef.lightNode->setValue(RConfigOnStartup, targetOn);
         }
         else
         {
@@ -1916,7 +1915,7 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            taskRef.lightNode->setValue(RConfigStartupBri, targetBri);
+            taskRef.lightNode->setValue(RConfigBriStartup, targetBri);
         }
         else
         {
@@ -1959,8 +1958,8 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            taskRef.lightNode->setValue(RConfigStartupX, targetX);
-            taskRef.lightNode->setValue(RConfigStartupY, targetY);
+            taskRef.lightNode->setValue(RConfigColorXyStartupX, targetX);
+            taskRef.lightNode->setValue(RConfigColorXyStartupY, targetY);
         }
         else
         {
@@ -1982,7 +1981,7 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            taskRef.lightNode->setValue(RConfigStartupCt, targetCt);
+            taskRef.lightNode->setValue(RConfigColorCtStartup, targetCt);
         }
         else
         {
@@ -2977,7 +2976,7 @@ int DeRestPluginPrivate::setLightAttributes(const ApiRequest &req, ApiResponse &
     // powerup options
     if (map.contains("powerup"))
     {
-        ResourceItem *item = lightNode->item(RConfigPowerup);
+        ResourceItem *item = lightNode->item(RAttrPowerup);
 
         if (!item)
         {
@@ -2997,7 +2996,7 @@ int DeRestPluginPrivate::setLightAttributes(const ApiRequest &req, ApiResponse &
 
             if (item->lastSet() == item->lastChanged())
             {
-                Event e(RLights, RConfigPowerup, lightNode->id(), item);
+                Event e(RLights, RAttrPowerup, lightNode->id(), item);
                 enqueueEvent(e);
                 lightNode->setNeedSaveDatabase(true);
                 queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
@@ -3559,10 +3558,9 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
     {
         return;
     }
-    const QDateTime now = QDateTime::currentDateTime();
 
-    // push state updates through websocket
-    if (strncmp(e.what(), "state/", 6) == 0)
+    if (strncmp(e.what(), "attr/", 5) == 0 || strncmp(e.what(), "cap/", 4) == 0 ||
+        strncmp(e.what(), "config/", 7) == 0 || strncmp(e.what(), "state/", 6) == 0)
     {
         ResourceItem *item = lightNode->item(e.what());
         if (item)
@@ -3572,44 +3570,251 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                 return; // already pushed
             }
 
-            QVariantMap map;
-            map["t"] = QLatin1String("event");
-            map["e"] = QLatin1String("changed");
-            map["r"] = QLatin1String("lights");
-            map["id"] = e.id();
-            map["uniqueid"] = lightNode->uniqueId();
+            bool pushAttr = false;
+            bool pushCap = false;
+            bool pushConfig = false;
+            bool pushState = false;
+
+            QVariantMap attr;
+
+            QVariantMap capabilities;
+            QVariantMap capabilitiesColor;
+            ResourceItem *icc = nullptr;
+            QVariantMap capabilitiesColorCt;
+            QVariantMap capabilitiesColorGradient;
+            QVariantMap capabilitiesColorXy;
+            ResourceItem *ibluex = nullptr;
+            ResourceItem *ibluey = nullptr;
+            ResourceItem *igreenx = nullptr;
+            ResourceItem *igreeny = nullptr;
+            ResourceItem *iredx = nullptr;
+            ResourceItem *iredy = nullptr;
+
+            QVariantMap config;
+            QVariantMap configBri;
+            QVariantMap configColor;
+            QVariantMap configColorCt;
+            QVariantMap configColorGradient;
+            QVariantMap configColorXy;
+            ResourceItem *isx = nullptr;
+            ResourceItem *isy = nullptr;
+            QVariantMap configOn;
+
             QVariantMap state;
+            ResourceItem *ialert = nullptr;
+            const QStringList *capabilitiesAlerts = &RStateAlertValues;
             ResourceItem *ix = nullptr;
             ResourceItem *iy = nullptr;
-            QVariantList xy;
-            ResourceItem *igradient = nullptr;
 
             for (int i = 0; i < lightNode->itemCount(); i++)
             {
-                item = lightNode->itemForIndex(i);
+                item = lightNode->itemForIndex(static_cast<size_t>(i));
+                DBG_Assert(item);
+
                 const ResourceItemDescriptor &rid = item->descriptor();
 
-                if (strncmp(rid.suffix, "state/", 6) == 0)
+                if      (rid.suffix == RCapColorCapabilities) { icc = item; }
+                else if (rid.suffix == RCapColorXyBlueX) { ibluex = item; }
+                else if (rid.suffix == RCapColorXyBlueY) { ibluey = item; }
+                else if (rid.suffix == RCapColorXyGreenX) { igreenx = item; }
+                else if (rid.suffix == RCapColorXyGreenY) { igreeny = item; }
+                else if (rid.suffix == RCapColorXyRedX) { iredx = item; }
+                else if (rid.suffix == RCapColorXyRedY) { iredy = item; }
+                else if (rid.suffix == RConfigColorXyStartupX) { isx = item; }
+                else if (rid.suffix == RConfigColorXyStartupY) { isy = item; }
+                else if (rid.suffix == RStateAlert) { ialert = item; }
+                else if (rid.suffix == RStateX) { ix = item; }
+                else if (rid.suffix == RStateY) { iy = item; }
+                else if (gwWebSocketNotifyAll || item->needPushChange())
                 {
-                    const char *key = item->descriptor().suffix + 6;
-
-                    if (rid.suffix == RStateX)
+                    if      (rid.suffix == RAttrConfigId) { attr["configid"] = item->toNumber(); }
+                    else if (rid.suffix == RAttrId) { attr["id"] = item->toString(); }
+                    else if (rid.suffix == RAttrLastAnnounced) { attr["lastannounced"] = item->toString(); }
+                    else if (rid.suffix == RAttrLastSeen) { attr["lastseen"] = item->toString(); }
+                    else if (rid.suffix == RAttrLevelMin) { attr["levelmin"] = item->toNumber(); }
+                    else if (rid.suffix == RAttrManufacturerName) { attr["manufacturername"] = item->toString(); }
+                    else if (rid.suffix == RAttrModelId) { attr["modelid"] = item->toString(); }
+                    else if (rid.suffix == RAttrName) { attr["name"] = item->toString(); }
+                    else if (rid.suffix == RAttrPowerOnLevel) { attr["poweronlevel"] = item->toNumber(); }
+                    else if (rid.suffix == RAttrPowerOnCt) { attr["poweronct"] = item->toNumber(); }
+                    else if (rid.suffix == RAttrPowerup) { attr["powerup"] = item->toNumber(); }
+                    else if (rid.suffix == RAttrProductId) { attr["productid"] = item->toString(); }
+                    else if (rid.suffix == RAttrSwVersion) { attr["swversion"] = item->toString(); }
+                    else if (rid.suffix == RAttrType) { attr["type"] = item->toString(); }
+                    else if (rid.suffix == RAttrUniqueId) { attr["uniqueid"] = item->toString(); }
+                    else if (rid.suffix == RCapColorCtComputesXy) { capabilitiesColorCt["computes_xy"] = item->toBool(); }
+                    else if (rid.suffix == RCapColorCtMax)
                     {
-                        ix = item;
+                        attr["ctmax"] = item->toNumber();
+                        if (item->needPushChange()) { pushAttr = true; }
+                        capabilitiesColorCt["max"] = item->toNumber();
                     }
-                    else if (rid.suffix == RStateY)
+                    else if (rid.suffix == RCapColorCtMin)
                     {
-                        iy = item;
+                        attr["ctmin"] = item->toNumber();
+                        if (item->needPushChange()) { pushAttr = true; }
+                        capabilitiesColorCt["min"] = item->toNumber();
                     }
+                    else if (rid.suffix == RCapColorGamutType) { capabilitiesColor["gamut_type"] = item->toString(); }
+                    else if (rid.suffix == RCapColorGradientMaxSegments) { capabilitiesColorGradient["max_segments"] = item->toNumber(); }
+                    else if (rid.suffix == RCapColorGradientPixelCount) { capabilitiesColorGradient["pixel_count"] = item->toNumber(); }
+                    else if (rid.suffix == RCapColorGradientPixelLength) { capabilitiesColorGradient["pixel_length"] = item->toNumber(); }
+                    else if (rid.suffix == RCapOnTriggerEffect) { capabilitiesAlerts = &RStateAlertValuesTriggerEffect; }
+                    else if (rid.suffix == RConfigBriExecuteIfOff) { configBri["execute_if_off"] = item->toBool(); }
+                    else if (rid.suffix == RConfigBriMax) { configBri["max"] = item->toNumber(); }
+                    else if (rid.suffix == RConfigBriMin) { configBri["min"] = item->toNumber(); }
+                    else if (rid.suffix == RConfigBriOnLevel) { configBri["on_level"] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
+                    else if (rid.suffix == RConfigBriMin) { configBri["onoff_transition_time"] = item->toNumber(); }
+                    else if (rid.suffix == RConfigBriStartup) { configBri["startup"] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
+                    else if (rid.suffix == RConfigColorCtStartup) { configColorCt["startup"] = item->toNumber() == 0xFFFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
+                    else if (rid.suffix == RConfigColorExecuteIfOff) { configColor["execute_if_off"] = item->toBool(); }
+                    else if (rid.suffix == RConfigColorGradientReversed) { configColorGradient["reversed"] = item->toBool(); }
+                    else if (rid.suffix == RConfigOnStartup) { configOn["startup"] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toBool(); }
+                    else if (rid.suffix == RStateBri) { state["bri"] = static_cast<double>(item->toNumber()); }
+                    else if (rid.suffix == RStateColorMode) { state["colormode"] = item->toString(); }
+                    else if (rid.suffix == RStateCt) { state["ct"] = static_cast<double>(item->toNumber()); }
+                    else if (rid.suffix == RStateEffect) { state["effect"] = item->toString(); }
                     else if (rid.suffix == RStateGradient)
                     {
-                        igradient = item;
+                        bool ok;
+                        QVariant var = Json::parse(item->toString(), ok);
+                        if (ok)
+                        {
+                            QVariantMap map = var.toMap();
+                            state["gradient"] = map;
+                        }
                     }
-                    else if (gwWebSocketNotifyAll || item->needPushChange())
+                    else if (rid.suffix == RStateHue) { state["hue"] = static_cast<double>(item->toNumber()); }
+                    else if (rid.suffix == RStateLift) { state["lift"] = item->toNumber(); }
+                    else if (rid.suffix == RStateOn) { state["on"] = item->toBool(); }
+                    else if (rid.suffix == RStateOpen) { state["open"] = item->toBool(); }
+                    else if (rid.suffix == RStateReachable) { state["reachable"] = item->toBool(); }
+                    else if (rid.suffix == RStateSat) { state["sat"] = static_cast<double>(item->toNumber()); }
+                    else if (rid.suffix == RStateSpeed) { state["speed"] = item->toNumber(); }
+                    else if (rid.suffix == RStateTilt) { state["tilt"] = item->toNumber(); }
+                    else
                     {
-                        state[key] = item->toVariant();
                         item->clearNeedPush();
                     }
+
+                    // TODO make declarative
+                    if ((rid.suffix == RStateOn || rid.suffix == RStateReachable) &&
+                        item->needPushChange() && !lightNode->groups().empty())
+                    {
+                        std::vector<GroupInfo>::const_iterator i = lightNode->groups().begin();
+                        std::vector<GroupInfo>::const_iterator end = lightNode->groups().end();
+                        for (; i != end; ++i)
+                        {
+                            if (i->state == GroupInfo::StateInGroup)
+                            {
+                                Event e(RGroups, REventCheckGroupAnyOn, int(i->id));
+                                enqueueEvent(e);
+                            }
+                        }
+                    }
+
+                    if (item->needPushChange())
+                    {
+                        // TODO make declarative
+                        if (strncmp(rid.suffix, "attr/", 5) == 0) { pushAttr = true; }
+                        if (strncmp(rid.suffix, "cap/", 4) == 0) { pushCap = true; }
+                        if (strncmp(rid.suffix, "config/", 7) == 0) { pushConfig = true; }
+                        if (strncmp(rid.suffix, "state/", 6) == 0) { pushState = true; }
+                    }
+                    item->clearNeedPush();
+                }
+            }
+
+            if (icc)
+            {
+                if (gwWebSocketNotifyAll || icc->needPushChange())
+                {
+                    const int cc = icc->toNumber();
+                    QStringList colorModes;
+
+                    if (cc & 0x10) colorModes.push_back(QLatin1String("ct"));
+                    if (cc & 0x04)
+                    {
+                        colorModes.push_back(QLatin1String("effect"));
+                        const QStringList *effectList = &RStateEffectValues;
+                        if (lightNode->manufacturerCode() == VENDOR_PHILIPS && lightNode->haEndpoint().profileId() == HA_PROFILE_ID)
+                        {
+                            effectList = &RStateEffectValuesHue;
+                        }
+                        else if (lightNode->manufacturerCode() == VENDOR_MUELLER)
+                        {
+                            effectList = &RStateEffectValuesMueller;
+                        }
+                        capabilitiesColor["effects"] = *effectList;
+                    }
+                    else if (isXmasLightStrip(lightNode))
+                    {
+                        colorModes.push_back(QLatin1String("effect"));
+                        capabilitiesColor["effects"] = RStateEffectValuesXmasLightStrip;
+                    }
+                    if (!capabilitiesColorGradient.isEmpty()) colorModes.push_back(QLatin1String("gradient"));
+                    if (cc & 0x01 || cc & 0x02) colorModes.push_back(QLatin1String("hs"));
+                    if (cc & 0x08) colorModes.push_back(QLatin1String("xy"));
+
+                    attr["colorcapabilities"] = cc;
+                    if (icc->needPushChange()) { pushAttr = true; }
+                    capabilitiesColor["modes"] = colorModes;
+                    icc->clearNeedPush();
+                }
+            }
+
+            if (ibluex && ibluey && igreenx && igreeny && iredx && iredy)
+            {
+                if (gwWebSocketNotifyAll || ibluex->needPushChange() || ibluey->needPushChange() ||
+                    igreenx->needPushChange() || igreeny->needPushChange() || iredx->needPushChange() || iredy->needPushChange())
+                {
+                    QVariantList blue, green, red;
+
+                    toXy(ibluex->toNumber(), ibluey->toNumber(), blue);
+                    toXy(igreenx->toNumber(), igreeny->toNumber(), green);
+                    toXy(iredx->toNumber(), iredy->toNumber(), red);
+                    capabilitiesColorXy["blue"] = blue;
+                    capabilitiesColorXy["green"] = green;
+                    capabilitiesColorXy["red"] = red;
+                    pushCap = true;
+                    ibluex->clearNeedPush();
+                    ibluey->clearNeedPush();
+                    igreenx->clearNeedPush();
+                    igreeny->clearNeedPush();
+                    iredx->clearNeedPush();
+                    iredy->clearNeedPush();
+                }
+            }
+
+            if (isx && isy)
+            {
+                if (gwWebSocketNotifyAll || isx->needPushChange() || isy->needPushChange())
+                {
+                    double colorX = isx->toNumber();
+                    double colorY = isy->toNumber();
+
+                    if (colorX == 0xFFFF && colorY == 0xFFFF)
+                    {
+                        configColorXy["startup"] = QLatin1String("previous");
+                    }
+                    else
+                    {
+                        QVariantList xy;
+
+                        toXy(colorX, colorY, xy);
+                        configColorXy["startup"] = xy;
+                    }
+                    isx->clearNeedPush();
+                    isy->clearNeedPush();
+                }
+            }
+
+            if (ialert)
+            {
+                if (gwWebSocketNotifyAll || ialert->needPushChange())
+                {
+                    state["alert"] = QLatin1String("none");
+                    ialert->clearNeedPush();
                 }
             }
 
@@ -3625,312 +3830,76 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     iy->clearNeedPush();
                 }
             }
-            if (igradient)
-            {
-                if (gwWebSocketNotifyAll || igradient->needPushChange())
-                {
-                    bool ok;
-                    QVariant var = Json::parse(igradient->toString(), ok);
-                    if (ok)
-                    {
-                        QVariantMap map = var.toMap();
-                        state["gradient"] = map;
-                        igradient->clearNeedPush();
-                    }
-                }
 
-            }
-
-            if (!state.isEmpty())
+            if (pushAttr)
             {
-                map["state"] = state;
+                QVariantMap map;
+                map["t"] = QLatin1String("event");
+                map["e"] = QLatin1String("changed");
+                map["r"] = QLatin1String("lights");
+                map["id"] = e.id();
+                map["uniqueid"] = lightNode->uniqueId();
+                map["attr"] = attr;
                 webSocketServer->broadcastTextMessage(Json::serialize(map));
                 updateLightEtag(lightNode);
                 plugin->saveDatabaseItems |= DB_LIGHTS;
                 plugin->queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
             }
 
-            if ((e.what() == RStateOn || e.what() == RStateReachable) && !lightNode->groups().empty())
+            if (!capabilitiesColorCt.isEmpty()) capabilitiesColor["ct"] = capabilitiesColorCt;
+            if (!capabilitiesColorGradient.isEmpty()) capabilitiesColor["gradient"] = capabilitiesColorGradient;
+            if (!capabilitiesColorXy.isEmpty()) capabilitiesColor["xy"] = capabilitiesColorXy;
+            if (!capabilitiesColor.isEmpty()) capabilities["color"] = capabilitiesColor;
+            if (pushCap)
             {
-                std::vector<GroupInfo>::const_iterator i = lightNode->groups().begin();
-                std::vector<GroupInfo>::const_iterator end = lightNode->groups().end();
-                for (; i != end; ++i)
+                if (ialert && gwWebSocketNotifyAll)
                 {
-                    if (i->state == GroupInfo::StateInGroup)
-                    {
-                        Event e(RGroups, REventCheckGroupAnyOn, int(i->id));
-                        enqueueEvent(e);
-                    }
+                    capabilities["alerts"] = *capabilitiesAlerts;
                 }
-            }
-        }
-    }
-    if (strncmp(e.what(), "config/", 7) == 0)
-    {
-        ResourceItem *item = lightNode->item(e.what());
-        if (item)
-        {
-            if (!(item->needPushSet() || item->needPushChange()))
-            {
-                return; // already pushed
-            }
 
-            QVariantMap map;
-            map["t"] = QLatin1String("event");
-            map["e"] = QLatin1String("changed");
-            map["r"] = QLatin1String("lights");
-            map["id"] = e.id();
-            map["uniqueid"] = lightNode->uniqueId();
-
-            QVariantMap config;
-            QVariantMap startup;
-            ResourceItem *isx = nullptr;
-            ResourceItem *isy = nullptr;
-
-            for (int i = 0; i < lightNode->itemCount(); i++)
-            {
-                item = lightNode->itemForIndex(i);
-                const ResourceItemDescriptor &rid = item->descriptor();
-
-                if (rid.suffix == RConfigStartupX)
-                {
-                    isx = item;
-                }
-                else if (rid.suffix == RConfigStartupY)
-                {
-                    isy = item;
-                }
-                else if (gwWebSocketNotifyAll || item->needPushChange())
-                {
-                    if (rid.suffix == RConfigStartupOn)
-                    {
-                        startup["on"] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toBool();
-                    }
-                    else if (rid.suffix == RConfigStartupBri)
-                    {
-                        startup["bri"] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toNumber();
-                    }
-                    else if (rid.suffix == RConfigStartupCt)
-                    {
-                        startup["ct"] = item->toNumber() == 0xFFFF ? QVariant(QLatin1String("previous")) : item->toNumber();
-                    }
-                    else
-                    {
-                        continue; // reported under attr
-                    }
-                    item->clearNeedPush();
-                }
+                QVariantMap map;
+                map["t"] = QLatin1String("event");
+                map["e"] = QLatin1String("changed");
+                map["r"] = QLatin1String("lights");
+                map["id"] = e.id();
+                map["uniqueid"] = lightNode->uniqueId();
+                map["capabilities"] = capabilities;
+                webSocketServer->broadcastTextMessage(Json::serialize(map));
+                updateLightEtag(lightNode);
+                plugin->saveDatabaseItems |= DB_LIGHTS;
+                plugin->queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
             }
 
-            if (isx && isy)
+            if (!configBri.isEmpty()) config["bri"] = configBri;
+            if (!configColorCt.isEmpty()) configColor["ct"] = configColorCt;
+            if (!configColorGradient.isEmpty()) configColor["gradient"] = configColorGradient;
+            if (!configColorXy.isEmpty()) configColor["xy"] = configColorXy;
+            if (!configColor.isEmpty()) config["color"] = configColor;
+            if (!configOn.isEmpty()) config["on"] = configOn;
+            if (pushConfig)
             {
-                if (gwWebSocketNotifyAll || isx->needPushChange() || isy->needPushChange())
-                  {
-                      if (isx->toNumber() == 0xFFFF && isy->toNumber() == 0xFFFF)
-                      {
-                          startup["xy"] = QLatin1String("previous");
-                      }
-                      else
-                      {
-                          QVariantList xy;
-
-                          toXy(isx->toNumber(), isy->toNumber(), xy);
-                          startup["xy"] = xy;
-                      }
-                      isx->clearNeedPush();
-                      isy->clearNeedPush();
-                  }
-            }
-
-            if (!startup.isEmpty())
-            {
-                config["startup"] = startup;
-            }
-
-            if (!config.isEmpty())
-            {
+                QVariantMap map;
+                map["t"] = QLatin1String("event");
+                map["e"] = QLatin1String("changed");
+                map["r"] = QLatin1String("lights");
+                map["id"] = e.id();
+                map["uniqueid"] = lightNode->uniqueId();
                 map["config"] = config;
                 webSocketServer->broadcastTextMessage(Json::serialize(map));
                 updateLightEtag(lightNode);
                 plugin->saveDatabaseItems |= DB_LIGHTS;
                 plugin->queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
             }
-        }
-    }
-    if (strncmp(e.what(), "attr/", 5) == 0 || strncmp(e.what(), "cap/", 4) == 0|| strncmp(e.what(), "config/", 7) == 0)
-    {
-        ResourceItem *item = lightNode->item(e.what());
-        if (item)
-        {
-            if (!(item->needPushSet() || item->needPushChange()))
+
+            if (pushState)
             {
-                return; // already pushed
-            }
-
-            QVariantMap map;
-            map["t"] = QLatin1String("event");
-            map["e"] = QLatin1String("changed");
-            map["r"] = QLatin1String("lights");
-            map["id"] = e.id();
-            map["uniqueid"] = lightNode->uniqueId();
-
-            QVariantMap attr;
-            QVariantMap capabilities;
-            QVariantMap ctCapabilities;
-            QVariantMap colorCapabilities;
-            ResourceItem *ibluex = nullptr;
-            ResourceItem *ibluey = nullptr;
-            ResourceItem *igreenx = nullptr;
-            ResourceItem *igreeny = nullptr;
-            ResourceItem *iredx = nullptr;
-            ResourceItem *iredy = nullptr;
-            ResourceItem *icc = nullptr;
-            QVariantMap gradientCapabilities;
-
-            for (int i = 0; i < lightNode->itemCount(); i++)
-            {
-                item = lightNode->itemForIndex(i);
-                const ResourceItemDescriptor &rid = item->descriptor();
-                const char *key;
-
-                if (strncmp(rid.suffix, "attr/", 5) == 0)
-                {
-                    key = item->descriptor().suffix + 5;
-                }
-                else if (strncmp(rid.suffix, "cap/", 4) == 0)
-                {
-                    key = item->descriptor().suffix + 4;
-                }
-                else if (strncmp(rid.suffix, "config/", 7) == 0)
-                {
-                    key = item->descriptor().suffix + 7;
-                }
-                else
-                {
-                    continue;
-                }
-
-                if (strncmp(key, "startup/", 8) == 0)
-                {
-                    continue; // reported under config
-                }
-                else if (item->descriptor().suffix == RCapColorGamutBlueX) { ibluex = item; }
-                else if (item->descriptor().suffix == RCapColorGamutBlueY) { ibluey = item; }
-                else if (item->descriptor().suffix == RCapColorGamutGreenX) { igreenx = item; }
-                else if (item->descriptor().suffix == RCapColorGamutGreenY) { igreeny = item; }
-                else if (item->descriptor().suffix == RCapColorGamutRedX) { iredx = item; }
-                else if (item->descriptor().suffix == RCapColorGamutRedY) { iredy = item; }
-                else if (gwWebSocketNotifyAll || item->needPushChange())
-                {
-                    if (item->descriptor().suffix == RCapColorGamutType) { colorCapabilities["gamut_type"] = item->toString(); }
-                    else if (item->descriptor().suffix == RCapGradientMaxSegments) { gradientCapabilities["max_segments"] = item->toNumber(); }
-                    else if (item->descriptor().suffix == RCapGradientPixelCount) { gradientCapabilities["pixel_count"] = item->toNumber(); }
-                    else if (item->descriptor().suffix == RCapGradientPixelLength) { gradientCapabilities["pixel_length"] = item->toNumber(); }
-                    else if (item->descriptor().suffix == RConfigCtMin)
-                    {
-                        // if (req.apiVersion() < ApiVersion_3_DDEL)
-                        // {
-                            attr["ctmin"] = item->toNumber();
-                        // }
-                        ctCapabilities["min"] = item->toNumber();
-                    }
-                    else if (item->descriptor().suffix == RConfigCtMax)
-                    {
-                        // if (req.apiVersion() < ApiVersion_3_DDEL)
-                        // {
-                            attr["ctmax"] = item->toNumber();
-                        // }
-                        ctCapabilities["max"] = item->toNumber();
-                    }
-                    else if (item->descriptor().suffix == RConfigColorCapabilities) { icc = item; }
-                    else { attr[key] = item->toVariant(); }
-                    item->clearNeedPush();
-                }
-            }
-
-            if (ibluex && ibluey && igreenx && igreeny && iredx && iredy)
-            {
-                if (gwWebSocketNotifyAll || ibluex->needPushChange() || ibluey->needPushChange() ||
-                    igreenx->needPushChange() || igreeny->needPushChange() || iredx->needPushChange() || iredy->needPushChange())
-                {
-                    QVariantMap gamut;
-                    QVariantList blue, green, red;
-
-                    toXy(ibluex->toNumber(), ibluey->toNumber(), blue);
-                    toXy(igreenx->toNumber(), igreeny->toNumber(), green);
-                    toXy(iredx->toNumber(), iredy->toNumber(), red);
-                    gamut["blue"] = blue;
-                    gamut["green"] = green;
-                    gamut["red"] = red;
-                    colorCapabilities["gamut"] = gamut;
-                    ibluex->clearNeedPush();
-                    ibluey->clearNeedPush();
-                    igreenx->clearNeedPush();
-                    igreeny->clearNeedPush();
-                    iredx->clearNeedPush();
-                    iredy->clearNeedPush();
-                }
-            }
-
-            if (icc)
-            {
-                const int cc = icc->toNumber();
-                QStringList colorModes;
-                // Keep sorted by string value
-                if (cc & 0x10) colorModes.push_back(QLatin1String("ct"));
-                if (cc & 0x04)
-                {
-                    colorModes.push_back(QLatin1String("effect"));
-                    QStringList effectList = RStateEffectValues;
-                    if (lightNode->manufacturerCode() == VENDOR_PHILIPS && lightNode->haEndpoint().profileId() == HA_PROFILE_ID)
-                    {
-                        effectList = RStateEffectValuesHue;
-                    }
-                    else if (lightNode->manufacturerCode() == VENDOR_MUELLER)
-                    {
-                        effectList = RStateEffectValuesMueller;
-                    }
-                    capabilities["effects"] = effectList;
-                }
-                else if (isXmasLightStrip(lightNode))
-                {
-                    colorModes.push_back(QLatin1String("effect"));
-                    capabilities["effects"] = RStateEffectValuesXmasLightStrip;
-                }
-                if (!gradientCapabilities.isEmpty()) colorModes.push_back(QLatin1String("gradient"));
-                if (cc & 0x01 || cc & 0x02) colorModes.push_back(QLatin1String("hs"));
-                if (cc & 0x08) colorModes.push_back(QLatin1String("xy"));
-
-                // if (req.apiVersion() <= ApiVersion_1_DDEL)
-                // {
-                    attr["colorcapabilities"] = cc;
-                // }
-                // else if (req.apiVersion() < ApiVersion_3_DDEL)
-                // {
-                //     attr["colorcapabilities"] = colorModes;
-                // }
-                colorCapabilities["modes"] = colorModes;
-            }
-
-            if (!ctCapabilities.isEmpty())
-            {
-                capabilities["ct"] = ctCapabilities;
-            }
-            if (!colorCapabilities.isEmpty())
-            {
-                capabilities["color"] = colorCapabilities;
-            }
-            if (!gradientCapabilities.isEmpty())
-            {
-                capabilities["gradient"] = gradientCapabilities;
-            }
-            if (!capabilities.isEmpty())
-            {
-                attr["capabilities"] = capabilities;
-            }
-            if (!attr.isEmpty())
-            {
-                map["attr"] = attr;
+                QVariantMap map;
+                map["t"] = QLatin1String("event");
+                map["e"] = QLatin1String("changed");
+                map["r"] = QLatin1String("lights");
+                map["id"] = e.id();
+                map["uniqueid"] = lightNode->uniqueId();
+                map["state"] = state;
                 webSocketServer->broadcastTextMessage(Json::serialize(map));
                 updateLightEtag(lightNode);
                 plugin->saveDatabaseItems |= DB_LIGHTS;
