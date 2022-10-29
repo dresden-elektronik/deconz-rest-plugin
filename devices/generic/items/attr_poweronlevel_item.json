@@ -1,6 +1,6 @@
 {
 	"schema": "resourceitem1.schema.json",
-	"id": "config/poweronlevel",
+	"id": "attr/poweronlevel",
 	"datatype": "UInt8",
 	"access": "RW",
 	"public": true,
