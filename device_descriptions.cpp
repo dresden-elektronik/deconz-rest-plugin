@@ -267,7 +267,7 @@ DeviceDescriptions::DeviceDescriptions(QObject *parent) :
 
         d_ptr2->parseFunctions.push_back(fn);
     }
-    
+
     {
         DDF_FunctionDescriptor fn;
         fn.name = "time";
@@ -1172,6 +1172,11 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
     {
         result.name = obj.value(QLatin1String("id")).toString().toUtf8().constData();
     }
+
+    // Handle deprecated names/ids
+    if (result.name == RConfigColorCapabilities) { result.name = RCapColorCapabilities; }
+    if (result.name == RConfigCtMax) { result.name = RCapColorCtMax; }
+    if (result.name == RConfigCtMin) { result.name = RCapColorCtMin; }
 
     if (obj.contains(QLatin1String("description")))
     {
