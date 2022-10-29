@@ -21,6 +21,7 @@
         "device": "0x0402",
         "endpoint": "0x01",
         "in": [
+          "0x0000",
           "0x0001",
           "0x0500"
         ]
@@ -56,10 +57,10 @@
         {
           "name": "config/battery",
           "description": "The current device battery level in 0&ndash;100&thinsp;%.",
+          "awake": true,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
-            "cppsrc": "power_configuration.cpp:198",
             "ep": 1,
             "eval": "Item.val = Attr.val / 2"
           },
@@ -67,8 +68,8 @@
         },
         {
           "name": "config/enrolled",
-          "public": false,
-          "description": "State of IAS enrollment process."
+          "description": "State of IAS enrollment process.",
+          "public": false
         },
         {
           "name": "config/on"
@@ -88,10 +89,12 @@
           "description": "True when the device battery runs low."
         },
         {
-          "name": "state/open"
+          "name": "state/open",
+          "description": "True when open is detected."
         },
         {
-          "name": "state/tampered"
+          "name": "state/tampered",
+          "description": "True when the device tampered alarm was triggered."
         }
       ]
     }
@@ -101,7 +104,16 @@
       "bind": "unicast",
       "src.ep": 1,
       "dst.ep": 1,
-      "cl": "0x0001"
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 60,
+          "max": 3600,
+          "change": "0x00000001"
+        }
+      ]
     },
     {
       "bind": "unicast",
