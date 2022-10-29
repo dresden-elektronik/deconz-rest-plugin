@@ -12,9 +12,10 @@ const char *ddfMimeItemName = "ddf/itemname";
 
 #define ITEM_TYPE_ROLE (Qt::UserRole + 2)
 #define ITEM_TYPE_SUBDEVICE 0
-#define ITEM_TYPE_DDF_ITEM_CONFIG  1
-#define ITEM_TYPE_DDF_ITEM_ATTR    2
-#define ITEM_TYPE_DDF_ITEM_STATE   3
+#define ITEM_TYPE_DDF_ITEM_CAP     1
+#define ITEM_TYPE_DDF_ITEM_CONFIG  2
+#define ITEM_TYPE_DDF_ITEM_ATTR    3
+#define ITEM_TYPE_DDF_ITEM_STATE   4
 
 struct ItemDrawOptions
 {
@@ -26,6 +27,7 @@ static const ItemDrawOptions itemDrawOptions[] =
 {
 
     { QColor(100, 100, 100), QColor(255, 255, 255) },  // I_TYPE_SUBDEVICE
+    { QColor(224, 119, 119), QColor(0, 0, 0) },        // I_TYPE_ITEM_CAP
     { QColor(187, 222, 251), QColor(0, 0, 0) },        // I_TYPE_ITEM_CONFIG
     { QColor(218, 209, 238), QColor(0, 0, 0) },        // I_TYPE_ITEM_ATTR
     { QColor(190, 238, 194), QColor(0, 0, 0) }         // I_TYPE_ITEM_STATE
@@ -100,7 +102,7 @@ public:
         {
             QUrl url;
             int type = idx.data(ITEM_TYPE_ROLE).toInt();
-            if (type == ITEM_TYPE_DDF_ITEM_CONFIG || type == ITEM_TYPE_DDF_ITEM_STATE || type == ITEM_TYPE_DDF_ITEM_ATTR)
+            if (type == ITEM_TYPE_DDF_ITEM_CAP || type == ITEM_TYPE_DDF_ITEM_CONFIG || type == ITEM_TYPE_DDF_ITEM_STATE || type == ITEM_TYPE_DDF_ITEM_ATTR)
             {
                 url.setScheme("ddfitem");
             }
@@ -171,7 +173,7 @@ void DDF_ItemList::update(DeviceDescriptions *dd)
             switch (i.name.c_str()[0])
             {
             case 'a': type = ITEM_TYPE_DDF_ITEM_ATTR; break;
-            case 'c': type = ITEM_TYPE_DDF_ITEM_CONFIG; break;
+            case 'c': type = i.name.c_str()[1] == 'a' ? ITEM_TYPE_DDF_ITEM_CAP : ITEM_TYPE_DDF_ITEM_CONFIG; break;
             case 's': type = ITEM_TYPE_DDF_ITEM_STATE; break;
             default:
                 break;
