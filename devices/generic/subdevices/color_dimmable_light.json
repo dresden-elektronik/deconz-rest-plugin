@@ -6,6 +6,7 @@
     "order": 10,
     "uuid": ["$address.ext", "0x01"],
     "items": [
+        "cap/alert/trigger_effect",
         "cap/bri/move_with_onoff",
         "cap/color/capabilities",
         "cap/color/xy/blue_x",
@@ -15,7 +16,6 @@
         "cap/color/xy/red_x",
         "cap/color/xy/red_y",
         "cap/on/off_with_effect",
-        "cap/on/trigger_effect",
         "state/alert",
         "state/bri",
         "state/colormode",

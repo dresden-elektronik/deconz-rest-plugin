@@ -1,6 +1,6 @@
 {
   "schema": "resourceitem1.schema.json",
-  "id": "cap/on/trigger_effect",
+  "id": "cap/alert/trigger_effect",
   "datatype": "Bool",
   "access": "R",
   "public": true,

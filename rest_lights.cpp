@@ -248,6 +248,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     const ResourceItem *iredy = nullptr;
 
     QVariantMap config;
+    bool groups = true;
     QVariantMap configBri;
     QVariantMap configColor;
     QVariantMap configColorCt;
@@ -269,7 +270,6 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         DBG_Assert(item);
         const ResourceItemDescriptor &rid = item->descriptor();
 
-
         if      (rid.suffix == RAttrConfigId) { attr["configid"] = item->toNumber(); }
         else if (rid.suffix == RAttrLastAnnounced) { attr["lastannounced"] = item->toString(); }
         else if (rid.suffix == RAttrLastSeen) { attr["lastseen"] = item->toString(); }
@@ -280,7 +280,8 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (rid.suffix == RAttrPowerup) { attr["powerup"] = item->toNumber(); }
         else if (rid.suffix == RAttrType) { attr["type"] = item->toString(); }
         else if (rid.suffix == RAttrUniqueId) { attr["uniqueid"] = item->toString(); }
-        else if (rid.suffix == RCapColorCapabilities || rid.suffix == RConfigColorCapabilities) { icc = item; }
+        else if (rid.suffix == RCapAlertTriggerEffect) { capabilitiesAlerts = &RStateAlertValuesTriggerEffect; }
+        else if (rid.suffix == RCapColorCapabilities) { icc = item; }
         else if (rid.suffix == RCapColorCtComputesXy) { capabilitiesColorCt["computes_xy"] = item->toBool(); }
         else if (rid.suffix == RCapColorCtMax)
         {
@@ -308,7 +309,9 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (rid.suffix == RCapColorXyGreenY) { igreeny = item; }
         else if (rid.suffix == RCapColorXyRedX) { iredx = item; }
         else if (rid.suffix == RCapColorXyRedY) { iredy = item; }
-        else if (rid.suffix == RCapOnTriggerEffect) { capabilitiesAlerts = &RStateAlertValuesTriggerEffect; }
+        else if (rid.suffix == RCapGroupsNotSupported) { groups = false; }
+        else if (rid.suffix == RCapSleeper) { capabilities["sleeper"] = true; }
+        else if (rid.suffix == RCapTransitionBlock) { capabilities["transition_block"] = true; }
         else if (rid.suffix == RConfigBriExecuteIfOff) { configBri["execute_if_off"] = item->toBool(); }
         else if (rid.suffix == RConfigBriMax) { configBri["max"] = item->toNumber(); }
         else if (rid.suffix == RConfigBriMin) { configBri["min"] = item->toNumber(); }
@@ -346,6 +349,21 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (rid.suffix == RStateTilt) { state["tilt"] = item->toNumber(); }
         else if (rid.suffix == RStateX) { ix = item; }
         else if (rid.suffix == RStateY) { iy = item; }
+    }
+
+    if (groups)
+    {
+        QStringList groups;
+        std::vector<GroupInfo>::const_iterator g = lightNode->groups().begin();
+        std::vector<GroupInfo>::const_iterator gend = lightNode->groups().end();
+        for (; g != gend; ++g)
+        {
+            if (g->state == GroupInfo::StateInGroup)
+            {
+                groups.append(QVariant(g->id == gwGroup0 ? 0 : g->id).toString());
+            }
+        }
+        config["groups"] = groups;
     }
 
     if (icc)
@@ -695,15 +713,12 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         return setWarningDeviceState(req, rsp, taskRef, map);
     }
-
-    // Danalock support. You need to check for taskRef.lightNode->type() == QLatin1String("Door lock"), similar to what I've done under hasAlert for the Siren.
-    bool isDoorLockDevice = false;
-    if (taskRef.lightNode->type() == QLatin1String("Door Lock"))
+    else if (taskRef.lightNode->type() == QLatin1String("Door Lock"))
     {
-        isDoorLockDevice = true;
+        return setDoorLockState(req, rsp, taskRef, map);
     }
 
-    const QStringList *alertList = &RStateAlertValuesTriggerEffect; // TODO: check RCapOnTriggerEffect
+    const QStringList *alertList = &RStateAlertValuesTriggerEffect; // TODO: check RCapAlertTriggerEffect
     const QStringList *effectList = &RStateEffectValues;
     if (taskRef.lightNode->manufacturerCode() == VENDOR_PHILIPS && taskRef.lightNode->haEndpoint().profileId() == HA_PROFILE_ID)
     {
@@ -744,7 +759,6 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     bool hasSpeed = false;
     quint8 targetSpeed = 0;
     bool hasTransitionTime = false;
-    bool hasStop = false;
 
     // Check parameters.
     for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
@@ -1020,53 +1034,24 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     // This device is a shutter but is used as a dimmable light, so need some hack
     if (taskRef.lightNode->modelId() == QLatin1String("PFLX Shutter"))
     {
-        // if the user use on/off instead off bri
         if (hasOn && !hasBri)
         {
+            hasBri = true;
             targetBri = targetOn ? 0xFE : 0x00;
         }
+        hasOn = false; // use bri instead
 
-        // The constructor ask to use setvel instead of on/off
-        hasBri = true;
-        hasOn = false;
-        isOn = true; // to force bri even state = off
-
-        //Check limit
-        if (targetBri > 0xFE) { targetBri = 0xFE; }
-        if (targetBri < 1) { targetBri = 0x01; }
-
-        //Check for stop
         if (hasBriInc)
         {
-            hasStop = true;
-        }
-
-    }
-
-    // Stop command, I think it's useless, but the command exist, and need it for profalux
-    if (hasStop)
-    {
-        //Reset all
-        hasBriInc = false;
-        hasBri = false;
-        isOn = false;
-
-        TaskItem task;
-        copyTaskReq(taskRef, task);
-
-        if (addTaskStopBrightness(task))
-        {
-            QVariantMap rspItem;
-            QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/state/stop").arg(id)] = true;
-            rspItem["success"] = rspItemState;
-            rsp.list.append(rspItem);
+            targetBriInc = 0; // only use for stop
+            hasBri = false;
         }
         else
         {
-            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/stop").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+            isOn = true; // to force bri even when off
+            if (targetBri > 0xFE) { targetBri = 0xFE; }
+            if (targetBri < 1) { targetBri = 0x01; }
         }
-
     }
 
     // state.on: true
@@ -1075,7 +1060,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         TaskItem task;
         copyTaskReq(taskRef, task);
 
-        if (!isOn && hasBri && taskRef.onTime == 0)
+        if (taskRef.lightNode->toBool(RCapBriMoveWithOnOff) && !isOn && hasBri && taskRef.onTime == 0)
         {
             // if a light is off and should transition from 0 to new brightness
             // turn light on at lowest brightness first
@@ -1084,12 +1069,6 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             task.transitionTime = 0;
 
             ok = addTaskSetBrightness(task, 2, true);
-        }
-
-        // Danalock support. In rest_lights.cpp, you need to call this routine from setLightState() under if (hasOn)
-        if (isDoorLockDevice)
-        {
-            ok = addTaskDoorLockUnlock(task, 0x00 /*Lock*/);
         }
         else
         {
@@ -1104,14 +1083,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             isOn = true;
             QVariantMap rspItem;
             QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/state/on").arg(id)] = true;
+            rspItemState[QString("/lights/%1/state/on").arg(id)] = targetOn;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
-
-            if (!isDoorLockDevice) // Avoid reporting the new state before the lock report its state as locking/unlocking operations takes time and can also gets stuck.
-            {
-                taskRef.lightNode->setValue(RStateOn, targetOn);
-            }
+            taskRef.lightNode->setValue(RStateOn, targetOn);
         }
         else
         {
@@ -1125,7 +1100,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         TaskItem task;
         copyTaskReq(taskRef, task);
 
-        if (!isOn)
+        if (!isOn && !taskRef.lightNode->toBool(RConfigBriExecuteIfOff))
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, bri, is not modifiable. Device is set to off.")));
         }
@@ -1168,7 +1143,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         bri += targetBriInc;
         targetBri = bri < 0 ? 0 : bri > 254 ? 254 : bri;
 
-        if (!isOn)
+        if (!isOn && !taskRef.lightNode->toBool(RConfigBriExecuteIfOff))
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, bri_inc, is not modifiable. Device is set to off.")));
         }
@@ -1194,7 +1169,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         TaskItem task;
         copyTaskReq(taskRef, task);
 
-        if (!isOn)
+        if (!isOn && !taskRef.lightNode->toBool(RConfigColorExecuteIfOff))
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, effect, is not modifiable. Device is set to off.")));
         }
@@ -1228,7 +1203,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         TaskItem task;
         copyTaskReq(taskRef, task);
 
-        if (!isOn)
+        if (!isOn && !taskRef.lightNode->toBool(RConfigColorExecuteIfOff))
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, xy, is not modifiable. Device is set to off.")));
         }
@@ -1261,7 +1236,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         TaskItem task;
         copyTaskReq(taskRef, task);
 
-        if (!isOn)
+        if (!isOn && !taskRef.lightNode->toBool(RConfigColorExecuteIfOff))
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, ct, is not modifiable. Device is set to off.")));
         }
@@ -1290,7 +1265,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         TaskItem task;
         copyTaskReq(taskRef, task);
 
-        if (!isOn)
+        if (!isOn && !taskRef.lightNode->toBool(RConfigColorExecuteIfOff))
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, ct_inc, is not modifiable. Device is set to off.")));
         }
@@ -1320,7 +1295,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         TaskItem task;
         copyTaskReq(taskRef, task);
 
-        if (!isOn)
+        if (!isOn && !taskRef.lightNode->toBool(RConfigColorExecuteIfOff))
         {
             if (hasHue)
             {
@@ -1359,47 +1334,6 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         if (ok)
         {
-            // FIXME: do we need this?
-            // quint16 hue = hasHue ? targetHue : taskRef.lightNode->item(RStateHue)->toNumber();
-            // quint8 sat = hasSat ? targetSat : taskRef.lightNode->item(RStateSat)->toNumber();
-            //
-            // double r, g, b;
-            // double x, y;
-            // double h = (hue * 360.0) / 65535.0;
-            // double s = sat / 254.0;
-            // double v = 1.0;
-            //
-            // Hsv2Rgb(&r, &g, &b, h, s, v);
-            // Rgb2xy(&x, &y, r, g, b);
-            //
-            // if (x < 0) { x = 0; }
-            // else if (x > 1) { x = 1; }
-            // if (y < 0) { y = 0; }
-            // else if (y > 1) { y = 1; }
-            //
-            // x *= 65535.0;
-            // y *= 65535.0;
-            // if (x > 0xFEFF) { x = 0xFEFF; }
-            // else if (x < 1) { x = 1; }
-            // if (y > 0xFEFF) { y = 0xFEFF; }
-            // else if (y < 1) { y = 1; }
-            //
-            // item = task.lightNode->item(RStateX);
-            // if (item && item->toNumber() != static_cast<quint16>(x))
-            // {
-            //     item->setValue(static_cast<quint16>(x));
-            //     Event e(RLights, RStateX, task.lightNode->id(), item);
-            //     enqueueEvent(e);
-            // }
-            // item = task.lightNode->item(RStateY);
-            // if (item && item->toNumber() != static_cast<quint16>(y))
-            // {
-            //     item->setValue(static_cast<quint16>(y));
-            //     Event e(RLights, RStateY, task.lightNode->id(), item);
-            //     enqueueEvent(e);
-            // }
-            // End FIXME
-
             if (hasHue)
             {
                 QVariantMap rspItem;
@@ -1434,7 +1368,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         TaskItem task;
         copyTaskReq(taskRef, task);
 
-        if (!isOn)
+        if (!isOn && !taskRef.lightNode->toBool(RConfigColorExecuteIfOff))
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, effect, is not modifiable. Device is set to off.")));
         }
@@ -1464,7 +1398,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     }
     else if (effect > 0)
     {
-        if (!isOn)
+        if (!isOn && !taskRef.lightNode->toBool(RConfigColorExecuteIfOff))
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, effect, is not modifiable. Device is set to off.")));
         }
@@ -1631,20 +1565,14 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
         TaskItem task;
         copyTaskReq(taskRef, task);
-        if (hasBri && hasTransitionTime)
+        if (hasBri && hasTransitionTime && taskRef.lightNode->toBool(RCapBriMoveWithOnOff))
         {
             ok = addTaskSetBrightness(task, 0, true);
-            // Danalock support. In rest_lights.cpp, you need to call this routine from setLightState() under if (hasOn)
-        }
-        else if (isDoorLockDevice)
-        {
-            ok = addTaskDoorLockUnlock(task, 0x01 /*UnLock*/);
         }
         else
         {
             const quint16 manufacturerCode = taskRef.lightNode->manufacturerCode();
-            const quint8 cmd = (manufacturerCode == VENDOR_PHILIPS ||
-                                (manufacturerCode == VENDOR_IKEA && taskRef.lightNode->modelId() != QLatin1String("KNYCKLAN receiver")))
+            const quint8 cmd = taskRef.lightNode->toBool(RCapOnOffWithEffect)
                     ? ONOFF_COMMAND_OFF_WITH_EFFECT
                     : ONOFF_COMMAND_OFF;
             ok = addTaskSetOnOff(task, cmd, 0, 0);
@@ -1657,11 +1585,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rspItemState[QString("/lights/%1/state/on").arg(id)] = targetOn;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
-
-            if (!isDoorLockDevice) // Avoid reporting the new state before the lock report its state as locking/unlocking operations takes time and can also gets stuck.
-            {
-                taskRef.lightNode->setValue(RStateOn, targetOn);
-            }
+            taskRef.lightNode->setValue(RStateOn, targetOn);
         }
         else
         {
@@ -2884,6 +2808,135 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
     return REQ_READY_SEND;
 }
 
+/*! PUT, PATCH /api/<apikey>/lights/<id>/state for Door Lock "lights".
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::setDoorLockState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map)
+{
+    static const QStringList alertList({
+        "none", "select"
+    });
+    bool ok;
+    QString id = req.path[3];
+
+    bool requestOk = true;
+    bool hasCmd = false;
+    bool hasOn = false;
+    bool targetOn = false;
+    QString alert;
+
+    // Check parameters.
+    for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
+    {
+        bool paramOk = false;
+        bool valueOk = false;
+        QString param = p.key();
+
+        if (param == "on" && taskRef.lightNode->item(RStateOn))
+        {
+            paramOk = true;
+            hasCmd = true;
+            if (map[param].type() == QVariant::Bool)
+            {
+                valueOk = true;
+                hasOn = true;
+                targetOn = map[param].toBool();
+            }
+        }
+        else if (param == "alert" && taskRef.lightNode->item(RStateAlert))
+        {
+            paramOk = true;
+            hasCmd = true;
+            if (map[param].type() == QVariant::String)
+            {
+                alert = map[param].toString();
+                valueOk = alertList.contains(alert);
+            }
+        }
+        if (!paramOk)
+        {
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state").arg(id).arg(param), QString("parameter, %1, not available").arg(param)));
+            requestOk = false;
+        }
+        else if (!valueOk)
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state/%2").arg(id).arg(param), QString("invalid value, %1, for parameter, %2").arg(map[param].toString()).arg(param)));
+            requestOk = false;
+        }
+    }
+    if (requestOk && !hasCmd)
+    {
+        rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, QString("/lights/%1/state").arg(id), QString("missing parameter to set warning device state")));
+        requestOk = false;
+    }
+    if (!requestOk)
+    {
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
+    }
+
+    // state.on
+    if (hasOn)
+    {
+        TaskItem task;
+        copyTaskReq(taskRef, task);
+
+        if (addTaskDoorLockUnlock(task, targetOn ? 0x00 /*Lock*/ : 0x01 /*Unlock*/))
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/on").arg(id)] = targetOn;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/on").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+        }
+    }
+
+    // state.alert
+    if (!alert.isEmpty())
+    {
+        TaskItem task;
+        copyTaskReq(taskRef, task);
+        task.taskType = TaskIdentify;
+
+        if (alert == "none")
+        {
+            task.identifyTime = 0;
+        }
+        else if (alert == "select")
+        {
+            task.identifyTime = 2;    // Hue lights don't react to 1.
+        }
+        else if (alert == "lselect")
+        {
+            task.identifyTime = taskRef.onTime > 0 ? taskRef.onTime : 15; // Default for Philips Hue bridge
+        }
+
+        if (addTaskIdentify(task, task.identifyTime))
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/alert").arg(id)] = alert;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+
+            // Don't update write-only state.alert.
+        }
+        else if (task.taskType == TaskIdentify || task.taskType == TaskTriggerEffect)
+        {
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+        }
+    }
+
+    rsp.etag = taskRef.lightNode->etag;
+    processTasks();
+    return REQ_READY_SEND;
+}
+
 /*! PUT, PATCH /api/<apikey>/lights/<id>
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
@@ -3642,6 +3695,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     else if (rid.suffix == RAttrSwVersion) { attr["swversion"] = item->toString(); }
                     else if (rid.suffix == RAttrType) { attr["type"] = item->toString(); }
                     else if (rid.suffix == RAttrUniqueId) { attr["uniqueid"] = item->toString(); }
+                    else if (rid.suffix == RCapAlertTriggerEffect) { capabilitiesAlerts = &RStateAlertValuesTriggerEffect; }
                     else if (rid.suffix == RCapColorCtComputesXy) { capabilitiesColorCt["computes_xy"] = item->toBool(); }
                     else if (rid.suffix == RCapColorCtMax)
                     {
@@ -3659,7 +3713,8 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     else if (rid.suffix == RCapColorGradientMaxSegments) { capabilitiesColorGradient["max_segments"] = item->toNumber(); }
                     else if (rid.suffix == RCapColorGradientPixelCount) { capabilitiesColorGradient["pixel_count"] = item->toNumber(); }
                     else if (rid.suffix == RCapColorGradientPixelLength) { capabilitiesColorGradient["pixel_length"] = item->toNumber(); }
-                    else if (rid.suffix == RCapOnTriggerEffect) { capabilitiesAlerts = &RStateAlertValuesTriggerEffect; }
+                    else if (rid.suffix == RCapSleeper) { capabilities["sleeper"] = true; }
+                    else if (rid.suffix == RCapTransitionBlock) { capabilities["transition_block"] = true; }
                     else if (rid.suffix == RConfigBriExecuteIfOff) { configBri["execute_if_off"] = item->toBool(); }
                     else if (rid.suffix == RConfigBriMax) { configBri["max"] = item->toNumber(); }
                     else if (rid.suffix == RConfigBriMin) { configBri["min"] = item->toNumber(); }
@@ -3701,13 +3756,13 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     if ((rid.suffix == RStateOn || rid.suffix == RStateReachable) &&
                         item->needPushChange() && !lightNode->groups().empty())
                     {
-                        std::vector<GroupInfo>::const_iterator i = lightNode->groups().begin();
-                        std::vector<GroupInfo>::const_iterator end = lightNode->groups().end();
-                        for (; i != end; ++i)
+                        std::vector<GroupInfo>::const_iterator g = lightNode->groups().begin();
+                        std::vector<GroupInfo>::const_iterator gend = lightNode->groups().end();
+                        for (; g != gend; ++g)
                         {
-                            if (i->state == GroupInfo::StateInGroup)
+                            if (g->state == GroupInfo::StateInGroup)
                             {
-                                Event e(RGroups, REventCheckGroupAnyOn, int(i->id));
+                                Event e(RGroups, REventCheckGroupAnyOn, int(g->id));
                                 enqueueEvent(e);
                             }
                         }

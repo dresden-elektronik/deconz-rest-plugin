@@ -369,37 +369,6 @@ bool DeRestPluginPrivate::addTaskIncBrightness(TaskItem &task, int16_t bri)
 }
 
 /*!
- * Add a stop brightness task to the queue
- *
- * \param task - the task item
- * \return true - on success
- *         false - on error
- */
-bool DeRestPluginPrivate::addTaskStopBrightness(TaskItem &task)
-{
-    task.taskType = TaskStopLevel;
-    task.req.setClusterId(LEVEL_CLUSTER_ID);
-    task.req.setProfileId(HA_PROFILE_ID);
-
-    task.zclFrame.setSequenceNumber(zclSeq++);
-    task.zclFrame.setCommandId(0x03); // Stop
-
-    task.zclFrame.payload().clear();
-    task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
-                             deCONZ::ZclFCDirectionClientToServer |
-                             deCONZ::ZclFCDisableDefaultResponse);
-
-    { // ZCL frame
-        task.req.asdu().clear(); // cleanup old request data if there is any
-        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
-        stream.setByteOrder(QDataStream::LittleEndian);
-        task.zclFrame.writeToStream(stream);
-    }
-
-    return addTask(task);
-}
-
-/*!
  * Add a set color temperature task to the queue
  *
  * \param task - the task item
