@@ -857,15 +857,13 @@ enum TaskType
     TaskIncBrightness = 35,
     TaskWindowCovering = 36,
     TaskThermostat = 37,
-    // Danalock support
-    TaskDoorLock = 38,
-    TaskDoorUnlock = 39,
+    TaskDoorLock = 38, // Danalock support
+    TaskHueGradient = 45,
     TaskSyncTime = 40,
     TaskTuyaRequest = 41,
     TaskXmasLightStrip = 42,
     TaskSimpleMetering = 43,
-    TaskHueEffect = 44,
-    TaskHueGradient = 45
+    TaskHueEffect = 44
 };
 
 enum XmasLightStripMode

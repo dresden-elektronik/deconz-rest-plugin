@@ -1024,7 +1024,7 @@ bool DeRestPluginPrivate::addTaskWarning(TaskItem &task, uint8_t options, uint16
  */
 bool DeRestPluginPrivate::addTaskDoorLockUnlock(TaskItem &task, uint8_t cmd)
 {
-    task.taskType = TaskDoorUnlock;
+    task.taskType = TaskDoorLock;
 
     task.req.setClusterId(DOOR_LOCK_CLUSTER_ID);
     task.req.setProfileId(HA_PROFILE_ID);
