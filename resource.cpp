@@ -183,6 +183,7 @@ const QStringList RStateEffectValuesMueller({
     "none", "colorloop", "sunset", "party", "worklight", "campfire", "romance", "nightlight"
 });
 
+const char *RCapAlertTriggerEffect = "cap/alert/trigger_effect";
 const char *RCapBriMoveWithOnOff = "cap/bri/move_with_onoff";
 const char *RCapColorCapabilities = "cap/color/capabilities";
 const char *RCapColorCtComputesXy = "cap/color/ct/computes_xy";
@@ -198,9 +199,9 @@ const char *RCapColorXyGreenX = "cap/color/xy/green_x";
 const char *RCapColorXyGreenY = "cap/color/xy/green_y";
 const char *RCapColorXyRedX = "cap/color/xy/red_x";
 const char *RCapColorXyRedY = "cap/color/xy/red_y";
+const char *RCapGroupsNotSupported = "cap/groups/not_supported";
 const char *RCapOnOffWithEffect = "cap/on/off_with_effect";
 const char *RCapSleeper = "cap/sleeper";
-const char *RCapOnTriggerEffect = "cap/on/trigger_effect";
 const char *RCapTransitionBlock = "cap/transition_block";
 
 const char *RConfigAlarmSystemId = "config/alarmsystemid";
@@ -448,6 +449,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateX));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateY));
 
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RCapAlertTriggerEffect));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RCapBriMoveWithOnOff));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorCapabilities));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RCapColorCtComputesXy));
@@ -463,10 +465,10 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorXyGreenY));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorXyRedX));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorXyRedY));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RCapGroupsNotSupported));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RCapOnOffWithEffect));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RCapOnTriggerEffect));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RCapTransitionBlock));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RCapSleeper));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RCapTransitionBlock));
 
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigAlarmSystemId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigAlert));

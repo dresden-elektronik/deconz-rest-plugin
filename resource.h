@@ -197,6 +197,7 @@ extern const char *RStateWindowOpen;
 extern const char *RStateX;
 extern const char *RStateY;
 
+extern const char *RCapAlertTriggerEffect;
 extern const char *RCapBriMoveWithOnOff;
 extern const char *RCapColorCapabilities;
 extern const char *RCapColorCtComputesXy;
@@ -212,9 +213,9 @@ extern const char *RCapColorXyGreenX;
 extern const char *RCapColorXyGreenY;
 extern const char *RCapColorXyRedX;
 extern const char *RCapColorXyRedY;
+extern const char *RCapGroupsNotSupported;
 extern const char *RCapOnOffWithEffect;
 extern const char *RCapSleeper;
-extern const char *RCapOnTriggerEffect;
 extern const char *RCapTransitionBlock;
 
 extern const char *RConfigAlarmSystemId;

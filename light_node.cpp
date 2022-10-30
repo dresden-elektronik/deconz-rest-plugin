@@ -569,12 +569,14 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                                                        ltype = QLatin1String("Warning device"); break;
             case DEV_ID_HA_WINDOW_COVERING_CONTROLLER: ltype = QLatin1String("Window covering controller"); break;
             case DEV_ID_HA_WINDOW_COVERING_DEVICE:     ltype = QLatin1String("Window covering device"); break;
-            case DEV_ID_DOOR_LOCK:                     ltype = QLatin1String("Door Lock"); break;
-            case DEV_ID_DOOR_LOCK_UNIT:                ltype = QLatin1String("Door Lock Unit"); break;
-
+            case DEV_ID_DOOR_LOCK:                     addItem(DataTypeBool, RCapGroupsNotSupported);
+                                                       ltype = QLatin1String("Door Lock"); break;
+            case DEV_ID_DOOR_LOCK_UNIT:                addItem(DataTypeBool, RCapGroupsNotSupported);
+                                                       ltype = QLatin1String("Door Lock Unit"); break;
             case DEV_ID_FAN:                           ltype = QLatin1String("Fan"); break;
             case DEV_ID_CONFIGURATION_TOOL:            removeItem(RStateOn);
                                                        removeItem(RStateAlert);
+                                                       addItem(DataTypeBool, RCapGroupsNotSupported);
                                                        ltype = QLatin1String("Configuration tool"); break;
             default:
                 break;
@@ -605,6 +607,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             {
             case DEV_ID_DIN_XBEE:                    removeItem(RStateOn);
                                                      removeItem(RStateAlert);
+                                                     addItem(DataTypeBool, RCapGroupsNotSupported);
                                                      ltype = QLatin1String("Range extender"); break;
             default:
                 break;

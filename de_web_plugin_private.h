@@ -1147,6 +1147,7 @@ public:
     int setWindowCoveringState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
     int setWarningDeviceState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
     int setTuyaDeviceState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
+    int setDoorLockState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
     int setLightAttributes(const ApiRequest &req, ApiResponse &rsp);
     int deleteLight(const ApiRequest &req, ApiResponse &rsp);
     int removeAllScenes(const ApiRequest &req, ApiResponse &rsp);
@@ -1518,7 +1519,6 @@ public:
     bool addTaskSetBrightness(TaskItem &task, uint8_t bri, bool withOnOff);
     bool addTaskIncColorTemperature(TaskItem &task, int32_t ct);
     bool addTaskIncBrightness(TaskItem &task, int16_t bri);
-    bool addTaskStopBrightness(TaskItem &task);
     bool addTaskSetColorTemperature(TaskItem &task, uint16_t ct);
     bool addTaskSetEnhancedHue(TaskItem &task, uint16_t hue);
     bool addTaskSetSaturation(TaskItem &task, uint8_t sat);
