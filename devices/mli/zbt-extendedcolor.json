@@ -50,7 +50,7 @@
         {
           "name": "cap/color/capabilities",
           "read": {
-            "fn": "zcl", "ep": 0, "cl": "0x0300", "at": ["0x400a", "0x400b", "0x400c", "0x4010", "0x000f"]
+            "fn": "zcl", "ep": "0x01", "cl": "0x0300", "at": ["0x400a", "0x400b", "0x400c", "0x4010", "0x000f"]
           },
           "refresh.interval": 86400
         },
@@ -58,7 +58,8 @@
           "name": "cap/color/ct/computes_xy"
         },
         {
-          "name": "cap/color/ct/max"
+          "name": "cap/color/ct/max",
+          "read": { "fn": "none" }
         },
         {
           "name": "cap/color/ct/min",
@@ -94,7 +95,7 @@
         {
           "name": "config/bri/execute_if_off",
           "read": {
-            "fn": "zcl", "ep": 0, "cl": "0x0008", "at": ["0x000f", "0x0011", "0x4000"]
+            "fn": "zcl", "ep": "0x01", "cl": "0x0008", "at": ["0x000f", "0x0011", "0x4000"]
           },
           "refresh.interval": 86400
         },
@@ -177,6 +178,10 @@
         },
         {
           "name": "state/hue",
+          "parse": {
+            "fn": "zcl", "ep": "0x01", "cl": "0x0300", "at": "0x0000",
+            "eval": "Item.val = Attr.val"
+          },
           "read": { "fn": "none" }
         },
         {
