@@ -61,6 +61,10 @@ struct RestData
     bool valid = false;
 };
 
+unsigned U_StringLength(const char *str);
+uint64_t U_ParseUint64(const char *str, int len, int base);
+
+
 QString generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId);
 bool startsWith(QLatin1String str, QLatin1String needle);
 int indexOf(QLatin1String haystack, QLatin1String needle);
