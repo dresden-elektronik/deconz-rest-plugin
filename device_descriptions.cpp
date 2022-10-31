@@ -1228,33 +1228,35 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
             result.refreshInterval = obj.value(QLatin1String("refresh.interval")).toInt(0);
         }
 
-        const auto parse = obj.value(QLatin1String("parse"));
-        if (parse.isObject())
-        {
-            result.parseParameters = parse.toVariant();
-        }
-
-        const auto read = obj.value(QLatin1String("read"));
-        if (read.isObject())
-        {
-            result.readParameters = read.toVariant();
-        }
-
-        const auto write = obj.value(QLatin1String("write"));
-        if (write.isObject())
-        {
-            result.writeParameters = write.toVariant();
-        }
-
         if (obj.contains(QLatin1String("static")))
         {
             result.isStatic = 1;
             result.defaultValue = obj.value(QLatin1String("static")).toVariant();
         }
-
-        if (obj.contains(QLatin1String("default")))
+        else
         {
-            result.defaultValue = obj.value(QLatin1String("default")).toVariant();
+            if (obj.contains(QLatin1String("default")))
+            {
+                result.defaultValue = obj.value(QLatin1String("default")).toVariant();
+            }
+
+            const auto parse = obj.value(QLatin1String("parse"));
+            if (parse.isObject())
+            {
+                result.parseParameters = parse.toVariant();
+            }
+
+            const auto read = obj.value(QLatin1String("read"));
+            if (read.isObject())
+            {
+                result.readParameters = read.toVariant();
+            }
+
+            const auto write = obj.value(QLatin1String("write"));
+            if (write.isObject())
+            {
+                result.writeParameters = write.toVariant();
+            }
         }
 
         DBG_Printf(DBG_DDF, "DDF loaded resource item descriptor: %s, public: %u\n", result.descriptor.suffix, (result.isPublic ? 1 : 0));
