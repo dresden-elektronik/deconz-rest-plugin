@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2021-2022 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -7,6 +7,8 @@
  * the LICENSE.txt file.
  *
  */
+
+#ifdef USE_QT_JS_ENGINE
 
 #include <math.h>
 #include "resource.h"
@@ -350,3 +352,5 @@ QString JsUtils::padStart(const QString &str, QJSValue targetLength, QJSValue pa
 
     return result;
 }
+
+#endif // USE_QT_JS_ENGINE

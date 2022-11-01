@@ -9,11 +9,9 @@
  */
 
 #include <QTimeZone>
-#include "air_quality.h"
 #include "device_access_fn.h"
 #include "device_descriptions.h"
 #include "device_js/device_js.h"
-#include "device_js/device_js_wrappers.h"
 #include "ias_zone.h"
 #include "resource.h"
 #include "zcl/zcl.h"

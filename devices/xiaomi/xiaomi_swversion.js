@@ -1,5 +1,5 @@
-let s = "0.0.0_";
-let v = 0;
+var s = "0.0.0_";
+var v = 0;
 
 if (Attr.dataType == 33)
 {

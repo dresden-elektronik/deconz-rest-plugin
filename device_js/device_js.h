@@ -111,4 +111,6 @@ private:
     std::unique_ptr<DeviceJsPrivate> d;
 };
 
+void DeviceJS_ResourceItemValueChanged(ResourceItem *item);
+
 #endif // DEVICEJS_H
