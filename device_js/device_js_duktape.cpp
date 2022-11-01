@@ -378,7 +378,7 @@ static duk_ret_t DJS_GetAttributeValue(duk_context *ctx)
 
     if (!attr)
     {
-        return DUK_ERR_REFERENCE_ERROR;
+        return duk_reference_error(ctx, "attribute not defined");
     }
 
     const int type = attr->dataType();
@@ -489,7 +489,7 @@ static duk_ret_t DJS_GetAttributeId(duk_context *ctx)
 
     if (!_djsPriv->attr)
     {
-        return DUK_ERR_REFERENCE_ERROR;
+        return duk_reference_error(ctx, "attribute not defined");
     }
 
     duk_push_int(ctx, _djsPriv->attr->id());
@@ -502,7 +502,7 @@ static duk_ret_t DJS_GetAttributeDataType(duk_context *ctx)
 
     if (!_djsPriv->attr)
     {
-        return DUK_ERR_REFERENCE_ERROR;
+        return duk_reference_error(ctx, "attribute not defined");
     }
 
     duk_push_int(ctx, _djsPriv->attr->dataType());
@@ -551,7 +551,7 @@ static duk_ret_t DJS_GetZclFrameCmd(duk_context *ctx)
 
     if (!_djsPriv->zclFrame)
     {
-        return DUK_ERR_REFERENCE_ERROR;
+        return duk_reference_error(ctx, "ZclFrame not defined");
     }
 
     duk_push_int(ctx, _djsPriv->zclFrame->commandId());
@@ -564,7 +564,7 @@ static duk_ret_t DJS_GetZclFramePayloadSize(duk_context *ctx)
 
     if (!_djsPriv->zclFrame)
     {
-        return DUK_ERR_REFERENCE_ERROR;
+        return duk_reference_error(ctx, "ZclFrame not defined");
     }
 
     duk_push_int(ctx, _djsPriv->zclFrame->payload().size());
@@ -577,34 +577,12 @@ static duk_ret_t DJS_GetZclFrameIsClusterCommand(duk_context *ctx)
 
     if (!_djsPriv->zclFrame)
     {
-        return DUK_ERR_REFERENCE_ERROR;
+        return duk_reference_error(ctx, "ZclFrame not defined");
     }
 
     duk_push_boolean(ctx, _djsPriv->zclFrame->isClusterCommand() ? 1 : 0);
     return 1;  /* one return value */
 }
-
-#if 0
-class JsZclFrame : public QObject
-{
-    Q_OBJECT
-
-    Q_PROPERTY(int cmd READ cmd CONSTANT)
-    Q_PROPERTY(int payloadSize READ payloadSize CONSTANT)
-    Q_PROPERTY(bool isClCmd READ isClCmd CONSTANT)
-
-public:
-    const deCONZ::ZclFrame *zclFrame = nullptr;
-
-    JsZclFrame(QObject *parent = nullptr);
-
-public Q_SLOTS:
-    int at(int i) const;
-    int cmd() const;
-    int payloadSize() const;
-    bool isClCmd() const;
-};
-#endif
 
 static duk_ret_t DJS_GetZclFramePayloadAt(duk_context *ctx)
 {
@@ -628,7 +606,7 @@ static duk_ret_t DJS_GetZclFramePayloadAt(duk_context *ctx)
         return duk_range_error(ctx, "index out of range");
     }
 
-    return DUK_ERR_REFERENCE_ERROR;
+    return duk_reference_error(ctx, "ZclFrame not defined");
 }
 
 /* Creates 'ZclFrame' global scope object. */
@@ -777,7 +755,7 @@ static duk_ret_t DJS_GetItemVal(duk_context *ctx)
     }
 
     DBG_Printf(DBG_INFO, "%s: index: %d, reference error\n", __FUNCTION__, item_index);
-    return DUK_ERR_REFERENCE_ERROR;
+    return duk_reference_error(ctx, "item not defined");
 }
 
 static duk_ret_t DJS_SetItemVal(duk_context *ctx)
@@ -830,7 +808,7 @@ static duk_ret_t DJS_SetItemVal(duk_context *ctx)
             if (!ok)
             {
                 DBG_Printf(DBG_DDF, "JS failed to set Item.val for %s\n", item->descriptor().suffix);
-                return DUK_ERR_TYPE_ERROR;
+                return duk_type_error(ctx, "failed to set Item.val");
             }
             else
             {
@@ -840,7 +818,7 @@ static duk_ret_t DJS_SetItemVal(duk_context *ctx)
         }
     }
 
-    return DUK_ERR_REFERENCE_ERROR;
+    return duk_reference_error(ctx, "item not defined");
 }
 
 static duk_ret_t DJS_GetItemName(duk_context *ctx)
@@ -865,7 +843,7 @@ static duk_ret_t DJS_GetItemName(duk_context *ctx)
         }
     }
 
-    return DUK_ERR_REFERENCE_ERROR;  /* one return value */
+    return duk_reference_error(ctx, "item not defined");
 }
 
 /* RItem constructor */
@@ -1085,7 +1063,7 @@ DeviceJs::DeviceJs() :
     _djsPriv = d.get();
     _djs = this;
 
-    U_InitArena(&d->arena, U_KILO_BYTES(512));
+    U_InitArena(&d->arena, U_KILO_BYTES(2048));
     DJS_InitDuktape(d.get());
 }
 
