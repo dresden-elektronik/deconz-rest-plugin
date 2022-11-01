@@ -1029,15 +1029,6 @@ void DJS_InitDuktape(DeviceJsPrivate *d)
     }
     duk_pop(ctx);
 
-    // Qt JS engine partly used Utils.padStart as it was missing in String.padStart
-    // keep existing JS working until updated
-    if (duk_peval_string(ctx, "Utils.padStart = String.prototype.padStart") != 0)
-    {
-        const char *str = duk_safe_to_string(ctx, -1);
-        DBG_Printf(DBG_INFO, "failed to apply Utils.padStart = String.prototype.padStart: %s\n", str);
-    }
-    duk_pop(ctx);
-
     // Qt JS engine used Utils.log10 as it was missing in Math.log10
     // keep existing JS working until updated
     if (duk_peval_string(ctx, "Utils.log10 = Math.log10") != 0)
