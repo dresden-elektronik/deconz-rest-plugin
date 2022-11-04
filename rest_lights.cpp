@@ -13,6 +13,7 @@
 #include <QTcpSocket>
 #include <QUrlQuery>
 #include <QVariantMap>
+#include "database.h"
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "device_descriptions.h"
@@ -830,7 +831,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                     else
                     {
                         valueOk = true;
-                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state").arg(id), QString("invalid value, [%1,%2], for parameter, xy").arg(xy[0].toString()).arg(xy[1].toString())));
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state/xy").arg(id), QString("invalid value, [%1,%2], for parameter, xy").arg(xy[0].toString()).arg(xy[1].toString())));
                     }
                 }
             }
@@ -937,7 +938,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             paramOk = true;
             valueOk = true;
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state").arg(id), QString("parameter, %1, is not modifiable.").arg(param)));
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state/colormode").arg(id).arg(param), QString("parameter, colormode, is not modifiable.")));
         }
         else if (param == "alert" && taskRef.lightNode->item(RStateAlert))
         {
@@ -1003,11 +1004,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         if (!paramOk)
         {
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state").arg(id), QString("parameter, %1, not available").arg(param)));
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state/%2").arg(id).arg(param), QString("parameter, %1, not available").arg(param)));
         }
         else if (!valueOk)
         {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state").arg(id), QString("invalid value, %1, for parameter, %2").arg(map[param].toString()).arg(param)));
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state/%2").arg(id).arg(param), QString("invalid value, %1, for parameter, %2").arg(map[param].toString()).arg(param)));
         }
     }
     if (taskRef.onTime > 0 && !hasOn && alert.isEmpty())
@@ -1102,7 +1103,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
         if (!isOn && !taskRef.lightNode->toBool(RConfigBriExecuteIfOff))
         {
-            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, bri, is not modifiable. Device is set to off.")));
+            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state/bri").arg(id), QString("parameter, bri, is not modifiable. Device is set to off.")));
         }
         else if (hasOn && !targetOn && hasTransitionTime)
         {
@@ -1145,7 +1146,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
         if (!isOn && !taskRef.lightNode->toBool(RConfigBriExecuteIfOff))
         {
-            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, bri_inc, is not modifiable. Device is set to off.")));
+            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state/bri_inc").arg(id), QString("parameter, bri_inc, is not modifiable. Device is set to off.")));
         }
         else if (addTaskIncBrightness(task, targetBriInc))
         {
@@ -1171,7 +1172,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
         if (!isOn && !taskRef.lightNode->toBool(RConfigColorExecuteIfOff))
         {
-            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, effect, is not modifiable. Device is set to off.")));
+            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state/effect").arg(id), QString("parameter, effect, is not modifiable. Device is set to off.")));
         }
         else if (addTaskSetColorLoop(task, false, colorloopSpeed))
         {
@@ -1205,11 +1206,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
         if (!isOn && !taskRef.lightNode->toBool(RConfigColorExecuteIfOff))
         {
-            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, xy, is not modifiable. Device is set to off.")));
+            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state/xy").arg(id), QString("parameter, xy, is not modifiable. Device is set to off.")));
         }
         else if (taskRef.lightNode->isColorLoopActive())
         {
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state").arg(id), QString("parameter, xy, is not modifiable. Colorloop is active.")));
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state/xy").arg(id), QString("parameter, xy, is not modifiable. Colorloop is active.")));
         }
         else if (addTaskSetXyColor(task, targetX, targetY))
         {
@@ -1238,11 +1239,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
         if (!isOn && !taskRef.lightNode->toBool(RConfigColorExecuteIfOff))
         {
-            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, ct, is not modifiable. Device is set to off.")));
+            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state/ct").arg(id), QString("parameter, ct, is not modifiable. Device is set to off.")));
         }
         else if (taskRef.lightNode->isColorLoopActive())
         {
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state").arg(id), QString("parameter, ct, is not modifiable. Colorloop is active.")));
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state/ct").arg(id), QString("parameter, ct, is not modifiable. Colorloop is active.")));
         }
         else if (addTaskSetColorTemperature(task, targetCt))
         {
@@ -1267,11 +1268,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
         if (!isOn && !taskRef.lightNode->toBool(RConfigColorExecuteIfOff))
         {
-            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, ct_inc, is not modifiable. Device is set to off.")));
+            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state/ct_inc").arg(id), QString("parameter, ct_inc, is not modifiable. Device is set to off.")));
         }
         else if (taskRef.lightNode->isColorLoopActive())
         {
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state").arg(id), QString("parameter, ct_inc, is not modifiable. Colorloop is active.")));
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state/ct_inc").arg(id), QString("parameter, ct_inc, is not modifiable. Colorloop is active.")));
         }
         else if (addTaskIncColorTemperature(task, targetCtInc))
         {
@@ -1299,22 +1300,22 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             if (hasHue)
             {
-                rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, hue, is not modifiable. Device is set to off.")));
+                rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state/hue").arg(id), QString("parameter, hue, is not modifiable. Device is set to off.")));
             }
             if (hasSat)
             {
-                rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, sat, is not modifiable. Device is set to off.")));
+                rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state/sat").arg(id), QString("parameter, sat, is not modifiable. Device is set to off.")));
             }
         }
         else if (taskRef.lightNode->isColorLoopActive())
         {
             if (hasHue)
             {
-                rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state").arg(id), QString("parameter, hue, is not modifiable. Colorloop is active.")));
+                rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state/hue").arg(id), QString("parameter, hue, is not modifiable. Colorloop is active.")));
             }
             if (hasSat)
             {
-                rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state").arg(id), QString("parameter, sat, is not modifiable. Colorloop is active.")));
+                rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state/sat").arg(id), QString("parameter, sat, is not modifiable. Colorloop is active.")));
             }
         }
         else if (!hasSat) // only state.hue
@@ -1358,7 +1359,14 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else
         {
-            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/sat").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+            if (hasHue)
+            {
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/hue").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+            }
+            if (hasSat)
+            {
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/sat").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+            }
         }
     }
 
@@ -1370,7 +1378,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
         if (!isOn && !taskRef.lightNode->toBool(RConfigColorExecuteIfOff))
         {
-            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, effect, is not modifiable. Device is set to off.")));
+            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state/effect").arg(id), QString("parameter, effect, is not modifiable. Device is set to off.")));
         }
         else if (addTaskSetColorLoop(task, true, colorloopSpeed))
         {
@@ -1400,7 +1408,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         if (!isOn && !taskRef.lightNode->toBool(RConfigColorExecuteIfOff))
         {
-            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, effect, is not modifiable. Device is set to off.")));
+            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state/effect").arg(id), QString("parameter, effect, is not modifiable. Device is set to off.")));
         }
         else if (taskRef.lightNode->manufacturerCode() == VENDOR_PHILIPS)
         {
@@ -1455,7 +1463,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else
         {
-            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/effect").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/gradient").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
     }
 
@@ -1524,7 +1532,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else if (task.taskType == TaskIdentify || task.taskType == TaskTriggerEffect)
         {
-            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/alert").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
     }
 
@@ -1609,39 +1617,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
 {
-    TaskItem taskRef;
     QString id = req.path[3];
-    taskRef.lightNode = getLightNodeForId(id);
-
-    if (req.sock)
-    {
-        userActivity();
-    }
-
-    if (!taskRef.lightNode || taskRef.lightNode->state() == LightNode::StateDeleted)
-    {
-        rsp.httpStatus = HttpStatusNotFound;
-        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
-        return REQ_READY_SEND;
-    }
+    LightNode *lightNode = getLightNodeForId(id);
 
     rsp.httpStatus = HttpStatusOk;
-
-    if (!taskRef.lightNode->isAvailable())
-    {
-        rsp.httpStatus = HttpStatusOk;
-        rsp.list.append(errorToMap(ERR_DEVICE_NOT_REACHABLE, QString("/lights/%1/config").arg(id), QString("resource, /lights/%1/config, is not modifiable. Device is not reachable.").arg(id)));
-        return REQ_READY_SEND;
-    }
-
-    // set destination parameters
-    taskRef.req.dstAddress() = taskRef.lightNode->address();
-    taskRef.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-    taskRef.req.setDstEndpoint(taskRef.lightNode->haEndpoint().endpoint());
-    taskRef.req.setSrcEndpoint(getSrcEndpoint(taskRef.lightNode, taskRef.req));
-    taskRef.req.setDstAddressMode(deCONZ::ApsExtAddress);
-
-    // StateChange change(StateChange::StateCallFunction, SC_WriteZclAttribute, task.req.dstEndpoint());
 
     bool ok;
     QVariant var = Json::parse(req.content, ok);
@@ -1653,39 +1632,51 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    bool hasBriExecuteIfOff = false;
-    bool targetBriExecuteIfOff = true;
-    bool hasBriMax = false;
-    quint8 targetBriMax = 0xFE;
-    bool hasBriMin = false;
-    quint8 targetBriMin = 1;
-    bool hasBriOnLevel = false;
-    quint8 targetBriOnLevel = 0xFF;
-    bool hasBriOnOffTransitiontime = false;
-    quint16 targetBriOnOffTransitiontime = 4;
-    bool hasBriStartup = false;
-    quint8 targetBriStartup = 0xFF;
+    if (!lightNode || lightNode->state() == LightNode::StateDeleted)
+    {
+        rsp.httpStatus = HttpStatusNotFound;
+        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
+        return REQ_READY_SEND;
+    }
 
-    bool hasCtStartup = false;
-    quint16 targetCtStartup = 0xFFFF;
-    bool hasColorExecuteOff = false;
-    bool targetColorExecuteIfOff = true;
-    bool hasGradientReversed = false;
-    bool targetGradientReversed = false;
-    bool hasXyStartup = false;
-    quint16 targetXyStartupX = 0xFFFF;
-    quint16 targetXyStartupY = 0xFFFF;
+    ok = false;
+    Device *device = static_cast<Device *>(lightNode->parentResource());
+    Resource *rsub;
+    if (device && device->managed())
+    {
+        rsub = DEV_GetSubDevice(device, nullptr, lightNode->uniqueId());
+        if (rsub)
+        {
+            ok = true;
+        }
+    }
+    if (!ok)
+    {
+        rsp.httpStatus = HttpStatusNotFound;
+        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1/config").arg(id), QString("resource, /lights/%1/config, is not modifyable. Device is not managed through DDF.").arg(id)));
+        return REQ_READY_SEND;
+    }
 
-    bool hasOnStartup = false;
-    quint8 targetOnStartup = 0;
+    if (!lightNode->isAvailable())
+    {
+        rsp.httpStatus = HttpStatusOk;
+        rsp.list.append(errorToMap(ERR_DEVICE_NOT_REACHABLE, QString("/lights/%1/config").arg(id), QString("resource, /lights/%1/config, is not modifiable. Device is not reachable.").arg(id)));
+        return REQ_READY_SEND;
+    }
 
-    // Check parameters.
+    if (req.sock)
+    {
+        userActivity();
+    }
+
+    StateChange change(StateChange::StateCallFunction, SC_WriteZclAttribute, lightNode->haEndpoint().endpoint());
+
     for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
     {
         bool paramOk = false;
         bool valueOk = false;
         QString key = p.key();
-        QString path = key;
+        QString path = QString("/lights/%1/config/%2").arg(id).arg(key);
         QVariant value = map[key];
 
         if (key == "bri")
@@ -1694,115 +1685,167 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
             if (value.type() == QVariant::Map)
             {
                 valueOk = true;
-                QVariantMap briMap = value.toMap();
-                for (QVariantMap::const_iterator q = briMap.begin(); q != briMap.end(); q++)
+                QVariantMap map1 = value.toMap();
+                for (QVariantMap::const_iterator q = map1.begin(); q != map1.end(); q++)
                 {
                     bool paramOk = false;
                     bool valueOk = false;
                     key = q.key();
-                    path = path + "/" + key;
-                    value = briMap[key];
+                    QString path1 = QString("%1/%2").arg(path).arg(key);
+                    value = map1[key];
 
-                    if (key == "execute_if_off" && taskRef.lightNode->item(RConfigBriExecuteIfOff))
+                    if (key == "execute_if_off")
                     {
-                        paramOk = true;
-                        if (value.type() == QVariant::Bool)
+                        ResourceItem *item = lightNode->item(RConfigBriExecuteIfOff);
+                        if (item)
                         {
-                            valueOk = true;
-                            hasBriExecuteIfOff = true;
-                            targetBriExecuteIfOff = value.toBool();
-                        }
-                    }
-                    else if (key == "max" && taskRef.lightNode->item(RConfigBriMax))
-                    {
-                        paramOk = true;
-                        if (value.type() == QVariant::Double)
-                        {
-                            const quint8 bri = value.toUInt(&ok);
-                            if (ok)
+                            paramOk = true;
+                            if (value.type() == QVariant::Bool)
                             {
                                 valueOk = true;
-                                hasBriMax = true;
-                                targetBriMax = bri > 0xFE ? 0xFE : bri;
+                                change.addTargetValue(RConfigBriExecuteIfOff, value.toBool());
+                                lightNode->setValue(RConfigBriExecuteIfOff, value.toBool());
+                                DB_StoreSubDeviceItem(lightNode, item);
                             }
                         }
                     }
-                    else if (key == "min"  && taskRef.lightNode->item(RConfigBriMin))
+                    else if (key == "max")
                     {
-                        paramOk = true;
-                        if (value.type() == QVariant::Double)
+                        ResourceItem *item = lightNode->item(RConfigBriMax);
+                        if (item)
                         {
-                            const quint8 bri = value.toUInt(&ok);
-                            if (ok)
+                            paramOk = true;
+                            if (value.type() == QVariant::Double)
                             {
-                                valueOk = true;
-                                hasBriMin = true;
-                                targetBriMin = bri > 0xFE ? 0xFE : bri;
+                                const quint8 bri = value.toUInt(&ok);
+                                if (ok)
+                                {
+                                    valueOk = true;
+                                    quint8 targetBriMax = bri > 0xFE ? 0xFE : bri;
+                                    value = QVariant(targetBriMax);
+                                    change.addTargetValue(RConfigBriMax, targetBriMax);
+                                    lightNode->setValue(RConfigBriMax, bri > 0xFE ? 0xFE : bri);
+                                    DB_StoreSubDeviceItem(lightNode, item);
+                                }
                             }
                         }
                     }
-                    else if (key == "on_level"  && taskRef.lightNode->item(RConfigBriOnLevel))
+                    else if (key == "min")
                     {
-                        paramOk = true;
-                        if (value.type() == QVariant::Double)
+                        ResourceItem *item = lightNode->item(RConfigBriMin);
+                        if (item)
                         {
-                            const quint8 bri = value.toUInt(&ok);
-                            if (ok)
+                            paramOk = true;
+                            if (value.type() == QVariant::Double)
                             {
-                                valueOk = true;
-                                hasBriOnLevel = true;
-                                targetBriOnLevel = bri > 0xFE ? 0xFE : bri;
-                            }
-                        }
-                        else if (value.type() == QVariant::String && value.toString() == QLatin1String("previous"))
-                        {
-                            valueOk = true;
-                            hasBriOnLevel = true;
-                            targetBriOnLevel = 0xFF;
-                        }
-                    }
-                    else if (key == "onoff_transitiontime"  && taskRef.lightNode->item(RConfigBriOnOffTransitiontime))
-                    {
-                        paramOk = true;
-                        if (value.type() == QVariant::Double)
-                        {
-                            const quint16 tt = value.toUInt(&ok);
-                            if (ok)
-                            {
-                                valueOk = true;
-                                hasBriOnOffTransitiontime = true;
-                                targetBriOnOffTransitiontime = tt;
+                                const quint8 bri = value.toUInt(&ok);
+                                if (ok)
+                                {
+                                    valueOk = true;
+                                    quint8 targetBriMin = bri > 0xFE ? 0xFE : bri;
+                                    value = QVariant(targetBriMin);
+                                    change.addTargetValue(RConfigBriMin, targetBriMin);
+                                    lightNode->setValue(RConfigBriMin, targetBriMin);
+                                    DB_StoreSubDeviceItem(lightNode, item);
+                                }
                             }
                         }
                     }
-                    else if (key == "startup" && taskRef.lightNode->item(RConfigBriStartup))
+                    else if (key == "on_level")
                     {
-                        paramOk = true;
-                        if (value.type() == QVariant::Double)
+                        ResourceItem *item = lightNode->item(RConfigBriOnLevel);
+                        if (item)
                         {
-                            const quint8 bri = value.toUInt(&ok);
-                            if (ok)
+                            paramOk = true;
+                            quint8 targetBriOnLevel;
+                            if (value.type() == QVariant::Double)
+                            {
+                                const quint8 bri = value.toUInt(&ok);
+                                if (ok)
+                                {
+                                    valueOk = true;
+                                    targetBriOnLevel = bri > 0xFE ? 0xFE : bri;
+                                    value = QVariant(targetBriOnLevel);
+                                }
+                            }
+                            else if (value.type() == QVariant::String && value.toString() == QLatin1String("previous"))
                             {
                                 valueOk = true;
-                                hasBriStartup = true;
-                                targetBriStartup = bri > 0xFE ? 0xFE : bri;
+                                targetBriOnLevel = 0xFF;
+                            }
+                            if (valueOk)
+                            {
+                                change.addTargetValue(RConfigBriOnLevel, targetBriOnLevel);
+                                lightNode->setValue(RConfigBriOnLevel, targetBriOnLevel);
+                                DB_StoreSubDeviceItem(lightNode, item);
                             }
                         }
-                        else if (value.type() == QVariant::String && value.toString() == QLatin1String("previous"))
+                    }
+                    else if (key == "onoff_transitiontime")
+                    {
+                        ResourceItem *item = lightNode->item(RConfigBriOnOffTransitiontime);
+                        if (item)
                         {
-                            valueOk = true;
-                            hasBriStartup = true;
-                            targetBriStartup = 0xFF;
+                            paramOk = true;
+                            if (value.type() == QVariant::Double)
+                            {
+                                const quint16 tt = value.toUInt(&ok);
+                                if (ok)
+                                {
+                                    valueOk = true;
+                                    change.addTargetValue(RConfigBriOnOffTransitiontime, tt);
+                                    lightNode->setValue(RConfigBriOnOffTransitiontime, tt);
+                                    DB_StoreSubDeviceItem(lightNode, item);
+                                }
+                            }
+                        }
+                    }
+                    else if (key == "startup")
+                    {
+                        ResourceItem *item = lightNode->item(RConfigBriStartup);
+                        if (item)
+                        {
+                            paramOk = true;
+                            quint8 targetBriStartup;
+                            if (value.type() == QVariant::Double)
+                            {
+                                const quint8 bri = value.toUInt(&ok);
+                                if (ok)
+                                {
+                                    valueOk = true;
+                                    targetBriStartup = bri > 0xFE ? 0xFE : bri;
+                                    value = QVariant(targetBriStartup);
+                                }
+                            }
+                            else if (value.type() == QVariant::String && value.toString() == QLatin1String("previous"))
+                            {
+                                valueOk = true;
+                                targetBriStartup = 0xFF;
+                            }
+                            if (valueOk)
+                            {
+                                change.addTargetValue(RConfigBriStartup, targetBriStartup);
+                                lightNode->setValue(RConfigBriStartup, targetBriStartup);
+                                DB_StoreSubDeviceItem(lightNode, item);
+                            }
                         }
                     }
 
                     if (!paramOk)
                     {
-                        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/config").arg(id), QString("parameter, %1, not available").arg(path)));
+                        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, path1, QString("parameter, %1, not available").arg(key)));
                     }
                     else if (!valueOk)
                     {
-                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/config").arg(id), QString("invalid value, %1, for parameter, %2").arg(value.toString()).arg(path)));
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, path1, QString("invalid value, %1, for parameter, %2").arg(value.toString()).arg(key)));
+                    }
+                    else
+                    {
+                        QVariantMap rspItem;
+                        QVariantMap rspItemState;
+                        rspItemState[path1] = value;
+                        rspItem["success"] = rspItemState;
+                        rsp.list.append(rspItem);
                     }
                 }
             }
@@ -1813,14 +1856,15 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
             if (value.type() == QVariant::Map)
             {
                 valueOk = true;
-                QVariantMap colorMap = value.toMap();
-                for (QVariantMap::const_iterator q = colorMap.begin(); q != colorMap.end(); q++)
+                QVariantMap map1 = value.toMap();
+                for (QVariantMap::const_iterator q = map1.begin(); q != map1.end(); q++)
                 {
                     bool paramOk = false;
                     bool valueOk = false;
+                    bool isMap = false;
                     key = q.key();
-                    path = path + "/" + key;
-                    value = colorMap[key];
+                    QString path1 = QString("%1/%2").arg(path).arg(key);
+                    value = map1[key];
 
                     if (key == "ct")
                     {
@@ -1828,57 +1872,81 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
                         if (value.type() == QVariant::Map)
                         {
                             valueOk = true;
-                            QVariantMap ctMap = value.toMap();
-                            for (QVariantMap::const_iterator r = ctMap.begin(); r != ctMap.end(); r++)
+                            isMap = true;
+                            QVariantMap map2 = value.toMap();
+                            for (QVariantMap::const_iterator r = map2.begin(); r != map2.end(); r++)
                             {
                                 bool paramOk = false;
                                 bool valueOk = false;
                                 key = r.key();
-                                path = path + "/" + key;
-                                value = ctMap[key];
+                                QString path2 = QString("%1/%2").arg(path1).arg(key);
+                                value = map2[key];
 
-                                if (key == "startup"  && taskRef.lightNode->item(RConfigColorCtStartup))
+                                if (key == "startup")
                                 {
-                                    paramOk = true;
-                                    if (value.type() == QVariant::Double)
+                                    ResourceItem *item = lightNode->item(RConfigColorCtStartup);
+                                    if (item)
                                     {
-                                        const quint16 ctMin = taskRef.lightNode->toNumber(RCapColorCtMin);
-                                        const quint16 ctMax = taskRef.lightNode->toNumber(RCapColorCtMax);
-                                        const quint16 ct = value.toUInt(&ok);
-                                        if (ok)
+                                        paramOk = true;
+                                        quint16 targetCtStartup;
+                                        if (value.type() == QVariant::Double)
+                                        {
+                                            const quint16 ctMin = lightNode->toNumber(RCapColorCtMin);
+                                            const quint16 ctMax = lightNode->toNumber(RCapColorCtMax);
+                                            const quint16 ct = value.toUInt(&ok);
+                                            if (ok)
+                                            {
+                                                valueOk = true;
+                                                targetCtStartup = (ctMin < 500 && ct < ctMin) ? ctMin : (ctMax > ctMin && ct > ctMax) ? ctMax : ct;
+                                                value = QVariant(targetCtStartup);
+                                            }
+                                        }
+                                        else if (value.type() == QVariant::String && value.toString() == QLatin1String("previous"))
                                         {
                                             valueOk = true;
-                                            hasCtStartup = true;
-                                            targetCtStartup = (ctMin < 500 && ct < ctMin) ? ctMin : (ctMax > ctMin && ct > ctMax) ? ctMax : ct;
+                                            targetCtStartup = 0xFFFF;
                                         }
-                                    }
-                                    else if (value.type() == QVariant::String && value.toString() == QLatin1String("previous"))
-                                    {
-                                        valueOk = true;
-                                        hasCtStartup = true;
-                                        targetCtStartup = 0xFFFF;
+                                        if (valueOk)
+                                        {
+                                            change.addTargetValue(RConfigColorCtStartup, targetCtStartup);
+                                            lightNode->setValue(RConfigColorCtStartup, targetCtStartup);
+                                            DB_StoreSubDeviceItem(lightNode, item);
+                                        }
                                     }
                                 }
 
                                 if (!paramOk)
                                 {
-                                    rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/config").arg(id), QString("parameter, %1, not available").arg(path)));
+                                    rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, path2, QString("parameter, %1, not available").arg(key)));
                                 }
                                 else if (!valueOk)
                                 {
-                                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/config").arg(id), QString("invalid value, %1, for parameter, %2").arg(value.toString()).arg(path)));
+                                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, path2, QString("invalid value, %1, for parameter, %2").arg(value.toString()).arg(key)));
+                                }
+                                else
+                                {
+                                    QVariantMap rspItem;
+                                    QVariantMap rspItemState;
+                                    rspItemState[path2] = value;
+                                    rspItem["success"] = rspItemState;
+                                    rsp.list.append(rspItem);
                                 }
                             }
                         }
                     }
-                    else if (key == "execute_if_off" && taskRef.lightNode->item(RConfigColorExecuteIfOff))
+                    else if (key == "execute_if_off")
                     {
-                        paramOk = true;
-                        if (value.type() == QVariant::Bool)
+                        ResourceItem *item = lightNode->item(RConfigColorExecuteIfOff);
+                        if (item)
                         {
-                            valueOk = true;
-                            hasColorExecuteOff = true;
-                            targetColorExecuteIfOff = value.toBool();
+                            paramOk = true;
+                            if (value.type() == QVariant::Bool)
+                            {
+                                valueOk = true;
+                                change.addTargetValue(RConfigColorExecuteIfOff, value.toBool());
+                                lightNode->setValue(RConfigColorExecuteIfOff, value.toBool());
+                                DB_StoreSubDeviceItem(lightNode, item);
+                            }
                         }
                     }
                     else if (key == "gradient")
@@ -1887,33 +1955,47 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
                         if (value.type() == QVariant::Map)
                         {
                             valueOk = true;
-                            QVariantMap gradientMap = value.toMap();
-                            for (QVariantMap::const_iterator r = gradientMap.begin(); r != gradientMap.end(); r++)
+                            isMap = true;
+                            QVariantMap map2 = value.toMap();
+                            for (QVariantMap::const_iterator r = map2.begin(); r != map2.end(); r++)
                             {
                                 bool paramOk = false;
                                 bool valueOk = false;
                                 key = r.key();
-                                path = path + "/" + key;
-                                value = gradientMap[key];
+                                QString path2 = QString("%1/%2").arg(path1).arg(key);
+                                value = map2[key];
 
-                                if (key == "reversed" && taskRef.lightNode->item(RConfigColorGradientReversed))
+                                if (key == "reversed")
                                 {
-                                    paramOk = true;
-                                    if (value.type() == QVariant::Bool)
+                                    ResourceItem *item = lightNode->item(RConfigColorGradientReversed);
+                                    if (item)
                                     {
-                                        valueOk = true;
-                                        hasGradientReversed = true;
-                                        targetGradientReversed = value.toBool();
+                                        paramOk = true;
+                                        if (value.type() == QVariant::Bool)
+                                        {
+                                            valueOk = true;
+                                            change.addTargetValue(RConfigColorGradientReversed, value.toBool());
+                                            lightNode->setValue(RConfigColorGradientReversed, value.toBool());
+                                            DB_StoreSubDeviceItem(lightNode, item);
+                                        }
                                     }
                                 }
 
                                 if (!paramOk)
                                 {
-                                    rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/config").arg(id), QString("parameter, %1, not available").arg(path)));
+                                    rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, path2, QString("parameter, %1, not available").arg(key)));
                                 }
                                 else if (!valueOk)
                                 {
-                                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/config").arg(id), QString("invalid value, %1, for parameter, %2").arg(value.toString()).arg(path)));
+                                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, path2, QString("invalid value, %1, for parameter, %2").arg(value.toString()).arg(key)));
+                                }
+                                else
+                                {
+                                    QVariantMap rspItem;
+                                    QVariantMap rspItemState;
+                                    rspItemState[path2] = value;
+                                    rspItem["success"] = rspItemState;
+                                    rsp.list.append(rspItem);
                                 }
                             }
                         }
@@ -1924,57 +2006,79 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
                         if (value.type() == QVariant::Map)
                         {
                             valueOk = true;
-                            QVariantMap xyMap = value.toMap();
-                            for (QVariantMap::const_iterator r = xyMap.begin(); r != xyMap.end(); r++)
+                            isMap = true;
+                            QVariantMap map2 = value.toMap();
+                            for (QVariantMap::const_iterator r = map2.begin(); r != map2.end(); r++)
                             {
+                                bool paramOk = false;
+                                bool valueOk = false;
                                 key = r.key();
-                                path = path + "/" + key;
-                                value = xyMap[key];
+                                QString path2 = QString("%1/%2").arg(path1).arg(key);
+                                value = map2[key];
 
-                                if (key == "startup" && taskRef.lightNode->item(RConfigColorXyStartupX) && taskRef.lightNode->item(RConfigColorXyStartupY))
+                                if (key == "startup")
                                 {
-                                    paramOk = true;
-                                    if (value.type() == QVariant::List)
+                                    ResourceItem *itemX = lightNode->item(RConfigColorXyStartupX);
+                                    ResourceItem *itemY = lightNode->item(RConfigColorXyStartupY);
+                                    if (itemX && itemY)
                                     {
-                                        QVariantList xy = value.toList();
-                                        if (xy[0].type() == QVariant::Double && xy[1].type() == QVariant::Double)
+                                        paramOk = true;
+                                        quint16 targetXyStartupX, targetXyStartupY;
+                                        if (value.type() == QVariant::List)
                                         {
-                                            const double x = xy[0].toDouble(&ok);
-                                            const double y = ok ? xy[1].toDouble(&ok) : 0;
-                                            if (ok && x >= 0.0 && x <= 1.0 && y >= 0.0 && y <= 1.0)
+                                            QVariantList xy = value.toList();
+                                            if (xy[0].type() == QVariant::Double && xy[1].type() == QVariant::Double)
                                             {
-                                                valueOk = true;
-                                                hasXyStartup = true;
-                                                targetXyStartupX = static_cast<quint16>(x * 65535.0);
-                                                if (targetXyStartupX > 0xFEFF) { targetXyStartupX = 0xFEFF; }
-                                                else if (targetXyStartupX == 0) { targetXyStartupX = 1; }
-                                                targetXyStartupY = static_cast<quint16>(y * 65535.0);
-                                                if (targetXyStartupY > 0xFEFF) { targetXyStartupY = 0xFEFF; }
-                                                else if (targetXyStartupY == 0) { targetXyStartupY = 1; }
-                                            }
-                                            else
-                                            {
-                                                valueOk = true;
-                                                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/config").arg(id), QString("invalid value, [%1, %2], for parameter, color/xy/startup").arg(xy[0].toString()).arg(xy[1].toString())));
+                                                const double x = xy[0].toDouble(&ok);
+                                                const double y = ok ? xy[1].toDouble(&ok) : 0;
+                                                if (ok && x >= 0.0 && x <= 1.0 && y >= 0.0 && y <= 1.0)
+                                                {
+                                                    valueOk = true;
+                                                    targetXyStartupX = static_cast<quint16>(x * 65535.0);
+                                                    if (targetXyStartupX > 0xFEFF) { targetXyStartupX = 0xFEFF; }
+                                                    else if (targetXyStartupX == 0) { targetXyStartupX = 1; }
+                                                    targetXyStartupY = static_cast<quint16>(y * 65535.0);
+                                                    if (targetXyStartupY > 0xFEFF) { targetXyStartupY = 0xFEFF; }
+                                                    else if (targetXyStartupY == 0) { targetXyStartupY = 1; }
+                                                    QVariantList xy;
+                                                    toXy(targetXyStartupX, targetXyStartupY, xy);
+                                                    value = xy;
+                                                }
                                             }
                                         }
-                                    }
-                                    else if (value.type() == QVariant::String && value.toString() == QLatin1String("previous"))
-                                    {
-                                        valueOk = true;
-                                        hasXyStartup = true;
-                                        targetXyStartupX = 0xFFFF;
-                                        targetXyStartupY = 0xFFFF;
+                                        else if (value.type() == QVariant::String && value.toString() == QLatin1String("previous"))
+                                        {
+                                            valueOk = true;
+                                            targetXyStartupX = 0xFFFF;
+                                            targetXyStartupY = 0xFFFF;
+                                        }
+                                        if (valueOk)
+                                        {
+                                            change.addTargetValue(RConfigColorXyStartupX, targetXyStartupX);
+                                            change.addTargetValue(RConfigColorXyStartupY, targetXyStartupY);
+                                            lightNode->setValue(RConfigColorXyStartupX, targetXyStartupX);
+                                            lightNode->setValue(RConfigColorXyStartupY, targetXyStartupY);
+                                            DB_StoreSubDeviceItem(lightNode, itemX);
+                                            DB_StoreSubDeviceItem(lightNode, itemY);
+                                        }
                                     }
                                 }
 
                                 if (!paramOk)
                                 {
-                                    rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/config").arg(id), QString("parameter, %1, not available").arg(path)));
+                                    rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, path2, QString("parameter, %1, not available").arg(key)));
                                 }
                                 else if (!valueOk)
                                 {
-                                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/config").arg(id), QString("invalid value, %1, for parameter, %2").arg(value.toString()).arg(path)));
+                                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, path2, QString("invalid value, %1, for parameter, %2").arg(value.toString()).arg(key)));
+                                }
+                                else
+                                {
+                                    QVariantMap rspItem;
+                                    QVariantMap rspItemState;
+                                    rspItemState[path2] = value;
+                                    rspItem["success"] = rspItemState;
+                                    rsp.list.append(rspItem);
                                 }
                             }
                         }
@@ -1982,11 +2086,19 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
 
                     if (!paramOk)
                     {
-                        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/config").arg(id), QString("parameter, %1, not available").arg(path)));
+                        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, path1, QString("parameter, %1, not available").arg(key)));
                     }
                     else if (!valueOk)
                     {
-                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/config").arg(id), QString("invalid value, %1, for parameter, %2").arg(value.toString()).arg(path)));
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, path1, QString("invalid value, %1, for parameter, color/%2").arg(value.toString()).arg(key)));
+                    }
+                    else if (!isMap)
+                    {
+                        QVariantMap rspItem;
+                        QVariantMap rspItemState;
+                        rspItemState[path1] = value;
+                        rspItem["success"] = rspItemState;
+                        rsp.list.append(rspItem);
                     }
                 }
             }
@@ -1995,7 +2107,7 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
         {
             paramOk = true;
             valueOk = true;
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/config").arg(id), QString("parameter, %1, is not modifiable.").arg(path)));
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, path, QString("parameter, %1, is not modifiable.").arg(key)));
         }
         else if (key == "on")
         {
@@ -2003,36 +2115,56 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
             if (value.type() == QVariant::Map)
             {
                 valueOk = true;
-                QVariantMap onMap = value.toMap();
-                for (QVariantMap::const_iterator q = onMap.begin(); q != onMap.end(); q++)
+                QVariantMap map1 = value.toMap();
+                for (QVariantMap::const_iterator q = map1.begin(); q != map1.end(); q++)
                 {
+                    bool paramOk = false;
+                    bool valueOk = false;
                     key = q.key();
-                    path = path + "/" + key;
-                    value = onMap[key];
+                    QString path1 = QString("%1/%2").arg(path).arg(key);
+                    value = map1[key];
 
-                    if (key == "startup" && taskRef.lightNode->item(RConfigOnStartup))
+                    if (key == "startup")
                     {
-                        paramOk = true;
-                        if (value.type() == QVariant::Bool)
+                        ResourceItem *item = lightNode->item(RConfigOnStartup);
+                        if (item)
                         {
-                            valueOk = true;
-                            hasOnStartup = true;
-                            targetOnStartup = value.toBool() ? 1 : 0;
-                        }
-                        else if (value.type() == QVariant::String && value.toString() == QLatin1String("previous"))
-                        {
-                            valueOk = true;
-                            hasOnStartup = true;
-                            targetOnStartup = 0xFF;
+                            paramOk = true;
+                            quint8 targetOnStartup;
+                            if (value.type() == QVariant::Bool)
+                            {
+                                valueOk = true;
+                                targetOnStartup = value.toBool() ? 1 : 0;
+                            }
+                            else if (value.type() == QVariant::String && value.toString() == QLatin1String("previous"))
+                            {
+                                valueOk = true;
+                                targetOnStartup = 0xFF;
+                            }
+                            if (valueOk)
+                            {
+                                change.addTargetValue(RConfigOnStartup, targetOnStartup);
+                                lightNode->setValue(RConfigOnStartup, targetOnStartup);
+                                DB_StoreSubDeviceItem(lightNode, item);
+                            }
                         }
                     }
+
                     if (!paramOk)
                     {
-                        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/config").arg(id), QString("parameter, %1, not available").arg(path)));
+                        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, path1, QString("parameter, %1, not available").arg(key)));
                     }
                     else if (!valueOk)
                     {
-                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/config").arg(id), QString("invalid value, %1, for parameter, %2").arg(value.toString()).arg(path)));
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, path1, QString("invalid value, %1, for parameter, %2").arg(value.toString()).arg(key)));
+                    }
+                    else
+                    {
+                        QVariantMap rspItem;
+                        QVariantMap rspItemState;
+                        rspItemState[path1] = value;
+                        rspItem["success"] = rspItemState;
+                        rsp.list.append(rspItem);
                     }
                 }
             }
@@ -2040,164 +2172,15 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
 
         if (!paramOk)
         {
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/config").arg(id), QString("parameter, %1, not available").arg(path)));
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, path, QString("parameter, %1, not available").arg(key)));
         }
         else if (!valueOk)
         {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/config").arg(id), QString("invalid value, %1, for parameter, %2").arg(value.toString()).arg(path)));
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, path, QString("invalid value, %1, for parameter, %2").arg(value.toString()).arg(key)));
         }
     }
 
-    if (hasBriExecuteIfOff)
-    {
-        // bool targetBriExecuteIfOff = true;
-    }
-
-    if (hasBriMax)
-    {
-        // quint8 targetBriMax = 0xFE;
-    }
-
-    if (hasBriMin)
-    {
-        // quint8 targetBriMin = 1;
-    }
-
-    if (hasBriOnLevel)
-    {
-        // quint8 targetBriOnLevel 0xFF;
-    }
-
-    if (hasBriOnOffTransitiontime)
-    {
-        // quint16 targetBriOnOffTransitiontime = 4;
-    }
-
-    if (hasBriStartup)
-    {
-        TaskItem task;
-        copyTaskReq(taskRef, task);
-
-        deCONZ::ZclAttribute attr(0x4000, deCONZ::Zcl8BitUint, "bri/startup", deCONZ::ZclReadWrite, true);
-        attr.setValue(QVariant(targetBriStartup));
-        if (writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), LEVEL_CLUSTER_ID, attr))
-        {
-            QVariantMap rspItem;
-            QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/config/bri/startup").arg(id)] = targetBriStartup == 0xFF ? QLatin1String("previous") : QVariant(targetBriStartup);
-            rspItem["success"] = rspItemState;
-            rsp.list.append(rspItem);
-
-            taskRef.lightNode->setValue(RConfigBriStartup, targetBriStartup);
-        }
-        else
-        {
-            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/config/bri/startup").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
-        }
-    }
-
-    if (hasCtStartup)
-    {
-        TaskItem task;
-        copyTaskReq(taskRef, task);
-
-        deCONZ::ZclAttribute attr(0x4010, deCONZ::Zcl16BitUint, "color/ct/startup", deCONZ::ZclReadWrite, true);
-        attr.setValue(QVariant(targetCtStartup));
-        if (writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), COLOR_CLUSTER_ID, attr))
-        {
-            QVariantMap rspItem;
-            QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/config/color/ct/startup").arg(id)] = targetCtStartup == 0xFFFF ? QLatin1String("previous") : QVariant(targetCtStartup);
-            rspItem["success"] = rspItemState;
-            rsp.list.append(rspItem);
-
-            taskRef.lightNode->setValue(RConfigColorCtStartup, targetCtStartup);
-        }
-        else
-        {
-            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/config/color/ct/startup").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
-        }
-    }
-
-    if (hasColorExecuteOff)
-    {
-        // bool targetColorExecuteIfOff = true;
-    }
-
-    if (hasGradientReversed)
-    {
-        // bool targetGradientReversed = false;
-    }
-
-    if (hasXyStartup)
-    {
-        TaskItem task;
-        copyTaskReq(taskRef, task);
-
-        ok = false;
-        if (taskRef.lightNode->manufacturerCode() == VENDOR_PHILIPS)
-        {
-            deCONZ::ZclAttribute attrX(0x0003, deCONZ::Zcl16BitUint, "color/xy/startup/x", deCONZ::ZclReadWrite, true);
-            attrX.setValue(QVariant(targetXyStartupX));
-            deCONZ::ZclAttribute attrY(0x0004, deCONZ::Zcl16BitUint, "color/xy/startup/y", deCONZ::ZclReadWrite, true);
-            attrY.setValue(QVariant(targetXyStartupY));
-            ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), COLOR_CLUSTER_ID, attrX, VENDOR_PHILIPS);
-            if (ok)
-            {
-                ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), COLOR_CLUSTER_ID, attrY, VENDOR_PHILIPS);
-            }
-        }
-        if (ok)
-        {
-            QVariantMap rspItem;
-            QVariantMap rspItemState;
-            if (targetXyStartupX == 0xFFFF && targetXyStartupY == 0xFFFF)
-            {
-                rspItemState[QString("/lights/%1/config/color/xy/startup").arg(id)] = QLatin1String("previous");
-            }
-            else
-            {
-                QVariantList xy;
-
-                toXy(targetXyStartupX, targetXyStartupY, xy);
-                rspItemState[QString("/lights/%1/config/color/xy/startup").arg(id)] = xy;
-            }
-            rspItem["success"] = rspItemState;
-            rsp.list.append(rspItem);
-
-            taskRef.lightNode->setValue(RConfigColorXyStartupX, targetXyStartupX);
-            taskRef.lightNode->setValue(RConfigColorXyStartupY, targetXyStartupY);
-        }
-        else
-        {
-            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/config/color/xy/startup").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
-        }
-    }
-
-    if (hasOnStartup)
-    {
-        TaskItem task;
-        copyTaskReq(taskRef, task);
-
-        deCONZ::ZclAttribute attr(0x4003, deCONZ::Zcl8BitEnum, "on/startup", deCONZ::ZclReadWrite, true);
-        attr.setValue(QVariant(targetOnStartup));
-        if (writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), ONOFF_CLUSTER_ID, attr))
-        {
-            QVariantMap rspItem;
-            QVariantMap rspItemState;
-            bool value = targetOnStartup != 0;
-            rspItemState[QString("/lights/%1/config/on/startup").arg(id)] = targetOnStartup == 0xFF ? QLatin1String("previous") : QVariant(value);
-            rspItem["success"] = rspItemState;
-            rsp.list.append(rspItem);
-
-            taskRef.lightNode->setValue(RConfigOnStartup, targetOnStartup);
-        }
-        else
-        {
-            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/config/on/startup").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
-        }
-    }
-
+    rsub->addStateChange(change);
     processTasks();
     return REQ_READY_SEND;
 }

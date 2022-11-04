@@ -13,5 +13,9 @@
   "read": {
     "fn": "zcl", "ep": 0, "cl": "0x0008", "at": "0x000f"
   },
-  "refresh.interval": 86400
+  "refresh.interval": 3600,
+  "write": {
+    "fn": "zcl", "ep": 0, "cl": "0x0008", "at": "0x000f", "dt": "0x18",
+    "eval": "Item.val ? 0x01 : 0x00"
+  }
 }
