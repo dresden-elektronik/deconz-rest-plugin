@@ -281,16 +281,14 @@ void DeRestPluginPrivate::cleanUpDb()
 
     /* Create SQL statement */
     const char *sql[] = {
-        // cleanup invalid sensors created in version 2.05.30
-        "DELETE from sensors "
-        "   WHERE modelid like 'RWL02%' "
-        "   AND type = 'ZHAPresence'",
-
         // cleanup invalid sensor resource for Centralite motion sensor
         "DELETE FROM sensors WHERE modelid = 'Motion Sensor-A' AND uniqueid LIKE '%02-0406'",
 
         // cleanup invalid ZHAAlarm resource for Xiaomi motion sensor
         "DELETE from sensors WHERE type = 'ZHAAlarm' AND modelid LIKE 'lumi.sensor_motion%'",
+
+        // cleanup invalid Tuya smart knob light resource (only has ZHASwitch)
+        "DELETE from nodes WHERE manufacturername = '_TZ3000_4fjiwweb'",
 
         // delete duplicates in device_descriptors
         //"DELETE FROM device_descriptors WHERE rowid NOT IN"
@@ -3413,13 +3411,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (sensor.type().endsWith(QLatin1String("Switch")))
         {
-            if (sensor.modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
-            {
-                // not supported yet, created by older versions
-                // ignore for now
-                return 0;
-            }
-
             if (sensor.fingerPrint().hasInCluster(COMMISSIONING_CLUSTER_ID))
             {
                 clusterId = clusterId ? clusterId : COMMISSIONING_CLUSTER_ID;
@@ -3428,8 +3419,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.fingerPrint().hasOutCluster(ONOFF_CLUSTER_ID))
             {
                 clusterId = clusterId ? clusterId : ONOFF_CLUSTER_ID;
-                if (sensor.modelId().startsWith(QLatin1String("RDM00")) ||
-                    sensor.modelId().startsWith(QLatin1String("Pocket remote")) ||
+                if (sensor.modelId().startsWith(QLatin1String("Pocket remote")) ||
                     sensor.modelId().startsWith(QLatin1String("SYMFONISK")))
                 {
                     // blacklisted
@@ -3471,13 +3461,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.modelId() == QLatin1String("lumi.remote.cagl01"))
             {
                 sensor.addItem(DataTypeInt32, RStateGesture);
-            }
-            else if (sensor.modelId().startsWith(QLatin1String("RWL02")) ||
-                     sensor.modelId().startsWith(QLatin1String("ROM00")) ||
-                     sensor.modelId().startsWith(QLatin1String("RDM00")) ||
-                     sensor.modelId().startsWith(QLatin1String("Z3-1BRL")))
-            {
-                sensor.addItem(DataTypeUInt16, RStateEventDuration);
             }
             else if (sensor.modelId().startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")))
             {
@@ -3593,7 +3576,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : OCCUPANCY_SENSING_CLUSTER_ID;
                 if (sensor.modelId().startsWith(QLatin1String("FLS")) ||
-                    sensor.modelId().startsWith(QLatin1String("SML00")) ||
                     sensor.modelId().startsWith(QLatin1String("MOSZB-1")))
                 {
                     // TODO write and recover min/max to db
@@ -3623,16 +3605,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             item = sensor.addItem(DataTypeBool, RStatePresence);
             item->setValue(false);
-            if (sensor.modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
-            {
-                item = sensor.addItem(DataTypeUInt16, RConfigDelay);
-                item->setValue(0);
-                item = sensor.addItem(DataTypeUInt8, RConfigSensitivity);
-                item->setValue(0);
-                item = sensor.addItem(DataTypeUInt8, RConfigSensitivityMax);
-                item->setValue(R_SENSITIVITY_MAX_DEFAULT);
-            }
-            else if (sensor.modelId().startsWith(QLatin1String("MOSZB-1")) && clusterId == OCCUPANCY_SENSING_CLUSTER_ID) // Develco/frient motion sensor
+            if (sensor.modelId().startsWith(QLatin1String("MOSZB-1")) && clusterId == OCCUPANCY_SENSING_CLUSTER_ID) // Develco/frient motion sensor
             {
                 sensor.addItem(DataTypeUInt16, RConfigDelay)->setValue(0);
                 sensor.addItem(DataTypeUInt16, RConfigPending)->setValue(0);
@@ -3829,7 +3802,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                          sensor.modelId() == QLatin1String("lumi.switch.b1nacn02") ||
                          sensor.modelId() == QLatin1String("lumi.switch.b2nacn02") ||
                          sensor.modelId() == QLatin1String("lumi.switch.b1naus01") ||
-                         sensor.modelId() == QLatin1String("lumi.plug.maeu01") ||
                          sensor.modelId() == QLatin1String("lumi.switch.n0agl1") ||
                          sensor.manufacturer() == QLatin1String("Legrand"))
                 {
@@ -4114,82 +4086,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             sensor.addItem(DataTypeTime, RStateLastSet);
         }
 
-        if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
-        {
-            clusterId = VENDOR_CLUSTER_ID;
-            endpoint = (sensor.modelId() == QLatin1String("RWL022")) ? 1 : 2;
-
-            if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
-            {
-                sensor.fingerPrint().inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
-                sensor.setNeedSaveDatabase(true);
-            }
-
-            if (!sensor.fingerPrint().hasInCluster(VENDOR_CLUSTER_ID)) // for realtime button feedback
-            {
-                sensor.fingerPrint().inClusters.push_back(VENDOR_CLUSTER_ID);
-                sensor.setNeedSaveDatabase(true);
-            }
-        }
-        else if (sensor.modelId().startsWith(QLatin1String("ROM00"))) // Hue smart button
-        {
-            clusterId = VENDOR_CLUSTER_ID;
-            endpoint = 1;
-
-            if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
-            {
-                sensor.fingerPrint().inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
-                sensor.setNeedSaveDatabase(true);
-            }
-
-            if (!sensor.fingerPrint().hasInCluster(VENDOR_CLUSTER_ID)) // for realtime button feedback
-            {
-                sensor.fingerPrint().inClusters.push_back(VENDOR_CLUSTER_ID);
-                sensor.setNeedSaveDatabase(true);
-            }
-        }
-        else if (sensor.modelId().startsWith(QLatin1String("RDM00"))) // Hue wall switch module
-        {
-            clusterId = VENDOR_CLUSTER_ID;
-            endpoint = 1;
-
-            if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
-            {
-                sensor.fingerPrint().inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
-                sensor.setNeedSaveDatabase(true);
-            }
-
-            if (!sensor.fingerPrint().hasInCluster(VENDOR_CLUSTER_ID)) // for realtime button feedback
-            {
-                sensor.fingerPrint().inClusters.push_back(VENDOR_CLUSTER_ID);
-                sensor.setNeedSaveDatabase(true);
-            }
-            item = sensor.addItem(DataTypeString, RConfigDeviceMode);
-            item = sensor.addItem(DataTypeUInt16, RConfigPending);
-            item->setValue(0);
-        }
-        else if (sensor.modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
-        {
-            if (!sensor.fingerPrint().hasInCluster(BASIC_CLUSTER_ID))
-            {
-                sensor.fingerPrint().inClusters.push_back(BASIC_CLUSTER_ID);
-                sensor.setNeedSaveDatabase(true);
-            }
-            if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
-            {
-                sensor.fingerPrint().inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
-                sensor.setNeedSaveDatabase(true);
-            }
-            item = sensor.addItem(DataTypeString, RConfigAlert);
-            item->setValue(R_ALERT_DEFAULT);
-            item = sensor.addItem(DataTypeBool, RConfigLedIndication);
-            item->setValue(false);
-            item = sensor.addItem(DataTypeUInt16, RConfigPending);
-            item->setValue(0);
-            item = sensor.addItem(DataTypeBool, RConfigUsertest);
-            item->setValue(false);
-        }
-        else if (sensor.modelId().startsWith(QLatin1String("TRADFRI")) ||
+        if (sensor.modelId().startsWith(QLatin1String("TRADFRI")) ||
                  sensor.modelId().startsWith(QLatin1String("SYMFONISK")))
         {
             sensor.setManufacturer(QLatin1String("IKEA of Sweden"));
@@ -4206,10 +4103,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         // Skip legacy Xiaomi items
         else if (sensor.modelId() == QLatin1String("lumi.sensor_magnet.agl02") || sensor.modelId() == QLatin1String("lumi.flood.agl02") ||
                  sensor.modelId() == QLatin1String("lumi.motion.agl04") || sensor.modelId() == QLatin1String("lumi.switch.b1nacn02") ||
-                 sensor.modelId() == QLatin1String("lumi.switch.b2nacn02") || sensor.modelId() == QLatin1String("lumi.switch.n1aeu1") ||
-                 sensor.modelId() == QLatin1String("lumi.switch.l2aeu1") || sensor.modelId() == QLatin1String("lumi.switch.b1naus01") ||
+                 sensor.modelId() == QLatin1String("lumi.switch.b2nacn02") || sensor.modelId() == QLatin1String("lumi.switch.b1naus01") ||
                  sensor.modelId() == QLatin1String("lumi.switch.n0agl1") || sensor.modelId() == QLatin1String("lumi.switch.b1lacn02") ||
-                 sensor.modelId() == QLatin1String("lumi.switch.l1aeu1") || sensor.modelId() == QLatin1String("lumi.switch.b2lacn02"))
+                 sensor.modelId() == QLatin1String("lumi.switch.b2lacn02"))
         {
         }
         else if (sensor.modelId().startsWith(QLatin1String("lumi.")))
@@ -4276,10 +4172,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 R_GetProductId(&sensor) == QLatin1String("NAS-AB02B0 Siren"))
             {
                 // no support for some IAS Zone flags
-            }
-            else if (sensor.modelId() == QLatin1String("Keyfob-ZB3.0"))
-            {
-                sensor.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
             }
             else
             {

@@ -28,6 +28,7 @@
 #include <QProcess>
 #include "backup.h"
 #include "gateway.h"
+#include "utils/utils.h"
 #ifdef Q_OS_LINUX
   #include <unistd.h>
   #include <sys/time.h>
@@ -351,6 +352,10 @@ void DeRestPluginPrivate::initTimezone()
         item->setValue(QVariant());
         item = dl.addItem(DataTypeInt32, RStateStatus);
         item->setValue(QVariant());
+        item = dl.addItem(DataTypeString, RConfigLat);
+        item->setIsPublic(false);
+        item = dl.addItem(DataTypeString, RConfigLong);
+        item->setIsPublic(false);
 
         dl.removeItem(RConfigReachable);
         dl.removeItem(RAttrLastAnnounced);
@@ -2983,7 +2988,7 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
         gwWifiLastUpdated = currentDateTime.toTime_t();
 
         updateEtag(gwConfigEtag);
-        queSaveDb(DB_CONFIG | DB_SYNC, DB_SHORT_SAVE_DELAY);
+        queSaveDb(DB_CONFIG | DB_SYNC, DB_FAST_SAVE_DELAY);
     }
 
     QVariantMap rspItem;
@@ -3761,47 +3766,58 @@ bool DeRestPluginPrivate::checkDaylightSensorConfiguration(Sensor *sensor, const
         return false;
     }
 
-    {   // TODO the following code is excecuted on every iteration and rather expensive
-
-        // check uniqueid
-        // note: might change if device is changed
-        ResourceItem *item = sensor->item(RAttrUniqueId);
-        QString uniqueid = gwBridgeId.toLower() + QLatin1String("-01");
-        // 00:21:2e:ff:ff:00:aa:bb-01
-        for (int i = 0; i < (7 * 3); i += 3)
-        {
-            uniqueid.insert(i + 2, ':');
-        }
-
-        if (!item || (item->toString() != uniqueid))
-        {
-            item = sensor->addItem(DataTypeString, RAttrUniqueId);
-            item->setValue(uniqueid);
-        }
-    }
-
     ResourceItem *configured = sensor->item(RConfigConfigured);
+    ResourceItem *ilat = sensor->item(RConfigLat);
+    ResourceItem *ilng = sensor->item(RConfigLong);
+
     DBG_Assert(configured != nullptr);
-    if (!configured || !configured->toBool())
+    DBG_Assert(ilat != nullptr);
+    DBG_Assert(ilng != nullptr);
+    if (!configured || !ilat || !ilng)
     {
         return false;
     }
 
-    ResourceItem *ilat = sensor->item(RConfigLat);
-    ResourceItem *ilng = sensor->item(RConfigLong);
+    bool ok;
+    static bool uidChecked = false;
+
+    // check uniqueid once per deCONZ start
+    if (!uidChecked && !gwBridgeId.isEmpty())
+    {
+        qulonglong extAddr = gwBridgeId.toULongLong(&ok, 16);
+        if (ok && extAddr != 0)
+        {
+            // 00:21:2e:ff:ff:00:aa:bb-01
+            // note: might change if device is changed
+            QString uniqueid = generateUniqueId(extAddr, 1, 0);
+            ResourceItem *item = sensor->item(RAttrUniqueId);
+
+            if (!item || (item->toString() != uniqueid))
+            {
+                item = sensor->addItem(DataTypeString, RAttrUniqueId);
+                item->setValue(uniqueid);
+                sensor->setNeedSaveDatabase(true);
+                queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+            }
+
+            uidChecked = true;
+        }
+    }
 
     bool ok1 = false;
     bool ok2 = false;
-    *lat = ilat ? ilat->toString().toDouble(&ok1) : nan("");
-    *lng = ilng ? ilng->toString().toDouble(&ok2) : nan("");
-    if (ok1 && ok2)
+    *lat = ilat->toString().toDouble(&ok1);
+    *lng = ilng->toString().toDouble(&ok2);
+    ok = ok1 && ok2;
+
+    if (ok != configured->toBool())
     {
-        return true;
+        configured->setValue(ok);
+        sensor->setNeedSaveDatabase(true);
+        queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
     }
 
-    DBG_Printf(DBG_INFO, "The daylight sensor seems to be configured with invalid values\n");
-    // TODO should configured be set to false?
-    return false;
+    return ok;
 }
 
 size_t DeRestPluginPrivate::calcDaylightOffsets(Sensor *daylightSensor, size_t iter)

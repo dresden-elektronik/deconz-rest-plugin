@@ -1,0 +1,9 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/replacefilter",
+	"datatype": "Bool",
+	"access": "R",
+	"public": true,
+	"default": false,
+	"description": "True when device filter needs to be replaced."
+}

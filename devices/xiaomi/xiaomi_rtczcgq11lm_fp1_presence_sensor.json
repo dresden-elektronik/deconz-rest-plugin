@@ -36,18 +36,15 @@
         },
         {
           "name": "attr/swversion",
-          "read": {
-            "at": "0x0006",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl"
-          },
           "parse": {
-            "at": "0x0006",
-            "cl": "0x0000",
+            "at": "0x00f7",
             "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl"
+            "fn": "xiaomi:special",
+            "idx": "0x08",
+            "script": "xiaomi_swversion.js"
+          },
+          "read": {
+            "fn": "none"
           }
         },
         {

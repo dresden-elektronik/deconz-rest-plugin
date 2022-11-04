@@ -184,6 +184,7 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
                 // Reverse for some tuya covering
                 else if (R_GetProductId(lightNode) == QLatin1String("11830304 Switch") ||
                          R_GetProductId(lightNode) == QLatin1String("Zigbee curtain switch") ||
+                         R_GetProductId(lightNode) == QLatin1String("Zigbee dual curtain switch") ||
                          R_GetProductId(lightNode) == QLatin1String("Covering Switch ESW-2ZAD-EU") ||
                          R_GetProductId(lightNode) == QLatin1String("QS-Zigbee-C01 Module"))
                 {

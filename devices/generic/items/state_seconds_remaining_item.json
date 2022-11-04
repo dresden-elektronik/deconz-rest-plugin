@@ -1,0 +1,10 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/seconds_remaining",
+	"datatype": "UInt32",
+	"access": "RW",
+	"public": true,
+	"managed": true,
+	"description": "The IAS panel seconds remaining.",
+	"default": 0
+}

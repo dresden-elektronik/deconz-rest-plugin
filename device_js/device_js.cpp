@@ -26,14 +26,24 @@ public:
     JsZclAttribute *jsZclAttribute = nullptr;
     JsZclFrame *jsZclFrame = nullptr;
     JsResourceItem *jsItem = nullptr;
+    JsUtils *jsUtils = nullptr;
     const deCONZ::ApsDataIndication *apsInd = nullptr;
+    std::vector<ResourceItem*> itemsSet;
 };
+
+static DeviceJsPrivate *_djsPriv = nullptr; // singleton
+
+// Polyfills for older Qt versions
+static const char *PF_String_prototype_padStart = "String.prototype.padStart = String.prototype.padStart || "
+                                     "function (targetLength, padString) { return Utils.padStart(this, targetLength, padString); } ";
+static const char *PF_Math_log10 = "Math.log10 = Math.log10 || function(x) { return Utils.log10(x) };";
 
 DeviceJs::DeviceJs() :
     d(new DeviceJsPrivate)
 {
     Q_ASSERT(_djs == nullptr); // enforce singleton
 
+    _djsPriv = d.get();
 #if QT_VERSION > 0x050700
     d->engine.installExtensions(QJSEngine::ConsoleExtension);
 #endif
@@ -53,18 +63,49 @@ DeviceJs::DeviceJs() :
     auto jsItem = d->engine.newQObject(d->jsItem);
     d->engine.globalObject().setProperty("Item", jsItem);
 
+    d->jsUtils = new JsUtils(&d->engine);
+    auto jsUtils = d->engine.newQObject(d->jsUtils);
+    d->engine.globalObject().setProperty("Utils", jsUtils);
+
+
+    // apply polyfills
+    d->engine.evaluate(PF_String_prototype_padStart);
+    d->engine.evaluate(PF_Math_log10);
+
     _djs = this;
 }
 
 DeviceJs::~DeviceJs()
 {
     _djs = nullptr;
+    _djsPriv = nullptr;
 }
 
 DeviceJs *DeviceJs::instance()
 {
     Q_ASSERT(_djs);
     return _djs;
+}
+
+const std::vector<ResourceItem *> &DeviceJs::itemsSet() const
+{
+    return d->itemsSet;
+}
+
+/* Keep track of all resource items which are set via:
+   Item.val = 1 and R.item('..').val = 2)
+   during JS evaluation.
+ */
+void DeviceJS_ResourceItemValueChanged(ResourceItem *item)
+{
+    Q_ASSERT(_djsPriv);
+
+    const auto i = std::find(_djsPriv->itemsSet.cbegin(), _djsPriv->itemsSet.cend(), item);
+
+    if (i == _djsPriv->itemsSet.cend())
+    {
+        _djsPriv->itemsSet.push_back(item);
+    }
 }
 
 JsEvalResult DeviceJs::evaluate(const QString &expr)
@@ -81,19 +122,18 @@ JsEvalResult DeviceJs::evaluate(const QString &expr)
 void DeviceJs::setResource(Resource *r)
 {
     d->jsResource->r = r;
-    d->jsResource->cr = r;
 }
 
 void DeviceJs::setResource(const Resource *r)
 {
-    d->jsResource->r = nullptr;
-    d->jsResource->cr = r;
+    d->jsResource->r = const_cast<Resource*>(r);
 }
 
 void DeviceJs::setApsIndication(const deCONZ::ApsDataIndication &ind)
 {
     d->apsInd = &ind;
-    d->engine.globalObject().setProperty("SrcEp", int(ind.srcEndpoint()));
+    d->engine.globalObject().setProperty(QLatin1String("SrcEp"), int(ind.srcEndpoint()));
+    d->engine.globalObject().setProperty(QLatin1String("ClusterId"), int(ind.clusterId()));
 }
 
 void DeviceJs::setZclFrame(const deCONZ::ZclFrame &zclFrame)
@@ -109,13 +149,11 @@ void DeviceJs::setZclAttribute(const deCONZ::ZclAttribute &attr)
 void DeviceJs::setItem(ResourceItem *item)
 {
     d->jsItem->item = item;
-    d->jsItem->citem = item;
 }
 
 void DeviceJs::setItem(const ResourceItem *item)
 {
-    d->jsItem->item = nullptr;
-    d->jsItem->citem = item;
+    d->jsItem->item = const_cast<ResourceItem*>(item);
 }
 
 QVariant DeviceJs::result()
@@ -127,12 +165,15 @@ void DeviceJs::reset()
 {
     d->apsInd = nullptr;
     d->jsItem->item = nullptr;
-    d->jsItem->citem = nullptr;
     d->jsResource->r = nullptr;
-    d->jsResource->cr = nullptr;
     d->jsZclAttribute->attr = nullptr;
     d->jsZclFrame->zclFrame = nullptr;
     d->engine.collectGarbage();
+}
+
+void DeviceJs::clearItemsSet()
+{
+    d->itemsSet.clear();
 }
 
 QString DeviceJs::errorString() const

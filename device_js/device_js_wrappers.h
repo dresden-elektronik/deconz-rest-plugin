@@ -34,13 +34,12 @@ class JsResource : public QObject
 
 public:
     Resource *r = nullptr;
-    const Resource *cr = nullptr;
 
     JsResource(QJSEngine *parent = nullptr);
 
 public Q_SLOTS:
     QJSValue item(const QString &suffix);
-    QVariant endpoints();
+    QVariant endpoints() const;
 };
 
 class JsResourceItem : public QObject
@@ -52,7 +51,6 @@ class JsResourceItem : public QObject
 
 public:
     ResourceItem *item = nullptr;
-    const ResourceItem *citem = nullptr;
 
     JsResourceItem(QObject *parent = nullptr);
     ~JsResourceItem();
@@ -104,5 +102,18 @@ public Q_SLOTS:
     int payloadSize() const;
     bool isClCmd() const;
 };
+
+class JsUtils : public QObject
+{
+    Q_OBJECT
+
+public:
+    JsUtils(QObject *parent = nullptr);
+
+    Q_INVOKABLE double log10(double x) const;
+    Q_INVOKABLE QString padStart(const QString &str, QJSValue targetLength, QJSValue padString);
+};
+
+void DeviceJS_ResourceItemValueChanged(ResourceItem *item);
 
 #endif // DEVICE_JS_WRAPPERS_H

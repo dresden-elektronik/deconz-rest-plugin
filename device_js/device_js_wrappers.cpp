@@ -8,6 +8,7 @@
  *
  */
 
+#include <math.h>
 #include "resource.h"
 #include "device_js_wrappers.h"
 #include "device.h"
@@ -45,25 +46,23 @@ QJSValue JsResource::item(const QString &suffix)
     }
 
     ResourceItem *item = r ? r->item(rid.suffix) : nullptr;
-    const ResourceItem *citem = cr ? cr->item(rid.suffix) : nullptr;
 
-    if (item || citem)
+    if (item)
     {
         auto *ritem = new JsResourceItem(this);
         ritem->item = item;
-        ritem->citem = citem;
         return static_cast<QJSEngine*>(parent())->newQObject(ritem);
     }
 
     return {};
 }
 
-QVariant JsResource::endpoints()
+QVariant JsResource::endpoints() const
 {
     QVariantList result;
-    if (cr)
+    if (r)
     {
-        const deCONZ::Node *node = getResourceCoreNode(cr);
+        const deCONZ::Node *node = getResourceCoreNode(r);
         if (node)
         {
             for (auto ep : node->endpoints())
@@ -84,14 +83,13 @@ JsResourceItem::JsResourceItem(QObject *parent) :
 
 JsResourceItem::~JsResourceItem()
 {
-    if (item)
-    {
-        item = nullptr;
-    }
+    item = nullptr;
 }
 
 QVariant JsResourceItem::value() const
 {
+    const ResourceItem *citem = item;
+
     if (!citem)
     {
         return {};
@@ -135,14 +133,19 @@ void JsResourceItem::setValue(const QVariant &val)
         {
             DBG_Printf(DBG_DDF, "JS failed to set Item.val for %s\n", item->descriptor().suffix);
         }
+        else
+        {
+            emit valueChanged();
+            DeviceJS_ResourceItemValueChanged(item);
+        }
     }
 }
 
 QString JsResourceItem::name() const
 {
-    if (citem)
+    if (item)
     {
-        return QLatin1String(citem->descriptor().suffix);
+        return QLatin1String(item->descriptor().suffix);
     }
 
     return {};
@@ -291,4 +294,59 @@ bool JsZclFrame::isClCmd() const
     }
 
     return false;
+}
+
+JsUtils::JsUtils(QObject *parent) :
+    QObject(parent)
+{
+
+}
+
+/*! Polyfill for Math.log10(x)
+ */
+double JsUtils::log10(double x) const
+{
+    return ::log10(x);
+}
+
+/*! Polyfill for ECMAScript String.prototype.padStart(targetLength, padString)
+    https://tc39.es/ecma262/multipage/text-processing.html#sec-string.prototype.padstart
+ */
+QString JsUtils::padStart(const QString &str, QJSValue targetLength, QJSValue padString)
+{
+    int len = 0;
+    QString pad;
+    QString result;
+
+    len = targetLength.toInt();
+    if (!targetLength.isNumber() || len < 1 || str.length() >= len)
+    {
+        return str;
+    }
+
+    result.reserve(len);
+
+    len = len - str.length();
+
+    if (padString.isString())
+    {
+        pad = padString.toString();
+    }
+
+    if (pad.isEmpty())
+    {
+        pad = QLatin1Char(' '); // default is space
+    }
+
+    while (len)
+    {
+        for (int i = 0; i < pad.length() && len; i++, len--)
+        {
+            result.append(pad.at(i));
+        }
+    }
+
+    result = result.append(str);
+
+    return result;
 }

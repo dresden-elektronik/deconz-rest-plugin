@@ -53,6 +53,7 @@ void DEV_BindingCreateHandler(Device *device, const Event &event);
 void DEV_BindingRemoveHandler(Device *device, const Event &event);
 void DEV_ReadReportConfigurationHandler(Device *device, const Event &event);
 void DEV_ReadNextReportConfigurationHandler(Device *device, const Event &event);
+void DEV_ConfigureNextReportConfigurationHandler(Device *device, const Event &event);
 void DEV_ConfigureReportingHandler(Device *device, const Event &event);
 void DEV_BindingIdleHandler(Device *device, const Event &event);
 void DEV_PollIdleStateHandler(Device *device, const Event &event);
@@ -68,6 +69,7 @@ constexpr int RxOffWhenIdleResponseTime = 8000; // 7680 ms + some space for time
 constexpr int MaxConfirmTimeout = 20000; // If for some reason no APS-DATA.confirm is received (should almost
 constexpr int BindingAutoCheckInterval = 1000 * 60 * 60;
 constexpr int MaxPollItemRetries = 3;
+constexpr int MaxIdleApsConfirmErrors = 16;
 constexpr int MaxSubResources = 8;
 
 static int devManaged = -1;
@@ -104,6 +106,7 @@ struct BindingContext
     size_t bindingCheckRound = 0;
     size_t bindingIter = 0;
     size_t reportIter = 0;
+    size_t configIter = 0;
     int mgmtBindSupported = MGMT_BIND_SUPPORT_UNKNOWN;
     uint8_t mgmtBindStartIndex = 0;
     std::vector<BindingTracker> bindingTrackers;
@@ -144,6 +147,10 @@ public:
     QElapsedTimer awake; //! time to track when an end-device was last awake
     BindingContext binding; //! only used by binding sub state machine
     std::vector<DEV_PollItem> pollItems; //! queue of items to poll
+    int idleApsConfirmErrors = 0;
+    /*! True while a new state waits for the state enter event, which must arrive first.
+        This is for debug asserting that the order of events is valid - it doesn't drive logic. */
+    bool stateEnterLock[StateLevelMax] = {};
     bool managed = false; //! a managed device doesn't rely on legacy implementation of polling etc.
     ZDP_Result zdpResult; //! keep track of a running ZDP request
     DA_ReadResult readResult; //! keep track of a running "read" request
@@ -835,6 +842,25 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
         d->setState(nullptr, STATE_LEVEL_POLL);
         return;
     }
+    else if (event.what() == REventApsConfirm)
+    {
+        if (EventApsConfirmStatus(event) == deCONZ::ApsSuccessStatus)
+        {
+            d->idleApsConfirmErrors = 0;
+        }
+        else
+        {
+            d->idleApsConfirmErrors++;
+
+            if (d->idleApsConfirmErrors > MaxIdleApsConfirmErrors && device->item(RStateReachable)->toBool())
+            {
+                d->idleApsConfirmErrors = 0;
+                DBG_Printf(DBG_DEV, "DEV: Idle max APS confirm errors: 0x%016llX\n", device->key());
+                device->item(RStateReachable)->setValue(false);
+                DEV_CheckReachable(device);
+            }
+        }
+    }
     else if (event.what() != RAttrLastSeen && event.what() != REventPoll)
     {
         // DBG_Printf(DBG_DEV, "DEV Idle event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
@@ -1128,6 +1154,7 @@ void DEV_BindingTableVerifyHandler(Device *device, const Event &event)
         }
         else if (i->dstAddressMode() == deCONZ::ApsExtAddress)
         {
+            d->binding.configIter = 0;
             d->binding.reportIter = 0;
             d->setState(DEV_ReadReportConfigurationHandler, STATE_LEVEL_BINDING);
         }
@@ -1415,6 +1442,11 @@ void DEV_ReadReportConfigurationHandler(Device *device, const Event &event)
             record.direction = report.direction;
 
             param.records.push_back(record);
+
+            if (param.records.size() == ZCL_ReadReportConfigurationParam::MaxRecords)
+            {
+                break;
+            }
         }
 
         if (param.records.empty())
@@ -1501,6 +1533,17 @@ void DEV_ReadNextReportConfigurationHandler(Device *device, const Event &event)
     }
 }
 
+/*! Helper state to proceed with the next configure reporting. */
+void DEV_ConfigureNextReportConfigurationHandler(Device *device, const Event &event)
+{
+    DevicePrivate *d = device->d;
+
+    if (event.what() == REventStateEnter)
+    {
+        d->setState(DEV_ConfigureReportingHandler, STATE_LEVEL_BINDING);
+    }
+}
+
 void DEV_ConfigureReportingHandler(Device *device, const Event &event)
 {
     DevicePrivate *d = device->d;
@@ -1518,8 +1561,11 @@ void DEV_ConfigureReportingHandler(Device *device, const Event &event)
         param.manufacturerCode = d->binding.readReportParam.manufacturerCode;
         param.endpoint = bnd.srcEndpoint;
 
-        for (const auto &report : bnd.reporting)
+        for (size_t i = d->binding.configIter; i < d->binding.reportIter && i < bnd.reporting.size(); i++)
         {
+            const DDF_ZclReport &report = bnd.reporting[i];
+            d->binding.configIter++;
+
             if (report.manufacturerCode != param.manufacturerCode)
             {
                 continue;
@@ -1536,6 +1582,11 @@ void DEV_ConfigureReportingHandler(Device *device, const Event &event)
             record.timeout = 0; // TODO
 
             param.records.push_back(record);
+
+            if (param.records.size() == ZCL_ConfigureReportingParam::MaxRecords)
+            {
+                break; // prevent too large APS frames
+            }
         }
 
         d->binding.zclResult.isEnqueued = false;
@@ -1584,7 +1635,11 @@ void DEV_ConfigureReportingHandler(Device *device, const Event &event)
             {
                 auto &bnd = d->binding.bindings[d->binding.bindingIter];
 
-                if (d->binding.reportIter < bnd.reporting.size())
+                if (d->binding.configIter < d->binding.reportIter)
+                {
+                    d->setState(DEV_ConfigureNextReportConfigurationHandler, STATE_LEVEL_BINDING);
+                }
+                else if (d->binding.reportIter < bnd.reporting.size())
                 {
                     d->setState(DEV_ReadNextReportConfigurationHandler, STATE_LEVEL_BINDING);
                 }
@@ -1834,6 +1889,21 @@ void DEV_PollNextStateHandler(Device *device, const Event &event)
     }
 }
 
+/*! Increments retry counter of an item, or throws it away if maximum is reached. */
+static void checkPollItemRetry(std::vector<DEV_PollItem> &pollItems)
+{
+    if (!pollItems.empty())
+    {
+        auto &pollItem = pollItems.back();
+        pollItem.retry++;
+
+        if (pollItem.retry >= MaxPollItemRetries)
+        {
+            pollItems.pop_back();
+        }
+    }
+}
+
 /*! This state waits for APS confirm or timeout for an ongoing poll request.
     In any case it moves back to PollNext state.
     If the request is successful the DEV_PollItem will be removed from the queue.
@@ -1852,33 +1922,29 @@ void DEV_PollBusyStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventApsConfirm && EventApsConfirmId(event) == d->readResult.apsReqId)
     {
-        DBG_Printf(DBG_DEV, "DEV Poll Busy %s/0x%016llX APS-DATA.confirm id: %u, status: 0x%02X\n",
-                   event.resource(), event.deviceKey(), d->readResult.apsReqId, EventApsConfirmStatus(event));
-        Q_ASSERT(!d->pollItems.empty());
+        DBG_Printf(DBG_DEV, "DEV Poll Busy %s/0x%016llX APS-DATA.confirm id: %u, ZCL seq: %u, status: 0x%02X\n",
+                   event.resource(), event.deviceKey(), d->readResult.apsReqId, d->readResult.sequenceNumber, EventApsConfirmStatus(event));
 
         if (EventApsConfirmStatus(event) == deCONZ::ApsSuccessStatus)
         {
+            d->idleApsConfirmErrors = 0;
             d->stopStateTimer(StateLevel0);
             d->startStateTimer(d->maxResponseTime, STATE_LEVEL_POLL);
         }
         else
         {
-            auto &pollItem = d->pollItems.back();
-            pollItem.retry++;
-
-            if (pollItem.retry >= MaxPollItemRetries)
-            {
-                d->pollItems.pop_back();
-            }
+            checkPollItemRetry(d->pollItems);
             d->setState(DEV_PollNextStateHandler, STATE_LEVEL_POLL);
         }
     }
     else if (event.what() == REventZclResponse)
     {
-        if (d->readResult.sequenceNumber == EventZclSequenceNumber(event))
+        if (d->readResult.clusterId != EventZclClusterId(event))
+        { }
+        else if (d->readResult.sequenceNumber == EventZclSequenceNumber(event) || d->readResult.ignoreResponseSequenceNumber)
         {
-            DBG_Printf(DBG_DEV, "DEV Poll Busy %s/0x%016llX ZCL response seq: %u, status: 0x%02X\n",
-                   event.resource(), event.deviceKey(), d->readResult.sequenceNumber, EventZclStatus(event));
+            DBG_Printf(DBG_DEV, "DEV Poll Busy %s/0x%016llX ZCL response seq: %u, status: 0x%02X, cluster: 0x%04X\n",
+                   event.resource(), event.deviceKey(), d->readResult.sequenceNumber, EventZclStatus(event), d->readResult.clusterId);
 
             d->pollItems.pop_back();
             d->setState(DEV_PollNextStateHandler, STATE_LEVEL_POLL);
@@ -1886,6 +1952,9 @@ void DEV_PollBusyStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventStateTimeout)
     {
+        DBG_Printf(DBG_DEV, "DEV Poll Busy %s/0x%016llX timeout seq: %u, cluster: 0x%04X\n",
+           event.resource(), event.deviceKey(), d->readResult.sequenceNumber, d->readResult.clusterId);
+        checkPollItemRetry(d->pollItems);
         d->setState(DEV_PollNextStateHandler, STATE_LEVEL_POLL);
     }
 }
@@ -2018,12 +2087,23 @@ void Device::handleEvent(const Event &event, DEV_StateLevel level)
         {
             return;
         }
+
         const auto level1 = static_cast<unsigned>(event.num());
         const auto fn = d->state[level1];
+        if (d->stateEnterLock[level1] && event.what() == REventStateEnter)
+        {
+            d->stateEnterLock[level1] = false;
+        }
         if (fn)
         {
             fn(this, event);
         }
+    }
+    else if (d->stateEnterLock[level])
+    {
+        // REventStateEnter must always arrive first via urgend event queue.
+        // This branch should never hit!
+        DBG_Printf(DBG_DEV, "DEV event before REventStateEnter: 0x%016llX, skip: %s\n", d->deviceKey, event.what());
     }
     else if (event.what() == REventDDFReload)
     {
@@ -2053,26 +2133,28 @@ void DevicePrivate::setState(DeviceStateHandler newState, DEV_StateLevel level)
         if (state[level])
         {
             state[level](q, Event(q->prefix(), REventStateLeave, level, q->key()));
+            stateEnterLock[level] = false;
         }
 
         state[level] = newState;
 
         if (state[level])
         {
-            emit q->eventNotify(Event(q->prefix(), REventStateEnter, level, q->key()));
+            stateEnterLock[level] = true;
+            Event e(q->prefix(), REventStateEnter, level, q->key());
+            e.setUrgent(true);
+            emit q->eventNotify(e);
         }
     }
 }
 
 void DevicePrivate::startStateTimer(int IntervalMs, DEV_StateLevel level)
 {
-    emit q->eventNotify(Event(q->prefix(), REventStartTimer, EventTimerPack(level, IntervalMs), q->key()));
     timer[level].start(IntervalMs, q);
 }
 
 void DevicePrivate::stopStateTimer(DEV_StateLevel level)
 {
-    emit q->eventNotify(Event(q->prefix(), REventStopTimer, EventTimerPack(level, 0), q->key()));
     if (timer[level].isActive())
     {
         timer[level].stop();
