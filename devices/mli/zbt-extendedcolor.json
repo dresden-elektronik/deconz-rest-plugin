@@ -42,9 +42,6 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "cap/alert/trigger_effect"
-        },
-        {
           "name": "cap/bri/move_with_onoff"
         },
         {
