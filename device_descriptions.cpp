@@ -1223,11 +1223,6 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
             result.isManaged = obj.value(QLatin1String("managed")).toBool() ? 1 : 0;
         }
 
-        if (obj.contains(QLatin1String("refresh.interval")))
-        {
-            result.refreshInterval = obj.value(QLatin1String("refresh.interval")).toInt(0);
-        }
-
         if (obj.contains(QLatin1String("static")))
         {
             result.isStatic = 1;
@@ -1250,6 +1245,11 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
             if (read.isObject())
             {
                 result.readParameters = read.toVariant();
+            }
+
+            if (obj.contains(QLatin1String("refresh.interval")))
+            {
+                result.refreshInterval = obj.value(QLatin1String("refresh.interval")).toInt(0);
             }
 
             const auto write = obj.value(QLatin1String("write"));
@@ -1927,20 +1927,25 @@ static DeviceDescription DDF_MergeGenericItems(const std::vector<DeviceDescripti
             item.isGenericWrite = 0;
             item.isGenericParse = 0;
 
-            if (item.readParameters.isNull()) { item.readParameters = genItem->readParameters; item.isGenericRead = 1; }
-            if (item.writeParameters.isNull()) { item.writeParameters = genItem->writeParameters; item.isGenericWrite = 1; }
-            if (item.parseParameters.isNull()) { item.parseParameters = genItem->parseParameters; item.isGenericParse = 1; }
+            if (!item.isStatic)
+            {
+                if (item.readParameters.isNull()) { item.readParameters = genItem->readParameters; item.isGenericRead = 1; }
+                if (item.writeParameters.isNull()) { item.writeParameters = genItem->writeParameters; item.isGenericWrite = 1; }
+                if (item.parseParameters.isNull()) { item.parseParameters = genItem->parseParameters; item.isGenericParse = 1; }
+                if (item.refreshInterval == DeviceDescription::Item::NoRefreshInterval && genItem->refreshInterval != item.refreshInterval)
+                {
+                    item.refreshInterval = genItem->refreshInterval;
+                }
+            }
+
             if (item.descriptor.access == ResourceItemDescriptor::Access::Unknown)
             {
                 item.descriptor.access = genItem->descriptor.access;
             }
+
             if (!item.hasIsPublic)
             {
                 item.isPublic = genItem->isPublic;
-            }
-            if (item.refreshInterval == DeviceDescription::Item::NoRefreshInterval && genItem->refreshInterval != item.refreshInterval)
-            {
-                item.refreshInterval = genItem->refreshInterval;
             }
 
             if (!item.defaultValue.isValid() && genItem->defaultValue.isValid())
