@@ -6,7 +6,6 @@
   "product": "Smart Window and Door Sensor",
   "sleeper": true,
   "status": "Silver",
-  "path": "/devices/sengled/e1d-g73.json",
   "subdevices": [
     {
       "type": "$TYPE_OPEN_CLOSE_SENSOR",
@@ -56,7 +55,6 @@
         },
         {
           "name": "config/battery",
-          "description": "The current device battery level in 0&ndash;100&thinsp;%.",
           "awake": true,
           "parse": {
             "at": "0x0021",
@@ -68,15 +66,13 @@
         },
         {
           "name": "config/enrolled",
-          "description": "State of IAS enrollment process.",
           "public": false
         },
         {
           "name": "config/on"
         },
         {
-          "name": "config/pending",
-          "description": "Pending tasks to configure the device."
+          "name": "config/pending"
         },
         {
           "name": "config/reachable"
@@ -85,16 +81,13 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/lowbattery",
-          "description": "True when the device battery runs low."
+          "name": "state/lowbattery"
         },
         {
-          "name": "state/open",
-          "description": "True when open is detected."
+          "name": "state/open"
         },
         {
-          "name": "state/tampered",
-          "description": "True when the device tampered alarm was triggered."
+          "name": "state/tampered"
         }
       ]
     }
