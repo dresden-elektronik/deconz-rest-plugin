@@ -1,9 +1,9 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "Develco Products A/S",
-  "modelid": "MOSZB-140",
+  "manufacturername": ["Develco Products A/S", "Develco Products A/S"],
+  "modelid": ["MOSZB-130", "MOSZB-140"],
   "vendor": "Develco Products",
-  "product": "MOSZB-140 motion sensor pro",
+  "product": "MOSZB-130/140 motion sensor pro",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
