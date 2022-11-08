@@ -119,6 +119,12 @@ JsEvalResult DeviceJs::evaluate(const QString &expr)
     return JsEvalResult::Ok;
 }
 
+JsEvalResult DeviceJs::testCompile(const QString &expr)
+{
+    Q_UNUSED(expr)
+    return JsEvalResult::Ok;
+}
+
 void DeviceJs::setResource(Resource *r)
 {
     d->jsResource->r = r;

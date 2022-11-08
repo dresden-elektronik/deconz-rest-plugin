@@ -1167,6 +1167,44 @@ JsEvalResult DeviceJs::evaluate(const QString &expr)
     return JsEvalResult::Ok;
 }
 
+JsEvalResult DeviceJs::testCompile(const QString &expr)
+{
+    duk_context *ctx;
+    JsEvalResult result = JsEvalResult::Error;
+
+
+    if (expr.isEmpty())
+    {
+        return result;
+    }
+
+    reset();
+
+    ctx = d->dukContext;
+    d->errFatal = 0;
+    d->isReset = false;
+
+    ResourceItem dummyItem(rInvalidItemDescriptor);
+    d->ritem = &dummyItem;
+
+    if (d->ritem)
+    {
+        DJS_InitGlobalItem(ctx);
+    }
+
+    duk_uint_t flags = 0;
+    if (duk_pcompile_string(ctx, flags, qPrintable(expr)) != 0)
+    {
+        d->errString = duk_safe_to_string(ctx, -1);
+    }
+    else
+    {
+        result = JsEvalResult::Ok;
+    }
+
+    return result;
+}
+
 void DeviceJs::setResource(Resource *r)
 {
     d->resource = r;
