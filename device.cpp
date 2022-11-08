@@ -301,6 +301,7 @@ void DEV_CheckItemChanges(Device *device, const Event &event)
         }
     }
 
+    int apsEnqueued = 0;
     for (auto *sub : subDevices)
     {
         if (sub && !sub->stateChanges().empty())
@@ -312,7 +313,11 @@ void DEV_CheckItemChanges(Device *device, const Event &event)
                 {
                     change.verifyItemChange(item);
                 }
-                change.tick(sub, d->apsCtrl);
+
+                if (apsEnqueued == 0 && change.tick(d->deviceKey, sub, d->apsCtrl) == 1)
+                {
+                    apsEnqueued++;
+                }
             }
 
             sub->cleanupStateChanges();
@@ -899,14 +904,21 @@ void DEV_BindingHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventPoll || event.what() == REventAwake || event.what() == REventBindingTick)
     {
-        d->binding.bindingIter = 0;
-        if (d->binding.mgmtBindSupported == MGMT_BIND_NOT_SUPPORTED)
+        if (DA_ApsUnconfirmedRequests() > 4)
         {
-            d->setState(DEV_BindingTableVerifyHandler, STATE_LEVEL_BINDING);
+            // wait
         }
         else
         {
-            d->setState(DEV_BindingTableReadHandler, STATE_LEVEL_BINDING);
+            d->binding.bindingIter = 0;
+            if (d->binding.mgmtBindSupported == MGMT_BIND_NOT_SUPPORTED)
+            {
+                d->setState(DEV_BindingTableVerifyHandler, STATE_LEVEL_BINDING);
+            }
+            else
+            {
+                d->setState(DEV_BindingTableReadHandler, STATE_LEVEL_BINDING);
+            }
         }
     }
     else if (event.what() == REventBindingTable)
@@ -1811,6 +1823,12 @@ void DEV_PollIdleStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventPoll || event.what() == REventAwake)
     {
+        if (DA_ApsUnconfirmedRequests() > 4)
+        {
+            // wait
+            return;
+        }
+
         if (device->node()) // update nwk address if needed
         {
             const auto &addr = device->node()->address();

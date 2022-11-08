@@ -1962,3 +1962,129 @@ WriteFunction_t DA_GetWriteFunction(const QVariant &params)
 
     return result;
 }
+
+/* APS core queue tracking
+
+   Track the running APS queue to aid scheduling of new APS requests
+   in order to not overhelm the queue. The aim is to execute low priority tasks,
+   like polling and binding maintenance, only when the queue is not too busy.
+   This leaves room to send high priority commands e.g. to control a light
+   without waiting for low priority APS request to be finished.
+ */
+#define APS_BUSY_TABLE_SIZE 32
+
+struct DA_ReqBusy
+{
+    uint64_t dstExtAddr;
+    int64_t tref;
+    uint16_t clusterId;
+    uint8_t dstEndpoint;
+    uint8_t apsRequestId;
+};
+
+static unsigned _DA_ApsUnconfirmedCount = 0;
+static DA_ReqBusy _DA_BusyTable[APS_BUSY_TABLE_SIZE];
+
+/*! Returns number of APS requests busy in the core APS queue. */
+unsigned DA_ApsUnconfirmedRequests()
+{
+    return _DA_ApsUnconfirmedCount;
+}
+
+/*! Returns number of APS requests, for \p extAddr, busy in the core APS queue. */
+unsigned DA_ApsUnconfirmedRequestsForExtAddress(uint64_t extAddr)
+{
+    unsigned result = 0;
+
+    if (_DA_ApsUnconfirmedCount != 0)
+    {
+        for (unsigned i = 0; i < APS_BUSY_TABLE_SIZE; i++)
+        {
+            DA_ReqBusy *e = &_DA_BusyTable[i];
+
+            if (e->tref != 0 && e->dstExtAddr == extAddr)
+            {
+                result++;
+            }
+
+            if (result == _DA_ApsUnconfirmedCount)
+            {
+                break; // nothing more to count
+            }
+        }
+    }
+
+    return result;
+}
+
+/*! Call back when an APS request is put in the core APS queue.
+    Record it here to track it until it's confirmed aka done.
+ */
+void DA_ApsRequestEnqueued(const deCONZ::ApsDataRequest &req)
+{
+    if (!req.dstAddress().hasExt())
+    {
+        DBG_Assert(!req.dstAddress().isNwkUnicast());
+        return;
+    }
+
+    const int64_t now = deCONZ::steadyTimeRef().ref / 1000;
+
+    for (unsigned i = 0; i < APS_BUSY_TABLE_SIZE; i++)
+    {
+        DA_ReqBusy *e = &_DA_BusyTable[i];
+
+        if (e->tref != 0 && ((now - e->tref) > 60))
+        {
+            // confirm timeout, should normally not happen
+            DBG_Assert(_DA_ApsUnconfirmedCount > 0);
+            if (_DA_ApsUnconfirmedCount > 0)
+            {
+                _DA_ApsUnconfirmedCount--;
+            }
+            memset(e, 0, sizeof(*e));
+        }
+
+        if (e->tref == 0)
+        {
+            e->dstExtAddr = req.dstAddress().ext();
+            e->dstEndpoint = req.dstEndpoint();
+            e->apsRequestId = req.id();
+            e->clusterId = req.clusterId();
+            e->tref = now;
+            DBG_Assert(_DA_ApsUnconfirmedCount < APS_BUSY_TABLE_SIZE);
+            if (_DA_ApsUnconfirmedCount < APS_BUSY_TABLE_SIZE)
+            {
+                _DA_ApsUnconfirmedCount++;
+            }
+            return;
+        }
+    }
+}
+
+/*! Callback when a APS request is confirmed, aka when it has been sent by the
+    firmware or an error occured. The actual status isn't considered here, we
+    only care that the APS request is 'done'.
+ */
+void DA_ApsRequestConfirmed(const deCONZ::ApsDataConfirm &conf)
+{
+    if (!conf.dstAddress().hasExt())
+    {
+        return;
+    }
+
+    if (_DA_ApsUnconfirmedCount != 0)
+    {
+        for (unsigned i = 0; i < APS_BUSY_TABLE_SIZE; i++)
+        {
+            DA_ReqBusy *e = &_DA_BusyTable[i];
+            if (e->apsRequestId != conf.id()) continue;
+            if (e->dstExtAddr != conf.dstAddress().ext()) continue;
+            if (e->dstEndpoint != conf.dstEndpoint()) continue;
+
+            memset(e, 0, sizeof(*e));
+            _DA_ApsUnconfirmedCount--;
+            return;
+        }
+    }
+}
