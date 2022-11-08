@@ -1,0 +1,151 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "$MF_LUMI",
+  "modelid": "lumi.ctrl_neutral1",
+  "vendor": "Xiaomi",
+  "product": "Aqara single rocker switch QBKG04LM",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_ON_OFF_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x02"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/alert"
+        },
+        {
+          "name": "state/on"
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_SWITCH",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x04",
+        "0x0006"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0000",
+        "endpoint": "0x04",
+        "in": [
+          "0x0006"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/clickmode",
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0xFF22",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "parse": {
+            "at": "0xFF22",
+            "cl": "0x0000",
+            "ep": 1,
+            "eval": "if (Attr.val == 0xFE) { Item.val = 'decoupled' } else if (Attr.val == 0x12) { Item.val = 'coupled' } else { Item.val = 'unknown' }",
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "write": {
+            "at": "0xFF22",
+            "cl": "0x0000",
+            "dt": "0x20",
+            "ep": 1,
+            "eval": "if (Item.val == 'decoupled') { 0xFE } else if (Item.val == 'coupled') { 0x12 } else { 'unknown' }",
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "values": [
+            ["\"decoupled\"", "Decoupled Mode"],
+            ["\"coupled\"", "Coupled Mode"] 
+          ],
+          "default": "coupled"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "config/temperature"
+        },
+        {
+          "name": "state/buttonevent"
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ]
+}
