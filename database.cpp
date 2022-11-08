@@ -15,7 +15,6 @@
 #include <QElapsedTimer>
 #include <unistd.h>
 #include "database.h"
-#include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "deconz/dbg_trace.h"
 #include "device_descriptions.h"
@@ -6494,18 +6493,41 @@ bool DB_StoreSubDevice(const QString &parentUniqueId, const QString &uniqueId)
     return true;
 }
 
-/*! Sqlite callback to check if an resource item entry already exists.
- */
-static int sqliteSelectDeviceItemCallback(void *user, int, char **, char **)
+struct SelectDeviceItemData
 {
-    auto *result = static_cast<int*>(user);
+    unsigned valueLength;
+    char value[128];
+    uint64_t timestamp;
+    bool isValid;
+};
 
-    if (result)
+/*! Sqlite callback to check if an resource item entry already exists.
+    [0] item suffix
+    [1] value
+    [2] timestamp
+ */
+static int sqliteSelectDeviceItemCallback(void *user, int ncols, char **colval , char **colname)
+{
+    assert(user);
+    assert(ncols == 3);
+
+    Q_UNUSED(colname)
+
+    SelectDeviceItemData *result = static_cast<SelectDeviceItemData*>(user);
+
+    result->valueLength = U_StringLength(colval[1]);
+    result->isValid = false;
+    if (result->valueLength < sizeof(result->value))
     {
-        *result += 1;
+        result->timestamp = U_ParseUint64(colval[2], -1, 10);
+        memcpy(&result->value[0], colval[1], result->valueLength);
+        result->value[result->valueLength] = '\0';
+        result->isValid = true;
         return 0;
     }
 
+    result->valueLength = 0;
+    result->isValid = false;
     return 1;
 }
 
@@ -6529,6 +6551,9 @@ bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item)
     }
 
     int ret = 0;
+    uint64_t dt = 0; // delta in seconds from timestamp in database
+    SelectDeviceItemData dbResult;
+    dbResult.isValid = false;
     const uint64_t timestamp = item->lastChanged().toMSecsSinceEpoch() / 1000;
     const auto value = dbEscapeString(item->toVariant().toString()).toUtf8();
 
@@ -6537,28 +6562,15 @@ bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item)
     ret = snprintf(sqlBuf, sizeof(sqlBuf),
                    "SELECT item,value,timestamp FROM resource_items"
                    " WHERE sub_device_id = (SELECT id FROM sub_devices WHERE uniqueid = '%s')"
-                   " AND item = '%s' AND value = '%s' AND timestamp = %" PRIu64,
+                   " AND item = '%s'",
                    uniqueId->toCString(),
-                   item->descriptor().suffix,
-                   value.constData(), timestamp);
-
+                   item->descriptor().suffix);
 
     assert(size_t(ret) < sizeof(sqlBuf));
     if (size_t(ret) < sizeof(sqlBuf))
     {
-        if (item->descriptor().type == DataTypeString)
-        {
-            char *c = strstr(sqlBuf, "AND timestamp"); // don't check timestamp for strings
-            if (c)
-            {
-                c[-1] = '\0';
-            }
-        }
-
         char *errmsg = nullptr;
-
-        int nrows = 0;
-        int rc = sqlite3_exec(db, sqlBuf, sqliteSelectDeviceItemCallback, &nrows, &errmsg);
+        int rc = sqlite3_exec(db, sqlBuf, sqliteSelectDeviceItemCallback, &dbResult, &errmsg);
 
         if (rc != SQLITE_OK)
         {
@@ -6569,9 +6581,44 @@ bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item)
             }
         }
 
-        if (nrows > 0)
+        if (dbResult.isValid)
         {
-            return true;
+            bool isEqual = false;
+            if (dbResult.valueLength == (unsigned)value.size())
+            {
+                if (memcmp(value.constData(), &dbResult.value[0], dbResult.valueLength) == 0)
+                {
+                    isEqual = true;
+                }
+            }
+
+            if (dbResult.timestamp < timestamp)
+            {
+                dt = timestamp - dbResult.timestamp;
+            }
+
+            if (isEqual)
+            {
+                if (item->descriptor().type == DataTypeString)
+                {
+                    return true; // don't check timestamp for strings
+                }
+
+                if (item->descriptor().suffix[0] == 's' && dt < 600) // state/*
+                {
+                    return true; // only update timestamp every 10 minutes
+                }
+            }
+            else
+            {
+                // only update 'value' and 'timestamp' every 10 minutes if changed
+                // TODO(mpi): extend the item descriptor to specify storage intervals
+                // we don't need to write the DB for rapid changing values
+                if (item->descriptor().suffix[0] == 's' && dt < 600) // state/*
+                {
+                    return true;
+                }
+            }
         }
     }
 
@@ -6585,9 +6632,12 @@ bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item)
                        value.constData(),
                        timestamp, uniqueId->toCString());
 
-    assert(size_t(ret) < sizeof(sqlBuf));
+
+    DBG_Assert(size_t(ret) < sizeof(sqlBuf));
     if (size_t(ret) < sizeof(sqlBuf))
     {
+        DBG_Printf(DBG_INFO_L2, "%s\n", &sqlBuf[0]);
+
         char *errmsg = nullptr;
 
         int rc = sqlite3_exec(db, sqlBuf, nullptr, nullptr, &errmsg);
