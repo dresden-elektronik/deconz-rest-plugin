@@ -105,7 +105,7 @@ public:
      */
     explicit StateChange(State initialState, StateChangeFunction_t fn, quint8 dstEndpoint);
     State state() const { return m_state; }
-    State tick(Resource *r, deCONZ::ApsController *apsCtrl);
+    int tick(uint64_t extAddr, Resource *r, deCONZ::ApsController *apsCtrl);
     void verifyItemChange(const ResourceItem *item);
     void addTargetValue(const char *suffix, const QVariant &value);
     void addParameter(const QString &name, const QVariant &value);
