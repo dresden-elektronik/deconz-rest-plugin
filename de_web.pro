@@ -6,6 +6,10 @@ TARGET = $$qtLibraryTarget($$TARGET)
 
 DEFINES += DECONZ_DLLSPEC=Q_DECL_IMPORT
 
+# select Javascript engine
+#DEFINES += USE_QT_JS_ENGINE
+DEFINES += USE_DUKTAPE_JS_ENGINE
+
 QMAKE_CXXFLAGS += -Wno-attributes \
                   -Wno-psabi \
                   -Wall
@@ -69,7 +73,8 @@ CONFIG         += plugin \
                += c++14 \
                -= qtquickcompiler
 
-QT             += network qml
+QT             += network
+#QT             += qml
 
 INCLUDEPATH    += ../.. \
                   ../../common
@@ -129,6 +134,7 @@ HEADERS  = bindings.h \
            device_ddf_init.h \
            device_descriptions.h \
            device_js/device_js.h \
+           device_js/device_js_duktape.h \
            device_js/device_js_wrappers.h \
            device_tick.h \
            event.h \
@@ -199,7 +205,9 @@ SOURCES  = air_quality.cpp \
            device_ddf_init.cpp \
            device_descriptions.cpp \
            device_js/device_js.cpp \
+           device_js/device_js_duktape.cpp \
            device_js/device_js_wrappers.cpp \
+           device_js/duktape.c \
            device_setup.cpp \
            device_tick.cpp \
            diagnostics.cpp \

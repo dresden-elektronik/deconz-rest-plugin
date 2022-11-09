@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2021-2022 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -8,6 +8,7 @@
  *
  */
 
+#ifdef USE_QT_JS_ENGINE
 #include "deconz/aps.h"
 #include "device_js.h"
 #include "device_js_wrappers.h"
@@ -16,6 +17,7 @@
 #include <QMetaProperty>
 
 static DeviceJs *_djs = nullptr; // singleton
+static DeviceJsPrivate *_djsPriv = nullptr; // singleton
 
 class DeviceJsPrivate
 {
@@ -30,8 +32,6 @@ public:
     const deCONZ::ApsDataIndication *apsInd = nullptr;
     std::vector<ResourceItem*> itemsSet;
 };
-
-static DeviceJsPrivate *_djsPriv = nullptr; // singleton
 
 // Polyfills for older Qt versions
 static const char *PF_String_prototype_padStart = "String.prototype.padStart = String.prototype.padStart || "
@@ -119,6 +119,12 @@ JsEvalResult DeviceJs::evaluate(const QString &expr)
     return JsEvalResult::Ok;
 }
 
+JsEvalResult DeviceJs::testCompile(const QString &expr)
+{
+    Q_UNUSED(expr)
+    return JsEvalResult::Ok;
+}
+
 void DeviceJs::setResource(Resource *r)
 {
     d->jsResource->r = r;
@@ -180,3 +186,10 @@ QString DeviceJs::errorString() const
 {
     return d->result.toString();
 }
+#endif // USE_QT_JS_ENGINE
+
+#ifdef USE_DUKTAPE_JS_ENGINE
+
+// implementation in device_js_duktape.cpp
+
+#endif // USE_DUKTAPE_JS_ENGINE

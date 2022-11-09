@@ -78,6 +78,7 @@ static DDF_SubDeviceDescriptor DDF_ReadSubDeviceFile(const QString &path);
 static DeviceDescription DDF_MergeGenericItems(const std::vector<DeviceDescription::Item> &genericItems, const DeviceDescription &ddf);
 static DeviceDescription::Item *DDF_GetItemMutable(const ResourceItem *item);
 static void DDF_UpdateItemHandles(std::vector<DeviceDescription> &descriptions, uint loadCounter);
+static void DDF_TryCompileAndFixJavascript(QString *expr, const QString &path);
 DeviceDescription DDF_LoadScripts(const DeviceDescription &ddf);
 
 /*! Constructor. */
@@ -946,6 +947,65 @@ static void DDF_UpdateItemHandles(std::vector<DeviceDescription> &descriptions, 
     }
 }
 
+/*! Temporary workaround since DuktapeJS doesn't support 'let', try replace it with 'var'.
+
+    The fix only applies if the JS doesn't compile and after the modified version successfully
+    compiles. Can be removed onces all DDFs have been updated.
+
+    Following cases are fixed:
+
+    '^let '   // let at begin of the expression
+    ' let '
+    '\nlet '
+    '\tlet '
+    '(let '   // let within a scope like: for (let i=0; i < 3; i++) {...}
+*/
+static void DDF_TryCompileAndFixJavascript(QString *expr, const QString &path)
+{
+#ifdef USE_DUKTAPE_JS_ENGINE
+    if (DeviceJs::instance()->testCompile(*expr) == JsEvalResult::Ok)
+    {
+        return;
+    }
+
+    int idx = 0;
+    int nfixes = 0;
+    QString fix = *expr;
+    const QString letSearch("let");
+
+    for ( ; idx != -1; )
+    {
+        idx = fix.indexOf(letSearch, idx);
+        if (idx < 0)
+        {
+            break;
+        }
+
+        if (idx == 0 || fix.at(idx - 1).isSpace() || fix.at(idx - 1) == '(')
+        {
+            fix[idx + 0] = 'v';
+            fix[idx + 1] = 'a';
+            fix[idx + 2] = 'r';
+            idx += 4;
+            nfixes++;
+        }
+    }
+
+    if (nfixes > 0 && DeviceJs::instance()->testCompile(fix) == JsEvalResult::Ok)
+    {
+        *expr = fix;
+        return;
+    }
+
+    // if we get here, the expressions has other problems, print compile error and path
+    DBG_Printf(DBG_DDF, "DDF failed to compile JS: %s\n%s\n", qPrintable(path), qPrintable(DeviceJs::instance()->errorString()));
+
+#else
+    Q_UNUSED(expr)
+    Q_UNUSED(path)
+#endif
+}
+
 /*! Reads all DDF related files.
  */
 void DeviceDescriptions::readAll()
@@ -1799,7 +1859,7 @@ QVariant DDF_ResolveParamScript(const QVariant &param, const QString &path)
 
     auto map = param.toMap();
 
-    if (map.contains("script"))
+    if (map.contains(QLatin1String("script")))
     {
         const auto script = map["script"].toString();
 
@@ -1808,12 +1868,23 @@ QVariant DDF_ResolveParamScript(const QVariant &param, const QString &path)
 
         if (f.exists() && f.open(QFile::ReadOnly))
         {
-            const auto content = f.readAll();
+            QString content = f.readAll();
             if (!content.isEmpty())
             {
+                DDF_TryCompileAndFixJavascript(&content, path);
                 map["eval"] = content;
                 result = std::move(map);
             }
+        }
+    }
+    else if (map.contains(QLatin1String("eval")))
+    {
+        QString content = map[QLatin1String("eval")].toString();
+        if (!content.isEmpty())
+        {
+            DDF_TryCompileAndFixJavascript(&content, path);
+            map[QLatin1String("eval")] = content;
+            result = std::move(map);
         }
     }
 
