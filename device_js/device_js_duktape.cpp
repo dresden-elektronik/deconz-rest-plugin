@@ -1129,6 +1129,26 @@ JsEvalResult DeviceJs::evaluate(const QString &expr)
         DJS_InitGlobalItem(ctx);
     }
 
+    {
+        int srcEp = 255;
+        int clusterId = 0xFFFF;
+        if (d->apsInd)
+        {
+            srcEp = d->apsInd->srcEndpoint();
+            clusterId = d->apsInd->clusterId();
+        }
+
+        int ret;
+
+        duk_push_int(ctx, srcEp);
+        ret = duk_put_global_string(ctx, "SrcEp");
+        U_ASSERT(ret == 1);
+
+        duk_push_int(ctx, clusterId);
+        ret = duk_put_global_string(ctx, "ClusterId");
+        U_ASSERT(ret == 1);
+    }
+
     if (duk_peval_string(ctx, qPrintable(expr)) != 0)
     {
         d->errString = duk_safe_to_string(ctx, -1);
@@ -1218,9 +1238,6 @@ void DeviceJs::setResource(const Resource *r)
 void DeviceJs::setApsIndication(const deCONZ::ApsDataIndication &ind)
 {
     d->apsInd = &ind;
-    // TODO(mpi): implement the following!
-//    d->engine.globalObject().setProperty(QLatin1String("SrcEp"), int(ind.srcEndpoint()));
-//    d->engine.globalObject().setProperty(QLatin1String("ClusterId"), int(ind.clusterId()));
 }
 
 void DeviceJs::setZclFrame(const deCONZ::ZclFrame &zclFrame)
