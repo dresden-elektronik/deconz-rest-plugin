@@ -1765,29 +1765,32 @@ std::vector<DEV_PollItem> DEV_GetPollItems(Device *device)
                 continue;
             }
 
+            int64_t dt = -1;
+
             if (item->refreshInterval().val == 0)
             {
 
             }
-            else if (isValid(item->lastZclReport()))
+            else
             {
-                const auto dt = tnow - item->lastZclReport();
-                if (dt < item->refreshInterval())
+                if (isValid(item->lastZclReport()))
                 {
-                    continue;
-                }
-                else
-                {
-                    DBG_Printf(DBG_DEV, "DEV 0x%016llX read %s, dt %d ms\n", d->deviceKey, item->descriptor().suffix, int(dt.val));
+                    dt = (tnow - item->lastZclReport()).val / 1000;
+                    if (dt < item->refreshInterval().val)
+                    {
+                        continue;
+                    }
                 }
 
-            }
-            else if (item->lastSet().isValid())
-            {
-                const auto dt = item->lastSet().secsTo(now);
-                if (dt  < item->refreshInterval().val)
+                if (item->lastSet().isValid() && item->valueSource() == ResourceItem::SourceDevice)
                 {
-                    continue;
+                    const auto dt2 = item->lastSet().secsTo(now);
+                    if (dt2  < item->refreshInterval().val)
+                    {
+                        continue;
+                    }
+
+                    dt = dt2;
                 }
             }
 
@@ -1802,6 +1805,7 @@ std::vector<DEV_PollItem> DEV_GetPollItems(Device *device)
                 continue;
             }
 
+            DBG_Printf(DBG_DEV, "DEV 0x%016llX read %s, dt %d sec\n", d->deviceKey, item->descriptor().suffix, int(dt));
             result.emplace_back(DEV_PollItem{r, item, ddfItem.readParameters});
         }
     }

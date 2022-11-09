@@ -12756,20 +12756,25 @@ void DeRestPluginPrivate::processGroupTasks()
         return;
     }
 
+    if (DA_ApsUnconfirmedRequests() > 3)
+    {
+        return;
+    }
+
     if (groupTaskNodeIter >= nodes.size())
     {
         groupTaskNodeIter = 0;
+    }
+
+    if (!nodes[groupTaskNodeIter].isAvailable())
+    {
+        return;
     }
 
     TaskItem task;
 
     task.lightNode = &nodes[groupTaskNodeIter];
     groupTaskNodeIter++;
-
-    if (!task.lightNode->isAvailable())
-    {
-        return;
-    }
 
     if (task.lightNode->state() != LightNode::StateNormal)
     {
