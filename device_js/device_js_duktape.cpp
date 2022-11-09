@@ -21,6 +21,11 @@
 #include "resource.h"
 #include "utils/utils.h"
 
+// before v2.19.2-beta DBG_JS isn't defined, can be removed afterwards
+#ifndef DBG_JS
+  #define DBG_JS DBG_INFO_L2
+#endif
+
 #if _MSC_VER
   #define U_ASSERT(c) if (!(c)) __debugbreak()
 #elif __GNUC__
@@ -185,15 +190,15 @@ void *U_duk_alloc(void *udata, duk_size_t size)
 void U_duk_free(void *udata, void *ptr)
 {
     U_UNUSED(udata);
-	if (ptr)
-	{
+    if (ptr)
+    {
         // arena allocator doesn't free ...
-	}
-	else
-	{
-		//printf("%s (NULL pointer!)\n", __FUNCTION__);
-		//U_ASSERT(0 && "NULL_PTR_FREE");
-	}
+    }
+    else
+    {
+        //printf("%s (NULL pointer!)\n", __FUNCTION__);
+        //U_ASSERT(0 && "NULL_PTR_FREE");
+    }
 }
 
 void *U_duk_realloc(void *udata, void *ptr, duk_size_t size)
@@ -205,20 +210,20 @@ void *U_duk_realloc(void *udata, void *ptr, duk_size_t size)
     void *p_new;
     uint64_t sz;
 
-	if (ptr == NULL)
-	{
-		return U_duk_alloc(udata, size);
-	}
+    if (ptr == NULL)
+    {
+        return U_duk_alloc(udata, size);
+    }
 
-	if (size == 0)
-	{
-		/* man realloc:
-		   If size is equal to zero, and ptr is not NULL, then the call is equivalent to free(ptr)
-		*/
+    if (size == 0)
+    {
+        /* man realloc:
+           If size is equal to zero, and ptr is not NULL, then the call is equivalent to free(ptr)
+        */
 
-		U_duk_free(udata, ptr);
-		return NULL;
-	}
+        U_duk_free(udata, ptr);
+        return NULL;
+    }
 
     // paranoid check that this is our memory
     {
@@ -231,19 +236,19 @@ void *U_duk_realloc(void *udata, void *ptr, duk_size_t size)
         U_ASSERT(end > p);
     }
 
-	{
+    {
         size_hdr = (uint64_t*)&p[-8];
         p_new = U_duk_alloc(udata, size);
 
         sz = size < *size_hdr ? size : *size_hdr;
-		memcpy(p_new, p, sz);
+        memcpy(p_new, p, sz);
 
-		U_duk_free(udata, ptr);
-		ptr = p_new;
-	}
+        U_duk_free(udata, ptr);
+        ptr = p_new;
+    }
 
-	// printf("%s: %u bytes\n", __FUNCTION__, (unsigned)size);
-	return ptr;
+    // printf("%s: %u bytes\n", __FUNCTION__, (unsigned)size);
+    return ptr;
 }
 
 void U_duk_fatal(void *udata, const char *msg)
@@ -251,8 +256,7 @@ void U_duk_fatal(void *udata, const char *msg)
     U_UNUSED(udata);
     _djsPriv->errFatal = 1;
     _djsPriv->errString = QLatin1String(msg);
-	printf("%s: %s\n", __FUNCTION__, msg);
-    //U_ASSERT(0 && "FATAL!!!1!11");
+    DBG_Printf(DBG_JS, "%s: %s\n", __FUNCTION__, msg);
 }
 
 /* R.item(suffix)
@@ -263,23 +267,23 @@ void U_duk_fatal(void *udata, const char *msg)
 static duk_ret_t DJS_GetResourceItem(duk_context *ctx)
 {
     int i;
-	const char *suffix;
+    const char *suffix;
     int16_t item_index;
     Resource *r;
     unsigned len0;
     unsigned len1;
     ResourceItem *item;
 
-	if (duk_is_string(ctx, 0) == 0)
-	{
-    	return duk_type_error(ctx, "R.item(suffix) suffix MUST be a string");
-	}
+    if (duk_is_string(ctx, 0) == 0)
+    {
+        return duk_type_error(ctx, "R.item(suffix) suffix MUST be a string");
+    }
 
     r = _djsPriv->resource;
-	suffix = duk_safe_to_string(ctx, 0);
-    DBG_Printf(DBG_INFO, "%s: -> R.item('%s')\n", __FUNCTION__, suffix);
+    suffix = duk_safe_to_string(ctx, 0);
+    DBG_Printf(DBG_JS, "%s: -> R.item('%s')\n", __FUNCTION__, suffix);
 
-	// search for ResourceItem ...
+    // search for ResourceItem ...
     item_index = -1;
 
     if (r)
@@ -301,11 +305,11 @@ static duk_ret_t DJS_GetResourceItem(duk_context *ctx)
 
     duk_pop(ctx); /* safe string of 'suffix' */
 
-	/* create new instance of RItem */
-	duk_get_global_string(ctx, "RItem");
-	/* TODO push args...*/
+    /* create new instance of RItem */
+    duk_get_global_string(ctx, "RItem");
+    /* TODO push args...*/
 
-	duk_new(ctx, 0 /*nargs*/);
+    duk_new(ctx, 0 /*nargs*/);
 
     /* Keep the index of ResourceItem in the Resource container. */
     duk_bool_t rc;
@@ -314,19 +318,19 @@ static duk_ret_t DJS_GetResourceItem(duk_context *ctx)
     rc = duk_put_prop_string(ctx, -2, "ridx");
     U_ASSERT(rc == 1);
 
-	U_ASSERT(duk_is_object(ctx, -1) != 0);
-	return 1;  /* one return value */
+    U_ASSERT(duk_is_object(ctx, -1) != 0);
+    return 1;  /* one return value */
 }
 
 static duk_ret_t DJS_GetResourceEndpoints(duk_context *ctx)
 {
-	printf("%s\n", __FUNCTION__);
+    printf("%s\n", __FUNCTION__);
 
-	int i;
-	duk_idx_t arr_idx;
+    int i;
+    duk_idx_t arr_idx;
 
     i = 0;
-	arr_idx = duk_push_array(ctx);
+    arr_idx = duk_push_array(ctx);
 
     if (_djsPriv->resource)
     {
@@ -342,35 +346,35 @@ static duk_ret_t DJS_GetResourceEndpoints(duk_context *ctx)
         }
     }
 
-	return 1;  /* one return value */
+    return 1;  /* one return value */
 }
 
 /* Creates 'R' global scope object. */
 static void DJS_InitGlobalResource(duk_context *ctx)
 {
-	const duk_function_list_entry my_module_funcs[] = {
-	    { "item", DJS_GetResourceItem, 1 /* 1 arg */ },
-	    { NULL, NULL, 0 }
-	};
+    const duk_function_list_entry my_module_funcs[] = {
+        { "item", DJS_GetResourceItem, 1 /* 1 arg */ },
+        { NULL, NULL, 0 }
+    };
 
-	duk_push_global_object(ctx);
-	duk_push_object(ctx);  /* -> [ ... global obj ] */
-	duk_put_function_list(ctx, -1, my_module_funcs);
+    duk_push_global_object(ctx);
+    duk_push_object(ctx);  /* -> [ ... global obj ] */
+    duk_put_function_list(ctx, -1, my_module_funcs);
 
-	/* R.endpoints */
+    /* R.endpoints */
     duk_push_string(ctx, "endpoints");
-	duk_push_c_function(ctx, DJS_GetResourceEndpoints, 0 /*nargs*/);
-	duk_def_prop(ctx,
-             -3,
-             DUK_DEFPROP_HAVE_GETTER);
+    duk_push_c_function(ctx, DJS_GetResourceEndpoints, 0 /*nargs*/);
+    duk_def_prop(ctx,
+                 -3,
+                 DUK_DEFPROP_HAVE_GETTER);
 
-	duk_put_prop_string(ctx, -2, "R");  /* -> [ ... global ] */
-	duk_pop(ctx);
+    duk_put_prop_string(ctx, -2, "R");  /* -> [ ... global ] */
+    duk_pop(ctx);
 }
 
 static duk_ret_t DJS_GetAttributeValue(duk_context *ctx)
 {
-    DBG_Printf(DBG_INFO, "%s\n", __FUNCTION__);
+    DBG_Printf(DBG_JS, "%s\n", __FUNCTION__);
 
     const deCONZ::ZclAttribute *attr;
 
@@ -485,7 +489,7 @@ static duk_ret_t DJS_GetAttributeValue(duk_context *ctx)
 
 static duk_ret_t DJS_GetAttributeId(duk_context *ctx)
 {
-    DBG_Printf(DBG_INFO, "%s\n", __FUNCTION__);
+    DBG_Printf(DBG_JS, "%s\n", __FUNCTION__);
 
     if (!_djsPriv->attr)
     {
@@ -498,7 +502,7 @@ static duk_ret_t DJS_GetAttributeId(duk_context *ctx)
 
 static duk_ret_t DJS_GetAttributeDataType(duk_context *ctx)
 {
-    DBG_Printf(DBG_INFO, "%s\n", __FUNCTION__);
+    DBG_Printf(DBG_JS, "%s\n", __FUNCTION__);
 
     if (!_djsPriv->attr)
     {
@@ -547,7 +551,7 @@ static void DJS_InitGlobalAttribute(duk_context *ctx)
 
 static duk_ret_t DJS_GetZclFrameCmd(duk_context *ctx)
 {
-    DBG_Printf(DBG_INFO, "%s\n", __FUNCTION__);
+    DBG_Printf(DBG_JS, "%s\n", __FUNCTION__);
 
     if (!_djsPriv->zclFrame)
     {
@@ -560,7 +564,7 @@ static duk_ret_t DJS_GetZclFrameCmd(duk_context *ctx)
 
 static duk_ret_t DJS_GetZclFramePayloadSize(duk_context *ctx)
 {
-    DBG_Printf(DBG_INFO, "%s\n", __FUNCTION__);
+    DBG_Printf(DBG_JS, "%s\n", __FUNCTION__);
 
     if (!_djsPriv->zclFrame)
     {
@@ -573,7 +577,7 @@ static duk_ret_t DJS_GetZclFramePayloadSize(duk_context *ctx)
 
 static duk_ret_t DJS_GetZclFrameIsClusterCommand(duk_context *ctx)
 {
-    DBG_Printf(DBG_INFO, "%s\n", __FUNCTION__);
+    DBG_Printf(DBG_JS, "%s\n", __FUNCTION__);
 
     if (!_djsPriv->zclFrame)
     {
@@ -590,7 +594,7 @@ static duk_ret_t DJS_GetZclFramePayloadAt(duk_context *ctx)
     const deCONZ::ZclFrame *zf;
 
     i = duk_get_int(ctx, 0);
-    DBG_Printf(DBG_INFO, "%s index: %d\n", __FUNCTION__, i);
+//    DBG_Printf(DBG_JS, "%s index: %d\n", __FUNCTION__, i);
 
     zf = _djsPriv->zclFrame;
 
@@ -687,13 +691,15 @@ static void DJS_InitGlobalItem(duk_context *ctx)
     duk_pop(ctx);
 }
 
-/* Returns this.ridx property of the RItem.
+/* Returns ResourceItem based on this.ridx property of the RItem.
    That is the index of the ResourceItem in the Resource.items container.
+   If it is -1 rItem is returned.
  */
-static int DJS_GetItemIndexHelper(duk_context * ctx)
+static ResourceItem *DJS_GetItemIndexHelper(duk_context * ctx)
 {
     duk_bool_t rc;
     int16_t item_index;
+    ResourceItem *item = nullptr;
 
     item_index = -1;
     duk_push_this(ctx);
@@ -707,114 +713,106 @@ static int DJS_GetItemIndexHelper(duk_context * ctx)
     duk_pop(ctx); /* prop.ridx */
     duk_pop(ctx); /* this */
 
-    return item_index;
+    if (item_index >= 0 && _djsPriv->resource)
+    {
+        item = _djsPriv->resource->itemForIndex((size_t)item_index);
+    }
+    else if (_djsPriv->ritem)
+    {
+        item = _djsPriv->ritem;
+    }
+
+    return item;
 }
 
 static duk_ret_t DJS_GetItemVal(duk_context *ctx)
 {
-    int16_t item_index;
-    Resource *r;
     ResourceItem *item;
 
-    item = NULL;
-    r = _djsPriv->resource;
-    item_index = DJS_GetItemIndexHelper(ctx);
+    item = DJS_GetItemIndexHelper(ctx);
 
-    if (r && item_index >= 0)
+    if (item)
     {
-        item = r->itemForIndex(item_index);
-        if (item)
+        DBG_Printf(DBG_JS, "%s: %s\n", __FUNCTION__, item->descriptor().suffix);
+        const ApiDataType type = item->descriptor().type;
+        if (type == DataTypeBool)
         {
-            DBG_Printf(DBG_INFO, "%s: %s\n", __FUNCTION__, item->descriptor().suffix);
-            const ApiDataType type = item->descriptor().type;
-            if (type == DataTypeBool)
-            {
-                duk_push_boolean(ctx, item->toBool() ? 1 : 0);
-            }
-            else if (type == DataTypeString || type == DataTypeTime ||  type == DataTypeTimePattern)
-            {
-                duk_push_string(ctx, qPrintable(item->toString()));
-            }
-            else if (type == DataTypeUInt8 || type == DataTypeUInt16 || type == DataTypeUInt32 ||
-                     type == DataTypeInt8 || type == DataTypeInt16 || type == DataTypeInt32)
-            {
-                duk_push_number(ctx, (double)item->toNumber());
-            }
-            else if (type == DataTypeInt64 || type == DataTypeUInt64)
-            {
-
-                duk_push_string(ctx, qPrintable(QString::number(item->toNumber())));
-            }
-            else
-            {
-                return duk_type_error(ctx, "unsupported ApiDataType");
-            }
-
-            return 1;  /* one return value */
+            duk_push_boolean(ctx, item->toBool() ? 1 : 0);
         }
+        else if (type == DataTypeString || type == DataTypeTime ||  type == DataTypeTimePattern)
+        {
+            duk_push_string(ctx, qPrintable(item->toString()));
+        }
+        else if (type == DataTypeUInt8 || type == DataTypeUInt16 || type == DataTypeUInt32 ||
+                 type == DataTypeInt8 || type == DataTypeInt16 || type == DataTypeInt32)
+        {
+            duk_push_number(ctx, (double)item->toNumber());
+        }
+        else if (type == DataTypeInt64 || type == DataTypeUInt64)
+        {
+
+            duk_push_string(ctx, qPrintable(QString::number(item->toNumber())));
+        }
+        else
+        {
+            return duk_type_error(ctx, "unsupported ApiDataType");
+        }
+
+        return 1;  /* one return value */
     }
 
-    DBG_Printf(DBG_INFO, "%s: index: %d, reference error\n", __FUNCTION__, item_index);
     return duk_reference_error(ctx, "item not defined");
 }
 
 static duk_ret_t DJS_SetItemVal(duk_context *ctx)
 {
-    Resource *r;
     ResourceItem *item;
-    int16_t item_index;
 
-    item = NULL;
-    r = _djsPriv->resource;
-    item_index = DJS_GetItemIndexHelper(ctx);
+    item = DJS_GetItemIndexHelper(ctx);
 
-    if (r && item_index >= 0)
+    if (item)
     {
-        item = r->itemForIndex(item_index);
-        if (item)
+        bool ok = false;
+        if (duk_is_boolean(ctx, 0))
         {
-            bool ok = false;
-            if (duk_is_boolean(ctx, 0))
+            bool val = duk_to_boolean(ctx, 0);
+            DBG_Printf(DBG_JS, "%s: %s --> %u\n", __FUNCTION__, item->descriptor().suffix, val ? 1 : 0);
+            ok = item->setValue(val, ResourceItem::SourceDevice);
+            duk_pop(ctx); /* conversion result*/
+        }
+        else if (duk_is_number(ctx, 0))
+        {
+            double num = duk_to_number(ctx, 0);
+            DBG_Printf(DBG_JS, "%s: %s --> %f\n", __FUNCTION__, item->descriptor().suffix, num);
+            ok = item->setValue(QVariant(num), ResourceItem::SourceDevice);
+            duk_pop(ctx); /* conversion result*/
+        }
+        else if (duk_is_string(ctx, 0))
+        {
+            duk_size_t out_len = 0;
+            const char *str = duk_to_lstring(ctx, 0, &out_len);
+            U_ASSERT(str);
+            if (out_len)
             {
-                bool val = duk_to_boolean(ctx, 0);
-                DBG_Printf(DBG_INFO, "%s: %s --> %u\n", __FUNCTION__, item->descriptor().suffix, val ? 1 : 0);
-                ok = item->setValue(val, ResourceItem::SourceDevice);
-                duk_pop(ctx); /* conversion result*/
+                DBG_Printf(DBG_JS, "%s: %s --> %s\n", __FUNCTION__, item->descriptor().suffix, str);
+                ok = item->setValue(QString(QLatin1String(str, out_len)), ResourceItem::SourceDevice);
             }
-            else if (duk_is_number(ctx, 0))
-            {
-                double num = duk_to_number(ctx, 0);
-                DBG_Printf(DBG_INFO, "%s: %s --> %f\n", __FUNCTION__, item->descriptor().suffix, num);
-                ok = item->setValue(QVariant(num), ResourceItem::SourceDevice);
-                duk_pop(ctx); /* conversion result*/
-            }
-            else if (duk_is_string(ctx, 0))
-            {
-                duk_size_t out_len = 0;
-                const char *str = duk_to_lstring(ctx, 0, &out_len);
-                U_ASSERT(str);
-                if (out_len)
-                {
-                    DBG_Printf(DBG_INFO, "%s: %s --> %s\n", __FUNCTION__, item->descriptor().suffix, str);
-                    ok = item->setValue(QString(QLatin1String(str, out_len)), ResourceItem::SourceDevice);
-                }
-                duk_pop(ctx); /* conversion result*/
-            }
-            else
-            {
-                U_ASSERT(0 && "unhandled value");
-            }
+            duk_pop(ctx); /* conversion result*/
+        }
+        else
+        {
+            U_ASSERT(0 && "unhandled value");
+        }
 
-            if (!ok)
-            {
-                DBG_Printf(DBG_DDF, "JS failed to set Item.val for %s\n", item->descriptor().suffix);
-                return duk_type_error(ctx, "failed to set Item.val");
-            }
-            else
-            {
-                DeviceJS_ResourceItemValueChanged(item);
-                return 0;
-            }
+        if (!ok)
+        {
+            DBG_Printf(DBG_DDF, "JS failed to set Item.val for %s\n", item->descriptor().suffix);
+            return duk_type_error(ctx, "failed to set Item.val");
+        }
+        else
+        {
+            DeviceJS_ResourceItemValueChanged(item);
+            return 0;
         }
     }
 
@@ -823,24 +821,14 @@ static duk_ret_t DJS_SetItemVal(duk_context *ctx)
 
 static duk_ret_t DJS_GetItemName(duk_context *ctx)
 {
-	printf("%s\n", __FUNCTION__);
-
-    Resource *r;
     ResourceItem *item;
-    int16_t item_index;
 
-    r = _djsPriv->resource;
-    item_index = DJS_GetItemIndexHelper(ctx);
+    item = DJS_GetItemIndexHelper(ctx);
 
-
-    if (r && item_index >= 0)
+    if (item)
     {
-        item = r->itemForIndex(item_index);
-        if (item)
-        {
-            duk_push_string(ctx, item->descriptor().suffix);
-            return 1;  /* one return value */
-        }
+        duk_push_string(ctx, item->descriptor().suffix);
+        return 1;  /* one return value */
     }
 
     return duk_reference_error(ctx, "item not defined");
@@ -853,7 +841,7 @@ static duk_ret_t DJS_ItemConstructor(duk_context *ctx)
         return DUK_RET_TYPE_ERROR;
     }
 
-    DBG_Printf(DBG_INFO, "%s\n", __FUNCTION__);
+//    DBG_Printf(DBG_JS, "%s\n", __FUNCTION__);
 
     return 0;  /* use default instance */
 }
@@ -865,20 +853,20 @@ static void DJS_InitResourceItemPrototype(duk_context * ctx)
     duk_push_c_function(ctx, DJS_ItemConstructor, 0 /*nargs*/);
     duk_push_object(ctx);
 
-	/* prototype.val */
+    /* prototype.val */
     duk_push_string(ctx, "val");
-	duk_push_c_function(ctx, DJS_GetItemVal, 0 /*nargs*/);
-	duk_push_c_function(ctx, DJS_SetItemVal, 1 /*nargs*/);
-	duk_def_prop(ctx,
-             -4,
-             DUK_DEFPROP_HAVE_GETTER |
-             DUK_DEFPROP_HAVE_SETTER);
+    duk_push_c_function(ctx, DJS_GetItemVal, 0 /*nargs*/);
+    duk_push_c_function(ctx, DJS_SetItemVal, 1 /*nargs*/);
+    duk_def_prop(ctx,
+                 -4,
+                 DUK_DEFPROP_HAVE_GETTER |
+                 DUK_DEFPROP_HAVE_SETTER);
 
     duk_push_string(ctx, "name");
-	duk_push_c_function(ctx, DJS_GetItemName, 0 /*nargs*/);
-	duk_def_prop(ctx,
-             -3,
-             DUK_DEFPROP_HAVE_GETTER);
+    duk_push_c_function(ctx, DJS_GetItemName, 0 /*nargs*/);
+    duk_def_prop(ctx,
+                 -3,
+                 DUK_DEFPROP_HAVE_GETTER);
 
     duk_put_prop_string(ctx, -2, "prototype");
     duk_put_global_string(ctx, "RItem");
@@ -1002,9 +990,9 @@ static void DJS_InitGlobalUtils(duk_context *ctx)
 void DJS_InitDuktape(DeviceJsPrivate *d)
 {
     void *user_ptr = NULL;
-	duk_context *ctx;
+    duk_context *ctx;
 
-	ctx = duk_create_heap(U_duk_alloc,
+    ctx = duk_create_heap(U_duk_alloc,
                           U_duk_realloc,
                           U_duk_free,
                           user_ptr,
@@ -1025,7 +1013,7 @@ void DJS_InitDuktape(DeviceJsPrivate *d)
     if (duk_peval_string(ctx, PF_String_prototype_padStart) != 0)
     {
         const char *str = duk_safe_to_string(ctx, -1);
-        DBG_Printf(DBG_INFO, "failed to apply String.prototype.padStart polyfill: %s\n", str);
+        DBG_Printf(DBG_JS, "failed to apply String.prototype.padStart polyfill: %s\n", str);
     }
     duk_pop(ctx);
 
@@ -1034,7 +1022,7 @@ void DJS_InitDuktape(DeviceJsPrivate *d)
     if (duk_peval_string(ctx, "Utils.log10 = Math.log10") != 0)
     {
         const char *str = duk_safe_to_string(ctx, -1);
-        DBG_Printf(DBG_INFO, "failed to apply Utils.log10 = Math.log10: %s\n", str);
+        DBG_Printf(DBG_JS, "failed to apply Utils.log10 = Math.log10: %s\n", str);
     }
     duk_pop(ctx);
 
@@ -1090,7 +1078,7 @@ void DeviceJS_ResourceItemValueChanged(ResourceItem *item)
 
     if (i == _djsPriv->itemsSet.cend())
     {
-        DBG_Printf(DBG_INFO, "%s: %s\n", __FUNCTION__, item->descriptor().suffix);
+        //DBG_Printf(DBG_JS, "%s: %s\n", __FUNCTION__, item->descriptor().suffix);
         _djsPriv->itemsSet.push_back(item);
     }
 }
@@ -1112,6 +1100,8 @@ JsEvalResult DeviceJs::evaluate(const QString &expr)
 
     U_ASSERT(ctx);
     U_ASSERT(d->isReset);
+
+    DBG_Printf(DBG_JS, "DJS evaluate()\n");
 
     // require that the DeviceJs::reset() has been called
     if (!ctx || !d->isReset)
@@ -1180,7 +1170,11 @@ JsEvalResult DeviceJs::evaluate(const QString &expr)
     {
         d->result = duk_safe_to_string(ctx, -1);
     }
-    DBG_Printf(DBG_INFO, "DJS result  %s, memory peak: %u bytes\n", duk_safe_to_string(ctx, -1), d->arena.size);
+
+    if (DBG_IsEnabled(DBG_JS))
+    {
+        DBG_Printf(DBG_JS, "DJS result  %s, memory peak: %u bytes\n", duk_safe_to_string(ctx, -1), d->arena.size);
+    }
 
     duk_pop(ctx);
 
