@@ -1,13 +1,4 @@
-let s = "0.0.0_";
-let v = 0;
-
-if (Attr.dataType == 33)
-{
-    v = (Attr.val & 0x00ff);
-}
-else if (Attr.dataType == 35)
-{
-    v = (Attr.val & 0x000000ff);
-}
-
-Item.val = s + v.toString().padStart(4, "0");
+var s = "0.0.0_";
+var v = (Attr.val & 0xFF).toString();
+v = v.padStart(4, "0");
+Item.val = s + v;

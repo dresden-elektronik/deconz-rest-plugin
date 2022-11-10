@@ -1287,6 +1287,7 @@ public Q_SLOTS:
     void apsdeDataIndicationDevice(const deCONZ::ApsDataIndication &ind, Device *device);
     void apsdeDataIndication(const deCONZ::ApsDataIndication &ind);
     void apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf);
+    void apsdeDataRequestEnqueued(const deCONZ::ApsDataRequest &req);
     void gpDataIndication(const deCONZ::GpDataIndication &ind);
     void gpProcessButtonEvent(const deCONZ::GpDataIndication &ind);
     void configurationChanged();
