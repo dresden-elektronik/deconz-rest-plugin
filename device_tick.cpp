@@ -163,7 +163,7 @@ static void DT_StateIdle(DeviceTickPrivate *d, const Event &event)
         if (event.what() == REventStateTimeout)
         {
             int timeout = DEV_OtauBusy() ? TICK_INTERVAL_IDLE_OTAU : TICK_INTERVAL_IDLE;
-            if (DEV_ApsQueueSize() < 4)
+            if (DA_ApsUnconfirmedRequests() < 4)
             {
                 DT_PollNextIdleDevice(d);
             }

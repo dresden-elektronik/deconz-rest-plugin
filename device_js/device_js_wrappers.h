@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2021-2022 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -7,6 +7,8 @@
  * the LICENSE.txt file.
  *
  */
+
+#ifdef USE_QT_JS_ENGINE
 
 #ifndef DEVICE_JS_WRAPPERS_H
 #define DEVICE_JS_WRAPPERS_H
@@ -114,6 +116,6 @@ public:
     Q_INVOKABLE QString padStart(const QString &str, QJSValue targetLength, QJSValue padString);
 };
 
-void DeviceJS_ResourceItemValueChanged(ResourceItem *item);
-
 #endif // DEVICE_JS_WRAPPERS_H
+
+#endif // USE_QT_JS_ENGINE

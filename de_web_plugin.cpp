@@ -832,6 +832,9 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     connect(apsCtrl, SIGNAL(apsdeDataIndication(deCONZ::ApsDataIndication)),
             this, SLOT(apsdeDataIndication(deCONZ::ApsDataIndication)));
 
+    connect(apsCtrl, SIGNAL(apsdeDataRequestEnqueued(deCONZ::ApsDataRequest)),
+            this, SLOT(apsdeDataRequestEnqueued(deCONZ::ApsDataRequest)));
+
     connect(apsCtrl, SIGNAL(nodeEvent(deCONZ::NodeEvent)),
             this, SLOT(nodeEvent(deCONZ::NodeEvent)));
 
@@ -1610,6 +1613,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
 {
     pollManager->apsdeDataConfirm(conf);
+    DA_ApsRequestConfirmed(conf);
 
     if (conf.dstAddress().hasExt())
     {
@@ -1730,6 +1734,11 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
     {
         return;
     }
+}
+
+void DeRestPluginPrivate::apsdeDataRequestEnqueued(const deCONZ::ApsDataRequest &req)
+{
+    DA_ApsRequestEnqueued(req);
 }
 
 /*! Process incoming green power button event.
@@ -12747,20 +12756,25 @@ void DeRestPluginPrivate::processGroupTasks()
         return;
     }
 
+    if (DA_ApsUnconfirmedRequests() > 3)
+    {
+        return;
+    }
+
     if (groupTaskNodeIter >= nodes.size())
     {
         groupTaskNodeIter = 0;
+    }
+
+    if (!nodes[groupTaskNodeIter].isAvailable())
+    {
+        return;
     }
 
     TaskItem task;
 
     task.lightNode = &nodes[groupTaskNodeIter];
     groupTaskNodeIter++;
-
-    if (!task.lightNode->isAvailable())
-    {
-        return;
-    }
 
     if (task.lightNode->state() != LightNode::StateNormal)
     {
@@ -16104,7 +16118,9 @@ void DeRestPlugin::idleTimerFired()
                 {
                     if (GP_SendPairingIfNeeded(sensorNode, d->apsCtrl, d->zclSeq + 1))
                     {
+                        processSensors = true;
                         d->zclSeq++;
+                        break;
                     }
                 }
 
