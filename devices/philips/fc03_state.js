@@ -4,15 +4,15 @@ const attrid = ZclFrame.at(1) << 8 | ZclFrame.at(0)
 if (attrid === 0x0002) {
   const status = ZclFrame.at(2)
   const dt = status === 0 ? ZclFrame.at(3) : status
-  let i = status === 0 ? 4 : 3
+  var i = status === 0 ? 4 : 3
   if (dt === 0x41) {
-    let len = ZclFrame.at(i)
+    var len = ZclFrame.at(i)
     i++
     if (len >= 2) {
       const mode = ZclFrame.at(i + 1) << 8 | ZclFrame.at(i)
       i += 2
       len -= 2
-      if ([0x000B, 0x000F, 0x00AB, 0x014B].includes(mode) && len >= 2) {
+      if ([0x000B, 0x000F, 0x00AB, 0x014B].indexOf(mode) >= 0 && len >= 2) {
         R.item('state/on').val = ZclFrame.at(i) !== 0
         R.item('state/bri').val = ZclFrame.at(i + 1)
         i += 2
@@ -24,7 +24,7 @@ if (attrid === 0x0002) {
         i += 2
         len -= 2
       }
-      if ([0x000B, 0x000F, 0x00AB, 0x014B].includes(mode) && len >= 4) {
+      if ([0x000B, 0x000F, 0x00AB, 0x014B].indexOf(mode) >= 0 && len >= 4) {
         R.item('state/x').val = ZclFrame.at(i + 1) << 8 | ZclFrame.at(i)
         R.item('state/y').val = ZclFrame.at(i + 3) << 8 | ZclFrame.at(i + 2)
         i += 4
@@ -61,7 +61,7 @@ if (attrid === 0x0002) {
           const map = { points: [] }
           const maxX = 0.7347
           const maxY = 0.8431
-          for (let n = 1; n <= nPoints; n++) {
+          for (var n = 1; n <= nPoints; n++) {
             const point = ZclFrame.at(i + 2) << 16 | ZclFrame.at(i + 1) << 8 | ZclFrame.at(i)
             const rawX = point & 0x000FFF
             const rawY = (point & 0xFFF000) >> 12
