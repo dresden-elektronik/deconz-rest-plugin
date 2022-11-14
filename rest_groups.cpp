@@ -3065,7 +3065,7 @@ int DeRestPluginPrivate::modifyScene(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    if (!ok || map.isEmpty())
+    if (!ok)
     {
         rsp.list.append(errorToMap(ERR_INVALID_JSON, QString("/groups/%1/scenes/%2/lights/%3/state").arg(gid).arg(sid).arg(lid), QString("body contains invalid JSON")));
         rsp.httpStatus = HttpStatusBadRequest;
@@ -3228,6 +3228,18 @@ int DeRestPluginPrivate::modifyScene(const ApiRequest &req, ApiResponse &rsp)
                 {
                     foundLightState = true;
 
+                    if (map.isEmpty())
+                    {
+                        if(!i->deleteLight(lid))
+                        {
+                            rsp.httpStatus = HttpStatusServiceUnavailable;
+                            rsp.list.append(errorToMap(ERR_BRIDGE_BUSY, QString("/groups/%1/scenes/%2/lights/%3/state").arg(gid).arg(sid).arg(lid), QString("could not remove light from scene")));
+                            return REQ_READY_SEND;
+                        }
+
+                        break;
+                    }
+
                     if (hasOn)
                     {
                         l->setOn(on);
@@ -3265,20 +3277,36 @@ int DeRestPluginPrivate::modifyScene(const ApiRequest &req, ApiResponse &rsp)
 
             if (!foundLightState)
             {
-                rsp.httpStatus = HttpStatusBadRequest;
-                rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/groups/%1/scenes/%2/lights/%3/state").arg(gid).arg(sid).arg(lid), QString("Light %1 is not available in scene.").arg(lid)));
-                return REQ_READY_SEND;
-
-                /* //TODO or not TODO: add light to scene, when light is not a member of the scene. Error Message when ScenesTable of device is full.
-                if (hasOn && hasBri && hastt && hasXy)
+                if (isLightNodeInGroup(light, group->address()))
                 {
                     LightState state;
-                    state.setOn(on);
-                    state.setBri(bri);
-                    state.setTransitiontime(tt);
-                    state.setX(xy_x);
-                    state.setY(xy_y);
-                    state.setLid(lid);
+                    state.setLightId(lid);
+
+                    if (hasOn)
+                    {
+                        state.setOn(on);
+                    }
+                    if (hasBri)
+                    {
+                        state.setBri(bri);
+                    }
+                    if (hasTt)
+                    {
+                        state.setTransitionTime(tt);
+                    }
+                    if (hasXy)
+                    {
+                        state.setColorMode(QLatin1String("xy"));
+                        state.setX(xy_x);
+                        state.setY(xy_y);
+                    }
+                    else if (hasCt)
+                    {
+                        state.setColorMode(QLatin1String("ct"));
+                        state.setColorTemperature(ct);
+                    }
+
+                    i->addLightState(state);
 
                     if (!modifyScene(group, i->id))
                     {
@@ -3286,16 +3314,13 @@ int DeRestPluginPrivate::modifyScene(const ApiRequest &req, ApiResponse &rsp)
                         rsp.list.append(errorToMap(ERR_BRIDGE_BUSY, QString("/groups/%1/scenes/%2/lights/%3/state").arg(gid).arg(sid).arg(lid), QString("gateway busy")));
                         return REQ_READY_SEND;
                     }
-
-                    i->m_lights.push_back(state);
                 }
                 else
                 {
                     rsp.httpStatus = HttpStatusBadRequest;
-                    rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, QString("/groups/%1/scenes/%2/lights/%3/state").arg(gid).arg(sid).arg(lid), QString("Light %1 not available in scene. Missing parameters to add light to scene.").arg(lid)));
+                    rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/groups/%1/scenes/%2/lights/%3/state").arg(gid).arg(sid).arg(lid), QString("Light %1 is not available in group.").arg(lid)));
                     return REQ_READY_SEND;
                 }
-                */
             }
 
             break;
