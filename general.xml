@@ -2797,7 +2797,9 @@ Note: It does not clear or delete previous weekly schedule programming configura
         <command id="0x4c" dir="recv" name="Step Color Temperature" required="m">
           <payload>
             <attribute id="0x0000" type="enum8" name="Step Mode" required="m">
+              <value name="GUI Bug" value="0x00"></value>
               <value name="Up" value="0x01"></value>
+              <value name="GUI Bug" value="0x02"></value>
               <value name="Down" value="0x03"></value>
             </attribute>
             <attribute id="0x0001" type="u16" name="Step Size" required="m"></attribute>
@@ -3949,6 +3951,13 @@ These devices can operate on either battery or mains power, and can have a wide 
               <value name="Candle" value="0x01"/>
               <value name="Fireplace" value="0x02"/>
               <value name="Loop" value="0x03"/>
+              <value name="GUI Bug" value="0x04"/>
+              <value name="GUI Bug" value="0x05"/>
+              <value name="GUI Bug" value="0x06"/>
+              <value name="GUI Bug" value="0x07"/>
+              <value name="GUI Bug" value="0x08"/>
+              <value name="Sunrise" value="0x09"/>
+              <value name="Sparkle" value="0x0a"/>
             </attribute>
           </payload>
         </command>
