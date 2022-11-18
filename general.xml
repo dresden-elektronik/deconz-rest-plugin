@@ -296,7 +296,9 @@
             <attribute id="0x0003" type="u8" name="Length" default="0x40" showas="hex" required="m"></attribute>
           </payload>
         </command>
-        <command id="0xc1" dir="send" name="Hue Capabilities Response" vendor="0x100b" required="o">
+      </server>
+      <client>
+        <command id="0xc1" dir="recv" name="Hue Capabilities Response" vendor="0x100b" required="o">
           <payload>
             <attribute id="0x0000" type="u16" name="Status" showas="hex" required="m"></attribute>
             <attribute id="0x0001" type="u8" name="Offset" showas="hex" required="m"></attribute>
@@ -306,8 +308,6 @@
             <attribute id="0x0005" type="ostring" name="Payload" required="m"></attribute>
           </payload>
         </command>
-      </server>
-      <client>
       </client>
     </cluster>
 
@@ -3986,6 +3986,10 @@ These devices can operate on either battery or mains power, and can have a wide 
 
     <cluster id="0xfc02" name="Hue Outlet" mfcode="0x100b">
       <description>Hue-specific cluster for Hue smart plugs.</description>
+      <server>
+      </server>
+      <client>
+      </client>
     </cluster>
 
     <cluster id="0xfc03" name="Hue Effects" mfcode="0x100b">
