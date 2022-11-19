@@ -68,10 +68,14 @@ if (attrid === 0x0002) {
           const map = { points: [] }
           switch (style) {
             case 0x00:
+            case 0x01:
               map.style = 'linear'
               break
             case 0x02:
               map.style = 'scattered'
+              break
+            case 0x04:
+              map.style = 'mirrored'
               break
             default:
               map.style = '0x' + style.toString(16)
