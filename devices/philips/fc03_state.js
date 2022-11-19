@@ -62,9 +62,21 @@ if (attrid === 0x0002) {
         len--
         if (len >= vLen + 2) {
           const nPoints = ZclFrame.at(i) >> 4
+          const style = ZclFrame.at(i + 1)
           i += 4
           len -= 4
           const map = { points: [] }
+          switch (style) {
+            case 0x00:
+              map.style = 'linear'
+              break
+            case 0x02:
+              map.style = 'scattered'
+              break
+            default:
+              map.style = '0x' + style.toString(16)
+            break
+          }
           const maxX = 0.7347
           const maxY = 0.8431
           for (var n = 1; n <= nPoints; n++) {
