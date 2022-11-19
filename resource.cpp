@@ -196,6 +196,7 @@ const char *RCapColorGamutType = "cap/color/gamut_type";
 const char *RCapColorGradientMaxSegments = "cap/color/gradient/max_segments";
 const char *RCapColorGradientPixelCount = "cap/color/gradient/pixel_count";
 const char *RCapColorGradientPixelLength = "cap/color/gradient/pixel_length";
+const char *RCapColorGradientStyles = "cap/color/gradient/styles";
 const char *RCapColorXyBlueX = "cap/color/xy/blue_x";
 const char *RCapColorXyBlueY = "cap/color/xy/blue_y";
 const char *RCapColorXyGreenX = "cap/color/xy/green_x";
@@ -465,6 +466,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RCapColorGradientMaxSegments));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RCapColorGradientPixelCount));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorGradientPixelLength));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorGradientStyles));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorXyBlueX));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorXyBlueY));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorXyGreenX));

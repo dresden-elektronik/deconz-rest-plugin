@@ -802,7 +802,9 @@
         <attribute id = "0x0001" name="Remaining Time" type="u16" range="0x0000,0xffff" access="r" required="o" default="0x0000">
           <description>The RemainingTime attribute represents the time remaining until the current command is complete - it is specified in 1/10ths of a second.</description>
         </attribute>
-        <attribute id = "0x0003" name="Hue Minimum Dim Level (in 0.001%)" type="u16" mfcode="0x100b" access="r" required="o"></attribute>
+        <attribute id = "0x0003" name="Hue Min Dim Level" type="u16" mfcode="0x100b" access="r" required="o">
+          <description>Percentage of the maximum lumen the device outputs on minimum brightness (in 0.001%).</description>
+        </attribute>
         <attribute id = "0x000f" name="Options" type="bmp8" access="rw" required="o">
           <value name="Execute If Off" value="0"></value>
         </attribute>
@@ -4015,14 +4017,14 @@ These devices can operate on either battery or mains power, and can have a wide 
           </payload>
         </command>
         <attribute id="0x0001" name="Capabilities" type="bmp32" mfcode="0x100b" access="rw" required="m">
-          <value name="Unknown" value="0"/>
-          <value name="Unknown" value="1"/>
+          <value name="Unknown 00" value="0"/>
+          <value name="Unknown 01" value="1"/>
           <value name="Effects" value="2"/>
           <value name="Gradient" value="3"/>
         </attribute>
         <attribute id="0x0002" name="Light State" type="ostring" mfcode="0x100b" access="r" required="m"></attribute>
         <attribute id="0x0010" name="Unknown 10" type="bmp16" mfcode="0x100b" access="r" required="m">
-          <value name="Unknown" value="0"/>
+          <value name="Unknown 00" value="0"/>
         </attribute>
         <attribute id="0x0011" name="Effects" type="bmp64" mfcode="0x100b" access="r" required="m">
           <value name="Candle" value="0x01"/>
@@ -4031,17 +4033,19 @@ These devices can operate on either battery or mains power, and can have a wide 
           <value name="Sunrise" value="0x09"/>
           <value name="Sparkle" value="0x0a"/>
         </attribute>
-        <attribute id="0x0012" name="Gradient Style" type="bmp32" mfcode="0x100b" access="r" required="m">
+        <attribute id="0x0012" name="Gradient Unknown 12" type="bmp32" mfcode="0x100b" access="r" required="m">
+          <value name="Unknown 00" value="0x00"/>
+          <value name="Unknwon 01" value="0x01"/>
+        </attribute>
+        <attribute id="0x0013" name="Gradient Styles" type="bmp16" mfcode="0x100b" access="r" required="m">
           <value name="Linear" value="0x00"/>
           <value name="Scattered" value="0x01"/>
-        </attribute>
-        <attribute id="0x0013" name="Gradient Unknown 13" type="bmp16" mfcode="0x100b" access="r" required="m">
-          <value name="Unknown" value="0x00"/>
-          <value name="Unknown" value="0x01"/>
-          <value name="Unknown" value="0x02"/>
+          <value name="Mirrored" value="0x02"/>
         </attribute>
         <attribute id="0x0030" name="Gradient Pixel Count" type="u8" mfcode="0x100b" access="r" required="m"></attribute>
-        <attribute id="0x0031" name="Gradient Pixel Length (in 0.1 mm)" type="u16" mfcode="0x100b" access="r" required="m"></attribute>
+        <attribute id="0x0031" name="Gradient Pixel Length" type="u16" mfcode="0x100b" access="r" required="m">
+          <description>Physical length of a gradient pixel (in 0.1 mm).</description>
+        </attribute>
         <attribute id="0x0032" name="Gradient Unknown 32" type="u8" mfcode="0x100b" access="rw" required="m"></attribute>
         <attribute id="0x0033" name="Gradient Reverse Colors" type="u8" mfcode="0x100b" access="rw" required="m"></attribute>
         <attribute id="0x0034" name="Gradient Unknown 34" type="u8" mfcode="0x100b" access="rw" required="m"></attribute>
