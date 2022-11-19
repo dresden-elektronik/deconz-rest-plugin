@@ -1554,8 +1554,10 @@ public:
     bool addTaskSimpleMeteringReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode=0);
 
     // Advanced features of Hue lights.
-    bool addTaskHueDynamicEffect(TaskItem &task, quint8 effect);
-    bool validateGradient(const ApiRequest &req, ApiResponse &rsp, QVariantMap &gradient);
+    QStringList getHueEffectNames(quint64 effectBitmap);
+    QStringList getHueGradientStyleNames(quint16 styleBitmap);
+    bool addTaskHueEffect(TaskItem &task, QString &effect);
+    bool validateHueGradient(const ApiRequest &req, ApiResponse &rsp, QVariantMap &gradient, quint16 styleBitmap);
     bool addTaskHueGradient(TaskItem &task, QVariantMap &gradient);
 
     // Merry Christmas!

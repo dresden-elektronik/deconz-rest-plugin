@@ -3,32 +3,105 @@
  */
 
 #include <QString>
-// #include <QVariantMap>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
-// #include "colorspace.h"
-// #include "device_descriptions.h"
 
-#define HUE_CLUSTER_ID 0xFC03
+#define HUE_EFFECTS_CLUSTER_ID 0xFC03
 
-const QStringList RStateEffectValuesHue({
-    "none", "colorloop", "candle", "fireplace", "loop"
-});
+struct code {
+    quint8 value;
+    QString name;
+};
+
+code effects[] = {
+    { 0x01, QLatin1String("candle") },
+    { 0x02, QLatin1String("fireplace") },
+    { 0x03, QLatin1String("loop") },
+    { 0x09, QLatin1String("sunrise") },
+    { 0x0a, QLatin1String("sparkle") }
+};
+
+quint8 effectNameToValue(QString &effectName)
+{
+    for (auto &e: effects)
+    {
+        if (e.name == effectName)
+        {
+            return e.value;
+        }
+    }
+    return 0xFF;
+}
+
+/*! Return a list of effect names corresponding to the bitmap of supported effects.
+
+   \param effectBitmap - the bitmap with supported effects (from 0x0011)
+   \return QStringList of effect names
+ */
+QStringList DeRestPluginPrivate::getHueEffectNames(quint64 effectBitmap)
+{
+    QStringList names = {
+        "none", "colorloop"
+    };
+    for (auto &e: effects) {
+        if (effectBitmap & (0x01 << e.value))
+        {
+            names.append(e.name);
+        }
+    }
+    return names;
+};
+
+code styles[] = {
+    { 0x00, QLatin1String("linear") }, // interpolated_palette
+    { 0x02, QLatin1String("scattered") }, // random_pixelated
+    { 0x04, QLatin1String("mirrored") } // interpolated_palette_mirrored
+};
+
+quint8 styleNameToValue(QString &styleName)
+{
+    for (auto &s: styles)
+    {
+        if (s.name == styleName)
+        {
+            return s.value;
+        }
+    }
+    return 0xFF;
+}
+
+/*! Return a list of style names corresponding to the bitmap of supported styles.
+
+   \param styleBitmap - the bitmap with supported styles (from 0x0013)
+   \return QStringList of style names
+ */
+QStringList DeRestPluginPrivate::getHueGradientStyleNames(quint16 styleBitmap)
+{
+    QStringList names = {};
+
+    for (auto &s: styles) {
+        if (styleBitmap & (0x01 << (s.value >> 1)))
+        {
+            names.append(s.name);
+        }
+    }
+    return names;
+};
 
 const double maxX = 0.7347;
 const double maxY = 0.8431;
 
-/*! Add a Hue dynamic effect task to the queue.
+/*! Add a Hue effect task to the queue.
 
    \param task - the task item
-   \param effect - the dynamic effect (0: none, 1: candle, 2: fireplace, 3: loop)
+   \param effectName - the effect
    \return true - on success
            false - on error
  */
-bool DeRestPluginPrivate::addTaskHueDynamicEffect(TaskItem &task, quint8 effect)
+bool DeRestPluginPrivate::addTaskHueEffect(TaskItem &task, QString &effectName)
 {
     task.taskType = TaskHueEffect;
-    task.req.setClusterId(HUE_CLUSTER_ID);
+    task.req.setClusterId(HUE_EFFECTS_CLUSTER_ID);
     task.req.setProfileId(HA_PROFILE_ID);
 
     task.zclFrame.payload().clear();
@@ -39,18 +112,17 @@ bool DeRestPluginPrivate::addTaskHueDynamicEffect(TaskItem &task, quint8 effect)
                                   deCONZ::ZclFCManufacturerSpecific |
                                   deCONZ::ZclFCDirectionClientToServer |
                                   deCONZ::ZclFCDisableDefaultResponse);
-
     { // payload
         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
         stream.setByteOrder(QDataStream::LittleEndian);
 
-        if (effect == 0) {
-            stream << (quint16) 0x0020; // clear dynamic effect
+        if (effectName == "none") {
+            stream << (quint16) 0x0020; // clear effect
             stream << (quint8) 0; // off
         } else {
-            stream << (quint16) 0x0021; // set dynamic effect (with on/off)
+            stream << (quint16) 0x0021; // set effect (with on/off)
             stream << (quint8) 1; // on
-            stream << effect;
+            stream << effectNameToValue(effectName);
         }
     }
 
@@ -64,7 +136,7 @@ bool DeRestPluginPrivate::addTaskHueDynamicEffect(TaskItem &task, quint8 effect)
     return addTask(task);
 }
 
-bool DeRestPluginPrivate::validateGradient(const ApiRequest &req, ApiResponse &rsp, QVariantMap &gradient)
+bool DeRestPluginPrivate::validateHueGradient(const ApiRequest &req, ApiResponse &rsp, QVariantMap &gradient, quint16 styleBitmap = 0x0001)
 {
     QString id = req.path[3];
     bool ok = true;
@@ -91,6 +163,7 @@ bool DeRestPluginPrivate::validateGradient(const ApiRequest &req, ApiResponse &r
     if (gradient["color_adjustment"].isNull()) gradient["color_adjustment"] = 0;
     if (gradient["offset"].isNull()) gradient["offset"] = 0;
     if (gradient["offset_adjustment"].isNull()) gradient["offset_adjustment"] = 0;
+    if (gradient["style"].isNull()) gradient["style"] = "linear";
 
     for (QVariantMap::const_iterator p = gradient.begin(); p != gradient.end(); p++)
     {
@@ -140,6 +213,23 @@ bool DeRestPluginPrivate::validateGradient(const ApiRequest &req, ApiResponse &r
                 ok = false;
             }
         }
+        else if (param == "style")
+        {
+            QString styleName = gradient[param].toString();
+            bool valid = false;
+            for (auto &s: styles)
+            {
+                if (styleName == s.name && (styleBitmap & (0x01 << (s.value >> 1)))) {
+                    valid = true;
+                    break;
+                }
+            }
+            if (!valid)
+            {
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state").arg(id), QString("invalid value, %1, for parameter, gradient/%2").arg(gradient[param].toString()).arg(param)));
+                ok = false;
+            }
+        }
         else if (param == "color_adjustment" || param == "offset_adjustment")
         {
             quint8 value = gradient[param].toUInt(&check);
@@ -177,7 +267,7 @@ void streamPoint(QDataStream &stream, double x, double y)
 bool DeRestPluginPrivate::addTaskHueGradient(TaskItem &task, QVariantMap &gradient)
 {
     task.taskType = TaskHueGradient;
-    task.req.setClusterId(HUE_CLUSTER_ID);
+    task.req.setClusterId(HUE_EFFECTS_CLUSTER_ID);
     task.req.setProfileId(HA_PROFILE_ID);
 
     task.zclFrame.payload().clear();
@@ -191,6 +281,15 @@ bool DeRestPluginPrivate::addTaskHueGradient(TaskItem &task, QVariantMap &gradie
 
     QVariantList points = gradient["points"].toList();
     QVariantList point;
+    quint8 style = 0xFF;
+    for (auto &s: styles)
+    {
+        if (gradient["style"] == s.name)
+        {
+            style = s.value;
+            break;
+        }
+    }
 
     { // payload
         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
@@ -202,7 +301,9 @@ bool DeRestPluginPrivate::addTaskHueGradient(TaskItem &task, QVariantMap &gradie
         const quint8 nPoints = points.length();
         stream << (quint8) (1 + 3 * (nPoints + 1));
         stream << (quint8) (nPoints << 4);
-        streamPoint(stream, 0, 0);
+        stream << (quint8) style;
+        stream << (quint8) 0;
+        stream << (quint8) 0;
         for (auto &point : points)
         {
             QVariantList xy = point.toList();
