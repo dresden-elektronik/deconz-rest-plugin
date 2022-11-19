@@ -71,6 +71,7 @@ const char *RAttrPowerOnCt = "attr/poweronct";
 const char *RAttrPowerOnLevel = "attr/poweronlevel";
 const char *RAttrPowerup = "attr/powerup";
 const char *RAttrProductId = "attr/productid";
+const char *RAttrProductName = "attr/productname";
 const char *RAttrSwVersion = "attr/swversion";
 const char *RAttrType = "attr/type";
 const char *RAttrUniqueId = "attr/uniqueid";
@@ -184,11 +185,13 @@ const QStringList RStateEffectValuesMueller({
 });
 
 const char *RCapAlertTriggerEffect = "cap/alert/trigger_effect";
+const char *RCapBriMinDimLevel = "cap/bri/min_dim_level";
 const char *RCapBriMoveWithOnOff = "cap/bri/move_with_onoff";
 const char *RCapColorCapabilities = "cap/color/capabilities";
 const char *RCapColorCtComputesXy = "cap/color/ct/computes_xy";
 const char *RCapColorCtMax = "cap/color/ct/max";
 const char *RCapColorCtMin = "cap/color/ct/min";
+const char *RCapColorEffects = "cap/color/effects";
 const char *RCapColorGamutType = "cap/color/gamut_type";
 const char *RCapColorGradientMaxSegments = "cap/color/gradient/max_segments";
 const char *RCapColorGradientPixelCount = "cap/color/gradient/pixel_count";
@@ -350,6 +353,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RAttrPowerOnLevel));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RAttrPowerup));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrProductId));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrProductName));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrSwVersion));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrType));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrUniqueId));
@@ -450,11 +454,13 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateY));
 
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RCapAlertTriggerEffect));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapBriMinDimLevel));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RCapBriMoveWithOnOff));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorCapabilities));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RCapColorCtComputesXy));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorCtMax));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorCtMin));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt64, QVariant::Double, RCapColorEffects));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RCapColorGamutType));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RCapColorGradientMaxSegments));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RCapColorGradientPixelCount));

@@ -100,6 +100,7 @@ extern const char *RAttrPowerOnCt;
 extern const char *RAttrPowerOnLevel;
 extern const char *RAttrPowerup;
 extern const char *RAttrProductId;
+extern const char *RAttrProductName;
 extern const char *RAttrSwVersion;
 extern const char *RAttrType;
 extern const char *RAttrUniqueId;
@@ -199,10 +200,12 @@ extern const char *RStateY;
 
 extern const char *RCapAlertTriggerEffect;
 extern const char *RCapBriMoveWithOnOff;
+extern const char *RCapBriMinDimLevel;
 extern const char *RCapColorCapabilities;
 extern const char *RCapColorCtComputesXy;
 extern const char *RCapColorCtMax;
 extern const char *RCapColorCtMin;
+extern const char *RCapColorEffects;
 extern const char *RCapColorGamutType;
 extern const char *RCapColorGradientMaxSegments;
 extern const char *RCapColorGradientPixelCount;
@@ -338,7 +341,6 @@ extern const QStringList RStateAlertValuesTriggerEffect;
 extern const QStringList RStateEffectValues;
 #define R_EFFECT_NONE               0
 #define R_EFFECT_COLORLOOP          1
-extern const QStringList RStateEffectValuesHue;
 extern const QStringList RStateEffectValuesMueller;
 extern const QStringList RStateEffectValuesXmasLightStrip;
 
