@@ -1373,6 +1373,7 @@ public:
     void setSceneName(Group *group, uint8_t sceneId, const QString &name);
     bool storeScene(Group *group, uint8_t sceneId);
     bool modifyScene(Group *group, uint8_t sceneId);
+    bool removeLightNodeFromScene(LightNode *lightNode, Group *group, uint8_t sceneId);
     bool removeScene(Group *group, uint8_t sceneId);
     bool callScene(Group *group, uint8_t sceneId);
     bool removeAllScenes(Group *group);

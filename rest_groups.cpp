@@ -3230,7 +3230,7 @@ int DeRestPluginPrivate::modifyScene(const ApiRequest &req, ApiResponse &rsp)
 
                     if (map.isEmpty())
                     {
-                        if(!i->deleteLight(lid))
+                        if(!i->deleteLight(lid) || !removeLightNodeFromScene(light, group, i->id))
                         {
                             rsp.httpStatus = HttpStatusServiceUnavailable;
                             rsp.list.append(errorToMap(ERR_BRIDGE_BUSY, QString("/groups/%1/scenes/%2/lights/%3/state").arg(gid).arg(sid).arg(lid), QString("could not remove light from scene")));
