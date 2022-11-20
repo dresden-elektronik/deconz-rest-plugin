@@ -76,6 +76,9 @@
                     "name": "attr/productid"
                 },
                 {
+                    "name": "attr/swconfigid"
+                },
+                {
                     "name": "attr/swversion"
                 },
                 {

@@ -40,6 +40,9 @@
                     "name": "attr/productid"
                 },
                 {
+                    "name": "attr/swconfigid"
+                },
+                {
                     "name": "attr/swversion"
                 },
                 {
@@ -50,6 +53,9 @@
                 },
                 {
                     "name": "cap/alert/trigger_effect"
+                },
+                {
+                    "name": "cap/on/off_with_effect"
                 },
                 {
                     "name": "config/on/startup"

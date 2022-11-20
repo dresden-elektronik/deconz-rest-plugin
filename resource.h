@@ -101,6 +101,7 @@ extern const char *RAttrPowerOnLevel;
 extern const char *RAttrPowerup;
 extern const char *RAttrProductId;
 extern const char *RAttrProductName;
+extern const char *RAttrSwconfigid;
 extern const char *RAttrSwVersion;
 extern const char *RAttrType;
 extern const char *RAttrUniqueId;

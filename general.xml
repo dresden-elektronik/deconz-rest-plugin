@@ -233,7 +233,7 @@
             <value name="Dual Push Button" value="3"></value>
           </attribute>
           <attribute id="0x0040" name="Product Identifier" type="cstring" mfcode="0x100b" access="r" required="o"></attribute>
-          <attribute id="0x0041" name="Hue Unknown 41" type="u32" mfcode="0x100b" access="r" required="o"></attribute>
+          <attribute id="0x0041" name="Software Config Identifier" type="u32" mfcode="0x100b" showas="hex" access="r" required="o"></attribute>
           <attribute id="0x0050" name="Hue Unknown 50" type="bmp32" mfcode="0x100b" access="r" required="o">
             <value name="Unknown" value="0x00"/>
           </attribute>

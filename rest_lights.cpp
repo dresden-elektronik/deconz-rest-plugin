@@ -283,6 +283,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (rid.suffix == RAttrPowerup) { attr["powerup"] = item->toNumber(); }
         else if (rid.suffix == RAttrProductId) { attr["productid"] = item->toString(); }
         else if (rid.suffix == RAttrProductName) { attr["productname"] = item->toString(); }
+        else if (rid.suffix == RAttrSwconfigid) {attr["swconfigid"] = item->toString(); }
         else if (rid.suffix == RAttrType) { attr["type"] = item->toString(); }
         else if (rid.suffix == RAttrUniqueId) { attr["uniqueid"] = item->toString(); }
         else if (rid.suffix == RCapAlertTriggerEffect) { capabilitiesAlerts = &RStateAlertValuesTriggerEffect; }
@@ -3965,6 +3966,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     else if (rid.suffix == RAttrPowerup) { attr["powerup"] = item->toNumber(); }
                     else if (rid.suffix == RAttrProductId) { attr["productid"] = item->toString(); }
                     else if (rid.suffix == RAttrProductName) { attr["productname"] = item->toString(); }
+                    else if (rid.suffix == RAttrSwconfigid) {attr["swconfigid"] = item->toString(); }
                     else if (rid.suffix == RAttrSwVersion) { attr["swversion"] = item->toString(); }
                     else if (rid.suffix == RAttrType) { attr["type"] = item->toString(); }
                     else if (rid.suffix == RAttrUniqueId) { attr["uniqueid"] = item->toString(); }
