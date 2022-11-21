@@ -1,7 +1,13 @@
 {
     "schema": "devcap1.schema.json",
-    "manufacturername": "$MF_SIGNIFY",
-    "modelid": "ROM001",
+    "manufacturername": [
+        "$MF_SIGNIFY",
+        "$MF_PHILIPS"
+    ],
+    "modelid": [
+        "ROM001",
+        "ROM001"
+    ],
     "product": "Hue smart button",
     "status": "Gold",
     "sleeper": true,
