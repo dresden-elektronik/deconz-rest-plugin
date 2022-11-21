@@ -1903,26 +1903,30 @@
         <attribute-set id="0xe000" description="Merten specific" mfcode="0x105e">
           <attribute id="0xe000" name="Cover run time" type="u16" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
           <attribute id="0xe010" name="Unknown" type="bmp8" required="m" access="r" mfcode="0x105e">
-            <value name="Unknown" value="0"></value>
-            <value name="Unknown" value="1"></value>
-            <value name="Unknown" value="2"></value>
-            <value name="Unknown" value="3"></value>
-            <value name="Unknown" value="4"></value>
-            <value name="Unknown" value="5"></value>
-            <value name="Unknown" value="6"></value>
-            <value name="Unknown" value="7"></value>
+            <value name="Unknown (0)" value="0"></value>
+            <value name="Unknown (1)" value="1"></value>
+            <value name="Unknown (2)" value="2"></value>
+            <value name="Unknown (3)" value="3"></value>
+            <value name="Unknown (4)" value="4"></value>
+            <value name="Unknown (5)" value="5"></value>
+            <value name="Unknown (6)" value="6"></value>
+            <value name="Unknown (7)" value="7"></value>
           </attribute>
           <attribute id="0xe012" name="Unknown" type="u16" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
           <attribute id="0xe013" name="Unknown" type="bmp8" required="m" access="r" mfcode="0x105e">
-            <value name="Unknown" value="0"></value>
-            <value name="Unknown" value="1"></value>
-            <value name="Unknown" value="2"></value>
-            <value name="Unknown" value="3"></value>
-            <value name="Unknown" value="4"></value>
-            <value name="Unknown" value="5"></value>
-            <value name="Unknown" value="6"></value>
-            <value name="Unknown" value="7"></value>
+            <value name="Unknown (0)" value="0"></value>
+            <value name="Unknown (1)" value="1"></value>
+            <value name="Unknown (2)" value="2"></value>
+            <value name="Unknown (3)" value="3"></value>
+            <value name="Unknown (4)" value="4"></value>
+            <value name="Unknown (5)" value="5"></value>
+            <value name="Unknown (6)" value="6"></value>
+            <value name="Unknown (7)" value="7"></value>
           </attribute>
+          <attribute id="0xe014" name="Cover run time (open)" type="u16" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
+			    <attribute id="0xe015" name="Cover run time (close)" type="u16" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
+          <attribute id="0xe016" name="Unknown" type="u16" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
+          <attribute id="0xe017" name="Unknown" type="u8" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
         </attribute-set>
 
         <command id="0x00" dir="recv" name="Up / Open" required="m"></command>
