@@ -4214,6 +4214,62 @@
       </client>
     </cluster>
 
+    <!-- SENGLED -->
+    <!-- Inspired from https://github.com/YuhangZho/EmberZNet5.3.0-GA/blob/ce8eb024f2ea536832a0d849c3808c6f21131155/em35x/tool/appbuilder/sengled_cluster.xml -->
+    <cluster id="0xfc01" name="Sengled control specific" mfcode="0x1160">
+		<description>Sengled specific cluster for control</description>
+			<server>
+				<attribute id="0x0000" name="Illumination threshold" type="u8" mfcode="0x1160" access="rw" required="o" default="0x01" range="0,1"> </attribute>
+				<attribute id="0x0001" name="Automatic lights enable" type="bool" mfcode="0x1160" access="rw" required="o" default="0x01"> </attribute>
+				<attribute id="0x0002" name="Save enable" type="bool" mfcode="0x1160" access="r" required="m" default="0x01"> </attribute>
+				<attribute id="0x0003" name="comm Occupancy" type="u8" mfcode="0x1160" access="rw" required="o" default="0x0" range="0,1"> </attribute>
+			    <attribute id="0x0004" name="comm PIR occupied to unoccupied delay" type="u16" mfcode="0x1160" access="rw" required="o" default="0x005a" range="0,14400"> </attribute>
+			</server>
+			<client>
+			</client>
+	   </cluster>
+     <cluster id="0xfc02" name="Sengled Mobile Control specific" mfcode="0x1160">
+			<description>Sengled specific cluster for mobile control</description>
+			<server>
+			</server>
+			<client>
+			<command id="00" dir="recv" name="MobileControl" required="m" mfcode="0x1160">
+				<description>Command description for zcl Mobile Control.</description>
+				<payload>
+					<attribute id="0x0000" type="u16" name="control_type"> </attribute>
+				        <attribute id="0x0001" type="u16" name="control_data"> </attribute>
+				        <attribute id="0x0002" type="u16" name="transition_time"> </attribute>
+				</payload>
+			</command>
+			</client>
+	  </cluster>
+	  <cluster id="0xfc03" name="Sengled RGB calibration specific" mfcode="0x1160">
+			<description>Sengled specific cluster for RGB calibration</description>
+			<server>
+				<attribute id="0x0000" name="Temp adc data" type="u16" mfcode="0x1160" access="rw" required="o" default="0x01ff" range="0,65535" > </attribute>
+				<attribute id="0x0001" name="Red cali coeff" type="u32" mfcode="0x1160" access="rw" required="o" default="0x2710" range="0,4294967295" > </attribute>
+				<attribute id="0x0002" name="Green cali coeff" type="u32" mfcode="0x1160" access="rw" required="o" default="0x2710" range="0,4294967295" > </attribute>
+				<attribute id="0x0003" name="Blue cali coeff" type="u32" mfcode="0x1160" access="rw" required="o" default="0x2710" range="0,4294967295" > </attribute>
+			</server>
+			<client>
+			<command id="00" dir="recv" name="rgb_calibration" required="m" mfcode="0x1160">
+				<description>Sengled TEST control</description>
+				<payload>
+					<attribute id="0x0000" type="u8" name="cali_cmd"> </attribute>
+				        <attribute id="0x0001" type="u16" name="cali_data"> </attribute>
+				</payload>
+			</command>
+			</client>
+	  </cluster>
+		<cluster id="0xfc04" name="Sengled light auto reset specific" mfcode="0x1160">
+			<description>Auto reset for Shangrui light</description>
+			<server>
+				<attribute id="0x0000" name="Auto reset" type="u8" mfcode="0x1160" access="rw" required="o" default="0x00"> </attribute>
+			</server>
+			<client>
+			</client>
+	  </cluster>
+    
     <!-- OSRAM -->
     <cluster id="0xfc0f" name="OSRAM specific" mfcode="0xbbaa">
       <description>OSRAM manufacturer-specific cluster to set power-on defaults.</description>
