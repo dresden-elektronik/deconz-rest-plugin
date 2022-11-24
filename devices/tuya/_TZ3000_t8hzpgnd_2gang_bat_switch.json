@@ -1,8 +1,8 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "_TZ3000_t8hzpgnd",
-  "modelid": "TS0042",
-  "product": "TS0042",
+  "manufacturername": ["_TZ3000_t8hzpgnd", "_TZ3000_tzvbimpq"],
+  "modelid": ["TS0042", "TS0042"],
+  "product": "2 Gangs tuya battery",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
