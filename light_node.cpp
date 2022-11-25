@@ -733,6 +733,11 @@ void LightNode::jsonToResourceItems(const QString &json)
 
         if (map.contains(QLatin1String(key)))
         {
+            if (item->descriptor().suffix == RAttrType)
+            {
+                // type is set in setHaEndpoint()
+                continue;
+            }
             item->setValue(map[key]);
             item->setTimeStamps(dt);
         }
