@@ -6,7 +6,6 @@
   "product": "TS0201",
   "sleeper": true,
   "status": "Gold",
-  "path": "/devices/Moes_temp_hum_sensor_ts0201.json",
   "subdevices": [
     {
       "type": "$TYPE_TEMPERATURE_SENSOR",
@@ -140,7 +139,6 @@
         },
         {
           "name": "config/offset",
-          "description": "Relative offset to the main measured value.",
           "default": 0
         },
         {
