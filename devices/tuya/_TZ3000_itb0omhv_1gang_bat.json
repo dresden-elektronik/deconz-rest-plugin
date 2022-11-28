@@ -34,7 +34,10 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "refresh.interval": 84000,
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
         {
           "name": "attr/type"
@@ -44,6 +47,7 @@
         },
         {
           "name": "config/battery",
+          "refresh.interval": 84000,
           "awake": true,
           "read": {
             "at": "0x0021",
