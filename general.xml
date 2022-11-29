@@ -186,6 +186,9 @@
           </attribute>
           <!-- <attribute id="0xff0d" name="Xiaomi Sensitivity" type="u8" access="rw" required="o" mfcode="0x1037"></attribute> -->
           <attribute id="0xfffd" name="Cluster Revision" type="u16" default="0" access="rw" required="o"></attribute>
+	  <attribute id="0xfffe" name="Tuya magic spell final attribute" type="enum8" default="0" access="rw" required="o">
+		<description>Read attributes in this order Manufacturer name,ZCL version,Application version,Model Identifier,Power source and finally this one"</description>
+	  </attribute>
         </attribute-set>
         <attribute-set id="0x0010" description="Basic Device Settings">
           <attribute id="0x0010" name="Location Description" type="cstring" range="0,16" access="rw" required="o"></attribute>
