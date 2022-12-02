@@ -12768,6 +12768,7 @@ void DeRestPluginPrivate::processGroupTasks()
 
     if (!nodes[groupTaskNodeIter].isAvailable())
     {
+        groupTaskNodeIter++;
         return;
     }
 
