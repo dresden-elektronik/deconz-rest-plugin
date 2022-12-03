@@ -711,11 +711,9 @@
             </attribute>
             <attribute id="0x0001" type="enum8" name="Effect variant" required="m" default="0x00">
               <description>The effect identifier field specifies the effect variant to use.</description>
-              <value name="Fade off in 0.8s (Delayed all off)" value="0x00"></value>
+              <value name="Fade off in 0.8s (Delayed all off)/20% dim up in 0.5s then off in 1s (Dying light)" value="0x00"></value>
               <value name="No fade (Delayed all off)" value="0x01"></value>
               <value name="50% dim down in 0.8s then fade off in 12s (Delayed all off)" value="0x02"></value>
-              <value name="20% dim up in 0.5s then off in 1s (Dying light)" value="0x00"></value>
-              <value name="" value="0x01"></value>
             </attribute>
           </payload>
         </command>
@@ -3278,7 +3276,6 @@ Note: It does not clear or delete previous weekly schedule programming configura
     <cluster id="0x0501" name="IAS ACE">
       <description>The IAS ACE cluster defines an interface to the functionality of any Ancillary Control Equipment of the IAS system. Using this cluster, a ZigBee enabled ACE device can access a IAS CIE device and manipulate the IAS system, on behalf of a level-2 user.</description>
       <server>
-        <attribute></attribute>
         <command id="0x00" dir="recv" name="Arm" required="m">
           <payload>
             <attribute id="0x00" type="enum8" name="Arm Mode" required="m">
