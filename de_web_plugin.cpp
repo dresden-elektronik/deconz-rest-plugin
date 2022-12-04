@@ -3257,7 +3257,9 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
         item = lightNode->item(RAttrType);
         if (item)
         {
-            item->setValue(QVariant("Color temperature light"));
+            // The LEDVANCE A19 RGBW is reported as a color dimmable light. However, it supports both
+            // color and color temperature, so override the type to extended color light here.
+            item->setValue(QVariant("Extended color light"));
         }
         if (lightNode->item(RConfigColorCapabilities) != nullptr)
         {
