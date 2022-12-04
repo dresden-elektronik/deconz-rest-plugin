@@ -26,6 +26,11 @@
           "0x0B05"
         ]
       },
+      "meta": {
+        "values": {
+          "config/mode": {"auto": 0, "heat": 1, "off": 5}
+        }
+      },
       "items": [
         {
           "name": "attr/id"
@@ -58,6 +63,35 @@
           "name": "config/checkin",
           "public": false,
           "refresh.interval": 3600
+        },
+        {
+          "name": "config/displayflipped",
+          "refresh.interval": 3660,
+          "read": {
+            "at": "0x400B",
+            "cl": "0x0204",
+            "ep": 1,
+            "fn": "zcl",
+            "mf": "0x1209"
+          },
+          "parse": {
+            "at": "0x400B",
+            "cl": "0x0204",
+            "ep": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl",
+            "mf": "0x1209"
+          },
+          "write": {
+            "at": "0x400B",
+            "cl": "0x0204",
+            "dt": "0x30",
+            "ep": 1,
+            "eval": "Item.val",
+            "fn": "zcl",
+            "mf": "0x1209"
+          },
+          "default": false
         },
         {
           "name": "config/externalwindowopen",
@@ -94,18 +128,36 @@
         },
         {
           "name": "config/locked",
-          "refresh.interval": 3660,
-          "parse": {
-            "at": "0x0001",
-            "cl": "0x0204",
-            "ep": 1,
-            "eval": "Item.val = Attr.val;",
-            "fn": "zcl"
-          }
+          "refresh.interval": 3660
         },
         {
           "name": "config/mode",
-          "refresh.interval": 3600
+          "refresh.interval": 3600,
+          "read": {
+            "at": "0x4007",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl",
+            "mf": "0x1209"
+          },
+          "parse": {
+            "at": "0x4007",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "if (Attr.val == 0) { Item.val = 'auto' } else if (Attr.val == 1) { Item.val = 'heat' } else if (Attr.val == 5) { Item.val = 'off' };",
+            "fn": "zcl",
+            "mf": "0x1209"
+          },
+          "write": {
+            "at": "0x4007",
+            "cl": "0x0201",
+            "dt": "0x30",
+            "ep": 1,
+            "eval": "if (Item.val == 'auto') { 0 } else if (Item.val == 'heat') { 1 } else if (Item.val == 'off') { 5 };",
+            "fn": "zcl",
+            "mf": "0x1209"
+          },
+          "default": "heat"
         },
         {
           "name": "config/offset",
@@ -157,6 +209,15 @@
             "at": "0x4007",
             "cl": "0x0201",
             "ep": 1,
+            "fn": "zcl",
+            "mf": "0x1209"
+          },
+          "write": {
+            "at": "0x4007",
+            "cl": "0x0201",
+            "dt": "0x30",
+            "ep": 1,
+            "eval": "Item.val ? 0 : 1;",
             "fn": "zcl",
             "mf": "0x1209"
           }
@@ -259,7 +320,7 @@
         {
           "at": "0x0000",
           "dt": "0x29",
-          "min": 30,
+          "min": 60,
           "max": 300,
           "change": "0x00000032"
         },
@@ -270,13 +331,6 @@
           "max": 300,
           "change": "0x00000001"
         },
-        {
-          "at": "0x001C",
-          "dt": "0x30",
-          "min": 1,
-          "max": 300
-        },
-
         {
           "at": "0x4007",
           "dt": "0x30",
@@ -319,11 +373,6 @@
           "max": 3600
         }
       ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "cl": "0x0B05"
     }
   ]
 }
