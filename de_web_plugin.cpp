@@ -3269,7 +3269,6 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
         lightNode->addItem(DataTypeUInt16, RConfigCtMin)->setValue(142);
         lightNode->addItem(DataTypeUInt16, RConfigCtMax)->setValue(666);
         lightNode->addItem(DataTypeUInt16, RConfigColorCapabilities)->setValue(0x0001 | 0x0008 | 0x0010);
-        lightNode->addItem(DataTypeString, RStateColorMode)->setValue(QVariant("ct"));
     }
     else if (lightNode->modelId() == QLatin1String("LIGHTIFY A19 RGBW"))
     {
