@@ -2237,6 +2237,74 @@
           </attribute>
         </attribute-set>
 
+        <!-- Bosch manufacturer specific -->
+        <attribute-set id="0x4000" description="Bosch specific" mfcode="0x1209">
+          <attribute id="0x4007" name="Operating Mode" type="enum8" default="0x00" access="rw" required="o" mfcode="0x1209">
+            <value name="Schedule" value="0x00"></value>
+            <value name="Manual" value="0x01"></value>
+            <value name="Off" value="0x05"></value>
+          </attribute>
+          <attribute id="0x4008" name="Unknown" type="u16" access="rw" required="o" mfcode="0x1209"></attribute>
+          <attribute id="0x4009" name="Unknown" type="u16" access="rw" required="o" mfcode="0x1209"></attribute>
+          <attribute id="0x400A" name="Unknown" type="u16" access="rw" required="o" mfcode="0x1209"></attribute>
+          <attribute id="0x400E" name="Unknown" type="bool" access="rw" required="o" mfcode="0x1209"></attribute>
+          <attribute id="0x400F" name="Unknown" type="u16" access="rw" required="o" mfcode="0x1209"></attribute>
+          <attribute id="0x4020" name="Valve Opening" type="enum8" access="rw" required="o" mfcode="0x1209"></attribute>
+          <attribute id="0x4021" name="Unknown" type="u16" access="rw" required="o" mfcode="0x1209"></attribute>
+          <attribute id="0x4022" name="Unknown" type="enum8" access="rw" required="o" mfcode="0x1209">
+            <value name="0" value="0x00"></value>
+            <value name="1" value="0x01"></value>
+            <value name="2" value="0x02"></value>
+            <value name="3" value="0x03"></value>
+            <value name="4" value="0x04"></value>
+          </attribute>
+          <attribute id="0x4023" name="Unknown" type="enum8" access="rw" required="o" mfcode="0x1209">
+            <value name="0" value="0x00"></value>
+            <value name="1" value="0x01"></value>
+            <value name="2" value="0x02"></value>
+            <value name="3" value="0x03"></value>
+            <value name="4" value="0x04"></value>
+          </attribute>
+          <attribute id="0x4024" name="Unknown" type="enum8" access="rw" required="o" mfcode="0x1209">
+            <value name="0" value="0x00"></value>
+            <value name="1" value="0x01"></value>
+            <value name="2" value="0x02"></value>
+            <value name="3" value="0x03"></value>
+            <value name="4" value="0x04"></value>
+          </attribute>
+          <attribute id="0x4040" name="Unknown" type="s16" access="rw" required="o" mfcode="0x1209"></attribute>
+          <attribute id="0x4041" name="Unknown" type="enum8" access="rw" required="o" mfcode="0x1209">
+            <value name="0" value="0x00"></value>
+            <value name="1" value="0x01"></value>
+            <value name="2" value="0x02"></value>
+            <value name="3" value="0x03"></value>
+            <value name="4" value="0x04"></value>
+          </attribute>
+          <attribute id="0x4042" name="External Window Open Detection" type="enum8" access="rw" required="o" mfcode="0x1209">
+            <value name="Closed" value="0x00"></value>
+            <value name="Open" value="0x01"></value>
+          </attribute>
+          <attribute id="0x4043" name="Boost" type="enum8" access="rw" required="o" mfcode="0x1209">
+            <value name="Off" value="0x00"></value>
+            <value name="On" value="0x01"></value>
+          </attribute>
+          <attribute id="0x4050" name="Unknown" type="enum8" access="rw" required="o" mfcode="0x1209">
+            <value name="0" value="0x00"></value>
+            <value name="1" value="0x01"></value>
+            <value name="2" value="0x02"></value>
+            <value name="3" value="0x03"></value>
+            <value name="4" value="0x04"></value>
+          </attribute>
+          <attribute id="0x5000" name="Error Code" type="bmp8" access="rw" required="o" mfcode="0x1209"></attribute>
+          <attribute id="0x5010" name="Unknown" type="enum8" access="rw" required="o" mfcode="0x1209">
+            <value name="0" value="0x00"></value>
+            <value name="1" value="0x01"></value>
+            <value name="2" value="0x02"></value>
+            <value name="3" value="0x03"></value>
+            <value name="4" value="0x04"></value>
+          </attribute>
+        </attribute-set>
+
         <!-- Sunrichee manufacturer specific -->
         <attribute-set id="0x1000" description="Sunricher Specific Attributes" mfcode="0x1224">
           <attribute id="0x1000" name="Display LED Brightness" type="enum8" access="rw" default="0x01" required="m" mfcode="0x1224">
@@ -2524,6 +2592,43 @@
           <value name="Viewing direction 1" value="0x00"></value>
           <value name="Viewing direction 2" value="0x01"></value>
         </attribute>
+
+        <!-- Bosch manufacturer specific -->
+        <attribute-set id="0x4000" description="Bosch specific" mfcode="0x1209">
+          <attribute id="0x400B" name="Display Orientation" type="u8" access="rw" required="o" mfcode="0x1209"></attribute>
+          <attribute id="0x4031" name="Unknown" type="enum8" access="rw" required="o" mfcode="0x1209">
+            <value name="0x00" value="0x00"></value>
+            <value name="0x01" value="0x01"></value>
+          </attribute>
+          <attribute id="0x4039" name="Displayed Temperature" type="enum8" access="rw" required="o" mfcode="0x1209">
+            <value name="Setpoint Temperature" value="0x00"></value>
+            <value name="Measured Temperature" value="0x01"></value>
+            <value name="Unknown" value="0x02"></value>
+          </attribute>
+          <attribute id="0x403a" name="Display On-time" type="enum8" access="rw" required="o" mfcode="0x1209">
+            <value name="Off" value="0x00"></value>
+            <value name="1" value="0x01"></value>
+            <value name="2" value="0x02"></value>
+            <value name="3" value="0x03"></value>
+            <value name="4" value="0x04"></value>
+            <value name="10" value="0x0A"></value>
+            <value name="20" value="0x04"></value>
+            <value name="30" value="0x04"></value>
+            <value name="40" value="0x04"></value>
+          </attribute>
+          <attribute id="0x403b" name="Display Brightness" type="enum8" access="rw" required="o" mfcode="0x1209">
+            <value name="Off" value="0x00"></value>
+            <value name="1" value="0x01"></value>
+            <value name="2" value="0x02"></value>
+            <value name="3" value="0x03"></value>
+            <value name="4" value="0x04"></value>
+            <value name="5" value="0x05"></value>
+            <value name="6" value="0x06"></value>
+            <value name="7" value="0x07"></value>
+            <value name="8" value="0x08"></value>
+          </attribute>
+        </attribute-set>
+
       </server>
       <client>
       </client>
