@@ -273,6 +273,7 @@ static const SupportedDevice supportedDevices[] = {
     // { VENDOR_XIAOMI, "lumi.curtain", jennicMacPrefix}, // Xiaomi curtain controller (router) - exposed only as light
     { VENDOR_XIAOMI, "lumi.curtain.hagl04", xiaomiMacPrefix}, // Xiaomi B1 curtain controller
     { VENDOR_XIAOMI, "lumi.remote.cagl01", xiaomiMacPrefix },  // Xiaomi Aqara T1 Cube MFKZQ11LM
+	{ VENDOR_XIAOMI, "lumi.remote.cagl02", xiaomiMacPrefix}, // Xiaom Aqara T1 Cube
     { VENDOR_XIAOMI, "lumi.sensor_magnet.agl02", xiaomiMacPrefix}, // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
     { VENDOR_XIAOMI, "lumi.motion.agl04", lumiMacPrefix}, // Xiaomi Aqara RTCGQ13LM high precision motion sensor
     { VENDOR_XIAOMI, "lumi.flood.agl02", xiaomiMacPrefix}, // Xiaomi Aqara T1 water leak sensor SJCGQ12LM
@@ -6318,7 +6319,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 case ANALOG_INPUT_CLUSTER_ID:
                 {
                     if (modelId.startsWith(QLatin1String("lumi.sensor_cube")) ||
-                        modelId == QLatin1String("lumi.remote.cagl01"))
+                        modelId == QLatin1String("lumi.remote.cagl01") ||
+						modelId == QLatin1String("lumi.remote.cagl02"))
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
@@ -6363,6 +6365,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpSwitch.inClusters.push_back(ci->id());
                     }
                     else if (modelId == QLatin1String("lumi.remote.cagl01") && i->endpoint() == 0x02)
+                    {
+                        fpSwitch.inClusters.push_back(ci->id());
+                    }
+					else if (modelId == QLatin1String("lumi.remote.cagl02") && i->endpoint() == 0x02)
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
@@ -7338,7 +7344,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.addItem(DataTypeInt32, RStateButtonEvent);
 
         if (modelId.startsWith(QLatin1String("lumi.sensor_cube")) ||
-            modelId == QLatin1String("lumi.remote.cagl01"))
+            modelId == QLatin1String("lumi.remote.cagl01") ||
+			modelId == QLatin1String("lumi.remote.cagl02"))
         {
             sensorNode.addItem(DataTypeInt32, RStateGesture);
         }
@@ -9453,7 +9460,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 }
 
                                 if (i->modelId().startsWith(QLatin1String("lumi.sensor_cube")) ||
-                                    i->modelId() == QLatin1String("lumi.remote.cagl01"))
+                                    i->modelId() == QLatin1String("lumi.remote.cagl01") ||
+									i->modelId() == QLatin1String("lumi.remote.cagl02"))
                                 {
                                     const qint32 buttonevent = static_cast<qint32>(ia->numericValue().real * 100);
                                     ResourceItem *item = i->item(RStateButtonEvent);
@@ -9571,7 +9579,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 DBG_Printf(DBG_INFO, "Multi state present value: 0x%04X (%u), %s\n", rawValue, rawValue, qPrintable(i->modelId()));
 
                                 if (i->modelId().startsWith(QLatin1String("lumi.sensor_cube")) ||
-                                    i->modelId() == QLatin1String("lumi.remote.cagl01"))
+                                    i->modelId() == QLatin1String("lumi.remote.cagl01") ||
+									i->modelId() == QLatin1String("lumi.remote.cagl02"))
                                 {
                                     // Map Xiaomi Mi smart cube raw values to buttonevent values
                                     static const int sideMap[] = {1, 3, 5, 6, 4, 2};

@@ -3457,7 +3457,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(0);
 
             if (sensor.modelId().startsWith(QLatin1String("lumi.sensor_cube")) ||
-                sensor.modelId() == QLatin1String("lumi.remote.cagl01"))
+                sensor.modelId() == QLatin1String("lumi.remote.cagl01") ||
+				sensor.modelId() == QLatin1String("lumi.remote.cagl02"))
             {
                 sensor.addItem(DataTypeInt32, RStateGesture);
             }
