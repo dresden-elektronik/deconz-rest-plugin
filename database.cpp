@@ -3363,14 +3363,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeInt32, RStateButtonEvent);
             item->setValue(0);
 
-            if (sensor.modelId() == QLatin1String("lumi.remote.cagl01"))
-            {
-                sensor.addItem(DataTypeInt32, RStateGesture);
-            }
-            else if (sensor.modelId().startsWith(QLatin1String("RWL02")) ||
-                     sensor.modelId().startsWith(QLatin1String("ROM00")) ||
-                     sensor.modelId().startsWith(QLatin1String("RDM00")) ||
-                     sensor.modelId().startsWith(QLatin1String("Z3-1BRL")))
+            if (sensor.modelId().startsWith(QLatin1String("RWL02")) ||
+                sensor.modelId().startsWith(QLatin1String("ROM00")) ||
+                sensor.modelId().startsWith(QLatin1String("RDM00")) ||
+                sensor.modelId().startsWith(QLatin1String("Z3-1BRL")))
             {
                 sensor.addItem(DataTypeUInt16, RStateEventDuration);
             }

@@ -1,9 +1,9 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["$MF_LUMI", "$MF_LUMI"],
-  "modelid": ["lumi.sensor_cube", "lumi.sensor_cube.aqgl01"],
+  "manufacturername": ["$MF_LUMI"],
+  "modelid": ["lumi.remote.cagl01"],
   "vendor": "Xiaomi",
-  "product": "Aqara Cube MFKZQ01LM",
+  "product": "Aqara T1 Cube MFKZQ11LM",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -17,7 +17,7 @@
       ],
       "fingerprint": {
         "profile": "0x0104",
-        "device": "0x5F03",
+        "device": "0x0103",
         "endpoint": "0x03",
         "in": [
           "0x000C"
@@ -109,7 +109,7 @@
       ],
       "fingerprint": {
         "profile": "0x0104",
-        "device": "0x5F02",
+        "device": "0x0103",
         "endpoint": "0x02",
         "in": [
           "0x0012"

@@ -287,7 +287,6 @@ static const SupportedDevice supportedDevices[] = {
     // { VENDOR_XIAOMI, "lumi.curtain", jennicMacPrefix}, // Xiaomi curtain controller (router) - exposed only as light
     { VENDOR_XIAOMI, "lumi.curtain.acn002", lumiMacPrefix}, // Xiaomi roller shade driver E1
     { VENDOR_XIAOMI, "lumi.curtain.hagl04", xiaomiMacPrefix}, // Xiaomi B1 curtain controller
-    { VENDOR_XIAOMI, "lumi.remote.cagl01", xiaomiMacPrefix },  // Xiaomi Aqara T1 Cube MFKZQ11LM
     { VENDOR_XIAOMI, "lumi.sensor_magnet.agl02", xiaomiMacPrefix}, // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
     { VENDOR_XIAOMI, "lumi.motion.agl04", lumiMacPrefix}, // Xiaomi Aqara RTCGQ13LM high precision motion sensor
     { VENDOR_XIAOMI, "lumi.flood.agl02", xiaomiMacPrefix}, // Xiaomi Aqara T1 water leak sensor SJCGQ12LM
@@ -4000,14 +3999,6 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         {
                             str = QLatin1String("CM10ZW");
                         }
-                        else if (str == QLatin1String("lumi.remote.cagl01")) // Xiaomi T1 Aqara cube, falsely creates a on/off light
-                        {
-                            // TODO remove this code when DDF is ready
-                            lightNode->setState(LightNode::StateDeleted);
-                            lightNode->setNeedSaveDatabase(true);
-                            queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
-                            break;
-                        }
 
                         if (item && !str.isEmpty() && str != item->toString())
                         {
@@ -6187,11 +6178,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case ANALOG_INPUT_CLUSTER_ID:
                 {
-                    if (modelId == QLatin1String("lumi.remote.cagl01"))
-                    {
-                        fpSwitch.inClusters.push_back(ci->id());
-                    }
-                    else if (modelId.startsWith(QLatin1String("lumi.plug")) || modelId.startsWith(QLatin1String("lumi.ctrl_ln1")) ||
+                    if (modelId.startsWith(QLatin1String("lumi.plug")) || modelId.startsWith(QLatin1String("lumi.ctrl_ln1")) ||
                              modelId == QLatin1String("lumi.switch.b1nacn02"))
                     {
                         if (i->endpoint() == 0x02 || i->endpoint() == 0x15)
@@ -6238,11 +6225,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case MULTISTATE_INPUT_CLUSTER_ID:
                 {
-                    if (modelId == QLatin1String("lumi.remote.cagl01") && i->endpoint() == 0x02)
-                    {
-                        fpSwitch.inClusters.push_back(ci->id());
-                    }
-                    else if (modelId.startsWith(QLatin1String("lumi.ctrl_ln")) && i->endpoint() == 0x05)
+                    if (modelId.startsWith(QLatin1String("lumi.ctrl_ln")) && i->endpoint() == 0x05)
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
@@ -7236,14 +7219,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         }
         sensorNode.addItem(DataTypeInt32, RStateButtonEvent);
 
-        if (modelId == QLatin1String("lumi.remote.cagl01"))
-        {
-            sensorNode.addItem(DataTypeInt32, RStateGesture);
-        }
-        else if (modelId.startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
-                 modelId.startsWith(QLatin1String("ROM00")) || // Hue smart button
-                 modelId.startsWith(QLatin1String("RDM00")) || // Hue wall switch module
-                 modelId.startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Firends-of-Hue dimmer switch
+        if (modelId.startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
+            modelId.startsWith(QLatin1String("ROM00")) || // Hue smart button
+            modelId.startsWith(QLatin1String("RDM00")) || // Hue wall switch module
+            modelId.startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Firends-of-Hue dimmer switch
         {
             clusterId = VENDOR_CLUSTER_ID;
             sensorNode.addItem(DataTypeUInt16, RStateEventDuration);
@@ -9546,33 +9525,14 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                                 }
 
-                                if (i->modelId() == QLatin1String("lumi.remote.cagl01"))
-                                {
-                                    const qint32 buttonevent = static_cast<qint32>(ia->numericValue().real * 100);
-                                    ResourceItem *item = i->item(RStateButtonEvent);
-                                    ResourceItem *item2 = i->item(RStateGesture);
-
-                                    DBG_Assert(item && item2);
-                                    if (item && item2)
-                                    {
-                                        item->setValue(buttonevent);
-                                        item2->setValue(buttonevent > 0 ? GESTURE_ROTATE_CLOCKWISE : GESTURE_ROTATE_COUNTER_CLOCKWISE);
-                                        i->updateStateTimestamp();
-                                        i->setNeedSaveDatabase(true);
-                                        enqueueEvent(Event(RSensors, RStateButtonEvent, i->id(), item));
-                                        enqueueEvent(Event(RSensors, RStateGesture, i->id(), item2));
-                                        enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
-                                        updateSensorEtag(&*i);
-                                    }
-                                }
-                                else if ((i->modelId() == QLatin1String("lumi.plug.mmeu01") && event.endpoint() == 21) ||
-                                         (i->modelId() == QLatin1String("lumi.plug") && event.endpoint() == 2) ||
-                                         (i->modelId() == QLatin1String("lumi.switch.b1nacn02") && event.endpoint() == 2) ||
-                                         (i->modelId() == QLatin1String("lumi.switch.b2nacn02") && event.endpoint() == 3) ||
-                                         (i->modelId() == QLatin1String("lumi.switch.n1aeu1") && event.endpoint() == 21) ||
-                                         (i->modelId() == QLatin1String("lumi.switch.n2aeu1") && event.endpoint() == 21) ||
-                                         (i->modelId().startsWith(QLatin1String("lumi.ctrl_")) && event.endpoint() == 2) ||
-                                          i->modelId().startsWith(QLatin1String("lumi.relay.c")))
+                                if ((i->modelId() == QLatin1String("lumi.plug.mmeu01") && event.endpoint() == 21) ||
+                                    (i->modelId() == QLatin1String("lumi.plug") && event.endpoint() == 2) ||
+                                    (i->modelId() == QLatin1String("lumi.switch.b1nacn02") && event.endpoint() == 2) ||
+                                    (i->modelId() == QLatin1String("lumi.switch.b2nacn02") && event.endpoint() == 3) ||
+                                    (i->modelId() == QLatin1String("lumi.switch.n1aeu1") && event.endpoint() == 21) ||
+                                    (i->modelId() == QLatin1String("lumi.switch.n2aeu1") && event.endpoint() == 21) ||
+                                    (i->modelId().startsWith(QLatin1String("lumi.ctrl_")) && event.endpoint() == 2) ||
+                                    i->modelId().startsWith(QLatin1String("lumi.relay.c")))
                                 {
                                     if (i->type() == QLatin1String("ZHAPower"))
                                     {
@@ -9669,27 +9629,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 DBG_Printf(DBG_INFO, "Multi state present value: 0x%04X (%u), %s\n", rawValue, rawValue, qPrintable(i->modelId()));
 
-                                if (i->modelId() == QLatin1String("lumi.remote.cagl01"))
-                                {
-                                    // Map Xiaomi Mi smart cube raw values to buttonevent values
-                                    static const int sideMap[] = {1, 3, 5, 6, 4, 2};
-                                    int side = sideMap[rawValue & 0x0007];
-                                    int previousSide = sideMap[(rawValue & 0x0038) >> 3];
-                                         if (rawValue == 0x0002) { buttonevent = 7000; gesture = GESTURE_NONE; }  // wakeup
-                                    else if (rawValue == 0x0000) { buttonevent = 7007; gesture = GESTURE_SHAKE; } // shake
-                                    else if (rawValue == 0x0003) { buttonevent = 7008; gesture = GESTURE_DROP; }  // drop
-                                    else if (rawValue & 0x0040)  { buttonevent = side * 1000 + previousSide;      // flip 90°
-                                                                   gesture = GESTURE_FLIP_90; }
-                                    else if (rawValue & 0x0080)  { buttonevent = side * 1000 + 7 - side;          // flip 180°
-                                                                   gesture = GESTURE_FLIP_180; }
-                                    else if (rawValue & 0x0100)  { buttonevent = side * 1000;                     // push
-                                                                   gesture = GESTURE_PUSH; }
-                                    else if (rawValue & 0x0200)  { buttonevent = side * 1000 + side;              // double tap
-                                                                   gesture = GESTURE_DOUBLE_TAP; }
-                                }
-                                else if (i->modelId() == QLatin1String("lumi.remote.b186acn02") ||
-                                         i->modelId() == QLatin1String("lumi.remote.b286acn01") ||
-                                         i->modelId() == QLatin1String("lumi.remote.b286acn02"))
+                                if (i->modelId() == QLatin1String("lumi.remote.b186acn02") ||
+                                    i->modelId() == QLatin1String("lumi.remote.b286acn01") ||
+                                    i->modelId() == QLatin1String("lumi.remote.b286acn02"))
                                 {
                                     buttonevent = S_BUTTON_1 * event.endpoint();
                                     switch (rawValue)

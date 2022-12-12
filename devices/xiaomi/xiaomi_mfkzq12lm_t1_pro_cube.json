@@ -1,9 +1,9 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["$MF_LUMI", "$MF_LUMI"],
-  "modelid": ["lumi.sensor_cube", "lumi.sensor_cube.aqgl01"],
+  "manufacturername": ["$MF_LUMI"],
+  "modelid": ["lumi.remote.cagl02"],
   "vendor": "Xiaomi",
-  "product": "Aqara Cube MFKZQ01LM",
+  "product": "Aqara T1 Pro Cube MFKZQ12LM",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -17,7 +17,7 @@
       ],
       "fingerprint": {
         "profile": "0x0104",
-        "device": "0x5F03",
+        "device": "0x0103",
         "endpoint": "0x03",
         "in": [
           "0x000C"
@@ -48,7 +48,7 @@
           "name": "attr/swversion",
           "awake": true,
           "parse": {
-            "at": "0xff01",
+            "at": "0x00f7",
             "ep": 1,
             "fn": "xiaomi:special",
             "idx": "0x08",
@@ -68,7 +68,7 @@
           "name": "config/battery",
           "awake": true,
           "parse": {
-            "at": "0xff01",
+            "at": "0x00f7",
             "ep": 1,
             "idx": "0x01",
             "fn": "xiaomi:special",
@@ -109,7 +109,7 @@
       ],
       "fingerprint": {
         "profile": "0x0104",
-        "device": "0x5F02",
+        "device": "0x0103",
         "endpoint": "0x02",
         "in": [
           "0x0012"
@@ -140,7 +140,7 @@
           "name": "attr/swversion",
           "awake": true,
           "parse": {
-            "at": "0xff01",
+            "at": "0x00f7",
             "ep": 1,
             "fn": "xiaomi:special",
             "idx": "0x08",
@@ -160,7 +160,7 @@
           "name": "config/battery",
           "awake": true,
           "parse": {
-            "at": "0xff01",
+            "at": "0x00f7",
             "ep": 1,
             "idx": "0x01",
             "fn": "xiaomi:special",
