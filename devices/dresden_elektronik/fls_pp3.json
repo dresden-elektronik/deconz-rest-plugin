@@ -4,7 +4,7 @@
   "modelid": ["FLS-PP3", "FLS-PP3 White"],
   "product": "FLS-PP lp",
   "sleeper": false,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_EXTENDED_COLOR_LIGHT",

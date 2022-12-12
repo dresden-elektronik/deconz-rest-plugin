@@ -90,6 +90,7 @@ using namespace deCONZ::literals;
 #define IDLE_ATTR_REPORT_BIND_LIMIT_SHORT 5
 #define BUTTON_ATTR_REPORT_BIND_LIMIT 120
 #define WARMUP_TIME 120
+#define RULE_CHECK_DELAY 4 // seconds
 
 #define MAX_UNLOCK_GATEWAY_TIME 600
 #define MAX_RECOVER_ENTRY_AGE 600
@@ -297,15 +298,12 @@ using namespace deCONZ::literals;
 #define WRITE_OCCUPANCY_CONFIG (1 << 11)
 #define READ_GROUP_IDENTIFIERS (1 << 12)
 #define WRITE_DELAY            (1 << 13)
-#define WRITE_LEDINDICATION    (1 << 14)
 #define WRITE_SENSITIVITY      (1 << 15)
-#define WRITE_USERTEST         (1 << 16)
 #define READ_THERMOSTAT_STATE  (1 << 17)
 #define READ_BATTERY           (1 << 18)
 #define READ_TIME              (1 << 19)
 #define WRITE_TIME             (1 << 20)
 #define READ_THERMOSTAT_SCHEDULE (1 << 21)
-#define WRITE_DEVICEMODE       (1 << 22)
 
 #define READ_MODEL_ID_INTERVAL   (60 * 60) // s
 #define READ_SWBUILD_ID_INTERVAL (60 * 60) // s
@@ -467,6 +465,7 @@ using namespace deCONZ::literals;
 #define DB_HUGE_SAVE_DELAY  (60 * 60 * 1000) // 60 minutes
 #define DB_LONG_SAVE_DELAY  (15 * 60 * 1000) // 15 minutes
 #define DB_SHORT_SAVE_DELAY (1 *  60 * 1000) // 1 minute
+#define DB_FAST_SAVE_DELAY (1 * 1000) // 1 second
 
 #define DB_CONNECTION_TTL (60 * 15) // 15 minutes
 
@@ -722,6 +721,7 @@ extern const char *HttpContentSVG;
 // Forward declarations
 class DeviceDescriptions;
 class DeviceWidget;
+class DeviceJs;
 class Gateway;
 class GatewayScanner;
 class QUdpSocket;
@@ -1284,6 +1284,7 @@ public Q_SLOTS:
     void apsdeDataIndicationDevice(const deCONZ::ApsDataIndication &ind, Device *device);
     void apsdeDataIndication(const deCONZ::ApsDataIndication &ind);
     void apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf);
+    void apsdeDataRequestEnqueued(const deCONZ::ApsDataRequest &req);
     void gpDataIndication(const deCONZ::GpDataIndication &ind);
     void gpProcessButtonEvent(const deCONZ::GpDataIndication &ind);
     void configurationChanged();
@@ -1343,11 +1344,9 @@ public Q_SLOTS:
     void pollNextDevice();
 
     // database
-#if DECONZ_LIB_VERSION >= 0x010E00
     void storeSourceRoute(const deCONZ::SourceRoute &sourceRoute);
     void deleteSourceRoute(const QString &uuid);
     void restoreSourceRoutes();
-#endif
 
     // touchlink
     void touchlinkDisconnectNetwork();
@@ -1583,7 +1582,6 @@ public:
     void handleBindAndUnbindRspIndication(const deCONZ::ApsDataIndication &ind);
     void handleMgmtLeaveRspIndication(const deCONZ::ApsDataIndication &ind);
     void handleMgmtLqiRspIndication(const deCONZ::ApsDataIndication &ind);
-    void handleDEClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleXalClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleWindowCoveringClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handlePollControlIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
@@ -1599,8 +1597,7 @@ public:
     void sendTimeClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleBasicClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendBasicClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    void handlePhilipsClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, Device *device);
-    void handleTuyaClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleTuyaClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, Device *device);
     void handleZclAttributeReportIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclConfigureReportingResponseIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void taskToLocalData(const TaskItem &task);
@@ -1891,7 +1888,6 @@ public:
     int otauIdleTicks;
     int otauBusyTicks;
     int otauIdleTotalCounter;
-    int otauUnbindIdleTotalCounter;
 
     // touchlink
 
@@ -2077,6 +2073,7 @@ public:
     std::vector<Resourcelinks> resourcelinks;
 
     // rules
+    int needRuleCheck;
     std::vector<int> fastRuleCheck;
     QTimer *fastRuleCheckTimer;
 
@@ -2134,6 +2131,7 @@ public:
     std::vector<BindingTableReader> bindingTableReaders;
 
     DeviceDescriptions *deviceDescriptions = nullptr;
+    DeviceJs *deviceJs = nullptr;
 
     // IAS
     std::unique_ptr<AS_DeviceTable> alarmSystemDeviceTable;

@@ -4,5 +4,6 @@
 	"datatype": "UInt32",
 	"access": "R",
 	"public": true,
-	"description": "The current Light level in lux."
+	"description": "The current Light level in lux.",
+	"default": 0
 }

@@ -1,0 +1,134 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "Sunricher",
+  "modelid": "VIVARES_PBC4_01",
+  "vendor": "Sunricher",
+  "product": "C4 control unit",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_SWITCH",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0006"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0001",
+        "endpoint": "0x01",
+        "in": [
+          "0x0000"
+        ],
+        "out": [
+          "0x0005",
+          "0x0006",
+          "0x0008"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x4000", "eval": "Item.val = Attr.val"},
+          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x4000"},
+          "refresh.interval": 180
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/group",
+          "default": "auto,auto,auto,auto"
+        },
+        {
+          "name": "config/mode"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/buttonevent"
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "groupcast",
+      "src.ep": 1,
+      "cl": "0x0006",
+      "config.group": 0
+    },
+    {
+      "bind": "groupcast",
+      "src.ep": 1,
+      "cl": "0x0008",
+      "config.group": 0
+    },
+    {
+      "bind": "groupcast",
+      "src.ep": 2,
+      "cl": "0x0006",
+      "config.group": 1
+    },
+    {
+      "bind": "groupcast",
+      "src.ep": 2,
+      "cl": "0x0008",
+      "config.group": 1
+    },
+    {
+      "bind": "groupcast",
+      "src.ep": 3,
+      "cl": "0x0006",
+      "config.group": 2
+    },
+    {
+      "bind": "groupcast",
+      "src.ep": 3,
+      "cl": "0x0008",
+      "config.group": 2
+    },
+    {
+      "bind": "groupcast",
+      "src.ep": 4,
+      "cl": "0x0006",
+      "config.group": 3
+    },
+    {
+      "bind": "groupcast",
+      "src.ep": 4,
+      "cl": "0x0008",
+      "config.group": 3
+    }
+  ]
+}

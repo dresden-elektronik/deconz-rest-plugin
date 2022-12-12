@@ -17,7 +17,7 @@ static void handleCheckinCommand(DeRestPluginPrivate *plugin, const deCONZ::ApsD
 
     for (auto &s : plugin->sensors)
     {
-        if (s.address().ext() == ind.srcAddress().ext() && s.deletedState() == Sensor::StateNormal)
+        if (s.address().ext() == ind.srcAddress().ext() && s.deletedState() == Sensor::StateNormal && s.item(RConfigCheckin))
         {
             resources.push_back(&s);
             s.setNeedSaveDatabase(true);
@@ -54,6 +54,11 @@ static void handleCheckinCommand(DeRestPluginPrivate *plugin, const deCONZ::ApsD
             item->setIsPublic(false);
             item->setValue(now);
             enqueueEvent(Event(r->prefix(), item->descriptor().suffix, r->toString(RAttrId), item));
+        }
+
+        if (r->prefix() == RSensors)
+        {
+            plugin->checkPollControlClusterTask(dynamic_cast<Sensor*>(r));
         }
     }
 
@@ -122,10 +127,18 @@ bool DeRestPluginPrivate::checkPollControlClusterTask(Sensor *sensor)
 
     if (item->toNumber() & R_PENDING_WRITE_POLL_CHECKIN_INTERVAL)
     {
+        ResourceItem *configCheckin = sensor->item(RConfigCheckin);
+
         // write poll control checkin interval
         deCONZ::ZclAttribute attr(0x0000, deCONZ::Zcl32BitUint, QLatin1String("Check-in interval"), deCONZ::ZclReadWrite, false);
-        // TODO this needs to be device dependend and configured via a RConfigCheckin
-        attr.setValue(static_cast<quint64>(14400)); // 1 hour in 0.25 seconds
+        if (configCheckin && configCheckin->toNumber() > (4 * 60))
+        {
+            attr.setValue(static_cast<quint64>(configCheckin->toNumber()));
+        }
+        else
+        {
+            attr.setValue(static_cast<quint64>(14400)); // 1 hour in 0.25 seconds
+        }
 
         DBG_Printf(DBG_INFO, "Write poll cluster check-in interval for 0x%016llx\n", sensor->address().ext());
 

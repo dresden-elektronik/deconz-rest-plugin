@@ -1,0 +1,113 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": ["_TZ3000_ygvf9xzp", "_TZ3000_ee8nrt2l"],
+  "modelid": ["TS0044", "TS0044"],
+  "product": "Tuya remote 4 gangs",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_SWITCH",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0006"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2;",
+            "fn": "zcl"
+          }
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/buttonevent"
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 60,
+          "max": 3600,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0006"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 2,
+      "dst.ep": 1,
+      "cl": "0x0006"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 3,
+      "dst.ep": 1,
+      "cl": "0x0006"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 4,
+      "dst.ep": 1,
+      "cl": "0x0006"
+    }
+  ]
+}

@@ -266,7 +266,10 @@ uint8_t LightNode::colorLoopSpeed() const
 void LightNode::didSetValue(ResourceItem *i)
 {
     enqueueEvent(Event(RLights, i->descriptor().suffix, id(), i));
-    setNeedSaveDatabase(true);
+    if (i->descriptor().suffix != RAttrLastSeen) // prevent flooding database writes
+    {
+        setNeedSaveDatabase(true);
+    }
 }
 
 /*! Mark received command and update lastseen. */
@@ -527,12 +530,6 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 // correct wrong device id for legrand, the window suhtter command is see as plug
                 // DEV_ID_Z30_ONOFF_PLUGIN_UNIT
                 deviceId = DEV_ID_HA_WINDOW_COVERING_DEVICE;
-            }
-            else if (isWindowCovering && manufacturerCode() == VENDOR_XIAOMI && deviceId == DEV_ID_HA_ONOFF_LIGHT) // lumi.curtain.acn002, but modelId hasn't yet been read.
-            {
-                deviceId = DEV_ID_HA_WINDOW_COVERING_DEVICE; // Fix wrong device type.
-                addItem(DataTypeString, RStateAlert); // Supports Identify.
-                addItem(DataTypeUInt8, RStateSpeed); // Motor speed setting.
             }
 
             switch (deviceId)

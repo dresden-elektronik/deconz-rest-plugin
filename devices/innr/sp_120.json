@@ -3,7 +3,7 @@
   "manufacturername": "innr",
   "modelid": "SP 120",
   "vendor": "innr",
-  "product": "SP 120",
+  "product": "SP 120 smart plug",
   "sleeper": false,
   "status": "Gold",
   "path": "/devices/innr/sp_120.json",
@@ -47,7 +47,8 @@
           "name": "state/alert"
         },
         {
-          "name": "state/on"
+          "name": "state/on",
+          "refresh.interval": 360
         },
         {
           "name": "state/reachable"
@@ -98,6 +99,7 @@
         },
         {
           "name": "state/consumption",
+          "refresh.interval": 360,
           "parse": {
             "at": "0x0000",
             "cl": "0x0702",
@@ -153,16 +155,19 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/current"
+          "name": "state/current",
+          "refresh.interval": 360
         },
         {
           "name": "state/lastupdated"
         },
         {
-          "name": "state/power"
+          "name": "state/power",
+          "refresh.interval": 360
         },
         {
-          "name": "state/voltage"
+          "name": "state/voltage",
+          "refresh.interval": 360
         }
       ]
     }

@@ -3,7 +3,7 @@
   "manufacturername": "frient A/S",
   "modelid": "SPLZB-131",
   "vendor": "Develco Products",
-  "product": "SPLZB-131",
+  "product": "SPLZB-131 smart plug (Schuko)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -60,11 +60,11 @@
         },
         {
           "name": "state/alert",
-          "description": "The currently active alert effect.",
           "default": "none"
         },
         {
-          "name": "state/on"
+          "name": "state/on",
+          "refresh.interval": 360
         },
         {
           "name": "state/reachable"
@@ -148,10 +148,19 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/power"
+          "name": "state/power",
+          "refresh.interval": 360
         },
         {
-          "name": "state/voltage"
+          "name": "state/voltage",
+          "refresh.interval": 360,
+          "parse": {
+            "at": "0x0505",
+            "cl": "0x0b04",
+            "ep": 2,
+            "eval": "Item.val = Math.round(Attr.val / 100);",
+            "fn": "zcl"
+          }
         }
       ]
     },
@@ -226,13 +235,29 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/consumption"
+          "name": "state/consumption",
+          "refresh.interval": 360
         },
         {
           "name": "state/lastupdated"
         },
         {
-          "name": "state/power"
+          "name": "state/power",
+          "refresh.interval": 360,
+          "read": {
+            "at": "0x0400",
+            "cl": "0x0702",
+            "ep": 2,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0400",
+            "cl": "0x0702",
+            "ep": 2,
+            "eval": "if (Attr.val != -16777215 && Attr.val != 16777215) { Item.val = Attr.val; }",
+            "fn": "zcl"
+          },
+          "default": 0
         }
       ]
     }

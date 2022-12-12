@@ -58,6 +58,7 @@ static const ProductMap products[] =
     {"_TZE200_fhn3negr", "TS0601", "MOES/tuya", "Tuya_THD MOES TRV"},
     {"_TZE200_aoclfnxz", "TS0601", "Moes", "Tuya_THD BTH-002 Thermostat"},
     {"_TYST11_jeaxp72v", "eaxp72v", "Essentials", "Tuya_THD Essentials TRV"},
+    {"_TZE200_jeaxp72v", "TS0601", "Essentials", "Tuya_THD Essentials TRV"},
     {"_TYST11_kfvq6avy", "fvq6avy", "Revolt", "Tuya_THD NX-4911-675 TRV"},
     {"_TZE200_kfvq6avy", "TS0601", "Revolt", "Tuya_THD NX-4911-675 TRV"},
     {"_TYST11_zivfvd7h", "ivfvd7h", "Siterwell", "Tuya_THD GS361A-H04 TRV"},
@@ -65,6 +66,7 @@ static const ProductMap products[] =
     {"_TYST11_yw7cahqs", "w7cahqs", "Hama", "Tuya_THD Smart radiator TRV"},
     {"_TZE200_yw7cahqs", "TS0601", "Hama", "Tuya_THD Smart radiator TRV"},
     {"_TZE200_cwnjrr72", "TS0601", "MOES", "Tuya_THD HY368 TRV"},
+    {"_TZE200_cpmgn2cf", "TS0601", "MOES", "Tuya_THD HY368 TRV"},
     {"_TZE200_b6wax7g0", "TS0601", "MOES", "Tuya_THD BRT-100"},
 
     // Tuya Covering
@@ -91,6 +93,7 @@ static const ProductMap products[] =
     {"_TZ3000_vd43bbfq", "TS130F", "Tuya", "QS-Zigbee-C01 Module"}, // Curtain module QS-Zigbee-C01
     {"_TZ3000_kpve0q1p", "TS130F", "Tuya", "Covering Switch ESW-2ZAD-EU"},
     {"_TZ3000_fccpjz5z", "TS130F", "Tuya", "QS-Zigbee-C01 Module"}, // Curtain module QS-Zigbee-C01
+    {"_TZ3000_j1xl73iw", "TS130F", "Tuya", "Zigbee dual curtain switch"},
 
     // Other
     {"_TYST11_d0yu2xgi", "0yu2xgi", "NEO/Tuya", "NAS-AB02B0 Siren"},

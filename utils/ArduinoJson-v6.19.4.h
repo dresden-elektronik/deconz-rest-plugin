@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright Benoit Blanchon 2014-2021
+// Copyright © 2014-2022, Benoit BLANCHON
 // MIT License
 
 #pragma once
@@ -25,93 +25,77 @@
 #else
 #  define ARDUINOJSON_HAS_INT64 0
 #endif
-#ifndef ARDUINOJSON_EMBEDDED_MODE
-#  if defined(ARDUINO)                /* Arduino*/                 \
-      || defined(__IAR_SYSTEMS_ICC__) /* IAR Embedded Workbench */ \
-      || defined(__XC)                /* MPLAB XC compiler */      \
-      || defined(__ARMCC_VERSION)     /* Keil ARM Compiler */      \
-      || defined(__AVR)               /* Atmel AVR8/GNU C Compiler */
-#    define ARDUINOJSON_EMBEDDED_MODE 1
-#  else
-#    define ARDUINOJSON_EMBEDDED_MODE 0
-#  endif
-#endif
-#if !defined(ARDUINOJSON_ENABLE_STD_STREAM) && defined(__has_include)
-#  if __has_include(<istream>) && \
+#ifndef ARDUINOJSON_ENABLE_STD_STREAM
+#  ifdef __has_include
+#    if __has_include(<istream>) && \
     __has_include(<ostream>) && \
     !defined(min) && \
     !defined(max)
-#    define ARDUINOJSON_ENABLE_STD_STREAM 1
+#      define ARDUINOJSON_ENABLE_STD_STREAM 1
+#    else
+#      define ARDUINOJSON_ENABLE_STD_STREAM 0
+#    endif
 #  else
-#    define ARDUINOJSON_ENABLE_STD_STREAM 0
+#    ifdef ARDUINO
+#      define ARDUINOJSON_ENABLE_STD_STREAM 0
+#    else
+#      define ARDUINOJSON_ENABLE_STD_STREAM 1
+#    endif
 #  endif
 #endif
-#if !defined(ARDUINOJSON_ENABLE_STD_STRING) && defined(__has_include)
-#  if __has_include(<string>) && !defined(min) && !defined(max)
-#    define ARDUINOJSON_ENABLE_STD_STRING 1
+#ifndef ARDUINOJSON_ENABLE_STD_STRING
+#  ifdef __has_include
+#    if __has_include(<string>) && !defined(min) && !defined(max)
+#      define ARDUINOJSON_ENABLE_STD_STRING 1
+#    else
+#      define ARDUINOJSON_ENABLE_STD_STRING 0
+#    endif
 #  else
-#    define ARDUINOJSON_ENABLE_STD_STRING 0
+#    ifdef ARDUINO
+#      define ARDUINOJSON_ENABLE_STD_STRING 0
+#    else
+#      define ARDUINOJSON_ENABLE_STD_STRING 1
+#    endif
 #  endif
 #endif
 #ifndef ARDUINOJSON_ENABLE_STRING_VIEW
 #  ifdef __has_include
 #    if __has_include(<string_view>) && __cplusplus >= 201703L
 #      define ARDUINOJSON_ENABLE_STRING_VIEW 1
+#    else
+#      define ARDUINOJSON_ENABLE_STRING_VIEW 0
 #    endif
+#  else
+#    define ARDUINOJSON_ENABLE_STRING_VIEW 0
 #  endif
 #endif
-#ifndef ARDUINOJSON_ENABLE_STRING_VIEW
-#  define ARDUINOJSON_ENABLE_STRING_VIEW 0
+#ifndef ARDUINOJSON_USE_DOUBLE
+#  define ARDUINOJSON_USE_DOUBLE 1
 #endif
-#if ARDUINOJSON_EMBEDDED_MODE
-#  ifndef ARDUINOJSON_USE_DOUBLE
-#    define ARDUINOJSON_USE_DOUBLE 0
+#ifndef ARDUINOJSON_USE_LONG_LONG
+#  if ARDUINOJSON_HAS_LONG_LONG && defined(__SIZEOF_POINTER__) && \
+          __SIZEOF_POINTER__ >= 4 ||                              \
+      defined(_MSC_VER)
+#    define ARDUINOJSON_USE_LONG_LONG 1
 #  endif
-#  ifndef ARDUINOJSON_USE_LONG_LONG
-#    define ARDUINOJSON_USE_LONG_LONG 0
-#  endif
-#  ifndef ARDUINOJSON_ENABLE_STD_STRING
-#    define ARDUINOJSON_ENABLE_STD_STRING 0
-#  endif
-#  ifndef ARDUINOJSON_ENABLE_STD_STREAM
-#    define ARDUINOJSON_ENABLE_STD_STREAM 0
-#  endif
-#  ifndef ARDUINOJSON_DEFAULT_NESTING_LIMIT
-#    define ARDUINOJSON_DEFAULT_NESTING_LIMIT 10
-#  endif
-#  ifndef ARDUINOJSON_SLOT_OFFSET_SIZE
-#    if defined(__SIZEOF_POINTER__) && __SIZEOF_POINTER__ == 2
-#      define ARDUINOJSON_SLOT_OFFSET_SIZE 1
-#    else
-#      define ARDUINOJSON_SLOT_OFFSET_SIZE 2
-#    endif
-#  endif
-#else  // ARDUINOJSON_EMBEDDED_MODE
-#  ifndef ARDUINOJSON_USE_DOUBLE
-#    define ARDUINOJSON_USE_DOUBLE 1
-#  endif
-#  ifndef ARDUINOJSON_USE_LONG_LONG
-#    if ARDUINOJSON_HAS_LONG_LONG || ARDUINOJSON_HAS_INT64
-#      define ARDUINOJSON_USE_LONG_LONG 1
-#    else
-#      define ARDUINOJSON_USE_LONG_LONG 0
-#    endif
-#  endif
-#  ifndef ARDUINOJSON_ENABLE_STD_STRING
-#    define ARDUINOJSON_ENABLE_STD_STRING 1
-#  endif
-#  ifndef ARDUINOJSON_ENABLE_STD_STREAM
-#    define ARDUINOJSON_ENABLE_STD_STREAM 1
-#  endif
-#  ifndef ARDUINOJSON_DEFAULT_NESTING_LIMIT
-#    define ARDUINOJSON_DEFAULT_NESTING_LIMIT 50
-#  endif
-#  ifndef ARDUINOJSON_SLOT_OFFSET_SIZE
+#endif
+#ifndef ARDUINOJSON_USE_LONG_LONG
+#  define ARDUINOJSON_USE_LONG_LONG 0
+#endif
+#ifndef ARDUINOJSON_DEFAULT_NESTING_LIMIT
+#  define ARDUINOJSON_DEFAULT_NESTING_LIMIT 10
+#endif
+#ifndef ARDUINOJSON_SLOT_OFFSET_SIZE
+#  if defined(__SIZEOF_POINTER__) && __SIZEOF_POINTER__ <= 2
+#    define ARDUINOJSON_SLOT_OFFSET_SIZE 1
+#  elif defined(__SIZEOF_POINTER__) && __SIZEOF_POINTER__ >= 8 || \
+      defined(_WIN64) && _WIN64
 #    define ARDUINOJSON_SLOT_OFFSET_SIZE 4
+#  else
+#    define ARDUINOJSON_SLOT_OFFSET_SIZE 2
 #  endif
-#endif  // ARDUINOJSON_EMBEDDED_MODE
+#endif
 #ifdef ARDUINO
-#include <Arduino.h>
 #  ifndef ARDUINOJSON_ENABLE_ARDUINO_STRING
 #    define ARDUINOJSON_ENABLE_ARDUINO_STRING 1
 #  endif
@@ -120,6 +104,9 @@
 #  endif
 #  ifndef ARDUINOJSON_ENABLE_ARDUINO_PRINT
 #    define ARDUINOJSON_ENABLE_ARDUINO_PRINT 1
+#  endif
+#  ifndef ARDUINOJSON_ENABLE_PROGMEM
+#    define ARDUINOJSON_ENABLE_PROGMEM 1
 #  endif
 #else  // ARDUINO
 #  ifndef ARDUINOJSON_ENABLE_ARDUINO_STRING
@@ -131,15 +118,10 @@
 #  ifndef ARDUINOJSON_ENABLE_ARDUINO_PRINT
 #    define ARDUINOJSON_ENABLE_ARDUINO_PRINT 0
 #  endif
-#endif  // ARDUINO
-#ifndef ARDUINOJSON_ENABLE_PROGMEM
-#  if defined(PROGMEM) && defined(pgm_read_byte) && defined(pgm_read_dword) && \
-      defined(pgm_read_ptr) && defined(pgm_read_float)
-#    define ARDUINOJSON_ENABLE_PROGMEM 1
-#  else
+#  ifndef ARDUINOJSON_ENABLE_PROGMEM
 #    define ARDUINOJSON_ENABLE_PROGMEM 0
 #  endif
-#endif
+#endif  // ARDUINO
 #ifndef ARDUINOJSON_DECODE_UNICODE
 #  define ARDUINOJSON_DECODE_UNICODE 1
 #endif
@@ -194,6 +176,10 @@
 #if ARDUINOJSON_HAS_NULLPTR && defined(nullptr)
 #  error nullptr is defined as a macro. Remove the faulty #define or #undef nullptr
 #endif
+#if ARDUINOJSON_ENABLE_ARDUINO_STRING || ARDUINOJSON_ENABLE_ARDUINO_STREAM || \
+    ARDUINOJSON_ENABLE_ARDUINO_PRINT || ARDUINOJSON_ENABLE_PROGMEM
+#include <Arduino.h>
+#endif
 #if !ARDUINOJSON_DEBUG
 #  ifdef __clang__
 #    pragma clang system_header
@@ -228,10 +214,10 @@
 #define ARDUINOJSON_HEX_DIGIT_1111() F
 #define ARDUINOJSON_HEX_DIGIT_(A, B, C, D) ARDUINOJSON_HEX_DIGIT_##A##B##C##D()
 #define ARDUINOJSON_HEX_DIGIT(A, B, C, D) ARDUINOJSON_HEX_DIGIT_(A, B, C, D)
-#define ARDUINOJSON_VERSION "6.18.3"
+#define ARDUINOJSON_VERSION "6.19.4"
 #define ARDUINOJSON_VERSION_MAJOR 6
-#define ARDUINOJSON_VERSION_MINOR 18
-#define ARDUINOJSON_VERSION_REVISION 3
+#define ARDUINOJSON_VERSION_MINOR 19
+#define ARDUINOJSON_VERSION_REVISION 4
 #ifndef ARDUINOJSON_NAMESPACE
 #  define ARDUINOJSON_NAMESPACE                                               \
     ARDUINOJSON_CONCAT4(                                                      \
@@ -266,12 +252,13 @@ class CollectionData {
   VariantData *getOrAddElement(size_t index, MemoryPool *pool);
   void removeElement(size_t index);
   bool equalsArray(const CollectionData &other) const;
-  template <typename TAdaptedString>
-  VariantData *addMember(TAdaptedString key, MemoryPool *pool);
+  template <typename TAdaptedString, typename TStoragePolicy>
+  VariantData *addMember(TAdaptedString key, MemoryPool *pool, TStoragePolicy);
   template <typename TAdaptedString>
   VariantData *getMember(TAdaptedString key) const;
-  template <typename TAdaptedString>
-  VariantData *getOrAddMember(TAdaptedString key, MemoryPool *pool);
+  template <typename TAdaptedString, typename TStoragePolicy>
+  VariantData *getOrAddMember(TAdaptedString key, MemoryPool *pool,
+                              TStoragePolicy);
   template <typename TAdaptedString>
   void removeMember(TAdaptedString key) {
     removeSlot(getSlot(key));
@@ -360,33 +347,6 @@ template <size_t X, size_t Y>
 struct Max<X, Y, false> {
   static const size_t value = Y;
 };
-}  // namespace ARDUINOJSON_NAMESPACE
-#include <string.h>
-#include <stdint.h>
-namespace ARDUINOJSON_NAMESPACE {
-inline int safe_strcmp(const char* a, const char* b) {
-  if (a == b)
-    return 0;
-  if (!a)
-    return -1;
-  if (!b)
-    return 1;
-  return strcmp(a, b);
-}
-inline int safe_strncmp(const char* a, const char* b, size_t n) {
-  if (a == b)
-    return 0;
-  if (!a)
-    return -1;
-  if (!b)
-    return 1;
-  return strncmp(a, b, n);
-}
-namespace storage_policies {
-struct store_by_address {};
-struct store_by_copy {};
-struct decide_at_runtime {};
-}  // namespace storage_policies
 template <bool Condition, class TrueType, class FalseType>
 struct conditional {
   typedef TrueType type;
@@ -609,222 +569,201 @@ template <typename T>
 struct remove_reference<T&> {
   typedef T type;
 };
-template <typename T, bool bounded = false, typename Enable = void>
-class StringAdapter;
-template <typename T>
-inline StringAdapter<T, false> adaptString(const T& str) {
-  return StringAdapter<T, false>(str);
-}
-template <typename T>
-inline StringAdapter<T, true> adaptString(const T& str, size_t sz) {
-  return StringAdapter<T, true>(str, sz);
-}
+}  // namespace ARDUINOJSON_NAMESPACE
+#include <string.h>
+namespace ARDUINOJSON_NAMESPACE {
 template <typename T, typename Enable = void>
 struct IsString : false_type {};
-template <typename T>
-struct IsString<
-    T, typename make_void<typename StringAdapter<T>::storage_policy>::type>
-    : true_type {};
-template <>
-class StringAdapter<const char*> {
+template <typename TChar>
+struct IsString<const TChar*> : IsString<TChar*> {};
+class ZeroTerminatedRamString {
  public:
-  StringAdapter(const char* str = 0) : _str(str) {}
-  int compare(const char* other) const {
-    return safe_strcmp(_str, other);
-  }
+  static const size_t typeSortKey = 3;
+  ZeroTerminatedRamString(const char* str) : _str(str) {}
   bool isNull() const {
     return !_str;
   }
   size_t size() const {
-    if (!_str)
-      return 0;
-    return strlen(_str);
+    return _str ? ::strlen(_str) : 0;
+  }
+  char operator[](size_t i) const {
+    ARDUINOJSON_ASSERT(_str != 0);
+    ARDUINOJSON_ASSERT(i <= size());
+    return _str[i];
   }
   const char* data() const {
     return _str;
   }
-  typedef storage_policies::store_by_address storage_policy;
+  friend int stringCompare(ZeroTerminatedRamString a,
+                           ZeroTerminatedRamString b) {
+    ARDUINOJSON_ASSERT(!a.isNull());
+    ARDUINOJSON_ASSERT(!b.isNull());
+    return ::strcmp(a._str, b._str);
+  }
+  friend bool stringEquals(ZeroTerminatedRamString a,
+                           ZeroTerminatedRamString b) {
+    return stringCompare(a, b) == 0;
+  }
  protected:
   const char* _str;
 };
-template <int N>
-class StringAdapter<const char[N]> : public StringAdapter<const char*> {
+template <>
+struct IsString<char*> : true_type {};
+inline ZeroTerminatedRamString adaptString(const char* s) {
+  return ZeroTerminatedRamString(s);
+}
+template <>
+struct IsString<unsigned char*> : true_type {};
+inline ZeroTerminatedRamString adaptString(const unsigned char* s) {
+  return adaptString(reinterpret_cast<const char*>(s));
+}
+template <>
+struct IsString<signed char*> : true_type {};
+inline ZeroTerminatedRamString adaptString(const signed char* s) {
+  return adaptString(reinterpret_cast<const char*>(s));
+}
+class SizedRamString {
  public:
-  StringAdapter<const char[N]>(const char* s) : StringAdapter<const char*>(s) {}
-};
-template <typename TChar>
-class StringAdapter<TChar*, false,
-                    typename enable_if<sizeof(TChar) == 1 &&
-                                       !is_same<TChar, void>::value>::type>
-    : public StringAdapter<const char*> {
- public:
-  StringAdapter(const TChar* str)
-      : StringAdapter<const char*>(reinterpret_cast<const char*>(str)) {}
-  void copyTo(char* p, size_t n) const {
-    memcpy(p, _str, n);
+  static const size_t typeSortKey = 2;
+  SizedRamString(const char* str, size_t sz) : _str(str), _size(sz) {}
+  bool isNull() const {
+    return !_str;
   }
-  typedef ARDUINOJSON_NAMESPACE::storage_policies::store_by_copy storage_policy;
+  size_t size() const {
+    return _size;
+  }
+  char operator[](size_t i) const {
+    ARDUINOJSON_ASSERT(_str != 0);
+    ARDUINOJSON_ASSERT(i <= size());
+    return _str[i];
+  }
+  const char* data() const {
+    return _str;
+  }
+ protected:
+  const char* _str;
+  size_t _size;
 };
-class String {
+inline SizedRamString adaptString(const char* s, size_t n) {
+  return SizedRamString(s, n);
+}
+template <size_t N>
+struct IsString<char[N]> : true_type {};
+template <size_t N>
+struct IsString<const char[N]> : true_type {};
+template <size_t N>
+inline SizedRamString adaptString(char s[N]) {
+  return SizedRamString(s, strlen(s));
+}
+template <typename T>
+class SafeBoolIdom {
+ protected:
+  typedef void (T::*bool_type)() const;
+  void safeBoolHelper() const {}
+  static bool_type safe_true() {
+    return &SafeBoolIdom::safeBoolHelper;
+  }
+  static bool_type safe_false() {
+    return 0;
+  }
+};
+}  // namespace ARDUINOJSON_NAMESPACE
+#if ARDUINOJSON_ENABLE_STD_STREAM
+#include <ostream>
+#endif
+namespace ARDUINOJSON_NAMESPACE {
+class String : public SafeBoolIdom<String> {
  public:
-  String() : _data(0), _isStatic(true) {}
-  String(const char* data, bool isStaticData = true)
-      : _data(data), _isStatic(isStaticData) {}
+  enum Ownership { Copied, Linked };
+  String() : _data(0), _size(0), _ownership(Linked) {}
+  String(const char* data, Ownership ownership = Linked)
+      : _data(data), _size(data ? ::strlen(data) : 0), _ownership(ownership) {}
+  String(const char* data, size_t sz, Ownership ownership = Linked)
+      : _data(data), _size(sz), _ownership(ownership) {}
   const char* c_str() const {
     return _data;
   }
   bool isNull() const {
     return !_data;
   }
-  bool isStatic() const {
-    return _isStatic;
-  }
-  friend bool operator==(String lhs, String rhs) {
-    if (lhs._data == rhs._data)
-      return true;
-    if (!lhs._data)
-      return false;
-    if (!rhs._data)
-      return false;
-    return strcmp(lhs._data, rhs._data) == 0;
-  }
-  friend bool operator!=(String lhs, String rhs) {
-    if (lhs._data == rhs._data)
-      return false;
-    if (!lhs._data)
-      return true;
-    if (!rhs._data)
-      return true;
-    return strcmp(lhs._data, rhs._data) != 0;
-  }
- private:
-  const char* _data;
-  bool _isStatic;
-};
-template <>
-class StringAdapter<String> : public StringAdapter<char*> {
- public:
-  StringAdapter(const String& str)
-      : StringAdapter<char*>(str.c_str()), _isStatic(str.isStatic()) {}
-  bool isStatic() const {
-    return _isStatic;
-  }
-  typedef storage_policies::decide_at_runtime storage_policy;
- private:
-  bool _isStatic;
-};
-template <typename TChar>
-class StringAdapter<TChar*, true> {
- public:
-  StringAdapter(const char* str, size_t n) : _str(str), _size(n) {}
-  int compare(const char* other) const {
-    return safe_strncmp(_str, other, _size);
-  }
-  bool isNull() const {
-    return !_str;
-  }
-  void copyTo(char* p, size_t n) const {
-    memcpy(p, _str, n);
+  bool isLinked() const {
+    return _ownership == Linked;
   }
   size_t size() const {
     return _size;
   }
-  typedef storage_policies::store_by_copy storage_policy;
+  operator bool_type() const {
+    return _data ? safe_true() : safe_false();
+  }
+  friend bool operator==(String lhs, String rhs) {
+    if (lhs._size != rhs._size)
+      return false;
+    if (lhs._data == rhs._data)
+      return true;
+    if (!lhs._data)
+      return false;
+    if (!rhs._data)
+      return false;
+    return memcmp(lhs._data, rhs._data, lhs._size) == 0;
+  }
+  friend bool operator!=(String lhs, String rhs) {
+    return !(lhs == rhs);
+  }
+#if ARDUINOJSON_ENABLE_STD_STREAM
+  friend std::ostream& operator<<(std::ostream& lhs, const String& rhs) {
+    lhs.write(rhs.c_str(), static_cast<std::streamsize>(rhs.size()));
+    return lhs;
+  }
+#endif
  private:
-  const char* _str;
+  const char* _data;
   size_t _size;
+  Ownership _ownership;
 };
+inline SizedRamString adaptString(const String& s) {
+  return SizedRamString(s.c_str(), s.size());
+}
+template <>
+struct IsString<String> : true_type {};
 }  // namespace ARDUINOJSON_NAMESPACE
 #if ARDUINOJSON_ENABLE_STD_STRING
 #include <string>
 namespace ARDUINOJSON_NAMESPACE {
 template <typename TCharTraits, typename TAllocator>
-class StringAdapter<std::basic_string<char, TCharTraits, TAllocator> > {
- public:
-  typedef std::basic_string<char, TCharTraits, TAllocator> string_type;
-  StringAdapter(const string_type& str) : _str(&str) {}
-  void copyTo(char* p, size_t n) const {
-    memcpy(p, _str->c_str(), n);
-  }
-  bool isNull() const {
-    return false;
-  }
-  int compare(const char* other) const {
-    if (!other)
-      return 1;
-    return _str->compare(other);
-  }
-  size_t size() const {
-    return _str->size();
-  }
-  typedef storage_policies::store_by_copy storage_policy;
- private:
-  const string_type* _str;
+inline SizedRamString adaptString(
+    const std::basic_string<char, TCharTraits, TAllocator>& s) {
+  return SizedRamString(s.c_str(), s.size());
+}
+template <typename TCharTraits, typename TAllocator>
+struct IsString<std::basic_string<char, TCharTraits, TAllocator> > : true_type {
 };
 }  // namespace ARDUINOJSON_NAMESPACE
 #endif
 #if ARDUINOJSON_ENABLE_STRING_VIEW
 #include <string_view>
 namespace ARDUINOJSON_NAMESPACE {
+inline SizedRamString adaptString(const std::string_view& s) {
+  return SizedRamString(s.data(), s.size());
+}
 template <>
-class StringAdapter<std::string_view> {
- public:
-  StringAdapter(std::string_view str) : _str(str) {}
-  void copyTo(char* p, size_t n) const {
-    memcpy(p, _str.data(), n);
-  }
-  bool isNull() const {
-    return false;
-  }
-  int compare(const char* other) const {
-    if (!other)
-      return 1;
-    return _str.compare(other);
-  }
-  size_t size() const {
-    return _str.size();
-  }
-  typedef storage_policies::store_by_copy storage_policy;
- private:
-  std::string_view _str;
-};
+struct IsString<std::string_view> : true_type {};
 }  // namespace ARDUINOJSON_NAMESPACE
 #endif
 #if ARDUINOJSON_ENABLE_ARDUINO_STRING
 namespace ARDUINOJSON_NAMESPACE {
+inline SizedRamString adaptString(const ::String& s) {
+  return SizedRamString(s.c_str(), s.length());
+}
 template <>
-class StringAdapter< ::String> {
- public:
-  StringAdapter(const ::String& str) : _str(&str) {}
-  void copyTo(char* p, size_t n) const {
-    memcpy(p, _str->c_str(), n);
-  }
-  bool isNull() const {
-    return !_str->c_str();
-  }
-  int compare(const char* other) const {
-    const char* me = _str->c_str();
-    return safe_strcmp(me, other);
-  }
-  size_t size() const {
-    return _str->length();
-  }
-  typedef storage_policies::store_by_copy storage_policy;
- private:
-  const ::String* _str;
-};
+struct IsString< ::String> : true_type {};
 template <>
-class StringAdapter< ::StringSumHelper> : public StringAdapter< ::String> {
- public:
-  StringAdapter< ::StringSumHelper>(const ::String& s)
-      : StringAdapter< ::String>(s) {}
-};
+struct IsString< ::StringSumHelper> : true_type {};
 }  // namespace ARDUINOJSON_NAMESPACE
 #endif
 #if ARDUINOJSON_ENABLE_PROGMEM
 namespace ARDUINOJSON_NAMESPACE {
 struct pgm_p {
-  pgm_p(const char* p) : address(p) {}
+  pgm_p(const void* p) : address(reinterpret_cast<const char*>(p)) {}
   const char* address;
 };
 }  // namespace ARDUINOJSON_NAMESPACE
@@ -873,6 +812,21 @@ inline int strcmp_P(const char* a, ARDUINOJSON_NAMESPACE::pgm_p b) {
   }
 }
 #endif
+#ifndef memcmp_P
+inline int memcmp_P(const void* a, ARDUINOJSON_NAMESPACE::pgm_p b, size_t n) {
+  const uint8_t* p1 = reinterpret_cast<const uint8_t*>(a);
+  const char* p2 = b.address;
+  ARDUINOJSON_ASSERT(p1 != NULL);
+  ARDUINOJSON_ASSERT(p2 != NULL);
+  while (n-- > 0) {
+    uint8_t v1 = *p1++;
+    uint8_t v2 = pgm_read_byte(p2++);
+    if (v1 != v2)
+      return v1 - v2;
+  }
+  return 0;
+}
+#endif
 #ifndef memcpy_P
 inline void* memcpy_P(void* dst, ARDUINOJSON_NAMESPACE::pgm_p src, size_t n) {
   uint8_t* d = reinterpret_cast<uint8_t*>(dst);
@@ -885,65 +839,134 @@ inline void* memcpy_P(void* dst, ARDUINOJSON_NAMESPACE::pgm_p src, size_t n) {
   return dst;
 }
 #endif
+#ifndef pgm_read_dword
+inline uint32_t pgm_read_dword(ARDUINOJSON_NAMESPACE::pgm_p p) {
+  uint32_t result;
+  memcpy_P(&result, p.address, 4);
+  return result;
+}
+#endif
+#ifndef pgm_read_ptr
+inline void* pgm_read_ptr(ARDUINOJSON_NAMESPACE::pgm_p p) {
+  void* result;
+  memcpy_P(&result, p.address, sizeof(result));
+  return result;
+}
+#endif
 namespace ARDUINOJSON_NAMESPACE {
-template <>
-class StringAdapter<const __FlashStringHelper*> {
+class FlashString {
  public:
-  StringAdapter(const __FlashStringHelper* str) : _str(str) {}
-  int compare(const char* other) const {
-    if (!other && !_str)
-      return 0;
-    if (!_str)
-      return -1;
-    if (!other)
-      return 1;
-    return -strcmp_P(other, reinterpret_cast<const char*>(_str));
-  }
+  static const size_t typeSortKey = 1;
+  FlashString(const __FlashStringHelper* str, size_t sz)
+      : _str(reinterpret_cast<const char*>(str)), _size(sz) {}
   bool isNull() const {
     return !_str;
   }
-  void copyTo(char* p, size_t n) const {
-    memcpy_P(p, reinterpret_cast<const char*>(_str), n);
-  }
-  size_t size() const {
-    if (!_str)
-      return 0;
-    return strlen_P(reinterpret_cast<const char*>(_str));
-  }
-  typedef storage_policies::store_by_copy storage_policy;
- private:
-  const __FlashStringHelper* _str;
-};
-template <>
-class StringAdapter<const __FlashStringHelper*, true> {
- public:
-  StringAdapter(const __FlashStringHelper* str, size_t sz)
-      : _str(str), _size(sz) {}
-  int compare(const char* other) const {
-    if (!other && !_str)
-      return 0;
-    if (!_str)
-      return -1;
-    if (!other)
-      return 1;
-    return -strncmp_P(other, reinterpret_cast<const char*>(_str), _size);
-  }
-  bool isNull() const {
-    return !_str;
-  }
-  void copyTo(char* p, size_t n) const {
-    memcpy_P(p, reinterpret_cast<const char*>(_str), n);
+  char operator[](size_t i) const {
+    ARDUINOJSON_ASSERT(_str != 0);
+    ARDUINOJSON_ASSERT(i <= _size);
+    return static_cast<char>(pgm_read_byte(_str + i));
   }
   size_t size() const {
     return _size;
   }
-  typedef storage_policies::store_by_copy storage_policy;
+  friend bool stringEquals(FlashString a, SizedRamString b) {
+    ARDUINOJSON_ASSERT(a.typeSortKey < b.typeSortKey);
+    ARDUINOJSON_ASSERT(!a.isNull());
+    ARDUINOJSON_ASSERT(!b.isNull());
+    if (a.size() != b.size())
+      return false;
+    return ::memcmp_P(b.data(), a._str, a._size) == 0;
+  }
+  friend int stringCompare(FlashString a, SizedRamString b) {
+    ARDUINOJSON_ASSERT(a.typeSortKey < b.typeSortKey);
+    ARDUINOJSON_ASSERT(!a.isNull());
+    ARDUINOJSON_ASSERT(!b.isNull());
+    size_t minsize = a.size() < b.size() ? a.size() : b.size();
+    int res = ::memcmp_P(b.data(), a._str, minsize);
+    if (res)
+      return -res;
+    if (a.size() < b.size())
+      return -1;
+    if (a.size() > b.size())
+      return 1;
+    return 0;
+  }
+  friend void stringGetChars(FlashString s, char* p, size_t n) {
+    ARDUINOJSON_ASSERT(s.size() <= n);
+    ::memcpy_P(p, s._str, n);
+  }
  private:
-  const __FlashStringHelper* _str;
+  const char* _str;
   size_t _size;
 };
+inline FlashString adaptString(const __FlashStringHelper* s) {
+  return FlashString(s, s ? strlen_P(reinterpret_cast<const char*>(s)) : 0);
+}
+inline FlashString adaptString(const __FlashStringHelper* s, size_t n) {
+  return FlashString(s, n);
+}
+template <>
+struct IsString<const __FlashStringHelper*> : true_type {};
 }  // namespace ARDUINOJSON_NAMESPACE
 #endif
+namespace ARDUINOJSON_NAMESPACE {
+template <typename TAdaptedString1, typename TAdaptedString2>
+typename enable_if<TAdaptedString1::typeSortKey <= TAdaptedString2::typeSortKey,
+                   int>::type
+stringCompare(TAdaptedString1 s1, TAdaptedString2 s2) {
+  ARDUINOJSON_ASSERT(!s1.isNull());
+  ARDUINOJSON_ASSERT(!s2.isNull());
+  size_t size1 = s1.size();
+  size_t size2 = s2.size();
+  size_t n = size1 < size2 ? size1 : size2;
+  for (size_t i = 0; i < n; i++) {
+    if (s1[i] != s2[i])
+      return s1[i] - s2[i];
+  }
+  if (size1 < size2)
+    return -1;
+  if (size1 > size2)
+    return 1;
+  return 0;
+}
+template <typename TAdaptedString1, typename TAdaptedString2>
+typename enable_if<
+    (TAdaptedString1::typeSortKey > TAdaptedString2::typeSortKey), int>::type
+stringCompare(TAdaptedString1 s1, TAdaptedString2 s2) {
+  return -stringCompare(s2, s1);
+}
+template <typename TAdaptedString1, typename TAdaptedString2>
+typename enable_if<TAdaptedString1::typeSortKey <= TAdaptedString2::typeSortKey,
+                   bool>::type
+stringEquals(TAdaptedString1 s1, TAdaptedString2 s2) {
+  ARDUINOJSON_ASSERT(!s1.isNull());
+  ARDUINOJSON_ASSERT(!s2.isNull());
+  size_t size1 = s1.size();
+  size_t size2 = s2.size();
+  if (size1 != size2)
+    return false;
+  for (size_t i = 0; i < size1; i++) {
+    if (s1[i] != s2[i])
+      return false;
+  }
+  return true;
+}
+template <typename TAdaptedString1, typename TAdaptedString2>
+typename enable_if<
+    (TAdaptedString1::typeSortKey > TAdaptedString2::typeSortKey), bool>::type
+stringEquals(TAdaptedString1 s1, TAdaptedString2 s2) {
+  return stringEquals(s2, s1);
+}
+template <typename TAdaptedString>
+static void stringGetChars(TAdaptedString s, char* p, size_t n) {
+  ARDUINOJSON_ASSERT(s.size() <= n);
+  for (size_t i = 0; i < n; i++) {
+    p[i] = s[i];
+  }
+}
+}  // namespace ARDUINOJSON_NAMESPACE
+#include <stdint.h>
 namespace ARDUINOJSON_NAMESPACE {
 template <int Bits>
 struct int_t;
@@ -1042,11 +1065,10 @@ union VariantContent {
   UInt asUnsignedInteger;
   Integer asSignedInteger;
   CollectionData asCollection;
-  const char *asString;
   struct {
     const char *data;
     size_t size;
-  } asRaw;
+  } asString;
 };
 typedef int_t<ARDUINOJSON_SLOT_OFFSET_SIZE * 8>::type VariantSlotDiff;
 class VariantSlot {
@@ -1094,15 +1116,13 @@ class VariantSlot {
                        numeric_limits<VariantSlotDiff>::highest());
     _next = VariantSlotDiff(slot - this);
   }
-  void setKey(const char* k, storage_policies::store_by_copy) {
-    ARDUINOJSON_ASSERT(k != NULL);
-    _flags |= OWNED_KEY_BIT;
-    _key = k;
-  }
-  void setKey(const char* k, storage_policies::store_by_address) {
-    ARDUINOJSON_ASSERT(k != NULL);
-    _flags &= VALUE_MASK;
-    _key = k;
+  void setKey(String k) {
+    ARDUINOJSON_ASSERT(k);
+    if (k.isLinked())
+      _flags &= VALUE_MASK;
+    else
+      _flags |= OWNED_KEY_BIT;
+    _key = k.c_str();
   }
   const char* key() const {
     return _key;
@@ -1119,7 +1139,7 @@ class VariantSlot {
     if (_flags & OWNED_KEY_BIT)
       _key += stringDistance;
     if (_flags & OWNED_VALUE_BIT)
-      _content.asString += stringDistance;
+      _content.asString.data += stringDistance;
     if (_flags & COLLECTION_MASK)
       _content.asCollection.movePointers(stringDistance, variantDistance);
   }
@@ -1155,7 +1175,7 @@ class MemoryPool {
     return allocRight<VariantSlot>();
   }
   template <typename TAdaptedString>
-  const char* saveString(const TAdaptedString& str) {
+  const char* saveString(TAdaptedString str) {
     if (str.isNull())
       return 0;
 #if ARDUINOJSON_ENABLE_STRING_DEDUPLICATION
@@ -1166,7 +1186,7 @@ class MemoryPool {
     size_t n = str.size();
     char* newCopy = allocString(n + 1);
     if (newCopy) {
-      str.copyTo(newCopy, n);
+      stringGetChars(str, newCopy, n);
       newCopy[n] = 0;  // force null-terminator
     }
     return newCopy;
@@ -1177,12 +1197,13 @@ class MemoryPool {
   }
   const char* saveStringFromFreeZone(size_t len) {
 #if ARDUINOJSON_ENABLE_STRING_DEDUPLICATION
-    const char* dup = findString(adaptString(_left));
+    const char* dup = findString(adaptString(_left, len));
     if (dup)
       return dup;
 #endif
     const char* str = _left;
     _left += len;
+    *_left++ = 0;
     checkInvariants();
     return str;
   }
@@ -1229,9 +1250,10 @@ class MemoryPool {
   }
 #if ARDUINOJSON_ENABLE_STRING_DEDUPLICATION
   template <typename TAdaptedString>
-  const char* findString(const TAdaptedString& str) {
-    for (char* next = _begin; next < _left; ++next) {
-      if (str.compare(next) == 0)
+  const char* findString(const TAdaptedString& str) const {
+    size_t n = str.size();
+    for (char* next = _begin; next + n < _left; ++next) {
+      if (next[n] == '\0' && stringEquals(str, adaptString(next, n)))
         return next;
       while (*next) ++next;
     }
@@ -1422,10 +1444,12 @@ class VariantData {
         return visitor.visitObject(_content.asCollection);
       case VALUE_IS_LINKED_STRING:
       case VALUE_IS_OWNED_STRING:
-        return visitor.visitString(_content.asString);
+        return visitor.visitString(_content.asString.data,
+                                   _content.asString.size);
       case VALUE_IS_OWNED_RAW:
       case VALUE_IS_LINKED_RAW:
-        return visitor.visitRawJson(_content.asRaw.data, _content.asRaw.size);
+        return visitor.visitRawJson(_content.asString.data,
+                                    _content.asString.size);
       case VALUE_IS_SIGNED_INTEGER:
         return visitor.visitSignedInteger(_content.asSignedInteger);
       case VALUE_IS_UNSIGNED_INTEGER:
@@ -1440,7 +1464,7 @@ class VariantData {
   T asIntegral() const;
   template <typename T>
   T asFloat() const;
-  const char *asString() const;
+  String asString() const;
   bool asBoolean() const;
   CollectionData *asArray() {
     return isArray() ? &_content.asCollection : 0;
@@ -1454,24 +1478,7 @@ class VariantData {
   const CollectionData *asObject() const {
     return const_cast<VariantData *>(this)->asObject();
   }
-  bool copyFrom(const VariantData &src, MemoryPool *pool) {
-    switch (src.type()) {
-      case VALUE_IS_ARRAY:
-        return toArray().copyFrom(src._content.asCollection, pool);
-      case VALUE_IS_OBJECT:
-        return toObject().copyFrom(src._content.asCollection, pool);
-      case VALUE_IS_OWNED_STRING:
-        return setString(adaptString(const_cast<char *>(src._content.asString)),
-                         pool);
-      case VALUE_IS_OWNED_RAW:
-        return setOwnedRaw(
-            serialized(src._content.asRaw.data, src._content.asRaw.size), pool);
-      default:
-        setType(src.type());
-        _content = src._content;
-        return true;
-    }
-  }
+  bool copyFrom(const VariantData &src, MemoryPool *pool);
   bool isArray() const {
     return (_flags & VALUE_IS_ARRAY) != 0;
   }
@@ -1527,19 +1534,19 @@ class VariantData {
   void setLinkedRaw(SerializedValue<const char *> value) {
     if (value.data()) {
       setType(VALUE_IS_LINKED_RAW);
-      _content.asRaw.data = value.data();
-      _content.asRaw.size = value.size();
+      _content.asString.data = value.data();
+      _content.asString.size = value.size();
     } else {
       setType(VALUE_IS_NULL);
     }
   }
   template <typename T>
-  bool setOwnedRaw(SerializedValue<T> value, MemoryPool *pool) {
+  bool storeOwnedRaw(SerializedValue<T> value, MemoryPool *pool) {
     const char *dup = pool->saveString(adaptString(value.data(), value.size()));
     if (dup) {
       setType(VALUE_IS_OWNED_RAW);
-      _content.asRaw.data = dup;
-      _content.asRaw.size = value.size();
+      _content.asString.data = dup;
+      _content.asString.size = value.size();
       return true;
     } else {
       setType(VALUE_IS_NULL);
@@ -1559,19 +1566,14 @@ class VariantData {
   void setNull() {
     setType(VALUE_IS_NULL);
   }
-  void setStringPointer(const char *s, storage_policies::store_by_copy) {
-    ARDUINOJSON_ASSERT(s != 0);
-    setType(VALUE_IS_OWNED_STRING);
-    _content.asString = s;
-  }
-  void setStringPointer(const char *s, storage_policies::store_by_address) {
-    ARDUINOJSON_ASSERT(s != 0);
-    setType(VALUE_IS_LINKED_STRING);
-    _content.asString = s;
-  }
-  template <typename TAdaptedString>
-  bool setString(TAdaptedString value, MemoryPool *pool) {
-    return storeString(value, pool, typename TAdaptedString::storage_policy());
+  void setString(String s) {
+    ARDUINOJSON_ASSERT(s);
+    if (s.isLinked())
+      setType(VALUE_IS_LINKED_STRING);
+    else
+      setType(VALUE_IS_OWNED_STRING);
+    _content.asString.data = s.c_str();
+    _content.asString.size = s.size();
   }
   CollectionData &toArray() {
     setType(VALUE_IS_ARRAY);
@@ -1586,9 +1588,8 @@ class VariantData {
   size_t memoryUsage() const {
     switch (type()) {
       case VALUE_IS_OWNED_STRING:
-        return strlen(_content.asString) + 1;
       case VALUE_IS_OWNED_RAW:
-        return _content.asRaw.size;
+        return _content.asString.size + 1;
       case VALUE_IS_OBJECT:
       case VALUE_IS_ARRAY:
         return _content.asCollection.memoryUsage();
@@ -1623,60 +1624,49 @@ class VariantData {
   VariantData *getMember(TAdaptedString key) const {
     return isObject() ? _content.asCollection.getMember(key) : 0;
   }
-  template <typename TAdaptedString>
-  VariantData *getOrAddMember(TAdaptedString key, MemoryPool *pool) {
+  template <typename TAdaptedString, typename TStoragePolicy>
+  VariantData *getOrAddMember(TAdaptedString key, MemoryPool *pool,
+                              TStoragePolicy storage_policy) {
     if (isNull())
       toObject();
     if (!isObject())
       return 0;
-    return _content.asCollection.getOrAddMember(key, pool);
+    return _content.asCollection.getOrAddMember(key, pool, storage_policy);
   }
   void movePointers(ptrdiff_t stringDistance, ptrdiff_t variantDistance) {
     if (_flags & OWNED_VALUE_BIT)
-      _content.asString += stringDistance;
+      _content.asString.data += stringDistance;
     if (_flags & COLLECTION_MASK)
       _content.asCollection.movePointers(stringDistance, variantDistance);
   }
   uint8_t type() const {
     return _flags & VALUE_MASK;
   }
+  template <typename TAdaptedString, typename TStoragePolicy>
+  inline bool storeString(TAdaptedString value, MemoryPool *pool,
+                          TStoragePolicy storage) {
+    if (value.isNull()) {
+      setNull();
+      return true;
+    }
+    return storage.store(value, pool, VariantStringSetter(this));
+  }
  private:
   void setType(uint8_t t) {
     _flags &= OWNED_KEY_BIT;
     _flags |= t;
   }
-  template <typename TAdaptedString>
-  inline bool storeString(TAdaptedString value, MemoryPool *pool,
-                          storage_policies::decide_at_runtime) {
-    if (value.isStatic())
-      return storeString(value, pool, storage_policies::store_by_address());
-    else
-      return storeString(value, pool, storage_policies::store_by_copy());
-  }
-  template <typename TAdaptedString>
-  inline bool storeString(TAdaptedString value, MemoryPool *,
-                          storage_policies::store_by_address) {
-    if (value.isNull())
-      setNull();
-    else
-      setStringPointer(value.data(), storage_policies::store_by_address());
-    return true;
-  }
-  template <typename TAdaptedString>
-  inline bool storeString(TAdaptedString value, MemoryPool *pool,
-                          storage_policies::store_by_copy) {
-    if (value.isNull()) {
-      setNull();
-      return true;
+  struct VariantStringSetter {
+    VariantStringSetter(VariantData *instance) : _instance(instance) {}
+    template <typename TStoredString>
+    void operator()(TStoredString s) {
+      if (s)
+        _instance->setString(s);
+      else
+        _instance->setNull();
     }
-    const char *copy = pool->saveString(value);
-    if (!copy) {
-      setNull();
-      return false;
-    }
-    setStringPointer(copy, storage_policies::store_by_copy());
-    return true;
-  }
+    VariantData *_instance;
+  };
 };
 }  // namespace ARDUINOJSON_NAMESPACE
 #if defined(__GNUC__)
@@ -1685,37 +1675,23 @@ class VariantData {
 #  endif
 #endif
 namespace ARDUINOJSON_NAMESPACE {
-template <typename TAdaptedString>
-inline bool slotSetKey(VariantSlot* var, TAdaptedString key, MemoryPool* pool) {
+struct SlotKeySetter {
+  SlotKeySetter(VariantSlot* instance) : _instance(instance) {}
+  template <typename TStoredString>
+  void operator()(TStoredString s) {
+    if (!s)
+      return;
+    ARDUINOJSON_ASSERT(_instance != 0);
+    _instance->setKey(s);
+  }
+  VariantSlot* _instance;
+};
+template <typename TAdaptedString, typename TStoragePolicy>
+inline bool slotSetKey(VariantSlot* var, TAdaptedString key, MemoryPool* pool,
+                       TStoragePolicy storage) {
   if (!var)
     return false;
-  return slotSetKey(var, key, pool, typename TAdaptedString::storage_policy());
-}
-template <typename TAdaptedString>
-inline bool slotSetKey(VariantSlot* var, TAdaptedString key, MemoryPool* pool,
-                       storage_policies::decide_at_runtime) {
-  if (key.isStatic()) {
-    return slotSetKey(var, key, pool, storage_policies::store_by_address());
-  } else {
-    return slotSetKey(var, key, pool, storage_policies::store_by_copy());
-  }
-}
-template <typename TAdaptedString>
-inline bool slotSetKey(VariantSlot* var, TAdaptedString key, MemoryPool*,
-                       storage_policies::store_by_address) {
-  ARDUINOJSON_ASSERT(var);
-  var->setKey(key.data(), storage_policies::store_by_address());
-  return true;
-}
-template <typename TAdaptedString>
-inline bool slotSetKey(VariantSlot* var, TAdaptedString key, MemoryPool* pool,
-                       storage_policies::store_by_copy) {
-  const char* dup = pool->saveString(key);
-  if (!dup)
-    return false;
-  ARDUINOJSON_ASSERT(var);
-  var->setKey(dup, storage_policies::store_by_copy());
-  return true;
+  return storage.store(key, pool, SlotKeySetter(var));
 }
 inline size_t slotSize(const VariantSlot* var) {
   size_t n = 0;
@@ -1777,6 +1753,42 @@ class InvalidConversion;  // Error here? See https://arduinojson.org/v6/invalid-
 #  define ARDUINOJSON_NO_SANITIZE(check)
 #endif
 namespace ARDUINOJSON_NAMESPACE {
+struct LinkStringStoragePolicy {
+  template <typename TAdaptedString, typename TCallback>
+  bool store(TAdaptedString str, MemoryPool *, TCallback callback) {
+    String storedString(str.data(), str.size(), String::Linked);
+    callback(storedString);
+    return !str.isNull();
+  }
+};
+struct CopyStringStoragePolicy {
+  template <typename TAdaptedString, typename TCallback>
+  bool store(TAdaptedString str, MemoryPool *pool, TCallback callback);
+};
+class LinkOrCopyStringStoragePolicy : LinkStringStoragePolicy,
+                                      CopyStringStoragePolicy {
+ public:
+  LinkOrCopyStringStoragePolicy(bool link) : _link(link) {}
+  template <typename TAdaptedString, typename TCallback>
+  bool store(TAdaptedString str, MemoryPool *pool, TCallback callback) {
+    if (_link)
+      return LinkStringStoragePolicy::store(str, pool, callback);
+    else
+      return CopyStringStoragePolicy::store(str, pool, callback);
+  }
+ private:
+  bool _link;
+};
+template <typename T>
+inline CopyStringStoragePolicy getStringStoragePolicy(const T &) {
+  return CopyStringStoragePolicy();
+}
+inline LinkStringStoragePolicy getStringStoragePolicy(const char *) {
+  return LinkStringStoragePolicy();
+}
+inline LinkOrCopyStringStoragePolicy getStringStoragePolicy(const String &s) {
+  return LinkOrCopyStringStoragePolicy(s.isLinked());
+}
 template <typename TVisitor>
 inline typename TVisitor::result_type variantAccept(const VariantData *var,
                                                     TVisitor &visitor) {
@@ -1810,12 +1822,10 @@ inline void variantSetNull(VariantData *var) {
     return;
   var->setNull();
 }
-template <typename TAdaptedString>
+template <typename TAdaptedString, typename TStoragePolicy>
 inline bool variantSetString(VariantData *var, TAdaptedString value,
-                             MemoryPool *pool) {
-  if (!var)
-    return false;
-  return var->setString(value, pool);
+                             MemoryPool *pool, TStoragePolicy storage_policy) {
+  return var != 0 ? var->storeString(value, pool, storage_policy) : 0;
 }
 inline size_t variantSize(const VariantData *var) {
   return var != 0 ? var->size() : 0;
@@ -1842,13 +1852,19 @@ inline NO_INLINE VariantData *variantGetOrAddElement(VariantData *var,
 template <typename TChar>
 NO_INLINE VariantData *variantGetOrAddMember(VariantData *var, TChar *key,
                                              MemoryPool *pool) {
-  return var != 0 ? var->getOrAddMember(adaptString(key), pool) : 0;
+  if (!var)
+    return 0;
+  return var->getOrAddMember(adaptString(key), pool,
+                             getStringStoragePolicy(key));
 }
 template <typename TString>
 NO_INLINE VariantData *variantGetOrAddMember(VariantData *var,
                                              const TString &key,
                                              MemoryPool *pool) {
-  return var != 0 ? var->getOrAddMember(adaptString(key), pool) : 0;
+  if (!var)
+    return 0;
+  return var->getOrAddMember(adaptString(key), pool,
+                             getStringStoragePolicy(key));
 }
 inline bool variantIsNull(const VariantData *var) {
   return var == 0 || var->isNull();
@@ -2156,7 +2172,7 @@ class VariantRefBase : public VariantTag {
   FORCE_INLINE bool isNull() const {
     return variantIsNull(_data);
   }
-  FORCE_INLINE bool isUndefined() const {
+  FORCE_INLINE bool isUnbound() const {
     return !_data;
   }
   FORCE_INLINE size_t memoryUsage() const {
@@ -2219,7 +2235,7 @@ class VariantRef : public VariantRefBase<VariantData>,
   ARDUINOJSON_DEPRECATED(
       "Support for char is deprecated, use int8_t or uint8_t instead")
       as() const {
-    return as<signed char>();
+    return static_cast<char>(as<signed char>());
   }
   template <typename T>
   FORCE_INLINE
@@ -2322,7 +2338,7 @@ class VariantConstRef : public VariantRefBase<const VariantData>,
   ARDUINOJSON_DEPRECATED(
       "Support for char is deprecated, use int8_t or uint8_t instead")
       as() const {
-    return as<signed char>();
+    return static_cast<char>(as<signed char>());
   }
   template <typename T>
   FORCE_INLINE
@@ -2674,18 +2690,20 @@ void objectRemove(CollectionData *obj, TAdaptedString key) {
     return;
   obj->removeMember(key);
 }
-template <typename TAdaptedString>
+template <typename TAdaptedString, typename TStoragePolicy>
 inline VariantData *objectGetOrAddMember(CollectionData *obj,
-                                         TAdaptedString key, MemoryPool *pool) {
+                                         TAdaptedString key, MemoryPool *pool,
+                                         TStoragePolicy storage_policy) {
   if (!obj)
     return 0;
-  return obj->getOrAddMember(key, pool);
+  return obj->getOrAddMember(key, pool, storage_policy);
 }
 class Pair {
  public:
   Pair(MemoryPool* pool, VariantSlot* slot) {
     if (slot) {
-      _key = String(slot->key(), !slot->ownsKey());
+      _key = String(slot->key(),
+                    slot->ownsKey() ? String::Copied : String::Linked);
       _value = VariantRef(pool, slot->data());
     }
   }
@@ -2703,7 +2721,8 @@ class PairConst {
  public:
   PairConst(const VariantSlot* slot) {
     if (slot) {
-      _key = String(slot->key(), !slot->ownsKey());
+      _key = String(slot->key(),
+                    slot->ownsKey() ? String::Copied : String::Linked);
       _value = VariantConstRef(slot->data());
     }
   }
@@ -2855,11 +2874,11 @@ class ObjectConstRef : public ObjectRefBase<const CollectionData>,
   }
   template <typename TString>
   FORCE_INLINE bool containsKey(const TString& key) const {
-    return !getMember(key).isUndefined();
+    return !getMember(key).isUnbound();
   }
   template <typename TChar>
   FORCE_INLINE bool containsKey(TChar* key) const {
-    return !getMember(key).isUndefined();
+    return !getMember(key).isUnbound();
   }
   template <typename TString>
   FORCE_INLINE VariantConstRef getMember(const TString& key) const {
@@ -2935,12 +2954,14 @@ class ObjectRef : public ObjectRefBase<CollectionData>,
   template <typename TString>
   FORCE_INLINE VariantRef getOrAddMember(const TString& key) const {
     return VariantRef(_pool,
-                      objectGetOrAddMember(_data, adaptString(key), _pool));
+                      objectGetOrAddMember(_data, adaptString(key), _pool,
+                                           getStringStoragePolicy(key)));
   }
   template <typename TChar>
   FORCE_INLINE VariantRef getOrAddMember(TChar* key) const {
     return VariantRef(_pool,
-                      objectGetOrAddMember(_data, adaptString(key), _pool));
+                      objectGetOrAddMember(_data, adaptString(key), _pool,
+                                           getStringStoragePolicy(key)));
   }
   FORCE_INLINE bool operator==(ObjectRef rhs) const {
     return objectEquals(_data, rhs._data);
@@ -3087,6 +3108,9 @@ class ElementProxy : public VariantOperators<ElementProxy<TArray> >,
   FORCE_INLINE size_t size() const {
     return getUpstreamElement().size();
   }
+  FORCE_INLINE size_t memoryUsage() const {
+    return getUpstreamElement().memoryUsage();
+  }
   template <typename TNestedKey>
   VariantRef getMember(TNestedKey* key) const {
     return getUpstreamElement().getMember(key);
@@ -3205,6 +3229,9 @@ class MemberProxy : public VariantOperators<MemberProxy<TObject, TStringRef> >,
   FORCE_INLINE size_t size() const {
     return getUpstreamMember().size();
   }
+  FORCE_INLINE size_t memoryUsage() const {
+    return getUpstreamMember().memoryUsage();
+  }
   FORCE_INLINE void remove(size_t index) const {
     getUpstreamMember().remove(index);
   }
@@ -3277,7 +3304,8 @@ class MemberProxy : public VariantOperators<MemberProxy<TObject, TStringRef> >,
 #  pragma warning(pop)
 #endif
 namespace ARDUINOJSON_NAMESPACE {
-class JsonDocument : public Visitable {
+class JsonDocument : public Visitable,
+                     public VariantOperators<const JsonDocument&> {
  public:
   template <typename TVisitor>
   typename TVisitor::result_type accept(TVisitor& visitor) const {
@@ -3364,11 +3392,11 @@ class JsonDocument : public Visitable {
   }
   template <typename TChar>
   bool containsKey(TChar* key) const {
-    return !getMember(key).isUndefined();
+    return !getMember(key).isUnbound();
   }
   template <typename TString>
   bool containsKey(const TString& key) const {
-    return !getMember(key).isUndefined();
+    return !getMember(key).isUnbound();
   }
   template <typename TString>
   FORCE_INLINE typename enable_if<IsString<TString>::value,
@@ -3430,11 +3458,15 @@ class JsonDocument : public Visitable {
   }
   template <typename TChar>
   FORCE_INLINE VariantRef getOrAddMember(TChar* key) {
-    return VariantRef(&_pool, _data.getOrAddMember(adaptString(key), &_pool));
+    return VariantRef(&_pool,
+                      _data.getOrAddMember(adaptString(key), &_pool,
+                                           getStringStoragePolicy(key)));
   }
   template <typename TString>
   FORCE_INLINE VariantRef getOrAddMember(const TString& key) {
-    return VariantRef(&_pool, _data.getOrAddMember(adaptString(key), &_pool));
+    return VariantRef(&_pool,
+                      _data.getOrAddMember(adaptString(key), &_pool,
+                                           getStringStoragePolicy(key)));
   }
   FORCE_INLINE VariantRef addElement() {
     return VariantRef(&_pool, _data.addElement(&_pool));
@@ -3460,14 +3492,11 @@ class JsonDocument : public Visitable {
       const TString& key) {
     _data.remove(adaptString(key));
   }
+  FORCE_INLINE operator VariantRef() {
+    return getVariant();
+  }
   FORCE_INLINE operator VariantConstRef() const {
-    return VariantConstRef(&_data);
-  }
-  bool operator==(VariantConstRef rhs) const {
-    return getVariant() == rhs;
-  }
-  bool operator!=(VariantConstRef rhs) const {
-    return getVariant() != rhs;
+    return getVariant();
   }
  protected:
   JsonDocument() : _pool(0, 0) {
@@ -3502,7 +3531,6 @@ template <typename TAllocator>
 class AllocatorOwner {
  public:
   AllocatorOwner() {}
-  AllocatorOwner(const AllocatorOwner& src) : _allocator(src._allocator) {}
   AllocatorOwner(TAllocator a) : _allocator(a) {}
   void* allocate(size_t size) {
     return _allocator.allocate(size);
@@ -3567,7 +3595,9 @@ class BasicJsonDocument : AllocatorOwner<TAllocator>, public JsonDocument {
 #endif
   template <typename T>
   BasicJsonDocument& operator=(const T& src) {
-    reallocPoolIfTooSmall(src.memoryUsage());
+    size_t requiredSize = src.memoryUsage();
+    if (requiredSize > capacity())
+      reallocPool(requiredSize);
     set(src);
     return *this;
   }
@@ -3596,8 +3626,9 @@ class BasicJsonDocument : AllocatorOwner<TAllocator>, public JsonDocument {
     size_t capa = addPadding(requiredSize);
     return MemoryPool(reinterpret_cast<char*>(this->allocate(capa)), capa);
   }
-  void reallocPoolIfTooSmall(size_t requiredSize) {
-    if (requiredSize <= capacity())
+  void reallocPool(size_t requiredSize) {
+    size_t capa = addPadding(requiredSize);
+    if (capa == _pool.capacity())
       return;
     freePool();
     replacePool(allocPool(addPadding(requiredSize)));
@@ -3606,7 +3637,7 @@ class BasicJsonDocument : AllocatorOwner<TAllocator>, public JsonDocument {
     this->deallocate(memoryPool().buffer());
   }
   void copyAssignFrom(const JsonDocument& src) {
-    reallocPoolIfTooSmall(src.capacity());
+    reallocPool(src.capacity());
     set(src);
   }
   void moveAssignFrom(BasicJsonDocument& src) {
@@ -3651,12 +3682,12 @@ class StaticJsonDocument : public JsonDocument {
   StaticJsonDocument(VariantRef src) : JsonDocument(_buffer, _capacity) {
     set(src);
   }
-  StaticJsonDocument operator=(const StaticJsonDocument& src) {
+  StaticJsonDocument& operator=(const StaticJsonDocument& src) {
     set(src);
     return *this;
   }
   template <typename T>
-  StaticJsonDocument operator=(const T& src) {
+  StaticJsonDocument& operator=(const T& src) {
     set(src);
     return *this;
   }
@@ -3680,130 +3711,73 @@ inline ElementProxy<TArray> ArrayShortcuts<TArray>::operator[](
     size_t index) const {
   return ElementProxy<TArray>(*impl(), index);
 }
-template <typename TResult>
-struct Visitor {
-  typedef TResult result_type;
-  TResult visitArray(const CollectionData &) {
-    return TResult();
-  }
-  TResult visitBoolean(bool) {
-    return TResult();
-  }
-  TResult visitFloat(Float) {
-    return TResult();
-  }
-  TResult visitSignedInteger(Integer) {
-    return TResult();
-  }
-  TResult visitNull() {
-    return TResult();
-  }
-  TResult visitObject(const CollectionData &) {
-    return TResult();
-  }
-  TResult visitUnsignedInteger(UInt) {
-    return TResult();
-  }
-  TResult visitRawJson(const char *, size_t) {
-    return TResult();
-  }
-  TResult visitString(const char *) {
-    return TResult();
-  }
-};
+template <typename T>
+inline typename enable_if<!is_array<T>::value, bool>::type copyArray(
+    const T& src, VariantRef dst) {
+  return dst.set(src);
+}
 template <typename T, size_t N, typename TDestination>
-inline typename enable_if<!is_array<T>::value &&
-                              !is_base_of<JsonDocument, TDestination>::value,
+inline typename enable_if<!is_base_of<JsonDocument, TDestination>::value,
                           bool>::type
 copyArray(T (&src)[N], const TDestination& dst) {
   return copyArray(src, N, dst);
 }
-template <typename T, size_t N>
-inline bool copyArray(T (&src)[N], JsonDocument& dst) {
-  return copyArray(src, dst.to<ArrayRef>());
-}
 template <typename T, typename TDestination>
-inline typename enable_if<!is_array<T>::value &&
-                              !is_base_of<JsonDocument, TDestination>::value,
-                          bool>::type
-copyArray(T* src, size_t len, const TDestination& dst) {
-  bool ok = true;
-  for (size_t i = 0; i < len; i++) {
-    ok &= dst.add(src[i]);
-  }
-  return ok;
-}
-template <typename T>
-inline bool copyArray(T* src, size_t len, JsonDocument& dst) {
-  return copyArray(src, len, dst.to<ArrayRef>());
-}
-template <typename T, size_t N1, size_t N2, typename TDestination>
 inline typename enable_if<!is_base_of<JsonDocument, TDestination>::value,
                           bool>::type
-copyArray(T (&src)[N1][N2], const TDestination& dst) {
+copyArray(const T* src, size_t len, const TDestination& dst) {
   bool ok = true;
-  for (size_t i = 0; i < N1; i++) {
-    ArrayRef nestedArray = dst.createNestedArray();
-    for (size_t j = 0; j < N2; j++) {
-      ok &= nestedArray.add(src[i][j]);
-    }
+  for (size_t i = 0; i < len; i++) {
+    ok &= copyArray(src[i], dst.addElement());
   }
   return ok;
 }
-template <typename T, size_t N1, size_t N2>
-inline bool copyArray(T (&src)[N1][N2], JsonDocument& dst) {
+template <typename TDestination>
+inline bool copyArray(const char* src, size_t, const TDestination& dst) {
+  return dst.set(src);
+}
+template <typename T>
+inline bool copyArray(const T& src, JsonDocument& dst) {
   return copyArray(src, dst.to<ArrayRef>());
 }
 template <typename T>
-class ArrayCopier1D : public Visitor<size_t> {
- public:
-  ArrayCopier1D(T* destination, size_t capacity)
-      : _destination(destination), _capacity(capacity) {}
-  size_t visitArray(const CollectionData& array) {
-    size_t size = 0;
-    VariantSlot* slot = array.head();
-    while (slot != 0 && size < _capacity) {
-      _destination[size++] =
-          Converter<T>::fromJson(VariantConstRef(slot->data()));
-      slot = slot->next();
-    }
-    return size;
-  }
- private:
-  T* _destination;
-  size_t _capacity;
-};
-template <typename T, size_t N1, size_t N2>
-class ArrayCopier2D : public Visitor<void> {
- public:
-  ArrayCopier2D(T (*destination)[N1][N2]) : _destination(destination) {}
-  void visitArray(const CollectionData& array) {
-    VariantSlot* slot = array.head();
-    size_t n = 0;
-    while (slot != 0 && n < N1) {
-      ArrayCopier1D<T> copier((*_destination)[n++], N2);
-      variantAccept(slot->data(), copier);
-      slot = slot->next();
-    }
-  }
- private:
-  T (*_destination)[N1][N2];
-  size_t _capacity1, _capacity2;
-};
-template <typename TSource, typename T, size_t N>
+inline bool copyArray(const T* src, size_t len, JsonDocument& dst) {
+  return copyArray(src, len, dst.to<ArrayRef>());
+}
+template <typename T>
 inline typename enable_if<!is_array<T>::value, size_t>::type copyArray(
-    const TSource& src, T (&dst)[N]) {
+    VariantConstRef src, T& dst) {
+  dst = src.as<T>();
+  return 1;
+}
+template <typename T, size_t N>
+inline size_t copyArray(ArrayConstRef src, T (&dst)[N]) {
   return copyArray(src, dst, N);
 }
-template <typename TSource, typename T>
-inline size_t copyArray(const TSource& src, T* dst, size_t len) {
-  ArrayCopier1D<T> copier(dst, len);
-  return src.accept(copier);
+template <typename T>
+inline size_t copyArray(ArrayConstRef src, T* dst, size_t len) {
+  size_t i = 0;
+  for (ArrayConstRef::iterator it = src.begin(); it != src.end() && i < len;
+       ++it)
+    copyArray(*it, dst[i++]);
+  return i;
 }
-template <typename TSource, typename T, size_t N1, size_t N2>
-inline void copyArray(const TSource& src, T (&dst)[N1][N2]) {
-  ArrayCopier2D<T, N1, N2> copier(&dst);
-  src.accept(copier);
+template <size_t N>
+inline size_t copyArray(VariantConstRef src, char (&dst)[N]) {
+  String s = src;
+  size_t len = N - 1;
+  if (len > s.size())
+    len = s.size();
+  memcpy(dst, s.c_str(), len);
+  dst[len] = 0;
+  return 1;
+}
+template <typename TSource, typename T>
+inline typename enable_if<is_array<T>::value &&
+                              is_base_of<JsonDocument, TSource>::value,
+                          size_t>::type
+copyArray(const TSource& src, T& dst) {
+  return copyArray(src.template as<ArrayConstRef>(), dst);
 }
 inline bool variantEquals(const VariantData* a, const VariantData* b) {
   return variantCompare(a, b) == COMPARE_RESULT_EQUAL;
@@ -3825,11 +3799,12 @@ inline VariantSlot* CollectionData::addSlot(MemoryPool* pool) {
 inline VariantData* CollectionData::addElement(MemoryPool* pool) {
   return slotData(addSlot(pool));
 }
-template <typename TAdaptedString>
+template <typename TAdaptedString, typename TStoragePolicy>
 inline VariantData* CollectionData::addMember(TAdaptedString key,
-                                              MemoryPool* pool) {
+                                              MemoryPool* pool,
+                                              TStoragePolicy storage) {
   VariantSlot* slot = addSlot(pool);
-  if (!slotSetKey(slot, key, pool)) {
+  if (!slotSetKey(slot, key, pool, storage)) {
     removeSlot(slot);
     return 0;
   }
@@ -3849,10 +3824,8 @@ inline bool CollectionData::copyFrom(const CollectionData& src,
   for (VariantSlot* s = src._head; s; s = s->next()) {
     VariantData* var;
     if (s->key() != 0) {
-      if (s->ownsKey())
-        var = addMember(adaptString(const_cast<char*>(s->key())), pool);
-      else
-        var = addMember(adaptString(s->key()), pool);
+      String key(s->key(), s->ownsKey() ? String::Copied : String::Linked);
+      var = addMember(adaptString(key), pool, getStringStoragePolicy(key));
     } else {
       var = addElement(pool);
     }
@@ -3890,9 +3863,11 @@ inline bool CollectionData::equalsArray(const CollectionData& other) const {
 }
 template <typename TAdaptedString>
 inline VariantSlot* CollectionData::getSlot(TAdaptedString key) const {
+  if (key.isNull())
+    return 0;
   VariantSlot* slot = _head;
   while (slot) {
-    if (key.compare(slot->key()) == 0)
+    if (stringEquals(key, adaptString(slot->key())))
       break;
     slot = slot->next();
   }
@@ -3918,15 +3893,15 @@ inline VariantData* CollectionData::getMember(TAdaptedString key) const {
   VariantSlot* slot = getSlot(key);
   return slot ? slot->data() : 0;
 }
-template <typename TAdaptedString>
-inline VariantData* CollectionData::getOrAddMember(TAdaptedString key,
-                                                   MemoryPool* pool) {
+template <typename TAdaptedString, typename TStoragePolicy>
+inline VariantData* CollectionData::getOrAddMember(
+    TAdaptedString key, MemoryPool* pool, TStoragePolicy storage_policy) {
   if (key.isNull())
     return 0;
   VariantSlot* slot = getSlot(key);
   if (slot)
     return slot->data();
-  return addMember(key, pool);
+  return addMember(key, pool, storage_policy);
 }
 inline VariantData* CollectionData::getElement(size_t index) const {
   VariantSlot* slot = getSlot(index);
@@ -4025,13 +4000,13 @@ template <typename TObject>
 template <typename TString>
 inline typename enable_if<IsString<TString>::value, bool>::type
 ObjectShortcuts<TObject>::containsKey(const TString& key) const {
-  return !impl()->getMember(key).isUndefined();
+  return !impl()->getMember(key).isUnbound();
 }
 template <typename TObject>
 template <typename TChar>
 inline typename enable_if<IsString<TChar*>::value, bool>::type
 ObjectShortcuts<TObject>::containsKey(TChar* key) const {
-  return !impl()->getMember(key).isUndefined();
+  return !impl()->getMember(key).isUnbound();
 }
 template <typename TObject>
 template <typename TString>
@@ -4047,388 +4022,30 @@ inline typename enable_if<IsString<TString>::value,
 ObjectShortcuts<TObject>::operator[](const TString& key) const {
   return MemberProxy<TObject, TString>(*impl(), key);
 }
-}  // namespace ARDUINOJSON_NAMESPACE
-#if ARDUINOJSON_ENABLE_ARDUINO_STRING
-#endif
-#if ARDUINOJSON_ENABLE_STD_STRING
-#endif
-namespace ARDUINOJSON_NAMESPACE {
-template <typename>
-struct IsWriteableString : false_type {};
-#if ARDUINOJSON_ENABLE_ARDUINO_STRING
-template <>
-struct IsWriteableString< ::String> : true_type {};
-#endif
-#if ARDUINOJSON_ENABLE_STD_STRING
-template <typename TCharTraits, typename TAllocator>
-struct IsWriteableString<std::basic_string<char, TCharTraits, TAllocator> >
-    : true_type {};
-#endif
-template <typename T, typename Enable>
-struct Converter {
-  static void toJson(const T& src, VariantRef dst) {
-    convertToJson(src, dst); // Error here? See https://arduinojson.org/v6/unsupported-set/
-  }
-  static T fromJson(VariantConstRef src) {
-    T result; // Error here? See https://arduinojson.org/v6/non-default-constructible/
-    convertFromJson(src, result);  // Error here? See https://arduinojson.org/v6/unsupported-as/
-    return result;
-  }
-  static bool checkJson(VariantConstRef src) {
-    T dummy;
-    return canConvertFromJson(src, dummy);  // Error here? See https://arduinojson.org/v6/unsupported-is/
-  }
-};
-template <typename T>
-struct Converter<
-    T, typename enable_if<is_integral<T>::value && !is_same<bool, T>::value &&
-                          !is_same<char, T>::value>::type> {
-  static void toJson(T src, VariantRef dst) {
-    VariantData* data = getData(dst);
-    ARDUINOJSON_ASSERT_INTEGER_TYPE_IS_SUPPORTED(T);
-    if (data)
-      data->setInteger(src);
-  }
-  static T fromJson(VariantConstRef src) {
-    ARDUINOJSON_ASSERT_INTEGER_TYPE_IS_SUPPORTED(T);
-    const VariantData* data = getData(src);
-    return data ? data->asIntegral<T>() : T();
-  }
-  static bool checkJson(VariantConstRef src) {
-    const VariantData* data = getData(src);
-    return data && data->isInteger<T>();
-  }
-};
-template <typename T>
-struct Converter<T, typename enable_if<is_enum<T>::value>::type> {
-  static void toJson(T src, VariantRef dst) {
-    dst.set(static_cast<Integer>(src));
-  }
-  static T fromJson(VariantConstRef src) {
-    const VariantData* data = getData(src);
-    return data ? static_cast<T>(data->asIntegral<int>()) : T();
-  }
-  static bool checkJson(VariantConstRef src) {
-    const VariantData* data = getData(src);
-    return data && data->isInteger<int>();
-  }
-};
-template <>
-struct Converter<bool> {
-  static void toJson(bool src, VariantRef dst) {
-    VariantData* data = getData(dst);
-    if (data)
-      data->setBoolean(src);
-  }
-  static bool fromJson(VariantConstRef src) {
-    const VariantData* data = getData(src);
-    return data ? data->asBoolean() : false;
-  }
-  static bool checkJson(VariantConstRef src) {
-    const VariantData* data = getData(src);
-    return data && data->isBoolean();
-  }
-};
-template <typename T>
-struct Converter<T, typename enable_if<is_floating_point<T>::value>::type> {
-  static void toJson(T src, VariantRef dst) {
-    VariantData* data = getData(dst);
-    if (data)
-      data->setFloat(static_cast<Float>(src));
-  }
-  static T fromJson(VariantConstRef src) {
-    const VariantData* data = getData(src);
-    return data ? data->asFloat<T>() : false;
-  }
-  static bool checkJson(VariantConstRef src) {
-    const VariantData* data = getData(src);
-    return data && data->isFloat();
-  }
-};
-template <>
-struct Converter<const char*> {
-  static void toJson(const char* src, VariantRef dst) {
-    variantSetString(getData(dst), adaptString(src), getPool(dst));
-  }
-  static const char* fromJson(VariantConstRef src) {
-    const VariantData* data = getData(src);
-    return data ? data->asString() : 0;
-  }
-  static bool checkJson(VariantConstRef src) {
-    const VariantData* data = getData(src);
-    return data && data->isString();
-  }
-};
-template <typename T>
-inline typename enable_if<IsString<T>::value, bool>::type convertToJson(
-    const T& src, VariantRef dst) {
-  VariantData* data = getData(dst);
-  MemoryPool* pool = getPool(dst);
-  return variantSetString(data, adaptString(src), pool);
-}
-template <typename T>
-inline typename enable_if<IsWriteableString<T>::value>::type convertFromJson(
-    VariantConstRef src, T& dst) {
-  const VariantData* data = getData(src);
-  const char* cstr = data != 0 ? data->asString() : 0;
-  if (cstr)
-    dst = cstr;
-  else
-    serializeJson(src, dst);
-}
-template <typename T>
-inline typename enable_if<IsWriteableString<T>::value, bool>::type
-canConvertFromJson(VariantConstRef src, const T&) {
-  const VariantData* data = getData(src);
-  return data && data->isString();
-}
-template <>
-struct Converter<SerializedValue<const char*> > {
-  static void toJson(SerializedValue<const char*> src, VariantRef dst) {
-    VariantData* data = getData(dst);
-    if (data)
-      data->setLinkedRaw(src);
-  }
-};
-template <typename T>
-struct Converter<SerializedValue<T>,
-                 typename enable_if<!is_same<const char*, T>::value>::type> {
-  static void toJson(SerializedValue<T> src, VariantRef dst) {
-    VariantData* data = getData(dst);
-    MemoryPool* pool = getPool(dst);
-    if (data)
-      data->setOwnedRaw(src, pool);
-  }
-};
-#if ARDUINOJSON_HAS_NULLPTR
-template <>
-struct Converter<decltype(nullptr)> {
-  static void toJson(decltype(nullptr), VariantRef dst) {
-    variantSetNull(getData(dst));
-  }
-  static decltype(nullptr) fromJson(VariantConstRef) {
-    return nullptr;
-  }
-  static bool checkJson(VariantConstRef src) {
-    const VariantData* data = getData(src);
-    return data == 0 || data->isNull();
-  }
-};
-#endif
-#if ARDUINOJSON_ENABLE_ARDUINO_STREAM
-class MemoryPoolPrint : public Print {
+class EscapeSequence {
  public:
-  MemoryPoolPrint(MemoryPool* pool) : _pool(pool), _size(0) {
-    pool->getFreeZone(&_string, &_capacity);
-  }
-  const char* c_str() {
-    _string[_size++] = 0;
-    ARDUINOJSON_ASSERT(_size <= _capacity);
-    return _pool->saveStringFromFreeZone(_size);
-  }
-  size_t write(uint8_t c) {
-    if (_size >= _capacity)
-      return 0;
-    _string[_size++] = char(c);
-    return 1;
-  }
-  size_t write(const uint8_t* buffer, size_t size) {
-    if (_size + size >= _capacity) {
-      _size = _capacity;  // mark as overflowed
-      return 0;
+  static char escapeChar(char c) {
+    const char *p = escapeTable(true);
+    while (p[0] && p[1] != c) {
+      p += 2;
     }
-    memcpy(&_string[_size], buffer, size);
-    _size += size;
-    return size;
+    return p[0];
   }
-  bool overflowed() const {
-    return _size >= _capacity;
-  }
- private:
-  MemoryPool* _pool;
-  size_t _size;
-  char* _string;
-  size_t _capacity;
-};
-inline void convertToJson(const ::Printable& src, VariantRef dst) {
-  MemoryPool* pool = getPool(dst);
-  VariantData* data = getData(dst);
-  if (!pool || !data)
-    return;
-  MemoryPoolPrint print(pool);
-  src.printTo(print);
-  if (print.overflowed()) {
-    pool->markAsOverflowed();
-    data->setNull();
-    return;
-  }
-  data->setStringPointer(print.c_str(), storage_policies::store_by_copy());
-}
-#endif
-#if ARDUINOJSON_ENABLE_STRING_VIEW
-inline void convertFromJson(VariantConstRef src, std::string_view& dst) {
-  const char* str = src.as<const char*>();
-  if (str)  // the standard doesn't allow passing null to the constructor
-    dst = std::string_view(str);
-}
-inline bool canConvertFromJson(VariantConstRef src, const std::string_view&) {
-  return src.is<const char*>();
-}
-#endif
-class CollectionData;
-struct ComparerBase : Visitor<CompareResult> {};
-template <typename T, typename Enable = void>
-struct Comparer;
-template <typename T>
-struct Comparer<T, typename enable_if<IsString<T>::value>::type>
-    : ComparerBase {
-  T rhs;
-  explicit Comparer(T value) : rhs(value) {}
-  CompareResult visitString(const char *lhs) {
-    int i = adaptString(rhs).compare(lhs);
-    if (i < 0)
-      return COMPARE_RESULT_GREATER;
-    else if (i > 0)
-      return COMPARE_RESULT_LESS;
-    else
-      return COMPARE_RESULT_EQUAL;
-  }
-  CompareResult visitNull() {
-    if (adaptString(rhs).isNull())
-      return COMPARE_RESULT_EQUAL;
-    else
-      return COMPARE_RESULT_DIFFER;
-  }
-};
-template <typename T>
-struct Comparer<T, typename enable_if<is_integral<T>::value ||
-                                      is_floating_point<T>::value>::type>
-    : ComparerBase {
-  T rhs;
-  explicit Comparer(T value) : rhs(value) {}
-  CompareResult visitFloat(Float lhs) {
-    return arithmeticCompare(lhs, rhs);
-  }
-  CompareResult visitSignedInteger(Integer lhs) {
-    return arithmeticCompare(lhs, rhs);
-  }
-  CompareResult visitUnsignedInteger(UInt lhs) {
-    return arithmeticCompare(lhs, rhs);
-  }
-  CompareResult visitBoolean(bool lhs) {
-    return visitUnsignedInteger(static_cast<UInt>(lhs));
-  }
-};
-struct NullComparer : ComparerBase {
-  CompareResult visitNull() {
-    return COMPARE_RESULT_EQUAL;
-  }
-};
-#if ARDUINOJSON_HAS_NULLPTR
-template <>
-struct Comparer<decltype(nullptr), void> : NullComparer {
-  explicit Comparer(decltype(nullptr)) : NullComparer() {}
-};
-#endif
-struct ArrayComparer : ComparerBase {
-  const CollectionData *_rhs;
-  explicit ArrayComparer(const CollectionData &rhs) : _rhs(&rhs) {}
-  CompareResult visitArray(const CollectionData &lhs) {
-    if (lhs.equalsArray(*_rhs))
-      return COMPARE_RESULT_EQUAL;
-    else
-      return COMPARE_RESULT_DIFFER;
-  }
-};
-struct ObjectComparer : ComparerBase {
-  const CollectionData *_rhs;
-  explicit ObjectComparer(const CollectionData &rhs) : _rhs(&rhs) {}
-  CompareResult visitObject(const CollectionData &lhs) {
-    if (lhs.equalsObject(*_rhs))
-      return COMPARE_RESULT_EQUAL;
-    else
-      return COMPARE_RESULT_DIFFER;
-  }
-};
-struct RawComparer : ComparerBase {
-  const char *_rhsData;
-  size_t _rhsSize;
-  explicit RawComparer(const char *rhsData, size_t rhsSize)
-      : _rhsData(rhsData), _rhsSize(rhsSize) {}
-  CompareResult visitRawJson(const char *lhsData, size_t lhsSize) {
-    size_t size = _rhsSize < lhsSize ? _rhsSize : lhsSize;
-    int n = memcmp(lhsData, _rhsData, size);
-    if (n < 0)
-      return COMPARE_RESULT_LESS;
-    else if (n > 0)
-      return COMPARE_RESULT_GREATER;
-    else
-      return COMPARE_RESULT_EQUAL;
-  }
-};
-template <typename T>
-struct Comparer<T, typename enable_if<IsVisitable<T>::value>::type>
-    : ComparerBase {
-  T rhs;
-  explicit Comparer(T value) : rhs(value) {}
-  CompareResult visitArray(const CollectionData &lhs) {
-    ArrayComparer comparer(lhs);
-    return accept(comparer);
-  }
-  CompareResult visitObject(const CollectionData &lhs) {
-    ObjectComparer comparer(lhs);
-    return accept(comparer);
-  }
-  CompareResult visitFloat(Float lhs) {
-    Comparer<Float> comparer(lhs);
-    return accept(comparer);
-  }
-  CompareResult visitString(const char *lhs) {
-    Comparer<const char *> comparer(lhs);
-    return accept(comparer);
-  }
-  CompareResult visitRawJson(const char *lhsData, size_t lhsSize) {
-    RawComparer comparer(lhsData, lhsSize);
-    return accept(comparer);
-  }
-  CompareResult visitSignedInteger(Integer lhs) {
-    Comparer<Integer> comparer(lhs);
-    return accept(comparer);
-  }
-  CompareResult visitUnsignedInteger(UInt lhs) {
-    Comparer<UInt> comparer(lhs);
-    return accept(comparer);
-  }
-  CompareResult visitBoolean(bool lhs) {
-    Comparer<bool> comparer(lhs);
-    return accept(comparer);
-  }
-  CompareResult visitNull() {
-    NullComparer comparer;
-    return accept(comparer);
-  }
- private:
-  template <typename TComparer>
-  CompareResult accept(TComparer &comparer) {
-    CompareResult reversedResult = rhs.accept(comparer);
-    switch (reversedResult) {
-      case COMPARE_RESULT_GREATER:
-        return COMPARE_RESULT_LESS;
-      case COMPARE_RESULT_LESS:
-        return COMPARE_RESULT_GREATER;
-      default:
-        return reversedResult;
+  static char unescapeChar(char c) {
+    const char *p = escapeTable(false);
+    for (;;) {
+      if (p[0] == '\0')
+        return 0;
+      if (p[0] == c)
+        return p[1];
+      p += 2;
     }
   }
+ private:
+  static const char *escapeTable(bool excludeSolidus) {
+    return &"//\"\"\\\\b\bf\fn\nr\rt\t"[excludeSolidus ? 2 : 0];
+  }
 };
-template <typename T1, typename T2>
-CompareResult compare(const T1 &lhs, const T2 &rhs) {
-  Comparer<T2> comparer(rhs);
-  return lhs.accept(comparer);
-}
-inline int variantCompare(const VariantData *a, const VariantData *b) {
-  return compare(VariantConstRef(a), VariantConstRef(b));
-}
 #ifndef isnan
 template <typename T>
 bool isnan(T x) {
@@ -4462,34 +4079,22 @@ typename enable_if<is_pointer<T>::value, T>::type pgm_read(const void* p) {
   return reinterpret_cast<T>(pgm_read_ptr(p));
 }
 template <typename T>
-typename enable_if<is_floating_point<T>::value &&
-                       sizeof(T) == sizeof(float),  // on AVR sizeof(double) ==
-                   T>::type
-pgm_read(const void* p) {
-  return pgm_read_float(p);
-}
-template <typename T>
 typename enable_if<is_same<T, uint32_t>::value, T>::type pgm_read(
     const void* p) {
   return pgm_read_dword(p);
 }
 }  // namespace ARDUINOJSON_NAMESPACE
-#  ifndef ARDUINOJSON_DEFINE_STATIC_ARRAY
-#    define ARDUINOJSON_DEFINE_STATIC_ARRAY(type, name, value) \
+#  ifndef ARDUINOJSON_DEFINE_PROGMEM_ARRAY
+#    define ARDUINOJSON_DEFINE_PROGMEM_ARRAY(type, name, value) \
       static type const name[] PROGMEM = value;
 #  endif
-#  ifndef ARDUINOJSON_READ_STATIC_ARRAY
-#    define ARDUINOJSON_READ_STATIC_ARRAY(type, name, index) \
-      pgm_read<type>(name + index)
-#  endif
+#  define ARDUINOJSON_DEFINE_STATIC_ARRAY ARDUINOJSON_DEFINE_PROGMEM_ARRAY
+#  define ARDUINOJSON_READ_STATIC_ARRAY(type, name, index) \
+    pgm_read<type>(name + index)
 #else  // i.e. ARDUINOJSON_ENABLE_PROGMEM == 0
-#  ifndef ARDUINOJSON_DEFINE_STATIC_ARRAY
-#    define ARDUINOJSON_DEFINE_STATIC_ARRAY(type, name, value) \
-      static type const name[] = value;
-#  endif
-#  ifndef ARDUINOJSON_READ_STATIC_ARRAY
-#    define ARDUINOJSON_READ_STATIC_ARRAY(type, name, index) name[index]
-#  endif
+#  define ARDUINOJSON_DEFINE_STATIC_ARRAY(type, name, value) \
+    static type const name[] = value;
+#  define ARDUINOJSON_READ_STATIC_ARRAY(type, name, index) name[index]
 #endif
 namespace ARDUINOJSON_NAMESPACE {
 template <typename T, size_t = sizeof(T)>
@@ -4617,22 +4222,40 @@ struct FloatTraits<T, 4 /*32bits*/> {
     return m;
   }
   static T positiveBinaryPowerOfTen(int index) {
-    ARDUINOJSON_DEFINE_STATIC_ARRAY(
-        T, factors,
-        ARDUINOJSON_EXPAND6({1e1f, 1e2f, 1e4f, 1e8f, 1e16f, 1e32f}));
-    return ARDUINOJSON_READ_STATIC_ARRAY(T, factors, index);
+    ARDUINOJSON_DEFINE_STATIC_ARRAY(uint32_t, factors,
+                                    ARDUINOJSON_EXPAND6({
+                                        0x41200000,  // 1e1f
+                                        0x42c80000,  // 1e2f
+                                        0x461c4000,  // 1e4f
+                                        0x4cbebc20,  // 1e8f
+                                        0x5a0e1bca,  // 1e16f
+                                        0x749dc5ae   // 1e32f
+                                    }));
+    return forge(ARDUINOJSON_READ_STATIC_ARRAY(uint32_t, factors, index));
   }
   static T negativeBinaryPowerOfTen(int index) {
-    ARDUINOJSON_DEFINE_STATIC_ARRAY(
-        T, factors,
-        ARDUINOJSON_EXPAND6({1e-1f, 1e-2f, 1e-4f, 1e-8f, 1e-16f, 1e-32f}));
-    return ARDUINOJSON_READ_STATIC_ARRAY(T, factors, index);
+    ARDUINOJSON_DEFINE_STATIC_ARRAY(uint32_t, factors,
+                                    ARDUINOJSON_EXPAND6({
+                                        0x3dcccccd,  // 1e-1f
+                                        0x3c23d70a,  // 1e-2f
+                                        0x38d1b717,  // 1e-4f
+                                        0x322bcc77,  // 1e-8f
+                                        0x24e69595,  // 1e-16f
+                                        0x0a4fb11f   // 1e-32f
+                                    }));
+    return forge(ARDUINOJSON_READ_STATIC_ARRAY(uint32_t, factors, index));
   }
   static T negativeBinaryPowerOfTenPlusOne(int index) {
-    ARDUINOJSON_DEFINE_STATIC_ARRAY(
-        T, factors,
-        ARDUINOJSON_EXPAND6({1e0f, 1e-1f, 1e-3f, 1e-7f, 1e-15f, 1e-31f}));
-    return ARDUINOJSON_READ_STATIC_ARRAY(T, factors, index);
+    ARDUINOJSON_DEFINE_STATIC_ARRAY(uint32_t, factors,
+                                    ARDUINOJSON_EXPAND6({
+                                        0x3f800000,  // 1e0f
+                                        0x3dcccccd,  // 1e-1f
+                                        0x3a83126f,  // 1e-3f
+                                        0x33d6bf95,  // 1e-7f
+                                        0x26901d7d,  // 1e-15f
+                                        0x0c01ceb3   // 1e-31f
+                                    }));
+    return forge(ARDUINOJSON_READ_STATIC_ARRAY(uint32_t, factors, index));
   }
   static T forge(uint32_t bits) {
     return alias_cast<T>(bits);
@@ -4650,1377 +4273,6 @@ struct FloatTraits<T, 4 /*32bits*/> {
     return forge(0xFf7fffff);
   }
 };
-#ifndef isdigit
-inline bool isdigit(char c) {
-  return '0' <= c && c <= '9';
-}
-#endif
-inline bool issign(char c) {
-  return '-' == c || c == '+';
-}
-template <typename A, typename B>
-struct choose_largest : conditional<(sizeof(A) > sizeof(B)), A, B> {};
-inline bool parseNumber(const char* s, VariantData& result) {
-  typedef FloatTraits<Float> traits;
-  typedef choose_largest<traits::mantissa_type, UInt>::type mantissa_t;
-  typedef traits::exponent_type exponent_t;
-  ARDUINOJSON_ASSERT(s != 0);
-  bool is_negative = false;
-  switch (*s) {
-    case '-':
-      is_negative = true;
-      s++;
-      break;
-    case '+':
-      s++;
-      break;
-  }
-#if ARDUINOJSON_ENABLE_NAN
-  if (*s == 'n' || *s == 'N') {
-    result.setFloat(traits::nan());
-    return true;
-  }
-#endif
-#if ARDUINOJSON_ENABLE_INFINITY
-  if (*s == 'i' || *s == 'I') {
-    result.setFloat(is_negative ? -traits::inf() : traits::inf());
-    return true;
-  }
-#endif
-  if (!isdigit(*s) && *s != '.')
-    return false;
-  mantissa_t mantissa = 0;
-  exponent_t exponent_offset = 0;
-  const mantissa_t maxUint = UInt(-1);
-  while (isdigit(*s)) {
-    uint8_t digit = uint8_t(*s - '0');
-    if (mantissa > maxUint / 10)
-      break;
-    mantissa *= 10;
-    if (mantissa > maxUint - digit)
-      break;
-    mantissa += digit;
-    s++;
-  }
-  if (*s == '\0') {
-    if (is_negative) {
-      const mantissa_t sintMantissaMax = mantissa_t(1)
-                                         << (sizeof(Integer) * 8 - 1);
-      if (mantissa <= sintMantissaMax) {
-        result.setInteger(Integer(~mantissa + 1));
-        return true;
-      }
-    } else {
-      result.setInteger(UInt(mantissa));
-      return true;
-    }
-  }
-  while (mantissa > traits::mantissa_max) {
-    mantissa /= 10;
-    exponent_offset++;
-  }
-  while (isdigit(*s)) {
-    exponent_offset++;
-    s++;
-  }
-  if (*s == '.') {
-    s++;
-    while (isdigit(*s)) {
-      if (mantissa < traits::mantissa_max / 10) {
-        mantissa = mantissa * 10 + uint8_t(*s - '0');
-        exponent_offset--;
-      }
-      s++;
-    }
-  }
-  int exponent = 0;
-  if (*s == 'e' || *s == 'E') {
-    s++;
-    bool negative_exponent = false;
-    if (*s == '-') {
-      negative_exponent = true;
-      s++;
-    } else if (*s == '+') {
-      s++;
-    }
-    while (isdigit(*s)) {
-      exponent = exponent * 10 + (*s - '0');
-      if (exponent + exponent_offset > traits::exponent_max) {
-        if (negative_exponent)
-          result.setFloat(is_negative ? -0.0f : 0.0f);
-        else
-          result.setFloat(is_negative ? -traits::inf() : traits::inf());
-        return true;
-      }
-      s++;
-    }
-    if (negative_exponent)
-      exponent = -exponent;
-  }
-  exponent += exponent_offset;
-  if (*s != '\0')
-    return false;
-  Float final_result =
-      traits::make_float(static_cast<Float>(mantissa), exponent);
-  result.setFloat(is_negative ? -final_result : final_result);
-  return true;
-}
-template <typename T>
-inline T parseNumber(const char* s) {
-  VariantData value;
-  value.init();  // VariantData is a POD, so it has no constructor
-  parseNumber(s, value);
-  return Converter<T>::fromJson(VariantConstRef(&value));
-}
-template <typename T>
-inline T VariantData::asIntegral() const {
-  switch (type()) {
-    case VALUE_IS_BOOLEAN:
-      return _content.asBoolean;
-    case VALUE_IS_UNSIGNED_INTEGER:
-      return convertNumber<T>(_content.asUnsignedInteger);
-    case VALUE_IS_SIGNED_INTEGER:
-      return convertNumber<T>(_content.asSignedInteger);
-    case VALUE_IS_LINKED_STRING:
-    case VALUE_IS_OWNED_STRING:
-      return parseNumber<T>(_content.asString);
-    case VALUE_IS_FLOAT:
-      return convertNumber<T>(_content.asFloat);
-    default:
-      return 0;
-  }
-}
-inline bool VariantData::asBoolean() const {
-  switch (type()) {
-    case VALUE_IS_BOOLEAN:
-      return _content.asBoolean;
-    case VALUE_IS_SIGNED_INTEGER:
-    case VALUE_IS_UNSIGNED_INTEGER:
-      return _content.asUnsignedInteger != 0;
-    case VALUE_IS_FLOAT:
-      return _content.asFloat != 0;
-    case VALUE_IS_NULL:
-      return false;
-    default:
-      return true;
-  }
-}
-template <typename T>
-inline T VariantData::asFloat() const {
-  switch (type()) {
-    case VALUE_IS_BOOLEAN:
-      return static_cast<T>(_content.asBoolean);
-    case VALUE_IS_UNSIGNED_INTEGER:
-      return static_cast<T>(_content.asUnsignedInteger);
-    case VALUE_IS_SIGNED_INTEGER:
-      return static_cast<T>(_content.asSignedInteger);
-    case VALUE_IS_LINKED_STRING:
-    case VALUE_IS_OWNED_STRING:
-      return parseNumber<T>(_content.asString);
-    case VALUE_IS_FLOAT:
-      return static_cast<T>(_content.asFloat);
-    default:
-      return 0;
-  }
-}
-inline const char *VariantData::asString() const {
-  switch (type()) {
-    case VALUE_IS_LINKED_STRING:
-    case VALUE_IS_OWNED_STRING:
-      return _content.asString;
-    default:
-      return 0;
-  }
-}
-template <typename T>
-inline typename enable_if<is_same<T, ArrayRef>::value, ArrayRef>::type
-VariantRef::to() const {
-  return ArrayRef(_pool, variantToArray(_data));
-}
-template <typename T>
-typename enable_if<is_same<T, ObjectRef>::value, ObjectRef>::type
-VariantRef::to() const {
-  return ObjectRef(_pool, variantToObject(_data));
-}
-template <typename T>
-typename enable_if<is_same<T, VariantRef>::value, VariantRef>::type
-VariantRef::to() const {
-  variantSetNull(_data);
-  return *this;
-}
-inline VariantConstRef VariantConstRef::getElement(size_t index) const {
-  return ArrayConstRef(_data != 0 ? _data->asArray() : 0)[index];
-}
-inline VariantRef VariantRef::addElement() const {
-  return VariantRef(_pool, variantAddElement(_data, _pool));
-}
-inline VariantRef VariantRef::getElement(size_t index) const {
-  return VariantRef(_pool, _data != 0 ? _data->getElement(index) : 0);
-}
-inline VariantRef VariantRef::getOrAddElement(size_t index) const {
-  return VariantRef(_pool, variantGetOrAddElement(_data, index, _pool));
-}
-template <typename TChar>
-inline VariantRef VariantRef::getMember(TChar *key) const {
-  return VariantRef(_pool, _data != 0 ? _data->getMember(adaptString(key)) : 0);
-}
-template <typename TString>
-inline typename enable_if<IsString<TString>::value, VariantRef>::type
-VariantRef::getMember(const TString &key) const {
-  return VariantRef(_pool, _data != 0 ? _data->getMember(adaptString(key)) : 0);
-}
-template <typename TChar>
-inline VariantRef VariantRef::getOrAddMember(TChar *key) const {
-  return VariantRef(_pool, variantGetOrAddMember(_data, key, _pool));
-}
-template <typename TString>
-inline VariantRef VariantRef::getOrAddMember(const TString &key) const {
-  return VariantRef(_pool, variantGetOrAddMember(_data, key, _pool));
-}
-inline VariantConstRef operator|(VariantConstRef preferedValue,
-                                 VariantConstRef defaultValue) {
-  return preferedValue ? preferedValue : defaultValue;
-}
-inline bool VariantRef::set(char value) const {
-  return set<signed char>(value);
-}
-}  // namespace ARDUINOJSON_NAMESPACE
-#if ARDUINOJSON_ENABLE_STD_STREAM
-#include <ostream>
-#endif
-namespace ARDUINOJSON_NAMESPACE {
-class DeserializationError {
-  typedef void (DeserializationError::*bool_type)() const;
-  void safeBoolHelper() const {}
- public:
-  enum Code {
-    Ok,
-    EmptyInput,
-    IncompleteInput,
-    InvalidInput,
-    NoMemory,
-    TooDeep
-  };
-  DeserializationError() {}
-  DeserializationError(Code c) : _code(c) {}
-  friend bool operator==(const DeserializationError& lhs,
-                         const DeserializationError& rhs) {
-    return lhs._code == rhs._code;
-  }
-  friend bool operator!=(const DeserializationError& lhs,
-                         const DeserializationError& rhs) {
-    return lhs._code != rhs._code;
-  }
-  friend bool operator==(const DeserializationError& lhs, Code rhs) {
-    return lhs._code == rhs;
-  }
-  friend bool operator==(Code lhs, const DeserializationError& rhs) {
-    return lhs == rhs._code;
-  }
-  friend bool operator!=(const DeserializationError& lhs, Code rhs) {
-    return lhs._code != rhs;
-  }
-  friend bool operator!=(Code lhs, const DeserializationError& rhs) {
-    return lhs != rhs._code;
-  }
-  operator bool_type() const {
-    return _code != Ok ? &DeserializationError::safeBoolHelper : 0;
-  }
-  friend bool operator==(bool value, const DeserializationError& err) {
-    return static_cast<bool>(err) == value;
-  }
-  friend bool operator==(const DeserializationError& err, bool value) {
-    return static_cast<bool>(err) == value;
-  }
-  friend bool operator!=(bool value, const DeserializationError& err) {
-    return static_cast<bool>(err) != value;
-  }
-  friend bool operator!=(const DeserializationError& err, bool value) {
-    return static_cast<bool>(err) != value;
-  }
-  Code code() const {
-    return _code;
-  }
-  const char* c_str() const {
-    static const char* messages[] = {
-        "Ok",           "EmptyInput", "IncompleteInput",
-        "InvalidInput", "NoMemory",   "TooDeep"};
-    ARDUINOJSON_ASSERT(static_cast<size_t>(_code) <
-                       sizeof(messages) / sizeof(messages[0]));
-    return messages[_code];
-  }
-#if ARDUINOJSON_ENABLE_PROGMEM
-  const __FlashStringHelper* f_str() const {
-    ARDUINOJSON_DEFINE_STATIC_ARRAY(char, s0, "Ok");
-    ARDUINOJSON_DEFINE_STATIC_ARRAY(char, s1, "EmptyInput");
-    ARDUINOJSON_DEFINE_STATIC_ARRAY(char, s2, "IncompleteInput");
-    ARDUINOJSON_DEFINE_STATIC_ARRAY(char, s3, "InvalidInput");
-    ARDUINOJSON_DEFINE_STATIC_ARRAY(char, s4, "NoMemory");
-    ARDUINOJSON_DEFINE_STATIC_ARRAY(char, s5, "TooDeep");
-    ARDUINOJSON_DEFINE_STATIC_ARRAY(
-        const char*, messages, ARDUINOJSON_EXPAND6({s0, s1, s2, s3, s4, s5}));
-    return ARDUINOJSON_READ_STATIC_ARRAY(const __FlashStringHelper*, messages,
-                                         _code);
-  }
-#endif
- private:
-  Code _code;
-};
-#if ARDUINOJSON_ENABLE_STD_STREAM
-inline std::ostream& operator<<(std::ostream& s,
-                                const DeserializationError& e) {
-  s << e.c_str();
-  return s;
-}
-inline std::ostream& operator<<(std::ostream& s, DeserializationError::Code c) {
-  s << DeserializationError(c).c_str();
-  return s;
-}
-#endif
-class Filter {
- public:
-  explicit Filter(VariantConstRef v) : _variant(v) {}
-  bool allow() const {
-    return _variant;
-  }
-  bool allowArray() const {
-    return _variant == true || _variant.is<ArrayConstRef>();
-  }
-  bool allowObject() const {
-    return _variant == true || _variant.is<ObjectConstRef>();
-  }
-  bool allowValue() const {
-    return _variant == true;
-  }
-  template <typename TKey>
-  Filter operator[](const TKey& key) const {
-    if (_variant == true)  // "true" means "allow recursively"
-      return *this;
-    else
-      return Filter(_variant[key] | _variant["*"]);
-  }
- private:
-  VariantConstRef _variant;
-};
-struct AllowAllFilter {
-  bool allow() const {
-    return true;
-  }
-  bool allowArray() const {
-    return true;
-  }
-  bool allowObject() const {
-    return true;
-  }
-  bool allowValue() const {
-    return true;
-  }
-  template <typename TKey>
-  AllowAllFilter operator[](const TKey&) const {
-    return AllowAllFilter();
-  }
-};
-class NestingLimit {
- public:
-  NestingLimit() : _value(ARDUINOJSON_DEFAULT_NESTING_LIMIT) {}
-  explicit NestingLimit(uint8_t n) : _value(n) {}
-  NestingLimit decrement() const {
-    ARDUINOJSON_ASSERT(_value > 0);
-    return NestingLimit(static_cast<uint8_t>(_value - 1));
-  }
-  bool reached() const {
-    return _value == 0;
-  }
- private:
-  uint8_t _value;
-};
-template <typename TSource, typename Enable = void>
-struct Reader {
- public:
-  Reader(TSource& source) : _source(&source) {}
-  int read() {
-    return _source->read();
-  }
-  size_t readBytes(char* buffer, size_t length) {
-    return _source->readBytes(buffer, length);
-  }
- private:
-  TSource* _source;
-};
-template <typename TSource, typename Enable = void>
-struct BoundedReader {
-};
-template <typename TIterator>
-class IteratorReader {
-  TIterator _ptr, _end;
- public:
-  explicit IteratorReader(TIterator begin, TIterator end)
-      : _ptr(begin), _end(end) {}
-  int read() {
-    if (_ptr < _end)
-      return static_cast<unsigned char>(*_ptr++);
-    else
-      return -1;
-  }
-  size_t readBytes(char* buffer, size_t length) {
-    size_t i = 0;
-    while (i < length && _ptr < _end) buffer[i++] = *_ptr++;
-    return i;
-  }
-};
-template <typename T>
-struct void_ {
-  typedef void type;
-};
-template <typename TSource>
-struct Reader<TSource, typename void_<typename TSource::const_iterator>::type>
-    : IteratorReader<typename TSource::const_iterator> {
-  explicit Reader(const TSource& source)
-      : IteratorReader<typename TSource::const_iterator>(source.begin(),
-                                                         source.end()) {}
-};
-template <typename T>
-struct IsCharOrVoid {
-  static const bool value =
-      is_same<T, void>::value || is_same<T, char>::value ||
-      is_same<T, unsigned char>::value || is_same<T, signed char>::value;
-};
-template <typename T>
-struct IsCharOrVoid<const T> : IsCharOrVoid<T> {};
-template <typename TSource>
-struct Reader<TSource*,
-              typename enable_if<IsCharOrVoid<TSource>::value>::type> {
-  const char* _ptr;
- public:
-  explicit Reader(const void* ptr)
-      : _ptr(ptr ? reinterpret_cast<const char*>(ptr) : "") {}
-  int read() {
-    return static_cast<unsigned char>(*_ptr++);
-  }
-  size_t readBytes(char* buffer, size_t length) {
-    for (size_t i = 0; i < length; i++) buffer[i] = *_ptr++;
-    return length;
-  }
-};
-template <typename TSource>
-struct BoundedReader<TSource*,
-                     typename enable_if<IsCharOrVoid<TSource>::value>::type>
-    : public IteratorReader<const char*> {
- public:
-  explicit BoundedReader(const void* ptr, size_t len)
-      : IteratorReader<const char*>(reinterpret_cast<const char*>(ptr),
-                                    reinterpret_cast<const char*>(ptr) + len) {}
-};
-template <typename TArray>
-struct Reader<ElementProxy<TArray>, void> : Reader<char*, void> {
-  explicit Reader(const ElementProxy<TArray>& x)
-      : Reader<char*, void>(x.template as<const char*>()) {}
-};
-template <typename TObject, typename TStringRef>
-struct Reader<MemberProxy<TObject, TStringRef>, void> : Reader<char*, void> {
-  explicit Reader(const MemberProxy<TObject, TStringRef>& x)
-      : Reader<char*, void>(x.template as<const char*>()) {}
-};
-template <>
-struct Reader<VariantRef, void> : Reader<char*, void> {
-  explicit Reader(VariantRef x) : Reader<char*, void>(x.as<const char*>()) {}
-};
-template <>
-struct Reader<VariantConstRef, void> : Reader<char*, void> {
-  explicit Reader(VariantConstRef x)
-      : Reader<char*, void>(x.as<const char*>()) {}
-};
-}  // namespace ARDUINOJSON_NAMESPACE
-#if ARDUINOJSON_ENABLE_ARDUINO_STREAM
-namespace ARDUINOJSON_NAMESPACE {
-template <typename TSource>
-struct Reader<TSource,
-              typename enable_if<is_base_of<Stream, TSource>::value>::type> {
- public:
-  explicit Reader(Stream& stream) : _stream(&stream) {}
-  int read() {
-    char c;
-    return _stream->readBytes(&c, 1) ? static_cast<unsigned char>(c) : -1;
-  }
-  size_t readBytes(char* buffer, size_t length) {
-    return _stream->readBytes(buffer, length);
-  }
- private:
-  Stream* _stream;
-};
-}  // namespace ARDUINOJSON_NAMESPACE
-#endif
-#if ARDUINOJSON_ENABLE_ARDUINO_STRING
-namespace ARDUINOJSON_NAMESPACE {
-template <typename TSource>
-struct Reader<TSource,
-              typename enable_if<is_base_of< ::String, TSource>::value>::type>
-    : BoundedReader<const char*> {
-  explicit Reader(const ::String& s)
-      : BoundedReader<const char*>(s.c_str(), s.length()) {}
-};
-}  // namespace ARDUINOJSON_NAMESPACE
-#endif
-#if ARDUINOJSON_ENABLE_PROGMEM
-namespace ARDUINOJSON_NAMESPACE {
-template <>
-struct Reader<const __FlashStringHelper*, void> {
-  const char* _ptr;
- public:
-  explicit Reader(const __FlashStringHelper* ptr)
-      : _ptr(reinterpret_cast<const char*>(ptr)) {}
-  int read() {
-    return pgm_read_byte(_ptr++);
-  }
-  size_t readBytes(char* buffer, size_t length) {
-    memcpy_P(buffer, _ptr, length);
-    _ptr += length;
-    return length;
-  }
-};
-template <>
-struct BoundedReader<const __FlashStringHelper*, void> {
-  const char* _ptr;
-  const char* _end;
- public:
-  explicit BoundedReader(const __FlashStringHelper* ptr, size_t size)
-      : _ptr(reinterpret_cast<const char*>(ptr)), _end(_ptr + size) {}
-  int read() {
-    if (_ptr < _end)
-      return pgm_read_byte(_ptr++);
-    else
-      return -1;
-  }
-  size_t readBytes(char* buffer, size_t length) {
-    size_t available = static_cast<size_t>(_end - _ptr);
-    if (available < length)
-      length = available;
-    memcpy_P(buffer, _ptr, length);
-    _ptr += length;
-    return length;
-  }
-};
-}  // namespace ARDUINOJSON_NAMESPACE
-#endif
-#if ARDUINOJSON_ENABLE_STD_STREAM
-#include <istream>
-namespace ARDUINOJSON_NAMESPACE {
-template <typename TSource>
-struct Reader<TSource, typename enable_if<
-                           is_base_of<std::istream, TSource>::value>::type> {
- public:
-  explicit Reader(std::istream& stream) : _stream(&stream) {}
-  int read() {
-    return _stream->get();
-  }
-  size_t readBytes(char* buffer, size_t length) {
-    _stream->read(buffer, static_cast<std::streamsize>(length));
-    return static_cast<size_t>(_stream->gcount());
-  }
- private:
-  std::istream* _stream;
-};
-}  // namespace ARDUINOJSON_NAMESPACE
-#endif
-namespace ARDUINOJSON_NAMESPACE {
-class StringCopier {
- public:
-  StringCopier(MemoryPool& pool) : _pool(&pool) {}
-  void startString() {
-    _pool->getFreeZone(&_ptr, &_capacity);
-    _size = 0;
-  }
-  const char* save() {
-    ARDUINOJSON_ASSERT(_ptr);
-    return _pool->saveStringFromFreeZone(_size);
-  }
-  void append(const char* s) {
-    while (*s) append(*s++);
-  }
-  void append(const char* s, size_t n) {
-    while (n-- > 0) append(*s++);
-  }
-  void append(char c) {
-    if (!_ptr)
-      return;
-    if (_size >= _capacity) {
-      _ptr = 0;
-      _pool->markAsOverflowed();
-      return;
-    }
-    _ptr[_size++] = c;
-  }
-  bool isValid() {
-    return _ptr != 0;
-  }
-  const char* c_str() {
-    return _ptr;
-  }
-  typedef storage_policies::store_by_copy storage_policy;
- private:
-  MemoryPool* _pool;
-  char* _ptr;
-  size_t _size, _capacity;
-};
-class StringMover {
- public:
-  StringMover(char* ptr) : _writePtr(ptr) {}
-  void startString() {
-    _startPtr = _writePtr;
-  }
-  const char* save() const {
-    return _startPtr;
-  }
-  void append(char c) {
-    *_writePtr++ = c;
-  }
-  bool isValid() const {
-    return true;
-  }
-  const char* c_str() const {
-    return _startPtr;
-  }
-  typedef storage_policies::store_by_address storage_policy;
- private:
-  char* _writePtr;
-  char* _startPtr;
-};
-template <typename TInput>
-StringCopier makeStringStorage(TInput&, MemoryPool& pool) {
-  return StringCopier(pool);
-}
-template <typename TChar>
-StringMover makeStringStorage(
-    TChar* input, MemoryPool&,
-    typename enable_if<!is_const<TChar>::value>::type* = 0) {
-  return StringMover(reinterpret_cast<char*>(input));
-}
-template <template <typename, typename> class TDeserializer, typename TReader,
-          typename TWriter>
-TDeserializer<TReader, TWriter> makeDeserializer(MemoryPool &pool,
-                                                 TReader reader,
-                                                 TWriter writer) {
-  return TDeserializer<TReader, TWriter>(pool, reader, writer);
-}
-template <template <typename, typename> class TDeserializer, typename TString,
-          typename TFilter>
-typename enable_if<!is_array<TString>::value, DeserializationError>::type
-deserialize(JsonDocument &doc, const TString &input, NestingLimit nestingLimit,
-            TFilter filter) {
-  Reader<TString> reader(input);
-  doc.clear();
-  return makeDeserializer<TDeserializer>(
-             doc.memoryPool(), reader,
-             makeStringStorage(input, doc.memoryPool()))
-      .parse(doc.data(), filter, nestingLimit);
-}
-template <template <typename, typename> class TDeserializer, typename TChar,
-          typename TFilter>
-DeserializationError deserialize(JsonDocument &doc, TChar *input,
-                                 size_t inputSize, NestingLimit nestingLimit,
-                                 TFilter filter) {
-  BoundedReader<TChar *> reader(input, inputSize);
-  doc.clear();
-  return makeDeserializer<TDeserializer>(
-             doc.memoryPool(), reader,
-             makeStringStorage(input, doc.memoryPool()))
-      .parse(doc.data(), filter, nestingLimit);
-}
-template <template <typename, typename> class TDeserializer, typename TStream,
-          typename TFilter>
-DeserializationError deserialize(JsonDocument &doc, TStream &input,
-                                 NestingLimit nestingLimit, TFilter filter) {
-  Reader<TStream> reader(input);
-  doc.clear();
-  return makeDeserializer<TDeserializer>(
-             doc.memoryPool(), reader,
-             makeStringStorage(input, doc.memoryPool()))
-      .parse(doc.data(), filter, nestingLimit);
-}
-class EscapeSequence {
- public:
-  static char escapeChar(char c) {
-    const char *p = escapeTable(true);
-    while (p[0] && p[1] != c) {
-      p += 2;
-    }
-    return p[0];
-  }
-  static char unescapeChar(char c) {
-    const char *p = escapeTable(false);
-    for (;;) {
-      if (p[0] == '\0')
-        return 0;
-      if (p[0] == c)
-        return p[1];
-      p += 2;
-    }
-  }
- private:
-  static const char *escapeTable(bool excludeSolidus) {
-    return &"//\"\"\\\\b\bf\fn\nr\rt\t"[excludeSolidus ? 2 : 0];
-  }
-};
-template <typename TReader>
-class Latch {
- public:
-  Latch(TReader reader) : _reader(reader), _loaded(false) {
-#if ARDUINOJSON_DEBUG
-    _ended = false;
-#endif
-  }
-  void clear() {
-    _loaded = false;
-  }
-  int last() const {
-    return _current;
-  }
-  FORCE_INLINE char current() {
-    if (!_loaded) {
-      load();
-    }
-    return _current;
-  }
- private:
-  void load() {
-    ARDUINOJSON_ASSERT(!_ended);
-    int c = _reader.read();
-#if ARDUINOJSON_DEBUG
-    if (c <= 0)
-      _ended = true;
-#endif
-    _current = static_cast<char>(c > 0 ? c : 0);
-    _loaded = true;
-  }
-  TReader _reader;
-  char _current;  // NOLINT(clang-analyzer-optin.cplusplus.UninitializedObject)
-  bool _loaded;
-#if ARDUINOJSON_DEBUG
-  bool _ended;
-#endif
-};
-}  // namespace ARDUINOJSON_NAMESPACE
-#if defined(__GNUC__)
-#  if __GNUC__ >= 7
-#    pragma GCC diagnostic push
-#    pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#  endif
-#endif
-namespace ARDUINOJSON_NAMESPACE {
-namespace Utf16 {
-inline bool isHighSurrogate(uint16_t codeunit) {
-  return codeunit >= 0xD800 && codeunit < 0xDC00;
-}
-inline bool isLowSurrogate(uint16_t codeunit) {
-  return codeunit >= 0xDC00 && codeunit < 0xE000;
-}
-class Codepoint {
- public:
-  Codepoint() : _highSurrogate(0), _codepoint(0) {}
-  bool append(uint16_t codeunit) {
-    if (isHighSurrogate(codeunit)) {
-      _highSurrogate = codeunit & 0x3FF;
-      return false;
-    }
-    if (isLowSurrogate(codeunit)) {
-      _codepoint =
-          uint32_t(0x10000 + ((_highSurrogate << 10) | (codeunit & 0x3FF)));
-      return true;
-    }
-    _codepoint = codeunit;
-    return true;
-  }
-  uint32_t value() const {
-    return _codepoint;
-  }
- private:
-  uint16_t _highSurrogate;
-  uint32_t _codepoint;
-};
-}  // namespace Utf16
-}  // namespace ARDUINOJSON_NAMESPACE
-#if defined(__GNUC__)
-#  if __GNUC__ >= 8
-#    pragma GCC diagnostic pop
-#  endif
-#endif
-namespace ARDUINOJSON_NAMESPACE {
-namespace Utf8 {
-template <typename TStringBuilder>
-inline void encodeCodepoint(uint32_t codepoint32, TStringBuilder& str) {
-  char buf[5];
-  char* p = buf;
-  *(p++) = 0;
-  if (codepoint32 < 0x80) {
-    *(p++) = char((codepoint32));
-  } else {
-    *(p++) = char((codepoint32 | 0x80) & 0xBF);
-    uint16_t codepoint16 = uint16_t(codepoint32 >> 6);
-    if (codepoint16 < 0x20) {  // 0x800
-      *(p++) = char(codepoint16 | 0xC0);
-    } else {
-      *(p++) = char((codepoint16 | 0x80) & 0xBF);
-      codepoint16 = uint16_t(codepoint16 >> 6);
-      if (codepoint16 < 0x10) {  // 0x10000
-        *(p++) = char(codepoint16 | 0xE0);
-      } else {
-        *(p++) = char((codepoint16 | 0x80) & 0xBF);
-        codepoint16 = uint16_t(codepoint16 >> 6);
-        *(p++) = char(codepoint16 | 0xF0);
-      }
-    }
-  }
-  while (*(--p)) {
-    str.append(*p);
-  }
-}
-}  // namespace Utf8
-template <typename TReader, typename TStringStorage>
-class JsonDeserializer {
- public:
-  JsonDeserializer(MemoryPool &pool, TReader reader,
-                   TStringStorage stringStorage)
-      : _stringStorage(stringStorage),
-        _foundSomething(false),
-        _latch(reader),
-        _pool(&pool),
-        _error(DeserializationError::Ok) {}
-  template <typename TFilter>
-  DeserializationError parse(VariantData &variant, TFilter filter,
-                             NestingLimit nestingLimit) {
-    parseVariant(variant, filter, nestingLimit);
-    if (!_error && _latch.last() != 0 && !variant.isEnclosed()) {
-      return DeserializationError::InvalidInput;
-    }
-    return _error;
-  }
- private:
-  char current() {
-    return _latch.current();
-  }
-  void move() {
-    _latch.clear();
-  }
-  bool eat(char charToSkip) {
-    if (current() != charToSkip)
-      return false;
-    move();
-    return true;
-  }
-  template <typename TFilter>
-  bool parseVariant(VariantData &variant, TFilter filter,
-                    NestingLimit nestingLimit) {
-    if (!skipSpacesAndComments())
-      return false;
-    switch (current()) {
-      case '[':
-        if (filter.allowArray())
-          return parseArray(variant.toArray(), filter, nestingLimit);
-        else
-          return skipArray(nestingLimit);
-      case '{':
-        if (filter.allowObject())
-          return parseObject(variant.toObject(), filter, nestingLimit);
-        else
-          return skipObject(nestingLimit);
-      case '\"':
-      case '\'':
-        if (filter.allowValue())
-          return parseStringValue(variant);
-        else
-          return skipString();
-      default:
-        if (filter.allowValue())
-          return parseNumericValue(variant);
-        else
-          return skipNumericValue();
-    }
-  }
-  bool skipVariant(NestingLimit nestingLimit) {
-    if (!skipSpacesAndComments())
-      return false;
-    switch (current()) {
-      case '[':
-        return skipArray(nestingLimit);
-      case '{':
-        return skipObject(nestingLimit);
-      case '\"':
-      case '\'':
-        return skipString();
-      default:
-        return skipNumericValue();
-    }
-  }
-  template <typename TFilter>
-  bool parseArray(CollectionData &array, TFilter filter,
-                  NestingLimit nestingLimit) {
-    if (nestingLimit.reached()) {
-      _error = DeserializationError::TooDeep;
-      return false;
-    }
-    ARDUINOJSON_ASSERT(current() == '[');
-    move();
-    if (!skipSpacesAndComments())
-      return false;
-    if (eat(']'))
-      return true;
-    TFilter memberFilter = filter[0UL];
-    for (;;) {
-      if (memberFilter.allow()) {
-        VariantData *value = array.addElement(_pool);
-        if (!value) {
-          _error = DeserializationError::NoMemory;
-          return false;
-        }
-        if (!parseVariant(*value, memberFilter, nestingLimit.decrement()))
-          return false;
-      } else {
-        if (!skipVariant(nestingLimit.decrement()))
-          return false;
-      }
-      if (!skipSpacesAndComments())
-        return false;
-      if (eat(']'))
-        return true;
-      if (!eat(',')) {
-        _error = DeserializationError::InvalidInput;
-        return false;
-      }
-    }
-  }
-  bool skipArray(NestingLimit nestingLimit) {
-    if (nestingLimit.reached()) {
-      _error = DeserializationError::TooDeep;
-      return false;
-    }
-    ARDUINOJSON_ASSERT(current() == '[');
-    move();
-    for (;;) {
-      if (!skipVariant(nestingLimit.decrement()))
-        return false;
-      if (!skipSpacesAndComments())
-        return false;
-      if (eat(']'))
-        return true;
-      if (!eat(',')) {
-        _error = DeserializationError::InvalidInput;
-        return false;
-      }
-    }
-  }
-  template <typename TFilter>
-  bool parseObject(CollectionData &object, TFilter filter,
-                   NestingLimit nestingLimit) {
-    if (nestingLimit.reached()) {
-      _error = DeserializationError::TooDeep;
-      return false;
-    }
-    ARDUINOJSON_ASSERT(current() == '{');
-    move();
-    if (!skipSpacesAndComments())
-      return false;
-    if (eat('}'))
-      return true;
-    for (;;) {
-      if (!parseKey())
-        return false;
-      if (!skipSpacesAndComments())
-        return false;
-      if (!eat(':')) {
-        _error = DeserializationError::InvalidInput;
-        return false;
-      }
-      const char *key = _stringStorage.c_str();
-      TFilter memberFilter = filter[key];
-      if (memberFilter.allow()) {
-        VariantData *variant = object.getMember(adaptString(key));
-        if (!variant) {
-          key = _stringStorage.save();
-          VariantSlot *slot = object.addSlot(_pool);
-          if (!slot) {
-            _error = DeserializationError::NoMemory;
-            return false;
-          }
-          slot->setKey(key, typename TStringStorage::storage_policy());
-          variant = slot->data();
-        }
-        if (!parseVariant(*variant, memberFilter, nestingLimit.decrement()))
-          return false;
-      } else {
-        if (!skipVariant(nestingLimit.decrement()))
-          return false;
-      }
-      if (!skipSpacesAndComments())
-        return false;
-      if (eat('}'))
-        return true;
-      if (!eat(',')) {
-        _error = DeserializationError::InvalidInput;
-        return false;
-      }
-      if (!skipSpacesAndComments())
-        return false;
-    }
-  }
-  bool skipObject(NestingLimit nestingLimit) {
-    if (nestingLimit.reached()) {
-      _error = DeserializationError::TooDeep;
-      return false;
-    }
-    ARDUINOJSON_ASSERT(current() == '{');
-    move();
-    if (!skipSpacesAndComments())
-      return false;
-    if (eat('}'))
-      return true;
-    for (;;) {
-      if (!skipVariant(nestingLimit.decrement()))
-        return false;
-      if (!skipSpacesAndComments())
-        return false;
-      if (!eat(':')) {
-        _error = DeserializationError::InvalidInput;
-        return false;
-      }
-      if (!skipVariant(nestingLimit.decrement()))
-        return false;
-      if (!skipSpacesAndComments())
-        return false;
-      if (eat('}'))
-        return true;
-      if (!eat(',')) {
-        _error = DeserializationError::InvalidInput;
-        return false;
-      }
-    }
-  }
-  bool parseKey() {
-    _stringStorage.startString();
-    if (isQuote(current())) {
-      return parseQuotedString();
-    } else {
-      return parseNonQuotedString();
-    }
-  }
-  bool parseStringValue(VariantData &variant) {
-    _stringStorage.startString();
-    if (!parseQuotedString())
-      return false;
-    const char *value = _stringStorage.save();
-    variant.setStringPointer(value, typename TStringStorage::storage_policy());
-    return true;
-  }
-  bool parseQuotedString() {
-#if ARDUINOJSON_DECODE_UNICODE
-    Utf16::Codepoint codepoint;
-#endif
-    const char stopChar = current();
-    move();
-    for (;;) {
-      char c = current();
-      move();
-      if (c == stopChar)
-        break;
-      if (c == '\0') {
-        _error = DeserializationError::IncompleteInput;
-        return false;
-      }
-      if (c == '\\') {
-        c = current();
-        if (c == '\0') {
-          _error = DeserializationError::IncompleteInput;
-          return false;
-        }
-        if (c == 'u') {
-#if ARDUINOJSON_DECODE_UNICODE
-          move();
-          uint16_t codeunit;
-          if (!parseHex4(codeunit))
-            return false;
-          if (codepoint.append(codeunit))
-            Utf8::encodeCodepoint(codepoint.value(), _stringStorage);
-#else
-          _stringStorage.append('\\');
-#endif
-          continue;
-        }
-        c = EscapeSequence::unescapeChar(c);
-        if (c == '\0') {
-          _error = DeserializationError::InvalidInput;
-          return false;
-        }
-        move();
-      }
-      _stringStorage.append(c);
-    }
-    _stringStorage.append('\0');
-    if (!_stringStorage.isValid()) {
-      _error = DeserializationError::NoMemory;
-      return false;
-    }
-    return true;
-  }
-  bool parseNonQuotedString() {
-    char c = current();
-    ARDUINOJSON_ASSERT(c);
-    if (canBeInNonQuotedString(c)) {  // no quotes
-      do {
-        move();
-        _stringStorage.append(c);
-        c = current();
-      } while (canBeInNonQuotedString(c));
-    } else {
-      _error = DeserializationError::InvalidInput;
-      return false;
-    }
-    _stringStorage.append('\0');
-    if (!_stringStorage.isValid()) {
-      _error = DeserializationError::NoMemory;
-      return false;
-    }
-    return true;
-  }
-  bool skipString() {
-    const char stopChar = current();
-    move();
-    for (;;) {
-      char c = current();
-      move();
-      if (c == stopChar)
-        break;
-      if (c == '\0') {
-        _error = DeserializationError::IncompleteInput;
-        return false;
-      }
-      if (c == '\\') {
-        if (current() != '\0')
-          move();
-      }
-    }
-    return true;
-  }
-  bool parseNumericValue(VariantData &result) {
-    uint8_t n = 0;
-    char c = current();
-    while (canBeInNonQuotedString(c) && n < 63) {
-      move();
-      _buffer[n++] = c;
-      c = current();
-    }
-    _buffer[n] = 0;
-    c = _buffer[0];
-    if (c == 't') {  // true
-      result.setBoolean(true);
-      if (n != 4) {
-        _error = DeserializationError::IncompleteInput;
-        return false;
-      }
-      return true;
-    }
-    if (c == 'f') {  // false
-      result.setBoolean(false);
-      if (n != 5) {
-        _error = DeserializationError::IncompleteInput;
-        return false;
-      }
-      return true;
-    }
-    if (c == 'n') {  // null
-      if (n != 4) {
-        _error = DeserializationError::IncompleteInput;
-        return false;
-      }
-      return true;
-    }
-    if (!parseNumber(_buffer, result)) {
-      _error = DeserializationError::InvalidInput;
-      return false;
-    }
-    return true;
-  }
-  bool skipNumericValue() {
-    char c = current();
-    while (canBeInNonQuotedString(c)) {
-      move();
-      c = current();
-    }
-    return true;
-  }
-  bool parseHex4(uint16_t &result) {
-    result = 0;
-    for (uint8_t i = 0; i < 4; ++i) {
-      char digit = current();
-      if (!digit) {
-        _error = DeserializationError::IncompleteInput;
-        return false;
-      }
-      uint8_t value = decodeHex(digit);
-      if (value > 0x0F) {
-        _error = DeserializationError::InvalidInput;
-        return false;
-      }
-      result = uint16_t((result << 4) | value);
-      move();
-    }
-    return true;
-  }
-  static inline bool isBetween(char c, char min, char max) {
-    return min <= c && c <= max;
-  }
-  static inline bool canBeInNonQuotedString(char c) {
-    return isBetween(c, '0', '9') || isBetween(c, '_', 'z') ||
-           isBetween(c, 'A', 'Z') || c == '+' || c == '-' || c == '.';
-  }
-  static inline bool isQuote(char c) {
-    return c == '\'' || c == '\"';
-  }
-  static inline uint8_t decodeHex(char c) {
-    if (c < 'A')
-      return uint8_t(c - '0');
-    c = char(c & ~0x20);  // uppercase
-    return uint8_t(c - 'A' + 10);
-  }
-  bool skipSpacesAndComments() {
-    for (;;) {
-      switch (current()) {
-        case '\0':
-          _error = _foundSomething ? DeserializationError::IncompleteInput
-                                   : DeserializationError::EmptyInput;
-          return false;
-        case ' ':
-        case '\t':
-        case '\r':
-        case '\n':
-          move();
-          continue;
-#if ARDUINOJSON_ENABLE_COMMENTS
-        case '/':
-          move();  // skip '/'
-          switch (current()) {
-            case '*': {
-              move();  // skip '*'
-              bool wasStar = false;
-              for (;;) {
-                char c = current();
-                if (c == '\0') {
-                  _error = DeserializationError::IncompleteInput;
-                  return false;
-                }
-                if (c == '/' && wasStar) {
-                  move();
-                  break;
-                }
-                wasStar = c == '*';
-                move();
-              }
-              break;
-            }
-            case '/':
-              for (;;) {
-                move();
-                char c = current();
-                if (c == '\0') {
-                  _error = DeserializationError::IncompleteInput;
-                  return false;
-                }
-                if (c == '\n')
-                  break;
-              }
-              break;
-            default:
-              _error = DeserializationError::InvalidInput;
-              return false;
-          }
-          break;
-#endif
-        default:
-          _foundSomething = true;
-          return true;
-      }
-    }
-  }
-  TStringStorage _stringStorage;
-  bool _foundSomething;
-  Latch<TReader> _latch;
-  MemoryPool *_pool;
-  char _buffer[64];  // using a member instead of a local variable because it
-  DeserializationError _error;
-};
-template <typename TString>
-DeserializationError deserializeJson(
-    JsonDocument &doc, const TString &input,
-    NestingLimit nestingLimit = NestingLimit()) {
-  return deserialize<JsonDeserializer>(doc, input, nestingLimit,
-                                       AllowAllFilter());
-}
-template <typename TString>
-DeserializationError deserializeJson(
-    JsonDocument &doc, const TString &input, Filter filter,
-    NestingLimit nestingLimit = NestingLimit()) {
-  return deserialize<JsonDeserializer>(doc, input, nestingLimit, filter);
-}
-template <typename TString>
-DeserializationError deserializeJson(JsonDocument &doc, const TString &input,
-                                     NestingLimit nestingLimit, Filter filter) {
-  return deserialize<JsonDeserializer>(doc, input, nestingLimit, filter);
-}
-template <typename TStream>
-DeserializationError deserializeJson(
-    JsonDocument &doc, TStream &input,
-    NestingLimit nestingLimit = NestingLimit()) {
-  return deserialize<JsonDeserializer>(doc, input, nestingLimit,
-                                       AllowAllFilter());
-}
-template <typename TStream>
-DeserializationError deserializeJson(
-    JsonDocument &doc, TStream &input, Filter filter,
-    NestingLimit nestingLimit = NestingLimit()) {
-  return deserialize<JsonDeserializer>(doc, input, nestingLimit, filter);
-}
-template <typename TStream>
-DeserializationError deserializeJson(JsonDocument &doc, TStream &input,
-                                     NestingLimit nestingLimit, Filter filter) {
-  return deserialize<JsonDeserializer>(doc, input, nestingLimit, filter);
-}
-template <typename TChar>
-DeserializationError deserializeJson(
-    JsonDocument &doc, TChar *input,
-    NestingLimit nestingLimit = NestingLimit()) {
-  return deserialize<JsonDeserializer>(doc, input, nestingLimit,
-                                       AllowAllFilter());
-}
-template <typename TChar>
-DeserializationError deserializeJson(
-    JsonDocument &doc, TChar *input, Filter filter,
-    NestingLimit nestingLimit = NestingLimit()) {
-  return deserialize<JsonDeserializer>(doc, input, nestingLimit, filter);
-}
-template <typename TChar>
-DeserializationError deserializeJson(JsonDocument &doc, TChar *input,
-                                     NestingLimit nestingLimit, Filter filter) {
-  return deserialize<JsonDeserializer>(doc, input, nestingLimit, filter);
-}
-template <typename TChar>
-DeserializationError deserializeJson(
-    JsonDocument &doc, TChar *input, size_t inputSize,
-    NestingLimit nestingLimit = NestingLimit()) {
-  return deserialize<JsonDeserializer>(doc, input, inputSize, nestingLimit,
-                                       AllowAllFilter());
-}
-template <typename TChar>
-DeserializationError deserializeJson(
-    JsonDocument &doc, TChar *input, size_t inputSize, Filter filter,
-    NestingLimit nestingLimit = NestingLimit()) {
-  return deserialize<JsonDeserializer>(doc, input, inputSize, nestingLimit,
-                                       filter);
-}
-template <typename TChar>
-DeserializationError deserializeJson(JsonDocument &doc, TChar *input,
-                                     size_t inputSize,
-                                     NestingLimit nestingLimit, Filter filter) {
-  return deserialize<JsonDeserializer>(doc, input, inputSize, nestingLimit,
-                                       filter);
-}
 template <typename TFloat>
 struct FloatParts {
   uint32_t integral;
@@ -6115,13 +4367,21 @@ class TextFormatter {
     while (*value) writeChar(*value++);
     writeRaw('\"');
   }
+  void writeString(const char *value, size_t n) {
+    ARDUINOJSON_ASSERT(value != NULL);
+    writeRaw('\"');
+    while (n--) writeChar(*value++);
+    writeRaw('\"');
+  }
   void writeChar(char c) {
     char specialChar = EscapeSequence::escapeChar(c);
     if (specialChar) {
       writeRaw('\\');
       writeRaw(specialChar);
-    } else {
+    } else if (c) {
       writeRaw(c);
+    } else {
+      writeRaw("\\u0000");
     }
   }
   template <typename T>
@@ -6401,6 +4661,37 @@ typename enable_if<sizeof(TChar) == 1, size_t>::type
 serialize(const TSource &source, TChar (&buffer)[N]) {
   return serialize<TSerializer>(source, buffer, N);
 }
+template <typename TResult>
+struct Visitor {
+  typedef TResult result_type;
+  TResult visitArray(const CollectionData &) {
+    return TResult();
+  }
+  TResult visitBoolean(bool) {
+    return TResult();
+  }
+  TResult visitFloat(Float) {
+    return TResult();
+  }
+  TResult visitSignedInteger(Integer) {
+    return TResult();
+  }
+  TResult visitNull() {
+    return TResult();
+  }
+  TResult visitObject(const CollectionData &) {
+    return TResult();
+  }
+  TResult visitUnsignedInteger(UInt) {
+    return TResult();
+  }
+  TResult visitRawJson(const char *, size_t) {
+    return TResult();
+  }
+  TResult visitString(const char *, size_t) {
+    return TResult();
+  }
+};
 template <typename TWriter>
 class JsonSerializer : public Visitor<size_t> {
  public:
@@ -6440,6 +4731,10 @@ class JsonSerializer : public Visitor<size_t> {
   }
   size_t visitString(const char *value) {
     _formatter.writeString(value);
+    return bytesWritten();
+  }
+  size_t visitString(const char *value, size_t n) {
+    _formatter.writeString(value, n);
     return bytesWritten();
   }
   size_t visitRawJson(const char *data, size_t n) {
@@ -6495,6 +4790,1765 @@ operator<<(std::ostream &os, const T &source) {
   return os;
 }
 #endif
+template <typename T, typename Enable>
+struct Converter {
+  static void toJson(const T& src, VariantRef dst) {
+    convertToJson(src, dst); // Error here? See https://arduinojson.org/v6/unsupported-set/
+  }
+  static T fromJson(VariantConstRef src) {
+    T result; // Error here? See https://arduinojson.org/v6/non-default-constructible/
+    convertFromJson(src, result);  // Error here? See https://arduinojson.org/v6/unsupported-as/
+    return result;
+  }
+  static bool checkJson(VariantConstRef src) {
+    T dummy = T();
+    return canConvertFromJson(src, dummy);  // Error here? See https://arduinojson.org/v6/unsupported-is/
+  }
+};
+template <typename T>
+struct Converter<
+    T, typename enable_if<is_integral<T>::value && !is_same<bool, T>::value &&
+                          !is_same<char, T>::value>::type> {
+  static void toJson(T src, VariantRef dst) {
+    VariantData* data = getData(dst);
+    ARDUINOJSON_ASSERT_INTEGER_TYPE_IS_SUPPORTED(T);
+    if (data)
+      data->setInteger(src);
+  }
+  static T fromJson(VariantConstRef src) {
+    ARDUINOJSON_ASSERT_INTEGER_TYPE_IS_SUPPORTED(T);
+    const VariantData* data = getData(src);
+    return data ? data->asIntegral<T>() : T();
+  }
+  static bool checkJson(VariantConstRef src) {
+    const VariantData* data = getData(src);
+    return data && data->isInteger<T>();
+  }
+};
+template <typename T>
+struct Converter<T, typename enable_if<is_enum<T>::value>::type> {
+  static void toJson(T src, VariantRef dst) {
+    dst.set(static_cast<Integer>(src));
+  }
+  static T fromJson(VariantConstRef src) {
+    const VariantData* data = getData(src);
+    return data ? static_cast<T>(data->asIntegral<int>()) : T();
+  }
+  static bool checkJson(VariantConstRef src) {
+    const VariantData* data = getData(src);
+    return data && data->isInteger<int>();
+  }
+};
+template <>
+struct Converter<bool> {
+  static void toJson(bool src, VariantRef dst) {
+    VariantData* data = getData(dst);
+    if (data)
+      data->setBoolean(src);
+  }
+  static bool fromJson(VariantConstRef src) {
+    const VariantData* data = getData(src);
+    return data ? data->asBoolean() : false;
+  }
+  static bool checkJson(VariantConstRef src) {
+    const VariantData* data = getData(src);
+    return data && data->isBoolean();
+  }
+};
+template <typename T>
+struct Converter<T, typename enable_if<is_floating_point<T>::value>::type> {
+  static void toJson(T src, VariantRef dst) {
+    VariantData* data = getData(dst);
+    if (data)
+      data->setFloat(static_cast<Float>(src));
+  }
+  static T fromJson(VariantConstRef src) {
+    const VariantData* data = getData(src);
+    return data ? data->asFloat<T>() : false;
+  }
+  static bool checkJson(VariantConstRef src) {
+    const VariantData* data = getData(src);
+    return data && data->isFloat();
+  }
+};
+template <>
+struct Converter<const char*> {
+  static void toJson(const char* src, VariantRef dst) {
+    variantSetString(getData(dst), adaptString(src), getPool(dst),
+                     getStringStoragePolicy(src));
+  }
+  static const char* fromJson(VariantConstRef src) {
+    const VariantData* data = getData(src);
+    return data ? data->asString().c_str() : 0;
+  }
+  static bool checkJson(VariantConstRef src) {
+    const VariantData* data = getData(src);
+    return data && data->isString();
+  }
+};
+template <>
+struct Converter<String> {
+  static void toJson(String src, VariantRef dst) {
+    variantSetString(getData(dst), adaptString(src), getPool(dst),
+                     getStringStoragePolicy(src));
+  }
+  static String fromJson(VariantConstRef src) {
+    const VariantData* data = getData(src);
+    return data ? data->asString() : 0;
+  }
+  static bool checkJson(VariantConstRef src) {
+    const VariantData* data = getData(src);
+    return data && data->isString();
+  }
+};
+template <typename T>
+inline typename enable_if<IsString<T>::value, bool>::type convertToJson(
+    const T& src, VariantRef dst) {
+  VariantData* data = getData(dst);
+  MemoryPool* pool = getPool(dst);
+  return variantSetString(data, adaptString(src), pool,
+                          getStringStoragePolicy(src));
+}
+template <>
+struct Converter<SerializedValue<const char*> > {
+  static void toJson(SerializedValue<const char*> src, VariantRef dst) {
+    VariantData* data = getData(dst);
+    if (data)
+      data->setLinkedRaw(src);
+  }
+};
+template <typename T>
+struct Converter<SerializedValue<T>,
+                 typename enable_if<!is_same<const char*, T>::value>::type> {
+  static void toJson(SerializedValue<T> src, VariantRef dst) {
+    VariantData* data = getData(dst);
+    MemoryPool* pool = getPool(dst);
+    if (data)
+      data->storeOwnedRaw(src, pool);
+  }
+};
+#if ARDUINOJSON_HAS_NULLPTR
+template <>
+struct Converter<decltype(nullptr)> {
+  static void toJson(decltype(nullptr), VariantRef dst) {
+    variantSetNull(getData(dst));
+  }
+  static decltype(nullptr) fromJson(VariantConstRef) {
+    return nullptr;
+  }
+  static bool checkJson(VariantConstRef src) {
+    const VariantData* data = getData(src);
+    return data == 0 || data->isNull();
+  }
+};
+#endif
+#if ARDUINOJSON_ENABLE_ARDUINO_STREAM
+class MemoryPoolPrint : public Print {
+ public:
+  MemoryPoolPrint(MemoryPool* pool) : _pool(pool), _size(0) {
+    pool->getFreeZone(&_string, &_capacity);
+  }
+  String str() {
+    ARDUINOJSON_ASSERT(_size < _capacity);
+    return String(_pool->saveStringFromFreeZone(_size), _size, String::Copied);
+  }
+  size_t write(uint8_t c) {
+    if (_size >= _capacity)
+      return 0;
+    _string[_size++] = char(c);
+    return 1;
+  }
+  size_t write(const uint8_t* buffer, size_t size) {
+    if (_size + size >= _capacity) {
+      _size = _capacity;  // mark as overflowed
+      return 0;
+    }
+    memcpy(&_string[_size], buffer, size);
+    _size += size;
+    return size;
+  }
+  bool overflowed() const {
+    return _size >= _capacity;
+  }
+ private:
+  MemoryPool* _pool;
+  size_t _size;
+  char* _string;
+  size_t _capacity;
+};
+inline void convertToJson(const ::Printable& src, VariantRef dst) {
+  MemoryPool* pool = getPool(dst);
+  VariantData* data = getData(dst);
+  if (!pool || !data)
+    return;
+  MemoryPoolPrint print(pool);
+  src.printTo(print);
+  if (print.overflowed()) {
+    pool->markAsOverflowed();
+    data->setNull();
+    return;
+  }
+  data->setString(print.str());
+}
+#endif
+#if ARDUINOJSON_ENABLE_ARDUINO_STRING
+inline void convertFromJson(VariantConstRef src, ::String& dst) {
+  String str = src.as<String>();
+  if (str)
+    dst = str.c_str();
+  else
+    serializeJson(src, dst);
+}
+inline bool canConvertFromJson(VariantConstRef src, const ::String&) {
+  return src.is<String>();
+}
+#endif
+#if ARDUINOJSON_ENABLE_STD_STRING
+inline void convertFromJson(VariantConstRef src, std::string& dst) {
+  String str = src.as<String>();
+  if (str)
+    dst.assign(str.c_str(), str.size());
+  else
+    serializeJson(src, dst);
+}
+inline bool canConvertFromJson(VariantConstRef src, const std::string&) {
+  return src.is<String>();
+}
+#endif
+#if ARDUINOJSON_ENABLE_STRING_VIEW
+inline void convertFromJson(VariantConstRef src, std::string_view& dst) {
+  String str = src.as<String>();
+  if (str)  // the standard doesn't allow passing null to the constructor
+    dst = std::string_view(str.c_str(), str.size());
+}
+inline bool canConvertFromJson(VariantConstRef src, const std::string_view&) {
+  return src.is<String>();
+}
+#endif
+class CollectionData;
+struct ComparerBase : Visitor<CompareResult> {};
+template <typename T, typename Enable = void>
+struct Comparer;
+template <typename T>
+struct Comparer<T, typename enable_if<IsString<T>::value>::type>
+    : ComparerBase {
+  T rhs;  // TODO: store adapted string?
+  explicit Comparer(T value) : rhs(value) {}
+  CompareResult visitString(const char *lhs, size_t n) {
+    int i = stringCompare(adaptString(rhs), adaptString(lhs, n));
+    if (i < 0)
+      return COMPARE_RESULT_GREATER;
+    else if (i > 0)
+      return COMPARE_RESULT_LESS;
+    else
+      return COMPARE_RESULT_EQUAL;
+  }
+  CompareResult visitNull() {
+    if (adaptString(rhs).isNull())
+      return COMPARE_RESULT_EQUAL;
+    else
+      return COMPARE_RESULT_DIFFER;
+  }
+};
+template <typename T>
+struct Comparer<T, typename enable_if<is_integral<T>::value ||
+                                      is_floating_point<T>::value>::type>
+    : ComparerBase {
+  T rhs;
+  explicit Comparer(T value) : rhs(value) {}
+  CompareResult visitFloat(Float lhs) {
+    return arithmeticCompare(lhs, rhs);
+  }
+  CompareResult visitSignedInteger(Integer lhs) {
+    return arithmeticCompare(lhs, rhs);
+  }
+  CompareResult visitUnsignedInteger(UInt lhs) {
+    return arithmeticCompare(lhs, rhs);
+  }
+  CompareResult visitBoolean(bool lhs) {
+    return visitUnsignedInteger(static_cast<UInt>(lhs));
+  }
+};
+struct NullComparer : ComparerBase {
+  CompareResult visitNull() {
+    return COMPARE_RESULT_EQUAL;
+  }
+};
+#if ARDUINOJSON_HAS_NULLPTR
+template <>
+struct Comparer<decltype(nullptr), void> : NullComparer {
+  explicit Comparer(decltype(nullptr)) : NullComparer() {}
+};
+#endif
+struct ArrayComparer : ComparerBase {
+  const CollectionData *_rhs;
+  explicit ArrayComparer(const CollectionData &rhs) : _rhs(&rhs) {}
+  CompareResult visitArray(const CollectionData &lhs) {
+    if (lhs.equalsArray(*_rhs))
+      return COMPARE_RESULT_EQUAL;
+    else
+      return COMPARE_RESULT_DIFFER;
+  }
+};
+struct ObjectComparer : ComparerBase {
+  const CollectionData *_rhs;
+  explicit ObjectComparer(const CollectionData &rhs) : _rhs(&rhs) {}
+  CompareResult visitObject(const CollectionData &lhs) {
+    if (lhs.equalsObject(*_rhs))
+      return COMPARE_RESULT_EQUAL;
+    else
+      return COMPARE_RESULT_DIFFER;
+  }
+};
+struct RawComparer : ComparerBase {
+  const char *_rhsData;
+  size_t _rhsSize;
+  explicit RawComparer(const char *rhsData, size_t rhsSize)
+      : _rhsData(rhsData), _rhsSize(rhsSize) {}
+  CompareResult visitRawJson(const char *lhsData, size_t lhsSize) {
+    size_t size = _rhsSize < lhsSize ? _rhsSize : lhsSize;
+    int n = memcmp(lhsData, _rhsData, size);
+    if (n < 0)
+      return COMPARE_RESULT_LESS;
+    else if (n > 0)
+      return COMPARE_RESULT_GREATER;
+    else
+      return COMPARE_RESULT_EQUAL;
+  }
+};
+template <typename T>
+struct Comparer<T, typename enable_if<IsVisitable<T>::value>::type>
+    : ComparerBase {
+  const T *rhs;  // TODO: should be a VariantConstRef
+  explicit Comparer(const T &value) : rhs(&value) {}
+  CompareResult visitArray(const CollectionData &lhs) {
+    ArrayComparer comparer(lhs);
+    return accept(comparer);
+  }
+  CompareResult visitObject(const CollectionData &lhs) {
+    ObjectComparer comparer(lhs);
+    return accept(comparer);
+  }
+  CompareResult visitFloat(Float lhs) {
+    Comparer<Float> comparer(lhs);
+    return accept(comparer);
+  }
+  CompareResult visitString(const char *lhs, size_t) {
+    Comparer<const char *> comparer(lhs);
+    return accept(comparer);
+  }
+  CompareResult visitRawJson(const char *lhsData, size_t lhsSize) {
+    RawComparer comparer(lhsData, lhsSize);
+    return accept(comparer);
+  }
+  CompareResult visitSignedInteger(Integer lhs) {
+    Comparer<Integer> comparer(lhs);
+    return accept(comparer);
+  }
+  CompareResult visitUnsignedInteger(UInt lhs) {
+    Comparer<UInt> comparer(lhs);
+    return accept(comparer);
+  }
+  CompareResult visitBoolean(bool lhs) {
+    Comparer<bool> comparer(lhs);
+    return accept(comparer);
+  }
+  CompareResult visitNull() {
+    NullComparer comparer;
+    return accept(comparer);
+  }
+ private:
+  template <typename TComparer>
+  CompareResult accept(TComparer &comparer) {
+    CompareResult reversedResult = rhs->accept(comparer);
+    switch (reversedResult) {
+      case COMPARE_RESULT_GREATER:
+        return COMPARE_RESULT_LESS;
+      case COMPARE_RESULT_LESS:
+        return COMPARE_RESULT_GREATER;
+      default:
+        return reversedResult;
+    }
+  }
+};
+template <typename T1, typename T2>
+CompareResult compare(const T1 &lhs, const T2 &rhs) {
+  Comparer<T2> comparer(rhs);
+  return lhs.accept(comparer);
+}
+inline int variantCompare(const VariantData *a, const VariantData *b) {
+  return compare(VariantConstRef(a), VariantConstRef(b));
+}
+#ifndef isdigit
+inline bool isdigit(char c) {
+  return '0' <= c && c <= '9';
+}
+#endif
+inline bool issign(char c) {
+  return '-' == c || c == '+';
+}
+template <typename A, typename B>
+struct choose_largest : conditional<(sizeof(A) > sizeof(B)), A, B> {};
+inline bool parseNumber(const char* s, VariantData& result) {
+  typedef FloatTraits<Float> traits;
+  typedef choose_largest<traits::mantissa_type, UInt>::type mantissa_t;
+  typedef traits::exponent_type exponent_t;
+  ARDUINOJSON_ASSERT(s != 0);
+  bool is_negative = false;
+  switch (*s) {
+    case '-':
+      is_negative = true;
+      s++;
+      break;
+    case '+':
+      s++;
+      break;
+  }
+#if ARDUINOJSON_ENABLE_NAN
+  if (*s == 'n' || *s == 'N') {
+    result.setFloat(traits::nan());
+    return true;
+  }
+#endif
+#if ARDUINOJSON_ENABLE_INFINITY
+  if (*s == 'i' || *s == 'I') {
+    result.setFloat(is_negative ? -traits::inf() : traits::inf());
+    return true;
+  }
+#endif
+  if (!isdigit(*s) && *s != '.')
+    return false;
+  mantissa_t mantissa = 0;
+  exponent_t exponent_offset = 0;
+  const mantissa_t maxUint = UInt(-1);
+  while (isdigit(*s)) {
+    uint8_t digit = uint8_t(*s - '0');
+    if (mantissa > maxUint / 10)
+      break;
+    mantissa *= 10;
+    if (mantissa > maxUint - digit)
+      break;
+    mantissa += digit;
+    s++;
+  }
+  if (*s == '\0') {
+    if (is_negative) {
+      const mantissa_t sintMantissaMax = mantissa_t(1)
+                                         << (sizeof(Integer) * 8 - 1);
+      if (mantissa <= sintMantissaMax) {
+        result.setInteger(Integer(~mantissa + 1));
+        return true;
+      }
+    } else {
+      result.setInteger(UInt(mantissa));
+      return true;
+    }
+  }
+  while (mantissa > traits::mantissa_max) {
+    mantissa /= 10;
+    exponent_offset++;
+  }
+  while (isdigit(*s)) {
+    exponent_offset++;
+    s++;
+  }
+  if (*s == '.') {
+    s++;
+    while (isdigit(*s)) {
+      if (mantissa < traits::mantissa_max / 10) {
+        mantissa = mantissa * 10 + uint8_t(*s - '0');
+        exponent_offset--;
+      }
+      s++;
+    }
+  }
+  int exponent = 0;
+  if (*s == 'e' || *s == 'E') {
+    s++;
+    bool negative_exponent = false;
+    if (*s == '-') {
+      negative_exponent = true;
+      s++;
+    } else if (*s == '+') {
+      s++;
+    }
+    while (isdigit(*s)) {
+      exponent = exponent * 10 + (*s - '0');
+      if (exponent + exponent_offset > traits::exponent_max) {
+        if (negative_exponent)
+          result.setFloat(is_negative ? -0.0f : 0.0f);
+        else
+          result.setFloat(is_negative ? -traits::inf() : traits::inf());
+        return true;
+      }
+      s++;
+    }
+    if (negative_exponent)
+      exponent = -exponent;
+  }
+  exponent += exponent_offset;
+  if (*s != '\0')
+    return false;
+  Float final_result =
+      traits::make_float(static_cast<Float>(mantissa), exponent);
+  result.setFloat(is_negative ? -final_result : final_result);
+  return true;
+}
+template <typename T>
+inline T parseNumber(const char* s) {
+  VariantData value;
+  value.init();  // VariantData is a POD, so it has no constructor
+  parseNumber(s, value);
+  return Converter<T>::fromJson(VariantConstRef(&value));
+}
+template <typename T>
+inline T VariantData::asIntegral() const {
+  switch (type()) {
+    case VALUE_IS_BOOLEAN:
+      return _content.asBoolean;
+    case VALUE_IS_UNSIGNED_INTEGER:
+      return convertNumber<T>(_content.asUnsignedInteger);
+    case VALUE_IS_SIGNED_INTEGER:
+      return convertNumber<T>(_content.asSignedInteger);
+    case VALUE_IS_LINKED_STRING:
+    case VALUE_IS_OWNED_STRING:
+      return parseNumber<T>(_content.asString.data);
+    case VALUE_IS_FLOAT:
+      return convertNumber<T>(_content.asFloat);
+    default:
+      return 0;
+  }
+}
+inline bool VariantData::asBoolean() const {
+  switch (type()) {
+    case VALUE_IS_BOOLEAN:
+      return _content.asBoolean;
+    case VALUE_IS_SIGNED_INTEGER:
+    case VALUE_IS_UNSIGNED_INTEGER:
+      return _content.asUnsignedInteger != 0;
+    case VALUE_IS_FLOAT:
+      return _content.asFloat != 0;
+    case VALUE_IS_NULL:
+      return false;
+    default:
+      return true;
+  }
+}
+template <typename T>
+inline T VariantData::asFloat() const {
+  switch (type()) {
+    case VALUE_IS_BOOLEAN:
+      return static_cast<T>(_content.asBoolean);
+    case VALUE_IS_UNSIGNED_INTEGER:
+      return static_cast<T>(_content.asUnsignedInteger);
+    case VALUE_IS_SIGNED_INTEGER:
+      return static_cast<T>(_content.asSignedInteger);
+    case VALUE_IS_LINKED_STRING:
+    case VALUE_IS_OWNED_STRING:
+      return parseNumber<T>(_content.asString.data);
+    case VALUE_IS_FLOAT:
+      return static_cast<T>(_content.asFloat);
+    default:
+      return 0;
+  }
+}
+inline String VariantData::asString() const {
+  switch (type()) {
+    case VALUE_IS_LINKED_STRING:
+      return String(_content.asString.data, _content.asString.size,
+                    String::Linked);
+    case VALUE_IS_OWNED_STRING:
+      return String(_content.asString.data, _content.asString.size,
+                    String::Copied);
+    default:
+      return String();
+  }
+}
+inline bool VariantData::copyFrom(const VariantData &src, MemoryPool *pool) {
+  switch (src.type()) {
+    case VALUE_IS_ARRAY:
+      return toArray().copyFrom(src._content.asCollection, pool);
+    case VALUE_IS_OBJECT:
+      return toObject().copyFrom(src._content.asCollection, pool);
+    case VALUE_IS_OWNED_STRING: {
+      String value = src.asString();
+      return storeString(adaptString(value), pool,
+                         getStringStoragePolicy(value));
+    }
+    case VALUE_IS_OWNED_RAW:
+      return storeOwnedRaw(
+          serialized(src._content.asString.data, src._content.asString.size),
+          pool);
+    default:
+      setType(src.type());
+      _content = src._content;
+      return true;
+  }
+}
+template <typename T>
+inline typename enable_if<is_same<T, ArrayRef>::value, ArrayRef>::type
+VariantRef::to() const {
+  return ArrayRef(_pool, variantToArray(_data));
+}
+template <typename T>
+typename enable_if<is_same<T, ObjectRef>::value, ObjectRef>::type
+VariantRef::to() const {
+  return ObjectRef(_pool, variantToObject(_data));
+}
+template <typename T>
+typename enable_if<is_same<T, VariantRef>::value, VariantRef>::type
+VariantRef::to() const {
+  variantSetNull(_data);
+  return *this;
+}
+inline VariantConstRef VariantConstRef::getElement(size_t index) const {
+  return ArrayConstRef(_data != 0 ? _data->asArray() : 0)[index];
+}
+inline VariantRef VariantRef::addElement() const {
+  return VariantRef(_pool, variantAddElement(_data, _pool));
+}
+inline VariantRef VariantRef::getElement(size_t index) const {
+  return VariantRef(_pool, _data != 0 ? _data->getElement(index) : 0);
+}
+inline VariantRef VariantRef::getOrAddElement(size_t index) const {
+  return VariantRef(_pool, variantGetOrAddElement(_data, index, _pool));
+}
+template <typename TChar>
+inline VariantRef VariantRef::getMember(TChar *key) const {
+  return VariantRef(_pool, _data != 0 ? _data->getMember(adaptString(key)) : 0);
+}
+template <typename TString>
+inline typename enable_if<IsString<TString>::value, VariantRef>::type
+VariantRef::getMember(const TString &key) const {
+  return VariantRef(_pool, _data != 0 ? _data->getMember(adaptString(key)) : 0);
+}
+template <typename TChar>
+inline VariantRef VariantRef::getOrAddMember(TChar *key) const {
+  return VariantRef(_pool, variantGetOrAddMember(_data, key, _pool));
+}
+template <typename TString>
+inline VariantRef VariantRef::getOrAddMember(const TString &key) const {
+  return VariantRef(_pool, variantGetOrAddMember(_data, key, _pool));
+}
+inline VariantConstRef operator|(VariantConstRef preferedValue,
+                                 VariantConstRef defaultValue) {
+  return preferedValue ? preferedValue : defaultValue;
+}
+inline bool VariantRef::set(char value) const {
+  return set(static_cast<signed char>(value));
+}
+template <typename TAdaptedString, typename TCallback>
+bool CopyStringStoragePolicy::store(TAdaptedString str, MemoryPool *pool,
+                                    TCallback callback) {
+  const char *copy = pool->saveString(str);
+  String storedString(copy, str.size(), String::Copied);
+  callback(storedString);
+  return copy != 0;
+}
+}  // namespace ARDUINOJSON_NAMESPACE
+#if ARDUINOJSON_ENABLE_STD_STREAM
+#endif
+namespace ARDUINOJSON_NAMESPACE {
+class DeserializationError : public SafeBoolIdom<DeserializationError> {
+ public:
+  enum Code {
+    Ok,
+    EmptyInput,
+    IncompleteInput,
+    InvalidInput,
+    NoMemory,
+    TooDeep
+  };
+  DeserializationError() {}
+  DeserializationError(Code c) : _code(c) {}
+  friend bool operator==(const DeserializationError& lhs,
+                         const DeserializationError& rhs) {
+    return lhs._code == rhs._code;
+  }
+  friend bool operator!=(const DeserializationError& lhs,
+                         const DeserializationError& rhs) {
+    return lhs._code != rhs._code;
+  }
+  friend bool operator==(const DeserializationError& lhs, Code rhs) {
+    return lhs._code == rhs;
+  }
+  friend bool operator==(Code lhs, const DeserializationError& rhs) {
+    return lhs == rhs._code;
+  }
+  friend bool operator!=(const DeserializationError& lhs, Code rhs) {
+    return lhs._code != rhs;
+  }
+  friend bool operator!=(Code lhs, const DeserializationError& rhs) {
+    return lhs != rhs._code;
+  }
+  operator bool_type() const {
+    return _code != Ok ? safe_true() : safe_false();
+  }
+  Code code() const {
+    return _code;
+  }
+  const char* c_str() const {
+    static const char* messages[] = {
+        "Ok",           "EmptyInput", "IncompleteInput",
+        "InvalidInput", "NoMemory",   "TooDeep"};
+    ARDUINOJSON_ASSERT(static_cast<size_t>(_code) <
+                       sizeof(messages) / sizeof(messages[0]));
+    return messages[_code];
+  }
+#if ARDUINOJSON_ENABLE_PROGMEM
+  const __FlashStringHelper* f_str() const {
+    ARDUINOJSON_DEFINE_STATIC_ARRAY(char, s0, "Ok");
+    ARDUINOJSON_DEFINE_STATIC_ARRAY(char, s1, "EmptyInput");
+    ARDUINOJSON_DEFINE_STATIC_ARRAY(char, s2, "IncompleteInput");
+    ARDUINOJSON_DEFINE_STATIC_ARRAY(char, s3, "InvalidInput");
+    ARDUINOJSON_DEFINE_STATIC_ARRAY(char, s4, "NoMemory");
+    ARDUINOJSON_DEFINE_STATIC_ARRAY(char, s5, "TooDeep");
+    ARDUINOJSON_DEFINE_STATIC_ARRAY(
+        const char*, messages, ARDUINOJSON_EXPAND6({s0, s1, s2, s3, s4, s5}));
+    return ARDUINOJSON_READ_STATIC_ARRAY(const __FlashStringHelper*, messages,
+                                         _code);
+  }
+#endif
+ private:
+  Code _code;
+};
+#if ARDUINOJSON_ENABLE_STD_STREAM
+inline std::ostream& operator<<(std::ostream& s,
+                                const DeserializationError& e) {
+  s << e.c_str();
+  return s;
+}
+inline std::ostream& operator<<(std::ostream& s, DeserializationError::Code c) {
+  s << DeserializationError(c).c_str();
+  return s;
+}
+#endif
+class Filter {
+ public:
+  explicit Filter(VariantConstRef v) : _variant(v) {}
+  bool allow() const {
+    return _variant;
+  }
+  bool allowArray() const {
+    return _variant == true || _variant.is<ArrayConstRef>();
+  }
+  bool allowObject() const {
+    return _variant == true || _variant.is<ObjectConstRef>();
+  }
+  bool allowValue() const {
+    return _variant == true;
+  }
+  template <typename TKey>
+  Filter operator[](const TKey& key) const {
+    if (_variant == true)  // "true" means "allow recursively"
+      return *this;
+    VariantConstRef member = _variant[key];
+    return Filter(member.isNull() ? _variant["*"] : member);
+  }
+ private:
+  VariantConstRef _variant;
+};
+struct AllowAllFilter {
+  bool allow() const {
+    return true;
+  }
+  bool allowArray() const {
+    return true;
+  }
+  bool allowObject() const {
+    return true;
+  }
+  bool allowValue() const {
+    return true;
+  }
+  template <typename TKey>
+  AllowAllFilter operator[](const TKey&) const {
+    return AllowAllFilter();
+  }
+};
+class NestingLimit {
+ public:
+  NestingLimit() : _value(ARDUINOJSON_DEFAULT_NESTING_LIMIT) {}
+  explicit NestingLimit(uint8_t n) : _value(n) {}
+  NestingLimit decrement() const {
+    ARDUINOJSON_ASSERT(_value > 0);
+    return NestingLimit(static_cast<uint8_t>(_value - 1));
+  }
+  bool reached() const {
+    return _value == 0;
+  }
+ private:
+  uint8_t _value;
+};
+template <typename TSource, typename Enable = void>
+struct Reader {
+ public:
+  Reader(TSource& source) : _source(&source) {}
+  int read() {
+    return _source->read();  // Error here? You passed an unsupported input type
+  }
+  size_t readBytes(char* buffer, size_t length) {
+    return _source->readBytes(buffer, length);
+  }
+ private:
+  TSource* _source;
+};
+template <typename TSource, typename Enable = void>
+struct BoundedReader {
+};
+template <typename TIterator>
+class IteratorReader {
+  TIterator _ptr, _end;
+ public:
+  explicit IteratorReader(TIterator begin, TIterator end)
+      : _ptr(begin), _end(end) {}
+  int read() {
+    if (_ptr < _end)
+      return static_cast<unsigned char>(*_ptr++);
+    else
+      return -1;
+  }
+  size_t readBytes(char* buffer, size_t length) {
+    size_t i = 0;
+    while (i < length && _ptr < _end) buffer[i++] = *_ptr++;
+    return i;
+  }
+};
+template <typename T>
+struct void_ {
+  typedef void type;
+};
+template <typename TSource>
+struct Reader<TSource, typename void_<typename TSource::const_iterator>::type>
+    : IteratorReader<typename TSource::const_iterator> {
+  explicit Reader(const TSource& source)
+      : IteratorReader<typename TSource::const_iterator>(source.begin(),
+                                                         source.end()) {}
+};
+template <typename T>
+struct IsCharOrVoid {
+  static const bool value =
+      is_same<T, void>::value || is_same<T, char>::value ||
+      is_same<T, unsigned char>::value || is_same<T, signed char>::value;
+};
+template <typename T>
+struct IsCharOrVoid<const T> : IsCharOrVoid<T> {};
+template <typename TSource>
+struct Reader<TSource*,
+              typename enable_if<IsCharOrVoid<TSource>::value>::type> {
+  const char* _ptr;
+ public:
+  explicit Reader(const void* ptr)
+      : _ptr(ptr ? reinterpret_cast<const char*>(ptr) : "") {}
+  int read() {
+    return static_cast<unsigned char>(*_ptr++);
+  }
+  size_t readBytes(char* buffer, size_t length) {
+    for (size_t i = 0; i < length; i++) buffer[i] = *_ptr++;
+    return length;
+  }
+};
+template <typename TSource>
+struct BoundedReader<TSource*,
+                     typename enable_if<IsCharOrVoid<TSource>::value>::type>
+    : public IteratorReader<const char*> {
+ public:
+  explicit BoundedReader(const void* ptr, size_t len)
+      : IteratorReader<const char*>(reinterpret_cast<const char*>(ptr),
+                                    reinterpret_cast<const char*>(ptr) + len) {}
+};
+template <typename TArray>
+struct Reader<ElementProxy<TArray>, void> : Reader<char*, void> {
+  explicit Reader(const ElementProxy<TArray>& x)
+      : Reader<char*, void>(x.template as<const char*>()) {}
+};
+template <typename TObject, typename TStringRef>
+struct Reader<MemberProxy<TObject, TStringRef>, void> : Reader<char*, void> {
+  explicit Reader(const MemberProxy<TObject, TStringRef>& x)
+      : Reader<char*, void>(x.template as<const char*>()) {}
+};
+template <>
+struct Reader<VariantRef, void> : Reader<char*, void> {
+  explicit Reader(VariantRef x) : Reader<char*, void>(x.as<const char*>()) {}
+};
+template <>
+struct Reader<VariantConstRef, void> : Reader<char*, void> {
+  explicit Reader(VariantConstRef x)
+      : Reader<char*, void>(x.as<const char*>()) {}
+};
+}  // namespace ARDUINOJSON_NAMESPACE
+#if ARDUINOJSON_ENABLE_ARDUINO_STREAM
+namespace ARDUINOJSON_NAMESPACE {
+template <typename TSource>
+struct Reader<TSource,
+              typename enable_if<is_base_of<Stream, TSource>::value>::type> {
+ public:
+  explicit Reader(Stream& stream) : _stream(&stream) {}
+  int read() {
+    char c;
+    return _stream->readBytes(&c, 1) ? static_cast<unsigned char>(c) : -1;
+  }
+  size_t readBytes(char* buffer, size_t length) {
+    return _stream->readBytes(buffer, length);
+  }
+ private:
+  Stream* _stream;
+};
+}  // namespace ARDUINOJSON_NAMESPACE
+#endif
+#if ARDUINOJSON_ENABLE_ARDUINO_STRING
+namespace ARDUINOJSON_NAMESPACE {
+template <typename TSource>
+struct Reader<TSource,
+              typename enable_if<is_base_of< ::String, TSource>::value>::type>
+    : BoundedReader<const char*> {
+  explicit Reader(const ::String& s)
+      : BoundedReader<const char*>(s.c_str(), s.length()) {}
+};
+}  // namespace ARDUINOJSON_NAMESPACE
+#endif
+#if ARDUINOJSON_ENABLE_PROGMEM
+namespace ARDUINOJSON_NAMESPACE {
+template <>
+struct Reader<const __FlashStringHelper*, void> {
+  const char* _ptr;
+ public:
+  explicit Reader(const __FlashStringHelper* ptr)
+      : _ptr(reinterpret_cast<const char*>(ptr)) {}
+  int read() {
+    return pgm_read_byte(_ptr++);
+  }
+  size_t readBytes(char* buffer, size_t length) {
+    memcpy_P(buffer, _ptr, length);
+    _ptr += length;
+    return length;
+  }
+};
+template <>
+struct BoundedReader<const __FlashStringHelper*, void> {
+  const char* _ptr;
+  const char* _end;
+ public:
+  explicit BoundedReader(const __FlashStringHelper* ptr, size_t size)
+      : _ptr(reinterpret_cast<const char*>(ptr)), _end(_ptr + size) {}
+  int read() {
+    if (_ptr < _end)
+      return pgm_read_byte(_ptr++);
+    else
+      return -1;
+  }
+  size_t readBytes(char* buffer, size_t length) {
+    size_t available = static_cast<size_t>(_end - _ptr);
+    if (available < length)
+      length = available;
+    memcpy_P(buffer, _ptr, length);
+    _ptr += length;
+    return length;
+  }
+};
+}  // namespace ARDUINOJSON_NAMESPACE
+#endif
+#if ARDUINOJSON_ENABLE_STD_STREAM
+#include <istream>
+namespace ARDUINOJSON_NAMESPACE {
+template <typename TSource>
+struct Reader<TSource, typename enable_if<
+                           is_base_of<std::istream, TSource>::value>::type> {
+ public:
+  explicit Reader(std::istream& stream) : _stream(&stream) {}
+  int read() {
+    return _stream->get();
+  }
+  size_t readBytes(char* buffer, size_t length) {
+    _stream->read(buffer, static_cast<std::streamsize>(length));
+    return static_cast<size_t>(_stream->gcount());
+  }
+ private:
+  std::istream* _stream;
+};
+}  // namespace ARDUINOJSON_NAMESPACE
+#endif
+namespace ARDUINOJSON_NAMESPACE {
+class StringCopier {
+ public:
+  StringCopier(MemoryPool& pool) : _pool(&pool) {}
+  void startString() {
+    _pool->getFreeZone(&_ptr, &_capacity);
+    _size = 0;
+    if (_capacity == 0)
+      _pool->markAsOverflowed();
+  }
+  String save() {
+    ARDUINOJSON_ASSERT(_ptr);
+    ARDUINOJSON_ASSERT(_size < _capacity);  // needs room for the terminator
+    return String(_pool->saveStringFromFreeZone(_size), _size, String::Copied);
+  }
+  void append(const char* s) {
+    while (*s) append(*s++);
+  }
+  void append(const char* s, size_t n) {
+    while (n-- > 0) append(*s++);
+  }
+  void append(char c) {
+    if (_size + 1 < _capacity)
+      _ptr[_size++] = c;
+    else
+      _pool->markAsOverflowed();
+  }
+  bool isValid() const {
+    return !_pool->overflowed();
+  }
+  size_t size() const {
+    return _size;
+  }
+  String str() const {
+    ARDUINOJSON_ASSERT(_ptr);
+    ARDUINOJSON_ASSERT(_size < _capacity);
+    _ptr[_size] = 0;
+    return String(_ptr, _size, String::Copied);
+  }
+ private:
+  MemoryPool* _pool;
+  char* _ptr;
+  size_t _size, _capacity;
+};
+class StringMover {
+ public:
+  StringMover(char* ptr) : _writePtr(ptr) {}
+  void startString() {
+    _startPtr = _writePtr;
+  }
+  FORCE_INLINE String save() {
+    String s = str();
+    _writePtr++;
+    return s;
+  }
+  void append(char c) {
+    *_writePtr++ = c;
+  }
+  bool isValid() const {
+    return true;
+  }
+  String str() const {
+    _writePtr[0] = 0;  // terminator
+    return String(_startPtr, size(), String::Linked);
+  }
+  size_t size() const {
+    return size_t(_writePtr - _startPtr);
+  }
+ private:
+  char* _writePtr;
+  char* _startPtr;
+};
+template <typename TInput>
+StringCopier makeStringStorage(TInput&, MemoryPool& pool) {
+  return StringCopier(pool);
+}
+template <typename TChar>
+StringMover makeStringStorage(
+    TChar* input, MemoryPool&,
+    typename enable_if<!is_const<TChar>::value>::type* = 0) {
+  return StringMover(reinterpret_cast<char*>(input));
+}
+template <template <typename, typename> class TDeserializer, typename TReader,
+          typename TWriter>
+TDeserializer<TReader, TWriter> makeDeserializer(MemoryPool &pool,
+                                                 TReader reader,
+                                                 TWriter writer) {
+  return TDeserializer<TReader, TWriter>(pool, reader, writer);
+}
+template <template <typename, typename> class TDeserializer, typename TString,
+          typename TFilter>
+typename enable_if<!is_array<TString>::value, DeserializationError>::type
+deserialize(JsonDocument &doc, const TString &input, NestingLimit nestingLimit,
+            TFilter filter) {
+  Reader<TString> reader(input);
+  doc.clear();
+  return makeDeserializer<TDeserializer>(
+             doc.memoryPool(), reader,
+             makeStringStorage(input, doc.memoryPool()))
+      .parse(doc.data(), filter, nestingLimit);
+}
+template <template <typename, typename> class TDeserializer, typename TChar,
+          typename TFilter>
+DeserializationError deserialize(JsonDocument &doc, TChar *input,
+                                 size_t inputSize, NestingLimit nestingLimit,
+                                 TFilter filter) {
+  BoundedReader<TChar *> reader(input, inputSize);
+  doc.clear();
+  return makeDeserializer<TDeserializer>(
+             doc.memoryPool(), reader,
+             makeStringStorage(input, doc.memoryPool()))
+      .parse(doc.data(), filter, nestingLimit);
+}
+template <template <typename, typename> class TDeserializer, typename TStream,
+          typename TFilter>
+DeserializationError deserialize(JsonDocument &doc, TStream &input,
+                                 NestingLimit nestingLimit, TFilter filter) {
+  Reader<TStream> reader(input);
+  doc.clear();
+  return makeDeserializer<TDeserializer>(
+             doc.memoryPool(), reader,
+             makeStringStorage(input, doc.memoryPool()))
+      .parse(doc.data(), filter, nestingLimit);
+}
+template <typename TReader>
+class Latch {
+ public:
+  Latch(TReader reader) : _reader(reader), _loaded(false) {
+#if ARDUINOJSON_DEBUG
+    _ended = false;
+#endif
+  }
+  void clear() {
+    _loaded = false;
+  }
+  int last() const {
+    return _current;
+  }
+  FORCE_INLINE char current() {
+    if (!_loaded) {
+      load();
+    }
+    return _current;
+  }
+ private:
+  void load() {
+    ARDUINOJSON_ASSERT(!_ended);
+    int c = _reader.read();
+#if ARDUINOJSON_DEBUG
+    if (c <= 0)
+      _ended = true;
+#endif
+    _current = static_cast<char>(c > 0 ? c : 0);
+    _loaded = true;
+  }
+  TReader _reader;
+  char _current;  // NOLINT(clang-analyzer-optin.cplusplus.UninitializedObject)
+  bool _loaded;
+#if ARDUINOJSON_DEBUG
+  bool _ended;
+#endif
+};
+}  // namespace ARDUINOJSON_NAMESPACE
+#if defined(__GNUC__)
+#  if __GNUC__ >= 7
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#  endif
+#endif
+namespace ARDUINOJSON_NAMESPACE {
+namespace Utf16 {
+inline bool isHighSurrogate(uint16_t codeunit) {
+  return codeunit >= 0xD800 && codeunit < 0xDC00;
+}
+inline bool isLowSurrogate(uint16_t codeunit) {
+  return codeunit >= 0xDC00 && codeunit < 0xE000;
+}
+class Codepoint {
+ public:
+  Codepoint() : _highSurrogate(0), _codepoint(0) {}
+  bool append(uint16_t codeunit) {
+    if (isHighSurrogate(codeunit)) {
+      _highSurrogate = codeunit & 0x3FF;
+      return false;
+    }
+    if (isLowSurrogate(codeunit)) {
+      _codepoint =
+          uint32_t(0x10000 + ((_highSurrogate << 10) | (codeunit & 0x3FF)));
+      return true;
+    }
+    _codepoint = codeunit;
+    return true;
+  }
+  uint32_t value() const {
+    return _codepoint;
+  }
+ private:
+  uint16_t _highSurrogate;
+  uint32_t _codepoint;
+};
+}  // namespace Utf16
+}  // namespace ARDUINOJSON_NAMESPACE
+#if defined(__GNUC__)
+#  if __GNUC__ >= 8
+#    pragma GCC diagnostic pop
+#  endif
+#endif
+namespace ARDUINOJSON_NAMESPACE {
+namespace Utf8 {
+template <typename TStringBuilder>
+inline void encodeCodepoint(uint32_t codepoint32, TStringBuilder& str) {
+  if (codepoint32 < 0x80) {
+    str.append(char(codepoint32));
+  } else {
+    char buf[5];
+    char* p = buf;
+    *(p++) = 0;
+    *(p++) = char((codepoint32 | 0x80) & 0xBF);
+    uint16_t codepoint16 = uint16_t(codepoint32 >> 6);
+    if (codepoint16 < 0x20) {  // 0x800
+      *(p++) = char(codepoint16 | 0xC0);
+    } else {
+      *(p++) = char((codepoint16 | 0x80) & 0xBF);
+      codepoint16 = uint16_t(codepoint16 >> 6);
+      if (codepoint16 < 0x10) {  // 0x10000
+        *(p++) = char(codepoint16 | 0xE0);
+      } else {
+        *(p++) = char((codepoint16 | 0x80) & 0xBF);
+        codepoint16 = uint16_t(codepoint16 >> 6);
+        *(p++) = char(codepoint16 | 0xF0);
+      }
+    }
+    while (*(--p)) {
+      str.append(*p);
+    }
+  }
+}
+}  // namespace Utf8
+template <typename TReader, typename TStringStorage>
+class JsonDeserializer {
+ public:
+  JsonDeserializer(MemoryPool &pool, TReader reader,
+                   TStringStorage stringStorage)
+      : _stringStorage(stringStorage),
+        _foundSomething(false),
+        _latch(reader),
+        _pool(&pool),
+        _error(DeserializationError::Ok) {}
+  template <typename TFilter>
+  DeserializationError parse(VariantData &variant, TFilter filter,
+                             NestingLimit nestingLimit) {
+    parseVariant(variant, filter, nestingLimit);
+    if (!_error && _latch.last() != 0 && !variant.isEnclosed()) {
+      return DeserializationError::InvalidInput;
+    }
+    return _error;
+  }
+ private:
+  char current() {
+    return _latch.current();
+  }
+  void move() {
+    _latch.clear();
+  }
+  bool eat(char charToSkip) {
+    if (current() != charToSkip)
+      return false;
+    move();
+    return true;
+  }
+  template <typename TFilter>
+  bool parseVariant(VariantData &variant, TFilter filter,
+                    NestingLimit nestingLimit) {
+    if (!skipSpacesAndComments())
+      return false;
+    switch (current()) {
+      case '[':
+        if (filter.allowArray())
+          return parseArray(variant.toArray(), filter, nestingLimit);
+        else
+          return skipArray(nestingLimit);
+      case '{':
+        if (filter.allowObject())
+          return parseObject(variant.toObject(), filter, nestingLimit);
+        else
+          return skipObject(nestingLimit);
+      case '\"':
+      case '\'':
+        if (filter.allowValue())
+          return parseStringValue(variant);
+        else
+          return skipString();
+      default:
+        if (filter.allowValue())
+          return parseNumericValue(variant);
+        else
+          return skipNumericValue();
+    }
+  }
+  bool skipVariant(NestingLimit nestingLimit) {
+    if (!skipSpacesAndComments())
+      return false;
+    switch (current()) {
+      case '[':
+        return skipArray(nestingLimit);
+      case '{':
+        return skipObject(nestingLimit);
+      case '\"':
+      case '\'':
+        return skipString();
+      default:
+        return skipNumericValue();
+    }
+  }
+  template <typename TFilter>
+  bool parseArray(CollectionData &array, TFilter filter,
+                  NestingLimit nestingLimit) {
+    if (nestingLimit.reached()) {
+      _error = DeserializationError::TooDeep;
+      return false;
+    }
+    ARDUINOJSON_ASSERT(current() == '[');
+    move();
+    if (!skipSpacesAndComments())
+      return false;
+    if (eat(']'))
+      return true;
+    TFilter memberFilter = filter[0UL];
+    for (;;) {
+      if (memberFilter.allow()) {
+        VariantData *value = array.addElement(_pool);
+        if (!value) {
+          _error = DeserializationError::NoMemory;
+          return false;
+        }
+        if (!parseVariant(*value, memberFilter, nestingLimit.decrement()))
+          return false;
+      } else {
+        if (!skipVariant(nestingLimit.decrement()))
+          return false;
+      }
+      if (!skipSpacesAndComments())
+        return false;
+      if (eat(']'))
+        return true;
+      if (!eat(',')) {
+        _error = DeserializationError::InvalidInput;
+        return false;
+      }
+    }
+  }
+  bool skipArray(NestingLimit nestingLimit) {
+    if (nestingLimit.reached()) {
+      _error = DeserializationError::TooDeep;
+      return false;
+    }
+    ARDUINOJSON_ASSERT(current() == '[');
+    move();
+    for (;;) {
+      if (!skipVariant(nestingLimit.decrement()))
+        return false;
+      if (!skipSpacesAndComments())
+        return false;
+      if (eat(']'))
+        return true;
+      if (!eat(',')) {
+        _error = DeserializationError::InvalidInput;
+        return false;
+      }
+    }
+  }
+  template <typename TFilter>
+  bool parseObject(CollectionData &object, TFilter filter,
+                   NestingLimit nestingLimit) {
+    if (nestingLimit.reached()) {
+      _error = DeserializationError::TooDeep;
+      return false;
+    }
+    ARDUINOJSON_ASSERT(current() == '{');
+    move();
+    if (!skipSpacesAndComments())
+      return false;
+    if (eat('}'))
+      return true;
+    for (;;) {
+      if (!parseKey())
+        return false;
+      if (!skipSpacesAndComments())
+        return false;
+      if (!eat(':')) {
+        _error = DeserializationError::InvalidInput;
+        return false;
+      }
+      String key = _stringStorage.str();
+      TFilter memberFilter = filter[key.c_str()];
+      if (memberFilter.allow()) {
+        VariantData *variant = object.getMember(adaptString(key.c_str()));
+        if (!variant) {
+          key = _stringStorage.save();
+          VariantSlot *slot = object.addSlot(_pool);
+          if (!slot) {
+            _error = DeserializationError::NoMemory;
+            return false;
+          }
+          slot->setKey(key);
+          variant = slot->data();
+        }
+        if (!parseVariant(*variant, memberFilter, nestingLimit.decrement()))
+          return false;
+      } else {
+        if (!skipVariant(nestingLimit.decrement()))
+          return false;
+      }
+      if (!skipSpacesAndComments())
+        return false;
+      if (eat('}'))
+        return true;
+      if (!eat(',')) {
+        _error = DeserializationError::InvalidInput;
+        return false;
+      }
+      if (!skipSpacesAndComments())
+        return false;
+    }
+  }
+  bool skipObject(NestingLimit nestingLimit) {
+    if (nestingLimit.reached()) {
+      _error = DeserializationError::TooDeep;
+      return false;
+    }
+    ARDUINOJSON_ASSERT(current() == '{');
+    move();
+    if (!skipSpacesAndComments())
+      return false;
+    if (eat('}'))
+      return true;
+    for (;;) {
+      if (!skipVariant(nestingLimit.decrement()))
+        return false;
+      if (!skipSpacesAndComments())
+        return false;
+      if (!eat(':')) {
+        _error = DeserializationError::InvalidInput;
+        return false;
+      }
+      if (!skipVariant(nestingLimit.decrement()))
+        return false;
+      if (!skipSpacesAndComments())
+        return false;
+      if (eat('}'))
+        return true;
+      if (!eat(',')) {
+        _error = DeserializationError::InvalidInput;
+        return false;
+      }
+    }
+  }
+  bool parseKey() {
+    _stringStorage.startString();
+    if (isQuote(current())) {
+      return parseQuotedString();
+    } else {
+      return parseNonQuotedString();
+    }
+  }
+  bool parseStringValue(VariantData &variant) {
+    _stringStorage.startString();
+    if (!parseQuotedString())
+      return false;
+    variant.setString(_stringStorage.save());
+    return true;
+  }
+  bool parseQuotedString() {
+#if ARDUINOJSON_DECODE_UNICODE
+    Utf16::Codepoint codepoint;
+#endif
+    const char stopChar = current();
+    move();
+    for (;;) {
+      char c = current();
+      move();
+      if (c == stopChar)
+        break;
+      if (c == '\0') {
+        _error = DeserializationError::IncompleteInput;
+        return false;
+      }
+      if (c == '\\') {
+        c = current();
+        if (c == '\0') {
+          _error = DeserializationError::IncompleteInput;
+          return false;
+        }
+        if (c == 'u') {
+#if ARDUINOJSON_DECODE_UNICODE
+          move();
+          uint16_t codeunit;
+          if (!parseHex4(codeunit))
+            return false;
+          if (codepoint.append(codeunit))
+            Utf8::encodeCodepoint(codepoint.value(), _stringStorage);
+#else
+          _stringStorage.append('\\');
+#endif
+          continue;
+        }
+        c = EscapeSequence::unescapeChar(c);
+        if (c == '\0') {
+          _error = DeserializationError::InvalidInput;
+          return false;
+        }
+        move();
+      }
+      _stringStorage.append(c);
+    }
+    if (!_stringStorage.isValid()) {
+      _error = DeserializationError::NoMemory;
+      return false;
+    }
+    return true;
+  }
+  bool parseNonQuotedString() {
+    char c = current();
+    ARDUINOJSON_ASSERT(c);
+    if (canBeInNonQuotedString(c)) {  // no quotes
+      do {
+        move();
+        _stringStorage.append(c);
+        c = current();
+      } while (canBeInNonQuotedString(c));
+    } else {
+      _error = DeserializationError::InvalidInput;
+      return false;
+    }
+    if (!_stringStorage.isValid()) {
+      _error = DeserializationError::NoMemory;
+      return false;
+    }
+    return true;
+  }
+  bool skipString() {
+    const char stopChar = current();
+    move();
+    for (;;) {
+      char c = current();
+      move();
+      if (c == stopChar)
+        break;
+      if (c == '\0') {
+        _error = DeserializationError::IncompleteInput;
+        return false;
+      }
+      if (c == '\\') {
+        if (current() != '\0')
+          move();
+      }
+    }
+    return true;
+  }
+  bool parseNumericValue(VariantData &result) {
+    uint8_t n = 0;
+    char c = current();
+    while (canBeInNonQuotedString(c) && n < 63) {
+      move();
+      _buffer[n++] = c;
+      c = current();
+    }
+    _buffer[n] = 0;
+    c = _buffer[0];
+    if (c == 't') {  // true
+      result.setBoolean(true);
+      if (n != 4) {
+        _error = DeserializationError::IncompleteInput;
+        return false;
+      }
+      return true;
+    }
+    if (c == 'f') {  // false
+      result.setBoolean(false);
+      if (n != 5) {
+        _error = DeserializationError::IncompleteInput;
+        return false;
+      }
+      return true;
+    }
+    if (c == 'n') {  // null
+      if (n != 4) {
+        _error = DeserializationError::IncompleteInput;
+        return false;
+      }
+      return true;
+    }
+    if (!parseNumber(_buffer, result)) {
+      _error = DeserializationError::InvalidInput;
+      return false;
+    }
+    return true;
+  }
+  bool skipNumericValue() {
+    char c = current();
+    while (canBeInNonQuotedString(c)) {
+      move();
+      c = current();
+    }
+    return true;
+  }
+  bool parseHex4(uint16_t &result) {
+    result = 0;
+    for (uint8_t i = 0; i < 4; ++i) {
+      char digit = current();
+      if (!digit) {
+        _error = DeserializationError::IncompleteInput;
+        return false;
+      }
+      uint8_t value = decodeHex(digit);
+      if (value > 0x0F) {
+        _error = DeserializationError::InvalidInput;
+        return false;
+      }
+      result = uint16_t((result << 4) | value);
+      move();
+    }
+    return true;
+  }
+  static inline bool isBetween(char c, char min, char max) {
+    return min <= c && c <= max;
+  }
+  static inline bool canBeInNonQuotedString(char c) {
+    return isBetween(c, '0', '9') || isBetween(c, '_', 'z') ||
+           isBetween(c, 'A', 'Z') || c == '+' || c == '-' || c == '.';
+  }
+  static inline bool isQuote(char c) {
+    return c == '\'' || c == '\"';
+  }
+  static inline uint8_t decodeHex(char c) {
+    if (c < 'A')
+      return uint8_t(c - '0');
+    c = char(c & ~0x20);  // uppercase
+    return uint8_t(c - 'A' + 10);
+  }
+  bool skipSpacesAndComments() {
+    for (;;) {
+      switch (current()) {
+        case '\0':
+          _error = _foundSomething ? DeserializationError::IncompleteInput
+                                   : DeserializationError::EmptyInput;
+          return false;
+        case ' ':
+        case '\t':
+        case '\r':
+        case '\n':
+          move();
+          continue;
+#if ARDUINOJSON_ENABLE_COMMENTS
+        case '/':
+          move();  // skip '/'
+          switch (current()) {
+            case '*': {
+              move();  // skip '*'
+              bool wasStar = false;
+              for (;;) {
+                char c = current();
+                if (c == '\0') {
+                  _error = DeserializationError::IncompleteInput;
+                  return false;
+                }
+                if (c == '/' && wasStar) {
+                  move();
+                  break;
+                }
+                wasStar = c == '*';
+                move();
+              }
+              break;
+            }
+            case '/':
+              for (;;) {
+                move();
+                char c = current();
+                if (c == '\0') {
+                  _error = DeserializationError::IncompleteInput;
+                  return false;
+                }
+                if (c == '\n')
+                  break;
+              }
+              break;
+            default:
+              _error = DeserializationError::InvalidInput;
+              return false;
+          }
+          break;
+#endif
+        default:
+          _foundSomething = true;
+          return true;
+      }
+    }
+  }
+  TStringStorage _stringStorage;
+  bool _foundSomething;
+  Latch<TReader> _latch;
+  MemoryPool *_pool;
+  char _buffer[64];  // using a member instead of a local variable because it
+  DeserializationError _error;
+};
+template <typename TString>
+DeserializationError deserializeJson(
+    JsonDocument &doc, const TString &input,
+    NestingLimit nestingLimit = NestingLimit()) {
+  return deserialize<JsonDeserializer>(doc, input, nestingLimit,
+                                       AllowAllFilter());
+}
+template <typename TString>
+DeserializationError deserializeJson(
+    JsonDocument &doc, const TString &input, Filter filter,
+    NestingLimit nestingLimit = NestingLimit()) {
+  return deserialize<JsonDeserializer>(doc, input, nestingLimit, filter);
+}
+template <typename TString>
+DeserializationError deserializeJson(JsonDocument &doc, const TString &input,
+                                     NestingLimit nestingLimit, Filter filter) {
+  return deserialize<JsonDeserializer>(doc, input, nestingLimit, filter);
+}
+template <typename TStream>
+DeserializationError deserializeJson(
+    JsonDocument &doc, TStream &input,
+    NestingLimit nestingLimit = NestingLimit()) {
+  return deserialize<JsonDeserializer>(doc, input, nestingLimit,
+                                       AllowAllFilter());
+}
+template <typename TStream>
+DeserializationError deserializeJson(
+    JsonDocument &doc, TStream &input, Filter filter,
+    NestingLimit nestingLimit = NestingLimit()) {
+  return deserialize<JsonDeserializer>(doc, input, nestingLimit, filter);
+}
+template <typename TStream>
+DeserializationError deserializeJson(JsonDocument &doc, TStream &input,
+                                     NestingLimit nestingLimit, Filter filter) {
+  return deserialize<JsonDeserializer>(doc, input, nestingLimit, filter);
+}
+template <typename TChar>
+DeserializationError deserializeJson(
+    JsonDocument &doc, TChar *input,
+    NestingLimit nestingLimit = NestingLimit()) {
+  return deserialize<JsonDeserializer>(doc, input, nestingLimit,
+                                       AllowAllFilter());
+}
+template <typename TChar>
+DeserializationError deserializeJson(
+    JsonDocument &doc, TChar *input, Filter filter,
+    NestingLimit nestingLimit = NestingLimit()) {
+  return deserialize<JsonDeserializer>(doc, input, nestingLimit, filter);
+}
+template <typename TChar>
+DeserializationError deserializeJson(JsonDocument &doc, TChar *input,
+                                     NestingLimit nestingLimit, Filter filter) {
+  return deserialize<JsonDeserializer>(doc, input, nestingLimit, filter);
+}
+template <typename TChar>
+DeserializationError deserializeJson(
+    JsonDocument &doc, TChar *input, size_t inputSize,
+    NestingLimit nestingLimit = NestingLimit()) {
+  return deserialize<JsonDeserializer>(doc, input, inputSize, nestingLimit,
+                                       AllowAllFilter());
+}
+template <typename TChar>
+DeserializationError deserializeJson(
+    JsonDocument &doc, TChar *input, size_t inputSize, Filter filter,
+    NestingLimit nestingLimit = NestingLimit()) {
+  return deserialize<JsonDeserializer>(doc, input, inputSize, nestingLimit,
+                                       filter);
+}
+template <typename TChar>
+DeserializationError deserializeJson(JsonDocument &doc, TChar *input,
+                                     size_t inputSize,
+                                     NestingLimit nestingLimit, Filter filter) {
+  return deserialize<JsonDeserializer>(doc, input, inputSize, nestingLimit,
+                                       filter);
+}
 template <typename TWriter>
 class PrettyJsonSerializer : public JsonSerializer<TWriter> {
   typedef JsonSerializer<TWriter> base;
@@ -6559,36 +6613,24 @@ template <typename TSource>
 size_t measureJsonPretty(const TSource &source) {
   return measure<PrettyJsonSerializer>(source);
 }
-template <typename T>
-inline void swap(T& a, T& b) {
-  T t(a);
+#if ARDUINOJSON_LITTLE_ENDIAN
+inline void swapBytes(uint8_t &a, uint8_t &b) {
+  uint8_t t(a);
   a = b;
   b = t;
 }
-#if ARDUINOJSON_HAS_RVALUE_REFERENCES
-template <typename T>
-typename remove_reference<T>::type&& move(T&& t) {
-  return static_cast<typename remove_reference<T>::type&&>(t);
-}
-#else
-template <typename T>
-T& move(T& t) {
-  return t;
-}
-#endif
-#if ARDUINOJSON_LITTLE_ENDIAN
 inline void fixEndianess(uint8_t *p, integral_constant<size_t, 8>) {
-  swap(p[0], p[7]);
-  swap(p[1], p[6]);
-  swap(p[2], p[5]);
-  swap(p[3], p[4]);
+  swapBytes(p[0], p[7]);
+  swapBytes(p[1], p[6]);
+  swapBytes(p[2], p[5]);
+  swapBytes(p[3], p[4]);
 }
 inline void fixEndianess(uint8_t *p, integral_constant<size_t, 4>) {
-  swap(p[0], p[3]);
-  swap(p[1], p[2]);
+  swapBytes(p[0], p[3]);
+  swapBytes(p[1], p[2]);
 }
 inline void fixEndianess(uint8_t *p, integral_constant<size_t, 2>) {
-  swap(p[0], p[1]);
+  swapBytes(p[0], p[1]);
 }
 inline void fixEndianess(uint8_t *, integral_constant<size_t, 1>) {}
 template <typename T>
@@ -6635,6 +6677,9 @@ class MsgPackDeserializer {
       return false;
     _foundSomething = true;
     bool allowValue = filter.allowValue();
+    if (allowValue) {
+      ARDUINOJSON_ASSERT(variant != 0);
+    }
     switch (code) {
       case 0xc0:
         return true;
@@ -6868,8 +6913,7 @@ class MsgPackDeserializer {
   bool readString(VariantData *variant, size_t n) {
     if (!readString(n))
       return false;
-    variant->setStringPointer(_stringStorage.save(),
-                              typename TStringStorage::storage_policy());
+    variant->setString(_stringStorage.save());
     return true;
   }
   bool readString(size_t n) {
@@ -6880,7 +6924,6 @@ class MsgPackDeserializer {
         return false;
       _stringStorage.append(static_cast<char>(c));
     }
-    _stringStorage.append('\0');
     if (!_stringStorage.isValid()) {
       _error = DeserializationError::NoMemory;
       return false;
@@ -6940,17 +6983,18 @@ class MsgPackDeserializer {
     for (; n; --n) {
       if (!readKey())
         return false;
-      const char *key = _stringStorage.c_str();
-      TFilter memberFilter = filter[key];
+      String key = _stringStorage.str();
+      TFilter memberFilter = filter[key.c_str()];
       VariantData *member;
       if (memberFilter.allow()) {
+        ARDUINOJSON_ASSERT(object);
         key = _stringStorage.save();
         VariantSlot *slot = object->addSlot(_pool);
         if (!slot) {
           _error = DeserializationError::NoMemory;
           return false;
         }
-        slot->setKey(key, typename TStringStorage::storage_policy());
+        slot->setKey(key);
         member = slot->data();
       } else {
         member = 0;
@@ -6982,7 +7026,7 @@ class MsgPackDeserializer {
     T size;
     if (!readInteger(size))
       return false;
-    return skipBytes(size + 1);
+    return skipBytes(size + 1U);
   }
   MemoryPool *_pool;
   TReader _reader;
@@ -7076,6 +7120,11 @@ class MsgPackSerializer : public Visitor<size_t> {
   MsgPackSerializer(TWriter writer) : _writer(writer) {}
   template <typename T>
   typename enable_if<sizeof(T) == 4, size_t>::type visitFloat(T value32) {
+    if (canConvertNumber<Integer>(value32)) {
+      Integer truncatedValue = Integer(value32);
+      if (value32 == T(truncatedValue))
+        return visitSignedInteger(truncatedValue);
+    }
     writeByte(0xCA);
     writeInteger(value32);
     return bytesWritten();
@@ -7084,13 +7133,10 @@ class MsgPackSerializer : public Visitor<size_t> {
   ARDUINOJSON_NO_SANITIZE("float-cast-overflow")
   typename enable_if<sizeof(T) == 8, size_t>::type visitFloat(T value64) {
     float value32 = float(value64);
-    if (value32 == value64) {
-      writeByte(0xCA);
-      writeInteger(value32);
-    } else {
-      writeByte(0xCB);
-      writeInteger(value64);
-    }
+    if (value32 == value64)
+      return visitFloat(value32);
+    writeByte(0xCB);
+    writeInteger(value64);
     return bytesWritten();
   }
   size_t visitArray(const CollectionData& array) {
@@ -7127,8 +7173,10 @@ class MsgPackSerializer : public Visitor<size_t> {
     return bytesWritten();
   }
   size_t visitString(const char* value) {
+    return visitString(value, strlen(value));
+  }
+  size_t visitString(const char* value, size_t n) {
     ARDUINOJSON_ASSERT(value != NULL);
-    size_t n = strlen(value);
     if (n < 0x20) {
       writeByte(uint8_t(0xA0 + n));
     } else if (n < 0x100) {

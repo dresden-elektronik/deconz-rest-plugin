@@ -2,8 +2,8 @@
   "schema": "devcap1.schema.json",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.magnet.acn001",
-  "vendor": "Xiaomi Aqara",
-  "product": "Open/close sensor MCCGQ14LM",
+  "vendor": "Xiaomi",
+  "product": "Aqara open/close sensor MCCGQ14LM",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -48,7 +48,18 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "awake": true,
+          "parse": {
+            "at": "0x00f7",
+            "ep": 1,
+            "fn": "xiaomi:special",
+            "idx": "0x08",
+            "script": "xiaomi_swversion.js"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "attr/type"

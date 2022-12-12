@@ -15,6 +15,54 @@
 #include "utils.h"
 #include "resource.h"
 
+unsigned U_StringLength(const char *str)
+{
+    unsigned result = 0;
+
+    if (str && str[0])
+    {
+        result = (unsigned)strlen(str);
+    }
+
+    return result;
+}
+
+uint64_t U_ParseUint64(const char *str, int len, int base)
+{
+    uint64_t result = 0;
+
+    DBG_Assert(str != nullptr);
+    DBG_Assert(len == -1 || len > 0);
+
+    if (!str || !(len == -1 || len > 0))
+    {
+        return result;
+    }
+
+    if (!(base == 2 || base == 10 || base == 16))
+    {
+        return result;
+    }
+
+    if (len == -1)
+    {
+        len = (int)U_StringLength(str);
+    }
+
+    if (len > 0)
+    {
+        char *endp;
+        errno = 0;
+        result = (uint64_t)strtoull(str, &endp, base);
+        if (errno != 0)
+        {
+            result = 0;
+        }
+    }
+
+    return result;
+}
+
 /*! Generates a new uniqueid in various formats based on the input parameters.
 
     extAddress           endpoint  cluster    result
@@ -147,7 +195,7 @@ bool startsWith(QLatin1String str, QLatin1String needle)
 RestData verifyRestData(const ResourceItemDescriptor &rid, const QVariant &val)
 {
     bool ok;
-    RestData data;
+    RestData data {};
 
     if (rid.qVariantType == val.type())
     {

@@ -4,5 +4,7 @@
 	"datatype": "UInt8",
 	"access": "RW",
 	"public": true,
-	"description": "Sets the protocol used for processing metering data."
+	"description": "Sets the protocol used for processing metering data.",
+  "default": 0,
+  "refresh.interval": 86400
 }
