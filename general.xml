@@ -4709,11 +4709,11 @@
           <value name="Unknown (6)" value="6"></value>
           <value name="Unknown (7)" value="7"></value>
         </attribute>
-        <attribute id="0x0001" name="Unknown" type="enum8" mfcode="0x105e" access="rw" required="m">
-          <value name="Unknown (0)" value="0"></value>
-          <value name="Unknown (1)" value="1"></value>
-          <value name="Unknown (2)" value="2"></value>
-          <value name="Unknown (3)" value="3"></value>
+        <attribute id="0x0001" name="Mode" type="enum8" mfcode="0x105e" access="rw" required="m">
+          <value name="Lift (locked)" value="0"></value>
+          <value name="Lift and tilt (locked)" value="1"></value>
+          <value name="Lift (unlocked)" value="2"></value>
+          <value name="Lift and tilt (unlocked)" value="3"></value>
           <value name="Unknown (4)" value="4"></value>
           <value name="Unknown (5)" value="5"></value>
           <value name="Unknown (6)" value="6"></value>
