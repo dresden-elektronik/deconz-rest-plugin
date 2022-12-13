@@ -44,7 +44,6 @@
                 },
                 {
                     "name": "state/lift",
-                    "refresh.interval": 300,
                     "parse": {
                         "at": "0x0008",
                         "cl": "0x0102",
@@ -52,7 +51,8 @@
                         "eval": "Item.val = Attr.val == 255 ? 50 : (100 - Attr.val)",
                         "fn": "zcl"
                     },
-                    "default": 0
+                    "awake": true,
+                    "refresh.interval": 84000
                 },
                 {
                     "name": "state/open",
@@ -62,7 +62,9 @@
                         "ep": 5,
                         "eval": "Item.val = Attr.val != 0",
                         "fn": "zcl"
-                    }
+                    },
+                    "awake": true,
+                    "refresh.interval": 84000
                 },
                 {
                     "name": "state/reachable"
@@ -77,6 +79,14 @@
                 "0x15",
                 "0x0102"
             ],
+            "meta": {
+                "values": {
+                    "config/mode": {
+                        "lift": "Lift",
+                        "lift&tilt": "Lift and tilt"
+                    }
+                }
+            },
             "items": [
                 {
                     "name": "attr/id"
@@ -132,7 +142,8 @@
                         "fn": "zcl",
                         "mf": "0x105e"
                     },
-                    "default": 120
+                    "default": 120,
+                    "refresh.interval": 84000
                 },
                 {
                     "name": "config/ledindication",
@@ -160,7 +171,38 @@
                         "fn": "zcl",
                         "mf": "0x105e"
                     },
-                    "default": false
+                    "default": false,
+                    "refresh.interval": 84000
+                },
+                {
+                    "name": "config/mode",
+                    "description": "The mode of the device, can be 'lift', 'lift&tilt' or null.",
+                    "read": {
+                        "at": "0x0001",
+                        "cl": "0xff17",
+                        "ep": 21,
+                        "fn": "zcl",
+                        "mf": "0x105e"
+                    },
+                    "write": {
+                        "at": "0x0001",
+                        "cl": "0xff17",
+                        "dt": "0x30",
+                        "ep": 21,
+                        "eval": "({ 'lift': 0, 'lift&tilt' : 1 }[Item.val]) + (R.item('config/locked').val === true ? 0 : 2)",
+                        "fn": "zcl",
+                        "mf": "0x105e"
+                    },
+                    "parse": {
+                        "at": "0x0001",
+                        "cl": "0xff17",
+                        "ep": 21,
+                        "eval": "Item.val = Attr.val < 4 ? ({ 0: 'lift', 1: 'lift&tilt' }[Attr.val % 2]) : null;",
+                        "fn": "zcl",
+                        "mf": "0x105e"
+                    },
+                    "default": "lift&tilt",
+                    "refresh.interval": 84000
                 },
                 {
                     "name": "config/locked",
@@ -176,7 +218,7 @@
                         "cl": "0xff17",
                         "dt": "0x30",
                         "ep": 21,
-                        "eval": "Item.val ? 0 : 2",
+                        "eval": "({ true: 0, false : 2 }[Item.val]) + ({ 'lift': 0, 'lift&tilt' : 1 }[R.item('config/mode').val])",
                         "fn": "zcl",
                         "mf": "0x105e"
                     },
@@ -184,11 +226,12 @@
                         "at": "0x0001",
                         "cl": "0xff17",
                         "ep": 21,
-                        "eval": "Item.val = Attr.val == 0",
+                        "eval": "Item.val = Attr.val == 0 || Attr.val == 1",
                         "fn": "zcl",
                         "mf": "0x105e"
                     },
-                    "default": false
+                    "default": false,
+                    "refresh.interval": 84000
                 },
                 {
                     "name": "config/on"
@@ -208,6 +251,11 @@
     "bindings": [
         {
             "bind": "unicast",
+            "src.ep": 21,
+            "cl": "0x0102"
+        },
+        {
+            "bind": "unicast",
             "src.ep": 5,
             "cl": "0x0102",
             "report": [
@@ -216,39 +264,6 @@
                     "dt": "0x20",
                     "min": 1,
                     "max": 300,
-                    "change": "0x00000001"
-                },
-                {
-                    "at": "0xE000",
-                    "dt": "0x21",
-                    "min": 1,
-                    "max": 300,
-                    "change": "0x00000001"
-                }
-            ]
-        },
-        {
-            "bind": "unicast",
-            "src.ep": 21,
-            "cl": "0x0102"
-        },
-        {
-            "bind": "unicast",
-            "src.ep": 21,
-            "cl": "0xFF17",
-            "report": [
-                {
-                    "at": "0x0000",
-                    "dt": "0x30",
-                    "min": 0,
-                    "max": 1,
-                    "change": "0x00000001"
-                },
-                {
-                    "at": "0x0001",
-                    "dt": "0x30",
-                    "min": 0,
-                    "max": 2,
                     "change": "0x00000001"
                 }
             ]
