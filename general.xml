@@ -3157,7 +3157,7 @@
     </cluster>
 
     <cluster id="0x0500" name="IAS Zone">
-      <description>The IAS Zone cluster defines an interface to the functionality of an IAS security zone device. IAS Zone supports up totwo alarm types per zone, low battery reports and supervision of the IAS network.</description>
+      <description>The IAS Zone cluster defines an interface to the functionality of an IAS security zone device. IAS Zone supports up to two alarm types per zone, low battery reports and supervision of the IAS network.</description>
       <server>
         <attribute-set id="0x0000" description="Zone information">
           <attribute id="0x0000" name="Zone State" type="enum8" range="0x00,0x01" access="r" required="m">
