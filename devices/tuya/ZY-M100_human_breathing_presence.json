@@ -238,7 +238,7 @@
             "eval": "Item.val = Attr.val;",
             "fn": "tuya"
           },
-          "default": 1
+          "default": "1"
         },
         {
           "name": "state/lastupdated"
