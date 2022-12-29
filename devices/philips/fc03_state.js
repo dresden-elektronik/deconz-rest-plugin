@@ -79,7 +79,7 @@ if (attrid === 0x0002) {
               break
             default:
               map.style = '0x' + style.toString(16)
-            break
+              break
           }
           const maxX = 0.7347
           const maxY = 0.8431
