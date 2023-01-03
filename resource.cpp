@@ -926,9 +926,11 @@ bool ResourceItem::setValue(const QString &val, ValueSource source)
         m_valueSource = source;
         m_lastSet = QDateTime::currentDateTime();
         m_flags |= FlagNeedPushSet;
-        if (*m_str != val)
+        const auto str = val.trimmed();
+        setItemString(str);
+        if (*m_str != str)
         {
-            *m_str = val;
+            *m_str = str;
             m_lastChanged = m_lastSet;
             m_flags |= FlagNeedPushChange;
         }
