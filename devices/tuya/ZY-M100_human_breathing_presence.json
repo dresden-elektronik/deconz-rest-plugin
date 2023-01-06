@@ -66,6 +66,18 @@
           "name": "state/lastupdated"
         },
         {
+          "name": "state/lightlevel",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 104,
+            "eval": "const lux = Attr.val; if (lux > 0 && lux < 0xffff) {Item.val = Math.round(10000 * Math.log10(lux) + 1);};",
+            "fn": "tuya"
+          },
+          "default": 0
+        },
+        {
           "name": "state/lux",
           "description": "The current light intensity in Lux (max is 2000)",
           "read": {
