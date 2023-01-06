@@ -35,7 +35,7 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 84000,
+          "refresh.interval": 86400,
           "read": {
             "at": "0x0001",
             "cl": "0x0000",
@@ -66,16 +66,13 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/lightlevel",
-          "read": {
-            "fn": "none"
-          },
-          "parse": {
-            "dpid": 104,
-            "eval": "const lux = Attr.val; if (lux > 0 && lux < 0xffff) {Item.val = Math.round(10000 * Math.log10(lux) + 1);};",
-            "fn": "tuya"
-          },
-          "default": 0
+          "name": "state/dark"
+        },
+        {
+          "name": "state/daylight"
+        },
+        {
+          "name": "state/lightlevel"
         },
         {
           "name": "state/lux",
@@ -85,7 +82,7 @@
           },
           "parse": {
             "dpid": 104,
-            "eval": "Item.val = Attr.val;",
+            "script": "../generic/illuminance_cluster/lux_to_lightlevel.js",
             "fn": "tuya"
           },
           "default": 0
@@ -121,7 +118,7 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 84000,
+          "refresh.interval": 86400,
           "read": {
             "at": "0x0001",
             "cl": "0x0000",
@@ -207,26 +204,7 @@
           },
           "default": 7
         },
-        {
-          "name": "config/sensitivitymax",
-          "description": "Far detection sensitivity in cm. From 0 to 1000. Default 1000",
-          "range": [0, 1000],
-         "read": {
-            "fn": "none"
-          },
-          "write": {
-            "dpid": 4,
-            "dt": "0x2b",
-            "eval": "Item.val;",
-            "fn": "tuya"
-          },
-          "parse": {
-            "dpid": 4,
-            "eval": "Item.val = Attr.val;",
-            "fn": "tuya"
-          }
-        },
-        {
+         {
           "name": "state/angle",
           "description": "Distance from detected target in cm (from 0 to 1000).",
           "read": {
@@ -257,7 +235,6 @@
         },
         {
           "name": "state/presence",
-          "refresh.interval": 5,
           "read": {
             "fn": "none"
           },
@@ -276,11 +253,6 @@
       "bind": "unicast",
       "src.ep": 1,
       "cl": "0xEF00"
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "cl": "0x0006"
     }
   ]
 }
