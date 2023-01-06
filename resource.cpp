@@ -911,33 +911,7 @@ bool ResourceItem::toBool() const
 
 bool ResourceItem::setValue(const QString &val, ValueSource source)
 {
-    if (m_rid->type == DataTypeString)
-    {
-        setItemString(val);
-    }
-
-    if (m_str)
-    {
-        if (m_rid->type == DataTypeTime)
-        {
-            return setValue(QVariant(val), source);
-        }
-
-        m_valueSource = source;
-        m_lastSet = QDateTime::currentDateTime();
-        m_flags |= FlagNeedPushSet;
-        const auto str = val.trimmed();
-        setItemString(str);
-        if (*m_str != str)
-        {
-            *m_str = str;
-            m_lastChanged = m_lastSet;
-            m_flags |= FlagNeedPushChange;
-        }
-        return true;
-    }
-
-    return false;
+    return setValue(QVariant(val), source);
 }
 
 bool ResourceItem::setValue(qint64 val, ValueSource source)
