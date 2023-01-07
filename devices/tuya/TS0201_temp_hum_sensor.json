@@ -1,6 +1,6 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["_TZ3000_yd2e749y", "_TZ3000_fllyghyj", "_TZ3000_i8jfiezr", "_TZ3000_dowj6gyi",],
+  "manufacturername": ["_TZ3000_yd2e749y", "_TZ3000_fllyghyj", "_TZ3000_i8jfiezr", "_TZ3000_dowj6gyi"],
   "modelid": ["TS0201", "TS0201", "TS0201", "TS0201"],
   "vendor": "Tuya",
   "product": "Temperature and humidity sensor",
