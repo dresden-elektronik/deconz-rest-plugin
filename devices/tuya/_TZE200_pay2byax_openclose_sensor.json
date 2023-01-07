@@ -2,7 +2,7 @@
   "schema": "devcap1.schema.json",
   "manufacturername": ["_TZE200_pay2byax", "_TZE200_kltffuzl", "_TZE200_fwoorn8y"],
   "modelid": ["TS0601", "TS0601", "TS0601"],
-  "product": "ZG-102Z",
+  "product": "ZG-102Z or TM001-ZA or TM081",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -34,7 +34,9 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
         {
           "name": "attr/type"
