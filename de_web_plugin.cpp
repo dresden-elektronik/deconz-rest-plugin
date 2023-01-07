@@ -549,9 +549,10 @@ static ApiVersion getAcceptHeaderApiVersion(const QLatin1String &hdrValue)
         QLatin1String str;
     };
 
-    static const std::array<ApiVersionMap, 5> versions = {
+    static const std::array<ApiVersionMap, 6> versions = {
         {
             // ordered by largest version
+            { ApiVersion_3_DDEL,   QLatin1String("application/vnd.ddel.v3") },
             { ApiVersion_2_DDEL,   QLatin1String("application/vnd.ddel.v2") },
             { ApiVersion_1_1_DDEL, QLatin1String("application/vnd.ddel.v1.1") },
             { ApiVersion_1_1_DDEL, QLatin1String("vnd.ddel.v1.1") }, // backward compatibility
@@ -1008,7 +1009,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
         return;
     }
 
-    if (!device->item(RAttrSleeper)->toBool())
+    if (!device->item(RCapSleeper)->toBool())
     {
         auto *item = device->item(RStateReachable);
         if (!item->toBool())
@@ -2999,7 +3000,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
         if (existDevicesWithVendorCodeForMacPrefix(node->address(), VENDOR_DDEL) && i->deviceId() != DEV_ID_CONFIGURATION_TOOL && node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL)
         {
-            ResourceItem *item = lightNode.addItem(DataTypeUInt32, RConfigPowerup);
+            ResourceItem *item = lightNode.addItem(DataTypeUInt32, RAttrPowerup);
             DBG_Assert(item != 0);
             item->setValue(R_POWERUP_RESTORE | R_POWERUP_RESTORE_AT_DAYLIGHT | R_POWERUP_RESTORE_AT_NO_DAYLIGHT);
         }
@@ -3259,29 +3260,29 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
         {
             item->setValue(QVariant("Color temperature light"));
         }
-        if (lightNode->item(RConfigColorCapabilities) != nullptr)
+        if (lightNode->item(RCapColorCapabilities) != nullptr)
         {
             return; // already initialized
         }
         lightNode->addItem(DataTypeUInt16, RStateCt);
-        lightNode->addItem(DataTypeUInt16, RConfigCtMin)->setValue(142);
-        lightNode->addItem(DataTypeUInt16, RConfigCtMax)->setValue(666);
-        lightNode->addItem(DataTypeUInt16, RConfigColorCapabilities)->setValue(0x0001 | 0x0008 | 0x0010);
+        lightNode->addItem(DataTypeUInt16, RCapColorCtMin)->setValue(142);
+        lightNode->addItem(DataTypeUInt16, RCapColorCtMax)->setValue(666);
+        lightNode->addItem(DataTypeUInt16, RCapColorCapabilities)->setValue(0x0001 | 0x0008 | 0x0010);
         lightNode->addItem(DataTypeString, RStateColorMode)->setValue(QVariant("ct"));
     }
     else if (lightNode->modelId() == QLatin1String("LIGHTIFY A19 RGBW"))
     {
-        if (lightNode->item(RConfigColorCapabilities) != nullptr)
+        if (lightNode->item(RCapColorCapabilities) != nullptr)
         {
             return; // already initialized
         }
         lightNode->addItem(DataTypeUInt16, RStateCt);
         // the light doesn't provide ctmin, ctmax and color capabilities attributes
         // however it supports the 'Move To Color Temperature' command and Color Temperature attribute
-        lightNode->addItem(DataTypeUInt16, RConfigCtMin)->setValue(152);
-        lightNode->addItem(DataTypeUInt16, RConfigCtMax)->setValue(689);
+        lightNode->addItem(DataTypeUInt16, RCapColorCtMin)->setValue(152);
+        lightNode->addItem(DataTypeUInt16, RCapColorCtMax)->setValue(689);
         // hue, saturation, color mode, xy, ct
-        lightNode->addItem(DataTypeUInt16, RConfigColorCapabilities)->setValue(0x0001 | 0x0008 | 0x0010);
+        lightNode->addItem(DataTypeUInt16, RCapColorCapabilities)->setValue(0x0001 | 0x0008 | 0x0010);
     }
     else if (lightNode->modelId() == QLatin1String("LIGHTIFY A19 Tunable White") ||
              lightNode->modelId() == QLatin1String("LIGHTIFY Conv Under Cabinet TW") ||
@@ -3307,17 +3308,17 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
             item->setValue(QVariant("Color temperature light"));
         }
 
-        if (lightNode->item(RConfigColorCapabilities) != nullptr)
+        if (lightNode->item(RCapColorCapabilities) != nullptr)
         {
             return; // already initialized
         }
         lightNode->addItem(DataTypeUInt16, RStateCt);
         // these lights don't provide ctmin, ctmax and color capabilities attributes
         // however they support the 'Move To Color Temperature' command and Color Temperature attribute
-        lightNode->addItem(DataTypeUInt16, RConfigCtMin)->setValue(153); // 6500K
-        lightNode->addItem(DataTypeUInt16, RConfigCtMax)->setValue(370); // 2700K
+        lightNode->addItem(DataTypeUInt16, RCapColorCtMin)->setValue(153); // 6500K
+        lightNode->addItem(DataTypeUInt16, RCapColorCtMax)->setValue(370); // 2700K
         // color mode, xy, ct
-        lightNode->addItem(DataTypeUInt16, RConfigColorCapabilities)->setValue(0x0008 | 0x0010);
+        lightNode->addItem(DataTypeUInt16, RCapColorCapabilities)->setValue(0x0008 | 0x0010);
         lightNode->addItem(DataTypeString, RStateColorMode)->setValue(QVariant("ct"));
         lightNode->removeItem(RStateHue);
         lightNode->removeItem(RStateSat);
@@ -3334,14 +3335,14 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
         {
             item->setValue(QVariant("Color temperature light"));
         }
-        if (lightNode->item(RConfigColorCapabilities) != nullptr)
+        if (lightNode->item(RCapColorCapabilities) != nullptr)
         {
             return; // already initialized
         }
         lightNode->addItem(DataTypeUInt16, RStateCt);
-        lightNode->addItem(DataTypeUInt16, RConfigCtMin)->setValue(153);
-        lightNode->addItem(DataTypeUInt16, RConfigCtMax)->setValue(370);
-        lightNode->addItem(DataTypeUInt16, RConfigColorCapabilities)->setValue(0x0001 | 0x0008 | 0x0010);
+        lightNode->addItem(DataTypeUInt16, RCapColorCtMin)->setValue(153);
+        lightNode->addItem(DataTypeUInt16, RCapColorCtMax)->setValue(370);
+        lightNode->addItem(DataTypeUInt16, RCapColorCapabilities)->setValue(0x0001 | 0x0008 | 0x0010);
         lightNode->addItem(DataTypeString, RStateColorMode)->setValue(QVariant("ct"));
     }
     else if (isXmasLightStrip(lightNode))
@@ -3356,7 +3357,7 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
     else if (modelId.startsWith(QLatin1String("KADRILJ")) ||
              modelId.startsWith(QLatin1String("FYRTUR")))
     {
-        item = lightNode->addItem(DataTypeBool, RAttrSleeper);
+        item = lightNode->addItem(DataTypeBool, RCapSleeper);
         if (item)
         {
             item->setValue(false);
@@ -3761,7 +3762,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         }
 
                         {
-                            ResourceItem *item = lightNode->item(RConfigColorCapabilities);
+                            ResourceItem *item = lightNode->item(RCapColorCapabilities);
                             if (item && item->toNumber() > 0)
                             {
                                 const auto cap = item->toNumber();
@@ -3798,17 +3799,17 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     else if (ia->id() == 0x400a) // color capabilities
                     {
                         quint16 cap = ia->numericValue().u16;
-                        lightNode->setValue(RConfigColorCapabilities, cap);
+                        lightNode->setValue(RCapColorCapabilities, cap);
                     }
                     else if (ia->id() == 0x400b) // color temperature min
                     {
                         quint16 cap = ia->numericValue().u16;
-                        lightNode->setValue(RConfigCtMin, cap);
+                        lightNode->setValue(RCapColorCtMin, cap);
                     }
                     else if (ia->id() == 0x400c) // color temperature max
                     {
                         quint16 cap = ia->numericValue().u16;
-                        lightNode->setValue(RConfigCtMax, cap);
+                        lightNode->setValue(RCapColorCtMax, cap);
                     }
                 }
             }
@@ -11849,7 +11850,7 @@ void DeRestPluginPrivate::handleXalClusterIndication(const deCONZ::ApsDataIndica
         {
             quint8 id;
             stream >> id;
-            ResourceItem *item = lightNode->addItem(DataTypeUInt32, RConfigId);
+            ResourceItem *item = lightNode->addItem(DataTypeUInt32, RAttrConfigId);
             if (!item->lastSet().isValid() || item->toNumber() != id)
             {
                 item->setValue(id);
@@ -11861,7 +11862,7 @@ void DeRestPluginPrivate::handleXalClusterIndication(const deCONZ::ApsDataIndica
         {
             quint8 minLevel;
             stream >> minLevel;
-            ResourceItem *item = lightNode->addItem(DataTypeUInt8, RConfigLevelMin);
+            ResourceItem *item = lightNode->addItem(DataTypeUInt8, RAttrLevelMin);
             if (!item->lastSet().isValid() || item->toNumber() != minLevel)
             {
                 item->setValue(minLevel);
@@ -11873,7 +11874,7 @@ void DeRestPluginPrivate::handleXalClusterIndication(const deCONZ::ApsDataIndica
         {
             quint8 powerOnLevel;
             stream >> powerOnLevel;
-            ResourceItem *item = lightNode->addItem(DataTypeUInt8, RConfigPowerOnLevel);
+            ResourceItem *item = lightNode->addItem(DataTypeUInt8, RAttrPowerOnLevel);
             if (!item->lastSet().isValid() || item->toNumber() != powerOnLevel)
             {
                 item->setValue(powerOnLevel);
@@ -11885,7 +11886,7 @@ void DeRestPluginPrivate::handleXalClusterIndication(const deCONZ::ApsDataIndica
         {
             quint16 powerOnTemp;
             stream >> powerOnTemp;
-            ResourceItem *item = lightNode->addItem(DataTypeUInt16, RConfigPowerOnCt);
+            ResourceItem *item = lightNode->addItem(DataTypeUInt16, RAttrPowerOnCt);
             if (!item->lastSet().isValid() || item->toNumber() != powerOnTemp)
             {
                 item->setValue(powerOnTemp);
@@ -12087,7 +12088,7 @@ bool DeRestPluginPrivate::flsNbMaintenance(LightNode *lightNode)
         return false;
     }
 
-    item = lightNode->item(RConfigPowerup);
+    item = lightNode->item(RAttrPowerup);
     quint32 powerup = item ? item->toNumber() : 0;
 
     if ((powerup & R_POWERUP_RESTORE) == 0)
@@ -12768,6 +12769,7 @@ void DeRestPluginPrivate::processGroupTasks()
 
     if (!nodes[groupTaskNodeIter].isAvailable())
     {
+        groupTaskNodeIter++;
         return;
     }
 
