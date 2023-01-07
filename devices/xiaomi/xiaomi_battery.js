@@ -1,6 +1,6 @@
 const vmin = 2700;
 const vmax = 3000;
-let bat = Attr.val;
+var bat = Attr.val;
 
 if      (bat > vmax) { bat = vmax; }
 else if (bat < vmin) { bat = vmin; }

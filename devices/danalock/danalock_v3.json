@@ -1,7 +1,7 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "Danalock",
-  "modelid": "V3-BTZBE",
+  "manufacturername": ["Danalock", "Danalock"],
+  "modelid": ["V3-BTZBE", "V3-BTZB"],
   "product": "Danalock V3",
   "sleeper": true,
   "status": "Gold",

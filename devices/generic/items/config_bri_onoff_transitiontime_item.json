@@ -1,0 +1,21 @@
+{
+    "schema": "resourceitem1.schema.json",
+    "id": "config/bri/onoff_transitiontime",
+    "datatype": "UInt16",
+    "access": "RW",
+    "public": true,
+    "description": "Transition time in 1/10 seconds for turning the device on or off.",
+    "default": 4,
+    "parse": {
+        "fn": "zcl", "ep": 0, "cl": "0x0008", "at": "0x0010",
+        "eval": "Item.val = Attr.val"
+    },
+    "read": {
+        "fn": "zcl", "ep": 0, "cl": "0x0008", "at": "0x0010"
+    },
+    "refresh.interval": 3600,
+    "write": {
+        "fn": "zcl", "ep": 0, "cl": "0x0008", "at": "0x0010", "dt": "0x21",
+        "eval": "Item.val"
+    }
+}

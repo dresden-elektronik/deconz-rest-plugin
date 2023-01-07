@@ -1,14 +1,14 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "SMaBiT",
-  "modelid": "AV2010/21C",
-  "vendor": "SMaBiT",
-  "product": "AV2010/21C Flat Magnetic Contact",
+  "manufacturername": ["_TZ3000_d16y6col", "_TZ3000_ww9i3e0y", "_TZ3000_qhozxs2b", "_TZ3000_85czd6fy", "_TZ3000_ocjlo4ea"],
+  "modelid": ["TS0207", "TS0207", "TS0207", "TS0207", "TS0207"],
+  "vendor": "Tuya",
+  "product": "Tuya water sensor",
   "sleeper": true,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_OPEN_CLOSE_SENSOR",
+      "type": "ZHAWater",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
@@ -54,11 +54,18 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/checkin"
+          "name": "config/battery",
+          "refresh.interval": 84000,
+          "awake": true,
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2"
+          }
         },
         {
-          "name": "config/enrolled",
-          "public": false
+          "name": "config/enrolled"
         },
         {
           "name": "config/on"
@@ -73,10 +80,16 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/lowbattery"
+          "name": "state/lowbattery",
+          "awake": true
         },
         {
-          "name": "state/open"
+          "name": "state/tampered",
+          "awake": true
+        },
+        {
+          "name": "state/water",
+          "awake": true
         }
       ]
     }
@@ -85,6 +98,22 @@
     {
       "bind": "unicast",
       "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 60,
+          "max": 3600,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
       "cl": "0x0500"
     }
   ]

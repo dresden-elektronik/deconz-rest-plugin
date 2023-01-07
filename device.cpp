@@ -198,7 +198,7 @@ Resource *DEV_GetSubDevice(Device *device, const char *prefix, const QString &id
     {
         return nullptr;
     }
-    
+
     for (auto &sub : device->subDevices())
     {
         if (prefix && sub->prefix() != prefix)
@@ -301,6 +301,7 @@ void DEV_CheckItemChanges(Device *device, const Event &event)
         }
     }
 
+    int apsEnqueued = 0;
     for (auto *sub : subDevices)
     {
         if (sub && !sub->stateChanges().empty())
@@ -312,7 +313,11 @@ void DEV_CheckItemChanges(Device *device, const Event &event)
                 {
                     change.verifyItemChange(item);
                 }
-                change.tick(sub, d->apsCtrl);
+
+                if (apsEnqueued == 0 && change.tick(d->deviceKey, sub, d->apsCtrl) == 1)
+                {
+                    apsEnqueued++;
+                }
             }
 
             sub->cleanupStateChanges();
@@ -333,7 +338,7 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
             DBG_Printf(DBG_DEV, "ZDP node descriptor verified: 0x%016llX\n", device->key());
             d->maxResponseTime = d->hasRxOnWhenIdle() ? RxOnWhenIdleResponseTime
                                                       : RxOffWhenIdleResponseTime;
-            device->item(RAttrSleeper)->setValue(!d->hasRxOnWhenIdle()); // can be overwritten by DDF
+            device->item(RCapSleeper)->setValue(!d->hasRxOnWhenIdle()); // can be overwritten by DDF
             d->setState(DEV_ActiveEndpointsStateHandler);
         }
         else if (!device->reachable()) // can't be queried, go back to #1 init
@@ -870,7 +875,7 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
         }
     }
 
-    if (!device->reachable() && !device->item(RAttrSleeper)->toBool())
+    if (!device->reachable() && !device->item(RCapSleeper)->toBool())
     {
         DBG_Printf(DBG_DEV, "DEV (NOT reachable) Idle event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
     }
@@ -899,14 +904,21 @@ void DEV_BindingHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventPoll || event.what() == REventAwake || event.what() == REventBindingTick)
     {
-        d->binding.bindingIter = 0;
-        if (d->binding.mgmtBindSupported == MGMT_BIND_NOT_SUPPORTED)
+        if (DA_ApsUnconfirmedRequests() > 4)
         {
-            d->setState(DEV_BindingTableVerifyHandler, STATE_LEVEL_BINDING);
+            // wait
         }
         else
         {
-            d->setState(DEV_BindingTableReadHandler, STATE_LEVEL_BINDING);
+            d->binding.bindingIter = 0;
+            if (d->binding.mgmtBindSupported == MGMT_BIND_NOT_SUPPORTED)
+            {
+                d->setState(DEV_BindingTableVerifyHandler, STATE_LEVEL_BINDING);
+            }
+            else
+            {
+                d->setState(DEV_BindingTableReadHandler, STATE_LEVEL_BINDING);
+            }
         }
     }
     else if (event.what() == REventBindingTable)
@@ -1753,29 +1765,32 @@ std::vector<DEV_PollItem> DEV_GetPollItems(Device *device)
                 continue;
             }
 
+            int64_t dt = -1;
+
             if (item->refreshInterval().val == 0)
             {
 
             }
-            else if (isValid(item->lastZclReport()))
+            else
             {
-                const auto dt = tnow - item->lastZclReport();
-                if (dt < item->refreshInterval())
+                if (isValid(item->lastZclReport()))
                 {
-                    continue;
-                }
-                else
-                {
-                    DBG_Printf(DBG_DEV, "DEV 0x%016llX read %s, dt %d ms\n", d->deviceKey, item->descriptor().suffix, int(dt.val));
+                    dt = (tnow - item->lastZclReport()).val / 1000;
+                    if (dt < item->refreshInterval().val)
+                    {
+                        continue;
+                    }
                 }
 
-            }
-            else if (item->lastSet().isValid())
-            {
-                const auto dt = item->lastSet().secsTo(now);
-                if (dt  < item->refreshInterval().val)
+                if (item->lastSet().isValid() && item->valueSource() == ResourceItem::SourceDevice)
                 {
-                    continue;
+                    const auto dt2 = item->lastSet().secsTo(now);
+                    if (dt2  < item->refreshInterval().val)
+                    {
+                        continue;
+                    }
+
+                    dt = dt2;
                 }
             }
 
@@ -1790,6 +1805,7 @@ std::vector<DEV_PollItem> DEV_GetPollItems(Device *device)
                 continue;
             }
 
+            DBG_Printf(DBG_DEV, "DEV 0x%016llX read %s, dt %d sec\n", d->deviceKey, item->descriptor().suffix, int(dt));
             result.emplace_back(DEV_PollItem{r, item, ddfItem.readParameters});
         }
     }
@@ -1811,6 +1827,12 @@ void DEV_PollIdleStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventPoll || event.what() == REventAwake)
     {
+        if (DA_ApsUnconfirmedRequests() > 4)
+        {
+            // wait
+            return;
+        }
+
         if (device->node()) // update nwk address if needed
         {
             const auto &addr = device->node()->address();
@@ -1994,7 +2016,7 @@ Device::Device(DeviceKey key, deCONZ::ApsController *apsCtrl, QObject *parent) :
     d->flags.initialRun = 1;
 
     addItem(DataTypeBool, RStateReachable);
-    addItem(DataTypeBool, RAttrSleeper);
+    addItem(DataTypeBool, RCapSleeper);
     addItem(DataTypeUInt64, RAttrExtAddress);
     addItem(DataTypeUInt16, RAttrNwkAddress);
     addItem(DataTypeString, RAttrUniqueId)->setValue(generateUniqueId(key, 0, 0));
@@ -2194,7 +2216,7 @@ bool Device::reachable() const
     {
         return item(RStateReachable)->toBool();
     }
-    else if (!item(RAttrSleeper)->toBool())
+    else if (!item(RCapSleeper)->toBool())
     {
         return item(RStateReachable)->toBool();
     }

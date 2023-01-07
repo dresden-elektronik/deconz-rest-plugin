@@ -1,0 +1,17 @@
+{
+    "schema": "resourceitem1.schema.json",
+    "id": "cap/color/gradient/styles",
+    "datatype": "UInt16",
+    "access": "R",
+    "public": true,
+    "description": "Supported styles on Hue gradient light.",
+    "default": "0x0001",
+    "parse": {
+        "fn": "zcl", "ep": "0x0b", "cl": "0xfc03", "mf": "0x100b", "at": "0x0013",
+        "eval": "Item.val = Attr.val"
+    },
+    "read": {
+        "fn": "zcl", "ep": "0x0b", "cl": "0xfc03", "mf": "0x100b", "at": "0x0013"
+    },
+    "refresh.interval": 86400
+}

@@ -42,7 +42,7 @@ void PollManager::poll(RestNodeBase *restNode, const QDateTime &tStart)
 
     if (!restNode->node()->nodeDescriptor().receiverOnWhenIdle())
     {
-        auto *item = r->item(RAttrSleeper);
+        auto *item = r->item(RCapSleeper);
         if (!item || item->toBool())
         {
             return;
@@ -300,7 +300,7 @@ void PollManager::pollTimerFired()
     else if (suffix == RStateColorMode && lightNode)
     {
         clusterId = COLOR_CLUSTER_ID;
-        item = r->item(RConfigColorCapabilities);
+        item = r->item(RCapColorCapabilities);
 
         if ((!item || item->toNumber() <= 0) && (lightNode->haEndpoint().profileId() == ZLL_PROFILE_ID || lightNode->manufacturerCode() == VENDOR_XIAOMI || lightNode->manufacturerCode() == VENDOR_MUELLER || lightNode->manufacturerCode() == VENDOR_XAL || lightNode->manufacturerCode() == VENDOR_LEDVANCE))
         {
@@ -492,7 +492,7 @@ void PollManager::pollTimerFired()
                 if (cl.id() == clusterId)
                 {
                     found = true;
-                    
+
                     std::vector<quint16> check;
 
                     for (const deCONZ::ZclAttribute &attr : cl.attributes())    // Loop through cluster attributes

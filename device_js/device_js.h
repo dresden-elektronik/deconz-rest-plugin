@@ -93,6 +93,7 @@ public:
     DeviceJs();
     ~DeviceJs();
     JsEvalResult evaluate(const QString &expr);
+    JsEvalResult testCompile(const QString &expr);
     void setResource(Resource *r);
     void setResource(const Resource *r);
     void setApsIndication(const deCONZ::ApsDataIndication &ind);
@@ -110,5 +111,7 @@ public:
 private:
     std::unique_ptr<DeviceJsPrivate> d;
 };
+
+void DeviceJS_ResourceItemValueChanged(ResourceItem *item);
 
 #endif // DEVICEJS_H

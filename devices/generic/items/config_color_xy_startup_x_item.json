@@ -1,0 +1,21 @@
+{
+    "schema": "resourceitem1.schema.json",
+    "id": "config/color/xy/startup_x",
+    "datatype": "UInt16",
+    "access": "RW",
+    "public": true,
+    "description": "Color X on device startup (power on).",
+    "default": "0xffff",
+    "parse": {
+        "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "mf": "0x100b", "at": "0x0003",
+        "eval": "Item.val = Attr.val"
+    },
+    "read": {
+        "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "mf": "0x100b", "at": "0x0003"
+    },
+    "refresh.interval": 3600,
+    "write": {
+        "fn": "zcl", "ep": "0x0b", "cl": "0x0300", "mf": "0x100b", "at": "0x0003", "dt": "0x21",
+        "eval": "Item.val"
+    }
+}
