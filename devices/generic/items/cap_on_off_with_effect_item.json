@@ -1,0 +1,9 @@
+{
+    "schema": "resourceitem1.schema.json",
+    "id": "cap/on/off_with_effect",
+    "datatype": "Bool",
+    "access": "R",
+    "public": true,
+    "description": "Device supports the _Off with Effect_ command.",
+    "static": true
+}

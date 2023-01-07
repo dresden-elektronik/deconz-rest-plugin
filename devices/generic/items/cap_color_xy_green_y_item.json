@@ -1,0 +1,13 @@
+{
+    "schema": "resourceitem1.schema.json",
+    "id": "cap/color/xy/green_y",
+    "datatype": "UInt16",
+    "access": "R",
+    "public": true,
+    "description": "Y coordinate of green point of color gamut.",
+    "default": "0xfeff",
+    "parse": {
+        "fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x0037",
+        "eval": "Item.val = Attr.val"
+    }
+}

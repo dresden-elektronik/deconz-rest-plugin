@@ -227,6 +227,7 @@ SOURCES  = air_quality.cpp \
            group.cpp \
            group_info.cpp \
            gw_uuid.cpp \
+           hue.cpp \
            ias_ace.cpp \
            ias_zone.cpp \
            identify.cpp \
