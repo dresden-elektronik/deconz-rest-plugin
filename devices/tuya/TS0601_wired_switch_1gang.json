@@ -2,7 +2,7 @@
   "schema": "devcap1.schema.json",
   "manufacturername": "_TZE200_amp6tsvy",
   "modelid": "TS0601",
-  "product": "Tuya 1 gang wired switch",
+  "product": "Tuya 1 button wired switch",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
