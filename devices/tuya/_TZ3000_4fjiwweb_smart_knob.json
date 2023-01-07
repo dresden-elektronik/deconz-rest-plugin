@@ -75,14 +75,14 @@
         {
           "name": "state/on",
           "public": false,
-          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0006", "script": "_TZ3000_4fjiwweb_smart_knob_buttons.js"},
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0006", "script": "TS004F_smart_knob_buttons.js"},
           "read": {"fn": "none"},
           "awake": true
         },
         {
           "name": "state/bri",
           "public": false,
-          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0008", "script": "_TZ3000_4fjiwweb_smart_knob_buttons.js"},
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0008", "script": "TS004F_smart_knob_buttons.js"},
           "read": {"fn": "none"}
         }
       ]
