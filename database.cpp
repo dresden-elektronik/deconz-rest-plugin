@@ -2159,7 +2159,7 @@ static int sqliteLoadAllResourcelinksCallback(void *user, int ncols, char **colv
         {
             QString val = QString::fromUtf8(colval[i]);
 
-            DBG_Printf(DBG_INFO_L2, "Sqlite schedule: %s = %s\n", colname[i], qPrintable(val));
+            DBG_Printf(DBG_INFO_L2, "Sqlite resourcelink: %s = %s\n", colname[i], qPrintable(val));
 
 
             if (strcmp(colname[i], "id") == 0)
