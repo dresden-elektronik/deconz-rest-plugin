@@ -268,7 +268,7 @@ DeviceDescriptions::DeviceDescriptions(QObject *parent) :
 
         d_ptr2->parseFunctions.push_back(fn);
     }
-    
+
     {
         DDF_FunctionDescriptor fn;
         fn.name = "time";
@@ -1233,6 +1233,11 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
         result.name = obj.value(QLatin1String("id")).toString().toUtf8().constData();
     }
 
+    // Handle deprecated names/ids
+    if (result.name == RConfigColorCapabilities) { result.name = RCapColorCapabilities; }
+    if (result.name == RConfigCtMax) { result.name = RCapColorCtMax; }
+    if (result.name == RConfigCtMin) { result.name = RCapColorCtMin; }
+
     if (obj.contains(QLatin1String("description")))
     {
         result.description = obj.value(QLatin1String("description")).toString();
@@ -1278,38 +1283,40 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
             result.isManaged = obj.value(QLatin1String("managed")).toBool() ? 1 : 0;
         }
 
-        if (obj.contains(QLatin1String("refresh.interval")))
-        {
-            result.refreshInterval = obj.value(QLatin1String("refresh.interval")).toInt(0);
-        }
-
-        const auto parse = obj.value(QLatin1String("parse"));
-        if (parse.isObject())
-        {
-            result.parseParameters = parse.toVariant();
-        }
-
-        const auto read = obj.value(QLatin1String("read"));
-        if (read.isObject())
-        {
-            result.readParameters = read.toVariant();
-        }
-
-        const auto write = obj.value(QLatin1String("write"));
-        if (write.isObject())
-        {
-            result.writeParameters = write.toVariant();
-        }
-
         if (obj.contains(QLatin1String("static")))
         {
             result.isStatic = 1;
             result.defaultValue = obj.value(QLatin1String("static")).toVariant();
         }
-
-        if (obj.contains(QLatin1String("default")))
+        else
         {
-            result.defaultValue = obj.value(QLatin1String("default")).toVariant();
+            if (obj.contains(QLatin1String("default")))
+            {
+                result.defaultValue = obj.value(QLatin1String("default")).toVariant();
+            }
+
+            const auto parse = obj.value(QLatin1String("parse"));
+            if (parse.isObject())
+            {
+                result.parseParameters = parse.toVariant();
+            }
+
+            const auto read = obj.value(QLatin1String("read"));
+            if (read.isObject())
+            {
+                result.readParameters = read.toVariant();
+            }
+
+            if (obj.contains(QLatin1String("refresh.interval")))
+            {
+                result.refreshInterval = obj.value(QLatin1String("refresh.interval")).toInt(0);
+            }
+
+            const auto write = obj.value(QLatin1String("write"));
+            if (write.isObject())
+            {
+                result.writeParameters = write.toVariant();
+            }
         }
 
         DBG_Printf(DBG_DDF, "DDF loaded resource item descriptor: %s, public: %u\n", result.descriptor.suffix, (result.isPublic ? 1 : 0));
@@ -1991,20 +1998,25 @@ static DeviceDescription DDF_MergeGenericItems(const std::vector<DeviceDescripti
             item.isGenericWrite = 0;
             item.isGenericParse = 0;
 
-            if (item.readParameters.isNull()) { item.readParameters = genItem->readParameters; item.isGenericRead = 1; }
-            if (item.writeParameters.isNull()) { item.writeParameters = genItem->writeParameters; item.isGenericWrite = 1; }
-            if (item.parseParameters.isNull()) { item.parseParameters = genItem->parseParameters; item.isGenericParse = 1; }
+            if (!item.isStatic)
+            {
+                if (item.readParameters.isNull()) { item.readParameters = genItem->readParameters; item.isGenericRead = 1; }
+                if (item.writeParameters.isNull()) { item.writeParameters = genItem->writeParameters; item.isGenericWrite = 1; }
+                if (item.parseParameters.isNull()) { item.parseParameters = genItem->parseParameters; item.isGenericParse = 1; }
+                if (item.refreshInterval == DeviceDescription::Item::NoRefreshInterval && genItem->refreshInterval != item.refreshInterval)
+                {
+                    item.refreshInterval = genItem->refreshInterval;
+                }
+            }
+
             if (item.descriptor.access == ResourceItemDescriptor::Access::Unknown)
             {
                 item.descriptor.access = genItem->descriptor.access;
             }
+
             if (!item.hasIsPublic)
             {
                 item.isPublic = genItem->isPublic;
-            }
-            if (item.refreshInterval == DeviceDescription::Item::NoRefreshInterval && genItem->refreshInterval != item.refreshInterval)
-            {
-                item.refreshInterval = genItem->refreshInterval;
             }
 
             if (!item.defaultValue.isValid() && genItem->defaultValue.isValid())

@@ -248,7 +248,7 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
             {
                 QString writeFunction;
                 const auto writeParam = ddfItem.writeParameters.toMap();
-                
+
                 if (writeParam.contains(QLatin1String("fn")))
                 {
                     writeFunction = writeParam.value(QLatin1String("fn")).toString();
@@ -257,7 +257,7 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
                 if (writeFunction.isEmpty() || writeFunction == QLatin1String("zcl"))
                 {
                     bool ok;
-                    
+
                     StateChange stateChange(StateChange::StateWaitSync, SC_WriteZclAttribute, sub.uniqueId.at(1).toUInt());
                     stateChange.addTargetValue(item->descriptor().suffix, item->toVariant());
                     stateChange.setChangeTimeoutMs(1000 * 60 * 60);
@@ -312,7 +312,7 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
 
     if (ddf.sleeper >= 0)
     {
-        device->item(RAttrSleeper)->setValue(ddf.sleeper == 1);
+        device->item(RCapSleeper)->setValue(ddf.sleeper == 1);
     }
 
     device->clearBindings();

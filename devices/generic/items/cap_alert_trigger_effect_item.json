@@ -1,0 +1,9 @@
+{
+    "schema": "resourceitem1.schema.json",
+    "id": "cap/alert/trigger_effect",
+    "datatype": "Bool",
+    "access": "R",
+    "public": true,
+    "description": "Device supports the _Trigger Effect_ command.",
+    "static": true
+}

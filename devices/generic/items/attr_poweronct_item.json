@@ -1,6 +1,6 @@
 {
 	"schema": "resourceitem1.schema.json",
-	"id": "config/poweronct",
+	"id": "attr/poweronct",
 	"datatype": "UInt16",
 	"access": "RW",
 	"public": true,

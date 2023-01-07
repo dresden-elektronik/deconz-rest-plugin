@@ -1,0 +1,340 @@
+{
+    "schema": "devcap1.schema.json",
+    "manufacturername": [
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY"
+    ],
+    "modelid": [
+        "LCX001",
+        "LCX002",
+        "LCX003",
+        "LCX004",
+        "915005986901",
+        "915005987001",
+        "915005987101",
+        "915005987201",
+        "915005987401",
+        "915005987501",
+        "915005987601",
+        "915005987701",
+        "915005987801",
+        "915005987901",
+        "915005988001",
+        "915005988101",
+        "915005988201",
+        "915005988501",
+        "915005988601"
+    ],
+    "product": "Hue white and color ambiance gradient light",
+    "sleeper": false,
+    "status": "Gold",
+    "subdevices": [
+        {
+            "type": "$TYPE_EXTENDED_COLOR_LIGHT",
+            "restapi": "/lights",
+            "uuid": [
+                "$address.ext",
+                "0x0b"
+            ],
+            "items": [
+                {
+                    "name": "attr/id"
+                },
+                {
+                    "name": "attr/lastannounced"
+                },
+                {
+                    "name": "attr/lastseen"
+                },
+                {
+                    "name": "attr/manufacturername"
+                },
+                {
+                    "name": "attr/modelid"
+                },
+                {
+                    "name": "attr/name"
+                },
+                {
+                    "name": "attr/productid"
+                },
+                {
+                    "name": "attr/swconfigid"
+                },
+                {
+                    "name": "attr/swversion"
+                },
+                {
+                    "name": "attr/type"
+                },
+                {
+                    "name": "attr/uniqueid"
+                },
+                {
+                    "name": "cap/alert/trigger_effect"
+                },
+                {
+                    "name": "cap/bri/min_dim_level"
+                },
+                {
+                    "name": "cap/bri/move_with_onoff"
+                },
+                {
+                    "name": "cap/color/capabilities"
+                },
+                {
+                    "name": "cap/color/ct/computes_xy"
+                },
+                {
+                    "name": "cap/color/ct/max"
+                },
+                {
+                    "name": "cap/color/ct/min"
+                },
+                {
+                    "name": "cap/color/effects"
+                },
+                {
+                    "name": "cap/color/gamut_type"
+                },
+                {
+                    "name": "cap/color/gradient/max_segments"
+                },
+                {
+                    "name": "cap/color/gradient/pixel_count"
+                },
+                {
+                    "name": "cap/color/gradient/pixel_length"
+                },
+                {
+                    "name": "cap/color/gradient/styles"
+                },
+                {
+                    "name": "cap/color/xy/blue_x"
+                },
+                {
+                    "name": "cap/color/xy/blue_y"
+                },
+                {
+                    "name": "cap/color/xy/green_x"
+                },
+                {
+                    "name": "cap/color/xy/green_y"
+                },
+                {
+                    "name": "cap/color/xy/red_x"
+                },
+                {
+                    "name": "cap/color/xy/red_y"
+                },
+                {
+                    "name": "cap/on/off_with_effect"
+                },
+                {
+                    "name": "config/bri/execute_if_off"
+                },
+                {
+                    "name": "config/bri/startup"
+                },
+                {
+                    "name": "config/color/ct/startup"
+                },
+                {
+                    "name": "config/color/execute_if_off"
+                },
+                {
+                    "name": "config/color/gradient/reversed"
+                },
+                {
+                    "name": "config/color/xy/startup_x"
+                },
+                {
+                    "name": "config/color/xy/startup_y"
+                },
+                {
+                    "name": "config/on/startup"
+                },
+                {
+                    "name": "state/alert"
+                },
+                {
+                    "name": "state/on",
+                    "parse": {
+                        "fn": "zcl",
+                        "ep": "0x0b",
+                        "cl": "0xfc03",
+                        "mf": "0x100b",
+                        "at": "0x0002",
+                        "script": "fc03_state.js"
+                    },
+                    "read": {
+                        "fn": "zcl",
+                        "ep": "0x0b",
+                        "cl": "0xfc03",
+                        "mf": "0x100b",
+                        "at": "0x0002"
+                    },
+                    "refresh.interval": 305
+                },
+                {
+                    "name": "state/bri",
+                    "read": {
+                        "fn": "none"
+                    }
+                },
+                {
+                    "name": "state/ct",
+                    "read": {
+                        "fn": "none"
+                    }
+                },
+                {
+                    "name": "state/x",
+                    "read": {
+                        "fn": "none"
+                    }
+                },
+                {
+                    "name": "state/y",
+                    "read": {
+                        "fn": "none"
+                    }
+                },
+                {
+                    "name": "state/gradient"
+                },
+                {
+                    "name": "state/colormode",
+                    "values": [
+                        [
+                            "\"ct\"",
+                            "color temperature"
+                        ],
+                        [
+                            "\"effect\"",
+                            "dynamic effect"
+                        ],
+                        [
+                            "\"gradient\"",
+                            "gradient"
+                        ],
+                        [
+                            "\"hs\"",
+                            "hue and saturation"
+                        ],
+                        [
+                            "\"xy\"",
+                            "CIE xy color space coordinates"
+                        ]
+                    ],
+                    "parse": {
+                        "fn": "zcl",
+                        "ep": "0x0b",
+                        "cl": "0x0300",
+                        "at": "0x4001",
+                        "eval": "if (Item.val !== 'effect' && Item.val !== 'gradient' && Attr.val <= 3) Item.val = ['hs', 'xy', 'ct', 'xy'][Attr.val]"
+                    },
+                    "read": {
+                        "fn": "zcl",
+                        "ep": "0x0b",
+                        "cl": "0x0300",
+                        "at": [
+                            "0x4001",
+                            "0x4002",
+                            "0x4000",
+                            "0x0001"
+                        ]
+                    },
+                    "refresh.interval": 60
+                },
+                {
+                    "name": "state/effect",
+                    "values": [
+                        [
+                            "\"none\"",
+                            "no effect is active"
+                        ],
+                        [
+                            "\"colorloop\"",
+                            "colorloop through hue values"
+                        ],
+                        [
+                            "\"candle\"",
+                            "candlelight dynamic effect"
+                        ],
+                        [
+                            "\"fireplace\"",
+                            "fireplace dynamic effect"
+                        ],
+                        [
+                            "\"loop\"",
+                            "colorloop dynamic effect"
+                        ],
+                        [
+                            "\"sunrise\"",
+                            "sunrise dynamic effect"
+                        ]
+                    ],
+                    "parse": {
+                        "fn": "zcl",
+                        "ep": "0x0b",
+                        "cl": "0x0300",
+                        "at": "0x4002",
+                        "eval": "if (Item.val === 'none' || Item.val === 'colorloop') Item.val = Attr.val ? 'colorloop' : 'none'"
+                    },
+                    "read": {
+                        "fn": "none"
+                    }
+                },
+                {
+                    "name": "state/hue",
+                    "read": {
+                        "fn": "none"
+                    }
+                },
+                {
+                    "name": "state/sat",
+                    "read": {
+                        "fn": "none"
+                    }
+                },
+                {
+                    "name": "state/reachable"
+                }
+            ]
+        }
+    ],
+    "bindings": [
+        {
+            "bind": "unicast",
+            "src.ep": 11,
+            "cl": "0xfc03",
+            "report": [
+                {
+                    "mf": "0x100b",
+                    "at": "0x0002",
+                    "dt": "0x41",
+                    "min": 1,
+                    "max": 300
+                }
+            ]
+        }
+    ]
+}

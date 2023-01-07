@@ -1,0 +1,21 @@
+{
+    "schema": "resourceitem1.schema.json",
+    "id": "config/bri/on_level",
+    "datatype": "UInt8",
+    "access": "RW",
+    "public": true,
+    "description": "Brightness when device is turned on.",
+    "default": 255,
+    "parse": {
+        "fn": "zcl", "ep": 0, "cl": "0x0008", "at": "0x0011",
+        "eval": "Item.val = Attr.val"
+    },
+    "read": {
+        "fn": "zcl", "ep": 0, "cl": "0x0008", "at": "0x0011"
+    },
+    "refresh.interval": 3600,
+    "write": {
+        "fn": "zcl", "ep": 0, "cl": "0x0008", "at": "0x0011", "dt": "0x20",
+        "eval": "Item.val"
+    }
+}

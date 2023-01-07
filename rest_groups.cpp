@@ -958,7 +958,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
         {
             TaskItem task;
             copyTaskReq(taskRef, task);
-            if (addTaskStopBrightness(task))
+            if (addTaskIncBrightness(task, 0))
             {
                 QVariantMap rspItem;
                 QVariantMap rspItemState;
@@ -3428,7 +3428,7 @@ void DeRestPluginPrivate::handleGroupEvent(const Event &e)
 
         for (; i != end; ++i)
         {
-            if (!isLightNodeInGroup(&*i, groupId))
+            if (!isLightNodeInGroup(&*i, group->address()))
             {
                 continue;
             }

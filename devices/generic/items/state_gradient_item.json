@@ -1,0 +1,10 @@
+{
+    "schema": "resourceitem1.schema.json",
+    "id": "state/gradient",
+    "datatype": "String",
+    "access": "RW",
+    "public": true,
+    "managed": true,
+    "description": "The currently active gradient (for Hue Gradient lights).",
+    "default": "{}"
+}

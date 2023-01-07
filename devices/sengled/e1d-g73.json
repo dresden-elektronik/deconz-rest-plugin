@@ -1,14 +1,14 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "_TZ3000_d16y6col",
-  "modelid": "TS0207",
-  "vendor": "Tuya",
-  "product": "Tuya water sensor",
+  "manufacturername": "sengled",
+  "modelid": "E1D-G73",
+  "vendor": "Sengled",
+  "product": "Smart Window and Door Sensor",
   "sleeper": true,
-  "status": "Bronze",
+  "status": "Silver",
   "subdevices": [
     {
-      "type": "ZHAWater",
+      "type": "$TYPE_OPEN_CLOSE_SENSOR",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
@@ -61,10 +61,12 @@
             "cl": "0x0001",
             "ep": 1,
             "eval": "Item.val = Attr.val / 2"
-          }
+          },
+          "default": 0
         },
         {
-          "name": "config/enrolled"
+          "name": "config/enrolled",
+          "public": false
         },
         {
           "name": "config/on"
@@ -79,16 +81,13 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/lowbattery",
-          "awake": true
+          "name": "state/lowbattery"
         },
         {
-          "name": "state/tampered",
-          "awake": true
+          "name": "state/open"
         },
         {
-          "name": "state/water",
-          "awake": true
+          "name": "state/tampered"
         }
       ]
     }

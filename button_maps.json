@@ -762,6 +762,33 @@
                 [1, "0x07", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "255", "S_BUTTON_3", "S_BUTTON_ACTION_LONG_RELEASED", "Long released"]
             ]
         },
+        "xiaomiSwitchE1Acn004Map": {
+            "vendor": "Xiaomi",
+            "doc": "Xiaomi Aqara E1 dual rocker wireless switch WXKG17LM",
+            "modelids": ["lumi.remote.acn004"],
+            "buttons": [
+                {"S_BUTTON_1": "Left"},
+                {"S_BUTTON_2": "Right"},
+                {"S_BUTTON_3": "Both"}
+            ],
+            "map": [
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Hold"],
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Single press"],
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "3", "S_BUTTON_1", "S_BUTTON_ACTION_TREBLE_PRESS", "Tripple press"],
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "255", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Long released"],
+                [1, "0x02", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0", "S_BUTTON_2", "S_BUTTON_ACTION_HOLD", "Hold"],
+                [1, "0x02", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Single press"],
+                [1, "0x02", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_2", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x02", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "3", "S_BUTTON_2", "S_BUTTON_ACTION_TREBLE_PRESS", "Tripple press"],
+                [1, "0x02", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "255", "S_BUTTON_2", "S_BUTTON_ACTION_LONG_RELEASED", "Long released"],
+                [1, "0x03", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0", "S_BUTTON_3", "S_BUTTON_ACTION_HOLD", "Hold"],
+                [1, "0x03", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Single press"],
+                [1, "0x03", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_3", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x03", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "3", "S_BUTTON_3", "S_BUTTON_ACTION_TREBLE_PRESS", "Tripple press"],
+                [1, "0x03", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "255", "S_BUTTON_3", "S_BUTTON_ACTION_LONG_RELEASED", "Long released"]
+            ]
+        },
         "xiaomiSwitchH1Euk0XMap": {
             "vendor": "Xiaomi",
             "doc": "Xiaomi Aqara H1 1/2-gang with and without neutral wire WS-EUK01, WS-EUK02, WS-EUK03, WS-EUK04",
@@ -1117,7 +1144,8 @@
         },
         "TuyaKeyfobMap": {
             "vendor": "Woox",
-            "modelids": ["_TZ3000_0zrccfgx"],
+            "doc": "4 button remotes from Woox and Nedis",
+            "modelids": ["_TZ3000_0zrccfgx", "_TZ3000_fsiepnrh"],
             "map": [
                 [1, "0x01", "IAS_ACE", "ARM", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Arm day/home zones only"],
                 [1, "0x01", "IAS_ACE", "ARM", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Disarm"],
@@ -1260,7 +1288,7 @@
         "Tuya3gangMap": {
             "vendor": "Tuya",
             "doc": "3-gang remote",
-            "modelids": ["_TZ3000_ee8nrt2l", "_TZ3000_ygvf9xzp", "_TZ3000_t8hzpgnd", "_TZ3000_wkai4ga5", "_TZ3000_bi6lpsew", "_TZ3400_keyjhapk", "_TYZB02_key8kk7r", "_TZ3400_keyjqthh", "_TZ3400_key8kk7r", "_TZ3000_vp6clf9d", "_TYZB02_keyjqthh", "_TZ3000_peszejy7", "_TZ3000_qzjcsmar", "_TZ3000_owgcnkrh", "_TZ3000_adkvzooy", "_TZ3000_arfwfgoa", "_TZ3000_a7ouggvs", "_TZ3000_rrjr1q0u", "_TZ3000_abci1hiu", "_TZ3000_dfgbtub0", "_TZ3000_rco1yzb1", "_TZ3000_gbm10jnj", "_TZ3000_5e235jpa"],
+            "modelids": ["_TZ3000_ee8nrt2l", "_TZ3000_ygvf9xzp", "_TZ3000_t8hzpgnd", "_TZ3000_wkai4ga5", "_TZ3000_bi6lpsew", "_TZ3400_keyjhapk", "_TYZB02_key8kk7r", "_TZ3400_keyjqthh", "_TZ3400_key8kk7r", "_TZ3000_vp6clf9d", "_TYZB02_keyjqthh", "_TZ3000_peszejy7", "_TZ3000_qzjcsmar", "_TZ3000_owgcnkrh", "_TZ3000_adkvzooy", "_TZ3000_arfwfgoa", "_TZ3000_a7ouggvs", "_TZ3000_rrjr1q0u", "_TZ3000_abci1hiu", "_TZ3000_dfgbtub0", "_TZ3000_rco1yzb1", "_TZ3000_gbm10jnj", "_TZ3000_5e235jpa", "_TZ3000_sj7jbgks"],
             "map": [
                 [1, "0x01", "ONOFF", "0xfd", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "B1 short"],
                 [1, "0x01", "ONOFF", "0xfd", "1", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "B1 double"],
@@ -1726,6 +1754,17 @@
                 [1, "0x01", "XIAOYAN", "COMMAND_20", "0x01", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Long press"],
                 [1, "0x01", "XIAOYAN", "ATTRIBUTE_REPORT", "0x00", "S_BUTTON_1", "S_BUTTON_ACTION_ROTATE_CLOCKWISE", "Rotate clockwise"],
                 [1, "0x01", "XIAOYAN", "ATTRIBUTE_REPORT", "0x01", "S_BUTTON_1", "S_BUTTON_ACTION_ROTATE_COUNTER_CLOCKWISE", "Rotate counter-clockwise"]
+            ]
+        },
+        "NHPBMap": {
+            "vendor": "Schneider Electric",
+            "doc": "Cover controller",
+            "modelids": ["NHPB/SHUTTER/1"],
+            "map": [
+                [1, "0x15", "WINDOW_COVERING", "OPEN", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Open"],
+                [1, "0x15", "WINDOW_COVERING", "STOP", "0", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Stop"],
+                [1, "0x15", "WINDOW_COVERING", "CLOSE", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Close"],
+                [1, "0x15", "WINDOW_COVERING", "STOP", "1", "S_BUTTON_2", "S_BUTTON_ACTION_LONG_RELEASED", "Stop"]
             ]
         }
     }
