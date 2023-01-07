@@ -69,6 +69,12 @@
           "name": "state/dark"
         },
         {
+          "name": "config/tholddark"
+        },
+        {
+          "name": "config/tholdoffset"
+        },
+        {
           "name": "state/daylight"
         },
         {
