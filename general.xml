@@ -1917,26 +1917,30 @@
         <attribute-set id="0xe000" description="Merten specific" mfcode="0x105e">
           <attribute id="0xe000" name="Cover run time" type="u16" default="0" required="m" access="rw" mfcode="0x105e"></attribute>
           <attribute id="0xe010" name="Unknown" type="bmp8" required="m" access="r" mfcode="0x105e">
-            <value name="Unknown" value="0"></value>
-            <value name="Unknown" value="1"></value>
-            <value name="Unknown" value="2"></value>
-            <value name="Unknown" value="3"></value>
-            <value name="Unknown" value="4"></value>
-            <value name="Unknown" value="5"></value>
-            <value name="Unknown" value="6"></value>
-            <value name="Unknown" value="7"></value>
+            <value name="Unknown (0)" value="0"></value>
+            <value name="Unknown (1)" value="1"></value>
+            <value name="Unknown (2)" value="2"></value>
+            <value name="Unknown (3)" value="3"></value>
+            <value name="Unknown (4)" value="4"></value>
+            <value name="Unknown (5)" value="5"></value>
+            <value name="Unknown (6)" value="6"></value>
+            <value name="Unknown (7)" value="7"></value>
           </attribute>
           <attribute id="0xe012" name="Unknown" type="u16" default="0" required="m" access="rw" mfcode="0x105e"></attribute>
           <attribute id="0xe013" name="Unknown" type="bmp8" required="m" access="r" mfcode="0x105e">
-            <value name="Unknown" value="0"></value>
-            <value name="Unknown" value="1"></value>
-            <value name="Unknown" value="2"></value>
-            <value name="Unknown" value="3"></value>
-            <value name="Unknown" value="4"></value>
-            <value name="Unknown" value="5"></value>
-            <value name="Unknown" value="6"></value>
-            <value name="Unknown" value="7"></value>
+            <value name="Unknown (0)" value="0"></value>
+            <value name="Unknown (1)" value="1"></value>
+            <value name="Unknown (2)" value="2"></value>
+            <value name="Unknown (3)" value="3"></value>
+            <value name="Unknown (4)" value="4"></value>
+            <value name="Unknown (5)" value="5"></value>
+            <value name="Unknown (6)" value="6"></value>
+            <value name="Unknown (7)" value="7"></value>
           </attribute>
+          <attribute id="0xe014" name="Cover run time (open)" type="u16" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
+			    <attribute id="0xe015" name="Cover run time (close)" type="u16" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
+          <attribute id="0xe016" name="Unknown" type="u16" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
+          <attribute id="0xe017" name="Unknown" type="u8" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
         </attribute-set>
         <command id="0x00" dir="recv" name="Up / Open" required="m"></command>
         <command id="0x01" dir="recv" name="Down / Close" required="m"></command>
@@ -4756,25 +4760,25 @@ Writing 1 to 0x0202 and 0x0302 makes 0x0300 writable. Then writing 1 to 0x0300 s
     <cluster id="0xff17" name="Merten specific" mfcode="0x105e">
       <description>Merten specific attributes.</description>
       <server>
-        <attribute id="0x0000" name="Unknown" type="enum8" mfcode="0x105e" access="rw" required="m">
-          <value name="Unknown" value="0"></value>
-          <value name="Unknown" value="1"></value>
-          <value name="Unknown" value="2"></value>
-          <value name="Unknown" value="3"></value>
-          <value name="Unknown" value="4"></value>
-          <value name="Unknown" value="5"></value>
-          <value name="Unknown" value="6"></value>
-          <value name="Unknown" value="7"></value>
+        <attribute id="0x0000" name="Leds" type="enum8" mfcode="0x105e" access="rw" required="m">
+          <value name="Orientation led off / Movement led on" value="0"></value>
+          <value name="Orientation led on / Movement led on" value="1"></value>
+          <value name="Orientation led on / Movement led off" value="2"></value>
+          <value name="Orientation led off / Movement led off" value="3"></value>
+          <value name="Unknown (4)" value="4"></value>
+          <value name="Unknown (5)" value="5"></value>
+          <value name="Unknown (6)" value="6"></value>
+          <value name="Unknown (7)" value="7"></value>
         </attribute>
-        <attribute id="0x0001" name="Unknown" type="enum8" mfcode="0x105e" access="rw" required="m">
-          <value name="Unknown" value="0"></value>
-          <value name="Unknown" value="1"></value>
-          <value name="Unknown" value="2"></value>
-          <value name="Unknown" value="3"></value>
-          <value name="Unknown" value="4"></value>
-          <value name="Unknown" value="5"></value>
-          <value name="Unknown" value="6"></value>
-          <value name="Unknown" value="7"></value>
+        <attribute id="0x0001" name="Mode" type="enum8" mfcode="0x105e" access="rw" required="m">
+          <value name="Lift (locked)" value="0"></value>
+          <value name="Lift and tilt (locked)" value="1"></value>
+          <value name="Lift (unlocked)" value="2"></value>
+          <value name="Lift and tilt (unlocked)" value="3"></value>
+          <value name="Unknown (4)" value="4"></value>
+          <value name="Unknown (5)" value="5"></value>
+          <value name="Unknown (6)" value="6"></value>
+          <value name="Unknown (7)" value="7"></value>
         </attribute>
         <attribute id="0x0010" name="Unknown" type="u8" mfcode="0x105e" access="rw" required="m"></attribute>
         <attribute id="0x0011" name="Unknown" type="u16" mfcode="0x105e" access="rw" required="m"></attribute>
