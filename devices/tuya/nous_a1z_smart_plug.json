@@ -1,9 +1,9 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "_TZ3000_ksw8qtmt",
-  "modelid": "TS011F",
+  "manufacturername": ["_TZ3000_ksw8qtmt", "_TZ3000_2putqrmw"],
+  "modelid": ["TS011F", "TS011F"],
   "vendor": "Nous",
-  "product": "Nous A1Z plug",
+  "product": "Nous A1Z smart plug",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
