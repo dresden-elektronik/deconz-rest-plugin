@@ -210,6 +210,31 @@
           },
           "default": 7
         },
+        {
+          "name": "config/triggerdistance",
+          "description": "Far detection sensitivity",
+         "read": {
+            "fn": "none"
+          },
+          "write": {
+            "dpid": 4,
+            "dt": "0x2b",
+            "eval": "if (Item.val == 'off') { 0 } else if (Item.val == 'far') { 1000 } else if (Item.val == 'medium') { 500 } else if (Item.val == 'near') { 200 }",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 4,
+            "eval": "if (Attr.val == 0) { Item.val = 'off' } else if (Attr.val <= 200) { Item.val = 'near' } else if (Attr.val <= 700) { Item.val = 'medium' } else if (Attr.val <= 1000) { Item.val = 'far' } else { Item.val = 'unknown' }",
+            "fn": "tuya"
+          },
+         "values": [
+            ["\"far\"", "Someone approaching is detected on high distance"],
+            ["\"medium\"", "Someone approaching is detected on medium distance"],
+            ["\"near\"", "Someone approaching is detected on low distance"], 
+            ["\"off\"", "Far detection distance set to zero"]
+          ],
+          "default": "far"
+        },
          {
           "name": "state/angle",
           "description": "Distance from detected target in cm (from 0 to 1000).",
