@@ -136,7 +136,6 @@
           "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
           "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
-        },
         {
           "name": "attr/type"
         },
