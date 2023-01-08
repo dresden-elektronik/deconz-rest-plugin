@@ -12,7 +12,7 @@
     "TS011F",
     "TS011F"
   ],
-  "product": "NAS-WR01B",
+  "product": "NEO NAS-WR01B Smart Plug",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -154,7 +154,9 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
+          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
         {
           "name": "attr/type"
@@ -170,7 +172,7 @@
         },
         {
           "name": "state/current",
-          "refresh.interval": 300,
+          "refresh.interval": 360,
           "default": 0
         },
         {
@@ -178,12 +180,12 @@
         },
         {
           "name": "state/power",
-          "refresh.interval": 300,
+          "refresh.interval": 360,
           "default": 0
         },
         {
           "name": "state/voltage",
-          "refresh.interval": 300,
+          "refresh.interval": 360,
           "default": 0
         }
       ]
