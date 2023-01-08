@@ -3,7 +3,7 @@
   "manufacturername": "_TZE200_3towulqd",
   "modelid": "TS0601",
   "vendor": "Tuya",
-  "product": "ZG-204ZL",
+  "product": "ZG-204ZL Luminance Motion Sensor",
   "status": "Gold",
   "sleeper": true,
   "subdevices": [
@@ -44,10 +44,12 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/tholddark"
+          "name": "config/tholddark",
+          "default": 12000
         },
         {
-          "name": "config/tholdoffset"
+          "name": "config/tholdoffset",
+          "default": 7000
         },
         {
           "name": "state/lightlevel"
@@ -116,15 +118,6 @@
         },
         {
           "name": "config/reachable"
-        },
-        {
-          "name": "config/tholddark"
-        },
-        {
-          "name": "config/tholdoffset"
-        },
-        {
-          "name": "state/lightlevel"
         },
         {
           "name": "state/presence",
