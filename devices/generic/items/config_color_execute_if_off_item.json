@@ -1,0 +1,21 @@
+{
+    "schema": "resourceitem1.schema.json",
+    "id": "config/color/execute_if_off",
+    "datatype": "Bool",
+    "access": "RW",
+    "public": true,
+    "description": "Execute colour changes when the device is off.",
+    "default": true,
+    "parse": {
+        "fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x000f",
+        "eval": "Item.val = (Attr.val & 0x01) !== 0"
+    },
+    "read": {
+        "fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x000f"
+    },
+    "refresh.interval": 3600,
+    "write": {
+        "fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x000f", "dt": "0x18",
+        "eval": "Item.val ? 0x01 : 0x00"
+    }
+}

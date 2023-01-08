@@ -2183,7 +2183,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq4.maxInterval = 1800;
 
 //          TODO re activate. Don't disable for now until more testing is done.
-//            const ResourceItem *cap = lightNode ? lightNode->item(RConfigColorCapabilities) : nullptr;
+//            const ResourceItem *cap = lightNode ? lightNode->item(RCapColorCapabilities) : nullptr;
 
 //            if (cap && (cap->toNumber() & 0x0008) == 0) // doesn't support xy --> color temperature light
 //            {
