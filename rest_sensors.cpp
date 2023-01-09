@@ -821,7 +821,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                 }
 
-                if (rid.suffix == RConfigDeviceMode && !data.string.isEmpty() && RConfigDeviceModeValues.indexOf(data.string) >= 0)
+                if (rid.suffix == RConfigDeviceMode) // String
                 {
                     if (devManaged && rsub)
                     {
@@ -830,7 +830,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         updated = true;
                     }
                 }
-                else if (rid.suffix == RConfigClickMode && !data.string.isEmpty()) // String
+                else if (rid.suffix == RConfigClickMode) // String
                 {
                     if (devManaged && rsub)
                     {
@@ -900,7 +900,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         updated = true;
                     }
                 }
-                else if (rid.suffix == RConfigTriggerDistance && !data.string.isEmpty()) // String
+                else if (rid.suffix == RConfigTriggerDistance) // String
                 {
                     if (devManaged && rsub)
                     {
