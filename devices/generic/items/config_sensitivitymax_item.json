@@ -2,7 +2,7 @@
 	"schema": "resourceitem1.schema.json",
 	"id": "config/sensitivitymax",
 	"datatype": "UInt8",
-	"access": "RW",
+	"access": "R",
 	"public": true,
 	"range": [0, 255],
 	"description": "The maximum sensor sensitivity."

@@ -303,6 +303,7 @@ extern const char *RConfigSensitivityMax;
 extern const char *RConfigSetValve;
 extern const char *RConfigSunriseOffset;
 extern const char *RConfigSunsetOffset;
+extern const char *RConfigUnoccupiedHeatSetpoint;
 extern const char *RConfigSwingMode;
 extern const char *RConfigTempMaxThreshold;
 extern const char *RConfigTempMinThreshold;
