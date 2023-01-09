@@ -1,0 +1,32 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/unoccupiedheatsetpoint",
+	"datatype": "Int16",
+	"access": "RW",
+	"public": true,
+	"default": 1800,
+	"description": "Target temperature of a thermostat when local is unoccupied.",
+          "refresh.interval": 300,
+          "read": {
+            "at": "0x0014",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0014",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl"
+          },
+            "write": {
+	    "at": "0x0014",
+            "cl": "0x0201",
+            "dt": "0x29",
+            "ep": 1,
+            "eval": "Item.val",
+            "fn": "zcl"
+          },
+	"range": [500, 3200]
+}
