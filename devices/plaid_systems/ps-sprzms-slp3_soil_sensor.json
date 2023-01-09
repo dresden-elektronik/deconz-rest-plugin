@@ -1,9 +1,9 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["_TZ3000_yd2e749y", "_TZ3000_fllyghyj", "_TZ3000_fie1dpkm", "_TZ3000_lbtpiody", "_TZ3000_5nrcorgu", "_TZ3000_ena8vgqb", "_TZ3000_xr3htd96"],
-  "modelid": ["TS0201", "TS0201", "TS0201", "TS0201", "TS0201", "TS0201", "TS0201"],
-  "vendor": "Tuya",
-  "product": "Temperature and humidity sensor",
+  "manufacturername": "PLAID SYSTEMS",
+  "modelid": "PS-SPRZMS-SLP3",
+  "vendor": "Plaid Systems",
+  "product": "Spruce Soil sensor",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -35,10 +35,7 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion",                   
-          "refresh.interval": 86400,
-          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "name": "attr/swversion"
         },
         {
           "name": "attr/type"
@@ -48,14 +45,15 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
           "parse": {
-            "at": "0x0021",
+            "at": "0x0000",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2;",
-            "fn": "zcl"
-          }
+            "eval": "const vmin = 2000; const vmax = 3000; let bat = Attr.val; if (bat > vmax) { bat = vmax; } else if (bat < vmin) { bat = vmin; } bat = ((bat - vmin) / (vmax - vmin)) * 100; if (bat > 100) { bat = 100; } else if (bat <= 0)  { bat = 1; } Item.val = bat;"
+          },
+          "read": {"fn": "zcl", "ep": 1, "cl": "0x0001", "at": "0x0000"},
+          "refresh.interval": 3700,
+          "default": 0
         },
         {
           "name": "config/offset"
@@ -103,10 +101,7 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion",                   
-          "refresh.interval": 86400,
-          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "name": "attr/swversion"
         },
         {
           "name": "attr/type"
@@ -116,14 +111,15 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
           "parse": {
-            "at": "0x0021",
+            "at": "0x0000",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2;",
-            "fn": "zcl"
-          }
+            "eval": "const vmin = 2000; const vmax = 3000; let bat = Attr.val; if (bat > vmax) { bat = vmax; } else if (bat < vmin) { bat = vmin; } bat = ((bat - vmin) / (vmax - vmin)) * 100; if (bat > 100) { bat = 100; } else if (bat <= 0)  { bat = 1; } Item.val = bat;"
+          },
+          "read": {"fn": "zcl", "ep": 1, "cl": "0x0001", "at": "0x0000"},
+          "refresh.interval": 3700,
+          "default": 0
         },
         {
           "name": "config/offset"
@@ -151,8 +147,8 @@
       "cl": "0x0001",
       "report": [
         {
-          "at": "0x0021",
-          "dt": "0x20",
+          "at": "0x0000",
+          "dt": "0x21",
           "min": 60,
           "max": 3600,
           "change": "0x00000001"
