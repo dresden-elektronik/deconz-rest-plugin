@@ -1,0 +1,264 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "$MF_LUMI",
+  "modelid": "lumi.airrtc.agl001",
+  "vendor": "Aqara",
+  "product": "E1 Thermostat",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_THERMOSTAT",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0201"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0301",
+        "endpoint": "0x01",
+        "in": [
+          "0x0000",
+          "0xfcc0",
+          "0x0201"
+        ]
+      },
+      "meta": {
+        "values": {
+          "config/mode": {"off": 0, "heat": 1}
+        }
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "read": {
+            "at": "0x040a",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "parse": {
+            "at": "0x040a",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "default": 0
+        },
+        {
+          "name": "config/heatsetpoint",
+          "read": {
+            "at": "0x0012",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0012",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl"
+          },
+          "default": 0
+        },
+        {
+          "name": "config/locked",
+          "read": {
+            "at": "0x0277",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "parse": {
+            "at": "0x0277",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "write": {
+             "at": "0x0277",
+             "cl": "0xfcc0",
+             "dt": "0x20",
+             "ep": 1,
+             "eval": "if (Item.val == true) { 1 } else { 0 }",
+             "fn": "zcl",
+             "mf": "0x115f"
+          },
+          "default": false
+        },
+        {
+          "name": "config/offset",
+          "default": 0
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/mode",
+          "read": {
+            "at": "0x0271",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "parse": {
+            "at": "0x0271",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "eval": "Item.val = ['off', 'heat'][Attr.val];",
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "write": {
+             "at": "0x0271",
+             "cl": "0xfcc0",
+             "dt": "0x20",
+             "ep": 1,
+             "eval": "if (Item.val == 'off') { 0 } else if (Item.val == 'heat') { 1 }",
+             "fn": "zcl",
+             "mf": "0x115f"
+          }
+        },
+        {
+          "name": "config/preset",
+          "read": {
+            "at": "0x0272",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "parse": {
+            "at": "0x0272",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "eval": "Item.val = ['manual', 'auto', 'holiday'][Attr.val];",
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "write": {
+             "at": "0x0272",
+             "cl": "0xfcc0",
+             "dt": "0x20",
+             "ep": 1,
+             "eval": "if (Item.val == 'manual') { 0 } else if (Item.val == 'auto') { 1 } else if (Item.val == 'holiday') { 2 }",
+             "fn": "zcl",
+             "mf": "0x115f"
+          }
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 5,
+          "parse": {
+            "at": "0x0271",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl",
+            "mf": "0x115f"
+          }
+        },
+        {
+          "name": "state/temperature",
+          "read": {
+            "at": "0x0000",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/windowopen",
+          "read": {
+            "at": "0x027a",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "parse": {
+            "at": "0x027a",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "eval": "Item.val = (Attr.val == 1);",
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "default": false
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0201",
+      "report": [
+        {
+          "at": "0x0012",
+          "dt": "0x29",
+          "min": 300,
+          "max": 600
+        },
+        {
+          "at": "0x0000",
+          "dt": "0x29",
+          "min": 20,
+          "max": 300
+        }
+      ]
+    }
+  ]
+}

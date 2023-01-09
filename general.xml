@@ -4483,6 +4483,40 @@ Contactor > On/off=0003 - HP/HC=0004</description>
           <attribute id="0x023B" name="Unknown" type="float" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x023E" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
         </attribute-set>
+        <attribute-set id="0x0271" description="Smart Radiator Thermostat E1">
+            <attribute id="0x0270" name="Calibrate" type="u8" mfcode="0x115f" access="rw" required="m"> 
+                <description>Write 1 to calibrate</description>
+            </attribute>
+            <attribute id="0x0271" name="Mode" type="u8" mfcode="0x115f" access="rw" required="m"> 
+                <description>Heating state: 0 - off, 1 - on</description>
+            </attribute>
+            <attribute id="0x0272" name="Preset" type="u8" mfcode="0x115f" access="rw" required="m" default="0"> 
+                <description>Preset: 0 - manual, 1 - auto, 2 - away</description>
+            </attribute>
+            <attribute id="0x0273" name="Window detection" type="u8" mfcode="0x115f" access="rw" required="m">
+                <description>Window detection: 0 - off, 1 - on</description>
+            </attribute>
+            <attribute id="0x0274" name="Valve fault detection" type="u8" mfcode="0x115f" access="rw" required="m">
+                <description>Valve fault detection: 0 - off, 1 - on</description>
+            </attribute>
+            <attribute id="0x0275" name="Valve fault alarm" type="u8" mfcode="0x115f" access="r" required="m">
+                <description>Valve fault alarm: 0 - false, 1 - true</description>
+            </attribute>
+            <attribute id="0x0277" name="Child lock on" type="u8" mfcode="0x115f" access="rw" required="m">
+                <description>Child lock on: 0 - false, 1 - true</description>
+            </attribute>
+            <attribute id="0x0279" name="Away preset temperature" type="u32" mfcode="0x115f" access="rw" required="m"> </attribute>
+            <attribute id="0x027a" name="Window open" type="u8" mfcode="0x115f" access="r" required="m">
+                <description>Window open: 0 - false, 1 - true</description>
+            </attribute>
+            <attribute id="0x027b" name="Calibrated" type="u8" mfcode="0x115f" access="r" required="m">
+                <description>Calibrated: 0 - false, 1 - true</description>
+            </attribute>
+            <attribute id="0x027e" name="External sensor" type="u8" mfcode="0x115f" access="r" required="m">
+                <description>Temperature sensor: 0 - internal, 1 - external</description>
+            </attribute>
+            <attribute id="0x040a" name="Battery" type="u8" mfcode="0x115f" access="r" required="m"> </attribute>
+        </attribute-set>
         <attribute-set id="0x0400" description="Aqara Roller Shade Driver E1">
           <attribute id="0x0400" name="Reverse Direction" type="bool" mfcode="0x115f" access="rw" required="o">
             <description>Reverse the direction of up/open and down/close.</description>
@@ -4516,10 +4550,12 @@ Contactor > On/off=0003 - HP/HC=0004</description>
           <attribute id="0xF000" name="Report Consumer Connected" type="u8" mfcode="0x115f" access="rw" required="m">
             <description>Report Consumer Connected: 1 - false, 0 - true</description>
           </attribute>
-          <attribute id="0xF001" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0xF002" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0xFFF2" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0xFFFD" name="Cluster Revision" type="u16" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0xF001" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"> </attribute>
+          <attribute id="0xF002" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"> </attribute>
+          <attribute id="0xFFF2" name="External temperature" type="ostring" mfcode="0x115f" access="r" required="m">
+            <description>Could used to write external temperature values to TRV</description>
+          </attribute>
+          <attribute id="0xFFFD" name="Cluster Revision" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
         </attribute-set>
       </server>
       <client>
