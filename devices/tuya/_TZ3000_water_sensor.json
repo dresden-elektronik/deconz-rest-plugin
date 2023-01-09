@@ -1,19 +1,11 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": [
-    "_TZ3000_ocjlo4ea",
-    "_TZ3000_d16y6col",
-    "_TZ3000_85czd6fy"
-  ],
-  "modelid": [
-    "TS0207",
-    "TS0207",
-    "TS0207"
-  ],
+  "manufacturername": ["_TZ3000_d16y6col", "_TZ3000_ww9i3e0y", "_TZ3000_qhozxs2b", "_TZ3000_85czd6fy", "_TZ3000_ocjlo4ea"],
+  "modelid": ["TS0207", "TS0207", "TS0207", "TS0207", "TS0207"],
   "vendor": "Tuya",
   "product": "Tuya water sensor",
   "sleeper": true,
-  "status": "Bronze",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "ZHAWater",
@@ -63,6 +55,7 @@
         },
         {
           "name": "config/battery",
+          "refresh.interval": 84000,
           "awake": true,
           "parse": {
             "at": "0x0021",

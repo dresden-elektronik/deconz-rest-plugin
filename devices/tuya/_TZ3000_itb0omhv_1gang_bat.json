@@ -1,9 +1,9 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["_TZ3000_ygvf9xzp", "_TZ3000_ee8nrt2l", "_TZ3000_dziaict4", "_TZ3000_mh9px7cq"],
-  "modelid": ["TS0044", "TS0044", "TS0044", "TS0044"],
-  "product": "Tuya remote 4 gangs",
-  "sleeper": true,
+  "manufacturername": " _TZ3000_itb0omhv",
+  "modelid": "TS0041",
+  "product": "Tuya 1 gangs switch battery",
+  "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
@@ -49,14 +49,20 @@
           "name": "config/battery",
           "refresh.interval": 84000,
           "awake": true,
+          "read": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "fn": "zcl"
+          },
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2;",
-            "fn": "zcl"
-          }
-        },
+            "eval": "Item.val = Attr.val / 2"
+          },
+          "default": 0
+        },        
         {
           "name": "config/on"
         },
@@ -90,24 +96,6 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0006"
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 2,
-      "dst.ep": 1,
-      "cl": "0x0006"
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 3,
-      "dst.ep": 1,
-      "cl": "0x0006"
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 4,
       "dst.ep": 1,
       "cl": "0x0006"
     }
