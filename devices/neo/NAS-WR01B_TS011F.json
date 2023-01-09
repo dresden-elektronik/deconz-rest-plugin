@@ -59,7 +59,7 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 5
+          "refresh.interval": 360
         },
         {
           "name": "state/reachable"
@@ -112,7 +112,7 @@
         },
         {
           "name": "state/consumption",
-          "refresh.interval": 300,
+          "refresh.interval": 360,
           "parse": {
             "at": "0x0000",
             "cl": "0x0702",
