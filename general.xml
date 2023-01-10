@@ -4652,6 +4652,15 @@ Outdoor Temp to Display Timeout: set 30 for 'off' and 10800 for 'on'</descriptio
       <client>
       </client>
     </cluster>
+    <cluster id="0xfd01" name="innr specific 2" mfcode="0x1166">
+      <description>innr specific attributes 2.</description>
+      <server>
+        <attribute id="0x0004" name="Key Report Mask Read/Write" mfcode="0x1166" type="u8" default="0" access="rw" required="m">
+        </attribute>
+      </server>
+      <client>
+      </client>
+    </cluster>
 
     <!-- IMMAX -->
     <cluster id="0xfc82" name="Immax specific" mfcode="0x1037">
