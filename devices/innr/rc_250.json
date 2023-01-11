@@ -12,7 +12,7 @@
       "uuid": [
         "$address.ext",
         "0x01",
-        "0x0006"
+        "0xfd01"
       ],
       "items": [
         {
@@ -73,7 +73,7 @@
             "cl": "0xfd01",
             "cmd": "0x12",
             "mf": "0x1168",
-            "eval": "if (ZclFrame.at(2)<6){const e = [0x00, 0x01, 0x02, 0x04, 0x02, 0x03, 0x03]; Item.val = ZclFrame.at(1) * 1000 + e[ZclFrame.at(2)]}"
+            "eval": "const t={'1':0,'8':2,'2':3,'10':9};if(ZclFrame.at(2) in t){Item.val=ZclFrame.at(1)*1000+t[ZclFrame.at(2)]}"
           }
         },
         {
@@ -96,18 +96,6 @@
           "change": "0x00000001"
         }
       ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0006"
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0008"
     },
     {
       "bind": "unicast",
