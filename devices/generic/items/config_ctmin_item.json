@@ -1,11 +1,18 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "config/ctmin",
-	"datatype": "UInt16",
-	"access": "R",
-	"public": true,
-	"description": "Minimum supported color temperature.",
-	"parse": {"fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x400b", "eval": "Item.val = Attr.val"},
-	"read": {"fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x400b"},
-	"refresh.interval": 84000
+    "schema": "resourceitem1.schema.json",
+    "id": "config/ctmin",
+    "datatype": "UInt16",
+    "access": "R",
+    "public": true,
+    "description": "Deprecated. Minimum supported color temperature.",
+    "deprecated": "2022-11-11",
+    "default": 0,
+    "parse": {
+        "fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x400b",
+        "eval": "Item.val = Attr.val"
+    },
+    "read": {
+        "fn": "zcl", "ep": 0, "cl": "0x0300", "at": ["0x400b", "0x400c"]
+    },
+    "refresh.interval": 86400
 }

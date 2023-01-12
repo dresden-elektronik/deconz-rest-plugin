@@ -34,16 +34,29 @@ StateChange::StateChange(StateChange::State initialState, StateChangeFunction_t 
 /*! Tick function for the inner state machine.
 
     Is called from the Device state machine on certain events.
+    \returns 0 when nothing was sent, 1 if an APS request was enqueued
 */
-StateChange::State StateChange::tick(Resource *r, deCONZ::ApsController *apsCtrl)
+int StateChange::tick(uint64_t extAddr, Resource *r, deCONZ::ApsController *apsCtrl)
 {
+    int result = 0;
+
     if (m_state == StateFinished || m_state == StateFailed)
     {
-        return m_state;
+        return result;
     }
 
     Q_ASSERT(m_stateTimer.isValid());
     Q_ASSERT(m_changeTimer.isValid());
+
+    const char *uniqueId = "";
+
+    {
+        const ResourceItem *item = r->item(RAttrUniqueId);
+        if (item)
+        {
+            uniqueId = item->toCString();
+        }
+    }
 
     if (m_state == StateWaitSync)
     {
@@ -55,7 +68,6 @@ StateChange::State StateChange::tick(Resource *r, deCONZ::ApsController *apsCtrl
             {
                 if (i.verified == VerifyUnknown) // didn't receive a ZCL attribute read or report command
                 {
-                    DBG_Printf(DBG_INFO, "SC tick --> StateRead\n");
                     m_state = StateRead;
                     break;
                 }
@@ -71,13 +83,15 @@ StateChange::State StateChange::tick(Resource *r, deCONZ::ApsController *apsCtrl
     {
         m_state = StateFailed;
     }
+    else if (DA_ApsUnconfirmedRequests() > 5)
+    {
+        // wait
+    }
     else if (m_state == StateCallFunction && m_changeFunction)
     {
         DBG_Printf(DBG_INFO, "SC tick --> StateCallFunction\n");
         if (m_changeFunction(r, this, apsCtrl) == 0)
         {
-            m_stateTimer.start();
-
             for (auto &i : m_items)
             {
                 if (i.verified == VerifyNotSynced)
@@ -85,10 +99,12 @@ StateChange::State StateChange::tick(Resource *r, deCONZ::ApsController *apsCtrl
                     i.verified = VerifyUnknown; // read again
                 }
             }
+            m_stateTimer.start();
             m_state = StateWaitSync;
+            result = 1;
         }
     }
-    else if (m_state == StateRead)
+    else if (m_state == StateRead && DA_ApsUnconfirmedRequestsForExtAddress(extAddr) == 0)
     {
         ResourceItem *item = nullptr;
         for (auto &i : m_items)
@@ -101,6 +117,7 @@ StateChange::State StateChange::tick(Resource *r, deCONZ::ApsController *apsCtrl
         }
 
         m_state = StateFailed;
+        m_readResult = {};
         if (item)
         {
             const auto &ddfItem = DDF_GetItem(item);
@@ -111,14 +128,17 @@ StateChange::State StateChange::tick(Resource *r, deCONZ::ApsController *apsCtrl
 
                 if (m_readResult.isEnqueued)
                 {
-                    m_stateTimer.start();
-                    m_state = StateWaitSync;
+                    DBG_Printf(DBG_INFO, "SC tick --> StateRead %s, %s\n", item->descriptor().suffix, uniqueId);
+                    result = 1;
                 }
+
+                m_stateTimer.start();
+                m_state = StateWaitSync;
             }
         }
     }
 
-    return m_state;
+    return result;
 }
 
 /*! Should be called when the item was set by a ZCL read or report attribute command.

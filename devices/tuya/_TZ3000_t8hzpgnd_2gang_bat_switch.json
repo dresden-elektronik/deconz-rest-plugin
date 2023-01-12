@@ -1,8 +1,8 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "_TZ3000_t8hzpgnd",
-  "modelid": "TS0042",
-  "product": "TS0042",
+  "manufacturername": ["_TZ3000_t8hzpgnd", "_TZ3000_tzvbimpq"],
+  "modelid": ["TS0042", "TS0042"],
+  "product": "2 Gangs tuya battery",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -34,7 +34,10 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "refresh.interval": 84000,
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
         {
           "name": "attr/type"
@@ -45,7 +48,7 @@
         {
           "name": "config/battery",
           "awake": true,
-          "refresh.interval": 4000,
+          "refresh.interval": 84000,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",

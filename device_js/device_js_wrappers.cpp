@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2021-2022 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -7,6 +7,8 @@
  * the LICENSE.txt file.
  *
  */
+
+#ifdef USE_QT_JS_ENGINE
 
 #include <math.h>
 #include "resource.h"
@@ -46,25 +48,23 @@ QJSValue JsResource::item(const QString &suffix)
     }
 
     ResourceItem *item = r ? r->item(rid.suffix) : nullptr;
-    const ResourceItem *citem = cr ? cr->item(rid.suffix) : nullptr;
 
-    if (item || citem)
+    if (item)
     {
         auto *ritem = new JsResourceItem(this);
         ritem->item = item;
-        ritem->citem = citem;
         return static_cast<QJSEngine*>(parent())->newQObject(ritem);
     }
 
     return {};
 }
 
-QVariant JsResource::endpoints()
+QVariant JsResource::endpoints() const
 {
     QVariantList result;
-    if (cr)
+    if (r)
     {
-        const deCONZ::Node *node = getResourceCoreNode(cr);
+        const deCONZ::Node *node = getResourceCoreNode(r);
         if (node)
         {
             for (auto ep : node->endpoints())
@@ -85,14 +85,13 @@ JsResourceItem::JsResourceItem(QObject *parent) :
 
 JsResourceItem::~JsResourceItem()
 {
-    if (item)
-    {
-        item = nullptr;
-    }
+    item = nullptr;
 }
 
 QVariant JsResourceItem::value() const
 {
+    const ResourceItem *citem = item;
+
     if (!citem)
     {
         return {};
@@ -136,14 +135,19 @@ void JsResourceItem::setValue(const QVariant &val)
         {
             DBG_Printf(DBG_DDF, "JS failed to set Item.val for %s\n", item->descriptor().suffix);
         }
+        else
+        {
+            emit valueChanged();
+            DeviceJS_ResourceItemValueChanged(item);
+        }
     }
 }
 
 QString JsResourceItem::name() const
 {
-    if (citem)
+    if (item)
     {
-        return QLatin1String(citem->descriptor().suffix);
+        return QLatin1String(item->descriptor().suffix);
     }
 
     return {};
@@ -349,3 +353,5 @@ QString JsUtils::padStart(const QString &str, QJSValue targetLength, QJSValue pa
 
     return result;
 }
+
+#endif // USE_QT_JS_ENGINE

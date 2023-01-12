@@ -1,0 +1,572 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": ["Develco Products A/S", "frient A/S"],
+  "modelid": ["MOSZB-141", "MOSZB-141"],
+  "vendor": "Develco Products",
+  "product": "MOSZB-141 motion sensor",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_PRESENCE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x29",
+        "0x0406"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0107",
+        "endpoint": "0x29",
+        "in": [
+          "0x0406"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername",
+          "awake": true
+        },
+        {
+          "name": "attr/modelid",
+          "awake": true
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "awake": true,
+          "refresh.interval": 84000,
+          "read": {
+            "at": "0x8000",
+            "cl": "0x0000",
+            "ep": 35,
+            "fn": "zcl",
+            "mf": "0x1015"
+          },
+          "parse": {
+            "at": "0x8000",
+            "cl": "0x0000",
+            "ep": 35,
+            "fn": "zcl",
+            "mf": "0x1015",
+            "script": "develco_firmware.js"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "parse": {
+            "at": "0x0020",
+            "cl": "0x0001",
+            "ep": 35,
+            "fn": "zcl",
+            "script": "develco_battery.js"
+          }
+        },
+        {
+          "name": "config/delay",
+          "awake": true,
+          "refresh.interval": 3600,
+          "read": {
+            "at": "0x0010",
+            "cl": "0x0406",
+            "ep": 41,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0010",
+            "cl": "0x0406",
+            "ep": 41,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl"
+          },
+          "write": {
+            "at": "0x0010",
+            "cl": "0x0406",
+            "dt": "0x21",
+            "ep": 41,
+            "eval": "Item.val",
+            "fn": "zcl"
+          }
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/pending"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/presence",
+          "awake": true,
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0406",
+            "ep": 41,
+            "eval": "Item.val = Attr.val;"
+          }
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_PRESENCE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x28",
+        "0x0406"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0107",
+        "endpoint": "0x28",
+        "in": [
+          "0x0406"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername",
+          "awake": true
+        },
+        {
+          "name": "attr/modelid",
+          "awake": true
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "awake": true,
+          "refresh.interval": 84000,
+          "read": {
+            "at": "0x8000",
+            "cl": "0x0000",
+            "ep": 35,
+            "fn": "zcl",
+            "mf": "0x1015"
+          },
+          "parse": {
+            "at": "0x8000",
+            "cl": "0x0000",
+            "ep": 35,
+            "fn": "zcl",
+            "mf": "0x1015",
+            "script": "develco_firmware.js"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "parse": {
+            "at": "0x0020",
+            "cl": "0x0001",
+            "ep": 35,
+            "fn": "zcl",
+            "script": "develco_battery.js"
+          }
+        },
+        {
+          "name": "config/delay",
+          "awake": true,
+          "refresh.interval": 3600,
+          "read": {
+            "at": "0x0010",
+            "cl": "0x0406",
+            "ep": 40,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0010",
+            "cl": "0x0406",
+            "ep": 40,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl"
+          },
+          "write": {
+            "at": "0x0010",
+            "cl": "0x0406",
+            "dt": "0x21",
+            "ep": 40,
+            "eval": "Item.val",
+            "fn": "zcl"
+          }
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/pending"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/presence",
+          "awake": true,
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0406",
+            "ep": 40,
+            "eval": "Item.val = Attr.val;"
+          }
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_PRESENCE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x23",
+        "0x0500"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0402",
+        "endpoint": "0x23",
+        "in": [
+          "0x0001",
+          "0x0500"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername",
+          "awake": true
+        },
+        {
+          "name": "attr/modelid",
+          "awake": true
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "awake": true,
+          "refresh.interval": 84000,
+          "read": {
+            "at": "0x8000",
+            "cl": "0x0000",
+            "ep": 35,
+            "fn": "zcl",
+            "mf": "0x1015"
+          },
+          "parse": {
+            "at": "0x8000",
+            "cl": "0x0000",
+            "ep": 35,
+            "fn": "zcl",
+            "mf": "0x1015",
+            "script": "develco_firmware.js"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "parse": {
+            "at": "0x0020",
+            "cl": "0x0001",
+            "ep": 35,
+            "script": "develco_battery.js"
+          }
+        },
+        {
+          "name": "config/delay",
+          "awake": true,
+          "refresh.interval": 3600,
+          "read": {
+            "at": "0x8001",
+            "cl": "0x0500",
+            "ep": 35,
+            "fn": "zcl",
+            "mf": "0x1015"
+          },
+          "parse": {
+            "at": "0x8001",
+            "cl": "0x0500",
+            "ep": 35,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl",
+            "mf": "0x1015"
+          },
+          "write": {
+            "at": "0x8001",
+            "cl": "0x0500",
+            "dt": "0x21",
+            "ep": 35,
+            "eval": "Item.val",
+            "fn": "zcl",
+            "mf": "0x1015"
+          },
+          "range": [20, 65535],
+          "default": 20
+        },
+        {
+          "name": "config/enrolled"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/pending"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/lowbattery",
+          "awake": true
+        },
+        {
+          "name": "state/presence",
+          "awake": true
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_PRESENCE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x22",
+        "0x0406"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0107",
+        "endpoint": "0x22",
+        "in": [
+          "0x0406"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername",
+          "awake": true
+        },
+        {
+          "name": "attr/modelid",
+          "awake": true
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "awake": true,
+          "refresh.interval": 84000,
+          "read": {
+            "at": "0x8000",
+            "cl": "0x0000",
+            "ep": 35,
+            "fn": "zcl",
+            "mf": "0x1015"
+          },
+          "parse": {
+            "at": "0x8000",
+            "cl": "0x0000",
+            "ep": 35,
+            "fn": "zcl",
+            "mf": "0x1015",
+            "script": "develco_firmware.js"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "parse": {
+            "at": "0x0020",
+            "cl": "0x0001",
+            "ep": 35,
+            "script": "develco_battery.js"
+          }
+        },
+        {
+          "name": "config/delay",
+          "awake": true,
+          "refresh.interval": 3600,
+          "read": {
+            "at": "0x0010",
+            "cl": "0x0406",
+            "ep": 34,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0010",
+            "cl": "0x0406",
+            "ep": 34,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl"
+          },
+          "write": {
+            "at": "0x0010",
+            "cl": "0x0406",
+            "dt": "0x21",
+            "ep": 34,
+            "eval": "Item.val",
+            "fn": "zcl"
+          }
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/pending"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/presence",
+          "awake": true,
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0406",
+            "ep": 34,
+            "eval": "Item.val = Attr.val;"
+          }
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 34,
+      "cl": "0x0406",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x18",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 35,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0020",
+          "dt": "0x20",
+          "min": 300,
+          "max": 43200,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 35,
+      "cl": "0x0500"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 40,
+      "cl": "0x0406",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x18",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 41,
+      "cl": "0x0406",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x18",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    }
+  ]
+}

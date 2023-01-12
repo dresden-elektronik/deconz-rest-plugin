@@ -1,0 +1,13 @@
+{
+    "schema": "resourceitem1.schema.json",
+    "id": "cap/color/xy/blue_y",
+    "datatype": "UInt16",
+    "access": "R",
+    "public": true,
+    "description": "Y coordinate of blue point of color gamut.",
+    "default": 0,
+    "parse": {
+        "fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x003b",
+        "eval": "Item.val = Attr.val"
+    }
+}

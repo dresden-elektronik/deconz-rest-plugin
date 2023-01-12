@@ -66,6 +66,7 @@ static const ProductMap products[] =
     {"_TYST11_yw7cahqs", "w7cahqs", "Hama", "Tuya_THD Smart radiator TRV"},
     {"_TZE200_yw7cahqs", "TS0601", "Hama", "Tuya_THD Smart radiator TRV"},
     {"_TZE200_cwnjrr72", "TS0601", "MOES", "Tuya_THD HY368 TRV"},
+    {"_TZE200_cpmgn2cf", "TS0601", "MOES", "Tuya_THD HY368 TRV"},
     {"_TZE200_b6wax7g0", "TS0601", "MOES", "Tuya_THD BRT-100"},
 
     // Tuya Covering
@@ -219,6 +220,7 @@ static const lidlDevice lidlDevices[] = { // Sorted by zigbeeManufacturerName
     { "_TZ3000_el5kt5im", "TS0502A", "LIDL Livarno Lux", "HG06492A" }, // CT Light (GU10)
     { "_TZ3000_gek6snaj", "TS0505A", "LIDL Livarno Lux", "14149506L" }, // Lichtleiste
     { "_TZ3000_kdi2o9m6", "TS011F",  "LIDL Silvercrest", "HG06337" }, // Smart plug (EU)
+    { "_TZ3000_br3laukf", "TS0101",  "LIDL Silvercrest", "HG06620"}, // Garden Spike with 2 Sockets
     { "_TZ3000_kdpxju99", "TS0505A", "LIDL Livarno Lux", "HG06106A" }, // RGB Light (GU10)
     { "_TZ3000_oborybow", "TS0502A", "LIDL Livarno Lux", "HG06492B" }, // CT Light (E14)
     { "_TZ3000_odygigth", "TS0505A", "LIDL Livarno Lux", "HG06106B" }, // RGB Light (E14)

@@ -160,7 +160,7 @@
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
-        "0x01",
+        "0x19",
         "0x0405"
       ],
       "items": [

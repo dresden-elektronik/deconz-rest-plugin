@@ -35,7 +35,6 @@
 #include <cmath>
 #include "air_quality.h"
 #include "alarm_system_device_table.h"
-#include "colorspace.h"
 #include "database.h"
 #include "device_ddf_init.h"
 #include "device_descriptions.h"
@@ -550,9 +549,10 @@ static ApiVersion getAcceptHeaderApiVersion(const QLatin1String &hdrValue)
         QLatin1String str;
     };
 
-    static const std::array<ApiVersionMap, 5> versions = {
+    static const std::array<ApiVersionMap, 6> versions = {
         {
             // ordered by largest version
+            { ApiVersion_3_DDEL,   QLatin1String("application/vnd.ddel.v3") },
             { ApiVersion_2_DDEL,   QLatin1String("application/vnd.ddel.v2") },
             { ApiVersion_1_1_DDEL, QLatin1String("application/vnd.ddel.v1.1") },
             { ApiVersion_1_1_DDEL, QLatin1String("vnd.ddel.v1.1") }, // backward compatibility
@@ -635,6 +635,10 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     plugin = this;
 
     DEV_SetTestManaged(deCONZ::appArgumentNumeric("--dev-test-managed", 0));
+
+#ifdef DECONZ_DEBUG_BUILD
+    EventTestZclPacking();
+#endif
 
     pollManager = new PollManager(this);
 
@@ -829,6 +833,9 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     connect(apsCtrl, SIGNAL(apsdeDataIndication(deCONZ::ApsDataIndication)),
             this, SLOT(apsdeDataIndication(deCONZ::ApsDataIndication)));
 
+    connect(apsCtrl, SIGNAL(apsdeDataRequestEnqueued(deCONZ::ApsDataRequest)),
+            this, SLOT(apsdeDataRequestEnqueued(deCONZ::ApsDataRequest)));
+
     connect(apsCtrl, SIGNAL(nodeEvent(deCONZ::NodeEvent)),
             this, SLOT(nodeEvent(deCONZ::NodeEvent)));
 
@@ -1002,7 +1009,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
         return;
     }
 
-    if (!device->item(RAttrSleeper)->toBool())
+    if (!device->item(RCapSleeper)->toBool())
     {
         auto *item = device->item(RStateReachable);
         if (!item->toBool())
@@ -1022,17 +1029,23 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
 
         if (!zclFrame.isProfileWideCommand())
         {
-
+            if (zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient)
+            {
+                // Keep Device poll state machine happy for non profile wide responses.
+                // There a response is assumed by 'server to client' direction.
+                // The status is set to SUCCESS since not all responses contain a status field.
+                enqueueEvent(Event(device->prefix(), REventZclResponse, EventZclResponsePack(ind.clusterId(), zclFrame.sequenceNumber(), deCONZ::ZclSuccessStatus), device->key()));
+            }
         }
         else if (zclFrame.commandId() == deCONZ::ZclReadAttributesResponseId && zclFrame.payload().size() >= 3)
         {
             const auto status = quint8(zclFrame.payload().at(2));
-            enqueueEvent(Event(device->prefix(), REventZclResponse, EventZclResponsePack(zclFrame.sequenceNumber(), status), device->key()));
+            enqueueEvent(Event(device->prefix(), REventZclResponse, EventZclResponsePack(ind.clusterId(), zclFrame.sequenceNumber(), status), device->key()));
         }
         else if (zclFrame.commandId() == deCONZ::ZclConfigureReportingResponseId && zclFrame.payload().size() >= 1)
         {
             const auto status = quint8(zclFrame.payload().at(0));
-            enqueueEvent(Event(device->prefix(), REventZclResponse, EventZclResponsePack(zclFrame.sequenceNumber(), status), device->key()));
+            enqueueEvent(Event(device->prefix(), REventZclResponse, EventZclResponsePack(ind.clusterId(), zclFrame.sequenceNumber(), status), device->key()));
         }
         else if (zclFrame.commandId() == deCONZ::ZclReadReportingConfigResponseId)
         {
@@ -1070,6 +1083,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
         return; // only ZCL and ZDP for now
     }
 
+    int awake = 0;
     auto resources = device->subDevices();
     resources.push_back(device); // self reference
 
@@ -1092,7 +1106,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                     if (!reachable->toBool())
                     {
                         reachable->setValue(true);
-                        enqueueEvent(Event(r->prefix(), reachable->descriptor().suffix, r->item(RAttrId)->toString(), device->key()));
+                        enqueueEvent(Event(r->prefix(), reachable->descriptor().suffix, r->item(RAttrId)->toString(), reachable, device->key()));
                     }
                 }
             }
@@ -1117,12 +1131,14 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
             if (reachable && !reachable->toBool())
             {
                 reachable->setValue(true);
-                enqueueEvent(Event(r->prefix(), reachable->descriptor().suffix, r->item(RAttrId)->toString(), device->key()));
+                enqueueEvent(Event(r->prefix(), reachable->descriptor().suffix, r->item(RAttrId)->toString(), reachable, device->key()));
             }
         }
 
         // for state/* changes, only emit the state/lastupdated event once for the first state/* item.
         bool eventLastUpdatedEmitted = false;
+
+        DeviceJs::instance()->clearItemsSet();
 
         for (int i = 0; i < r->itemCount(); i++)
         {
@@ -1154,35 +1170,40 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
 
             if (parseFunction(r, item, ind, zclFrame, ddfItem.parseParameters))
             {
-                if (item->awake())
+            }
+        }
+
+        auto *idItem = r->item(RAttrId);
+        if (!idItem)
+        {
+            idItem = r->item(RAttrUniqueId);
+        }
+
+        if (idItem)
+        {
+            for (ResourceItem *i : DeviceJs::instance()->itemsSet())
+            {
+                if (i->awake())
                 {
-                    enqueueEvent(Event(RDevices, REventAwake, 0, device->key()));
+                    awake++;
                 }
 
-                auto *idItem = r->item(RAttrId);
-                if (!idItem)
+                const bool push = i->pushOnSet() || (i->pushOnChange() && i->lastChanged() == i->lastSet());
+
+                enqueueEvent(Event(r->prefix(), i->descriptor().suffix, idItem->toString(), i, device->key()));
+                if (push && i->lastChanged() == i->lastSet())
                 {
-                    idItem = r->item(RAttrUniqueId);
+                    DB_StoreSubDeviceItem(r, i);
                 }
 
-                const bool push = item->pushOnSet() || (item->pushOnChange() && item->lastChanged() == item->lastSet());
-                if (idItem)
-                {
-                    enqueueEvent(Event(r->prefix(), item->descriptor().suffix, idItem->toString(), device->key()));
-                    if (push && item->lastChanged() == item->lastSet())
-                    {
-                        DB_StoreSubDeviceItem(r, item);
-                    }
-                }
-
-                if (!eventLastUpdatedEmitted && item->descriptor().suffix[0] == 's') // state/*
+                if (!eventLastUpdatedEmitted && i->descriptor().suffix[0] == 's') // state/*
                 {
                     ResourceItem *lastUpdated = r->item(RStateLastUpdated);
-                    if (lastUpdated && idItem)
+                    if (lastUpdated)
                     {
                         eventLastUpdatedEmitted = true;
-                        lastUpdated->setValue(item->lastSet());
-                        enqueueEvent(Event(r->prefix(), lastUpdated->descriptor().suffix, idItem->toString(), device->key()));
+                        lastUpdated->setValue(i->lastSet());
+                        enqueueEvent(Event(r->prefix(), lastUpdated->descriptor().suffix, idItem->toString(), lastUpdated, device->key()));
                     }
                 }
             }
@@ -1194,6 +1215,11 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
 
     }
     else if (ind.clusterId() == POWER_CONFIGURATION_CLUSTER_ID) // genral assumption that the device is awake
+    {
+        awake++;
+    }
+
+    if (awake > 0)
     {
         enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
     }
@@ -1444,6 +1470,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x05);
                     }
+                    else if (sensorNode->modelId() == QLatin1String("RM01"))
+                    {
+                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x0A);
+                    }
                     else if (sensorNode->modelId() == QLatin1String("lumi.switch.l2aeu1") || sensorNode->modelId() == QLatin1String("lumi.switch.n2aeu1"))
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x29);
@@ -1572,6 +1602,8 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
     {
         otauDataIndication(ind, deCONZ::ZclFrame());
     }
+
+    eventEmitter->process();
 }
 
 /*! APSDE-DATA.confirm callback.
@@ -1582,6 +1614,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
 {
     pollManager->apsdeDataConfirm(conf);
+    DA_ApsRequestConfirmed(conf);
 
     if (conf.dstAddress().hasExt())
     {
@@ -1702,6 +1735,11 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
     {
         return;
     }
+}
+
+void DeRestPluginPrivate::apsdeDataRequestEnqueued(const deCONZ::ApsDataRequest &req)
+{
+    DA_ApsRequestEnqueued(req);
 }
 
 /*! Process incoming green power button event.
@@ -2962,7 +3000,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
         if (existDevicesWithVendorCodeForMacPrefix(node->address(), VENDOR_DDEL) && i->deviceId() != DEV_ID_CONFIGURATION_TOOL && node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL)
         {
-            ResourceItem *item = lightNode.addItem(DataTypeUInt32, RConfigPowerup);
+            ResourceItem *item = lightNode.addItem(DataTypeUInt32, RAttrPowerup);
             DBG_Assert(item != 0);
             item->setValue(R_POWERUP_RESTORE | R_POWERUP_RESTORE_AT_DAYLIGHT | R_POWERUP_RESTORE_AT_NO_DAYLIGHT);
         }
@@ -3222,29 +3260,29 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
         {
             item->setValue(QVariant("Color temperature light"));
         }
-        if (lightNode->item(RConfigColorCapabilities) != nullptr)
+        if (lightNode->item(RCapColorCapabilities) != nullptr)
         {
             return; // already initialized
         }
         lightNode->addItem(DataTypeUInt16, RStateCt);
-        lightNode->addItem(DataTypeUInt16, RConfigCtMin)->setValue(142);
-        lightNode->addItem(DataTypeUInt16, RConfigCtMax)->setValue(666);
-        lightNode->addItem(DataTypeUInt16, RConfigColorCapabilities)->setValue(0x0001 | 0x0008 | 0x0010);
+        lightNode->addItem(DataTypeUInt16, RCapColorCtMin)->setValue(142);
+        lightNode->addItem(DataTypeUInt16, RCapColorCtMax)->setValue(666);
+        lightNode->addItem(DataTypeUInt16, RCapColorCapabilities)->setValue(0x0001 | 0x0008 | 0x0010);
         lightNode->addItem(DataTypeString, RStateColorMode)->setValue(QVariant("ct"));
     }
     else if (lightNode->modelId() == QLatin1String("LIGHTIFY A19 RGBW"))
     {
-        if (lightNode->item(RConfigColorCapabilities) != nullptr)
+        if (lightNode->item(RCapColorCapabilities) != nullptr)
         {
             return; // already initialized
         }
         lightNode->addItem(DataTypeUInt16, RStateCt);
         // the light doesn't provide ctmin, ctmax and color capabilities attributes
         // however it supports the 'Move To Color Temperature' command and Color Temperature attribute
-        lightNode->addItem(DataTypeUInt16, RConfigCtMin)->setValue(152);
-        lightNode->addItem(DataTypeUInt16, RConfigCtMax)->setValue(689);
+        lightNode->addItem(DataTypeUInt16, RCapColorCtMin)->setValue(152);
+        lightNode->addItem(DataTypeUInt16, RCapColorCtMax)->setValue(689);
         // hue, saturation, color mode, xy, ct
-        lightNode->addItem(DataTypeUInt16, RConfigColorCapabilities)->setValue(0x0001 | 0x0008 | 0x0010);
+        lightNode->addItem(DataTypeUInt16, RCapColorCapabilities)->setValue(0x0001 | 0x0008 | 0x0010);
     }
     else if (lightNode->modelId() == QLatin1String("LIGHTIFY A19 Tunable White") ||
              lightNode->modelId() == QLatin1String("LIGHTIFY Conv Under Cabinet TW") ||
@@ -3270,17 +3308,17 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
             item->setValue(QVariant("Color temperature light"));
         }
 
-        if (lightNode->item(RConfigColorCapabilities) != nullptr)
+        if (lightNode->item(RCapColorCapabilities) != nullptr)
         {
             return; // already initialized
         }
         lightNode->addItem(DataTypeUInt16, RStateCt);
         // these lights don't provide ctmin, ctmax and color capabilities attributes
         // however they support the 'Move To Color Temperature' command and Color Temperature attribute
-        lightNode->addItem(DataTypeUInt16, RConfigCtMin)->setValue(153); // 6500K
-        lightNode->addItem(DataTypeUInt16, RConfigCtMax)->setValue(370); // 2700K
+        lightNode->addItem(DataTypeUInt16, RCapColorCtMin)->setValue(153); // 6500K
+        lightNode->addItem(DataTypeUInt16, RCapColorCtMax)->setValue(370); // 2700K
         // color mode, xy, ct
-        lightNode->addItem(DataTypeUInt16, RConfigColorCapabilities)->setValue(0x0008 | 0x0010);
+        lightNode->addItem(DataTypeUInt16, RCapColorCapabilities)->setValue(0x0008 | 0x0010);
         lightNode->addItem(DataTypeString, RStateColorMode)->setValue(QVariant("ct"));
         lightNode->removeItem(RStateHue);
         lightNode->removeItem(RStateSat);
@@ -3297,14 +3335,14 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
         {
             item->setValue(QVariant("Color temperature light"));
         }
-        if (lightNode->item(RConfigColorCapabilities) != nullptr)
+        if (lightNode->item(RCapColorCapabilities) != nullptr)
         {
             return; // already initialized
         }
         lightNode->addItem(DataTypeUInt16, RStateCt);
-        lightNode->addItem(DataTypeUInt16, RConfigCtMin)->setValue(153);
-        lightNode->addItem(DataTypeUInt16, RConfigCtMax)->setValue(370);
-        lightNode->addItem(DataTypeUInt16, RConfigColorCapabilities)->setValue(0x0001 | 0x0008 | 0x0010);
+        lightNode->addItem(DataTypeUInt16, RCapColorCtMin)->setValue(153);
+        lightNode->addItem(DataTypeUInt16, RCapColorCtMax)->setValue(370);
+        lightNode->addItem(DataTypeUInt16, RCapColorCapabilities)->setValue(0x0001 | 0x0008 | 0x0010);
         lightNode->addItem(DataTypeString, RStateColorMode)->setValue(QVariant("ct"));
     }
     else if (isXmasLightStrip(lightNode))
@@ -3319,7 +3357,7 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
     else if (modelId.startsWith(QLatin1String("KADRILJ")) ||
              modelId.startsWith(QLatin1String("FYRTUR")))
     {
-        item = lightNode->addItem(DataTypeBool, RAttrSleeper);
+        item = lightNode->addItem(DataTypeBool, RCapSleeper);
         if (item)
         {
             item->setValue(false);
@@ -3724,7 +3762,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         }
 
                         {
-                            ResourceItem *item = lightNode->item(RConfigColorCapabilities);
+                            ResourceItem *item = lightNode->item(RCapColorCapabilities);
                             if (item && item->toNumber() > 0)
                             {
                                 const auto cap = item->toNumber();
@@ -3761,17 +3799,17 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     else if (ia->id() == 0x400a) // color capabilities
                     {
                         quint16 cap = ia->numericValue().u16;
-                        lightNode->setValue(RConfigColorCapabilities, cap);
+                        lightNode->setValue(RCapColorCapabilities, cap);
                     }
                     else if (ia->id() == 0x400b) // color temperature min
                     {
                         quint16 cap = ia->numericValue().u16;
-                        lightNode->setValue(RConfigCtMin, cap);
+                        lightNode->setValue(RCapColorCtMin, cap);
                     }
                     else if (ia->id() == 0x400c) // color temperature max
                     {
                         quint16 cap = ia->numericValue().u16;
-                        lightNode->setValue(RConfigCtMax, cap);
+                        lightNode->setValue(RCapColorCtMax, cap);
                     }
                 }
             }
@@ -4262,70 +4300,9 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ:
     }
     else if (sensor->node() && !sensor->node()->isZombie())
     {
-        // look if fingerprint endpoint is in active endpoint list
-        std::vector<quint8>::const_iterator it;
-
-        it = std::find(sensor->node()->endpoints().begin(),
-                       sensor->node()->endpoints().end(),
-                       sensor->fingerPrint().endpoint);
-
-        if (it != sensor->node()->endpoints().end())
+        if (sensor->lastRx().isValid() && sensor->lastRx().secsTo(now) < (60 * 60 * 24))
         {
-            if (sensor->lastRx().isValid() && sensor->lastRx().secsTo(now) < (60 * 60 * 24))
-            {
-                reachable = true;
-            }
-
-            // check that all clusters from fingerprint are present
-            for (const deCONZ::SimpleDescriptor &sd : sensor->node()->simpleDescriptors())
-            {
-                if (!reachable)
-                {
-                    break;
-                }
-
-                if (sd.endpoint() != sensor->fingerPrint().endpoint)
-                {
-                    continue;
-                }
-
-                for (quint16 clusterId : sensor->fingerPrint().inClusters)
-                {
-                    bool found = false;
-                    for (const deCONZ::ZclCluster &cl : sd.inClusters())
-                    {
-                        if (clusterId == cl.id())
-                        {
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (!found)
-                    {
-                        reachable = false;
-                        break;
-                    }
-                }
-
-                for (quint16 clusterId : sensor->fingerPrint().outClusters)
-                {
-                    bool found = false;
-                    for (const deCONZ::ZclCluster &cl : sd.outClusters())
-                    {
-                        if (clusterId == cl.id())
-                        {
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (!found)
-                    {
-                        reachable = false;
-                        break;
-                    }
-                }
-
-            }
+            reachable = true;
         }
     }
 
@@ -11873,7 +11850,7 @@ void DeRestPluginPrivate::handleXalClusterIndication(const deCONZ::ApsDataIndica
         {
             quint8 id;
             stream >> id;
-            ResourceItem *item = lightNode->addItem(DataTypeUInt32, RConfigId);
+            ResourceItem *item = lightNode->addItem(DataTypeUInt32, RAttrConfigId);
             if (!item->lastSet().isValid() || item->toNumber() != id)
             {
                 item->setValue(id);
@@ -11885,7 +11862,7 @@ void DeRestPluginPrivate::handleXalClusterIndication(const deCONZ::ApsDataIndica
         {
             quint8 minLevel;
             stream >> minLevel;
-            ResourceItem *item = lightNode->addItem(DataTypeUInt8, RConfigLevelMin);
+            ResourceItem *item = lightNode->addItem(DataTypeUInt8, RAttrLevelMin);
             if (!item->lastSet().isValid() || item->toNumber() != minLevel)
             {
                 item->setValue(minLevel);
@@ -11897,7 +11874,7 @@ void DeRestPluginPrivate::handleXalClusterIndication(const deCONZ::ApsDataIndica
         {
             quint8 powerOnLevel;
             stream >> powerOnLevel;
-            ResourceItem *item = lightNode->addItem(DataTypeUInt8, RConfigPowerOnLevel);
+            ResourceItem *item = lightNode->addItem(DataTypeUInt8, RAttrPowerOnLevel);
             if (!item->lastSet().isValid() || item->toNumber() != powerOnLevel)
             {
                 item->setValue(powerOnLevel);
@@ -11909,7 +11886,7 @@ void DeRestPluginPrivate::handleXalClusterIndication(const deCONZ::ApsDataIndica
         {
             quint16 powerOnTemp;
             stream >> powerOnTemp;
-            ResourceItem *item = lightNode->addItem(DataTypeUInt16, RConfigPowerOnCt);
+            ResourceItem *item = lightNode->addItem(DataTypeUInt16, RAttrPowerOnCt);
             if (!item->lastSet().isValid() || item->toNumber() != powerOnTemp)
             {
                 item->setValue(powerOnTemp);
@@ -12111,7 +12088,7 @@ bool DeRestPluginPrivate::flsNbMaintenance(LightNode *lightNode)
         return false;
     }
 
-    item = lightNode->item(RConfigPowerup);
+    item = lightNode->item(RAttrPowerup);
     quint32 powerup = item ? item->toNumber() : 0;
 
     if ((powerup & R_POWERUP_RESTORE) == 0)
@@ -12780,20 +12757,26 @@ void DeRestPluginPrivate::processGroupTasks()
         return;
     }
 
+    if (DA_ApsUnconfirmedRequests() > 3)
+    {
+        return;
+    }
+
     if (groupTaskNodeIter >= nodes.size())
     {
         groupTaskNodeIter = 0;
+    }
+
+    if (!nodes[groupTaskNodeIter].isAvailable())
+    {
+        groupTaskNodeIter++;
+        return;
     }
 
     TaskItem task;
 
     task.lightNode = &nodes[groupTaskNodeIter];
     groupTaskNodeIter++;
-
-    if (!task.lightNode->isAvailable())
-    {
-        return;
-    }
 
     if (task.lightNode->state() != LightNode::StateNormal)
     {
@@ -16137,7 +16120,9 @@ void DeRestPlugin::idleTimerFired()
                 {
                     if (GP_SendPairingIfNeeded(sensorNode, d->apsCtrl, d->zclSeq + 1))
                     {
+                        processSensors = true;
                         d->zclSeq++;
+                        break;
                     }
                 }
 

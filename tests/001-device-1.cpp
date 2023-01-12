@@ -186,7 +186,7 @@ TEST_CASE("001: Device constructor", "[Device]")
         QObject::connect(device.get(), &Device::eventNotify, enqueueEvent);
 
         REQUIRE(device->item(RStateReachable) != nullptr);
-        REQUIRE(device->item(RAttrSleeper) != nullptr);
+        REQUIRE(device->item(RCapSleeper) != nullptr);
         REQUIRE(device->item(RAttrExtAddress) != nullptr);
         REQUIRE(device->item(RAttrNwkAddress) != nullptr);
         REQUIRE(device->item(RAttrUniqueId) != nullptr);
