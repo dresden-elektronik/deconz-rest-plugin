@@ -1277,7 +1277,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     else if (devManaged && rsub) // Managed by DDF ?
                     {
                         change.addTargetValue(rid.suffix, data.integer);
-                        rsub->addStateChange(change2);
+                        rsub->addStateChange(change);
                         updated = true;
                     }
                     else
@@ -1475,7 +1475,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     else if (devManaged && rsub) // Managed by DDF ?
                     {
                         change.addTargetValue(rid.suffix, data.string);
-                        rsub->addStateChange(change2);
+                        rsub->addStateChange(change);
                         updated = true;
                     }
                     else
@@ -1646,7 +1646,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         DBG_Printf(DBG_INFO_L2, "debug test send preset\n");
                         change.addTargetValue(rid.suffix, data.string);
-                        rsub->addStateChange(change2);
+                        rsub->addStateChange(change);
                         updated = true;
                     }
                 }
@@ -1708,7 +1708,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     else if (devManaged && rsub) // Managed by DDF ?
                     {
                         change.addTargetValue(rid.suffix, data.boolean);
-                        rsub->addStateChange(change2);
+                        rsub->addStateChange(change);
                         updated = true;
                     }
                     else
@@ -1854,7 +1854,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     else if (devManaged && rsub) // Managed by DDF ?
                     {
                         change.addTargetValue(rid.suffix, data.boolean);
-                        rsub->addStateChange(change2);
+                        rsub->addStateChange(change);
                         updated = true;
                     }
                 }
