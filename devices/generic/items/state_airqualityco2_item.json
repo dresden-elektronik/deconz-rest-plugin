@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/airqualityco2",
+	"datatype": "UInt16",
+	"access": "R",
+	"public": true,
+	"description": "Measured CO2 in ppb."
+}
