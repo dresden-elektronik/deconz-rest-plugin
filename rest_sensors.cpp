@@ -1276,8 +1276,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (devManaged && rsub) // Managed by DDF ?
                     {
-                        StateChange change2(StateChange::StateCallFunction, SC_WriteZclAttribute, task.req.dstEndpoint());
-                        change2.addTargetValue(rid.suffix, data.integer);
+                        change.addTargetValue(rid.suffix, data.integer);
                         rsub->addStateChange(change2);
                         updated = true;
                     }
@@ -1475,8 +1474,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (devManaged && rsub) // Managed by DDF ?
                     {
-                        StateChange change2(StateChange::StateCallFunction, SC_WriteZclAttribute, task.req.dstEndpoint());
-                        change2.addTargetValue(rid.suffix, data.string);
+                        change.addTargetValue(rid.suffix, data.string);
                         rsub->addStateChange(change2);
                         updated = true;
                     }
@@ -1647,8 +1645,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     else if (devManaged && rsub) // Managed by DDF ?
                     {
                         DBG_Printf(DBG_INFO_L2, "debug test send preset\n");
-                        StateChange change2(StateChange::StateCallFunction, SC_WriteZclAttribute, task.req.dstEndpoint());
-                        change2.addTargetValue(rid.suffix, data.string);
+                        change.addTargetValue(rid.suffix, data.string);
                         rsub->addStateChange(change2);
                         updated = true;
                     }
@@ -1710,8 +1707,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (devManaged && rsub) // Managed by DDF ?
                     {
-                        StateChange change2(StateChange::StateCallFunction, SC_WriteZclAttribute, task.req.dstEndpoint());
-                        change2.addTargetValue(rid.suffix, data.boolean);
+                        change.addTargetValue(rid.suffix, data.boolean);
                         rsub->addStateChange(change2);
                         updated = true;
                     }
@@ -1857,8 +1853,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (devManaged && rsub) // Managed by DDF ?
                     {
-                        StateChange change2(StateChange::StateCallFunction, SC_WriteZclAttribute, task.req.dstEndpoint());
-                        change2.addTargetValue(rid.suffix, data.boolean);
+                        change.addTargetValue(rid.suffix, data.boolean);
                         rsub->addStateChange(change2);
                         updated = true;
                     }
