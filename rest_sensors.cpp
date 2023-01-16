@@ -1699,9 +1699,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             updated = true;
                         }
                     }
-                    else if (devManaged && rsub) // Managed by DDF ?
+                    else if (devManaged && rsub) // Managed by DDF ? why integer ?
                     {
-                        change.addTargetValue(rid.suffix, data.boolean);
+                        data.uinteger = data.boolean; // Use integer representation
+                        change.addTargetValue(rid.suffix, data.uinteger);
                         rsub->addStateChange(change);
                         updated = true;
                     }
