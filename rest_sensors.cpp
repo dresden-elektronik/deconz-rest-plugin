@@ -1299,7 +1299,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     ok = false;
 
-                    if (devManaged)
+                    if (devManaged && rsub)
                     {
                         const QVariantMap m = DDF_GetMetaKeyValues(sensor, item);
 
@@ -1471,12 +1471,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                 updated = true;
                             }
                         }
-                    }
-                    else if (devManaged && rsub) // Managed by DDF ?
-                    {
-                        change.addTargetValue(rid.suffix, data.string);
-                        rsub->addStateChange(change);
-                        updated = true;
                     }
                     else
                     {

@@ -15,6 +15,11 @@
         "0x01",
         "0xef00"
       ],
+      "meta": {
+        "values": {
+          "config/mode": {"auto": 0, "heat": 1, "off": 2}
+        }
+      },
       "items": [
         {
           "name": "attr/id"
@@ -68,6 +73,9 @@
         },
         {
           "name": "config/mode",
+          "values": [
+              ["auto", 0], ["heat", 1], ["off", 2]
+          ],
           "parse": {"fn": "tuya", "dpid": 2, "eval": "if (Attr.val == 0) { Item.val = 'auto' } else if (Attr.val == 1) { Item.val = 'heat' } else { Item.val = 'off' }"},
           "write": {"fn": "tuya", "dpid": 2, "dt": "0x30", "eval": "if (Item.val == 'auto') { 0 } else if (Item.val == 'heat') { 1 } else { 2 }"},
           "read": {"fn": "none"}
