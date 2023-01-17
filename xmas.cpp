@@ -102,7 +102,7 @@ static void tlvEffect(QDataStream &stream, XmasLightStripEffect effect, quint8 s
 /*! Check whether LightNode is the LIDL Melinera Smart LED lightstrip.
     \param lightNode - the indication primitive
  */
-bool DeRestPluginPrivate::isXmasLightStrip(LightNode *lightNode)
+bool DeRestPluginPrivate::isXmasLightStrip(const LightNode *lightNode)
 {
     return lightNode != nullptr &&
            (lightNode->modelId() == QLatin1String("HG06467") ||

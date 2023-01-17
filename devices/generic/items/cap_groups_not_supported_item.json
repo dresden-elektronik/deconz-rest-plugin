@@ -1,0 +1,9 @@
+{
+    "schema": "resourceitem1.schema.json",
+    "id": "cap/groups/not_supported",
+    "datatype": "Bool",
+    "access": "R",
+    "public": true,
+    "description": "_Groups_ cluster does not work.",
+    "static": true
+}

@@ -125,10 +125,6 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/battery",
-          "awake": true
-        },
-        {
           "name": "config/on"
         },
         {
@@ -179,10 +175,6 @@
         },
         {
           "name": "attr/uniqueid"
-        },
-        {
-          "name": "config/battery",
-          "awake": true
         },
         {
           "name": "config/on"
@@ -237,10 +229,6 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/battery",
-          "awake": true
-        },
-        {
           "name": "config/on"
         },
         {
@@ -291,10 +279,6 @@
         },
         {
           "name": "attr/uniqueid"
-        },
-        {
-          "name": "config/battery",
-          "awake": true
         },
         {
           "name": "config/on"

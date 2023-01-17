@@ -1,9 +1,8 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "frient A/S",
-  "modelid": "SPLZB-131",
-  "vendor": "Develco Products",
-  "product": "SPLZB-131 smart plug (Schuko)",
+  "manufacturername": ["frient A/S", "frient A/S"],
+  "modelid": ["SPLZB-131", "SPLZB-134"],
+  "product": "SPLZB-131 and SPLZB-134 smart plug",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

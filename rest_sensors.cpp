@@ -789,9 +789,9 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                                QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key())));
                     continue;
                 }
-                
+
                 const auto &ddfItem = DDF_GetItem(item);
-                
+
                 if (!ddfItem.writeParameters.isNull())
                 {
                     const auto writeParam = ddfItem.writeParameters.toMap();
@@ -821,7 +821,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                 }
 
-                if (rid.suffix == RConfigDeviceMode && !data.string.isEmpty() && RConfigDeviceModeValues.indexOf(data.string) >= 0)
+                if (rid.suffix == RConfigDeviceMode) // String
                 {
                     if (devManaged && rsub)
                     {
@@ -830,7 +830,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         updated = true;
                     }
                 }
-                else if (rid.suffix == RConfigClickMode && !data.string.isEmpty()) // String
+                else if (rid.suffix == RConfigClickMode) // String
                 {
                     if (devManaged && rsub)
                     {
@@ -900,7 +900,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         updated = true;
                     }
                 }
-                else if (rid.suffix == RConfigTriggerDistance && !data.string.isEmpty()) // String
+                else if (rid.suffix == RConfigTriggerDistance) // String
                 {
                     if (devManaged && rsub)
                     {
@@ -1148,6 +1148,15 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                     if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, THERM_ATTRID_THERMOSTAT_PROGRAMMING_OPERATION_MODE, deCONZ::Zcl8BitBitMap, data.boolean))
                     {
+                        updated = true;
+                    }
+                }
+                else if (rid.suffix == RConfigUnoccupiedHeatSetpoint) // Signed integer
+                {
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.integer);
+                        rsub->addStateChange(change);
                         updated = true;
                     }
                 }

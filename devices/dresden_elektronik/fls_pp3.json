@@ -56,7 +56,7 @@
           "refresh.interval": 84000
         },
         {
-          "name": "config/powerup"
+          "name": "attr/powerup"
         },
         {
           "name": "state/alert",
@@ -152,7 +152,7 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/powerup"
+          "name": "attr/powerup"
         },
         {
           "name": "state/alert",

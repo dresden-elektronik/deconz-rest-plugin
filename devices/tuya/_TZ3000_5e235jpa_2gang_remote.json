@@ -1,8 +1,8 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "_TZ3000_gbm10jnj",
-  "modelid": "TS0043",
-  "product": "Tuya 3 gangs switch battery",
+  "manufacturername": "_TZ3000_5e235jpa",
+  "modelid": "TS0042",
+  "product": "Tuya 2 gangs switch battery",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -59,7 +59,7 @@
             "eval": "Item.val = Attr.val / 2"
           },
           "default": 0
-        },        
+        },
         {
           "name": "config/on"
         },
@@ -89,7 +89,7 @@
           "change": "0x00000001"
         }
       ]
-    },    
+    },
     {
       "bind": "unicast",
       "src.ep": 1,
@@ -99,12 +99,6 @@
     {
       "bind": "unicast",
       "src.ep": 2,
-      "dst.ep": 1,
-      "cl": "0x0006"
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 3,
       "dst.ep": 1,
       "cl": "0x0006"
     }

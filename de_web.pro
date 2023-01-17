@@ -93,7 +93,7 @@ GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.19.02\\\"
+DEFINES += GW_SW_VERSION=\\\"2.20.00\\\"
 DEFINES += GW_SW_DATE=$$GIT_COMMIT_DATE
 DEFINES += GW_API_VERSION=\\\"1.16.0\\\"
 DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
@@ -227,6 +227,7 @@ SOURCES  = air_quality.cpp \
            group.cpp \
            group_info.cpp \
            gw_uuid.cpp \
+           hue.cpp \
            ias_ace.cpp \
            ias_zone.cpp \
            identify.cpp \

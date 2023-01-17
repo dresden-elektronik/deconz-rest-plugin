@@ -1,6 +1,6 @@
 {
 	"schema": "resourceitem1.schema.json",
-	"id": "attr/sleeper",
+	"id": "cap/sleeper",
 	"datatype": "Bool",
 	"access": "R",
 	"public": false,

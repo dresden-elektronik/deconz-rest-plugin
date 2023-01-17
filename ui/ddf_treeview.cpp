@@ -17,13 +17,15 @@
 #define I_TYPE_DEVICE        0
 #define I_TYPE_SUBDEVICE     1
 #define I_TYPE_ATTR          2
-#define I_TYPE_CONFIG        3
-#define I_TYPE_STATE         4
-#define I_TYPE_ITEM_CONFIG   5
+#define I_TYPE_CAP           3
+#define I_TYPE_CONFIG        4
+#define I_TYPE_STATE         5
 #define I_TYPE_ITEM_ATTR     6
-#define I_TYPE_ITEM_STATE    7
+#define I_TYPE_ITEM_CAP      7
+#define I_TYPE_ITEM_CONFIG   8
+#define I_TYPE_ITEM_STATE    9
 
-#define I_TYPE_MAX           8
+#define I_TYPE_MAX          10
 
 union TreeItemHandle
 {
@@ -48,10 +50,12 @@ static const ItemDrawOptions itemDrawOptions[] =
     { QColor(90, 90, 90), QColor(255, 255, 255) },  // I_TYPE_DEVICE
     { QColor(100, 100, 100), QColor(255, 255, 255) },  // I_TYPE_SUBDEVICE
     { QColor(193, 175, 229), QColor(0, 0, 0) },  // I_TYPE_ATTR
+    { QColor(189, 98, 98), QColor(0, 0, 0) },    // I_TYPE_CAP
     { QColor(162, 204, 239), QColor(0, 0, 0) },  // I_TYPE_CONFIG
     { QColor(155, 220, 169), QColor(0, 0, 0) },  // I_TYPE_STATE
-    { QColor(187, 222, 251), QColor(0, 0, 0) },  // I_TYPE_ITEM_CONFIG
     { QColor(218, 209, 238), QColor(0, 0, 0) },  // I_TYPE_ITEM_ATTR
+    { QColor(224, 119, 119), QColor(0, 0, 0) },  // I_TYPE_ITEM_CAP
+    { QColor(187, 222, 251), QColor(0, 0, 0) },  // I_TYPE_ITEM_CONFIG
     { QColor(190, 238, 194), QColor(0, 0, 0) }   // I_TYPE_ITEM_STATE
 };
 
@@ -218,6 +222,7 @@ void DDF_TreeView::removeActionTriggered()
     switch (handle.type)
     {
     case I_TYPE_ITEM_ATTR:
+    case I_TYPE_ITEM_CAP:
     case I_TYPE_ITEM_CONFIG:
     case I_TYPE_ITEM_STATE:
     {
@@ -246,6 +251,7 @@ void DDF_TreeView::currentIndexChanged(const QModelIndex &current, const QModelI
     switch (handle.type)
     {
     case I_TYPE_ITEM_ATTR:
+    case I_TYPE_ITEM_CAP:
     case I_TYPE_ITEM_CONFIG:
     case I_TYPE_ITEM_STATE:
     {
@@ -309,6 +315,7 @@ void DDF_TreeView::setDDF(const DeviceDescription &ddf)
 
         top->appendRow(isub);
 
+        QStandardItem *cap = nullptr;
         QStandardItem *config = nullptr;
         QStandardItem *attr = nullptr;
         QStandardItem *state = nullptr;
@@ -340,19 +347,38 @@ void DDF_TreeView::setDDF(const DeviceDescription &ddf)
             }
             else if (item.name.c_str()[0] == 'c')
             {
-                if (!config)
+                if (item.name.c_str()[1] == 'a')
                 {
-                    handle.type = I_TYPE_CONFIG;
-                    config = new QStandardItem(QLatin1String("Config"));
-                    config->setData(handle.value, MODEL_HANDLE_ROLE);
-                    config->setDragEnabled(false);
-                    config->setEditable(false);
-                    config->setSelectable(false);
-                    isub->appendRow(config);
-                }
+                    if (!cap)
+                    {
+                        handle.type = I_TYPE_CAP;
+                        cap = new QStandardItem(QLatin1String("Capabilities"));
+                        cap->setData(handle.value, MODEL_HANDLE_ROLE);
+                        cap->setDragEnabled(false);
+                        cap->setEditable(false);
+                        cap->setSelectable(false);
+                        isub->appendRow(cap);
+                    }
 
-                handle.type = I_TYPE_ITEM_CONFIG;
-                iParent = config;
+                    handle.type = I_TYPE_ITEM_CAP;
+                    iParent = cap;
+                }
+                else
+                {
+                    if (!config)
+                    {
+                        handle.type = I_TYPE_CONFIG;
+                        config = new QStandardItem(QLatin1String("Config"));
+                        config->setData(handle.value, MODEL_HANDLE_ROLE);
+                        config->setDragEnabled(false);
+                        config->setEditable(false);
+                        config->setSelectable(false);
+                        isub->appendRow(config);
+                    }
+
+                    handle.type = I_TYPE_ITEM_CONFIG;
+                    iParent = config;
+                }
             }
             else if (item.name.c_str()[0] == 's')
             {
