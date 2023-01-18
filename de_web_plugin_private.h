@@ -227,6 +227,7 @@ using namespace deCONZ::literals;
 #define LEGRAND_CONTROL_CLUSTER_ID            0xFC40
 #define XIAOMI_CLUSTER_ID                     0xFCC0
 #define ADUROLIGHT_CLUSTER_ID                 0xFCCC
+#define XIAOYAN_CLUSTER_ID                    0xFCCC
 #define XAL_CLUSTER_ID                        0xFCCE
 #define BOSCH_AIR_QUALITY_CLUSTER_ID          quint16(0xFDEF)
 
@@ -254,6 +255,9 @@ using namespace deCONZ::literals;
 #define WINDOW_COVERING_COMMAND_STOP          0x02
 #define WINDOW_COVERING_COMMAND_GOTO_LIFT_PCT 0x05
 #define WINDOW_COVERING_COMMAND_GOTO_TILT_PCT 0x08
+
+#define XIAOYAN_ATTRID_ROTATION_ANGLE      0x001B
+#define XIAOYAN_ATTRID_DURATION            0x001A
 
 #define MULTI_STATE_INPUT_PRESENT_VALUE_ATTRIBUTE_ID quint16(0x0055)
 
@@ -1619,7 +1623,6 @@ public:
     bool deserialiseThermostatSchedule(const QString &s, QVariantMap *schedule);
     void handleSimpleMeteringClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
     void handleElectricalMeasurementClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
-    void handleXiaoyanClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleXiaomiLumiClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleOccupancySensingClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
     void handlePowerConfigurationClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);

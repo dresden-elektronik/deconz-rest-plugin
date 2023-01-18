@@ -47,7 +47,6 @@
 #include "gateway_scanner.h"
 #include "ias_ace.h"
 #include "json.h"
-#include "mfspecific_cluster_xiaoyan.h"
 #include "poll_control.h"
 #include "poll_manager.h"
 #include "product_match.h"
@@ -521,7 +520,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_DSR, "easyCodeTouch_v1", onestiPrefix }, // EasyAccess EasyCodeTouch
     { VENDOR_EMBER, "TS1001", silabs5MacPrefix }, // LIDL Livarno Lux Remote Control HG06323
     { VENDOR_EMBER, "TS1001", silabs7MacPrefix }, // LIDL Livarno Lux Remote Control HG06323
-    { VENDOR_XIAOYAN, "TERNCY-SD01", emberMacPrefix }, // Terncy Smart Dial SD01
     { VENDOR_XFINITY, "URC4450BC0-X-R", emberMacPrefix }, // Xfinity Keypad XHK1-UE / URC4450BC0-X-R
     { VENDOR_CENTRALITE, "3405-L", emberMacPrefix }, // IRIS 3405-L Keypad
 
@@ -1366,10 +1364,6 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         case DOOR_LOCK_CLUSTER_ID:
             DBG_Printf(DBG_INFO, "Door lock debug 0x%016llX, data 0x%08X \n", ind.srcAddress().ext(), zclFrame.commandId() );
-            break;
-
-        case XIAOYAN_CLUSTER_ID:
-            handleXiaoyanClusterIndication(ind, zclFrame);
             break;
 
         case XIAOMI_CLUSTER_ID:
@@ -5823,19 +5817,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                                 {
                                     manufacturer = QLatin1String("Philio");
                                 }
-                                else if (modelId == QLatin1String("TERNCY-SD01")) // Device doesn't have a manufacturer name
-                                {
-                                    manufacturer = QLatin1String("TERNCY");
-                                }
                             }
                         }
                     }
 
-                    if (manufacturer == QLatin1String("TERNCY") && modelId == QLatin1String("TERNCY-SD01"))
-                    {
-                        fpSwitch.inClusters.push_back(XIAOYAN_CLUSTER_ID);
-                    }
-                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC &&
+                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC &&
                              modelId.startsWith(QLatin1String("lumi.sensor_wleak")))
                     {
                         fpWaterSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
@@ -6746,7 +6732,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             fpSwitch.hasInCluster(MULTISTATE_INPUT_CLUSTER_ID) ||
             fpSwitch.hasInCluster(DOOR_LOCK_CLUSTER_ID) ||
             fpSwitch.hasInCluster(IAS_ZONE_CLUSTER_ID) ||
-            fpSwitch.hasInCluster(XIAOYAN_CLUSTER_ID) ||
+            fpSwitch.hasInCluster(ADUROLIGHT_CLUSTER_ID) ||
             fpSwitch.hasOutCluster(IAS_ACE_CLUSTER_ID) ||
             !fpSwitch.outClusters.empty())
         {
@@ -7348,12 +7334,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             sensorNode.addItem(DataTypeUInt16, RStateX);
             sensorNode.addItem(DataTypeUInt16, RStateY);
             sensorNode.addItem(DataTypeInt16, RStateAngle);
-        }
-        else if (modelId == QLatin1String("TERNCY-SD01"))
-        {
-            clusterId = XIAOYAN_CLUSTER_ID;
-            sensorNode.addItem(DataTypeInt16, RStateAngle);
-            sensorNode.addItem(DataTypeUInt16, RStateEventDuration);
         }
     }
     else if (sensorNode.type().endsWith(QLatin1String("AncillaryControl")))
