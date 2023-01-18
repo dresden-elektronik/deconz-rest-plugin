@@ -190,9 +190,114 @@
         <attribute-set id="0x0010" description="Basic Device Settings">
           <attribute id="0x0010" name="Location Description" type="cstring" range="0,16" access="rw" required="o"></attribute>
           <attribute id="0x0011" name="Physical Environment" type="enum8" default="0" access="rw" required="o">
-            <value name="Unspecified Environment" value="0"></value>
-            <!-- 0x01 - 0x7f Specified per Profile -->
-            <value name="Unknown Environment" value="0xff"></value>
+				<value name="Unspecified Environment" value="0x00"></value>
+				<value name="Mirror (ZSE Profile)" value="0x01"></value>
+				<value name="Atrium" value="0x01"></value>
+				<value name="Bar" value="0x02"></value>
+				<value name="Courtyard" value="0x03"></value>
+				<value name="Bathroom" value="0x04"></value>
+				<value name="Bedroom" value="0x05"></value>
+				<value name="Billiard Room" value="0x06"></value>
+				<value name="Utility Room" value="0x07"></value>
+				<value name="Cellar" value="0x08"></value>
+				<value name="Storage Closet" value="0x09"></value>
+				<value name="Theater" value="0x0a"></value>
+				<value name="Office" value="0x0b"></value>
+				<value name="Deck" value="0x0c"></value>
+				<value name="Den" value="0x0d"></value>
+				<value name="Dining Room" value="0x0e"></value>
+				<value name="Electrical Room" value="0x0f"></value>
+				<value name="Elevator" value="0x10"></value>
+				<value name="Entry" value="0x11"></value>
+				<value name="Family Room" value="0x12"></value>
+				<value name="Main Floor" value="0x13"></value>
+				<value name="Upstairs" value="0x14"></value>
+				<value name="Downstairs" value="0x15"></value>
+				<value name="Basement/Lower Level" value="0x16"></value>
+				<value name="Gallery" value="0x17"></value>
+				<value name="Game Room" value="0x18"></value>
+				<value name="Garage" value="0x19"></value>
+				<value name="Gym" value="0x1a"></value>
+				<value name="Hallway" value="0x1b"></value>
+				<value name="House" value="0x1c"></value>
+				<value name="Kitchen" value="0x1d"></value>
+				<value name="Laundry Room" value="0x1e"></value>
+				<value name="Library" value="0x1f"></value>
+				<value name="Master Bedroom" value="0x20"></value>
+				<value name="Mud Room (small room for coats and boots)" value="0x21"></value>
+				<value name="Nursery" value="0x22"></value>
+				<value name="Pantry" value="0x23"></value>
+				<value name="Office" value="0x24"></value>
+				<value name="Outside" value="0x25"></value>
+				<value name="Pool" value="0x26"></value>
+				<value name="Porch" value="0x27"></value>
+				<value name="Sewing Room" value="0x28"></value>
+				<value name="Sitting Room" value="0x29"></value>
+				<value name="Stairway" value="0x2a"></value>
+				<value name="Yard" value="0x2b"></value>
+				<value name="Attic" value="0x2c"></value>
+				<value name="Hot Tub" value="0x2d"></value>
+				<value name="Living Room" value="0x2e"></value>
+				<value name="Sauna" value="0x2f"></value>
+				<value name="Shop/Workshop" value="0x30"></value>
+				<value name="Guest Bedroom" value="0x31"></value>
+				<value name="Guest Bath" value="0x32"></value>
+				<value name="Powder Room (1/2 bath)" value="0x33"></value>
+				<value name="Back Yard" value="0x34"></value>
+				<value name="Front Yard" value="0x35"></value>
+				<value name="Patio" value="0x36"></value>
+				<value name="Driveway" value="0x37"></value>
+				<value name="Sun Room" value="0x38"></value>
+				<value name="Living Room" value="0x39"></value>
+				<value name="Spa" value="0x3a"></value>
+				<value name="Whirlpool" value="0x3b"></value>
+				<value name="Shed" value="0x3c"></value>
+				<value name="Equipment Storage" value="0x3d"></value>
+				<value name="Hobby/Craft Room" value="0x3e"></value>
+				<value name="Fountain" value="0x3f"></value>
+				<value name="Pond" value="0x40"></value>
+				<value name="Reception Room" value="0x41"></value>
+				<value name="Breakfast Room" value="0x42"></value>
+				<value name="Nook" value="0x43"></value>
+				<value name="Garden" value="0x44"></value>
+				<value name="Balcony" value="0x45"></value>
+				<value name="Panic Room" value="0x46"></value>
+				<value name="Terrace" value="0x47"></value>
+				<value name="Roof" value="0x48"></value>
+				<value name="Toilet" value="0x49"></value>
+				<value name="Toilet Main" value="0x4a"></value>
+				<value name="Outside Toilet" value="0x4b"></value>
+				<value name="Shower room" value="0x4c"></value>
+				<value name="Study" value="0x4d"></value>
+				<value name="Front Garden" value="0x4e"></value>
+				<value name="Back Garden" value="0x4f"></value>
+				<value name="Kettle" value="0x50"></value>
+				<value name="Television" value="0x51"></value>
+				<value name="Stove" value="0x52"></value>
+				<value name="Microwave" value="0x53"></value>
+				<value name="Toaster" value="0x54"></value>
+				<value name="Vacuum" value="0x55"></value>
+				<value name="Appliance" value="0x56"></value>
+				<value name="Front Door" value="0x57"></value>
+				<value name="Back Door" value="0x58"></value>
+				<value name="Fridge Door" value="0x59"></value>
+				<value name="Medication Cabinet Door" value="0x60"></value>
+				<value name="Wardrobe Door" value="0x61"></value>
+				<value name="Front Cupboard Door" value="0x62"></value>
+				<value name="Other Door" value="0x63"></value>
+				<value name="Waiting Room" value="0x64"></value>
+				<value name="Triage Room" value="0x65"></value>
+				<value name="Doctor’s Office" value="0x66"></value>
+				<value name="Patient’s Private Room" value="0x67"></value>
+				<value name="Consultation Room" value="0x68"></value>
+				<value name="Nurse Station" value="0x69"></value>
+				<value name="Ward" value="0x6a"></value>
+				<value name="Corridor" value="0x6b"></value>
+				<value name="Operating Theatre" value="0x6c"></value>
+				<value name="Dental Surgery Room" value="0x6d"></value>
+				<value name="Medical Imaging Room" value="0x6e"></value>
+				<value name="Decontamination Room" value="0x6f"></value>
+				<value name="Unknown Environment" value="0xff"></value>
           </attribute>
           <attribute id="0x0012" name="Device Enabled" type="bool" default="1" access="rw" required="o">
             <value name="Disabled" value="0"></value>
@@ -341,6 +446,9 @@
             <value name="AAA" value="4"></value>
             <value name="C" value="5"></value>
             <value name="D" value="6"></value>
+	    <value name="CR2" value="7"></value>
+	    <value name="CR123A" value="8"></value>
+	    <value name="Unknown" value="0xff"></value>
           </attribute>
           <attribute id="0x0032" name="Battery AHr Rating" type="u16" access="rw" required="o"></attribute>
           <attribute id="0x0033" name="Battery Quantity" type="u8" access="rw" required="o"></attribute>
