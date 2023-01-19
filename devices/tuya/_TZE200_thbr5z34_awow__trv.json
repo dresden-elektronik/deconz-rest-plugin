@@ -55,8 +55,8 @@
         },
         {
           "name": "config/heatsetpoint",
-          "parse": {"fn": "tuya", "dpid": 105, "eval": "Item.val = Attr.val * 50;"},
-          "write": {"fn": "tuya", "dpid": 105, "dt": "0x2b", "eval": "Item.val / 50;"},
+          "parse": {"fn": "tuya", "dpid": 16, "eval": "Item.val = Attr.val * 50;"},
+          "write": {"fn": "tuya", "dpid": 16, "dt": "0x2b", "eval": "Item.val / 50;"},
           "read": {"fn": "tuya"}
         },
         {
