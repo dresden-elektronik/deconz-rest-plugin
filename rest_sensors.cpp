@@ -1192,7 +1192,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
                     else if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001") ||
-                             sensor->modelId() == QLatin1String("eT093WRO"))
+                             sensor->modelId() == QLatin1String("eT093WRO") || sensor->modelId() == QLatin1String("eTRV0103"))
                     {
                         if (addTaskThermostatCmd(task, VENDOR_DANFOSS, 0x40, data.integer, 0))
                         {
