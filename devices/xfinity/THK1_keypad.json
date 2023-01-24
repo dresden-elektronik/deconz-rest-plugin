@@ -143,13 +143,13 @@
           "default": 0
         },
         {
-          "name": "config/enrolled",
+          "name": "config/enrolled"
         },
         {
           "name": "config/on"
         },
         {
-          "name": "config/pending",
+          "name": "config/pending"
         },
         {
           "name": "config/reachable"
@@ -162,7 +162,7 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/lowbattery",
+          "name": "state/lowbattery"
         },
         {
           "name": "state/panel",
@@ -173,7 +173,7 @@
            "default": 0
         },
         {
-          "name": "state/tampered",
+          "name": "state/tampered"
         }
       ]
     }
