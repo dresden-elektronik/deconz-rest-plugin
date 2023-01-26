@@ -141,7 +141,7 @@
             "fn": "zcl"
           },
           "parse": {
-            "at": "0x0000",
+            "at": "0x0100",
             "cl": "0x0702",
             "ep": 1,
             "eval": "Item.val = Attr.val"
@@ -247,7 +247,7 @@
       "report": [
         {
           "at": "0x0100",
-          "dt": "0x23",
+          "dt": "0x25",
           "min": 60,
           "max": 300,
           "change": "0x00000001"
