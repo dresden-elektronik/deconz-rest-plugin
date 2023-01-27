@@ -1,9 +1,0 @@
-{
-	"schema": "resourceitem1.schema.json",
-	"id": "attr/sleeper",
-	"datatype": "Bool",
-	"access": "R",
-	"public": false,
-	"default": false,
-	"description": "Says if the device is always listening, or can sleep and only receive when event.awake is emitted."
-}

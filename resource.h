@@ -42,11 +42,11 @@ extern R_Stats rStats;
 
 // resource prefixes: /devices, /lights, /sensors, ...
 extern const char *RAlarmSystems;
-extern const char *RDevices;
-extern const char *RSensors;
-extern const char *RLights;
-extern const char *RGroups;
 extern const char *RConfig;
+extern const char *RDevices;
+extern const char *RGroups;
+extern const char *RLights;
+extern const char *RSensors;
 
 // resource events
 extern const char *REventAdded;
@@ -84,21 +84,27 @@ extern const char *REventZdpResponse;
 // resouce suffixes: state/buttonevent, config/on, ...
 extern const char *RInvalidSuffix;
 
-extern const char *RAttrName;
-extern const char *RAttrManufacturerName;
-extern const char *RAttrModelId;
-extern const char *RAttrType;
 extern const char *RAttrClass;
+extern const char *RAttrConfigId;
+extern const char *RAttrExtAddress;
+extern const char *RAttrGroupAddress;
 extern const char *RAttrId;
-extern const char *RAttrUniqueId;
-extern const char *RAttrProductId;
-extern const char *RAttrSleeper;
-extern const char *RAttrSwVersion;
 extern const char *RAttrLastAnnounced;
 extern const char *RAttrLastSeen;
-extern const char *RAttrExtAddress;
+extern const char *RAttrLevelMin;
+extern const char *RAttrManufacturerName;
+extern const char *RAttrModelId;
+extern const char *RAttrName;
 extern const char *RAttrNwkAddress;
-extern const char *RAttrGroupAddress;
+extern const char *RAttrPowerOnCt;
+extern const char *RAttrPowerOnLevel;
+extern const char *RAttrPowerup;
+extern const char *RAttrProductId;
+extern const char *RAttrProductName;
+extern const char *RAttrSwconfigid;
+extern const char *RAttrSwVersion;
+extern const char *RAttrType;
+extern const char *RAttrUniqueId;
 
 extern const char *RActionScene;
 
@@ -136,9 +142,10 @@ extern const char *RStateFilterRunTime;
 extern const char *RStateFire;
 extern const char *RStateFlag;
 extern const char *RStateFloorTemperature;
-extern const char *RStateGesture;
 extern const char *RStateGPDFrameCounter;
 extern const char *RStateGPDLastPair;
+extern const char *RStateGesture;
+extern const char *RStateGradient;
 extern const char *RStateHeating;
 extern const char *RStateHue;
 extern const char *RStateHumidity;
@@ -147,9 +154,9 @@ extern const char *RStateLastSet;
 extern const char *RStateLastUpdated;
 extern const char *RStateLift;
 extern const char *RStateLightLevel;
+extern const char *RStateLocaltime;
 extern const char *RStateLockState;
 extern const char *RStateLowBattery;
-extern const char *RStateLocaltime;
 extern const char *RStateLux;
 extern const char *RStateMoisture;
 extern const char *RStateMountingModeActive;
@@ -158,8 +165,8 @@ extern const char *RStateOpen;
 extern const char *RStateOrientationX;
 extern const char *RStateOrientationY;
 extern const char *RStateOrientationZ;
-extern const char *RStatePanel;
 extern const char *RStatePM2_5;
+extern const char *RStatePanel;
 extern const char *RStatePower;
 extern const char *RStatePresence;
 extern const char *RStatePresenceEvent;
@@ -192,27 +199,63 @@ extern const char *RStateWindowOpen;
 extern const char *RStateX;
 extern const char *RStateY;
 
+extern const char *RCapAlertTriggerEffect;
+extern const char *RCapBriMoveWithOnOff;
+extern const char *RCapBriMinDimLevel;
+extern const char *RCapColorCapabilities;
+extern const char *RCapColorCtComputesXy;
+extern const char *RCapColorCtMax;
+extern const char *RCapColorCtMin;
+extern const char *RCapColorEffects;
+extern const char *RCapColorGamutType;
+extern const char *RCapColorGradientMaxSegments;
+extern const char *RCapColorGradientPixelCount;
+extern const char *RCapColorGradientPixelLength;
+extern const char *RCapColorGradientStyles;
+extern const char *RCapColorXyBlueX;
+extern const char *RCapColorXyBlueY;
+extern const char *RCapColorXyGreenX;
+extern const char *RCapColorXyGreenY;
+extern const char *RCapColorXyRedX;
+extern const char *RCapColorXyRedY;
+extern const char *RCapGroupsNotSupported;
+extern const char *RCapOnOffWithEffect;
+extern const char *RCapSleeper;
+extern const char *RCapTransitionBlock;
+
+extern const char *RConfigAlarmSystemId;
 extern const char *RConfigAlert;
 extern const char *RConfigAllowTouchlink;
 extern const char *RConfigArmMode;
 extern const char *RConfigArmedAwayEntryDelay;
 extern const char *RConfigArmedAwayExitDelay;
 extern const char *RConfigArmedAwayTriggerDuration;
-extern const char *RConfigArmedStayEntryDelay;
-extern const char *RConfigArmedStayExitDelay;
-extern const char *RConfigArmedStayTriggerDuration;
 extern const char *RConfigArmedNightEntryDelay;
 extern const char *RConfigArmedNightExitDelay;
 extern const char *RConfigArmedNightTriggerDuration;
+extern const char *RConfigArmedStayEntryDelay;
+extern const char *RConfigArmedStayExitDelay;
+extern const char *RConfigArmedStayTriggerDuration;
 extern const char *RConfigBattery;
+extern const char *RConfigBriExecuteIfOff;
+extern const char *RConfigBriMax;
+extern const char *RConfigBriMin;
+extern const char *RConfigBriOnLevel;
+extern const char *RConfigBriOnOffTransitiontime;
+extern const char *RConfigBriStartup;
+extern const char *RConfigCheckin;
 extern const char *RConfigClickMode;
-extern const char *RConfigColorCapabilities;
+extern const char *RConfigColorCapabilities; // Deprecated
+extern const char *RConfigColorCtStartup;
+extern const char *RConfigColorExecuteIfOff;
+extern const char *RConfigColorGradientReversed;
+extern const char *RConfigColorXyStartupX;
+extern const char *RConfigColorXyStartupY;
 extern const char *RConfigConfigured;
 extern const char *RConfigControlSequence;
 extern const char *RConfigCoolSetpoint;
-extern const char *RConfigCtMin;
-extern const char *RConfigCtMax;
-extern const char *RConfigCheckin;
+extern const char *RConfigCtMax; // Deprecated
+extern const char *RConfigCtMin; // Deprecated
 extern const char *RConfigDelay;
 extern const char *RConfigDeviceMode;
 extern const char *RConfigDisarmedEntryDelay;
@@ -220,6 +263,8 @@ extern const char *RConfigDisarmedExitDelay;
 extern const char *RConfigDisplayFlipped;
 extern const char *RConfigDuration;
 extern const char *RConfigEnrolled;
+extern const char *RConfigExternalTemperatureSensor;
+extern const char *RConfigExternalWindowOpen;
 extern const char *RConfigFanMode;
 extern const char *RConfigFilterLifeTime;
 extern const char *RConfigGPDDeviceId;
@@ -227,34 +272,27 @@ extern const char *RConfigGPDKey;
 extern const char *RConfigGroup;
 extern const char *RConfigHeatSetpoint;
 extern const char *RConfigHostFlags;
-extern const char *RConfigId;
+extern const char *RConfigHumiMaxThreshold;
+extern const char *RConfigHumiMinThreshold;
 extern const char *RConfigInterfaceMode;
 extern const char *RConfigLastChangeAmount;
 extern const char *RConfigLastChangeSource;
 extern const char *RConfigLastChangeTime;
 extern const char *RConfigLat;
 extern const char *RConfigLedIndication;
-extern const char *RConfigLevelMin;
 extern const char *RConfigLocalTime;
 extern const char *RConfigLock;
 extern const char *RConfigLocked;
 extern const char *RConfigLong;
+extern const char *RConfigMelody;
 extern const char *RConfigMode;
 extern const char *RConfigMountingMode;
 extern const char *RConfigOffset;
 extern const char *RConfigOn;
+extern const char *RConfigOnStartup;
 extern const char *RConfigPending;
-extern const char *RConfigPowerup;
-extern const char *RConfigPowerOnCt;
-extern const char *RConfigPowerOnLevel;
-extern const char *RConfigPulseConfiguration;
 extern const char *RConfigPreset;
-extern const char *RConfigMelody;
-extern const char *RConfigTempMaxThreshold;
-extern const char *RConfigTempMinThreshold;
-extern const char *RConfigHumiMaxThreshold;
-extern const char *RConfigHumiMinThreshold;
-extern const char *RConfigVolume;
+extern const char *RConfigPulseConfiguration;
 extern const char *RConfigReachable;
 extern const char *RConfigResetPresence;
 extern const char *RConfigSchedule;
@@ -265,50 +303,50 @@ extern const char *RConfigSensitivityMax;
 extern const char *RConfigSetValve;
 extern const char *RConfigSunriseOffset;
 extern const char *RConfigSunsetOffset;
+extern const char *RConfigUnoccupiedHeatSetpoint;
 extern const char *RConfigSwingMode;
+extern const char *RConfigTempMaxThreshold;
+extern const char *RConfigTempMinThreshold;
 extern const char *RConfigTemperature;
 extern const char *RConfigTemperatureMeasurement;
 extern const char *RConfigTholdDark;
 extern const char *RConfigTholdOffset;
 extern const char *RConfigTriggerDistance;
+extern const char *RConfigUbisysJ1AdditionalSteps;
+extern const char *RConfigUbisysJ1ConfigurationAndStatus;
+extern const char *RConfigUbisysJ1InactivePowerThreshold;
+extern const char *RConfigUbisysJ1InstalledClosedLimitLift;
+extern const char *RConfigUbisysJ1InstalledClosedLimitTilt;
+extern const char *RConfigUbisysJ1InstalledOpenLimitLift;
+extern const char *RConfigUbisysJ1InstalledOpenLimitTilt;
+extern const char *RConfigUbisysJ1LiftToTiltTransitionSteps;
+extern const char *RConfigUbisysJ1LiftToTiltTransitionSteps2;
+extern const char *RConfigUbisysJ1Mode;
+extern const char *RConfigUbisysJ1StartupSteps;
+extern const char *RConfigUbisysJ1TotalSteps;
+extern const char *RConfigUbisysJ1TotalSteps2;
+extern const char *RConfigUbisysJ1TurnaroundGuardTime;
+extern const char *RConfigUbisysJ1WindowCoveringType;
 extern const char *RConfigUrl;
 extern const char *RConfigUsertest;
+extern const char *RConfigVolume;
 extern const char *RConfigWindowCoveringType;
 extern const char *RConfigWindowOpen;
-extern const char *RConfigExternalTemperatureSensor;
-extern const char *RConfigExternalWindowOpen;
-extern const char *RConfigUbisysJ1Mode;
-extern const char *RConfigUbisysJ1WindowCoveringType;
-extern const char *RConfigUbisysJ1ConfigurationAndStatus;
-extern const char *RConfigUbisysJ1InstalledOpenLimitLift;
-extern const char *RConfigUbisysJ1InstalledClosedLimitLift;
-extern const char *RConfigUbisysJ1InstalledOpenLimitTilt;
-extern const char *RConfigUbisysJ1InstalledClosedLimitTilt;
-extern const char *RConfigUbisysJ1TurnaroundGuardTime;
-extern const char *RConfigUbisysJ1LiftToTiltTransitionSteps;
-extern const char *RConfigUbisysJ1TotalSteps;
-extern const char *RConfigUbisysJ1LiftToTiltTransitionSteps2;
-extern const char *RConfigUbisysJ1TotalSteps2;
-extern const char *RConfigUbisysJ1AdditionalSteps;
-extern const char *RConfigUbisysJ1InactivePowerThreshold;
-extern const char *RConfigUbisysJ1StartupSteps;
-extern const char *RConfigAlarmSystemId;
 
 #define R_ALERT_DEFAULT             QVariant(QLatin1String("none"))
 #define R_SENSITIVITY_MAX_DEFAULT   2
 #define R_THOLDDARK_DEFAULT         12000
 #define R_THOLDOFFSET_DEFAULT       7000
 
+extern const QStringList RStateAlertValues;
+extern const QStringList RStateAlertValuesTriggerEffect;
+
 extern const QStringList RStateEffectValues;
 #define R_EFFECT_NONE               0
 #define R_EFFECT_COLORLOOP          1
 extern const QStringList RStateEffectValuesMueller;
-#define R_EFFECT_SUNSET             2
-#define R_EFFECT_PARTY              3
-#define R_EFFECT_WORKLIGHT          4
-#define R_EFFECT_CAMPFIRE           5
-#define R_EFFECT_ROMANCE            6
-#define R_EFFECT_NIGHTLIGHT         7
+extern const QStringList RStateEffectValuesXmasLightStrip;
+
 extern const QStringList RConfigLastChangeSourceValues;
 
 extern const QStringList RConfigDeviceModeValues;

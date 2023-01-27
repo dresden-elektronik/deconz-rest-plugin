@@ -1,0 +1,9 @@
+{
+    "schema": "resourceitem1.schema.json",
+    "id": "cap/transition_block",
+    "datatype": "Bool",
+    "access": "R",
+    "public": true,
+    "description": "Device ignores new commands while transition is active.",
+    "static": true
+}

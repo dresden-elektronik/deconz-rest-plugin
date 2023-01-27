@@ -57,6 +57,36 @@
           "name": "config/heatsetpoint",
           "default": 0
         },
+	{
+          "name": "config/resetpresence",
+          "refresh.interval": 300,
+          "description": "Use it to address Occupancy specific attribute.\nfalse = Unoccupied\ntrue = Occupied",
+          "parse": {
+            "at": "0x0400",
+            "cl": "0x0201",
+            "ep": 1,
+            "mf": "0x119c",
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl"
+            },
+          "read": {
+            "at": "0x0400",
+            "cl": "0x0201",
+            "ep": 1,
+            "mf": "0x119c",
+            "fn": "zcl"
+            },
+          "write": {
+            "at": "0x0400",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl",
+            "dt": "0x30",
+            "mf": "0x119c",
+            "eval": "Item.val"
+            },
+          "default": true
+        },
         {
           "name": "config/mode"
         },
@@ -76,6 +106,35 @@
         {
           "name": "config/schedule_on",
           "default": false
+        },
+        {
+          "name": "config/unoccupiedheatsetpoint",
+          "refresh.interval": 300,
+          "read": {
+            "at": "0x0014",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl",
+            "mf": "0x119c"
+          },
+          "parse": {
+            "at": "0x0014",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl",
+            "mf": "0x119c"
+          },
+            "write": {
+	    "at": "0x0014",
+            "cl": "0x0201",
+            "dt": "0x29",
+            "ep": 1,
+            "eval": "Item.val",
+            "fn": "zcl",
+            "mf": "0x119c"
+          },
+          "default": 1800
         },
         {
           "name": "config/externalsensortemp",

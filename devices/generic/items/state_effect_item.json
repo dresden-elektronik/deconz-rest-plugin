@@ -1,14 +1,22 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "state/effect",
-	"datatype": "String",
-	"access": "RW",
-	"public": true,
-	"managed": true,
-	"description": "The currently active effect.",
-	"default": "none",
-	"values": [
-		["\"none\"", "no effect is active"],
-		["\"colorloop\"", "colorloop through hue values"]
-	]
+    "schema": "resourceitem1.schema.json",
+    "id": "state/effect",
+    "datatype": "String",
+    "access": "RW",
+    "public": true,
+    "managed": true,
+    "description": "The currently active effect.",
+    "default": "none",
+    "values": [
+        ["\"none\"", "no effect is active"],
+        ["\"colorloop\"", "colorloop through hue values"]
+    ],
+    "parse": {
+        "fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x4002",
+        "eval": "Item.val = Attr.val ? 'colorloop' : 'none'"
+    },
+    "read": {
+        "fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x4002"
+    },
+    "refresh.interval": 300
 }

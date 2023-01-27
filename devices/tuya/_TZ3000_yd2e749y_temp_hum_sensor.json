@@ -1,7 +1,7 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["_TZ3000_yd2e749y", "_TZ3000_fllyghyj"],
-  "modelid": ["TS0201", "TS0201"],
+  "manufacturername": ["_TZ3000_yd2e749y", "_TZ3000_fllyghyj", "_TZ3000_fie1dpkm", "_TZ3000_lbtpiody", "_TZ3000_5nrcorgu", "_TZ3000_ena8vgqb", "_TZ3000_xr3htd96"],
+  "modelid": ["TS0201", "TS0201", "TS0201", "TS0201", "TS0201", "TS0201", "TS0201"],
   "vendor": "Tuya",
   "product": "Temperature and humidity sensor",
   "sleeper": true,
@@ -35,7 +35,10 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",                   
+          "refresh.interval": 86400,
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
         {
           "name": "attr/type"
@@ -100,7 +103,10 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",                   
+          "refresh.interval": 86400,
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
         {
           "name": "attr/type"

@@ -2159,7 +2159,7 @@ static int sqliteLoadAllResourcelinksCallback(void *user, int ncols, char **colv
         {
             QString val = QString::fromUtf8(colval[i]);
 
-            DBG_Printf(DBG_INFO_L2, "Sqlite schedule: %s = %s\n", colname[i], qPrintable(val));
+            DBG_Printf(DBG_INFO_L2, "Sqlite resourcelink: %s = %s\n", colname[i], qPrintable(val));
 
 
             if (strcmp(colname[i], "id") == 0)
@@ -3466,11 +3466,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.addItem(DataTypeUInt16, RStateX);
                 sensor.addItem(DataTypeUInt16, RStateY);
                 sensor.addItem(DataTypeInt16, RStateAngle);
-            }
-            else if (sensor.modelId() == QLatin1String("TERNCY-SD01"))
-            {
-                sensor.addItem(DataTypeInt16, RStateAngle);
-                sensor.addItem(DataTypeUInt16, RStateEventDuration);
             }
         }
         else if (sensor.type().endsWith(QLatin1String("AncillaryControl")))
