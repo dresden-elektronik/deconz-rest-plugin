@@ -263,7 +263,8 @@ int JsZclFrame::at(int i) const
 {
     if (zclFrame && i >= 0 && i < zclFrame->payload().size())
     {
-        return zclFrame->payload().at(i);
+        quint8 value = zclFrame->payload().at(i);
+        return value;
     }
 
     return 0;
