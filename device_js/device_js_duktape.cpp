@@ -602,8 +602,7 @@ static duk_ret_t DJS_GetZclFramePayloadAt(duk_context *ctx)
     {
         if (i >= 0 && i < zf->payload().size())
         {
-            quint8 value = zf->payload().at(i);
-            duk_push_int(ctx, value);
+            duk_push_int(ctx, (uint8_t) zf->payload().at(i));
             return 1;  /* one return value */
 
         }
