@@ -263,7 +263,7 @@ int JsZclFrame::at(int i) const
 {
     if (zclFrame && i >= 0 && i < zclFrame->payload().size())
     {
-        return zclFrame->payload().at(i);
+        return (uint8_t) zclFrame->payload().at(i);
     }
 
     return 0;
