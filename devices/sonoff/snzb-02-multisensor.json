@@ -46,7 +46,7 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 84000,
+          "refresh.interval": 86400,
           "read": {
             "at": "0x0006",
             "cl": "0x0000",
@@ -143,7 +143,7 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 84000,
+          "refresh.interval": 86400,
           "read": {
             "at": "0x0006",
             "cl": "0x0000",
