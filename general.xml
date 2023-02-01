@@ -5094,9 +5094,26 @@ Writing 1 to 0x0202 and 0x0302 makes 0x0300 writable. Then writing 1 to 0x0300 s
       </client>
     </cluster>
 
-    <!-- MERTEN WISER -->
-    <cluster id="0xff17" name="Merten specific" mfcode="0x105e">
-      <description>Merten specific attributes.</description>
+    <!-- SCHNEIDER ELECTRIC -->
+    <cluster id="0xfc04" name="Schneider specific" mfcode="0x105e">
+      <description>Schneider manufacturer-specifc cluster.</description>
+      <server>
+        <attribute id="0x0000" name="Unknown" type="u8" mfcode="0x105e" access="rw" required="m"></attribute>
+        <attribute id="0x0002" name="LED indication" type="u8" mfcode="0x105e" access="rw" required="m">
+          <description>Allows to select the LED indicator mode:
+          0: Consistent With Load - The LED on the Socket Outlet is On when the device is On
+          1: Reverse With Load - The LED on the Socket Outlet is On when the device is Off
+          2: Always Off - The LED on the Socket Outlet is always Off
+          3: Always On - The LED on the Socket Outlet is always On</description>
+        </attribute>
+        <attribute id="0xfffd" name="Cluster revision" type="u16" mfcode="0x105e" default="1" access="r" required="m"></attribute>
+      </server>
+      <client>
+      </client>
+    </cluster>
+
+    <cluster id="0xff17" name="Schneider specific" mfcode="0x105e">
+      <description>Schneider manufacturer-specifc cluster.</description>
       <server>
         <attribute id="0x0000" name="Leds" type="enum8" mfcode="0x105e" access="rw" required="m">
           <value name="Orientation led off / Movement led on" value="0"></value>
