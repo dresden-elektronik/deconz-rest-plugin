@@ -1192,7 +1192,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
                     else if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001") ||
-                             sensor->modelId() == QLatin1String("eT093WRO"))
+                             sensor->modelId() == QLatin1String("eT093WRO") || sensor->modelId() == QLatin1String("eTRV0103"))
                     {
                         if (addTaskThermostatCmd(task, VENDOR_DANFOSS, 0x40, data.integer, 0))
                         {
@@ -3394,6 +3394,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                     DBG_Printf(DBG_INFO, "sensor %s (%s): disable presence\n", qPrintable(sensor->id()), qPrintable(sensor->modelId()));
                     item->setValue(false);
                     sensor->updateStateTimestamp();
+                    sensor->setNeedSaveDatabase(true);
                     enqueueEvent(Event(RSensors, RStatePresence, sensor->id(), item));
                     enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
                     updateSensorEtag(sensor);
@@ -3421,6 +3422,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                         item->setValue(S_BUTTON_1 + S_BUTTON_ACTION_HOLD);
                         DBG_Printf(DBG_INFO, "[INFO] - Button %u Hold %s\n", item->toNumber(), qPrintable(sensor->modelId()));
                         sensor->updateStateTimestamp();
+                        sensor->setNeedSaveDatabase(true);
                         enqueueEvent(Event(RSensors, RStateButtonEvent, sensor->id(), item));
                         enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
                         updateSensorEtag(sensor);
@@ -3439,6 +3441,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                         item->setValue(btn + S_BUTTON_ACTION_HOLD);
                         DBG_Printf(DBG_INFO, "FoH switch button %d Hold %s\n", item->toNumber(), qPrintable(sensor->modelId()));
                         sensor->updateStateTimestamp();
+                        sensor->setNeedSaveDatabase(true);
                         enqueueEvent(Event(RSensors, RStateButtonEvent, sensor->id(), item));
                         enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
                         updateSensorEtag(sensor);
@@ -3451,6 +3454,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                     {
                         DBG_Printf(DBG_INFO, "sensor %s (%s): disable vibration\n", qPrintable(sensor->id()), qPrintable(sensor->modelId()));
                         item->setValue(false);
+                        sensor->setNeedSaveDatabase(true);
                         sensor->updateStateTimestamp();
                         enqueueEvent(Event(RSensors, RStateVibration, sensor->id(), item));
                         enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));

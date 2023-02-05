@@ -131,7 +131,8 @@
                     "parse": {
                         "ep": 2, "cl": "0x0406", "at": "0x0000",
                         "eval": "Item.val = Attr.val"
-                    }
+                    },
+                    "default": false
                 }
             ]
         },
