@@ -804,6 +804,16 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             change.setStateTimeoutMs(1000 * stateTimeout);
                         }
                     }
+                    
+                    if (writeParam.contains(QLatin1String("change.timeout")))
+                    {
+                        int changeTimeout = writeParam.value(QLatin1String("change.timeout")).toInt(&ok);
+
+                        if (ok && changeTimeout > 0)
+                        {
+                            change.setChangeTimeoutMs(1000 * changeTimeout);
+                        }
+                    }
                 }
 
                 if (sensor->modelId().startsWith(QLatin1String("SPZB")) && hostFlags == 0) // Eurotronic Spirit
@@ -970,7 +980,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     if (devManaged && rsub)
                     {
                         change.addTargetValue(rid.suffix, data.boolean);
-                        change.setChangeTimeoutMs(60000);    // 1 min
                         rsub->addStateChange(change);
                         updated = true;
                     }
