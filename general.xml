@@ -3275,6 +3275,20 @@ Note: It does not clear or delete previous weekly schedule programming configura
       </client>
     </cluster>
 
+    <cluster id="0x040D" name="Carbon dioxyde measurement">
+      <description></description>
+      <server>
+        <attribute-set id="0x0000" description="Relative Carbon Dioxyde Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+
     <cluster id="0x0b04" name="Electrical Measurement">
       <description>Provides a mechanism for querying data about the electrical properties as measured by the device.</description>
       <server>
