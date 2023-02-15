@@ -2,7 +2,7 @@
   "schema": "devcap1.schema.json",
   "manufacturername": "HEIMAN",
   "modelid": "HS3AQ-EFA-3.0",
-  "product": "HS3AQ-EFA-3.0",
+  "product": "HHS3AQ carbondioxide detector",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -44,6 +44,7 @@
         },
         {
           "name": "config/battery",
+          "refresh.interval": 86400,
           "awake": true,
           "parse": {
             "at": "0x0021",
@@ -112,6 +113,7 @@
         },
         {
           "name": "config/battery",
+          "refresh.interval": 86400,
           "awake": true,
           "parse": {
             "at": "0x0021",
@@ -181,6 +183,7 @@
         {
           "name": "config/battery",
           "awake": true,
+          "refresh.interval": 86400,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
