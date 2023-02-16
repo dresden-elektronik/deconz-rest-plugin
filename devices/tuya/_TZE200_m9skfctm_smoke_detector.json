@@ -92,7 +92,7 @@
           },
           "parse": {
             "dpid": 1,
-            "eval": "Item.val = (Attr.val == 1);",
+            "eval": "Item.val = (Attr.val == 0 ? true : false);",
             "fn": "tuya"
           },
           "default": false
