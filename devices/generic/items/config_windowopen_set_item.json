@@ -1,0 +1,9 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/windowopen_set",
+	"datatype": "Bool",
+	"access": "RW",
+	"public": true,
+	"description": "Enable or disable the window open detection.",
+	"default": false
+}
