@@ -3028,6 +3028,10 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
             {
                 task.options = 0xC1;    // Warning mode 1 (burglar), no Strobe, Very high sound, Develco uses inversed bit order
             }
+	    else if (taskRef.lightNode->modelId() == QLatin1String("TS0219"))
+	    {
+	        task.options = 0x24;    // Only supported combination
+	    }
             task.duration = 1;
         }
         else if (alert == "lselect")
