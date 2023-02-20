@@ -115,7 +115,7 @@
           "write": {
             "dpid": 105,
             "dt": "0x2b",
-            "eval": "Far = ['0.5','1','1.5','2','2.5','3','3.5','4','4.5','5']; Attr.val = Math.max(0,(Far.indexOf(Item.val-0.5)*2);",
+            "eval": "Far = ['0.5','1','1.5','2','2.5','3','3.5','4','4.5','5']; Attr.val = Math.max(0,Far.indexOf(Item.val));",
             "fn": "tuya"
           },
           "parse": {
