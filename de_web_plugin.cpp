@@ -7314,15 +7314,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         }
         sensorNode.addItem(DataTypeInt32, RStateButtonEvent);
 
-        if (modelId.startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
-            modelId.startsWith(QLatin1String("ROM00")) || // Hue smart button
-            modelId.startsWith(QLatin1String("RDM00")) || // Hue wall switch module
-            modelId.startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Firends-of-Hue dimmer switch
-        {
-            clusterId = VENDOR_CLUSTER_ID;
-            sensorNode.addItem(DataTypeUInt16, RStateEventDuration);
-        }
-        else if (modelId.startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")))
+        if (modelId.startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")))
         {
             sensorNode.addItem(DataTypeUInt16, RStateX);
             sensorNode.addItem(DataTypeUInt16, RStateY);

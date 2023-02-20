@@ -3456,14 +3456,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeInt32, RStateButtonEvent);
             item->setValue(0);
 
-            if (sensor.modelId().startsWith(QLatin1String("RWL02")) ||
-                sensor.modelId().startsWith(QLatin1String("ROM00")) ||
-                sensor.modelId().startsWith(QLatin1String("RDM00")) ||
-                sensor.modelId().startsWith(QLatin1String("Z3-1BRL")))
-            {
-                sensor.addItem(DataTypeUInt16, RStateEventDuration);
-            }
-            else if (sensor.modelId().startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")))
+            if (sensor.modelId().startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")))
             {
                 sensor.addItem(DataTypeUInt16, RStateX);
                 sensor.addItem(DataTypeUInt16, RStateY);
