@@ -5,7 +5,7 @@
   "vendor": "LIDL",
   "product": "Smart watering timer",
   "sleeper": false,
-  "status": "Bronze",
+  "status": "Silver",
   "subdevices": [
     {
       "type": "$TYPE_ON_OFF_OUTPUT",
@@ -34,69 +34,13 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion",
-          "refresh.interval": 84000,
-          "read": {
-            "at": "0x0001",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl"
-          },
-          "parse": {
-            "at": "0x0001",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl",
-            "script": "tuya_swversion.js"
-          }
+          "name": "attr/swversion"
         },
         {
           "name": "attr/type"
         },
         {
           "name": "attr/uniqueid"
-        },
-        {
-          "name": "config/battery",
-          "parse": {
-            "dpid": 11,
-            "eval": "Item.val = Attr.val * 50;",
-            "fn": "tuya"
-          },
-          "default": 0
-        },
-        {
-          "name": "config/duration",
-          "parse": {
-            "dpid": 5,
-            "eval": "Item.val = Attr.val;",
-            "fn": "tuya"
-          }
-        },
-        {
-          "name": "config/lock",
-          "parse": {
-            "dpid": 109,
-            "eval": "Item.val = Attr.val;",
-            "fn": "tuya"
-          }
-        },
-        {
-          "name": "config/mode",
-          "parse": {
-            "dpid": 108,
-            "eval": "Item.val = Attr.val;",
-            "fn": "tuya"
-          }
-        },
-        {
-          "name": "state/deviceruntime",
-          "parse": {
-            "dpid": 6,
-            "eval": "Item.val = Attr.val;",
-            "fn": "tuya"
-          },
-          "default": 0
         },
         {
           "name": "state/on",
@@ -118,6 +62,88 @@
         },
         {
           "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_OPEN_CLOSE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0500"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+		{
+          "name": "config/battery",
+          "parse": {
+            "dpid": 11,
+            "eval": "Item.val = Attr.val * 50;",
+            "fn": "tuya"
+          },
+          "default": 100
+        },
+        {
+          "name": "config/duration",
+          "write": {
+            "dpid": 5,
+            "dt": "0x02",
+            "eval": "Attr.val = Item.val;",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 6,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          }
+        },
+        {
+          "name": "config/locked",
+          "write": {
+            "dpid": 109,
+            "dt": "0x01",
+            "eval": "Item.val == 1 ? 1 : 0;",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 108,
+            "eval": "Item.val == 1 ? 0 : 1;",
+            "fn": "tuya"
+          },
+          "default": false
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
         }
       ]
     }
