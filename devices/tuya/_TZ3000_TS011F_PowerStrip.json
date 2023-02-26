@@ -1,7 +1,7 @@
 {
    "schema":"devcap1.schema.json",
-   "manufacturername":"_TZ3000_cfnprab5",
-   "modelid":"TS011F",
+   "manufacturername":["_TZ3000_cfnprab5","_TZ3000_o005nuxx"],
+   "modelid":["TS011F","TS011F"],
    "product":"Tuya Powerstrip w/USB",
    "sleeper":false,
    "status":"Silver",
