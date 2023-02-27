@@ -114,7 +114,7 @@
           "name": "config/duration",
           "write": {
             "dpid": 5,
-            "dt": "0x02",
+            "dt": "0x2b",
             "eval": "Attr.val = Item.val;",
             "fn": "tuya"
           },
@@ -128,7 +128,7 @@
           "name": "config/locked",
           "write": {
             "dpid": 109,
-            "dt": "0x01",
+            "dt": "0x10",
             "eval": "Item.val == 1 ? 1 : 0;",
             "fn": "tuya"
           },
