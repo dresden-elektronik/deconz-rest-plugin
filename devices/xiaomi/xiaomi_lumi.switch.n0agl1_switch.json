@@ -216,6 +216,7 @@
           "read": {
             "fn": "none"
           }
+        },
         {
           "name": "state/lastupdated"
         }
