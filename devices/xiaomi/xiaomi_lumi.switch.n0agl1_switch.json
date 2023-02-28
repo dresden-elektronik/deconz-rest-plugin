@@ -207,20 +207,15 @@
         },
         {
           "name": "state/consumption",
-          "refresh.interval": 300,
-          "read": {
-            "at": "0x0055",
-            "cl": "0x000C",
-            "ep": 31,
-            "fn": "zcl"
-          },
           "parse": {
-            "at": "0x0055",
-            "cl": "0x000C",
-            "ep": 31,
-            "eval": "Item.val = Math.round(Attr.val * 1000);"
+            "at": "0x00F7",
+            "eval": "Item.val = Math.round(Attr.val);",
+            "fn": "xiaomi:special",
+            "idx": "0x95"
+          },
+          "read": {
+            "fn": "none"
           }
-        },
         {
           "name": "state/lastupdated"
         }
