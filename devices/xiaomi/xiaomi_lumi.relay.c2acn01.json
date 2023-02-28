@@ -281,7 +281,6 @@
         },
         {
           "name": "state/consumption",
-          "awake": true,
           "parse": {
             "at": "0x00f7",
             "fn": "xiaomi:special",
