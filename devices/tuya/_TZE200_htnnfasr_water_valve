@@ -5,7 +5,7 @@
   "vendor": "LIDL",
   "product": "Smart watering timer",
   "sleeper": false,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_ON_OFF_OUTPUT",
@@ -58,7 +58,8 @@
             "dpid": 1,
             "eval": "Item.val = Attr.val;",
             "fn": "tuya"
-          }
+          },
+	  "default": 0
         },
         {
           "name": "state/reachable"
@@ -105,13 +106,14 @@
           "name": "config/battery",
           "parse": {
             "dpid": 11,
-            "eval": "Item.val = Attr.val * 50;",
+            "eval": "Item.val = Attr.val;",
             "fn": "tuya"
           },
           "default": 100
         },
         {
           "name": "config/duration",
+          "description": "The duration the valve stays open.",
           "write": {
             "dpid": 5,
             "dt": "0x2b",
@@ -119,13 +121,14 @@
             "fn": "tuya"
           },
           "parse": {
-            "dpid": 6,
+            "dpid": 5,
             "eval": "Item.val = Attr.val;",
             "fn": "tuya"
           }
         },
         {
           "name": "config/locked",
+          "description": "Read: frost lock status. Write: frost lock reset.",
           "write": {
             "dpid": 109,
             "dt": "0x10",
@@ -137,13 +140,22 @@
             "eval": "Item.val == 1 ? 0 : 1;",
             "fn": "tuya"
           },
-          "default": false
+          "default": 0
         },
         {
           "name": "config/reachable"
         },
         {
           "name": "state/lastupdated"
+        },
+        {
+          "name": "state/seconds_remaining",
+          "description": "The remaining time the valve is open in seconds.",
+          "parse": {
+            "dpid": 6,
+            "eval": "Item.val = Attr.val * 60;",
+            "fn": "tuya"
+          }
         }
       ]
     }
