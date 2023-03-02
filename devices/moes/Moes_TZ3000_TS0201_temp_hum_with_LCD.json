@@ -1,7 +1,7 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "_TZ3000_ywagc4rj",
-  "modelid": "TS0201",
+  "manufacturername": ["_TZ3000_ywagc4rj","_TZ3000_itnrsufe"],
+  "modelid": ["TS0201","TS0201"],
   "vendor": "Moes",
   "product": "TS0201",
   "sleeper": true,
