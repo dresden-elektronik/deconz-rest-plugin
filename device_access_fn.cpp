@@ -364,7 +364,7 @@ bool evalZclFrame(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicati
 /*! A general purpose function to map number values of a source item to a string which is stored in \p item .
 
     The item->parseParameters() is expected to be an object (given in the device description file).
-    {"fn": "numtostring", "srcitem": suffix, "op": operator, "to": array}
+    {"fn": "numtostr", "srcitem": suffix, "op": operator, "to": array}
     - srcitem: the suffix of the source item which holds the numeric value
     - op: (lt | le | eq | gt | ge) the operator used to match the 'to' array
     - to: [number, string, [number, string], ...] an sorted array to map 'number -> string' with the given operator
