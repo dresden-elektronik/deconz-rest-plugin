@@ -1388,99 +1388,121 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
             if (!sensorNode)
             {
-                // No sensorNode found for endpoint - check for multiple endpoints mapped to the same resource
-                sensorNode = getSensorNodeForAddress(ind.srcAddress());
+                quint8 count = 0;
 
-                if (sensorNode && device && device->subDevices().size() == 1)
+                for (Sensor &sensor: sensors)
                 {
-                    // no need to string match if there is only one sub-device
+                    if (sensor.deletedState() != Sensor::StateNormal || !sensor.node())                             { continue; }
+                    if (!isSameAddress(sensor.address(), ind.srcAddress()))                                         { continue; }
+                    if (sensor.type() != QLatin1String("ZHASwitch"))                                                { continue; }
+
+                    sensorNode = &sensor;
+                    count++;
                 }
-                else if (sensorNode)
-                {
-                    quint16 mfCode = sensorNode->node() ? sensorNode->node()->nodeDescriptor().manufacturerCode() : 0;
-                    if (mfCode == VENDOR_SCHNEIDER)
-                    {  }
-                    else if (sensorNode->modelId().startsWith(QLatin1String("C4")) || // ubisys
-                             sensorNode->modelId().startsWith(QLatin1String("RC 110")) || // innr RC 110
-                             sensorNode->modelId().startsWith(QLatin1String("ICZB-RM")) || // icasa remote
-                             sensorNode->modelId().startsWith(QLatin1String("ZGR904-S")) || // Envilar remote
-                             sensorNode->modelId().startsWith(QLatin1String("ZGRC-KEY")) || // Sunricher remote
-                             sensorNode->modelId().startsWith(QLatin1String("ZG2833PAC")) || // Sunricher C4
-                             sensorNode->modelId() == QLatin1String("4512705") || // Namron remote control
-                             sensorNode->modelId() == QLatin1String("4512726") || // Namron rotary switch
-                             sensorNode->modelId().startsWith(QLatin1String("S57003")) || // SLC 4 ch remote switch
-                             sensorNode->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
-                             sensorNode->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
-                             sensorNode->modelId().startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote
-                             sensorNode->modelId().startsWith(QLatin1String("Switch-LIGHTIFY")) || // Osram 4 button remote
-                             sensorNode->modelId().endsWith(QLatin1String("86opcn01")) ||          //Aqara Opple enable events from all multistate clusters
-                             sensorNode->modelId() == QLatin1String("lumi.remote.b28ac1") ||    // Aqara wireless remote switch H1 (double rocker)
-                             sensorNode->modelId() == QLatin1String("lumi.remote.b286acn01") || // Xiaomi dual button wall switch WXKG02LM 2018
-                             sensorNode->modelId() == QLatin1String("lumi.remote.b286acn02") ||   // Xiaomi dual button wall switch WXKG02LM 2020
-                             sensorNode->manufacturer() == QLatin1String("_TZ3000_bi6lpsew") ||
-                             sensorNode->manufacturer() == QLatin1String("_TZ3400_keyjhapk") ||
-                             sensorNode->manufacturer() == QLatin1String("_TYZB02_key8kk7r") ||
-                             sensorNode->manufacturer() == QLatin1String("_TZ3400_keyjqthh") ||
-                             sensorNode->manufacturer() == QLatin1String("_TZ3400_key8kk7r") ||
-                             sensorNode->manufacturer() == QLatin1String("_TZ3000_rrjr1q0u") ||
-                             sensorNode->manufacturer() == QLatin1String("_TZ3000_abci1hiu") ||
-                             sensorNode->manufacturer() == QLatin1String("_TZ3000_vp6clf9d") ||
-                             sensorNode->manufacturer() == QLatin1String("_TZ3000_wkai4ga5") ||
-                             sensorNode->manufacturer() == QLatin1String("_TZ3000_peszejy7") ||
-                             sensorNode->manufacturer() == QLatin1String("_TZ3000_qzjcsmar") ||
-                             sensorNode->manufacturer() == QLatin1String("_TZ3000_owgcnkrh") ||
-                             sensorNode->manufacturer() == QLatin1String("_TZ3000_adkvzooy") ||
-                             sensorNode->manufacturer() == QLatin1String("_TZ3000_arfwfgoa") ||
-                             sensorNode->manufacturer() == QLatin1String("_TZ3000_a7ouggvs") ||
-                             sensorNode->manufacturer() == QLatin1String("_TZ3000_dfgbtub0") ||
-                             sensorNode->manufacturer() == QLatin1String("_TZ3000_xabckq1v") ||
-                             sensorNode->manufacturer() == QLatin1String("_TYZB02_keyjqthh"))
-                    {
-                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
-                    }
-                    else if (sensorNode->modelId().startsWith(QLatin1String("D1")) || // ubisys
-                             sensorNode->modelId().startsWith(QLatin1String("S1-R")))   // ubisys
-                    {
-                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x02);
-                    }
-                    else if (sensorNode->modelId().startsWith(QLatin1String("S2")))
-                    {
-                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x03);
-                    }
-                    else if ((ind.srcEndpoint() == 0x05 || ind.srcEndpoint() == 0x06) &&
-                            (sensorNode->modelId() == QLatin1String("lumi.switch.b1lacn02") || sensorNode->modelId() == QLatin1String("lumi.switch.b2lacn02")))
-                    {
-                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x04);
-                    }
-                    else if ((ind.srcEndpoint() == 0x06 || ind.srcEndpoint() == 0x07) && sensorNode->modelId() == QLatin1String("lumi.ctrl_ln2.aq1"))
-                    {
-                        // TODO Button maps should express one ZHASwitch is related to multiple endpoints.
-                        //      Or search for one ZHASwitch resource inside sensors.
-                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x05);
-                    }
-                    else if (sensorNode->modelId() == QLatin1String("lumi.switch.b1nacn02") || sensorNode->modelId() == QLatin1String("lumi.switch.b2nacn02"))
-                    {
-                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x05);
-                    }
-                    else if (sensorNode->modelId() == QLatin1String("RM01"))
-                    {
-                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x0A);
-                    }
-                    else if (sensorNode->modelId() == QLatin1String("lumi.switch.l2aeu1") || sensorNode->modelId() == QLatin1String("lumi.switch.n2aeu1"))
-                    {
-                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x29);
-                    }
-                    else
-                    {
-                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
 
-                        if (sensorNode)
+
+                if (count == 1)
+                {
+                    // Only 1 switch resource for the indication address found
+                }
+                else
+                {
+                    // No sensorNode found for endpoint - check for multiple endpoints mapped to the same resource
+                    sensorNode = getSensorNodeForAddress(ind.srcAddress());
+
+                    if (sensorNode && device && device->subDevices().size() == 1)
+                    {
+                        // no need to string match if there is only one sub-device
+                        DBG_Printf(DBG_INFO_L2, "Only 1 subdevice found\n");
+                    }
+                    else if (sensorNode)
+                    {
+                        quint16 mfCode = sensorNode->node() ? sensorNode->node()->nodeDescriptor().manufacturerCode() : 0;
+                        if (mfCode == VENDOR_SCHNEIDER)
+                        {  }
+                        else if (sensorNode->modelId().startsWith(QLatin1String("C4")) || // ubisys
+                                 sensorNode->modelId().startsWith(QLatin1String("RC 110")) || // innr RC 110
+                                 sensorNode->modelId().startsWith(QLatin1String("ICZB-RM")) || // icasa remote
+                                 sensorNode->modelId().startsWith(QLatin1String("ZGR904-S")) || // Envilar remote
+                                 sensorNode->modelId().startsWith(QLatin1String("ZGRC-KEY")) || // Sunricher remote
+                                 sensorNode->modelId().startsWith(QLatin1String("ZG2833PAC")) || // Sunricher C4
+                                 sensorNode->modelId() == QLatin1String("4512705") || // Namron remote control
+                                 sensorNode->modelId() == QLatin1String("4512726") || // Namron rotary switch
+                                 sensorNode->modelId().startsWith(QLatin1String("S57003")) || // SLC 4 ch remote switch
+                                 sensorNode->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
+                                 sensorNode->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
+                                 sensorNode->modelId().startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote
+                                 sensorNode->modelId().startsWith(QLatin1String("Switch-LIGHTIFY")) || // Osram 4 button remote
+                                 sensorNode->modelId().endsWith(QLatin1String("86opcn01")) ||          //Aqara Opple enable events from all multistate clusters
+                                 sensorNode->modelId() == QLatin1String("lumi.remote.b28ac1") ||    // Aqara wireless remote switch H1 (double rocker)
+                                 sensorNode->modelId() == QLatin1String("lumi.remote.b286acn01") || // Xiaomi dual button wall switch WXKG02LM 2018
+                                 sensorNode->modelId() == QLatin1String("lumi.remote.b286acn02") ||   // Xiaomi dual button wall switch WXKG02LM 2020
+                                 sensorNode->manufacturer() == QLatin1String("_TZ3000_bi6lpsew") ||
+                                 sensorNode->manufacturer() == QLatin1String("_TZ3400_keyjhapk") ||
+                                 sensorNode->manufacturer() == QLatin1String("_TYZB02_key8kk7r") ||
+                                 sensorNode->manufacturer() == QLatin1String("_TZ3400_keyjqthh") ||
+                                 sensorNode->manufacturer() == QLatin1String("_TZ3400_key8kk7r") ||
+                                 sensorNode->manufacturer() == QLatin1String("_TZ3000_rrjr1q0u") ||
+                                 sensorNode->manufacturer() == QLatin1String("_TZ3000_abci1hiu") ||
+                                 sensorNode->manufacturer() == QLatin1String("_TZ3000_vp6clf9d") ||
+                                 sensorNode->manufacturer() == QLatin1String("_TZ3000_wkai4ga5") ||
+                                 sensorNode->manufacturer() == QLatin1String("_TZ3000_peszejy7") ||
+                                 sensorNode->manufacturer() == QLatin1String("_TZ3000_qzjcsmar") ||
+                                 sensorNode->manufacturer() == QLatin1String("_TZ3000_owgcnkrh") ||
+                                 sensorNode->manufacturer() == QLatin1String("_TZ3000_adkvzooy") ||
+                                 sensorNode->manufacturer() == QLatin1String("_TZ3000_arfwfgoa") ||
+                                 sensorNode->manufacturer() == QLatin1String("_TZ3000_a7ouggvs") ||
+                                 sensorNode->manufacturer() == QLatin1String("_TZ3000_dfgbtub0") ||
+                                 sensorNode->manufacturer() == QLatin1String("_TZ3000_xabckq1v") ||
+                                 sensorNode->manufacturer() == QLatin1String("_TYZB02_keyjqthh"))
                         {
-                            DBG_Printf(DBG_INFO_L2, "[WARNING] - Missing cluster in sensor fingerprint: 0x%016llX - 0x%04X (%s), endpoint: 0x%02X, cluster: 0x%04X, payload: %s, zclSeq: %u\n",
-                                        ind.srcAddress().ext(), ind.srcAddress().nwk(), qPrintable(sensorNode->modelId()), ind.srcEndpoint(), ind.clusterId(), qPrintable(zclFrame.payload().toHex().toUpper()), zclFrame.sequenceNumber());
+                            sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
+                        }
+                        else if (sensorNode->modelId().startsWith(QLatin1String("D1")) || // ubisys
+                                 sensorNode->modelId().startsWith(QLatin1String("S1-R")))   // ubisys
+                        {
+                            sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x02);
+                        }
+                        else if (sensorNode->modelId().startsWith(QLatin1String("S2")))
+                        {
+                            sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x03);
+                        }
+                        else if ((ind.srcEndpoint() == 0x05 || ind.srcEndpoint() == 0x06) &&
+                                (sensorNode->modelId() == QLatin1String("lumi.switch.b1lacn02") || sensorNode->modelId() == QLatin1String("lumi.switch.b2lacn02")))
+                        {
+                            sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x04);
+                        }
+                        else if ((ind.srcEndpoint() == 0x06 || ind.srcEndpoint() == 0x07) && sensorNode->modelId() == QLatin1String("lumi.ctrl_ln2.aq1"))
+                        {
+                            // TODO Button maps should express one ZHASwitch is related to multiple endpoints.
+                            //      Or search for one ZHASwitch resource inside sensors.
+                            sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x05);
+                        }
+                        else if (sensorNode->modelId() == QLatin1String("lumi.switch.b1nacn02") || sensorNode->modelId() == QLatin1String("lumi.switch.b2nacn02"))
+                        {
+                            sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x05);
+                        }
+                        else if (sensorNode->modelId() == QLatin1String("RM01"))
+                        {
+                            sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x0A);
+                        }
+                        else if (sensorNode->modelId() == QLatin1String("lumi.switch.l2aeu1") || sensorNode->modelId() == QLatin1String("lumi.switch.n2aeu1"))
+                        {
+                            sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x29);
+                        }
+                        else
+                        {
+                            sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
+
+                            if (sensorNode)
+                            {
+                                DBG_Printf(DBG_INFO_L2, "[WARNING] - Missing cluster in sensor fingerprint: 0x%016llX - 0x%04X (%s), endpoint: 0x%02X, cluster: 0x%04X, payload: %s, zclSeq: %u\n",
+                                            ind.srcAddress().ext(), ind.srcAddress().nwk(), qPrintable(sensorNode->modelId()), ind.srcEndpoint(), ind.clusterId(), qPrintable(zclFrame.payload().toHex().toUpper()), zclFrame.sequenceNumber());
+                            }
                         }
                     }
                 }
+
             }
 
             if (sensorNode)
