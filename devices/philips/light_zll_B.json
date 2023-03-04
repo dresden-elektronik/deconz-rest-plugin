@@ -57,10 +57,10 @@
                     "name": "cap/alert/trigger_effect"
                 },
                 {
-                    "name": "cap/bri/move_with_onoff"
+                    "name": "cap/bri/min_dim_level"
                 },
                 {
-                    "name": "cap/bri/min_dim_level"
+                    "name": "cap/bri/move_with_onoff"
                 },
                 {
                     "name": "cap/color/capabilities"
