@@ -128,7 +128,7 @@
       "uuid": [
         "$address.ext",
         "0x01",
-        "0x0b04"
+        "0x000C"
       ],
       "items": [
         {
@@ -229,7 +229,7 @@
       "uuid": [
         "$address.ext",
         "0x01",
-        "0x000C"
+        "0x0702"
       ],
       "items": [
         {
