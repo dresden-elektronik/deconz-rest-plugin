@@ -1283,6 +1283,12 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             updated = true;
                         }
                     }
+                    else if (devManaged && rsub) // Managed by DDF ?
+                    {
+                        change.addTargetValue(rid.suffix, data.integer);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
                     else
                     {
                         if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, THERM_ATTRID_OCCUPIED_HEATING_SETPOINT, deCONZ::Zcl16BitInt, data.integer))
@@ -1302,7 +1308,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     ok = false;
 
-                    if (devManaged)
+                    if (devManaged && rsub)
                     {
                         const QVariantMap m = DDF_GetMetaKeyValues(sensor, item);
 
@@ -1639,7 +1645,13 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                         }
                     }
-
+                    else if (devManaged && rsub) // Managed by DDF ?
+                    {
+                        DBG_Printf(DBG_INFO_L2, "debug test send preset\n");
+                        change.addTargetValue(rid.suffix, data.string);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
                 }
                 else if (rid.suffix == RConfigLocked) // Boolean
                 {
@@ -1696,7 +1708,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             updated = true;
                         }
                     }
-                    else if (devManaged && rsub)
+                    else if (devManaged && rsub) // Managed by DDF ? why integer ?
                     {
                         data.uinteger = data.boolean; // Use integer representation
                         change.addTargetValue(rid.suffix, data.uinteger);
@@ -1824,20 +1836,29 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigWindowOpen) // Boolean
                 {
-                    QByteArray tuyaData = QByteArray("\x00", 1); // Config on / off
-
-                    if (data.boolean) { tuyaData = QByteArray("\x01", 1); }
-
-                    qint8 dpIdentifier = DP_IDENTIFIER_WINDOW_OPEN;
-
-                    if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
-                        R_GetProductId(sensor) == QLatin1String("Tuya_THD BRT-100"))
+                    if (!devManaged)
                     {
-                        dpIdentifier = DP_IDENTIFIER_WINDOW_OPEN2;
+                        QByteArray tuyaData = QByteArray("\x00", 1); // Config on / off
+
+                        if (data.boolean) { tuyaData = QByteArray("\x01", 1); }
+
+                        qint8 dpIdentifier = DP_IDENTIFIER_WINDOW_OPEN;
+
+                        if (R_GetProductId(sensor) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
+                            R_GetProductId(sensor) == QLatin1String("Tuya_THD BRT-100"))
+                        {
+                            dpIdentifier = DP_IDENTIFIER_WINDOW_OPEN2;
+                        }
+
+                        if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, dpIdentifier, tuyaData))
+                        {
+                            updated = true;
+                        }
                     }
-
-                    if (sendTuyaRequest(task, TaskThermostat, DP_TYPE_BOOL, dpIdentifier, tuyaData))
+                    else if (devManaged && rsub) // Managed by DDF ?
                     {
+                        change.addTargetValue(rid.suffix, data.boolean);
+                        rsub->addStateChange(change);
                         updated = true;
                     }
                 }

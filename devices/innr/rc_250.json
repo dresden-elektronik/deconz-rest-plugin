@@ -1,9 +1,9 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": [" _TZ3000_itb0omhv", "_TZ3000_4upl1fcj"],
-  "modelid": ["TS0041", "TS0041"],
-  "product": "Tuya 1 gangs switch battery",
-  "sleeper": false,
+  "manufacturername": "innr",
+  "modelid": "RC 250",
+  "product": "Battery switch",
+  "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
@@ -12,7 +12,7 @@
       "uuid": [
         "$address.ext",
         "0x01",
-        "0x0006"
+        "0xfd01"
       ],
       "items": [
         {
@@ -34,10 +34,7 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion",
-          "refresh.interval": 84000,
-          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "name": "attr/swversion"
         },
         {
           "name": "attr/type"
@@ -47,8 +44,8 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 84000,
           "awake": true,
+          "refresh.interval": 84000,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -62,7 +59,7 @@
             "eval": "Item.val = Attr.val / 2"
           },
           "default": 0
-        },        
+        },
         {
           "name": "config/on"
         },
@@ -70,7 +67,14 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/buttonevent"
+          "name": "state/buttonevent",
+          "awake": true,
+          "parse": {
+            "cl": "0xfd01",
+            "cmd": "0x12",
+            "mf": "0x1168",
+            "eval": "const t={'1':0,'8':2,'2':3,'10':9};if(ZclFrame.at(2) in t){Item.val=ZclFrame.at(1)*1000+t[ZclFrame.at(2)]}"
+          }
         },
         {
           "name": "state/lastupdated"
@@ -97,7 +101,7 @@
       "bind": "unicast",
       "src.ep": 1,
       "dst.ep": 1,
-      "cl": "0x0006"
+      "cl": "0xfd01"
     }
   ]
 }

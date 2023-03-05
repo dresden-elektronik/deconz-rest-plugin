@@ -219,22 +219,29 @@
           "write": {
             "dpid": 4,
             "dt": "0x2b",
-            "eval": "if (Item.val == 'off') { 0 } else if (Item.val == 'far') { 1000 } else if (Item.val == 'medium') { 500 } else if (Item.val == 'near') { 200 }",
+            "eval": "Far = ['0','1','2','3','4','5','6','7','8','9','10']; Attr.val = Math.max(0,Far.indexOf(Item.val)*100);",
             "fn": "tuya"
           },
-          "parse": {
+           "parse": {
             "dpid": 4,
-            "eval": "if (Attr.val == 0) { Item.val = 'off' } else if (Attr.val <= 200) { Item.val = 'near' } else if (Attr.val <= 700) { Item.val = 'medium' } else if (Attr.val <= 1000) { Item.val = 'far' } else { Item.val = 'unknown' }",
+            "eval": "Item.val = String(Attr.val/100);",
             "fn": "tuya"
           },
          "values": [
-            ["\"far\"", "Someone approaching is detected on high distance"],
-            ["\"medium\"", "Someone approaching is detected on medium distance"],
-            ["\"near\"", "Someone approaching is detected on low distance"], 
-            ["\"off\"", "Far detection distance set to zero"]
+            ["\"1\"", "1m"],
+            ["\"2\"", "2m"],
+            ["\"3\"", "3m"], 
+            ["\"4\"", "4m"],
+            ["\"5\"", "5m"],
+            ["\"6\"", "6m"],
+            ["\"7\"", "7m"],
+            ["\"8\"", "8m"],
+            ["\"9\"", "9m"],
+            ["\"10\"", "10m"],
+            ["\"0\"", "Off"]
           ],
-          "default": "far"
-        },
+          "default": "10"
+        },         
          {
           "name": "state/angle",
           "description": "Distance from detected target in cm (from 0 to 1000).",
@@ -256,10 +263,10 @@
           },
           "parse": {
             "dpid": 6,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = String(Attr.val);",
             "fn": "tuya"
           },
-          "default": "1"
+          "default": "Unknown"
         },
         {
           "name": "state/lastupdated"

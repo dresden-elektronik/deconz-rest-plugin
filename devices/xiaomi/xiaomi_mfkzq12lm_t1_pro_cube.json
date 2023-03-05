@@ -1,0 +1,263 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": ["$MF_LUMI"],
+  "modelid": ["lumi.remote.cagl02"],
+  "vendor": "Xiaomi",
+  "product": "Aqara T1 Pro Cube MFKZQ12LM",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_SWITCH",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x03",
+        "0x000c"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0103",
+        "endpoint": "0x03",
+        "in": [
+          "0x000C"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername",
+          "awake": true
+        },
+        {
+          "name": "attr/modelid",
+          "awake": true
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "awake": true,
+          "parse": {
+            "at": "0x00f7",
+            "ep": 1,
+            "fn": "xiaomi:special",
+            "idx": "0x08",
+            "script": "xiaomi_swversion.js"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "parse": {
+            "at": "0x00f7",
+            "ep": 1,
+            "idx": "0x01",
+            "fn": "xiaomi:special",
+            "script": "xiaomi_battery.js"
+          }
+        },
+                {
+          "name": "config/devicemode",
+          "awake": true,
+          "parse": {
+            "at": "0x0148",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "eval": "if (Attr.val == 0) { Item.val = 'action' } else if (Attr.val == 1) { Item.val = 'scene' } else { Item.val = 'unknown' }",
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "read": {
+            "at": "0x0148",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "write": {
+            "at": "0x0148",
+            "cl": "0xfcc0",
+            "dt": "0x20",
+            "ep": 1,
+            "eval": "if (Item.val == 'action') { 0 } else if (Item.val == 'scene') { 1 }",
+            "fn": "zcl",
+            "mf": "0x115f",
+            "state.timeout": 2
+          },
+          "values": [
+            ["\"scene\"", "Use 6 sides and gestures rotate, shake, hold"],
+            ["\"action\"", "Use 6 sides and gestures flip 90, flip 180, rotate, push, double tap, shake, trigger after 1 minute inactivity"] 
+          ],
+          "default": "action"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/gesture"
+        },
+        {
+          "name": "state/buttonevent",
+          "parse": {
+            "at": "0x0055",
+            "cl": "0x000C",
+            "ep": 3,
+            "fn": "zcl",
+            "script": "xiaomi_cube_rotation.js"
+          }
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_SWITCH",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x02",
+        "0x0012"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0103",
+        "endpoint": "0x02",
+        "in": [
+          "0x0012"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername",
+          "awake": true
+        },
+        {
+          "name": "attr/modelid",
+          "awake": true
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "awake": true,
+          "parse": {
+            "at": "0x00f7",
+            "ep": 1,
+            "fn": "xiaomi:special",
+            "idx": "0x08",
+            "script": "xiaomi_swversion.js"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "parse": {
+            "at": "0x00f7",
+            "ep": 1,
+            "idx": "0x01",
+            "fn": "xiaomi:special",
+            "script": "xiaomi_battery.js"
+          }
+        },
+        {
+          "name": "config/devicemode",
+          "awake": true,
+          "parse": {
+            "at": "0x0148",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "eval": "if (Attr.val == 0) { Item.val = 'action' } else if (Attr.val == 1) { Item.val = 'scene' } else { Item.val = 'unknown' }",
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "read": {
+            "at": "0x0148",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "write": {
+            "at": "0x0148",
+            "cl": "0xfcc0",
+            "dt": "0x20",
+            "ep": 1,
+            "eval": "if (Item.val == 'action') { 0 } else if (Item.val == 'scene') { 1 }",
+            "fn": "zcl",
+            "mf": "0x115f",
+            "state.timeout": 2
+          },
+          "values": [
+            ["\"scene\"", "Use 6 sides and gestures rotate, shake, hold"],
+            ["\"action\"", "Use 6 sides and gestures flip 90, flip 180, rotate, push, double tap, shake, trigger after 1 minute inactivity"] 
+          ],
+          "default": "action"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/gesture"
+        },
+        {
+          "name": "state/buttonevent",
+          "parse": {
+            "at": "0x0055",
+            "cl": "0x0012",
+            "ep": 2,
+            "fn": "zcl",
+            "script": "xiaomi_cube_gestures.js"
+          }
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ]
+}

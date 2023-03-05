@@ -364,7 +364,7 @@ bool evalZclFrame(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicati
 /*! A general purpose function to map number values of a source item to a string which is stored in \p item .
 
     The item->parseParameters() is expected to be an object (given in the device description file).
-    {"fn": "numtostring", "srcitem": suffix, "op": operator, "to": array}
+    {"fn": "numtostr", "srcitem": suffix, "op": operator, "to": array}
     - srcitem: the suffix of the source item which holds the numeric value
     - op: (lt | le | eq | gt | ge) the operator used to match the 'to' array
     - to: [number, string, [number, string], ...] an sorted array to map 'number -> string' with the given operator
@@ -439,7 +439,7 @@ bool parseNumericToString(Resource *r, ResourceItem *item, const deCONZ::ApsData
 
     auto i = std::find_if(to.cbegin(), to.cend(), [num, op](const QVariant &var)
     {
-        if (var.type() == QVariant::Double)
+        if (var.type() == QVariant::Double || var.type() == QVariant::LongLong)
         {
             if (op == OpLessEqual)    { return num <= var.toInt(); }
             if (op == OpLessThan)     { return num < var.toInt();  }
@@ -450,6 +450,8 @@ bool parseNumericToString(Resource *r, ResourceItem *item, const deCONZ::ApsData
         return false;
     });
 
+    // DBG_Printf(DBG_DDF, "%s/%s numtostr: %s %lld --> %d\n", r->item(RAttrUniqueId)->toCString(), item->descriptor().suffix, srcItem->descriptor().suffix, num, i - to.cbegin());
+
     if (i != to.cend())
     {
         i++; // point next element (string)
@@ -459,6 +461,7 @@ bool parseNumericToString(Resource *r, ResourceItem *item, const deCONZ::ApsData
             const QString str = i->toString();
             if (!str.isEmpty())
             {
+                DBG_Printf(DBG_DDF, "%s/%s numtostr: %s %lld --> %s\n", r->item(RAttrUniqueId)->toCString(), item->descriptor().suffix, srcItem->descriptor().suffix, num, qPrintable(str));
                 item->setValue(str);
                 item->setLastZclReport(srcItem->lastZclReport()); // Treat as report
                 result = true;
