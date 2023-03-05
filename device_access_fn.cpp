@@ -694,12 +694,22 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
 
         deCONZ::NumericUnion num;
         num.u64 = 0;
+        QByteArray chain;
 
         switch (dataType)
         {
         case TuyaDataTypeRaw:
         case TuyaDataTypeString:
-            return result; // TODO implement?
+        {
+            for (uint i = 0; i < dataLength; i++)
+            {
+                uint8_t byte;
+                stream >> byte;
+                chain.append(byte);
+            }
+            zclDataType = deCONZ::ZclCharacterString;
+        }
+            break;
 
         case TuyaDataTypeBool:
         { stream >> num.u8; zclDataType = deCONZ::ZclBoolean; }
@@ -737,6 +747,10 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
             {
                 attr.setValue(qint64(num.s32));
             }
+            else if (zclDataType == deCONZ::ZclCharacterString && !chain.isEmpty())
+            {
+                attr.setValue(QVariant(chain));
+            }
             else
             {
                 attr.setValue(quint64(num.u32));
@@ -751,8 +765,16 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
 
         const char *rt = zclFrame.commandId() == TY_DATA_REPORT ? "REPORT" : "RESPONSE";
 
-        DBG_Printf(DBG_INFO, "TY_DATA_%s: seq %u, dpid: 0x%02X, type: 0x%02X, length: %u, val: %d\n",
-                   rt, seq, dpid, dataType, dataLength, num.s32);
+        if (zclDataType == deCONZ::ZclCharacterString)
+        {
+            DBG_Printf(DBG_INFO, "TY_DATA_%s: seq %u, dpid: 0x%02X, type: 0x%02X, length: %u, val: %s\n",
+                       rt, seq, dpid, dataType, dataLength, qPrintable(chain.toHex()));
+        }
+        else
+        {
+            DBG_Printf(DBG_INFO, "TY_DATA_%s: seq %u, dpid: 0x%02X, type: 0x%02X, length: %u, val: %d\n",
+                       rt, seq, dpid, dataType, dataLength, num.s32);
+        }
     }
 
     return result;
