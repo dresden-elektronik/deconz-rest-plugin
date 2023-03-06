@@ -1304,10 +1304,10 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiAqaraS1ScenePa
                 map["e"] = QLatin1String("changed");
                 map["r"] = QLatin1String("lights");
                 map["id"] = lightNode.id();
-                map["uniqueid"] = lightNode->uniqueId();
+                map["uniqueid"] = lightNode.uniqueId();
                 map["state"] = stringParam;
                 webSocketServer->broadcastTextMessage(Json::serialize(map));
-                updateLightEtag(lightNode);
+                updateLightEtag(&lightNode);
                 // plugin->saveDatabaseItems |= DB_LIGHTS;
                 // plugin->queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
             }
