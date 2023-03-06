@@ -1261,7 +1261,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiAqaraS1ScenePa
                             if (stringParam.length() == 0) {
                                 item->setValue(QString(" "));
                             }
-                            item->setValue(QLatin1String("stringParam"));
+                            item->setValue(QString("stringParam"));
                             if (resourceItemToUpdate2 != NULL && uint8Param != UINT8_MAX)
                             {
                                 ResourceItem *item2 = lightNode.item(resourceItemToUpdate2);
