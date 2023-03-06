@@ -2,7 +2,7 @@
   "schema": "resourceitem1.schema.json",
   "id": "config/tuya_unlock",
   "datatype": "Bool",
-  "access": "RW",
+  "access": "R",
   "public": false,
   "description": "Tuya sequence to unlock some device.",
   "default": false,
