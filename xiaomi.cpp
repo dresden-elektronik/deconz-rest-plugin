@@ -1071,6 +1071,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiAqaraS1ScenePa
             case 0xfff2:
                 resourceItemToUpdate = RStateAqaraS1PanelCommunication;
                 stringParam = zclFrame.payload().toHex();
+                DBG_Printf(DBG_INFO, "####### 0x%016llX Xiaomi Aqara attribute 0x%2x: %s\n", ind.srcAddress().ext(), a, stringParam);
                 {
                     for (; length > 0; length--) // eat the data to avoid parsing it further...
                     {
