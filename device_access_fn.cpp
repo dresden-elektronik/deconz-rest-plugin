@@ -694,13 +694,19 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
 
         deCONZ::NumericUnion num;
         num.u64 = 0;
+        QByteArray chain;
 
         switch (dataType)
         {
         case TuyaDataTypeRaw:
         case TuyaDataTypeString:
         {
-            //Value will be read later
+            for (uint i = 0; i < dataLength; i++)
+            {
+                uint8_t byte;
+                stream >> byte;
+                chain.append(byte);
+            }
             zclDataType = deCONZ::ZclCharacterString;
         }
             break;
@@ -741,10 +747,9 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
             {
                 attr.setValue(qint64(num.s32));
             }
-            else if (zclDataType == deCONZ::ZclCharacterString)
+            else if (zclDataType == deCONZ::ZclCharacterString && !chain.isEmpty())
             {
-                QByteArray arr = stream.read(dataLength);
-                attr.setValue(QVariant(arr));
+                attr.setValue(QVariant(chain));
             }
             else
             {
