@@ -23,6 +23,23 @@ quint16 allocDataBuffer()
     return int(_eventDataIter);
 }
 
+#ifdef DECONZ_DEBUG_BUILD
+/*! Verify that ZCL packing functions work as expected
+    TODO(mpi) move to separate testing code.
+*/
+void EventTestZclPacking()
+{
+    uint clusterId = 0xf123;
+    uint status = 0x83;
+    uint seqno = 24;
+    Event e(RDevices, REventZclResponse, EventZclResponsePack(clusterId, seqno, status), 0x11111);
+
+    Q_ASSERT(EventZclClusterId(e) == clusterId);
+    Q_ASSERT(EventZclSequenceNumber(e) == seqno);
+    Q_ASSERT(EventZclStatus(e) == status);
+}
+#endif
+
 /*! Constructor.
  */
 Event::Event()
@@ -30,6 +47,7 @@ Event::Event()
     m_num = 0;
     m_numPrev = 0;
     m_hasData = 0;
+    m_urgent = 0;
 }
 
 Event::Event(const char *resource, const char *what, const QString &id, ResourceItem *item, DeviceKey deviceKey) :
@@ -39,7 +57,8 @@ Event::Event(const char *resource, const char *what, const QString &id, Resource
     m_num(0),
     m_numPrev(0),
     m_deviceKey(deviceKey),
-    m_hasData(0)
+    m_hasData(0),
+    m_urgent(0)
 {
     DBG_Assert(item != 0);
     if (item)
@@ -58,7 +77,8 @@ Event::Event(const char *resource, const char *what, const QString &id, DeviceKe
     m_num(0),
     m_numPrev(0),
     m_deviceKey(deviceKey),
-    m_hasData(0)
+    m_hasData(0),
+    m_urgent(0)
 {
 
 }
@@ -72,7 +92,8 @@ Event::Event(const char *resource, const char *what, const QString &id, int num,
     m_num(num),
     m_numPrev(0),
     m_deviceKey(deviceKey),
-    m_hasData(0)
+    m_hasData(0),
+    m_urgent(0)
 {
 
 }
@@ -85,7 +106,8 @@ Event::Event(const char *resource, const char *what, int num, DeviceKey deviceKe
     m_num(num),
     m_numPrev(0),
     m_deviceKey(deviceKey),
-    m_hasData(0)
+    m_hasData(0),
+    m_urgent(0)
 {
     if (resource == RGroups)
     {
@@ -97,7 +119,8 @@ Event::Event(const char *resource, const char *what, const void *data, size_t si
     m_resource(resource),
     m_what(what),
     m_deviceKey(deviceKey),
-    m_hasData(1)
+    m_hasData(1),
+    m_urgent(0)
 {
     Q_ASSERT(data);
     Q_ASSERT(size > 0 && size <= MaxEventDataSize);

@@ -1,0 +1,257 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "$MF_LUMI",
+  "modelid": "lumi.plug.maus01",
+  "vendor": "Xiaomi",
+  "product": "Aqara smart plug ZNCZ12LM",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_SMART_PLUG",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "at": "0x00F7",
+            "ep": 1,
+            "fn": "xiaomi:special",
+            "idx": "0x08",
+            "script": "xiaomi_firmware.js"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 300
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_POWER_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x02",
+        "0x000C"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0051",
+        "endpoint": "0x02",
+        "in": [
+          "0x000C"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "at": "0x00F7",
+            "ep": 1,
+            "fn": "xiaomi:special",
+            "idx": "0x08",
+            "script": "xiaomi_firmware.js"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "config/temperature"
+        },
+        {
+          "name": "state/current",
+          "parse": {
+            "at": "0x00F7",
+            "eval": "Item.val = Math.round(Attr.val);",
+            "fn": "xiaomi:special",
+            "idx": "0x97"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/power",
+          "refresh.interval": 10,
+          "read": {
+            "at": "0x0055",
+            "cl": "0x000C",
+            "ep": 2,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0055",
+            "cl": "0x000C",
+            "ep": 2,
+            "eval": "Item.val = Math.round(Attr.val);"
+          }
+        },
+        {
+          "name": "state/voltage",
+          "parse": {
+            "at": "0x00F7",
+            "eval": "Item.val = Math.round(Attr.val / 10);",
+            "fn": "xiaomi:special",
+            "idx": "0x96"
+          },
+          "read": {
+            "fn": "none"
+          }
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_CONSUMPTION_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x03",
+        "0x000C"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0051",
+        "endpoint": "0x03",
+        "in": [
+          "0x000C"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "at": "0x00F7",
+            "ep": 1,
+            "fn": "xiaomi:special",
+            "idx": "0x08",
+            "script": "xiaomi_firmware.js"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "config/temperature"
+        },
+        {
+          "name": "state/consumption",
+          "refresh.interval": 300,
+          "read": {
+            "at": "0x0055",
+            "cl": "0x000C",
+            "ep": 3,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0055",
+            "cl": "0x000C",
+            "ep": 3,
+            "eval": "Item.val = Math.round(Attr.val * 1000);"
+          }
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ]
+}

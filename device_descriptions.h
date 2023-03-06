@@ -150,7 +150,8 @@ public:
                 unsigned short isImplicit : 1;
                 unsigned short isManaged : 1; // managed internally
                 unsigned short awake : 1;
-                unsigned short pad : 8;
+                unsigned short hasIsPublic : 1; // to overwrite specific values
+                unsigned short pad : 7;
             };
 
             unsigned short flags;

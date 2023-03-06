@@ -9,7 +9,6 @@
  */
 
 #include <QTimeZone>
-#include "air_quality.h"
 #include "device_access_fn.h"
 #include "device_descriptions.h"
 #include "device_js/device_js.h"
@@ -207,6 +206,16 @@ static ZCL_Param getZclParam(const QVariantMap &param)
         result.hasCommandId = 0;
     }
 
+    const auto ignoreSeqno = QLatin1String("noseq");
+    if (param.contains(ignoreSeqno))
+    {
+        result.ignoreResponseSeq = param.value(ignoreSeqno).toBool() ? 1 : 0;
+    }
+    else
+    {
+        result.ignoreResponseSeq = 0;
+    }
+
     result.attributeCount = 0;
     const auto attr = param[QLatin1String("at")]; // optional
 
@@ -337,13 +346,16 @@ bool evalZclFrame(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicati
             const auto res = engine.result();
             if (res.isValid())
             {
-                DBG_Printf(DBG_INFO, "expression: %s --> %s\n", qPrintable(expr), qPrintable(res.toString()));
+                if (DBG_IsEnabled(DBG_DDF))
+                {
+                    DBG_Printf(DBG_DDF, "expression: %s --> %s\n", qPrintable(expr), qPrintable(res.toString()));
+                }
                 return true;
             }
         }
         else
         {
-            DBG_Printf(DBG_INFO, "failed to evaluate expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
+            DBG_Printf(DBG_DDF, "failed to evaluate expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
         }
     }
     return false;
@@ -352,7 +364,7 @@ bool evalZclFrame(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicati
 /*! A general purpose function to map number values of a source item to a string which is stored in \p item .
 
     The item->parseParameters() is expected to be an object (given in the device description file).
-    {"fn": "numtostring", "srcitem": suffix, "op": operator, "to": array}
+    {"fn": "numtostr", "srcitem": suffix, "op": operator, "to": array}
     - srcitem: the suffix of the source item which holds the numeric value
     - op: (lt | le | eq | gt | ge) the operator used to match the 'to' array
     - to: [number, string, [number, string], ...] an sorted array to map 'number -> string' with the given operator
@@ -427,7 +439,7 @@ bool parseNumericToString(Resource *r, ResourceItem *item, const deCONZ::ApsData
 
     auto i = std::find_if(to.cbegin(), to.cend(), [num, op](const QVariant &var)
     {
-        if (var.type() == QVariant::Double)
+        if (var.type() == QVariant::Double || var.type() == QVariant::LongLong)
         {
             if (op == OpLessEqual)    { return num <= var.toInt(); }
             if (op == OpLessThan)     { return num < var.toInt();  }
@@ -438,6 +450,8 @@ bool parseNumericToString(Resource *r, ResourceItem *item, const deCONZ::ApsData
         return false;
     });
 
+    // DBG_Printf(DBG_DDF, "%s/%s numtostr: %s %lld --> %d\n", r->item(RAttrUniqueId)->toCString(), item->descriptor().suffix, srcItem->descriptor().suffix, num, i - to.cbegin());
+
     if (i != to.cend())
     {
         i++; // point next element (string)
@@ -447,11 +461,17 @@ bool parseNumericToString(Resource *r, ResourceItem *item, const deCONZ::ApsData
             const QString str = i->toString();
             if (!str.isEmpty())
             {
+                DBG_Printf(DBG_DDF, "%s/%s numtostr: %s %lld --> %s\n", r->item(RAttrUniqueId)->toCString(), item->descriptor().suffix, srcItem->descriptor().suffix, num, qPrintable(str));
                 item->setValue(str);
                 item->setLastZclReport(srcItem->lastZclReport()); // Treat as report
                 result = true;
             }
         }
+    }
+
+    if (result)
+    {
+        DeviceJS_ResourceItemValueChanged(item);
     }
 
     return result;
@@ -494,6 +514,10 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
         {
             return result;
         }
+        else if (!param.hasCommandId && param.attributeCount == 0)
+        {
+            // catch all handler
+        }
         else if (!param.hasCommandId && zclFrame.commandId() != deCONZ::ZclReadAttributesResponseId && zclFrame.commandId() != deCONZ::ZclReportAttributesId)
         {
             return result;
@@ -524,6 +548,16 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
     {
         return result;
     }
+    
+    if (!zclParam.hasCommandId && zclFrame.commandId() != deCONZ::ZclReadAttributesResponseId && zclFrame.commandId() != deCONZ::ZclReportAttributesId)
+    {
+        return result;
+    }
+    
+    if (zclParam.manufacturerCode != zclFrame.manufacturerCode())
+    {
+        return result;
+    }
 
     if (zclParam.endpoint < BroadcastEndpoint && zclParam.endpoint != ind.srcEndpoint())
     {
@@ -532,6 +566,11 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
 
     if (zclParam.attributeCount == 0) // attributes are optional
     {
+        if (zclParam.hasCommandId && zclParam.commandId != zclFrame.commandId())
+        {
+            return result;
+        }
+        
         if (evalZclFrame(r, item, ind, zclFrame, parseParameters))
         {
             result = true;
@@ -656,7 +695,8 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
             return result;
         }
 
-        deCONZ::NumericUnion num{0};
+        deCONZ::NumericUnion num;
+        num.u64 = 0;
 
         switch (dataType)
         {
@@ -669,7 +709,7 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
             break;
 
         case TuyaDataTypeEnum:
-        { stream >> num.u8; zclDataType = deCONZ::Zcl8BitEnum; }
+        { stream >> num.u8; zclDataType = deCONZ::Zcl8BitUint; }
             break;
 
         case TuyaDataTypeValue: // docs aren't clear, assume signed
@@ -680,9 +720,9 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
         {
             switch (dataLength)
             {
-            case 1: { stream >> num.u8;  zclDataType = deCONZ::Zcl8BitBitMap; } break;
-            case 2: { stream >> num.u16; zclDataType = deCONZ::Zcl16BitBitMap; } break;
-            case 4: { stream >> num.u32; zclDataType = deCONZ::Zcl32BitBitMap; } break;
+            case 1: { stream >> num.u8;  zclDataType = deCONZ::Zcl8BitUint; } break;
+            case 2: { stream >> num.u16; zclDataType = deCONZ::Zcl16BitUint; } break;
+            case 4: { stream >> num.u32; zclDataType = deCONZ::Zcl32BitUint; } break;
             }
         }
             break;
@@ -695,7 +735,15 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
         {
             // map datapoint into ZCL attribute
             deCONZ::ZclAttribute attr(dpid, zclDataType, QLatin1String(""), deCONZ::ZclReadWrite, true);
-            attr.setNumericValue(num);
+
+            if (zclDataType == deCONZ::Zcl32BitInt)
+            {
+                attr.setValue(qint64(num.s32));
+            }
+            else
+            {
+                attr.setValue(quint64(num.u32));
+            }
 
             if (evalZclAttribute(r, item, ind, zclFrame, attr, parseParameters))
             {
@@ -781,6 +829,7 @@ static DA_ReadResult readTuyaAllData(const Resource *r, const ResourceItem *item
     result.isEnqueued = apsCtrl->apsdeDataRequest(req) == deCONZ::Success;
     result.apsReqId = req.id();
     result.sequenceNumber = zclFrame.sequenceNumber();
+    result.clusterId = req.clusterId();
 
     return result;
 }
@@ -1296,6 +1345,8 @@ bool parseIasZoneNotificationAndStatus(Resource *r, ResourceItem *item, const de
 
         item->setValue((zoneStatus & mask) != 0);
         item->setLastZclReport(deCONZ::steadyTimeRef().ref);    // Treat as report
+
+        DeviceJS_ResourceItemValueChanged(item); // since this isn't going through JS add item to the changed set here
         result = true;
     }
 
@@ -1576,18 +1627,24 @@ bool parseAndSyncTime(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndi
         }
     }
 
+    if (result)
+    {
+        DeviceJS_ResourceItemValueChanged(item);
+    }
+
     return result;
 }
 
 /*! A generic function to read ZCL attributes.
     The item->readParameters() is expected to be an object (given in the device description file).
 
-    { "fn": "zcl", "ep": endpoint, "cl" : clusterId, "at": attributeId, "mf": manufacturerCode }
+    { "fn": "zcl", "ep": endpoint, "cl" : clusterId, "at": attributeId, "mf": manufacturerCode, "noseq": noSequenceNumber  }
 
     - endpoint, 0xff means any endpoint
     - clusterId: string hex value
     - attributeId: string hex value
     - manufacturerCode: (optional) string hex value, defaults to "0x0000" for non manufacturer specific commands
+    - noSequenceNumber: (optional) bool must be set to `true` and must only be present if needed
 
     Example: { "read": {"fn": "zcl", "ep": 1, "cl": "0x0402", "at": "0x0000", "mf": "0x110b"} }
  */
@@ -1595,7 +1652,7 @@ static DA_ReadResult readZclAttribute(const Resource *r, const ResourceItem *ite
 {
     Q_UNUSED(item)
 
-    DA_ReadResult result;
+    DA_ReadResult result{};
 
     Q_ASSERT(!readParameters.isNull());
     if (readParameters.isNull())
@@ -1635,6 +1692,8 @@ static DA_ReadResult readZclAttribute(const Resource *r, const ResourceItem *ite
     result.isEnqueued = zclResult.isEnqueued;
     result.apsReqId = zclResult.apsReqId;
     result.sequenceNumber = zclResult.sequenceNumber;
+    result.clusterId = param.clusterId;
+    result.ignoreResponseSequenceNumber = param.ignoreResponseSeq == 1;
 
     return result;
 }
@@ -1751,12 +1810,12 @@ bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsC
             if (engine.evaluate(expr) == JsEvalResult::Ok)
             {
                 const auto res = engine.result();
-                DBG_Printf(DBG_INFO, "expression: %s --> %s\n", qPrintable(expr), qPrintable(res.toString()));
+                DBG_Printf(DBG_DDF, "%s/%s expression: %s --> %s\n", r->item(RAttrUniqueId)->toCString(), item->descriptor().suffix, qPrintable(expr), qPrintable(res.toString()));
                 attribute.setValue(res);
             }
             else
             {
-                DBG_Printf(DBG_INFO, "failed to evaluate expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
+                DBG_Printf(DBG_DDF, "failed to evaluate expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
                 return result;
             }
         }
@@ -1903,4 +1962,130 @@ WriteFunction_t DA_GetWriteFunction(const QVariant &params)
     }
 
     return result;
+}
+
+/* APS core queue tracking
+
+   Track the running APS queue to aid scheduling of new APS requests
+   in order to not overhelm the queue. The aim is to execute low priority tasks,
+   like polling and binding maintenance, only when the queue is not too busy.
+   This leaves room to send high priority commands e.g. to control a light
+   without waiting for low priority APS request to be finished.
+ */
+#define APS_BUSY_TABLE_SIZE 32
+
+struct DA_ReqBusy
+{
+    uint64_t dstExtAddr;
+    int64_t tref;
+    uint16_t clusterId;
+    uint8_t dstEndpoint;
+    uint8_t apsRequestId;
+};
+
+static unsigned _DA_ApsUnconfirmedCount = 0;
+static DA_ReqBusy _DA_BusyTable[APS_BUSY_TABLE_SIZE];
+
+/*! Returns number of APS requests busy in the core APS queue. */
+unsigned DA_ApsUnconfirmedRequests()
+{
+    return _DA_ApsUnconfirmedCount;
+}
+
+/*! Returns number of APS requests, for \p extAddr, busy in the core APS queue. */
+unsigned DA_ApsUnconfirmedRequestsForExtAddress(uint64_t extAddr)
+{
+    unsigned result = 0;
+
+    if (_DA_ApsUnconfirmedCount != 0)
+    {
+        for (unsigned i = 0; i < APS_BUSY_TABLE_SIZE; i++)
+        {
+            DA_ReqBusy *e = &_DA_BusyTable[i];
+
+            if (e->tref != 0 && e->dstExtAddr == extAddr)
+            {
+                result++;
+            }
+
+            if (result == _DA_ApsUnconfirmedCount)
+            {
+                break; // nothing more to count
+            }
+        }
+    }
+
+    return result;
+}
+
+/*! Call back when an APS request is put in the core APS queue.
+    Record it here to track it until it's confirmed aka done.
+ */
+void DA_ApsRequestEnqueued(const deCONZ::ApsDataRequest &req)
+{
+    if (!req.dstAddress().hasExt())
+    {
+        DBG_Assert(!req.dstAddress().isNwkUnicast());
+        return;
+    }
+
+    const int64_t now = deCONZ::steadyTimeRef().ref / 1000;
+
+    for (unsigned i = 0; i < APS_BUSY_TABLE_SIZE; i++)
+    {
+        DA_ReqBusy *e = &_DA_BusyTable[i];
+
+        if (e->tref != 0 && ((now - e->tref) > 60))
+        {
+            // confirm timeout, should normally not happen
+            DBG_Assert(_DA_ApsUnconfirmedCount > 0);
+            if (_DA_ApsUnconfirmedCount > 0)
+            {
+                _DA_ApsUnconfirmedCount--;
+            }
+            memset(e, 0, sizeof(*e));
+        }
+
+        if (e->tref == 0)
+        {
+            e->dstExtAddr = req.dstAddress().ext();
+            e->dstEndpoint = req.dstEndpoint();
+            e->apsRequestId = req.id();
+            e->clusterId = req.clusterId();
+            e->tref = now;
+            DBG_Assert(_DA_ApsUnconfirmedCount < APS_BUSY_TABLE_SIZE);
+            if (_DA_ApsUnconfirmedCount < APS_BUSY_TABLE_SIZE)
+            {
+                _DA_ApsUnconfirmedCount++;
+            }
+            return;
+        }
+    }
+}
+
+/*! Callback when a APS request is confirmed, aka when it has been sent by the
+    firmware or an error occured. The actual status isn't considered here, we
+    only care that the APS request is 'done'.
+ */
+void DA_ApsRequestConfirmed(const deCONZ::ApsDataConfirm &conf)
+{
+    if (!conf.dstAddress().hasExt())
+    {
+        return;
+    }
+
+    if (_DA_ApsUnconfirmedCount != 0)
+    {
+        for (unsigned i = 0; i < APS_BUSY_TABLE_SIZE; i++)
+        {
+            DA_ReqBusy *e = &_DA_BusyTable[i];
+            if (e->apsRequestId != conf.id()) continue;
+            if (e->dstExtAddr != conf.dstAddress().ext()) continue;
+            if (e->dstEndpoint != conf.dstEndpoint()) continue;
+
+            memset(e, 0, sizeof(*e));
+            _DA_ApsUnconfirmedCount--;
+            return;
+        }
+    }
 }

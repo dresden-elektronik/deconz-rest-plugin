@@ -4,5 +4,7 @@
 	"datatype": "UInt16",
 	"access": "RW",
 	"public": true,
-	"description": "Pulse Configuration represents the number of pulses the meter outputs per unit."
+	"description": "Pulse Configuration represents the number of pulses the meter outputs per unit.",
+  "default": 0,
+  "refresh.interval": 86400
 }

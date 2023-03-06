@@ -15,13 +15,13 @@
 #include <QElapsedTimer>
 #include <unistd.h>
 #include "database.h"
-#include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "deconz/dbg_trace.h"
 #include "device_descriptions.h"
 #include "gateway.h"
 #include "json.h"
 #include "product_match.h"
+#include "utils/ArduinoJson.h"
 #include "utils/utils.h"
 
 constexpr size_t MAX_SQL_LEN = 2048;
@@ -33,6 +33,8 @@ static const char *pragmaFreeListCount = "PRAGMA freelist_count";
 
 static sqlite3 *db = nullptr; // TODO should be member of Database class
 static char sqlBuf[MAX_SQL_LEN];
+
+static StaticJsonDocument<1024 * 1024 * 2> dbJson; /* 2 mega bytes*/
 
 struct DB_Callback {
   DeRestPluginPrivate *d = nullptr;
@@ -278,16 +280,14 @@ void DeRestPluginPrivate::cleanUpDb()
 
     /* Create SQL statement */
     const char *sql[] = {
-        // cleanup invalid sensors created in version 2.05.30
-        "DELETE from sensors "
-        "   WHERE modelid like 'RWL02%' "
-        "   AND type = 'ZHAPresence'",
-
         // cleanup invalid sensor resource for Centralite motion sensor
         "DELETE FROM sensors WHERE modelid = 'Motion Sensor-A' AND uniqueid LIKE '%02-0406'",
 
         // cleanup invalid ZHAAlarm resource for Xiaomi motion sensor
         "DELETE from sensors WHERE type = 'ZHAAlarm' AND modelid LIKE 'lumi.sensor_motion%'",
+
+        // cleanup invalid Tuya smart knob light resource (only has ZHASwitch)
+        "DELETE from nodes WHERE manufacturername = '_TZ3000_4fjiwweb'",
 
         // delete duplicates in device_descriptors
         //"DELETE FROM device_descriptors WHERE rowid NOT IN"
@@ -725,7 +725,6 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion9()
     return setDbUserVersion(9);
 }
 
-#if DECONZ_LIB_VERSION >= 0x010E00
 /*! Stores a source route.
     Any existing source route with the same uuid will be replaced automatically.
  */
@@ -885,7 +884,6 @@ void DeRestPluginPrivate::restoreSourceRoutes()
 
     closeDb();
 }
-#endif // DECONZ_LIB_VERSION >= 0x010E00
 
 /*! Puts a new top level device entry in the db (mac address) or refreshes nwk address.
 */
@@ -2161,7 +2159,7 @@ static int sqliteLoadAllResourcelinksCallback(void *user, int ncols, char **colv
         {
             QString val = QString::fromUtf8(colval[i]);
 
-            DBG_Printf(DBG_INFO_L2, "Sqlite schedule: %s = %s\n", colname[i], qPrintable(val));
+            DBG_Printf(DBG_INFO_L2, "Sqlite resourcelink: %s = %s\n", colname[i], qPrintable(val));
 
 
             if (strcmp(colname[i], "id") == 0)
@@ -3412,13 +3410,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (sensor.type().endsWith(QLatin1String("Switch")))
         {
-            if (sensor.modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
-            {
-                // not supported yet, created by older versions
-                // ignore for now
-                return 0;
-            }
-
             if (sensor.fingerPrint().hasInCluster(COMMISSIONING_CLUSTER_ID))
             {
                 clusterId = clusterId ? clusterId : COMMISSIONING_CLUSTER_ID;
@@ -3427,8 +3418,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.fingerPrint().hasOutCluster(ONOFF_CLUSTER_ID))
             {
                 clusterId = clusterId ? clusterId : ONOFF_CLUSTER_ID;
-                if (sensor.modelId().startsWith(QLatin1String("RDM00")) ||
-                    sensor.modelId().startsWith(QLatin1String("Pocket remote")) ||
+                if (sensor.modelId().startsWith(QLatin1String("Pocket remote")) ||
                     sensor.modelId().startsWith(QLatin1String("SYMFONISK")))
                 {
                     // blacklisted
@@ -3466,28 +3456,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeInt32, RStateButtonEvent);
             item->setValue(0);
 
-            if (sensor.modelId().startsWith(QLatin1String("lumi.sensor_cube")) ||
-                sensor.modelId() == QLatin1String("lumi.remote.cagl01"))
-            {
-                sensor.addItem(DataTypeInt32, RStateGesture);
-            }
-            else if (sensor.modelId().startsWith(QLatin1String("RWL02")) ||
-                     sensor.modelId().startsWith(QLatin1String("ROM00")) ||
-                     sensor.modelId().startsWith(QLatin1String("RDM00")) ||
-                     sensor.modelId().startsWith(QLatin1String("Z3-1BRL")))
-            {
-                sensor.addItem(DataTypeUInt16, RStateEventDuration);
-            }
-            else if (sensor.modelId().startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")))
+            if (sensor.modelId().startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")))
             {
                 sensor.addItem(DataTypeUInt16, RStateX);
                 sensor.addItem(DataTypeUInt16, RStateY);
                 sensor.addItem(DataTypeInt16, RStateAngle);
-            }
-            else if (sensor.modelId() == QLatin1String("TERNCY-SD01"))
-            {
-                sensor.addItem(DataTypeInt16, RStateAngle);
-                sensor.addItem(DataTypeUInt16, RStateEventDuration);
             }
         }
         else if (sensor.type().endsWith(QLatin1String("AncillaryControl")))
@@ -3592,7 +3565,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : OCCUPANCY_SENSING_CLUSTER_ID;
                 if (sensor.modelId().startsWith(QLatin1String("FLS")) ||
-                    sensor.modelId().startsWith(QLatin1String("SML00")) ||
                     sensor.modelId().startsWith(QLatin1String("MOSZB-1")))
                 {
                     // TODO write and recover min/max to db
@@ -3622,16 +3594,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             item = sensor.addItem(DataTypeBool, RStatePresence);
             item->setValue(false);
-            if (sensor.modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
-            {
-                item = sensor.addItem(DataTypeUInt16, RConfigDelay);
-                item->setValue(0);
-                item = sensor.addItem(DataTypeUInt8, RConfigSensitivity);
-                item->setValue(0);
-                item = sensor.addItem(DataTypeUInt8, RConfigSensitivityMax);
-                item->setValue(R_SENSITIVITY_MAX_DEFAULT);
-            }
-            else if (sensor.modelId().startsWith(QLatin1String("MOSZB-1")) && clusterId == OCCUPANCY_SENSING_CLUSTER_ID) // Develco/frient motion sensor
+            if (sensor.modelId().startsWith(QLatin1String("MOSZB-1")) && clusterId == OCCUPANCY_SENSING_CLUSTER_ID) // Develco/frient motion sensor
             {
                 sensor.addItem(DataTypeUInt16, RConfigDelay)->setValue(0);
                 sensor.addItem(DataTypeUInt16, RConfigPending)->setValue(0);
@@ -3828,7 +3791,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                          sensor.modelId() == QLatin1String("lumi.switch.b1nacn02") ||
                          sensor.modelId() == QLatin1String("lumi.switch.b2nacn02") ||
                          sensor.modelId() == QLatin1String("lumi.switch.b1naus01") ||
-                         sensor.modelId() == QLatin1String("lumi.plug.maeu01") ||
                          sensor.modelId() == QLatin1String("lumi.switch.n0agl1") ||
                          sensor.manufacturer() == QLatin1String("Legrand"))
                 {
@@ -4113,82 +4075,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             sensor.addItem(DataTypeTime, RStateLastSet);
         }
 
-        if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
-        {
-            clusterId = VENDOR_CLUSTER_ID;
-            endpoint = (sensor.modelId() == QLatin1String("RWL022")) ? 1 : 2;
-
-            if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
-            {
-                sensor.fingerPrint().inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
-                sensor.setNeedSaveDatabase(true);
-            }
-
-            if (!sensor.fingerPrint().hasInCluster(VENDOR_CLUSTER_ID)) // for realtime button feedback
-            {
-                sensor.fingerPrint().inClusters.push_back(VENDOR_CLUSTER_ID);
-                sensor.setNeedSaveDatabase(true);
-            }
-        }
-        else if (sensor.modelId().startsWith(QLatin1String("ROM00"))) // Hue smart button
-        {
-            clusterId = VENDOR_CLUSTER_ID;
-            endpoint = 1;
-
-            if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
-            {
-                sensor.fingerPrint().inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
-                sensor.setNeedSaveDatabase(true);
-            }
-
-            if (!sensor.fingerPrint().hasInCluster(VENDOR_CLUSTER_ID)) // for realtime button feedback
-            {
-                sensor.fingerPrint().inClusters.push_back(VENDOR_CLUSTER_ID);
-                sensor.setNeedSaveDatabase(true);
-            }
-        }
-        else if (sensor.modelId().startsWith(QLatin1String("RDM00"))) // Hue wall switch module
-        {
-            clusterId = VENDOR_CLUSTER_ID;
-            endpoint = 1;
-
-            if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
-            {
-                sensor.fingerPrint().inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
-                sensor.setNeedSaveDatabase(true);
-            }
-
-            if (!sensor.fingerPrint().hasInCluster(VENDOR_CLUSTER_ID)) // for realtime button feedback
-            {
-                sensor.fingerPrint().inClusters.push_back(VENDOR_CLUSTER_ID);
-                sensor.setNeedSaveDatabase(true);
-            }
-            item = sensor.addItem(DataTypeString, RConfigDeviceMode);
-            item = sensor.addItem(DataTypeUInt16, RConfigPending);
-            item->setValue(0);
-        }
-        else if (sensor.modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
-        {
-            if (!sensor.fingerPrint().hasInCluster(BASIC_CLUSTER_ID))
-            {
-                sensor.fingerPrint().inClusters.push_back(BASIC_CLUSTER_ID);
-                sensor.setNeedSaveDatabase(true);
-            }
-            if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
-            {
-                sensor.fingerPrint().inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
-                sensor.setNeedSaveDatabase(true);
-            }
-            item = sensor.addItem(DataTypeString, RConfigAlert);
-            item->setValue(R_ALERT_DEFAULT);
-            item = sensor.addItem(DataTypeBool, RConfigLedIndication);
-            item->setValue(false);
-            item = sensor.addItem(DataTypeUInt16, RConfigPending);
-            item->setValue(0);
-            item = sensor.addItem(DataTypeBool, RConfigUsertest);
-            item->setValue(false);
-        }
-        else if (sensor.modelId().startsWith(QLatin1String("TRADFRI")) ||
+        if (sensor.modelId().startsWith(QLatin1String("TRADFRI")) ||
                  sensor.modelId().startsWith(QLatin1String("SYMFONISK")))
         {
             sensor.setManufacturer(QLatin1String("IKEA of Sweden"));
@@ -4205,10 +4092,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         // Skip legacy Xiaomi items
         else if (sensor.modelId() == QLatin1String("lumi.sensor_magnet.agl02") || sensor.modelId() == QLatin1String("lumi.flood.agl02") ||
                  sensor.modelId() == QLatin1String("lumi.motion.agl04") || sensor.modelId() == QLatin1String("lumi.switch.b1nacn02") ||
-                 sensor.modelId() == QLatin1String("lumi.switch.b2nacn02") || sensor.modelId() == QLatin1String("lumi.switch.n1aeu1") ||
-                 sensor.modelId() == QLatin1String("lumi.switch.l2aeu1") || sensor.modelId() == QLatin1String("lumi.switch.b1naus01") ||
+                 sensor.modelId() == QLatin1String("lumi.switch.b2nacn02") || sensor.modelId() == QLatin1String("lumi.switch.b1naus01") ||
                  sensor.modelId() == QLatin1String("lumi.switch.n0agl1") || sensor.modelId() == QLatin1String("lumi.switch.b1lacn02") ||
-                 sensor.modelId() == QLatin1String("lumi.switch.l1aeu1") || sensor.modelId() == QLatin1String("lumi.switch.b2lacn02"))
+                 sensor.modelId() == QLatin1String("lumi.switch.b2lacn02"))
         {
         }
         else if (sensor.modelId().startsWith(QLatin1String("lumi.")))
@@ -4275,10 +4161,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 R_GetProductId(&sensor) == QLatin1String("NAS-AB02B0 Siren"))
             {
                 // no support for some IAS Zone flags
-            }
-            else if (sensor.modelId() == QLatin1String("Keyfob-ZB3.0"))
-            {
-                sensor.addItem(DataTypeBool, RStateLowBattery)->setValue(false);
             }
             else
             {
@@ -5229,6 +5111,15 @@ void DeRestPluginPrivate::saveDb()
                 continue;
             }
 
+            if (i->parentResource())
+            {
+                Device *device = static_cast<Device*>(i->parentResource());
+                if (device && device->managed())
+                {
+                    DB_StoreSubDeviceItems(&*i);
+                }
+            }
+
             std::vector<GroupInfo>::const_iterator gi = i->groups().begin();
             std::vector<GroupInfo>::const_iterator gend = i->groups().end();
 
@@ -5659,6 +5550,15 @@ void DeRestPluginPrivate::saveDb()
                 if (ep == 0xFF || ep == 0)
                 {
                     continue;
+                }
+            }
+
+            if (i->parentResource())
+            {
+                Device *device = static_cast<Device*>(i->parentResource());
+                if (device && device->managed())
+                {
+                    DB_StoreSubDeviceItems(&*i);
                 }
             }
 
@@ -6583,18 +6483,41 @@ bool DB_StoreSubDevice(const QString &parentUniqueId, const QString &uniqueId)
     return true;
 }
 
-/*! Sqlite callback to check if an resource item entry already exists.
- */
-static int sqliteSelectDeviceItemCallback(void *user, int, char **, char **)
+struct SelectDeviceItemData
 {
-    auto *result = static_cast<int*>(user);
+    unsigned valueLength;
+    char value[128];
+    uint64_t timestamp;
+    bool isValid;
+};
 
-    if (result)
+/*! Sqlite callback to check if an resource item entry already exists.
+    [0] item suffix
+    [1] value
+    [2] timestamp
+ */
+static int sqliteSelectDeviceItemCallback(void *user, int ncols, char **colval , char **colname)
+{
+    assert(user);
+    assert(ncols == 3);
+
+    Q_UNUSED(colname)
+
+    SelectDeviceItemData *result = static_cast<SelectDeviceItemData*>(user);
+
+    result->valueLength = U_StringLength(colval[1]);
+    result->isValid = false;
+    if (result->valueLength < sizeof(result->value))
     {
-        *result += 1;
+        result->timestamp = U_ParseUint64(colval[2], -1, 10);
+        memcpy(&result->value[0], colval[1], result->valueLength);
+        result->value[result->valueLength] = '\0';
+        result->isValid = true;
         return 0;
     }
 
+    result->valueLength = 0;
+    result->isValid = false;
     return 1;
 }
 
@@ -6618,6 +6541,9 @@ bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item)
     }
 
     int ret = 0;
+    uint64_t dt = 0; // delta in seconds from timestamp in database
+    SelectDeviceItemData dbResult;
+    dbResult.isValid = false;
     const uint64_t timestamp = item->lastChanged().toMSecsSinceEpoch() / 1000;
     const auto value = dbEscapeString(item->toVariant().toString()).toUtf8();
 
@@ -6626,28 +6552,15 @@ bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item)
     ret = snprintf(sqlBuf, sizeof(sqlBuf),
                    "SELECT item,value,timestamp FROM resource_items"
                    " WHERE sub_device_id = (SELECT id FROM sub_devices WHERE uniqueid = '%s')"
-                   " AND item = '%s' AND value = '%s' AND timestamp = %" PRIu64,
+                   " AND item = '%s'",
                    uniqueId->toCString(),
-                   item->descriptor().suffix,
-                   value.constData(), timestamp);
-
+                   item->descriptor().suffix);
 
     assert(size_t(ret) < sizeof(sqlBuf));
     if (size_t(ret) < sizeof(sqlBuf))
     {
-        if (item->descriptor().type == DataTypeString)
-        {
-            char *c = strstr(sqlBuf, "AND timestamp"); // don't check timestamp for strings
-            if (c)
-            {
-                c[-1] = '\0';
-            }
-        }
-
         char *errmsg = nullptr;
-
-        int nrows = 0;
-        int rc = sqlite3_exec(db, sqlBuf, sqliteSelectDeviceItemCallback, &nrows, &errmsg);
+        int rc = sqlite3_exec(db, sqlBuf, sqliteSelectDeviceItemCallback, &dbResult, &errmsg);
 
         if (rc != SQLITE_OK)
         {
@@ -6658,9 +6571,44 @@ bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item)
             }
         }
 
-        if (nrows > 0)
+        if (dbResult.isValid)
         {
-            return true;
+            bool isEqual = false;
+            if (dbResult.valueLength == (unsigned)value.size())
+            {
+                if (memcmp(value.constData(), &dbResult.value[0], dbResult.valueLength) == 0)
+                {
+                    isEqual = true;
+                }
+            }
+
+            if (dbResult.timestamp < timestamp)
+            {
+                dt = timestamp - dbResult.timestamp;
+            }
+
+            if (isEqual)
+            {
+                if (item->descriptor().type == DataTypeString)
+                {
+                    return true; // don't check timestamp for strings
+                }
+
+                if (item->descriptor().suffix[0] == 's' && dt < 600) // state/*
+                {
+                    return true; // only update timestamp every 10 minutes
+                }
+            }
+            else
+            {
+                // only update 'value' and 'timestamp' every 10 minutes if changed
+                // TODO(mpi): extend the item descriptor to specify storage intervals
+                // we don't need to write the DB for rapid changing values
+                if (item->descriptor().suffix[0] == 's' && dt < 600) // state/*
+                {
+                    return true;
+                }
+            }
         }
     }
 
@@ -6674,9 +6622,12 @@ bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item)
                        value.constData(),
                        timestamp, uniqueId->toCString());
 
-    assert(size_t(ret) < sizeof(sqlBuf));
+
+    DBG_Assert(size_t(ret) < sizeof(sqlBuf));
     if (size_t(ret) < sizeof(sqlBuf))
     {
+        DBG_Printf(DBG_INFO_L2, "%s\n", &sqlBuf[0]);
+
         char *errmsg = nullptr;
 
         int rc = sqlite3_exec(db, sqlBuf, nullptr, nullptr, &errmsg);
@@ -6854,9 +6805,53 @@ static int DB_LoadLegacyValueCallback(void *user, int ncols, char **colval , cha
     Q_ASSERT(result);
     Q_ASSERT(ncols == 1);
 
-    result->value.setString(colval[0]);
+    if (colval[0][0] == '{') // state and config json objects
+    {
+        BufString<32> key; // config/offset -> offset
+        for (size_t i = 0; i < result->column.size(); i++)
+        {
+            if (result->column.c_str()[i] == '/')
+            {
+                key.setString(&result->column.c_str()[i + 1]);
+                break;
+            }
+        }
 
-    return 0;
+        if (!key.empty() && DeserializationError::Ok == deserializeJson(dbJson, static_cast<const char*>(colval[0])))
+        {
+            if (dbJson.containsKey(key.c_str()))
+            {
+                auto var = dbJson[key.c_str()];
+                if (var.is<int>())
+                {
+                    result->value.setString(std::to_string(var.as<int>()).c_str());
+                    return 0;
+                }
+                else if (var.is<double>())
+                {
+                    result->value.setString(std::to_string(var.as<double>()).c_str());
+                    return 0;
+                }
+                else if (var.is<const char*>())
+                {
+                    result->value.setString(var.as<const char*>());
+                    return 0;
+                }
+                else if (var.is<bool>())
+                {
+                    result->value.setString((var.as<bool>() ? "true" : "false"));
+                    return 0;
+                }
+            }
+        }
+    }
+    else if (colval[0][0])
+    {
+        result->value.setString(colval[0]);
+        return 0;
+    }
+
+    return 1;
 };
 
 bool DB_LoadLegacySensorValue(DB_LegacyItem *litem)
@@ -6871,8 +6866,23 @@ bool DB_LoadLegacySensorValue(DB_LegacyItem *litem)
 
     litem->value.clear();
 
+    BufString<32> column; // config/* -> config, state/* -> state
+    for (size_t i = 0; i < litem->column.size(); i++)
+    {
+        if (litem->column.c_str()[i] == '/')
+        {
+            column.setString(litem->column.c_str(), i);
+            break;
+        }
+    }
+
+    if (column.empty())
+    {
+        column = litem->column;
+    }
+
     int ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT %s FROM sensors WHERE uniqueid = '%s' AND deletedState = 'normal'",
-                       litem->column.c_str(), litem->uniqueId.c_str());
+                       column.c_str(), litem->uniqueId.c_str());
 
     assert(size_t(ret) < sizeof(sqlBuf));
     if (size_t(ret) < sizeof(sqlBuf))

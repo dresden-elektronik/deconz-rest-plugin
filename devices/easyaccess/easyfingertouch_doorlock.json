@@ -1,0 +1,152 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "Onesti Products AS",
+  "modelid": "EasyFingerTouch",
+  "vendor": "EasyAccess",
+  "product": "EasyFingerTouch",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "ZHADoorLock",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x0b",
+        "0x0101"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "read": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 11,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 11,
+            "eval": "Item.val = Attr.val/2",
+            "fn": "zcl"
+          },
+          "default": 0
+        },
+        {
+          "name": "config/lock",
+          "read": {
+            "at": "0x0000",
+            "cl": "0x0101",
+            "ep": 11,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0101",
+            "ep": 11,
+            "eval": "Item.val = Attr.val ==1",
+            "fn": "zcl"
+          }
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lockstate",
+          "read": {
+            "at": "0x0000",
+            "cl": "0x0101",
+            "ep": 11,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0101",
+            "ep": 11,
+            "eval": "if (Attr.val == 0) { Item.val = 'not fully locked' } else if (Attr.val == 1) { Item.val = 'locked' } else if (Attr.val == 2) { Item.val = 'unlocked' } else { Item.val = 'undefined' }",
+            "fn": "zcl"
+          }
+        },
+        {
+          "name": "state/open",
+          "read": {
+            "at": "0x0003",
+            "cl": "0x0101",
+            "ep": 11,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0003",
+            "cl": "0x0101",
+            "ep": 11,
+            "eval": "Item.val = Attr.val !=1",
+            "fn": "zcl"
+          }
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 11,
+      "cl": "0x0101",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x30",
+          "min": 1,
+          "max": 300
+        },
+        {
+          "at": "0x0003",
+          "dt": "0x30",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 11,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 300,
+          "max": 2700,
+          "change": "0x00000001"
+        }
+      ]
+    }
+  ]
+}

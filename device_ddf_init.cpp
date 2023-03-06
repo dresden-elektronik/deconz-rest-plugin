@@ -136,7 +136,31 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
             item->setTimeStamps(QDateTime::fromMSecsSinceEpoch(dbItem->timestampMs));
         }
     }
-    else if (ddfItem.defaultValue.isValid())
+    else if (!ddfItem.isStatic && dbItem == dbItems.cend() && !item->lastSet().isValid())
+    {
+        // try load from legacy sensors/nodes db tables
+        auto dbLegacyItem = std::make_unique<DB_LegacyItem>();
+        dbLegacyItem->uniqueId = uniqueId;
+        dbLegacyItem->column.setString(item->descriptor().suffix);
+
+        if (rsub->prefix() == RSensors)
+        {
+            DB_LoadLegacySensorValue(dbLegacyItem.get());
+        }
+        // TODO lights needs some more investigation, might not be needed..
+//        else if (rsub->prefix() == RLights)
+//        {
+//            DB_LoadLegacyLightValue(dbLegacyItem.get());
+//        }
+
+        if (!dbLegacyItem->value.empty())
+        {
+            item->setValue(QVariant(QString(dbLegacyItem->value.c_str())));
+            item->setTimeStamps(item->lastSet().addSecs(-120)); // TODO extract from 'lastupdated'?
+        }
+    }
+
+    if (ddfItem.defaultValue.isValid())
     {
         if (ddfItem.isStatic || !item->lastSet().isValid())
         {
@@ -223,19 +247,31 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
             if (!ddfItem.defaultValue.isNull() && !ddfItem.writeParameters.isNull())
             {
                 QString writeFunction;
+                const auto writeParam = ddfItem.writeParameters.toMap();
+
+                if (writeParam.contains(QLatin1String("fn")))
                 {
-                    const auto writeParam = ddfItem.writeParameters.toMap();
-                    if (writeParam.contains(QLatin1String("fn")))
-                    {
-                        writeFunction = writeParam.value(QLatin1String("fn")).toString();
-                    }
+                    writeFunction = writeParam.value(QLatin1String("fn")).toString();
                 }
 
                 if (writeFunction.isEmpty() || writeFunction == QLatin1String("zcl"))
                 {
+                    bool ok;
+
                     StateChange stateChange(StateChange::StateWaitSync, SC_WriteZclAttribute, sub.uniqueId.at(1).toUInt());
                     stateChange.addTargetValue(item->descriptor().suffix, item->toVariant());
                     stateChange.setChangeTimeoutMs(1000 * 60 * 60);
+
+                    if (writeParam.contains(QLatin1String("state.timeout")))
+                    {
+                        int stateTimeout = writeParam.value(QLatin1String("state.timeout")).toInt(&ok);
+
+                        if (ok && stateTimeout > 0)
+                        {
+                            stateChange.setStateTimeoutMs(1000 * stateTimeout);
+                        }
+                    }
+
                     rsub->addStateChange(stateChange);
                 }
             }
@@ -276,7 +312,7 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
 
     if (ddf.sleeper >= 0)
     {
-        device->item(RAttrSleeper)->setValue(ddf.sleeper == 1);
+        device->item(RCapSleeper)->setValue(ddf.sleeper == 1);
     }
 
     device->clearBindings();

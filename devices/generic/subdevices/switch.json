@@ -8,7 +8,7 @@
     "items": [
         "config/on",
         "config/reachable",
-        "state/buttonevent",
-        "state/lastupdated"
+        "state/lastupdated",
+        "state/buttonevent"
     ]
 }

@@ -35,9 +35,8 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0006", "eval": "Item.val = Attr.val"},
-          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0006"},
-          "refresh.interval": 84000
+          "parse": {"at": "0x00f7","ep": 1,"fn": "xiaomi:special","idx": "0x0d","script": "xiaomi_swversion.js"},
+          "read": {"fn": "none"}
         },
         {
           "name": "attr/type"
@@ -120,7 +119,7 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0006", "eval": "Item.val = Attr.val"},
+          "parse": {"at": "0x00f7","ep": 1,"fn": "xiaomi:special","idx": "0x0d","script": "xiaomi_swversion.js"},
           "read": {"fn": "none"}
         },
         {
@@ -147,8 +146,7 @@
         },
         {
           "name": "state/charging",
-          "parse": {"fn": "xiaomi:special", "ep": 1, "at": "0x00f7", "idx": "0x69", "eval": "Item.val = Attr.val == 1;"},
-          "public": false
+          "parse": {"fn": "xiaomi:special", "ep": 1, "at": "0x00f7", "idx": "0x69", "eval": "Item.val = Attr.val == 1;"}
         },
         {
           "name": "state/lastupdated"

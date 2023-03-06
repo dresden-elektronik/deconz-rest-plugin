@@ -1,0 +1,4 @@
+#ifndef DEVICE_JS_DUKTAPE_H
+#define DEVICE_JS_DUKTAPE_H
+
+#endif // DEVICE_JS_DUKTAPE_H
