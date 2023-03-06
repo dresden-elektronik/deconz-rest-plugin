@@ -1281,7 +1281,9 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiAqaraS1ScenePa
                         } else if (dataType == deCONZ::ZclBoolean) {
                             item->setValue(boolParam == 0x01);
                         }
+                DBG_Printf(DBG_INFO, "######## 0x%016llX Xiaomi Aqara attribute 0x%2x: %s\n", ind.srcAddress().ext(), a, stringParam);
                         enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
+                DBG_Printf(DBG_INFO, "######### 0x%016llX Xiaomi Aqara attribute 0x%2x: %s\n", ind.srcAddress().ext(), a, stringParam);
                     }
                 }
 
