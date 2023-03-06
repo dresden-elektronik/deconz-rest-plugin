@@ -235,7 +235,7 @@ bool LightNode::isColorLoopActive() const
 
 bool LightNode::supportsColorLoop() const
 {
-    const auto *colorCapabilities = item(RConfigColorCapabilities);
+    const auto *colorCapabilities = item(RCapColorCapabilities);
 
     if (colorCapabilities)
     {
@@ -390,9 +390,9 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                     case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
                     case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: // fall through
                     {
-                        addItem(DataTypeUInt16, RConfigColorCapabilities);
-                        addItem(DataTypeUInt16, RConfigCtMin);
-                        addItem(DataTypeUInt16, RConfigCtMax)->setValue(0xFEFF);
+                        addItem(DataTypeUInt16, RCapColorCapabilities);
+                        addItem(DataTypeUInt16, RCapColorCtMin);
+                        addItem(DataTypeUInt16, RCapColorCtMax)->setValue(0xFEFF);
                         addItem(DataTypeUInt16, RStateCt);
 
                         if (deviceId == DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT ||
@@ -411,7 +411,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                     {
                     case DEV_ID_ZLL_COLOR_LIGHT:
                         {
-                            addItem(DataTypeUInt16, RConfigColorCapabilities);
+                            addItem(DataTypeUInt16, RCapColorCapabilities);
                         }
                         // fall through
                     case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
@@ -422,7 +422,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                             addItem(DataTypeUInt16, RStateY);
                             if (manufacturer() == QLatin1String("LIDL Livarno Lux"))
                             {
-                                removeItem(RConfigColorCapabilities);
+                                removeItem(RCapColorCapabilities);
                             }
                             else
                             {
@@ -569,12 +569,14 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                                                        ltype = QLatin1String("Warning device"); break;
             case DEV_ID_HA_WINDOW_COVERING_CONTROLLER: ltype = QLatin1String("Window covering controller"); break;
             case DEV_ID_HA_WINDOW_COVERING_DEVICE:     ltype = QLatin1String("Window covering device"); break;
-            case DEV_ID_DOOR_LOCK:                     ltype = QLatin1String("Door Lock"); break;
-            case DEV_ID_DOOR_LOCK_UNIT:                ltype = QLatin1String("Door Lock Unit"); break;
-
+            case DEV_ID_DOOR_LOCK:                     addItem(DataTypeBool, RCapGroupsNotSupported);
+                                                       ltype = QLatin1String("Door Lock"); break;
+            case DEV_ID_DOOR_LOCK_UNIT:                addItem(DataTypeBool, RCapGroupsNotSupported);
+                                                       ltype = QLatin1String("Door Lock Unit"); break;
             case DEV_ID_FAN:                           ltype = QLatin1String("Fan"); break;
             case DEV_ID_CONFIGURATION_TOOL:            removeItem(RStateOn);
                                                        removeItem(RStateAlert);
+                                                       addItem(DataTypeBool, RCapGroupsNotSupported);
                                                        ltype = QLatin1String("Configuration tool"); break;
             default:
                 break;
@@ -605,6 +607,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             {
             case DEV_ID_DIN_XBEE:                    removeItem(RStateOn);
                                                      removeItem(RStateAlert);
+                                                     addItem(DataTypeBool, RCapGroupsNotSupported);
                                                      ltype = QLatin1String("Range extender"); break;
             default:
                 break;
@@ -733,6 +736,11 @@ void LightNode::jsonToResourceItems(const QString &json)
 
         if (map.contains(QLatin1String(key)))
         {
+            if (item->descriptor().suffix == RAttrType && map[key] == QLatin1String("Unknown"))
+            {
+                // type is set in setHaEndpoint()
+                continue;
+            }
             item->setValue(map[key]);
             item->setTimeStamps(dt);
         }

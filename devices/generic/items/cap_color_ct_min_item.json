@@ -1,0 +1,17 @@
+{
+    "schema": "resourceitem1.schema.json",
+    "id": "cap/color/ct/min",
+    "datatype": "UInt16",
+    "access": "R",
+    "public": true,
+    "description": "Minimum supported color temperature.",
+    "default": 0,
+    "parse": {
+        "fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x400b",
+        "eval": "Item.val = Attr.val"
+    },
+    "read": {
+        "fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x400b"
+    },
+    "refresh.interval": 86400
+}

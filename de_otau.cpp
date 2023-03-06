@@ -46,13 +46,13 @@ void DeRestPluginPrivate::initOtau()
     otauIdleTicks = 0;
     otauBusyTicks = 0;
     otauIdleTotalCounter = 0;
-    otauUnbindIdleTotalCounter = 0;
 
     otauTimer = new QTimer(this);
     otauTimer->setSingleShot(false);
     connect(otauTimer, SIGNAL(timeout()),
             this, SLOT(otauTimerFired()));
 
+    otauTimer->start(1000);
 }
 
 /*! Handler for incoming otau packets.
@@ -159,6 +159,11 @@ bool DeRestPluginPrivate::isOtauBusy()
     return false;
 }
 
+bool DEV_OtauBusy()
+{
+    return plugin->isOtauBusy();
+}
+
 /*! Returns true if otau is activated.
  */
 bool DeRestPluginPrivate::isOtauActive()
@@ -214,6 +219,4 @@ void DeRestPluginPrivate::otauTimerFired()
             updateEtag(gwConfigEtag);
         }
     }
-
-    otauIdleTicks = 0;
 }

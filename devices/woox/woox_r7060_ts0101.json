@@ -5,8 +5,7 @@
   "vendor": "WOOX",
   "product": "TS0101",
   "sleeper": false,
-  "status": "Bronze",
-  "path": "/devices/ts0101.json",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_SMART_PLUG",

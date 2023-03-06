@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/rotaryevent",
+	"datatype": "UInt8",
+	"access": "R",
+	"public": true,
+	"description": "The last received rotary event."
+}

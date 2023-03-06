@@ -51,7 +51,18 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "awake": true,
+          "parse": {
+            "at": "0x00f7",
+            "ep": 1,
+            "fn": "xiaomi:special",
+            "idx": "0x08",
+            "script": "xiaomi_swversion.js"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "attr/type"
@@ -93,12 +104,14 @@
           },
           "write": {
             "at": "0x0125",
+            "change.timeout": 3600,
             "cl": "0xfcc0",
             "dt": "0x20",
             "ep": 1,
             "eval": "if (Item.val == 'highspeed') { 1 } else if (Item.val == 'multiclick') { 2 }",
             "fn": "zcl",
-            "mf": "0x115f"
+            "mf": "0x115f",
+            "state.timeout": 2
           },
           "values": [
             ["\"highspeed\"", "Buttons emit only single click events, but fast"],
@@ -126,12 +139,14 @@
           },
           "write": {
             "at": "0x0009",
+            "change.timeout": 3600,
             "cl": "0xfcc0",
             "dt": "0x20",
             "ep": 1,
             "eval": "if (Item.val == 'compatibility') { 1 } else if (Item.val == 'zigbee') { 2 }",
             "fn": "zcl",
-            "mf": "0x115f"
+            "mf": "0x115f",
+            "state.timeout": 2
           },
           "values": [
             ["\"compatibility\"", "Default mode for Xiaomi devices"],

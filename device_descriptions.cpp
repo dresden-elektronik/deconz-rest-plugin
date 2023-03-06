@@ -78,6 +78,7 @@ static DDF_SubDeviceDescriptor DDF_ReadSubDeviceFile(const QString &path);
 static DeviceDescription DDF_MergeGenericItems(const std::vector<DeviceDescription::Item> &genericItems, const DeviceDescription &ddf);
 static DeviceDescription::Item *DDF_GetItemMutable(const ResourceItem *item);
 static void DDF_UpdateItemHandles(std::vector<DeviceDescription> &descriptions, uint loadCounter);
+static void DDF_TryCompileAndFixJavascript(QString *expr, const QString &path);
 DeviceDescription DDF_LoadScripts(const DeviceDescription &ddf);
 
 /*! Constructor. */
@@ -267,7 +268,7 @@ DeviceDescriptions::DeviceDescriptions(QObject *parent) :
 
         d_ptr2->parseFunctions.push_back(fn);
     }
-    
+
     {
         DDF_FunctionDescriptor fn;
         fn.name = "time";
@@ -946,6 +947,65 @@ static void DDF_UpdateItemHandles(std::vector<DeviceDescription> &descriptions, 
     }
 }
 
+/*! Temporary workaround since DuktapeJS doesn't support 'let', try replace it with 'var'.
+
+    The fix only applies if the JS doesn't compile and after the modified version successfully
+    compiles. Can be removed onces all DDFs have been updated.
+
+    Following cases are fixed:
+
+    '^let '   // let at begin of the expression
+    ' let '
+    '\nlet '
+    '\tlet '
+    '(let '   // let within a scope like: for (let i=0; i < 3; i++) {...}
+*/
+static void DDF_TryCompileAndFixJavascript(QString *expr, const QString &path)
+{
+#ifdef USE_DUKTAPE_JS_ENGINE
+    if (DeviceJs::instance()->testCompile(*expr) == JsEvalResult::Ok)
+    {
+        return;
+    }
+
+    int idx = 0;
+    int nfixes = 0;
+    QString fix = *expr;
+    const QString letSearch("let");
+
+    for ( ; idx != -1; )
+    {
+        idx = fix.indexOf(letSearch, idx);
+        if (idx < 0)
+        {
+            break;
+        }
+
+        if (idx == 0 || fix.at(idx - 1).isSpace() || fix.at(idx - 1) == '(')
+        {
+            fix[idx + 0] = 'v';
+            fix[idx + 1] = 'a';
+            fix[idx + 2] = 'r';
+            idx += 4;
+            nfixes++;
+        }
+    }
+
+    if (nfixes > 0 && DeviceJs::instance()->testCompile(fix) == JsEvalResult::Ok)
+    {
+        *expr = fix;
+        return;
+    }
+
+    // if we get here, the expressions has other problems, print compile error and path
+    DBG_Printf(DBG_DDF, "DDF failed to compile JS: %s\n%s\n", qPrintable(path), qPrintable(DeviceJs::instance()->errorString()));
+
+#else
+    Q_UNUSED(expr)
+    Q_UNUSED(path)
+#endif
+}
+
 /*! Reads all DDF related files.
  */
 void DeviceDescriptions::readAll()
@@ -1173,6 +1233,11 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
         result.name = obj.value(QLatin1String("id")).toString().toUtf8().constData();
     }
 
+    // Handle deprecated names/ids
+    if (result.name == RConfigColorCapabilities) { result.name = RCapColorCapabilities; }
+    if (result.name == RConfigCtMax) { result.name = RCapColorCtMax; }
+    if (result.name == RConfigCtMin) { result.name = RCapColorCtMin; }
+
     if (obj.contains(QLatin1String("description")))
     {
         result.description = obj.value(QLatin1String("description")).toString();
@@ -1218,38 +1283,40 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
             result.isManaged = obj.value(QLatin1String("managed")).toBool() ? 1 : 0;
         }
 
-        if (obj.contains(QLatin1String("refresh.interval")))
-        {
-            result.refreshInterval = obj.value(QLatin1String("refresh.interval")).toInt(0);
-        }
-
-        const auto parse = obj.value(QLatin1String("parse"));
-        if (parse.isObject())
-        {
-            result.parseParameters = parse.toVariant();
-        }
-
-        const auto read = obj.value(QLatin1String("read"));
-        if (read.isObject())
-        {
-            result.readParameters = read.toVariant();
-        }
-
-        const auto write = obj.value(QLatin1String("write"));
-        if (write.isObject())
-        {
-            result.writeParameters = write.toVariant();
-        }
-
         if (obj.contains(QLatin1String("static")))
         {
             result.isStatic = 1;
             result.defaultValue = obj.value(QLatin1String("static")).toVariant();
         }
-
-        if (obj.contains(QLatin1String("default")))
+        else
         {
-            result.defaultValue = obj.value(QLatin1String("default")).toVariant();
+            if (obj.contains(QLatin1String("default")))
+            {
+                result.defaultValue = obj.value(QLatin1String("default")).toVariant();
+            }
+
+            const auto parse = obj.value(QLatin1String("parse"));
+            if (parse.isObject())
+            {
+                result.parseParameters = parse.toVariant();
+            }
+
+            const auto read = obj.value(QLatin1String("read"));
+            if (read.isObject())
+            {
+                result.readParameters = read.toVariant();
+            }
+
+            if (obj.contains(QLatin1String("refresh.interval")))
+            {
+                result.refreshInterval = obj.value(QLatin1String("refresh.interval")).toInt(0);
+            }
+
+            const auto write = obj.value(QLatin1String("write"));
+            if (write.isObject())
+            {
+                result.writeParameters = write.toVariant();
+            }
         }
 
         DBG_Printf(DBG_DDF, "DDF loaded resource item descriptor: %s, public: %u\n", result.descriptor.suffix, (result.isPublic ? 1 : 0));
@@ -1799,7 +1866,7 @@ QVariant DDF_ResolveParamScript(const QVariant &param, const QString &path)
 
     auto map = param.toMap();
 
-    if (map.contains("script"))
+    if (map.contains(QLatin1String("script")))
     {
         const auto script = map["script"].toString();
 
@@ -1808,12 +1875,23 @@ QVariant DDF_ResolveParamScript(const QVariant &param, const QString &path)
 
         if (f.exists() && f.open(QFile::ReadOnly))
         {
-            const auto content = f.readAll();
+            QString content = f.readAll();
             if (!content.isEmpty())
             {
+                DDF_TryCompileAndFixJavascript(&content, path);
                 map["eval"] = content;
                 result = std::move(map);
             }
+        }
+    }
+    else if (map.contains(QLatin1String("eval")))
+    {
+        QString content = map[QLatin1String("eval")].toString();
+        if (!content.isEmpty())
+        {
+            DDF_TryCompileAndFixJavascript(&content, path);
+            map[QLatin1String("eval")] = content;
+            result = std::move(map);
         }
     }
 
@@ -1920,20 +1998,25 @@ static DeviceDescription DDF_MergeGenericItems(const std::vector<DeviceDescripti
             item.isGenericWrite = 0;
             item.isGenericParse = 0;
 
-            if (item.readParameters.isNull()) { item.readParameters = genItem->readParameters; item.isGenericRead = 1; }
-            if (item.writeParameters.isNull()) { item.writeParameters = genItem->writeParameters; item.isGenericWrite = 1; }
-            if (item.parseParameters.isNull()) { item.parseParameters = genItem->parseParameters; item.isGenericParse = 1; }
+            if (!item.isStatic)
+            {
+                if (item.readParameters.isNull()) { item.readParameters = genItem->readParameters; item.isGenericRead = 1; }
+                if (item.writeParameters.isNull()) { item.writeParameters = genItem->writeParameters; item.isGenericWrite = 1; }
+                if (item.parseParameters.isNull()) { item.parseParameters = genItem->parseParameters; item.isGenericParse = 1; }
+                if (item.refreshInterval == DeviceDescription::Item::NoRefreshInterval && genItem->refreshInterval != item.refreshInterval)
+                {
+                    item.refreshInterval = genItem->refreshInterval;
+                }
+            }
+
             if (item.descriptor.access == ResourceItemDescriptor::Access::Unknown)
             {
                 item.descriptor.access = genItem->descriptor.access;
             }
+
             if (!item.hasIsPublic)
             {
                 item.isPublic = genItem->isPublic;
-            }
-            if (item.refreshInterval == DeviceDescription::Item::NoRefreshInterval && genItem->refreshInterval != item.refreshInterval)
-            {
-                item.refreshInterval = genItem->refreshInterval;
             }
 
             if (!item.defaultValue.isValid() && genItem->defaultValue.isValid())

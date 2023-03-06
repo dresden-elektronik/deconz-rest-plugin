@@ -105,7 +105,7 @@ public:
      */
     explicit StateChange(State initialState, StateChangeFunction_t fn, quint8 dstEndpoint);
     State state() const { return m_state; }
-    State tick(Resource *r, deCONZ::ApsController *apsCtrl);
+    int tick(uint64_t extAddr, Resource *r, deCONZ::ApsController *apsCtrl);
     void verifyItemChange(const ResourceItem *item);
     void addTargetValue(const char *suffix, const QVariant &value);
     void addParameter(const QString &name, const QVariant &value);
@@ -114,6 +114,7 @@ public:
     const std::vector<Param> &parameters() const { return m_parameters; }
     quint8 dstEndpoint() const { return m_dstEndpoint; }
     void setChangeTimeoutMs(int timeout) { m_changeTimeoutMs = timeout; }
+    void setStateTimeoutMs(int timeout) { m_stateTimeoutMs = timeout; }
 
 private:
     State m_state = StateCallFunction;

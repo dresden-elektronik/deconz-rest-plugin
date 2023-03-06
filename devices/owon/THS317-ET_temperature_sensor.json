@@ -4,7 +4,7 @@
   "modelid": "THS317-ET",
   "product": "THS317-ET",
   "sleeper": true,
-  "status": "Bronze",
+  "status": "Silver",
   "subdevices": [
     {
       "type": "$TYPE_TEMPERATURE_SENSOR",

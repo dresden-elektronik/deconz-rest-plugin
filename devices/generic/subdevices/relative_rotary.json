@@ -1,0 +1,16 @@
+{
+    "schema": "subdevice1.schema.json",
+    "type": "$TYPE_RELATIVE_ROTARY",
+    "name": "ZHARelativeRotary",
+    "restapi": "/sensors",
+    "order": 20,
+    "uuid": ["$address.ext", "0x01", "0x0000"],
+    "items": [
+        "config/on",
+        "config/reachable",
+        "state/expectedeventduration",
+        "state/expectedrotation",
+        "state/lastupdated",
+        "state/rotaryevent"
+    ]
+}

@@ -1,8 +1,8 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "$MF_IKEA",
-  "modelid": "TREDANSEN block-out cellul blind",
-  "product": "TREDANSEN block-out cellul blind",
+  "manufacturername": ["$MF_IKEA", "$MF_IKEA"],
+  "modelid": ["TREDANSEN block-out cellul blind", "PRAKTLYSING cellular blind"],
+  "product": "PRAKTLYSING/TREDANSEN cellular blind",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

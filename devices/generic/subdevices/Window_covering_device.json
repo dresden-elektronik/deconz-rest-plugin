@@ -7,7 +7,7 @@
     "uuid": ["$address.ext", "0x01"],
     "items": [
         "state/lift",
-        "state/reachable",
-        "state/open"
+        "state/open",
+        "state/reachable"
     ]
 }

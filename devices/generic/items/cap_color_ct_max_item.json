@@ -1,0 +1,17 @@
+{
+    "schema": "resourceitem1.schema.json",
+    "id": "cap/color/ct/max",
+    "datatype": "UInt16",
+    "access": "R",
+    "public": true,
+    "description": "Maximum supported color temperature.",
+    "default": "0xfeff",
+    "parse": {
+        "fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x400c",
+        "eval": "Item.val = Attr.val"
+    },
+    "read": {
+        "fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x400c"
+    },
+    "refresh.interval": 86400
+}

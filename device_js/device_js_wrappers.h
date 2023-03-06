@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2021-2022 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -7,6 +7,8 @@
  * the LICENSE.txt file.
  *
  */
+
+#ifdef USE_QT_JS_ENGINE
 
 #ifndef DEVICE_JS_WRAPPERS_H
 #define DEVICE_JS_WRAPPERS_H
@@ -34,13 +36,12 @@ class JsResource : public QObject
 
 public:
     Resource *r = nullptr;
-    const Resource *cr = nullptr;
 
     JsResource(QJSEngine *parent = nullptr);
 
 public Q_SLOTS:
     QJSValue item(const QString &suffix);
-    QVariant endpoints();
+    QVariant endpoints() const;
 };
 
 class JsResourceItem : public QObject
@@ -52,7 +53,6 @@ class JsResourceItem : public QObject
 
 public:
     ResourceItem *item = nullptr;
-    const ResourceItem *citem = nullptr;
 
     JsResourceItem(QObject *parent = nullptr);
     ~JsResourceItem();
@@ -112,8 +112,10 @@ class JsUtils : public QObject
 public:
     JsUtils(QObject *parent = nullptr);
 
-public Q_SLOTS:
-    double log10(double x) const;
+    Q_INVOKABLE double log10(double x) const;
+    Q_INVOKABLE QString padStart(const QString &str, QJSValue targetLength, QJSValue padString);
 };
 
 #endif // DEVICE_JS_WRAPPERS_H
+
+#endif // USE_QT_JS_ENGINE

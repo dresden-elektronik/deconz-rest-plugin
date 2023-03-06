@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "attr/poweronlevel",
+	"datatype": "UInt8",
+	"access": "RW",
+	"public": true,
+	"description": "Brightness set when powered on."
+}
