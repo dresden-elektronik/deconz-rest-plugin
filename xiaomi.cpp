@@ -1261,7 +1261,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiAqaraS1ScenePa
                             if (stringParam.length() == 0) {
                                 item->setValue(QString(" "));
                             }
-                            item->setValue(/*QString("stringParam")*/0x0001);
+                            item->setValue(stringParam);
                             if (resourceItemToUpdate2 != NULL && uint8Param != UINT8_MAX)
                             {
                                 ResourceItem *item2 = lightNode.item(resourceItemToUpdate2);
@@ -1282,7 +1282,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiAqaraS1ScenePa
                             item->setValue(boolParam == 0x01);
                         }
                 DBG_Printf(DBG_INFO, "######## 0x%016llX Xiaomi Aqara attribute 0x%2x: %s\n", ind.srcAddress().ext(), a, stringParam);
-                        enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
+                        // enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
                 DBG_Printf(DBG_INFO, "######### 0x%016llX Xiaomi Aqara attribute 0x%2x: %s\n", ind.srcAddress().ext(), a, stringParam);
                     }
                 }
@@ -1299,15 +1299,15 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiAqaraS1ScenePa
                 // saveDatabaseItems |= DB_LIGHTS;
 
 
-                // QVariantMap map;
-                // map["t"] = QLatin1String("event");
-                // map["e"] = QLatin1String("changed");
-                // map["r"] = QLatin1String("lights");
-                // map["id"] = e.id();
-                // map["uniqueid"] = lightNode->uniqueId();
-                // map["state"] = state;
-                // webSocketServer->broadcastTextMessage(Json::serialize(map));
-                // updateLightEtag(lightNode);
+                QVariantMap map;
+                map["t"] = QLatin1String("event");
+                map["e"] = QLatin1String("changed");
+                map["r"] = QLatin1String("lights");
+                map["id"] = lightNode.id();
+                map["uniqueid"] = lightNode->uniqueId();
+                map["state"] = stringParam;
+                webSocketServer->broadcastTextMessage(Json::serialize(map));
+                updateLightEtag(lightNode);
                 // plugin->saveDatabaseItems |= DB_LIGHTS;
                 // plugin->queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
             }
