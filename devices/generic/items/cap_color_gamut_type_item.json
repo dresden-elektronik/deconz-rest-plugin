@@ -7,6 +7,6 @@
     "description": "Color gamut type for Hue lights.",
     "parse": {
         "fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x0032",
-        "eval": "Item.val = Attr.val === 45317 ? 'C' : Attr.val === 44236 ? 'B' : Attr.val === 46138 ? 'A' : null"
+        "eval": "Item.val = Attr.val === 45317 ? 'C' : Attr.val === 44236 ? 'B' : Attr.val === 46137 ? 'A' : ''"
     }
 }

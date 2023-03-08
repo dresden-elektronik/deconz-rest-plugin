@@ -101,6 +101,7 @@
           },
           "write": {
             "at": "0xFFF1",
+            "change.timeout": 60,
             "cl": "0x0500",
             "dt": "0x23",
             "ep": 1,
@@ -133,6 +134,7 @@
           },
           "write": {
             "at": "0xFFF1",
+            "change.timeout": 600,
             "cl": "0x0500",
             "dt": "0x23",
             "ep": 1,

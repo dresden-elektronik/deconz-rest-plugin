@@ -1,9 +1,9 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["eWeLink","SONOFF"],
-  "modelid": ["TH01","SNZB-02D"],
-  "vendor": "SONOFF",
-  "product": "SNZB-02 multisensor",
+  "manufacturername": ["_TZ3000_ywagc4rj","_TZ3000_itnrsufe"],
+  "modelid": ["TS0201","TS0201"],
+  "vendor": "Moes",
+  "product": "TS0201",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -15,16 +15,6 @@
         "0x01",
         "0x0402"
       ],
-      "fingerprint": {
-        "profile": "0x0104",
-        "device": "0x0302",
-        "endpoint": "0x01",
-        "in": [
-          "0x0000",
-          "0x0001",
-          "0x0402"
-        ]
-      },
       "items": [
         {
           "name": "attr/id"
@@ -45,21 +35,7 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0006",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl"
-          },
-          "parse": {
-            "at": "0x0006",
-            "cl": "0x0000",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl"
-          }
+          "name": "attr/swversion"
         },
         {
           "name": "attr/type"
@@ -81,7 +57,8 @@
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
+            "eval": "Item.val = Attr.val / 2",
+            "fn": "zcl"
           },
           "default": 0
         },
@@ -113,16 +90,6 @@
         "0x01",
         "0x0405"
       ],
-      "fingerprint": {
-        "profile": "0x0104",
-        "device": "0x0302",
-        "endpoint": "0x01",
-        "in": [
-          "0x0000",
-          "0x0001",
-          "0x0405"
-        ]
-      },
       "items": [
         {
           "name": "attr/id"
@@ -143,21 +110,7 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0006",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl"
-          },
-          "parse": {
-            "at": "0x0006",
-            "cl": "0x0000",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl"
-          }
+          "name": "attr/swversion"
         },
         {
           "name": "attr/type"
@@ -179,7 +132,8 @@
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
+            "eval": "Item.val = Attr.val / 2",
+            "fn": "zcl"
           },
           "default": 0
         },
@@ -196,6 +150,13 @@
         {
           "name": "state/humidity",
           "awake": true,
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0405",
+            "ep": 0,
+            "eval": "Item.val = Attr.val * 10 + R.item('config/offset').val",
+            "fn": "zcl"
+          },
           "default": 0
         },
         {
@@ -204,40 +165,48 @@
       ]
     }
   ],
-	"bindings": [{
-		"bind": "unicast",
-		"src.ep": 1,
-		"dst.ep": 1,
-		"cl": "0x0001",
-		"report": [{
-			"at": "0x0021",
-			"dt": "0x20",
-			"min": 3600,
-			"max": 7200,
-			"change": "0x00000002"
-		}]
-	}, {
-		"bind": "unicast",
-		"src.ep": 1,
-		"dst.ep": 1,
-		"cl": "0x0405",
-		"report": [{
-			"at": "0x0000",
-			"dt": "0x21",
-			"min": 5,
-			"max": 1800,
-			"change": "0x00000064"
-		}]
-	}, {
-		"bind": "unicast",
-		"src.ep": 1,
-		"cl": "0x0402",
-		"report": [{
-			"at": "0x0000",
-			"dt": "0x29",
-			"min": 5,
-			"max": 1800,
-			"change": "0x0000000A"
-		}]
-	}]
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 60,
+          "max": 3600,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0402",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x29",
+          "min": 60,
+          "max": 300,
+          "change": "0x00000032"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0405",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x21",
+          "min": 60,
+          "max": 300,
+          "change": "0x0000000A"
+        }
+      ]
+    }
+  ]
 }

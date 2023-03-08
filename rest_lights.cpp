@@ -3028,6 +3028,10 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
             {
                 task.options = 0xC1;    // Warning mode 1 (burglar), no Strobe, Very high sound, Develco uses inversed bit order
             }
+	    else if (taskRef.lightNode->modelId() == QLatin1String("TS0219"))
+	    {
+	        task.options = 0x24;    // Only supported combination
+	    }
             task.duration = 1;
         }
         else if (alert == "lselect")
@@ -3939,6 +3943,15 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
 
                 const ResourceItemDescriptor &rid = item->descriptor();
 
+                if (item->needPushChange())
+                {
+                    // TODO make declarative
+                    if (strncmp(rid.suffix, "attr/", 5) == 0) { pushAttr = true; }
+                    if (strncmp(rid.suffix, "cap/", 4) == 0) { pushCap = true; }
+                    if (strncmp(rid.suffix, "config/", 7) == 0) { pushConfig = true; }
+                    if (strncmp(rid.suffix, "state/", 6) == 0) { pushState = true; }
+                }
+
                 if      (rid.suffix == RCapColorCapabilities) { icc = item; }
                 else if (rid.suffix == RCapColorXyBlueX) { ibluex = item; }
                 else if (rid.suffix == RCapColorXyBlueY) { ibluey = item; }
@@ -4045,15 +4058,6 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                             }
                         }
                     }
-
-                    if (item->needPushChange())
-                    {
-                        // TODO make declarative
-                        if (strncmp(rid.suffix, "attr/", 5) == 0) { pushAttr = true; }
-                        if (strncmp(rid.suffix, "cap/", 4) == 0) { pushCap = true; }
-                        if (strncmp(rid.suffix, "config/", 7) == 0) { pushConfig = true; }
-                        if (strncmp(rid.suffix, "state/", 6) == 0) { pushState = true; }
-                    }
                     item->clearNeedPush();
                 }
             }
@@ -4104,7 +4108,6 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     capabilitiesColorXy["blue"] = blue;
                     capabilitiesColorXy["green"] = green;
                     capabilitiesColorXy["red"] = red;
-                    pushCap = true;
                     ibluex->clearNeedPush();
                     ibluey->clearNeedPush();
                     igreenx->clearNeedPush();

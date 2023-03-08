@@ -1,7 +1,7 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "Danfoss",
-  "modelid": "eTRV0100",
+  "manufacturername": ["Danfoss", "Danfoss"],
+  "modelid": ["eTRV0100", "eTRV0103"],
   "vendor": "Danfoss",
   "product": "Ally thermostat",
   "sleeper": false,
