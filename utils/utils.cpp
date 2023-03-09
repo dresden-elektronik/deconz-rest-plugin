@@ -443,10 +443,8 @@ quint8 calculateBatteryPercentageRemaining(const quint8 batteryVoltage, const fl
 }
 
 // Below 2 functions are an adaptation/port from https://github.com/zigpy/zigpy/blob/dev/zigpy/util.py (aes_mmo_hash_update() and aes_mmo_hash())
-std::pair<uint, std::vector<unsigned char>> aesMmoHash(uint rlength, const std::vector<unsigned char>& result, std::vector<unsigned char>& data)
+void aesMmoHash(uint &length, std::vector<unsigned char> &result, std::vector<unsigned char> &data)
 {
-    std::vector<unsigned char> updated_result(result);
-
     while (data.size() >= AES_BLOCK_SIZE)
     {
         AES_KEY aes_key;
@@ -458,16 +456,15 @@ std::pair<uint, std::vector<unsigned char>> aesMmoHash(uint rlength, const std::
 
         for (int i = 0; i < AES_BLOCK_SIZE; i++)
         {
-            updated_result[i] = encrypted_block[i] ^ block[i];
+            result[i] = encrypted_block[i] ^ block[i];
         }
 
         data.erase(data.begin(), data.begin() + AES_BLOCK_SIZE);
-        rlength += AES_BLOCK_SIZE;
+        length += AES_BLOCK_SIZE;
     }
 
-    return std::make_pair(rlength, updated_result);
+    return;
 }
-
 
 QByteArray getMmoHashFromInstallCode(std::string hexString)
 {
@@ -486,17 +483,13 @@ QByteArray getMmoHashFromInstallCode(std::string hexString)
     uint lengthRemaining = 0;
     uint dataLength = data.size();
 
-    if (dataLength > 0)
+    if (data.size() > 0)
     {
         lengthRemaining = dataLength & (AES_BLOCK_SIZE - 1);
         
         if (dataLength >= AES_BLOCK_SIZE)
         {
-            uint hashedLength = dataLength & ~(AES_BLOCK_SIZE - 1);
-            std::pair<uint, std::vector<unsigned char>> updated_values = aesMmoHash(hashResultLength, hashResult, data);
-            //data.erase(data.begin(), data.begin() + hashedLength);
-            hashResultLength = updated_values.first;
-            hashResult = updated_values.second;
+            aesMmoHash(hashResultLength, hashResult, data);
         }
     }
 
@@ -510,10 +503,7 @@ QByteArray getMmoHashFromInstallCode(std::string hexString)
 
     if (AES_BLOCK_SIZE - lengthRemaining < 3)
     {
-        std::pair<uint, std::vector<unsigned char>> updated_values = aesMmoHash(hashResultLength, hashResult, temp);
-        hashResultLength = updated_values.first;
-        hashResult = updated_values.second;
-
+        aesMmoHash(hashResultLength, hashResult, temp);
         hashResultLength -= AES_BLOCK_SIZE;
         std::fill(temp.begin(), temp.end(), 0x00);
     }
@@ -522,10 +512,7 @@ QByteArray getMmoHashFromInstallCode(std::string hexString)
     temp[AES_BLOCK_SIZE - 2] = (bit_size >> 8) & 0xFF;
     temp[AES_BLOCK_SIZE - 1] = (bit_size) & 0xFF;
 
-    std::pair<uint, std::vector<unsigned char>> updated_values = aesMmoHash(hashResultLength, hashResult, temp);
-
-    //hashResultLength = updated_values.first;
-    hashResult = updated_values.second;
+    aesMmoHash(hashResultLength, hashResult, temp);
 
     QByteArray hash;
 
