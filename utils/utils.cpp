@@ -12,6 +12,7 @@
 #include <deconz/aps_controller.h>
 #include <deconz/dbg_trace.h>
 #include <deconz/node.h>
+#include <openssl/aes.h>
 #include "utils.h"
 #include "resource.h"
 
@@ -439,4 +440,98 @@ quint8 calculateBatteryPercentageRemaining(const quint8 batteryVoltage, const fl
     else if (batteryPercentage <= 0)  { batteryPercentage = 1; } // ?
 
     return static_cast<quint8>(batteryPercentage);
+}
+
+// Below 2 functions are an adaptation/port from https://github.com/zigpy/zigpy/blob/dev/zigpy/util.py (aes_mmo_hash_update() and aes_mmo_hash())
+std::pair<uint, std::vector<unsigned char>> aesMmoHash(uint rlength, const std::vector<unsigned char>& result, std::vector<unsigned char>& data)
+{
+    std::vector<unsigned char> updated_result(result);
+
+    while (data.size() >= AES_BLOCK_SIZE)
+    {
+        AES_KEY aes_key;
+        AES_set_encrypt_key(result.data(), 128, &aes_key);
+
+        std::vector<unsigned char> block(data.begin(), data.begin() + AES_BLOCK_SIZE);
+        std::vector<unsigned char> encrypted_block(AES_BLOCK_SIZE);
+        AES_encrypt(block.data(), encrypted_block.data(), &aes_key);
+
+        for (int i = 0; i < AES_BLOCK_SIZE; i++)
+        {
+            updated_result[i] = encrypted_block[i] ^ block[i];
+        }
+
+        data.erase(data.begin(), data.begin() + AES_BLOCK_SIZE);
+        rlength += AES_BLOCK_SIZE;
+    }
+
+    return std::make_pair(rlength, updated_result);
+}
+
+
+QByteArray getMmoHashFromInstallCode(std::string hexString)
+{
+    std::vector<unsigned char> data;
+
+    for (std::string::size_type i = 0; i < hexString.length(); i += 2)
+    {
+        std::string byteString = hexString.substr(i, 2);
+        unsigned char byte = static_cast<unsigned char>(std::stoul(byteString, nullptr, 16));
+        data.push_back(byte);
+    }
+
+    std::vector<unsigned char> hashResult(AES_BLOCK_SIZE, 0x00);
+    std::vector<unsigned char> temp(16, 0x00);
+    uint hashResultLength = 0;
+    uint lengthRemaining = 0;
+    uint dataLength = data.size();
+
+    if (dataLength > 0)
+    {
+        lengthRemaining = dataLength & (AES_BLOCK_SIZE - 1);
+        
+        if (dataLength >= AES_BLOCK_SIZE)
+        {
+            uint hashedLength = dataLength & ~(AES_BLOCK_SIZE - 1);
+            std::pair<uint, std::vector<unsigned char>> updated_values = aesMmoHash(hashResultLength, hashResult, data);
+            //data.erase(data.begin(), data.begin() + hashedLength);
+            hashResultLength = updated_values.first;
+            hashResult = updated_values.second;
+        }
+    }
+
+    for (std::string::size_type i = 0; i < lengthRemaining; i++)
+    {
+        temp[i] = data[i];
+    }
+
+    temp[lengthRemaining] = 0x80;
+    hashResultLength += lengthRemaining;
+
+    if (AES_BLOCK_SIZE - lengthRemaining < 3)
+    {
+        std::pair<uint, std::vector<unsigned char>> updated_values = aesMmoHash(hashResultLength, hashResult, temp);
+        hashResultLength = updated_values.first;
+        hashResult = updated_values.second;
+
+        hashResultLength -= AES_BLOCK_SIZE;
+        std::fill(temp.begin(), temp.end(), 0x00);
+    }
+
+    uint bit_size = hashResultLength * 8;
+    temp[AES_BLOCK_SIZE - 2] = (bit_size >> 8) & 0xFF;
+    temp[AES_BLOCK_SIZE - 1] = (bit_size) & 0xFF;
+
+    std::pair<uint, std::vector<unsigned char>> updated_values = aesMmoHash(hashResultLength, hashResult, temp);
+
+    //hashResultLength = updated_values.first;
+    hashResult = updated_values.second;
+
+    QByteArray hash;
+
+    for (const auto& val : hashResult) {
+        hash.push_back(static_cast<int>(val));
+    }
+
+    return hash;
 }
