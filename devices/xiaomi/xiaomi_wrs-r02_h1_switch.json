@@ -81,7 +81,7 @@
             "fn": "zcl"
           },
           "read": {
-            "fn": "None"
+            "fn": "none"
           }
         },
         {
