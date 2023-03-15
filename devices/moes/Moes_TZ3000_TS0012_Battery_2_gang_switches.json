@@ -3,7 +3,7 @@
   "manufacturername": "_TZ3000_18ejxno0",
   "modelid": "TS0012",
   "product": "Battery 2 gang switches",
-  "sleeper": true,
+  "sleeper": false,
   "status": "Silver",
   "subdevices": [
     {
