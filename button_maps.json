@@ -55,7 +55,7 @@
         "IAS_ZONE": 1280,
         "IAS_ACE": 1281,
         "SENGLED": 64528,
-        "FC80": 64640,
+        "IKEA": 64640,
         "XIAOMI": 64704,
         "ADUROLIGHT": 64716,
         "XIAOYAN": 64716
@@ -124,7 +124,7 @@
         "SENGLED": {
             "COMMAND_0": 0
         },
-        "FC80": {
+        "IKEA": {
             "COMMAND_1": 1,
             "COMMAND_2": 2,
             "COMMAND_3": 3,
@@ -381,16 +381,16 @@
                 [1, "0x01", "LEVEL_CONTROL", "MOVE", "1", "S_BUTTON_3", "S_BUTTON_ACTION_HOLD", "Move down"],
                 [1, "0x01", "LEVEL_CONTROL", "STEP", "1", "S_BUTTON_4", "S_BUTTON_ACTION_SHORT_RELEASED", "Step down"],
                 [1, "0x01", "LEVEL_CONTROL", "STEP", "0", "S_BUTTON_5", "S_BUTTON_ACTION_SHORT_RELEASED", "Step up"],
-                [1, "0x02", "FC80", "COMMAND_1", "0", "S_BUTTON_6", "S_BUTTON_ACTION_INITIAL_PRESS", "0x01"],
-                [1, "0x02", "FC80", "COMMAND_2", "0", "S_BUTTON_6", "S_BUTTON_ACTION_HOLD", "0x02"],
-                [1, "0x02", "FC80", "COMMAND_3", "0", "S_BUTTON_6", "S_BUTTON_ACTION_SHORT_RELEASED", "0x03"],
-                [1, "0x02", "FC80", "COMMAND_4", "0", "S_BUTTON_6", "S_BUTTON_ACTION_LONG_RELEASED", "0x04"],
-                [1, "0x02", "FC80", "COMMAND_6", "0", "S_BUTTON_6", "S_BUTTON_ACTION_DOUBLE_PRESS", "0x06"],
-                [1, "0x03", "FC80", "COMMAND_1", "0", "S_BUTTON_7", "S_BUTTON_ACTION_INITIAL_PRESS", "0x01"],
-                [1, "0x03", "FC80", "COMMAND_2", "0", "S_BUTTON_7", "S_BUTTON_ACTION_HOLD", "0x02"],
-                [1, "0x03", "FC80", "COMMAND_3", "0", "S_BUTTON_7", "S_BUTTON_ACTION_SHORT_RELEASED", "0x03"],
-                [1, "0x03", "FC80", "COMMAND_4", "0", "S_BUTTON_7", "S_BUTTON_ACTION_LONG_RELEASED", "0x04"],
-                [1, "0x03", "FC80", "COMMAND_6", "0", "S_BUTTON_7", "S_BUTTON_ACTION_DOUBLE_PRESS", "0x06"]
+                [1, "0x02", "IKEA", "COMMAND_1", "0", "S_BUTTON_6", "S_BUTTON_ACTION_INITIAL_PRESS", "0x01"],
+                [1, "0x02", "IKEA", "COMMAND_2", "0", "S_BUTTON_6", "S_BUTTON_ACTION_HOLD", "0x02"],
+                [1, "0x02", "IKEA", "COMMAND_3", "0", "S_BUTTON_6", "S_BUTTON_ACTION_SHORT_RELEASED", "0x03"],
+                [1, "0x02", "IKEA", "COMMAND_4", "0", "S_BUTTON_6", "S_BUTTON_ACTION_LONG_RELEASED", "0x04"],
+                [1, "0x02", "IKEA", "COMMAND_6", "0", "S_BUTTON_6", "S_BUTTON_ACTION_DOUBLE_PRESS", "0x06"],
+                [1, "0x03", "IKEA", "COMMAND_1", "0", "S_BUTTON_7", "S_BUTTON_ACTION_INITIAL_PRESS", "0x01"],
+                [1, "0x03", "IKEA", "COMMAND_2", "0", "S_BUTTON_7", "S_BUTTON_ACTION_HOLD", "0x02"],
+                [1, "0x03", "IKEA", "COMMAND_3", "0", "S_BUTTON_7", "S_BUTTON_ACTION_SHORT_RELEASED", "0x03"],
+                [1, "0x03", "IKEA", "COMMAND_4", "0", "S_BUTTON_7", "S_BUTTON_ACTION_LONG_RELEASED", "0x04"],
+                [1, "0x03", "IKEA", "COMMAND_6", "0", "S_BUTTON_7", "S_BUTTON_ACTION_DOUBLE_PRESS", "0x06"]
             ]
         },
         "osramMiniRemoteMap": {
