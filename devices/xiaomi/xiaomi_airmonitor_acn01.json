@@ -94,7 +94,7 @@
             "ep": 1,
             "eval": "Item.val = ['excellent', 'good', 'moderate', 'poor', 'unhealthy'][Attr.val]",
             "fn": "zcl",
-            "mfc": "0x115f"
+            "mf": "0x115f"
           },
           "default": "excellent",
           "values": [
