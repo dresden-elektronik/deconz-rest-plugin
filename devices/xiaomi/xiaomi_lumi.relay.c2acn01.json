@@ -4,7 +4,7 @@
   "modelid": "lumi.relay.c2acn01",
   "product": "wireless relay with neutral",
   "sleeper": false,
-  "status": "Gold",
+  "status": "Silver",
   "subdevices": [
     {
       "type": "$TYPE_ON_OFF_OUTPUT",
