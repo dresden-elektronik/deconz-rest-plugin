@@ -4,7 +4,7 @@
 	"datatype": "String",
 	"access": "R",
 	"public": true,
-	"description": "Text representation of the air quality.",
+	"description": "Text representation of the air quality based on tVOC level.",
 	"parse": {
 		"fn": "numtostr",
 		"srcitem": "state/airqualityppb",

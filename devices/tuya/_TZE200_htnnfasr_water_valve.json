@@ -1,0 +1,193 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "_TZE200_htnnfasr",
+  "modelid": "TS0601",
+  "vendor": "LIDL",
+  "product": "Smart watering timer",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_ON_OFF_OUTPUT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 300,
+          "read": {
+            "fn": "tuya"
+          },
+          "write": {
+            "dpid": 1,
+            "dt": "0x10",
+            "eval": "Item.val == 1 ? 1 : 0;",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+	  "default": 0
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_OPEN_CLOSE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0500"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+		{
+          "name": "config/battery",
+          "parse": {
+            "dpid": 11,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 100
+        },
+        {
+          "name": "config/duration",
+          "description": "The duration the valve stays open.",
+          "write": {
+            "dpid": 5,
+            "dt": "0x2b",
+            "eval": "Attr.val = Item.val;",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 5,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          }
+        },
+        {
+          "name": "config/locked",
+          "description": "Read: frost lock status. Write: frost lock reset.",
+          "write": {
+            "dpid": 109,
+            "dt": "0x10",
+            "eval": "Item.val == 1 ? 1 : 0;",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 108,
+            "eval": "Item.val == 1 ? 0 : 1;",
+            "fn": "tuya"
+          },
+          "default": 0
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/seconds_remaining",
+          "description": "The remaining time the valve is open in seconds.",
+          "parse": {
+            "dpid": 6,
+            "eval": "Item.val = Attr.val * 60;",
+            "fn": "tuya"
+          }
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    }
+  ]
+}

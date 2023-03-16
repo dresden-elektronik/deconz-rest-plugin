@@ -1,6 +1,6 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["_TZ3000_n2egfsli", "_TZ3000_oxslv1c9", "_TZ3000_7tbsruql", "_TZ3000_7d8yme6f", "_TZ3000_rgchmad8", "_TZ3000_bzxlofth","TZ3000_au1rjicn"],
+  "manufacturername": ["_TZ3000_n2egfsli", "_TZ3000_oxslv1c9", "_TZ3000_7tbsruql", "_TZ3000_7d8yme6f", "_TZ3000_rgchmad8", "_TZ3000_bzxlofth","_TZ3000_au1rjicn"],
   "modelid": ["TS0203", "TS0203", "TS0203", "TS0203", "TS0203", "TS0203","TS0203"],
   "vendor": "Tuya",
   "product": "Smart Zigbee Door Window Contact",
