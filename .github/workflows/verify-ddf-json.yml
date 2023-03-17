@@ -37,3 +37,9 @@ jobs:
 
       - name: Validate genric JSON files
         run: for j in `find devices -name '*.json'`; do jsonlint-php $j || exit 1; done
+
+      - uses: deconz-community/ddf-validator-action@v1
+        with:
+          directory: devices
+          search: '**/*.json'
+          ignore: '**/generic/**'
