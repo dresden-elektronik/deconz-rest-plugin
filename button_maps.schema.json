@@ -80,6 +80,7 @@
           "COLOR_CONTROL",
           "IAS_ZONE",
           "IAS_ACE",
+          "FC80",
           "XIAOMI",
           "ADUROLIGHT",
           "XIAOYAN"
@@ -114,6 +115,9 @@
     },
     "multistate-input-commands": {
       "enum": [ "ATTRIBUTE_REPORT" ]
+    },
+    "fc80-commands": {
+      "enum": [ "COMMAND_1", "COMMAND_2", "COMMAND_3", "COMMAND_4", "COMMAND_6" ]
     },
     "xiaomi-commands": {
       "enum": [ "ATTRIBUTE_REPORT" ]
@@ -165,6 +169,7 @@
             { "$ref": "#/definitions/window-covering-commands" },
             { "$ref": "#/definitions/ias-commands" },
             { "$ref": "#/definitions/multistate-input-commands" },
+            { "$ref": "#/definitions/fc80-commands" },
             { "$ref": "#/definitions/xiaomi-commands" },
             { "$ref": "#/definitions/xiaoyan-commands" }
           ],
