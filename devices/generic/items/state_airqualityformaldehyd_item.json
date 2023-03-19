@@ -1,6 +1,6 @@
 {
 	"schema": "resourceitem1.schema.json",
-	"id": "state/airqualityformaldehyd",
+	"id": "state/airquality_formaldehyde_density",
 	"datatype": "UInt16",
 	"access": "R",
 	"public": true,

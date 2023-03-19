@@ -1,6 +1,6 @@
 {
 	"schema": "resourceitem1.schema.json",
-	"id": "state/airqualityco2",
+	"id": "state/airquality_co2_density",
 	"datatype": "UInt16",
 	"access": "R",
 	"public": true,
