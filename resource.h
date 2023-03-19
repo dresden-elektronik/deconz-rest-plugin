@@ -167,7 +167,7 @@ extern const char *RStateOrientationY;
 extern const char *RStateOrientationZ;
 extern const char *RStatePM2_5;
 extern const char *RStateAirQualityCO2Density;
-extern const char *RStateAirQualityFormaldehydDensity;
+extern const char *RStateAirQualityFormaldehydeDensity;
 extern const char *RStatePanel;
 extern const char *RStatePower;
 extern const char *RStatePresence;

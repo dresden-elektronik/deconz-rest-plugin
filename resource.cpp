@@ -138,7 +138,7 @@ const char *RStateOrientationY = "state/orientation_y";
 const char *RStateOrientationZ = "state/orientation_z";
 const char *RStatePM2_5 = "state/pm2_5";
 const char *RStateAirQualityCO2Density = "state/airquality_co2_density";
-const char *RStateAirQualityFormaldehydDensity = "state/airquality_formaldehyde_density";
+const char *RStateAirQualityFormaldehydeDensity = "state/airquality_formaldehyde_density";
 const char *RStatePanel = "state/panel";
 const char *RStatePower = "state/power";
 const char *RStatePresence = "state/presence";
@@ -426,7 +426,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateOrientationZ));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStatePM2_5));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateAirQualityCO2Density));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateAirQualityFormaldehydDensity));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateAirQualityFormaldehydeDensity));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStatePanel));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStatePower));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStatePresence));
