@@ -2004,6 +2004,10 @@
           </attribute>
           <attribute id="0x0008" name="Current Position Lift Percentage" type="u8" default="0x00" access="r" required="o" range="0,0x64"></attribute>
           <attribute id="0x0009" name="Current Position Tilt Percentage" type="u8" default="0x00" access="r" required="o" range="0,0x64"></attribute>
+          <attribute id="0x000a" name="Operational Status" type="bmp8" required="m" access="r">
+            <value name="Covering is opening" value="0"></value>
+            <value name="Covering is closing" value="1"></value>
+          </attribute>
         </attribute-set>
         <attribute-set id="0x0010" description="Window Covering Settings">
           <attribute id="0x0010" name="Installed Open Limit – Lift" type="u16" default="0x0000" access="r" required="o"></attribute>
@@ -2057,9 +2061,19 @@
             <value name="Unknown (7)" value="7"></value>
           </attribute>
           <attribute id="0xe014" name="Cover run time (open)" type="u16" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
-			    <attribute id="0xe015" name="Cover run time (close)" type="u16" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
+          <attribute id="0xe015" name="Cover run time (close)" type="u16" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
           <attribute id="0xe016" name="Unknown" type="u16" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
           <attribute id="0xe017" name="Unknown" type="u8" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
+        </attribute-set>
+        <attribute-set id="0x1000" description="Ubisys specific" mfcode="0x10f2">
+          <attribute id="0x1000" name="Turnaround Guard Time" type="u8" default="0" required="m" access="rw" mfcode="0x10f2"></attribute>
+          <attribute id="0x1001" name="Lift to Tilt Transition Steps" type="u16" default="0" required="m" access="rw" mfcode="0x10f2"></attribute>
+          <attribute id="0x1002" name="Total Steps" type="u16" default="0" required="m" access="rw" mfcode="0x10f2"></attribute>
+          <attribute id="0x1003" name="Lift to Tilt Transition Steps 2" type="u16" default="0" required="m" access="rw" mfcode="0x10f2"></attribute>
+          <attribute id="0x1004" name="Total Steps 2" type="u16" default="0" required="m" access="rw" mfcode="0x10f2"></attribute>
+          <attribute id="0x1005" name="Additional Steps" type="u8" default="0" required="m" access="rw" mfcode="0x10f2"></attribute>
+          <attribute id="0x1006" name="Inactive Power Threshold" type="u16" default="0" required="m" access="rw" mfcode="0x10f2"></attribute>
+          <attribute id="0x1007" name="Startup Steps" type="u16" default="0" required="m" access="rw" mfcode="0x10f2"></attribute>
         </attribute-set>
         <command id="0x00" dir="recv" name="Up / Open" required="m"></command>
         <command id="0x01" dir="recv" name="Down / Close" required="m"></command>
