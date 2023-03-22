@@ -36,8 +36,7 @@
         },
         {
           "name": "attr/swversion",                   
-          "refresh.interval": 86400,
-          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
           "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
         {
@@ -114,7 +113,7 @@
         {
           "name": "attr/swversion",                   
           "refresh.interval": 86400,
-          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
           "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}          
         },
         {
@@ -172,9 +171,9 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 60,
-          "max": 3600,
-          "change": "0x00000001"
+          "min": 3600,
+          "max": 84600,
+          "change": "0x00000002"
         }
       ]
     },
