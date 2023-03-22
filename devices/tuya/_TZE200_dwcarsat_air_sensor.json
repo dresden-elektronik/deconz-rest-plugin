@@ -112,7 +112,7 @@
           "default": 0
         },
         {
-          "name": "state/airqualityformaldehyd",
+          "name": "state/airqualityformaldehyde",
           "read": {
             "fn": "none"
           },
