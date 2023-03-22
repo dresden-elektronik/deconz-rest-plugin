@@ -31,10 +31,7 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
-      # Install jsonlint
-      - name: Install jsonlint
-        run: sudo apt install jsonlint
-
+      # Validate DDF files
       - uses: deconz-community/ddf-validator-action@v1
         with:
           directory: devices
