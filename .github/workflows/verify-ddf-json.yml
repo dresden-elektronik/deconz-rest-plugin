@@ -31,8 +31,8 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
-      # Validate DDF files
-      - uses: deconz-community/ddf-validator-action@v1
+      - name: Validate DDF files
+        uses: deconz-community/ddf-validator-action@v1
         with:
           directory: devices
           generic: 'devices/generic'
