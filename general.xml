@@ -3467,6 +3467,8 @@ Note: It does not clear or delete previous weekly schedule programming configura
         <attribute-set id="0x0010" description="Zone settings">
           <attribute id="0x0010" name="IAS_CIE_Address" type="uid" access="rw" required="o" default="0"></attribute>
           <attribute id="0x0011" name="Zone ID" type="u8" range="0x00,0xff" access="r" required="m"></attribute>
+          <attribute id="0x0012" name="Number Of ZoneSensitivity Levels Supported" type="u8" range="0x02,0xff" access="r" required="o" default="2"></attribute>
+          <attribute id="0x0013" name="Current Zone SensitivityLevel" type="u8" range="0x00,0xff" access="rw" required="o" default="0"></attribute>
         </attribute-set>
         <attribute-set id="0x8000" description="Develco specific" mfcode="0x1015">
           <attribute id="0x8000" name="Zone Status Interval" type="u16" access="rw" required="o" mfcode="0x1015"></attribute>
