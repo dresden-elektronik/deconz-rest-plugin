@@ -13,6 +13,7 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "colorspace.h"
+#include "device_descriptions.h"
 
 /** @brief Min of A and B */
 #define MIN(A,B)	(((A) <= (B)) ? (A) : (B))
@@ -101,6 +102,43 @@ bool DeRestPluginPrivate::addTaskSetOnOff(TaskItem &task, quint8 cmd, quint16 on
     {
         return false;
     }
+
+    if (task.lightNode && task.lightNode->parentResource())
+    {
+        Device *device = static_cast<Device*>(task.lightNode->parentResource());
+
+        if (device && device->managed())
+        {
+            uint target = 0;
+            ResourceItem *onItem = task.lightNode->item(RStateOn);
+            const auto ddfItem = DDF_GetItem(onItem);
+
+            if (cmd == ONOFF_COMMAND_ON || cmd == ONOFF_COMMAND_ON_WITH_TIMED_OFF)
+            {
+                target = 1;
+            }
+
+            if (!ddfItem.writeParameters.isNull())
+            {
+                StateChange change(StateChange::StateCallFunction, SC_WriteZclAttribute, task.req.dstEndpoint());
+                change.addTargetValue(RStateOn, target);
+                task.lightNode->addStateChange(change);
+                return true;
+            }
+            else // only verify after classic command
+            {
+                StateChange change(StateChange::StateWaitSync, SC_SetOnOff, task.req.dstEndpoint());
+                change.addTargetValue(RStateOn, target);
+                change.addParameter(QLatin1String("cmd"), cmd);
+                if (cmd == ONOFF_COMMAND_ON_WITH_TIMED_OFF)
+                {
+                    change.addParameter(QLatin1String("ontime"), ontime);
+                }
+                task.lightNode->addStateChange(change);
+            }
+        }
+    }
+
     task.taskType = TaskSendOnOffToggle;
     task.onOff = cmd == ONOFF_COMMAND_ON || cmd == ONOFF_COMMAND_ON_WITH_TIMED_OFF; // FIXME - what about ONOFF_COMMAND_TOGGLE ?!
 
@@ -154,6 +192,39 @@ bool DeRestPluginPrivate::addTaskSetOnOff(TaskItem &task, quint8 cmd, quint16 on
  */
 bool DeRestPluginPrivate::addTaskSetBrightness(TaskItem &task, uint8_t bri, bool withOnOff)
 {
+    if (task.lightNode && task.lightNode->parentResource())
+    {
+        Device *device = static_cast<Device*>(task.lightNode->parentResource());
+
+        if (device && device->managed())
+        {
+            uint target = bri;
+            ResourceItem *briItem = task.lightNode->item(RStateBri);
+            const auto ddfItem = DDF_GetItem(briItem);
+
+            if (!ddfItem.writeParameters.isNull())
+            {
+                if (withOnOff) // onoff is a dependency, check if there is a write funtion for it
+                {
+                    ResourceItem *onItem = task.lightNode->item(RStateOn);
+                    const auto ddfItem2 = DDF_GetItem(onItem);
+
+                    if (!ddfItem2.writeParameters.isNull())
+                    {
+                        StateChange change(StateChange::StateCallFunction, SC_WriteZclAttribute, task.req.dstEndpoint());
+                        change.addTargetValue(RStateOn, bri > 0 ? 1 : 0);
+                        task.lightNode->addStateChange(change);
+                    }
+                }
+
+                StateChange change(StateChange::StateCallFunction, SC_WriteZclAttribute, task.req.dstEndpoint());
+                change.addTargetValue(RStateBri, target);
+                task.lightNode->addStateChange(change);
+                return true;
+            }
+        }
+    }
+
     task.taskType = TaskSetLevel;
     task.level = bri;
     task.onOff = withOnOff; // FIXME abuse of taks.onOff
@@ -298,37 +369,6 @@ bool DeRestPluginPrivate::addTaskIncBrightness(TaskItem &task, int16_t bri)
 }
 
 /*!
- * Add a stop brightness task to the queue
- *
- * \param task - the task item
- * \return true - on success
- *         false - on error
- */
-bool DeRestPluginPrivate::addTaskStopBrightness(TaskItem &task)
-{
-    task.taskType = TaskStopLevel;
-    task.req.setClusterId(LEVEL_CLUSTER_ID);
-    task.req.setProfileId(HA_PROFILE_ID);
-
-    task.zclFrame.setSequenceNumber(zclSeq++);
-    task.zclFrame.setCommandId(0x03); // Stop
-
-    task.zclFrame.payload().clear();
-    task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
-                             deCONZ::ZclFCDirectionClientToServer |
-                             deCONZ::ZclFCDisableDefaultResponse);
-
-    { // ZCL frame
-        task.req.asdu().clear(); // cleanup old request data if there is any
-        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
-        stream.setByteOrder(QDataStream::LittleEndian);
-        task.zclFrame.writeToStream(stream);
-    }
-
-    return addTask(task);
-}
-
-/*!
  * Add a set color temperature task to the queue
  *
  * \param task - the task item
@@ -366,8 +406,8 @@ bool DeRestPluginPrivate::addTaskSetColorTemperature(TaskItem &task, uint16_t ct
 
     if (task.lightNode)
     {
-        ResourceItem *ctMin = task.lightNode->item(RConfigCtMin);
-        ResourceItem *ctMax = task.lightNode->item(RConfigCtMax);
+        ResourceItem *ctMin = task.lightNode->item(RCapColorCtMin);
+        ResourceItem *ctMax = task.lightNode->item(RCapColorCtMax);
 
         // keep ct in supported bounds
         if (ctMin && ctMax && ctMin->toNumber() > 0 && ctMax->toNumber() > 0)
@@ -382,7 +422,7 @@ bool DeRestPluginPrivate::addTaskSetColorTemperature(TaskItem &task, uint16_t ct
         }
 
         // If light does not support "ct" but does suport "xy", we can emulate the former:
-        ResourceItem *colorCaps = task.lightNode->item(RConfigColorCapabilities);
+        ResourceItem *colorCaps = task.lightNode->item(RCapColorCapabilities);
         bool supportsXy = colorCaps && colorCaps->toNumber() & 0x0008;
         bool supportsCt = colorCaps && colorCaps->toNumber() & 0x0010;
         bool useXy = supportsXy && !supportsCt;
@@ -984,7 +1024,7 @@ bool DeRestPluginPrivate::addTaskWarning(TaskItem &task, uint8_t options, uint16
  */
 bool DeRestPluginPrivate::addTaskDoorLockUnlock(TaskItem &task, uint8_t cmd)
 {
-    task.taskType = TaskDoorUnlock;
+    task.taskType = TaskDoorLock;
 
     task.req.setClusterId(DOOR_LOCK_CLUSTER_ID);
     task.req.setProfileId(HA_PROFILE_ID);
@@ -1316,8 +1356,8 @@ bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint
                         {
                             quint16 x,y;
                             quint16 enhancedHue = 0;
-                            ResourceItem *ctMin = task.lightNode->item(RConfigCtMin);
-                            ResourceItem *ctMax = task.lightNode->item(RConfigCtMax);
+                            ResourceItem *ctMin = task.lightNode->item(RCapColorCtMin);
+                            ResourceItem *ctMax = task.lightNode->item(RCapColorCtMax);
 
                             if (task.lightNode->modelId().startsWith(QLatin1String("FLS-H")))
                             {

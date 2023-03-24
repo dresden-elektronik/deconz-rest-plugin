@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/presenceevent",
+	"datatype": "String",
+	"access": "R",
+	"public": true,
+	"description": "Describes what current activity is associated with the current presence state"
+}

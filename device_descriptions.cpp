@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2022 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -18,6 +18,7 @@
 #include <deconz/dbg_trace.h>
 #include "device_ddf_init.h"
 #include "device_descriptions.h"
+#include "device_js/device_js.h"
 #include "event.h"
 #include "resource.h"
 
@@ -59,6 +60,7 @@ public:
 
     DeviceDescription invalidDescription;
     DeviceDescription::Item invalidItem;
+    DeviceDescription::SubDevice invalidSubDevice;
 
     QStringList enabledStatusFilter;
 
@@ -76,6 +78,7 @@ static DDF_SubDeviceDescriptor DDF_ReadSubDeviceFile(const QString &path);
 static DeviceDescription DDF_MergeGenericItems(const std::vector<DeviceDescription::Item> &genericItems, const DeviceDescription &ddf);
 static DeviceDescription::Item *DDF_GetItemMutable(const ResourceItem *item);
 static void DDF_UpdateItemHandles(std::vector<DeviceDescription> &descriptions, uint loadCounter);
+static void DDF_TryCompileAndFixJavascript(QString *expr, const QString &path);
 DeviceDescription DDF_LoadScripts(const DeviceDescription &ddf);
 
 /*! Constructor. */
@@ -268,6 +271,14 @@ DeviceDescriptions::DeviceDescriptions(QObject *parent) :
 
     {
         DDF_FunctionDescriptor fn;
+        fn.name = "time";
+        fn.description = "Specialized function to parse time, local and last set time from read/report commands of the time cluster and auto-sync time if needed.";
+
+        d_ptr2->parseFunctions.push_back(fn);
+    }
+
+    {
+        DDF_FunctionDescriptor fn;
         fn.name = "xiaomi:special";
         fn.description = "Generic function to parse custom Xiaomi attributes and commands.";
 
@@ -315,6 +326,53 @@ DeviceDescriptions::DeviceDescriptions(QObject *parent) :
 
         d_ptr2->parseFunctions.push_back(fn);
     }
+
+    {
+        DDF_FunctionDescriptor fn;
+        fn.name = "tuya";
+        fn.description = "Generic function to read all Tuya datapoints. It has no parameters.";
+        d_ptr2->readFunctions.push_back(fn);
+    }
+
+    {
+        DDF_FunctionDescriptor fn;
+        fn.name = "tuya";
+        fn.description = "Generic function to parse Tuya data.";
+
+        DDF_FunctionDescriptor::Parameter param;
+
+        param.name = "Datapoint";
+        param.key = "dpid";
+        param.description = "1-255 the datapoint ID.";
+        param.dataType = DataTypeUInt8;
+        param.defaultValue = 0;
+        param.isOptional = 0;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Javascript file";
+        param.key = "script";
+        param.description = "Relative path of a Javascript .js file.";
+        param.dataType = DataTypeString;
+        param.defaultValue = {};
+        param.isOptional = 1;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Expression";
+        param.key = "eval";
+        param.description = "Javascript expression to transform the raw value.";
+        param.dataType = DataTypeString;
+        param.defaultValue = QLatin1String("Item.val = Attr.val");
+        param.isOptional = 1;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        d_ptr2->parseFunctions.push_back(fn);
+    }
 }
 
 /*! Destructor. */
@@ -330,7 +388,11 @@ DeviceDescriptions::~DeviceDescriptions()
 
 void DeviceDescriptions::setEnabledStatusFilter(const QStringList &filter)
 {
-    d_ptr2->enabledStatusFilter = filter;
+    if (d_ptr2->enabledStatusFilter != filter)
+    {
+        d_ptr2->enabledStatusFilter = filter;
+        DBG_Printf(DBG_INFO, "DDF enabled for %s status\n", qPrintable(filter.join(QLatin1String(", "))));
+    }
 }
 
 const QStringList &DeviceDescriptions::enabledStatusFilter() const
@@ -344,6 +406,15 @@ DeviceDescriptions *DeviceDescriptions::instance()
 {
     Q_ASSERT(_instance);
     return _instance;
+}
+
+bool DDF_IsStatusEnabled(const QString &status)
+{
+    if (_priv)
+    {
+        return _priv->enabledStatusFilter.contains(status, Qt::CaseInsensitive);
+    }
+    return false;
 }
 
 /*! Helper to transform hard C++ coded parse functions to DDF.
@@ -477,23 +548,60 @@ void DeviceDescriptions::handleEvent(const Event &event)
 /*! Get the DDF object for a \p resource.
     \returns The DDF object, DeviceDescription::isValid() to check for success.
  */
-const DeviceDescription &DeviceDescriptions::get(const Resource *resource) const
+const DeviceDescription &DeviceDescriptions::get(const Resource *resource, DDF_MatchControl match) const
 {
     Q_ASSERT(resource);
     Q_ASSERT(resource->item(RAttrModelId));
+    Q_ASSERT(resource->item(RAttrManufacturerName));
 
     Q_D(const DeviceDescriptions);
 
     const auto modelId = resource->item(RAttrModelId)->toString();
+    const auto manufacturer = resource->item(RAttrManufacturerName)->toString();
+    const auto manufacturerConstant = stringToConstant(manufacturer);
 
-    const auto i = std::find_if(d->descriptions.begin(), d->descriptions.end(), [&modelId](const DeviceDescription &ddf)
-    {
-        return ddf.modelIds.contains(modelId);
-    });
+    auto i = d->descriptions.begin();
 
-    if (i != d->descriptions.end())
+    for (;;)
     {
-        return *i;
+        i = std::find_if(i, d->descriptions.end(), [&modelId, &manufacturer, &manufacturerConstant](const DeviceDescription &ddf)
+        {
+            // compare manufacturer name case insensitive
+            const auto m = std::find_if(ddf.manufacturerNames.cbegin(), ddf.manufacturerNames.cend(),
+                                       [&](const auto &x){ return x.compare(manufacturer, Qt::CaseInsensitive) == 0; });
+
+            return (ddf.modelIds.contains(modelId) && (m != ddf.manufacturerNames.cend() || ddf.manufacturerNames.contains(manufacturerConstant)));
+        });
+
+        if (i == d->descriptions.end())
+        {
+            break;
+        }
+
+        if (!i->matchExpr.isEmpty() && match == DDF_EvalMatchExpr)
+        {
+            DeviceJs *djs = DeviceJs::instance();
+            djs->reset();
+            djs->setResource(resource->parentResource() ? resource->parentResource() : resource);
+            if (djs->evaluate(i->matchExpr) == JsEvalResult::Ok)
+            {
+                const auto res = djs->result();
+                DBG_Printf(DBG_DDF, "matchexpr: %s --> %s\n", qPrintable(i->matchExpr), qPrintable(res.toString()));
+                if (res.toBool()) // needs to evaluate to true
+                {
+                    return *i;
+                }
+            }
+            else
+            {
+                DBG_Printf(DBG_DDF, "failed to evaluate matchexpr for %s: %s, err: %s\n", qPrintable(resource->item(RAttrUniqueId)->toString()), qPrintable(i->matchExpr), qPrintable(djs->errorString()));
+            }
+            i++; // proceed search
+        }
+        else
+        {
+            return *i;
+        }
     }
 
     return d->invalidDescription;
@@ -567,6 +675,51 @@ const DeviceDescription &DeviceDescriptions::load(const QString &path)
     }
 
     return d->invalidDescription;
+}
+
+/*! Returns the DDF sub device belonging to a resource. */
+const DeviceDescription::SubDevice &DeviceDescriptions::getSubDevice(const Resource *resource) const
+{
+    Q_D(const DeviceDescriptions);
+
+    if (resource)
+    {
+        ItemHandlePack h;
+        for (int i = 0; i < resource->itemCount(); i++)
+        {
+            const ResourceItem *item = resource->itemForIndex(size_t(i));
+            assert(item);
+
+            h.handle = item->ddfItemHandle();
+            if (h.handle == DeviceDescription::Item::InvalidItemHandle)
+            {
+                continue;
+            }
+
+            if (h.loadCounter != d->loadCounter)
+            {
+                return d->invalidSubDevice;
+            }
+
+            DBG_Assert(h.description < d->descriptions.size());
+            if (h.description >= d->descriptions.size())
+            {
+                return d->invalidSubDevice;
+            }
+
+            auto &ddf = d->descriptions[h.description];
+
+            DBG_Assert(h.subDevice < ddf.subDevices.size());
+            if (h.subDevice >= ddf.subDevices.size())
+            {
+                return d->invalidSubDevice;
+            }
+
+            return ddf.subDevices[h.subDevice];
+        }
+    }
+
+    return d->invalidSubDevice;
 }
 
 /*! Turns a string constant into it's value.
@@ -794,6 +947,65 @@ static void DDF_UpdateItemHandles(std::vector<DeviceDescription> &descriptions, 
     }
 }
 
+/*! Temporary workaround since DuktapeJS doesn't support 'let', try replace it with 'var'.
+
+    The fix only applies if the JS doesn't compile and after the modified version successfully
+    compiles. Can be removed onces all DDFs have been updated.
+
+    Following cases are fixed:
+
+    '^let '   // let at begin of the expression
+    ' let '
+    '\nlet '
+    '\tlet '
+    '(let '   // let within a scope like: for (let i=0; i < 3; i++) {...}
+*/
+static void DDF_TryCompileAndFixJavascript(QString *expr, const QString &path)
+{
+#ifdef USE_DUKTAPE_JS_ENGINE
+    if (DeviceJs::instance()->testCompile(*expr) == JsEvalResult::Ok)
+    {
+        return;
+    }
+
+    int idx = 0;
+    int nfixes = 0;
+    QString fix = *expr;
+    const QString letSearch("let");
+
+    for ( ; idx != -1; )
+    {
+        idx = fix.indexOf(letSearch, idx);
+        if (idx < 0)
+        {
+            break;
+        }
+
+        if (idx == 0 || fix.at(idx - 1).isSpace() || fix.at(idx - 1) == '(')
+        {
+            fix[idx + 0] = 'v';
+            fix[idx + 1] = 'a';
+            fix[idx + 2] = 'r';
+            idx += 4;
+            nfixes++;
+        }
+    }
+
+    if (nfixes > 0 && DeviceJs::instance()->testCompile(fix) == JsEvalResult::Ok)
+    {
+        *expr = fix;
+        return;
+    }
+
+    // if we get here, the expressions has other problems, print compile error and path
+    DBG_Printf(DBG_DDF, "DDF failed to compile JS: %s\n%s\n", qPrintable(path), qPrintable(DeviceJs::instance()->errorString()));
+
+#else
+    Q_UNUSED(expr)
+    Q_UNUSED(path)
+#endif
+}
+
 /*! Reads all DDF related files.
  */
 void DeviceDescriptions::readAll()
@@ -915,7 +1127,7 @@ void DeviceDescriptions::handleDDFInitRequest(const Event &event)
         {
             result = 0;
 
-            if (!DEV_TestManaged() && !d->enabledStatusFilter.contains(ddf.status))
+            if (!DEV_TestManaged() && !DDF_IsStatusEnabled(ddf.status))
             {
                 result = 2;
             }
@@ -983,7 +1195,7 @@ static bool DDF_ReadConstantsJson(const QString &path, std::map<QString,QString>
 
     if (!doc.isObject())
     {
-        DBG_Printf(DBG_INFO, "failed to read device constants: %s, err: %s, offset: %d\n", qPrintable(path), qPrintable(error.errorString()), error.offset);
+        DBG_Printf(DBG_INFO, "DDF failed to read device constants: %s, err: %s, offset: %d\n", qPrintable(path), qPrintable(error.errorString()), error.offset);
         return false;
     }
 
@@ -1021,6 +1233,11 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
         result.name = obj.value(QLatin1String("id")).toString().toUtf8().constData();
     }
 
+    // Handle deprecated names/ids
+    if (result.name == RConfigColorCapabilities) { result.name = RCapColorCapabilities; }
+    if (result.name == RConfigCtMax) { result.name = RCapColorCtMax; }
+    if (result.name == RConfigCtMin) { result.name = RCapColorCtMin; }
+
     if (obj.contains(QLatin1String("description")))
     {
         result.description = obj.value(QLatin1String("description")).toString();
@@ -1032,8 +1249,6 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
     }
     else if (getResourceItemDescriptor(result.name, result.descriptor))
     {
-        DBG_Printf(DBG_INFO, "DDF: loaded resource item descriptor: %s\n", result.descriptor.suffix);
-
         if (obj.contains(QLatin1String("access")))
         {
             const auto access = obj.value(QLatin1String("access")).toString();
@@ -1050,6 +1265,7 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
         if (obj.contains(QLatin1String("public")))
         {
             result.isPublic = obj.value(QLatin1String("public")).toBool() ? 1 : 0;
+            result.hasIsPublic = 1;
         }
 
         if (obj.contains(QLatin1String("implicit")))
@@ -1067,43 +1283,47 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
             result.isManaged = obj.value(QLatin1String("managed")).toBool() ? 1 : 0;
         }
 
-        if (obj.contains(QLatin1String("refresh.interval")))
-        {
-            result.refreshInterval = obj.value(QLatin1String("refresh.interval")).toInt(0);
-        }
-
-        const auto parse = obj.value(QLatin1String("parse"));
-        if (parse.isObject())
-        {
-            result.parseParameters = parse.toVariant();
-        }
-
-        const auto read = obj.value(QLatin1String("read"));
-        if (read.isObject())
-        {
-            result.readParameters = read.toVariant();
-        }
-
-        const auto write = obj.value(QLatin1String("write"));
-        if (write.isObject())
-        {
-            result.writeParameters = write.toVariant();
-        }
-
         if (obj.contains(QLatin1String("static")))
         {
             result.isStatic = 1;
             result.defaultValue = obj.value(QLatin1String("static")).toVariant();
         }
-
-        if (obj.contains(QLatin1String("default")))
+        else
         {
-            result.defaultValue = obj.value(QLatin1String("default")).toVariant();
+            if (obj.contains(QLatin1String("default")))
+            {
+                result.defaultValue = obj.value(QLatin1String("default")).toVariant();
+            }
+
+            const auto parse = obj.value(QLatin1String("parse"));
+            if (parse.isObject())
+            {
+                result.parseParameters = parse.toVariant();
+            }
+
+            const auto read = obj.value(QLatin1String("read"));
+            if (read.isObject())
+            {
+                result.readParameters = read.toVariant();
+            }
+
+            if (obj.contains(QLatin1String("refresh.interval")))
+            {
+                result.refreshInterval = obj.value(QLatin1String("refresh.interval")).toInt(0);
+            }
+
+            const auto write = obj.value(QLatin1String("write"));
+            if (write.isObject())
+            {
+                result.writeParameters = write.toVariant();
+            }
         }
+
+        DBG_Printf(DBG_DDF, "DDF loaded resource item descriptor: %s, public: %u\n", result.descriptor.suffix, (result.isPublic ? 1 : 0));
     }
     else
     {
-        DBG_Printf(DBG_INFO, "DDF: failed to load resource item descriptor: %s\n", result.name.c_str());
+        DBG_Printf(DBG_DDF, "DDF failed to load resource item descriptor: %s\n", result.name.c_str());
     }
 
     return result;
@@ -1126,6 +1346,15 @@ static DeviceDescription::SubDevice DDF_ParseSubDevice(const QJsonObject &obj)
     if (result.restApi.isEmpty())
     {
         return result;
+    }
+
+    if (obj.contains(QLatin1String("meta")))
+    {
+        auto meta = obj.value(QLatin1String("meta"));
+        if (meta.isObject())
+        {
+            result.meta = meta.toVariant().toMap();
+        }
     }
 
     const auto uniqueId = obj.value(QLatin1String("uuid"));
@@ -1456,10 +1685,15 @@ static DeviceDescription DDF_ParseDeviceObject(const QJsonObject &obj, const QSt
         result.sleeper = obj.value(QLatin1String("sleeper")).toBool() ? 1 : 0;
     }
 
+    if (obj.contains(QLatin1String("matchexpr")))
+    {
+        result.matchExpr = obj.value(QLatin1String("matchexpr")).toString();
+    }
+
     const auto keys = obj.keys();
     for (const auto &key : keys)
     {
-        DBG_Printf(DBG_INFO, "DDF: %s: %s\n", qPrintable(key), qPrintable(obj.value(key).toString()));
+        DBG_Printf(DBG_DDF, "DDF %s: %s\n", qPrintable(key), qPrintable(obj.value(key).toString()));
     }
 
     const auto subDevicesArr = subDevices.toArray();
@@ -1517,7 +1751,7 @@ static DeviceDescription::Item DDF_ReadItemFile(const QString &path)
 
     if (error.error != QJsonParseError::NoError)
     {
-        DBG_Printf(DBG_INFO, "DDF: failed to read %s, err: %s, offset: %d\n", qPrintable(path), qPrintable(error.errorString()), error.offset);
+        DBG_Printf(DBG_DDF, "DDF failed to read %s, err: %s, offset: %d\n", qPrintable(path), qPrintable(error.errorString()), error.offset);
         return { };
     }
 
@@ -1553,7 +1787,7 @@ static DDF_SubDeviceDescriptor DDF_ReadSubDeviceFile(const QString &path)
 
     if (error.error != QJsonParseError::NoError)
     {
-        DBG_Printf(DBG_INFO, "DDF: failed to read %s, err: %s, offset: %d\n", qPrintable(path), qPrintable(error.errorString()), error.offset);
+        DBG_Printf(DBG_DDF, "DDF failed to read %s, err: %s, offset: %d\n", qPrintable(path), qPrintable(error.errorString()), error.offset);
         return result;
     }
 
@@ -1632,7 +1866,7 @@ QVariant DDF_ResolveParamScript(const QVariant &param, const QString &path)
 
     auto map = param.toMap();
 
-    if (map.contains("script"))
+    if (map.contains(QLatin1String("script")))
     {
         const auto script = map["script"].toString();
 
@@ -1641,12 +1875,23 @@ QVariant DDF_ResolveParamScript(const QVariant &param, const QString &path)
 
         if (f.exists() && f.open(QFile::ReadOnly))
         {
-            const auto content = f.readAll();
+            QString content = f.readAll();
             if (!content.isEmpty())
             {
+                DDF_TryCompileAndFixJavascript(&content, path);
                 map["eval"] = content;
                 result = std::move(map);
             }
+        }
+    }
+    else if (map.contains(QLatin1String("eval")))
+    {
+        QString content = map[QLatin1String("eval")].toString();
+        if (!content.isEmpty())
+        {
+            DDF_TryCompileAndFixJavascript(&content, path);
+            map[QLatin1String("eval")] = content;
+            result = std::move(map);
         }
     }
 
@@ -1694,7 +1939,7 @@ static std::vector<DeviceDescription> DDF_ReadDeviceFile(const QString &path)
 
     if (error.error != QJsonParseError::NoError)
     {
-        DBG_Printf(DBG_INFO, "DDF: failed to read %s, err: %s, offset: %d\n", qPrintable(path), qPrintable(error.errorString()), error.offset);
+        DBG_Printf(DBG_DDF, "DDF failed to read %s, err: %s, offset: %d\n", qPrintable(path), qPrintable(error.errorString()), error.offset);
         return result;
     }
 
@@ -1753,17 +1998,25 @@ static DeviceDescription DDF_MergeGenericItems(const std::vector<DeviceDescripti
             item.isGenericWrite = 0;
             item.isGenericParse = 0;
 
-            if (item.readParameters.isNull()) { item.readParameters = genItem->readParameters; item.isGenericRead = 1; }
-            if (item.writeParameters.isNull()) { item.writeParameters = genItem->writeParameters; item.isGenericWrite = 1; }
-            if (item.parseParameters.isNull()) { item.parseParameters = genItem->parseParameters; item.isGenericParse = 1; }
+            if (!item.isStatic)
+            {
+                if (item.readParameters.isNull()) { item.readParameters = genItem->readParameters; item.isGenericRead = 1; }
+                if (item.writeParameters.isNull()) { item.writeParameters = genItem->writeParameters; item.isGenericWrite = 1; }
+                if (item.parseParameters.isNull()) { item.parseParameters = genItem->parseParameters; item.isGenericParse = 1; }
+                if (item.refreshInterval == DeviceDescription::Item::NoRefreshInterval && genItem->refreshInterval != item.refreshInterval)
+                {
+                    item.refreshInterval = genItem->refreshInterval;
+                }
+            }
+
             if (item.descriptor.access == ResourceItemDescriptor::Access::Unknown)
             {
                 item.descriptor.access = genItem->descriptor.access;
             }
-            item.isPublic = genItem->isPublic;
-            if (item.refreshInterval == DeviceDescription::Item::NoRefreshInterval && genItem->refreshInterval != item.refreshInterval)
+
+            if (!item.hasIsPublic)
             {
-                item.refreshInterval = genItem->refreshInterval;
+                item.isPublic = genItem->isPublic;
             }
 
             if (!item.defaultValue.isValid() && genItem->defaultValue.isValid())
@@ -1795,7 +2048,7 @@ uint8_t DDF_GetSubDeviceOrder(const QString &type)
     }
 
 #ifdef QT_DEBUG
-    DBG_Printf(DBG_DDF, "DDF: No subdevice for type: %s\n", qPrintable(type));
+    DBG_Printf(DBG_DDF, "DDF No subdevice for type: %s\n", qPrintable(type));
 #endif
 
     return SUBDEVICE_DEFAULT_ORDER;

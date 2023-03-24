@@ -78,7 +78,7 @@ void DeRestPluginPrivate::handleFanControlClusterIndication(const deCONZ::ApsDat
             case FAN_CTRL_ATTRID_FAN_MODE:
             {
                 if (sensor->modelId() == QLatin1String("AC201") ||     // Owon
-                    sensor->modelId() == QLatin1String("3157100") ||   // Centralite pearl
+                    sensor->modelId().startsWith(QLatin1String("3157100")) ||   // Centralite pearl
                     sensor->modelId() == QLatin1String("Zen-01"))      // Zen
                 {
                     qint8 mode = attr.numericValue().u8;

@@ -61,6 +61,10 @@ struct RestData
     bool valid = false;
 };
 
+unsigned U_StringLength(const char *str);
+uint64_t U_ParseUint64(const char *str, int len, int base);
+
+
 QString generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId);
 bool startsWith(QLatin1String str, QLatin1String needle);
 int indexOf(QLatin1String haystack, QLatin1String needle);
@@ -107,6 +111,7 @@ decltype(auto) lessThenKeyValue(const K &key, const Cont &cont)
 
 const deCONZ::Node *getCoreNode(quint64 extAddress, deCONZ::ApsController *apsCtrl);
 quint64 extAddressFromUniqueId(const QString &uniqueId);
+unsigned endpointFromUniqueId(const QString &uniqueId);
 
 bool copyString(char *dst, size_t dstSize, const char *src, ssize_t srcSize = -1);
 inline bool isEmptyString(const char *str) { return str && str[0] == '\0'; }

@@ -1,0 +1,9 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/deviceruntime",
+	"datatype": "UInt32",
+	"access": "R",
+	"public": true,
+	"default": 0,
+	"description": "Device run time in minutes."
+}

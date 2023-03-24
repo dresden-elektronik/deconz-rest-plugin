@@ -4,5 +4,6 @@
 	"datatype": "Bool",
 	"access": "R",
 	"public": true,
-	"description": "True when <code class=\"api-attribute\">lightlevel</code> suits daylight according <code class=\"api-attribute\">tholddark</code> and <code class=\"api-attribute\">tholdoffset</code> configuration."
+	"description": "True when <code class=\"api-attribute\">lightlevel</code> suits daylight according <code class=\"api-attribute\">tholddark</code> and <code class=\"api-attribute\">tholdoffset</code> configuration.",
+	"default": false
 }

@@ -1,0 +1,16 @@
+{
+    "schema": "resourceitem1.schema.json",
+    "id": "attr/productid",
+    "datatype": "String",
+    "access": "R",
+    "public": true,
+    "description": "Product identifier of the device.",
+    "parse": {
+        "fn": "zcl", "ep": "0x0b", "cl": "0x0000", "mf": "0x100b", "at": "0x0040",
+        "eval": "Item.val = Attr.val"
+    },
+    "read": {
+        "fn": "zcl", "ep": "0x0b", "cl": "0x0000", "mf": "0x100b", "at": "0x0040"
+    },
+    "refresh.interval": 86400
+}

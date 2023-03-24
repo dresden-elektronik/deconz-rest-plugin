@@ -90,6 +90,7 @@ using namespace deCONZ::literals;
 #define IDLE_ATTR_REPORT_BIND_LIMIT_SHORT 5
 #define BUTTON_ATTR_REPORT_BIND_LIMIT 120
 #define WARMUP_TIME 120
+#define RULE_CHECK_DELAY 4 // seconds
 
 #define MAX_UNLOCK_GATEWAY_TIME 600
 #define MAX_RECOVER_ENTRY_AGE 600
@@ -192,6 +193,7 @@ using namespace deCONZ::literals;
 #define ANALOG_OUTPUT_CLUSTER_ID              0x000D
 #define BINARY_INPUT_CLUSTER_ID               0x000F
 #define MULTISTATE_INPUT_CLUSTER_ID           0x0012
+#define MULTISTATE_OUTPUT_CLUSTER_ID          0x0013
 #define OTAU_CLUSTER_ID                       0x0019
 #define POLL_CONTROL_CLUSTER_ID               0x0020
 #define DOOR_LOCK_CLUSTER_ID                  0x0101
@@ -223,7 +225,9 @@ using namespace deCONZ::literals;
 #define DEVELCO_AIR_QUALITY_CLUSTER_ID        0xFC03
 #define SENGLED_CLUSTER_ID                    0xFC10
 #define LEGRAND_CONTROL_CLUSTER_ID            0xFC40
+#define XIAOMI_CLUSTER_ID                     0xFCC0
 #define ADUROLIGHT_CLUSTER_ID                 0xFCCC
+#define XIAOYAN_CLUSTER_ID                    0xFCCC
 #define XAL_CLUSTER_ID                        0xFCCE
 #define BOSCH_AIR_QUALITY_CLUSTER_ID          quint16(0xFDEF)
 
@@ -251,6 +255,9 @@ using namespace deCONZ::literals;
 #define WINDOW_COVERING_COMMAND_STOP          0x02
 #define WINDOW_COVERING_COMMAND_GOTO_LIFT_PCT 0x05
 #define WINDOW_COVERING_COMMAND_GOTO_TILT_PCT 0x08
+
+#define XIAOYAN_ATTRID_ROTATION_ANGLE      0x001B
+#define XIAOYAN_ATTRID_DURATION            0x001A
 
 #define MULTI_STATE_INPUT_PRESENT_VALUE_ATTRIBUTE_ID quint16(0x0055)
 
@@ -295,15 +302,12 @@ using namespace deCONZ::literals;
 #define WRITE_OCCUPANCY_CONFIG (1 << 11)
 #define READ_GROUP_IDENTIFIERS (1 << 12)
 #define WRITE_DELAY            (1 << 13)
-#define WRITE_LEDINDICATION    (1 << 14)
 #define WRITE_SENSITIVITY      (1 << 15)
-#define WRITE_USERTEST         (1 << 16)
 #define READ_THERMOSTAT_STATE  (1 << 17)
 #define READ_BATTERY           (1 << 18)
 #define READ_TIME              (1 << 19)
 #define WRITE_TIME             (1 << 20)
 #define READ_THERMOSTAT_SCHEDULE (1 << 21)
-#define WRITE_DEVICEMODE       (1 << 22)
 
 #define READ_MODEL_ID_INTERVAL   (60 * 60) // s
 #define READ_SWBUILD_ID_INTERVAL (60 * 60) // s
@@ -372,6 +376,7 @@ using namespace deCONZ::literals;
 #define VENDOR_SINOPE               0x119C
 #define VENDOR_JIUZHOU              0x119D
 #define VENDOR_PAULMANN             0x119D // branded
+#define VENDOR_BOSCH3               0x1209
 #define VENDOR_HEIMAN               0x120B
 #define VENDOR_CHINA_FIRE_SEC       0x1214
 #define VENDOR_MUELLER              0x121B // Used by Mueller Licht
@@ -464,6 +469,7 @@ using namespace deCONZ::literals;
 #define DB_HUGE_SAVE_DELAY  (60 * 60 * 1000) // 60 minutes
 #define DB_LONG_SAVE_DELAY  (15 * 60 * 1000) // 15 minutes
 #define DB_SHORT_SAVE_DELAY (1 *  60 * 1000) // 1 minute
+#define DB_FAST_SAVE_DELAY (1 * 1000) // 1 second
 
 #define DB_CONNECTION_TTL (60 * 15) // 15 minutes
 
@@ -510,6 +516,7 @@ extern const quint64 silabs7MacPrefix;
 extern const quint64 silabs8MacPrefix;
 extern const quint64 silabs9MacPrefix;
 extern const quint64 silabs10MacPrefix;
+extern const quint64 silabs11MacPrefix;
 extern const quint64 silabs12MacPrefix;
 extern const quint64 silabs13MacPrefix;
 extern const quint64 instaMacPrefix;
@@ -718,6 +725,7 @@ extern const char *HttpContentSVG;
 // Forward declarations
 class DeviceDescriptions;
 class DeviceWidget;
+class DeviceJs;
 class Gateway;
 class GatewayScanner;
 class QUdpSocket;
@@ -853,13 +861,13 @@ enum TaskType
     TaskIncBrightness = 35,
     TaskWindowCovering = 36,
     TaskThermostat = 37,
-    // Danalock support
-    TaskDoorLock = 38,
-    TaskDoorUnlock = 39,
+    TaskDoorLock = 38, // Danalock support
+    TaskHueGradient = 45,
     TaskSyncTime = 40,
     TaskTuyaRequest = 41,
     TaskXmasLightStrip = 42,
-    TaskSimpleMetering = 43
+    TaskSimpleMetering = 43,
+    TaskHueEffect = 44
 };
 
 enum XmasLightStripMode
@@ -979,6 +987,7 @@ enum ApiVersion
     ApiVersion_1_DDEL,   //!< version 1.0, "Accept: application/vnd.ddel.v1"
     ApiVersion_1_1_DDEL, //!< version 1.1, "Accept: application/vnd.ddel.v1.1"
     ApiVersion_2_DDEL,   //!< version 2.0, "Accept: application/vnd.ddel.v2"
+    ApiVersion_3_DDEL    //!< version 3.0, "Accept: application/vnd.ddel.v3"
 };
 
 enum ApiAuthorisation
@@ -1136,9 +1145,11 @@ public:
     int getLightData(const ApiRequest &req, ApiResponse &rsp);
     int getLightState(const ApiRequest &req, ApiResponse &rsp);
     int setLightState(const ApiRequest &req, ApiResponse &rsp);
+    int setLightConfig(const ApiRequest &req, ApiResponse &rsp);
     int setWindowCoveringState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
     int setWarningDeviceState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
     int setTuyaDeviceState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
+    int setDoorLockState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
     int setLightAttributes(const ApiRequest &req, ApiResponse &rsp);
     int deleteLight(const ApiRequest &req, ApiResponse &rsp);
     int removeAllScenes(const ApiRequest &req, ApiResponse &rsp);
@@ -1280,6 +1291,7 @@ public Q_SLOTS:
     void apsdeDataIndicationDevice(const deCONZ::ApsDataIndication &ind, Device *device);
     void apsdeDataIndication(const deCONZ::ApsDataIndication &ind);
     void apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf);
+    void apsdeDataRequestEnqueued(const deCONZ::ApsDataRequest &req);
     void gpDataIndication(const deCONZ::GpDataIndication &ind);
     void gpProcessButtonEvent(const deCONZ::GpDataIndication &ind);
     void configurationChanged();
@@ -1339,11 +1351,9 @@ public Q_SLOTS:
     void pollNextDevice();
 
     // database
-#if DECONZ_LIB_VERSION >= 0x010E00
     void storeSourceRoute(const deCONZ::SourceRoute &sourceRoute);
     void deleteSourceRoute(const QString &uuid);
     void restoreSourceRoutes();
-#endif
 
     // touchlink
     void touchlinkDisconnectNetwork();
@@ -1512,7 +1522,6 @@ public:
     bool addTaskSetBrightness(TaskItem &task, uint8_t bri, bool withOnOff);
     bool addTaskIncColorTemperature(TaskItem &task, int32_t ct);
     bool addTaskIncBrightness(TaskItem &task, int16_t bri);
-    bool addTaskStopBrightness(TaskItem &task);
     bool addTaskSetColorTemperature(TaskItem &task, uint16_t ct);
     bool addTaskSetEnhancedHue(TaskItem &task, uint16_t hue);
     bool addTaskSetSaturation(TaskItem &task, uint8_t sat);
@@ -1548,13 +1557,20 @@ public:
     bool addTaskFanControlReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode=0);
     bool addTaskSimpleMeteringReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode=0);
 
+    // Advanced features of Hue lights.
+    QStringList getHueEffectNames(quint64 effectBitmap);
+    QStringList getHueGradientStyleNames(quint16 styleBitmap);
+    bool addTaskHueEffect(TaskItem &task, QString &effect);
+    bool validateHueGradient(const ApiRequest &req, ApiResponse &rsp, QVariantMap &gradient, quint16 styleBitmap);
+    bool addTaskHueGradient(TaskItem &task, QVariantMap &gradient);
+
     // Merry Christmas!
-    bool isXmasLightStrip(LightNode *lightNode);
+    bool isXmasLightStrip(const LightNode *lightNode);
     bool addTaskXmasLightStripOn(TaskItem &task, bool on);
     bool addTaskXmasLightStripMode(TaskItem &task, XmasLightStripMode mode);
     bool addTaskXmasLightStripWhite(TaskItem &task, quint8 bri);
     bool addTaskXmasLightStripColour(TaskItem &task, quint16 hue, quint8 sat, quint8 bri);
-    bool addTaskXmasLightStripEffect(TaskItem &task, XmasLightStripEffect effect, quint8 speed, QList<QList<quint8>> &colours);
+    bool addTaskXmasLightStripEffect(TaskItem &task, XmasLightStripEffect effect, quint8 speed, const QList<QList<quint8> > &colours);
     int setXmasLightStripState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
 
     void handleGroupClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
@@ -1579,7 +1595,6 @@ public:
     void handleBindAndUnbindRspIndication(const deCONZ::ApsDataIndication &ind);
     void handleMgmtLeaveRspIndication(const deCONZ::ApsDataIndication &ind);
     void handleMgmtLqiRspIndication(const deCONZ::ApsDataIndication &ind);
-    void handleDEClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleXalClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleWindowCoveringClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handlePollControlIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
@@ -1595,8 +1610,7 @@ public:
     void sendTimeClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleBasicClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendBasicClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    void handlePhilipsClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, Device *device);
-    void handleTuyaClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleTuyaClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, Device *device);
     void handleZclAttributeReportIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclConfigureReportingResponseIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void taskToLocalData(const TaskItem &task);
@@ -1609,7 +1623,6 @@ public:
     bool deserialiseThermostatSchedule(const QString &s, QVariantMap *schedule);
     void handleSimpleMeteringClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
     void handleElectricalMeasurementClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
-    void handleXiaoyanClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleXiaomiLumiClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleOccupancySensingClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
     void handlePowerConfigurationClusterIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
@@ -1887,7 +1900,6 @@ public:
     int otauIdleTicks;
     int otauBusyTicks;
     int otauIdleTotalCounter;
-    int otauUnbindIdleTotalCounter;
 
     // touchlink
 
@@ -2073,6 +2085,7 @@ public:
     std::vector<Resourcelinks> resourcelinks;
 
     // rules
+    int needRuleCheck;
     std::vector<int> fastRuleCheck;
     QTimer *fastRuleCheckTimer;
 
@@ -2130,6 +2143,7 @@ public:
     std::vector<BindingTableReader> bindingTableReaders;
 
     DeviceDescriptions *deviceDescriptions = nullptr;
+    DeviceJs *deviceJs = nullptr;
 
     // IAS
     std::unique_ptr<AS_DeviceTable> alarmSystemDeviceTable;

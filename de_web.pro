@@ -6,12 +6,17 @@ TARGET = $$qtLibraryTarget($$TARGET)
 
 DEFINES += DECONZ_DLLSPEC=Q_DECL_IMPORT
 
+# select Javascript engine
+#DEFINES += USE_QT_JS_ENGINE
+DEFINES += USE_DUKTAPE_JS_ENGINE
+
 QMAKE_CXXFLAGS += -Wno-attributes \
                   -Wno-psabi \
                   -Wall
 
 CONFIG(debug, debug|release) {
     LIBS += -L../../debug
+    DEFINES += DECONZ_DEBUG_BUILD
 }
 
 CONFIG(release, debug|release) {
@@ -68,7 +73,8 @@ CONFIG         += plugin \
                += c++14 \
                -= qtquickcompiler
 
-QT             += network qml
+QT             += network
+#QT             += qml
 
 INCLUDEPATH    += ../.. \
                   ../../common
@@ -87,7 +93,7 @@ GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.14.00\\\"
+DEFINES += GW_SW_VERSION=\\\"2.21.01\\\"
 DEFINES += GW_SW_DATE=$$GIT_COMMIT_DATE
 DEFINES += GW_API_VERSION=\\\"1.16.0\\\"
 DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
@@ -96,8 +102,8 @@ DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
 # which shall be used in order to support all features for this software release (case sensitive)
 DEFINES += GW_AUTO_UPDATE_AVR_FW_VERSION=0x260b0500
 DEFINES += GW_AUTO_UPDATE_R21_FW_VERSION=0x26420700
-DEFINES += GW_MIN_AVR_FW_VERSION=0x26390500
-DEFINES += GW_MIN_R21_FW_VERSION=0x26660700
+DEFINES += GW_MIN_AVR_FW_VERSION=0x26400500
+DEFINES += GW_MIN_R21_FW_VERSION=0x26720700
 
 # Minimum version of the deRFusb23E0X firmware
 # which shall be used in order to support all features for this software release
@@ -128,6 +134,7 @@ HEADERS  = bindings.h \
            device_ddf_init.h \
            device_descriptions.h \
            device_js/device_js.h \
+           device_js/device_js_duktape.h \
            device_js/device_js_wrappers.h \
            device_tick.h \
            event.h \
@@ -142,7 +149,6 @@ HEADERS  = bindings.h \
            ias_ace.h \
            ias_zone.h \
            light_node.h \
-           mfspecific_cluster_xiaoyan.h \
            poll_control.h \
            poll_manager.h \
            product_match.h \
@@ -198,7 +204,9 @@ SOURCES  = air_quality.cpp \
            device_ddf_init.cpp \
            device_descriptions.cpp \
            device_js/device_js.cpp \
+           device_js/device_js_duktape.cpp \
            device_js/device_js_wrappers.cpp \
+           device_js/duktape.c \
            device_setup.cpp \
            device_tick.cpp \
            diagnostics.cpp \
@@ -218,12 +226,12 @@ SOURCES  = air_quality.cpp \
            group.cpp \
            group_info.cpp \
            gw_uuid.cpp \
+           hue.cpp \
            ias_ace.cpp \
            ias_zone.cpp \
            identify.cpp \
            json.cpp \
            light_node.cpp \
-           mfspecific_cluster_xiaoyan.cpp \
            occupancy_sensing.cpp \
            poll_control.cpp \
            poll_manager.cpp \

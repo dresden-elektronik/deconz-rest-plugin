@@ -1,0 +1,12 @@
+{
+    "schema": "resourceitem1.schema.json",
+    "id": "cap/color/gradient/max_segments",
+    "datatype": "UInt8",
+    "access": "R",
+    "public": true,
+    "description": "Number of segments on Hue gradient light.",
+    "parse": {
+        "fn": "zcl", "ep": "0x0b", "cl": "0xfc03", "mf": "0x100b", "at": "0x0036",
+        "eval": "Item.val = Attr.val >> 3"
+    }
+}

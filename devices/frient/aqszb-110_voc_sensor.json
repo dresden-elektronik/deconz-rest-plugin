@@ -3,10 +3,9 @@
   "manufacturername": "frient A/S",
   "modelid": "AQSZB-110",
   "vendor": "Develco Products",
-  "product": "AQSZB-110",
+  "product": "AQSZB-110 TVOC sensor",
   "sleeper": true,
   "status": "Gold",
-  "path": "/devices/frient/aqszb-110_voc_sensor.json",
   "subdevices": [
     {
       "type": "$TYPE_AIR_QUALITY_SENSOR",
@@ -53,13 +52,15 @@
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 38,
-            "fn": "zcl"
+            "fn": "zcl",
+            "mf": "0x1015"
           },
           "parse": {
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 38,
             "fn": "zcl",
+            "mf": "0x1015",
             "script": "develco_firmware.js"
           }
         },
@@ -94,7 +95,7 @@
             "ep": 38,
             "fn": "zcl",
             "mf": "0x1015",
-            "eval": "Item.val = Attr.val;"
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val; }"
           }
         },
         {
@@ -157,13 +158,15 @@
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 38,
-            "fn": "zcl"
+            "fn": "zcl",
+            "mf": "0x1015"
           },
           "parse": {
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 38,
             "fn": "zcl",
+            "mf": "0x1015",
             "script": "develco_firmware.js"
           }
         },
@@ -185,7 +188,6 @@
         },
         {
           "name": "config/offset",
-          "description": "Relative offset to the main measured value.",
           "default": 0
         },
         {
@@ -249,13 +251,15 @@
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 38,
-            "fn": "zcl"
+            "fn": "zcl",
+            "mf": "0x1015"
           },
           "parse": {
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 38,
             "fn": "zcl",
+            "mf": "0x1015",
             "script": "develco_firmware.js"
           }
         },

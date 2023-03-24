@@ -15,6 +15,54 @@
 #include "utils.h"
 #include "resource.h"
 
+unsigned U_StringLength(const char *str)
+{
+    unsigned result = 0;
+
+    if (str && str[0])
+    {
+        result = (unsigned)strlen(str);
+    }
+
+    return result;
+}
+
+uint64_t U_ParseUint64(const char *str, int len, int base)
+{
+    uint64_t result = 0;
+
+    DBG_Assert(str != nullptr);
+    DBG_Assert(len == -1 || len > 0);
+
+    if (!str || !(len == -1 || len > 0))
+    {
+        return result;
+    }
+
+    if (!(base == 2 || base == 10 || base == 16))
+    {
+        return result;
+    }
+
+    if (len == -1)
+    {
+        len = (int)U_StringLength(str);
+    }
+
+    if (len > 0)
+    {
+        char *endp;
+        errno = 0;
+        result = (uint64_t)strtoull(str, &endp, base);
+        if (errno != 0)
+        {
+            result = 0;
+        }
+    }
+
+    return result;
+}
+
 /*! Generates a new uniqueid in various formats based on the input parameters.
 
     extAddress           endpoint  cluster    result
@@ -147,7 +195,7 @@ bool startsWith(QLatin1String str, QLatin1String needle)
 RestData verifyRestData(const ResourceItemDescriptor &rid, const QVariant &val)
 {
     bool ok;
-    RestData data;
+    RestData data {};
 
     if (rid.qVariantType == val.type())
     {
@@ -308,6 +356,36 @@ quint64 extAddressFromUniqueId(const QString &uniqueId)
     }
 
     if (pos == 16)
+    {
+        result = strtoull(buf, nullptr, 16);
+    }
+
+    return result;
+}
+
+unsigned endpointFromUniqueId(const QString &uniqueId)
+{
+    unsigned result = 0;
+
+    if (uniqueId.size() < 26)
+    {
+        return result;
+    }
+
+    // 28:6d:97:00:01:06:41:79-01-0500  31 characters
+
+    if (uniqueId.at(23) != '-') // expect delimeter before endpoint
+    {
+        return result;
+    }
+
+    char buf[2 + 1];
+
+    buf[0] = uniqueId.at(24).toLatin1();
+    buf[1] = uniqueId.at(25).toLatin1();
+    buf[2] = '\0';
+
+    if (isHexChar(buf[0]) && isHexChar(buf[1]))
     {
         result = strtoull(buf, nullptr, 16);
     }

@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "attr/powerup",
+	"datatype": "UInt32",
+	"access": "RW",
+	"public": true,
+	"description": "Powerup mode of a device."
+}

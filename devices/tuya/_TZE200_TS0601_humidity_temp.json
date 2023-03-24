@@ -1,0 +1,143 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": ["_TZE200_znbl8dj5", "_TZE200_qoy0ekbd", "_TZE200_a8sdabtg", "_TZE200_whkgqxse"],
+  "modelid": ["TS0601", "TS0601", "TS0601", "TS0601"],
+  "vendor": "Tuya",
+  "product": "Temperature Humidity Sensor TS0601",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_HUMIDITY_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0405"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "refresh.interval": 86400,
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/offset",
+          "default": 0
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/humidity",
+          "parse": {"fn": "tuya", "dpid": 2, "eval": "Item.val = (100 * Attr.val) + R.item('config/offset').val;" },
+          "read": {"fn": "none"},
+          "default": 0
+        },
+        {
+          "name": "config/battery",
+          "parse": {"fn": "tuya", "dpid": 4, "eval": "Item.val = Attr.val;" },
+          "read": {"fn": "none"},
+          "default": 0
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_TEMPERATURE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0402"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "refresh.interval": 86400,
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "read": {"fn": "none"}
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/offset",
+          "default": 0
+        },
+        {
+          "name": "config/battery",
+          "parse": {"fn": "tuya", "dpid": 4, "eval": "Item.val = Attr.val;" },
+          "read": {"fn": "none"},
+          "default": 0
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/temperature",
+          "parse": {"fn": "tuya", "dpid": 1, "eval": "Item.val = (10 * Attr.val) + R.item('config/offset').val;" },
+          "read": {"fn": "none"},
+          "default": 0
+        }
+      ]
+    }
+  ]
+}

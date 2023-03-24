@@ -1,0 +1,18 @@
+{
+    "schema": "subdevice1.schema.json",
+    "type": "$TYPE_ALARM_SENSOR",
+    "name": "ZHAAlarm",
+    "restapi": "/sensors",
+    "order": 30,
+    "uuid": ["$address.ext", "0x01", "0x0500"],
+    "items": [
+        "config/on",
+        "config/enrolled",
+        "config/pending",
+        "config/reachable",
+        "config/battery",
+        "state/alarm",
+        "state/lowbattery",
+        "state/lastupdated"
+    ]
+}

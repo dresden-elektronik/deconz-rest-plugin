@@ -40,8 +40,6 @@ LightNode::LightNode() :
     addItem(DataTypeString, RAttrUniqueId);
     addItem(DataTypeTime, RAttrLastAnnounced);
     addItem(DataTypeTime, RAttrLastSeen);
-
-    setManufacturerName(QLatin1String("Unknown"));
 }
 
 /*! Returns the LightNode state.
@@ -82,7 +80,7 @@ void LightNode::setManufacturerCode(uint16_t code)
     {
         m_manufacturerCode = code;
 
-        if (!manufacturer().isEmpty() && (manufacturer() != QLatin1String("Unknown")))
+        if (!manufacturer().isEmpty())
         {
             return;
         }
@@ -110,12 +108,12 @@ void LightNode::setManufacturerCode(uint16_t code)
         case VENDOR_SCHLAGE: name = QLatin1String("Schlage"); break;
         case VENDOR_DEVELCO: name = QLatin1String("Develco Products A/S"); break;
         case VENDOR_NETVOX:   name = QLatin1String("netvox"); break;
-        default:
-            name = QLatin1String("Unknown");
-            break;
         }
 
-        setManufacturerName(name);
+        if (!manufacturer().isEmpty())
+        {
+            setManufacturerName(name);
+        }
     }
 }
 
@@ -237,7 +235,7 @@ bool LightNode::isColorLoopActive() const
 
 bool LightNode::supportsColorLoop() const
 {
-    const auto *colorCapabilities = item(RConfigColorCapabilities);
+    const auto *colorCapabilities = item(RCapColorCapabilities);
 
     if (colorCapabilities)
     {
@@ -268,7 +266,10 @@ uint8_t LightNode::colorLoopSpeed() const
 void LightNode::didSetValue(ResourceItem *i)
 {
     enqueueEvent(Event(RLights, i->descriptor().suffix, id(), i));
-    setNeedSaveDatabase(true);
+    if (i->descriptor().suffix != RAttrLastSeen) // prevent flooding database writes
+    {
+        setNeedSaveDatabase(true);
+    }
 }
 
 /*! Mark received command and update lastseen. */
@@ -389,9 +390,9 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                     case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
                     case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: // fall through
                     {
-                        addItem(DataTypeUInt16, RConfigColorCapabilities);
-                        addItem(DataTypeUInt16, RConfigCtMin);
-                        addItem(DataTypeUInt16, RConfigCtMax)->setValue(0xFEFF);
+                        addItem(DataTypeUInt16, RCapColorCapabilities);
+                        addItem(DataTypeUInt16, RCapColorCtMin);
+                        addItem(DataTypeUInt16, RCapColorCtMax)->setValue(0xFEFF);
                         addItem(DataTypeUInt16, RStateCt);
 
                         if (deviceId == DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT ||
@@ -410,7 +411,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                     {
                     case DEV_ID_ZLL_COLOR_LIGHT:
                         {
-                            addItem(DataTypeUInt16, RConfigColorCapabilities);
+                            addItem(DataTypeUInt16, RCapColorCapabilities);
                         }
                         // fall through
                     case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
@@ -421,7 +422,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                             addItem(DataTypeUInt16, RStateY);
                             if (manufacturer() == QLatin1String("LIDL Livarno Lux"))
                             {
-                                removeItem(RConfigColorCapabilities);
+                                removeItem(RCapColorCapabilities);
                             }
                             else
                             {
@@ -473,7 +474,10 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                                 }
                             }
                         }
-                        removeItem(RStateAlert);
+                        if (manufacturerCode() != VENDOR_IKEA) // IKEA FYRTUR and KADRILJ
+                        {
+                            removeItem(RStateAlert);
+                        }
                         addItem(DataTypeBool, RStateOpen);
                         // FIXME: removeItem(RStateOn);
                         if (hasLift)
@@ -496,8 +500,6 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 else if (i->id() == IAS_WD_CLUSTER_ID)
                 {
                     if (modelId().startsWith(QLatin1String("902010/24")) ||   // Bitron Smoke Detector with siren
-                        modelId().startsWith(QLatin1String("SMSZB-1")) ||     // Develco Smoke Alarm with siren
-                        modelId().startsWith(QLatin1String("HESZB-1")) ||     // Develco heat sensor with siren
                         modelId().startsWith(QLatin1String("FLSZB-1")) ||     // Develco water leak sensor with siren
                         modelId().startsWith(QLatin1String("SIRZB-1")) ||     // Develco siren
                         modelId() == QLatin1String("902010/29") ||            // Bitron outdoor siren
@@ -567,12 +569,14 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                                                        ltype = QLatin1String("Warning device"); break;
             case DEV_ID_HA_WINDOW_COVERING_CONTROLLER: ltype = QLatin1String("Window covering controller"); break;
             case DEV_ID_HA_WINDOW_COVERING_DEVICE:     ltype = QLatin1String("Window covering device"); break;
-            case DEV_ID_DOOR_LOCK:                     ltype = QLatin1String("Door Lock"); break;
-            case DEV_ID_DOOR_LOCK_UNIT:                ltype = QLatin1String("Door Lock Unit"); break;
-
+            case DEV_ID_DOOR_LOCK:                     addItem(DataTypeBool, RCapGroupsNotSupported);
+                                                       ltype = QLatin1String("Door Lock"); break;
+            case DEV_ID_DOOR_LOCK_UNIT:                addItem(DataTypeBool, RCapGroupsNotSupported);
+                                                       ltype = QLatin1String("Door Lock Unit"); break;
             case DEV_ID_FAN:                           ltype = QLatin1String("Fan"); break;
             case DEV_ID_CONFIGURATION_TOOL:            removeItem(RStateOn);
                                                        removeItem(RStateAlert);
+                                                       addItem(DataTypeBool, RCapGroupsNotSupported);
                                                        ltype = QLatin1String("Configuration tool"); break;
             default:
                 break;
@@ -603,6 +607,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             {
             case DEV_ID_DIN_XBEE:                    removeItem(RStateOn);
                                                      removeItem(RStateAlert);
+                                                     addItem(DataTypeBool, RCapGroupsNotSupported);
                                                      ltype = QLatin1String("Range extender"); break;
             default:
                 break;
@@ -731,6 +736,11 @@ void LightNode::jsonToResourceItems(const QString &json)
 
         if (map.contains(QLatin1String(key)))
         {
+            if (item->descriptor().suffix == RAttrType && map[key] == QLatin1String("Unknown"))
+            {
+                // type is set in setHaEndpoint()
+                continue;
+            }
             item->setValue(map[key]);
             item->setTimeStamps(dt);
         }

@@ -11,6 +11,7 @@ comment: "Hi there. </br>
           - Listings regarding your environment must be filled out completely where applicable (bug reports and user questions).</br>
           - Not following the template or providing insufficient information can still implicate manual closure.</br>
           - Anything that is not clearly a bug can still implicate manual closure. For support we recommend the forum: https://forum.phoscon.de</br>
+          - Phoscon bugs are collected at the forums: https://forum.phoscon.de</br>
           </br>
           So please, first help us a bit to help you! </br>"
 issueConfigs:

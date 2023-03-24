@@ -1,0 +1,290 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "frient A/S",
+  "modelid": "HESZB-120",
+  "vendor": "Develco Products",
+  "product": "HESZB-120 heat sensor",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_FIRE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x23",
+        "0x0500"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0402",
+        "endpoint": "0x23",
+        "in": [
+          "0x0000",
+          "0x0001",
+          "0x0500"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "refresh.interval": 84000,
+          "read": {
+            "at": "0x8000",
+            "cl": "0x0000",
+            "ep": 35,
+            "fn": "zcl",
+            "mf": "0x1015"
+          },
+          "parse": {
+            "at": "0x8000",
+            "cl": "0x0000",
+            "ep": 35,
+            "fn": "zcl",
+            "mf": "0x1015",
+            "script": "develco_firmware.js"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "at": "0x0020",
+            "cl": "0x0001",
+            "ep": 35,
+            "script": "develco_battery.js"
+          }
+        },
+        {
+          "name": "config/enrolled"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/pending"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/fire"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/lowbattery"
+        },
+        {
+          "name": "state/test"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_TEMPERATURE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x26",
+        "0x0402"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0302",
+        "endpoint": "0x26",
+        "in": [
+          "0x0000",
+          "0x0001",
+          "0x0402"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "refresh.interval": 84000,
+          "read": {
+            "at": "0x8000",
+            "cl": "0x0000",
+            "ep": 35,
+            "fn": "zcl",
+            "mf": "0x1015"
+          },
+          "parse": {
+            "at": "0x8000",
+            "cl": "0x0000",
+            "ep": 35,
+            "fn": "zcl",
+            "mf": "0x1015",
+            "script": "develco_firmware.js"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "at": "0x0020",
+            "cl": "0x0001",
+            "ep": 35,
+            "script": "develco_battery.js"
+          }
+        },
+        {
+          "name": "config/offset"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/temperature"
+        }
+      ]
+    },
+    {
+      "type": "Warning device",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x23"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "refresh.interval": 84000,
+          "read": {
+            "at": "0x8000",
+            "cl": "0x0000",
+            "ep": 35,
+            "fn": "zcl",
+            "mf": "0x1015"
+          },
+          "parse": {
+            "at": "0x8000",
+            "cl": "0x0000",
+            "ep": 35,
+            "fn": "zcl",
+            "mf": "0x1015",
+            "script": "develco_firmware.js"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/alert"
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 35,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0020",
+          "dt": "0x20",
+          "min": 300,
+          "max": 43200,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 35,
+      "cl": "0x0500"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 38,
+      "cl": "0x0402",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x29",
+          "min": 60,
+          "max": 600,
+          "change": "0x0000000A"
+        }
+      ]
+    }
+  ]
+}

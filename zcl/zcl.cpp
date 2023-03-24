@@ -65,28 +65,34 @@ ZCL_Result ZCL_ReadAttributes(const ZCL_Param &param, quint64 extAddress, quint1
     req.setProfileId(HA_PROFILE_ID);
     req.setSrcEndpoint(0x01); // todo dynamic
 
+    uint fcDirection = deCONZ::ZclFCDirectionClientToServer;
     deCONZ::ZclFrame zclFrame;
 
     zclFrame.setSequenceNumber(zclNextSequenceNumber());
     zclFrame.setCommandId(deCONZ::ZclReadAttributesId);
 
-    DBG_Printf(DBG_INFO, "ZCL read attr 0x%016llX, ep: 0x%02X, cl: 0x%04X, attr: 0x%04X, mfcode: 0x%04X, aps.id: %u, zcl.seq: %u\n",
+    DBG_Printf(DBG_ZCL, "ZCL read attr 0x%016llX, ep: 0x%02X, cl: 0x%04X, attr: 0x%04X, mfcode: 0x%04X, aps.id: %u, zcl.seq: %u\n",
                extAddress, param.endpoint, param.clusterId, param.attributes.front(), param.manufacturerCode, req.id(), zclFrame.sequenceNumber());
 
     result.sequenceNumber = zclFrame.sequenceNumber();
+
+    if (param.clusterId == 0x0019) // assume device only has client OTA cluster
+    {
+        fcDirection = deCONZ::ZclFCDirectionServerToClient;
+    }
 
     if (param.manufacturerCode)
     {
         zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
                                       deCONZ::ZclFCManufacturerSpecific |
-                                      deCONZ::ZclFCDirectionClientToServer |
+                                      fcDirection |
                                       deCONZ::ZclFCDisableDefaultResponse);
         zclFrame.setManufacturerCode(param.manufacturerCode);
     }
     else
     {
         zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-                                      deCONZ::ZclFCDirectionClientToServer |
+                                      fcDirection |
                                       deCONZ::ZclFCDisableDefaultResponse);
     }
 
@@ -134,7 +140,7 @@ ZCL_Result ZCL_ReadReportConfiguration(const ZCL_ReadReportConfigurationParam &p
     zclFrame.setSequenceNumber(zclNextSequenceNumber());
     zclFrame.setCommandId(deCONZ::ZclReadReportingConfigId);
 
-    DBG_Printf(DBG_INFO, "ZCL read report config, ep: 0x%02X, cl: 0x%04X, mfcode: 0x%04X, aps.id: %u, zcl.seq: %u\n",
+    DBG_Printf(DBG_ZCL, "ZCL read report config, ep: 0x%02X, cl: 0x%04X, mfcode: 0x%04X, aps.id: %u, zcl.seq: %u\n",
                param.endpoint, param.clusterId, param.manufacturerCode, req.id(), zclFrame.sequenceNumber());
 
     result.sequenceNumber = zclFrame.sequenceNumber();
@@ -218,18 +224,23 @@ ZCL_ReadReportConfigurationRsp ZCL_ParseReadReportConfigurationRsp(const deCONZ:
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
 
-    while (!stream.atEnd() && result.recordCount < ZCL_ReadReportConfigurationRsp::MaxRecords)
+    while (stream.status() == QDataStream::Ok && result.recordCount < ZCL_ReadReportConfigurationRsp::MaxRecords)
     {
         auto &record = result.records[result.recordCount];
-        result.recordCount++;
 
         stream >> record.status;
         stream >> record.direction;
         stream >> record.attributeId;
 
+        if (stream.status() != QDataStream::Ok)
+        {
+            break;
+        }
+
         if (record.status != deCONZ::ZclSuccessStatus)
         {
             // If the status field is not set to SUCCESS, all fields except the direction and attribute identifier fields SHALL be omitted.
+            result.recordCount++;
             continue;
         }
 
@@ -254,6 +265,11 @@ ZCL_ReadReportConfigurationRsp ZCL_ParseReadReportConfigurationRsp(const deCONZ:
                 stream >> tmp;
                 record.reportableChange |= quint64(tmp) << (i * 8);
             }
+        }
+
+        if (stream.status() == QDataStream::Ok)
+        {
+            result.recordCount++;
         }
     }
 
@@ -280,7 +296,7 @@ ZCL_Result ZCL_ConfigureReporting(const ZCL_ConfigureReportingParam &param, deCO
     zclFrame.setSequenceNumber(zclNextSequenceNumber());
     zclFrame.setCommandId(deCONZ::ZclConfigureReportingId);
 
-    DBG_Printf(DBG_INFO, "ZCL configure reporting ep: 0x%02X, cl: 0x%04X, mfcode: 0x%04X, aps.id: %u, zcl.seq: %u\n",
+    DBG_Printf(DBG_ZCL, "ZCL configure reporting ep: 0x%02X, cl: 0x%04X, mfcode: 0x%04X, aps.id: %u, zcl.seq: %u\n",
                param.endpoint, param.clusterId, param.manufacturerCode, req.id(), zclFrame.sequenceNumber());
 
     result.sequenceNumber = zclFrame.sequenceNumber();

@@ -2,10 +2,10 @@
   "schema": "devcap1.schema.json",
   "manufacturername": "frient A/S",
   "modelid": "WISZB-120",
-  "vendor": "Develco Products A/S",
-  "product": "WISZB-120",
+  "vendor": "Develco Products",
+  "product": "WISZB-120 open/close sensor",
   "sleeper": true,
-  "status": "Bronze",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_OPEN_CLOSE_SENSOR",
