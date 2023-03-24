@@ -4,7 +4,7 @@
   "modelid": "3RWS18BZ",
   "product": "3RWS18BZ",
   "sleeper": true,
-  "status": "Bronze",
+  "status": "Silver",
   "subdevices": [
     {
       "type": "ZHAWater",
@@ -57,22 +57,20 @@
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
-            "cppsrc": "power_configuration.cpp:192",
             "ep": 1,
-            "eval": "Item.val = Attr.val"
-          }
+            "eval": "Item.val = Attr.val / 2"
+          },
+          "default": 0
         },
         {
           "name": "config/enrolled",
-          "public": false,
-          "description": "State of IAS enrollment process."
+          "public": false
         },
         {
           "name": "config/on"
         },
         {
-          "name": "config/pending",
-          "description": "Pending tasks to configure the device."
+          "name": "config/pending"
         },
         {
           "name": "config/reachable"
@@ -81,16 +79,13 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/lowbattery",
-          "description": "True when the device battery runs low."
+          "name": "state/lowbattery"
         },
         {
-          "name": "state/tampered",
-          "description": "True when the device tampered alarm was triggered."
+          "name": "state/tampered"
         },
         {
-          "name": "state/water",
-          "description": "True when water is detected."
+          "name": "state/water"
         }
       ]
     }
@@ -105,7 +100,8 @@
           "at": "0x0021",
           "dt": "0x20",
           "min": 7200,
-          "max": 7200
+          "max": 14400,
+          "change":"0x00000002"
         }
       ]
     }
