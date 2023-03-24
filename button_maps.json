@@ -360,10 +360,10 @@
                 [1, "0x01", "SCENES", "IKEA_STOP_CT", "0", "S_BUTTON_4", "S_BUTTON_ACTION_LONG_RELEASED", "Stop ct warmer"]
             ]
         },
-        "ikeaFC80Gen2Map": {
+        "ikeaSymfoniskGen2Map": {
             "vendor": "IKEA",
-            "doc": "FC80 sound remote gen2",
-            "modelids": ["FC80 sound remote gen2"],
+            "doc": "SYMFONISK sound remote gen2",
+            "modelids": ["SYMFONISK sound remote gen2"],
             "buttons": [
                 {"S_BUTTON_1": "Play"},
                 {"S_BUTTON_2": "Plus"},
@@ -502,8 +502,8 @@
         },
         "ikeaSoundControllerMap": {
             "vendor": "IKEA",
-            "doc": "FC80 remote",
-            "modelids": ["FC80 Sound Controller"],
+            "doc": "SYMFONISK remote",
+            "modelids": ["SYMFONISK Sound Controller"],
             "buttons": [
                 {"S_BUTTON_1": "Button"},
                 {"S_BUTTON_2": "Rotate Clockwise"},
