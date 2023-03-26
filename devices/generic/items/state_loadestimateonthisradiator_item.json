@@ -1,0 +1,21 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "state/loadestimateonthisradiator",
+  "datatype": "Int16",
+  "access": "R",
+  "public": true,
+  "description": "Load Estimate (Radiator).",
+  "read": {
+    "at": "0x404A",
+    "cl": "0x0201",
+    "ep": 1,
+    "mf": "0x1246",
+    "fn": "zcl"
+  },
+  "parse": {
+    "at": "0x404A",
+    "cl": "0x0201",
+    "ep": 1,
+    "eval": "Item.val = Attr.val;"
+  }
+}

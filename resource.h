@@ -160,6 +160,7 @@ extern const char *RStateLowBattery;
 extern const char *RStateLux;
 extern const char *RStateMoisture;
 extern const char *RStateMountingModeActive;
+extern const char *RStateLoadEstimateOnThisRadiator;
 extern const char *RStateOn;
 extern const char *RStateOpen;
 extern const char *RStateOrientationX;

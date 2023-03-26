@@ -1,0 +1,32 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/loadbalancingenable",
+  "datatype": "Bool",
+  "access": "RW",
+  "public": true,
+  "default": false,
+  "description": "Enable or disable the load balancing.",
+  "read": {
+    "at": "0x4032",
+    "cl": "0x0201",
+    "ep": 1,
+    "mf": "0x1246",
+    "fn": "zcl"
+  },
+  "parse": {
+    "at": "0x4032",
+    "cl": "0x0201",
+    "ep": 1,
+    "eval": "Item.val = Attr.val;",
+    "fn": "zcl"
+  },
+  "write": {
+    "at": "0x4032",
+    "cl": "0x0201",
+    "dt": "0x10",
+    "ep": 1,
+    "mf": "0x1246",
+    "eval": "Item.val",
+    "fn": "zcl"
+  }
+}

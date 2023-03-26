@@ -131,6 +131,7 @@ const char *RStateLowBattery = "state/lowbattery";
 const char *RStateLux = "state/lux";
 const char *RStateMoisture = "state/moisture";
 const char *RStateMountingModeActive = "state/mountingmodeactive";
+const char *RStateLoadEstimateOnThisRadiator = "state/loadestimateonthisradiator";
 const char *RStateOn = "state/on";
 const char *RStateOpen = "state/open";
 const char *RStateOrientationX = "state/orientation_x";
@@ -416,6 +417,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateLowBattery));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RStateLux));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateMoisture));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateLoadEstimateOnThisRadiator));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateMountingModeActive));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateOpen));
