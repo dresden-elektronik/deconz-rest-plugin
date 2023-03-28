@@ -6,6 +6,7 @@
   "public": true,
   "default": false,
   "description": "Enable or disable the load balancing.",
+  "refresh.interval": 86400,
   "read": {
     "at": "0x4032",
     "cl": "0x0201",

@@ -6,6 +6,7 @@
   "public": true,
   "default": false,
   "description": "Enable or not the load radiator room mean.",
+  "refresh.interval": 86400,
   "read": {
     "at": "0x4040",
     "cl": "0x0201",
