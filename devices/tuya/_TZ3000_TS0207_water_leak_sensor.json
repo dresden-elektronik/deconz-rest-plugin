@@ -1,7 +1,7 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["_TZ3000_kyb656no","_TZ3000_fxvjhdyl","_TZ3000_eit7p838","_TZ3000_t6jriawg","_TZ3000_85czd6fy"],
-  "modelid": ["TS0207","TS0207","TS0207","TS0207","TS0207"],
+  "manufacturername": ["_TZ3000_kyb656no","_TZ3000_fxvjhdyl","_TZ3000_eit7p838","_TZ3000_t6jriawg","_TZ3000_85czd6fy","_TYZB01_sqmd19i1","_TYZB01_o63ssaah"],
+  "modelid": ["TS0207","TS0207","TS0207","TS0207","TS0207","TS0207","TS0207"],
   "vendor": "TuYa",
   "product": "Tuya based Flooding detector",
   "sleeper": true,
