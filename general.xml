@@ -186,6 +186,9 @@
           </attribute>
           <!-- <attribute id="0xff0d" name="Xiaomi Sensitivity" type="u8" access="rw" required="o" mfcode="0x1037"></attribute> -->
           <attribute id="0xfffd" name="Cluster Revision" type="u16" default="0" access="rw" required="o"></attribute>
+	  <attribute id="0xfffe" name="Tuya magic spell final attribute" type="enum8" default="0" access="rw" required="o">
+		<description>Read attributes in this order Manufacturer name,ZCL version,Application version,Model Identifier,Power source and finally this one"</description>
+	  </attribute>
         </attribute-set>
         <attribute-set id="0x0010" description="Basic Device Settings">
           <attribute id="0x0010" name="Location Description" type="cstring" range="0,16" access="rw" required="o"></attribute>
@@ -799,6 +802,14 @@
             <value name="On" value="1"></value>
             <value name="Last state" value="2"></value>
           </attribute>
+          <attribute id="0x8003" name="Over current alarm" type="bool" default="0" required="o" access="r">
+                <value name="Over current OK" value="0"></value>
+                <value name="Over current alarm" value="1"></value>
+            </attribute>
+	          <attribute id="0x8004" name="Switch operation mode" type="enum8" default="0" required="m" access="r">
+                <value name="Command Mode (Light OnOff/Dimmer commands)" value="0"></value>
+                <value name="Event Mode (Tuya Scene commands)" value="1"></value>
+            </attribute>
         </attribute-set>
         <command id="00" dir="recv" name="Off" required="m">
           <description>On receipt of this command, a device shall enter its 'Off' state. This state is device dependent, but it is recommended that it is used for power off or similar functions.</description>
@@ -4357,6 +4368,28 @@ These devices can operate on either battery or mains power, and can have a wide 
     </cluster>
 
     <!-- Tuya -->
+    <cluster id="0xe001" name="Tuya specific" mfcode="0x1141">
+			<description>Tuya Specific switch mode cluster.</description>
+			<server>
+			<attribute id="0xD010" type="enum8" name="Power On Behavior" default="0x02" access="rw" required="m">
+				<description>Power on behavior</description>
+					<value name="Off" value="0x00"></value>
+					<value name="On" value="0x01"></value>
+					<value name="Last state" value="0x02"></value>
+			</attribute>
+			<attribute id="0xD011" type="enum8" name="unknown" access="rw" required="m">
+				<description>Seems used in some switches then casting -tuya magic-</description>
+			</attribute>
+			<attribute id="0xD030" type="enum8" name="Switch mode" default="0x00" access="rw" required="m">
+				<description>Switch mode</description>
+					<value name="Toggle" value="0x00"></value>
+					<value name="State" value="0x01"></value>
+					<value name="Momentary" value="0x02"></value>
+			</attribute>
+			</server>
+			<client>
+			</client>
+		</cluster>
     <cluster id="0xef00" name="Tuya specific" mfcode="0x1002">
       <description>Tuya Specific clusters.</description>
       <server>
