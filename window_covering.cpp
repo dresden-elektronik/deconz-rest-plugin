@@ -661,7 +661,7 @@ void DeRestPluginPrivate::calibrateWindowCoveringNextStep()
 
     case 4:
         calibrationStep = 5;
-        QTimer::singleShot(2000, this, SLOT(calibrateWindowCoveringNextStep()));
+        QTimer::singleShot(4000, this, SLOT(calibrateWindowCoveringNextStep()));
         addTaskWindowCovering(task, 0x00 /*move up*/, 0, 0);
         break;
 
@@ -671,7 +671,7 @@ void DeRestPluginPrivate::calibrateWindowCoveringNextStep()
             calibrationStep = 6;
             addTaskWindowCovering(task, 0x01 /*move down*/, 0, 0);
         }
-        QTimer::singleShot(4000, this, SLOT(calibrateWindowCoveringNextStep()));
+        QTimer::singleShot(30000, this, SLOT(calibrateWindowCoveringNextStep()));
         break;
 
     case 6:
@@ -680,7 +680,7 @@ void DeRestPluginPrivate::calibrateWindowCoveringNextStep()
             calibrationStep = 7;
             addTaskWindowCovering(task, 0x00 /*move up*/, 0, 0);
         }
-        QTimer::singleShot(4000, this, SLOT(calibrateWindowCoveringNextStep()));
+        QTimer::singleShot(30000, this, SLOT(calibrateWindowCoveringNextStep()));
         break;
 
     case 7:
@@ -688,7 +688,7 @@ void DeRestPluginPrivate::calibrateWindowCoveringNextStep()
         {
             calibrationStep = 8;
         }
-        QTimer::singleShot(4000, this, SLOT(calibrateWindowCoveringNextStep()));
+        QTimer::singleShot(30000, this, SLOT(calibrateWindowCoveringNextStep()));
         break;
 
     case 8:

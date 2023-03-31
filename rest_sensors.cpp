@@ -3282,7 +3282,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             return;
         }
 
-        QStringList gids = item->toString().split(',', QString::SkipEmptyParts);
+        QStringList gids = item->toString().split(',', SKIP_EMPTY_PARTS);
 
         for (int j = 0; j < gids.size(); j++)
         {

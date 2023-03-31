@@ -836,7 +836,7 @@ bool DeRestPluginPrivate::checkActions(QVariantList actionsList, ApiResponse &rs
         QString method = ai->toMap()["method"].toString();
         QString body = ai->toMap()["body"].toString();
 
-        QStringList addrList = ai->toMap()["address"].toString().split('/', QString::SkipEmptyParts);
+        QStringList addrList = ai->toMap()["address"].toString().split('/', SKIP_EMPTY_PARTS);
 
         //check addresses
         //address must begin with / and a valid resource
@@ -1114,7 +1114,7 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
                 }
             }
 
-            QStringList dstAddressLs = i->address().split('/', QString::SkipEmptyParts);
+            QStringList dstAddressLs = i->address().split('/', SKIP_EMPTY_PARTS);
 
             // /groups/0/action
             // /lights/2/state
@@ -1572,7 +1572,7 @@ void DeRestPluginPrivate::triggerRule(Rule &rule)
             return;
 
 
-        QStringList path = ai->address().split(QChar('/'), QString::SkipEmptyParts);
+        QStringList path = ai->address().split(QChar('/'), SKIP_EMPTY_PARTS);
 
         if (path.isEmpty()) // at least: /config, /groups, /lights, /sensors
             return;
