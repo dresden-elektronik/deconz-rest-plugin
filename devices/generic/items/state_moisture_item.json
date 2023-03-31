@@ -4,7 +4,7 @@
 	"datatype": "UInt16",
 	"access": "R",
 	"public": true,
-	"description": "The current relative moisture in percent.",
+	"description": "The current relative moisture in percent times 100.",
 	"parse": {
 		"at": "0x0000",
 		"cl": "0x0408",
