@@ -4,7 +4,7 @@
   "modelid": "TS0601",
   "product": "Tuya Soil Sensor",
   "sleeper": true,
-  "status": "Gold",
+  "status": "Silver",
   "subdevices": [
     {
       "type": "$TYPE_TEMPERATURE_SENSOR",
