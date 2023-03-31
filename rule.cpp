@@ -477,7 +477,7 @@ RuleCondition::RuleCondition(const QVariantMap &map)
         }
         else if (m_op == OpIn || m_op == OpNotIn)
         {
-            QStringList interval = str.split('/', QString::SkipEmptyParts);
+            QStringList interval = str.split('/', SKIP_EMPTY_PARTS);
             if (interval.size() == 3)
             {
                 const QRegExp rx("W([0-9]{1,3})");
@@ -526,7 +526,7 @@ RuleCondition::RuleCondition(const QVariantMap &map)
             // /sensors/51/state/localtime
             else if (str.startsWith(QLatin1String(RSensors)) && str.endsWith(QLatin1String(RStateLocaltime)))
             {
-                const QStringList ls = str.split('/', QString::SkipEmptyParts); // cache resource id
+                const QStringList ls = str.split('/', SKIP_EMPTY_PARTS); // cache resource id
                 // [ "sensors", "51", "state", "localtime" ]
                 if (ls.size() == 4)
                 {
