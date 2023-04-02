@@ -1,7 +1,13 @@
 {
     "schema": "devcap1.schema.json",
-    "manufacturername": "GLEDOPTO",
-    "modelid": "GLEDOPTO",
+    "manufacturername": [
+        "GLEDOPTO",
+        "GLEDOPTO"
+    ],
+    "modelid": [
+        "GLEDOPTO",
+        "RGBW"
+    ],
     "matchexpr": "R.endpoints.indexOf(0x0a) !== -1 && R.endpoints.indexOf(0x0b) !== -1",
     "product": "GLEDOPTO floodlight",
     "sleeper": false,
