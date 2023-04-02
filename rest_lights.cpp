@@ -325,6 +325,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (rid.suffix == RConfigBriMax) { configBri["max"] = item->toNumber(); }
         else if (rid.suffix == RConfigBriMin) { configBri["min"] = item->toNumber(); }
         else if (rid.suffix == RConfigBriOnLevel) { configBri["on_level"] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
+        else if (rid.suffix == RConfigBriOnOffTransitiontime) { configBri["onoff_transitiontime"] = item->toNumber(); }
         else if (rid.suffix == RConfigBriMin) { configBri["onoff_transition_time"] = item->toNumber(); }
         else if (rid.suffix == RConfigBriStartup) { configBri["startup"] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
         else if (rid.suffix == RConfigColorCtStartup) { configColorCt["startup"] = item->toNumber() == 0xFFFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
@@ -4010,6 +4011,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     else if (rid.suffix == RConfigBriMax) { configBri["max"] = item->toNumber(); }
                     else if (rid.suffix == RConfigBriMin) { configBri["min"] = item->toNumber(); }
                     else if (rid.suffix == RConfigBriOnLevel) { configBri["on_level"] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
+                    else if (rid.suffix == RConfigBriOnOffTransitiontime) { configBri["onoff_transitiontime"] = item->toNumber(); }
                     else if (rid.suffix == RConfigBriMin) { configBri["onoff_transition_time"] = item->toNumber(); }
                     else if (rid.suffix == RConfigBriStartup) { configBri["startup"] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
                     else if (rid.suffix == RConfigColorCtStartup) { configColorCt["startup"] = item->toNumber() == 0xFFFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
