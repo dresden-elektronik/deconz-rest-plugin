@@ -212,7 +212,7 @@
                         "ep": "0x01",
                         "cl": "0x0B04",
                         "at": "0x0508",
-                        "eval": "Item.val = Math.round(Attr.val / 100)"
+                        "eval": "Item.val = Attr.val * 10"
                     },
                     "refresh.interval": 360,
                     "default": 0
@@ -294,7 +294,7 @@
                     "dt": "0x21",
                     "min": 1,
                     "max": 300,
-                    "change": "0x64"
+                    "change": "0x01"
                 },
                 {
                     "at": "0x050B",
