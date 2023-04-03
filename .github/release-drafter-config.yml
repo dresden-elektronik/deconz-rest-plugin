@@ -17,6 +17,8 @@ categories:
 
 change-template: '- $TITLE [#$NUMBER]($URL)'
 
+include-pre-releases: true
+
 version-resolver:
   major:
     labels:

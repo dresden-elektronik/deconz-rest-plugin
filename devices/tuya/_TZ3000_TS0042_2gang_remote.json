@@ -1,8 +1,8 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "_TZ3000_5e235jpa",
-  "modelid": "TS0042",
-  "product": "Tuya 2 gangs switch battery",
+  "manufacturername": ["_TZ3000_5e235jpa", "_TZ3000_t8hzpgnd", "_TZ3000_tzvbimpq", "_TZ3000_i3rjdrwu"],
+  "modelid": ["TS0042", "TS0042", "TS0042", "TS0042"],
+  "product": "Tuya remote 2 gangs",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -34,7 +34,10 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "refresh.interval": 86400,
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
         {
           "name": "attr/type"
@@ -44,21 +47,15 @@
         },
         {
           "name": "config/battery",
+          "refresh.interval": 86400,
           "awake": true,
-          "refresh.interval": 4000,
-          "read": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "fn": "zcl"
-          },
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
-          },
-          "default": 0
+            "eval": "Item.val = Attr.val / 2;",
+            "fn": "zcl"
+          }
         },
         {
           "name": "config/on"
@@ -76,20 +73,6 @@
     }
   ],
   "bindings": [
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "cl": "0x0001",
-      "report": [
-        {
-          "at": "0x0021",
-          "dt": "0x20",
-          "min": 60,
-          "max": 3600,
-          "change": "0x00000001"
-        }
-      ]
-    },
     {
       "bind": "unicast",
       "src.ep": 1,

@@ -186,6 +186,9 @@
           </attribute>
           <!-- <attribute id="0xff0d" name="Xiaomi Sensitivity" type="u8" access="rw" required="o" mfcode="0x1037"></attribute> -->
           <attribute id="0xfffd" name="Cluster Revision" type="u16" default="0" access="rw" required="o"></attribute>
+	  <attribute id="0xfffe" name="Tuya magic spell final attribute" type="enum8" default="0" access="rw" required="o">
+		<description>Read attributes in this order Manufacturer name,ZCL version,Application version,Model Identifier,Power source and finally this one"</description>
+	  </attribute>
         </attribute-set>
         <attribute-set id="0x0010" description="Basic Device Settings">
           <attribute id="0x0010" name="Location Description" type="cstring" range="0,16" access="rw" required="o"></attribute>
@@ -799,6 +802,14 @@
             <value name="On" value="1"></value>
             <value name="Last state" value="2"></value>
           </attribute>
+          <attribute id="0x8003" name="Over current alarm" type="bool" default="0" required="o" access="r">
+                <value name="Over current OK" value="0"></value>
+                <value name="Over current alarm" value="1"></value>
+            </attribute>
+	          <attribute id="0x8004" name="Switch operation mode" type="enum8" default="0" required="m" access="r">
+                <value name="Command Mode (Light OnOff/Dimmer commands)" value="0"></value>
+                <value name="Event Mode (Tuya Scene commands)" value="1"></value>
+            </attribute>
         </attribute-set>
         <command id="00" dir="recv" name="Off" required="m">
           <description>On receipt of this command, a device shall enter its 'Off' state. This state is device dependent, but it is recommended that it is used for power off or similar functions.</description>
@@ -1993,6 +2004,10 @@
           </attribute>
           <attribute id="0x0008" name="Current Position Lift Percentage" type="u8" default="0x00" access="r" required="o" range="0,0x64"></attribute>
           <attribute id="0x0009" name="Current Position Tilt Percentage" type="u8" default="0x00" access="r" required="o" range="0,0x64"></attribute>
+          <attribute id="0x000a" name="Operational Status" type="bmp8" required="m" access="r">
+            <value name="Covering is opening" value="0"></value>
+            <value name="Covering is closing" value="1"></value>
+          </attribute>
         </attribute-set>
         <attribute-set id="0x0010" description="Window Covering Settings">
           <attribute id="0x0010" name="Installed Open Limit – Lift" type="u16" default="0x0000" access="r" required="o"></attribute>
@@ -2046,9 +2061,19 @@
             <value name="Unknown (7)" value="7"></value>
           </attribute>
           <attribute id="0xe014" name="Cover run time (open)" type="u16" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
-			    <attribute id="0xe015" name="Cover run time (close)" type="u16" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
+          <attribute id="0xe015" name="Cover run time (close)" type="u16" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
           <attribute id="0xe016" name="Unknown" type="u16" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
           <attribute id="0xe017" name="Unknown" type="u8" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
+        </attribute-set>
+        <attribute-set id="0x1000" description="Ubisys specific" mfcode="0x10f2">
+          <attribute id="0x1000" name="Turnaround Guard Time" type="u8" default="0" required="m" access="rw" mfcode="0x10f2"></attribute>
+          <attribute id="0x1001" name="Lift to Tilt Transition Steps" type="u16" default="0" required="m" access="rw" mfcode="0x10f2"></attribute>
+          <attribute id="0x1002" name="Total Steps" type="u16" default="0" required="m" access="rw" mfcode="0x10f2"></attribute>
+          <attribute id="0x1003" name="Lift to Tilt Transition Steps 2" type="u16" default="0" required="m" access="rw" mfcode="0x10f2"></attribute>
+          <attribute id="0x1004" name="Total Steps 2" type="u16" default="0" required="m" access="rw" mfcode="0x10f2"></attribute>
+          <attribute id="0x1005" name="Additional Steps" type="u8" default="0" required="m" access="rw" mfcode="0x10f2"></attribute>
+          <attribute id="0x1006" name="Inactive Power Threshold" type="u16" default="0" required="m" access="rw" mfcode="0x10f2"></attribute>
+          <attribute id="0x1007" name="Startup Steps" type="u16" default="0" required="m" access="rw" mfcode="0x10f2"></attribute>
         </attribute-set>
         <command id="0x00" dir="recv" name="Up / Open" required="m"></command>
         <command id="0x01" dir="recv" name="Down / Close" required="m"></command>
@@ -3456,6 +3481,8 @@ Note: It does not clear or delete previous weekly schedule programming configura
         <attribute-set id="0x0010" description="Zone settings">
           <attribute id="0x0010" name="IAS_CIE_Address" type="uid" access="rw" required="o" default="0"></attribute>
           <attribute id="0x0011" name="Zone ID" type="u8" range="0x00,0xff" access="r" required="m"></attribute>
+          <attribute id="0x0012" name="Number Of ZoneSensitivity Levels Supported" type="u8" range="0x02,0xff" access="r" required="o" default="2"></attribute>
+          <attribute id="0x0013" name="Current Zone SensitivityLevel" type="u8" range="0x00,0xff" access="rw" required="o" default="0"></attribute>
         </attribute-set>
         <attribute-set id="0x8000" description="Develco specific" mfcode="0x1015">
           <attribute id="0x8000" name="Zone Status Interval" type="u16" access="rw" required="o" mfcode="0x1015"></attribute>
@@ -4357,6 +4384,28 @@ These devices can operate on either battery or mains power, and can have a wide 
     </cluster>
 
     <!-- Tuya -->
+    <cluster id="0xe001" name="Tuya specific" mfcode="0x1141">
+			<description>Tuya Specific switch mode cluster.</description>
+			<server>
+			<attribute id="0xD010" type="enum8" name="Power On Behavior" default="0x02" access="rw" required="m">
+				<description>Power on behavior</description>
+					<value name="Off" value="0x00"></value>
+					<value name="On" value="0x01"></value>
+					<value name="Last state" value="0x02"></value>
+			</attribute>
+			<attribute id="0xD011" type="enum8" name="unknown" access="rw" required="m">
+				<description>Seems used in some switches then casting -tuya magic-</description>
+			</attribute>
+			<attribute id="0xD030" type="enum8" name="Switch mode" default="0x00" access="rw" required="m">
+				<description>Switch mode</description>
+					<value name="Toggle" value="0x00"></value>
+					<value name="State" value="0x01"></value>
+					<value name="Momentary" value="0x02"></value>
+			</attribute>
+			</server>
+			<client>
+			</client>
+		</cluster>
     <cluster id="0xef00" name="Tuya specific" mfcode="0x1002">
       <description>Tuya Specific clusters.</description>
       <server>
