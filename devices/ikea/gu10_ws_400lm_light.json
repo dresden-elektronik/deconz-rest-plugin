@@ -69,7 +69,7 @@
                     "name": "state/colormode",
                     "static": "ct",
                     "values": [
-                        ["\"ct\"", "color temperature"]
+                        ["ct", "color temperature"]
                     ]
                 },
                 {

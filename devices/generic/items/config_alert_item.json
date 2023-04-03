@@ -6,8 +6,8 @@
 	"public": true,
 	"description": "The currently active alert.",
 	"values": [
-		["\"none\"", "no alert is set"],
-		["\"select\"", "device is identifying a short time"],
-		["\"lselect\"", "device is identifying a longer time"]
+		["none", "no alert is set"],
+		["select", "device is identifying a short time"],
+		["lselect", "device is identifying a longer time"]
 	]
 }

@@ -148,9 +148,9 @@
           "name": "config/mode",
           "default" : "momentary",
           "values": [
-            ["\"momentary\"", "Momentary mode"],
-            ["\"rocker\"", "Rocker mode"],
-            ["\"custom\"", "Custom mode"]
+            ["momentary", "Momentary mode"],
+            ["rocker", "Rocker mode"],
+            ["custom", "Custom mode"]
           ]
         },
         {

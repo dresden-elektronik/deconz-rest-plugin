@@ -7,10 +7,10 @@
 	"description": "The current window state detected by the thermostat.",
 	"default": "Quarantine",
 	"values": [
-		["\"Quarantine\"", "Default"],
-		["\"Closed\"", "Window is closed"],
-		["\"Hold\"", "Window is maybe about to open"],
-		["\"Open\"", "Window is open"],
-		["\"Open (external), closed (internal)\"", "In window open state from external, but detected closed locally"]
+		["Quarantine", "Default"],
+		["Closed", "Window is closed"],
+		["Hold", "Window is maybe about to open"],
+		["Open", "Window is open"],
+		["Open (external), closed (internal)", "In window open state from external, but detected closed locally"]
 	]
 }

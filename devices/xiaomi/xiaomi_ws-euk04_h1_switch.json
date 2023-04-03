@@ -204,8 +204,8 @@
             "mf": "0x115f"
           },
           "values": [
-            ["\"compatibility\"", "Default mode for Xiaomi devices"],
-            ["\"zigbee\"", "Closer to zigbee standard"] 
+            ["compatibility", "Default mode for Xiaomi devices"],
+            ["zigbee", "Closer to zigbee standard"] 
           ],
           "default": "compatibility"
         },

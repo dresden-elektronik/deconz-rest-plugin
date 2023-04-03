@@ -112,10 +112,10 @@
         {
           "name": "state/colormode",
           "values": [
-            ["\"ct\"", "color temperature"],
-            ["\"effect\"", "dynamic effect"],
-        		["\"hs\"", "hue and saturation"],
-        		["\"xy\"", "CIE xy color space coordinates"]
+            ["ct", "color temperature"],
+            ["effect", "dynamic effect"],
+        		["hs", "hue and saturation"],
+        		["xy", "CIE xy color space coordinates"]
         	],
           "parse": {
             "fn": "zcl", "ep": "0x01", "cl": "0x0300", "at": "0x4001",
@@ -141,14 +141,14 @@
         {
           "name": "state/effect",
           "values": [
-            ["\"none\"", "no effect is active"],
-            ["\"colorloop\"", "colorloop through hue values"],
-            ["\"sunset\"", "sunset special scene"],
-            ["\"party\"", "party special scene"],
-            ["\"worklight", "worklight special scene"],
-            ["\"campfire", "campfire special scene"],
-            ["\"romance", "romance special scene"],
-            ["\"nightlight", "nightlight special scene"]
+            ["none", "no effect is active"],
+            ["colorloop", "colorloop through hue values"],
+            ["sunset", "sunset special scene"],
+            ["party", "party special scene"],
+            ["worklight", "worklight special scene"],
+            ["campfire", "campfire special scene"],
+            ["romance", "romance special scene"],
+            ["nightlight", "nightlight special scene"]
           ],
           "parse": {
             "fn": "zcl", "ep": "0x01", "cl": "0x0300", "at": "0x4002",

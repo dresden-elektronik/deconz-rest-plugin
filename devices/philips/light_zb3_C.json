@@ -200,19 +200,19 @@
                     "name": "state/colormode",
                     "values": [
                         [
-                            "\"ct\"",
+                            "ct",
                             "color temperature"
                         ],
                         [
-                            "\"effect\"",
+                            "effect",
                             "dynamic effect"
                         ],
                         [
-                            "\"hs\"",
+                            "hs",
                             "hue and saturation"
                         ],
                         [
-                            "\"xy\"",
+                            "xy",
                             "CIE xy color space coordinates"
                         ]
                     ],
@@ -240,23 +240,23 @@
                     "name": "state/effect",
                     "values": [
                         [
-                            "\"none\"",
+                            "none",
                             "no effect is active"
                         ],
                         [
-                            "\"colorloop\"",
+                            "colorloop",
                             "colorloop through hue values"
                         ],
                         [
-                            "\"candle\"",
+                            "candle",
                             "candlelight dynamic effect"
                         ],
                         [
-                            "\"fireplace\"",
+                            "fireplace",
                             "fireplace dynamic effect"
                         ],
                         [
-                            "\"loop\"",
+                            "loop",
                             "colorloop dynamic effect"
                         ]
                     ],

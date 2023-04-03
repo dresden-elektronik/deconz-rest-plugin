@@ -69,7 +69,7 @@
                 {
                     "name": "state/colormode",
                     "values": [
-                        ["\"xy\"", "CIE xy color space coordinates"]
+                        ["xy", "CIE xy color space coordinates"]
                     ],
                     "default": "xy"
                 },

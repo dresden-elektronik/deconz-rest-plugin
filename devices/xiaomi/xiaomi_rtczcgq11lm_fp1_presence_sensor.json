@@ -78,9 +78,9 @@
             "fn": "zcl"
           },
           "values": [
-            ["\"far\"", "Someone approaching is detected on high distance"],
-            ["\"medium\"", "Someone approaching is detected on medium distance"],
-            ["\"near\"", "Someone approaching is detected on low distance"] 
+            ["far", "Someone approaching is detected on high distance"],
+            ["medium", "Someone approaching is detected on medium distance"],
+            ["near", "Someone approaching is detected on low distance"] 
           ],
           "default": "far"
         },
@@ -109,8 +109,8 @@
             "fn": "zcl"
           },
           "values": [
-            ["\"undirected\"", "Undirected"],
-            ["\"leftright\"", "Left and right"] 
+            ["undirected", "Undirected"],
+            ["leftright", "Left and right"] 
           ],
           "default": "undirected"
         },
