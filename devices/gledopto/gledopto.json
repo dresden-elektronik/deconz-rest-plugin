@@ -53,10 +53,12 @@
                     "name": "cap/color/capabilities"
                 },
                 {
-                    "name": "cap/color/ct/max"
+                    "name": "cap/color/ct/max",
+                    "static": 500
                 },
                 {
-                    "name": "cap/color/ct/min"
+                    "name": "cap/color/ct/min",
+                    "static": 153
                 },
                 {
                     "name": "cap/color/xy/blue_x",
