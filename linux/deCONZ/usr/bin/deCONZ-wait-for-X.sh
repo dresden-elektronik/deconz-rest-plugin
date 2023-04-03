@@ -7,7 +7,7 @@ LOG_INFO="<6>"
 for ((i = 0; i < 120; i++)) ; do
   if [ -S /tmp/.X11-unix/X0 ] ; then
     echo "${LOG_INFO}X server started."
-    sleep 2
+    sleep 3
     exit 0
   fi
   if ((i % 5 == 0)) ; then
