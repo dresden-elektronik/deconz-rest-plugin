@@ -16598,7 +16598,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         }
     }
 
-    QStringList path = QString(hdr.path()).split(QLatin1String("/"), QString::SkipEmptyParts);
+    QStringList path = QString(hdr.path()).split(QLatin1String("/"), SKIP_EMPTY_PARTS);
     ApiRequest req(hdr, path, sock, content);
     req.mode = d->gwHueMode ? ApiModeHue : ApiModeNormal;
 

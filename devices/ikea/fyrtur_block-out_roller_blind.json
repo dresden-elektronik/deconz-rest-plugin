@@ -65,7 +65,7 @@
             "at": "0x0008",
             "cl": "0x0102",
             "ep": 1,
-            "eval": "if (Attr.val == 100) { Item.val = true; } else { Item.val = false; }",
+            "eval": "Item.val = Attr.val > 0",
             "fn": "zcl"
           },
           "read": {

@@ -3363,7 +3363,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         }
         else
         {
-            const QStringList ls = sensor.uniqueId().split('-', QString::SkipEmptyParts);
+            const QStringList ls = sensor.uniqueId().split('-', SKIP_EMPTY_PARTS);
             if (ls.size() == 2 && ls[1] == QLatin1String("f2"))
             {
                 // Green Power devices, e.g. ZGPSwitch
