@@ -252,6 +252,7 @@ extern const char *RConfigColorGradientReversed;
 extern const char *RConfigColorXyStartupX;
 extern const char *RConfigColorXyStartupY;
 extern const char *RConfigConfigured;
+extern const char *RConfigTuyaUnlock;
 extern const char *RConfigControlSequence;
 extern const char *RConfigCoolSetpoint;
 extern const char *RConfigCtMax; // Deprecated
