@@ -4,7 +4,7 @@
    "modelid":["TS011F","TS011F"],
    "product":"Tuya Powerstrip w/USB",
    "sleeper":false,
-   "status":"Silver",
+   "status":"Gold",
    "subdevices":[
       {
          "type":"$TYPE_ON_OFF_PLUGIN_UNIT",
@@ -34,7 +34,6 @@
             },
             {
                "name":"attr/swversion",
-               "refresh.interval":86400,
                "read":{
                   "at":"0x0001",
                   "cl":"0x0000",
@@ -98,7 +97,6 @@
             },
             {
                "name":"attr/swversion",
-               "refresh.interval":86400,
                "read":{
                   "at":"0x0001",
                   "cl":"0x0000",
@@ -159,7 +157,6 @@
             },
             {
                "name":"attr/swversion",
-               "refresh.interval":86400,
                "read":{
                   "at":"0x0001",
                   "cl":"0x0000",
@@ -220,7 +217,6 @@
             },
             {
                "name":"attr/swversion",
-               "refresh.interval":86400,
                "read":{
                   "at":"0x0001",
                   "cl":"0x0000",
@@ -281,7 +277,6 @@
             },
             {
                "name":"attr/swversion",
-               "refresh.interval":86400,
                "read":{
                   "at":"0x0001",
                   "cl":"0x0000",
