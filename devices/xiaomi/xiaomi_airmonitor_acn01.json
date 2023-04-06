@@ -92,7 +92,7 @@
             "at": "0x0129",
             "cl": "0xfcc0",
             "ep": 1,
-            "eval": "Item.val = ['excellent', 'good', 'moderate', 'poor', 'unhealthy'][Attr.val]",
+            "eval": "Item.val = ['excellent', 'good', 'moderate', 'poor', 'unhealthy'][Attr.val - 1]",
             "fn": "zcl",
             "mf": "0x115f"
           },
