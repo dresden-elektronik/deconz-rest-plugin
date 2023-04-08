@@ -597,7 +597,7 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
         if (zclFrame.commandId() == deCONZ::ZclReadAttributesResponseId)
         {
             stream >> status;
-            if (status != deCONZ::ZclSuccessStatus)
+            if (/*status != deCONZ::ZclSuccessStatus*/!stream.atEnd())
             {
                 continue;
             }
