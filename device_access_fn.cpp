@@ -597,9 +597,8 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
         if (zclFrame.commandId() == deCONZ::ZclReadAttributesResponseId)
         {
             stream >> status;
-            if (/*status != deCONZ::ZclSuccessStatus*/!stream.atEnd())
+            if (status != deCONZ::ZclSuccessStatus)
             {
-                DBG_Printf(DBG_DDF, "skip\n");
                 continue;
             }
         }
@@ -607,6 +606,7 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
         stream >> dataType;
         deCONZ::ZclAttribute attr(attrId, dataType, QLatin1String(""), deCONZ::ZclReadWrite, true);
 
+                DBG_Printf(DBG_DDF, "going to read\n");
         if (!attr.readFromStream(stream))
         {
             break;
