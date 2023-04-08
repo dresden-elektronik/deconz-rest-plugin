@@ -599,6 +599,7 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
             stream >> status;
             if (/*status != deCONZ::ZclSuccessStatus*/!stream.atEnd())
             {
+                DBG_Printf(DBG_DDF, "skip\n");
                 continue;
             }
         }
