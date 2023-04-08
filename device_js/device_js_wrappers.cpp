@@ -105,6 +105,7 @@ QVariant JsResourceItem::value() const
 
     if (type == DataTypeString || type == DataTypeTime ||  type == DataTypeTimePattern)
     {
+                DBG_Printf(DBG_DDF, "String is %s\n", qPrintable(citem->toString()));
         return citem->toString();
     }
 
