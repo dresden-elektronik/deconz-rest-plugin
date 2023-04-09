@@ -469,6 +469,7 @@ static duk_ret_t DJS_GetAttributeValue(duk_context *ctx)
 
     default:
     {
+    DBG_Printf(DBG_JS, "%s Using default\n", __FUNCTION__);
         const QVariant var = attr->toVariant();
         if (var.isValid())
         {

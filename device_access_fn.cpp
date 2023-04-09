@@ -306,6 +306,8 @@ bool evalZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndi
         engine.setZclAttribute(attr);
         engine.setZclFrame(zclFrame);
         engine.setApsIndication(ind);
+        QString payloadHexStr = zclFrame.payload().toHex();
+                DBG_Printf(DBG_DDF, "%s/%s expression: %s --> %s\n", r->item(RAttrUniqueId)->toCString(), item->descriptor().suffix, qPrintable(expr), qPrintable(payloadHexStr));
 
         if (engine.evaluate(expr) == JsEvalResult::Ok)
         {
