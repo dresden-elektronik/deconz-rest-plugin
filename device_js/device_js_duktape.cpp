@@ -467,9 +467,16 @@ static duk_ret_t DJS_GetAttributeValue(duk_context *ctx)
         break;
     }
 
+    case deCONZ::ZclOctedString:
+    {
+        QString str = attr->toHex();
+    DBG_Printf(DBG_JS, "%s Octed %s\n", __FUNCTION__, qPrintable(str));
+        duk_push_string(ctx, qPrintable(str));
+        break;
+    }
+
     default:
     {
-    DBG_Printf(DBG_JS, "%s Using default\n", __FUNCTION__);
         const QVariant var = attr->toVariant();
         if (var.isValid())
         {
