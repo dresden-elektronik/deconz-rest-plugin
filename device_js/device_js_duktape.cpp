@@ -474,7 +474,7 @@ static duk_ret_t DJS_GetAttributeValue(duk_context *ctx)
         stream.setByteOrder(QDataStream::LittleEndian);
         attr->writeToStream(stream);
         QString str = data.toHex();
-    DBG_Printf(DBG_JS, "%s Octed %s\n", __FUNCTION__, qPrintable(str));
+        DBG_Printf(DBG_JS, "%s Octed %s\n", __FUNCTION__, qPrintable(str));
         duk_push_string(ctx, qPrintable(str));
         break;
     }
