@@ -248,6 +248,7 @@ extern const char *RCapTransitionBlock;
 extern const char *RConfigAlarmSystemId;
 extern const char *RConfigAlert;
 extern const char *RConfigAllowTouchlink;
+extern const char *RConfigAqaraS1PanelCommunication;
 extern const char *RConfigArmMode;
 extern const char *RConfigArmedAwayEntryDelay;
 extern const char *RConfigArmedAwayExitDelay;

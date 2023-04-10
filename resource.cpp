@@ -234,6 +234,7 @@ const char *RCapTransitionBlock = "cap/transition_block";
 const char *RConfigAlarmSystemId = "config/alarmsystemid";
 const char *RConfigAlert = "config/alert";
 const char *RConfigAllowTouchlink = "config/allowtouchlink";
+const char *RConfigAqaraS1PanelCommunication = "config/aqara_s1_panel_communication";
 const char *RConfigArmMode = "config/armmode";
 const char *RConfigArmedAwayEntryDelay = "config/armed_away_entry_delay";
 const char *RConfigArmedAwayExitDelay = "config/armed_away_exit_delay";
@@ -528,6 +529,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigAlarmSystemId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigAlert));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool,  QVariant::Bool, RConfigAllowTouchlink));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigAqaraS1PanelCommunication));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigArmMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigArmedAwayEntryDelay, 0, 255));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigArmedAwayExitDelay, 0, 255));
