@@ -1,6 +1,15 @@
 {
     "schema": "devcap1.schema.json",
     "manufacturername": [
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
         "$MF_SIGNIFY",
         "$MF_SIGNIFY",
         "$MF_SIGNIFY",
@@ -12,6 +21,15 @@
         "$MF_SIGNIFY"
     ],
     "modelid": [
+        "LST001",
+        "LLC010",
+        "LLC011",
+        "LLC012",
+        "LLC006",
+        "LLC005",
+        "LLC007",
+        "LLC014",
+        "LLC013",
         "LST001",
         "LLC010",
         "LLC011",
