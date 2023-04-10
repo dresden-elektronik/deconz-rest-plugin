@@ -2305,8 +2305,6 @@ int DeRestPluginPrivate::deleteUser(const ApiRequest &req, ApiResponse &rsp)
     std::vector<ApiAuth>::iterator i = apiAuths.begin();
     std::vector<ApiAuth>::iterator end = apiAuths.end();
 
-    // TODO compare error not found on hue bridge
-
     for (; i != end; ++i)
     {
         if (username2 == i->apikey && i->state == ApiAuth::StateNormal)
@@ -2324,8 +2322,10 @@ int DeRestPluginPrivate::deleteUser(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
-    rsp.str = "[]"; // empty
-    rsp.httpStatus = HttpStatusOk;
+    // TODO compare error not found on hue bridge
+    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/whitelist/%1").arg(username2), QString("invalid value, %1, key not found").arg(username2)));
+    rsp.httpStatus = HttpStatusNotFound;
+
     return REQ_READY_SEND;
 }
 
