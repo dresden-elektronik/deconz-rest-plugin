@@ -1,9 +1,11 @@
 {
     "schema": "devcap1.schema.json",
     "manufacturername": [
+        "$MF_PHILIPS",
         "$MF_SIGNIFY"
     ],
     "modelid": [
+        "LOM007",
         "LOM007"
     ],
     "product": "Hue smart plug",
