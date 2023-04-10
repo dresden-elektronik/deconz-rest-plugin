@@ -12,18 +12,36 @@
     "status": "Gold",
     "sleeper": true,
     "subdevices": [
-         {
+        {
             "type": "$TYPE_SWITCH",
             "restapi": "/sensors",
-            "uuid": [ "$address.ext", "0x01", "0xfc00"],
+            "uuid": [
+                "$address.ext",
+                "0x01",
+                "0xfc00"
+            ],
             "buttons": {
-                "1": {"name": "Button"}
+                "1": {
+                    "name": "Button"
+                }
             },
             "buttonevents": {
-                "1000": {"action": "PRESS", "button": 1},
-                "1001": {"action": "HOLD", "button": 1},
-                "1002": {"action": "SHORT_RELEASE", "button": 1},
-                "1003": {"action": "LONG_RELEASE", "button": 1}
+                "1000": {
+                    "action": "PRESS",
+                    "button": 1
+                },
+                "1001": {
+                    "action": "HOLD",
+                    "button": 1
+                },
+                "1002": {
+                    "action": "SHORT_RELEASE",
+                    "button": 1
+                },
+                "1003": {
+                    "action": "LONG_RELEASE",
+                    "button": 1
+                }
             },
             "items": [
                 {
@@ -50,14 +68,24 @@
                 {
                     "name": "config/allowtouchlink",
                     "read": {
-                        "ep": 1, "cl": "0x0000", "mf": "0x100b", "at": "0x0031"
+                        "ep": 1,
+                        "cl": "0x0000",
+                        "mf": "0x100b",
+                        "at": "0x0031"
                     },
                     "parse": {
-                        "ep": 1, "cl": "0x0000", "mf": "0x100b", "at": "0x0031",
+                        "ep": 1,
+                        "cl": "0x0000",
+                        "mf": "0x100b",
+                        "at": "0x0031",
                         "eval": "Item.val = Attr.val != 0x000b"
                     },
                     "write": {
-                        "ep": 1, "cl": "0x0000", "mf": "0x100b", "at": "0x0031", "dt": "0x19",
+                        "ep": 1,
+                        "cl": "0x0000",
+                        "mf": "0x100b",
+                        "at": "0x0031",
+                        "dt": "0x19",
                         "eval": "Item.val ? 0x0000 : 0x000b"
                     },
                     "default": false,
@@ -66,7 +94,9 @@
                 {
                     "name": "config/battery",
                     "parse": {
-                        "ep": 1, "cl": "0x0001", "at": "0x0021",
+                        "ep": 1,
+                        "cl": "0x0001",
+                        "at": "0x0021",
                         "eval": "Item.val = Attr.val / 2"
                     },
                     "awake": true
@@ -84,7 +114,10 @@
                 {
                     "name": "state/buttonevent",
                     "parse": {
-                        "ep": 1, "cl": "0xfc00", "mf": "0x100b", "cmd": "0x00",
+                        "ep": 1,
+                        "cl": "0xfc00",
+                        "mf": "0x100b",
+                        "cmd": "0x00",
                         "script": "fc00_buttonevent.js"
                     },
                     "awake": true
@@ -100,13 +133,23 @@
     ],
     "bindings": [
         {
-            "bind": "unicast", "src.ep": 1, "cl": "0xfc00"
+            "bind": "unicast",
+            "src.ep": 1,
+            "cl": "0xfc00"
         },
         {
             "bind": "unicast",
             "src.ep": 1,
             "cl": "0x0001",
-            "report": [{ "at": "0x0021", "dt": "0x20", "min": 300, "max": 300, "change": "0x01" }]
+            "report": [
+                {
+                    "at": "0x0021",
+                    "dt": "0x20",
+                    "min": 300,
+                    "max": 300,
+                    "change": "0x01"
+                }
+            ]
         },
         {
             "bind": "groupcast",
