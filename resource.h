@@ -117,6 +117,7 @@ extern const char *RStateAllOn;
 extern const char *RStateAngle;
 extern const char *RStateAnyOn;
 extern const char *RStateAqaraS1PanelCommunication;
+extern const char *RStateAqaraCommunication;
 extern const char *RStateAqaraS1Language;
 extern const char *RStateAqaraS1LCDBrightness;
 extern const char *RStateAqaraS1SoundVolume;

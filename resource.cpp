@@ -87,6 +87,7 @@ const char *RStateAlert = "state/alert";
 const char *RStateAllOn = "state/all_on";
 const char *RStateAngle = "state/angle";
 const char *RStateAnyOn = "state/any_on";
+const char *RStateAqaraCommunication = "state/aqara_communication";
 const char *RStateAqaraS1PanelCommunication = "state/aqara_s1_panel_communication";
 const char *RStateAqaraS1Language = "state/aqara_s1_language";
 const char *RStateAqaraS1LCDBrightness = "state/aqara_s1_lcd_brightness";
@@ -396,6 +397,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateAngle));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateAnyOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::String, RStateArmState));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateAqaraCommunication));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateAqaraS1PanelCommunication));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateAqaraS1Language));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateAqaraS1LCDBrightness));
