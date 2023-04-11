@@ -142,7 +142,6 @@ const quint64 silabs3MacPrefix    = 0xec1bbd0000000000ULL;
 const quint64 onestiPrefix        = 0xf4ce360000000000ULL;
 const quint64 xalMacPrefix        = 0xf8f0050000000000ULL;
 const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
-const quint64 aqaraMacPrefix      = 0x54ef440000000000ULL;
 
 struct SupportedDevice {
     quint16 vendorId;
@@ -3020,33 +3019,33 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 lightNode.setManufacturerName(QLatin1String("LUMI"));
                 lightNode.setNeedSaveDatabase(true);
             }
-
-            // if (lightNode.modelId() == QLatin1String("lumi.switch.n4acn4"))
-            {
-                lightNode.addItem(DataTypeString, RStateAqaraS1PanelCommunication);
-                lightNode.addItem(DataTypeUInt8, RStateAqaraS1Language);
-                lightNode.addItem(DataTypeUInt8, RStateAqaraS1LCDBrightness);
-                lightNode.addItem(DataTypeUInt8, RStateAqaraS1SoundVolume);
-                lightNode.addItem(DataTypeBool, RStateAqaraS1StandbyEnabled);
-                lightNode.addItem(DataTypeUInt8, RStateAqaraS1ScreenSaverStyle);
-                lightNode.addItem(DataTypeUInt8, RStateAqaraS1Theme);
-                lightNode.addItem(DataTypeUInt32, RStateAqaraS1StandbyTime);
-                lightNode.addItem(DataTypeUInt8, RStateAqaraS1FontSize);
-                lightNode.addItem(DataTypeBool, RStateAqaraS1LCDAutoBrightnessEnabled);
-                lightNode.addItem(DataTypeUInt8, RStateAqaraS1Homepage);
-                lightNode.addItem(DataTypeBool, RStateAqaraS1ScreenSaverEnabled);
-                lightNode.addItem(DataTypeUInt8, RStateAqaraS1StandbyLCDBrightness);
-                lightNode.addItem(DataTypeUInt8, RStateAqaraS1Switch1Icon);
-                lightNode.addItem(DataTypeString, RStateAqaraS1Switch1Text);
-                lightNode.addItem(DataTypeUInt8, RStateAqaraS1Switch2Icon);
-                lightNode.addItem(DataTypeString, RStateAqaraS1Switch2Text);
-                lightNode.addItem(DataTypeUInt8, RStateAqaraS1Switch3Icon);
-                lightNode.addItem(DataTypeString, RStateAqaraS1Switch3Text);
-                lightNode.addItem(DataTypeBool, RStateAqaraS1AutoUpdateFWEnabled);
-                lightNode.addItem(DataTypeUInt8, RStateAqaraS1SwitchesConfig);
-                lightNode.addItem(DataTypeUInt8, RStateAqaraS1Gestures);
-            }
-            
+            // 
+            // // if (lightNode.modelId() == QLatin1String("lumi.switch.n4acn4"))
+            // {
+            //     lightNode.addItem(DataTypeString, RStateAqaraS1PanelCommunication);
+            //     lightNode.addItem(DataTypeUInt8, RStateAqaraS1Language);
+            //     lightNode.addItem(DataTypeUInt8, RStateAqaraS1LCDBrightness);
+            //     lightNode.addItem(DataTypeUInt8, RStateAqaraS1SoundVolume);
+            //     lightNode.addItem(DataTypeBool, RStateAqaraS1StandbyEnabled);
+            //     lightNode.addItem(DataTypeUInt8, RStateAqaraS1ScreenSaverStyle);
+            //     lightNode.addItem(DataTypeUInt8, RStateAqaraS1Theme);
+            //     lightNode.addItem(DataTypeUInt32, RStateAqaraS1StandbyTime);
+            //     lightNode.addItem(DataTypeUInt8, RStateAqaraS1FontSize);
+            //     lightNode.addItem(DataTypeBool, RStateAqaraS1LCDAutoBrightnessEnabled);
+            //     lightNode.addItem(DataTypeUInt8, RStateAqaraS1Homepage);
+            //     lightNode.addItem(DataTypeBool, RStateAqaraS1ScreenSaverEnabled);
+            //     lightNode.addItem(DataTypeUInt8, RStateAqaraS1StandbyLCDBrightness);
+            //     lightNode.addItem(DataTypeUInt8, RStateAqaraS1Switch1Icon);
+            //     lightNode.addItem(DataTypeString, RStateAqaraS1Switch1Text);
+            //     lightNode.addItem(DataTypeUInt8, RStateAqaraS1Switch2Icon);
+            //     lightNode.addItem(DataTypeString, RStateAqaraS1Switch2Text);
+            //     lightNode.addItem(DataTypeUInt8, RStateAqaraS1Switch3Icon);
+            //     lightNode.addItem(DataTypeString, RStateAqaraS1Switch3Text);
+            //     lightNode.addItem(DataTypeBool, RStateAqaraS1AutoUpdateFWEnabled);
+            //     lightNode.addItem(DataTypeUInt8, RStateAqaraS1SwitchesConfig);
+            //     lightNode.addItem(DataTypeUInt8, RStateAqaraS1Gestures);
+            // }
+            // 
         }
 
         if (lightNode.manufacturerCode() == VENDOR_MAXSTREAM)

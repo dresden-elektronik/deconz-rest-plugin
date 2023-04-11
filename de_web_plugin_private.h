@@ -544,7 +544,6 @@ extern const quint64 konkeMacPrefix;
 extern const quint64 ecozyMacPrefix;
 extern const quint64 zhejiangMacPrefix;
 extern const quint64 schlageMacPrefix;
-extern const quint64 aqaraMacPrefix;
 extern const quint64 lumiMacPrefix;
 
 inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
@@ -554,7 +553,6 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
         case VENDOR_XIAOMI:
             return prefix == jennicMacPrefix ||
                    prefix == xiaomiMacPrefix ||
-                   prefix == aqaraMacPrefix ||
                    prefix == lumiMacPrefix;
         case VENDOR_SINOPE:
             return prefix == sinopeMacPrefix;
@@ -1618,7 +1616,7 @@ public:
     void handleZclConfigureReportingResponseIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void taskToLocalData(const TaskItem &task);
     void handleZclAttributeReportIndicationXiaomiSpecial(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    void handleZclAttributeReportIndicationXiaomiAqaraS1ScenePanelSpecial(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    // void handleZclAttributeReportIndicationXiaomiAqaraS1ScenePanelSpecial(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void queuePollNode(RestNodeBase *node);
     void handleApplianceAlertClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     bool serialiseThermostatTransitions(const QVariantList &transitions, QString *s);

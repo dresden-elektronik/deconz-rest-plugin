@@ -162,7 +162,7 @@ void DeRestPluginPrivate::handleXiaomiLumiClusterIndication(const deCONZ::ApsDat
             }
         }
     }
-    handleZclAttributeReportIndicationXiaomiAqaraS1ScenePanelSpecial(ind, zclFrame); // TODO: integrate the logic into this function.
+    // handleZclAttributeReportIndicationXiaomiAqaraS1ScenePanelSpecial(ind, zclFrame); // TODO: integrate the logic into this function.
 }
 
 /*! Handle manufacturer specific Xiaomi ZCL attribute report commands to basic cluster.
@@ -567,7 +567,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     {
         if (!lightNode.modelId().startsWith(QLatin1String("lumi."))) { continue; }
         if (!isSameAddress(lightNode.address(), ind.srcAddress()))   { continue; }
-        if (ind.srcEndpoint() != lightNode.haEndpoint().endpoint())  { continue; }
+        // if (ind.srcEndpoint() != lightNode.haEndpoint().endpoint())  { continue; }
 
         quint8 stateOnOff = UINT8_MAX;
         ResourceItem *item;
@@ -1016,303 +1016,303 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 }
 
 
-/*! Handle manufacturer specific Xiaomi ZCL attribute report commands to aqara cluster.
- */
-void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiAqaraS1ScenePanelSpecial(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
-{
-    DBG_Printf(DBG_INFO, "######### 0x%016llX Xiaomi Aqara attribute report\n", ind.srcAddress().ext());
+// /*! Handle manufacturer specific Xiaomi ZCL attribute report commands to aqara cluster.
+//  */
+// void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiAqaraS1ScenePanelSpecial(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+// {
+//     DBG_Printf(DBG_INFO, "######### 0x%016llX Xiaomi Aqara attribute report\n", ind.srcAddress().ext());
 
-    quint16 attrId = 0;
-    quint8 dataType = 0;
-    quint8 length = 0;
+//     quint16 attrId = 0;
+//     quint8 dataType = 0;
+//     quint8 length = 0;
 
-    QDataStream stream(zclFrame.payload());
-    stream.setByteOrder(QDataStream::LittleEndian);
-    stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
+//     QDataStream stream(zclFrame.payload());
+//     stream.setByteOrder(QDataStream::LittleEndian);
+//     stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
 
-    while (attrId == 0)
-    {
-        if (stream.atEnd())
-        {
-            break;
-        }
+//     while (attrId == 0)
+//     {
+//         if (stream.atEnd())
+//         {
+//             break;
+//         }
 
-        quint16 a;
-        stream >> a;
-        stream >> dataType;
+//         quint16 a;
+//         stream >> a;
+//         stream >> dataType;
 
-        if (dataType == deCONZ::ZclCharacterString || dataType == deCONZ::ZclOctedString)
-        {
-            stream >> length;
-        }
+//         if (dataType == deCONZ::ZclCharacterString || dataType == deCONZ::ZclOctedString)
+//         {
+//             stream >> length;
+//         }
 
-        if ((a == 0xfff2 && dataType == deCONZ::ZclOctedString) || (a == 0x0201 && dataType == deCONZ::ZclBoolean) || (a == 0x0210 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0211 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0212 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0213 && dataType == deCONZ::ZclBoolean) || (a == 0x0214 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0215 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0216 && dataType == deCONZ::Zcl32BitUint) || (a == 0x0217 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0218 && dataType == deCONZ::ZclBoolean) || (a == 0x0219 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0221 && dataType == deCONZ::ZclBoolean) || (a == 0x0222 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0223 && dataType == deCONZ::ZclOctedString) || (a == 0x0224 && dataType == deCONZ::ZclOctedString) || (a == 0x0225 && dataType == deCONZ::ZclOctedString) || (a == 0x0227 && dataType == deCONZ::ZclBoolean) || (a == 0x022a && dataType == deCONZ::Zcl8BitUint) || (a == 0x022b && dataType == deCONZ::Zcl8BitUint) || (a == 0x023c && dataType == deCONZ::Zcl8BitUint))
-        {
-            QString payloadHexStr = zclFrame.payload().toHex();
-            DBG_Printf(DBG_INFO, "0x%016llX Xiaomi Aqara attribute 0x%2x: %s\n", ind.srcAddress().ext(), a, payloadHexStr);
+//         if ((a == 0xfff2 && dataType == deCONZ::ZclOctedString) || (a == 0x0201 && dataType == deCONZ::ZclBoolean) || (a == 0x0210 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0211 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0212 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0213 && dataType == deCONZ::ZclBoolean) || (a == 0x0214 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0215 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0216 && dataType == deCONZ::Zcl32BitUint) || (a == 0x0217 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0218 && dataType == deCONZ::ZclBoolean) || (a == 0x0219 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0221 && dataType == deCONZ::ZclBoolean) || (a == 0x0222 && dataType == deCONZ::Zcl8BitUint) || (a == 0x0223 && dataType == deCONZ::ZclOctedString) || (a == 0x0224 && dataType == deCONZ::ZclOctedString) || (a == 0x0225 && dataType == deCONZ::ZclOctedString) || (a == 0x0227 && dataType == deCONZ::ZclBoolean) || (a == 0x022a && dataType == deCONZ::Zcl8BitUint) || (a == 0x022b && dataType == deCONZ::Zcl8BitUint) || (a == 0x023c && dataType == deCONZ::Zcl8BitUint))
+//         {
+//             QString payloadHexStr = zclFrame.payload().toHex();
+//             DBG_Printf(DBG_INFO, "0x%016llX Xiaomi Aqara attribute 0x%2x: %s\n", ind.srcAddress().ext(), a, payloadHexStr);
 
-            const char *resourceItemToUpdate = NULL;
-            const char *resourceItemToUpdate2 = NULL;
-            quint8 uint8Param = UINT8_MAX;
-            quint32 uint32Param = UINT32_MAX;
-            quint8 boolParam = UINT8_MAX;
-            QString stringParam = NULL;
+//             const char *resourceItemToUpdate = NULL;
+//             const char *resourceItemToUpdate2 = NULL;
+//             quint8 uint8Param = UINT8_MAX;
+//             quint32 uint32Param = UINT32_MAX;
+//             quint8 boolParam = UINT8_MAX;
+//             QString stringParam = NULL;
 
-            switch (a)
-            {
-            case 0x0201:
-            case 0x022a:
-                {
-                    quint8 paramToEat = 0;
-                    stream >> paramToEat;
-                    continue;
-                }
-                break;
-            case 0xfff2:
-                resourceItemToUpdate = RStateAqaraS1PanelCommunication;
-                stringParam = zclFrame.payload().toHex();
-                DBG_Printf(DBG_INFO, "####### 0x%016llX Xiaomi Aqara attribute 0x%2x: %s\n", ind.srcAddress().ext(), a, stringParam);
-                {
-                    for (; length > 0; length--) // eat the data to avoid parsing it further...
-                    {
-                        quint8 dummy;
-                        stream >> dummy;
-                    }
-                }
-                break;
+//             switch (a)
+//             {
+//             case 0x0201:
+//             case 0x022a:
+//                 {
+//                     quint8 paramToEat = 0;
+//                     stream >> paramToEat;
+//                     continue;
+//                 }
+//                 break;
+//             case 0xfff2:
+//                 resourceItemToUpdate = RStateAqaraS1PanelCommunication;
+//                 stringParam = zclFrame.payload().toHex();
+//                 DBG_Printf(DBG_INFO, "####### 0x%016llX Xiaomi Aqara attribute 0x%2x: %s\n", ind.srcAddress().ext(), a, stringParam);
+//                 {
+//                     for (; length > 0; length--) // eat the data to avoid parsing it further...
+//                     {
+//                         quint8 dummy;
+//                         stream >> dummy;
+//                     }
+//                 }
+//                 break;
 
-            case 0x0210:
-                resourceItemToUpdate = RStateAqaraS1Language;
-                stream >> uint8Param;
-                break;
+//             case 0x0210:
+//                 resourceItemToUpdate = RStateAqaraS1Language;
+//                 stream >> uint8Param;
+//                 break;
             
-            case 0x0211:
-                resourceItemToUpdate = RStateAqaraS1LCDBrightness;
-                stream >> uint8Param;
-                break;
+//             case 0x0211:
+//                 resourceItemToUpdate = RStateAqaraS1LCDBrightness;
+//                 stream >> uint8Param;
+//                 break;
             
-            case 0x0212:
-                resourceItemToUpdate = RStateAqaraS1SoundVolume;
-                stream >> uint8Param;
-                break;
+//             case 0x0212:
+//                 resourceItemToUpdate = RStateAqaraS1SoundVolume;
+//                 stream >> uint8Param;
+//                 break;
             
-            case 0x0213:
-                resourceItemToUpdate = RStateAqaraS1StandbyEnabled;
-                stream >> boolParam;
-                break;
+//             case 0x0213:
+//                 resourceItemToUpdate = RStateAqaraS1StandbyEnabled;
+//                 stream >> boolParam;
+//                 break;
             
-            case 0x0214:
-                resourceItemToUpdate = RStateAqaraS1ScreenSaverStyle;
-                stream >> uint8Param;
-                break;
+//             case 0x0214:
+//                 resourceItemToUpdate = RStateAqaraS1ScreenSaverStyle;
+//                 stream >> uint8Param;
+//                 break;
             
-            case 0x0215:
-                resourceItemToUpdate = RStateAqaraS1Theme;
-                stream >> uint8Param;
-                break;
+//             case 0x0215:
+//                 resourceItemToUpdate = RStateAqaraS1Theme;
+//                 stream >> uint8Param;
+//                 break;
             
-            case 0x0216:
-                resourceItemToUpdate = RStateAqaraS1StandbyTime;
-                stream >> uint32Param;
-                break;
+//             case 0x0216:
+//                 resourceItemToUpdate = RStateAqaraS1StandbyTime;
+//                 stream >> uint32Param;
+//                 break;
             
-            case 0x0217:
-                resourceItemToUpdate = RStateAqaraS1FontSize;
-                stream >> uint8Param;
-                break;
+//             case 0x0217:
+//                 resourceItemToUpdate = RStateAqaraS1FontSize;
+//                 stream >> uint8Param;
+//                 break;
             
-            case 0x0218:
-                resourceItemToUpdate = RStateAqaraS1LCDAutoBrightnessEnabled;
-                stream >> boolParam;
-                break;
+//             case 0x0218:
+//                 resourceItemToUpdate = RStateAqaraS1LCDAutoBrightnessEnabled;
+//                 stream >> boolParam;
+//                 break;
             
-            case 0x0219:
-                resourceItemToUpdate = RStateAqaraS1Homepage;
-                stream >> uint8Param;
-                break;
+//             case 0x0219:
+//                 resourceItemToUpdate = RStateAqaraS1Homepage;
+//                 stream >> uint8Param;
+//                 break;
             
-            case 0x0221:
-                resourceItemToUpdate = RStateAqaraS1ScreenSaverEnabled;
-                stream >> boolParam;
-                break;
+//             case 0x0221:
+//                 resourceItemToUpdate = RStateAqaraS1ScreenSaverEnabled;
+//                 stream >> boolParam;
+//                 break;
             
-            case 0x0222:
-                resourceItemToUpdate = RStateAqaraS1StandbyLCDBrightness;
-                stream >> uint8Param;
-                break;
+//             case 0x0222:
+//                 resourceItemToUpdate = RStateAqaraS1StandbyLCDBrightness;
+//                 stream >> uint8Param;
+//                 break;
             
-            case 0x0223:
-                resourceItemToUpdate2 = RStateAqaraS1Switch1Icon;
-                stream >> uint8Param;
+//             case 0x0223:
+//                 resourceItemToUpdate2 = RStateAqaraS1Switch1Icon;
+//                 stream >> uint8Param;
 
-                resourceItemToUpdate = RStateAqaraS1Switch1Text;
-                {
-                    quint8 textLength = length - 1;
+//                 resourceItemToUpdate = RStateAqaraS1Switch1Text;
+//                 {
+//                     quint8 textLength = length - 1;
 
-                    if (textLength > 0) {
-                        // the string is probably utf8 or latin
-                        QByteArray buffer(textLength, Qt::Uninitialized);
+//                     if (textLength > 0) {
+//                         // the string is probably utf8 or latin
+//                         QByteArray buffer(textLength, Qt::Uninitialized);
 
-                        stream.readRawData(buffer.data(), textLength);
-                        QString string(buffer);
-                        stringParam = string;
-                    }
-                    else {
-                        stringParam = QLatin1String("");
-                    }
-                }
-                break;
+//                         stream.readRawData(buffer.data(), textLength);
+//                         QString string(buffer);
+//                         stringParam = string;
+//                     }
+//                     else {
+//                         stringParam = QLatin1String("");
+//                     }
+//                 }
+//                 break;
             
-            case 0x0224:
-                resourceItemToUpdate2 = RStateAqaraS1Switch2Icon;
-                stream >> uint8Param;
+//             case 0x0224:
+//                 resourceItemToUpdate2 = RStateAqaraS1Switch2Icon;
+//                 stream >> uint8Param;
 
-                resourceItemToUpdate = RStateAqaraS1Switch2Text;
-                {
-                    quint8 textLength = length - 1;
+//                 resourceItemToUpdate = RStateAqaraS1Switch2Text;
+//                 {
+//                     quint8 textLength = length - 1;
 
-                    if (textLength > 0) {
-                        // the string is probably utf8 or latin
-                        QByteArray buffer(textLength, Qt::Uninitialized);
+//                     if (textLength > 0) {
+//                         // the string is probably utf8 or latin
+//                         QByteArray buffer(textLength, Qt::Uninitialized);
 
-                        stream.readRawData(buffer.data(), textLength);
-                        QString string(buffer);
-                        stringParam = string;
-                    }
-                    else {
-                        stringParam = QLatin1String("");
-                    }
-                }
-                break;
+//                         stream.readRawData(buffer.data(), textLength);
+//                         QString string(buffer);
+//                         stringParam = string;
+//                     }
+//                     else {
+//                         stringParam = QLatin1String("");
+//                     }
+//                 }
+//                 break;
             
-            case 0x0225:
-                resourceItemToUpdate2 = RStateAqaraS1Switch3Icon;
-                stream >> uint8Param;
+//             case 0x0225:
+//                 resourceItemToUpdate2 = RStateAqaraS1Switch3Icon;
+//                 stream >> uint8Param;
 
-                resourceItemToUpdate = RStateAqaraS1Switch3Text;
-                {
-                    quint8 textLength = length - 1;
+//                 resourceItemToUpdate = RStateAqaraS1Switch3Text;
+//                 {
+//                     quint8 textLength = length - 1;
 
-                    if (textLength > 0) {
-                        // the string is probably utf8 or latin
-                        QByteArray buffer(textLength, Qt::Uninitialized);
+//                     if (textLength > 0) {
+//                         // the string is probably utf8 or latin
+//                         QByteArray buffer(textLength, Qt::Uninitialized);
 
-                        stream.readRawData(buffer.data(), textLength);
-                        QString string(buffer);
-                        stringParam = string;
-                    }
-                    else {
-                        stringParam = QLatin1String("");
-                    }
-                }
-                break;
+//                         stream.readRawData(buffer.data(), textLength);
+//                         QString string(buffer);
+//                         stringParam = string;
+//                     }
+//                     else {
+//                         stringParam = QLatin1String("");
+//                     }
+//                 }
+//                 break;
             
-            case 0x0227:
-                resourceItemToUpdate = RStateAqaraS1AutoUpdateFWEnabled;
-                stream >> boolParam;
-                break;
+//             case 0x0227:
+//                 resourceItemToUpdate = RStateAqaraS1AutoUpdateFWEnabled;
+//                 stream >> boolParam;
+//                 break;
             
-            case 0x022b:
-                resourceItemToUpdate = RStateAqaraS1SwitchesConfig;
-                stream >> uint8Param;
-                break;
+//             case 0x022b:
+//                 resourceItemToUpdate = RStateAqaraS1SwitchesConfig;
+//                 stream >> uint8Param;
+//                 break;
             
-            case 0x023c:
-                resourceItemToUpdate = RStateAqaraS1Gestures;
-                stream >> uint8Param;
-                break;
+//             case 0x023c:
+//                 resourceItemToUpdate = RStateAqaraS1Gestures;
+//                 stream >> uint8Param;
+//                 break;
             
-            default:
-                break;
-            }
+//             default:
+//                 break;
+//             }
 
-            for (LightNode &lightNode: nodes)
-            {
-                if (!lightNode.modelId().startsWith(QLatin1String("lumi.")))
-                {
-                    continue;
-                }
+//             for (LightNode &lightNode: nodes)
+//             {
+//                 if (!lightNode.modelId().startsWith(QLatin1String("lumi.")))
+//                 {
+//                     continue;
+//                 }
                 
-                if      (ind.srcAddress().hasExt() && lightNode.address().hasExt() &&
-                        ind.srcAddress().ext() == lightNode.address().ext())
-                { }
-                else if (ind.srcAddress().hasNwk() && lightNode.address().hasNwk() &&
-                        ind.srcAddress().nwk() == lightNode.address().nwk())
-                { }
-                else
-                {
-                    continue;
-                }
+//                 if      (ind.srcAddress().hasExt() && lightNode.address().hasExt() &&
+//                         ind.srcAddress().ext() == lightNode.address().ext())
+//                 { }
+//                 else if (ind.srcAddress().hasNwk() && lightNode.address().hasNwk() &&
+//                         ind.srcAddress().nwk() == lightNode.address().nwk())
+//                 { }
+//                 else
+//                 {
+//                     continue;
+//                 }
 
-                if (ind.srcEndpoint() != lightNode.haEndpoint().endpoint())
-                {
-                    continue;
-                }
+//                 if (ind.srcEndpoint() != lightNode.haEndpoint().endpoint())
+//                 {
+//                     continue;
+//                 }
                 
-                ResourceItem *item;
+//                 ResourceItem *item;
 
-                if (lightNode.modelId().startsWith(QLatin1String("lumi.switch.n4acn4")))
-                {
-                    item = lightNode.item(resourceItemToUpdate);
-                    if (item)
-                    {
-                        if (dataType == deCONZ::ZclOctedString && stringParam.isNull() != true) {
-                            // This is just to make sure it will update the string to the saved string, since in QT "" == NULL and the value will not update. (Stupid???)
-                            if (stringParam.length() == 0) {
-                                item->setValue(QString(" "));
-                            }
-                            item->setValue(stringParam);
-                            if (resourceItemToUpdate2 != NULL && uint8Param != UINT8_MAX)
-                            {
-                                ResourceItem *item2 = lightNode.item(resourceItemToUpdate2);
-                                if (item2)
-                                {
-                                    if (uint8Param < 1 || uint8Param > 11) { // For now the switches icons is in this range...
-                                        uint8Param = 1;
-                                    }
-                                    item2->setValue(uint8Param);
-                                    enqueueEvent(Event(RLights, item2->descriptor().suffix, lightNode.id(), item2));
-                                }
-                            }
-                        } else if (dataType == deCONZ::Zcl8BitUint) {
-                            item->setValue(uint8Param);
-                        } else if (dataType == deCONZ::Zcl32BitUint) {
-                            item->setValue(uint32Param);
-                        } else if (dataType == deCONZ::ZclBoolean) {
-                            item->setValue(boolParam == 0x01);
-                        }
-                DBG_Printf(DBG_INFO, "######## 0x%016llX Xiaomi Aqara attribute 0x%2x: %s\n", ind.srcAddress().ext(), a, stringParam);
-                        // enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
-                DBG_Printf(DBG_INFO, "######### 0x%016llX Xiaomi Aqara attribute 0x%2x: %s\n", ind.srcAddress().ext(), a, stringParam);
-                    }
-                }
+//                 if (lightNode.modelId().startsWith(QLatin1String("lumi.switch.n4acn4")))
+//                 {
+//                     item = lightNode.item(resourceItemToUpdate);
+//                     if (item)
+//                     {
+//                         if (dataType == deCONZ::ZclOctedString && stringParam.isNull() != true) {
+//                             // This is just to make sure it will update the string to the saved string, since in QT "" == NULL and the value will not update. (Stupid???)
+//                             if (stringParam.length() == 0) {
+//                                 item->setValue(QString(" "));
+//                             }
+//                             item->setValue(stringParam);
+//                             if (resourceItemToUpdate2 != NULL && uint8Param != UINT8_MAX)
+//                             {
+//                                 ResourceItem *item2 = lightNode.item(resourceItemToUpdate2);
+//                                 if (item2)
+//                                 {
+//                                     if (uint8Param < 1 || uint8Param > 11) { // For now the switches icons is in this range...
+//                                         uint8Param = 1;
+//                                     }
+//                                     item2->setValue(uint8Param);
+//                                     enqueueEvent(Event(RLights, item2->descriptor().suffix, lightNode.id(), item2));
+//                                 }
+//                             }
+//                         } else if (dataType == deCONZ::Zcl8BitUint) {
+//                             item->setValue(uint8Param);
+//                         } else if (dataType == deCONZ::Zcl32BitUint) {
+//                             item->setValue(uint32Param);
+//                         } else if (dataType == deCONZ::ZclBoolean) {
+//                             item->setValue(boolParam == 0x01);
+//                         }
+//                 DBG_Printf(DBG_INFO, "######## 0x%016llX Xiaomi Aqara attribute 0x%2x: %s\n", ind.srcAddress().ext(), a, stringParam);
+//                         // enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
+//                 DBG_Printf(DBG_INFO, "######### 0x%016llX Xiaomi Aqara attribute 0x%2x: %s\n", ind.srcAddress().ext(), a, stringParam);
+//                     }
+//                 }
 
-                // lightNode.rx();
-                // item = lightNode.item(RStateReachable);
-                // if (item && !item->toBool())
-                // {
-                //     item->setValue(true);
-                //     enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
-                // }
-                // updateLightEtag(&lightNode);
-                // lightNode.setNeedSaveDatabase(true);
-                // saveDatabaseItems |= DB_LIGHTS;
+//                 // lightNode.rx();
+//                 // item = lightNode.item(RStateReachable);
+//                 // if (item && !item->toBool())
+//                 // {
+//                 //     item->setValue(true);
+//                 //     enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
+//                 // }
+//                 // updateLightEtag(&lightNode);
+//                 // lightNode.setNeedSaveDatabase(true);
+//                 // saveDatabaseItems |= DB_LIGHTS;
 
 
-                QVariantMap map;
-                map["t"] = QLatin1String("event");
-                map["e"] = QLatin1String("changed");
-                map["r"] = QLatin1String("lights");
-                map["id"] = lightNode.id();
-                map["uniqueid"] = lightNode.uniqueId();
-                QVariantMap map1;
-                map1[&resourceItemToUpdate[6]] = stringParam;
-                map["state"] = map1;
-                webSocketServer->broadcastTextMessage(Json::serialize(map));
-                // updateLightEtag(&lightNode);
-                // plugin->saveDatabaseItems |= DB_LIGHTS;
-                // plugin->queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
-            }
-        }
-    }
-}
+//                 QVariantMap map;
+//                 map["t"] = QLatin1String("event");
+//                 map["e"] = QLatin1String("changed");
+//                 map["r"] = QLatin1String("lights");
+//                 map["id"] = lightNode.id();
+//                 map["uniqueid"] = lightNode.uniqueId();
+//                 QVariantMap map1;
+//                 map1[&resourceItemToUpdate[6]] = stringParam;
+//                 map["state"] = map1;
+//                 webSocketServer->broadcastTextMessage(Json::serialize(map));
+//                 // updateLightEtag(&lightNode);
+//                 // plugin->saveDatabaseItems |= DB_LIGHTS;
+//                 // plugin->queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
+//             }
+//         }
+//     }
+// }
