@@ -2337,6 +2337,7 @@ int DeRestPluginPrivate::changeThermostatSchedule(const ApiRequest &req, ApiResp
  */
 int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &rsp)
 {
+    DBG_Printf(DBG_INFO, "++++++++++++++++++++++++++++++++++++++++ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &rsp)\n");
     QString id = req.path[3];
     Sensor *sensor = id.length() < MIN_UNIQUEID_LENGTH ? getSensorNodeForId(id) : getSensorNodeForUniqueId(id);
     bool ok;
