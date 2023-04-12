@@ -212,7 +212,7 @@ const char *RCapTransitionBlock = "cap/transition_block";
 const char *RConfigAlarmSystemId = "config/alarmsystemid";
 const char *RConfigAlert = "config/alert";
 const char *RConfigAllowTouchlink = "config/allowtouchlink";
-const char *RConfigAqaraS1PanelCommunication = "config/aqara_s1_panel_communication";
+const char *RConfigAqaraS1Communication = "config/aqara_s1_communication";
 const char *RConfigAqaraS1Language = "config/aqara_s1_language";
 const char *RConfigAqaraS1LCDBrightness = "config/aqara_s1_lcd_brightness";
 const char *RConfigAqaraS1SoundVolume = "config/aqara_s1_sound_volume";
@@ -506,7 +506,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigAlarmSystemId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigAlert));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool,  QVariant::Bool, RConfigAllowTouchlink));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigAqaraS1PanelCommunication));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigAqaraS1Communication));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigAqaraS1Language));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigAqaraS1LCDBrightness));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigAqaraS1SoundVolume));
