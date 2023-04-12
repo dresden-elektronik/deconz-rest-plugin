@@ -465,6 +465,17 @@ static duk_ret_t DJS_GetAttributeValue(duk_context *ctx)
         duk_push_string(ctx, qPrintable(str));
         break;
     }
+    case deCONZ::ZclOctedString:
+    {
+        QString str = attr->toVariant().toHex();
+        QByteArray data;
+        QDataStream stream(&data, QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        attr->writeToStream(stream);
+        QString str = data.toHex();
+        duk_push_string(ctx, qPrintable(str));
+        break;
+    }
 
     default:
     {
