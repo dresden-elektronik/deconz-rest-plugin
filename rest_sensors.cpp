@@ -2337,7 +2337,6 @@ int DeRestPluginPrivate::changeThermostatSchedule(const ApiRequest &req, ApiResp
  */
 int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &rsp)
 {
-    DBG_Printf(DBG_INFO, "++++++++++++++++++++++++++++++++++++++++ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &rsp)\n");
     QString id = req.path[3];
     Sensor *sensor = id.length() < MIN_UNIQUEID_LENGTH ? getSensorNodeForId(id) : getSensorNodeForUniqueId(id);
     bool ok;
@@ -2370,28 +2369,24 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
         userActivity();
     }
 
-    DBG_Printf(DBG_INFO, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &rsp)\n");
     //check invalid parameter
     QVariantMap::const_iterator pi = map.begin();
     QVariantMap::const_iterator pend = map.end();
 
     for (; pi != pend; ++pi)
     {
-        ResourceItem *item = NULL;
+        ResourceItem *item = nullptr;
         ResourceItemDescriptor rid;
         if (getResourceItemDescriptor(QString("state/%1").arg(pi.key()), rid))
         {
-            DBG_Printf(DBG_INFO, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! if (getResourceItemDescriptor(QString(\"state/%1\").arg(pi.key()), rid))\n");
             if (rid.suffix == RStateButtonEvent)
             {
                 // allow modify physical switch buttonevent via api
             }
             else if (!isClip)
             {
-                DBG_Printf(DBG_INFO, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! else if (!isClip)\n");
                 continue;
             }
-            DBG_Printf(DBG_INFO, "###################################### if (getResourceItemDescriptor(QString(\"state/%1\").arg(pi.key()), rid))\n");
 
             if (rid.suffix != RStateLux && rid.suffix != RStateDark && rid.suffix != RStateDaylight)
             {
@@ -2426,10 +2421,8 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
                     else              { val = ""; } // mark invalid but keep processing to return proper error
                 }
 
-                DBG_Printf(DBG_INFO, "++++++++++++++++++++++++++++++++++++++++ Going to : item->setValue(val)\n");
                 if (item->setValue(val))
                 {
-                    DBG_Printf(DBG_INFO, "++++++++++++++++++++++++++++++++++++++++ item->setValue(val)\n");
                     rspItemState[QString("/sensors/%1/state/%2").arg(id).arg(pi.key())] = val;
                     rspItem[QLatin1String("success")] = rspItemState;
 
@@ -2536,10 +2529,8 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
             }
         }
 
-        DBG_Printf(DBG_INFO, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &rsp)\n");
         if (!item)
         {
-            DBG_Printf(DBG_INFO, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ if (!item)\n");
             // not found
             rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/state/%2").arg(id).arg(pi.key()), QString("parameter, %1, not available").arg(pi.key())));
             rsp.httpStatus = HttpStatusBadRequest;
@@ -2547,12 +2538,10 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
         }
     }
 
-    DBG_Printf(DBG_INFO, "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &rsp)\n");
     rsp.list.append(rspItem);
     updateSensorEtag(sensor);
     if (updated)
     {
-        DBG_Printf(DBG_INFO, "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ if (updated)\n");
         sensor->setNeedSaveDatabase(true);
         queSaveDb(DB_SENSORS, DB_HUGE_SAVE_DELAY);
     }
