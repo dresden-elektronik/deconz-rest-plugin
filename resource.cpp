@@ -1077,8 +1077,10 @@ bool ResourceItem::setValue(qint64 val, ValueSource source)
 
 bool ResourceItem::setValue(const QVariant &val, ValueSource source)
 {
+    DBG_Printf(DBG_INFO, "++++++++++++++++++++++++++++++++++++++++ bool ResourceItem::setValue(const QVariant &val, ValueSource source)\n");
     if (!val.isValid())
     {
+        DBG_Printf(DBG_INFO, "++++++++++++++++++++++++++++++++++++++++ !val.isValid()\n");
         m_lastSet = QDateTime();
         m_lastChanged = m_lastSet;
         m_valueSource = SourceUnknown;
