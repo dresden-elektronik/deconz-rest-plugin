@@ -2377,7 +2377,7 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
 
     for (; pi != pend; ++pi)
     {
-        ResourceItem *item = nullptr;
+        ResourceItem *item = NULL;
         ResourceItemDescriptor rid;
         if (getResourceItemDescriptor(QString("state/%1").arg(pi.key()), rid))
         {
@@ -2537,7 +2537,7 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
         }
 
         DBG_Printf(DBG_INFO, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &rsp)\n");
-        if (item == nullptr)
+        if (!item)
         {
             DBG_Printf(DBG_INFO, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ if (!item)\n");
             // not found
