@@ -2370,6 +2370,7 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
         userActivity();
     }
 
+    DBG_Printf(DBG_INFO, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &rsp)\n");
     //check invalid parameter
     QVariantMap::const_iterator pi = map.begin();
     QVariantMap::const_iterator pend = map.end();
@@ -2380,6 +2381,7 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
         ResourceItemDescriptor rid;
         if (getResourceItemDescriptor(QString("state/%1").arg(pi.key()), rid))
         {
+            DBG_Printf(DBG_INFO, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! if (getResourceItemDescriptor(QString(\"state/%1\").arg(pi.key()), rid))\n");
             if (rid.suffix == RStateButtonEvent)
             {
                 // allow modify physical switch buttonevent via api
@@ -2388,6 +2390,7 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
             {
                 continue;
             }
+            DBG_Printf(DBG_INFO, "###################################### if (getResourceItemDescriptor(QString(\"state/%1\").arg(pi.key()), rid))\n");
 
             if (rid.suffix != RStateLux && rid.suffix != RStateDark && rid.suffix != RStateDaylight)
             {
