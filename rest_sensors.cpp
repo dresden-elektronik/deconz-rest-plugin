@@ -2421,8 +2421,10 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
                     else              { val = ""; } // mark invalid but keep processing to return proper error
                 }
 
+                DBG_Printf(DBG_INFO, "++++++++++++++++++++++++++++++++++++++++ Going to : item->setValue(val)\n");
                 if (item->setValue(val))
                 {
+                    DBG_Printf(DBG_INFO, "++++++++++++++++++++++++++++++++++++++++ item->setValue(val)\n");
                     rspItemState[QString("/sensors/%1/state/%2").arg(id).arg(pi.key())] = val;
                     rspItem[QLatin1String("success")] = rspItemState;
 
