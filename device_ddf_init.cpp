@@ -243,6 +243,12 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
             {
                 continue;
             }
+            
+            if (item->descriptor().suffix == RStatePresence && item->toBool())
+            {
+                DBG_Printf(DBG_DDF, "sub-device: %s, presence state is true, reverting to false\n", qPrintable(uniqueId));
+                item->setValue(false);
+            }
 
             if (!ddfItem.defaultValue.isNull() && !ddfItem.writeParameters.isNull())
             {

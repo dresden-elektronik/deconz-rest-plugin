@@ -59,14 +59,18 @@
                     "name": "state/bri",
                     "description": "The lift state in earlier versions, use <code class=\"api-attribute\">lift</code> instead.",
                     "parse": {"cl": "0x0102", "at": "0x0008", "eval": "Item.val = Attr.val * 254 / 100"},
-                    "read": {},
+                    "read": {
+                        "fn": "none"
+                    },
                     "deprecated": "2020-04-08"
                 },
                 {
                     "name": "state/on",
                     "description": "The open state in earlier versions, use <code class=\"api-attribute\">open</code> instead.",
                     "parse": {"cl": "0x0102", "at": "0x0008", "eval": "Item.val = (Attr.val * 254 / 100) > 0"},
-                    "read": {},
+                    "read": {
+                        "fn": "none"
+                    },
                     "deprecated": "2020-04-08"
                 }
             ],

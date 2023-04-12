@@ -116,7 +116,7 @@ QMap<QString, QMap<QString, quint16>> loadButtonMapCommadsJson(const QJsonDocume
         }
         else if (!i.value().isObject())
         {
-            DBG_Printf(DBG_INFO, "[ERROR] - Expected '%s' in JSON file to be an object, but it isn't. Skipping entry...\n");
+            DBG_Printf(DBG_INFO, "[ERROR] - Expected '%s' in JSON file to be an object, but it isn't. Skipping entry...\n", qPrintable(i.key()));
             continue;
         }
         else
