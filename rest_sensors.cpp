@@ -2388,6 +2388,7 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
             }
             else if (!isClip)
             {
+                DBG_Printf(DBG_INFO, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! else if (!isClip)\n");
                 continue;
             }
             DBG_Printf(DBG_INFO, "###################################### if (getResourceItemDescriptor(QString(\"state/%1\").arg(pi.key()), rid))\n");
@@ -2535,8 +2536,10 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
             }
         }
 
+        DBG_Printf(DBG_INFO, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &rsp)\n");
         if (!item)
         {
+            DBG_Printf(DBG_INFO, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ if (!item)\n");
             // not found
             rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/state/%2").arg(id).arg(pi.key()), QString("parameter, %1, not available").arg(pi.key())));
             rsp.httpStatus = HttpStatusBadRequest;
@@ -2544,10 +2547,12 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
         }
     }
 
+    DBG_Printf(DBG_INFO, "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &rsp)\n");
     rsp.list.append(rspItem);
     updateSensorEtag(sensor);
     if (updated)
     {
+        DBG_Printf(DBG_INFO, "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ if (updated)\n");
         sensor->setNeedSaveDatabase(true);
         queSaveDb(DB_SENSORS, DB_HUGE_SAVE_DELAY);
     }
