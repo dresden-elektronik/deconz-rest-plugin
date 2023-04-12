@@ -2537,7 +2537,7 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
         }
 
         DBG_Printf(DBG_INFO, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &rsp)\n");
-        if (!item)
+        if (item == nullptr)
         {
             DBG_Printf(DBG_INFO, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ if (!item)\n");
             // not found
