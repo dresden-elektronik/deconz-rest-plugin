@@ -2064,7 +2064,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     if (devManaged && rsub)
                     {
-                        change.addTargetValue(rid.suffix, data.string);
+                        const QByteArray value = QByteArray::fromHex(data.string.toLatin1());
+                        change.addTargetValue(rid.suffix, value);
                         rsub->addStateChange(change);
                         updated = true;
                     }
