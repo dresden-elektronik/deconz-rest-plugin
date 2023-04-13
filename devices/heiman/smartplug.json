@@ -1,15 +1,13 @@
 {
     "schema": "devcap1.schema.json",
-    "manufacturername": "innr",
-    "modelid": "SP 120",
-    "vendor": "innr",
-    "product": "SP 120 smart plug",
+    "manufacturername": "Heiman",
+    "modelid": "SmartPlug",
+    "product": "SmartPlug",
     "sleeper": false,
     "status": "Gold",
-    "path": "/devices/innr/sp_120.json",
     "subdevices": [
         {
-            "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
+            "type": "$TYPE_SMART_PLUG",
             "restapi": "/lights",
             "uuid": [
                 "$address.ext",
@@ -35,7 +33,21 @@
                     "name": "attr/name"
                 },
                 {
-                    "name": "attr/swversion"
+                    "name": "attr/swversion",
+                    "parse": {
+                        "fn": "zcl",
+                        "ep": "0x01",
+                        "cl": "0x0000",
+                        "at": "0x0006",
+                        "eval": "Item.val = Attr.val"
+                    },
+                    "read": {
+                        "fn": "zcl",
+                        "ep": "0x01",
+                        "cl": "0x0000",
+                        "at": "0x0006"
+                    },
+                    "refresh.interval": 86400
                 },
                 {
                     "name": "attr/type"
@@ -64,12 +76,12 @@
                 "0x0702"
             ],
             "fingerprint": {
+                "profile": "0x0104",
+                "device": "0x0051",
                 "endpoint": "0x01",
-                "profile": "0xc05e",
-                "device": "0x0010",
                 "in": [
+                    "0x0000",
                     "0x0006",
-                    "0x0008",
                     "0x0702"
                 ],
                 "out": [
@@ -96,7 +108,14 @@
                     "name": "attr/name"
                 },
                 {
-                    "name": "attr/swversion"
+                    "name": "attr/swversion",
+                    "parse": {
+                        "fn": "zcl",
+                        "ep": "0x01",
+                        "cl": "0x0000",
+                        "at": "0x0006",
+                        "eval": "Item.val = Attr.val"
+                    }
                 },
                 {
                     "name": "attr/type"
@@ -112,13 +131,16 @@
                 },
                 {
                     "name": "state/consumption",
-                    "refresh.interval": 360,
+                    "description": "The measured consumption (in Wh).",
                     "parse": {
-                        "at": "0x0000",
+                        "fn": "zcl",
+                        "ep": "0x01",
                         "cl": "0x0702",
-                        "ep": 1,
-                        "eval": "Item.val = Attr.val * 10;"
-                    }
+                        "at": "0x0000",
+                        "eval": "Item.val = Math.round(Attr.val / 10)"
+                    },
+                    "refresh.interval": 360,
+                    "default": 0
                 },
                 {
                     "name": "state/lastupdated"
@@ -134,9 +156,9 @@
                 "0x0b04"
             ],
             "fingerprint": {
+                "profile": "0x0104",
+                "device": "0x0051",
                 "endpoint": "0x01",
-                "profile": "0xc05e",
-                "device": "0x0010",
                 "in": [
                     "0x0B04"
                 ]
@@ -161,7 +183,14 @@
                     "name": "attr/name"
                 },
                 {
-                    "name": "attr/swversion"
+                    "name": "attr/swversion",
+                    "parse": {
+                        "fn": "zcl",
+                        "ep": "0x01",
+                        "cl": "0x0000",
+                        "at": "0x0006",
+                        "eval": "Item.val = Attr.val"
+                    }
                 },
                 {
                     "name": "attr/type"
@@ -177,18 +206,45 @@
                 },
                 {
                     "name": "state/current",
-                    "refresh.interval": 360
+                    "description": "The measured current (in mA).",
+                    "parse": {
+                        "fn": "zcl",
+                        "ep": "0x01",
+                        "cl": "0x0B04",
+                        "at": "0x0508",
+                        "eval": "Item.val = Attr.val * 10"
+                    },
+                    "refresh.interval": 360,
+                    "default": 0
                 },
                 {
                     "name": "state/lastupdated"
                 },
                 {
                     "name": "state/power",
-                    "refresh.interval": 360
+                    "description": "The measured power (in W).",
+                    "parse": {
+                        "fn": "zcl",
+                        "ep": "0x01",
+                        "cl": "0x0B04",
+                        "at": "0x050B",
+                        "eval": "Item.val = Math.round(Attr.val / 10)"
+                    },
+                    "refresh.interval": 360,
+                    "default": 0
                 },
                 {
                     "name": "state/voltage",
-                    "refresh.interval": 360
+                    "description": "The measured voltage (in V).",
+                    "parse": {
+                        "fn": "zcl",
+                        "ep": "0x01",
+                        "cl": "0x0B04",
+                        "at": "0x0505",
+                        "eval": "Item.val = Math.round(Attr.val / 100)"
+                    },
+                    "refresh.interval": 360,
+                    "default": 0
                 }
             ]
         }
@@ -217,7 +273,7 @@
                     "dt": "0x25",
                     "min": 1,
                     "max": 300,
-                    "change": "0x0000000A"
+                    "change": "0x0A"
                 }
             ]
         },
@@ -231,21 +287,21 @@
                     "dt": "0x21",
                     "min": 1,
                     "max": 300,
-                    "change": "0x00000001"
+                    "change": "0x64"
                 },
                 {
                     "at": "0x0508",
                     "dt": "0x21",
                     "min": 1,
                     "max": 300,
-                    "change": "0x00000064"
+                    "change": "0x01"
                 },
                 {
                     "at": "0x050B",
                     "dt": "0x29",
                     "min": 1,
                     "max": 300,
-                    "change": "0x00000001"
+                    "change": "0x0A"
                 }
             ]
         }

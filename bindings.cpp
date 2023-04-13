@@ -1836,7 +1836,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                  modelId == QLatin1String("TS0202") || // Tuya sensor
                  modelId == QLatin1String("3AFE14010402000D") || // Konke presence sensor
                  modelId == QLatin1String("3AFE28010402000D") || // Konke presence sensor
-                 modelId == QLatin1String("lumi.airmonitor.acn01") ||      // Xiaomi Aqara TVOC Air Quality Monitor
                  modelId.startsWith(QLatin1String("GZ-PIR02")) ||          // Sercomm motion sensor
                  modelId.startsWith(QLatin1String("SZ-WTD02N_CAR")) ||     // Sercomm water sensor
                  modelId.startsWith(QLatin1String("3300")) ||          // Centralite contatc sensor
@@ -2280,43 +2279,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         return sendConfigureReportingRequest(bt, {rq});
     }
-    else if (bt.binding.clusterId == VENDOR_CLUSTER_ID)
-    {
-        if (modelId == QLatin1String("de_spect")) // dresden elektronik spectral sensor
-        {
-            rq.dataType = deCONZ::Zcl8BitUint;
-            rq.attributeId = 0x0000; // sensor enabled
-            rq.minInterval = 1;
-            rq.maxInterval = 120;
-            rq.reportableChange8bit = 1;
-
-            ConfigureReportingRequest rq2;
-            rq2 = ConfigureReportingRequest();
-            rq2.dataType = deCONZ::Zcl16BitUint;
-            rq2.attributeId = 0x0001; // spectral x
-            rq2.minInterval = 1;
-            rq2.maxInterval = 300;
-            rq2.reportableChange16bit = 200;
-
-            ConfigureReportingRequest rq3;
-            rq3 = ConfigureReportingRequest();
-            rq3.dataType = deCONZ::Zcl16BitUint;
-            rq3.attributeId = 0x0002; // spectral x
-            rq3.minInterval = 1;
-            rq3.maxInterval = 300;
-            rq3.reportableChange16bit = 200;
-
-            ConfigureReportingRequest rq4;
-            rq4 = ConfigureReportingRequest();
-            rq4.dataType = deCONZ::Zcl16BitUint;
-            rq4.attributeId = 0x0003; // spectral x
-            rq4.minInterval = 1;
-            rq4.maxInterval = 300;
-            rq4.reportableChange16bit = 200;
-
-            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
-        }
-    }
 
     return false;
 }
@@ -2687,8 +2649,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("3323")) ||
         sensor->modelId().startsWith(QLatin1String("3326-L")) ||
         sensor->modelId().startsWith(QLatin1String("3157100")) ||
-        // dresden elektronik
-        (sensor->manufacturer() == QLatin1String("dresden elektronik") && sensor->modelId() == QLatin1String("de_spect")) ||
         // GE
         (sensor->manufacturer() == QLatin1String("Jasco Products") && sensor->modelId() == QLatin1String("45856")) ||
         // NYCE
@@ -2711,7 +2671,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // IKEA
         sensor->modelId().startsWith(QLatin1String("TRADFRI")) ||
         sensor->modelId().startsWith(QLatin1String("Remote Control N2")) || // STYRBAR
-        sensor->modelId().startsWith(QLatin1String("FYRTUR")) ||
         sensor->modelId().startsWith(QLatin1String("KADRILJ")) ||
         sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
         // OSRAM
@@ -2795,7 +2754,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("FLSZB-1")) ||   // water leak sensor
         sensor->modelId().startsWith(QLatin1String("MOSZB-1")) ||   // motion sensor
         sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
-        sensor->modelId() == QLatin1String("ZHEMI101") ||           // Wattle (Develco) External Meter Interface
         sensor->modelId().startsWith(QLatin1String("EMIZB-1")) ||   // EMI Norwegian HAN
         sensor->modelId().startsWith(QLatin1String("SMRZB-3")) ||   // Smart Relay DIN
         sensor->modelId().startsWith(QLatin1String("SMRZB-1")) ||   // Smart Cable
@@ -2883,7 +2841,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("RH3052")) ||
         // Xiaomi
         sensor->modelId().startsWith(QLatin1String("lumi.switch.b1naus01")) ||
-        sensor->modelId() == QLatin1String("lumi.airmonitor.acn01") ||
         sensor->modelId() == QLatin1String("lumi.sensor_magnet.agl02") ||
         sensor->modelId() == QLatin1String("lumi.motion.agl04") ||
         sensor->modelId() == QLatin1String("lumi.flood.agl02") ||
@@ -2922,7 +2879,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("CCT593011_AS") ||
         sensor->modelId() == QLatin1String("CCT595011_AS") ||
         // Immax
-        sensor->modelId() == QLatin1String("Plug-230V-ZB3.0") ||
         sensor->modelId() == QLatin1String("4in1-Sensor-ZB3.0") ||
         sensor->modelId() == QLatin1String("DoorWindow-Sensor-ZB3.0") ||
         // Casa.IA
@@ -3129,9 +3085,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             {
                 val = sensor->getZclValue(*i, 0x0035); // battery alarm mask
             }
-            else if (sensor->modelId().startsWith(QLatin1String("AQSZB-1")) ||
-                     sensor->modelId().startsWith(QLatin1String("WISZB-1")) ||
-                     sensor->modelId().startsWith(QLatin1String("MOSZB-1")) ||
+            else if (sensor->modelId().startsWith(QLatin1String("MOSZB-1")) ||
                      sensor->modelId().startsWith(QLatin1String("FLSZB-1")) ||
                      sensor->modelId().startsWith(QLatin1String("HMSZB-1")) ||
                      sensor->modelId() == QLatin1String("MotionSensor51AU") ||
@@ -3199,13 +3153,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                     val.maxInterval = static_cast<quint16>(item->toNumber());
                     val.maxInterval -= 5; // report before going presence: false
                 }
-            }
-        }
-        else if (*i == VENDOR_CLUSTER_ID)
-        {
-            if (sensor->modelId() == QLatin1String("de_spect")) // dresden elektronik spectral sensor
-            {
-                val = sensor->getZclValue(*i, 0x0000, sensor->fingerPrint().endpoint); // sensor enabled per endpoint
             }
         }
         else if (*i == BOSCH_AIR_QUALITY_CLUSTER_ID && sensor->modelId() == QLatin1String("AIR"))
