@@ -1812,7 +1812,7 @@ bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsC
                 const auto res = engine.result();
                 DBG_Printf(DBG_DDF, "%s/%s expression: %s --> %s\n", r->item(RAttrUniqueId)->toCString(), item->descriptor().suffix, qPrintable(expr), qPrintable(res.toString()));
                 if (dataType == deCONZ::ZclOctedString) {
-                    res = QByteArray::fromHex(QString(res.toString()).toLatin1());
+                    const QByteArray value = QByteArray::fromHex(res.toString().toLatin1());
                 }
                 attribute.setValue(res);
             }
