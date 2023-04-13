@@ -2060,7 +2060,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                                    QString("parameter, %1, not available").arg(pi.key())));
                     }
                 }
-                else if (rid.suffix == RConfigAqaraS1Communication) // String
+                else if (rid.suffix == RConfigAqaraS1Communication/* || rid.suffix == RConfigAqaraS1Switch1Text || rid.suffix == RConfigAqaraS1Switch2Text || rid.suffix == RConfigAqaraS1Switch3Text*/) // String
                 {
                     if (devManaged && rsub)
                     {
@@ -2069,7 +2069,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         updated = true;
                     }
                 }
-                else if (rid.suffix == RConfigAqaraS1StandbyEnabled) // Boolean
+                else if (rid.suffix == RConfigAqaraS1StandbyEnabled || rid.suffix == RConfigAqaraS1AutoUpdateFWEnabled || rid.suffix == RConfigAqaraS1LCDAutoBrightnessEnabled || rid.suffix == RConfigAqaraS1ScreenSaverEnabled) // Boolean
                 {
                     if (devManaged && rsub)
                     {
@@ -2078,7 +2078,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         updated = true;
                     }
                 }
-                else if (rid.suffix == RConfigAqaraS1SoundVolume) // Unsigned Integer
+                else if (rid.suffix == RConfigAqaraS1SoundVolume || rid.suffix == RConfigAqaraS1FontSize || rid.suffix == RConfigAqaraS1Gestures || rid.suffix == RConfigAqaraS1Homepage || rid.suffix == RConfigAqaraS1Language || rid.suffix == RConfigAqaraS1LCDBrightness || rid.suffix == RConfigAqaraS1ScreenSaverStyle || rid.suffix == RConfigAqaraS1StandbyTime/* || rid.suffix == RConfigAqaraS1Switch1Icon || rid.suffix == RConfigAqaraS1Switch2Icon || rid.suffix == RConfigAqaraS1Switch3Icon*/) // Unsigned Integer
                 {
                     if (devManaged && rsub)
                     {
