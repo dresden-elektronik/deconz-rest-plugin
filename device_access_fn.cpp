@@ -1826,7 +1826,15 @@ bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsC
         stream << attribute.id();
         stream << attribute.dataType();
 
-        if (!attribute.writeToStream(stream))
+        if (dataType == deCONZ::ZclOctedString)
+        {
+            const QByteArray value = QByteArray::fromHex(attribute.toVariant().toString().toLatin1());
+            if (!stream.writeRawData(value.constData(), value.size()))
+            {
+                return result;
+            }
+        }
+        else if (!attribute.writeToStream(stream))
         {
             return result;
         }
