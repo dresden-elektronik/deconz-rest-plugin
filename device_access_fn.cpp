@@ -1826,8 +1826,8 @@ bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsC
         stream << attribute.id();
         stream << attribute.dataType();
                 if (dataType == deCONZ::ZclOctedString) {
-                    DBG_Printf(DBG_DDF, "%s/%s value is: %s\n", r->item(RAttrUniqueId)->toCString(), item->descriptor().suffix, qPrintable(attribute.toString()));
-                    const QByteArray value = QByteArray::fromHex(attribute.toString().toLatin1());
+                    DBG_Printf(DBG_DDF, "%s/%s value is: %s\n", r->item(RAttrUniqueId)->toCString(), item->descriptor().suffix, qPrintable(attribute->toVariant().toString()));
+                    const QByteArray value = QByteArray::fromHex(attribute->toVariant().toString().toLatin1());
                     
                     if (!stream.writeRawData(value.constData(), value.size())) {
                         return result;
