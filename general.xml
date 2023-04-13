@@ -2260,6 +2260,23 @@ Note: It does not clear or delete previous weekly schedule programming configura
           <attribute id="0x0081" name="Unknown" type="s16" access="r" required="o"/>
           <attribute id="0x0082" name="Unknown (Heat Setpoint?)" type="s16" access="r" required="o"/>
         </attribute-set>
+     	<!-- Sinope manufacturer specific -->
+	<attribute-set id="0x0400" description="Sinope specific" mfcode="0x119c">
+		<attribute id="0x0400" name="Occupancy" type="enum8" access="rw" required="m" mfcode="0x119c">
+				<value name="Unoccupied" value="0x00"></value>
+				<value name="Occupied" value="0x01"></value>
+		</attribute>
+		<attribute id="0x0401" name="Main Cycle Output" type="u16" access="rw" required="m" mfcode="0x119c">
+			<description>Number of second</description>
+		</attribute>
+			<attribute id="0x0402" name="Backlight" type="enum8" access="rw" required="m" mfcode="0x119c">
+				<value name="On demand" value="0x00"></value>
+				<value name="Always ON" value="0x01"></value>
+		</attribute>
+			<attribute id="0x0404" name="Aux Cycle Output" type="u16" access="rw" required="m" mfcode="0x119c">
+			<description>Number of second</description>
+		</attribute>			
+	</attribute-set>
         <!-- ELKO specific -->
         <attribute-set id="0x0400" description="ELKO specific" mfcode="0x1002">
           <attribute id="0x0401" name="Unknown" type="u16" access="rw" required="m"></attribute>
@@ -2356,23 +2373,6 @@ Note: It does not clear or delete previous weekly schedule programming configura
           <attribute id="0x404F" name="Preheat Status" type="bool" default="0x00" access="r" required="o" mfcode="0x1246"></attribute>
           <attribute id="0x4050" name="Preheat Time" type="u32" access="r" required="o" mfcode="0x1246"></attribute>
           <attribute id="0x4051" name="Window Open Feature On" type="bool" default="0x01" access="rw" required="o" mfcode="0x1246"></attribute>
-        </attribute-set>
-        <!-- Sinope manufacturer specific -->
-        <attribute-set id="0x0400" description="Sinope specific" mfcode="0x119c">
-          <attribute id="0x0400" name="Occupancy" type="enum8" access="rw" required="m" mfcode="0x119c">
-            <value name="Unoccupied" value="0x00"></value>
-            <value name="Occupied" value="0x01"></value>
-          </attribute>
-	  <attribute id="0x0401" name="Main Cycle Output" type="u16" access="rw" required="m" mfcode="0x119c">
-		<description>Number of second</description>
-	  </attribute>
-          <attribute id="0x0402" name="Backlight" type="enum8" access="rw" required="m" mfcode="0x119c">
-            <value name="On demand" value="0x00"></value>
-            <value name="Sensing" value="0x01"></value>
-          </attribute>
-	  <attribute id="0x0404" name="Aux Cycle Output" type="u16" access="rw" required="m" mfcode="0x119c">
-		<description>Number of second</description>
-	</attribute>	
         </attribute-set>
         <!-- Stelpro manufacturer specific -->
         <attribute-set id="0x4000" description="Stelpro specific" mfcode="0x1185">
@@ -3481,6 +3481,8 @@ Note: It does not clear or delete previous weekly schedule programming configura
         <attribute-set id="0x0010" description="Zone settings">
           <attribute id="0x0010" name="IAS_CIE_Address" type="uid" access="rw" required="o" default="0"></attribute>
           <attribute id="0x0011" name="Zone ID" type="u8" range="0x00,0xff" access="r" required="m"></attribute>
+          <attribute id="0x0012" name="Number Of ZoneSensitivity Levels Supported" type="u8" range="0x02,0xff" access="r" required="o" default="2"></attribute>
+          <attribute id="0x0013" name="Current Zone SensitivityLevel" type="u8" range="0x00,0xff" access="rw" required="o" default="0"></attribute>
         </attribute-set>
         <attribute-set id="0x8000" description="Develco specific" mfcode="0x1015">
           <attribute id="0x8000" name="Zone Status Interval" type="u16" access="rw" required="o" mfcode="0x1015"></attribute>
