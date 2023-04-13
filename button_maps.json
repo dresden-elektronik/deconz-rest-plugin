@@ -714,6 +714,16 @@
                 [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Hold"]
             ]
         },
+        "xiaomiSwitchAcn007Map": {
+            "vendor": "Xiaomi",
+            "doc": "WXKG20LM mini switch",
+            "modelids": ["lumi.remote.acn007"],
+            "map": [
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Hold"]
+            ]
+        },
         "xiaomiSwitchAq3Map": {
             "vendor": "Xiaomi",
             "doc": "WXKG12LM remote",
