@@ -1,0 +1,30 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/tuya_unlock",
+  "datatype": "Bool",
+  "access": "R",
+  "public": false,
+  "description": "Tuya sequence to unlock some device.",
+  "default": false,
+  "parse": {
+    "fn": "zcl",
+    "ep": 1,
+    "cl": "0x0000",
+    "at": "0xfffe",
+    "eval": "Item.val = (Attr.val != 0)"
+  },
+  "read": {
+    "fn": "zcl",
+    "ep": 1,
+    "cl": "0x0000",
+    "at": [
+      "0x0004",
+      "0x0000",
+      "0x0001",
+      "0x0005",
+      "0x0007",
+      "0xfffe"
+    ]
+  },
+  "refresh.interval": 86400
+}

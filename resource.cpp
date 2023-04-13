@@ -238,6 +238,7 @@ const char *RConfigColorGradientReversed = "config/color/gradient/reversed";
 const char *RConfigColorXyStartupX = "config/color/xy/startup_x";
 const char *RConfigColorXyStartupY = "config/color/xy/startup_y";
 const char *RConfigConfigured = "config/configured";
+const char *RConfigTuyaUnlock = "config/tuya_unlock";
 const char *RConfigControlSequence = "config/controlsequence";
 const char *RConfigCoolSetpoint = "config/coolsetpoint";
 const char *RConfigCtMax = "config/ctmax";
@@ -510,6 +511,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigColorXyStartupX));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigColorXyStartupY));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigConfigured));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigTuyaUnlock));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigControlSequence));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RConfigCoolSetpoint, 700, 3500));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigCtMax));
