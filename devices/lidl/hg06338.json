@@ -109,7 +109,9 @@
                         "at": "0x0001",
                         "eval": "Item.val = Attr.val"
                     },
-                    "refresh.interval": 0
+                    "read": {
+                        "fn": "none"
+                    }
 
                 },
                 {
