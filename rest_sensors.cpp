@@ -2060,7 +2060,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                                    QString("parameter, %1, not available").arg(pi.key())));
                     }
                 }
-                else if (rid.suffix == RConfigAqaraS1Communication/* || rid.suffix == RConfigAqaraS1Switch1Text || rid.suffix == RConfigAqaraS1Switch2Text || rid.suffix == RConfigAqaraS1Switch3Text*/) // String
+                else if (rid.suffix == RConfigAqaraS1Communication/* || rid.suffix == RConfigAqaraS1Switch1Text || rid.suffix == RConfigAqaraS1Switch2Text*/ || rid.suffix == RConfigAqaraS1Switch3Text) // String
                 {
                     if (devManaged && rsub)
                     {
