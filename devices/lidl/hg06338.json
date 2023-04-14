@@ -47,7 +47,7 @@
                         "ep": "0x01",
                         "cl": "0x0000",
                         "at": "0x0001",
-                        "eval": "Attr.val = Item.val"
+                        "eval": "Item.val = Attr.val"
                     },
                     "read": {
                         "fn": "zcl",
@@ -107,7 +107,7 @@
                         "ep": "0x01",
                         "cl": "0x0000",
                         "at": "0x0001",
-                        "eval": "Attr.val = Item.val"
+                        "eval": "Item.val = Attr.val"
                     },
                     "refresh.interval": 0
 
@@ -162,7 +162,7 @@
                         "ep": "0x01",
                         "cl": "0x0000",
                         "at": "0x0001",
-                        "eval": "Attr.val = Item.val"
+                        "eval": "Item.val = Attr.val"
                     },
                     "refresh.interval": 0
 
