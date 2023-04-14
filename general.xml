@@ -779,9 +779,9 @@
             <value name="On" value="1"></value>
             <value name="Off" value="0"></value>
           </attribute>
-          <attribute id="0x4000" name="GlobalSceneControl" type="bool" access="r" default="0" required="o"></attribute>
-          <attribute id="0x4001" name="OnTime" type="u16" access="r" default="0" required="o"></attribute>
-          <attribute id="0x4002" name="OffWaitTime" type="u16" access="r" default="0" required="o"></attribute>
+          <attribute id="0x4000" name="GlobalSceneControl" type="bool" access="r" default="0x01" required="o"></attribute>
+          <attribute id="0x4001" name="OnTime" type="u16" access="rw" default="0" required="o"></attribute>
+          <attribute id="0x4002" name="OffWaitTime" type="u16" access="rw" default="0" required="o"></attribute>
           <attribute id="0x4003" name="StartUp OnOff" type="enum8" access="rw" default="0x01" required="o">
             <value name="Off" value="0x00"></value>
             <value name="On" value="0x01"></value>
