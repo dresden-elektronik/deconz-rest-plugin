@@ -1,8 +1,8 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "SONOFF",
-  "modelid": "ZBMINI-L",
-  "product": "ZBMINI-L",
+  "manufacturername": ["SONOFF", "SONOFF"],
+  "modelid": ["ZBMINI-L", "ZBMINIL2"],
+  "product": "ZBMINI-L or ZBMINIL2",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
