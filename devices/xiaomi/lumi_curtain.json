@@ -62,14 +62,13 @@
                         "ep": 1,
                         "cl": "0x0102",
                         "at": "0x0008",
-                        "eval": "Item.val = Attr.val"
+                        "eval": "Item.val = 100 - Attr.val"
                     },
                     "read": {
                         "fn": "zcl",
                         "ep": 1,
                         "cl": "0x0102",
-                        "at": "0x0008",
-                        "eval": "Item.val = Attr.val"
+                        "at": "0x0008"
                     },
                     "refresh.interval": 300
                 },
