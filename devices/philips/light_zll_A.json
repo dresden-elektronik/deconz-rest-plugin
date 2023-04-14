@@ -62,10 +62,37 @@
                     "name": "attr/lastseen"
                 },
                 {
-                    "name": "attr/manufacturername"
+                    "name": "attr/manufacturername",
+                    "parse": {
+                        "fn": "zcl",
+                        "ep": "0x0b",
+                        "cl": "0x0000",
+                        "at": "0x0004",
+                        "eval": "Item.val = Attr.val"
+                    },
+                    "read": {
+                        "fn": "zcl",
+                        "ep": "0x0b",
+                        "cl": "0x0000",
+                        "at": "0x0004"
+                    },
+                    "refresh.interval": 86400
                 },
                 {
-                    "name": "attr/modelid"
+                    "name": "attr/modelid",
+                    "parse": {
+                        "fn": "zcl",
+                        "ep": "0x0b",
+                        "cl": "0x0000",
+                        "at": "0x0005",
+                        "eval": "Item.val = Attr.val"
+                    },
+                    "read": {
+                        "fn": "zcl",
+                        "ep": "0x0b",
+                        "cl": "0x0000",
+                        "at": "0x0005"
+                    }
                 },
                 {
                     "name": "attr/name"
