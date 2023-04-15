@@ -36,11 +36,11 @@
                 {
                     "name": "attr/swversion",
                     "parse": {
-                        "at": "0x00f7",
-                        "ep": 1,
                         "fn": "xiaomi:special",
-                        "idx": "0x0d",
-                        "script": "xiaomi_swversion.js"
+                        "ep": 1,
+                        "at": "0x00F7",
+                        "idx": "0x0D",
+                        "eval": "Item.val = '0.0.0_00' + ('00' + (Attr.val & 0xFF).toString()).slice(-2)"
                     },
                     "read": {
                         "fn": "none"
@@ -198,11 +198,11 @@
                 {
                     "name": "attr/swversion",
                     "parse": {
-                        "at": "0x00f7",
-                        "ep": 1,
                         "fn": "xiaomi:special",
-                        "idx": "0x0d",
-                        "script": "xiaomi_swversion.js"
+                        "ep": 1,
+                        "at": "0x00F7",
+                        "idx": "0x0D",
+                        "eval": "Item.val = '0.0.0_00' + ('00' + (Attr.val & 0xFF).toString()).slice(-2)"
                     },
                     "read": {
                         "fn": "none"
