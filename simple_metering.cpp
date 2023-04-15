@@ -3,9 +3,6 @@
 #include "device_descriptions.h"
 #include "simple_metering.h"
 
-const std::array<KeyValMapInt, 8> RConfigInterfaceModeValuesZHEMI = { { {1, PULSE_COUNTING_ELECTRICITY}, {2, PULSE_COUNTING_GAS}, {3, PULSE_COUNTING_WATER},
-                                                                               {4, KAMSTRUP_KMP}, {5, LINKY}, {6, DLMS_COSEM}, {7, DSMR_23}, {8, DSMR_40} } };
-
 const std::array<KeyValMapInt, 5> RConfigInterfaceModeValuesEMIZB = { { {1, NORWEGIAN_HAN}, {2, NORWEGIAN_HAN_EXTRA_LOAD}, {3, AIDON_METER},
                                                                                {4, KAIFA_KAMSTRUP_METERS}, {5, AUTO_DETECT} } };
 
@@ -93,8 +90,7 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
                     consumption = static_cast<quint64>(round((double)consumption / 10.0)); // 0.1 Wh -> Wh
                     DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "Item.val = Math.round(Attr.val / 10)");
                 }
-                else if (modelId == QLatin1String("Plug-230V-ZB3.0") ||           // Immax
-                         modelId == QLatin1String("Smart plug Zigbee PE") ||      // Niko Smart Plug 552-80699
+                else if (modelId == QLatin1String("Smart plug Zigbee PE") ||      // Niko Smart Plug 552-80699
                          modelId == QLatin1String("TS011F") ||                    // Tuya / Blitzwolf 
                          modelId == QLatin1String("TS0121"))                      // Tuya / Blitzwolf
                 {
@@ -129,26 +125,6 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
             }
                 break;
 
-            case METERING_ATTRID_PULSE_CONFIGURATION:
-            {
-                if (zclFrame.manufacturerCode() == VENDOR_DEVELCO && modelId == QLatin1String("ZHEMI101"))
-                {
-                    quint16 pulseConfiguration = attr.numericValue().u16;
-                    item = sensor->item(RConfigPulseConfiguration);
-
-                    DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "Item.val = Attr.val");
-
-                    if (item && item->toNumber() != pulseConfiguration)
-                    {
-                        item->setValue(pulseConfiguration);
-                        enqueueEvent(Event(RSensors, RConfigPulseConfiguration, sensor->id(), item));
-                        configUpdated = true;
-                    }
-                }
-                sensor->setZclValue(updateType, ind.srcEndpoint(), METERING_CLUSTER_ID, attrId, attr.numericValue());
-            }
-                break;
-
             case METERING_ATTRID_INTERFACE_MODE:
             {
                 if (zclFrame.manufacturerCode() == VENDOR_DEVELCO)
@@ -157,18 +133,7 @@ void DeRestPluginPrivate::handleSimpleMeteringClusterIndication(const deCONZ::Ap
                     item = sensor->item(RConfigInterfaceMode);
                     quint8 mode = 0;
                     
-                    if(modelId == QLatin1String("ZHEMI101"))
-                    {
-                        if      (interfaceMode == PULSE_COUNTING_ELECTRICITY)   { mode = 1; }
-                        else if (interfaceMode == PULSE_COUNTING_GAS)           { mode = 2; }
-                        else if (interfaceMode == PULSE_COUNTING_WATER)         { mode = 3; }
-                        else if (interfaceMode == KAMSTRUP_KMP)                 { mode = 4; }
-                        else if (interfaceMode == LINKY)                        { mode = 5; }
-                        else if (interfaceMode == DLMS_COSEM)                   { mode = 6; }
-                        else if (interfaceMode == DSMR_23)                      { mode = 7; }
-                        else if (interfaceMode == DSMR_40)                      { mode = 8; }
-                    }
-                    else if (modelId.startsWith(QLatin1String("EMIZB-1")))
+                    if (modelId.startsWith(QLatin1String("EMIZB-1")))
                     {
                         if      (interfaceMode == NORWEGIAN_HAN)            { mode = 1; }
                         else if (interfaceMode == NORWEGIAN_HAN_EXTRA_LOAD) { mode = 2; }

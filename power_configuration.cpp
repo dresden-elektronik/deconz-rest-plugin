@@ -124,7 +124,6 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                 uint divider = 2;
 
                 if (sensor.modelId().startsWith(QLatin1String("TRADFRI")) || // IKEA
-                    sensor.modelId().startsWith(QLatin1String("FYRTUR")) || // IKEA
                     sensor.modelId().startsWith(QLatin1String("KADRILJ")) || // IKEA
                     sensor.modelId().startsWith(QLatin1String("SYMFONISK")) || // IKEA
                     sensor.modelId().startsWith(QLatin1String("Remote Control N2")) || // IKEA
