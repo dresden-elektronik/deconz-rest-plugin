@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/speed",
+	"datatype": "UInt8",
+	"access": "RW",
+	"public": true,
+	"description": "Motor speed for window covering devices."
+}

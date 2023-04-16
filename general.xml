@@ -4832,7 +4832,6 @@ Contactor > On/off=0003 - HP/HC=0004</description>
             <attribute id="0x027e" name="External sensor" type="u8" mfcode="0x115f" access="r" required="m">
                 <description>Temperature sensor: 0 - internal, 1 - external</description>
             </attribute>
-            <attribute id="0x040a" name="Battery" type="u8" mfcode="0x115f" access="r" required="m"> </attribute>
         </attribute-set>
         <attribute-set id="0x0400" description="Aqara Roller Shade Driver E1">
           <attribute id="0x0400" name="Reverse Direction" type="bool" mfcode="0x115f" access="rw" required="o">
@@ -4849,6 +4848,8 @@ Contactor > On/off=0003 - HP/HC=0004</description>
           </attribute>
           <attribute id="0x0409" name="Charging" type="u8" mfcode="0x115f" access="r" required="o">
             <description>Battery charging state: 1: charging, 2: not charging.</description>
+          </attribute>
+          <attribute id="0x040a" name="Battery" type="u8" mfcode="0x115f" access="r" required="m">
           </attribute>
         </attribute-set>
         <attribute-set id="0x0500" description="Unknown">
