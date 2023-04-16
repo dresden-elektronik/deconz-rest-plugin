@@ -1,24 +1,56 @@
 {
     "schema": "devcap1.schema.json",
     "manufacturername": [
-        "$MF_SIGNIFY",
-        "$MF_SIGNIFY",
-        "$MF_SIGNIFY",
-        "$MF_SIGNIFY",
-        "$MF_SIGNIFY",
-        "$MF_SIGNIFY",
-        "$MF_SIGNIFY",
-        "$MF_SIGNIFY",
-        "$MF_SIGNIFY",
-        "$MF_SIGNIFY",
-        "$MF_SIGNIFY",
-        "$MF_SIGNIFY",
-        "$MF_SIGNIFY",
         "$MF_PHILIPS",
         "$MF_PHILIPS",
-        "$MF_PHILIPS"
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY",
+        "$MF_SIGNIFY"
     ],
     "modelid": [
+        "LCA001",
+        "LCA006",
+        "LCE002",
+        "LCG002",
+        "LCL003",
+        "5063130P7",
+        "5063131P7",
+        "5063230P7",
+        "5063231P7",
+        "5063330P7",
+        "5063331P7",
+        "5063430P7",
+        "5063431P7",
+        "929002375901",
+        "929003053301_01",
+        "929003053301_02",
         "LCA001",
         "LCA006",
         "LCE002",
@@ -58,10 +90,37 @@
                     "name": "attr/lastseen"
                 },
                 {
-                    "name": "attr/manufacturername"
+                    "name": "attr/manufacturername",
+                    "parse": {
+                        "fn": "zcl",
+                        "ep": "0x0b",
+                        "cl": "0x0000",
+                        "at": "0x0004",
+                        "eval": "Item.val = Attr.val"
+                    },
+                    "read": {
+                        "fn": "zcl",
+                        "ep": "0x0b",
+                        "cl": "0x0000",
+                        "at": "0x0004"
+                    },
+                    "refresh.interval": 86400
                 },
                 {
-                    "name": "attr/modelid"
+                    "name": "attr/modelid",
+                    "parse": {
+                        "fn": "zcl",
+                        "ep": "0x0b",
+                        "cl": "0x0000",
+                        "at": "0x0005",
+                        "eval": "Item.val = Attr.val"
+                    },
+                    "read": {
+                        "fn": "zcl",
+                        "ep": "0x0b",
+                        "cl": "0x0000",
+                        "at": "0x0005"
+                    }
                 },
                 {
                     "name": "attr/name"
