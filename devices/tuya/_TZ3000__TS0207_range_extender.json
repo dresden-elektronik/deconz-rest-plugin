@@ -1,0 +1,52 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": ["_TZ3000_m0vaazab","_TZ3000_ufttklsz","_TZ3000_5k5vh43t","_TZ3000_gszjt2xx"],
+  "modelid": ["TS0207","TS0207","TS0207","TS0207"],
+  "product": "Range Extender",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_RANGE_EXTENDER",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    }
+  ]
+}
