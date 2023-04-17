@@ -3208,9 +3208,17 @@ Note: It does not clear or delete previous weekly schedule programming configura
       <description>The server cluster provides an interface to air pressure measurement functionality, including configuration and provision of notifications of air pressure measurements.</description>
       <server>
         <attribute-set id="0x0000" description="Pressure Measurement Information">
-          <attribute id="0x0000" name="Measured Value" type="s16" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0000" name="Measured Value" type="s16" access="r" default="0x8000" required="m"></attribute>
+	  <attribute id="0x0001" name="Min Measured Value" type="u16" access="r" required="m" range="0x8001,0x7ffe"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="u16" access="r" required="m" range="0x8002,0x7fff"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="u16" access="r" required="o" range="0x0000,0x0800"></attribute>
+        </attribute-set>
+	<attribute-set id="0x0001" description="Extended Pressure Measurement Information">
           <attribute id="0x0010" name="Scaled Value" type="s16" access="r" default="0" required="o"></attribute>
-          <attribute id="0x0014" name="Scale" type="s8" access="r" required="o"></attribute>
+	  <attribute id="0x0011" name="Min Scaled Value" type="u16" access="r" required="m" range="0x8001,0x7ffe"></attribute>
+          <attribute id="0x0012" name="Max Scaled Value" type="u16" access="r" required="m" range="0x8002,0x7fff"></attribute>
+          <attribute id="0x0013" name="Scaled Tolerance" type="u16" access="r" required="o" range="0x0000,0x0800"></attribute>
+          <attribute id="0x0014" name="Scale" type="s8" access="r" required="o" range="0x81,0x7f"></attribute>
         </attribute-set>
       </server>
       <client>
@@ -3218,8 +3226,15 @@ Note: It does not clear or delete previous weekly schedule programming configura
     </cluster>
 
     <cluster id="0x0404" name="Flow measurement">
-      <description></description>
-      <!-- TODO -->
+      <description>The server cluster provides an interface to flow measurement measurement functionality, including configuration and provision of notifications of flow measurements.</description>
+      <server>
+        <attribute-set id="0x0000" description=Flow Measurement Information">
+          <attribute id="0x0000" name="Measured Value" type="u16" access="r" default="0xFFFF" required="m">
+	  <description>Represents the flow in m3/h times 10 </description></attribute>
+	  <attribute id="0x0001" name="Min Measured Value" type="u16" access="r" required="m" range="0x0000,0xfffd"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="u16" access="r" required="m" range="0x0001,0x7ffe"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="u16" access="r" required="o" range="0x0000,0x0800"></attribute>
+        </attribute-set>
       <server>
       </server>
       <client>
@@ -3227,12 +3242,12 @@ Note: It does not clear or delete previous weekly schedule programming configura
     </cluster>
 
     <cluster id="0x0405" name="Relative humidity measurement">
-      <description></description>
+      <description>Percentage of water in the air</description>
       <server>
         <attribute-set id="0x0000" description="Relative Humidity Measurement Information">
-          <attribute id="0x0000" name="Measured Value" type="u16" access="r" default="0" required="m"></attribute>
-          <attribute id="0x0001" name="Min Measured Value" type="u16" access="r" required="m" range="0x954d,0x7ffe"></attribute>
-          <attribute id="0x0002" name="Max Measured Value" type="u16" access="r" required="m" range="0x954e,0x7ffe"></attribute>
+          <attribute id="0x0000" name="Measured Value" type="u16" access="r" default="0xffff" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="u16" access="r" required="m" range="0x0000,0x270f"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="u16" access="r" required="m" range="0x0001,0x2710""></attribute>
           <attribute id="0x0003" name="Tolerance" type="u16" access="r" required="o" range="0x0000,0x0800"></attribute>
         </attribute-set>
       </server>
@@ -3251,7 +3266,9 @@ Note: It does not clear or delete previous weekly schedule programming configura
             <value name="PIR" value="0x00"></value>
             <value name="Ultrasonic" value="0x01"></value>
             <value name="PIR and ultrasonic" value="0x02"></value>
+	    <value name="Physical contact" value="0x03"></value>
           </attribute>
+	  <attribute id="0x0002" name="Occupancy Sensor Type Bitmap" type="bmp8" access="r" required="m">
         </attribute-set>
         <attribute-set id="0x0010" description="PIR configuration">
           <attribute id="0x0010" name="PIR Occupied To Unoccupied Delay" type="u16" range="0x00,0xfffe" access="rw" required="o" default="0x00">
@@ -3265,11 +3282,25 @@ Note: It does not clear or delete previous weekly schedule programming configura
           </attribute>
         </attribute-set>
         <attribute-set id="0x0020" description="Ultrasonic configuration">
-          <attribute id="0x0020" name="Ultrasonic Occupied To Unoccupied Delay" type="u8" range="0x00,0xfe" access="rw" required="o" default="0x00">
-            <description>The UltraSonicOccupiedToUnoccupiedTime attribute specifies the time delay, in seconds, before the ultrasonic sensor changes to its occupied state when the sensed area becomes unoccupied. This attribute, along with UltraSonicUnoccupiedToOccupiedTime, may be used to reduce sensor 'chatter' when used in an area where occupation changes frequently.</description>
+          <attribute id="0x0020" name="Ultrasonic Occupied To Unoccupied Delay" type="u16" range="0x00,0xfe" access="rw" required="o" default="0x00">
+            <description>The UltraSonicOccupiedToUnoccupiedDelay attribute specifies the time delay, in seconds, before the ultrasonic sensor changes to its occupied state when the sensed area becomes unoccupied. This attribute, along with UltraSonicUnoccupiedToOccupiedTime, may be used to reduce sensor 'chatter' when used in an area where occupation changes frequently.</description>
           </attribute>
-          <attribute id="0x0021" name="Ultrasonic Unoccupied To Occupied Delay" type="u8" range="0x00,0xfe" access="rw" required="o" default="0x00">
-            <description>The UltraSonicUnoccupiedToOccupiedTime attribute specifies the time delay, in seconds, before the ultrasonic sensor changes to its unoccupied state when the sensed area becomes occupied.</description>
+          <attribute id="0x0021" name="Ultrasonic Unoccupied To Occupied Delay" type="u16" range="0x00,0xfe" access="rw" required="o" default="0x00">
+            <description>The UltraSonicUnoccupiedToOccupiedDelay attribute specifies the time delay, in seconds, before the ultrasonic sensor changes to its unoccupied state when the sensed area becomes occupied.</description>
+          </attribute>
+	  <attribute id="0x0022" name="Ultrasonic Unoccupied To Occupied Threshold" type="u8" range="0x01,0xfe" access="rw" required="o" default="0x01">
+            <description>The UltrasonicUnoccupiedToOccupiedThreshold attribute is 8 bits in length and specifies the number of movement detection events that must occur in the period PIRUnoccupiedToOccupiedDelay, before the PIR sensor changes to its occupied state.</description>
+          </attribute>
+        </attribute-set>
+	<attribute-set id="0x0030" description="Physical Contact configuration">
+          <attribute id="0x0030" name="Physical Contact Occupied To Unoccupied Delay" type="u16" range="0x00,0xfe" access="rw" required="o" default="0x00">
+            <description>The PhysicalContactOccupiedToUnoccupiedDelay attribute specifies the time delay, in seconds, before the ultrasonic sensor changes to its occupied state when the sensed area becomes unoccupied. This attribute, along with UltraSonicUnoccupiedToOccupiedTime, may be used to reduce sensor 'chatter' when used in an area where occupation changes frequently.</description>
+          </attribute>
+          <attribute id="0x0031" name="Physical Contact Unoccupied To Occupied Delay" type="u16" range="0x00,0xfe" access="rw" required="o" default="0x00">
+            <description>The PhysicalContactUnoccupiedToOccupiedDelay attribute specifies the time delay, in seconds, before the ultrasonic sensor changes to its unoccupied state when the sensed area becomes occupied.</description>
+          </attribute>
+	  <attribute id="0x0032" name="Physical Contact Unoccupied To Occupied Threshold" type="u8" range="0x01,0xfe" access="rw" required="o" default="0x01">
+            <description>The PhysicalContactUnoccupiedToOccupiedThreshold attribute is 8 bits in length and specifies the number of movement detection events that must occur in the period PIRUnoccupiedToOccupiedDelay, before the PIR sensor changes to its occupied state.</description>
           </attribute>
         </attribute-set>
         <attribute-set id="0x0030" description="Philips Specific" mfcode="0x100b">
@@ -3285,20 +3316,35 @@ Note: It does not clear or delete previous weekly schedule programming configura
       <client>
       </client>
     </cluster>
-
-    <cluster id="0x0408" name="Soil Moisture">
-      <description></description>
+   
+    <cluster id="0x0407" name="Leaf Wetness measurement">
+      <description>Percentage of water on the leaves of plants</description>
       <server>
-        <attribute-set id="0x0000" description="Soil Moisture Information">
-          <attribute id="0x0000" name="Measured Value" type="u16" access="r" default="0" required="m"></attribute>
-          <attribute id="0x0001" name="Min Measured Value" type="u16" access="r" required="m" range="0x954d,0x7ffe"></attribute>
-          <attribute id="0x0002" name="Max Measured Value" type="u16" access="r" required="m" range="0x954e,0x7ffe"></attribute>
+        <attribute-set id="0x0000" description="Leaf Wetness Measurement Information">
+          <attribute id="0x0000" name="Measured Value" type="u16" access="r" default="0xffff" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="u16" access="r" required="m" range="0x0000,0x270f"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="u16" access="r" required="m" range="0x0001,0x2710""></attribute>
           <attribute id="0x0003" name="Tolerance" type="u16" access="r" required="o" range="0x0000,0x0800"></attribute>
         </attribute-set>
       </server>
       <client>
       </client>
     </cluster>
+            
+    <cluster id="0x0408" name="Soil Moisture measurement">
+      <description>Percentage of water in the soil</description>
+      <server>
+        <attribute-set id="0x0000" description="Soil Moisture Measurement Information">
+          <attribute id="0x0000" name="Measured Value" type="u16" access="r" default="0xffff" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="u16" access="r" required="m" range="0x0000,0x270f"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="u16" access="r" required="m" range="0x0001,0x2710""></attribute>
+          <attribute id="0x0003" name="Tolerance" type="u16" access="r" required="o" range="0x0000,0x0800"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+
 
     <cluster id="0x040C" name="Carbon monoxyde (CO) measurement">
       <description></description>
