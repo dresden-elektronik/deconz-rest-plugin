@@ -53,7 +53,13 @@
           }
         },
         {
-          "name": "config/allowtouchlink",
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "attr/xiaomi",
           "awake": true,
           "parse": {
             "fn": "zcl",
@@ -63,12 +69,6 @@
             "at": "0x00F7",
             "script": "fcc0_airmonitor_acn01.js"
           }
-        },
-        {
-          "name": "attr/type"
-        },
-        {
-          "name": "attr/uniqueid"
         },
         {
           "name": "config/battery",
@@ -145,7 +145,13 @@
           }
         },
         {
-          "name": "config/allowtouchlink",
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "attr/xiaomi",
           "awake": true,
           "parse": {
             "fn": "zcl",
@@ -155,12 +161,6 @@
             "at": "0x00F7",
             "script": "fcc0_airmonitor_acn01.js"
           }
-        },
-        {
-          "name": "attr/type"
-        },
-        {
-          "name": "attr/uniqueid"
         },
         {
           "name": "config/battery",
@@ -236,7 +236,13 @@
           }
         },
         {
-          "name": "config/allowtouchlink",
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "attr/xiaomi",
           "awake": true,
           "parse": {
             "fn": "zcl",
@@ -246,12 +252,6 @@
             "at": "0x00F7",
             "script": "fcc0_airmonitor_acn01.js"
           }
-        },
-        {
-          "name": "attr/type"
-        },
-        {
-          "name": "attr/uniqueid"
         },
         {
           "name": "config/battery",
