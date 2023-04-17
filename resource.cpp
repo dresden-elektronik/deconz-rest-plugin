@@ -76,6 +76,7 @@ const char *RAttrSwconfigid = "attr/swconfigid";
 const char *RAttrSwVersion = "attr/swversion";
 const char *RAttrType = "attr/type";
 const char *RAttrUniqueId = "attr/uniqueid";
+const char *RAttrXiaomi = "attr/xiaomi";
 
 const char *RActionScene = "action/scene";
 
@@ -364,6 +365,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrSwVersion));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrType));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrUniqueId));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RAttrXiaomi));
 
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RActionScene));
 
