@@ -1,8 +1,8 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["_TZ3000_txpirhfq","_TZ3000_qmi1cfuq", "_TZ3000_ji4araar"],
-  "modelid": ["TS0011", "TS0011", "TS0011"],
-  "product": "1 gang switch module without neutral",
+  "manufacturername": ["_TZ3000_txpirhfq","_TZ3000_qmi1cfuq", "_TZ3000_ji4araar","_TZ3000_v7sopte0"],
+  "modelid": ["TS0011", "TS0011", "TS0011","TS0011"],
+  "product": "1 gang switch module",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -34,7 +34,6 @@
         },
         {
           "name": "attr/swversion",                   
-          "refresh.interval": 86400,
           "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
           "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
