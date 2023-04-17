@@ -3300,10 +3300,10 @@ Note: It does not clear or delete previous weekly schedule programming configura
       </client>
     </cluster>
 
-    <cluster id="0x040D" name="Carbon dioxyde measurement">
+    <cluster id="0x040C" name="Carbon monoxyde (CO) measurement">
       <description></description>
       <server>
-        <attribute-set id="0x0000" description="Relative Carbon Dioxyde Information">
+        <attribute-set id="0x0000" description="Carbon monoxyde Information">
           <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
           <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
           <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
@@ -3313,11 +3313,431 @@ Note: It does not clear or delete previous weekly schedule programming configura
       <client>
       </client>
     </cluster>
-
-    <cluster id="0x042a" name="PM2.5 Measurement">
+    
+    <cluster id="0x040D" name="Carbon dioxyde (CO2) measurement">
       <description></description>
       <server>
+        <attribute-set id="0x0000" description="Carbon Dioxyde Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    
+    <cluster id="0x040E" name="Ethylene (CH2) measurement">
+      <description></description>
+      <server>
+        <attribute-set id="0x0000" description="Ethylene Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    
+   <cluster id="0x040F" name="Ethylene Oxide (C2H4O) measurement">
+      <description></description>
+      <server>
+        <attribute-set id="0x0000" description="Ethylene Oxide Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    
+   <cluster id="0x0410" name="Hydrogen (H) measurement">
+      <description></description>
+      <server>
+        <attribute-set id="0x0000" description="Hydrogen Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    
+   <cluster id="0x0411" name="Hydrogen Sulfide (H2S) measurement">
+      <description></description>
+      <server>
+        <attribute-set id="0x0000" description="Hydrogen Sulfide Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    
+   <cluster id="0x0412" name="Nitric Oxide (NO) measurement">
+      <description></description>
+      <server>
+        <attribute-set id="0x0000" description="Nitric Oxide Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    
+   <cluster id="0x0413" name="Nitrogen Dioxide (NO2) measurement">
+      <description></description>
+      <server>
+        <attribute-set id="0x0000" description="Nitrogen Dioxide Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    
+   <cluster id="0x0414" name="Oxygen (O2) measurement">
+      <description></description>
+      <server>
+        <attribute-set id="0x0000" description="Oxygen Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+        
+   <cluster id="0x0415" name="Ozone (O3) measurement">
+      <description></description>
+      <server>
+        <attribute-set id="0x0000" description="Ozone Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+            
+   <cluster id="0x0416" name="Sulfur Dioxide measurement">
+      <description></description>
+      <server>
+        <attribute-set id="0x0000" description="Sulfur Dioxide Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+               
+   <cluster id="0x0417" name="Dissolved Oxygen (DO) measurement">
+      <description></description>
+      <server>
+        <attribute-set id="0x0000" description="Dissolved Oxygen Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                    
+   <cluster id="0x0418" name="Bromate measurement">
+      <description>Typical range example: not detected to 3.6 PPB. Typical value example:1.79 PPB</description>
+      <server>
+        <attribute-set id="0x0000" description="Bromate Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                           
+   <cluster id="0x0419" name="Chloramines measurement">
+      <description>Typical range example: 0.9 to 3.8 PPM. typical value example: 2.87 PPM</description>
+      <server>
+        <attribute-set id="0x0000" description="Chloramines Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                               
+   <cluster id="0x041A" name="Chlorine measurement">
+      <description>Typical range example: 0.1 to 2.4 PPM. Typical value example: 1.28 PPM</description>
+      <server>
+        <attribute-set id="0x0000" description="Chlorine Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                                
+   <cluster id="0x041B" name="Fecal coliform and E Coli measurement">
+      <description>Percent of positive samples. Typical value example: 0</description>
+      <server>
+        <attribute-set id="0x0000" description="Fecal coliform and E Coli Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                                    
+   <cluster id="0x041C" name="Fluoride measurement">
+      <description>Typical range example: 0 to 100 PPM.Typical value example: 0.72 PPM</description>
+      <server>
+        <attribute-set id="0x0000" description="Fluoride Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                                        
+   <cluster id="0x041D" name="Haloacetic Acids measurement">
+      <description>Typical range example: Not Detected to 20 PPB. Ttypical value example: 14 PPB</description>
+      <server>
+        <attribute-set id="0x0000" description="Haloacetic Acids Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                                           
+   <cluster id="0x041E" name="Total Trihalomethanes measurement">
+      <description>Typical range example: 0 to 100 PPB. Typical value example: 44 PPB</description>
+      <server>
+        <attribute-set id="0x0000" description="Total Trihalomethanes Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster> 
+                                           
+   <cluster id="0x041F" name="Total Coliform Bacteria measurement">
+      <description>Percent of positive samples. Typical range example: 0 to 100%. Typical value example: 1.33%</description>
+      <server>
+        <attribute-set id="0x0000" description="Total Coliform Bacteria Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster> 
+                                           
+   <cluster id="0x0420" name="Turbidity measurement">
+      <description>Cloudiness of particles in water where an average person would notice a 5 or higher. Typical range example: 0 to 10. Typical value example: 0.18</description>
+      <server>
+        <attribute-set id="0x0000" description="Turbidity Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster> 
+                                           
+   <cluster id="0x0421" name="Copper measurement">
+      <description>Typical range example: 0 to 10 PPM. Typical value example: 0.191 PPM</description>
+      <server>
+        <attribute-set id="0x0000" description="Copper Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                                           
+   <cluster id="0x0422" name="Lead measurement">
+      <description>Typical range example: 0 to 10 PPB. Typical value example: 3.2 PPB</description>
+      <server>
+        <attribute-set id="0x0000" description="Lead Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                                           
+   <cluster id="0x0423" name="Manganese measurement">
+      <description>Typical range example: 0 to 1000 PPB. Typical value example: 31 PPB</description>
+      <server>
+        <attribute-set id="0x0000" description="Manganese Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                                           
+   <cluster id="0x0424" name="Sulfate measurement">
+      <description>Typical range example: 0 to 1000 PPB. Typical value example: 36 PPB</description>
+      <server>
+        <attribute-set id="0x0000" description="Sulfate Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                                           
+   <cluster id="0x0425" name="Bromodichloromethane measurement">
+      <description>Typical range example: 0 to 1000 PPB. Typical value example: 9.6 PPB</description>
+      <server>
+        <attribute-set id="0x0000" description="Bromodichloromethane Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                                            
+   <cluster id="0x0426" name="Bromoform measurement">
+      <description>Typical range example: 0 to 1000 PPB. Typical value example: 1.1 PPB</description>
+      <server>
+        <attribute-set id="0x0000" description="Bromoform Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                                             
+   <cluster id="0x0427" name="Chlorodibromomethane measurement">
+      <description>Typical range example: 0 to 1000 PPB. Typical value example: 6.4 PPB</description>
+      <server>
+        <attribute-set id="0x0000" description="Chlorodibromomethane Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                                             
+   <cluster id="0x0428" name="Chloroform measurement">
+      <description>Typical range example: 0 to 1000 PPB. Typical value example: 8.0 PPB</description>
+      <server>
+        <attribute-set id="0x0000" description="Chloroform Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                                               
+   <cluster id="0x0429" name="Sodium measurement">
+      <description>Typical range example: 0 to 1000 PPB. Typical value example: 27 PPB</description>
+      <server>
+        <attribute-set id="0x0000" description="Sodium Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    
+    <cluster id="0x042A" name="PM2.5 Measurement"> 
+      <description>Particulate Matter 2.5 microns or less</description>
+      <server>
         <attribute-set id="0x0000" description="PM 2.5 Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+            
+    <cluster id="0x042B" name="Formaldehyde Measurement"> 
+      <description></description>
+      <server>
+        <attribute-set id="0x0000" description="Formaldehyde Information">
           <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
           <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
           <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
