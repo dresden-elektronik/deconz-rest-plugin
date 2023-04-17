@@ -105,6 +105,7 @@ extern const char *RAttrSwconfigid;
 extern const char *RAttrSwVersion;
 extern const char *RAttrType;
 extern const char *RAttrUniqueId;
+extern const char *RAttrXiaomi; // Used only in DDF
 
 extern const char *RActionScene;
 

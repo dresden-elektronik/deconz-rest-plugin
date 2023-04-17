@@ -4776,6 +4776,9 @@ Contactor > On/off=0003 - HP/HC=0004</description>
             <description>0 - µg/m³ + °C, 1 - ppb + °C, 16 - µg/m³ + °F, 17 - ppb + °F</description>
           </attribute>
           <attribute id="0x0125" name="Multiclick mode" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0129" name="Air Quality" type="u8" mfcode="0x115f" access = "r" required="o">
+            <description>Air Quality: 1 - excellent, 2 - good, 3 - moderate, 4 - poor, 5 unhealthy</description>
+          </attribute>
           <attribute id="0x0135" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x0136" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x0137" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
