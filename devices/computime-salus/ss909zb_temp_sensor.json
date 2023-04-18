@@ -36,19 +36,16 @@
           "name": "attr/lastseen"
         },
         {
-          "name": "attr/manufacturername",
-          "awake": true
+          "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid",
-          "awake": true
+          "name": "attr/modelid"
         },
         {
           "name": "attr/name"
         },
         {
           "name": "attr/swversion",
-          "awake": true,
           "read": {
             "at": "0x0006",
             "cl": "0x0000",
@@ -71,7 +68,6 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
           "parse": {
             "at": "0x0020",
             "cl": "0x0001",
@@ -92,8 +88,7 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/temperature",
-          "awake": true
+          "name": "state/temperature"
         }
       ]
     }
