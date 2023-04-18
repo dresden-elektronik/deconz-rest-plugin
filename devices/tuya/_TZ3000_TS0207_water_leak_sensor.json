@@ -1,20 +1,34 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["_TZE200_m9skfctm","_TZE200_vzekyi4c"],
-  "modelid": ["TS0601","TS0601"],
-  "vendor": "Tuya",
-  "product": "Photoelectric Smoke sensor",
+  "manufacturername": ["_TZ3000_kyb656no","_TZ3000_fxvjhdyl","_TZ3000_eit7p838","_TZ3000_t6jriawg","_TZ3000_85czd6fy","_TYZB01_sqmd19i1","_TYZB01_o63ssaah"],
+  "modelid": ["TS0207","TS0207","TS0207","TS0207","TS0207","TS0207","TS0207"],
+  "vendor": "TuYa",
+  "product": "Tuya based Flooding detector",
   "sleeper": true,
   "status": "Silver",
   "subdevices": [
     {
-      "type": "$TYPE_FIRE_SENSOR",
+      "type": "$TYPE_WATER_LEAK_SENSOR",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
         "0x01",
-        "0xef00"
+        "0x0500"
       ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0402",
+        "endpoint": "0x01",
+        "in": [
+          "0x0000",
+          "0x0001",
+          "0x0003",
+          "0x0500"
+        ],
+        "out": [
+          "0x0019"
+        ]
+      },
       "items": [
         {
           "name": "attr/id"
@@ -29,7 +43,8 @@
           "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid"
+          "name": "attr/modelid",
+          "awake": true
         },
         {
           "name": "attr/name"
@@ -48,20 +63,21 @@
         {
           "name": "config/battery",
           "awake": true,
-          "refresh.interval": 3600,
-          "read": {
-            "fn": "none"
-          },
           "parse": {
-            "dpid": 15,
-            "eval": "Item.val = Attr.val;",
-            "fn": "tuya"
-          },
-          "default": 0
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2",
+            "fn": "zcl"
+          }
+        },
+        {
+          "name": "config/checkin",
+          "awake": true
         },
         {
           "name": "config/enrolled",
-          "public": false
+          "public": true
         },
         {
           "name": "config/on"
@@ -73,44 +89,11 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/errorcode",
-          "read": {
-            "fn": "none"
-          },
-          "parse": {
-            "dpid": 11,
-            "eval": "Item.val = String(Attr.val);",
-            "fn": "tuya"
-          },
-          "default": "0"
-        },
-        {
-          "name": "state/fire",
-          "awake": true,
-          "read": {
-            "fn": "none"
-          },
-          "parse": {
-            "dpid": 1,
-            "eval": "Item.val = (Attr.val == 0 ? true : false);",
-            "fn": "tuya"
-          },
-          "default": false
-        },
-        {
           "name": "state/lastupdated"
         },
         {
-          "name": "state/test",
-          "read": {
-            "fn": "none"
-          },
-          "parse": {
-            "dpid": 101,
-            "eval": "Item.val = Attr.val;",
-            "fn": "tuya"
-          },
-          "default": 0
+          "name": "state/water",
+          "awake": true
         }
       ]
     }
@@ -119,7 +102,21 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "cl": "0xEF00"
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 3600,
+          "max": 14400,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0500"
     }
   ]
 }

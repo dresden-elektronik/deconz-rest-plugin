@@ -64,7 +64,7 @@ macx {
 unix:LIBS +=  -L../.. -ldeCONZ
 
 unix:!macx {
-    LIBS += -lcrypt
+    LIBS += -lcrypt -lssl -lcrypto
 }
 
 TEMPLATE        = lib
