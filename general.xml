@@ -140,7 +140,13 @@
             <value name="DC Source" value="4"></value>
             <value name="Emergency mains constantly powered" value="5"></value>
             <value name="Emergency mains and transfer switch" value="6"></value>
+            <value name="Unknown with battery backup" value="0x80"></value>
             <value name="Mains (single phase) with battery backup" value="0x81"></value>
+	    <value name="Mains (3 phase) with battery backup" value="0x82"></value>
+	    <value name="Battery with battery backup" value="0x83"></value>
+            <value name="DC Source with battery backup" value="0x84"></value>
+            <value name="Emergency mains constantly powered with battery backup" value="0x85"></value>
+            <value name="Emergency mains and transfer switch with battery backup" value="0x86"></value>
           </attribute>
           <attribute id="0x0008" name="Generic Device Class" type="enum8" default="0xff" access="r" required="o" >
             <description>IKEA control outlet specific.</description>
@@ -166,6 +172,7 @@
             <value name="Wall Switch" value="0xe1"></value>
             <value name="Portable Remote Controller" value="0xe2"></value>
             <value name="Motion or Light Sensor" value="0xe3"></value>
+	    <!-- 0xe4 to 0xef Reserved -->
             <value name="Actuator" value="0xf0"></value>
             <value name="Wall Socket" value="0xf1"></value>
             <value name="Gateway or Bridge" value="0xf2"></value>
@@ -176,6 +183,10 @@
           <attribute id="0x000a" name="Product code" type="ostring" access="r" required="o" >
             <description>As printed on the product.</description>
           </attribute>
+	  <attribute id="0x000b" name="Product URL" type="cstring" access="r" required="o" range="0,50"></attribute>
+	  <attribute id="0x000c" name="Manufacturer Version Details" type="cstring" access="r" required="o"></attribute>
+	  <attribute id="0x000d" name="Serial Number" type="cstring" access="r" required="o"></attribute>
+	  <attribute id="0x000e" name="Product Label" type="cstring" access="r" required="o"></attribute>
           <attribute id="0x4000" name="SW Build ID" type="cstring" access="r" required="o" range="0,16"></attribute>
           <attribute id="0xff0d" name="Xiaomi Sensitivity" type="u8" access="rw" required="o" mfcode="0x115f"></attribute>
           <attribute id="0xff22" name="Xiaomi Disconnect 1" type="u8" showas="hex" access="rw" required="o" mfcode="0x115f">
@@ -195,7 +206,7 @@
           <attribute id="0x0011" name="Physical Environment" type="enum8" default="0" access="rw" required="o">
 				<value name="Unspecified Environment" value="0x00"></value>
 				<value name="Mirror (ZSE Profile)" value="0x01"></value>
-				<value name="Atrium" value="0x01"></value>
+				<value name="Atrium (non ZSE profile)" value="0x01"></value>
 				<value name="Bar" value="0x02"></value>
 				<value name="Courtyard" value="0x03"></value>
 				<value name="Bathroom" value="0x04"></value>
@@ -300,6 +311,8 @@
 				<value name="Dental Surgery Room" value="0x6d"></value>
 				<value name="Medical Imaging Room" value="0x6e"></value>
 				<value name="Decontamination Room" value="0x6f"></value>
+		  		<value name="Atrium" value="0x70"></value>
+		                <value name="Mirror" value="0x71"></value>
 				<value name="Unknown Environment" value="0xff"></value>
           </attribute>
           <attribute id="0x0012" name="Device Enabled" type="bool" default="1" access="rw" required="o">
