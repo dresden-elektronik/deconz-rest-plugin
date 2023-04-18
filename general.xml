@@ -3840,7 +3840,48 @@ Note: It does not clear or delete previous weekly schedule programming configura
       <client>
       </client>
     </cluster>
-
+            
+    <cluster id="0x042C" name="PM1 Measurement"> 
+      <description>PM1 concentration measurement</description>
+      <server>
+        <attribute-set id="0x0000" description="PM1 Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+           
+    <cluster id="0x042D" name="PM10 Measurement"> 
+      <description>PM10 concentration measurement</description>
+      <server>
+        <attribute-set id="0x0000" description="PM10 Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+            
+    <cluster id="0x042E" name="VOC Measurement"> 
+      <description>Volatile Organic Compounds concentration measurement.Typical range example: 0 to 10 PPM. Typical value example: 1.11 PPM</description>
+      <server>
+        <attribute-set id="0x0000" description="VOC Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
     <cluster id="0x0b04" name="Electrical Measurement">
       <description>Provides a mechanism for querying data about the electrical properties as measured by the device.</description>
       <server>
