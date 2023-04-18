@@ -3228,14 +3228,13 @@ Note: It does not clear or delete previous weekly schedule programming configura
     <cluster id="0x0404" name="Flow measurement">
       <description>The server cluster provides an interface to flow measurement measurement functionality, including configuration and provision of notifications of flow measurements.</description>
       <server>
-        <attribute-set id="0x0000" description=Flow Measurement Information">
+        <attribute-set id="0x0000" description="Flow Measurement Information">
           <attribute id="0x0000" name="Measured Value" type="u16" access="r" default="0xFFFF" required="m">
 	  <description>Represents the flow in m3/h times 10 </description></attribute>
 	  <attribute id="0x0001" name="Min Measured Value" type="u16" access="r" required="m" range="0x0000,0xfffd"></attribute>
           <attribute id="0x0002" name="Max Measured Value" type="u16" access="r" required="m" range="0x0001,0x7ffe"></attribute>
           <attribute id="0x0003" name="Tolerance" type="u16" access="r" required="o" range="0x0000,0x0800"></attribute>
         </attribute-set>
-      <server>
       </server>
       <client>
       </client>
@@ -3268,7 +3267,7 @@ Note: It does not clear or delete previous weekly schedule programming configura
             <value name="PIR and ultrasonic" value="0x02"></value>
 	    <value name="Physical contact" value="0x03"></value>
           </attribute>
-	  <attribute id="0x0002" name="Occupancy Sensor Type Bitmap" type="bmp8" access="r" required="m">
+	  <attribute id="0x0002" name="Occupancy Sensor Type Bitmap" type="bmp8" access="r" required="m"></attribute>
         </attribute-set>
         <attribute-set id="0x0010" description="PIR configuration">
           <attribute id="0x0010" name="PIR Occupied To Unoccupied Delay" type="u16" range="0x00,0xfffe" access="rw" required="o" default="0x00">
@@ -3925,18 +3924,18 @@ Note: It does not clear or delete previous weekly schedule programming configura
           <attribute id="0x0304" name="Total Active Power" type="s32" access="r" required="o"></attribute>
           <attribute id="0x0305" name="Total Reactive Power" type="s32" access="r" required="o"></attribute>
           <attribute id="0x0306" name="Total Apparent Power" type="u32" access="r" required="o"></attribute>
-	  <attribute id="0x0307" name="Measured 1st harmonic Current" type="S16" access="r" required="o"> default="0x8000"</attribute>
-          <attribute id="0x0308" name="Measured 3rd harmonic Current" type="S16" access="r" required="o"> default="0x8000"</attribute>
-	  <attribute id="0x0309" name="Measured 5th harmonic Current" type="S16" access="r" required="o"> default="0x8000"</attribute>
-	  <attribute id="0x030A" name="Measured 7th harmonic Current" type="S16" access="r" required="o"> default="0x8000"</attribute>
-	  <attribute id="0x030B" name="Measured 9th harmonic Current" type="S16" access="r" required="o"> default="0x8000"</attribute>
-	  <attribute id="0x030C" name="Measured 11th harmonic Current" type="S16" access="r" required="o"> default="0x8000"</attribute>
-	  <attribute id="0x030D" name="Measured Phase 1st harmonic Current" type="S16" access="r" required="o"> default="0x8000"</attribute>
-	  <attribute id="0x030E" name="Measured Phase 3rd harmonic Current" type="S16" access="r" required="o"> default="0x8000"</attribute>
-	  <attribute id="0x030F" name="Measured Phase 5th harmonic Current" type="S16" access="r" required="o"> default="0x8000"</attribute>
-	  <attribute id="0x0310" name="Measured Phase 7th harmonic Current" type="S16" access="r" required="o"> default="0x8000"</attribute>
-	  <attribute id="0x0311" name="Measured Phase 9th harmonic Current" type="S16" access="r" required="o"> default="0x8000"</attribute>
-	  <attribute id="0x0312" name="Measured Phase 11th harmonic Current" type="S16" access="r" required="o"> default="0x8000"</attribute>
+	  <attribute id="0x0307" name="Measured 1st harmonic Current" type="s16" access="r" required="o"> default="0x8000"</attribute>
+          <attribute id="0x0308" name="Measured 3rd harmonic Current" type="s16" access="r" required="o"> default="0x8000"</attribute>
+	  <attribute id="0x0309" name="Measured 5th harmonic Current" type="s16" access="r" required="o"> default="0x8000"</attribute>
+	  <attribute id="0x030A" name="Measured 7th harmonic Current" type="s16" access="r" required="o"> default="0x8000"</attribute>
+	  <attribute id="0x030B" name="Measured 9th harmonic Current" type="s16" access="r" required="o"> default="0x8000"</attribute>
+	  <attribute id="0x030C" name="Measured 11th harmonic Current" type="s16" access="r" required="o"> default="0x8000"</attribute>
+	  <attribute id="0x030D" name="Measured Phase 1st harmonic Current" type="s16" access="r" required="o"> default="0x8000"</attribute>
+	  <attribute id="0x030E" name="Measured Phase 3rd harmonic Current" type="s16" access="r" required="o"> default="0x8000"</attribute>
+	  <attribute id="0x030F" name="Measured Phase 5th harmonic Current" type="s16" access="r" required="o"> default="0x8000"</attribute>
+	  <attribute id="0x0310" name="Measured Phase 7th harmonic Current" type="s16" access="r" required="o"> default="0x8000"</attribute>
+	  <attribute id="0x0311" name="Measured Phase 9th harmonic Current" type="s16" access="r" required="o"> default="0x8000"</attribute>
+	  <attribute id="0x0312" name="Measured Phase 11th harmonic Current" type="s16" access="r" required="o"> default="0x8000"</attribute>
         </attribute-set>
         <attribute-set id="0x0400" description="AC (Non-phase Specific) Formatting">
 	  <attribute id="0x0400" name="AC Frequency Multiplier" type="u16" access="r" required="o" default="0x0001"></attribute>
