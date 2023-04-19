@@ -1049,10 +1049,10 @@ int RestDevices::putDeviceInstallCode(const ApiRequest &req, ApiResponse &rsp)
 
         if (map["installcode"].type() == QVariant::String && !installCode.empty())
         {
-            QByteArray mmoHash;
-            mmoHash = getMmoHashFromInstallCode(installCode);
+            char mmoHashHex[128] = {0};
+            std::vector<unsigned char> mmoHash;
 
-            if (mmoHash.isEmpty())
+            if (!getMmoHashFromInstallCode(installCode, mmoHash))
             {
                 rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QLatin1String("/devices"), QLatin1String("internal error, failed to calc mmo hash, occured")));
                 rsp.httpStatus = HttpStatusServiceUnavailable;
@@ -1062,8 +1062,13 @@ int RestDevices::putDeviceInstallCode(const ApiRequest &req, ApiResponse &rsp)
 #if DECONZ_LIB_VERSION >= 0x010B00
             QVariantMap m;
             m["mac"] = uniqueid.toULongLong(&ok, 16);
-            m["key"] = mmoHash.toHex() ;
-            if (ok && mmoHash.toHex().size() == 32)
+
+            if (mmoHash.size() == 16)
+            {
+                DBG_HexToAscii(&mmoHash[0], mmoHash.size(), reinterpret_cast<unsigned char*>(&mmoHashHex[0]));
+            }
+            m["key"] = &mmoHashHex[0];
+            if (ok && strlen(mmoHashHex) == 32)
             {
                 ok = deCONZ::ApsController::instance()->setParameter(deCONZ::ParamLinkKey, m);
             }
@@ -1071,7 +1076,7 @@ int RestDevices::putDeviceInstallCode(const ApiRequest &req, ApiResponse &rsp)
             QVariantMap rspItem;
             QVariantMap rspItemState;
             rspItemState["installcode"] = installCode.data();
-            rspItemState["mmohash"] = mmoHash.toHex().toUpper();
+            rspItemState["mmohash"] = &mmoHashHex[0];
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
             rsp.httpStatus = HttpStatusOk;
