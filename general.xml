@@ -1044,8 +1044,8 @@
         <attribute id="0005" name="Dst Shift" type="s32" range="-86400,86400" default="0" access="rw" required="o"></attribute>
         <attribute id="0006" name="Standard Time" type="u32" range="0x00000000,0xfffffffe" access="r" required="o"></attribute>
         <attribute id="0007" name="Local Time" type="u32" range="0x00000000,0xfffffffe" access="r" required="o"></attribute>
-        <attribute id="0008" name="Last Set Time" type="utc" range="0x00000000,0xfffffffe" default="0xffffffff" access="r" required="o"></attribute>
-        <attribute id="0009" name="Valid Until Time" type="utc" range="0x00000000,0xfffffffe" default="0xffffffff" access="rw" required="o"></attribute>
+        <attribute id="0008" name="Last Set Time" type="utc" range="0x00000000,0xffffffff" default="0xffffffff" access="r" required="o"></attribute>
+        <attribute id="0009" name="Valid Until Time" type="utc" range="0x00000000,0xffffffff" default="0xffffffff" access="rw" required="o"></attribute>
         <!-- TODO -->
       </server>
       <client>
@@ -1414,7 +1414,7 @@
         <!-- TODO -->
         <attribute-set id="0x0000" description="Startup Parameters I">
           <attribute id="0x0000" name="Short Address" type="u16" access="rw" range="0x0000,0xfff7" showas="hex" required="m"></attribute>
-          <attribute id="0x0001" name="Extended PAN ID" type="uid" access="rw" range="0x0000000000000000,0xfffffffffffffff7" required="m"></attribute>
+          <attribute id="0x0001" name="Extended PAN ID" type="uid" access="rw" range="0x0000000000000000,0xfffffffffffffffe" required="m"></attribute>
           <attribute id="0x0002" name="PAN ID" type="u16" access="rw" range="0x0000,0xffff" showas="hex" required="m"></attribute>
           <attribute id="0x0003" name="Channel Mask" type="bmp32" access="rw" required="m">
             <value name="CH 11" value="11"></value>
