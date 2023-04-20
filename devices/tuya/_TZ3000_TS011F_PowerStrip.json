@@ -4,7 +4,7 @@
    "modelid":["TS011F","TS011F"],
    "product":"Tuya Powerstrip w/USB",
    "sleeper":false,
-   "status":"Silver",
+   "status":"Gold",
    "subdevices":[
       {
          "type":"$TYPE_ON_OFF_PLUGIN_UNIT",
@@ -34,7 +34,6 @@
             },
             {
                "name":"attr/swversion",
-               "refresh.interval":86400,
                "read":{
                   "at":"0x0001",
                   "cl":"0x0000",
@@ -66,30 +65,7 @@
                "name":"state/reachable"
             },
             {
-               "name":"config/configured",
-               "refresh.interval":86400,
-               "read":{
-                  "fn":"zcl",
-                  "ep":1,
-                  "cl":"0x0000",
-                  "at":[
-                     "0x0004",
-                     "0x0000",
-                     "0x0001",
-                     "0x0005",
-                     "0x0007",
-                     "0xfffe"
-                  ]
-               },
-               "parse":{
-                  "fn":"zcl",
-                  "ep":1,
-                  "cl":"0x0000",
-                  "at":"0xfffe",
-                  "eval":"Item.val = (Attr.val != 0)"
-               },
-               "public":false,
-               "default":false
+               "name":"config/tuya_unlock"
             }
          ]
       },
@@ -121,7 +97,6 @@
             },
             {
                "name":"attr/swversion",
-               "refresh.interval":86400,
                "read":{
                   "at":"0x0001",
                   "cl":"0x0000",
@@ -182,7 +157,6 @@
             },
             {
                "name":"attr/swversion",
-               "refresh.interval":86400,
                "read":{
                   "at":"0x0001",
                   "cl":"0x0000",
@@ -243,7 +217,6 @@
             },
             {
                "name":"attr/swversion",
-               "refresh.interval":86400,
                "read":{
                   "at":"0x0001",
                   "cl":"0x0000",
@@ -304,7 +277,6 @@
             },
             {
                "name":"attr/swversion",
-               "refresh.interval":86400,
                "read":{
                   "at":"0x0001",
                   "cl":"0x0000",

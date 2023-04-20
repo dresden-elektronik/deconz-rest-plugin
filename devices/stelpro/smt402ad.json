@@ -2,9 +2,9 @@
   "schema": "devcap1.schema.json",
   "manufacturername": "Stelpro",
   "modelid": "SMT402AD",
-  "product": "SMT402AD",
+  "product": "SMT402AD Thermostat",
   "sleeper": false,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_THERMOSTAT",
@@ -14,6 +14,19 @@
         "0x19",
         "0x0201"
       ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0301",
+        "endpoint": "0x19",
+        "in": [
+          "0x0001",
+          "0x0003",
+          "0x0004",
+          "0x0006",
+          "0x0201",
+          "0x0204"
+        ]
+      },
       "items": [
         {
           "name": "attr/id"
@@ -35,7 +48,6 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 86400,
           "read": {
             "at": "0x0001",
             "cl": "0x0000",
@@ -177,6 +189,18 @@
         "0x19",
         "0x0405"
       ],
+       "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0301",
+        "endpoint": "0x19",
+        "in": [
+          "0x0001",
+          "0x0003",
+          "0x0004",
+          "0x0006",
+          "0x0405"
+        ]
+      },
       "items": [
         {
           "name": "attr/id"
@@ -198,7 +222,6 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 86400,
           "read": {
             "at": "0x0001",
             "cl": "0x0000",
