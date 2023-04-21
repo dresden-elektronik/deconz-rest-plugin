@@ -75,7 +75,7 @@
                         "ep": 1,
                         "cl": "0x0000",
                         "at": "0xFF01",
-                        "script": "0000_weather.js"
+                        "script": "0000_xiaomi_special.js"
                     }
                 },
                 {
@@ -172,7 +172,7 @@
                         "ep": 1,
                         "cl": "0x0000",
                         "at": "0xFF01",
-                        "script": "0000_weather.js"
+                        "script": "0000_xiaomi_special.js"
                     }
                 },
                 {
@@ -262,7 +262,7 @@
                         "ep": 1,
                         "cl": "0x0000",
                         "at": "0xFF01",
-                        "script": "0000_weather.js"
+                        "script": "0000_xiaomi_special.js"
                     }
                 },
                 {
