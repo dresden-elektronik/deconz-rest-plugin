@@ -229,7 +229,8 @@
                     "name": "attr/manufacturername"
                 },
                 {
-                    "name": "attr/modelid"
+                    "name": "attr/modelid",
+                    "awake": true
                 },
                 {
                     "name": "attr/name"
