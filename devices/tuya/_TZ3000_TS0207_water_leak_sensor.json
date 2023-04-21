@@ -74,7 +74,9 @@
         {
           "name": "config/enrolled"
         },
+	{
 	  "name": "config/checkin",
+	 },
         {
           "name": "config/on"
         },
