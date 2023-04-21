@@ -48,21 +48,7 @@
                     "name": "attr/name"
                 },
                 {
-                    "name": "attr/swversion",
-                    "parse": {
-                        "fn": "zcl",
-                        "ep": 1,
-                        "cl": "0x0000",
-                        "at": "0x4000",
-                        "eval": "Item.val = Attr.val"
-                    },
-                    "read": {
-                        "fn": "zcl",
-                        "ep": 1,
-                        "cl": "0x0000",
-                        "at": "0x4000"
-                    },
-                    "refresh.interval": 84000
+                    "name": "attr/swversion"
                 },
                 {
                     "name": "attr/type"
