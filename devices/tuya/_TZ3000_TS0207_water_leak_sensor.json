@@ -1,11 +1,14 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["_TZ3000_kyb656no","_TZ3000_fxvjhdyl","_TZ3000_eit7p838","_TZ3000_t6jriawg","_TZ3000_85czd6fy","_TYZB01_sqmd19i1","_TYZB01_o63ssaah"],
-  "modelid": ["TS0207","TS0207","TS0207","TS0207","TS0207","TS0207","TS0207"],
-  "vendor": "TuYa",
-  "product": "Tuya based Flooding detector",
+  "manufacturername": ["_TZ3000_d16y6col", "_TZ3000_ww9i3e0y", "_TZ3000_qhozxs2b", "_TZ3000_85czd6fy", "_TZ3000_ocjlo4ea",
+			"_TZ3000_kyb656no","_TZ3000_fxvjhdyl","_TZ3000_eit7p838","_TZ3000_t6jriawg","_TZ3000_85czd6fy","_TYZB01_sqmd19i1",
+			"_TYZB01_o63ssaah","_TZ3000_it1hm1cr","_TZ3000_upgcbody"],
+  "modelid": ["TS0207","TS0207","TS0207","TS0207","TS0207","TS0207","TS0207","TS0207", "TS0207", "TS0207","TS0207", "TS0207",
+				"TS0207", "TS0207"],
+  "vendor": "Tuya",
+  "product": "Tuya water leak sensor",
   "sleeper": true,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_WATER_LEAK_SENSOR",
@@ -43,14 +46,13 @@
           "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid",
-          "awake": true
+          "name": "attr/modelid"
         },
         {
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion",
+          "name": "attr/swversion",                   
           "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
           "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
@@ -62,22 +64,15 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2",
-            "fn": "zcl"
+            "eval": "Item.val = Attr.val / 2"
           }
         },
         {
-          "name": "config/checkin",
-          "awake": true
-        },
-        {
-          "name": "config/enrolled",
-          "public": true
+          "name": "config/enrolled"
         },
         {
           "name": "config/on"
@@ -92,8 +87,13 @@
           "name": "state/lastupdated"
         },
         {
+          "name": "state/lowbattery",
+        },
+        {
+          "name": "state/tampered",
+        },
+        {
           "name": "state/water",
-          "awake": true
         }
       ]
     }
@@ -102,6 +102,7 @@
     {
       "bind": "unicast",
       "src.ep": 1,
+      "dst.ep": 1,
       "cl": "0x0001",
       "report": [
         {
@@ -116,6 +117,7 @@
     {
       "bind": "unicast",
       "src.ep": 1,
+      "dst.ep": 1,
       "cl": "0x0500"
     }
   ]
