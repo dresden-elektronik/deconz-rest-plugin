@@ -1,7 +1,13 @@
 {
     "schema": "devcap1.schema.json",
-    "manufacturername": "$MF_SIGNIFY",
-    "modelid": "RWL022",
+    "manufacturername": [
+        "$MF_PHILIPS",
+        "$MF_SIGNIFY"
+    ],
+    "modelid": [
+        "RWL022",
+        "RWL022"
+    ],
     "product": "Hue dimmer switch (2021)",
     "status": "Gold",
     "sleeper": true,

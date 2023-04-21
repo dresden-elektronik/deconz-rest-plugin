@@ -1,13 +1,13 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["SONOFF", "SONOFF"],
-  "modelid": ["ZBMINI-L", "ZBMINIL2"],
-  "product": "ZBMINI-L or ZBMINIL2",
+  "manufacturername": ["_TZ3000_txpirhfq","_TZ3000_qmi1cfuq", "_TZ3000_ji4araar","_TZ3000_v7sopte0"],
+  "modelid": ["TS0011", "TS0011", "TS0011","TS0011"],
+  "product": "1 gang switch module",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_ON_OFF_LIGHT",
+      "type": "$TYPE_ON_OFF_OUTPUT",
       "restapi": "/lights",
       "uuid": [
         "$address.ext",
@@ -33,7 +33,9 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",                   
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
         {
           "name": "attr/type"
@@ -42,26 +44,10 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "state/on",
-          "refresh.interval": 5
+          "name": "state/on"
         },
         {
           "name": "state/reachable"
-        }
-      ]
-    }
-  ],
-  "bindings": [
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "cl": "0x0006",
-      "report": [
-        {
-          "at": "0x0000",
-          "dt": "0x10",
-          "min": 5,
-          "max": 1800
         }
       ]
     }
