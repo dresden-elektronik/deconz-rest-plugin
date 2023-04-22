@@ -1,6 +1,6 @@
 {
 	"schema": "resourceitem1.schema.json",
-	"id": "config/triggerdistance",
+	"id": "config/triggerdistance_bis",
 	"datatype": "String",
 	"access": "R",
 	"public": false,
