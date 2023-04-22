@@ -1,8 +1,8 @@
 {
 	"schema": "resourceitem1.schema.json",
-	"id": "attr/xiaomi",
+	"id": "state/open_bis",
 	"datatype": "Bool",
 	"access": "R",
 	"public": false,
-	"description": "Hidden item for Xiaomi special attribute."
+	"description": "True when open is detected."
 }
