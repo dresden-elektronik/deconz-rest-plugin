@@ -57,20 +57,13 @@
                     "name": "attr/uniqueid"
                 },
                 {
-                    "name": "attr/xiaomi",
+                    "name": "config/battery",
                     "awake": true,
                     "parse": {
-                        "fn": "zcl",
-                        "ep": 1,
-                        "cl": "0x0000",
+                        "fn": "xiaomi:special",
                         "at": "0xFF01",
-                        "script": "0000_xiaomi_special.js"
-                    }
-                },
-                {
-                    "name": "config/battery",
-                    "read": {
-                        "fn": "none"
+                        "idx": "0x01",
+                        "script": "xiaomi_battery.js"
                     }
                 },
                 {
@@ -93,6 +86,16 @@
                         "cl": "0x0006",
                         "at": "0x0000",
                         "eval": "Item.val = Attr.val"
+                    }
+                },
+                {
+                    "name": "state/open_bis",
+                    "awake": true,
+                    "parse": {
+                        "fn": "xiaomi:special",
+                        "at": "0xFF01",
+                        "idx": "0x64",
+                        "eval": "R.item('state/open').val = Attr.val"
                     }
                 }
             ]
