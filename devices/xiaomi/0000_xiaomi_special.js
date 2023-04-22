@@ -1,12 +1,13 @@
-/* global R, ZclFrame, log10 */
+/* global Item, R, ZclFrame */
 
 const attrid = ZclFrame.at(1) << 8 | ZclFrame.at(0)
 if (attrid === 0x00F7 || attrid === 0x01FF || attrid === 0xFF01) {
   const status = ZclFrame.at(2)
   const dt = status === 0 ? ZclFrame.at(3) : status
   var i = status === 0 ? 4 : 3
-  if (dt === 0x41) { // ostring
-    var len = ZclFrame.at(i)
+  if (dt === 0x41 || dt === 0x42) { // ostring, cstring
+    const length = ZclFrame.at(i)
+    var len = length
     i++
     while (len > 0) {
       const dt = ZclFrame.at(i + 1)
@@ -36,7 +37,7 @@ if (attrid === 0x00F7 || attrid === 0x01FF || attrid === 0xFF01) {
           len += 4
           break
         case 0x39: // float
-          // TODO decode float info Number
+          // TODO decode float into Number
           i += 4
           len += 4
           break
@@ -62,16 +63,16 @@ if (attrid === 0x00F7 || attrid === 0x01FF || attrid === 0xFF01) {
       }
       switch (tag) {
         case 0x0121: // battery voltage (in 0.001 V)
-          if (R.item('config/battery') != null) {
+          if (R.item('config/battery').name !== Item.name) {
             const vmin = 2700
             const vmax = 3000
             const v = Math.max(vmin, Math.min(val, vmax))
-            const bat = ((v - vmin) / (vmax - vmin)) * 100
+            const bat = Math.round(((v - vmin) / (vmax - vmin)) * 100)
             R.item('config/battery').val = Math.max(0, Math.min(bat, 100))
           }
           break
         case 0x0328: // device temperature (in °C)
-          if (R.item('config/temperature') != null) {
+          if (R.item('config/temperature').name !== Item.name) {
             R.item('config/temperature').val = val * 100
           }
           break
@@ -81,18 +82,18 @@ if (attrid === 0x00F7 || attrid === 0x01FF || attrid === 0xFF01) {
         case 0x0727: // unknwon
           break
         case 0x0821: // firmware
-          if (R.item('attr/swversion') != null) {
+          if (R.item('attr/swversion').name !== Item.name) {
             R.item('attr/swversion').val = '0.0.0_' + ('0000' + (val & 0xFF).toString()).slice(-4)
           }
           break
         case 0x0921: // unknown
         case 0x0A21: // parent NWK address
         case 0x0B20: // lightlevel (in lux)
-          if (R.item('state/lightlevel') != null) {
-            val = 10000 * log10(val) + 1
+          if (R.item('state/lightlevel').name !== Item.name) {
+            val = Math.round(10000 * Math.log10(val) + 1)
             R.item('state/lightlevel').val = Math.min(val, 0xFFFE)
             val -= R.item('config/tholddark').val
-            R.item('state/dark').val = val > 0
+            R.item('state/dark').val = val <= 0
             val -= R.item('config/tholdoffset').val
             R.item('state/daylight').val = val >= 0
           }
@@ -100,7 +101,7 @@ if (attrid === 0x00F7 || attrid === 0x01FF || attrid === 0xFF01) {
         case 0x0C20: // unknown
           break
         case 0x0D23: // firmware
-          if (R.item('attr/swversion') != null) {
+          if (R.item('attr/swversion').name !== Item.name) {
             R.item('attr/swversion').val = '0.0.0_' + ('0000' + (val & 0xFF).toString()).slice(-4)
           }
           break
@@ -109,13 +110,13 @@ if (attrid === 0x00F7 || attrid === 0x01FF || attrid === 0xFF01) {
         case 0x1220: // unknown
           break
         case 0x6410: // on/off
-          if (R.item('state/open') != null) {
+          if (R.item('state/open').name !== Item.name) {
             R.item('state/open').val = val !== 0
           }
-          // if (R.item('state/presence') != null) { // don't update
+          // if (R.item('state/presence').name !== Item.name) { // don't update
           //   R.item('state/presence').val = val !== 0
           // }
-          if (R.item('state/water') != null) { // not updated in C++ code?
+          if (R.item('state/water').name !== Item.name) { // not updated in C++ code?
             R.item('state/water').val = val !== 0
           }
           break
@@ -125,50 +126,50 @@ if (attrid === 0x00F7 || attrid === 0x01FF || attrid === 0xFF01) {
           }
           break
         case 0x6429: // temperature (in 0.01 °C)
-          if (R.item('state/temperature') != null && val !== -10000) {
+          if (R.item('state/temperature').name !== Item.name && val !== -10000) {
             R.item('state/temperature').val = val + R.item('config/offset').val
           }
           break
         case 0x6520: // battery level (in %)
-          if (R.item('state/battery') != null) {
+          if (R.item('state/battery').name !== Item.name) {
             R.item('state/battery').val = val
           }
           break
         case 0x6521: // humidity (in 0.01 %)
-          if (R.item('state/humidity') != null) {
+          if (R.item('state/humidity').name !== Item.name) {
             R.item('state/humidity').val = val + R.item('config/offset').val
           }
           break
         case 0x6620: // unknown
-          if (R.item('config/sensitivity') != null) {
+          if (R.item('config/sensitivity').name !== Item.name) {
             R.item('config/sensitivity').val = val - 1
           }
           break
         case 0x6621: // tvoc level (in ppb)
-          if (R.item('state/airqualityppb') != null) {
+          if (R.item('state/airqualityppb').name !== Item.name) {
             R.item('state/airqualityppb').val = val
           }
           break
         case 0x662B: // air pressure (in Pa)
-          if (R.item('state/pressure') != null) {
+          if (R.item('state/pressure').name !== Item.name) {
             R.item('state/pressure').val = Math.round(val / 100) + R.item('config/offset').val
           }
           break
         case 0x6720: // air quality (as 6 - #stars), unknown
-          if (R.item('state/airquality') != null) {
+          if (R.item('state/airquality').name !== Item.name) {
             R.item('state/airquality').val = ['excellent', 'good', 'moderate', 'poor', 'unhealthy'][val - 1]
           }
-          if (R.item('config/devicemode') != null) {
+          if (R.item('config/devicemode').name !== Item.name) {
             R.item('config/devicemode').val = ['undirected', 'leftright'][val]
           }
           break
         case 0x6820: // unknown
           break
         case 0x6920: // battery charging
-          if (R.item('state/charging') != null) {
+          if (R.item('state/charging').name !== Item.name) {
             R.item('state/charing').val = val === 1
           }
-          if (R.item('config/triggerdistance') != null) {
+          if (R.item('config/triggerdistance').name !== Item.name) {
             R.item('config/triggerdistance').val = ['far', 'medium', 'near'][val]
           }
           break
@@ -188,5 +189,6 @@ if (attrid === 0x00F7 || attrid === 0x01FF || attrid === 0xFF01) {
           break
       }
     }
+    Item.val = length
   }
 }
