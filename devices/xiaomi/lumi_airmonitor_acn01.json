@@ -67,7 +67,7 @@
             "cl": "0xFCC0",
             "mf": "0x115F",
             "at": "0x00F7",
-            "script": "fcc0_airmonitor_acn01.js"
+            "script": "0000_xiaomi_special.js"
           }
         },
         {
