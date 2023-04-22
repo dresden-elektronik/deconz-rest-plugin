@@ -54,20 +54,13 @@
                     "name": "attr/uniqueid"
                 },
                 {
-                    "name": "attr/xiaomi",
+                    "name": "config/battery",
                     "awake": true,
                     "parse": {
-                        "fn": "zcl",
-                        "ep": 1,
-                        "cl": "0x0000",
+                        "fn": "xiaomi:special",
                         "at": "0xFF01",
-                        "script": "0000_xiaomi_special.js"
-                    }
-                },
-                {
-                    "name": "config/battery",
-                    "read": {
-                        "fn": "none"
+                        "idx": "0x01",
+                        "script": "xiaomi_battery.js"
                     }
                 },
                 {
@@ -90,6 +83,16 @@
                         "at": "0x0000",
                         "cl": "0x0402",
                         "eval": "if (Attr.val !== -10000) { Item.val = Attr.val + R.item('config/offset').val }"
+                    }
+                },
+                {
+                    "name": "state/temperature_bis",
+                    "awake": true,
+                    "parse": {
+                        "fn": "xiaomi:special",
+                        "at": "0xFF01",
+                        "idx": "0x64",
+                        "eval": "if (Attr.val !== -10000) { R.item('state/temperature').val = Attr.val + R.item('config/offset').val }"
                     }
                 }
             ]
@@ -144,20 +147,13 @@
                     "name": "attr/uniqueid"
                 },
                 {
-                    "name": "attr/xiaomi",
+                    "name": "config/battery",
                     "awake": true,
                     "parse": {
-                        "fn": "zcl",
-                        "ep": 1,
-                        "cl": "0x0000",
+                        "fn": "xiaomi:special",
                         "at": "0xFF01",
-                        "script": "0000_xiaomi_special.js"
-                    }
-                },
-                {
-                    "name": "config/battery",
-                    "read": {
-                        "fn": "none"
+                        "idx": "0x01",
+                        "script": "xiaomi_battery.js"
                     }
                 },
                 {
@@ -171,6 +167,16 @@
                 },
                 {
                     "name": "state/humidity"
+                },
+                {
+                    "name": "state/humidity_bis",
+                    "awake": true,
+                    "parse": {
+                        "fn": "xiaomi:special",
+                        "at": "0xFF01",
+                        "idx": "0x65",
+                        "eval": "R.item('state/humidity').val = Attr.val + R.item('config/offset').val"
+                    }
                 },
                 {
                     "name": "state/lastupdated"
@@ -227,20 +233,13 @@
                     "name": "attr/uniqueid"
                 },
                 {
-                    "name": "attr/xiaomi",
+                    "name": "config/battery",
                     "awake": true,
                     "parse": {
-                        "fn": "zcl",
-                        "ep": 1,
-                        "cl": "0x0000",
+                        "fn": "xiaomi:special",
                         "at": "0xFF01",
-                        "script": "0000_xiaomi_special.js"
-                    }
-                },
-                {
-                    "name": "config/battery",
-                    "read": {
-                        "fn": "none"
+                        "idx": "0x01",
+                        "script": "xiaomi_battery.js"
                     }
                 },
                 {
@@ -257,6 +256,16 @@
                 },
                 {
                     "name": "state/pressure"
+                },
+                {
+                    "name": "state/pressure_bis",
+                    "awake": true,
+                    "parse": {
+                        "fn": "xiaomi:special",
+                        "at": "0xFF01",
+                        "idx": "0x66",
+                        "eval": "R.item('state/pressure').val = Math.round(Attr.val / 100) + R.item('config/offset').val"
+                    }
                 }
             ]
         }
