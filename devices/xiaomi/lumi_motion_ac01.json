@@ -50,9 +50,9 @@
                 },
                 {
                     "name": "attr/swversion",
+                    "awake": true,
                     "parse": {
                         "fn": "xiaomi:special",
-                        "ep": 1,
                         "at": "0x00F7",
                         "idx": "0x08",
                         "eval": "Item.val = '0.0.0_' + ('0000' + (Attr.val & 0xFF).toString()).slice(-4)"
@@ -68,21 +68,24 @@
                     "name": "attr/uniqueid"
                 },
                 {
-                    "name": "config/allowtouchlink",
-                    "read": {
-                        "ep": 1,
-                        "cl": "0xFCC0",
-                        "mf": "0x115F",
-                        "at": "0x0155"
-                    },
+                    "name": "config/reportgrid",
                     "parse": {
+                        "fn": "zcl",
                         "ep": 1,
                         "cl": "0xFCC0",
                         "mf": "0x115F",
                         "at": "0x0155",
                         "eval": "Item.val = Attr.val !== 0"
                     },
+                    "read": {
+                        "fn": "zcl",
+                        "ep": 1,
+                        "cl": "0xFCC0",
+                        "mf": "0x115F",
+                        "at": "0x0155"
+                    },
                     "write": {
+                        "fn": "zcl",
                         "ep": 1,
                         "cl": "0xFCC0",
                         "mf": "0x115F",
@@ -92,15 +95,15 @@
                     },
                     "default": true,
                     "refresh.interval": 84000
-
                 },
                 {
                     "name": "config/devicemode",
                     "parse": {
-                        "fn": "xiaomi:special",
+                        "fn": "zcl",
                         "ep": 1,
-                        "at": "0x00F7",
-                        "idx": "0x67",
+                        "cl": "0xFCC0",
+                        "mf": "0x115F",
+                        "at": "0x0144",
                         "eval": "Item.val = ['undirected', 'leftright'][Attr.val]"
                     },
                     "read": {
@@ -127,6 +130,16 @@
                         ]
                     ],
                     "default": "undirected"
+                },
+                {
+                    "name": "config/devicemode_bis",
+                    "awake": true,
+                    "parse": {
+                        "fn": "xiaomi:special",
+                        "at": "0x00F7",
+                        "idx": "0x67",
+                        "eval": "R.item('config/devicemode').val = ['undirected', 'leftright'][Attr.val]"
+                    }
                 },
                 {
                     "name": "config/on"
@@ -158,10 +171,10 @@
                 {
                     "name": "config/sensitivity",
                     "parse": {
-                        "fn": "xiaomi:special",
+                        "fn": "zcl",
                         "ep": 1,
-                        "at": "0x00F7",
-                        "idx": "0x66",
+                        "cl": "0xFCC0",
+                        "at": "0x010C",
                         "eval": "Item.val = Attr.val - 1"
                     },
                     "read": {
@@ -194,16 +207,27 @@
                     "default": 2
                 },
                 {
+                    "name": "config/sensitivity_bis",
+                    "awake": true,
+                    "parse": {
+                        "fn": "xiaomi:special",
+                        "at": "0x00F7",
+                        "idx": "0x66",
+                        "eval": "R.item('config/sensitivity').val = Attr.val - 1"
+                    }
+                },
+                {
                     "name": "config/sensitivitymax",
                     "static": 2
                 },
                 {
                     "name": "config/triggerdistance",
                     "parse": {
-                        "fn": "xiaomi:special",
+                        "fn": "zcl",
                         "ep": 1,
-                        "at": "0x00F7",
-                        "idx": "0x69",
+                        "cl": "0xFCC0",
+                        "mf": "0x115F",
+                        "at": "0x0146",
                         "eval": "Item.val = ['far', 'medium', 'near'][Attr.val]"
                     },
                     "read": {
@@ -233,6 +257,16 @@
                         ]
                     ],
                     "default": "far"
+                },
+                {
+                    "name": "config/triggerdistance_bis",
+                    "awake": true,
+                    "parse": {
+                        "fn": "xiaomi:special",
+                        "at": "0x00F7",
+                        "idx": "0x66",
+                        "eval": "R.item('config/triggerdistance').val = ['far', 'medium', 'near'][Attr.val]"
+                    }
                 },
                 {
                     "name": "state/lastupdated"
