@@ -68,35 +68,6 @@
                     "name": "attr/uniqueid"
                 },
                 {
-                    "name": "config/reportgrid",
-                    "parse": {
-                        "fn": "zcl",
-                        "ep": 1,
-                        "cl": "0xFCC0",
-                        "mf": "0x115F",
-                        "at": "0x0155",
-                        "eval": "Item.val = Attr.val !== 0"
-                    },
-                    "read": {
-                        "fn": "zcl",
-                        "ep": 1,
-                        "cl": "0xFCC0",
-                        "mf": "0x115F",
-                        "at": "0x0155"
-                    },
-                    "write": {
-                        "fn": "zcl",
-                        "ep": 1,
-                        "cl": "0xFCC0",
-                        "mf": "0x115F",
-                        "at": "0x0155",
-                        "dt": "0x20",
-                        "eval": "Item.val ? 1 : 0"
-                    },
-                    "default": true,
-                    "refresh.interval": 84000
-                },
-                {
                     "name": "config/devicemode",
                     "parse": {
                         "fn": "zcl",
@@ -148,13 +119,42 @@
                     "name": "config/reachable"
                 },
                 {
+                    "name": "config/reportgrid",
+                    "parse": {
+                        "fn": "zcl",
+                        "ep": 1,
+                        "cl": "0xFCC0",
+                        "mf": "0x115F",
+                        "at": "0x0155",
+                        "eval": "Item.val = Attr.val !== 0"
+                    },
+                    "read": {
+                        "fn": "zcl",
+                        "ep": 1,
+                        "cl": "0xFCC0",
+                        "mf": "0x115F",
+                        "at": "0x0155"
+                    },
+                    "write": {
+                        "fn": "zcl",
+                        "ep": 1,
+                        "cl": "0xFCC0",
+                        "mf": "0x115F",
+                        "at": "0x0155",
+                        "dt": "0x20",
+                        "eval": "Item.val ? 1 : 0"
+                    },
+                    "default": true,
+                    "refresh.interval": 84000
+                },
+                {
                     "name": "config/resetpresence",
                     "parse": {
-                        "fn": "xiaomi:special",
+                        "fn": "zcl",
                         "ep": 1,
-                        "at": "0x00F7",
-                        "idx": "0x03",
-                        "eval": "Item.val = false"
+                        "cl": "0xFCC0",
+                        "at": "0x0143",
+                        "eval": "if (Attr.val) { Item.val = false }"
                     },
                     "read": {
                         "fn": "none"
@@ -219,6 +219,16 @@
                 {
                     "name": "config/sensitivitymax",
                     "static": 2
+                },
+                {
+                    "name": "config/temperature",
+                    "awake": true,
+                    "parse": {
+                        "fn": "xiaomi:special",
+                        "at": "0x00F7",
+                        "idx": "0x03",
+                        "eval": "Item.val = Attr.val * 100"
+                    }
                 },
                 {
                     "name": "config/triggerdistance",
