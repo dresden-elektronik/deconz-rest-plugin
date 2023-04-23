@@ -1140,7 +1140,7 @@ JsEvalResult DeviceJs::evaluate(const QString &expr)
         U_ASSERT(ret == 1);
     }
 
-    if (duk_peval_string(ctx, qPrintable(expr)) != 0)
+    if (duk_peval_string(ctx, expr.toUtf8().constData()) != 0)
     {
         d->errString = duk_safe_to_string(ctx, -1);
         return JsEvalResult::Error;
@@ -1208,7 +1208,7 @@ JsEvalResult DeviceJs::testCompile(const QString &expr)
     }
 
     duk_uint_t flags = 0;
-    if (duk_pcompile_string(ctx, flags, qPrintable(expr)) != 0)
+    if (duk_pcompile_string(ctx, flags, expr.toUtf8().constData()) != 0)
     {
         d->errString = duk_safe_to_string(ctx, -1);
     }
