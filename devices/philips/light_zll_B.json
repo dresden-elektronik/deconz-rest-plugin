@@ -1,6 +1,11 @@
 {
     "schema": "devcap1.schema.json",
     "manufacturername": [
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
         "$MF_SIGNIFY",
         "$MF_SIGNIFY",
         "$MF_SIGNIFY",
@@ -8,6 +13,11 @@
         "$MF_SIGNIFY"
     ],
     "modelid": [
+        "LCT001",
+        "LCT007",
+        "LCT002",
+        "LCT003",
+        "LLM001",
         "LCT001",
         "LCT007",
         "LCT002",
@@ -36,10 +46,37 @@
                     "name": "attr/lastseen"
                 },
                 {
-                    "name": "attr/manufacturername"
+                    "name": "attr/manufacturername",
+                    "parse": {
+                        "fn": "zcl",
+                        "ep": "0x0b",
+                        "cl": "0x0000",
+                        "at": "0x0004",
+                        "eval": "Item.val = Attr.val"
+                    },
+                    "read": {
+                        "fn": "zcl",
+                        "ep": "0x0b",
+                        "cl": "0x0000",
+                        "at": "0x0004"
+                    },
+                    "refresh.interval": 86400
                 },
                 {
-                    "name": "attr/modelid"
+                    "name": "attr/modelid",
+                    "parse": {
+                        "fn": "zcl",
+                        "ep": "0x0b",
+                        "cl": "0x0000",
+                        "at": "0x0005",
+                        "eval": "Item.val = Attr.val"
+                    },
+                    "read": {
+                        "fn": "zcl",
+                        "ep": "0x0b",
+                        "cl": "0x0000",
+                        "at": "0x0005"
+                    }
                 },
                 {
                     "name": "attr/name"

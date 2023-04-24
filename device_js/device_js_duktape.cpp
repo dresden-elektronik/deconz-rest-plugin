@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2022-2023 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -21,17 +21,16 @@
 #include "resource.h"
 #include "utils/utils.h"
 
-// before v2.19.2-beta DBG_JS isn't defined, can be removed afterwards
-#ifndef DBG_JS
-  #define DBG_JS DBG_INFO_L2
-#endif
-
+#ifdef DECONZ_DEBUG_BUILD
 #if _MSC_VER
   #define U_ASSERT(c) if (!(c)) __debugbreak()
 #elif __GNUC__
   #define U_ASSERT(c) if (!(c)) __builtin_trap()
 #else
   #define U_ASSERT assert
+#endif
+#else // release build
+  #define U_ASSERT DBG_Assert
 #endif
 
 static DeviceJs *_djs = nullptr; // singleton
@@ -813,7 +812,9 @@ static duk_ret_t DJS_SetItemVal(duk_context *ctx)
         }
         else
         {
-            U_ASSERT(0 && "unhandled value");
+            const char *str = duk_safe_to_string(ctx, 0);
+            DBG_Printf(DBG_JS, "%s: failed to set %s --> '%s' (unsupported)\n", __FUNCTION__, item->descriptor().suffix, str);
+            duk_pop(ctx); /* conversion result*/
         }
 
         if (!ok)
@@ -1151,7 +1152,7 @@ JsEvalResult DeviceJs::evaluate(const QString &expr)
         U_ASSERT(ret == 1);
     }
 
-    if (duk_peval_string(ctx, qPrintable(expr)) != 0)
+    if (duk_peval_string(ctx, expr.toUtf8().constData()) != 0)
     {
         d->errString = duk_safe_to_string(ctx, -1);
         return JsEvalResult::Error;
@@ -1219,7 +1220,7 @@ JsEvalResult DeviceJs::testCompile(const QString &expr)
     }
 
     duk_uint_t flags = 0;
-    if (duk_pcompile_string(ctx, flags, qPrintable(expr)) != 0)
+    if (duk_pcompile_string(ctx, flags, expr.toUtf8().constData()) != 0)
     {
         d->errString = duk_safe_to_string(ctx, -1);
     }

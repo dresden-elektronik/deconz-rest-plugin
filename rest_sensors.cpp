@@ -1919,19 +1919,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     if (!devManaged)
                     {
-                        if (sensor->modelId().startsWith(QLatin1String("ZHEMI101")))
-                        {
-                            const auto match = matchKeyValue(data.uinteger, RConfigInterfaceModeValuesZHEMI);
-
-                            if (match.key)
-                            {
-                                if (addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, METERING_ATTRID_INTERFACE_MODE, deCONZ::Zcl16BitEnum, match.value, VENDOR_DEVELCO))
-                                {
-                                    updated = true;
-                                }
-                            }
-                        }
-                        else if (sensor->modelId().startsWith(QLatin1String("EMIZB-1")))
+                        if (sensor->modelId().startsWith(QLatin1String("EMIZB-1")))
                         {
                             const auto match = matchKeyValue(data.uinteger, RConfigInterfaceModeValuesEMIZB);
 
@@ -3309,7 +3297,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             return;
         }
 
-        QStringList gids = item->toString().split(',', QString::SkipEmptyParts);
+        QStringList gids = item->toString().split(',', SKIP_EMPTY_PARTS);
 
         for (int j = 0; j < gids.size(); j++)
         {

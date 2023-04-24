@@ -1571,7 +1571,7 @@ bool DeRestPluginPrivate::sendTuyaRequestThermostatSetWeeklySchedule(TaskItem &t
 {
     QByteArray data;
 
-    const QStringList list = transitions.split("T", QString::SkipEmptyParts);
+    const QStringList list = transitions.split("T", SKIP_EMPTY_PARTS);
 
     quint8 hh;
     quint8 mm;

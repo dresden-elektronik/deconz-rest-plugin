@@ -1,6 +1,14 @@
 {
     "schema": "devcap1.schema.json",
     "manufacturername": [
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
+        "$MF_PHILIPS",
         "$MF_SIGNIFY",
         "$MF_SIGNIFY",
         "$MF_SIGNIFY",
@@ -11,6 +19,14 @@
         "$MF_SIGNIFY"
     ],
     "modelid": [
+        "LCT010",
+        "LCT014",
+        "LCT015",
+        "LCT016",
+        "LCT011",
+        "LLC020",
+        "LST002",
+        "LCT012",
         "LCT010",
         "LCT014",
         "LCT015",
@@ -42,10 +58,37 @@
                     "name": "attr/lastseen"
                 },
                 {
-                    "name": "attr/manufacturername"
+                    "name": "attr/manufacturername",
+                    "parse": {
+                        "fn": "zcl",
+                        "ep": "0x0b",
+                        "cl": "0x0000",
+                        "at": "0x0004",
+                        "eval": "Item.val = Attr.val"
+                    },
+                    "read": {
+                        "fn": "zcl",
+                        "ep": "0x0b",
+                        "cl": "0x0000",
+                        "at": "0x0004"
+                    },
+                    "refresh.interval": 86400
                 },
                 {
-                    "name": "attr/modelid"
+                    "name": "attr/modelid",
+                    "parse": {
+                        "fn": "zcl",
+                        "ep": "0x0b",
+                        "cl": "0x0000",
+                        "at": "0x0005",
+                        "eval": "Item.val = Attr.val"
+                    },
+                    "read": {
+                        "fn": "zcl",
+                        "ep": "0x0b",
+                        "cl": "0x0000",
+                        "at": "0x0005"
+                    }
                 },
                 {
                     "name": "attr/name"
@@ -69,10 +112,10 @@
                     "name": "cap/alert/trigger_effect"
                 },
                 {
-                    "name": "cap/bri/move_with_onoff"
+                    "name": "cap/bri/min_dim_level"
                 },
                 {
-                    "name": "cap/bri/min_dim_level"
+                    "name": "cap/bri/move_with_onoff"
                 },
                 {
                     "name": "cap/color/capabilities"
