@@ -5,7 +5,7 @@
   "vendor": "Zemismart",
   "product": "3A12S-15",
   "sleeper": false,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_EXTENDED_COLOR_LIGHT",
@@ -43,53 +43,43 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/colorcapabilities",
-          "refresh.interval": 84000
+          "name": "config/colorcapabilities"
         },
         {
-          "name": "config/ctmax",
-          "refresh.interval": 84000
+          "name": "config/ctmax"
         },
         {
-          "name": "config/ctmin",
-          "refresh.interval": 84000
+          "name": "config/ctmin"
         },
         {
-          "name": "state/alert",
-          "default": "none"
+          "name": "state/alert"
         },
         {
-          "name": "state/bri",
-          "refresh.interval": 5
+          "name": "state/bri"
         },
         {
           "name": "state/colormode"
         },
         {
-          "name": "state/ct",
-          "refresh.interval": 5
+          "name": "state/ct"
         },
         {
-          "name": "state/effect",
-          "default": "none"
+          "name": "state/effect"
         },
         {
           "name": "state/hue"
         },
         {
-          "name": "state/on",
-          "refresh.interval": 5
+          "name": "state/on"
         },
         {
           "name": "state/reachable"
         },
         {
-          "name": "state/sat",
-          "refresh.interval": 5
+          "name": "state/sat"
         },
         {
-          "name": "state/x",
-          "refresh.interval": 5
+          "name": "state/x"
         },
         {
           "name": "state/y"
