@@ -10,7 +10,7 @@
   ],
   "product": "Human Presence Detector - ZY-M100",
   "sleeper": false,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_LIGHT_LEVEL_SENSOR",
