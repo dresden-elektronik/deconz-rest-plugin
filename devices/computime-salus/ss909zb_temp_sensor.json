@@ -5,7 +5,7 @@
   "modelid": "SS909ZB",
   "product": "Salus PS600 Temperature Sensor",
   "sleeper": true,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_TEMPERATURE_SENSOR",
