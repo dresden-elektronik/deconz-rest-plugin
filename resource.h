@@ -135,6 +135,8 @@ extern const char *RStateDark;
 extern const char *RStateDaylight;
 extern const char *RStateDeviceRunTime;
 extern const char *RStateEffect;
+extern const char *RStateEnhancedColorMode; // dummy
+extern const char *RStateEnhancedHue; // dummy
 extern const char *RStateErrorCode;
 extern const char *RStateEventDuration;
 extern const char *RStateExpectedEventDuration;

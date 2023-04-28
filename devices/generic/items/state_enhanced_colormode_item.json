@@ -1,0 +1,29 @@
+{
+    "schema": "resourceitem1.schema.json",
+    "id": "state/enhanced_colormode",
+    "datatype": "String",
+    "access": "R",
+    "public": false,
+    "description": "The currently active color mode.",
+    "values": [
+        [
+            "\"hs\"",
+            "hue and saturation"
+        ],
+        [
+            "\"xy\"",
+            "CIE xy color space coordinates"
+        ],
+        [
+            "\"ct\"",
+            "color temperature"
+        ]
+    ],
+    "parse": {
+        "fn": "zcl",
+        "ep": 0,
+        "cl": "0x0300",
+        "at": "0x4001",
+        "eval": "if (Attr.val <= 3) R.item('state/colormode').val = ['hs', 'xy', 'ct', 'hs'][Attr.val]"
+    }
+}
