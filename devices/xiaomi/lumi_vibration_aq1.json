@@ -75,6 +75,10 @@
                     }
                 },
                 {
+                    "name": "config/duration",
+                    "static": 65
+                },
+                {
                     "name": "config/on"
                 },
                 {
