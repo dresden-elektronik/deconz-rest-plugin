@@ -3,7 +3,7 @@
     "manufacturername": "$MF_LUMI",
     "modelid": "lumi.sensor_wleak.aq1",
     "vendor": "Xiaomi",
-    "product": "Aqara Water Leak Sensor",
+    "product": "Aqara Water Leak Sensor SJCGQ11LM",
     "sleeper": true,
     "status": "Gold",
     "subdevices": [
