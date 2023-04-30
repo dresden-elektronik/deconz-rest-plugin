@@ -201,6 +201,7 @@ extern const char *RStateVibration;
 extern const char *RStateVibrationStrength;
 extern const char *RStateVoltage;
 extern const char *RStateWater;
+extern const char *RStateWaterBis;
 extern const char *RStateWindowOpen;
 extern const char *RStateX;
 extern const char *RStateY;

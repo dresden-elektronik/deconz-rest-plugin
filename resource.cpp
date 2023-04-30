@@ -172,6 +172,7 @@ const char *RStateVibration = "state/vibration";
 const char *RStateVibrationStrength = "state/vibrationstrength";
 const char *RStateVoltage = "state/voltage";
 const char *RStateWater = "state/water";
+const char *RStateWaterBis = "state/water_bis";
 const char *RStateWindowOpen = "state/windowopen";
 const char *RStateX = "state/x";
 const char *RStateY = "state/y";
@@ -473,6 +474,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateVibrationStrength));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateVoltage));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateWater));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateWaterBis));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateWindowOpen));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateX));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateY));
