@@ -75,14 +75,6 @@
                     }
                 },
                 {
-                    "name": "config/enrolled",
-                    "public": false
-                },
-                {
-                    "name": "config/pending",
-                    "public": false
-                },
-                {
                     "name": "config/on"
                 },
                 {
@@ -101,14 +93,6 @@
                 },
                 {
                     "name": "state/lastupdated"
-                },
-                {
-                    "name": "state/lowbattery",
-                    "public": false
-                },
-                {
-                    "name": "state/tampered",
-                    "public": false
                 },
                 {
                     "name": "state/water",
