@@ -2946,8 +2946,24 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
 
     Device *device = DEV_ParentDevice(sensor);
 
+    if (device && device->managed())
+    {
+        if (e.what() == RStatePresence || e.what() == RStateVibration)
+        {
+            ResourceItem *item = sensor->item(e.what());
+            if (item && item->toBool()) {
+                ResourceItem *item2 = sensor->item(RConfigDuration);
+                if (item2 && item2->toNumber() > 0)
+                {
+                    DBG_Printf(DBG_DDF, "%s/%s auto reset in %us\n", sensor->item(RAttrUniqueId)->toCString(), qPrintable(e.what()), (quint16) item2->toNumber());
+                    sensor->durationDue = item->lastSet().addSecs(item2->toNumber());
+                }
+            }
+        }
+    }
+
     // speedup sensor state check
-    if ((e.what() == RStatePresence || e.what() == RStateButtonEvent) &&
+    if ((e.what() == RStatePresence || e.what() == RStateButtonEvent || e.what() == RStateVibration) &&
         sensor && sensor->durationDue.isValid())
     {
         sensorCheckFast = CHECK_SENSOR_FAST_ROUNDS;
