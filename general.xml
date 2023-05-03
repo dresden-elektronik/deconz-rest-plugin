@@ -412,9 +412,8 @@
         <command id="0xc0" dir="recv" name="Hue Capabilities" vendor="0x100b" required="o" response="0xc1">
           <payload>
             <attribute id="0x0000" type="u8" name="0x00" default="0x00" showas="hex" required="m"></attribute>
-            <attribute id="0x0001" type="u8" name="Offset" default="0x00" showas="hex" required="m"></attribute>
-            <attribute id="0x0002" type="u24" name="0x000000" default="0x0000" showas="hex" required="m"></attribute>
-            <attribute id="0x0003" type="u8" name="Length" default="0x40" showas="hex" required="m"></attribute>
+            <attribute id="0x0001" type="u32" name="Offset" default="0x00" showas="hex" required="m"></attribute>
+            <attribute id="0x0002" type="u8" name="Max Packet Size" default="0x40" showas="hex" required="m"></attribute>
           </payload>
         </command>
       </server>
@@ -422,11 +421,9 @@
         <command id="0xc1" dir="recv" name="Hue Capabilities Response" vendor="0x100b" required="o">
           <payload>
             <attribute id="0x0000" type="u16" name="Status" showas="hex" required="m"></attribute>
-            <attribute id="0x0001" type="u8" name="Offset" showas="hex" required="m"></attribute>
-            <attribute id="0x0002" type="u24" name="Unknown" showas="hex" required="m"></attribute>
-            <attribute id="0x0003" type="u8" name="Length" showas="hex" required="m"></attribute>
-            <attribute id="0x0004" type="u24" name="Unknown" showas="hex" required="m"></attribute>
-            <attribute id="0x0005" type="ostring" name="Payload" required="m"></attribute>
+            <attribute id="0x0001" type="u32" name="Offset" showas="hex" required="m"></attribute>
+            <attribute id="0x0002" type="u32" name="Total Payload Length" showas="hex" required="m"></attribute>
+            <attribute id="0x0003" type="ostring" name="Payload" required="m"></attribute>
           </payload>
         </command>
       </client>
@@ -4238,19 +4235,23 @@ These devices can operate on either battery or mains power, and can have a wide 
         <command id="0x00" dir="send" name="Button Action Notification" required="m">
           <payload>
             <attribute id="0x0000" type="u16" name="Button" required="m"/>
-            <attribute id="0x0001" type="enum8" name="Type" required="m">
-              <value name="Push" value="0x00"/>
+            <attribute id="0x0001" type="enum8" name="Event Type" required="m">
+              <value name="Button" value="0x00"/>
               <value name="Rotary" value="0x01"/>
             </attribute>
-            <attribute id="0x0002" type="u8" name="" showas="hex" required="m"/>
+            <attribute id="0x0002" type="u8" name="" showas="hex" required="m">
+              <description>Type of next attribute</description>
+            </attribute>
             <attribute id="0x0003" type="enum8" name="Action" required="m">
               <value name="Press" value="0x00"/>
-              <value name="Hold" value="0x01"/>
-              <value name="Release" value="0x02"/>
+              <value name="Hold / Start" value="0x01"/>
+              <value name="Release / Repeat" value="0x02"/>
               <value name="Long Release" value="0x03"/>
             </attribute>
-            <attribute id="0x0004" type="u8" name="" showas="hex" required="m"/>
-            <attribute id="0x0000" type="u16" name="Duration" required="m"/>
+            <attribute id="0x0004" type="u8" name="" showas="hex" required="m">
+              <description>Type of next attribute</description>
+            </attribute>
+            <attribute id="0x0005" type="s16" name="Duration / Rotation" required="m"/>
           </payload>
         </command>
       </server>
@@ -4341,19 +4342,23 @@ These devices can operate on either battery or mains power, and can have a wide 
         <command id="0x00" dir="send" name="Button Action Notification" required="m">
           <payload>
             <attribute id="0x0000" type="u16" name="Button" required="m"/>
-            <attribute id="0x0001" type="enum8" name="Type" required="m">
-              <value name="Push" value="0x00"/>
+            <attribute id="0x0001" type="enum8" name="Event Type" required="m">
+              <value name="Button" value="0x00"/>
               <value name="Rotary" value="0x01"/>
             </attribute>
-            <attribute id="0x0002" type="u8" name="" showas="hex" required="m"/>
+            <attribute id="0x0002" type="u8" name="" showas="hex" required="m">
+              <description>Type of next attribute</description>
+            </attribute>
             <attribute id="0x0003" type="enum8" name="Action" required="m">
               <value name="Press" value="0x00"/>
-              <value name="Hold" value="0x01"/>
-              <value name="Release" value="0x02"/>
+              <value name="Hold / Start" value="0x01"/>
+              <value name="Release / Repeat" value="0x02"/>
               <value name="Long Release" value="0x03"/>
             </attribute>
-            <attribute id="0x0004" type="u8" name="" showas="hex" required="m"/>
-            <attribute id="0x0000" type="u16" name="Duration" required="m"/>
+            <attribute id="0x0004" type="u8" name="" showas="hex" required="m">
+              <description>Type of next attribute</description>
+            </attribute>
+            <attribute id="0x0005" type="s16" name="Duration / Rotation" required="m"/>
           </payload>
         </command>
       </server>
