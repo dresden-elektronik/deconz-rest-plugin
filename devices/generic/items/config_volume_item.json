@@ -10,6 +10,7 @@
 		[1, "Low Volume"],
 		[2, "High"]
 	],
+	"default":0,
 	"description": "Sound Volume.",
   "parse": {"at": "0x0024", "cl": "0x0101", "ep": 0, "eval": "Item.val = Attr.val;", "fn": "zcl"},
 	"read": {"at": "0x0024", "cl": "0x0101", "ep": 0, "fn": "zcl"}
