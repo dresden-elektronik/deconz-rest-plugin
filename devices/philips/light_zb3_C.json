@@ -141,6 +141,17 @@
                     "name": "attr/productid"
                 },
                 {
+                    "name": "attr/productname",
+                    "parse": {
+                        "fn": "zcl",
+                        "ep": "0x0b",
+                        "cl": "0x0000",
+                        "mf": "0x100b",
+                        "cmd": "0xc1",
+                        "script": "0000_capabilities.js"
+                    }
+                },
+                {
                     "name": "attr/swconfigid"
                 },
                 {
