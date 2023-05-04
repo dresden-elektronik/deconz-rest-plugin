@@ -12,9 +12,9 @@ if (status === 0x0000) {
     if (ZclFrame.at(o++) === 0x0A) { // unknown
       o += 10 // fixed L
       if (ZclFrame.at(o++) === 0x0A) { // modelid
-        o += ZclFrame.at(o) + 1 // L
+        o += ZclFrame.at(o) + 1
         if (ZclFrame.at(o++) === 0x12) { // manufacturername
-          o += ZclFrame.at(o) + 1// L
+          o += ZclFrame.at(o) + 1
           if (ZclFrame.at(o) === 0x42) { // productname
             Item.val = 'offset: 0x' + ('00000000' + (Number(o) - 11).toString(16)).slice(-8)
           }
