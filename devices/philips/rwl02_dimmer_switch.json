@@ -114,6 +114,10 @@
                     "name": "attr/name"
                 },
                 {
+                    "name": "attr/productname",
+                    "static": "Hue dimmer switch"
+                },
+                {
                     "name": "attr/swversion"
                 },
                 {

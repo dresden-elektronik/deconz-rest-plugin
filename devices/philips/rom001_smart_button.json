@@ -74,6 +74,10 @@
                     "name": "attr/name"
                 },
                 {
+                    "name": "attr/productname",
+                    "static": "Hue smart button"
+                },
+                {
                     "name": "attr/swversion"
                 },
                 {

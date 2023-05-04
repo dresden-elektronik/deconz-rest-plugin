@@ -70,6 +70,10 @@
                     "name": "attr/name"
                 },
                 {
+                    "name": "attr/productname",
+                    "static": "Hue motion sensor"
+                },
+                {
                     "name": "attr/swversion"
                 },
                 {
@@ -263,6 +267,10 @@
                     "name": "attr/name"
                 },
                 {
+                    "name": "attr/productname",
+                    "static": "Hue light sensor"
+                },
+                {
                     "name": "attr/swversion",
                     "read": {
                         "fn": "none"
@@ -406,6 +414,10 @@
                 },
                 {
                     "name": "attr/name"
+                },
+                {
+                    "name": "attr/productname",
+                    "static": "Hue temp. sensor"
                 },
                 {
                     "name": "attr/swversion",

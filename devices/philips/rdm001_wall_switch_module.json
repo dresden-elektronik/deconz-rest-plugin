@@ -44,6 +44,10 @@
                     "name": "attr/name"
                 },
                 {
+                    "name": "attr/productname",
+                    "static": "Hue wall switch module"
+                },
+                {
                     "name": "attr/swversion"
                 },
                 {

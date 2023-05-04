@@ -114,6 +114,10 @@
                     "name": "attr/name"
                 },
                 {
+                    "name": "attr/productname",
+                    "static": "Hue tap dial switch"
+                },
+                {
                     "name": "attr/swversion"
                 },
                 {
@@ -203,6 +207,10 @@
                 },
                 {
                     "name": "attr/name"
+                },
+                {
+                    "name": "attr/productname",
+                    "static": "Hue tap dial switch"
                 },
                 {
                     "name": "attr/swversion"
