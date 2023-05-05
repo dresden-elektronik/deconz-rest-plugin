@@ -119,11 +119,11 @@ ZCL_Result ZCL_ReadAttributes(const ZCL_Param &param, quint64 extAddress, quint1
     return result;
 }
 
-ZCL_Result ZCL_WriteAttribute(const ZCL_Param &param, quint64 extAddress, quint16 nwkAddress, deCONZ::ApsController *apsCtrl, quint8 dataType, QVariant value)
+ZCL_Result ZCL_WriteAttribute(const ZCL_Param &param, quint64 extAddress, quint16 nwkAddress, deCONZ::ApsController *apsCtrl, deCONZ::ZclAttribute *attribute)
 {
     ZCL_Result result{};
 
-    DBG_Printf(DBG_INFO, "writeZclAttribute, ep: 0x%02X, cl: 0x%04X, attr: 0x%04X, type: 0x%02X, mfcode: 0x%04X, value: %s\n", param.endpoint, param.clusterId, param.attributes.front(), dataType, param.manufacturerCode, qPrintable(value.toString()));
+    DBG_Printf(DBG_INFO, "writeZclAttribute, ep: 0x%02X, cl: 0x%04X, attr: 0x%04X, type: 0x%02X, mfcode: 0x%04X\n", param.endpoint, param.clusterId, param.attributes.front(), attribute->dataType(), param.manufacturerCode);
 
     deCONZ::ApsDataRequest req;
     deCONZ::ZclFrame zclFrame;
@@ -156,16 +156,13 @@ ZCL_Result ZCL_WriteAttribute(const ZCL_Param &param, quint64 extAddress, quint1
     }
 
     { // payload
-        deCONZ::ZclAttribute attribute(param.attributes[0], dataType, QLatin1String(""), deCONZ::ZclReadWrite, true);
-        attribute.setValue(value);
-
         QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
         stream.setByteOrder(QDataStream::LittleEndian);
 
-        stream << attribute.id();
-        stream << attribute.dataType();
+        stream << attribute->id();
+        stream << attribute->dataType();
 
-        if (!attribute.writeToStream(stream))
+        if (!attribute->writeToStream(stream))
         {
             return result;
         }
@@ -186,7 +183,7 @@ ZCL_Result ZCL_WriteAttribute(const ZCL_Param &param, quint64 extAddress, quint1
 }
 
 
-ZCL_Result ZCL_SendCommand(const ZCL_Param &param, quint64 extAddress, quint16 nwkAddress, deCONZ::ApsController *apsCtrl, QVariant value)
+ZCL_Result ZCL_SendCommand(const ZCL_Param &param, quint64 extAddress, quint16 nwkAddress, deCONZ::ApsController *apsCtrl, std::vector<uint8_t> *payload)
 {
     ZCL_Result result{};
 
@@ -231,7 +228,7 @@ ZCL_Result ZCL_SendCommand(const ZCL_Param &param, quint64 extAddress, quint16 n
         QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
         stream.setByteOrder(QDataStream::LittleEndian);
 
-        for (auto byte : QByteArray::fromHex(value.toString().toLatin1()))
+        for (auto byte : *payload)
         {
             stream << (quint8) byte;
         }
