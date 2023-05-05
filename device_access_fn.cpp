@@ -480,7 +480,7 @@ bool parseNumericToString(Resource *r, ResourceItem *item, const deCONZ::ApsData
 /*! A generic function to parse ZCL values from read/report commands.
     The item->parseParameters() is expected to be an object (given in the device description file).
 
-    {"fn": "zcl"attr", "ep": endpoint, "cl": clusterId, "mf": manufacturerCode, "at": attributeId, "eval": expression}
+    {"fn": "zcl:attr", "ep": endpoint, "cl": clusterId, "mf": manufacturerCode, "at": attributeId, "eval": expression}
 
     - endpoint: (optional) 255 means any endpoint, 0 means auto selected from the related resource, defaults to 0
     - clusterId: string hex value
