@@ -480,15 +480,19 @@ bool parseNumericToString(Resource *r, ResourceItem *item, const deCONZ::ApsData
 /*! A generic function to parse ZCL values from read/report commands.
     The item->parseParameters() is expected to be an object (given in the device description file).
 
-    {"fn": "zcl", "ep": endpoint, "cl": clusterId, "at": attributeId, "mf": manufacturerCode, "eval": expression}
+    {"fn": "zcl"attr", "ep": endpoint, "cl": clusterId, "mf": manufacturerCode, "at": attributeId, "eval": expression}
 
     - endpoint: (optional) 255 means any endpoint, 0 means auto selected from the related resource, defaults to 0
     - clusterId: string hex value
-    - attributeId: string hex value or array of string hex values
-    - manufacturerCode: (optional) string hex value, defaults to "0x0000" for non manufacturer specific commands
-    - expression: Javascript expression to transform the raw value
+    - manufacturerCode: (optional) string hex value
+    - attributeId: string hex value
+    - expression: Javascript expression to transform the attribute value to the Item value
 
-    Example: { "parse": {"fn": "zcl", "ep:" 1, "cl": "0x0402", "at": "0x0000", "eval": "Attr.val + R.item('config/offset').val" } }
+    Example: { "parse": {"fn": "zcl:attr", "ep:" 1, "cl": "0x0402", "at": "0x0000", "eval": "Attr.val + R.item('config/offset').val" } }
+
+    TODO: move code to parse a ZCL command to separate function.
+
+    Exmaple: { "parse": {"fn": "zcl:cmd", "ep": 2, "cl": "0xfc00", "mf", "0x100b", "script": "fc00_buttonevent.js" } }
  */
 bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, const QVariant &parseParameters)
 {
@@ -1638,16 +1642,15 @@ bool parseAndSyncTime(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndi
 /*! A generic function to read ZCL attributes.
     The item->readParameters() is expected to be an object (given in the device description file).
 
-    { "fn": "zcl", "ep": endpoint, "cl" : clusterId, "at": attributeId, "mf": manufacturerCode, "noseq": noSequenceNumber  }
+    { "fn": "zcl:attr", "ep": endpoint, "cl" : clusterId, "at": attributeId, "noseq": noSequenceNumber  }
 
-    - endpoint, 0xff means any endpoint
+    - endpoint, (optional) 0xff means any endpoint
     - clusterId: string hex value
-    - attributeId: string hex value
-    - manufacturerCode: (optional) string hex value, defaults to "0x0000" for non manufacturer specific commands
+    - manufacturerCode: (optional) string hex value
+    - attributeId: string hex value or array of up to 8 string hex values
     - noSequenceNumber: (optional) bool must be set to `true` and must only be present if needed
 
-    Example: { "read": {"fn": "zcl", "ep": 1, "cl": "0x0402", "at": "0x0000", "mf": "0x110b"} }
-    Example: { "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "cmd": "0xc0", "mf": "0x100b"} }
+    Example: { "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0402", "mf": "0x110b", "at": "0x0000"} }
  */
 static DA_ReadResult readZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, const QVariant &readParameters)
 {
@@ -1671,8 +1674,7 @@ static DA_ReadResult readZclAttribute(const Resource *r, const ResourceItem *ite
         return result;
     }
 
-    const auto map = readParameters.toMap();
-    auto param = getZclParam(map);
+    auto param = getZclParam(readParameters.toMap());
 
     if (!param.valid)
     {
@@ -1689,36 +1691,7 @@ static DA_ReadResult readZclAttribute(const Resource *r, const ResourceItem *ite
         }
     }
 
-    ZCL_Result zclResult;
-    if (param.hasCommandId)
-    {
-        QVariant value;
-        if (map.contains("eval")) {
-            const auto expr = map.value("eval").toString();
-            if (expr.isEmpty()) {
-                return result;
-            }
-            DeviceJs &engine = *DeviceJs::instance();
-            engine.reset();
-            engine.setResource(r);
-            engine.setItem(item);
-            if (engine.evaluate(expr) == JsEvalResult::Ok)
-            {
-                value = engine.result();
-                DBG_Printf(DBG_DDF, "%s/%s expression: %s --> %s\n", r->item(RAttrUniqueId)->toCString(), item->descriptor().suffix, qPrintable(expr), qPrintable(value.toString()));
-            }
-            else
-            {
-                DBG_Printf(DBG_DDF, "failed to evaluate expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
-                return result;
-            }
-        }
-        zclResult = ZCL_SendCommand(param, extAddr->toNumber(), nwkAddr->toNumber(), apsCtrl, value);
-    }
-    else
-    {
-        zclResult = ZCL_ReadAttributes(param, extAddr->toNumber(), nwkAddr->toNumber(), apsCtrl);
-    }
+    const auto zclResult = ZCL_ReadAttributes(param, extAddr->toNumber(), nwkAddr->toNumber(), apsCtrl);
 
     result.isEnqueued = zclResult.isEnqueued;
     result.apsReqId = zclResult.apsReqId;
@@ -1732,16 +1705,16 @@ static DA_ReadResult readZclAttribute(const Resource *r, const ResourceItem *ite
 /*! A generic function to write ZCL attributes.
     The \p writeParameters is expected to contain one object (given in the device description file).
 
-    { "fn": "zcl", "ep": endpoint, "cl": clusterId, "at": attributeId, "dt": zclDataType, "mf": manufacturerCode, "eval": expression }
+    { "fn": "zcl:attr", "ep": endpoint, "cl": clusterId, "mf": manufacturerCode, "at": attributeId, "dt": zclDataType, "eval": expression }
 
     - endpoint: (optional) the destination endpoint
     - clusterId: string hex value
+    - manufacturerCode: (optional) string hex value
     - attributeId: string hex value
     - zclDataType: string hex value
-    - manufacturerCode: must be set to 0x0000 for non manufacturer specific commands
-    - expression: to transform the item value
+    - expression: to transform the item value to the attribute value
 
-    Example: "write": {"cl": "0x0000", "at": "0xff0d",  "dt": "0x20", "mf": "0x11F5", "eval": "Item.val"}
+    Example: "write": {"fn": "zcl:attr", "cl": "0x0000", "mf": "0x11F5", "at": "0xff0d",  "dt": "0x20", "eval": "Item.val"}
  */
 bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, const QVariant &writeParameters)
 {
@@ -1783,10 +1756,87 @@ bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsC
         }
     }
 
-    QVariant value;
-    if (map.contains("eval")) {
+    if (!map.contains("dt") || !map.contains("eval"))
+    {
+        return result;
+    }
+
+    bool ok;
+    const auto dataType = variantToUint(map.value("dt"), UINT8_MAX, &ok);
+    const auto expr = map.value("eval").toString();
+    if (!ok || expr.isEmpty())
+    {
+        return result;
+    }
+    deCONZ::ZclAttribute attribute(param.attributes[0], dataType, QLatin1String(""), deCONZ::ZclReadWrite, true);
+
+    DeviceJs &engine = *DeviceJs::instance();
+    engine.reset();
+    engine.setResource(r);
+    engine.setItem(item);
+    if (engine.evaluate(expr) == JsEvalResult::Ok)
+    {
+        const auto value = engine.result();
+        DBG_Printf(DBG_DDF, "%s/%s expression: %s --> %s\n", r->item(RAttrUniqueId)->toCString(), item->descriptor().suffix, qPrintable(expr), qPrintable(value.toString()));
+        attribute.setValue(value);
+    }
+    else
+    {
+        DBG_Printf(DBG_DDF, "failed to evaluate expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
+        return result;
+    }
+
+    const auto zclResult = ZCL_WriteAttribute(param, extAddr->toNumber(), nwkAddr->toNumber(), apsCtrl, &attribute);
+
+    result = zclResult.isEnqueued;
+    return result;
+}
+
+/*! A generic function to send a cluster-specific ZCL command.
+    The \p cmdParameters is expected to contain one object (given in the device description file).
+
+    { "fn": "zcl:cmd", "ep": endpoint, "cl": clusterId, "mf": manufacturerCode, "cmd": commandId, "eval": expression }
+
+    - endpoint: (optional) the destination endpoint
+    - clusterId: string hex value
+    - manufacturerCode: (optional) string hex value
+    - commandId: string hex value
+    - expression: (optional) to transform the item value to the command payload as hex string value
+
+    Example: "read": {"fn": "zcl:cmd", "cl": "0x0000", "mf": "0x100b", "cmd": "0xc0",  "eval": "'002d00000040'"}
+ */
+static DA_ReadResult sendZclCommand(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, const QVariant &cmdParameters)
+{
+    Q_ASSERT(r);
+    Q_ASSERT(item);
+    Q_ASSERT(apsCtrl);
+
+    DA_ReadResult result{};
+
+    const auto rParent = r->parentResource() ? r->parentResource() : r;
+    const auto *extAddr = rParent->item(RAttrExtAddress);
+    const auto *nwkAddr = rParent->item(RAttrNwkAddress);
+
+    if (!extAddr || !nwkAddr)
+    {
+        return result;
+    }
+
+    const auto map = cmdParameters.toMap();
+    ZCL_Param param = getZclParam(map);
+
+    if (!param.valid)
+    {
+        return result;
+    }
+
+    std::vector<uint8_t> payload;
+
+    if (map.contains("eval"))
+    {
         const auto expr = map.value("eval").toString();
-        if (expr.isEmpty()) {
+        if (expr.isEmpty())
+        {
             return result;
         }
         DeviceJs &engine = *DeviceJs::instance();
@@ -1795,8 +1845,13 @@ bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsC
         engine.setItem(item);
         if (engine.evaluate(expr) == JsEvalResult::Ok)
         {
-            value = engine.result();
+            const auto value = engine.result();
             DBG_Printf(DBG_DDF, "%s/%s expression: %s --> %s\n", r->item(RAttrUniqueId)->toCString(), item->descriptor().suffix, qPrintable(expr), qPrintable(value.toString()));
+            auto a = QByteArray::fromHex(value.toString().toLatin1());
+            for (const auto b : a)
+            {
+                payload.push_back(b);
+            }
         }
         else
         {
@@ -1805,38 +1860,45 @@ bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsC
         }
     }
 
-    ZCL_Result zclResult;
-    if (param.hasCommandId)
-    {
-        zclResult = ZCL_SendCommand(param, extAddr->toNumber(), nwkAddr->toNumber(), apsCtrl, value);
-    }
-    else
-    {
-        if (!map.contains("dt") || !map.contains("eval"))
-        {
-            return result;
-        }
-        bool ok;
-        const auto dataType = variantToUint(map.value("dt"), UINT8_MAX, &ok);
-        if (!ok)
-        {
-            return result;
-        }
-        zclResult = ZCL_WriteAttribute(param, extAddr->toNumber(), nwkAddr->toNumber(), apsCtrl, dataType, value);
-    }
+    const auto zclResult = ZCL_SendCommand(param, extAddr->toNumber(), nwkAddr->toNumber(), apsCtrl, &payload);
 
-    result = zclResult.isEnqueued;
+    result.isEnqueued = zclResult.isEnqueued;
+    result.apsReqId = zclResult.apsReqId;
+    result.sequenceNumber = zclResult.sequenceNumber;
+    result.clusterId = param.clusterId;
+    result.ignoreResponseSequenceNumber = param.ignoreResponseSeq == 1;
 
     return result;
+}
+
+/*! A generic function to send a cluster-specific ZCL command.
+    The \p cmdParameters is expected to contain one object (given in the device description file).
+
+    { "fn": "zcl:cmd", "ep": endpoint, "cl": clusterId, "mf": manufacturerCode, "cmd": commandId, "eval": expression }
+
+    - endpoint: (optional) the destination endpoint
+    - clusterId: string hex value
+    - manufacturerCode: (optional) string hex value
+    - commandId: string hex value
+    - expression: (optional) to transform the item value to the command payload as hex string value
+
+    Example: "write": {"fn": "zcl:cmd", "cl": "0x0000", "mf": "0x100b", "cmd": "0xc0",  "eval": "'002d00000040'"}
+ */
+bool writeZclCommand(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, const QVariant &cmdParameters)
+{
+    const auto result = sendZclCommand(r, item, apsCtrl, cmdParameters);
+    return result.isEnqueued;
 }
 
 ParseFunction_t DA_GetParseFunction(const QVariant &params)
 {
     ParseFunction_t result = nullptr;
 
-    const std::array<ParseFunction, 6> functions =
+    const std::array<ParseFunction, 8> functions =
     {
-        ParseFunction(QLatin1String("zcl"), 1, parseZclAttribute),
+        ParseFunction(QLatin1String("zcl"), 1, parseZclAttribute), // Deprecated
+        ParseFunction(QLatin1String("zcl:attr"), 1, parseZclAttribute),
+        ParseFunction(QLatin1String("zcl:cmd"), 1, parseZclAttribute),
         ParseFunction(QLatin1String("xiaomi:special"), 1, parseXiaomiSpecial),
         ParseFunction(QLatin1String("ias:zonestatus"), 1, parseIasZoneNotificationAndStatus),
         ParseFunction(QLatin1String("tuya"), 1, parseTuyaData),
@@ -1857,7 +1919,7 @@ ParseFunction_t DA_GetParseFunction(const QVariant &params)
         }
         else
         {
-            fnName = QLatin1String("zcl"); // default
+            fnName = QLatin1String("zcl:attr"); // default
         }
     }
 
@@ -1877,9 +1939,11 @@ ReadFunction_t DA_GetReadFunction(const QVariant &params)
 {
     ReadFunction_t result = nullptr;
 
-    const std::array<ReadFunction, 2> functions =
+    const std::array<ReadFunction, 4> functions =
     {
-        ReadFunction(QLatin1String("zcl"), 1, readZclAttribute),
+        ReadFunction(QLatin1String("zcl"), 1, readZclAttribute), // Deprecated
+        ReadFunction(QLatin1String("zcl:attr"), 1, readZclAttribute),
+        ReadFunction(QLatin1String("zcl:cmd"), 1, sendZclCommand),
         ReadFunction(QLatin1String("tuya"), 1, readTuyaAllData)
     };
 
@@ -1896,7 +1960,7 @@ ReadFunction_t DA_GetReadFunction(const QVariant &params)
         }
         else
         {
-            fnName = QLatin1String("zcl"); // default
+            fnName = QLatin1String("zcl:attr"); // default
         }
     }
 
@@ -1916,9 +1980,11 @@ WriteFunction_t DA_GetWriteFunction(const QVariant &params)
 {
     WriteFunction_t result = nullptr;
 
-    const std::array<WriteFunction, 2> functions =
+    const std::array<WriteFunction, 4> functions =
     {
-        WriteFunction(QLatin1String("zcl"), 1, writeZclAttribute),
+        WriteFunction(QLatin1String("zcl"), 1, writeZclAttribute), // Deprecated
+        WriteFunction(QLatin1String("zcl:attr"), 1, writeZclAttribute),
+        WriteFunction(QLatin1String("zcl:cmd"), 1, writeZclCommand),
         WriteFunction(QLatin1String("tuya"), 1, writeTuyaData)
     };
 
@@ -1935,7 +2001,7 @@ WriteFunction_t DA_GetWriteFunction(const QVariant &params)
         }
         else
         {
-            fnName = QLatin1String("zcl"); // default
+            fnName = QLatin1String("zcl:attr"); // default
         }
     }
 
