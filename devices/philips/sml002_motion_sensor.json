@@ -36,14 +36,14 @@
                 {
                     "name": "attr/manufacturername",
                     "parse": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": 2,
                         "cl": "0x0000",
                         "at": "0x0004",
                         "eval": "Item.val = Attr.val"
                     },
                     "read": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": 2,
                         "cl": "0x0000",
                         "at": "0x0004"
@@ -53,14 +53,14 @@
                 {
                     "name": "attr/modelid",
                     "parse": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": 2,
                         "cl": "0x0000",
                         "at": "0x0005",
                         "eval": "Item.val = Attr.val"
                     },
                     "read": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": 2,
                         "cl": "0x0000",
                         "at": "0x0005"
@@ -89,12 +89,14 @@
                 {
                     "name": "config/battery",
                     "parse": {
+                        "fn": "zcl:attr",
                         "ep": 2,
                         "cl": "0x0001",
                         "at": "0x0021",
                         "eval": "Item.val = Attr.val / 2"
                     },
                     "read": {
+                        "fn": "zcl:attr",
                         "ep": 2,
                         "cl": "0x0001",
                         "at": "0x0021"
@@ -104,17 +106,20 @@
                 {
                     "name": "config/delay",
                     "parse": {
+                        "fn": "zcl:attr",
                         "ep": 2,
                         "cl": "0x0406",
                         "at": "0x0010",
                         "eval": "Item.val = Attr.val"
                     },
                     "read": {
+                        "fn": "zcl:attr",
                         "ep": 2,
                         "cl": "0x0406",
                         "at": "0x0010"
                     },
                     "write": {
+                        "fn": "zcl:attr",
                         "ep": 2,
                         "cl": "0x0406",
                         "at": "0x0010",
@@ -126,6 +131,7 @@
                 {
                     "name": "config/ledindication",
                     "parse": {
+                        "fn": "zcl:attr",
                         "ep": 2,
                         "cl": "0x0000",
                         "mf": "0x100b",
@@ -133,12 +139,14 @@
                         "eval": "Item.val = Attr.val"
                     },
                     "read": {
+                        "fn": "zcl:attr",
                         "ep": 2,
                         "cl": "0x0000",
                         "mf": "0x100b",
                         "at": "0x0033"
                     },
                     "write": {
+                        "fn": "zcl:attr",
                         "ep": 2,
                         "cl": "0x0000",
                         "mf": "0x100b",
@@ -157,6 +165,7 @@
                 {
                     "name": "config/sensitivity",
                     "parse": {
+                        "fn": "zcl:attr",
                         "ep": 2,
                         "cl": "0x0406",
                         "mf": "0x100b",
@@ -164,12 +173,14 @@
                         "eval": "Item.val = Attr.val"
                     },
                     "read": {
+                        "fn": "zcl:attr",
                         "ep": 2,
                         "cl": "0x0406",
                         "mf": "0x100b",
                         "at": "0x0030"
                     },
                     "write": {
+                        "fn": "zcl:attr",
                         "ep": 2,
                         "cl": "0x0406",
                         "mf": "0x100b",
@@ -208,6 +219,7 @@
                 {
                     "name": "config/usertest",
                     "parse": {
+                        "fn": "zcl:attr",
                         "ep": 2,
                         "cl": "0x0000",
                         "mf": "0x100b",
@@ -215,12 +227,14 @@
                         "eval": "Item.val = Attr.val"
                     },
                     "read": {
+                        "fn": "zcl:attr",
                         "ep": 2,
                         "cl": "0x0000",
                         "mf": "0x100b",
                         "at": "0x0032"
                     },
                     "write": {
+                        "fn": "zcl:attr",
                         "ep": 2,
                         "cl": "0x0000",
                         "mf": "0x100b",
@@ -236,6 +250,7 @@
                 {
                     "name": "state/presence",
                     "parse": {
+                        "fn": "zcl:attr",
                         "ep": 2,
                         "cl": "0x0406",
                         "at": "0x0000",
@@ -297,42 +312,19 @@
                 {
                     "name": "config/battery",
                     "parse": {
+                        "fn": "zcl:attr",
                         "ep": 2,
                         "cl": "0x0001",
                         "at": "0x0021",
                         "eval": "Item.val = Attr.val / 2"
                     },
                     "read": {
+                        "fn": "zcl:attr",
                         "ep": 2,
                         "cl": "0x0001",
                         "at": "0x0021"
                     },
                     "refresh.interval": 7300
-                },
-                {
-                    "name": "config/ledindication",
-                    "parse": {
-                        "ep": 2,
-                        "cl": "0x0000",
-                        "mf": "0x100b",
-                        "at": "0x0033",
-                        "eval": "Item.val = Attr.val"
-                    },
-                    "read": {
-                        "ep": 2,
-                        "cl": "0x0000",
-                        "mf": "0x100b",
-                        "at": "0x0033"
-                    },
-                    "write": {
-                        "ep": 2,
-                        "cl": "0x0000",
-                        "mf": "0x100b",
-                        "at": "0x0033",
-                        "dt": "0x10",
-                        "eval": "Item.val"
-                    },
-                    "refresh.interval": 86400
                 },
                 {
                     "name": "config/on"
@@ -347,31 +339,6 @@
                     "name": "config/tholdoffset"
                 },
                 {
-                    "name": "config/usertest",
-                    "parse": {
-                        "ep": 2,
-                        "cl": "0x0000",
-                        "mf": "0x100b",
-                        "at": "0x0032",
-                        "eval": "Item.val = Attr.val"
-                    },
-                    "read": {
-                        "ep": 2,
-                        "cl": "0x0000",
-                        "mf": "0x100b",
-                        "at": "0x0032"
-                    },
-                    "write": {
-                        "ep": 2,
-                        "cl": "0x0000",
-                        "mf": "0x100b",
-                        "at": "0x0032",
-                        "dt": "0x10",
-                        "eval": "Item.val"
-                    },
-                    "refresh.interval": 86400
-                },
-                {
                     "name": "state/dark"
                 },
                 {
@@ -383,6 +350,7 @@
                 {
                     "name": "state/lightlevel",
                     "parse": {
+                        "fn": "zcl:attr",
                         "ep": 2,
                         "cl": "0x0400",
                         "at": "0x0000",
@@ -446,42 +414,19 @@
                 {
                     "name": "config/battery",
                     "parse": {
+                        "fn": "zcl:attr",
                         "ep": 2,
                         "cl": "0x0001",
                         "at": "0x0021",
                         "eval": "Item.val = Attr.val / 2"
                     },
                     "read": {
+                        "fn": "zcl:attr",
                         "ep": 2,
                         "cl": "0x0001",
                         "at": "0x0021"
                     },
                     "refresh.interval": 7300
-                },
-                {
-                    "name": "config/ledindication",
-                    "parse": {
-                        "ep": 2,
-                        "cl": "0x0000",
-                        "mf": "0x100b",
-                        "at": "0x0033",
-                        "eval": "Item.val = Attr.val"
-                    },
-                    "read": {
-                        "ep": 2,
-                        "cl": "0x0000",
-                        "mf": "0x100b",
-                        "at": "0x0033"
-                    },
-                    "write": {
-                        "ep": 2,
-                        "cl": "0x0000",
-                        "mf": "0x100b",
-                        "at": "0x0033",
-                        "dt": "0x10",
-                        "eval": "Item.val"
-                    },
-                    "refresh.interval": 86400
                 },
                 {
                     "name": "config/offset"
@@ -493,36 +438,12 @@
                     "name": "config/reachable"
                 },
                 {
-                    "name": "config/usertest",
-                    "parse": {
-                        "ep": 2,
-                        "cl": "0x0000",
-                        "mf": "0x100b",
-                        "at": "0x0032",
-                        "eval": "Item.val = Attr.val"
-                    },
-                    "read": {
-                        "ep": 2,
-                        "cl": "0x0000",
-                        "mf": "0x100b",
-                        "at": "0x0032"
-                    },
-                    "write": {
-                        "ep": 2,
-                        "cl": "0x0000",
-                        "mf": "0x100b",
-                        "at": "0x0032",
-                        "dt": "0x10",
-                        "eval": "Item.val"
-                    },
-                    "refresh.interval": 86400
-                },
-                {
                     "name": "state/lastupdated"
                 },
                 {
                     "name": "state/temperature",
                     "parse": {
+                        "fn": "zcl:attr",
                         "ep": 2,
                         "cl": "0x0402",
                         "at": "0x0000",

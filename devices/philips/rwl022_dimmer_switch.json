@@ -146,12 +146,14 @@
                 {
                     "name": "config/allowtouchlink",
                     "read": {
+                        "fn": "zcl:attr",
                         "ep": 1,
                         "cl": "0x0000",
                         "mf": "0x100b",
                         "at": "0x0031"
                     },
                     "parse": {
+                        "fn": "zcl:attr",
                         "ep": 1,
                         "cl": "0x0000",
                         "mf": "0x100b",
@@ -159,6 +161,7 @@
                         "eval": "Item.val = Attr.val != 0x000b"
                     },
                     "write": {
+                        "fn": "zcl:attr",
                         "ep": 1,
                         "cl": "0x0000",
                         "mf": "0x100b",
@@ -172,6 +175,7 @@
                 {
                     "name": "config/battery",
                     "parse": {
+                        "fn": "zcl:attr",
                         "ep": 1,
                         "cl": "0x0001",
                         "at": "0x0021",
@@ -192,6 +196,7 @@
                 {
                     "name": "state/buttonevent",
                     "parse": {
+                        "fn": "zcl:cmd",
                         "ep": 1,
                         "cl": "0xfc00",
                         "mf": "0x100b",

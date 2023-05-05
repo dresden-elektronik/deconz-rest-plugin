@@ -32,14 +32,14 @@
                 {
                     "name": "attr/manufacturername",
                     "parse": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": "0x0b",
                         "cl": "0x0000",
                         "at": "0x0004",
                         "eval": "Item.val = Attr.val"
                     },
                     "read": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": "0x0b",
                         "cl": "0x0000",
                         "at": "0x0004"
@@ -49,14 +49,14 @@
                 {
                     "name": "attr/modelid",
                     "parse": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": "0x0b",
                         "cl": "0x0000",
                         "at": "0x0005",
                         "eval": "Item.val = Attr.val"
                     },
                     "read": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": "0x0b",
                         "cl": "0x0000",
                         "at": "0x0005"
@@ -71,7 +71,7 @@
                 {
                     "name": "attr/productname",
                     "parse": {
-                        "fn": "zcl",
+                        "fn": "zcl:cmd",
                         "ep": "0x0b",
                         "cl": "0x0000",
                         "mf": "0x100b",
@@ -79,7 +79,7 @@
                         "script": "0000_capabilities.js"
                     },
                     "read": {
-                        "fn": "zcl",
+                        "fn": "zcl:cmd",
                         "ep": "0x0b",
                         "cl": "0x0000",
                         "mf": "0x100b",

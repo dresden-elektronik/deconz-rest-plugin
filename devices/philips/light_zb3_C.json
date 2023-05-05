@@ -104,14 +104,14 @@
                 {
                     "name": "attr/manufacturername",
                     "parse": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": "0x0b",
                         "cl": "0x0000",
                         "at": "0x0004",
                         "eval": "Item.val = Attr.val"
                     },
                     "read": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": "0x0b",
                         "cl": "0x0000",
                         "at": "0x0004"
@@ -121,14 +121,14 @@
                 {
                     "name": "attr/modelid",
                     "parse": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": "0x0b",
                         "cl": "0x0000",
                         "at": "0x0005",
                         "eval": "Item.val = Attr.val"
                     },
                     "read": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": "0x0b",
                         "cl": "0x0000",
                         "at": "0x0005"
@@ -143,7 +143,7 @@
                 {
                     "name": "attr/productname",
                     "parse": {
-                        "fn": "zcl",
+                        "fn": "zcl:cmd",
                         "ep": "0x0b",
                         "cl": "0x0000",
                         "mf": "0x100b",
@@ -151,7 +151,7 @@
                         "script": "0000_capabilities.js"
                     },
                     "read": {
-                        "fn": "zcl",
+                        "fn": "zcl:cmd",
                         "ep": "0x0b",
                         "cl": "0x0000",
                         "mf": "0x100b",
@@ -247,7 +247,7 @@
                 {
                     "name": "state/on",
                     "parse": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": "0x0b",
                         "cl": "0xfc03",
                         "mf": "0x100b",
@@ -255,7 +255,7 @@
                         "script": "fc03_state.js"
                     },
                     "read": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": "0x0b",
                         "cl": "0xfc03",
                         "mf": "0x100b",
@@ -308,14 +308,14 @@
                         ]
                     ],
                     "parse": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": "0x0b",
                         "cl": "0x0300",
                         "at": "0x4001",
                         "eval": "if (Item.val !== 'effect' && Attr.val <= 3) Item.val = ['hs', 'xy', 'ct', 'xy'][Attr.val]"
                     },
                     "read": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": "0x0b",
                         "cl": "0x0300",
                         "at": [
@@ -352,7 +352,7 @@
                         ]
                     ],
                     "parse": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": "0x0b",
                         "cl": "0x0300",
                         "at": "0x4002",
