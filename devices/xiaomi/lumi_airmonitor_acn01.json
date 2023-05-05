@@ -8,12 +8,12 @@
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_AIR_QUALITY_SENSOR",
+      "type": "$TYPE_TEMPERATURE_SENSOR",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
         "0x01",
-        "0x000c"
+        "0x0402"
       ],
       "fingerprint": {
         "profile": "0x0104",
@@ -22,7 +22,8 @@
         "in": [
           "0x0000",
           "0x0001",
-          "0x000C"
+          "0x0402",
+          "0xFCC0"
         ]
       },
       "items": [
@@ -47,14 +48,6 @@
         },
         {
           "name": "attr/swversion",
-          "awake": true,
-          "parse": {
-            "at": "0x00f7",
-            "ep": 1,
-            "fn": "xiaomi:special",
-            "idx": "0x08",
-            "script": "xiaomi_swversion.js"
-          },
           "read": {
             "fn": "none"
           }
@@ -66,8 +59,30 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "attr/xiaomi",
+          "awake": true,
+          "parse": {
+            "fn": "zcl",
+            "ep": 1,
+            "cl": "0xFCC0",
+            "mf": "0x115F",
+            "at": "0x00F7",
+            "script": "fcc0_airmonitor_acn01.js"
+          }
+        },
+        {
           "name": "config/battery",
-          "parse": {"fn": "xiaomi:special", "ep": 1, "at": "0x00f7", "idx": "0x01", "script": "xiaomi_battery.js"}
+          "parse": {
+            "fn": "zcl",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0020",
+            "script": "0001_battery.js"
+          }
+        },
+        {
+          "name": "config/offset",
+          "default": 0
         },
         {
           "name": "config/on"
@@ -76,37 +91,11 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/airqualityppb",
-          "parse": {
-            "at": "0x0055",
-            "cl": "0x000c",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl"
-          },
-          "default": 0
-        },
-        {
-          "name": "state/airquality",
-          "parse": {
-            "at": "0x0129",
-            "cl": "0xfcc0",
-            "ep": 1,
-            "eval": "Item.val = ['excellent', 'good', 'moderate', 'poor', 'unhealthy'][Attr.val]",
-            "fn": "zcl",
-            "mf": "0x115f"
-          },
-          "default": "excellent",
-          "values": [
-            [1, "excellent"],
-            [2, "good"],
-            [3, "moderate"],
-            [4, "poor"],
-            [5, "unhealthy"]
-          ]
-        },
-        {
           "name": "state/lastupdated"
+        },
+        {
+          "name": "state/temperature",
+          "default": 0
         }
       ]
     },
@@ -151,14 +140,6 @@
         },
         {
           "name": "attr/swversion",
-          "awake": true,
-          "parse": {
-            "at": "0x00f7",
-            "ep": 1,
-            "fn": "xiaomi:special",
-            "idx": "0x08",
-            "script": "xiaomi_swversion.js"
-          },
           "read": {
             "fn": "none"
           }
@@ -170,8 +151,26 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "attr/xiaomi",
+          "awake": true,
+          "parse": {
+            "fn": "zcl",
+            "ep": 1,
+            "cl": "0xFCC0",
+            "mf": "0x115F",
+            "at": "0x00F7",
+            "script": "fcc0_airmonitor_acn01.js"
+          }
+        },
+        {
           "name": "config/battery",
-          "parse": {"fn": "xiaomi:special", "ep": 1, "at": "0x00f7", "idx": "0x01", "script": "xiaomi_battery.js"}
+          "parse": {
+            "fn": "zcl",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0020",
+            "script": "0001_battery.js"
+          }
         },
         {
           "name": "config/offset",
@@ -193,12 +192,12 @@
       ]
     },
     {
-      "type": "$TYPE_TEMPERATURE_SENSOR",
+      "type": "$TYPE_AIR_QUALITY_SENSOR",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
         "0x01",
-        "0x0402"
+        "0x000c"
       ],
       "fingerprint": {
         "profile": "0x0104",
@@ -207,8 +206,7 @@
         "in": [
           "0x0000",
           "0x0001",
-          "0x0402",
-          "0xFCC0"
+          "0x000C"
         ]
       },
       "items": [
@@ -233,14 +231,6 @@
         },
         {
           "name": "attr/swversion",
-          "awake": true,
-          "parse": {
-            "at": "0x00f7",
-            "ep": 1,
-            "fn": "xiaomi:special",
-            "idx": "0x08",
-            "script": "xiaomi_swversion.js"
-          },
           "read": {
             "fn": "none"
           }
@@ -252,12 +242,26 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/battery",
-          "parse": {"fn": "xiaomi:special", "ep": 1, "at": "0x00f7", "idx": "0x01", "script": "xiaomi_battery.js"}
+          "name": "attr/xiaomi",
+          "awake": true,
+          "parse": {
+            "fn": "zcl",
+            "ep": 1,
+            "cl": "0xFCC0",
+            "mf": "0x115F",
+            "at": "0x00F7",
+            "script": "fcc0_airmonitor_acn01.js"
+          }
         },
         {
-          "name": "config/offset",
-          "default": 0
+          "name": "config/battery",
+          "parse": {
+            "fn": "zcl",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0020",
+            "script": "0001_battery.js"
+          }
         },
         {
           "name": "config/on"
@@ -266,28 +270,29 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/lastupdated"
+          "name": "state/airqualityppb",
+          "parse": {
+            "fn": "zcl",
+            "ep": 1,
+            "cl": "0x000c",
+            "at": "0x0055",
+            "eval": "Item.val = Attr.val"
+          },
+          "default": 0
         },
         {
-          "name": "state/temperature",
-          "default": 0
-        }
-      ]
-    }
-  ],
-  "bindings": [
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x000C",
-      "report": [
+          "name": "state/airquality",
+          "parse": {
+            "fn": "zcl",
+            "ep": 1,
+            "cl": "0xFCC0",
+            "mf": "0x115F",
+            "at": "0x0129",
+            "eval": "Item.val = ['excellent', 'good', 'moderate', 'poor', 'unhealthy'][Attr.val - 1]"
+          }
+        },
         {
-          "at": "0x0055",
-          "dt": "0x39",
-          "min": 60,
-          "max": 1800,
-          "change": "0x41200000"
+          "name": "state/lastupdated"
         }
       ]
     }

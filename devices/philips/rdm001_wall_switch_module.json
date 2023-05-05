@@ -1,7 +1,13 @@
 {
     "schema": "devcap1.schema.json",
-    "manufacturername": "$MF_SIGNIFY",
-    "modelid": "RDM001",
+    "manufacturername": [
+        "$MF_PHILIPS",
+        "$MF_SIGNIFY"
+    ],
+    "modelid": [
+        "RDM001",
+        "RDM001"
+    ],
     "product": "Hue wall switch module",
     "status": "Gold",
     "sleeper": true,

@@ -43,44 +43,16 @@
                     "name": "attr/uniqueid"
                 },
                 {
-                    "name": "state/bri",
-                    "parse": {
-                        "at": "0x0008",
-                        "cl": "0x0102",
-                        "ep": 1,
-                        "eval": "Item.val = Math.round((254 * Attr.val) / 100)",
-                        "fn": "zcl"
-                    },
-                    "read": {
-                        "fn": "none"
-                    },
-                    "deprecated": "2020-04-08"
-                },
-                {
                     "name": "state/lift"
-                },
-                {
-                    "name": "state/on",
-                    "parse": {
-                        "at": "0x0008",
-                        "cl": "0x0102",
-                        "ep": 1,
-                        "eval": "Item.val = Attr.val > 0",
-                        "fn": "zcl"
-                    },
-                    "read": {
-                        "fn": "none"
-                    },
-                    "deprecated": "2020-04-08"
                 },
                 {
                     "name": "state/open",
                     "parse": {
-                        "at": "0x0008",
-                        "cl": "0x0102",
+                        "fn": "zcl",
                         "ep": 1,
-                        "eval": "Item.val = Attr.val === 100",
-                        "fn": "zcl"
+                        "cl": "0x0102",
+                        "at": "0x0008",
+                        "eval": "Item.val = Attr.val === 0"
                     },
                     "read": {
                         "fn": "none"
@@ -153,11 +125,11 @@
                     "name": "state/battery",
                     "refresh.interval": 3700,
                     "parse": {
-                        "at": "0x0021",
+                        "fn": "zcl",
+                        "ep": 1,
                         "cl": "0x0001",
-                        "ep": 0,
-                        "eval": "Item.val = Attr.val",
-                        "fn": "zcl"
+                        "at": "0x0021",
+                        "eval": "Item.val = Attr.val"
                     }
                 },
                 {

@@ -36,11 +36,11 @@
                 {
                     "name": "attr/swversion",
                     "parse": {
-                        "at": "0x00f7",
-                        "ep": 1,
                         "fn": "xiaomi:special",
-                        "idx": "0x0d",
-                        "script": "xiaomi_swversion.js"
+                        "ep": 1,
+                        "at": "0x00F7",
+                        "idx": "0x0D",
+                        "eval": "Item.val = '0.0.0_' + ('0000' + (Attr.val & 0xFF).toString()).slice(-4)"
                     },
                     "read": {
                         "fn": "none"
@@ -53,61 +53,80 @@
                     "name": "attr/uniqueid"
                 },
                 {
-                    "name": "state/alert"
-                },
-                {
-                    "deprecated": "2022-03-01",
-                    "name": "state/bri",
+                    "name": "config/reversed",
                     "parse": {
                         "fn": "zcl",
-                        "cl": "0x000D",
-                        "at": "0x0055",
                         "ep": 1,
-                        "eval": "if (Attr.val >= 0 && Attr.val <= 100) {Item.val = Math.round(254 * (100 - Attr.val) / 100)}"
+                        "cl": "0xFCC0",
+                        "mf": "0x115F",
+                        "at": "0x0400",
+                        "eval": "Item.val = Attr.val"
                     },
                     "read": {
                         "fn": "none"
+                    },
+                    "write": {
+                        "fn": "zcl",
+                        "ep": 1,
+                        "cl": "0xFCC0",
+                        "mf": "0x115F",
+                        "at": "0x0400",
+                        "dt": "0x10",
+                        "eval": "Item.val"
                     }
+                },
+                {
+                    "name": "config/speed",
+                    "parse": {
+                        "fn": "zcl",
+                        "ep": 1,
+                        "cl": "0xFCC0",
+                        "mf": "0x115F",
+                        "at": "0x0408",
+                        "eval": "Item.val = Attr.val"
+                    },
+                    "read": {
+                        "fn": "none"
+                    },
+                    "write": {
+                        "fn": "zcl",
+                        "ep": 1,
+                        "cl": "0xFCC0",
+                        "mf": "0x115F",
+                        "at": "0x0408",
+                        "dt": "0x20",
+                        "eval": "Item.val"
+                    }
+                },
+                {
+                    "name": "state/alert"
                 },
                 {
                     "name": "state/lift",
                     "parse": {
                         "fn": "zcl",
+                        "ep": 1,
                         "cl": "0x000D",
                         "at": "0x0055",
-                        "ep": 1,
-                        "eval": "if (Attr.val >= 0 && Attr.val <= 100) {Item.val = 100 - Attr.val}"
+                        "eval": "Item.val = 100 - Attr.val"
                     },
                     "read": {
                         "fn": "zcl",
-                        "cl": "0x000D",
-                        "at": "0x0055",
-                        "ep": 1
-                    },
-                    "refresh.interval": 300
-                },
-                {
-                    "deprecated": "2022-03-01",
-                    "name": "state/on",
-                    "parse": {
-                        "fn": "zcl",
-                        "cl": "0x000D",
-                        "at": "0x0055",
                         "ep": 1,
-                        "eval": "if (Attr.val >= 0 && Attr.val <= 100) {Item.val = Math.round((254 * (100 - Attr.val) / 100)) > 0}"
+                        "cl": "0x000D",
+                        "at": "0x0055"
+
                     },
-                    "read": {
-                        "fn": "none"
-                    }
+                    "refresh.interval": 360
                 },
                 {
                     "name": "state/open",
                     "parse": {
                         "fn": "zcl",
+                        "ep": 1,
                         "cl": "0x000D",
                         "at": "0x0055",
-                        "ep": 1,
-                        "eval": "if (Attr.val >= 0 && Attr.val <= 100) {Item.val = Attr.val === 0}"
+                        "eval": "Item.val = Attr.val === 100"
                     },
                     "read": {
                         "fn": "none"
@@ -118,6 +137,8 @@
                 },
                 {
                     "name": "state/speed",
+                    "deprecated": "2023-04-14",
+                    "description": "Deprecated in favour of config/speed.",
                     "parse": {
                         "fn": "zcl",
                         "cl": "0xFCC0",
@@ -127,13 +148,8 @@
                         "eval": "Item.val = Attr.val"
                     },
                     "read": {
-                        "fn": "zcl",
-                        "cl": "0xFCC0",
-                        "at": "0x0408",
-                        "ep": 1,
-                        "mf": "0x115F"
-                    },
-                    "refresh.interval": 3600
+                        "fn": "none"
+                    }
                 }
             ]
         },
@@ -182,11 +198,11 @@
                 {
                     "name": "attr/swversion",
                     "parse": {
-                        "at": "0x00f7",
-                        "ep": 1,
                         "fn": "xiaomi:special",
-                        "idx": "0x0d",
-                        "script": "xiaomi_swversion.js"
+                        "ep": 1,
+                        "at": "0x00F7",
+                        "idx": "0x0D",
+                        "eval": "Item.val = '0.0.0_' + ('0000' + (Attr.val & 0xFF).toString()).slice(-4)"
                     },
                     "read": {
                         "fn": "none"
@@ -220,24 +236,34 @@
                 {
                     "name": "state/battery",
                     "parse": {
-                        "fn": "xiaomi:special",
+                        "fn": "zcl",
                         "ep": 1,
-                        "at": "0x00f7",
-                        "idx": "0x65",
+                        "cl": "0xFCC0",
+                        "mf": "0x115F",
+                        "at": "0x040A",
                         "eval": "Item.val = Attr.val"
                     },
                     "read": {
-                        "fn": "none"
-                    }
+                        "fn": "zcl",
+                        "ep": 1,
+                        "cl": "0xFCC0",
+                        "mf": "0x115F",
+                        "at": ["0x0400", "0x0408", "0x0409", "0x040A"]
+                    },
+                    "refresh.interval": 360
                 },
                 {
                     "name": "state/charging",
                     "parse": {
-                        "fn": "xiaomi:special",
+                        "fn": "zcl",
                         "ep": 1,
-                        "at": "0x00f7",
-                        "idx": "0x69",
+                        "cl": "0xFCC0",
+                        "mf": "0x115F",
+                        "at": "0x0409",
                         "eval": "Item.val = Attr.val === 1"
+                    },
+                    "read": {
+                        "fn": "none"
                     }
                 },
                 {

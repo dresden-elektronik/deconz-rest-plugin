@@ -1,19 +1,34 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["_TZ3000_gbm10jnj", "_TZ3000_sj7jbgks", "_TZ3000_w8jwkczz", "_TZ3000_famkxci2", "_TZ3000_w3c7ouru"],
-  "modelid": ["TS0043", "TS0043", "TS0043", "TS0043", "TS0043"],
-  "product": "Tuya 3 gangs switch battery",
-  "sleeper": false,
-  "status": "Gold",
+  "manufacturername": ["_TZ3000_kyb656no","_TZ3000_fxvjhdyl","_TZ3000_eit7p838","_TZ3000_t6jriawg","_TZ3000_85czd6fy","_TYZB01_sqmd19i1","_TYZB01_o63ssaah"],
+  "modelid": ["TS0207","TS0207","TS0207","TS0207","TS0207","TS0207","TS0207"],
+  "vendor": "TuYa",
+  "product": "Tuya based Flooding detector",
+  "sleeper": true,
+  "status": "Silver",
   "subdevices": [
     {
-      "type": "$TYPE_SWITCH",
+      "type": "$TYPE_WATER_LEAK_SENSOR",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
         "0x01",
-        "0x0006"
+        "0x0500"
       ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0402",
+        "endpoint": "0x01",
+        "in": [
+          "0x0000",
+          "0x0001",
+          "0x0003",
+          "0x0500"
+        ],
+        "out": [
+          "0x0019"
+        ]
+      },
       "items": [
         {
           "name": "attr/id"
@@ -28,14 +43,14 @@
           "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid"
+          "name": "attr/modelid",
+          "awake": true
         },
         {
           "name": "attr/name"
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 86400,
           "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
           "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
@@ -48,32 +63,37 @@
         {
           "name": "config/battery",
           "awake": true,
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "fn": "zcl"
-          },
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
-          },
-          "default": 0
-        },        
+            "eval": "Item.val = Attr.val / 2",
+            "fn": "zcl"
+          }
+        },
+        {
+          "name": "config/checkin",
+          "awake": true
+        },
+        {
+          "name": "config/enrolled",
+          "public": true
+        },
         {
           "name": "config/on"
+        },
+        {
+          "name": "config/pending"
         },
         {
           "name": "config/reachable"
         },
         {
-          "name": "state/buttonevent"
+          "name": "state/lastupdated"
         },
         {
-          "name": "state/lastupdated"
+          "name": "state/water",
+          "awake": true
         }
       ]
     }
@@ -87,29 +107,16 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 60,
-          "max": 3600,
+          "min": 3600,
+          "max": 14400,
           "change": "0x00000001"
         }
       ]
-    },    
+    },
     {
       "bind": "unicast",
       "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0006"
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 2,
-      "dst.ep": 1,
-      "cl": "0x0006"
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 3,
-      "dst.ep": 1,
-      "cl": "0x0006"
+      "cl": "0x0500"
     }
   ]
 }
