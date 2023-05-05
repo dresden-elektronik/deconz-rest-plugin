@@ -1647,6 +1647,7 @@ bool parseAndSyncTime(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndi
     - noSequenceNumber: (optional) bool must be set to `true` and must only be present if needed
 
     Example: { "read": {"fn": "zcl", "ep": 1, "cl": "0x0402", "at": "0x0000", "mf": "0x110b"} }
+    Example: { "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "cmd": "0xc0", "mf": "0x100b"} }
  */
 static DA_ReadResult readZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, const QVariant &readParameters)
 {
@@ -1670,7 +1671,8 @@ static DA_ReadResult readZclAttribute(const Resource *r, const ResourceItem *ite
         return result;
     }
 
-    auto param = getZclParam(readParameters.toMap());
+    const auto map = readParameters.toMap();
+    auto param = getZclParam(map);
 
     if (!param.valid)
     {
@@ -1687,7 +1689,36 @@ static DA_ReadResult readZclAttribute(const Resource *r, const ResourceItem *ite
         }
     }
 
-    const auto zclResult = ZCL_ReadAttributes(param, extAddr->toNumber(), nwkAddr->toNumber(), apsCtrl);
+    ZCL_Result zclResult;
+    if (param.hasCommandId)
+    {
+        QVariant value;
+        if (map.contains("eval")) {
+            const auto expr = map.value("eval").toString();
+            if (expr.isEmpty()) {
+                return result;
+            }
+            DeviceJs &engine = *DeviceJs::instance();
+            engine.reset();
+            engine.setResource(r);
+            engine.setItem(item);
+            if (engine.evaluate(expr) == JsEvalResult::Ok)
+            {
+                value = engine.result();
+                DBG_Printf(DBG_DDF, "%s/%s expression: %s --> %s\n", r->item(RAttrUniqueId)->toCString(), item->descriptor().suffix, qPrintable(expr), qPrintable(value.toString()));
+            }
+            else
+            {
+                DBG_Printf(DBG_DDF, "failed to evaluate expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
+                return result;
+            }
+        }
+        zclResult = ZCL_SendCommand(param, extAddr->toNumber(), nwkAddr->toNumber(), apsCtrl, value);
+    }
+    else
+    {
+        zclResult = ZCL_ReadAttributes(param, extAddr->toNumber(), nwkAddr->toNumber(), apsCtrl);
+    }
 
     result.isEnqueued = zclResult.isEnqueued;
     result.apsReqId = zclResult.apsReqId;
@@ -1719,6 +1750,7 @@ bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsC
     Q_ASSERT(apsCtrl);
 
     bool result = false;
+
     const auto rParent = r->parentResource() ? r->parentResource() : r;
     const auto *extAddr = rParent->item(RAttrExtAddress);
     const auto *nwkAddr = rParent->item(RAttrNwkAddress);
@@ -1751,94 +1783,49 @@ bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsC
         }
     }
 
-    if (!map.contains("dt") || !map.contains("eval"))
-    {
-        return result;
-    }
-
-    bool ok;
-    const auto dataType = variantToUint(map.value("dt"), UINT8_MAX, &ok);
-    const auto expr = map.value("eval").toString();
-
-    if (!ok || expr.isEmpty())
-    {
-        return result;
-    }
-
-    DBG_Printf(DBG_INFO, "writeZclAttribute, ep: 0x%02X, cl: 0x%04X, attr: 0x%04X, type: 0x%02X, mfcode: 0x%04X, expr: %s\n", param.endpoint, param.clusterId, param.attributes.front(), dataType, param.manufacturerCode, qPrintable(expr));
-
-    deCONZ::ApsDataRequest req;
-    deCONZ::ZclFrame zclFrame;
-
-    req.setDstEndpoint(param.endpoint);
-    req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-    req.setDstAddressMode(deCONZ::ApsNwkAddress);
-    req.dstAddress().setNwk(nwkAddr->toNumber());
-    req.dstAddress().setExt(extAddr->toNumber());
-    req.setClusterId(param.clusterId);
-    req.setProfileId(HA_PROFILE_ID);
-    req.setSrcEndpoint(1); // TODO
-
-    zclFrame.setSequenceNumber(zclNextSequenceNumber());
-    zclFrame.setCommandId(deCONZ::ZclWriteAttributesId);
-
-    if (param.manufacturerCode)
-    {
-        zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-                                 deCONZ::ZclFCManufacturerSpecific |
-                                 deCONZ::ZclFCDirectionClientToServer |
-                                 deCONZ::ZclFCDisableDefaultResponse);
-        zclFrame.setManufacturerCode(param.manufacturerCode);
-    }
-    else
-    {
-        zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-                                 deCONZ::ZclFCDirectionClientToServer |
-                                 deCONZ::ZclFCDisableDefaultResponse);
-    }
-
-    { // payload
-        deCONZ::ZclAttribute attribute(param.attributes[0], dataType, QLatin1String(""), deCONZ::ZclReadWrite, true);
-
-        if (!expr.isEmpty())
-        {
-            DeviceJs &engine = *DeviceJs::instance();
-            engine.reset();
-            engine.setResource(r);
-            engine.setItem(item);
-
-            if (engine.evaluate(expr) == JsEvalResult::Ok)
-            {
-                const auto res = engine.result();
-                DBG_Printf(DBG_DDF, "%s/%s expression: %s --> %s\n", r->item(RAttrUniqueId)->toCString(), item->descriptor().suffix, qPrintable(expr), qPrintable(res.toString()));
-                attribute.setValue(res);
-            }
-            else
-            {
-                DBG_Printf(DBG_DDF, "failed to evaluate expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
-                return result;
-            }
+    QVariant value;
+    if (map.contains("eval")) {
+        const auto expr = map.value("eval").toString();
+        if (expr.isEmpty()) {
+            return result;
         }
-
-        QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
-        stream.setByteOrder(QDataStream::LittleEndian);
-
-        stream << attribute.id();
-        stream << attribute.dataType();
-
-        if (!attribute.writeToStream(stream))
+        DeviceJs &engine = *DeviceJs::instance();
+        engine.reset();
+        engine.setResource(r);
+        engine.setItem(item);
+        if (engine.evaluate(expr) == JsEvalResult::Ok)
         {
+            value = engine.result();
+            DBG_Printf(DBG_DDF, "%s/%s expression: %s --> %s\n", r->item(RAttrUniqueId)->toCString(), item->descriptor().suffix, qPrintable(expr), qPrintable(value.toString()));
+        }
+        else
+        {
+            DBG_Printf(DBG_DDF, "failed to evaluate expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
             return result;
         }
     }
 
-    { // ZCL frame
-        QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
-        stream.setByteOrder(QDataStream::LittleEndian);
-        zclFrame.writeToStream(stream);
+    ZCL_Result zclResult;
+    if (param.hasCommandId)
+    {
+        zclResult = ZCL_SendCommand(param, extAddr->toNumber(), nwkAddr->toNumber(), apsCtrl, value);
+    }
+    else
+    {
+        if (!map.contains("dt") || !map.contains("eval"))
+        {
+            return result;
+        }
+        bool ok;
+        const auto dataType = variantToUint(map.value("dt"), UINT8_MAX, &ok);
+        if (!ok)
+        {
+            return result;
+        }
+        zclResult = ZCL_WriteAttribute(param, extAddr->toNumber(), nwkAddr->toNumber(), apsCtrl, dataType, value);
     }
 
-    result = apsCtrl->apsdeDataRequest(req) == deCONZ::Success;
+    result = zclResult.isEnqueued;
 
     return result;
 }
