@@ -4303,7 +4303,7 @@ These devices can operate on either battery or mains power, and can have a wide 
             </attribute>
           </payload>
         </command>
-        <attribute id="0x0001" name="Capabilities" type="bmp32" mfcode="0x100b" access="rw" required="m">
+        <attribute id="0x0001" name="Capabilities" type="bmp32" mfcode="0x100b" access="r" required="m">
           <value name="Unknown 00" value="0"/>
           <value name="Unknown 01" value="1"/>
           <value name="Effects" value="2"/>
