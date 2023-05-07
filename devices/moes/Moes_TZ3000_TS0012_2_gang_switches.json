@@ -4,7 +4,7 @@
   "modelid": "TS0012",
   "product": "2 gang switches",
   "sleeper": false,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_ON_OFF_LIGHT",
