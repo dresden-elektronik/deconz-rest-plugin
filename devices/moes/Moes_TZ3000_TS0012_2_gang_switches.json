@@ -2,7 +2,7 @@
   "schema": "devcap1.schema.json",
   "manufacturername": "_TZ3000_18ejxno0",
   "modelid": "TS0012",
-  "product": "Battery 2 gang switches",
+  "product": "2 gang switches",
   "sleeper": false,
   "status": "Silver",
   "subdevices": [
@@ -62,6 +62,9 @@
           "name": "state/on",
           "refresh.interval": 5
         },
+				{
+					"name": "config/tuya_unlock"
+				},
         {
           "name": "state/reachable"
         }
