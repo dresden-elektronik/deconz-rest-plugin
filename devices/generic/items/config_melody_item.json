@@ -5,5 +5,5 @@
 	"access": "RW",
 	"public": true,
 	"default":0,
-	"description": "The melody number",
+	"description": "Melody or ringtone number",
 }
