@@ -5,7 +5,7 @@
   "product": "TRADFRI bulb E27 WS opal 1000lm",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/tradfri_bulb_e27_ws_opal_1000lm.json",
+  "path": "/devices/ikea/tradfri_bulb_e27_ws_opal_1000lm.json",
   "subdevices": [
     {
       "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
