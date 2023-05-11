@@ -5,7 +5,7 @@
   "product": "TRADFRI bulb E27 WW 806lm",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/tradfri_bulb_e27_ww_806lm.json",
+  "path": "/devices/ikea/tradfri_bulb_e27_ww_806lm.json",
   "subdevices": [
     {
       "type": "$TYPE_DIMMABLE_LIGHT",
