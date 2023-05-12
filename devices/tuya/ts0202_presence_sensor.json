@@ -1,7 +1,11 @@
 {
    "schema":"devcap1.schema.json",
-   "manufacturername": ["_TZ3000_msl6wxk9", "_TZ3000_otvn3lne", "_TZ3000_6ygjfyll", "_TZ3040_6ygjfyll", "_TZ3000_mcxw5ehu"],
-   "modelid":["TS0202", "TS0202", "TS0202", "TS0202", "TS0202"],
+   "manufacturername": ["_TYZB01_tv3wxhcz","_TYZB01_hqbdru35","TZ3000_tiwq83wk","_TZ3000_ykwcwxmz","_TZ3000_hgu1dlak","_TZ3000_hktqahrq","_TZ3000_kmh5qpmb",
+                        "_TZ3000_jmrgyl7o","_TZ3000_msl6wxk9", "_TZ3000_otvn3lne", "_TZ3000_6ygjfyll", "_TZ3040_6ygjfyll", "_TZ3000_mcxw5ehu","_TYZB01_ef5xlc9q",
+                        "_TYZB01_vwqnz1sn","_TYZB01_2b8f6cio","_TZE200_bq5c8xfe","_TYZB01_dl7cejts","_TYZB01_qjqgmqxr","_TZ3000_mmtwjmaq","_TYZB01_zwvaj5wy",
+                        "_TZ3000_bsvqrxru"],
+   "modelid":["TS0202", "TS0202", "TS0202", "TS0202", "TS0202","TS0202", "TS0202", "TS0202", "TS0202", "TS0202","TS0202", "TS0202", "TS0202", "TS0202",
+             "TS0202", "TS0202", "TS0202", "TS0202", "TS0202","TS0202", "TS0202", "TS0202"],
    "product":"TS0202 Presence sensor",
    "sleeper":true,
    "status":"Gold",
@@ -45,7 +49,6 @@
             },
             {
               "name": "attr/swversion",                   
-              "refresh.interval": 86400,
               "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
               "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
             },
@@ -106,8 +109,8 @@
             {
                "at":"0x0021",
                "dt":"0x20",
-               "min":60,
-               "max":3600,
+               "min":3600,
+               "max":14400,
                "change":"0x00000001"
             }
          ]
