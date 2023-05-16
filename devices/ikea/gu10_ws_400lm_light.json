@@ -5,7 +5,6 @@
   "product": "TRÅDFRI bulb GU10 WS 400lm",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/ikea/gu10_ws_400lm_light.json",
   "subdevices": [
     {
       "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
