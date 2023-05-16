@@ -5,7 +5,6 @@
   "product": "Tradfri LED bulb E27 1055 lumen",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/ikea/tradfribulbe27wsglobeopal1055lm.json",
   "subdevices": [
     {
       "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
@@ -44,7 +43,6 @@
         },
         {
           "name": "cap/bri/move_with_onoff",
-          "description": "Device supports the _Move to Level (with On/Off)_ command.",
           "static": true
         },
         {
@@ -59,7 +57,6 @@
         },
         {
           "name": "cap/on/off_with_effect",
-          "description": "Device supports the _Off with Effect_ command.",
           "static": true
         },
         {
