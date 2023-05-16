@@ -10,6 +10,6 @@
     "ep": 0,
     "cl": "0x0300",
     "at": "0x4000",
-    "eval": "R.item('state/hue).val = Attr.val"
+    "eval": "R.item('state/hue').val = Attr.val"
   }
 }
