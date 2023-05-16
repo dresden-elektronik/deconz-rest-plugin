@@ -5,7 +5,6 @@
   "product": "TRADFRI bulb E27 W opal 1000lm",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/ikea/tradfri_bulb_e27_w_opal_1000lm.json",
   "subdevices": [
     {
       "type": "$TYPE_DIMMABLE_LIGHT",
@@ -44,27 +43,22 @@
         },
         {
           "name": "cap/bri/move_with_onoff",
-          "description": "Device supports the _Move to Level (with On/Off)_ command.",
           "static": true
         },
         {
           "name": "cap/on/off_with_effect",
-          "description": "Device supports the _Off with Effect_ command.",
           "static": true
         },
         {
           "name": "state/alert",
-          "description": "The currently active alert effect.",
           "default": "none"
         },
         {
           "name": "state/bri",
-          "description": "The current brightness.",
           "refresh.interval": 5
         },
         {
           "name": "state/on",
-          "description": "True when device is on; false when off.",
           "refresh.interval": 5
         },
         {
