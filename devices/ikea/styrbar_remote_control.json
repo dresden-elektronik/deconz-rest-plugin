@@ -5,7 +5,6 @@
   "product": "STYRBAR remote control",
   "sleeper": true,
   "status": "Gold",
-  "path": "/devices/styrbar_remote_control.json",
   "subdevices": [
     {
       "type": "$TYPE_SWITCH",
