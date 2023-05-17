@@ -5041,20 +5041,57 @@ Contactor > On/off=0003 - HP/HC=0004</description>
     </cluster>
     <!-- SINOPE -->
     <cluster id="0xff01" name="Sinope specific" mfcode="0x119c">
-      <description>Sinope specific attributes.
-
-Outdoor Temp to Display Timeout: set 30 for 'off' and 10800 for 'on'</description>
+      <description>Sinope specific cluster attributes</description>
       <server>
+	<attribute id="0x0002" name="Keypad lock" type="u8" mfcode="0x119c" access="rw" required="m"> 
+	  <value name="Unlocked" value="0x00"></value>
+          <value name="Locked" value="0x01"></value>
+	</attribute>
 	<attribute id="0x0010" name="Outdoor Temp on Display" type="s16" mfcode="0x119c" access="rw" required="m"> <description>Celcius * 100</description> </attribute>
 	<attribute id="0x0011" name="Outdoor Temp on Display Timeout" type="u16" mfcode="0x119c" access="rw" required="m"> 
 		<description>Delay in seconds before reverting to setpoint display if no more outdoor temp is received</description>
 	</attribute>
+	<attribute id="0x0012" name="Config 2nd Display " type="enum8" mfcode="0x119c" access="rw" required="m"> 
+			<value name="Auto" value="0x00"></value>
+			<value name="Setpoint" value="0x01"></value>
+		        <value name="Outside Temp" value="0x02"></value>
+	</attribute>
 	<attribute id="0x0020" name="Current Time on Display" type="u32" mfcode="0x119c" access="rw" required="m"> 
 		 <description>Seconds since year 2000</description>
+	</attribute>
+	<attribute id="0x0050" name="On Led Color" type="u24" mfcode="0x119c" access="rw" required="m"> 
+	  <value name="Lim" value="0x0affdc"></value>
+          <value name="Amber" value="0x000a4b"></value>
+	  <value name="Fushia" value="0x64ffff"></value>
+	  <value name="Perle" value="0x000a4b"></value>
+	  <value name="Blue" value="0xffff00"></value>
+	</attribute>
+	<attribute id="0x0051" name="Off Led Color" type="u24" mfcode="0x119c" access="rw" required="m"> 
+	  <value name="Lim" value="0x0affdc"></value>
+          <value name="Amber" value="0x000a4b"></value>
+	  <value name="Fushia" value="0x64ffff"></value>
+	  <value name="Perle" value="0x000a4b"></value>
+	  <value name="Blue" value="0xffff00"></value>
+	</attribute>
+	<attribute id="0x0052" name="On Led Intensity" type="u8" mfcode="0x119c" range="0,100" access="rw" required="m"> </attribute>
+	<attribute id="0x0053" name="Off Led Intensity" type="u8" mfcode="0x119c" range="0,100" access="rw" required="m"> </attribute>
+	<attribute id="0x0054" name="Unknown" type="u8" mfcode="0x119c" access="rw" required="m"> </attribute>
+	<attribute id="0x0055" name="Min Intensity" type="u16" mfcode="0x119c" range="0,3000" access="rw" required="m"> </attribute>
+	<attribute id="0x0060" name="Connected Load" type="u16" mfcode="0x119c" access="r" required="m">
+		<description>Watt/hr</description>
 	</attribute>
 	<attribute id="0x0070" name="Current Load" type="bmp8" mfcode="0x119c" access="r" required="m"> 
 		 <description>Watt/hr</description>
 	</attribute>
+	<attribute id="0x0071" name="Eco Mode" type="s8" mfcode="0x119c" range="-100,100" default="-128" access="rw" required="m"> 
+		 <description>Eco mode in percent</description>
+	</attribute>
+	<attribute id="0x0072" name="Eco Mode 1" type="u8" mfcode="0x119c" range="0,99" default="255" access="rw" required="m"> </attribute>
+	<attribute id="0x0073" name="Eco Mode 2" type="u8" mfcode="0x119c" range="0,100" default="255" access="rw" required="m"> </attribute>
+        <attribute id="0x0076" name="drConfigWaterTempMin" type="u8" mfcode="0x119c" access="rw" required="m"> <description>45 or 0</description></attribute>
+        <attribute id="0x0077" name="drConfigWaterTempTime" type="u8" mfcode="0x119c" access="rw" required="m"> </attribute>
+	<attribute id="0x0078" name="drWTTimeOn" type="u16" mfcode="0x119c" access="r" required="m"> </attribute>
+	<attribute id="0x00A0" name="Timer" type="u16" mfcode="0x119c" access="rw" required="m"> <description>Number of seconds</description> </attribute>
         <attribute id="0x0105" name="Floor Control Mode" type="enum8" mfcode="0x119c" access="rw" required="m">
           <value name="Ambient" value="0x01"></value>
           <value name="Floor" value="0x02"></value>
@@ -5067,12 +5104,12 @@ Outdoor Temp to Display Timeout: set 30 for 'off' and 10800 for 'on'</descriptio
 			<description>temp: celcius*100, valid only if floor control mode is selected</description>
 	</attribute>
         <attribute id="0x0109" name="Floor Min Heat Setpoint Limit" type="s16" mfcode="0x119c" access="rw" required="m"></attribute>
-        <attribute id="0x0110" name="Floor Max Heat Setpoint Limit" type="s16" mfcode="0x119c" access="rw" required="m"></attribute>
-        <attribute id="0x0111" name="Temperature Sensor" type="enum8" mfcode="0x119c" access="rw" required="m">
+        <attribute id="0x010A" name="Floor Max Heat Setpoint Limit" type="s16" mfcode="0x119c" access="rw" required="m"></attribute>
+        <attribute id="0x010B" name="Temperature Sensor" type="enum8" mfcode="0x119c" access="rw" required="m">
           <value name="10k" value="0x00"></value>
           <value name="12k" value="0x01"></value>
         </attribute>
-        <attribute id="0x0112" name="Floor Limit Status" type="enum8" mfcode="0x119c" access="r" required="m">
+        <attribute id="0x010C" name="Floor Limit Status" type="enum8" mfcode="0x119c" access="r" required="m">
           <value name="Off" value="0x00"></value>
 	  <value name="floorLimitLowReached" value="0x01"></value>
 	  <value name="floorLimitMaxReached" value="0x02"></value>
@@ -5086,11 +5123,11 @@ Outdoor Temp to Display Timeout: set 30 for 'off' and 10800 for 'on'</descriptio
           <value name="Ok" value="0x00"></value>
           <value name="Error" value="0x01"></value>
         </attribute>
-	<attribute id="0x0118" name="Aux Connected Load" type="u16" mfcode="0x119c" access="r" required="m">
+	<attribute id="0x0118" name="Aux Connected Load" type="u16" mfcode="0x119c" default="0xffff" access="r" required="m">
 		<description>watt/hr, 0xffff=off</description>
 	</attribute>
 	<attribute id="0x0119" name="Connected Load" type="u16" mfcode="0x119c" access="r" required="m">
-		<description>None: 0xffff</description>
+		<description>Watt</description>
 	</attribute>
 	<attribute id="0x0128" name="Pump protection" type="enum8" mfcode="0x119c" access="rw" required="m">
 					<value name="Off" value="0xff"></value>
@@ -5099,6 +5136,7 @@ Outdoor Temp to Display Timeout: set 30 for 'off' and 10800 for 'on'</descriptio
 	<attribute id="0x012D" name="Report Local Temperature" type="s16" mfcode="0x119c" access="r" required="m">
 		<description>Celcius * 100</description>
 	</attribute>
+	<attribute id="0x0283" name="ColdLoadPickupStatus" type="u8" mfcode="0x119c" access="r" required="m"> </attribute>
       </server>
       <client>
       </client>
