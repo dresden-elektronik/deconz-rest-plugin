@@ -5483,6 +5483,11 @@ Writing 1 to 0x0202 and 0x0302 makes 0x0300 writable. Then writing 1 to 0x0300 s
     <device id="0x0001" name="Develco Utility" description="Private profile for internal Develco Products use only."></device>
   </profile>
 
+  <profile id="0xc4c8" name="Leviton Manufacturer Specific Profile" description="Profile used by Leviton Decora Smart switch." version="1.0" rev="1" icon="dev-on-off-light.png">
+    <domain-ref name="Lighting" low_bound="0300" />
+    <domain-ref name="Manufacturer Specific" low_bound="0xfc00" />
+  </profile>
+
   <devices>
     <!-- Generic -->
     <device id="0x0000" name="On/Off Switch" description="" icon="dev-on-off-switch.png">
