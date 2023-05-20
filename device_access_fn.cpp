@@ -1324,7 +1324,7 @@ bool parseIasZoneNotificationAndStatus(Resource *r, ResourceItem *item, const de
 
             if (map.contains(QLatin1String("mask")))
             {
-                QStringList alarmMask = map["mask"].toString().split(',', QString::SkipEmptyParts);
+                QStringList alarmMask = map["mask"].toString().split(',', SKIP_EMPTY_PARTS);
 
                 if (alarmMask.contains(QLatin1String("alarm1"))) { mask |= STATUS_ALARM1; }
                 if (alarmMask.contains(QLatin1String("alarm2"))) { mask |= STATUS_ALARM2; }

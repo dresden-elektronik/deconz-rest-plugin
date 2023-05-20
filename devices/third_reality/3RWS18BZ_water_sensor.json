@@ -1,14 +1,13 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["_TZ3000_n2egfsli", "_TZ3000_oxslv1c9", "_TZ3000_7tbsruql", "_TZ3000_7d8yme6f", "_TZ3000_rgchmad8", "_TZ3000_bzxlofth","_TZ3000_au1rjicn"],
-  "modelid": ["TS0203", "TS0203", "TS0203", "TS0203", "TS0203", "TS0203","TS0203"],
-  "vendor": "Tuya",
-  "product": "Smart Zigbee Door Window Contact",
+  "manufacturername": "Third Reality, Inc",
+  "modelid": "3RWS18BZ",
+  "product": "3RWS18BZ",
   "sleeper": true,
-  "status": "Gold",
+  "status": "Silver",
   "subdevices": [
     {
-      "type": "$TYPE_OPEN_CLOSE_SENSOR",
+      "type": "ZHAWater",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
@@ -54,10 +53,14 @@
           "name": "attr/uniqueid"
         },
         {
-           "name":"state/tampered"
-        },
-        {
-          "name": "config/checkin"
+          "name": "config/battery",
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2"
+          },
+          "default": 0
         },
         {
           "name": "config/enrolled",
@@ -73,23 +76,16 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/battery",
-          "awake": true,
-          "parse": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
-          }
-        },
-        {
           "name": "state/lastupdated"
         },
         {
           "name": "state/lowbattery"
         },
         {
-          "name": "state/open"
+          "name": "state/tampered"
+        },
+        {
+          "name": "state/water"
         }
       ]
     }
@@ -98,23 +94,16 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "dst.ep": 1,
       "cl": "0x0001",
       "report": [
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 60,
-          "max": 3600,
-          "change": "0x00000001"
+          "min": 7200,
+          "max": 14400,
+          "change":"0x00000002"
         }
       ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0500"
     }
   ]
 }

@@ -5,6 +5,7 @@
 	"access": "RW",
 	"public": true,
 	"description": "The window cover type.",
+	"default" : 0,
 	"values": [
 		[0, "Roller Shade"],
 		[1, "Roller Shade two motors"],
