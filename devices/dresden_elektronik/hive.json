@@ -141,15 +141,9 @@
             "fn": "zcl",
             "ep": "0x01",
             "cl": "0x0300",
-            "at": "0x0000",
-            "eval": "Item.val = Attr.val << 8"
+            "at": ["0x0000", "0x4000"],
+            "eval": "Item.val = (Attr.id === 0) ? Attr.val << 8 : Attr.val"
           },
-          "read": {
-            "fn": "none"
-          }
-        },
-        {
-          "name": "state/enhanced_hue",
           "read": {
             "fn": "none"
           }
