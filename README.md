@@ -84,6 +84,7 @@ The deCONZ application packages are available for the following platforms and co
 * Windows  http://deconz.dresden-elektronik.de/win/
 * Raspbian http://deconz.dresden-elektronik.de/raspbian/beta/
 * Ubuntu and Debian 64-bit http://deconz.dresden-elektronik.de/ubuntu/beta/
+* ARM64 systems http://deconz.dresden-elektronik.de/debian/beta/
 
 To manually install a Linux .deb package enter these commands:
 
