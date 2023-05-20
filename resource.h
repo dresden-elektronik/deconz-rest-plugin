@@ -105,6 +105,7 @@ extern const char *RAttrSwconfigid;
 extern const char *RAttrSwVersion;
 extern const char *RAttrType;
 extern const char *RAttrUniqueId;
+extern const char *RAttrXiaomi; // Used only in DDF
 
 extern const char *RActionScene;
 
@@ -296,12 +297,14 @@ extern const char *RConfigPreset;
 extern const char *RConfigPulseConfiguration;
 extern const char *RConfigReachable;
 extern const char *RConfigResetPresence;
+extern const char *RConfigReversed;
 extern const char *RConfigSchedule;
 extern const char *RConfigScheduleOn;
 extern const char *RConfigSelfTest;
 extern const char *RConfigSensitivity;
 extern const char *RConfigSensitivityMax;
 extern const char *RConfigSetValve;
+extern const char *RConfigSpeed;
 extern const char *RConfigSunriseOffset;
 extern const char *RConfigSunsetOffset;
 extern const char *RConfigUnoccupiedHeatSetpoint;
