@@ -85,11 +85,6 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "cl": "0x0500"
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
       "cl": "0x0501"
     }
   ]
