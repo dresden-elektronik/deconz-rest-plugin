@@ -106,8 +106,6 @@ const char *RStateDark = "state/dark";
 const char *RStateDaylight = "state/daylight";
 const char *RStateDeviceRunTime = "state/deviceruntime";
 const char *RStateEffect = "state/effect";
-const char *RStateEnhancedColorMode = "state/enhanced_colormode";
-const char *RStateEnhancedHue = "state/enhanced_hue";
 const char *RStateErrorCode = "state/errorcode";
 const char *RStateEventDuration = "state/eventduration";
 const char *RStateExpectedEventDuration = "state/expectedeventduration";
@@ -398,8 +396,6 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateDaylight));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RStateDeviceRunTime));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateEffect));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateEnhancedColorMode));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateEnhancedHue));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateErrorCode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateEventDuration));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateExpectedEventDuration));
