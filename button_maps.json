@@ -675,7 +675,7 @@
                 [1, "0x01", "IAS_ACE", "ARM", "0", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Disarm"],
                 [1, "0x01", "IAS_ACE", "SOS", "0", "S_BUTTON_4", "S_BUTTON_ACTION_SHORT_RELEASED", "Sos"]
             ]
-        }
+        },
         "xiaomiSwitchCtrlNeutralMap": {
             "vendor": "Xiaomi",
             "doc": "QBKG03LM (dual rocker) and QBKG04LM (single rocker) switch",
