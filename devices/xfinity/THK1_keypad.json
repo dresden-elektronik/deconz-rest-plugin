@@ -4,7 +4,7 @@
   "modelid": ["TKA105","URC4450BC0-X-R","H34450BA00-00007"],
   "product": "Xfinity security keypad",
   "sleeper": false,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_TEMPERATURE_SENSOR",
