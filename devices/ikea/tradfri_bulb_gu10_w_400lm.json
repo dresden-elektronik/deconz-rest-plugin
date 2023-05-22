@@ -69,12 +69,6 @@
   ],
   "bindings": [
     {
-      "bind": "groupcast",
-      "config.group": 0,
-      "src.ep": 1,
-      "cl": "0xFFFD"
-    },
-    {
       "bind": "unicast",
       "src.ep": 1,
       "dst.ep": 1,
@@ -116,24 +110,6 @@
           "change": "0x00000001"
         }
       ]
-    },
-    {
-      "bind": "groupcast",
-      "config.group": 64,
-      "src.ep": 1,
-      "cl": "0xFFFD"
-    },
-    {
-      "bind": "groupcast",
-      "config.group": 44,
-      "src.ep": 1,
-      "cl": "0xFFFD"
-    },
-    {
-      "bind": "groupcast",
-      "config.group": 54,
-      "src.ep": 1,
-      "cl": "0xFFFD"
     }
   ]
 }
