@@ -485,7 +485,7 @@ bool parseNumericToString(Resource *r, ResourceItem *item, const deCONZ::ApsData
     - endpoint: (optional) 255 means any endpoint, 0 means auto selected from the related resource, defaults to 0
     - clusterId: string hex value
     - manufacturerCode: (optional) string hex value
-    - attributeId: string hex value
+    - attributeId: string hex value or array of string hex values
     - expression: Javascript expression to transform the attribute value to the Item value
 
     Example: { "parse": {"fn": "zcl:attr", "ep:" 1, "cl": "0x0402", "at": "0x0000", "eval": "Attr.val + R.item('config/offset').val" } }
@@ -1642,9 +1642,9 @@ bool parseAndSyncTime(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndi
 /*! A generic function to read ZCL attributes.
     The item->readParameters() is expected to be an object (given in the device description file).
 
-    { "fn": "zcl:attr", "ep": endpoint, "cl" : clusterId, "at": attributeId, "noseq": noSequenceNumber  }
+    { "fn": "zcl:attr", "ep": endpoint, "cl" : clusterId, "mf": manufacturerCode, "at": attributeId, "noseq": noSequenceNumber  }
 
-    - endpoint, (optional) 0xff means any endpoint
+    - endpoint: the destination endpoint, use 0 for auto endpoint (from the uniqueid)
     - clusterId: string hex value
     - manufacturerCode: (optional) string hex value
     - attributeId: string hex value or array of up to 8 string hex values
@@ -1707,7 +1707,7 @@ static DA_ReadResult readZclAttribute(const Resource *r, const ResourceItem *ite
 
     { "fn": "zcl:attr", "ep": endpoint, "cl": clusterId, "mf": manufacturerCode, "at": attributeId, "dt": zclDataType, "eval": expression }
 
-    - endpoint: (optional) the destination endpoint
+    - endpoint: the destination endpoint, use 0 for auto endpoint (from the uniqueid)
     - clusterId: string hex value
     - manufacturerCode: (optional) string hex value
     - attributeId: string hex value
@@ -1797,13 +1797,13 @@ bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsC
 
     { "fn": "zcl:cmd", "ep": endpoint, "cl": clusterId, "mf": manufacturerCode, "cmd": commandId, "eval": expression }
 
-    - endpoint: (optional) the destination endpoint
+    - endpoint: the destination endpoint, use 0 for auto endpoint (from the uniqueid)
     - clusterId: string hex value
     - manufacturerCode: (optional) string hex value
     - commandId: string hex value
     - expression: (optional) to transform the item value to the command payload as hex string value
 
-    Example: "read": {"fn": "zcl:cmd", "cl": "0x0000", "mf": "0x100b", "cmd": "0xc0",  "eval": "'002d00000040'"}
+    Example: "read": {"fn": "zcl:cmd", "ep": "0x0b", "cl": "0x0000", "mf": "0x100b", "cmd": "0xc0",  "eval": "'002d00000040'"}
  */
 static DA_ReadResult sendZclCommand(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, const QVariant &cmdParameters)
 {
@@ -1876,7 +1876,7 @@ static DA_ReadResult sendZclCommand(const Resource *r, const ResourceItem *item,
 
     { "fn": "zcl:cmd", "ep": endpoint, "cl": clusterId, "mf": manufacturerCode, "cmd": commandId, "eval": expression }
 
-    - endpoint: (optional) the destination endpoint
+    - endpoint: the destination endpoint, use 0 for auto endpoint (from the uniqueid)
     - clusterId: string hex value
     - manufacturerCode: (optional) string hex value
     - commandId: string hex value
