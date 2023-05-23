@@ -802,10 +802,11 @@
           <attribute id="0x8000" name="Button Press" type="u8" access="r" required="o"/>
         </attribute-set>
         <attribute-set id="0x8001" description="Tuya special">
-          <attribute id="0x8001" name="Light mode" type="enum8" default="0" required="o" access="r">
-            <value name="Mode 1" value="0"></value>
-            <value name="Mode 2" value="1"></value>
-            <value name="Mode 3" value="2"></value>
+          <attribute id="0x8001" name="Back Light mode" type="enum8" default="0" required="o" access="r">
+            <value name="Mode 1-Off" value="0"></value>
+            <value name="Mode 2-Light when On" value="1"></value>
+            <value name="Mode 3-Light when Off" value="2"></value>
+            <value name="Mode 4-Actual state" value="3"></value>		  
           </attribute>
           <attribute id="0x8002" name="Power on state" type="enum8" default="0" required="o" access="rw">
             <value name="Off" value="0"></value>
@@ -2036,7 +2037,12 @@
           <attribute id="0x0018" name="Intermediate Setpoints – Lift" type="ostring" default="1,0x0000" access="rw" required="o"></attribute>
           <attribute id="0x0019" name="Intermediate Setpoints – Tilt" type="ostring" default="1,0x0000" access="rw" required="o"></attribute>
         </attribute-set>
-        <attribute-set id="0xf001" description="Tuya Window Covering Setting">
+        <attribute-set id="0xf000" description="Tuya specific Window Covering Setting">
+          <attribute id="0xf000" name="Window cover status" type="enum8" required="m" access="rw">
+            <value name="Up/open" value="0"></value>
+            <value name="Down/close" value="1"></value>
+	    <value name="Stop" value="2"></value>
+          </attribute>
           <attribute id="0xf001" name="Calibration" type="enum8" default="0" required="m" access="rw">
             <value name="Start" value="0"></value>
             <value name="End" value="1"></value>
@@ -4452,6 +4458,12 @@ Note: It does not clear or delete previous weekly schedule programming configura
       <description>The IAS WD cluster provides an interface to the functionality of any Warning Device equipment of the IAS system. Using this cluster, a ZigBee enabled CIE device can access a ZigBee enabled IAS WD device and issue alarm warning indications (siren, strobe lighting, etc.) when a system alarm condition is detected.</description>
       <server>
         <attribute id="0x0000" name="Max Duration" type="u16" range="0x0000,0xfffe" access="rw" required="m" default="240"></attribute>
+	<attribute id="0xF000" name="Tuya Alarm mode" type="u8" access="rw" required="o">
+	      <value name="Disarm the alarm" value="0x00"></value>
+              <value name="Sound alarm" value="0x01"></value>
+              <value name="Light alarm" value="0x02"></value>
+              <value name="Sound and light alarm" value="0x03"></value>
+	</attribute>
         <command id="0x00" dir="recv" name="Start warning" required="m">
           <payload>
             <attribute id="0x00" type="bmp8" name="Options" required="m">
@@ -5091,6 +5103,27 @@ These devices can operate on either battery or mains power, and can have a wide 
 			<client>
 			</client>
 		</cluster>
+   <cluster id="0xe002" name="Tuya specific" mfcode="0x1141">
+			<description>Tuya Specific alarm threshold cluster.</description>
+			<server>
+			<attribute id="0xD006" type="u8" name="alarm_temperature" access="rw" required="o">
+					<value name="Min alarm" value="0x00"></value>
+					<value name="Max alarm" value="0x01"></value>
+					<value name="Alarm off" value="0x02"></value>
+			</attribute>
+			<attribute id="0xD00A" type="u16" name="alarm_temperature_max" access="rw" required="o" />
+			<attribute id="0xD00B" type="u16" name="alarm_temperature_min" access="rw" required="o" />
+			<attribute id="0xD00C" type="u16" name="alarm_humidity_max" access="rw" required="o" />
+			<attribute id="0xD00E" type="u16" name="alarm_humidity_min" access="rw" required="o" />
+			<attribute id="0xD00F" type="u8" name="alarm_humidity" default="0x00" access="rw" required="o">
+					<value name="Min alarm" value="0x00"></value>
+					<value name="Max alarm" value="0x01"></value>
+					<value name="Alarm off" value="0x02"></value>
+			</attribute>
+			</server>
+			<client>
+			</client>
+    </cluster>
     <cluster id="0xef00" name="Tuya specific" mfcode="0x1002">
       <description>Tuya Specific clusters.</description>
       <server>
