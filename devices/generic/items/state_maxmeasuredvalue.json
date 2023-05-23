@@ -1,0 +1,9 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/maxmeasuredvalue",
+	"datatype": "Real",
+	"access": "R",
+	"public": true,
+	"description": "Maximum value of MeasuredValue that is capable of being measured.",
+  "default": 0
+}
