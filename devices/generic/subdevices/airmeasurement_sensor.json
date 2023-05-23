@@ -4,6 +4,7 @@
      "name": "ZHAAirMeasurement",
      "restapi": "/sensors",
      "order": 23,
+     "uuid": ["$address.ext", "0x01", "0x040d"],
      "items": [
          "state/measuredvalue",
          "state/minmeasuredvalue",
