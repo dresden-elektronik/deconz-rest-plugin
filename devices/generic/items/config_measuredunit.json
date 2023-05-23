@@ -1,0 +1,17 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "state/measuredunit",
+	"datatype": "String",
+	"access": "RW",
+	"public": true,
+	"description": "The unit of the measured value. To be defined by static in DDF",
+	"default": "µg/m³",
+	"values": [
+		["µg/m³", "microgram per cubic meter"],
+		["PPM", "Parts Per Million"],
+		["PPB", "Parts Per Billion"],
+    ["L", "Liter"],
+    ["m³", "Cubic meter"],
+    ["g" , "Gram"]
+	]
+}
