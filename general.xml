@@ -5438,6 +5438,40 @@ Contactor > On/off=0003 - HP/HC=0004</description>
       <client>
       </client>
     </cluster>
+	  
+    <!-- Leviton -->
+    <cluster id="0x8007" name="Leviton Specific Load Cluster" mfcode="0x109b">
+      <description>Additional features implemented in Leviton’s DG6HD.</description>
+      <server>
+        <attribute id="0x0001" type="u8" name="Min Dim Level" required="o" access="rw" range="0x00,0xFF" default="0x00">
+          <description>Minimum Level represents the minimum level the dimmer can be set to. This must be lower than Maximum Level.</description>
+        </attribute>
+        <attribute id="0x0002" type="u8" name="Max Dim Level" required="o" access="rw" range="0x00,0xFF" default="0xFF">
+          <description>Maximum Level represents the maximum level the dimmer can be set to. This must be greater than Minimum Level.</description>
+        </attribute>
+        <attribute id="0x0003" type="u8" name="Locator LED" required="o" access="rw" range="0x00,0xFF" default="0x00">
+          <description>Represents how the Locator LED functions. This can be set to ALWAYS ON (0x00), ALWAYS OFF (0X01), or a timed delay (0x02 to 0xFF). The Timed delay is always seconds -1. When using timed delay, the led will come on when a button is pressed.</description>
+        </attribute>
+        <attribute id="0x0004" type="u8" name="Dimming LED" required="o" access="rw" range="0x00,0xFF" default="0x00">
+          <description>Represents how the Dimming LED functions. This can be set to ALWAYS ON (0x00), ALWAYS OFF (0X01), or a timed delay (0x02 to 0xFF). The Timed delay is always seconds -1. When using timed delay, the led will come on when a button is pressed.</description>
+        </attribute>
+        <attribute id="0x0007" type="u8" name="Initial On Level" required="o" access="rw" range="0x00,0xFF" default="0x00">
+          <description>Initial On Level represents the desired level to be applied to a dimmer when an “On” button is pressed.
+		  0x00 : Go to the last level set.
+		  0x01-0xFF : Go to a specific level</description>
+        </attribute>
+        <attribute id="0x0008" type="bool" name="Power Restore" default="1" access="rw" required="o">
+	  <description>Power Restore represents the option to turn the switch/dimmer back to its previous level when powered up, or remain off.</description>
+            <value name="Leave Load Off" value="0"></value>
+            <value name="Go to the last level set" value="1"></value>
+        </attribute>
+	<attribute id="0x0009" type="u8" name="Press and Hold Time" required="o" access="rw" range="0x00,0xFF" default="0x32">
+          <description>Represents the ramp time when pressing and holding the dim/brighten button on a dimmer. This value represents the amount of time needed to go from 0% to 100%. This time value is in 0.1s increments</description>
+        </attribute>
+      </server>
+      <client>
+      </client>
+    </cluster>
 
     <!-- LUMI -->
     <cluster id="0xfcc0" name="Lumi specific" mfcode="0x115f">
@@ -6192,6 +6226,11 @@ Writing 1 to 0x0202 and 0x0302 makes 0x0300 writable. Then writing 1 to 0x0300 s
 
   <profile id="0xc0c9" name="Develco Private Profile" description="Profile used by dresden elektronik." version="1.0" rev="15" icon="dev-unknown.svg">
     <device id="0x0001" name="Develco Utility" description="Private profile for internal Develco Products use only."></device>
+  </profile>
+
+  <profile id="0xc4c8" name="Leviton Manufacturer Specific Profile" description="Profile used by Leviton Decora Smart switch." version="1.0" rev="1" icon="dev-on-off-light.png">
+    <domain-ref name="Lighting" low_bound="0300" />
+    <domain-ref name="Manufacturer Specific" low_bound="0xfc00" />
   </profile>
 
   <devices>
