@@ -1,7 +1,7 @@
 {
      "schema": "subdevice1.schema.json",
-     "type": "$TYPE_MEASURED_SENSOR",
-     "name": "ZHAAIRMEASURED",
+     "type": "$TYPE_AIR_MEASUREMENT_SENSOR",
+     "name": "ZHAAirMeasurement",
      "restapi": "/sensors",
      "order": 23,
      "items": [
