@@ -58,11 +58,46 @@
         },
         {
           "name": "config/battery",
+          "awake": true,
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2",
+            "fn": "zcl"
+          },
           "default": 0
         },
         {
           "name": "config/duration",
-          "default": 120
+          "refresh.interval": 86400,
+          "range": [0, 5],
+          "read": {
+            "at": "0xf001",
+            "cl": "0x0500",
+            "ep": 1
+          },
+          "write": {
+            "at": "0xf001",
+            "cl": "0x0500",
+            "dt": "0x20",
+            "ep": 1,
+            "eval": "Item.val"
+          },
+          "parse": {
+            "at": "0xf001",
+            "cl": "0x0500",
+            "ep": 1,
+            "eval": "Item.val = Attr.val"
+          },
+          "default": 0
         },
         {
           "name": "config/enrolled",
@@ -79,6 +114,7 @@
         },
         {
           "name": "config/sensitivity",
+          "range": [0, 2],
           "refresh.interval": 86400,
           "read": {
             "at": "0x0013",
@@ -174,7 +210,7 @@
         {
           "name": "config/battery",
           "awake": true,
-          "refresh.interval": 3600,
+          "refresh.interval": 86400,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -258,7 +294,7 @@
         {
           "name": "config/battery",
           "awake": true,
-          "refresh.interval": 3600,
+          "refresh.interval": 86400,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -343,7 +379,7 @@
         {
           "name": "config/battery",
           "awake": true,
-          "refresh.interval": 3600,
+          "refresh.interval": 86400,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
