@@ -1,0 +1,8 @@
+{
+"schema": "resourceitem1.schema.json",
+"id": "state/minmeasuredvalue",
+"datatype": "Real",
+"access": "R",
+"public": true,
+"description": "Minimum value of MeasuredValue that is capable of being measured"
+}
