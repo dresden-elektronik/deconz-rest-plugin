@@ -1,0 +1,13 @@
+{
+     "schema": "subdevice1.schema.json",
+     "type": "$TYPE_MEASURED_SENSOR",
+     "name": "ZHAWATERMEASURED",
+     "restapi": "/sensors",
+     "order": 23,
+     "items": [
+         "state/measuredvalue",
+         "state/minmeasuredvalue",
+         "state/maxmeasuredvalue",
+         "state/measuredunit"
+     ]
+}
