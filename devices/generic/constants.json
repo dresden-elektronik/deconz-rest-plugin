@@ -15,6 +15,7 @@
     "device-types": {
         "$TYPE_AIR_PURIFIER": "ZHAAirPurifier",
         "$TYPE_AIR_QUALITY_SENSOR": "ZHAAirQuality",
+        "$TYPE_AIR_MEASUREMENT_SENSOR": "ZHAAirMeasurement",
         "$TYPE_ALARM_SENSOR": "ZHAAlarm",
         "$TYPE_BATTERY_SENSOR": "ZHABattery",
         "$TYPE_COLOR_DIMMABLE_LIGHT": "Color dimmable light",
@@ -48,6 +49,7 @@
         "$TYPE_VIBRATION_SENSOR": "ZHAVibration",
         "$TYPE_WARNING_DEVICE": "Warning device",
         "$TYPE_WATER_LEAK_SENSOR": "ZHAWater",
+         "$TYPE_WATER_MEASUREMENT_SENSOR": "ZHAWaterMeasurement",
         "$TYPE_WINDOW_COVERING_DEVICE": "Window covering device",
         "$TYPE_ZGP_SWITCH": "ZGPSwitch"
     }
