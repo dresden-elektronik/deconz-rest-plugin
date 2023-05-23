@@ -94,6 +94,7 @@ enum TuyaCommandId : unsigned char
     TY_DATA_RESPONSE             = 0x01,
     TY_DATA_REPORT               = 0x02,
     TY_DATA_QUERY                = 0x03,
+    TY_DATA_STATUS_SEARCH        = 0x06,
     TUYA_MCU_VERSION_REQ         = 0x10,
     TUYA_MCU_VERSION_RSP         = 0x11,
     TUYA_MCU_OTA_NOTIFY          = 0x12,
@@ -638,7 +639,7 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
 {
     bool result = false;
 
-    if (ind.clusterId() != TUYA_CLUSTER_ID || !(zclFrame.commandId() == TY_DATA_REPORT || zclFrame.commandId() ==  TY_DATA_RESPONSE))
+    if (ind.clusterId() != TUYA_CLUSTER_ID || !(zclFrame.commandId() == TY_DATA_REPORT || zclFrame.commandId() ==  TY_DATA_RESPONSE || zclFrame.commandId() ==  TY_DATA_STATUS_SEARCH))
     {
         return result;
     }
