@@ -165,7 +165,7 @@
             "eval": "Item.val = Attr.val"
           },
           "read": {
-            "fn": "None"
+            "fn": "none"
           }
         }
       ]

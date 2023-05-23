@@ -1,30 +1,20 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "sengled",
-  "modelid": "E1D-G73",
-  "vendor": "Sengled",
-  "product": "Smart Window and Door Sensor",
+  "manufacturername": "_TZ3000_ja5osu5g",
+  "modelid": "TS004F",
+  "vendor": "Tuya",
+  "product": "Wireless Smart Button",
   "sleeper": true,
-  "status": "Gold",
+  "status": "Silver",
   "subdevices": [
     {
-      "type": "$TYPE_OPEN_CLOSE_SENSOR",
+      "type": "$TYPE_SWITCH",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
         "0x01",
-        "0x0500"
+        "0x1000"
       ],
-      "fingerprint": {
-        "profile": "0x0104",
-        "device": "0x0402",
-        "endpoint": "0x01",
-        "in": [
-          "0x0000",
-          "0x0001",
-          "0x0500"
-        ]
-      },
       "items": [
         {
           "name": "attr/id"
@@ -45,7 +35,9 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
         {
           "name": "attr/type"
@@ -54,40 +46,28 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/battery",
-          "awake": true,
-          "parse": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
-          },
-          "default": 0
-        },
-        {
-          "name": "config/enrolled",
-          "public": false
+            "name": "config/battery",
+            "parse": {
+                "ep": 1, "cl": "0x0001", "at": "0x0021",
+                "eval": "Item.val = Attr.val / 2"
+            },
+            "read": {
+                "ep": 1, "cl": "0x0001", "at": "0x0021"
+            },
+            "refresh.interval": 7300
         },
         {
           "name": "config/on"
         },
         {
-          "name": "config/pending"
-        },
-        {
           "name": "config/reachable"
         },
         {
+          "name": "state/buttonevent",
+          "awake": true
+        },
+        {
           "name": "state/lastupdated"
-        },
-        {
-          "name": "state/lowbattery"
-        },
-        {
-          "name": "state/open"
-        },
-        {
-          "name": "state/tampered"
         }
       ]
     }
@@ -96,7 +76,6 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "dst.ep": 1,
       "cl": "0x0001",
       "report": [
         {
@@ -104,7 +83,7 @@
           "dt": "0x20",
           "min": 60,
           "max": 3600,
-          "change": "0x00000001"
+          "change": "0x01"
         }
       ]
     },
@@ -112,7 +91,7 @@
       "bind": "unicast",
       "src.ep": 1,
       "dst.ep": 1,
-      "cl": "0x0500"
+      "cl": "0x0006"
     }
   ]
 }

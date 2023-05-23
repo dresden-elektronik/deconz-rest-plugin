@@ -11,7 +11,7 @@
   "vendor": "Heiman",
   "product": "Smart siren HS2WD-E",
   "sleeper": false,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_WARNING_DEVICE",
@@ -63,8 +63,7 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "state/alert",
-          "default": "none"
+          "name": "state/alert"
         },
         {
           "name": "state/reachable"

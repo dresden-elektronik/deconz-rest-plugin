@@ -1,75 +1,20 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "Jasco Products",
-  "modelid": "45856",
-  "vendor": "GE",
-  "product": "45856",
-  "sleeper": false,
+  "manufacturername": "_TZ3000_j5fbnjeh",
+  "modelid": "TS0201",
+  "vendor": "Tesla Global Limited",
+  "product": "TSL-SEN-TAH",
+  "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_ON_OFF_LIGHT",
-      "restapi": "/lights",
-      "uuid": [
-        "$address.ext",
-        "0x01"
-      ],
-      "items": [
-        {
-          "name": "attr/id"
-        },
-        {
-          "name": "attr/lastannounced"
-        },
-        {
-          "name": "attr/lastseen"
-        },
-        {
-          "name": "attr/manufacturername"
-        },
-        {
-          "name": "attr/modelid"
-        },
-        {
-          "name": "attr/name"
-        },
-        {
-          "name": "attr/swversion"
-        },
-        {
-          "name": "attr/type"
-        },
-        {
-          "name": "attr/uniqueid"
-        },
-        {
-          "name": "state/alert"
-        },
-        {
-          "name": "state/on"
-        },
-        {
-          "name": "state/reachable"
-        }
-      ]
-    },
-    {
-      "type": "$TYPE_CONSUMPTION_SENSOR",
+      "type": "$TYPE_TEMPERATURE_SENSOR",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
         "0x01",
-        "0x0702"
+        "0x0402"
       ],
-      "fingerprint": {
-        "profile": "0x0104",
-        "device": "0x0100",
-        "endpoint": "0x01",
-        "in": [
-          "0x0000",
-          "0x0702"
-        ]
-      },
       "items": [
         {
           "name": "attr/id"
@@ -97,6 +42,22 @@
         },
         {
           "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2;",
+            "fn": "zcl"
+          },
+          "default": 0
+        },
+        {
+          "name": "config/offset",
+          "default": 0
         },
         {
           "name": "config/on"
@@ -105,30 +66,75 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/consumption",
-          "description": "The measured consumption (in Wh).",
-          "refresh.interval": 300,
-          "default": 0
-        },
-        {
           "name": "state/lastupdated"
         },
         {
-          "name": "state/power",
-          "refresh.interval": 360,
-          "read": {
-            "at": "0x0400",
-            "cl": "0x0702",
+          "name": "config/temperature"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_HUMIDITY_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0405"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
             "ep": 1,
+            "eval": "Item.val = Attr.val / 2;",
             "fn": "zcl"
           },
-          "parse": {
-            "at": "0x0400",
-            "cl": "0x0702",
-            "ep": 1,
-            "eval": "if (Attr.val != -32768 && Attr.val != 32768) { Item.val = Attr.val / 10; }"
-          },
           "default": 0
+        },
+        {
+          "name": "config/offset"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/humidity"
+        },
+        {
+          "name": "state/lastupdated"
         }
       ]
     }
@@ -137,21 +143,13 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0702",
+      "cl": "0x0001",
       "report": [
         {
-          "at": "0x0000",
-          "dt": "0x25",
-          "min": 1,
-          "max": 300,
-          "change": "0x00000001"
-        },
-        {
-          "at": "0x0400",
-          "dt": "0x2A",
-          "min": 1,
-          "max": 300,
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 3600,
+          "max": 14400,
           "change": "0x00000001"
         }
       ]
@@ -159,14 +157,28 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0006",
+      "cl": "0x0402",
       "report": [
         {
           "at": "0x0000",
-          "dt": "0x10",
-          "min": 1,
-          "max": 300
+          "dt": "0x29",
+          "min": 60,
+          "max": 300,
+          "change": "0x00000064"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0405",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x21",
+          "min": 60,
+          "max": 300,
+          "change": "0x00000064"
         }
       ]
     }
