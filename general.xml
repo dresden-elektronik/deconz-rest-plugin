@@ -3216,9 +3216,17 @@ Note: It does not clear or delete previous weekly schedule programming configura
       <description>The server cluster provides an interface to air pressure measurement functionality, including configuration and provision of notifications of air pressure measurements.</description>
       <server>
         <attribute-set id="0x0000" description="Pressure Measurement Information">
-          <attribute id="0x0000" name="Measured Value" type="s16" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0000" name="Measured Value" type="s16" access="r" default="0x8000" required="m"></attribute>
+	  <attribute id="0x0001" name="Min Measured Value" type="u16" access="r" required="m" range="0x8001,0x7ffe"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="u16" access="r" required="m" range="0x8002,0x7fff"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="u16" access="r" required="o" range="0x0000,0x0800"></attribute>
+        </attribute-set>
+	<attribute-set id="0x0001" description="Extended Pressure Measurement Information">
           <attribute id="0x0010" name="Scaled Value" type="s16" access="r" default="0" required="o"></attribute>
-          <attribute id="0x0014" name="Scale" type="s8" access="r" required="o"></attribute>
+	  <attribute id="0x0011" name="Min Scaled Value" type="u16" access="r" required="m" range="0x8001,0x7ffe"></attribute>
+          <attribute id="0x0012" name="Max Scaled Value" type="u16" access="r" required="m" range="0x8002,0x7fff"></attribute>
+          <attribute id="0x0013" name="Scaled Tolerance" type="u16" access="r" required="o" range="0x0000,0x0800"></attribute>
+          <attribute id="0x0014" name="Scale" type="s8" access="r" required="o" range="0x81,0x7f"></attribute>
         </attribute-set>
       </server>
       <client>
@@ -3226,21 +3234,27 @@ Note: It does not clear or delete previous weekly schedule programming configura
     </cluster>
 
     <cluster id="0x0404" name="Flow measurement">
-      <description></description>
-      <!-- TODO -->
+      <description>The server cluster provides an interface to flow measurement measurement functionality, including configuration and provision of notifications of flow measurements.</description>
       <server>
+        <attribute-set id="0x0000" description="Flow Measurement Information">
+          <attribute id="0x0000" name="Measured Value" type="u16" access="r" default="0xFFFF" required="m">
+	  <description>Represents the flow in m3/h times 10 </description></attribute>
+	  <attribute id="0x0001" name="Min Measured Value" type="u16" access="r" required="m" range="0x0000,0xfffd"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="u16" access="r" required="m" range="0x0001,0x7ffe"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="u16" access="r" required="o" range="0x0000,0x0800"></attribute>
+        </attribute-set>
       </server>
       <client>
       </client>
     </cluster>
 
     <cluster id="0x0405" name="Relative humidity measurement">
-      <description></description>
+      <description>Percentage of water in the air</description>
       <server>
         <attribute-set id="0x0000" description="Relative Humidity Measurement Information">
-          <attribute id="0x0000" name="Measured Value" type="u16" access="r" default="0" required="m"></attribute>
-          <attribute id="0x0001" name="Min Measured Value" type="u16" access="r" required="m" range="0x954d,0x7ffe"></attribute>
-          <attribute id="0x0002" name="Max Measured Value" type="u16" access="r" required="m" range="0x954e,0x7ffe"></attribute>
+          <attribute id="0x0000" name="Measured Value" type="u16" access="r" default="0xffff" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="u16" access="r" required="m" range="0x0000,0x270f"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="u16" access="r" required="m" range="0x0001,0x2710"></attribute>
           <attribute id="0x0003" name="Tolerance" type="u16" access="r" required="o" range="0x0000,0x0800"></attribute>
         </attribute-set>
       </server>
@@ -3259,7 +3273,9 @@ Note: It does not clear or delete previous weekly schedule programming configura
             <value name="PIR" value="0x00"></value>
             <value name="Ultrasonic" value="0x01"></value>
             <value name="PIR and ultrasonic" value="0x02"></value>
+	    <value name="Physical contact" value="0x03"></value>
           </attribute>
+	  <attribute id="0x0002" name="Occupancy Sensor Type Bitmap" type="bmp8" access="r" required="m"></attribute>
         </attribute-set>
         <attribute-set id="0x0010" description="PIR configuration">
           <attribute id="0x0010" name="PIR Occupied To Unoccupied Delay" type="u16" range="0x00,0xfffe" access="rw" required="o" default="0x00">
@@ -3273,11 +3289,25 @@ Note: It does not clear or delete previous weekly schedule programming configura
           </attribute>
         </attribute-set>
         <attribute-set id="0x0020" description="Ultrasonic configuration">
-          <attribute id="0x0020" name="Ultrasonic Occupied To Unoccupied Delay" type="u8" range="0x00,0xfe" access="rw" required="o" default="0x00">
-            <description>The UltraSonicOccupiedToUnoccupiedTime attribute specifies the time delay, in seconds, before the ultrasonic sensor changes to its occupied state when the sensed area becomes unoccupied. This attribute, along with UltraSonicUnoccupiedToOccupiedTime, may be used to reduce sensor 'chatter' when used in an area where occupation changes frequently.</description>
+          <attribute id="0x0020" name="Ultrasonic Occupied To Unoccupied Delay" type="u16" range="0x00,0xfe" access="rw" required="o" default="0x00">
+            <description>The UltraSonicOccupiedToUnoccupiedDelay attribute specifies the time delay, in seconds, before the ultrasonic sensor changes to its occupied state when the sensed area becomes unoccupied. This attribute, along with UltraSonicUnoccupiedToOccupiedTime, may be used to reduce sensor 'chatter' when used in an area where occupation changes frequently.</description>
           </attribute>
-          <attribute id="0x0021" name="Ultrasonic Unoccupied To Occupied Delay" type="u8" range="0x00,0xfe" access="rw" required="o" default="0x00">
-            <description>The UltraSonicUnoccupiedToOccupiedTime attribute specifies the time delay, in seconds, before the ultrasonic sensor changes to its unoccupied state when the sensed area becomes occupied.</description>
+          <attribute id="0x0021" name="Ultrasonic Unoccupied To Occupied Delay" type="u16" range="0x00,0xfe" access="rw" required="o" default="0x00">
+            <description>The UltraSonicUnoccupiedToOccupiedDelay attribute specifies the time delay, in seconds, before the ultrasonic sensor changes to its unoccupied state when the sensed area becomes occupied.</description>
+          </attribute>
+	  <attribute id="0x0022" name="Ultrasonic Unoccupied To Occupied Threshold" type="u8" range="0x01,0xfe" access="rw" required="o" default="0x01">
+            <description>The UltrasonicUnoccupiedToOccupiedThreshold attribute is 8 bits in length and specifies the number of movement detection events that must occur in the period PIRUnoccupiedToOccupiedDelay, before the PIR sensor changes to its occupied state.</description>
+          </attribute>
+        </attribute-set>
+	<attribute-set id="0x0030" description="Physical Contact configuration">
+          <attribute id="0x0030" name="Physical Contact Occupied To Unoccupied Delay" type="u16" range="0x00,0xfe" access="rw" required="o" default="0x00">
+            <description>The PhysicalContactOccupiedToUnoccupiedDelay attribute specifies the time delay, in seconds, before the Physical Contact sensor changes to its occupied state when the sensed area becomes unoccupied. This attribute, along with UltraSonicUnoccupiedToOccupiedTime, may be used to reduce sensor 'chatter' when used in an area where occupation changes frequently.</description>
+          </attribute>
+          <attribute id="0x0031" name="Physical Contact Unoccupied To Occupied Delay" type="u16" range="0x00,0xfe" access="rw" required="o" default="0x00">
+            <description>The PhysicalContactUnoccupiedToOccupiedDelay attribute specifies the time delay, in seconds, before the Physical Contact sensor changes to its unoccupied state when the sensed area becomes occupied.</description>
+          </attribute>
+	  <attribute id="0x0032" name="Physical Contact Unoccupied To Occupied Threshold" type="u8" range="0x01,0xfe" access="rw" required="o" default="0x01">
+            <description>The PhysicalContactUnoccupiedToOccupiedThreshold attribute is 8 bits in length and specifies the number of movement detection events that must occur in the period PIRUnoccupiedToOccupiedDelay, before the PIR sensor changes to its occupied state.</description>
           </attribute>
         </attribute-set>
         <attribute-set id="0x0030" description="Philips Specific" mfcode="0x100b">
@@ -3293,25 +3323,87 @@ Note: It does not clear or delete previous weekly schedule programming configura
       <client>
       </client>
     </cluster>
-
-    <cluster id="0x0408" name="Soil Moisture">
-      <description></description>
+   
+    <cluster id="0x0407" name="Leaf Wetness measurement">
+      <description>Percentage of water on the leaves of plants</description>
       <server>
-        <attribute-set id="0x0000" description="Soil Moisture Information">
-          <attribute id="0x0000" name="Measured Value" type="u16" access="r" default="0" required="m"></attribute>
-          <attribute id="0x0001" name="Min Measured Value" type="u16" access="r" required="m" range="0x954d,0x7ffe"></attribute>
-          <attribute id="0x0002" name="Max Measured Value" type="u16" access="r" required="m" range="0x954e,0x7ffe"></attribute>
+        <attribute-set id="0x0000" description="Leaf Wetness Measurement Information">
+          <attribute id="0x0000" name="Measured Value" type="u16" access="r" default="0xffff" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="u16" access="r" required="m" range="0x0000,0x270f"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="u16" access="r" required="m" range="0x0001,0x2710"></attribute>
           <attribute id="0x0003" name="Tolerance" type="u16" access="r" required="o" range="0x0000,0x0800"></attribute>
         </attribute-set>
       </server>
       <client>
       </client>
     </cluster>
+            
+    <cluster id="0x0408" name="Soil Moisture measurement">
+      <description>Percentage of water in the soil</description>
+      <server>
+        <attribute-set id="0x0000" description="Soil Moisture Measurement Information">
+          <attribute id="0x0000" name="Measured Value" type="u16" access="r" default="0xffff" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="u16" access="r" required="m" range="0x0000,0x270f"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="u16" access="r" required="m" range="0x0001,0x2710"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="u16" access="r" required="o" range="0x0000,0x0800"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    
+    <cluster id="0x0409" name="pH Measurement">
+      <description>Provides an interface to pH measurement functionality</description>
+      <server>
+        <attribute-set id="0x0000" description="pH measurement Information">
+          <attribute id="0x0000" name="Measured Value" type="u16" access="r" default="0xffff" required="m">
+	    <description>"Represents the pH with no units as follows: Measured Value = 100 x pH"</description>
+	  </attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="u16" access="r" default="0xffff" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="u16" access="r" required="m" default="0xffff"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="u16" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    
+    <cluster id="0x040A" name="Electrical Conductivity">
+      <description>Provides an interface to Electrical Conductivity measurement functionality</description>
+      <server>
+        <attribute-set id="0x0000" description="Electrical Conductivity Information">
+          <attribute id="0x0000" name="Measured Value" type="u16" access="r" default="0xffff" required="m">
+	    <description>"Electrical Conductivity in mS/m. The maximum resolution this format allows is 0.1"</description>
+	  </attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="u16" access="r" default="0xffff" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="u16" access="r" required="m" default="0xffff"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="u16" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    
+    <cluster id="0x040B" name="Wind Speed Measurement">
+      <description>Provides an interface to Wind Speed Measurement functionality</description>
+      <server>
+        <attribute-set id="0x0000" description="Wind Speed Measurement Information">
+          <attribute id="0x0000" name="Measured Value" type="u16" access="r" default="0xffff" required="m">
+	    <description>"100 x Wind Speed in m/s. The maximum resolution this format allows is 0.01"</description>
+	  </attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="u16" access="r" default="0xffff" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="u16" access="r" required="m" default="0xffff"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="u16" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
 
-    <cluster id="0x040D" name="Carbon dioxyde measurement">
+    <cluster id="0x040C" name="Carbon monoxyde (CO) measurement">
       <description></description>
       <server>
-        <attribute-set id="0x0000" description="Relative Carbon Dioxyde Information">
+        <attribute-set id="0x0000" description="Carbon monoxyde Information">
           <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
           <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
           <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
@@ -3321,9 +3413,415 @@ Note: It does not clear or delete previous weekly schedule programming configura
       <client>
       </client>
     </cluster>
-
-    <cluster id="0x042a" name="PM2.5 Measurement">
+    
+    <cluster id="0x040D" name="Carbon dioxyde (CO2) measurement">
       <description></description>
+      <server>
+        <attribute-set id="0x0000" description="Carbon Dioxyde Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    
+    <cluster id="0x040E" name="Ethylene (CH2) measurement">
+      <description></description>
+      <server>
+        <attribute-set id="0x0000" description="Ethylene Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    
+   <cluster id="0x040F" name="Ethylene Oxide (C2H4O) measurement">
+      <description></description>
+      <server>
+        <attribute-set id="0x0000" description="Ethylene Oxide Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    
+   <cluster id="0x0410" name="Hydrogen (H) measurement">
+      <description></description>
+      <server>
+        <attribute-set id="0x0000" description="Hydrogen Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    
+   <cluster id="0x0411" name="Hydrogen Sulfide (H2S) measurement">
+      <description></description>
+      <server>
+        <attribute-set id="0x0000" description="Hydrogen Sulfide Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    
+   <cluster id="0x0412" name="Nitric Oxide (NO) measurement">
+      <description></description>
+      <server>
+        <attribute-set id="0x0000" description="Nitric Oxide Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    
+   <cluster id="0x0413" name="Nitrogen Dioxide (NO2) measurement">
+      <description></description>
+      <server>
+        <attribute-set id="0x0000" description="Nitrogen Dioxide Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    
+   <cluster id="0x0414" name="Oxygen (O2) measurement">
+      <description></description>
+      <server>
+        <attribute-set id="0x0000" description="Oxygen Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+        
+   <cluster id="0x0415" name="Ozone (O3) measurement">
+      <description></description>
+      <server>
+        <attribute-set id="0x0000" description="Ozone Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+            
+   <cluster id="0x0416" name="Sulfur Dioxide measurement">
+      <description></description>
+      <server>
+        <attribute-set id="0x0000" description="Sulfur Dioxide Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+               
+   <cluster id="0x0417" name="Dissolved Oxygen (DO) measurement">
+      <description></description>
+      <server>
+        <attribute-set id="0x0000" description="Dissolved Oxygen Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                    
+   <cluster id="0x0418" name="Bromate measurement">
+      <description>Typical range example: not detected to 3.6 PPB. Typical value example:1.79 PPB</description>
+      <server>
+        <attribute-set id="0x0000" description="Bromate Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                           
+   <cluster id="0x0419" name="Chloramines measurement">
+      <description>Typical range example: 0.9 to 3.8 PPM. typical value example: 2.87 PPM</description>
+      <server>
+        <attribute-set id="0x0000" description="Chloramines Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                               
+   <cluster id="0x041A" name="Chlorine measurement">
+      <description>Typical range example: 0.1 to 2.4 PPM. Typical value example: 1.28 PPM</description>
+      <server>
+        <attribute-set id="0x0000" description="Chlorine Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                                
+   <cluster id="0x041B" name="Fecal coliform and E Coli measurement">
+      <description>Percent of positive samples. Typical value example: 0</description>
+      <server>
+        <attribute-set id="0x0000" description="Fecal coliform and E Coli Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                                    
+   <cluster id="0x041C" name="Fluoride measurement">
+      <description>Typical range example: 0 to 100 PPM.Typical value example: 0.72 PPM</description>
+      <server>
+        <attribute-set id="0x0000" description="Fluoride Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                                        
+   <cluster id="0x041D" name="Haloacetic Acids measurement">
+      <description>Typical range example: Not Detected to 20 PPB. Ttypical value example: 14 PPB</description>
+      <server>
+        <attribute-set id="0x0000" description="Haloacetic Acids Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                                           
+   <cluster id="0x041E" name="Total Trihalomethanes measurement">
+      <description>Typical range example: 0 to 100 PPB. Typical value example: 44 PPB</description>
+      <server>
+        <attribute-set id="0x0000" description="Total Trihalomethanes Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster> 
+                                           
+   <cluster id="0x041F" name="Total Coliform Bacteria measurement">
+      <description>Percent of positive samples. Typical range example: 0 to 100%. Typical value example: 1.33%</description>
+      <server>
+        <attribute-set id="0x0000" description="Total Coliform Bacteria Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster> 
+                                           
+   <cluster id="0x0420" name="Turbidity measurement">
+      <description>Cloudiness of particles in water where an average person would notice a 5 or higher. Typical range example: 0 to 10. Typical value example: 0.18</description>
+      <server>
+        <attribute-set id="0x0000" description="Turbidity Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster> 
+                                           
+   <cluster id="0x0421" name="Copper measurement">
+      <description>Typical range example: 0 to 10 PPM. Typical value example: 0.191 PPM</description>
+      <server>
+        <attribute-set id="0x0000" description="Copper Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                                           
+   <cluster id="0x0422" name="Lead measurement">
+      <description>Typical range example: 0 to 10 PPB. Typical value example: 3.2 PPB</description>
+      <server>
+        <attribute-set id="0x0000" description="Lead Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                                           
+   <cluster id="0x0423" name="Manganese measurement">
+      <description>Typical range example: 0 to 1000 PPB. Typical value example: 31 PPB</description>
+      <server>
+        <attribute-set id="0x0000" description="Manganese Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                                           
+   <cluster id="0x0424" name="Sulfate measurement">
+      <description>Typical range example: 0 to 1000 PPB. Typical value example: 36 PPB</description>
+      <server>
+        <attribute-set id="0x0000" description="Sulfate Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                                           
+   <cluster id="0x0425" name="Bromodichloromethane measurement">
+      <description>Typical range example: 0 to 1000 PPB. Typical value example: 9.6 PPB</description>
+      <server>
+        <attribute-set id="0x0000" description="Bromodichloromethane Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                                            
+   <cluster id="0x0426" name="Bromoform measurement">
+      <description>Typical range example: 0 to 1000 PPB. Typical value example: 1.1 PPB</description>
+      <server>
+        <attribute-set id="0x0000" description="Bromoform Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                                             
+   <cluster id="0x0427" name="Chlorodibromomethane measurement">
+      <description>Typical range example: 0 to 1000 PPB. Typical value example: 6.4 PPB</description>
+      <server>
+        <attribute-set id="0x0000" description="Chlorodibromomethane Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                                             
+   <cluster id="0x0428" name="Chloroform measurement">
+      <description>Typical range example: 0 to 1000 PPB. Typical value example: 8.0 PPB</description>
+      <server>
+        <attribute-set id="0x0000" description="Chloroform Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+                                               
+   <cluster id="0x0429" name="Sodium measurement">
+      <description>Typical range example: 0 to 1000 PPB. Typical value example: 27 PPB</description>
+      <server>
+        <attribute-set id="0x0000" description="Sodium Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    
+    <cluster id="0x042A" name="PM2.5 Measurement"> 
+      <description>Particulate Matter 2.5 microns or less</description>
       <server>
         <attribute-set id="0x0000" description="PM 2.5 Information">
           <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
@@ -3335,7 +3833,62 @@ Note: It does not clear or delete previous weekly schedule programming configura
       <client>
       </client>
     </cluster>
-
+            
+    <cluster id="0x042B" name="Formaldehyde Measurement"> 
+      <description></description>
+      <server>
+        <attribute-set id="0x0000" description="Formaldehyde Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+            
+    <cluster id="0x042C" name="PM1 Measurement"> 
+      <description>PM1 concentration measurement</description>
+      <server>
+        <attribute-set id="0x0000" description="PM1 Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+           
+    <cluster id="0x042D" name="PM10 Measurement"> 
+      <description>PM10 concentration measurement</description>
+      <server>
+        <attribute-set id="0x0000" description="PM10 Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
+            
+    <cluster id="0x042E" name="VOC Measurement"> 
+      <description>Volatile Organic Compounds concentration measurement.Typical range example: 0 to 10 PPM. Typical value example: 1.11 PPM</description>
+      <server>
+        <attribute-set id="0x0000" description="VOC Information">
+          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m"></attribute>
+          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m"></attribute>
+          <attribute id="0x0003" name="Tolerance" type="float" access="r" required="o"></attribute>
+        </attribute-set>
+      </server>
+      <client>
+      </client>
+    </cluster>
     <cluster id="0x0b04" name="Electrical Measurement">
       <description>Provides a mechanism for querying data about the electrical properties as measured by the device.</description>
       <server>
@@ -3352,26 +3905,79 @@ Note: It does not clear or delete previous weekly schedule programming configura
             <value name="Power quality measurement" value="8"></value>
           </attribute>
         </attribute-set>
+	<attribute-set id="0x0100" description="DC Measurement">
+	  <attribute id="0x0100" name="DC Voltage" type="u16" access="r" required="o" default="0x8000"></attribute>
+	  <attribute id="0x0101" name="DC Voltage Min" type="u16" access="r" required="o" default="0x8000"></attribute>
+          <attribute id="0x0102" name="DC Voltage Max" type="u16" access="r" required="o" default="0x8000"></attribute>
+          <attribute id="0x0103" name="DC Current" type="u16" access="r" required="o" default="0x8000"></attribute>
+	  <attribute id="0x0104" name="DC Current Min" type="u16" access="r" required="o" default="0x8000"></attribute>
+	  <attribute id="0x0105" name="DC Current Max" type="u16" access="r" required="o" default="0x8000"></attribute>
+	  <attribute id="0x0106" name="DC Power" type="u16" access="r" required="o" default="0x8000"></attribute>
+	  <attribute id="0x0107" name="DC Power Min" type="u16" access="r" required="o" default="0x8000"></attribute>
+	  <attribute id="0x0108" name="DC Power Max" type="u16" access="r" required="o" default="0x8000"></attribute>
+        </attribute-set>
+	<attribute-set id="0x0200" description="DC Formatting">
+	  <attribute id="0x0200" name="DC Voltage Multiplier" type="u16" access="r" required="o" default="0x0001"></attribute>
+	  <attribute id="0x0201" name="DC Voltage Divisor" type="u16" access="r" required="o" default="0x0001"></attribute>
+          <attribute id="0x0202" name="DC Current Multiplier" type="u16" access="r" required="o" default="0x0001"></attribute>
+          <attribute id="0x0203" name="DC Current Divisor" type="u16" access="r" required="o" default="0x0001"></attribute>
+	  <attribute id="0x0204" name="DC Power Multiplier" type="u16" access="r" required="o" default="0x0001"></attribute>
+	  <attribute id="0x0205" name="DC Power Divisor" type="u16" access="r" required="o" default="0x0001"></attribute>
+        </attribute-set>
         <attribute-set id="0x0300" description="AC (Non-phase Specific) Measurements">
           <attribute id="0x0300" name="AC Frequency" type="u16" access="r" required="o" default="0xFFFF"></attribute>
-          <attribute id="0x0304" name="Total Active Power" type="u32" access="r" required="o"></attribute>
-          <attribute id="0x0305" name="Total Reactive Power" type="u32" access="r" required="o"></attribute>
-          <attribute id="0x0306" name="Total Apparent Power" type="s32" access="r" required="o"></attribute>
+	  <attribute id="0x0301" name="AC Frequency Min" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+	  <attribute id="0x0302" name="AC Frequency Max" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+	  <attribute id="0x0300" name="Neutral current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+          <attribute id="0x0304" name="Total Active Power" type="s32" access="r" required="o"></attribute>
+          <attribute id="0x0305" name="Total Reactive Power" type="s32" access="r" required="o"></attribute>
+          <attribute id="0x0306" name="Total Apparent Power" type="u32" access="r" required="o"></attribute>
+	  <attribute id="0x0307" name="Measured 1st harmonic Current" type="s16" access="r" required="o"> default="0x8000"</attribute>
+          <attribute id="0x0308" name="Measured 3rd harmonic Current" type="s16" access="r" required="o"> default="0x8000"</attribute>
+	  <attribute id="0x0309" name="Measured 5th harmonic Current" type="s16" access="r" required="o"> default="0x8000"</attribute>
+	  <attribute id="0x030A" name="Measured 7th harmonic Current" type="s16" access="r" required="o"> default="0x8000"</attribute>
+	  <attribute id="0x030B" name="Measured 9th harmonic Current" type="s16" access="r" required="o"> default="0x8000"</attribute>
+	  <attribute id="0x030C" name="Measured 11th harmonic Current" type="s16" access="r" required="o"> default="0x8000"</attribute>
+	  <attribute id="0x030D" name="Measured Phase 1st harmonic Current" type="s16" access="r" required="o"> default="0x8000"</attribute>
+	  <attribute id="0x030E" name="Measured Phase 3rd harmonic Current" type="s16" access="r" required="o"> default="0x8000"</attribute>
+	  <attribute id="0x030F" name="Measured Phase 5th harmonic Current" type="s16" access="r" required="o"> default="0x8000"</attribute>
+	  <attribute id="0x0310" name="Measured Phase 7th harmonic Current" type="s16" access="r" required="o"> default="0x8000"</attribute>
+	  <attribute id="0x0311" name="Measured Phase 9th harmonic Current" type="s16" access="r" required="o"> default="0x8000"</attribute>
+	  <attribute id="0x0312" name="Measured Phase 11th harmonic Current" type="s16" access="r" required="o"> default="0x8000"</attribute>
         </attribute-set>
         <attribute-set id="0x0400" description="AC (Non-phase Specific) Formatting">
+	  <attribute id="0x0400" name="AC Frequency Multiplier" type="u16" access="r" required="o" default="0x0001"></attribute>
+	  <attribute id="0x0401" name="AC Frequency Divisor" type="u16" access="r" required="o" default="0x0001"></attribute>
           <attribute id="0x0402" name="Power Multiplier" type="u32" access="r" required="o" default="0x000001"></attribute>
           <attribute id="0x0403" name="Power Divisor" type="u32" access="r" required="o" default="0x000001"></attribute>
+	  <attribute id="0x0404" name="Harmonic Current Multiplier" type="s8" access="r" required="o" default="0x00"></attribute>
+	  <attribute id="0x0405" name="Phase Harmonic Current Multiplier" type="s8" access="r" required="o" default="0x00"></attribute>
         </attribute-set>
         <attribute-set id="0x0500" description="AC (Single Phase or Phase A) Measurements">
+	  <attribute id="0x0501" name="Line Current" type="u16" access="r" required="o" default="0xffff"></attribute>
+	  <attribute id="0x0502" name="Active Current" type="s16" access="r" required="o" default="0x8000"></attribute>
+	  <attribute id="0x0503" name="Reactive Current" type="s16" access="r" required="o" default="0x8000"></attribute>
           <attribute id="0x0505" name="RMS Voltage" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+	  <attribute id="0x0506" name="RMS Voltage Min" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+	  <attribute id="0x0507" name="RMS Voltage Max" type="u16" access="r" required="o" default="0xFFFF"></attribute>
           <attribute id="0x0508" name="RMS Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
-          <attribute id="0x050a" name="Max Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+	  <attribute id="0x0509" name="RMS Current Min" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+          <attribute id="0x050a" name="RMS Current Max" type="u16" access="r" required="o" default="0xFFFF"></attribute>
           <attribute id="0x050b" name="Active Power" type="s16" access="r" required="o" default="0x8000">
             <description>Represents the single phase or Phase A, current demand of active power delivered or received at the premises, in Watts (W). Positive values indicate power delivered to the premises where negative values indicate power received from the premises.</description>
           </attribute>
+	  <attribute id="0x050c" name="Active Power Min" type="s16" access="r" required="o" default="0x8000"></attribute>
+	  <attribute id="0x050d" name="Active Power Max" type="s16" access="r" required="o" default="0x8000"></attribute>
           <attribute id="0x050e" name="Reactive Power" type="s16" access="r" required="o" default="0x8000"></attribute>
           <attribute id="0x050f" name="Apparent Power" type="u16" access="r" required="o" default="0xFFFF"></attribute>
           <attribute id="0x0510" name="Power Factor" type="s8" access="r" required="o" default="0x00"></attribute>
+	  <attribute id="0x0511" name="Average RMS Voltage Measurement Period" type="u16" access="rw" required="o" default="0x0000"></attribute>
+	  <attribute id="0x0512" name="Average RMS Over Voltage Counter" type="u16" access="rw" required="o" default="0x0000"></attribute>
+	  <attribute id="0x0513" name="Average RMS Under Voltage Counter" type="u16" access="rw" required="o" default="0x0000"></attribute>
+	  <attribute id="0x0514" name="RMS Extreme Over Voltage Period" type="u16" access="rw" required="o" default="0x0000"></attribute>
+	  <attribute id="0x0515" name="RMS Extreme Under Voltage Period" type="u16" access="rw" required="o" default="0x0000"></attribute>
+	  <attribute id="0x0516" name="RMS Voltage Sag Period" type="u16" access="rw" required="o" default="0x0000"></attribute>
+	  <attribute id="0x0517" name="RMS Voltage Swell Period" type="u16" access="rw" required="o" default="0x0000"></attribute>
         </attribute-set>
         <attribute-set id="0x0600" description="AC Formatting">
           <attribute id="0x0600" name="AC Voltage Multiplier" type="u16" access="r" required="o" default="0x0001"></attribute>
@@ -3381,17 +3987,85 @@ Note: It does not clear or delete previous weekly schedule programming configura
           <attribute id="0x0604" name="AC Power Multiplier" type="u16" access="r" required="o" default="0x0001"></attribute>
           <attribute id="0x0605" name="AC Power Divisor" type="u16" access="r" required="o" default="0x0001"></attribute>
         </attribute-set>
+        <attribute-set id="0x0700" description="DC Manufacturer Threshold Alarms">
+          <attribute id="0x0700" name="DC Overload Alarms Mask" type="bmp8" access="rw" required="o" default="00000000">
+	              <value name="Voltage Overload" value="0"></value>
+                      <value name="Current Overload" value="1"></value>
+	  </attribute>
+          <attribute id="0x0701" name="AC Voltage Overload" type="s16" access="r" required="o" default="0xffff"></attribute>
+          <attribute id="0x0702" name="AC Current Overload" type="s16" access="r" required="o" default="0xffff"></attribute>
+        </attribute-set>
+	<attribute-set id="0x0800" description="AC Manufacturer Threshold Alarms">
+          <attribute id="0x0800" name="DC Overload Alarms Mask" type="bmp16" access="rw" required="o" default="0x0">
+	              <value name="Voltage Overload" value="0"></value>
+                      <value name="Current Overload" value="1"></value>
+		      <value name="Active Power Overload" value="2"></value>
+                      <value name="Reactive Power Overload" value="3"></value>
+		      <value name="Average RMS Over Voltage" value="4"></value>
+                      <value name="Average RMS Under Voltage" value="5"></value>
+		      <value name="RMS Extreme Over Voltage" value="6"></value>
+                      <value name="RMS Extreme Under Voltage" value="7"></value>
+		      <value name="RMS Voltage Sag" value="8"></value>
+                      <value name="RMS Voltage Swell" value="9"></value>
+	  </attribute>
+          <attribute id="0x0801" name="AC Voltage Overload" type="s16" access="r" required="o" default="0xffff"></attribute>
+          <attribute id="0x0802" name="AC Current Overload" type="s16" access="r" required="o" default="0xffff"></attribute>
+	  <attribute id="0x0803" name="AC Active Power Overload" type="s16" access="r" required="o" default="0xffff"></attribute>
+          <attribute id="0x0804" name="AC Reactive Power Overload" type="s16" access="r" required="o" default="0xffff"></attribute>
+	  <attribute id="0x0805" name="Average RMS Over Voltage" type="s16" access="r" required="o"></attribute>
+          <attribute id="0x0806" name="Average RMS Under Voltage" type="s16" access="r" required="o"></attribute>
+	  <attribute id="0x0807" name="RMS Extreme Over Voltage" type="s16" access="rw" required="o"></attribute>
+	  <attribute id="0x0808" name="RMS Extreme Under Voltage" type="s16" access="rw" required="o"></attribute>
+	  <attribute id="0x0809" name="RMS Voltage Sag" type="s16" access="rw" required="o"></attribute>
+	  <attribute id="0x080a" name="RMS Voltage Swell" type="s16" access="rw" required="o"></attribute>
+        </attribute-set>
         <attribute-set id="0x0900" description="AC (Phase B) Measurements">
-          <attribute id="0x0905" name="RMS Voltage" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+          <attribute id="0x0901" name="Line Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+	  <attribute id="0x0902" name="Active Current" type="s16" access="r" required="o" default="0x8000"></attribute>
+	  <attribute id="0x0903" name="Reactive Current" type="s16" access="r" required="o" default="0x8000"></attribute>
+	  <attribute id="0x0905" name="RMS Voltage" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+	  <attribute id="0x0906" name="RMS Voltage Min" type="u16" access="r" required="o" default="0x8000"></attribute>
+	  <attribute id="0x0907" name="RMS Voltage Max" type="u16" access="r" required="o" default="0x8000"></attribute>
           <attribute id="0x0908" name="RMS Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
-          <attribute id="0x090a" name="Max Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
-          <attribute id="0x090f" name="RMS Power" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+	  <attribute id="0x0909" name="RMS Current Min" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+          <attribute id="0x090a" name="RMS Current Max" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+	  <attribute id="0x090b" name="Active Power" type="s16" access="r" required="o" default="0x8000"></attribute>
+	  <attribute id="0x090c" name="Active Power Min" type="s16" access="r" required="o" default="0x8000"></attribute>
+	  <attribute id="0x090d" name="Active Power Max" type="s16" access="r" required="o" default="0x8000"></attribute>
+	  <attribute id="0x090e" name="Reactive Power" type="s16" access="r" required="o" default="0x8000"></attribute>
+          <attribute id="0x090f" name="Apparent Power" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+	  <attribute id="0x0910" name="Power Factor" type="s8" access="r" required="o" default="0x00"></attribute>
+	  <attribute id="0x0911" name="Average RMS Voltage Measurement Period" type="u16" access="r" required="o" default="0x0000"></attribute>
+	  <attribute id="0x0912" name="Average RMS Over Voltage Counter" type="u16" access="r" required="o" default="0x0000"></attribute>
+	  <attribute id="0x0913" name="Average RMS Under Voltage Counter" type="u16" access="r" required="o" default="0x0000"></attribute>
+	  <attribute id="0x0914" name="RMS Extreme Over Voltage Period" type="u16" access="r" required="o" default="0x0000"></attribute>
+	  <attribute id="0x0915" name="RMS Extreme Under Voltage Period" type="u16" access="r" required="o" default="0x0000"></attribute>
+	  <attribute id="0x0916" name="RMS Voltage Sag Period" type="u16" access="rw" required="o" default="0x0000"></attribute>
+	  <attribute id="0x0917" name="RMS Voltage Swell Period" type="u16" access="rw" required="o" default="0x0000"></attribute>
         </attribute-set>
         <attribute-set id="0x0a00" description="AC (Phase C) Measurements">
-          <attribute id="0x0a05" name="RMS Voltage" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+	  <attribute id="0x0a01" name="Line Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+	  <attribute id="0x0a02" name="Active Current" type="s16" access="r" required="o" default="0x8000"></attribute>
+	  <attribute id="0x0a03" name="Reactive Current" type="s16" access="r" required="o" default="0x8000"></attribute>
+	  <attribute id="0x0a05" name="RMS Voltage" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+	  <attribute id="0x0a06" name="RMS Voltage Min" type="u16" access="r" required="o" default="0x8000"></attribute>
+	  <attribute id="0x0a07" name="RMS Voltage Max" type="u16" access="r" required="o" default="0x8000"></attribute>
           <attribute id="0x0a08" name="RMS Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
-          <attribute id="0x0a0a" name="Max Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
-          <attribute id="0x0a0f" name="RMS Power" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+	  <attribute id="0x0a09" name="RMS Current Min" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+          <attribute id="0x0a0a" name="RMS Current Max" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+	  <attribute id="0x0a0b" name="Active Power" type="s16" access="r" required="o" default="0x8000"></attribute>
+	  <attribute id="0x0a0c" name="Active Power Min" type="s16" access="r" required="o" default="0x8000"></attribute>
+	  <attribute id="0x0a0d" name="Active Power Max" type="s16" access="r" required="o" default="0x8000"></attribute>
+	  <attribute id="0x0a0e" name="Reactive Power" type="s16" access="r" required="o" default="0x8000"></attribute>
+          <attribute id="0x0a0f" name="Apparent Power" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+	  <attribute id="0x0a10" name="Power Factor" type="s8" access="r" required="o" default="0x00"></attribute>
+	  <attribute id="0x0a11" name="Average RMS Voltage Measurement Period" type="u16" access="r" required="o" default="0x0000"></attribute>
+	  <attribute id="0x0a12" name="Average RMS Over Voltage Counter" type="u16" access="r" required="o" default="0x0000"></attribute>
+	  <attribute id="0x0a13" name="Average RMS Under Voltage Counter" type="u16" access="r" required="o" default="0x0000"></attribute>
+	  <attribute id="0x0a14" name="RMS Extreme Over Voltage Period" type="u16" access="r" required="o" default="0x0000"></attribute>
+	  <attribute id="0x0a15" name="RMS Extreme Under Voltage Period" type="u16" access="r" required="o" default="0x0000"></attribute>
+	  <attribute id="0x0a16" name="RMS Voltage Sag Period" type="u16" access="rw" required="o" default="0x0000"></attribute>
+	  <attribute id="0x0a17" name="RMS Voltage Swell Period" type="u16" access="rw" required="o" default="0x0000"></attribute>
         </attribute-set>
       </server>
       <client>
