@@ -434,7 +434,7 @@
             "cl": "0x0400",
             "ep": 3,
             "fn": "zcl",
-            "script": "sml_light_level.js"
+            "script": "../generic/illuminance_cluster/sml_light_level.js"
           },
           "default": 0
         },
@@ -454,8 +454,8 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 60,
-          "max": 3600,
+          "min": 3600,
+          "max": 43200,
           "change": "0x00000002"
         }
       ]
