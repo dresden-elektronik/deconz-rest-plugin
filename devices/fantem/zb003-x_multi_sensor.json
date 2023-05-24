@@ -4,7 +4,7 @@
   "modelid": "TS0202",
   "vendor": "Fantem",
   "product": "Multi sensor ZB003-X",
-  "sleeper": true,
+  "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
@@ -139,7 +139,6 @@
         {
           "name": "config/reporting",
           "refresh.interval": 86400,
-          "public": true,
           "write": {
             "dpid": 112,
             "dt": "0x10",
@@ -221,6 +220,7 @@
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
+            "eval": "Item.val = Attr.val / 2",
             "fn": "zcl"
           },
           "default": 0
