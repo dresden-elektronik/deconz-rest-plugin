@@ -1,7 +1,7 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": [" _TZ3000_itb0omhv", "_TZ3000_4upl1fcj"],
-  "modelid": ["TS0041", "TS0041"],
+  "manufacturername": [" _TZ3000_itb0omhv", "_TZ3000_4upl1fcj","_TZ3000_wqcbzbae"],
+  "modelid": ["TS0041", "TS0041", "TS0041"],
   "product": "Tuya 1 gangs switch battery",
   "sleeper": false,
   "status": "Gold",
@@ -35,7 +35,6 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 84000,
           "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
           "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
@@ -47,7 +46,6 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 84000,
           "awake": true,
           "read": {
             "at": "0x0021",
