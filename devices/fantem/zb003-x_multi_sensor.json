@@ -76,7 +76,7 @@
           "default": 0
         },
         {
-          "name": "config/duration",
+          "name": "config/delay",
           "refresh.interval": 86400,
           "range": [0, 5],
           "read": {
