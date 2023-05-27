@@ -137,7 +137,8 @@
           "default": 0
         },
         {
-          "name": "config/reporting",
+          "name": "state/on",
+          "public": false,
           "refresh.interval": 86400,
           "write": {
             "dpid": 112,
@@ -150,7 +151,7 @@
             "eval": "Item.val = Attr.val;",
             "fn": "tuya"
           },
-          "default": false
+          "default": true
         },
         {
           "name": "state/lastupdated"
