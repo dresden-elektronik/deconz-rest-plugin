@@ -298,7 +298,6 @@ extern const char *RConfigPulseConfiguration;
 extern const char *RConfigReachable;
 extern const char *RConfigResetPresence;
 extern const char *RConfigReversed;
-extern const char *RConfigReporting;
 extern const char *RConfigSchedule;
 extern const char *RConfigScheduleOn;
 extern const char *RConfigSelfTest;
