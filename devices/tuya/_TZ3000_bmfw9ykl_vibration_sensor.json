@@ -1,44 +1,14 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": [
-    "_TZ3000_d16y6col",
-    "_TZ3000_ww9i3e0y",
-    "_TZ3000_qhozxs2b",
-    "_TZ3000_85czd6fy",
-    "_TZ3000_ocjlo4ea",
-    "_TZ3000_kyb656no",
-    "_TZ3000_fxvjhdyl",
-    "_TZ3000_eit7p838",
-    "_TZ3000_t6jriawg",
-    "_TZ3000_85czd6fy",
-    "_TYZB01_sqmd19i1",
-    "_TYZB01_o63ssaah",
-    "_TZ3000_it1hm1cr",
-    "_TZ3000_upgcbody"
-  ],
-  "modelid": [
-    "TS0207",
-    "TS0207",
-    "TS0207",
-    "TS0207",
-    "TS0207",
-    "TS0207",
-    "TS0207",
-    "TS0207",
-    "TS0207",
-    "TS0207",
-    "TS0207",
-    "TS0207",
-    "TS0207",
-    "TS0207"
-  ],
+  "manufacturername": "_TZ3000_bmfw9ykl",
+  "modelid": "TS0210",
   "vendor": "Tuya",
-  "product": "Tuya water leak sensor",
+  "product": "Moes vibration sensor",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_WATER_LEAK_SENSOR",
+      "type": "ZHAPresence",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
@@ -52,11 +22,7 @@
         "in": [
           "0x0000",
           "0x0001",
-          "0x0003",
           "0x0500"
-        ],
-        "out": [
-          "0x0019"
         ]
       },
       "items": [
@@ -79,20 +45,7 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion",
-          "parse": {
-            "fn": "zcl",
-            "ep": 1,
-            "cl": "0x0000",
-            "at": "0x0001",
-            "script": "tuya_swversion.js"
-          },
-          "read": {
-            "fn": "zcl",
-            "ep": 1,
-            "cl": "0x0000",
-            "at": "0x0001"
-          }
+          "name": "attr/swversion"
         },
         {
           "name": "attr/type"
@@ -102,18 +55,22 @@
         },
         {
           "name": "config/battery",
+          "awake": true,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
             "eval": "Item.val = Attr.val / 2"
-          }
+          },
+          "default": 0
         },
         {
-          "name": "config/enrolled"
+          "name": "config/duration",
+          "default": 1
         },
         {
-          "name": "config/checkin"
+          "name": "config/enrolled",
+          "public": false
         },
         {
           "name": "config/on"
@@ -128,13 +85,13 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/lowbattery"
+          "name": "state/lowbattery",
+          "awake": true
         },
         {
-          "name": "state/tampered"
-        },
-        {
-          "name": "state/water"
+          "name": "state/presence",
+          "awake": true,
+          "default": false
         }
       ]
     }
@@ -149,8 +106,8 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 3600,
-          "max": 14400,
+          "min": 60,
+          "max": 3600,
           "change": "0x00000001"
         }
       ]

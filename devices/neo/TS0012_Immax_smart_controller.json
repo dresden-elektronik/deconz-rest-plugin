@@ -3,7 +3,7 @@
   "manufacturername": "_TZ3000_llfaquvp",
   "modelid": "TS0012",
   "vendor": "NEO",
-  "product": "Immax NEO Smart kontroler",
+  "product": "Immax NEO Smart controller",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -35,8 +35,7 @@
         },
         {
           "name": "attr/swversion",                   
-          "refresh.interval": 86400,
-          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
           "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
         {
@@ -81,8 +80,7 @@
         },
         {
           "name": "attr/swversion",                   
-          "refresh.interval": 86400,
-          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
           "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
         {

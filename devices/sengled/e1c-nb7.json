@@ -4,8 +4,7 @@
   "modelid": "E1C-NB7",
   "product": "E1C-NB7",
   "sleeper": false,
-  "status": "Silver",
-  "path": "/devices/sengled/e1c-nb7.json",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_SMART_PLUG",
@@ -47,8 +46,7 @@
           "default": "none"
         },
         {
-          "name": "state/on",
-          "refresh.interval": 5
+          "name": "state/on"
         },
         {
           "name": "state/reachable"

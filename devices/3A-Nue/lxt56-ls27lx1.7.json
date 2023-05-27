@@ -1,13 +1,14 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "$MF_IKEA",
-  "modelid": "TRADFRIbulbE27WSglobeopal1055lm",
-  "product": "Tradfri LED bulb E27 1055 lumen",
+  "manufacturername": "3A Smart Home DE",
+  "modelid": "LXT56-LS27LX1.7",
+  "vendor": "Zemismart",
+  "product": "3A12S-15",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
+      "type": "$TYPE_EXTENDED_COLOR_LIGHT",
       "restapi": "/lights",
       "uuid": [
         "$address.ext",
@@ -42,45 +43,46 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "cap/bri/move_with_onoff",
-          "static": true
+          "name": "config/colorcapabilities"
         },
         {
-          "name": "cap/color/ct/max",
-          "refresh.interval": 84000,
-          "default": "0xfeff"
+          "name": "config/ctmax"
         },
         {
-          "name": "cap/color/ct/min",
-          "refresh.interval": 84000,
-          "default": 0
+          "name": "config/ctmin"
         },
         {
-          "name": "cap/on/off_with_effect",
-          "static": true
+          "name": "state/alert"
         },
         {
-          "name": "state/alert",
-          "default": "none"
+          "name": "state/bri"
         },
         {
-          "name": "state/bri",
-          "refresh.interval": 5
+          "name": "state/colormode"
         },
         {
-          "name": "state/colormode",
-          "refresh.interval": 300
+          "name": "state/ct"
         },
         {
-          "name": "state/ct",
-          "refresh.interval": 5
+          "name": "state/effect"
         },
         {
-          "name": "state/on",
-          "refresh.interval": 5
+          "name": "state/hue"
+        },
+        {
+          "name": "state/on"
         },
         {
           "name": "state/reachable"
+        },
+        {
+          "name": "state/sat"
+        },
+        {
+          "name": "state/x"
+        },
+        {
+          "name": "state/y"
         }
       ]
     }
@@ -89,27 +91,13 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "cl": "0x0006",
-      "report": [
-        {
-          "at": "0x0000",
-          "dt": "0x10",
-          "min": 1,
-          "max": 300
-        }
-      ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
       "cl": "0x0008",
       "report": [
         {
           "at": "0x0000",
           "dt": "0x20",
-          "min": 1,
-          "max": 300,
-          "change": "0x00000001"
+          "min": 10,
+          "max": 360
         }
       ]
     },
@@ -119,11 +107,23 @@
       "cl": "0x0300",
       "report": [
         {
-          "at": "0x0007",
-          "dt": "0x21",
-          "min": 1,
-          "max": 300,
-          "change": "0x00000005"
+          "at": "0x0008",
+          "dt": "0x30",
+          "min": 10,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 5,
+          "max": 300
         }
       ]
     }
