@@ -55,6 +55,7 @@
         },
         {
           "name": "config/battery",
+          "refresh.interval": 7300,
           "awake": true,
           "parse": {
             "at": "0x0021",
