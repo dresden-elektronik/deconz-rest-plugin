@@ -12,7 +12,7 @@ static int (*lib_AES_set_encrypt_key)(const unsigned char *userKey, const int bi
 static void (*lib_AES_encrypt)(const unsigned char *in, unsigned char *out, const AES_KEY *key);
 
 // Below 2 functions are an adaptation/port from https://github.com/zigpy/zigpy/blob/dev/zigpy/util.py (aes_mmo_hash_update() and aes_mmo_hash())
-static bool aesMmoHash(unsigned &length, unsigned char *result, unsigned char *data, unsigned dataSize)
+static bool aesMmoHash(unsigned char *result, unsigned char *data, unsigned dataSize)
 {
     while (dataSize >= AES_BLOCK_SIZE)
     {
@@ -33,7 +33,6 @@ static bool aesMmoHash(unsigned &length, unsigned char *result, unsigned char *d
 
         data += AES_BLOCK_SIZE;
         dataSize -= AES_BLOCK_SIZE;
-        length += AES_BLOCK_SIZE;
     }
 
     return true;
@@ -113,6 +112,7 @@ bool getMmoHashFromInstallCode(const std::string &hexString, std::vector<unsigne
 
     unsigned char data[16 + 2]; // IC + CRC16
     unsigned dataLength = 0;
+    unsigned pos;
 
     for (unsigned i = 0; i + 1 < icLength * 2; i += 2)
     {
@@ -155,36 +155,33 @@ bool getMmoHashFromInstallCode(const std::string &hexString, std::vector<unsigne
 
     unsigned char hashResult[AES_BLOCK_SIZE] = {0};
     unsigned char temp[AES_BLOCK_SIZE] = {0};
-    unsigned hashResultLength = 0;
-    unsigned lengthRemaining = 0;
+    unsigned moreDataLength = dataLength;
 
-    lengthRemaining = dataLength & (AES_BLOCK_SIZE - 1);
-
-    if (dataLength >= AES_BLOCK_SIZE)
+    for (pos = 0; moreDataLength >= AES_BLOCK_SIZE;)
     {
-        aesMmoHash(hashResultLength, hashResult, &data[0], dataLength);
+        aesMmoHash(hashResult, &data[pos], dataLength);
+        pos += AES_BLOCK_SIZE;
+        moreDataLength -= AES_BLOCK_SIZE;
     }
 
-    for (unsigned i = 0; i < lengthRemaining; i++)
+    for (unsigned i = 0; i < moreDataLength; i++)
     {
-        temp[i] = data[i];
+        temp[i] = data[pos + i];
     }
 
-    temp[lengthRemaining] = 0x80;
-    hashResultLength += lengthRemaining;
+    temp[moreDataLength] = 0x80;
 
-    if (AES_BLOCK_SIZE - lengthRemaining < 3)
+
+    if (AES_BLOCK_SIZE - moreDataLength < 3)
     {
-        aesMmoHash(hashResultLength, hashResult, &temp[0], AES_BLOCK_SIZE);
-        hashResultLength -= AES_BLOCK_SIZE;
+        aesMmoHash(hashResult, &temp[0], AES_BLOCK_SIZE);
         memset(&temp[0], 0x00, sizeof(temp));
     }
 
-    uint bit_size = hashResultLength * 8;
-    temp[AES_BLOCK_SIZE - 2] = (bit_size >> 8) & 0xFF;
-    temp[AES_BLOCK_SIZE - 1] = (bit_size) & 0xFF;
+    temp[AES_BLOCK_SIZE - 2] = (dataLength >> 5) & 0xFF;
+    temp[AES_BLOCK_SIZE - 1] = (dataLength << 3) & 0xFF;
 
-    aesMmoHash(hashResultLength, hashResult, &temp[0], AES_BLOCK_SIZE);
+    aesMmoHash(hashResult, &temp[0], AES_BLOCK_SIZE);
 
     result.resize(AES_BLOCK_SIZE);
     for (unsigned i = 0; i < AES_BLOCK_SIZE; i++)
