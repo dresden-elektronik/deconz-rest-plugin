@@ -88,7 +88,7 @@ bool getMmoHashFromInstallCode(const std::string &hexString, std::vector<unsigne
 #ifdef Q_OS_WIN
     QLibrary libCrypto(QLatin1String("libcrypto-1_1.dll"));
 #else
-    QLibrary libCrypto(QLatin1String("crypto"));
+    QLibrary libCrypto("crypto", "1.1");
 #endif
 
     lib_AES_set_encrypt_key = reinterpret_cast<int (*)(const unsigned char *userKey, const int bits, AES_KEY *key)>(libCrypto.resolve("AES_set_encrypt_key"));
