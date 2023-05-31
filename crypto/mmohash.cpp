@@ -2,29 +2,43 @@
   #error "OpenSSL required"
 #endif
 
-#include <openssl/aes.h>
 #include <vector>
 #include <string>
 #include <QByteArray>
 #include <QLibrary>
+#include <openssl/evp.h>
 
-static int (*lib_AES_set_encrypt_key)(const unsigned char *userKey, const int bits, AES_KEY *key);
-static void (*lib_AES_encrypt)(const unsigned char *in, unsigned char *out, const AES_KEY *key);
+#define AES_BLOCK_SIZE 16
 
-// Below 2 functions are an adaptation/port from https://github.com/zigpy/zigpy/blob/dev/zigpy/util.py (aes_mmo_hash_update() and aes_mmo_hash())
+static EVP_CIPHER_CTX *(*lib_EVP_CIPHER_CTX_new)(void);
+static void (*lib_EVP_EncryptInit)(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *type, const unsigned char *key, const unsigned char *iv);
+static int (*lib_EVP_CIPHER_CTX_ctrl)(EVP_CIPHER_CTX *ctx, int cmd, int p1, void *p2);
+static int (*lib_EVP_EncryptUpdate)(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl, const unsigned char *in, int inl);
+static int (*lib_EVP_EncryptFinal_ex)(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl);
+static void (*lib_EVP_CIPHER_CTX_free)(EVP_CIPHER_CTX *ctx);
+
 static bool aesMmoHash(unsigned char *result, unsigned char *data, unsigned dataSize)
 {
+    EVP_CIPHER_CTX *lib_ctx;
+
     while (dataSize >= AES_BLOCK_SIZE)
     {
-        AES_KEY aes_key;
-        lib_AES_set_encrypt_key(result, 128, &aes_key);
+        lib_ctx = lib_EVP_CIPHER_CTX_new();
+        if (!lib_ctx)
+            return false;
+
+        lib_EVP_EncryptInit(lib_ctx, EVP_aes_128_ecb(), result, NULL);
 
         unsigned char block[AES_BLOCK_SIZE];
-        unsigned char encrypted_block[AES_BLOCK_SIZE];
+        unsigned char encrypted_block[AES_BLOCK_SIZE * 2] = {0};
 
         memcpy(&block[0], &data[0], AES_BLOCK_SIZE);
 
-        lib_AES_encrypt(&block[0], &encrypted_block[0], &aes_key);
+        int outlen = 0;
+        if (lib_EVP_EncryptUpdate(lib_ctx, &encrypted_block[0], &outlen, &block[0], AES_BLOCK_SIZE) != 1)
+            return false;
+        if (lib_EVP_EncryptFinal_ex(lib_ctx, &encrypted_block[0] + outlen, &outlen) != 1)
+            return false;
 
         for (int i = 0; i < AES_BLOCK_SIZE; i++)
         {
@@ -33,6 +47,9 @@ static bool aesMmoHash(unsigned char *result, unsigned char *data, unsigned data
 
         data += AES_BLOCK_SIZE;
         dataSize -= AES_BLOCK_SIZE;
+
+        lib_EVP_CIPHER_CTX_free(lib_ctx);
+        lib_ctx = 0;
     }
 
     return true;
@@ -87,13 +104,17 @@ bool getMmoHashFromInstallCode(const std::string &hexString, std::vector<unsigne
 #ifdef Q_OS_WIN
     QLibrary libCrypto(QLatin1String("libcrypto-1_1.dll"));
 #else
-    QLibrary libCrypto("crypto", "1.1");
+    QLibrary libCrypto("crypto");
 #endif
 
-    lib_AES_set_encrypt_key = reinterpret_cast<int (*)(const unsigned char *userKey, const int bits, AES_KEY *key)>(libCrypto.resolve("AES_set_encrypt_key"));
-    lib_AES_encrypt = reinterpret_cast<void (*)(const unsigned char *in, unsigned char *out, const AES_KEY *key)>(libCrypto.resolve("AES_encrypt"));
+    lib_EVP_CIPHER_CTX_new = (EVP_CIPHER_CTX *(*)(void))libCrypto.resolve("EVP_CIPHER_CTX_new");
+    lib_EVP_EncryptInit = (void (*)(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *type, const unsigned char *key, const unsigned char *iv))libCrypto.resolve("EVP_EncryptInit");
+    lib_EVP_CIPHER_CTX_ctrl = (int (*)(EVP_CIPHER_CTX *ctx, int cmd, int p1, void *p2))libCrypto.resolve("EVP_CIPHER_CTX_ctrl");
+    lib_EVP_EncryptUpdate = (int (*)(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl, const unsigned char *in, int inl))libCrypto.resolve("EVP_EncryptUpdate");
+    lib_EVP_EncryptFinal_ex = (int (*)(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl))libCrypto.resolve("EVP_EncryptFinal_ex");
+    lib_EVP_CIPHER_CTX_free = (void (*)(EVP_CIPHER_CTX *ctx))libCrypto.resolve("EVP_CIPHER_CTX_free");
 
-    if (!lib_AES_set_encrypt_key || !lib_AES_encrypt)
+    if (!lib_EVP_CIPHER_CTX_new || !lib_EVP_EncryptInit || !lib_EVP_CIPHER_CTX_ctrl || !lib_EVP_EncryptUpdate || !lib_EVP_EncryptFinal_ex || !lib_EVP_CIPHER_CTX_free)
     {
         return false;
     }
