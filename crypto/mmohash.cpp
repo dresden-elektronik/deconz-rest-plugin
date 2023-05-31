@@ -12,10 +12,10 @@
 
 static EVP_CIPHER_CTX *(*lib_EVP_CIPHER_CTX_new)(void);
 static void (*lib_EVP_EncryptInit)(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *type, const unsigned char *key, const unsigned char *iv);
-static int (*lib_EVP_CIPHER_CTX_ctrl)(EVP_CIPHER_CTX *ctx, int cmd, int p1, void *p2);
 static int (*lib_EVP_EncryptUpdate)(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl, const unsigned char *in, int inl);
 static int (*lib_EVP_EncryptFinal_ex)(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl);
 static void (*lib_EVP_CIPHER_CTX_free)(EVP_CIPHER_CTX *ctx);
+static const EVP_CIPHER *(*lib_EVP_aes_128_ecb)(void);
 
 static bool aesMmoHash(unsigned char *result, unsigned char *data, unsigned dataSize)
 {
@@ -27,7 +27,7 @@ static bool aesMmoHash(unsigned char *result, unsigned char *data, unsigned data
         if (!lib_ctx)
             return false;
 
-        lib_EVP_EncryptInit(lib_ctx, EVP_aes_128_ecb(), result, NULL);
+        lib_EVP_EncryptInit(lib_ctx, lib_EVP_aes_128_ecb(), result, NULL);
 
         unsigned char block[AES_BLOCK_SIZE];
         unsigned char encrypted_block[AES_BLOCK_SIZE * 2] = {0};
@@ -109,12 +109,12 @@ bool getMmoHashFromInstallCode(const std::string &hexString, std::vector<unsigne
 
     lib_EVP_CIPHER_CTX_new = (EVP_CIPHER_CTX *(*)(void))libCrypto.resolve("EVP_CIPHER_CTX_new");
     lib_EVP_EncryptInit = (void (*)(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *type, const unsigned char *key, const unsigned char *iv))libCrypto.resolve("EVP_EncryptInit");
-    lib_EVP_CIPHER_CTX_ctrl = (int (*)(EVP_CIPHER_CTX *ctx, int cmd, int p1, void *p2))libCrypto.resolve("EVP_CIPHER_CTX_ctrl");
     lib_EVP_EncryptUpdate = (int (*)(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl, const unsigned char *in, int inl))libCrypto.resolve("EVP_EncryptUpdate");
     lib_EVP_EncryptFinal_ex = (int (*)(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl))libCrypto.resolve("EVP_EncryptFinal_ex");
     lib_EVP_CIPHER_CTX_free = (void (*)(EVP_CIPHER_CTX *ctx))libCrypto.resolve("EVP_CIPHER_CTX_free");
+    lib_EVP_aes_128_ecb = (const EVP_CIPHER *(*)(void))libCrypto.resolve("EVP_aes_128_ecb");
 
-    if (!lib_EVP_CIPHER_CTX_new || !lib_EVP_EncryptInit || !lib_EVP_CIPHER_CTX_ctrl || !lib_EVP_EncryptUpdate || !lib_EVP_EncryptFinal_ex || !lib_EVP_CIPHER_CTX_free)
+    if (!lib_EVP_CIPHER_CTX_new || !lib_EVP_EncryptInit || !lib_EVP_EncryptUpdate || !lib_EVP_EncryptFinal_ex || !lib_EVP_CIPHER_CTX_free | !lib_EVP_aes_128_ecb)
     {
         return false;
     }
