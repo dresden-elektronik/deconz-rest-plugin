@@ -51,15 +51,14 @@
         },
         {
           "name": "state/current",
-          "refresh.interval": 30,
-          "default": 0
+          "refresh.interval": 360
         },
         {
           "name": "state/lastupdated"
         },
         {
           "name": "state/power",
-          "refresh.interval": 30,
+          "refresh.interval": 360,
           "read": {
             "at": "0x0304",
             "cl": "0x0b04",
@@ -71,13 +70,11 @@
             "cl": "0x0b04",
             "ep": 0,
             "eval": "if (Attr.val != -32768 && Attr.val != 32768) { Item.val = Attr.val; }"
-          },
-          "default": 0
+          }
         },
         {
           "name": "state/voltage",
-          "refresh.interval": 30,
-          "default": 0
+          "refresh.interval": 360
         }
       ]
     }
