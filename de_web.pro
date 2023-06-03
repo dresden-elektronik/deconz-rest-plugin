@@ -64,7 +64,7 @@ macx {
 unix:LIBS +=  -L../.. -ldeCONZ
 
 unix:!macx {
-    LIBS += -lcrypt -lssl -lcrypto
+    LIBS += -lcrypt
 }
 
 TEMPLATE        = lib
@@ -121,6 +121,7 @@ HEADERS  = bindings.h \
            button_maps.h \
            connectivity.h \
            colorspace.h \
+           crypto/mmohash.h \
            crypto/random.h \
            crypto/scrypt.h \
            database.h \
@@ -194,6 +195,7 @@ SOURCES  = air_quality.cpp \
            change_channel.cpp \
            connectivity.cpp \
            colorspace.cpp \
+           crypto/mmohash.cpp \
            crypto/random.cpp \
            crypto/scrypt.cpp \
            database.cpp \
@@ -291,7 +293,7 @@ SOURCES  = air_quality.cpp \
 
 win32 {
 
-    OPENSSL_PATH = E:/Qt/Tools/OpenSSL/Win_x86
+    OPENSSL_PATH = C:/Qt/Tools/OpenSSL/Win_x86
 
     exists($$OPENSSL_PATH) {
         message(OpenSLL detected $$OPENSSL_PATH)
