@@ -16,6 +16,7 @@
 #include "product_match.h"
 #include "device_descriptions.h"
 #include "rest_devices.h"
+#include "crypto/mmohash.h"
 #include "utils/ArduinoJson.h"
 #include "utils/utils.h"
 
@@ -1052,7 +1053,7 @@ int RestDevices::putDeviceInstallCode(const ApiRequest &req, ApiResponse &rsp)
             char mmoHashHex[128] = {0};
             std::vector<unsigned char> mmoHash;
 
-            if (!getMmoHashFromInstallCode(installCode, mmoHash))
+            if (!CRYPTO_GetMmoHashFromInstallCode(installCode, mmoHash))
             {
                 rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QLatin1String("/devices"), QLatin1String("internal error, failed to calc mmo hash, occured")));
                 rsp.httpStatus = HttpStatusServiceUnavailable;

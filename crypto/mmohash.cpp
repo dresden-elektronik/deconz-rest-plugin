@@ -2,11 +2,10 @@
   #error "OpenSSL required"
 #endif
 
-#include <vector>
-#include <string>
-#include <QByteArray>
 #include <QLibrary>
 #include <openssl/evp.h>
+
+#include "crypto/mmohash.h"
 
 #define AES_BLOCK_SIZE 16
 
@@ -99,7 +98,7 @@ static unsigned short ccit_crc16(unsigned char *data_p, unsigned short length)
 
     TODO(mpi): add more test cases for all IC lengths and test code
 */
-bool getMmoHashFromInstallCode(const std::string &hexString, std::vector<unsigned char> &result)
+bool CRYPTO_GetMmoHashFromInstallCode(const std::string &hexString, std::vector<unsigned char> &result)
 {
 #ifdef Q_OS_WIN
     QLibrary libCrypto(QLatin1String("libcrypto-1_1.dll"));

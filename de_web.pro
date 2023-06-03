@@ -121,6 +121,7 @@ HEADERS  = bindings.h \
            button_maps.h \
            connectivity.h \
            colorspace.h \
+           crypto/mmohash.h \
            crypto/random.h \
            crypto/scrypt.h \
            database.h \
