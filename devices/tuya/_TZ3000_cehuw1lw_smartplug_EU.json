@@ -100,7 +100,7 @@
           "name": "state/consumption",
           "read": {"at": "0x0000", "cl": "0x0702", "ep": 1, "fn": "zcl" },
           "parse": {"at": "0x0000", "cl": "0x0702", "ep": 1, "eval": "Item.val = Attr.val * 10"},
-          "refresh.interval": 300
+          "refresh.interval": 365
         },
           {
             "name": "state/lastupdated"
