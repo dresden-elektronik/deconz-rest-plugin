@@ -76,8 +76,7 @@ CONFIG         += plugin \
 QT             += network
 #QT             += qml
 
-INCLUDEPATH    += ../.. \
-                  ../../common
+INCLUDEPATH    += ../../lib
 
 # TAG is specified by auto build system
 # this is needed since non head versions which are checkedout and build
