@@ -46,7 +46,7 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 5
+          "refresh.interval": 365
         },
         {
           "name": "state/reachable"
@@ -118,7 +118,7 @@
             "ep": 1,
             "eval": "Item.val = Attr.val"
           },
-          "refresh.interval": 100
+          "refresh.interval": 365
         },
         {
           "name": "state/lastupdated"
@@ -137,7 +137,7 @@
             "ep": 1,
             "eval": "Item.val = Attr.val"
           },
-          "refresh.interval": 100
+          "refresh.interval": 365
         },
         {
           "name": "state/voltage",
@@ -153,7 +153,7 @@
             "ep": 1,
             "eval": "Item.val = Attr.val"
           },
-          "refresh.interval": 100
+          "refresh.interval": 365
         }
       ]
     },
@@ -222,7 +222,7 @@
             "ep": 0,
             "eval": "Item.val = Attr.val * 10"
           },
-          "refresh.interval": 10
+          "refresh.interval": 365
         },
         {
           "name": "state/lastupdated"
