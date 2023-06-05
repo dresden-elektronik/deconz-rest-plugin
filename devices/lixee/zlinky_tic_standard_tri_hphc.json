@@ -51,7 +51,7 @@
         },
         {
           "name": "state/current",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "read": {
             "at": "0x0508",
             "cl": "0x0b04",
@@ -71,7 +71,7 @@
         },
         {
           "name": "state/power",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "read": {
             "at": "0x050F",
             "cl": "0x0b04",
@@ -88,7 +88,7 @@
         },
         {
           "name": "state/voltage",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "read": {
             "at": "0x0505",
             "cl": "0x0b04",
@@ -149,7 +149,7 @@
         },
         {
           "name": "state/current",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "read": {
             "at": "0x0908",
             "cl": "0x0b04",
@@ -169,7 +169,7 @@
         },
         {
           "name": "state/power",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "read": {
             "at": "0x090F",
             "cl": "0x0b04",
@@ -186,7 +186,7 @@
         },
         {
           "name": "state/voltage",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "read": {
             "at": "0x0905",
             "cl": "0x0b04",
@@ -247,7 +247,7 @@
         },
         {
           "name": "state/current",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "read": {
             "at": "0x0a08",
             "cl": "0x0b04",
@@ -267,7 +267,7 @@
         },
         {
           "name": "state/power",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "read": {
             "at": "0x0A0F",
             "cl": "0x0b04",
@@ -284,7 +284,7 @@
         },
         {
           "name": "state/voltage",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "read": {
             "at": "0x0a05",
             "cl": "0x0b04",
@@ -345,7 +345,7 @@
         },
         {
           "name": "state/consumption",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "read": {
             "at": "0x0100",
             "cl": "0x0702",
@@ -362,7 +362,7 @@
         },
         {
           "name": "state/consumption_2",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "read": {
             "at": "0x0102",
             "cl": "0x0702",
@@ -378,7 +378,7 @@
         },
         {
           "name": "state/power",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "read": {
             "at": "0x0306",
             "cl": "0x0b04",
@@ -442,7 +442,7 @@
         },
         {
           "name": "state/alarm",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "read": {
             "at": "0x0005",
             "cl": "0xff66",
