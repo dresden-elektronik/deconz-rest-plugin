@@ -116,7 +116,4 @@ unsigned endpointFromUniqueId(const QString &uniqueId);
 bool copyString(char *dst, size_t dstSize, const char *src, ssize_t srcSize = -1);
 inline bool isEmptyString(const char *str) { return str && str[0] == '\0'; }
 
-void aesMmoHash(uint &length, std::vector<unsigned char> &result, std::vector<unsigned char> &data);
-QByteArray getMmoHashFromInstallCode(std::string hexString);
-
 #endif // UTILS_H

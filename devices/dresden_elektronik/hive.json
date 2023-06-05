@@ -100,11 +100,11 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 305
+          "refresh.interval": 365
         },
         {
           "name": "state/bri",
-          "refresh.interval": 305
+          "refresh.interval": 365
         },
         {
           "name": "state/x",
@@ -121,7 +121,7 @@
               "0x0008"
             ]
           },
-          "refresh.interval": 305
+          "refresh.interval": 365
         },
         {
           "name": "state/y",
@@ -219,7 +219,7 @@
         },
         {
           "name": "state/battery",
-          "refresh.interval": 305
+          "refresh.interval": 365
         },
         {
           "name": "state/lastupdated"

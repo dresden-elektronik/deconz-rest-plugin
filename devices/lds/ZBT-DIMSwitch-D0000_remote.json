@@ -1,0 +1,86 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "LDS",
+  "modelid": "ZBT-DIMSwitch-D0000",
+  "product": "LDS battery switch",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_SWITCH",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0006"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "refresh.interval": 86400,
+          "awake": true,
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2;",
+            "fn": "zcl"
+          }
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/buttonevent"
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0006"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0008"
+    }
+  ]
+}

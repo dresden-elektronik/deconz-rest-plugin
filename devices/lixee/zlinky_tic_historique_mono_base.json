@@ -50,7 +50,7 @@
         },
         {
           "name": "state/current",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "read": {
             "at": "0x0508",
             "cl": "0x0b04",
@@ -69,7 +69,7 @@
         },
         {
           "name": "state/power",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "read": {
             "at": "0x050f",
             "cl": "0x0b04",
@@ -85,7 +85,7 @@
         },
         {
           "name": "state/voltage",
-          "refresh.interval": 300
+          "refresh.interval": 365
         }
       ]
     },
@@ -133,7 +133,7 @@
         },
         {
           "name": "state/consumption",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "read": {
             "at": "0x0100",
             "cl": "0x0702",
@@ -196,7 +196,7 @@
         },
         {
           "name": "state/alarm",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "read": {
             "at": "0x0005",
             "cl": "0xff66",

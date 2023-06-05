@@ -172,7 +172,7 @@
             <value name="Wall Switch" value="0xe1"></value>
             <value name="Portable Remote Controller" value="0xe2"></value>
             <value name="Motion or Light Sensor" value="0xe3"></value>
-	          <!-- 0xe4 to 0xef Reserved -->
+            <!-- 0xe4 to 0xef Reserved -->
             <value name="Actuator" value="0xf0"></value>
             <value name="Wall Socket" value="0xf1"></value>
             <value name="Gateway or Bridge" value="0xf2"></value>
@@ -183,10 +183,10 @@
           <attribute id="0x000a" name="Product code" type="ostring" access="r" required="o" >
             <description>As printed on the product.</description>
           </attribute>
-	  <attribute id="0x000b" name="Product URL" type="cstring" access="r" required="o" range="0,50"></attribute>
-	  <attribute id="0x000c" name="Manufacturer Version Details" type="cstring" access="r" required="o"></attribute>
-	  <attribute id="0x000d" name="Serial Number" type="cstring" access="r" required="o"></attribute>
-	  <attribute id="0x000e" name="Product Label" type="cstring" access="r" required="o"></attribute>
+    <attribute id="0x000b" name="Product URL" type="cstring" access="r" required="o" range="0,50"></attribute>
+    <attribute id="0x000c" name="Manufacturer Version Details" type="cstring" access="r" required="o"></attribute>
+    <attribute id="0x000d" name="Serial Number" type="cstring" access="r" required="o"></attribute>
+    <attribute id="0x000e" name="Product Label" type="cstring" access="r" required="o"></attribute>
           <attribute id="0x4000" name="SW Build ID" type="cstring" access="r" required="o" range="0,16"></attribute>
           <attribute id="0xff0d" name="Xiaomi Sensitivity" type="u8" access="rw" required="o" mfcode="0x115f"></attribute>
           <attribute id="0xff22" name="Xiaomi Disconnect 1" type="u8" showas="hex" access="rw" required="o" mfcode="0x115f">
@@ -197,9 +197,9 @@
           </attribute>
           <!-- <attribute id="0xff0d" name="Xiaomi Sensitivity" type="u8" access="rw" required="o" mfcode="0x1037"></attribute> -->
           <attribute id="0xfffd" name="Cluster Revision" type="u16" default="0" access="rw" required="o"></attribute>
-	  <attribute id="0xfffe" name="Tuya magic spell final attribute" type="enum8" default="0" access="rw" required="o">
-		<description>Read attributes in this order Manufacturer name,ZCL version,Application version,Model Identifier,Power source and finally this one"</description>
-	  </attribute>
+    <attribute id="0xfffe" name="Tuya magic spell final attribute" type="enum8" default="0" access="rw" required="o">
+    <description>Read attributes in this order Manufacturer name,ZCL version,Application version,Model Identifier,Power source and finally this one"</description>
+    </attribute>
         </attribute-set>
         <attribute-set id="0x0010" description="Basic Device Settings">
           <attribute id="0x0010" name="Location Description" type="cstring" range="0,16" access="rw" required="o"></attribute>
@@ -311,9 +311,9 @@
             <value name="Dental Surgery Room" value="0x6d"></value>
             <value name="Medical Imaging Room" value="0x6e"></value>
             <value name="Decontamination Room" value="0x6f"></value>
-  		  		<value name="Atrium" value="0x70"></value>
-	          <value name="Mirror" value="0x71"></value>
-	    			<value name="Unknown Environment" value="0xff"></value>
+            <value name="Atrium" value="0x70"></value>
+            <value name="Mirror" value="0x71"></value>
+            <value name="Unknown Environment" value="0xff"></value>
           </attribute>
           <attribute id="0x0012" name="Device Enabled" type="bool" default="1" access="rw" required="o">
             <value name="Disabled" value="0"></value>
@@ -384,6 +384,16 @@
           <attribute id="0x8020" name="Primary HW Version" type="ostring" access="r" required="m" mfcode="0x1015"></attribute>
           <attribute id="0x8030" name="Primary HW name" type="ostring" access="r" required="m" mfcode="0x1015"></attribute>
           <attribute id="0x8050" name="Primary SW Version 3rd Party" type="ostring" access="r" required="m" mfcode="0x1015"></attribute>
+        </attribute-set>
+        <attribute-set id="0xe000" description="Schneider specific" mfcode="0x105e">
+          <attribute id="0xe001" name="Application FW Version" type="cstring" access="r" required="o" mfcode="0x105e"></attribute>
+          <attribute id="0xe002" name="Application HW Version" type="cstring" access="r" required="o" mfcode="0x105e"></attribute>
+          <attribute id="0xe004" name="Serial Number" type="cstring" access="r" required="o" mfcode="0x105e"></attribute>
+          <attribute id="0xe007" name="Product Indentifier" type="enum16" access="r" required="o" mfcode="0x105e"></attribute>
+          <attribute id="0xe008" name="Product Range" type="cstring" access="r" required="o" mfcode="0x105e"></attribute>
+          <attribute id="0xe009" name="Product Model" type="cstring" access="r" required="o" mfcode="0x105e"></attribute>
+          <attribute id="0xe00a" name="Product Family" type="cstring" access="r" required="o" mfcode="0x105e"></attribute>
+          <attribute id="0xe00b" name="Vendor URL" type="cstring" access="r" required="o" mfcode="0x105e"></attribute>
         </attribute-set>
         <attribute-set id="0xFF00" description="Xiaomi specific" mfcode="0x1037">
           <attribute id="0xFF0D" name="Xiaomi Sensitivity" type="u8" access="rw" required="o" mfcode="0x115f"></attribute>
@@ -795,6 +805,7 @@
           <attribute id="0x4003" name="StartUp OnOff" type="enum8" access="rw" default="0x01" required="o">
             <value name="Off" value="0x00"></value>
             <value name="On" value="0x01"></value>
+            <value name="Toggle" value="0x02"></value>
             <value name="Previous" value="0xff"></value>
           </attribute>
         </attribute-set>
@@ -821,6 +832,13 @@
                 <value name="Command Mode (Light OnOff/Dimmer commands)" value="0"></value>
                 <value name="Event Mode (Tuya Scene commands)" value="1"></value>
             </attribute>
+        </attribute-set>
+        <attribute-set id="0xe000" description="Schneider specific" mfcode="0x105e">
+          <attribute id="0xe001" name="On Time Reload" type="u32" access="rw" required="o" mfcode="0x105e">
+            <description>Defines number of  seconds before the light is switched off automaticaly. Time is in seconds.
+              Value 0 disables the functionality. When brightness is changed, or ON command is received, timer is always restarted.
+              Check On Time Reload Options for possible impulse modes (if attribute is implemented).</description>
+          </attribute>
         </attribute-set>
         <command id="00" dir="recv" name="Off" required="m">
           <description>On receipt of this command, a device shall enter its 'Off' state. This state is device dependent, but it is recommended that it is used for power off or similar functions.</description>
@@ -2041,7 +2059,7 @@
           <attribute id="0xf000" name="Window cover status" type="enum8" required="m" access="rw">
             <value name="Up/open" value="0"></value>
             <value name="Down/close" value="1"></value>
-	    <value name="Stop" value="2"></value>
+            <value name="Stop" value="2"></value>
           </attribute>
           <attribute id="0xf001" name="Calibration" type="enum8" default="0" required="m" access="rw">
             <value name="Start" value="0"></value>
@@ -2053,33 +2071,52 @@
           </attribute>
           <attribute id="0xf003" name="Calibration time (tenth of a second)" type="u16" default="0x0000" required="m" access="rw"></attribute>
         </attribute-set>
-        <attribute-set id="0xe000" description="Merten specific" mfcode="0x105e">
-          <attribute id="0xe000" name="Cover run time" type="u16" default="0" required="m" access="rw" mfcode="0x105e"></attribute>
-          <attribute id="0xe010" name="Unknown" type="bmp8" required="m" access="r" mfcode="0x105e">
-            <value name="Unknown (0)" value="0"></value>
-            <value name="Unknown (1)" value="1"></value>
-            <value name="Unknown (2)" value="2"></value>
-            <value name="Unknown (3)" value="3"></value>
-            <value name="Unknown (4)" value="4"></value>
-            <value name="Unknown (5)" value="5"></value>
-            <value name="Unknown (6)" value="6"></value>
-            <value name="Unknown (7)" value="7"></value>
+        <attribute-set id="0xe000" description="Schneider specific" mfcode="0x105e">
+          <attribute id="0xe000" name="Drive Close Duration" type="u16" default="120" required="o" access="rw" mfcode="0x105e">
+            <description>Obsolete (only because backward compatibility).
+              Driving time from fully open to fully close state in seconds. If possible, use Lift Drive Up Time, Lift Drive Down Time.
+              If you set this time, also both (Lift Drive Up Time, Lift Drive Down Time) are set to this value automatically.</description>
           </attribute>
-          <attribute id="0xe012" name="Unknown" type="u16" default="0" required="m" access="rw" mfcode="0x105e"></attribute>
-          <attribute id="0xe013" name="Unknown" type="bmp8" required="m" access="r" mfcode="0x105e">
-            <value name="Unknown (0)" value="0"></value>
-            <value name="Unknown (1)" value="1"></value>
-            <value name="Unknown (2)" value="2"></value>
-            <value name="Unknown (3)" value="3"></value>
-            <value name="Unknown (4)" value="4"></value>
-            <value name="Unknown (5)" value="5"></value>
-            <value name="Unknown (6)" value="6"></value>
-            <value name="Unknown (7)" value="7"></value>
+          <attribute id="0xe010" name="Protection Status" type="bmp8" required="o" access="r" mfcode="0x105e">
+            <description>The Protection Status attribute specifies the status of the different protections of the device. Can be active only
+              if Protection Sensor attribute is set (protection sensor as external device must be connected to device).
+              Bit0: 0 = sun protection not active, 1 = sun protection active.
+              Other bits reserved.</description>
+            <value name="Sun protection active" value="0"></value>
           </attribute>
-          <attribute id="0xe014" name="Cover run time (open)" type="u16" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
-          <attribute id="0xe015" name="Cover run time (close)" type="u16" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
-          <attribute id="0xe016" name="Unknown" type="u16" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
-          <attribute id="0xe017" name="Unknown" type="u8" default="0" required="m" access="rw" mfcode="0x105e"> </attribute>
+          <attribute id="0xe012" name="Sun Protection Illuminance Threshold" type="u16" default="32767" required="o" access="rw" mfcode="0x105e">
+            <description>Default value in lux is 1862 Lux. Value in attribute = 10000 x log10 1862 = 10000 x3.26 = around 32767.
+              The Sun Protection Illuminance Threshold attribute specifies the illuminance level above which the device enters Sun Protection mode
+              if enabled (if ProtectionSensor attribute is set = protection sensor is connected to device).
+              Sun Protection Illuminance Threshold represents illuminance in Lux (symbol lx) as follows:
+              Sun Protection Illuminance Threshold = 10,000 x log10 Illuminance
+              Where 1lx gt Illuminance gt 3.576 Mlx, corresponding to a SunProtectionIlluminanceThreshold in the range 0 to 0xfffe. A value of 0xffff indicates that this attribute is not valid.</description>
+          </attribute>
+          <attribute id="0xe013" name="Protection Sensor" type="bmp8" required="m" access="r" mfcode="0x105e">
+            <description>The ProtectionSensor attribute specifies if the sun protection sensor (as external device) is connected or device
+              receives measurement from a type of protection sensor (either local wired or wireless).
+              Bit0: 0 = sun protection sensor not connected, 1 = sun protection sensor connected
+              Other bits reserved.</description>
+            <value name="Sun protection sensor connected" value="0"></value>
+          </attribute>
+          <attribute id="0xe014" name="Lift Drive Up Time" type="u16" default="1200" required="o" access="rw" mfcode="0x105e">
+            <description>Driving time from fully close to fully open state in1 /10 seconds.</description>
+          </attribute>
+          <attribute id="0xe015" name="Lift Drive Down Time" type="u16" default="1200" required="o" access="rw" mfcode="0x105e">
+            <description>Driving time from fully open to fully close state in 1/10 seconds.</description>
+          </attribute>
+          <attribute id="0xe016" name="Tilt Open Close And Step Time" type="u16" default="100" required="o" access="rw" mfcode="0x105e">
+            <description>Time from fully open to fully close tilt position in 1/100 seconds. This time is also taken as base for calculation of
+              step size in Schneider manufacture specific command Stop Or Step Lift Percentage. If set to 0, WindosCoveringType attribute is automatically set to 0 (lift only)</description>
+          </attribute>
+          <attribute id="0xe017" name="Tilt Position Percentage After Move To Level" type="u8" default="0xFF" required="o" access="rw" mfcode="0x105e">
+            <description>Tilt position in percent adopted by tilt after receiving go to lift percentage command. Values 0-100 are absolute position of
+              tilt with following meaning:
+              100: Position of tilt when shutter is moving up (usually up).
+              0: Position of tilt when shutter is moving down (usually down).
+              255: No action after command.
+              101-254: Tilt position before movement is restored.</description>
+          </attribute>
         </attribute-set>
         <attribute-set id="0x1000" description="Ubisys specific" mfcode="0x10f2">
           <attribute id="0x1000" name="Turnaround Guard Time" type="u8" default="0" required="m" access="rw" mfcode="0x10f2"></attribute>
@@ -6108,13 +6145,32 @@ Writing 1 to 0x0202 and 0x0302 makes 0x0300 writable. Then writing 1 to 0x0300 s
     <cluster id="0xfc04" name="Schneider specific" mfcode="0x105e">
       <description>Schneider manufacturer-specifc cluster.</description>
       <server>
-        <attribute id="0x0000" name="Unknown" type="u8" mfcode="0x105e" access="rw" required="m"></attribute>
-        <attribute id="0x0002" name="LED indication" type="u8" mfcode="0x105e" access="rw" required="m">
+        <attribute id="0x0000" name="Indicator Luminance Level" type="u8" default="0" mfcode="0x105e" access="rw" required="o">
+          <description>Brightness of indication front LED.
+            0 = 100 percent
+            1 = 80 percent
+            2 = 60 percent
+            3 = 40 percent
+            4 = 20 percent
+            5 = 0 percent</description>
+        </attribute>
+        <attribute id="0x0002" name="LED indication" type="u8" default="1" mfcode="0x105e" access="rw" required="m">
           <description>Allows to select the LED indicator mode:
-          0: Consistent With Load - The LED on the Socket Outlet is On when the device is On
-          1: Reverse With Load - The LED on the Socket Outlet is On when the device is Off
-          2: Always Off - The LED on the Socket Outlet is always Off
-          3: Always On - The LED on the Socket Outlet is always On</description>
+            0: Consistent With Load - The LED on the Socket Outlet is On when the device is On
+            1: Reverse With Load - The LED on the Socket Outlet is On when the device is Off
+            2: Always Off - The LED on the Socket Outlet is always Off
+            3: Always On - The LED on the Socket Outlet is always On</description>
+        </attribute>
+        <attribute id="0x0050" name="Local Control" type="enum8" default="0" mfcode="0x105e" access="rw" required="m">
+          <description>0 = local control is active
+            1 = local control is inactive
+            User can not:
+            A) control device locally (OF/OFF)
+            B) activate e-mode
+            User can:
+            A) clear alarm locally</description>
+          <value name="Local control is active" value="0"></value>
+          <value name="Local control is inactive" value="1"></value>
         </attribute>
         <attribute id="0xfffd" name="Cluster revision" type="u16" mfcode="0x105e" default="1" access="r" required="m"></attribute>
       </server>
@@ -6125,17 +6181,19 @@ Writing 1 to 0x0202 and 0x0302 makes 0x0300 writable. Then writing 1 to 0x0300 s
     <cluster id="0xff17" name="Schneider specific" mfcode="0x105e">
       <description>Schneider manufacturer-specifc cluster.</description>
       <server>
-        <attribute id="0x0000" name="Leds" type="enum8" mfcode="0x105e" access="rw" required="m">
-          <value name="Orientation led off / Movement led on" value="0"></value>
-          <value name="Orientation led on / Movement led on" value="1"></value>
-          <value name="Orientation led on / Movement led off" value="2"></value>
-          <value name="Orientation led off / Movement led off" value="3"></value>
-          <value name="Unknown (4)" value="4"></value>
-          <value name="Unknown (5)" value="5"></value>
-          <value name="Unknown (6)" value="6"></value>
-          <value name="Unknown (7)" value="7"></value>
+        <attribute id="0x0000" name="Switch Indication" type="enum8" mfcode="0x105e" access="rw" required="m">
+          <description>Attribute is shared between all endpoints where this cluster is presented.
+            Attribute defines the meaning of indicator (LED) on the device, which provides the feedback to user about state of output.
+          </description>
+          <value name="Indicator is on when load is on" value="0"></value>
+          <value name="Indicator is always on" value="1"></value>
+          <value name="Indicator is on when load is off" value="2"></value>
+          <value name="Indicator is always off" value="3"></value>
         </attribute>
-        <attribute id="0x0001" name="Mode" type="enum8" mfcode="0x105e" access="rw" required="m">
+        <attribute id="0x0001" name="Switch Actions" type="enum8" mfcode="0x105e" access="rw" required="m">
+          <description>Default values depends on endpoint and device type. More info you find in device description.
+            If value is one of non defined, switch does not send any action when pressed.
+          </description>
           <value name="Lift (locked)" value="0"></value>
           <value name="Lift and tilt (locked)" value="1"></value>
           <value name="Lift (unlocked)" value="2"></value>
@@ -6145,10 +6203,28 @@ Writing 1 to 0x0202 and 0x0302 makes 0x0300 writable. Then writing 1 to 0x0300 s
           <value name="Unknown (6)" value="6"></value>
           <value name="Unknown (7)" value="7"></value>
         </attribute>
-        <attribute id="0x0010" name="Unknown" type="u8" mfcode="0x105e" access="rw" required="m"></attribute>
-        <attribute id="0x0011" name="Unknown" type="u16" mfcode="0x105e" access="rw" required="m"></attribute>
-        <attribute id="0x0020" name="Unknown" type="u8" mfcode="0x105e" access="rw" required="m"></attribute>
-        <attribute id="0x0021" name="Unknown" type="u16" mfcode="0x105e" access="rw" required="m"></attribute>
+        <attribute id="0x0010" name="Up Scene ID" type="u8" mfcode="0x105e" access="rw" required="m">
+          <description>The Up Scene ID attribute represents the Scene Id field value of any Scene command cluster transmitted by the
+            device when user activates is rocker up side according to the rocker configuration. See Switch Actions attribute.
+          </description>
+        </attribute>
+        <attribute id="0x0011" name="Up Group ID" type="u16" mfcode="0x105e" access="rw" required="m">
+        <description>The Up Group ID attribute represents the Group Id field value of any Scene command cluster transmitted by the
+          device when user activates is rocker up side according to the rocker configuration. Value greater than 0xFFF7 means, no
+          command is sent. See Switch Actions attribute.
+        </description>
+        </attribute>
+        <attribute id="0x0020" name="Down Scene ID" type="u8" mfcode="0x105e" access="rw" required="m">
+        <description>The Down Scene ID attribute represents the Scene Id field value of any Scene command cluster transmitted by the
+          device when user activates is rocker down side according to the rocker configuration. See Switch Actions attribute.
+        </description>
+        </attribute>
+        <attribute id="0x0021" name="Down Group ID" type="u16" mfcode="0x105e" access="rw" required="m">
+        <description>The Down Group ID attribute represents the Group Id field value of any Scene command cluster transmitted by the
+          device when user activates is rocker down side according to the rocker configuration. Value greater than 0xFFF7 means, no
+          command is sent. See Switch Actions attribute.
+        </description>
+        </attribute>
         <attribute id="0xfffd" name="Cluster Revision" type="u16" mfcode="0x105e" access="r" required="m"></attribute>
       </server>
       <client>
