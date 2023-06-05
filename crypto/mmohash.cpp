@@ -1,11 +1,9 @@
-#ifndef HAS_OPENSSL
-  #error "OpenSSL required"
-#endif
+#include "crypto/mmohash.h"
+
+#ifdef HAS_OPENSSL
 
 #include <QLibrary>
 #include <openssl/evp.h>
-
-#include "crypto/mmohash.h"
 
 #define AES_BLOCK_SIZE 16
 
@@ -211,3 +209,14 @@ bool CRYPTO_GetMmoHashFromInstallCode(const std::string &hexString, std::vector<
 
     return true;
 }
+
+#else // ! HAS_OPENSSL
+
+bool CRYPTO_GetMmoHashFromInstallCode(const std::string &hexString, std::vector<unsigned char> &result)
+{
+    (void)hexString;
+    (void)result;
+    return false;
+}
+
+#endif // HAS_OPENSSL
