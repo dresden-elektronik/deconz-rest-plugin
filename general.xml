@@ -6230,6 +6230,201 @@ Writing 1 to 0x0202 and 0x0302 makes 0x0300 writable. Then writing 1 to 0x0300 s
       <client>
       </client>
     </cluster>
+   		<!-- Amazon Lab -->
+    <cluster id="0xfc57" name="Amazon lab WWAHu Specific cluster" mfcode="0x1217">
+			<description>This cluster provides an opportunity to use various features of the Work With All Hubs cluster.
+The WWAH cluster shall exist on only 1 endpoint of the Zigbee node. All configurations/command settings in this cluster shall be persisted across power cycles and rejoins. Only a device factory reset can reset this cluster and put it back to default settings.</description>
+			<server>
+			<attribute id="0x0002" name="CLUSTER_REVISION" type="u16" access="r" default="0x0001" range="0x0001,0xffff" required="o">
+					<description>If set to TRUE, the device SHALL disallow downgrades of it's firmware.</description>
+                        </attribute>
+			<attribute id="0x0002" name="DISABLE_OTA_DOWNGRADES" type="bool" access="r" required="o">
+					<description>If set to TRUE, the device SHALL disallow downgrades of it's firmware.</description>
+                        </attribute>
+			<attribute id="0x0003" name="MGMT_LEAVE_WITHOUT_REJOIN_ENABLED" type="bool" access="r" default="true" required="o">
+					<description>If set to FALSE, the node SHALL ignore MGMT Leave Without Rejoin commands.</description>
+                        </attribute>
+			<attribute id="0x0004" name="NWK_RETRY_COUNT" type="u8" access="r" range="0x03,0xff" required="o">
+					<description>This attribute is a fixed value containing the number of Network Level Retries the device performs when sending a unicast command, not including APS retries.</description>
+                        </attribute>
+			<attribute id="0x0005" name="MAC_RETRY_COUNT" type="u8" access="r" range="0x03,0xff" required="o">
+					<description>This attribute is a fixed value containing the number of MAC Level Retries the device performs when sending a unicast command, not including APS retries.</description>
+                        </attribute>
+			<attribute id="0x0006" name="ROUTER_CHECK_IN_ENABLED" type="bool" access="r" default="false" required="o">
+					<description>This attribute is set to TRUE if the router's check-in algorithm has been enabled through the 'Enable Periodic Router Check-Ins' command.</description>
+                        </attribute>
+			<attribute id="0x0007" name="TOUCHLINK_INTERPAN_ENABLED" type="bool" access="r" required="o">
+					<description>This attribute is set to FALSE if support for Touchlink Interpan messages has been disabled on the device.</description>
+                        </attribute>
+			<attribute id="0x0008" name="PARENT_CLASSIFICATION_ENABLED" type="bool" access="r" default="false" required="o">
+					<description>If set to TRUE, the device SHALL enable the WWAH Parent Classification Advertisements feature.</description>
+                        </attribute>
+			<attribute id="0x0009" name="APP_EVENT_RETRY_ENABLED" type="bool" access="r" default="true" required="o">
+					<description>This attribute is TRUE if the WWAH Application Event Retry Algorithm is enabled.</description>
+                        </attribute>
+			<attribute id="0x000A" name="APP_EVENT_RETRY_QUEUE_SIZE" type="u8" access="rw" default="10" range="10,0xFF" required="o">
+					<description>This attribute is the queue size for re-delivery attempts in the WWAH Application Event Retry Algorithm.</description>
+                        </attribute>
+			<attribute id="0x000B" name="REJOIN_ENABLED" type="bool" access="r" default="false" required="o">
+					<description>This attribute is set to TRUE if the WWAH Rejoin Algorithm is enabled.</description>
+                        </attribute>
+			<attribute id="0x000C" name="MAC_POLL_FAILURE_WAIT_TIME" type="u8" default="3" range="0x00,0xff" access="r" required="o">
+					<description>This attribute is the time in seconds the device waits before retrying a data poll when a MAC level data poll fails for any reason.</description>
+                        </attribute>
+			<attribute id="0x000D" name="CONFIGURATION_MODE_ENABLED" type="bool" access="r" dfault="false" required="o">
+					<description>This attribute indicates whether the device is able to be configured using ZDO commands that are not encrypted using the Trust Center Link Key.</description>
+                        </attribute>
+			<attribute id="0x000E" name="CURRENT_DEBUG_REPORT_ID" type="u16" access="r" range="0x00,0xFF" required="o">
+					<description>This attribute contains the ID of the current debug report stored on the node.</description>
+                        </attribute>
+			<attribute id="0x000F" name="TC_SECURITY_ON_NWK_KEY_ROTATION_ENABLED" type="bool" access="r" default="false" required="o">
+					<description>If this attribute is set to TRUE, the node SHALL only process network key rotation commands which are sent via unicast and are encrypted by the Trust Center Link Key.</description>
+                        </attribute>
+			<attribute id="0x0010" name="WWAH_BAD_PARENT_RECOVERY_ENABLED" type="bool" access="r" default="false" required="o">
+					<description>If this attribute is set to TRUE, the endpoint device SHALL enable the WWAH Bad Parent Recovery feature.</description>
+                        </attribute>
+			<attribute id="0x0011" name="PENDING_NETWORK_UPDATE_CHANNEL" type="u8" access="r" default="0xFF" range="0x00,0xff" required="o">
+					<description>This attribute contains the channel number of the only channel the device SHALL accept in a ZDO Mgmt Network Update command.</description>
+                        </attribute>
+			<attribute id="0x0012" name="PENDING_NETWORK_UPDATE_PANID" type="u16" access="r" default="0xffff" range="0x0000,0xffff" required="o">
+					<description>This attribute contains the only short PAN ID the device SHALL accept in a NLME Network Update command.</description>
+                        </attribute>
+			<attribute id="0x0013" name="OTA_MAX_OFFLINE_DURATION" type="u16" access="r" default="0xffff" range="0x0000,0xffff" required="o">
+					<description>This attribute contains the maximum time in seconds the device may be unavailable after completing its OTA download (while restarting, etc).</description>
+                        </attribute>
+            <command id="0x00" dir="recv" name="ENABLE_APS_LINK_KEY_AUTHORIZATION" required="m">
+              <description>Enable APS Link Key Authorization command</description>
+            </command>
+            <command id="0x01" dir="recv" name="DISABLE_APS_LINK_KEY_AUTHORIZATION" required="m">
+              <description>Disable APS Link Key Authorization command</description>
+            </command>
+            <command id="0x02" dir="recv" name="APS_LINK_KEY_AUTHORIZATION_QUERY" required="m">
+              <description>APS Link Key Authorization Query command</description>
+            </command>
+            <command id="0x03" dir="recv" name="REQUEST_NEW_APS_LINK_KEY" required="m">
+              <description>Request New APS Link Key command</description>
+            </command>
+            <command id="0x04" dir="recv" name="ENABLE_WWAH_APP_EVENT_RETRY_ALGORITHM" required="m">
+              <description>Enable WWAH App Event Retry Algorithm command</description>
+            </command>
+            <command id="0x05" dir="recv" name="DISABLE_WWAH_APP_EVENT_RETRY_ALGORITHM" required="m">
+              <description>Disable WWAH App Event Retry Algorithm command</description>
+            </command>
+            <command id="0x06" dir="recv" name="REQUEST_TIME" required="m">
+              <description>Request Time command</description>
+            </command>
+            <command id="0x07" dir="recv" name="ENABLE_WWAH_REJOIN_ALGORITHM" required="m">
+              <description>Enable WWAH Rejoin Algorithm command</description>
+            </command>
+            <command id="0x08" dir="recv" name="DISABLE_WWAH_REJOIN_ALGORITHM" required="m">
+              <description>Disable WWAH Rejoin Algorithm command</description>
+            </command>
+            <command id="0x09" dir="recv" name="SET_IAS_ZONE_ENROLLMENT_METHOD" required="m">
+              <description>Set IAS Zone Enrollment Method command</description>
+            </command>
+            <command id="0x09" dir="recv" name="SET_IAS_ZONE_ENROLLMENT_METHOD" required="m">
+              <description>Set IAS Zone Enrollment Method command</description>
+            </command>
+            <command id="0x0A" dir="recv" name="CLEAR_BINDING_TABLE" required="m">
+              <description>Clear Binding Table command</description>
+            </command>
+            <command id="0x0B" dir="recv" name="ENABLE_PERIODIC_ROUTER_CHECK_INS" required="m">
+              <description>Enable Periodic Router Check Ins command</description>
+            </command>
+            <command id="0x0C" dir="recv" name="DISABLE_PERIODIC_ROUTER_CHECK_INS" required="m">
+              <description>Disable Periodic Router Check Ins command</description>
+            </command>
+            <command id="0x0D" dir="recv" name="SET_MAC_POLL_CCA_WAIT_TIME" required="m">
+              <description>Set MAC Poll CCA Wait Time command</description>
+            </command>
+            <command id="0x0E" dir="recv" name="SET_PENDING_NETWORK_UPDATE" required="m">
+              <description>Set Pending Network Update command</description>
+            </command>
+            <command id="0x0F" dir="recv" name="REQUIRE_APS_ACKS_ON_UNICASTS" required="m">
+              <description>Require APS ACKs on Unicasts command</description>
+            </command>
+            <command id="0x10" dir="recv" name="REMOVE_APS_ACKS_ON_UNICASTS_REQUIREMENT" required="m">
+              <description>Remove APS ACKs on Unicasts Requirement command</description>
+            </command>
+            <command id="0x11" dir="recv" name="APS_ACK_REQUIREMENT_QUERY" required="m">
+              <description>APS ACK Requirement Query command</description>
+            </command>
+            <command id="0x12" dir="recv" name="DEBUG_REPORT_QUERY" required="m">
+              <description>Debug Report Query command</description>
+            </command>
+            <command id="0x13" dir="recv" name="SURVEY_BEACONS" required="m">
+              <description>Survey Beacons command</description>
+            </command>
+            <command id="0x14" dir="recv" name="DISABLE_OTA_DOWNGRADES" required="m">
+              <description>Disable OTA Downgrades command</description>
+            </command>
+            <command id="0x15" dir="recv" name="DISABLE_MGMT_LEAVE_WITHOUT_REJOIN" required="m">
+              <description>Disable MGMT Leave Without Rejoin command</description>
+            </command>
+            <command id="0x16" dir="recv" name="DISABLE_TOUCHLINK_INTERPAN_MESSAGE_SUPPORT" required="m">
+              <description>Disable Touchlink Interpan Message Support command</description>
+            </command>
+            <command id="0x17" dir="recv" name="ENABLE_WWAH_PARENT_CLASSIFICATION" required="m">
+              <description>Enable WWAH Parent Classification command</description>
+            </command>
+			<command id="0x18" dir="recv" name="DISABLE_WWAH_PARENT_CLASSIFICATION" required="m">
+              <description>Disable WWAH Parent Classification command</description>
+            </command>
+			<command id="0x19" dir="recv" name="ENABLE_TC_SECURITY_ON_NWK_KEY_ROTATION" required="m">
+              <description>Enable TC Security On Nwk Key Rotation command</description>
+            </command>
+			<command id="0x1A" dir="recv" name="ENABLE_WWAH_BAD_PARENT_RECOVERY" required="m">
+              <description>Enable WWAH Bad Parent Recovery command</description>
+            </command>
+			<command id="0x1B" dir="recv" name="DISABLE_WWAH_BAD_PARENT_RECOVERY" required="m">
+              <description>Disable WWAH Bad Parent Recovery command</description>
+            </command>
+			<command id="0x1C" dir="recv" name="ENABLE_CONFIGURATION_MODE" required="m">
+			  <description>Enable Configuration Mode command</description>
+            </command>
+			<command id="0x1D" dir="recv" name="DISABLE_CONFIGURATION_MODE" required="m">
+              <description>Disable Configuration Mode command</description>
+            </command>
+			<command id="0x1E" dir="recv" name="USE_TRUST_CENTER_FOR_CLUSTER" required="m">
+              <description>Use Trust Center for Cluster command</description>
+            </command>
+			<command id="0x1F" dir="recv" name="TRUST_CENTER_FOR_CLUSTER_SERVER_QUERY" required="m">
+              <description>Trust Center for Cluster Server Query command</description>
+            </command>
+			</server>
+			<client>
+			<command id="0x00" dir="recv" name="APS_LINK_KEY_AUTHORIZATION_QUERY_RESPONSE" required="m">
+              <description>APS Link Key Authorization Query Response command</description>
+            </command>
+			<command id="0x01" dir="recv" name="POWERING_OFF_NOTIFICATION" required="m">
+              <description>Powering Off Notification command</description>
+            </command>
+			<command id="0x02" dir="recv" name="POWERING_ON_NOTIFICATION" required="m">
+              <description>Powering On Notification command</description>
+            </command>
+			<command id="0x03" dir="recv" name="SHORT_ADDRESS_CHANGE" required="m">
+              <description>Short Address Change command</description>
+            </command>
+			<command id="0x04" dir="recv" name="APS_ACK_REQUIREMENT_QUERY_RESPONSE" required="m">
+              <description>APS ACK Requirement Query Response command</description>
+            </command>
+			<command id="0x05" dir="recv" name="POWER_DESCRIPTOR_CHANGE" required="m">
+              <description>Power Descriptor Change command</description>
+            </command>
+			<command id="0x06" dir="recv" name="NEW_DEBUG_REPORT_NOTIFICATION" required="m">
+              <description>New Debug Report Notification command</description>
+            </command>
+			<command id="0x07" dir="recv" name="DEBUG_REPORT_QUERY_RESPONSE" required="m">
+              <description>Debug Report Query Response command</description>
+            </command>
+			<command id="0x08" dir="recv" name="TRUST_CENTER_FOR_CLUSTER_SERVER_QUERY_RESPONSE" required="m">
+              <description>Trust Center for Cluster Server Query Response command</description>
+            </command>
+			<command id="0x09" dir="recv" name="SURVEY_BEACONS_RESPONSE" required="m">
+              <description>Survey Beacons Response command</description>
+            </command>
+			</client>
+		</cluster>
   </domain>
 
   <profile id="0104" name="Home Automation" description="This profile defines device descriptions and standard practices for applications needed in a residential or light commercial environment. Installation scenarios range from a single room to an entire home up to 20,000 square feet (approximately 1850m2)." version="1.0" rev="25" icon="ha.png">
