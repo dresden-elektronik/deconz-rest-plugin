@@ -105,6 +105,9 @@
             "fn": "zcl"
           },
           "default": 0
+        },
+        {
+          "name": "state/bri"
         }
       ]
     }
