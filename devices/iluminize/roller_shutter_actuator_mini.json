@@ -63,51 +63,32 @@
             "ep": 6,
             "eval": "Item.val = Attr.val;",
             "fn": "zcl"
-          }
-        },
-        {
-          "name": "state/lift",
-          "refresh.interval": 365,
-          "parse": {
-            "at": "0x0003",
-            "cl": "0x0102",
-            "ep": 6,
-            "eval": "Item.val = Attr.val;",
-            "fn": "zcl"
           },
           "default": 0
         },
         {
-          "name": "state/on",
-          "refresh.interval": 60,
-          "static": true
+          "name": "state/bri",
+          "description": "The current brightness.",
+          "refresh.interval": 5
         },
         {
-          "name": "state/open"
+          "name": "state/lift",
+          "description": "The lift state of a roller blind.",
+          "refresh.interval": 300,
+          "default": 0
+        },
+        {
+          "name": "state/open",
+          "description": "True when open is detected."
         },
         {
           "name": "state/reachable"
         },
         {
           "name": "state/tilt",
-          "refresh.interval": 365,
-          "read": {
-            "at": "0x0004",
-            "cl": "0x0102",
-            "ep": 6,
-            "fn": "zcl"
-          },
-          "parse": {
-            "at": "0x0004",
-            "cl": "0x0102",
-            "ep": 6,
-            "eval": "Item.val = Attr.val;",
-            "fn": "zcl"
-          },
+          "description": "The tilt state of a shutter or blind.",
+          "refresh.interval": 300,
           "default": 0
-        },
-        {
-          "name": "state/bri"
         }
       ]
     }
@@ -115,24 +96,7 @@
   "bindings": [
     {
       "bind": "unicast",
-      "src.ep": 6,
-      "cl": "0x0102",
-      "report": [
-        {
-          "at": "0x0003",
-          "dt": "0x20",
-          "min": 1,
-          "max": 300,
-          "change": "0x00000001"
-        },
-        {
-          "at": "0x0004",
-          "dt": "0x20",
-          "min": 1,
-          "max": 300,
-          "change": "0x00000001"
-        }
-      ]
+      "src.ep": 1,
+      "cl": "0x0102"
     }
   ]
-}
