@@ -157,7 +157,9 @@ void DeRestPluginPrivate::changeChannel(quint8 channel)
 
             deCONZ::ApsDataRequest req;
 
+#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
             req.setTxOptions(nullptr);
+#endif
             req.setDstEndpoint(ZDO_ENDPOINT);
             req.setDstAddressMode(deCONZ::ApsNwkAddress);
             req.dstAddress().setNwk(deCONZ::BroadcastRxOnWhenIdle);

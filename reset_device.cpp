@@ -71,7 +71,9 @@ void DeRestPluginPrivate::checkResetState()
 
                 deCONZ::ApsDataRequest req;
 
+#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
                 req.setTxOptions(0);
+#endif
                 req.setDstEndpoint(ZDO_ENDPOINT);
                 req.setDstAddressMode(deCONZ::ApsExtAddress);
                 req.dstAddress().setExt(i->address().ext());
@@ -135,7 +137,9 @@ void DeRestPluginPrivate::checkResetState()
 
                 deCONZ::ApsDataRequest req;
 
+#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
                 req.setTxOptions(0);
+#endif
                 req.setDstEndpoint(ZDO_ENDPOINT);
                 req.setDstAddressMode(deCONZ::ApsExtAddress);
                 req.dstAddress().setExt(si->address().ext());

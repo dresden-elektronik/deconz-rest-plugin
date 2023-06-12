@@ -4749,7 +4749,9 @@ void DeRestPluginPrivate::bindingTableReaderTimerFired()
             i->apsReq.setClusterId(ZDP_MGMT_BIND_REQ_CLID);
             i->apsReq.setDstEndpoint(ZDO_ENDPOINT);
             i->apsReq.setSrcEndpoint(ZDO_ENDPOINT);
+#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
             i->apsReq.setTxOptions(0);
+#endif
             i->apsReq.setRadius(0);
 
             QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);

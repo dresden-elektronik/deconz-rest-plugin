@@ -11455,7 +11455,9 @@ bool DeRestPluginPrivate::callScene(Group *group, uint8_t sceneId)
     TaskItem task;
     task.taskType = TaskCallScene;
 
+#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
     task.req.setTxOptions(0);
+#endif
     task.req.setDstEndpoint(0xFF);
     task.req.setDstAddressMode(deCONZ::ApsGroupAddress);
     task.req.dstAddress().setGroup(group->address());
