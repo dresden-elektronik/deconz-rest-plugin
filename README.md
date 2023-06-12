@@ -76,6 +76,39 @@ https://github.com/dresden-elektronik/deconz-rest-plugin/releases
 
         sudo cp ../libde_rest_plugin.so /usr/share/deCONZ/plugins
 
+### Build with CMake (experimental)
+
+CMake is the new build system to compile the REST-API plugin. The former `deconz-dev` package isn't needed anymore since the headers and sources of the deCONZ library are pulled from https://github.com/dresden-elektronik/deconz-lib
+
+Building works on all platforms not only Linux.
+
+**TODO** note the required code is currently only in my personal  repository.
+
+**TODO** list build dependencies for various platforms (CMake, Ninja, …).
+
+**TODO** describe setup for IDEs like Visual Studio and QtCreator.
+
+1. Checkout the repository
+
+        git clone https://github.com/manup/deconz-rest-plugin.git
+
+2. Checkout the latest version from `cmake_1` branch
+
+        cd deconz-rest-plugin
+        git switch cmake_1
+
+3. Compile the plugin
+
+        cmake -DCMAKE_INSTALL_PREFIX=/usr -G Ninja -S . -B build
+        cmake --build build
+    
+4. Install in local temporary directory
+   (This step changes the RPATH so the plugin can find the official `/usr/lib/libdeCONZ.so` library.)
+
+        cmake --install build --prefix tmp
+
+The compiled plugin can be found in current directory `tmp/share/deCONZ/plugins`.
+
 Precompiled deCONZ packages for manual installation
 ===================================================
 
@@ -133,5 +166,4 @@ The following libraries are used by the plugin:
 License
 =======
 The plugin is available as open source and licensed under the BSD (3-Clause) license.
-
 
