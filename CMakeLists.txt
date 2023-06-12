@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(de_rest_plugin VERSION 2.22.01 LANGUAGES CXX)
+project(de_rest_plugin VERSION 2.22.01 LANGUAGES C;CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -137,6 +137,7 @@ add_library(${PROJECT_NAME} SHARED
     device.cpp
     device_ddf_init.cpp
     device_descriptions.cpp
+    device_js/duktape.c
     device_js/device_js.cpp
     device_js/device_js_duktape.cpp
     device_js/device_js_wrappers.cpp
