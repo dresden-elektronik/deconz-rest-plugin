@@ -82,11 +82,14 @@ CMake is the new build system to compile the REST-API plugin. The former `deconz
 
 Building works on all platforms not only Linux.
 
+
 **TODO** note the required code is currently only in my personal  repository.
 
 **TODO** list build dependencies for various platforms (CMake, Ninja, …).
 
 **TODO** describe setup for IDEs like Visual Studio and QtCreator.
+
+#### Linux
 
 1. Checkout the repository
 
@@ -101,13 +104,26 @@ Building works on all platforms not only Linux.
 
         cmake -DCMAKE_INSTALL_PREFIX=/usr -G Ninja -S . -B build
         cmake --build build
-    
+   
 4. Install in local temporary directory
    (This step changes the RPATH so the plugin can find the official `/usr/lib/libdeCONZ.so` library.)
 
         cmake --install build --prefix tmp
 
 The compiled plugin can be found in current directory `tmp/share/deCONZ/plugins`.
+
+#### macOS
+
+(not officially supported yet, requires core sources for macOS build)
+
+Install dependencies via Homebrew.
+```
+brew install qt@5 ninja cmake
+```
+
+```
+cmake -DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt\@5/5.15.9/lib/cmake  -S . -B build
+```
 
 Precompiled deCONZ packages for manual installation
 ===================================================
