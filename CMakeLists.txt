@@ -19,13 +19,15 @@ find_package(Git REQUIRED)
 
 include(FetchContent)
 
-FetchContent_Declare(
-  deconzlib
-  GIT_REPOSITORY https://github.com/dresden-elektronik/deconz-lib.git
-  GIT_TAG        main
-)
+if (NOT deconzlib_POPULATED)
+    FetchContent_Declare(
+      deconzlib
+      GIT_REPOSITORY https://github.com/dresden-elektronik/deconz-lib.git
+      GIT_TAG        main
+    )
 
-FetchContent_MakeAvailable(deconzlib)
+    FetchContent_MakeAvailable(deconzlib)
+endif()
 
 #----------------------------------------------------------------------
 
