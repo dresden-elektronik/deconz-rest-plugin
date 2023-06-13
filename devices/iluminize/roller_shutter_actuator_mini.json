@@ -6,7 +6,6 @@
   "product": "Zigbee 3.0 roller shutter actuator",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/iluminize/roller_shutter_actuator_mini.json",
   "subdevices": [
     {
       "type": "$TYPE_WINDOW_COVERING_DEVICE",
@@ -69,7 +68,6 @@
         },
         {
           "name": "state/bri",
-          "description": "The current brightness.",
           "refresh.interval": 5
         },
         {
@@ -82,7 +80,7 @@
           "parse": {
             "at": "0x0008",
             "cl": "0x0102",
-            "ep": 0,
+            "ep": 1,
             "eval": "Item.val = Attr.val === 100",
             "fn": "zcl"
           }
