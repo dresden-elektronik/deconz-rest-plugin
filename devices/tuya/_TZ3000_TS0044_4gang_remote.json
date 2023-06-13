@@ -46,6 +46,7 @@
         },
         {
           "name": "config/battery",
+          "refresh.interval": 86400,
           "read": {"fn": "zcl", "ep": 1, "cl": "0x0001", "at": "0x0021"},
           "parse": {
             "at": "0x0021",
@@ -86,7 +87,7 @@
           "at": "0x0021",
           "dt": "0x20",
           "min": 14400,
-          "max": 86400,
+          "max": 65535,
           "change": "0x00000002"
         }
       ]
