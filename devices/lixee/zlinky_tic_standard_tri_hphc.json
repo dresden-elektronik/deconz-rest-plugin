@@ -3,7 +3,7 @@
   "manufacturername": "LiXee",
   "modelid": "ZLinky_TIC",
   "vendor": "LiXee",
-  "product": "ZLinky_TIC historique+HPHC+triphase",
+  "product": "ZLinky_TIC standard+HPHC+triphase",
   "sleeper": false,
   "status": "Draft",
   "subdevices": [
@@ -372,9 +372,26 @@
           "parse": {
             "at": "0x0102",
             "cl": "0x0702",
-            "ep": 0,
+            "ep": 1,
             "eval": "Item.val = Attr.val"
           }
+        },
+        {
+          "name": "state/power",
+          "refresh.interval": 365,
+          "read": {
+            "at": "0x0306",
+            "cl": "0x0b04",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0306",
+            "cl": "0x0b04",
+            "ep": 1,
+            "eval": "if (Attr.val != -32768) { Item.val = Attr.val; }"
+          },
+          "default": 0
         },
         {
           "name": "state/lastupdated"
@@ -532,6 +549,13 @@
         },
         {
           "at": "0x0A0F",
+          "dt": "0x21",
+          "min": 60,
+          "max": 300,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0306",
           "dt": "0x21",
           "min": 60,
           "max": 300,
