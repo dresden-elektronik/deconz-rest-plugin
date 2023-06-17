@@ -292,10 +292,23 @@ if (UNIX)
 endif()
 
 
-install(TARGETS ${PROJECT_NAME}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/deCONZ/plugins
-)
+if (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Linux")
+    install(TARGETS ${PROJECT_NAME}
+        LIBRARY DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/deCONZ/plugins"
+    )
 
+    install(FILES "general.xml" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/deCONZ/zcl")
+    install(DIRECTORY devices DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/deCONZ")
+    install(FILES "button_maps.json" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/deCONZ/devices")
+
+    install(DIRECTORY "linux/deCONZ/lib/systemd" DESTINATION "/lib")
+    install(
+        DIRECTORY "linux/deCONZ/usr/bin/"
+        DESTINATION ${CMAKE_INSTALL_BINDIR}
+        FILES_MATCHING
+        PATTERN "*.sh"
+    )
+endif()
 
 #add_library(deconz_common INTERFACE)
 #target_include_directories(deconz_common INTERFACE ${DECONZ_INCLUDE_DIR})
