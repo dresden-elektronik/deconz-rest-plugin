@@ -284,7 +284,7 @@ include(GNUInstallDirs)
 if (UNIX)
     if (APPLE)
         set_target_properties(${PROJECT_NAME} PROPERTIES
-            INSTALL_RPATH "@executable_path/../lib")
+            INSTALL_RPATH @loader_path)
     else()
         set_target_properties(${PROJECT_NAME} PROPERTIES
             INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
