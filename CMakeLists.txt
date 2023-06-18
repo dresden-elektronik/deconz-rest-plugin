@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.13)
 
 project(de_rest_plugin VERSION 2.22.01 LANGUAGES C;CXX)
 
@@ -19,14 +19,17 @@ find_package(Git REQUIRED)
 
 include(FetchContent)
 
+FetchContent_Declare(
+  deconzlib
+  GIT_REPOSITORY https://github.com/dresden-elektronik/deconz-lib.git
+  GIT_TAG        main
+)
+# FetchContent_MakeAvailable(deconzlib)
+# FetchContent_MakeAvailable requires CMake 3.14, but Debian Buster has only 3.13
+FetchContent_GetProperties(deconzlib)
 if (NOT deconzlib_POPULATED)
-    FetchContent_Declare(
-      deconzlib
-      GIT_REPOSITORY https://github.com/dresden-elektronik/deconz-lib.git
-      GIT_TAG        main
-    )
-
-    FetchContent_MakeAvailable(deconzlib)
+    FetchContent_Populate(deconzlib)
+    add_subdirectory(${deconzlib_SOURCE_DIR} ${deconzlib_BINARY_DIR})
 endif()
 
 #----------------------------------------------------------------------
