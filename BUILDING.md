@@ -48,25 +48,31 @@ The compiled plugin can be found in current directory `tmp/share/deCONZ/plugins`
 
 ### Windows
 
-MYSYS2 MINGW32 needs to be installed.
+MSYS2 MINGW32 needs to be installed, it can be downloaded from https://msys2.org 
 
-Open the mingw32 shell from start menu.
 
+In MSYS2 MINGW32 shell the following packages need to be installed:
+
+```
+pacman -Sy mingw-w64-i686-qt5 mingw-w64-i686-openssl mingw-w64-i686-sqlite3
+```
 
 ### Build
 
 1. Checkout this repository
 
-2. Open "x86 Native Tools Command Promt for VS 2022" via Windows Start Menu
+2. Open MSYS2 MINGW32 shell via Windows Start Menu
 
-3. Navigate to the source directory, e.g. `cd C:\gcfflasher` 
+3. Navigate to the source directory, e.g. `cd /c/src/deconz-rest-plugin` 
 
-3. Compile the executable with CMake
+3. Compile the plugin with CMake
 
 ```
-cmake -S . -B build
-cmake --build build --config Release
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/mingw32/lib/cmake -B build
+cmake --build build
 ```
+
+After compilation the plugin can be found in the build directory: `de_rest_plugin.dll`
 
 ### macOS
 

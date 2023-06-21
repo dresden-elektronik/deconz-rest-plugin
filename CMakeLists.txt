@@ -14,9 +14,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Qt5 COMPONENTS Core Widgets Network WebSockets REQUIRED)
 find_package(Git REQUIRED)
 
-if (PARENT_DIRECTORY STREQUAL "")
+if ("${PARENT_DIRECTORY}" STREQUAL "")
     # standalone build
-    find_package(SQLite3 REQUIRED)
+    if (MSVC)
+        add_subdirectory(sqlite3)
+    else()
+        find_package(SQLite3 REQUIRED)
+    endif()
 endif()
 
 #--- deCONZ library ---------------------------------------------------
