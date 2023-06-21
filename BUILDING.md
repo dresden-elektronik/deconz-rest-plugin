@@ -1,6 +1,6 @@
 # Building
 
-### Supported platforms
+## Supported platforms
 * Raspbian ~~Jessie~~, ~~Stretch~~, Buster and Bullseye
 * Ubuntu ~~Xenial~~, Bionic, Focal Fossa and Jammy
 * Windows 7, 10, 11
@@ -9,11 +9,11 @@ There are ways to build the plugin:
 1. [CMake](#build-with-cmake)
 2. [QMake (deprecated)](#build-with-qmake)
 
-### Build with CMake
+## Build with CMake
 
 CMake is the new build system to compile the REST-API plugin. The former `deconz-dev` package isn't needed anymore since the headers and sources of the deCONZ library are pulled from https://github.com/dresden-elektronik/deconz-lib automatically.
 
-#### Linux
+### Linux
 
 On Debian/Ubuntu the following development packages need to be installed:
 
@@ -46,7 +46,29 @@ sqlite3 libsqlite3-dev libgpiod-dev libssl-dev curl cmake ninja-build
 
 The compiled plugin can be found in current directory `tmp/share/deCONZ/plugins`.
 
-#### macOS
+### Windows
+
+MYSYS2 MINGW32 needs to be installed.
+
+Open the mingw32 shell from start menu.
+
+
+### Build
+
+1. Checkout this repository
+
+2. Open "x86 Native Tools Command Promt for VS 2022" via Windows Start Menu
+
+3. Navigate to the source directory, e.g. `cd C:\gcfflasher` 
+
+3. Compile the executable with CMake
+
+```
+cmake -S . -B build
+cmake --build build --config Release
+```
+
+### macOS
 
 (not officially supported yet, requires core sources for macOS build)
 
@@ -59,17 +81,17 @@ brew install qt@5 ninja cmake
 cmake -DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt\@5/5.15.9/lib/cmake  -S . -B build
 ```
 
-### Build with QMake
+## Build with QMake
 
 **Important:** Building via  QMake is deprecated and will be removed in future.
 
 This method is only supported on Linux.
 
-#### Install deCONZ development package
+### Install deCONZ development package
 
     sudo apt install deconz-dev
 
-#### Get and compile the plugin
+### Get and compile the plugin
 
 1. Checkout the repository
 
