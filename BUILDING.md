@@ -11,22 +11,23 @@ There are ways to build the plugin:
 
 ### Build with CMake
 
-CMake is the new build system to compile the REST-API plugin. The former `deconz-dev` package isn't needed anymore since the headers and sources of the deCONZ library are pulled from https://github.com/dresden-elektronik/deconz-lib
-
-Building works on all platforms not only Linux.
-
-
-**TODO** note the required code is currently only in my personal  repository.
-
-**TODO** list build dependencies for various platforms (CMake, Ninja, …).
-
-**TODO** describe setup for IDEs like Visual Studio and QtCreator.
+CMake is the new build system to compile the REST-API plugin. The former `deconz-dev` package isn't needed anymore since the headers and sources of the deCONZ library are pulled from https://github.com/dresden-elektronik/deconz-lib automatically.
 
 #### Linux
 
+On Debian/Ubuntu the following development packages need to be installed:
+
+```
+apt-get update && \
+apt-get install --no-install-recommends -y \
+lsb-release ca-certificates build-essential pkg-config qt5-default git \
+libqt5serialport5-dev  libqt5websockets5-dev qtdeclarative5-dev  \
+sqlite3 libsqlite3-dev libgpiod-dev libssl-dev curl cmake ninja-build
+```
+
 1. Checkout the repository
 
-        git clone https://github.com/manup/deconz-rest-plugin.git
+        git clone https://github.com/dresden-elektronik/deconz-rest-plugin.git
 
 2. Checkout the latest version from `cmake_1` branch
 
