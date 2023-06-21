@@ -12,8 +12,12 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt5 COMPONENTS Core Widgets Network WebSockets REQUIRED)
-find_package(SQLite3 REQUIRED)
 find_package(Git REQUIRED)
+
+if (PARENT_DIRECTORY STREQUAL "")
+    # standalone build
+    find_package(SQLite3 REQUIRED)
+endif()
 
 #--- deCONZ library ---------------------------------------------------
 
