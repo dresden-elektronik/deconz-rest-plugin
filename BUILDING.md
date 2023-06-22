@@ -1,11 +1,11 @@
 # Building
 
 ## Supported platforms
-* Raspbian ~~Jessie~~, ~~Stretch~~, Buster and Bullseye
+* Raspbian / Debian ~~Jessie~~, ~~Stretch~~, Buster, Bullseye and Bookworm
 * Ubuntu ~~Xenial~~, Bionic, Focal Fossa and Jammy
 * Windows 7, 10, 11
 
-There are ways to build the plugin:
+There are two ways to build the plugin:
 1. [CMake](#build-with-cmake)
 2. [QMake (deprecated)](#build-with-qmake)
 
@@ -15,12 +15,15 @@ CMake is the new build system to compile the REST-API plugin. The former `deconz
 
 ### Linux
 
-On Debian/Ubuntu the following development packages need to be installed:
+On Debian Buster the following development packages need to be installed.
+
+**Note:** On newer Ubuntu versions `qt5-default` isn't available, replace it with `qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools` instead.
 
 ```
 apt-get update && \
 apt-get install --no-install-recommends -y \
-lsb-release ca-certificates build-essential pkg-config qt5-default git \
+qt5-default \
+lsb-release ca-certificates build-essential pkg-config git \
 libqt5serialport5-dev  libqt5websockets5-dev qtdeclarative5-dev  \
 sqlite3 libsqlite3-dev libgpiod-dev libssl-dev curl cmake ninja-build
 ```
@@ -29,22 +32,17 @@ sqlite3 libsqlite3-dev libgpiod-dev libssl-dev curl cmake ninja-build
 
         git clone https://github.com/dresden-elektronik/deconz-rest-plugin.git
 
-2. Checkout the latest version from `cmake_1` branch
+2. Compile the plugin
 
-        cd deconz-rest-plugin
-        git checkout -b cmake_1 origin/cmake_1
-
-3. Compile the plugin
-
-        cmake -DCMAKE_INSTALL_PREFIX=/usr -G Ninja -S . -B build
+        cmake -DCMAKE_INSTALL_PREFIX=/usr -G Ninja -B build
         cmake --build build
    
-4. Install in local temporary directory
+3. Install in local temporary directory
    (This step changes the RPATH so the plugin can find the official `/usr/lib/libdeCONZ.so` library.)
 
         cmake --install build --prefix tmp
 
-The compiled plugin can be found in current directory `tmp/share/deCONZ/plugins`.
+The compiled plugin is located at: `tmp/share/deCONZ/plugins/libde_rest_plugin.so`
 
 ### Windows
 
@@ -84,7 +82,7 @@ brew install qt@5 ninja cmake
 ```
 
 ```
-cmake -DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt\@5/5.15.9/lib/cmake  -S . -B build
+cmake -DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt\@5/5.15.9/lib/cmake -B build
 ```
 
 ## Build with QMake
