@@ -307,17 +307,20 @@ if (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Linux")
         LIBRARY DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/deCONZ/plugins"
     )
 
-    install(FILES "general.xml" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/deCONZ/zcl")
-    install(DIRECTORY devices DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/deCONZ")
-    install(FILES "button_maps.json" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/deCONZ/devices")
+    # following applies only when build as part of deCONZ package
+    if (NOT "${PARENT_DIRECTORY}" STREQUAL "")
+        install(FILES "general.xml" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/deCONZ/zcl")
+        install(DIRECTORY devices DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/deCONZ")
+        install(FILES "button_maps.json" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/deCONZ/devices")
 
-    install(DIRECTORY "linux/deCONZ/lib/systemd" DESTINATION "/lib")
-    install(
-        DIRECTORY "linux/deCONZ/usr/bin/"
-        DESTINATION ${CMAKE_INSTALL_BINDIR}
-        FILES_MATCHING
-        PATTERN "*.sh"
-    )
+        install(DIRECTORY "linux/deCONZ/lib/systemd" DESTINATION "/lib")
+        install(
+            DIRECTORY "linux/deCONZ/usr/bin/"
+            DESTINATION ${CMAKE_INSTALL_BINDIR}
+            FILES_MATCHING
+            PATTERN "*.sh"
+        )
+    endif()
 endif()
 
 #add_library(deconz_common INTERFACE)
