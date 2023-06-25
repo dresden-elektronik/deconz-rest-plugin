@@ -258,7 +258,7 @@ int DeRestPluginPrivate::createGroup(const ApiRequest &req, ApiResponse &rsp)
         }
         else
         {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups"), QString("invalid value, %1, for parameter, uniqeid").arg(uniqueid)));
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups"), QString("invalid value, %1, for parameter, uniqueid").arg(uniqueid)));
             rsp.httpStatus = HttpStatusBadRequest;
             return REQ_READY_SEND;
         }
