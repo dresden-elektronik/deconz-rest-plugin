@@ -1,14 +1,14 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["_TZ3000_d16y6col", "_TZ3000_ww9i3e0y", "_TZ3000_qhozxs2b", "_TZ3000_85czd6fy", "_TZ3000_ocjlo4ea"],
-  "modelid": ["TS0207", "TS0207", "TS0207", "TS0207", "TS0207"],
-  "vendor": "Tuya",
-  "product": "Tuya water sensor",
+  "manufacturername": "HEIMAN",
+  "modelid": "98293058552c49f38ad0748541ee96ba",
+  "vendor": "Orvibo",
+  "product": "Smoke detector SF21",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
-      "type": "ZHAWater",
+      "type": "$TYPE_FIRE_SENSOR",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
@@ -20,9 +20,9 @@
         "device": "0x0402",
         "endpoint": "0x01",
         "in": [
-          "0x0000",
           "0x0001",
-          "0x0500"
+          "0x0500",
+          "0x0000"
         ]
       },
       "items": [
@@ -45,10 +45,7 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion",                   
-          "refresh.interval": 86400,
-          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "name": "attr/swversion"
         },
         {
           "name": "attr/type"
@@ -58,13 +55,20 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 84000,
+          "refresh.interval": 7300,
           "awake": true,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
+            "eval": "Item.val = Attr.val / 2",
+            "fn": "zcl"
+          },
+          "read": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "fn": "zcl"
           }
         },
         {
@@ -80,19 +84,14 @@
           "name": "config/reachable"
         },
         {
+          "name": "state/fire",
+          "default": false
+        },
+        {
           "name": "state/lastupdated"
         },
         {
-          "name": "state/lowbattery",
-          "awake": true
-        },
-        {
-          "name": "state/tampered",
-          "awake": true
-        },
-        {
-          "name": "state/water",
-          "awake": true
+          "name": "state/lowbattery"
         }
       ]
     }
@@ -107,9 +106,9 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 60,
-          "max": 3600,
-          "change": "0x00000001"
+          "min": 300,
+          "max": 7200,
+          "change": "0x00000002"
         }
       ]
     },

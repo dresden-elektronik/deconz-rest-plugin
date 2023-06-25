@@ -144,11 +144,11 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 305
+          "refresh.interval": 365
         },
         {
           "name": "state/bri",
-          "refresh.interval": 305
+          "refresh.interval": 365
         },
         {
           "name": "state/colormode",
@@ -159,7 +159,7 @@
           "read": {
             "fn": "zcl", "ep": "0x01", "cl": "0x0300", "at": ["0x4001", "0x0003", "0x0004", "0x0007", "0x4002", "0x4000", "0x0001"]
           },
-          "refresh.interval": 305
+          "refresh.interval": 365
         },
         {
           "name": "state/x",

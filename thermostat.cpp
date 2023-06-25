@@ -328,7 +328,7 @@ void DeRestPluginPrivate::updateThermostatSchedule(Sensor *sensor, quint8 newWee
     {
         s += QString("W%1/").arg(weekdays) + map[weekdays];
     }
-    item->setValue(s);
+    item->setValue(s, ResourceItem::SourceDevice);
     enqueueEvent(Event(RSensors, RConfigSchedule, sensor->id(), item));
     updateSensorEtag(&*sensor);
     sensor->setNeedSaveDatabase(true);

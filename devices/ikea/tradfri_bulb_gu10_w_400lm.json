@@ -1,14 +1,13 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "3A Smart Home DE",
-  "modelid": "LXT56-LS27LX1.7",
-  "vendor": "Zemismart",
-  "product": "3A12S-15",
+  "manufacturername": "$MF_IKEA",
+  "modelid": "TRADFRI bulb GU10 W 400lm",
+  "product": "TRADFRI bulb GU10 W 400lm",
   "sleeper": false,
   "status": "Silver",
   "subdevices": [
     {
-      "type": "$TYPE_EXTENDED_COLOR_LIGHT",
+      "type": "$TYPE_DIMMABLE_LIGHT",
       "restapi": "/lights",
       "uuid": [
         "$address.ext",
@@ -43,16 +42,12 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/colorcapabilities",
-          "refresh.interval": 84000
+          "name": "cap/bri/move_with_onoff",
+          "static": true
         },
         {
-          "name": "config/ctmax",
-          "refresh.interval": 84000
-        },
-        {
-          "name": "config/ctmin",
-          "refresh.interval": 84000
+          "name": "cap/on/off_with_effect",
+          "static": true
         },
         {
           "name": "state/alert",
@@ -63,36 +58,11 @@
           "refresh.interval": 5
         },
         {
-          "name": "state/colormode"
-        },
-        {
-          "name": "state/ct",
-          "refresh.interval": 5
-        },
-        {
-          "name": "state/effect",
-          "default": "none"
-        },
-        {
-          "name": "state/hue"
-        },
-        {
           "name": "state/on",
           "refresh.interval": 5
         },
         {
           "name": "state/reachable"
-        },
-        {
-          "name": "state/sat",
-          "refresh.interval": 5
-        },
-        {
-          "name": "state/x",
-          "refresh.interval": 5
-        },
-        {
-          "name": "state/y"
         }
       ]
     }
@@ -101,39 +71,43 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "cl": "0x0008",
+      "dst.ep": 1,
+      "cl": "0x0000",
       "report": [
         {
-          "at": "0x0000",
-          "dt": "0x20",
-          "min": 10,
-          "max": 360
+          "at": "0x4000",
+          "dt": "0x42",
+          "min": 0,
+          "max": 65535
         }
       ]
     },
     {
       "bind": "unicast",
       "src.ep": 1,
-      "cl": "0x0300",
-      "report": [
-        {
-          "at": "0x0008",
-          "dt": "0x30",
-          "min": 10,
-          "max": 300
-        }
-      ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
+      "dst.ep": 1,
       "cl": "0x0006",
       "report": [
         {
           "at": "0x0000",
           "dt": "0x10",
+          "min": 1,
+          "max": 1800
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0008",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x20",
           "min": 5,
-          "max": 300
+          "max": 1800,
+          "change": "0x00000001"
         }
       ]
     }

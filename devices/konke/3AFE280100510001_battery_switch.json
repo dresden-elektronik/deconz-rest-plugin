@@ -1,8 +1,8 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": [" _TZ3000_itb0omhv", "_TZ3000_4upl1fcj"],
-  "modelid": ["TS0041", "TS0041"],
-  "product": "Tuya 1 gangs switch battery",
+  "manufacturername": "Konke",
+  "modelid": "3AFE280100510001",
+  "product": "Konke Kit Pro Multi Function Button",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -34,10 +34,7 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion",
-          "refresh.interval": 84000,
-          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "name": "attr/swversion"
         },
         {
           "name": "attr/type"
@@ -47,22 +44,16 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 84000,
+          "refresh.interval": 86400,
           "awake": true,
-          "read": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "fn": "zcl"
-          },
           "parse": {
-            "at": "0x0021",
+            "at": "0x0020",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
-          },
-          "default": 0
-        },        
+            "eval": "const vmin = 20; const vmax = 30; var bat = Attr.val; if (bat > vmax) { bat = vmax; } else if (bat < vmin) { bat = vmin; } bat = ((bat - vmin) / (vmax - vmin)) * 100; if (bat > 100) { bat = 100; } else if (bat <= 0)  { bat = 1; } Item.val = bat;",
+            "fn": "zcl"
+          }
+        },
         {
           "name": "config/on"
         },
@@ -70,7 +61,13 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/buttonevent"
+          "name": "state/buttonevent",
+          "awake": true,
+          "parse": {
+            "cl": "0x0006",
+            "cmd": "0x0A",
+            "eval": "const t={'128':2,'129':4,'130':3};if(ZclFrame.at(3) in t){Item.val=1000+t[ZclFrame.at(3)]}"
+          }
         },
         {
           "name": "state/lastupdated"
@@ -82,22 +79,21 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "cl": "0x0001",
-      "report": [
-        {
-          "at": "0x0021",
-          "dt": "0x20",
-          "min": 60,
-          "max": 3600,
-          "change": "0x00000001"
-        }
-      ]
+      "dst.ep": 1,
+      "cl": "0x0006"
     },
     {
       "bind": "unicast",
       "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0006"
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0020",
+          "dt": "0x20",
+          "min": 3600,
+          "max": 3600
+        }
+      ]
     }
   ]
 }

@@ -1,0 +1,17 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/volume",
+  "datatype": "UInt8",
+  "access": "RW",
+  "public": true,
+  "range":[0,2],
+  "values": [
+    [0, "Silent Mode"],
+    [1, "Low Volume"],
+    [2, "High"]
+  ],
+  "default":0,
+  "description": "The sound volume has three possible settings: silent, low and high volumes.",
+  "parse": {"at": "0x0024", "cl": "0x0101", "ep": 0, "eval": "Item.val = Attr.val;", "fn": "zcl"},
+  "read": {"at": "0x0024", "cl": "0x0101", "ep": 0, "fn": "zcl"}
+}
