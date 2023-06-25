@@ -14,13 +14,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Qt5 COMPONENTS Core Widgets Network WebSockets REQUIRED)
 find_package(Git REQUIRED)
 
-if ("${PARENT_DIRECTORY}" STREQUAL "")
+if (NOT DECONZ_FULL_BUILD)
     # standalone build
-    if (MSVC)
-        add_subdirectory(sqlite3)
-    else()
-        find_package(SQLite3 REQUIRED)
-    endif()
+    add_subdirectory(sqlite3)
 endif()
 
 #--- deCONZ library ---------------------------------------------------
@@ -308,7 +304,7 @@ if (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Linux")
     )
 
     # following applies only when build as part of deCONZ package
-    if (NOT "${PARENT_DIRECTORY}" STREQUAL "")
+    if (DECONZ_FULL_BUILD)
         install(FILES "general.xml" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/deCONZ/zcl")
         install(DIRECTORY devices DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/deCONZ")
         install(FILES "button_maps.json" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/deCONZ/devices")
