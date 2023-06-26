@@ -100,11 +100,6 @@ int DeRestPluginPrivate::handleLightsApi(const ApiRequest &req, ApiResponse &rsp
     {
         return removeAllGroups(req, rsp);
     }
-    // DELETE /api/<apikey>/lights/<id>/node
-    else if ((req.path.size() == 5) && (req.path[4] == "node") && (req.hdr.method() == "DELETE"))
-    {
-        return resetDeviceOnly(req, rsp);
-    }
 
     return REQ_NOT_HANDLED;
 }
@@ -3733,75 +3728,6 @@ int DeRestPluginPrivate::removeAllGroups(const ApiRequest &req, ApiResponse &rsp
     updateLightEtag(lightNode);
     queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
 
-    rsp.httpStatus = HttpStatusOk;
-    rsp.etag = lightNode->etag;
-
-    return REQ_READY_SEND;
-}
-
-/*! DELETE /api/<apikey>/lights/<id>/node
-    \return 0 - on success
-           -1 - on error
- */
-int DeRestPluginPrivate::resetDeviceOnly(const ApiRequest &req, ApiResponse &rsp)
-{
-    DBG_Assert(req.path.size() == 5);
-
-    if (req.path.size() != 5)
-    {
-        return REQ_NOT_HANDLED;
-    }
-
-    const QString &id = req.path[3];
-
-    LightNode *lightNode = getLightNodeForId(id);
-
-    if (!lightNode || lightNode->state() == LightNode::StateDeleted)
-    {
-        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
-        rsp.httpStatus = HttpStatusNotFound;
-        return REQ_READY_SEND;
-    }
-
-    DBG_Printf(DBG_INFO, "reset device retries: %i\n", /*retryCount*/1);
-    // send mgmt_leave_request
-    lastNodeAddressExt = lightNode->address().ext();
-    zdpResetSeq += 1;
-    lightNode->setZdpResetSeq(zdpResetSeq);
-
-    deCONZ::ApsDataRequest reqAps;
-
-    reqAps.setTxOptions(0);
-    reqAps.setDstEndpoint(ZDO_ENDPOINT);
-    reqAps.setDstAddressMode(deCONZ::ApsExtAddress);
-    reqAps.dstAddress().setExt(lightNode->address().ext());
-    reqAps.setProfileId(ZDP_PROFILE_ID);
-    reqAps.setClusterId(ZDP_MGMT_LEAVE_REQ_CLID);
-    reqAps.setSrcEndpoint(ZDO_ENDPOINT);
-    reqAps.setRadius(0);
-
-    QDataStream stream(&reqAps.asdu(), QIODevice::WriteOnly);
-    stream.setByteOrder(QDataStream::LittleEndian);
-    stream << zdpResetSeq; // seq no.
-    stream << (quint64)lightNode->address().ext(); // device address
-
-    uint8_t flags = 0;
-    //                    flags |= 0x40; // remove children
-    //                    flags |= 0x80; // rejoin
-    stream << flags; // flags
-
-    if (apsCtrl->apsdeDataRequest(reqAps) == deCONZ::Success)
-    {
-        resetDeviceApsRequestId = reqAps.id();
-        resetDeviceState = ResetWaitConfirm;
-        resetDeviceTimer->start(2000);
-        DBG_Printf(DBG_INFO, "reset device apsdeDataRequest success\n");
-    }
-    else
-    {
-        DBG_Printf(DBG_ERROR, "can't send reset device apsdeDataRequest\n");
-    }
-    
     rsp.httpStatus = HttpStatusOk;
     rsp.etag = lightNode->etag;
 

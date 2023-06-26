@@ -466,18 +466,6 @@ static duk_ret_t DJS_GetAttributeValue(duk_context *ctx)
         break;
     }
 
-    case deCONZ::ZclOctedString:
-    {
-        QByteArray data;
-        QDataStream stream(&data, QIODevice::WriteOnly);
-        stream.setByteOrder(QDataStream::LittleEndian);
-        attr->writeToStream(stream);
-        QString str = data.toHex();
-        DBG_Printf(DBG_JS, "%s Octed %s\n", __FUNCTION__, qPrintable(str));
-        duk_push_string(ctx, qPrintable(str));
-        break;
-    }
-
     default:
     {
         const QVariant var = attr->toVariant();
