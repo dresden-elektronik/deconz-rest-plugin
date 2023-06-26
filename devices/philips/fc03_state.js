@@ -1,4 +1,5 @@
 /* global R, ZclFrame */
+/* eslint-disable no-var */
 
 const attrid = ZclFrame.at(1) << 8 | ZclFrame.at(0)
 if (attrid === 0x0002) {

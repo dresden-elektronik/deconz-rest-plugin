@@ -48,6 +48,14 @@
         },
         {
           "name": "attr/swversion",
+          "awake": true,
+          "parse": {
+            "fn": "xiaomi:special",
+            "mf": "0x115F",
+            "at": "0x00F7",
+            "idx": "0x18",
+            "eval": "Item.val = '0.0.0_' + ('0000' + (Attr.val & 0xFF).toString()).slice(-4)"
+          },
           "read": {
             "fn": "none"
           }
@@ -59,19 +67,18 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "attr/xiaomi",
+          "name": "config/battery",
           "awake": true,
           "parse": {
-            "fn": "zcl",
-            "ep": 1,
-            "cl": "0xFCC0",
+            "fn": "xiaomi:special",
             "mf": "0x115F",
             "at": "0x00F7",
-            "script": "fcc0_airmonitor_acn01.js"
+            "idx": "0x01",
+            "script": "xiaomi_battery.js"
           }
         },
         {
-          "name": "config/battery",
+          "name": "config/battery_bis",
           "parse": {
             "fn": "zcl",
             "ep": 1,
@@ -94,8 +101,18 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/temperature",
-          "default": 0
+          "name": "state/temperature"
+        },
+        {
+          "name": "state/temperature_bis",
+          "awake": true,
+          "parse": {
+            "fn": "xiaomi:special",
+            "mf": "0x115F",
+            "at": "0x00F7",
+            "idx": "0x64",
+            "eval": "R.item('state/temperature').val = Attr.val + R.item('config/offset').val"
+          }
         }
       ]
     },
@@ -140,6 +157,14 @@
         },
         {
           "name": "attr/swversion",
+          "awake": true,
+          "parse": {
+            "fn": "xiaomi:special",
+            "mf": "0x115F",
+            "at": "0x00F7",
+            "idx": "0x18",
+            "eval": "item.val = '0.0.0_' + ('0000' + (val & 0xFF).toString()).slice(-4)"
+          },
           "read": {
             "fn": "none"
           }
@@ -151,19 +176,18 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "attr/xiaomi",
+          "name": "config/battery",
           "awake": true,
           "parse": {
-            "fn": "zcl",
-            "ep": 1,
-            "cl": "0xFCC0",
+            "fn": "xiaomi:special",
             "mf": "0x115F",
             "at": "0x00F7",
-            "script": "fcc0_airmonitor_acn01.js"
+            "idx": "0x01",
+            "script": "xiaomi_battery.js"
           }
         },
         {
-          "name": "config/battery",
+          "name": "config/battery_bis",
           "parse": {
             "fn": "zcl",
             "ep": 1,
@@ -183,8 +207,18 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/humidity",
-          "default": 0
+          "name": "state/humidity"
+        },
+        {
+          "name": "state/humidity_bis",
+          "awake": true,
+          "parse": {
+            "fn": "xiaomi:special",
+            "mf": "0x115F",
+            "at": "0x00F7",
+            "idx": "0x65",
+            "eval": "R.item('state/humidiy').val = Attr.val + R.item('config/offset').val"
+          }
         },
         {
           "name": "state/lastupdated"
@@ -231,6 +265,14 @@
         },
         {
           "name": "attr/swversion",
+          "awake": true,
+          "parse": {
+            "fn": "xiaomi:special",
+            "mf": "0x115F",
+            "at": "0x00F7",
+            "idx": "0x18",
+            "eval": "item.val = '0.0.0_' + ('0000' + (val & 0xFF).toString()).slice(-4)"
+          },
           "read": {
             "fn": "none"
           }
@@ -242,19 +284,18 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "attr/xiaomi",
+          "name": "config/battery",
           "awake": true,
           "parse": {
-            "fn": "zcl",
-            "ep": 1,
-            "cl": "0xFCC0",
+            "fn": "xiaomi:special",
             "mf": "0x115F",
             "at": "0x00F7",
-            "script": "fcc0_airmonitor_acn01.js"
+            "idx": "0x01",
+            "script": "xiaomi_battery.js"
           }
         },
         {
-          "name": "config/battery",
+          "name": "config/battery_bis",
           "parse": {
             "fn": "zcl",
             "ep": 1,
@@ -277,8 +318,18 @@
             "cl": "0x000c",
             "at": "0x0055",
             "eval": "Item.val = Attr.val"
-          },
-          "default": 0
+          }
+        },
+        {
+          "name": "state/airqualityppb_bis",
+          "awake": true,
+          "parse": {
+            "fn": "xiaomi:special",
+            "mf": "0x115F",
+            "at": "0x00F7",
+            "idx": "0x66",
+            "eval": "R.item('state/airqualityppb').val = Attr.val"
+          }
         },
         {
           "name": "state/airquality",
@@ -289,6 +340,17 @@
             "mf": "0x115F",
             "at": "0x0129",
             "eval": "Item.val = ['excellent', 'good', 'moderate', 'poor', 'unhealthy'][Attr.val - 1]"
+          }
+        },
+        {
+          "name": "state/airquality_bis",
+          "awake": true,
+          "parse": {
+            "fn": "xiaomi:special",
+            "mf": "0x115F",
+            "at": "0x00F7",
+            "idx": "0x67",
+            "eval": "R.item('state/airquality').val = ['excellent', 'good', 'moderate', 'poor', 'unhealthy'][Attr.val - 1]"
           }
         },
         {

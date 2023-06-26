@@ -1,0 +1,9 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/melody",
+  "datatype": "UInt8",
+  "access": "RW",
+  "public": true,
+  "default":0,
+  "description": "Melody or ringtone number"
+}

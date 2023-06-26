@@ -49,32 +49,9 @@ You find the instructions for your platform and device on the Phoscon website:
 
 https://github.com/dresden-elektronik/deconz-rest-plugin/releases
 
-### Install deCONZ development package (optional, Linux only)
+### Compiling the plugin
 
-**Important:** The deCONZ package already contains the REST-API plugin, the development package is **only** needed if you wan't to modify the plugin or try the latest commits from master branch.
-
-    sudo apt install deconz-dev
-
-#### Get and compile the plugin
-
-1. Checkout the repository
-
-        git clone https://github.com/dresden-elektronik/deconz-rest-plugin.git
-
-2. Checkout the latest version
-
-        cd deconz-rest-plugin
-        git checkout -b mybranch HEAD
-
-3. Compile the plugin
-
-        qmake && make -j2
-
-**Note** On Raspberry Pi 1 use `qmake && make`
-
-4. Replace original plugin
-
-        sudo cp ../libde_rest_plugin.so /usr/share/deCONZ/plugins
+The build instructions are described in [BUILDING.md](BUILDING.md).
 
 Precompiled deCONZ packages for manual installation
 ===================================================
@@ -84,6 +61,7 @@ The deCONZ application packages are available for the following platforms and co
 * Windows  http://deconz.dresden-elektronik.de/win/
 * Raspbian http://deconz.dresden-elektronik.de/raspbian/beta/
 * Ubuntu and Debian 64-bit http://deconz.dresden-elektronik.de/ubuntu/beta/
+* ARM64 systems http://deconz.dresden-elektronik.de/debian/beta/
 
 To manually install a Linux .deb package enter these commands:
 
@@ -132,5 +110,4 @@ The following libraries are used by the plugin:
 License
 =======
 The plugin is available as open source and licensed under the BSD (3-Clause) license.
-
 

@@ -1,0 +1,8 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "state/open_bis",
+  "datatype": "Bool",
+  "access": "R",
+  "public": false,
+  "description": "True when open is detected."
+}

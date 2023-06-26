@@ -13,6 +13,7 @@
 #include "device.h"
 #include "device_descriptions.h"
 #include "utils/utils.h"
+#include "zdp/zdp.h"
 
 #define MAX_ACTIVE_BINDING_TASKS 3
 
@@ -677,7 +678,7 @@ bool DeRestPluginPrivate::sendBindRequest(BindingTask &bt)
     stream.setByteOrder(QDataStream::LittleEndian);
 
     // generate and remember a new ZDP transaction sequence number
-    bt.zdpSeqNum = (uint8_t)qrand();
+    bt.zdpSeqNum = ZDP_NextSequenceNumber();
 
     stream << bt.zdpSeqNum; // ZDP transaction sequence number
 
@@ -4749,7 +4750,9 @@ void DeRestPluginPrivate::bindingTableReaderTimerFired()
             i->apsReq.setClusterId(ZDP_MGMT_BIND_REQ_CLID);
             i->apsReq.setDstEndpoint(ZDO_ENDPOINT);
             i->apsReq.setSrcEndpoint(ZDO_ENDPOINT);
+#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
             i->apsReq.setTxOptions(0);
+#endif
             i->apsReq.setRadius(0);
 
             QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);

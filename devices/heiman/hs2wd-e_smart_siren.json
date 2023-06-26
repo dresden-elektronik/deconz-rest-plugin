@@ -1,0 +1,204 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": [
+    "Heiman",
+    "HEIMAN"
+  ],
+  "modelid": [
+    "WarningDevice",
+    "WarningDevice-EF-3.0"
+  ],
+  "vendor": "Heiman",
+  "product": "Smart siren HS2WD-E",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_WARNING_DEVICE",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "refresh.interval": 84000,
+          "read": {
+            "at": "0x0006",
+            "cl": "0x0000",
+            "ep": 0,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0006",
+            "cl": "0x0000",
+            "ep": 255,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/alert"
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "ZHAAlarm",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0500"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0403",
+        "endpoint": "0x01",
+        "in": [
+          "0x0000",
+          "0x0001",
+          "0x0500"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "refresh.interval": 84000,
+          "read": {
+            "at": "0x0006",
+            "cl": "0x0000",
+            "ep": 0,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0006",
+            "cl": "0x0000",
+            "ep": 255,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/enrolled",
+          "public": false
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/pending"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/alarm"
+        },
+        {
+          "name": "config/battery",
+          "refresh.interval": 3600,
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Math.round(Attr.val / 2);",
+            "fn": "zcl"
+          }
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/lowbattery"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 60,
+          "max": 3600,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0500"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0502",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x21",
+          "min": 30,
+          "max": 120
+        }
+      ]
+    }
+  ]
+}
