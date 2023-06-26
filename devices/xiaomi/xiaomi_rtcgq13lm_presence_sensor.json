@@ -22,6 +22,7 @@
         "in": [
           "0x0000",
           "0x0001",
+          "0x0406",
           "0xFCC0"
         ]
       },
@@ -164,7 +165,7 @@
             "eval": "Item.val = Attr.val"
           },
           "read": {
-            "fn": "None"
+            "fn": "none"
           }
         }
       ]

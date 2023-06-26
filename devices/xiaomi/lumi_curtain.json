@@ -1,0 +1,94 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "$MF_LUMI",
+  "modelid": "lumi.curtain",
+  "product": "Xiaomi Aqara Smart Curtain Controller",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_WINDOW_COVERING_DEVICE",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl",
+            "ep": "0x01",
+            "cl": "0x0000",
+            "at": "0x0001",
+            "eval": "Item.val = '0.0.0_' + ('0000' + Attr.val.toString()).slice(-4)"
+          },
+          "read": {
+            "fn": "zcl",
+            "ep": "0x01",
+            "cl": "0x0000",
+            "at": "0x0001"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/lift",
+          "parse": {
+            "fn": "zcl",
+            "ep": 1,
+            "cl": "0x0102",
+            "at": "0x0008",
+            "eval": "Item.val = 100 - Attr.val"
+          },
+          "read": {
+            "fn": "zcl",
+            "ep": 1,
+            "cl": "0x0102",
+            "at": "0x0008"
+          },
+          "refresh.interval": 300
+        },
+        {
+          "name": "state/open",
+          "parse": {
+            "fn": "zcl",
+            "ep": 1,
+            "cl": "0x0102",
+            "at": "0x0008",
+            "eval": "Item.val = Attr.val === 100"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    }
+  ]
+}

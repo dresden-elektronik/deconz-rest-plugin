@@ -3,7 +3,6 @@
 	"id": "state/orientation_z",
 	"datatype": "Int16",
 	"access": "R",
-	"public": false,
-	"range": [-65535, 65535],
+	"public": true,
 	"description": "The Z orientation of a gyro."
 }

@@ -1,0 +1,8 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "state/airquality_bis",
+  "datatype": "String",
+  "access": "R",
+  "public": false,
+  "description": "Text representation of the air quality based on tVOC level."
+}

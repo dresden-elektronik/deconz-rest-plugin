@@ -1,0 +1,131 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "3A Smart Home DE",
+  "modelid": "LXT56-LS27LX1.7",
+  "vendor": "Zemismart",
+  "product": "3A12S-15",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_EXTENDED_COLOR_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/colorcapabilities"
+        },
+        {
+          "name": "config/ctmax"
+        },
+        {
+          "name": "config/ctmin"
+        },
+        {
+          "name": "state/alert"
+        },
+        {
+          "name": "state/bri"
+        },
+        {
+          "name": "state/colormode"
+        },
+        {
+          "name": "state/ct"
+        },
+        {
+          "name": "state/effect"
+        },
+        {
+          "name": "state/hue"
+        },
+        {
+          "name": "state/on"
+        },
+        {
+          "name": "state/reachable"
+        },
+        {
+          "name": "state/sat"
+        },
+        {
+          "name": "state/x"
+        },
+        {
+          "name": "state/y"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0008",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x20",
+          "min": 10,
+          "max": 360
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0300",
+      "report": [
+        {
+          "at": "0x0008",
+          "dt": "0x30",
+          "min": 10,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 5,
+          "max": 300
+        }
+      ]
+    }
+  ]
+}

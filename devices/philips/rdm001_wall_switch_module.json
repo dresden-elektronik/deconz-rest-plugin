@@ -1,130 +1,240 @@
 {
-    "schema": "devcap1.schema.json",
-    "manufacturername": "$MF_SIGNIFY",
-    "modelid": "RDM001",
-    "product": "Hue wall switch module",
-    "status": "Gold",
-    "sleeper": true,
-    "subdevices": [
-         {
-            "type": "$TYPE_SWITCH",
-            "restapi": "/sensors",
-            "uuid": [ "$address.ext", "0x01", "0xfc00"],
-            "buttons": {
-                "1": {"name": "Button 1"},
-                "2": {"name": "Button 2"}
-            },
-            "buttonevents": {
-                "1000": {"action": "PRESS", "button": 1},
-                "1001": {"action": "HOLD", "button": 1},
-                "1002": {"action": "SHORT_RELEASE", "button": 1},
-                "1003": {"action": "LONG_RELEASE", "button": 1},
-                "2000": {"action": "PRESS", "button": 2},
-                "2001": {"action": "HOLD", "button": 2},
-                "2002": {"action": "SHORT_RELEASE", "button": 2},
-                "2003": {"action": "LONG_RELEASE", "button": 2}
-            },
-            "items": [
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername"
-                },
-                {
-                    "name": "attr/modelid"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion"
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "config/allowtouchlink",
-                    "read": {
-                        "ep": 1, "cl": "0x0000", "mf": "0x100b", "at": "0x0031"
-                    },
-                    "parse": {
-                        "ep": 1, "cl": "0x0000", "mf": "0x100b", "at": "0x0031",
-                        "eval": "Item.val = Attr.val != 0x000b"
-                    },
-                    "write": {
-                        "ep": 1, "cl": "0x0000", "mf": "0x100b", "at": "0x0031", "dt": "0x19",
-                        "eval": "Item.val ? 0x0000 : 0x000b"
-                    },
-                    "default": false,
-                    "refresh.interval": 84000
-                },
-                {
-                    "name": "config/battery",
-                    "parse": {
-                        "ep": 1, "cl": "0x0001", "at": "0x0021",
-                        "eval": "Item.val = Attr.val / 2"
-                    },
-                    "awake": true
-                },
-                {
-                    "name": "config/devicemode",
-                    "values": [["singlerocker", 0], ["singlepushbutton", 1], ["dualrocker", 2], ["dualpushbutton", 3]],
-                    "read": {
-                        "ep": 1, "cl": "0x0000", "mf": "0x100b", "at": "0x0034"
-                    },
-                    "parse": {
-                        "ep": 1, "cl": "0x0000", "mf": "0x100b", "at": "0x0034",
-                        "eval": "Item.val = ['singlerocker', 'singlepushbutton', 'dualrocker', 'dualpushbutton'][Attr.val]"
-                    },
-                    "write": {
-                        "ep": 1, "cl": "0x0000", "mf": "0x100b", "at": "0x0034", "dt": "0x30",
-                        "eval": "['singlerocker', 'singlepushbutton', 'dualrocker', 'dualpushbutton'].indexOf(Item.val)"
-                    },
-                    "default": "singlerocker",
-                    "refresh.interval": 84000
-                },
-                {
-                    "name": "config/on"
-                },
-                {
-                    "name": "config/reachable"
-                },
-                {
-                    "name": "state/buttonevent",
-                    "parse": {
-                        "ep": 1, "cl": "0xfc00", "mf": "0x100b", "cmd": "0x00",
-                        "script": "fc00_buttonevent.js"
-                    },
-                    "awake": true
-                },
-                {
-                    "name": "state/eventduration"
-                },
-                {
-                    "name": "state/lastupdated"
-                }
-            ]
+  "schema": "devcap1.schema.json",
+  "manufacturername": [
+    "$MF_PHILIPS",
+    "$MF_SIGNIFY"
+  ],
+  "modelid": [
+    "RDM001",
+    "RDM001"
+  ],
+  "product": "Hue wall switch module",
+  "status": "Gold",
+  "sleeper": true,
+  "subdevices": [
+    {
+      "type": "$TYPE_SWITCH",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0xfc00"
+      ],
+      "buttons": {
+        "1": {
+          "name": "Button 1"
+        },
+        "2": {
+          "name": "Button 2"
         }
-    ],
-    "bindings": [
+      },
+      "buttonevents": {
+        "1000": {
+          "action": "PRESS",
+          "button": 1
+        },
+        "1001": {
+          "action": "HOLD",
+          "button": 1
+        },
+        "1002": {
+          "action": "SHORT_RELEASE",
+          "button": 1
+        },
+        "1003": {
+          "action": "LONG_RELEASE",
+          "button": 1
+        },
+        "2000": {
+          "action": "PRESS",
+          "button": 2
+        },
+        "2001": {
+          "action": "HOLD",
+          "button": 2
+        },
+        "2002": {
+          "action": "SHORT_RELEASE",
+          "button": 2
+        },
+        "2003": {
+          "action": "LONG_RELEASE",
+          "button": 2
+        }
+      },
+      "items": [
         {
-            "bind": "unicast", "src.ep": 1, "cl": "0xfc00"
+          "name": "attr/lastseen"
         },
         {
-            "bind": "unicast",
-            "src.ep": 1,
-            "cl": "0x0001",
-            "report": [{ "at": "0x0021", "dt": "0x20", "min": 300, "max": 300, "change": "0x01" }]
+          "name": "attr/manufacturername"
         },
         {
-            "bind": "unicast",
-            "src.ep": 1,
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/productname",
+          "static": "Hue wall switch module"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/allowtouchlink",
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
             "cl": "0x0000",
-            "report": [{ "at": "0x0034", "mf": "0x100b", "dt": "0x30", "min": 0, "max": 7200 }]
+            "mf": "0x100b",
+            "at": "0x0031"
+          },
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "mf": "0x100b",
+            "at": "0x0031",
+            "eval": "Item.val = Attr.val != 0x000b"
+          },
+          "write": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "mf": "0x100b",
+            "at": "0x0031",
+            "dt": "0x19",
+            "eval": "Item.val ? 0x0000 : 0x000b"
+          },
+          "default": false,
+          "refresh.interval": 84000
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021",
+            "eval": "Item.val = Attr.val / 2"
+          },
+          "awake": true
+        },
+        {
+          "name": "config/devicemode",
+          "values": [
+            [
+              "singlerocker",
+              0
+            ],
+            [
+              "singlepushbutton",
+              1
+            ],
+            [
+              "dualrocker",
+              2
+            ],
+            [
+              "dualpushbutton",
+              3
+            ]
+          ],
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "mf": "0x100b",
+            "at": "0x0034"
+          },
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "mf": "0x100b",
+            "at": "0x0034",
+            "eval": "Item.val = ['singlerocker', 'singlepushbutton', 'dualrocker', 'dualpushbutton'][Attr.val]"
+          },
+          "write": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "mf": "0x100b",
+            "at": "0x0034",
+            "dt": "0x30",
+            "eval": "['singlerocker', 'singlepushbutton', 'dualrocker', 'dualpushbutton'].indexOf(Item.val)"
+          },
+          "default": "singlerocker",
+          "refresh.interval": 84000
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/buttonevent",
+          "parse": {
+            "fn": "zcl:cmd",
+            "ep": 1,
+            "cl": "0xfc00",
+            "mf": "0x100b",
+            "cmd": "0x00",
+            "script": "fc00_buttonevent.js"
+          },
+          "awake": true
+        },
+        {
+          "name": "state/eventduration"
+        },
+        {
+          "name": "state/lastupdated"
         }
-    ]
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0xfc00"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 300,
+          "max": 300,
+          "change": "0x01"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0000",
+      "report": [
+        {
+          "at": "0x0034",
+          "mf": "0x100b",
+          "dt": "0x30",
+          "min": 0,
+          "max": 7200
+        }
+      ]
+    }
+  ]
 }

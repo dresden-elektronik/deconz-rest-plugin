@@ -466,6 +466,18 @@ static duk_ret_t DJS_GetAttributeValue(duk_context *ctx)
         break;
     }
 
+    case deCONZ::ZclOctedString:
+    {
+        QByteArray data;
+        QDataStream stream(&data, QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        attr->writeToStream(stream);
+        QString str = data.toHex();
+        DBG_Printf(DBG_JS, "%s Octed %s\n", __FUNCTION__, qPrintable(str));
+        duk_push_string(ctx, qPrintable(str));
+        break;
+    }
+
     default:
     {
         const QVariant var = attr->toVariant();
@@ -1140,7 +1152,7 @@ JsEvalResult DeviceJs::evaluate(const QString &expr)
         U_ASSERT(ret == 1);
     }
 
-    if (duk_peval_string(ctx, qPrintable(expr)) != 0)
+    if (duk_peval_string(ctx, expr.toUtf8().constData()) != 0)
     {
         d->errString = duk_safe_to_string(ctx, -1);
         return JsEvalResult::Error;
@@ -1208,7 +1220,7 @@ JsEvalResult DeviceJs::testCompile(const QString &expr)
     }
 
     duk_uint_t flags = 0;
-    if (duk_pcompile_string(ctx, flags, qPrintable(expr)) != 0)
+    if (duk_pcompile_string(ctx, flags, expr.toUtf8().constData()) != 0)
     {
         d->errString = duk_safe_to_string(ctx, -1);
     }

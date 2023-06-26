@@ -1154,6 +1154,7 @@ public:
     int deleteLight(const ApiRequest &req, ApiResponse &rsp);
     int removeAllScenes(const ApiRequest &req, ApiResponse &rsp);
     int removeAllGroups(const ApiRequest &req, ApiResponse &rsp);
+    int resetDeviceOnly(const ApiRequest &req, ApiResponse &rsp);
     int getConnectivity(const ApiRequest &req, ApiResponse &rsp, bool alt);
     void handleLightEvent(const Event &e);
 

@@ -14,6 +14,19 @@
                 "0x01",
                 "0x0402"
             ],
+            "fingerprint": {
+                "endpoint": "0x01",
+                "profile": "0x0104",
+                "device": "0x0302",
+                "in": [
+                    "0x0000",
+                    "0x0003",
+                    "0x0402"
+                ],
+                "out": [
+                    "0x0019"
+                ]
+            },
             "items": [
                 {
                     "name": "attr/id"
@@ -76,6 +89,14 @@
                 "0x01",
                 "0x0405"
             ],
+            "fingerprint": {
+                "endpoint": "0x01",
+                "profile": "0x0104",
+                "device": "0x0302",
+                "in": [
+                    "0x0405"
+                ]
+            },
             "items": [
                 {
                     "name": "attr/id"
@@ -138,6 +159,14 @@
                 "0x01",
                 "0x042A"
             ],
+            "fingerprint": {
+                "endpoint": "0x01",
+                "profile": "0x0104",
+                "device": "0x0302",
+                "in": [
+                    "0x042A"
+                ]
+            },
             "items": [
                 {
                     "name": "attr/id"
@@ -223,6 +252,14 @@
                 "0x01",
                 "0xfc7e"
             ],
+            "fingerprint": {
+                "endpoint": "0x01",
+                "profile": "0x0104",
+                "device": "0x0302",
+                "in": [
+                    "0xFC7E"
+                ]
+            },
             "items": [
                 {
                     "name": "attr/id"
@@ -340,7 +377,7 @@
                     "dt": "0x39",
                     "min": 1,
                     "max": 300,
-                    "change": "0x00000001"
+                    "change": "0x3F800000"
                 }
             ]
         },
@@ -355,7 +392,7 @@
                     "mf": "0x117C",
                     "min": 1,
                     "max": 300,
-                    "change": "0x00000001"
+                    "change": "0x3F800000"
                 }
             ]
         }
