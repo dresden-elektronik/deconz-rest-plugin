@@ -29,11 +29,11 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      # Install jsonlint
-      - name: Install jsonlint
-        run: sudo apt install jsonlint
-
-      - name: Validate genric JSON files
-        run: for j in `find devices -name '*.json'`; do jsonlint-php $j || exit 1; done
+      # Validate DDF files
+      - uses: deconz-community/ddf-validator-action@v1
+        with:
+          directory: devices
+          generic: devices/generic
+          search: '**/*.json'
