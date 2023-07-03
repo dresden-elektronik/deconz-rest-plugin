@@ -43,6 +43,12 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "cap/color/ct/max"
+        },
+        {
+          "name": "cap/color/ct/min"
+        },
+        {
           "name": "state/alert",
           "default": "none"
         },
