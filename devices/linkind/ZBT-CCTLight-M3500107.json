@@ -42,12 +42,10 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/ctmax",
-          "refresh.interval": 84000
+          "name": "cap/color/ct/max"
         },
         {
-          "name": "config/ctmin",
-          "refresh.interval": 84000
+          "name": "cap/color/ct/min"
         },
         {
           "name": "state/alert",
@@ -55,18 +53,18 @@
         },
         {
           "name": "state/bri",
-          "refresh.interval": 5
+          "refresh.interval": 365
         },
         {
           "name": "state/colormode"
         },
         {
           "name": "state/ct",
-          "refresh.interval": 5
+          "refresh.interval": 365
         },
         {
           "name": "state/on",
-          "refresh.interval": 5
+          "refresh.interval": 365
         },
         {
           "name": "state/reachable"
