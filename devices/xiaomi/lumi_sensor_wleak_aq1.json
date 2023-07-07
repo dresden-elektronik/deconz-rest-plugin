@@ -100,17 +100,6 @@
             "fn": "ias:zonestatus",
             "mask": "alarm1"
           }
-        },
-        {
-          "name": "state/water_bis",
-          "awake": true,
-          "parse": {
-            "fn": "xiaomi:special",
-            "mf": "0x115F",
-            "at": "0xFF01",
-            "idx": "0x64",
-            "eval": "R.item('state/water').val = Attr.val"
-          }
         }
       ]
     }
