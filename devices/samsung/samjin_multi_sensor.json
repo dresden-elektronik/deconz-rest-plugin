@@ -161,10 +161,6 @@
                     "name": "config/reachable"
                 },
                 {
-                    "name": "state/orientation",
-                    "description": "<p>The orientation as [X, Y, Z].</p> <p><b>Note:</b> These are the raw device values, it's not known what they represent, they are in range -1400&ndash;1400.</p>"
-                },
-                {
                     "name": "state/orientation_x",
                     "public": true,
                     "parse": {"fn": "zcl", "ep": 1, "cl": "0xfc02", "at": "0x0012", "mf": "0x1241", "eval": "Item.val = Attr.val"}
