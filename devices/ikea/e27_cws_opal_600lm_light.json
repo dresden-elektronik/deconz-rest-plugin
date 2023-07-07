@@ -1,135 +1,169 @@
 {
-    "schema": "devcap1.schema.json",
-    "doc:path": "ikea/e27_cws_opal_600lm_light.md",
-    "doc:hdr": "TRÅDFRI bulb E27 CWS opal 600lm",
-    "manufacturername": "$MF_IKEA",
-    "modelid": "TRADFRI bulb E27 CWS opal 600lm",
-    "product": "TRÅDFRI bulb E27 CWS opal 600lm",
-    "status": "Bronze",
-    "md:known_issues": [ "ikea_known_issues_radio_silence.md" ],
-    "supportsMgmtBind": true,
-    "subdevices": [
+  "schema": "devcap1.schema.json",
+  "manufacturername": "$MF_IKEA",
+  "modelid": "TRADFRI bulb E27 CWS opal 600lm",
+  "product": "TRÅDFRI bulb E27 CWS opal 600lm",
+  "status": "Bronze",
+  "md:known_issues": [
+    "ikea_known_issues_radio_silence.md"
+  ],
+  "supportsMgmtBind": true,
+  "subdevices": [
+    {
+      "type": "$TYPE_COLOR_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
         {
-            "type": "$TYPE_COLOR_LIGHT",
-            "restapi": "/lights",
-            "uuid": ["$address.ext", "0x01"],
-            "items": [
-                {
-                    "name": "attr/lastannounced"
-                },
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername"
-                },
-                {
-                    "name": "attr/modelid"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion"
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "config/colorcapabilities"
-                },
-                {
-                    "name": "config/ctmin"
-                },
-                {
-                    "name": "config/ctmax"
-                },
-                {
-                    "name": "state/on",
-                    "refresh.interval": 1900
-                },
-                {
-                    "name": "state/bri",
-                    "refresh.interval": 1900
-                },
-                {
-                    "name": "state/x",
-                    "refresh.interval": 1900
-                },
-                {
-                    "name": "state/y",
-                    "refresh.interval": 1900
-                },
-                {
-                    "name": "state/reachable"
-                },
-                {
-                    "name": "state/colormode",
-                    "values": [
-                        ["\"xy\"", "CIE xy color space coordinates"]
-                    ],
-                    "default": "xy"
-                },
-                {
-                    "name": "state/alert",
-                    "default": "none"
-                }
-            ],
-            "example":    {
-                "colorcapabilities": 0,
-                "etag": "08e72d5b3b4d09ea6eee75f92d85993f",
-                "hascolor": true,
-                "lastannounced": null,
-                "lastseen": "2021-03-28T16:01Z",
-                "manufacturername": "IKEA of Sweden",
-                "modelid": "TRADFRI bulb E27 CWS opal 600lm",
-                "name": "Color light 2",
-                "state": {
-                    "alert": "none",
-                    "bri": 0,
-                    "colormode": "hs",
-                    "effect": "none",
-                    "hue": 0,
-                    "on": false,
-                    "reachable": true,
-                    "sat": 0,
-                    "xy": [
-                        0,
-                        0
-                    ]
-                }
-            }
-        }
-    ],
-    "bindings":  [
-        {
-            "bind": "unicast",
-            "src.ep": 1,
-            "cl": "0x0006",
-            "report": [
-                {"at": "0x0000", "dt": "0x10", "min": 5, "max": 1800 }
-            ]
+          "name": "attr/lastannounced"
         },
         {
-            "bind": "unicast",
-            "src.ep": 1,
-            "cl": "0x0008",
-            "report": [
-                {"at": "0x0000", "dt": "0x20", "min": 5, "max": 1800, "change": "0x01" }
-            ]
+          "name": "attr/lastseen"
         },
         {
-            "bind": "unicast",
-            "src.ep": 1,
-            "cl": "0x0300",
-            "report": [
-                {"at": "0x0008", "dt": "0x30", "min": 1, "max": 1800 },
-                {"at": "0x0003", "dt": "0x21", "min": 5, "max": 1795, "change": "0x0a" },
-                {"at": "0x0004", "dt": "0x21", "min": 5, "max": 1795, "change": "0x0a" }
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/color/capabilities"
+        },
+        {
+          "name": "cap/color/ct/min"
+        },
+        {
+          "name": "cap/color/ct/max"
+        },
+        {
+          "name": "cap/color/xy/blue_x",
+          "static": 0
+        },
+        {
+          "name": "cap/color/xy/blue_y",
+          "static": 0
+        },
+        {
+          "name": "cap/color/xy/green_x",
+          "static": 0
+        },
+        {
+          "name": "cap/color/xy/green_y",
+          "static": 65279
+        },
+        {
+          "name": "cap/color/xy/red_x",
+          "static": 65279
+        },
+        {
+          "name": "cap/color/xy/red_y",
+          "static": 0
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 1900
+        },
+        {
+          "name": "state/bri",
+          "refresh.interval": 1900
+        },
+        {
+          "name": "state/x",
+          "refresh.interval": 1900
+        },
+        {
+          "name": "state/y",
+          "refresh.interval": 1900
+        },
+        {
+          "name": "state/reachable"
+        },
+        {
+          "name": "state/colormode",
+          "values": [
+            [
+              "\"xy\"",
+              "CIE xy color space coordinates"
             ]
+          ],
+          "default": "xy"
+        },
+        {
+          "name": "state/alert",
+          "default": "none"
         }
-    ]
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 5,
+          "max": 1800
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0008",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x20",
+          "min": 5,
+          "max": 1800,
+          "change": "0x01"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0300",
+      "report": [
+        {
+          "at": "0x0008",
+          "dt": "0x30",
+          "min": 1,
+          "max": 1800
+        },
+        {
+          "at": "0x0003",
+          "dt": "0x21",
+          "min": 5,
+          "max": 1795,
+          "change": "0x0a"
+        },
+        {
+          "at": "0x0004",
+          "dt": "0x21",
+          "min": 5,
+          "max": 1795,
+          "change": "0x0a"
+        }
+      ]
+    }
+  ]
 }
