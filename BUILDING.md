@@ -82,7 +82,7 @@ brew install qt@5 ninja cmake
 ```
 
 ```
-cmake -DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt\@5/5.15.9/lib/cmake -B build
+cmake -DCMAKE_PREFIX_PATH=/usr/local/opt/qt@5 -G Ninja -B build .
 ```
 
 ## Build with QMake
