@@ -18,7 +18,6 @@
 
 #include <array>
 #include <QLibrary>
-#include "deconz/dbg_trace.h"
 #include "random.h"
 #include "scrypt.h"
 

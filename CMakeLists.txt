@@ -13,6 +13,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt5 COMPONENTS Core Widgets Network WebSockets REQUIRED)
 find_package(Git REQUIRED)
+find_package(OpenSSL)
 
 if (NOT DECONZ_FULL_BUILD)
     # standalone build
@@ -267,6 +268,11 @@ target_compile_definitions(${PROJECT_NAME}
     GW_MIN_DERFUSB23E0X_FW_VERSION=0x22030300
     GW_DEFAULT_NAME="\"\"Phoscon-GW\"\""
 )
+
+if (OPENSSL_FOUND)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_OPENSSL=1)
+    target_include_directories(${PROJECT_NAME} PRIVATE ${OPENSSL_INCLUDE_DIR})
+endif()
 
 if (Qt5Core_VERSION_STRING VERSION_LESS "5.15.0")
     target_compile_definitions(${PROJECT_NAME} PRIVATE SKIP_EMPTY_PARTS=QString::SkipEmptyParts )
