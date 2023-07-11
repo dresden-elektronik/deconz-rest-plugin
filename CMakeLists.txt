@@ -13,7 +13,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt5 COMPONENTS Core Widgets Network WebSockets REQUIRED)
 find_package(Git REQUIRED)
-find_package(OpenSSL)
+
+if (UNIX)
+    include(FindPkgConfig)
+    pkg_check_modules (OPENSSL openssl)
+endif()
 
 if (NOT DECONZ_FULL_BUILD)
     # standalone build
@@ -271,7 +275,7 @@ target_compile_definitions(${PROJECT_NAME}
 
 if (OPENSSL_FOUND)
     target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_OPENSSL=1)
-    target_include_directories(${PROJECT_NAME} PRIVATE ${OPENSSL_INCLUDE_DIR})
+    target_include_directories(${PROJECT_NAME} PRIVATE ${OPENSSL_INCLUDE_DIRS})
 endif()
 
 if (Qt5Core_VERSION_STRING VERSION_LESS "5.15.0")
