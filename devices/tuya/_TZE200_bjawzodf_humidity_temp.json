@@ -1,9 +1,8 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["_TZE200_nnrfa68v","_TZE200_znbl8dj5", "_TZE200_qoy0ekbd", "_TZE200_a8sdabtg", "_TZE200_whkgqxse","_TZE200_yjjdcqsq", "_TZE200_9yapgbuv", "_TZE200_utkemkbs"],
-  "modelid": ["TS0601","TS0601", "TS0601", "TS0601", "TS0601", "TS0601", "TS0601", "TS0601"],
-  "vendor": "Tuya",
-  "product": "Temperature Humidity Sensor TS0601",
+  "manufacturername": "_TZE200_bjawzodf",
+  "modelid": "TS0601",
+  "product": "Tuya multi sensor",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -57,8 +56,8 @@
         },
         {
           "name": "state/humidity",
-          "parse": {"fn": "tuya", "dpid": 2, "eval": "Item.val = (100 * Attr.val) + R.item('config/offset').val;" },
-          "read": {"fn": "none"},
+          "parse": {"fn": "tuya", "dpid": 2, "eval": "Item.val = 10 * Attr.val + R.item('config/offset').val;" },
+          "read": {"fn": "tuya"},
           "default": 0
         },
         {
@@ -102,7 +101,7 @@
         {
           "name": "attr/swversion",
           "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "none"}
+          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
         {
           "name": "attr/type"
@@ -131,7 +130,7 @@
         },
         {
           "name": "state/temperature",
-          "parse": {"fn": "tuya", "dpid": 1, "eval": "Item.val = (10 * Attr.val) + R.item('config/offset').val;" },
+          "parse": {"fn": "tuya", "dpid": 1, "eval": "Item.val = 10 * Attr.val + R.item('config/offset').val;" },
           "read": {"fn": "none"},
           "default": 0
         }
