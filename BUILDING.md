@@ -44,6 +44,8 @@ sqlite3 libsqlite3-dev libgpiod-dev libssl-dev curl cmake ninja-build
 
 The compiled plugin is located at: `tmp/share/deCONZ/plugins/libde_rest_plugin.so`
 
+--------
+
 ### Windows
 
 MSYS2 MINGW32 needs to be installed, it can be downloaded from https://msys2.org 
@@ -55,35 +57,47 @@ In MSYS2 MINGW32 shell the following packages need to be installed:
 pacman -Sy mingw-w64-i686-qt5 mingw-w64-i686-openssl mingw-w64-i686-sqlite3
 ```
 
-### Build
-
 1. Checkout this repository
+
+        git clone https://github.com/dresden-elektronik/deconz-rest-plugin.git
 
 2. Open MSYS2 MINGW32 shell via Windows Start Menu
 
-3. Navigate to the source directory, e.g. `cd /c/src/deconz-rest-plugin` 
+3. Navigate to the source directory
+
+        cd /c/src/deconz-rest-plugin
 
 3. Compile the plugin with CMake
 
-```
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/mingw32/lib/cmake -B build
-cmake --build build
-```
+
+        cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/mingw32/lib/cmake -B build
+        cmake --build build
 
 After compilation the plugin can be found in the build directory: `de_rest_plugin.dll`
 
-### macOS
+-----------
 
-(not officially supported yet, requires core sources for macOS build)
+### macOS
 
 Install dependencies via Homebrew.
 ```
 brew install qt@5 ninja cmake
 ```
 
-```
-cmake -DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt\@5/5.15.9/lib/cmake -B build
-```
+1. Checkout this repository
+
+        git clone https://github.com/dresden-elektronik/deconz-rest-plugin.git
+
+3. Navigate to the source directory
+
+        cd deconz-rest-plugin
+
+4. Compile the plugin with CMake
+
+        cmake -DCMAKE_PREFIX_PATH=/usr/local/opt/qt@5 -G Ninja -B build .
+        cmake --build build
+
+After compilation the plugin can be found in the build directory: `de_rest_plugin.dylib`
 
 ## Build with QMake
 
