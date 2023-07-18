@@ -12,9 +12,8 @@
 #include <QString>
 #include <QTcpSocket>
 #include <QVariantMap>
-#include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
-#include "json.h"
+#include "deconz/u_rand32.h"
 
 // duration to wait for scan responses
 #define TL_SCAN_WAIT_TIME 250
@@ -124,7 +123,7 @@ int DeRestPluginPrivate::touchlinkScan(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    uint32_t transactionId = qrand();
+    uint32_t transactionId = U_rand32();
 
     if (transactionId == 0)
     {
@@ -234,7 +233,7 @@ int DeRestPluginPrivate::identifyLight(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    uint32_t transactionId = qrand();
+    uint32_t transactionId = U_rand32();
 
     if (transactionId == 0)
     {
@@ -298,7 +297,7 @@ int DeRestPluginPrivate::resetLight(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    uint32_t transactionId = qrand();
+    uint32_t transactionId = U_rand32();
 
     if (transactionId == 0)
     {

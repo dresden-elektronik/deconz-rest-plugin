@@ -12,9 +12,9 @@
 #include <QTcpSocket>
 #include <QVariantMap>
 #include <QRegExp>
-#include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "json.h"
+#include "deconz/u_rand32.h"
 
 /*! Inits the schedules manager.
  */
@@ -440,14 +440,18 @@ int DeRestPluginPrivate::setScheduleAttributes(const ApiRequest &req, ApiRespons
                 QRegExp rnd("(\\d\\d):(\\d\\d):(\\d\\d)");
                 if (rnd.exactMatch(ls[1]))
                 {
+                    // TODO(mpi): the following code could use a refactor
                     randomMax = rnd.cap(1).toInt() * 60 * 60 + // h
                         rnd.cap(2).toInt() * 60 +   // m
                         rnd.cap(3).toInt(); // s
 
-                    if (randomMax == 0) {
+                    if (randomMax == 0)
+                    {
                         randomTime = 0;
-                    } else {
-                        randomTime = (qrand() % ((randomMax + 1) - 1) + 1);
+                    }
+                    else
+                    {
+                        randomTime = (U_rand32() % ((randomMax + 1) - 1) + 1);
                     }
                 }
                 else
@@ -900,10 +904,13 @@ bool DeRestPluginPrivate::jsonToSchedule(const QString &jsonString, Schedule &sc
                     rnd.cap(2).toInt() * 60 +   // m
                     rnd.cap(3).toInt(); // s
 
-                if (randomMax == 0) {
+                if (randomMax == 0)
+                {
                     randomTime = 0;
-                } else {
-                    randomTime = (qrand() % ((randomMax + 1) - 1) + 1);
+                }
+                else
+                {
+                    randomTime = (U_rand32() % ((randomMax + 1) - 1) + 1);
                 }
             }
             else
@@ -1294,10 +1301,13 @@ void DeRestPluginPrivate::scheduleTimerFired()
                             rnd.cap(2).toInt() * 60 +   // m
                             rnd.cap(3).toInt(); // s
 
-                        if (randomMax == 0) {
+                        if (randomMax == 0)
+                        {
                             randomTime = 0;
-                        } else {
-                            randomTime = (qrand() % ((randomMax + 1) - 1) + 1);
+                        }
+                        else
+                        {
+                            randomTime = (U_rand32() % ((randomMax + 1) - 1) + 1);
                         }
                     }
 
