@@ -1037,9 +1037,13 @@ void DEV_BindingTableReadHandler(Device *device, const Event &event)
                 }
                 else
                 {
-                    if (status == deCONZ::ZdpNotSupported)
+                    if (status == deCONZ::ZdpNotSupported || status == deCONZ::ZdpNotPermitted)
                     {
                         d->binding.mgmtBindSupported = MGMT_BIND_NOT_SUPPORTED;
+                    }
+                    else
+                    {
+                        DBG_Printf(DBG_DEV, "ZDP read binding table error: 0x%016llX, status: 0x%02X (TODO handle?)\n", device->key(), status);
                     }
                     d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
                 }
