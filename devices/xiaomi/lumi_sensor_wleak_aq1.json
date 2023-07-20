@@ -109,7 +109,7 @@
             "mf": "0x115F",
             "at": "0xFF01",
             "idx": "0x64",
-            "eval": "R.item('state/water').val = Attr.val"
+            "eval": "R.item('state/water').val = R.item('state/water').val"
           }
         }
       ]
