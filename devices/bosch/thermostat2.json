@@ -61,7 +61,7 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 3660,
+          "refresh.interval": 43265,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",

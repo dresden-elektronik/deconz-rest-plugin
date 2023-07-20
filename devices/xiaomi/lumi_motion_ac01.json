@@ -274,7 +274,7 @@
           "parse": {
             "fn": "xiaomi:special",
             "at": "0x00F7",
-            "idx": "0x66",
+            "idx": "0x69",
             "eval": "R.item('config/triggerdistance').val = ['far', 'medium', 'near'][Attr.val]"
           }
         },
