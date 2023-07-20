@@ -148,6 +148,7 @@ public:
     const deCONZ::ApsDataIndication *apsInd = nullptr;
     const deCONZ::ZclFrame *zclFrame = nullptr;
     const deCONZ::ZclAttribute *attr = nullptr;
+    int attrIndex = 0;
     std::vector<ResourceItem*> itemsSet;
     Resource *resource = nullptr;
     ResourceItem *ritem = nullptr;
@@ -499,6 +500,19 @@ static duk_ret_t DJS_GetAttributeId(duk_context *ctx)
     return 1;  /* one return value */
 }
 
+static duk_ret_t DJS_GetAttributeIndex(duk_context *ctx)
+{
+    DBG_Printf(DBG_JS, "%s\n", __FUNCTION__);
+
+    if (!_djsPriv->attr)
+    {
+        return duk_reference_error(ctx, "attribute not defined");
+    }
+
+    duk_push_int(ctx, _djsPriv->attrIndex);
+    return 1;  /* one return value */
+}
+
 static duk_ret_t DJS_GetAttributeDataType(duk_context *ctx)
 {
     DBG_Printf(DBG_JS, "%s\n", __FUNCTION__);
@@ -533,6 +547,13 @@ static void DJS_InitGlobalAttribute(duk_context *ctx)
     /* Attr.id */
     duk_push_string(ctx, "id");
     duk_push_c_function(ctx, DJS_GetAttributeId, 0 /*nargs*/);
+    duk_def_prop(ctx,
+             -3,
+             DUK_DEFPROP_HAVE_GETTER);
+
+    /* Attr.index */
+    duk_push_string(ctx, "index");
+    duk_push_c_function(ctx, DJS_GetAttributeIndex, 0 /*nargs*/);
     duk_def_prop(ctx,
              -3,
              DUK_DEFPROP_HAVE_GETTER);
@@ -1240,8 +1261,9 @@ void DeviceJs::setZclFrame(const deCONZ::ZclFrame &zclFrame)
     d->zclFrame = &zclFrame;
 }
 
-void DeviceJs::setZclAttribute(const deCONZ::ZclAttribute &attr)
+void DeviceJs::setZclAttribute(int attrIndex, const deCONZ::ZclAttribute &attr)
 {
+    d->attrIndex = attrIndex;
     d->attr = &attr;
 }
 
@@ -1266,6 +1288,7 @@ void DeviceJs::reset()
     d->ritem = nullptr;
     d->resource = nullptr;
     d->attr = nullptr;
+    d->attrIndex = 0;
     d->zclFrame = nullptr;
     d->isReset = true;
     d->result = {};

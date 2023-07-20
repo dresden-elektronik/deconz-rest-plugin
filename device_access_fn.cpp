@@ -277,7 +277,7 @@ quint8 resolveAutoEndpoint(const Resource *r)
 
 /*! Evaluates an items Javascript expression for a received attribute.
  */
-bool evalZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, const deCONZ::ZclAttribute &attr, const QVariant &parseParameters)
+bool evalZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, int attrIndex, const deCONZ::ZclAttribute &attr, const QVariant &parseParameters)
 {
     bool ok = false;
     const auto &zclParam = item->zclParam();
@@ -304,7 +304,7 @@ bool evalZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndi
         engine.reset();
         engine.setResource(r);
         engine.setItem(item);
-        engine.setZclAttribute(attr);
+        engine.setZclAttribute(attrIndex, attr);
         engine.setZclFrame(zclFrame);
         engine.setApsIndication(ind);
 
@@ -591,6 +591,7 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
 
+    int attrIndex = -1;
     while (!stream.atEnd())
     {
         quint16 attrId;
@@ -598,6 +599,7 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
         quint8 dataType;
 
         stream >> attrId;
+        attrIndex++;
 
         if (zclFrame.commandId() == deCONZ::ZclReadAttributesResponseId)
         {
@@ -616,7 +618,7 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
             break;
         }
 
-        if (evalZclAttribute(r, item, ind, zclFrame, attr, parseParameters))
+        if (evalZclAttribute(r, item, ind, zclFrame, attrIndex, attr, parseParameters))
         {
             if (zclFrame.commandId() == deCONZ::ZclReportAttributesId)
             {
@@ -689,6 +691,7 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
 
     stream >> seq;
 
+    int attrIndex = 0;
     while (!stream.atEnd()) // a message can contain multiple datapoints
     {
         stream >> dpid;
@@ -750,12 +753,14 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
                 attr.setValue(quint64(num.u32));
             }
 
-            if (evalZclAttribute(r, item, ind, zclFrame, attr, parseParameters))
+            if (evalZclAttribute(r, item, ind, zclFrame, attrIndex, attr, parseParameters))
             {
                 item->setLastZclReport(deCONZ::steadyTimeRef().ref);
                 result = true;
             }
         }
+
+        attrIndex++;
 
         const char *rt = zclFrame.commandId() == TY_DATA_REPORT ? "REPORT" : "RESPONSE";
 
@@ -1215,7 +1220,8 @@ bool parseXiaomiSpecial(Resource *r, ResourceItem *item, const deCONZ::ApsDataIn
     Q_ASSERT(zclParam.attributeCount == 2); // attribute id + tag/idx
     const auto attr = parseXiaomiZclTag(zclParam.attributes[1], zclFrame);
 
-    if (evalZclAttribute(r, item, ind, zclFrame, attr, parseParameters))
+    int attrIndex = 0;
+    if (evalZclAttribute(r, item, ind, zclFrame, attrIndex, attr, parseParameters))
     {
         result = true;
     }
