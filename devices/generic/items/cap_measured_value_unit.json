@@ -1,0 +1,14 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "cap/measured_value/unit",
+  "datatype": "String",
+  "access": "R",
+  "public": true,
+  "default": "",
+  "description": "The unit of state/measured_value. To be defined by static in DDF",
+  "values": [
+    ["ug/m^3", "microgram per cubic meter"],
+    ["PPM", "parts per million"],
+    ["PPB", "parts per billion"]
+  ]
+}
