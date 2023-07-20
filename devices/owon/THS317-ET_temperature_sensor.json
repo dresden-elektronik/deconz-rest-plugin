@@ -43,6 +43,17 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "config/battery",
+          "refresh.interval": 86400,
+          "awake": true,
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 0,
+            "eval": "Item.val = Attr.val / 2"
+          }
+        },
+        {
           "name": "config/offset",
           "default": 0
         },
@@ -53,29 +64,25 @@
           "name": "config/reachable"
         },
         {
-            "name": "config/battery",
-            "parse": {"cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val"},
-            "awake": true
-        },
-        {
           "name": "state/lastupdated"
         },
-          {
+        {
           "name": "state/temperature",
           "awake": true,
           "read": {
             "at": "0x0000",
             "cl": "0x0402",
-            "ep": 3,
+            "ep": 0,
             "fn": "zcl"
           },
           "parse": {
             "at": "0x0000",
             "cl": "0x0402",
-            "ep": 3,
-            "eval": "Item.val = Attr.val",
+            "ep": 0,
+            "eval": "if (Attr.val < 32767) { Item.val =  Attr.val + R.item('config/offset').val; }",
             "fn": "zcl"
-          }
+          },
+          "default": 0
         }
       ]
     }
@@ -83,14 +90,42 @@
   "bindings": [
     {
       "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 60,
+          "max": 3600,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0402",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x29",
+          "min": 60,
+          "max": 300,
+          "change": "0x00000032"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
       "src.ep": 3,
       "cl": "0x0001",
       "report": [
         {
-          "at": "0x0020",
-          "dt": "0x21",
-          "min": 300,
-          "max": 3000,
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 60,
+          "max": 3600,
           "change": "0x00000001"
         }
       ]
@@ -104,8 +139,8 @@
           "at": "0x0000",
           "dt": "0x29",
           "min": 60,
-          "max": 600,
-          "change": "0x00000014"
+          "max": 300,
+          "change": "0x00000032"
         }
       ]
     }
