@@ -5,7 +5,6 @@
   "product": "Classic B40 TW - LIGHTIFY",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/Osram/classic_b40_tw.json",
   "subdevices": [
     {
       "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
@@ -56,7 +55,7 @@
         },
         {
           "name": "cap/color/ct/min",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "default": 153
         },
         {
@@ -65,27 +64,23 @@
         },
         {
           "name": "state/alert",
-          "description": "The currently active alert effect.",
           "default": "none"
         },
         {
           "name": "state/bri",
-          "description": "The current brightness.",
-          "refresh.interval": 5
+          "refresh.interval": 365
         },
         {
           "name": "state/colormode",
-          "description": "The currently active color mode.",
-          "refresh.interval": 300
+          "refresh.interval": 365
         },
         {
           "name": "state/ct",
-          "description": "The current Mired color temperature of the light. Where Mired is 1000000 / color temperature (in kelvins).",
-          "refresh.interval": 5
+          "refresh.interval": 365
         },
         {
           "name": "state/on",
-          "refresh.interval": 5
+          "refresh.interval": 365
         },
         {
           "name": "state/reachable"

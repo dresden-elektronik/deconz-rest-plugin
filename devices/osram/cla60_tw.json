@@ -5,7 +5,6 @@
   "product": "CLA60 TW OSRAM",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/Osram/cla60_tw.json",
   "subdevices": [
     {
       "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
@@ -64,7 +63,7 @@
         },
         {
           "name": "cap/color/ct/min",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "default": 153
         },
         {
@@ -73,25 +72,24 @@
         },
         {
           "name": "state/alert",
-          "description": "The currently active alert effect.",
           "default": "none"
         },
         {
           "name": "state/bri",
-          "refresh.interval": 300
+          "refresh.interval": 365
         },
         {
           "name": "state/colormode",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "default": "ct"
         },
         {
           "name": "state/ct",
-          "refresh.interval": 5
+          "refresh.interval": 365
         },
         {
           "name": "state/on",
-          "refresh.interval": 5
+          "refresh.interval": 365
         },
         {
           "name": "state/reachable"

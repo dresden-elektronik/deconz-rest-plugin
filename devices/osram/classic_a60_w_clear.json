@@ -5,7 +5,6 @@
   "product": "Classic A60 W clear - LIGHTIFY",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/Osram/classic_a60_w_clear.json",
   "subdevices": [
     {
       "type": "$TYPE_DIMMABLE_LIGHT",
@@ -44,28 +43,23 @@
         },
         {
           "name": "cap/bri/move_with_onoff",
-          "description": "Device supports the _Move to Level (with On/Off)_ command.",
           "static": true
         },
         {
           "name": "cap/on/off_with_effect",
-          "description": "Device supports the _Off with Effect_ command.",
           "static": true
         },
         {
           "name": "state/alert",
-          "description": "The currently active alert effect.",
           "default": "none"
         },
         {
           "name": "state/bri",
-          "description": "The current brightness.",
-          "refresh.interval": 5
+          "refresh.interval": 365
         },
         {
           "name": "state/on",
-          "description": "True when device is on; false when off.",
-          "refresh.interval": 5
+          "refresh.interval": 365
         },
         {
           "name": "state/reachable"

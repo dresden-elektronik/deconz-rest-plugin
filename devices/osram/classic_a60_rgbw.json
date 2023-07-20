@@ -5,7 +5,6 @@
   "product": "Classic A60 RGBW",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/Osram/classic_a60_rgbw.json",
   "subdevices": [
     {
       "type": "$TYPE_EXTENDED_COLOR_LIGHT",
@@ -44,7 +43,6 @@
         },
         {
           "name": "cap/bri/move_with_onoff",
-          "description": "Device supports the _Move to Level (with On/Off)_ command.",
           "static": true
         },
         {
@@ -71,25 +69,23 @@
         },
         {
           "name": "state/alert",
-          "description": "The currently active alert effect.",
           "default": "none"
         },
         {
           "name": "state/bri",
-          "refresh.interval": 5
+          "refresh.interval": 365
         },
         {
           "name": "state/colormode",
-          "refresh.interval": 300
+          "refresh.interval": 365
         },
         {
           "name": "state/ct",
-          "refresh.interval": 5
+          "refresh.interval": 365
         },
         {
           "name": "state/effect",
-          "description": "The currently active effect.",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "default": "none"
         },
         {
@@ -97,18 +93,18 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 5
+          "refresh.interval": 365
         },
         {
           "name": "state/reachable"
         },
         {
           "name": "state/sat",
-          "refresh.interval": 5
+          "refresh.interval": 365
         },
         {
           "name": "state/x",
-          "refresh.interval": 5
+          "refresh.interval": 365
         },
         {
           "name": "state/y"
