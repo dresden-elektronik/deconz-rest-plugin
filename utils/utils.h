@@ -57,7 +57,7 @@ struct RestData
     int integer;
     uint uinteger;
     QString string;
-    float real;
+    double real;
     bool valid = false;
 };
 

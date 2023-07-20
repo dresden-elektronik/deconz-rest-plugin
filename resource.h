@@ -394,16 +394,16 @@ public:
         type(t),
         qVariantType(v),
         suffix(s),
-        validMin(min),
-        validMax(max) { }
+        validMin((double)min),
+        validMax((double)max) { }
 
     bool isValid() const { return (type != DataTypeUnknown && suffix); }
     Access access = Access::Unknown;
     ApiDataType type = DataTypeUnknown;
     QVariant::Type qVariantType = QVariant::Invalid;
     const char *suffix = RInvalidSuffix;
-    qint64 validMin = 0;
-    qint64 validMax = 0;
+    double validMin = 0;
+    double validMax = 0;
     quint16 flags = 0;
 };
 
@@ -424,7 +424,8 @@ public:
         FlagPushOnSet       = 0x04, // events will be generated when item is set (even when value doesn't change)
         FlagPushOnChange    = 0x08, // events will be generated only when item changes
         FlagAwakeOnSet      = 0x10, // REventAwake will be generated when item is set after parse
-        FlagImplicit        = 0x20  // the item is always present for a specific resource type
+        FlagImplicit        = 0x20, // the item is always present for a specific resource type
+        FlagDynamicDescriptor = 0x40, // ResourceItemDescriptor is dynamic (not specified in code)
     };
 
     enum ValueSource
@@ -657,6 +658,8 @@ bool R_SetValueEventOnSet(Resource *r, const char *suffix, const V &val, Resourc
 
     return result;
 }
+
+bool R_AddResourceItemDescriptor(const ResourceItemDescriptor &rid);
 
 bool isValidRConfigGroup(const QString &str);
 

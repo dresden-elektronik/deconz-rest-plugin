@@ -630,8 +630,8 @@ const char *getResourcePrefix(const QString &str)
 
 bool getResourceItemDescriptor(const QString &str, ResourceItemDescriptor &descr)
 {
-    std::vector<ResourceItemDescriptor>::const_iterator i = rItemDescriptors.begin();
-    std::vector<ResourceItemDescriptor>::const_iterator end = rItemDescriptors.end();
+    auto i = rItemDescriptors.begin();
+    const auto end = rItemDescriptors.end();
 
     for (; i != end; ++i)
     {
@@ -640,6 +640,32 @@ bool getResourceItemDescriptor(const QString &str, ResourceItemDescriptor &descr
             descr = *i;
             return true;
         }
+    }
+
+    return false;
+}
+
+bool R_AddResourceItemDescriptor(const ResourceItemDescriptor &rid)
+{
+    if (rid.isValid())
+    {
+        QLatin1String str1(rid.suffix);
+
+        auto i = rItemDescriptors.begin();
+        const auto end = rItemDescriptors.end();
+
+        for (; i != end; ++i)
+        {
+            QLatin1String str2(i->suffix);
+
+            if (str1 == str2)
+            {
+                return false; //already known
+            }
+        }
+
+        rItemDescriptors.push_back(rid);
+        return true;
     }
 
     return false;
