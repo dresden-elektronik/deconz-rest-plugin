@@ -5,7 +5,6 @@
   "product": "Classic A60 TW",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/Osram/classic_a60_tw.json",
   "subdevices": [
     {
       "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
@@ -48,12 +47,12 @@
         },
         {
           "name": "cap/color/capabilities",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "default": 16
         },
         {
           "name": "cap/color/ct/max",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "read": {
             "at": "0x400c",
             "cl": "0x0300",
@@ -64,7 +63,7 @@
         },
         {
           "name": "cap/color/ct/min",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "default": 153
         },
         {
@@ -73,24 +72,23 @@
         },
         {
           "name": "state/alert",
-          "description": "The currently active alert effect.",
           "default": "none"
         },
         {
           "name": "state/bri",
-          "refresh.interval": 5
+          "refresh.interval": 365
         },
         {
           "name": "state/colormode",
-          "refresh.interval": 300
+          "refresh.interval": 365
         },
         {
           "name": "state/ct",
-          "refresh.interval": 5
+          "refresh.interval": 365
         },
         {
           "name": "state/on",
-          "refresh.interval": 5
+          "refresh.interval": 365
         },
         {
           "name": "state/reachable"
