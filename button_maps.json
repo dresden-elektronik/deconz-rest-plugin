@@ -1453,7 +1453,7 @@
                 [1, "0x02", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "1", "S_BUTTON_8", "S_BUTTON_ACTION_SHORT_RELEASED", "Dim Down Right"],
                 [1, "0x02", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "1", "S_BUTTON_8", "S_BUTTON_ACTION_SHORT_RELEASED", "Stop Dim"]
             ]
-        }
+        },
         "aqaraOpple6Map": {
             "vendor": "Xiaomi",
             "doc": "Aqara Opple switches",
