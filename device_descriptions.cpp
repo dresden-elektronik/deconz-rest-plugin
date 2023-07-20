@@ -1217,12 +1217,31 @@ static bool DDF_ReadConstantsJson(const QString &path, std::map<QString,QString>
     return !constants->empty();
 }
 
+ApiDataType API_DataTypeFromString(const QString &str)
+{
+    if (str == QLatin1String("bool")) return DataTypeBool;
+    if (str == QLatin1String("uint8")) return DataTypeUInt8;
+    if (str == QLatin1String("uint16")) return DataTypeUInt16;
+    if (str == QLatin1String("uint32")) return DataTypeUInt32;
+    if (str == QLatin1String("uint64")) return DataTypeUInt64;
+    if (str == QLatin1String("int8")) return DataTypeInt8;
+    if (str == QLatin1String("int16")) return DataTypeInt16;
+    if (str == QLatin1String("int32")) return DataTypeInt32;
+    if (str == QLatin1String("int64")) return DataTypeInt64;
+    if (str == QLatin1String("string")) return DataTypeString;
+    if (str == QLatin1String("double")) return DataTypeReal;
+    if (str == QLatin1String("time")) return DataTypeTime;
+    if (str == QLatin1String("timepattern")) return DataTypeTimePattern;
+
+    return DataTypeUnknown;
+}
+
 /*! Parses an item object.
     \returns A parsed item, use DeviceDescription::Item::isValid() to check for success.
  */
 static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
 {
-    DeviceDescription::Item result;
+    DeviceDescription::Item result{};
 
     if (obj.contains(QLatin1String("name")))
     {
@@ -1245,9 +1264,103 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
 
     if (result.name.empty())
     {
-
+        return {};
     }
-    else if (getResourceItemDescriptor(result.name, result.descriptor))
+
+    // try to create a dynamic ResourceItemDescriptor
+    if (!getResourceItemDescriptor(result.name, result.descriptor))
+    {
+        QString schema;
+        if (obj.contains(QLatin1String("schema")))
+        {
+            schema = obj.value(QLatin1String("schema")).toString();
+        }
+
+        if (schema == QLatin1String("resourceitem1.schema.json"))
+        {
+            QString dataType;
+            ResourceItemDescriptor rid{};
+
+            if (obj.contains(QLatin1String("access")))
+            {
+                const auto access = obj.value(QLatin1String("access")).toString();
+                if (access == QLatin1String("R"))
+                {
+                    rid.access = ResourceItemDescriptor::Access::ReadOnly;
+                }
+                else if (access == QLatin1String("RW"))
+                {
+                    rid.access = ResourceItemDescriptor::Access::ReadWrite;
+                }
+            }
+
+            if (obj.contains(QLatin1String("datatype")))
+            {
+                QString dataType = obj.value(QLatin1String("datatype")).toString().toLower();
+                rid.type = API_DataTypeFromString(dataType);
+                if (dataType.startsWith("uint") || dataType.startsWith("int"))
+                {
+                    rid.qVariantType = QVariant::Double;
+                }
+                else if (rid.type == DataTypeReal)
+                {
+                    rid.qVariantType = QVariant::Double;
+                }
+                else if (rid.type == DataTypeBool)
+                {
+                    rid.qVariantType = QVariant::Bool;
+                }
+                else
+                {
+                    DBG_Assert(rid.type == DataTypeString || rid.type == DataTypeTime || rid.type == DataTypeTimePattern);
+                    rid.qVariantType = QVariant::String;
+                }
+            }
+
+            if (obj.contains(QLatin1String("range")))
+            {
+                const auto range = obj.value(QLatin1String("range")).toArray();
+                if (range.count() == 2)
+                {
+                    bool ok1 = false;
+                    bool ok2 = false;
+                    double rangeMin = range.at(0).toString().toDouble(&ok1);
+                    double rangeMax = range.at(1).toString().toDouble(&ok2);
+
+                    if (ok1 && ok2)
+                    {
+                        rid.validMin = rangeMin;
+                        rid.validMax = rangeMax;
+                    }
+                    // TODO validate range according to datatype
+                }
+            }
+
+            if (rid.isValid())
+            {
+                rid.flags = ResourceItem::FlagDynamicDescriptor;
+
+                // TODO this is fugly, should later on be changed to use the atom table
+                size_t len = result.name.size();
+                char *dynSuffix  = new char[len + 1];
+                memcpy(dynSuffix, result.name.c_str(), len);
+                dynSuffix[len] = '\0';
+                rid.suffix = dynSuffix;
+
+                // TODO ResourceItemDescriptor::flags (push, etc.)
+                if (R_AddResourceItemDescriptor(rid))
+                {
+                    DBG_Printf(DBG_DDF, "DDF added dynamic ResourceItemDescriptor %s\n", result.name.c_str());
+                }
+            }
+        }
+        else
+        {
+            DBG_Printf(DBG_DDF, "DDF unsupported ResourceItem schema: %s\n", qPrintable(schema));
+        }
+    }
+
+    if (getResourceItemDescriptor(result.name, result.descriptor))
     {
         if (obj.contains(QLatin1String("access")))
         {
