@@ -74,29 +74,35 @@ static void tlvBrightness(QDataStream &stream, quint8 bri)
 static void tlvColour(QDataStream &stream, quint16 hue, quint8 sat, quint8 bri)
 {
     char s[13];
-    sprintf(s, "%04x%04x%04x", hue, sat * 10, bri * 10);
+    snprintf(s, sizeof(s), "%04x%04x%04x", hue, sat * 10, bri * 10);
+    s[12] = '\0';
 
     stream << (quint8) AttrColour;
     stream << (quint8) TypeString;
-    stream << (quint16) strlen(s);
-    stream.writeRawData(s, strlen(s));
+    stream << (quint16) U_StringLength(s);
+    stream.writeRawData(s, U_StringLength(s));
 }
 
 static void tlvEffect(QDataStream &stream, XmasLightStripEffect effect, quint8 speed, const QList<QList<quint8>> &colours)
 {
     char s[41];
-    sprintf(s, "%02x%02x", effect, speed);
+    snprintf(s, sizeof(s), "%02x%02x", effect, speed);
     int i = 4;
+    int j = 0;
     for (const QList<quint8> &colour: colours)
     {
-        sprintf(s + i, "%02x%02x%02x", colour[0], colour[1], colour[2]);
+        snprintf(s + i, sizeof(s) - i, "%02x%02x%02x", colour[0], colour[1], colour[2]);
         i += 6;
+        j++;
+        if (j == 6) // write at most 6 entries
+            break;
     }
+    s[40] = '\0';
 
     stream << (quint8) AttrEffect;
     stream << (quint8) TypeString;
-    stream << (quint16) strlen(s);
-    stream.writeRawData(s, strlen(s));
+    stream << (quint16) U_StringLength(s);
+    stream.writeRawData(s, U_StringLength(s));
 }
 
 /*! Check whether LightNode is the LIDL Melinera Smart LED lightstrip.
