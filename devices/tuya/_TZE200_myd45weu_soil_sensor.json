@@ -4,7 +4,7 @@
   "modelid": "TS0601",
   "product": "Tuya Soil Sensor",
   "sleeper": true,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_TEMPERATURE_SENSOR",
@@ -34,30 +34,7 @@
           "name": "attr/name"
         },
         {
-          "name": "config/configured",
-          "refresh.interval": 86400,
-          "read": {
-            "fn": "zcl",
-            "ep": 1,
-            "cl": "0x0000",
-            "at": [
-              "0x0004",
-              "0x0000",
-              "0x0001",
-              "0x0005",
-              "0x0007",
-              "0xfffe"
-            ]
-          },
-          "parse": {
-            "fn": "zcl",
-            "ep": 1,
-            "cl": "0x0000",
-            "at": "0xfffe",
-            "eval": "Item.val = (Attr.val != 0)"
-          },
-          "public": false,
-          "default": false
+          "name": "config/tuya_unlock"
         },
         {
           "name": "attr/swversion",
@@ -92,6 +69,18 @@
             "fn": "tuya"
           },
           "default": 0
+        },
+        {
+          "name": "state/lowbattery",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 14,
+            "eval": "Item.val = (Attr.val == 0 ? true : false);",
+            "fn": "tuya"
+          },
+          "default": false
         },
         {
           "name": "config/offset"
@@ -180,6 +169,18 @@
             "fn": "tuya"
           },
           "default": 0
+        },
+        {
+          "name": "state/lowbattery",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 14,
+            "eval": "Item.val = (Attr.val == 0 ? true : false);",
+            "fn": "tuya"
+          },
+          "default": false
         },
         {
           "name": "config/offset"

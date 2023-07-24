@@ -1,0 +1,9 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/reportgrid",
+  "datatype": "Bool",
+  "access": "RW",
+  "public": true,
+  "description": "Report detailed presence detection grid data (e.g. Aqara FP1).",
+  "default": true
+}

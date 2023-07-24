@@ -9,6 +9,7 @@
  */
 
 #include "de_web_plugin_private.h"
+#include "zdp/zdp.h"
 
 #define CC_CHANNELCHANGE_WAIT_TIME         1000
 #define CC_CHANNELCHANGE_WAIT_CONFIRM_TIME 10000
@@ -146,7 +147,7 @@ void DeRestPluginPrivate::changeChannel(quint8 channel)
             {
                 nwkUpdateId = 1;
             }
-            const quint8 zdpSeq = (qrand() % 255);
+            const quint8 zdpSeq = ZDP_NextSequenceNumber();
             const quint32 scanChannels = (1 << static_cast<uint>(channel));
             const quint8 scanDuration = 0xfe; //special value = channel change
 
@@ -157,7 +158,9 @@ void DeRestPluginPrivate::changeChannel(quint8 channel)
 
             deCONZ::ApsDataRequest req;
 
+#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
             req.setTxOptions(nullptr);
+#endif
             req.setDstEndpoint(ZDO_ENDPOINT);
             req.setDstAddressMode(deCONZ::ApsNwkAddress);
             req.dstAddress().setNwk(deCONZ::BroadcastRxOnWhenIdle);

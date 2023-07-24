@@ -42,12 +42,22 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/ctmax",
-          "refresh.interval": 84000
+          "name": "cap/bri/move_with_onoff",
+          "static": true
         },
         {
-          "name": "config/ctmin",
-          "refresh.interval": 84000
+          "name": "cap/color/ct/max",
+          "refresh.interval": 84000,
+          "default": "0xfeff"
+        },
+        {
+          "name": "cap/color/ct/min",
+          "refresh.interval": 84000,
+          "default": 0
+        },
+        {
+          "name": "cap/on/off_with_effect",
+          "static": true
         },
         {
           "name": "state/alert",
@@ -58,7 +68,8 @@
           "refresh.interval": 5
         },
         {
-          "name": "state/colormode"
+          "name": "state/colormode",
+          "refresh.interval": 300
         },
         {
           "name": "state/ct",
@@ -112,7 +123,7 @@
           "dt": "0x21",
           "min": 1,
           "max": 300,
-          "change": "0x0005"
+          "change": "0x00000005"
         }
       ]
     }

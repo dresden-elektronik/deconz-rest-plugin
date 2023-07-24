@@ -110,7 +110,9 @@ extern const char *RActionScene;
 
 extern const char *RStateAction;
 extern const char *RStateAirQuality;
+extern const char *RStateAirQualityBis;
 extern const char *RStateAirQualityPpb;
+extern const char *RStateAirQualityPpbBis;
 extern const char *RStateAlarm;
 extern const char *RStateAlert;
 extern const char *RStateAllOn;
@@ -149,6 +151,7 @@ extern const char *RStateGradient;
 extern const char *RStateHeating;
 extern const char *RStateHue;
 extern const char *RStateHumidity;
+extern const char *RStateHumidityBis;
 extern const char *RStateLastCheckin; // Poll control check-in
 extern const char *RStateLastSet;
 extern const char *RStateLastUpdated;
@@ -162,6 +165,7 @@ extern const char *RStateMoisture;
 extern const char *RStateMountingModeActive;
 extern const char *RStateOn;
 extern const char *RStateOpen;
+extern const char *RStateOpenBis;
 extern const char *RStateOrientationX;
 extern const char *RStateOrientationY;
 extern const char *RStateOrientationZ;
@@ -171,6 +175,7 @@ extern const char *RStatePower;
 extern const char *RStatePresence;
 extern const char *RStatePresenceEvent;
 extern const char *RStatePressure;
+extern const char *RStatePressureBis;
 extern const char *RStateProduction;
 extern const char *RStateReachable;
 extern const char *RStateReplaceFilter;
@@ -186,6 +191,7 @@ extern const char *RStateSunrise;
 extern const char *RStateSunset;
 extern const char *RStateTampered;
 extern const char *RStateTemperature;
+extern const char *RStateTemperatureBis;
 extern const char *RStateTest;
 extern const char *RStateTilt;
 extern const char *RStateTiltAngle;
@@ -195,6 +201,7 @@ extern const char *RStateVibration;
 extern const char *RStateVibrationStrength;
 extern const char *RStateVoltage;
 extern const char *RStateWater;
+extern const char *RStateWaterBis;
 extern const char *RStateWindowOpen;
 extern const char *RStateX;
 extern const char *RStateY;
@@ -237,6 +244,7 @@ extern const char *RConfigArmedStayEntryDelay;
 extern const char *RConfigArmedStayExitDelay;
 extern const char *RConfigArmedStayTriggerDuration;
 extern const char *RConfigBattery;
+extern const char *RConfigBatteryBis;
 extern const char *RConfigBriExecuteIfOff;
 extern const char *RConfigBriMax;
 extern const char *RConfigBriMin;
@@ -259,6 +267,7 @@ extern const char *RConfigCtMax; // Deprecated
 extern const char *RConfigCtMin; // Deprecated
 extern const char *RConfigDelay;
 extern const char *RConfigDeviceMode;
+extern const char *RConfigDeviceModeBis;
 extern const char *RConfigDisarmedEntryDelay;
 extern const char *RConfigDisarmedExitDelay;
 extern const char *RConfigDisplayFlipped;
@@ -295,13 +304,17 @@ extern const char *RConfigPending;
 extern const char *RConfigPreset;
 extern const char *RConfigPulseConfiguration;
 extern const char *RConfigReachable;
+extern const char *RConfigReportGrid;
 extern const char *RConfigResetPresence;
+extern const char *RConfigReversed;
 extern const char *RConfigSchedule;
 extern const char *RConfigScheduleOn;
 extern const char *RConfigSelfTest;
 extern const char *RConfigSensitivity;
+extern const char *RConfigSensitivityBis;
 extern const char *RConfigSensitivityMax;
 extern const char *RConfigSetValve;
+extern const char *RConfigSpeed;
 extern const char *RConfigSunriseOffset;
 extern const char *RConfigSunsetOffset;
 extern const char *RConfigUnoccupiedHeatSetpoint;
@@ -313,6 +326,7 @@ extern const char *RConfigTemperatureMeasurement;
 extern const char *RConfigTholdDark;
 extern const char *RConfigTholdOffset;
 extern const char *RConfigTriggerDistance;
+extern const char *RConfigTriggerDistanceBis;
 extern const char *RConfigUbisysJ1AdditionalSteps;
 extern const char *RConfigUbisysJ1ConfigurationAndStatus;
 extern const char *RConfigUbisysJ1InactivePowerThreshold;
@@ -380,16 +394,16 @@ public:
         type(t),
         qVariantType(v),
         suffix(s),
-        validMin(min),
-        validMax(max) { }
+        validMin((double)min),
+        validMax((double)max) { }
 
     bool isValid() const { return (type != DataTypeUnknown && suffix); }
     Access access = Access::Unknown;
     ApiDataType type = DataTypeUnknown;
     QVariant::Type qVariantType = QVariant::Invalid;
     const char *suffix = RInvalidSuffix;
-    qint64 validMin = 0;
-    qint64 validMax = 0;
+    double validMin = 0;
+    double validMax = 0;
     quint16 flags = 0;
 };
 
@@ -410,7 +424,8 @@ public:
         FlagPushOnSet       = 0x04, // events will be generated when item is set (even when value doesn't change)
         FlagPushOnChange    = 0x08, // events will be generated only when item changes
         FlagAwakeOnSet      = 0x10, // REventAwake will be generated when item is set after parse
-        FlagImplicit        = 0x20  // the item is always present for a specific resource type
+        FlagImplicit        = 0x20, // the item is always present for a specific resource type
+        FlagDynamicDescriptor = 0x40, // ResourceItemDescriptor is dynamic (not specified in code)
     };
 
     enum ValueSource
@@ -643,6 +658,8 @@ bool R_SetValueEventOnSet(Resource *r, const char *suffix, const V &val, Resourc
 
     return result;
 }
+
+bool R_AddResourceItemDescriptor(const ResourceItemDescriptor &rid);
 
 bool isValidRConfigGroup(const QString &str);
 

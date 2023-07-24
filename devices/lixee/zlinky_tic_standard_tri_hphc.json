@@ -1,0 +1,581 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "LiXee",
+  "modelid": "ZLinky_TIC",
+  "vendor": "LiXee",
+  "product": "ZLinky_TIC standard+HPHC+triphase",
+  "sleeper": false,
+  "status": "Draft",
+  "subdevices": [
+    {
+      "type": "$TYPE_POWER_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0b04"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/current",
+          "refresh.interval": 365,
+          "read": {
+            "at": "0x0508",
+            "cl": "0x0b04",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0508",
+            "cl": "0x0b04",
+            "ep": 1,
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val; }"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/power",
+          "refresh.interval": 365,
+          "read": {
+            "at": "0x050F",
+            "cl": "0x0b04",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x050F",
+            "cl": "0x0b04",
+            "ep": 1,
+            "eval": "if (Attr.val != -32768) { Item.val = Attr.val; }"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/voltage",
+          "refresh.interval": 365,
+          "read": {
+            "at": "0x0505",
+            "cl": "0x0b04",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0505",
+            "cl": "0x0b04",
+            "ep": 1,
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val; }"
+          },
+          "default": 0
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_POWER_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x02",
+        "0x0b04"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/current",
+          "refresh.interval": 365,
+          "read": {
+            "at": "0x0908",
+            "cl": "0x0b04",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0908",
+            "cl": "0x0b04",
+            "ep": 1,
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val; }"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/power",
+          "refresh.interval": 365,
+          "read": {
+            "at": "0x090F",
+            "cl": "0x0b04",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x090F",
+            "cl": "0x0b04",
+            "ep": 1,
+            "eval": "if (Attr.val != -32768) { Item.val = Attr.val; }"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/voltage",
+          "refresh.interval": 365,
+          "read": {
+            "at": "0x0905",
+            "cl": "0x0b04",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0905",
+            "cl": "0x0b04",
+            "ep": 1,
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val; }"
+          },
+          "default": 0
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_POWER_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x03",
+        "0x0b04"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/current",
+          "refresh.interval": 365,
+          "read": {
+            "at": "0x0a08",
+            "cl": "0x0b04",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0a08",
+            "cl": "0x0b04",
+            "ep": 1,
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val; }"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/power",
+          "refresh.interval": 365,
+          "read": {
+            "at": "0x0A0F",
+            "cl": "0x0b04",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0A0F",
+            "cl": "0x0b04",
+            "ep": 1,
+            "eval": "if (Attr.val != -32768) { Item.val = Attr.val; }"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/voltage",
+          "refresh.interval": 365,
+          "read": {
+            "at": "0x0a05",
+            "cl": "0x0b04",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0a05",
+            "cl": "0x0b04",
+            "ep": 1,
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val; }"
+          },
+          "default": 0
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_CONSUMPTION_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0702"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/consumption",
+          "refresh.interval": 365,
+          "read": {
+            "at": "0x0100",
+            "cl": "0x0702",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0100",
+            "cl": "0x0702",
+            "ep": 1,
+            "eval": "Item.val = Attr.val"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/consumption_2",
+          "refresh.interval": 365,
+          "read": {
+            "at": "0x0102",
+            "cl": "0x0702",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0102",
+            "cl": "0x0702",
+            "ep": 1,
+            "eval": "Item.val = Attr.val"
+          }
+        },
+        {
+          "name": "state/power",
+          "refresh.interval": 365,
+          "read": {
+            "at": "0x0306",
+            "cl": "0x0b04",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0306",
+            "cl": "0x0b04",
+            "ep": 1,
+            "eval": "if (Attr.val != -32768) { Item.val = Attr.val; }"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    },
+    {
+      "type": "ZHAAlarm",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0xff66"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/alarm",
+          "refresh.interval": 365,
+          "read": {
+            "at": "0x0005",
+            "cl": "0xff66",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0005",
+            "cl": "0xff66",
+            "ep": 1,
+            "eval": "Item.val = Attr.val > 0 ? true : false",
+            "fn": "zcl"
+          },
+          "default": false
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0702",
+      "report": [
+        {
+          "at": "0x0100",
+          "dt": "0x25",
+          "min": 60,
+          "max": 300,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0102",
+          "dt": "0x25",
+          "min": 60,
+          "max": 300,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0B04",
+      "report": [
+        {
+          "at": "0x0505",
+          "dt": "0x21",
+          "min": 60,
+          "max": 300,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0905",
+          "dt": "0x21",
+          "min": 60,
+          "max": 300,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0A05",
+          "dt": "0x21",
+          "min": 60,
+          "max": 300,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0508",
+          "dt": "0x21",
+          "min": 60,
+          "max": 300,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0908",
+          "dt": "0x21",
+          "min": 60,
+          "max": 300,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0A08",
+          "dt": "0x21",
+          "min": 60,
+          "max": 300,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x050F",
+          "dt": "0x21",
+          "min": 60,
+          "max": 300,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x090F",
+          "dt": "0x21",
+          "min": 60,
+          "max": 300,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0A0F",
+          "dt": "0x21",
+          "min": 60,
+          "max": 300,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0306",
+          "dt": "0x21",
+          "min": 60,
+          "max": 300,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0xFF66",
+      "report": [
+        {
+          "at": "0x0005",
+          "dt": "0x21",
+          "min": 60,
+          "max": 300,
+          "change": "0x00000001"
+        }
+      ]
+    }
+  ]
+}

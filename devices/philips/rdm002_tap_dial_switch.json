@@ -1,176 +1,291 @@
 {
-    "schema": "devcap1.schema.json",
-    "manufacturername": "$MF_SIGNIFY",
-    "modelid": "RDM002",
-    "product": "Hue tap dial switch",
-    "status": "Gold",
-    "sleeper": true,
-    "subdevices": [
-         {
-            "type": "$TYPE_SWITCH",
-            "restapi": "/sensors",
-            "uuid": [ "$address.ext", "0x01", "0xfc00"],
-            "buttons": {
-                "1": {"name": "\u2024"},
-                "2": {"name": "\u2025"},
-                "3": {"name": "\u2056"},
-                "4": {"name": "\u2058"}
-            },
-            "buttonevents": {
-                "1000": {"action": "PRESS", "button": 1},
-                "1001": {"action": "HOLD", "button": 1},
-                "1002": {"action": "SHORT_RELEASE", "button": 1},
-                "1003": {"action": "LONG_RELEASE", "button": 1},
-                "2000": {"action": "PRESS", "button": 2},
-                "2001": {"action": "HOLD", "button": 2},
-                "2002": {"action": "SHORT_RELEASE", "button": 2},
-                "2003": {"action": "LONG_RELEASE", "button": 2},
-                "3000": {"action": "PRESS", "button": 3},
-                "3001": {"action": "HOLD", "button": 3},
-                "3002": {"action": "SHORT_RELEASE", "button": 3},
-                "3003": {"action": "LONG_RELEASE", "button": 3},
-                "4000": {"action": "PRESS", "button": 4},
-                "4001": {"action": "HOLD", "button": 4},
-                "4002": {"action": "SHORT_RELEASE", "button": 4},
-                "4003": {"action": "LONG_RELEASE", "button": 4}
-            },
-            "items": [
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername"
-                },
-                {
-                    "name": "attr/modelid"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion"
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "config/allowtouchlink",
-                    "read": {
-                        "ep": 1, "cl": "0x0000", "mf": "0x100b", "at": "0x0031"
-                    },
-                    "parse": {
-                        "ep": 1, "cl": "0x0000", "mf": "0x100b", "at": "0x0031",
-                        "eval": "Item.val = Attr.val != 0x000b"
-                    },
-                    "write": {
-                        "ep": 1, "cl": "0x0000", "mf": "0x100b", "at": "0x0031", "dt": "0x19",
-                        "eval": "Item.val ? 0x0000 : 0x000b"
-                    },
-                    "default": false,
-                    "refresh.interval": 84000
-                },
-                {
-                    "name": "config/battery",
-                    "parse": {
-                        "ep": 1, "cl": "0x0001", "at": "0x0021",
-                        "eval": "Item.val = Attr.val / 2"
-                    },
-                    "awake": true
-                },
-                {
-                    "name": "config/on"
-                },
-                {
-                    "name": "config/reachable"
-                },
-                {
-                    "name": "state/buttonevent",
-                    "parse": {
-                        "ep": 1, "cl": "0xfc00", "mf": "0x100b", "cmd": "0x00",
-                        "script": "fc00_buttonevent.js"
-                    },
-                    "awake": true
-                },
-                {
-                    "name": "state/eventduration"
-                },
-                {
-                    "name": "state/lastupdated"
-                }
-            ]
+  "schema": "devcap1.schema.json",
+  "manufacturername": [
+    "$MF_PHILIPS",
+    "$MF_SIGNIFY"
+  ],
+  "modelid": [
+    "RDM002",
+    "RDM002"
+  ],
+  "product": "Hue tap dial switch",
+  "status": "Gold",
+  "sleeper": true,
+  "subdevices": [
+    {
+      "type": "$TYPE_SWITCH",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0xfc00"
+      ],
+      "buttons": {
+        "1": {
+          "name": "\u2024"
         },
-        {
-           "type": "$TYPE_RELATIVE_ROTARY",
-           "restapi": "/sensors",
-           "uuid": [ "$address.ext", "0x14", "0xfc00"],
-           "items": [
-              {
-                  "name": "attr/lastseen"
-              },
-              {
-                  "name": "attr/manufacturername"
-              },
-              {
-                  "name": "attr/modelid"
-              },
-              {
-                  "name": "attr/name"
-              },
-              {
-                  "name": "attr/swversion"
-              },
-              {
-                  "name": "attr/type"
-              },
-              {
-                  "name": "attr/uniqueid"
-              },
-              {
-                  "name": "config/battery",
-                  "parse": {
-                    "ep": 1, "cl": "0x0001", "at": "0x0021",
-                    "eval": "Item.val = Attr.val / 2"
-                  },
-                  "awake": true
-              },
-              {
-                  "name": "config/on"
-              },
-              {
-                  "name": "config/reachable"
-              },
-              {
-                  "name": "state/expectedeventduration"
-              },
-              {
-                  "name": "state/expectedrotation"
-              },
-              {
-                  "name": "state/lastupdated"
-              },
-              {
-                  "name": "state/rotaryevent",
-                  "parse": {
-                      "ep": 1, "cl": "0xfc00", "mf": "0x100b", "cmd": "0x00",
-                      "script": "fc00_rotaryevent.js"
-                  },
-                  "awake": true
-              }
-            ]
+        "2": {
+          "name": "\u2025"
+        },
+        "3": {
+          "name": "\u2056"
+        },
+        "4": {
+          "name": "\u2058"
         }
-    ],
-    "bindings": [
+      },
+      "buttonevents": {
+        "1000": {
+          "action": "PRESS",
+          "button": 1
+        },
+        "1001": {
+          "action": "HOLD",
+          "button": 1
+        },
+        "1002": {
+          "action": "SHORT_RELEASE",
+          "button": 1
+        },
+        "1003": {
+          "action": "LONG_RELEASE",
+          "button": 1
+        },
+        "2000": {
+          "action": "PRESS",
+          "button": 2
+        },
+        "2001": {
+          "action": "HOLD",
+          "button": 2
+        },
+        "2002": {
+          "action": "SHORT_RELEASE",
+          "button": 2
+        },
+        "2003": {
+          "action": "LONG_RELEASE",
+          "button": 2
+        },
+        "3000": {
+          "action": "PRESS",
+          "button": 3
+        },
+        "3001": {
+          "action": "HOLD",
+          "button": 3
+        },
+        "3002": {
+          "action": "SHORT_RELEASE",
+          "button": 3
+        },
+        "3003": {
+          "action": "LONG_RELEASE",
+          "button": 3
+        },
+        "4000": {
+          "action": "PRESS",
+          "button": 4
+        },
+        "4001": {
+          "action": "HOLD",
+          "button": 4
+        },
+        "4002": {
+          "action": "SHORT_RELEASE",
+          "button": 4
+        },
+        "4003": {
+          "action": "LONG_RELEASE",
+          "button": 4
+        }
+      },
+      "items": [
         {
-            "bind": "unicast", "src.ep": 1, "cl": "0xfc00"
+          "name": "attr/lastseen"
         },
         {
-            "bind": "unicast",
-            "src.ep": 1,
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/productname",
+          "static": "Hue tap dial switch"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/allowtouchlink",
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "mf": "0x100b",
+            "at": "0x0031"
+          },
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "mf": "0x100b",
+            "at": "0x0031",
+            "eval": "Item.val = Attr.val != 0x000b"
+          },
+          "write": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "mf": "0x100b",
+            "at": "0x0031",
+            "dt": "0x19",
+            "eval": "Item.val ? 0x0000 : 0x000b"
+          },
+          "default": false,
+          "refresh.interval": 84000
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
             "cl": "0x0001",
-            "report": [{ "at": "0x0021", "dt": "0x20", "min": 300, "max": 300, "change": "0x01" }]
+            "at": "0x0021",
+            "eval": "Item.val = Attr.val / 2"
+          },
+          "awake": true
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/buttonevent",
+          "parse": {
+            "fn": "zcl:cmd",
+            "ep": 1,
+            "cl": "0xfc00",
+            "mf": "0x100b",
+            "cmd": "0x00",
+            "script": "fc00_buttonevent.js"
+          },
+          "awake": true
+        },
+        {
+          "name": "state/eventduration"
+        },
+        {
+          "name": "state/lastupdated"
         }
-    ]
+      ]
+    },
+    {
+      "type": "$TYPE_RELATIVE_ROTARY",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x14",
+        "0xfc00"
+      ],
+      "items": [
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/productname",
+          "static": "Hue tap dial switch"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021",
+            "eval": "Item.val = Attr.val / 2"
+          },
+          "awake": true
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/expectedeventduration"
+        },
+        {
+          "name": "state/expectedrotation"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/rotaryevent",
+          "parse": {
+            "fn": "zcl:cmd",
+            "ep": 1,
+            "cl": "0xfc00",
+            "mf": "0x100b",
+            "cmd": "0x00",
+            "script": "fc00_rotaryevent.js"
+          },
+          "awake": true
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0xfc00"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 300,
+          "max": 300,
+          "change": "0x01"
+        }
+      ]
+    }
+  ]
 }

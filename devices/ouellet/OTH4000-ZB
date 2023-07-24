@@ -5,7 +5,7 @@
   "vendor": "Ouellet",
   "product": "OTH4000-ZB",
   "sleeper": false,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_THERMOSTAT",
@@ -135,8 +135,7 @@
           "name": "config/schedule"
         },
         {
-          "name": "config/schedule_on",
-          "default": false
+          "name": "config/schedule_on"
         },
         {
           "name": "config/unoccupiedheatsetpoint",
@@ -174,8 +173,7 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/on",
-          "refresh.interval": 5
+          "name": "state/on"
         },
         {
           "name": "state/temperature",
@@ -461,8 +459,7 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/offset",
-          "default": 0
+          "name": "config/offset"
         },
         {
           "name": "config/on"
