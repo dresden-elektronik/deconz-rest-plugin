@@ -34,9 +34,9 @@ struct ZCL_Param
         uint8_t hasCommandId : 1;
         uint8_t attributeCount : 4;
         uint8_t ignoreResponseSeq: 1;
-        uint8_t _pad0 : 1;
+        uint8_t hasFrameControl : 1;
     };
-    uint8_t _pad1;
+    uint8_t frameControl = 0;
 };
 
 struct ZCL_Result
