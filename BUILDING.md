@@ -79,7 +79,10 @@ After compilation the plugin can be found in the build directory: `de_rest_plugi
 
 ### macOS
 
+Currently only supported on Intel Macs (x86_64).
+
 Install dependencies via Homebrew.
+
 ```
 brew install qt@5 ninja cmake
 ```
@@ -94,10 +97,13 @@ brew install qt@5 ninja cmake
 
 4. Compile the plugin with CMake
 
-        cmake -DCMAKE_PREFIX_PATH=/usr/local/opt/qt@5 -G Ninja -B build .
-        cmake --build build
+        ./build-macos.sh
 
 After compilation the plugin can be found in the build directory: `de_rest_plugin.dylib`
+
+5. Copy the plugin to the app bundle
+
+        cp build/de_rest_plugin.dylib /Applications/deCONZ.app/Contents/Plugins
 
 ## Build with QMake
 
