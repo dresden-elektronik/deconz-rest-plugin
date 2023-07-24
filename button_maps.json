@@ -113,6 +113,8 @@
         "IAS_ACE": {
             "ARM": 0,
             "EMERGENCY": 2,
+            "FIRE": 3,
+            "SOS": 4,
             "STATUS_CHANGE": 0
         },
         "IAS_ZONE": {
@@ -662,6 +664,17 @@
                 [2, "0x16", "LEVEL_CONTROL", "STOP", "0", "S_BUTTON_3", "S_BUTTON_ACTION_LONG_RELEASED", "Stop"],
                 [2, "0x16", "LEVEL_CONTROL", "MOVE", "1", "S_BUTTON_4", "S_BUTTON_ACTION_HOLD", "Dim down"],
                 [2, "0x16", "LEVEL_CONTROL", "STOP", "1", "S_BUTTON_4", "S_BUTTON_ACTION_LONG_RELEASED", "Stop"]
+            ]
+        },
+        "AdeoKeyfobMap": {
+            "vendor": "Adeo",
+            "doc": "4 buttons remotes from Adeo",
+            "modelids": ["LDSENK09"],
+            "map": [
+                [1, "0x01", "IAS_ACE", "ARM", "3", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Arm all zones"],
+                [1, "0x01", "IAS_ACE", "ARM", "1", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Arm day/home zones only"],
+                [1, "0x01", "IAS_ACE", "ARM", "0", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Disarm"],
+                [1, "0x01", "IAS_ACE", "SOS", "0", "S_BUTTON_4", "S_BUTTON_ACTION_SHORT_RELEASED", "Sos"]
             ]
         },
         "xiaomiSwitchCtrlNeutralMap": {
