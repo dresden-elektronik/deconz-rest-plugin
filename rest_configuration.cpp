@@ -27,6 +27,7 @@
 #include <time.h>
 #include <QProcess>
 #include "backup.h"
+#include "crypto/password.h"
 #include "crypto/random.h"
 #include "gateway.h"
 #include "utils/utils.h"
@@ -2680,22 +2681,25 @@ int DeRestPluginPrivate::changePassword(const ApiRequest &req, ApiResponse &rsp)
             return REQ_READY_SEND;
         }
 
-        QString enc = encryptString(oldhash);
+        std::string enc = CRYPTO_EncryptGatewayPassword(oldhash.toStdString());
 
         if (enc != gwAdminPasswordHash)
         {
-            rsp.httpStatus = HttpStatusUnauthorized;
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, "/config/password", QString("invalid value, %1 for parameter, oldhash").arg(oldhash)));
-            return REQ_READY_SEND;
+            if (oldhash.toStdString() != gwAdminPasswordHash) // on Windows plain hash was stored
+            {
+                rsp.httpStatus = HttpStatusUnauthorized;
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, "/config/password", QString("invalid value, %1 for parameter, oldhash").arg(oldhash)));
+                return REQ_READY_SEND;
+            }
         }
 
         // username and old hash are okay
         // take the new hash and salt it
-        enc = encryptString(newhash);
+        enc = CRYPTO_EncryptGatewayPassword(newhash.toStdString());
         gwAdminPasswordHash = enc;
         queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
 
-        DBG_Printf(DBG_INFO, "Updated password hash: %s\n", qPrintable(enc));
+        DBG_Printf(DBG_INFO, "Updated password hash\n");
 
         QVariantMap rspItem;
         QVariantMap rspItemState;

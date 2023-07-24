@@ -121,6 +121,7 @@ HEADERS  = bindings.h \
            connectivity.h \
            colorspace.h \
            crypto/mmohash.h \
+           crypto/password.h \
            crypto/random.h \
            crypto/scrypt.h \
            database.h \
@@ -195,6 +196,7 @@ SOURCES  = air_quality.cpp \
            connectivity.cpp \
            colorspace.cpp \
            crypto/mmohash.cpp \
+           crypto/password.cpp \
            crypto/random.cpp \
            crypto/scrypt.cpp \
            database.cpp \

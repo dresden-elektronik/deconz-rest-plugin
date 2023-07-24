@@ -1492,7 +1492,7 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
         if (!val.isEmpty())
         {
             d->gwConfig["gwpassword"] = val;
-            d->gwAdminPasswordHash = val;
+            d->gwAdminPasswordHash = val.toStdString();
         }
     }
     else if (strcmp(colval[0], "uuid") == 0)
@@ -4862,7 +4862,7 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["zigbeechannel"] = gwZigbeeChannel;
         gwConfig["group0"] = gwGroup0;
         gwConfig["gwusername"] = gwAdminUserName;
-        gwConfig["gwpassword"] = gwAdminPasswordHash;
+        gwConfig["gwpassword"] = QString::fromStdString(gwAdminPasswordHash);
         gwConfig["homebridge"] = gwHomebridge;
         gwConfig["homebridgeversion"] = gwHomebridgeVersion;
         gwConfig["homebridgeupdateversion"] = gwHomebridgeUpdateVersion;

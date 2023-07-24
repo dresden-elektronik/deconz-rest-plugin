@@ -55,6 +55,7 @@ set(PLUGIN_INCLUDE_FILES
     colorspace.h
     connectivity.h
     crypto/mmohash.h
+    crypto/password.h
     crypto/random.h
     crypto/scrypt.h
     database.h
@@ -141,6 +142,7 @@ add_library(${PROJECT_NAME} SHARED
     colorspace.cpp
     connectivity.cpp
     crypto/mmohash.cpp
+    crypto/password.cpp
     crypto/random.cpp
     crypto/scrypt.cpp
     database.cpp
@@ -254,6 +256,7 @@ target_compile_definitions(${PROJECT_NAME}
     PRIVATE
     USE_WEBSOCKETS=1
     USE_DUKTAPE_JS_ENGINE=1
+    USE_ULIB_SHARED=1
 
     GW_SW_VERSION="\"\"${PROJECT_VERSION}\"\""
     GW_SW_DATE=${GIT_DATE}

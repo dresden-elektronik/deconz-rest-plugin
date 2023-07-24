@@ -1083,7 +1083,6 @@ public:
     void initAuthentication();
     bool allowedToCreateApikey(const ApiRequest &req, ApiResponse &rsp, QVariantMap &map);
     void authorise(ApiRequest &req, ApiResponse &rsp);
-    QString encryptString(const QString &str);
 
     // REST API gateways
     int handleGatewaysApi(const ApiRequest &req, ApiResponse &rsp);
@@ -1714,7 +1713,7 @@ public:
     size_t apiAuthCurrent;
     std::vector<ApiAuth> apiAuths;
     QString gwAdminUserName;
-    QString gwAdminPasswordHash;
+    std::string gwAdminPasswordHash;
 
     struct SwUpdateState {
      QString noUpdate;
