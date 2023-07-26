@@ -946,6 +946,9 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
 #ifdef Q_OS_WIN
         , qApp->applicationDirPath() + QLatin1String("/../devices/button_maps.json")
 #endif
+#if defined (__APPLE__)
+        , qApp->applicationDirPath() + QLatin1String("/../Resources/devices/button_maps.json")
+#endif
     };
 
     for (const auto &path : buttonMapLocations)
