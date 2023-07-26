@@ -224,6 +224,11 @@ ZCL_Result ZCL_SendCommand(const ZCL_Param &param, quint64 extAddress, quint16 n
                                       deCONZ::ZclFCDisableDefaultResponse);
     }
 
+    if (param.hasFrameControl)
+    {
+        zclFrame.setFrameControl(param.frameControl);
+    }
+
     { // payload
         QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
         stream.setByteOrder(QDataStream::LittleEndian);

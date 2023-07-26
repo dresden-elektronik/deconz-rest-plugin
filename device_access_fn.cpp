@@ -207,6 +207,16 @@ static ZCL_Param getZclParam(const QVariantMap &param)
         result.hasCommandId = 0;
     }
 
+    if (param.contains(QLatin1String("fc"))) // optional
+    {
+        result.frameControl = (uint8_t)variantToUint(param["fc"], UINT8_MAX, &ok);
+        result.hasFrameControl = ok ? 1 : 0;
+    }
+    else
+    {
+        result.hasFrameControl = 0;
+    }
+
     const auto ignoreSeqno = QLatin1String("noseq");
     if (param.contains(ignoreSeqno))
     {
@@ -1802,15 +1812,25 @@ bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsC
 /*! A generic function to send a cluster-specific ZCL command.
     The \p cmdParameters is expected to contain one object (given in the device description file).
 
-    { "fn": "zcl:cmd", "ep": endpoint, "cl": clusterId, "mf": manufacturerCode, "cmd": commandId, "eval": expression }
+    { "fn": "zcl:cmd", "ep": endpoint, "cl": clusterId, "mf": manufacturerCode, "cmd": commandId, "fc": frameControl, "eval": expression }
 
     - endpoint: the destination endpoint, use 0 for auto endpoint (from the uniqueid)
     - clusterId: string hex value
     - manufacturerCode: (optional) string hex value
     - commandId: string hex value
+    - frameControl: (optional) string hex value, OR combined 8-bit bitmap to overwrite ZCL frame control
+
+          ZclFCProfileCommand          = 0x00,
+          ZclFCClusterCommand          = 0x01,
+          ZclFCManufacturerSpecific    = 0x04,
+          ZclFCDirectionServerToClient = 0x08,
+          ZclFCDirectionClientToServer = 0x00,
+          ZclFCEnableDefaultResponse   = 0x00,
+          ZclFCDisableDefaultResponse  = 0x10
+
     - expression: (optional) to transform the item value to the command payload as hex string value
 
-    Example: "read": {"fn": "zcl:cmd", "ep": "0x0b", "cl": "0x0000", "mf": "0x100b", "cmd": "0xc0",  "eval": "'002d00000040'"}
+    Example: "read": {"fn": "zcl:cmd", "ep": "0x0b", "cl": "0x0000", "mf": "0x100b", "cmd": "0xc0", "eval": "'002d00000040'"}
  */
 static DA_ReadResult sendZclCommand(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, const QVariant &cmdParameters)
 {
