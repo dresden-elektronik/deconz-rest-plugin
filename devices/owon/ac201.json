@@ -1,0 +1,147 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "OWON",
+  "modelid": "AC201",
+  "product": "AC201",
+  "sleeper": false,
+  "status": "Gold",
+  "path": "/devices/ac201.json",
+  "subdevices": [
+    {
+      "type": "$TYPE_THERMOSTAT",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0201"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0xC202",
+        "endpoint": "0x01",
+        "in": [
+          "0x0000",
+          "0x0201",
+          "0x0202"
+        ]
+      },
+      "meta": {
+        "values": {
+	        "config/mode": { "off": "Off", "auto" : "Auto", "unknown" : "Unknown", "cool" : "Cool", "heat" : "Heat", "emergency heating" : "Emergency Heating", "precooling" : "Precooling", "fan only" : "Fan Only", "dry" : "Dry", "sleep" : "Sleep" },
+	        "config/fanmode": { "off": "Off", "low" : "Low", "medium" : "Medium", "high" : "High", "on" : "On", "auto" : "Auto", "smart" : "Smart" },
+	        "config/swingmode": { "off": "Off", "fully closed" : "Fully Closed", "fully open" : "Fully Open", "quarter open" : "Quarter Open", "half open" : "Half Open", "three quarters open" : "Three Quarters Open" }
+        }
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/coolsetpoint",
+          "description": "Target cooling temperature of a thermostat.",
+          "default": 0,
+          "parse": {"at": "0x0011", "cl": "0x0201", "ep": 0, "eval": "Item.val = Attr.val;", "fn": "zcl"},
+          "read": {"at": "0x0011", "cl": "0x0201", "ep": 0, "fn": "zcl"},
+          "write": {"at": "0x0011", "cl": "0x0201", "dt": "0x29", "ep": 0, "eval": "Item.val;", "fn": "zcl"},
+          "range": [500, 3200]
+        },
+        {
+          "name": "config/fanmode",
+          "description": "Specifies the current speed of the fan for sensors.",
+          "default": "auto",
+		      "parse": {"at": "0x0000", "cl": "0x0202", "ep": 0, "eval": "Item.val = Attr.val < 7 ? ({ 0: 'off', 1: 'low', 2: 'medium', 3: 'high', 4: 'on', 5: 'auto', 6: 'smart' }[Attr.val]) : null;", "fn": "zcl"},
+		  	  "read": {"at": "0x0000", "cl": "0x0202", "ep": 0, "fn": "zcl"},
+		  	  "write": {"at": "0x0000", "cl": "0x0202", "dt": "0x30", "ep": 0, "eval": "({ 'off': 0, 'low' : 1, 'medium' : 2, 'high' : 3, 'on' : 4, 'auto' : 5, 'smart' : 6 }[Item.val]);", "fn": "zcl"}
+        },
+        {
+          "name": "config/heatsetpoint",
+          "description": "Target temperature of a thermostat.",
+          "default": 0
+        },
+        {
+          "name": "config/mode",
+          "description": "Mode of the device.",
+		      "read": {
+            "at": "0x001c",
+            "cl": "0x0201",
+            "ep": 0,
+            "fn": "zcl"
+          },
+          "write": {
+            "at": "0x001c",
+            "cl": "0x0201",
+            "dt": "0x30",
+            "ep": 0,
+            "eval": "({ 'off': 0, 'auto' : 1, 'unknown' : 2, 'cool' : 3, 'heat' : 4, 'emergency heating' : 5, 'precooling' : 6, 'fan only' : 7, 'dry' : 8, 'sleep' : 9 }[Item.val]);",
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x001c",
+            "cl": "0x0201",
+            "ep": 0,
+            "eval": "Item.val = Attr.val < 10 ? ({ 0: 'off', 1: 'auto', 2: 'unknown', 3: 'cool', 4: 'heat', 5: 'emergency heating', 6: 'precooling', 7: 'fan only', 8: 'dry', 9: 'sleep' }[Attr.val]) : null;",
+            "fn": "zcl"
+          },
+          "default": "auto",
+          "refresh.interval": 84000
+        },
+        {
+          "name": "config/offset",
+          "description": "Relative offset to the main measured value.",
+          "default": 0
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "config/swingmode",
+          "description": "Indicates the position of Louver on the AC.",
+          "default": "off",
+		      "parse": {"at": "0x0045", "cl": "0x0201", "ep": 0, "eval": "Item.val = Attr.val < 6 ? ({ 0: 'off', 1: 'fully closed', 2: 'fully open', 3: 'quarter open', 4: 'half open', 5: 'three quarters open' }[Attr.val]) : null;", "fn": "zcl"},
+		  	  "read": {"at": "0x0045", "cl": "0x0201", "ep": 0, "fn": "zcl"},
+		  	  "write": {"at": "0x0045", "cl": "0x0201", "dt": "0x30", "ep": 0, "eval": "({ 'off': 0, 'fully closed' : 1, 'fully open' : 2, 'quarter open' : 3, 'half open' : 4, 'three quarters open' : 5 }[Item.val]);", "fn": "zcl"}
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/on",
+          "description": "True when device is on; false when off.",
+          "refresh.interval": 5
+        },
+        {
+          "name": "state/temperature",
+          "description": "The current temperature in °C &times; 100.",
+          "default": 0
+        }
+      ]
+    }
+  ]
+}

@@ -1346,44 +1346,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5});
         }
-        else if (modelId == QLatin1String("AC201")) // OWON AC201 Thermostat
-        {
-            rq.dataType = deCONZ::Zcl16BitInt;
-            rq.attributeId = 0x0000;         // Local Temperature
-            rq.minInterval = 1;
-            rq.maxInterval = 600;
-            rq.reportableChange16bit = 50;
-
-            ConfigureReportingRequest rq2;
-            rq2.dataType = deCONZ::Zcl16BitInt;
-            rq2.attributeId = 0x0011;        // Occupied cooling setpoint
-            rq2.minInterval = 1;
-            rq2.maxInterval = 600;
-            rq2.reportableChange16bit = 50;
-
-            ConfigureReportingRequest rq3;
-            rq3.dataType = deCONZ::Zcl16BitInt;
-            rq3.attributeId = 0x0012;        // Occupied heating setpoint
-            rq3.minInterval = 1;
-            rq3.maxInterval = 600;
-            rq3.reportableChange16bit = 50;
-
-            ConfigureReportingRequest rq4;
-            rq4.dataType = deCONZ::Zcl8BitEnum;
-            rq4.attributeId = 0x001C;        // Thermostat mode
-            rq4.minInterval = 1;
-            rq4.maxInterval = 600;
-            rq4.reportableChange8bit = 0xff;
-
-            ConfigureReportingRequest rq5;
-            rq5.dataType = deCONZ::Zcl8BitEnum;
-            rq5.attributeId = 0x0045;        // AC Louvers Position
-            rq5.minInterval = 1;
-            rq5.maxInterval = 600;
-            rq5.reportableChange8bit = 0xff;
-
-            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5});
-        }
         else if (modelId == QLatin1String("PR412C")) // OWON PCT502 Thermostat
         {
             rq.dataType = deCONZ::Zcl16BitInt;
@@ -1714,8 +1676,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     }
     else if (bt.binding.clusterId == FAN_CONTROL_CLUSTER_ID)
     {
-        if (modelId == QLatin1String("AC201") ||            // OWON AC201 Thermostat
-            modelId.startsWith(QLatin1String("3157100")))   // Centralite pearl
+        if (modelId.startsWith(QLatin1String("3157100")))   // Centralite pearl
         {
             rq.dataType = deCONZ::Zcl8BitEnum;
             rq.attributeId = 0x0000;        // Fan mode
@@ -2372,9 +2333,6 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturerCode() == VENDOR_STELPRO)
         {
         }
-        else if (lightNode->manufacturerCode() == VENDOR_OWON)
-        {
-        }
         else if (lightNode->manufacturerCode() == VENDOR_DATEK)
         {
         }
@@ -2921,7 +2879,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Sage
         sensor->modelId() == QLatin1String("Bell") ||
         // Owon
-        sensor->modelId() == QLatin1String("AC201") ||
         sensor->modelId() == QLatin1String("PR412C") ||
         // D-Link
         sensor->modelId() == QLatin1String("DCH-B112") ||

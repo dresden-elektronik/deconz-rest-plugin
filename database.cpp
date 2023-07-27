@@ -3998,13 +3998,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeInt16, RConfigExternalTemperatureSensor)->setValue(0);
                     sensor.addItem(DataTypeBool, RConfigExternalWindowOpen)->setValue(false);
                 }
-                else if (sensor.modelId() == QLatin1String("AC201")) // OWON AC201 Thermostat
-                {
-                    sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);
-                    sensor.addItem(DataTypeString, RConfigMode);
-                    sensor.addItem(DataTypeString, RConfigFanMode);
-                    sensor.addItem(DataTypeString, RConfigSwingMode);
-                }
                 else if (sensor.modelId() == QLatin1String("iTRV")) // Drayton Wiser Radiator Thermostat
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
