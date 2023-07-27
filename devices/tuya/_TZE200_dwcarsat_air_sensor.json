@@ -177,7 +177,7 @@
       ]
     },
     {
-      "type": "ZHAFormaldehyde",
+      "type": "$TYPE_FORMALDEHYDE_SENSOR",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
@@ -214,7 +214,7 @@
         },
         {
           "name": "cap/measured_value/unit",
-          "static": "PPB"
+          "static": "PPM"
         },
         {
           "name": "state/measured_value",
@@ -234,7 +234,7 @@
       ]
     },
     {
-      "type": "ZHACarbonDioxide",
+      "type": "$TYPE_CARBONDIOXIDE_SENSOR",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
@@ -291,7 +291,7 @@
       ]
     },
     {
-      "type": "ZHAParticulateMatter",
+      "type": "$TYPE_PARTICULATEMATTER_SENSOR",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
