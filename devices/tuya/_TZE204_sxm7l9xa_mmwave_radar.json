@@ -215,7 +215,7 @@
             "fn":"none"
           },
           "write":{
-            "dpid":4,
+            "dpid":107,
             "dt":"0x2b",
             "eval":"Far = ['0','1','2','3','4','5','6','7','8','9','10']; Attr.val = Math.max(0,Far.indexOf(Item.val)*100);",
             "fn":"tuya"
