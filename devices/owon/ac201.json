@@ -179,6 +179,37 @@
           "name": "config/on"
         },
         {
+          "name": "config/pulseconfiguration",
+          "description": "Pulse Configuration represents the IR emitter code pulses configuration.",
+          "refresh.interval": 86400,
+          "read": {
+            "cl": "0xffac",
+            "cmd": "00",
+            "ep": 1,
+            "eval": "''",
+            "fc": 5,
+            "fn": "zcl:cmd",
+            "mf": "0x113c"
+          },
+          "write": {
+            "cl": "0xffac",
+            "ep": 1,
+            "cmd": "0x20",
+            "eval": "((Item.val & 0x00ff) >> 0).toString(16).padStart(2, '0') + ((Item.val & 0xff00) >> 8).toString(16).padStart(2, '0')",
+            "fn": "zcl:cmd",
+            "mf": "0x113c"
+          },
+          "parse": {
+            "cl": "0xffac",
+            "cmd": "00",
+            "ep": 1,
+            "eval": "Item.val = (ZclFrame.at(1) << 8 | ZclFrame.at(0))",
+            "fn": "zcl:cmd",
+            "mf": "0x113c"
+          },
+          "default": 0
+        },
+        {
           "name": "config/reachable"
         },
         {
