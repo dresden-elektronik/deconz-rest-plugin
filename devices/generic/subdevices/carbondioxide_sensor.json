@@ -1,0 +1,18 @@
+{
+    "schema": "subdevice1.schema.json",
+    "type": "$TYPE_CARBONDIOXIDE_SENSOR",
+    "name": "ZHACarbonDioxide",
+    "restapi": "/sensors",
+    "order": 20,
+    "uuid": ["$address.ext", "0x01", "0x040D"],
+    "items": [
+        "config/on",
+        "config/reachable",
+        "state/measured_value",
+        "cap/measured_value/min",
+        "cap/measured_value/max",
+        "cap/measured_value/unit",
+        "cap/measured_value/dimension",
+        "state/lastupdated"
+    ]
+}
