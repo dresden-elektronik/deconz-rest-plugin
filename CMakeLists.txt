@@ -53,7 +53,6 @@ set(PLUGIN_INCLUDE_FILES
     bindings.h
     button_maps.h
     colorspace.h
-    connectivity.h
     crypto/mmohash.h
     crypto/password.h
     crypto/random.h
@@ -140,7 +139,6 @@ add_library(${PROJECT_NAME} SHARED
     button_maps.cpp
     change_channel.cpp
     colorspace.cpp
-    connectivity.cpp
     crypto/mmohash.cpp
     crypto/password.cpp
     crypto/random.cpp
