@@ -2894,29 +2894,6 @@ void DeRestPluginPrivate::loadLightNodeFromDb(LightNode *lightNode)
         }
     }
 
-    // check for old mac address only format
-    if (lightNode->id().isEmpty())
-    {
-        sql = QString("SELECT * FROM nodes WHERE mac='%1' COLLATE NOCASE AND state != 'deleted'").arg(lightNode->address().toStringExt());
-
-        DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
-        rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadLightNodeCallback, &cb, &errmsg);
-
-        if (rc != SQLITE_OK)
-        {
-            if (errmsg)
-            {
-                DBG_Printf(DBG_ERROR_L2, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
-                sqlite3_free(errmsg);
-            }
-        }
-
-        if (!lightNode->id().isEmpty())
-        {
-            lightNode->setNeedSaveDatabase(true);
-        }
-    }
-
     if (lightNode->needSaveDatabase())
     {
         queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
