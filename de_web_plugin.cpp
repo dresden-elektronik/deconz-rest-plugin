@@ -2527,7 +2527,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             if (lightNode2->node() != node)
             {
                 lightNode2->setNode(const_cast<deCONZ::Node*>(node));
-                DBG_Printf(DBG_INFO, "LightNode %s set node %s\n", qPrintable(lightNode2->id()), qPrintable(node->address().toStringExt()));
             }
 
             lightNode2->setManufacturerCode(node->nodeDescriptor().manufacturerCode());
@@ -2539,7 +2538,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             {
                 // the node existed before
                 // refresh all with new values
-                DBG_Printf(DBG_INFO, "LightNode %u: %s updated\n", lightNode2->id().toUInt(), qPrintable(lightNode2->name()));
                 reachable->setValue(avail);
                 Event e(RLights, RStateReachable, lightNode2->id(), reachable);
                 enqueueEvent(e);
@@ -3354,7 +3352,6 @@ void DeRestPluginPrivate::nodeZombieStateChanged(const deCONZ::Node *node)
             if (i->node() != node)
             {
                 i->setNode(const_cast<deCONZ::Node*>(node));
-                DBG_Printf(DBG_INFO, "LightNode %s set node %s\n", qPrintable(i->id()), qPrintable(node->address().toStringExt()));
             }
 
             ResourceItem *item = i->item(RStateReachable);
@@ -3396,7 +3393,6 @@ void DeRestPluginPrivate::nodeZombieStateChanged(const deCONZ::Node *node)
                 if (i->node() != node)
                 {
                     i->setNode(const_cast<deCONZ::Node*>(node));
-                    DBG_Printf(DBG_INFO, "Sensor %s set node %s\n", qPrintable(i->id()), qPrintable(node->address().toStringExt()));
                 }
 
                 checkSensorNodeReachable(&(*i));
@@ -3438,7 +3434,6 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
     if (lightNode->node() != event.node())
     {
         lightNode->setNode(const_cast<deCONZ::Node*>(event.node()));
-        DBG_Printf(DBG_INFO, "LightNode %s set node %s\n", qPrintable(lightNode->id()), qPrintable(event.node()->address().toStringExt()));
     }
 
     if (lightNode->toBool(RStateReachable))
@@ -5568,7 +5563,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 if (i->node() != node)
                 {
                     i->setNode(const_cast<deCONZ::Node*>(node));
-                    DBG_Printf(DBG_INFO, "SensorNode %s set node %s\n", qPrintable(i->id()), qPrintable(node->address().toStringExt()));
 
                     pushSensorInfoToCore(&*i);
 
@@ -5578,7 +5572,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         auto *itemPending = i->item(RConfigPending);
                         if (itemPending)
                         {
-                            DBG_Printf(DBG_INFO, "Init Poll Control for %s\n", qPrintable(node->address().toStringExt()));
                             pollControlInitialized = true;
                             itemPending->setValue(itemPending->toNumber() | R_PENDING_WRITE_POLL_CHECKIN_INTERVAL | R_PENDING_SET_LONG_POLL_INTERVAL);
                         }
@@ -8437,7 +8430,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
         if (i->node() != event.node())
         {
             i->setNode(const_cast<deCONZ::Node*>(event.node()));
-            DBG_Printf(DBG_INFO, "Sensor %s set node %s\n", qPrintable(i->id()), qPrintable(event.node()->address().toStringExt()));
         }
 
         if (event.event() == deCONZ::NodeEvent::UpdatedClusterDataZclReport ||
@@ -12064,14 +12056,6 @@ void DeRestPluginPrivate::processTasks()
 
         if (!ok) // destination already busy
         {
-            if (i->req.dstAddressMode() == deCONZ::ApsExtAddress)
-            {
-                DBG_Printf(DBG_INFO_L2, "delay sending request %u ep: 0x%02X cluster 0x%04X to %s onAir %d\n", i->req.id(), i->req.dstEndpoint(), i->req.clusterId(), qPrintable(i->req.dstAddress().toStringExt()), onAir);
-            }
-            else if (i->req.dstAddressMode() == deCONZ::ApsGroupAddress)
-            {
-                DBG_Printf(DBG_INFO, "delay sending request %u - type: %d to group 0x%04X\n", i->req.id(), i->taskType, i->req.dstAddress().group());
-            }
         }
         else
         {
@@ -12247,7 +12231,6 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
 
     case deCONZ::NodeEvent::NodeZombieChanged:
     {
-        DBG_Printf(DBG_INFO, "Node zombie state changed %s\n", qPrintable(event.node()->address().toStringExt()));
         nodeZombieStateChanged(event.node());
     }
         break;
@@ -12327,8 +12310,6 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
                 return;
             }
         }
-
-        DBG_Printf(DBG_INFO_L2, "Node data %s profileId: 0x%04X, clusterId: 0x%04X\n", qPrintable(event.node()->address().toStringExt()), event.profileId(), event.clusterId());
 
         // filter for supported sensor clusters
         switch (event.clusterId())
@@ -12598,8 +12579,6 @@ void DeRestPluginPrivate::handleGroupClusterIndication(const deCONZ::ApsDataIndi
         lightNode->setGroupCapacity(capacity);
         lightNode->setGroupCount(count);
 
-//        DBG_Printf(DBG_INFO, "verified group capacity: %u and group count: %u of LightNode %s\n", capacity, count, qPrintable(lightNode->address().toStringExt()));
-
         QVector<quint16> responseGroups;
         for (uint i = 0; i < count; i++)
         {
@@ -12610,7 +12589,7 @@ void DeRestPluginPrivate::handleGroupClusterIndication(const deCONZ::ApsDataIndi
 
                 responseGroups.push_back(groupId);
 
-                DBG_Printf(DBG_INFO, "%s found group 0x%04X\n", qPrintable(lightNode->address().toStringExt()), groupId);
+                DBG_Printf(DBG_INFO, FMT_MAC " found group 0x%04X\n", (unsigned long long)lightNode->address().ext(), groupId);
 
                 foundGroup(groupId);
                 foundGroupMembership(lightNode, groupId);
@@ -12629,7 +12608,7 @@ void DeRestPluginPrivate::handleGroupClusterIndication(const deCONZ::ApsDataIndi
                 && !responseGroups.contains(i->id)
                 && i->state == GroupInfo::StateInGroup)
             {
-                    DBG_Printf(DBG_INFO, "restore group  0x%04X for lightNode %s\n", i->id, qPrintable(lightNode->address().toStringExt()));
+                    DBG_Printf(DBG_INFO, FMT_MAC " restore group 0x%04X for lightNode\n", (unsigned long long)lightNode->address().ext(), i->id);
                     i->actions &= ~GroupInfo::ActionRemoveFromGroup; // sanity
                     i->actions |= GroupInfo::ActionAddToGroup;
                     i->state = GroupInfo::StateInGroup;
@@ -12888,7 +12867,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(const deCONZ::ApsDataIndi
 
                 if (i != v.end())
                 {
-                    DBG_Printf(DBG_INFO, "Added/stored scene %u in node %s Response. Status: 0x%02X\n", sceneId, qPrintable(lightNode->address().toStringExt()), status);
+                    DBG_Printf(DBG_INFO, FMT_MAC " added/stored scene %u response status: 0x%02X\n", (unsigned long long)lightNode->address().ext(), sceneId, status);
                     groupInfo->addScenes.erase(i);
 
                     if (status == 0x00)
@@ -13148,8 +13127,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(const deCONZ::ApsDataIndi
 
                 if (i != v.end())
                 {
-                    DBG_Printf(DBG_INFO, "Modified scene %u in node %s status 0x%02X\n", sceneId, qPrintable(lightNode->address().toStringExt()), status);
-
+                    DBG_Printf(DBG_INFO, FMT_MAC " modified scene %u status 0x%02X\n", (unsigned long long)lightNode->address().ext(), sceneId, status);
                     if (status == deCONZ::ZclSuccessStatus)
                     {
                         groupInfo->modifyScenesRetries = 0;
@@ -13874,7 +13852,7 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(const deCONZ::Aps
         stream >> startIndex;
         stream >> count;
 
-        DBG_Printf(DBG_INFO, "Get group identifiers response of sensor %s. Count: %u\n", qPrintable(sensorNode->address().toStringExt()), count);
+        DBG_Printf(DBG_INFO, FMT_MAC " get ZLL group identifiers response: count: %u\n", (unsigned long long)sensorNode->address().ext(), unsigned(count));
 
         while (!stream.atEnd() && epIter < count)
         {

@@ -284,16 +284,6 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
     stream >> seqNo;
     stream >> status;
 
-    if (btReader)
-    {
-        DBG_Printf(DBG_ZDP, "MgmtBind_rsp id: %d %s seq: %u, status 0x%02X \n", btReader->apsReq.id(),
-                   qPrintable(node->address().toStringExt()), seqNo, status);
-    }
-    else
-    {
-        DBG_Printf(DBG_ZDP, "MgmtBind_rsp (no BTR) %s seq: %u, status 0x%02X \n", qPrintable(node->address().toStringExt()), seqNo, status);
-    }
-
     if (status != deCONZ::ZdpSuccess)
     {
         if (status == deCONZ::ZdpNotPermitted ||
@@ -301,7 +291,6 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
         {
             if (node->mgmtBindSupported())
             {
-                DBG_Printf(DBG_ZDP, "MgmtBind_req/rsp %s not supported, deactivate \n", qPrintable(node->address().toStringExt()));
                 node->setMgmtBindSupported(false);
             }
         }
@@ -347,7 +336,7 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
             btReader->state = BindingTableReader::StateFinished;
         }
 
-        enqueueEvent({RDevices, REventBindingTable, status, ind.srcAddress().ext()});
+        enqueueEvent({RDevices, REventBindingTable, status, ind.srcAddress().ext()}); // TODO(mpi): I think this event is obsolete and should be removed
     }
 
     while (listCount && !stream.atEnd())
