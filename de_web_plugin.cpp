@@ -199,8 +199,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_BITRON, "902010/32", emberMacPrefix }, // Bitron: thermostat
     { VENDOR_DDEL, "Lighting Switch", deMacPrefix },
     { VENDOR_DDEL, "Scene Switch", deMacPrefix },
-    { VENDOR_DDEL, "FLS-NB1", deMacPrefix },
-    { VENDOR_DDEL, "FLS-NB2", deMacPrefix },
     { VENDOR_IKEA, "TRADFRI remote control", silabs1MacPrefix },
     { VENDOR_IKEA, "TRADFRI remote control", silabsMacPrefix },
     { VENDOR_IKEA, "TRADFRI remote control", silabs2MacPrefix },
@@ -269,8 +267,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_XIAOMI, "lumi.motion.agl04", lumiMacPrefix}, // Xiaomi Aqara RTCGQ13LM high precision motion sensor
     { VENDOR_XIAOMI, "lumi.flood.agl02", xiaomiMacPrefix}, // Xiaomi Aqara T1 water leak sensor SJCGQ12LM
     { VENDOR_XIAOMI, "lumi.switch.n0agl1", lumiMacPrefix}, // Xiaomi Aqara Single Switch Module T1 (With Neutral)
-    { VENDOR_UBISYS, "D1", ubisysMacPrefix },
-    { VENDOR_UBISYS, "S1", ubisysMacPrefix },
     { VENDOR_NONE, "Z716A", netvoxMacPrefix },
     // { VENDOR_OSRAM_STACK, "Plug", osramMacPrefix }, // OSRAM plug - exposed only as light
     { VENDOR_OSRAM, "Lightify Switch Mini", emberMacPrefix }, // Osram 3 button remote
@@ -854,13 +850,6 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
             this, SLOT(processGroupTasks()));
     groupTaskTimer->start(250);
 
-    verifyRulesTimer = new QTimer(this);
-    verifyRulesTimer->setSingleShot(false);
-    verifyRulesTimer->setInterval(100);
-    connect(verifyRulesTimer, SIGNAL(timeout()),
-            this, SLOT(verifyRuleBindingsTimerFired()));
-    verifyRulesTimer->start();
-
     fastRuleCheckTimer = new QTimer(this);
     fastRuleCheckTimer->setInterval(5);
     fastRuleCheckTimer->setSingleShot(true);
@@ -886,12 +875,6 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     bindingTableReaderTimer->setInterval(1000);
     connect(bindingTableReaderTimer, SIGNAL(timeout()),
             this, SLOT(bindingTableReaderTimerFired()));
-
-    bindingToRuleTimer = new QTimer(this);
-    bindingToRuleTimer->setSingleShot(true);
-    bindingToRuleTimer->setInterval(50);
-    connect(bindingToRuleTimer, SIGNAL(timeout()),
-            this, SLOT(bindingToRuleTimerFired()));
 
     lockGatewayTimer = new QTimer(this);
     lockGatewayTimer->setSingleShot(true);
@@ -6471,15 +6454,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         // Only create entry for endpoint 0x01
                         fpSwitch.outClusters.push_back(ci->id());
                     }
-                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_UBISYS)
-                    {
-                        if ((modelId.startsWith(QLatin1String("D1")) && i->endpoint() == 0x02) ||
-                            (modelId.startsWith(QLatin1String("S1-R")) && i->endpoint() == 0x02))
-                        {
-                            // Combine multiple switch endpoints into a single ZHASwitch resource
-                            fpSwitch.outClusters.push_back(ci->id());
-                        }
-                    }
                     else if (!node->nodeDescriptor().isNull())
                     {
                         fpSwitch.outClusters.push_back(ci->id());
@@ -7736,10 +7710,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             sensorNode.setMode(Sensor::ModeTwoGroups); // inital
         }
-        else if (modelId.startsWith(QLatin1String("FLS-NB")))
-        {
-            sensorNode.setManufacturer("nimbus group");
-        }
     }
     else if ((node->nodeDescriptor().manufacturerCode() == VENDOR_OSRAM_STACK) || (node->nodeDescriptor().manufacturerCode() == VENDOR_OSRAM))
     {
@@ -8150,108 +8120,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     q->startZclAttributeTimer(checkZclAttributesDelay);
 
     queSaveDb(DB_SENSORS , DB_SHORT_SAVE_DELAY);
-}
-
-/*! Updates  SensorNode fingerprint if needed.
-    \param node - holds up to date data
-    \param endpoint - related endpoint
-    \param sensorNOde - optional sensor filter, might be 0
- */
-void DeRestPluginPrivate::checkUpdatedFingerPrint(const deCONZ::Node *node, quint8 endpoint, Sensor *sensorNode)
-{
-    if (DEV_TestManaged())
-    {
-        return;
-    }
-
-    if (!node)
-    {
-        return;
-    }
-
-    Device *device = DEV_GetDevice(m_devices, node->address().ext());
-    if (device && device->managed())
-    {
-        return;
-    }
-
-    const deCONZ::SimpleDescriptor *sd = getSimpleDescriptor(node, endpoint);
-    if (!sd)
-    {
-        return;
-    }
-
-    std::vector<Sensor>::iterator i = sensors.begin();
-    std::vector<Sensor>::iterator end = sensors.end();
-
-    for (; i != end; ++i)
-    {
-        if (sensorNode && &*i != sensorNode)
-        {
-            continue;
-        }
-
-        if (i->address().ext() != node->address().ext())
-        {
-            continue;
-        }
-
-        if (i->deletedState() != Sensor::StateNormal)
-        {
-            continue;
-        }
-
-        // different endpoints for different versions of FLS-NB
-        if (i->fingerPrint().endpoint != endpoint &&
-            i->modelId().startsWith(QLatin1String("FLS-NB")))
-        {
-
-            bool update = false;
-            SensorFingerprint &fp = i->fingerPrint();
-            quint16 clusterId = 0;
-
-            for (size_t c = 0; !update && c < fp.inClusters.size(); c++)
-            {
-                quint16 cl = fp.inClusters[c];
-                if (std::find_if(sd->inClusters().cbegin(), sd->inClusters().cend(), [cl](const auto &inCluster){ return inCluster.id() == cl; }
-                                 ) != sd->inClusters().cend())
-                {
-                    update = true;
-                    break;
-                }
-            }
-
-            for (size_t c = 0; !update && c < fp.outClusters.size(); c++)
-            {
-                quint16 cl = fp.outClusters[c];
-                if (std::find_if(sd->outClusters().cbegin(), sd->outClusters().cend(), [cl](const auto &outCluster){ return outCluster.id() == cl; }
-                                 ) != sd->inClusters().cend())
-                {
-                    update = true;
-                    break;
-                }
-            }
-
-            if (!update)
-            {
-                continue;
-            }
-
-            if      (i->type().endsWith(QLatin1String("Switch")))     { clusterId = ONOFF_CLUSTER_ID; }
-            else if (i->type().endsWith(QLatin1String("LightLevel"))) { clusterId = ILLUMINANCE_MEASUREMENT_CLUSTER_ID; }
-            else if (i->type().endsWith(QLatin1String("Presence")))   { clusterId = OCCUPANCY_SENSING_CLUSTER_ID; }
-
-            DBG_Printf(DBG_INFO, "change 0x%016llX finger print ep: 0x%02X --> 0x%02X\n", i->address().ext(), fp.endpoint, endpoint);
-
-            fp.endpoint = sd->endpoint();
-            fp.profileId = sd->profileId();
-
-            updateSensorEtag(&*i);
-            i->setUniqueId(generateUniqueId(i->address().ext(), fp.endpoint, clusterId));
-            i->setNeedSaveDatabase(true);
-            queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
-        }
-    }
 }
 
 /*! Updates  ZHALightLevel sensor /state: lightlevel, lux, dark and daylight.
@@ -10258,9 +10126,7 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         bool ok = false;
         // only read binding table of chosen sensors
         // whitelist by Model ID
-        if (sensorNode->modelId().startsWith(QLatin1String("FLS-NB")) ||
-            sensorNode->modelId().startsWith(QLatin1String("D1")) || sensorNode->modelId().startsWith(QLatin1String("S1-R")) ||
-            sensorNode->manufacturer().startsWith(QLatin1String("BEGA")))
+        if (sensorNode->manufacturer().startsWith(QLatin1String("BEGA")))
         {
             ok = true;
         }
@@ -11714,115 +11580,6 @@ void DeRestPluginPrivate::storeRecoverOnOffBri(LightNode *lightNode)
     recoverOnOff.push_back(rc);
 }
 
-/*! Temporary FLS-NB maintenance. */
-bool DeRestPluginPrivate::flsNbMaintenance(LightNode *lightNode)
-{
-    ResourceItem *item = 0;
-    item = lightNode->item(RStateReachable);
-    DBG_Assert(item != 0);
-    if (!item || !item->lastSet().isValid() || !item->toBool())
-    {
-        return false;
-    }
-
-    QDateTime now = QDateTime::currentDateTime();
-    QSettings config(deCONZ::getStorageLocation(deCONZ::ConfigLocation), QSettings::IniFormat);
-
-    int resetDelay = config.value("fls-nb/resetdelay", 0).toInt(); // default to disabled
-    int resetPhase = config.value("fls-nb/resetphase", 100).toInt(); // DL_NADIR
-    int noPirDelay = config.value("fls-nb/nopirdelay", 60 * 30).toInt(); // 30 minutes
-
-    if (resetDelay == 0)
-    {
-        return false; // disabled
-    }
-
-    int uptime = item->lastSet().secsTo(now);
-    DBG_Printf(DBG_INFO, "0x%016llx uptime %d\n", lightNode->address().ext(), uptime);
-
-    if (uptime < resetDelay)
-    {
-        return false;
-    }
-
-    item = lightNode->item(RAttrPowerup);
-    quint32 powerup = item ? item->toNumber() : 0;
-
-    if ((powerup & R_POWERUP_RESTORE) == 0)
-    {
-        return false;
-    }
-
-    // check for specific phase
-    Sensor *daylight = getSensorNodeForId(daylightSensorId);
-    item = daylight ? daylight->item(RConfigConfigured) : 0;
-    if (!item)
-    {
-        return false;
-    }
-
-    item = daylight->item(RStateStatus);
-    if (resetPhase == 0) // 0 = disabled (for testing)
-    {}
-    else if (!item || item->toNumber() != resetPhase)
-    {
-        return false;
-    }
-
-    // wait until no motion was detected for configured time
-    if (globalLastMotion.isValid() && globalLastMotion.secsTo(now) < noPirDelay)
-    {
-        return false;
-    }
-
-    DBG_Printf(DBG_INFO, "0x%016llx start powercycle\n", lightNode->address().ext());
-
-    deCONZ::ApsDataRequest req;
-    req.setProfileId(HA_PROFILE_ID);
-    req.setDstEndpoint(0x0A);
-    req.setClusterId(OTAU_CLUSTER_ID);
-    req.dstAddress() = lightNode->address();
-    req.setDstAddressMode(deCONZ::ApsExtAddress);
-    req.setSrcEndpoint(endpoint());
-    req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-    req.setRadius(0);
-
-    deCONZ::ZclFrame zclFrame;
-    zclFrame.setSequenceNumber(zclSeq++);
-    zclFrame.setCommandId(0x07); // OTAU_UPGRADE_END_RESPONSE_CMD_ID
-
-    zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
-                             deCONZ::ZclFCDirectionServerToClient |
-                             deCONZ::ZclFCDisableDefaultResponse);
-
-    { // ZCL payload
-        QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
-        stream.setByteOrder(QDataStream::LittleEndian);
-
-        stream << (quint16)VENDOR_DDEL;
-        stream << (quint16)0x0002;
-        stream << (quint32)0; // file version
-
-        stream << (quint32)0; // current time
-        stream << (quint32)0; // upgrade time
-    }
-
-    { // ZCL frame
-        QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
-        stream.setByteOrder(QDataStream::LittleEndian);
-        zclFrame.writeToStream(stream);
-    }
-
-    storeRecoverOnOffBri(lightNode);
-
-    if (deCONZ::ApsController::instance()->apsdeDataRequest(req) == deCONZ::Success)
-    {
-        return true;
-    }
-
-    return false;
-}
-
 /*! Queues a client for closing the connection.
     \param sock the client socket
     \param closeTimeout timeout in seconds then the socket should be closed
@@ -12249,7 +12006,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         addLightNode(event.node());
         updatedLightNodeEndpoint(event);
         addSensorNode(event.node());
-        checkUpdatedFingerPrint(event.node(), event.endpoint(), nullptr);
+
         if (!event.node())
         {
             return;
@@ -15640,22 +15397,6 @@ void DeRestPlugin::idleTimerFired()
                     }
                 }
 
-                if (lightNode->modelId().startsWith(QLatin1String("FLS-NB")))
-                {
-                    // temporary activate sensor search
-                    DeRestPluginPrivate::SearchSensorsState fss = d->searchSensorsState; // remember
-                    d->searchSensorsState = DeRestPluginPrivate::SearchSensorsActive;
-                    d->addSensorNode(lightNode->node());
-                    d->searchSensorsState = fss;
-
-                    // temporary,
-                    if (d->flsNbMaintenance(lightNode))
-                    {
-                        d->queryTime = d->queryTime.addSecs(10);
-                        processLights = true;
-                    }
-                }
-
                 if (d->gwPermitJoinDuration == 0)
                 {
                     d->queuePollNode(lightNode);
@@ -15769,41 +15510,12 @@ void DeRestPlugin::idleTimerFired()
                     }
                 }
 
-                if (sensorNode->modelId().startsWith(QLatin1String("FLS-NB"))) // sync names
-                {
-                    LightNode *lightNode = d->getLightNodeForAddress(sensorNode->address());
-
-                    bool updated = false;
-                    if (lightNode && sensorNode->name() != lightNode->name())
-                    {
-                        sensorNode->setName(lightNode->name());
-                        updated = true;
-                    }
-
-                    if (sensorNode->manufacturer() != QLatin1String("nimbus group"))
-                    {
-                        sensorNode->setManufacturer(QLatin1String("nimbus group"));
-                        updated = true;
-                    }
-
-                    if (updated)
-                    {
-                        sensorNode->setNeedSaveDatabase(true);
-                        d->updateSensorEtag(sensorNode);
-                        d->queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
-                    }
-                }
-
                 if (sensorNode->node())
                 {
                     sensorNode->fingerPrint().checkCounter++;
                     if (sensorNode->fingerPrint().checkCounter > SENSOR_CHECK_COUNTER_INIT)
                     {
                         sensorNode->fingerPrint().checkCounter = 0;
-                        for (quint8 ep : sensorNode->node()->endpoints())
-                        {
-                            d->checkUpdatedFingerPrint(sensorNode->node(), ep, sensorNode);
-                        }
                         d->checkSensorNodeReachable(sensorNode);
                     }
                 }
@@ -17232,10 +16944,7 @@ void DeRestPluginPrivate::pushSensorInfoToCore(Sensor *sensor)
         }
     }
 
-    if (sensor->modelId().startsWith(QLatin1String("FLS-NB")))
-    { } // use name from light
-    else if (sensor->modelId().startsWith(QLatin1String("D1")) || sensor->modelId().startsWith(QLatin1String("S1-R")) ||
-             sensor->modelId().startsWith(QLatin1String("lumi.ctrl_")))
+    if (sensor->modelId().startsWith(QLatin1String("lumi.ctrl_")))
     { } // use name from light
     else if (sensor->type() == QLatin1String("ZHAConsumption") || sensor->type() == QLatin1String("ZHAPower"))
     { } // use name from light

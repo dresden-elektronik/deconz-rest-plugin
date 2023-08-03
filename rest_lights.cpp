@@ -3336,21 +3336,6 @@ int DeRestPluginPrivate::setLightAttributes(const ApiRequest &req, ApiResponse &
             Q_Q(DeRestPlugin);
             q->nodeUpdated(lightNode->address().ext(), QLatin1String("name"), name);
 
-            if (lightNode->modelId().startsWith(QLatin1String("FLS-NB"))) // sync names
-            {
-                for (Sensor &s : sensors)
-                {
-                    if (s.address().ext() == lightNode->address().ext() &&
-                        s.name() != lightNode->name())
-                    {
-                        updateSensorEtag(&s);
-                        s.setName(lightNode->name());
-                        s.setNeedSaveDatabase(true);
-                        queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
-                    }
-                }
-            }
-
             QVariantMap rspItem;
             QVariantMap rspItemState;
             rspItemState[QString("/lights/%1/name").arg(id)] = map["name"];

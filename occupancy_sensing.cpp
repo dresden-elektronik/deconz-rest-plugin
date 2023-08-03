@@ -120,9 +120,9 @@ void DeRestPluginPrivate::handleOccupancySensingClusterIndication(const deCONZ::
 
         case OCCUPIED_TO_UNOCCUPIED_DELAY:
         {
-            if (sensor->modelId().startsWith(QLatin1String("FLS-NB")) || sensor->modelId() == QLatin1String("LG IP65 HMS"))
+            if (sensor->modelId() == QLatin1String("LG IP65 HMS"))
             {
-                // TODO this if branch needs to be refactored or better removed later on
+                // TODO(mpi): this can be removed, I don't think there are any users of this device (large industrial light+sensor)
                 quint16 duration = attr.numericValue().u16;
                 item = sensor->item(RConfigDuration);
 
