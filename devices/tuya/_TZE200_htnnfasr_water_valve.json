@@ -112,6 +112,9 @@
           "default": 100
         },
         {
+          "name" : "this does not exist"
+        },
+        {
           "name": "config/duration",
           "description": "The duration the valve stays open.",
           "write": {
