@@ -1,0 +1,8 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "cap/measured_value/dimension",
+  "datatype": "String",
+  "access": "R",
+  "public": true,
+  "description": "Dimension of state/measured_value."
+}
