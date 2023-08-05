@@ -118,7 +118,6 @@ HEADERS  = bindings.h \
            aps_controller_wrapper.h \
            backup.h \
            button_maps.h \
-           connectivity.h \
            colorspace.h \
            crypto/mmohash.h \
            crypto/password.h \
@@ -193,7 +192,6 @@ SOURCES  = air_quality.cpp \
            bindings.cpp \
            button_maps.cpp \
            change_channel.cpp \
-           connectivity.cpp \
            colorspace.cpp \
            crypto/mmohash.cpp \
            crypto/password.cpp \
