@@ -177,12 +177,6 @@ int DeRestPluginPrivate::getAllSensors(const ApiRequest &req, ApiResponse &rsp)
             continue;
         }
 
-        // ignore sensors without attached node
-        if (i->modelId().startsWith(QLatin1String("FLS-NB")) && !i->node())
-        {
-            continue;
-        }
-
         if (i->modelId().isEmpty())
         {
             continue;
@@ -875,16 +869,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigDuration) // Unsigned integer
                 {
-                    if (sensor->modelId().startsWith(QLatin1String("FLS-NB")))
-                    {
-                        DBG_Printf(DBG_INFO, "Force read of occupaction delay for sensor %s\n", qPrintable(sensor->address().toStringExt()));
-                        sensor->enableRead(READ_OCCUPANCY_CONFIG);
-                        sensor->setNextReadTime(READ_OCCUPANCY_CONFIG, queryTime.addSecs(1));
-                        queryTime = queryTime.addSecs(1);
-                        Q_Q(DeRestPlugin);
-                        q->startZclAttributeTimer(0);
-                    }
-                    else if (sensor->modelId() == QLatin1String("TRADFRI motion sensor"))
+                    if (sensor->modelId() == QLatin1String("TRADFRI motion sensor"))
                     {
                         if (data.uinteger < 1 || data.uinteger > 60)
                         {
