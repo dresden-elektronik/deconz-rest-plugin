@@ -1,8 +1,8 @@
 {
     "schema": "devcap1.schema.json",
-    "manufacturername": "ubisys",
-    "modelid": "D1 (5503)",
-    "product": "D1 (5503)",
+    "manufacturername": ["ubisys", "ubisys"],
+    "modelid": ["D1 (5503)", "D1-R (5603)"],
+    "product": "D1 (5503)/D1-R (5603)",
     "sleeper": false,
     "status": "Gold",
     "subdevices": [
