@@ -10,5 +10,8 @@
         "state/reachable",
         "state/open",
         "state/lockstate"
+    ],
+    "items_optional": [
+        "state/reachable"
     ]
 }

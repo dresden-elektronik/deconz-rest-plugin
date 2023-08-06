@@ -14,5 +14,11 @@
         "state/alarm",
         "state/lowbattery",
         "state/lastupdated"
+    ],
+    "items_optional": [
+        "config/enrolled",
+        "config/pending",
+        "config/battery",
+        "state/lowbattery"
     ]
 }

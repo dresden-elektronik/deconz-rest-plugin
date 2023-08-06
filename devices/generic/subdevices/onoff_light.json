@@ -10,5 +10,9 @@
         "state/alert",
         "state/on",
         "state/reachable"
+    ],
+    "items_optional": [
+        "config/on/startup",
+        "state/alert"
     ]
 }

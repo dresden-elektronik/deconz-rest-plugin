@@ -15,5 +15,13 @@
         "state/temperature",
         "state/valve",
         "state/lastupdated"
+    ],
+    "items_optional": [
+        "config/heatsetpoint",
+        "config/mode",
+        "config/offset",
+        "state/on",
+        "state/temperature",
+        "state/valve"
     ]
 }

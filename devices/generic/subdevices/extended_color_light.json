@@ -34,5 +34,16 @@
         "state/sat",
         "state/x",
         "state/y"
+    ],
+    "items_optional":[
+        "config/on/startup",
+        "config/bri/startup",
+        "config/color/ct/startup",
+        "cap/alert/trigger_effect",
+        "cap/bri/move_with_onoff",
+        "config/bri/execute_if_off",
+        "config/color/execute_if_off",
+        "cap/color/capabilities",
+        "cap/on/off_with_effect"
     ]
 }

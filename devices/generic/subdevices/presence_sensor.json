@@ -11,5 +11,8 @@
         "config/reachable",
         "state/presence",
         "state/lastupdated"
+    ],
+    "items_optional":[
+        "config/duration"
     ]
 }

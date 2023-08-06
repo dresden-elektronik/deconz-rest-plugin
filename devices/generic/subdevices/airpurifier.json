@@ -12,5 +12,8 @@
         "state/airquality",
         "state/lastupdated",
         "state/speed"
+    ],
+    "items_optional": [
+        "state/airquality"
     ]
 }

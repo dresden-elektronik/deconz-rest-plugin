@@ -10,5 +10,8 @@
         "config/reachable",
         "state/open",
         "state/lastupdated"
+    ],
+    "items_optional": [
+        "config/on"
     ]
 }

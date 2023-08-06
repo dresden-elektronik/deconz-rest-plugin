@@ -12,5 +12,9 @@
         "state/lastupdated",
         "state/power",
         "state/voltage"
+    ],
+    "items_optional": [
+        "state/current",
+        "state/voltage"
     ]
 }
