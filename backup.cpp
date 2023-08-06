@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2021-2023 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -9,12 +9,16 @@
  */
 
 #include <QCoreApplication>
+#include <QDateTime>
 #include <QDir>
 #include <QFile>
 #include <QProcess>
+#include <QTextStream>
 #include <array>
 #include <stack>
-#include <deconz.h>
+#include "deconz/aps_controller.h"
+#include "deconz/dbg_trace.h"
+#include "deconz/util.h"
 #include "backup.h"
 #include "json.h"
 #include "crypto/random.h"
