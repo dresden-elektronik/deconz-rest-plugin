@@ -1,0 +1,38 @@
+{
+    "schema": "subdevice1.schema.json",
+    "type": "$TYPE_COLOR_LIGHT",
+    "name": "Color light",
+    "restapi": "/lights",
+    "order": 10,
+    "uuid": ["$address.ext", "0x01"],
+    "items": [
+        "cap/alert/trigger_effect",
+        "cap/bri/move_with_onoff",
+        "cap/color/capabilities",
+        "cap/color/xy/blue_x",
+        "cap/color/xy/blue_y",
+        "cap/color/xy/green_x",
+        "cap/color/xy/green_y",
+        "cap/color/xy/red_x",
+        "cap/color/xy/red_y",
+        "cap/on/off_with_effect",
+        "state/alert",
+        "state/bri",
+        "state/colormode",
+        "state/on",
+        "state/reachable",
+        "state/x",
+        "state/y"
+    ],
+    "items_optional":[
+        "config/on/startup",
+        "config/bri/startup",
+        "config/color/ct/startup",
+        "cap/alert/trigger_effect",
+        "cap/bri/move_with_onoff",
+        "config/bri/execute_if_off",
+        "config/color/execute_if_off",
+        "cap/color/capabilities",
+        "cap/on/off_with_effect"
+    ]
+}

@@ -1,0 +1,15 @@
+{
+    "schema": "subdevice1.schema.json",
+    "type": "$TYPE_TIME",
+    "name": "ZHATime",
+    "restapi": "/sensors",
+    "order": 20,
+    "uuid": ["$address.ext", "0x01", "0x000a"],
+    "items": [
+        "config/on",
+        "config/reachable",
+        "state/lastupdated",
+        "state/localtime",
+        "state/utc"
+    ]
+}

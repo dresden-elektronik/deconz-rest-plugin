@@ -83,7 +83,7 @@
       ]
     },
     {
-      "type": "ZHAAncillaryControl",
+      "type": "$TYPE_ANCILLARY_CONTROL",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
