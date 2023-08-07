@@ -3,7 +3,6 @@
 	"id": "state/orientation_x",
 	"datatype": "Int16",
 	"access": "R",
-	"public": false,
-	"range": [-65535, 65535],
+	"public": true,
 	"description": "The X orientation of a gyro."
 }

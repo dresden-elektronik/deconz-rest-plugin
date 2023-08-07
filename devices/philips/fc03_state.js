@@ -1,4 +1,5 @@
 /* global R, ZclFrame */
+/* eslint-disable no-var */
 
 const attrid = ZclFrame.at(1) << 8 | ZclFrame.at(0)
 if (attrid === 0x0002) {
@@ -29,6 +30,9 @@ if (attrid === 0x0002) {
         R.item('state/y').val = ZclFrame.at(i + 3) << 8 | ZclFrame.at(i + 2)
         i += 4
         len -= 4
+        if (mode === 0x000B && R.item('state/colormode').val !== 'hs') {
+          R.item('state/colormode').val = 'xy'
+        }
       }
       if (mode === 0x00AB && len >= 2) {
         const effect = ZclFrame.at(i + 1) << 8 | ZclFrame.at(i)
@@ -55,6 +59,10 @@ if (attrid === 0x0002) {
             break
         }
         R.item('state/colormode').val = 'effect'
+      } else {
+        if (R.item('state/effect').val !== 'colorloop') {
+          R.item('state/effect').val = 'none'
+        }
       }
       if (mode === 0x014B && len >= 2) {
         const vLen = ZclFrame.at(i)

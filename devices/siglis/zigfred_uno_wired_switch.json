@@ -98,12 +98,36 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "cap/color/xy/blue_x",
+          "static": 0
+        },
+        {
+          "name": "cap/color/xy/blue_y",
+          "static": 0
+        },
+        {
+          "name": "cap/color/xy/green_x",
+          "static": 0
+        },
+        {
+          "name": "cap/color/xy/green_y",
+          "static": 65279
+        },
+        {
+          "name": "cap/color/xy/red_x",
+          "static": 65279
+        },
+        {
+          "name": "cap/color/xy/red_y",
+          "static": 0
+        },
+        {
           "name": "state/alert",
           "default": "none"
         },
         {
           "name": "state/bri",
-          "refresh.interval": 600
+          "refresh.interval": 1865
         },
         {
           "name": "state/colormode"
@@ -117,18 +141,18 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 600
+          "refresh.interval": 1865
         },
         {
           "name": "state/reachable"
         },
         {
           "name": "state/sat",
-          "refresh.interval": 600
+          "refresh.interval": 1865
         },
         {
           "name": "state/x",
-          "refresh.interval": 600
+          "refresh.interval": 1865
         },
         {
           "name": "state/y"
@@ -176,7 +200,7 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 600
+          "refresh.interval": 1865
         },
         {
           "name": "state/reachable"
@@ -224,11 +248,11 @@
         },
         {
           "name": "state/bri",
-          "refresh.interval": 600
+          "refresh.interval": 1865
         },
         {
           "name": "state/on",
-          "refresh.interval": 600
+          "refresh.interval": 1865
         },
         {
           "name": "state/reachable"

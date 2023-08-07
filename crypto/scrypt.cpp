@@ -18,7 +18,6 @@
 
 #include <array>
 #include <QLibrary>
-#include "deconz/dbg_trace.h"
 #include "random.h"
 #include "scrypt.h"
 
@@ -27,6 +26,23 @@
 
 #include <openssl/evp.h>
 #include <openssl/kdf.h>
+
+static int (*lib_EVP_PKEY_CTX_ctrl_uint64)(EVP_PKEY_CTX *ctx, int keytype, int optype, int cmd, uint64_t value);
+
+static int wrap_EVP_PKEY_CTX_set_scrypt_N(EVP_PKEY_CTX *ctx, uint64_t n)
+{
+    return lib_EVP_PKEY_CTX_ctrl_uint64(ctx, -1, EVP_PKEY_OP_DERIVE, EVP_PKEY_CTRL_SCRYPT_N, n);
+}
+
+static int wrap_EVP_PKEY_CTX_set_scrypt_r(EVP_PKEY_CTX *ctx, uint64_t r)
+{
+    return lib_EVP_PKEY_CTX_ctrl_uint64(ctx, -1, EVP_PKEY_OP_DERIVE, EVP_PKEY_CTRL_SCRYPT_R, r);
+}
+
+static int wrap_EVP_PKEY_CTX_set_scrypt_p(EVP_PKEY_CTX *ctx, uint64_t p)
+{
+    return lib_EVP_PKEY_CTX_ctrl_uint64(ctx, -1, EVP_PKEY_OP_DERIVE, EVP_PKEY_CTRL_SCRYPT_P, p);
+}
 
 /*! KDF to scrypt the \p input.
  */
@@ -44,73 +60,92 @@ static int scryptDerive(const char *input, size_t inputLength, std::array<unsign
 
     auto _OpenSSL_version_num = reinterpret_cast<unsigned long (*)(void)>(libCrypto.resolve("OpenSSL_version_num"));
 
-    const auto EVP_PKEY_CTX_new_id = reinterpret_cast<EVP_PKEY_CTX *(*)(int id, ENGINE *e)>(libCrypto.resolve("EVP_PKEY_CTX_new_id"));
-    const auto EVP_PKEY_derive_init = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx)>(libCrypto.resolve("EVP_PKEY_derive_init"));
-    const auto EVP_PKEY_CTX_ctrl = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx, int keytype, int optype, int cmd, int p1, void *p2)>(libCrypto.resolve("EVP_PKEY_CTX_ctrl"));
-    const auto EVP_PKEY_CTX_ctrl_uint64 = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx, int keytype, int optype, int cmd, uint64_t value)>(libCrypto.resolve("EVP_PKEY_CTX_ctrl_uint64"));
-    const auto EVP_PKEY_derive = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx, unsigned char *key, size_t *keylen)>(libCrypto.resolve("EVP_PKEY_derive"));
-    const auto EVP_PKEY_CTX_free = reinterpret_cast<void (*)(EVP_PKEY_CTX *ctx)>(libCrypto.resolve("EVP_PKEY_CTX_free"));
+    const auto lib_EVP_PKEY_CTX_new_id = reinterpret_cast<EVP_PKEY_CTX *(*)(int id, ENGINE *e)>(libCrypto.resolve("EVP_PKEY_CTX_new_id"));
+    const auto lib_EVP_PKEY_derive_init = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx)>(libCrypto.resolve("EVP_PKEY_derive_init"));
+    const auto lib_EVP_PKEY_CTX_ctrl = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx, int keytype, int optype, int cmd, int p1, void *p2)>(libCrypto.resolve("EVP_PKEY_CTX_ctrl"));
+    lib_EVP_PKEY_CTX_ctrl_uint64 = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx, int keytype, int optype, int cmd, uint64_t value)>(libCrypto.resolve("EVP_PKEY_CTX_ctrl_uint64"));
+    const auto lib_EVP_PKEY_derive = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx, unsigned char *key, size_t *keylen)>(libCrypto.resolve("EVP_PKEY_derive"));
+    const auto lib_EVP_PKEY_CTX_free = reinterpret_cast<void (*)(EVP_PKEY_CTX *ctx)>(libCrypto.resolve("EVP_PKEY_CTX_free"));
+
+    const auto lib_EVP_PKEY_CTX_set1_pbe_pass = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx, const char *pass, int passlen)>(libCrypto.resolve("EVP_PKEY_CTX_set1_pbe_pass"));
+
+    const auto lib_EVP_PKEY_CTX_set1_scrypt_salt = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx, const unsigned char *salt, int saltlen)>(libCrypto.resolve("EVP_PKEY_CTX_set1_scrypt_salt"));
+
+    auto lib_EVP_PKEY_CTX_set_scrypt_N = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx, uint64_t n)>(libCrypto.resolve("EVP_PKEY_CTX_set_scrypt_N"));
+    auto lib_EVP_PKEY_CTX_set_scrypt_r = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx, uint64_t r)>(libCrypto.resolve("EVP_PKEY_CTX_set_scrypt_r"));
+    auto lib_EVP_PKEY_CTX_set_scrypt_p = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx, uint64_t p)>(libCrypto.resolve("EVP_PKEY_CTX_set_scrypt_p"));
 
     if (_OpenSSL_version_num)
     {
         openSslVersion = _OpenSSL_version_num();
     }
 
-
     if (openSslVersion < OPEN_SSL_VERSION_MIN ||
-            ! EVP_PKEY_CTX_new_id ||
-            !EVP_PKEY_derive_init ||
-            ! EVP_PKEY_CTX_ctrl ||
-            ! EVP_PKEY_CTX_ctrl_uint64 ||
-            ! EVP_PKEY_derive ||
-            ! EVP_PKEY_CTX_free)
+            ! lib_EVP_PKEY_CTX_new_id ||
+            ! lib_EVP_PKEY_derive_init ||
+            ! lib_EVP_PKEY_CTX_ctrl ||
+            ! lib_EVP_PKEY_CTX_ctrl_uint64 ||
+            ! lib_EVP_PKEY_derive ||
+            ! lib_EVP_PKEY_CTX_set1_pbe_pass ||
+            ! lib_EVP_PKEY_CTX_set1_scrypt_salt ||
+            ! lib_EVP_PKEY_CTX_free)
     {
         return -1;
+    }
+
+    if (! lib_EVP_PKEY_CTX_set_scrypt_N ||
+        ! lib_EVP_PKEY_CTX_set_scrypt_r ||
+        ! lib_EVP_PKEY_CTX_set_scrypt_p)
+    {
+        // OpenSSL 1.x has these as macros wrapping EVP_PKEY_CTX_ctrl_uint64
+        lib_EVP_PKEY_CTX_set_scrypt_N = wrap_EVP_PKEY_CTX_set_scrypt_N;
+        lib_EVP_PKEY_CTX_set_scrypt_r = wrap_EVP_PKEY_CTX_set_scrypt_r;
+        lib_EVP_PKEY_CTX_set_scrypt_p = wrap_EVP_PKEY_CTX_set_scrypt_p;
     }
 
     int result = 0;
     EVP_PKEY_CTX *pctx;
 
     size_t outlen = out.size();
-    pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_SCRYPT, NULL);
+    pctx = lib_EVP_PKEY_CTX_new_id(EVP_PKEY_SCRYPT, NULL);
 
     result = pctx ? 0 : -1;
 
-    if (result == 0 && EVP_PKEY_derive_init(pctx) <= 0)
+    if (result == 0 && lib_EVP_PKEY_derive_init(pctx) <= 0)
     {
         result = -1;
     }
 
-    if (result == 0 && EVP_PKEY_CTX_set1_pbe_pass(pctx, input, inputLength) <= 0)
+    if (result == 0 && lib_EVP_PKEY_CTX_set1_pbe_pass(pctx, input, inputLength) <= 0)
     {
         result = -2;
     }
 
-    if (result == 0 && EVP_PKEY_CTX_set1_scrypt_salt(pctx, salt, saltlen) <= 0)
+    if (result == 0 && lib_EVP_PKEY_CTX_set1_scrypt_salt(pctx, salt, saltlen) <= 0)
     {
         result = -3;
     }
 
-    if (result == 0 && EVP_PKEY_CTX_set_scrypt_N(pctx, N) <= 0)
+    if (result == 0 && lib_EVP_PKEY_CTX_set_scrypt_N(pctx, N) <= 0)
     {
         result = -4;
     }
 
-    if (result == 0 && EVP_PKEY_CTX_set_scrypt_r(pctx, r) <= 0) {
+    if (result == 0 && lib_EVP_PKEY_CTX_set_scrypt_r(pctx, r) <= 0) {
         result = -5;
     }
 
-    if (result == 0 && EVP_PKEY_CTX_set_scrypt_p(pctx, p) <= 0)
+    if (result == 0 && lib_EVP_PKEY_CTX_set_scrypt_p(pctx, p) <= 0)
     {
         result = -6;
     }
 
-    if (result == 0 && EVP_PKEY_derive(pctx, out.data(), &outlen) <= 0)
+    if (result == 0 && lib_EVP_PKEY_derive(pctx, out.data(), &outlen) <= 0)
     {
         result = -7;
     }
 
-    EVP_PKEY_CTX_free(pctx);
+    lib_EVP_PKEY_CTX_free(pctx);
 
     return result;
 }

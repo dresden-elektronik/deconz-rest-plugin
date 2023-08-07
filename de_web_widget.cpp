@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2020 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2023 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -118,7 +118,6 @@ void DeRestWidget::readBindingTableTriggered()
 {
     if (m_selectedNodeAddress.hasExt())
     {
-
         auto *restNode = dynamic_cast<RestNodeBase*>(plugin->d->getLightNodeForAddress(m_selectedNodeAddress));
 
         if (!restNode)
@@ -129,7 +128,6 @@ void DeRestWidget::readBindingTableTriggered()
         if (restNode)
         {
             restNode->setMgmtBindSupported(true);
-            DBG_Printf(DBG_INFO, "read binding table for %s (%s) \n", qPrintable(m_selectedNodeAddress.toStringExt()), qPrintable(m_selectedNodeAddress.toStringNwk()));
             plugin->d->readBindingTable(restNode, 0);
         }
     }

@@ -1,378 +1,548 @@
 {
-    "schema": "devcap1.schema.json",
-    "manufacturername": "$MF_SIGNIFY",
-    "modelid": "SML004",
-    "vendor": "Philips",
-    "product": "Hue outdoor motion sensor (2022)",
-    "status": "Gold",
-    "sleeper": false,
-    "subdevices": [
-         {
-            "type": "$TYPE_PRESENCE_SENSOR",
-            "restapi": "/sensors",
-            "uuid": [ "$address.ext", "0x02", "0x0406"],
-            "items": [
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername"
-                },
-                {
-                    "name": "attr/modelid"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion"
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "config/alert",
-                    "default": "none"
-                },
-                {
-                    "name": "config/battery",
-                    "parse": {
-                        "ep": 2, "cl": "0x0001", "at": "0x0021",
-                        "eval": "Item.val = Attr.val / 2"
-                    },
-                    "read": {
-                        "ep": 2, "cl": "0x0001", "at": "0x0021"
-                    },
-                    "refresh.interval": 7300
-                },
-                {
-                    "name": "config/delay",
-                    "parse": {
-                        "ep": 2, "cl": "0x0406", "at": "0x0010",
-                        "eval": "Item.val = Attr.val"
-                    },
-                    "read": {
-                        "ep": 2, "cl": "0x0406", "at": "0x0010"
-                    },
-                    "write": {
-                        "ep": 2, "cl": "0x0406", "at": "0x0010", "dt": "0x21",
-                        "eval": "Item.val"
-                    },
-                    "refresh.interval": 86400
-                },
-                {
-                    "name": "config/ledindication",
-                    "parse": {
-                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0033",
-                        "eval": "Item.val = Attr.val"
-                    },
-                    "read": {
-                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0033"
-                    },
-                    "write": {
-                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0033", "dt": "0x10",
-                        "eval": "Item.val"
-                    },
-                    "refresh.interval": 86400
-                },
-                {
-                    "name": "config/on"
-                },
-                {
-                    "name": "config/reachable"
-                },
-                {
-                    "name": "config/sensitivity",
-                    "parse": {
-                        "ep": 2, "cl": "0x0406", "mf": "0x100b", "at": "0x0030",
-                        "eval": "Item.val = Attr.val"
-                    },
-                    "read": {
-                        "ep": 2, "cl": "0x0406", "mf": "0x100b", "at": "0x0030"
-                    },
-                    "write": {
-                        "ep": 2, "cl": "0x0406", "mf": "0x100b", "at": "0x0030", "dt": "0x20",
-                        "eval": "Item.val"
-                    },
-                    "values": [
-                        [0, "low"],
-                        [1, "medium low"],
-                        [2, "medium"],
-                        [3, "medium high"],
-                        [4, "high"]
-                    ],
-                    "refresh.interval": 86400
-                },
-                {
-                    "name": "config/sensitivitymax",
-                    "static": 4
-                },
-                {
-                    "name": "config/usertest",
-                    "parse": {
-                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0032",
-                        "eval": "Item.val = Attr.val"
-                    },
-                    "read": {
-                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0032"
-                    },
-                    "write": {
-                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0032", "dt": "0x10",
-                        "eval": "Item.val"
-                    },
-                    "refresh.interval": 86400
-                },
-                {
-                    "name": "state/lastupdated"
-                },
-                {
-                    "name": "state/presence",
-                    "parse": {
-                        "ep": 2, "cl": "0x0406", "at": "0x0000",
-                        "eval": "Item.val = Attr.val"
-                    },
-                    "default": false
-                }
-            ]
+  "schema": "devcap1.schema.json",
+  "manufacturername": [
+    "$MF_PHILIPS",
+    "$MF_SIGNIFY"
+  ],
+  "modelid": [
+    "SML004",
+    "SML004"
+  ],
+  "vendor": "Philips",
+  "product": "Hue outdoor motion sensor (2022)",
+  "status": "Gold",
+  "sleeper": false,
+  "subdevices": [
+    {
+      "type": "$TYPE_PRESENCE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x02",
+        "0x0406"
+      ],
+      "fingerprint": {
+        "endpoint": "0x02",
+        "profile": "0x0104",
+        "device": "0x0107",
+        "in": [
+          "0x0000",
+          "0x0001",
+          "0x0003",
+          "0x0406"
+        ],
+        "out": [
+          "0x0019"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/lastseen"
         },
         {
-            "type": "$TYPE_LIGHT_LEVEL_SENSOR",
-            "restapi": "/sensors",
-            "uuid": [ "$address.ext", "0x02", "0x0400"],
-            "items": [
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername"
-                },
-                {
-                    "name": "attr/modelid"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion",
-                    "read": {"fn": "none"}
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "config/alert",
-                    "default": "none"
-                },
-                {
-                    "name": "config/battery",
-                    "parse": {
-                        "ep": 2, "cl": "0x0001", "at": "0x0021",
-                        "eval": "Item.val = Attr.val / 2"
-                    },
-                    "read": {
-                        "ep": 2, "cl": "0x0001", "at": "0x0021"
-                    },
-                    "refresh.interval": 7300
-                },
-                {
-                    "name": "config/ledindication",
-                    "parse": {
-                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0033",
-                        "eval": "Item.val = Attr.val"
-                    },
-                    "read": {
-                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0033"
-                    },
-                    "write": {
-                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0033", "dt": "0x10",
-                        "eval": "Item.val"
-                    },
-                    "refresh.interval": 86400
-                },
-                {
-                    "name": "config/on"
-                },
-                {
-                    "name": "config/reachable"
-                },
-                {
-                    "name": "config/tholddark"
-                },
-                {
-                    "name": "config/tholdoffset"
-                },
-                {
-                    "name": "config/usertest",
-                    "parse": {
-                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0032",
-                        "eval": "Item.val = Attr.val"
-                    },
-                    "read": {
-                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0032"
-                    },
-                    "write": {
-                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0032", "dt": "0x10",
-                        "eval": "Item.val"
-                    },
-                    "refresh.interval": 86400
-                },
-                {
-                    "name": "state/dark"
-                },
-                {
-                    "name": "state/daylight"
-                },
-                {
-                    "name": "state/lastupdated"
-                },
-                {
-                    "name": "state/lightlevel",
-                    "parse": {
-                        "ep": 2, "cl": "0x0400", "at": "0x0000",
-                        "script": "0400_lightlevel.js"
-                    }
-                },
-                {
-                    "name": "state/lux"
-                }
-            ]
-        },
-        {
-            "type": "$TYPE_TEMPERATURE_SENSOR",
-            "restapi": "/sensors",
-            "uuid": [ "$address.ext", "0x02", "0x0402"],
-            "items": [
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername"
-                },
-                {
-                    "name": "attr/modelid"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion",
-                    "read": {"fn": "none"}
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "config/alert",
-                    "default": "none"
-                },
-                {
-                    "name": "config/battery",
-                    "parse": {
-                        "ep": 2, "cl": "0x0001", "at": "0x0021",
-                        "eval": "Item.val = Attr.val / 2"
-                    },
-                    "read": {
-                        "ep": 2, "cl": "0x0001", "at": "0x0021"
-                    },
-                    "refresh.interval": 7300
-                },
-                {
-                    "name": "config/ledindication",
-                    "parse": {
-                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0033",
-                        "eval": "Item.val = Attr.val"
-                    },
-                    "read": {
-                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0033"
-                    },
-                    "write": {
-                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0033", "dt": "0x10",
-                        "eval": "Item.val"
-                    },
-                    "refresh.interval": 86400
-                },
-                {
-                    "name": "config/offset"
-                },
-                {
-                    "name": "config/on"
-                },
-                {
-                    "name": "config/reachable"
-                },
-                {
-                    "name": "config/usertest",
-                    "parse": {
-                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0032",
-                        "eval": "Item.val = Attr.val"
-                    },
-                    "read": {
-                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0032"
-                    },
-                    "write": {
-                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0032", "dt": "0x10",
-                        "eval": "Item.val"
-                    },
-                    "refresh.interval": 86400
-                },
-                {
-                    "name": "state/lastupdated"
-                },
-                {
-                    "name": "state/temperature",
-                    "parse": {
-                        "ep": 2, "cl": "0x0402", "at": "0x0000",
-                        "eval": "Item.val = Attr.val + R.item('config/offset').val"
-                    }
-                }
-            ]
-        }
-    ],
-    "bindings": [
-        {
-            "bind": "unicast",
-            "src.ep": 2,
-            "cl": "0x0406",
-            "report": [
-                { "at": "0x0000", "dt": "0x18", "min": 1, "max": 300 },
-                { "mf": "0x100b", "at": "0x0030", "dt": "0x20", "min": 5, "max": 7200, "change": "0x01" }
-            ]
-        },
-        {
-            "bind": "unicast",
-            "src.ep": 2,
-            "cl": "0x0400",
-            "report": [{ "at": "0x0000", "dt": "0x21", "min": 5, "max": 300, "change": "0x07d0" }]
-        },
-        {
-            "bind": "unicast",
-            "src.ep": 2,
-            "cl": "0x0402",
-            "report": [{ "at": "0x0000", "dt": "0x29", "min": 10, "max": 300, "change": "0x14" }]
-        },
-        {
-            "bind": "unicast",
-            "src.ep": 2,
-            "cl": "0x0001",
-            "report": [{ "at": "0x0021", "dt": "0x20", "min": 7200, "max": 7200, "change": "0x00" }]
-        },
-        {
-            "bind": "unicast",
-            "src.ep": 2,
+          "name": "attr/manufacturername",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 2,
             "cl": "0x0000",
-            "report": [
-                { "mf": "0x100b", "at": "0x0032", "dt": "0x10", "min": 5, "max": 7200 },
-                { "mf": "0x100b", "at": "0x0033", "dt": "0x10", "min": 5, "max": 7200 }
+            "at": "0x0004",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0000",
+            "at": "0x0004"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "attr/modelid",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0000",
+            "at": "0x0005",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0000",
+            "at": "0x0005"
+          }
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/productname",
+          "static": "Hue outdoor motion sensor"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/alert",
+          "default": "none"
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0001",
+            "at": "0x0021",
+            "eval": "Item.val = Attr.val / 2"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0001",
+            "at": "0x0021"
+          },
+          "refresh.interval": 7300
+        },
+        {
+          "name": "config/delay",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0406",
+            "at": "0x0010",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0406",
+            "at": "0x0010"
+          },
+          "write": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0406",
+            "at": "0x0010",
+            "dt": "0x21",
+            "eval": "Item.val"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/ledindication",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0000",
+            "mf": "0x100b",
+            "at": "0x0033",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0000",
+            "mf": "0x100b",
+            "at": "0x0033"
+          },
+          "write": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0000",
+            "mf": "0x100b",
+            "at": "0x0033",
+            "dt": "0x10",
+            "eval": "Item.val"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "config/sensitivity",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0406",
+            "mf": "0x100b",
+            "at": "0x0030",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0406",
+            "mf": "0x100b",
+            "at": "0x0030"
+          },
+          "write": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0406",
+            "mf": "0x100b",
+            "at": "0x0030",
+            "dt": "0x20",
+            "eval": "Item.val"
+          },
+          "values": [
+            [
+              0,
+              "low"
+            ],
+            [
+              1,
+              "medium low"
+            ],
+            [
+              2,
+              "medium"
+            ],
+            [
+              3,
+              "medium high"
+            ],
+            [
+              4,
+              "high"
             ]
+          ],
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/sensitivitymax",
+          "static": 4
+        },
+        {
+          "name": "config/usertest",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0000",
+            "mf": "0x100b",
+            "at": "0x0032",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0000",
+            "mf": "0x100b",
+            "at": "0x0032"
+          },
+          "write": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0000",
+            "mf": "0x100b",
+            "at": "0x0032",
+            "dt": "0x10",
+            "eval": "Item.val"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/presence",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0406",
+            "at": "0x0000",
+            "eval": "Item.val = Attr.val"
+          },
+          "default": false
         }
-    ]
+      ]
+    },
+    {
+      "type": "$TYPE_LIGHT_LEVEL_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x02",
+        "0x0400"
+      ],
+      "fingerprint": {
+        "endpoint": "0x02",
+        "profile": "0x0104",
+        "device": "0x0107",
+        "in": [
+          "0x0400"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/productname",
+          "static": "Hue outdoor light sensor"
+        },
+        {
+          "name": "attr/swversion",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/alert",
+          "default": "none"
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0001",
+            "at": "0x0021",
+            "eval": "Item.val = Attr.val / 2"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0001",
+            "at": "0x0021"
+          },
+          "refresh.interval": 7300
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "config/tholddark"
+        },
+        {
+          "name": "config/tholdoffset"
+        },
+        {
+          "name": "state/dark"
+        },
+        {
+          "name": "state/daylight"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/lightlevel",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0400",
+            "at": "0x0000",
+            "script": "0400_lightlevel.js"
+          }
+        },
+        {
+          "name": "state/lux"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_TEMPERATURE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x02",
+        "0x0402"
+      ],
+      "fingerprint": {
+        "endpoint": "0x02",
+        "profile": "0x0104",
+        "device": "0x0107",
+        "in": [
+          "0x0402"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/productname",
+          "static": "Hue outdoor temp. sensor"
+        },
+        {
+          "name": "attr/swversion",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/alert",
+          "default": "none"
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0001",
+            "at": "0x0021",
+            "eval": "Item.val = Attr.val / 2"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0001",
+            "at": "0x0021"
+          },
+          "refresh.interval": 7300
+        },
+        {
+          "name": "config/offset"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/temperature",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0402",
+            "at": "0x0000",
+            "eval": "Item.val = Attr.val + R.item('config/offset').val"
+          }
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 2,
+      "cl": "0x0406",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x18",
+          "min": 1,
+          "max": 300
+        },
+        {
+          "mf": "0x100b",
+          "at": "0x0030",
+          "dt": "0x20",
+          "min": 5,
+          "max": 7200,
+          "change": "0x01"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 2,
+      "cl": "0x0400",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x21",
+          "min": 5,
+          "max": 300,
+          "change": "0x07d0"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 2,
+      "cl": "0x0402",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x29",
+          "min": 10,
+          "max": 300,
+          "change": "0x14"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 2,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 7200,
+          "max": 7200,
+          "change": "0x00"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 2,
+      "cl": "0x0000",
+      "report": [
+        {
+          "mf": "0x100b",
+          "at": "0x0032",
+          "dt": "0x10",
+          "min": 5,
+          "max": 7200
+        },
+        {
+          "mf": "0x100b",
+          "at": "0x0033",
+          "dt": "0x10",
+          "min": 5,
+          "max": 7200
+        }
+      ]
+    }
+  ]
 }

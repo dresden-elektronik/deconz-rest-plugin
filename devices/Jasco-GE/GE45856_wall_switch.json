@@ -5,7 +5,7 @@
   "vendor": "GE",
   "product": "45856",
   "sleeper": false,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_ON_OFF_LIGHT",
@@ -43,14 +43,10 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "state/alert",
-          "description": "The currently active alert effect.",
-          "default": "none"
+          "name": "state/alert"
         },
         {
-          "name": "state/on",
-          "description": "True when device is on; false when off.",
-          "refresh.interval": 5
+          "name": "state/on"
         },
         {
           "name": "state/reachable"

@@ -4,7 +4,7 @@
   "modelid": "TH1124ZB",
   "product": "TH1124ZB",
   "sleeper": false,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_THERMOSTAT",
@@ -91,8 +91,7 @@
           "name": "config/mode"
         },
         {
-          "name": "config/offset",
-          "default": 0
+          "name": "config/offset"
         },
         {
           "name": "config/on"
@@ -104,8 +103,7 @@
           "name": "config/schedule"
         },
         {
-          "name": "config/schedule_on",
-          "default": false
+          "name": "config/schedule_on"
         },
         {
           "name": "config/unoccupiedheatsetpoint",

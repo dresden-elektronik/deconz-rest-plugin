@@ -177,12 +177,6 @@ int DeRestPluginPrivate::getAllSensors(const ApiRequest &req, ApiResponse &rsp)
             continue;
         }
 
-        // ignore sensors without attached node
-        if (i->modelId().startsWith(QLatin1String("FLS-NB")) && !i->node())
-        {
-            continue;
-        }
-
         if (i->modelId().isEmpty())
         {
             continue;
@@ -875,16 +869,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigDuration) // Unsigned integer
                 {
-                    if (sensor->modelId().startsWith(QLatin1String("FLS-NB")))
-                    {
-                        DBG_Printf(DBG_INFO, "Force read of occupaction delay for sensor %s\n", qPrintable(sensor->address().toStringExt()));
-                        sensor->enableRead(READ_OCCUPANCY_CONFIG);
-                        sensor->setNextReadTime(READ_OCCUPANCY_CONFIG, queryTime.addSecs(1));
-                        queryTime = queryTime.addSecs(1);
-                        Q_Q(DeRestPlugin);
-                        q->startZclAttributeTimer(0);
-                    }
-                    else if (sensor->modelId() == QLatin1String("TRADFRI motion sensor"))
+                    if (sensor->modelId() == QLatin1String("TRADFRI motion sensor"))
                     {
                         if (data.uinteger < 1 || data.uinteger > 60)
                         {
@@ -950,6 +935,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 else if (rid.suffix == RConfigLat || rid.suffix == RConfigLong) // String
                 {
                     double coordinate = data.string.toDouble(&ok);
+                    Q_UNUSED(coordinate);
                     if (!ok || data.string.isEmpty())
                     {
                         rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
@@ -1919,19 +1905,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     if (!devManaged)
                     {
-                        if (sensor->modelId().startsWith(QLatin1String("ZHEMI101")))
-                        {
-                            const auto match = matchKeyValue(data.uinteger, RConfigInterfaceModeValuesZHEMI);
-
-                            if (match.key)
-                            {
-                                if (addTaskSimpleMeteringReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, METERING_ATTRID_INTERFACE_MODE, deCONZ::Zcl16BitEnum, match.value, VENDOR_DEVELCO))
-                                {
-                                    updated = true;
-                                }
-                            }
-                        }
-                        else if (sensor->modelId().startsWith(QLatin1String("EMIZB-1")))
+                        if (sensor->modelId().startsWith(QLatin1String("EMIZB-1")))
                         {
                             const auto match = matchKeyValue(data.uinteger, RConfigInterfaceModeValuesEMIZB);
 
@@ -1973,6 +1947,15 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             // if the device has groupcast bindings check for reconfiguration
                             enqueueEvent(Event(RDevices, REventDDFReload, 0, sensor->address().ext()));
                         }
+                    }
+                }
+                else if (rid.suffix == RConfigReportGrid)
+                {
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.boolean);
+                        rsub->addStateChange(change);
+                        updated = true;
                     }
                 }
                 else if (QString(rid.suffix).startsWith("config/ubisys_j1_")) // Unsigned integer
@@ -2403,7 +2386,7 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
                         val = val.toInt() + item2->toNumber();
                         if (rid.suffix == RStateHumidity)
                         {
-                            val = val < 0 ? 0 : val > 10000 ? 10000 : val;
+                            val = val.toInt() < 0 ? 0 : val.toInt() > 10000 ? 10000 : val;
                         }
                     }
                 }
@@ -2819,6 +2802,7 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
         }
         else if (rid.suffix == RAttrLastAnnounced) { map["lastannounced"] = item->toString(); }
         else if (rid.suffix == RAttrLastSeen) { map["lastseen"] = item->toString(); }
+        else if (rid.suffix == RAttrProductName) { map["productname"] = item->toString(); }
     }
     if (iox && ioy && ioz)
     {
@@ -2949,8 +2933,24 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
 
     Device *device = DEV_ParentDevice(sensor);
 
+    if (device && device->managed())
+    {
+        if (e.what() == RStatePresence || e.what() == RStateVibration)
+        {
+            ResourceItem *item = sensor->item(e.what());
+            if (item && item->toBool()) {
+                ResourceItem *item2 = sensor->item(RConfigDuration);
+                if (item2 && item2->toNumber() > 0)
+                {
+                    DBG_Printf(DBG_DDF, "%s/%s auto reset in %us\n", sensor->item(RAttrUniqueId)->toCString(), qPrintable(e.what()), (quint16) item2->toNumber());
+                    sensor->durationDue = item->lastSet().addSecs(item2->toNumber());
+                }
+            }
+        }
+    }
+
     // speedup sensor state check
-    if ((e.what() == RStatePresence || e.what() == RStateButtonEvent) &&
+    if ((e.what() == RStatePresence || e.what() == RStateButtonEvent || e.what() == RStateVibration) &&
         sensor && sensor->durationDue.isValid())
     {
         sensorCheckFast = CHECK_SENSOR_FAST_ROUNDS;
@@ -3282,7 +3282,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             return;
         }
 
-        QStringList gids = item->toString().split(',', QString::SkipEmptyParts);
+        QStringList gids = item->toString().split(',', SKIP_EMPTY_PARTS);
 
         for (int j = 0; j < gids.size(); j++)
         {

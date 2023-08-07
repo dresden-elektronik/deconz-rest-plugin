@@ -205,7 +205,7 @@ bool DeRestPluginPrivate::serialiseThermostatTransitions(const QVariantList &tra
 bool DeRestPluginPrivate::deserialiseThermostatTransitions(const QString &s, QVariantList *transitions)
 {
     transitions->clear();
-    QStringList list = s.split("T", QString::SkipEmptyParts);
+    QStringList list = s.split("T", SKIP_EMPTY_PARTS);
     for (const QString &entry : list)
     {
         QStringList attributes = entry.split("|");
@@ -250,7 +250,7 @@ bool DeRestPluginPrivate::serialiseThermostatSchedule(const QVariantMap &schedul
 bool DeRestPluginPrivate::deserialiseThermostatSchedule(const QString &s, QVariantMap *schedule)
 {
     schedule->clear();
-    QStringList list = s.split("W", QString::SkipEmptyParts);
+    QStringList list = s.split("W", SKIP_EMPTY_PARTS);
     for (const QString &entry : list)
     {
         QStringList attributes = entry.split("/");
@@ -280,7 +280,7 @@ void DeRestPluginPrivate::updateThermostatSchedule(Sensor *sensor, quint8 newWee
         return;
     }
     QMap<quint8, QString> map;
-    QStringList list = item->toString().split("W", QString::SkipEmptyParts);
+    QStringList list = item->toString().split("W", SKIP_EMPTY_PARTS);
     for (const QString &entry : list)
     {
         QStringList attributes = entry.split("/");
@@ -328,7 +328,7 @@ void DeRestPluginPrivate::updateThermostatSchedule(Sensor *sensor, quint8 newWee
     {
         s += QString("W%1/").arg(weekdays) + map[weekdays];
     }
-    item->setValue(s);
+    item->setValue(s, ResourceItem::SourceDevice);
     enqueueEvent(Event(RSensors, RConfigSchedule, sensor->id(), item));
     updateSensorEtag(&*sensor);
     sensor->setNeedSaveDatabase(true);
@@ -549,8 +549,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 if (sensor->modelId().startsWith(QLatin1String("SLR2")) ||   // Hive
                     sensor->modelId().startsWith(QLatin1String("SLR1b")) ||  // Hive
                     sensor->modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
-                    sensor->modelId().startsWith(QLatin1String("Zen-01")) || // Zen
-                    sensor->modelId().startsWith(QLatin1String("AC201")))    // OWON
+                    sensor->modelId().startsWith(QLatin1String("Zen-01")))   // Zen
                 {
                     qint8 mode = attr.numericValue().s8;
                     QString modeSet;
@@ -1202,7 +1201,7 @@ bool DeRestPluginPrivate::addTaskThermostatSetWeeklySchedule(TaskItem &task, qui
     task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
                                   deCONZ::ZclFCDirectionClientToServer);
 
-    QStringList list = transitions.split("T", QString::SkipEmptyParts);
+    QStringList list = transitions.split("T", SKIP_EMPTY_PARTS);
     quint8 numberOfTransitions = list.size();
 
     // payload

@@ -1,0 +1,15 @@
+{
+    "schema": "subdevice1.schema.json",
+    "type": "$TYPE_MOISTURE_SENSOR",
+    "name": "ZHAMoisture",
+    "restapi": "/sensors",
+    "order": 23,
+    "uuid": ["$address.ext", "0x01", "0x0408"],
+    "items": [
+        "config/on",
+        "config/offset",
+        "config/reachable",
+        "state/moisture",
+        "state/lastupdated"
+    ]
+}

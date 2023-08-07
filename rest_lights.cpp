@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2023 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -18,7 +18,6 @@
 #include "de_web_plugin_private.h"
 #include "device_descriptions.h"
 #include "json.h"
-#include "connectivity.h"
 #include "colorspace.h"
 #include "product_match.h"
 
@@ -74,16 +73,6 @@ int DeRestPluginPrivate::handleLightsApi(const ApiRequest &req, ApiResponse &rsp
     else if ((req.path.size() == 4) && (req.hdr.method() == "PUT" || req.hdr.method() == "PATCH"))
     {
         return setLightAttributes(req, rsp);
-    }
-    // GET /api/<apikey>/lights/<id>/connectivity
-    if ((req.path.size() == 5) && (req.hdr.method() == "GET") && (req.path[4] == "connectivity"))
-    {
-        return getConnectivity(req, rsp, false);
-    }
-    // GET /api/<apikey>/lights/<id>/connectivity
-    if ((req.path.size() == 5) && (req.hdr.method() == "GET") && (req.path[4] == "connectivity2"))
-    {
-        return getConnectivity(req, rsp, true);
     }
     // DELETE /api/<apikey>/lights/<id>
     else if ((req.path.size() == 4) && (req.hdr.method() == "DELETE"))
@@ -325,6 +314,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (rid.suffix == RConfigBriMax) { configBri["max"] = item->toNumber(); }
         else if (rid.suffix == RConfigBriMin) { configBri["min"] = item->toNumber(); }
         else if (rid.suffix == RConfigBriOnLevel) { configBri["on_level"] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
+        else if (rid.suffix == RConfigBriOnOffTransitiontime) { configBri["onoff_transitiontime"] = item->toNumber(); }
         else if (rid.suffix == RConfigBriMin) { configBri["onoff_transition_time"] = item->toNumber(); }
         else if (rid.suffix == RConfigBriStartup) { configBri["startup"] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
         else if (rid.suffix == RConfigColorCtStartup) { configColorCt["startup"] = item->toNumber() == 0xFFFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
@@ -332,11 +322,14 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (rid.suffix == RConfigColorGradientReversed) { configColorGradient["reversed"] = item->toBool(); }
         else if (rid.suffix == RConfigColorXyStartupX) { isx = item; }
         else if (rid.suffix == RConfigColorXyStartupY) { isy = item; }
+        else if (rid.suffix == RConfigLocked) { config["locked"] = item->toBool(); }
         else if (rid.suffix == RConfigOnStartup) { configOn["startup"] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toBool(); }
+        else if (rid.suffix == RConfigReversed) { config["reversed"] = item->toBool(); }
+        else if (rid.suffix == RConfigSpeed) { config["speed"] = item->toNumber(); }
         else if (rid.suffix == RStateAlert) { ialert = item; }
-        else if (rid.suffix == RStateBri) { state["bri"] = static_cast<double>(item->toNumber()); }
+        else if (rid.suffix == RStateBri) { state["bri"] = item->toNumber(); }
         else if (rid.suffix == RStateColorMode) { state["colormode"] = item->toString(); }
-        else if (rid.suffix == RStateCt) { state["ct"] = static_cast<double>(item->toNumber()); }
+        else if (rid.suffix == RStateCt) { state["ct"] = item->toNumber(); }
         else if (rid.suffix == RStateEffect) { state["effect"] = item->toString(); }
         else if (rid.suffix == RStateGradient)
         {
@@ -348,12 +341,12 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
                 state["gradient"] = map;
             }
         }
-        else if (rid.suffix == RStateHue) { state["hue"] = static_cast<double>(item->toNumber()); }
+        else if (rid.suffix == RStateHue) { state["hue"] = item->toNumber(); }
         else if (rid.suffix == RStateLift) { state["lift"] = item->toNumber(); }
         else if (rid.suffix == RStateOn) { state["on"] = item->toBool(); }
         else if (rid.suffix == RStateOpen) { state["open"] = item->toBool(); }
         else if (rid.suffix == RStateReachable) { state["reachable"] = item->toBool(); }
-        else if (rid.suffix == RStateSat) { state["sat"] = static_cast<double>(item->toNumber()); }
+        else if (rid.suffix == RStateSat) { state["sat"] = item->toNumber(); }
         else if (rid.suffix == RStateSpeed) { state["speed"] = item->toNumber(); }
         else if (rid.suffix == RStateTilt) { state["tilt"] = item->toNumber(); }
         else if (rid.suffix == RStateX) { ix = item; }
@@ -1606,7 +1599,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
     if (!taskRef.lightNode->stateChanges().empty())
     {
-        DBG_Printf(DBG_INFO, "emit event/tick: %s\n", qPrintable(taskRef.lightNode->address().toStringExt()));
+        DBG_Printf(DBG_INFO, "emit event/tick: " FMT_MAC "\n", (unsigned long long)taskRef.lightNode->address().ext());
         enqueueEvent({taskRef.lightNode->prefix(), REventTick, taskRef.lightNode->uniqueId(), taskRef.lightNode->address().ext()});
     }
 
@@ -1677,6 +1670,7 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
 
     for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
     {
+        bool isMap = false;
         bool paramOk = false;
         bool valueOk = false;
         QString key = p.key();
@@ -1689,6 +1683,7 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
             if (value.type() == QVariant::Map)
             {
                 valueOk = true;
+                isMap = true;
                 QVariantMap map1 = value.toMap();
                 for (QVariantMap::const_iterator q = map1.begin(); q != map1.end(); q++)
                 {
@@ -1860,6 +1855,7 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
             if (value.type() == QVariant::Map)
             {
                 valueOk = true;
+                isMap = true;
                 QVariantMap map1 = value.toMap();
                 for (QVariantMap::const_iterator q = map1.begin(); q != map1.end(); q++)
                 {
@@ -2113,12 +2109,28 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
             valueOk = true;
             rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, path, QString("parameter, %1, is not modifiable.").arg(key)));
         }
+        else if (key == "locked")
+        {
+            ResourceItem *item = lightNode->item(RConfigLocked);
+            if (item)
+            {
+                paramOk = true;
+                if (value.type() == QVariant::Bool)
+                {
+                    valueOk = true;
+                    change.addTargetValue(RConfigLocked, value.toBool());
+                    lightNode->setValue(RConfigLocked, value.toBool());
+                    DB_StoreSubDeviceItem(lightNode, item);
+                }
+            }
+        }
         else if (key == "on")
         {
             paramOk = true;
             if (value.type() == QVariant::Map)
             {
                 valueOk = true;
+                isMap = true;
                 QVariantMap map1 = value.toMap();
                 for (QVariantMap::const_iterator q = map1.begin(); q != map1.end(); q++)
                 {
@@ -2173,6 +2185,40 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
                 }
             }
         }
+        else if (key == "reversed")
+        {
+            ResourceItem *item = lightNode->item(RConfigReversed);
+            if (item)
+            {
+                paramOk = true;
+                if (value.type() == QVariant::Bool)
+                {
+                    valueOk = true;
+                    change.addTargetValue(RConfigReversed, value.toBool());
+                    lightNode->setValue(RConfigReversed, value.toBool());
+                    DB_StoreSubDeviceItem(lightNode, item);
+                }
+            }
+        }
+        else if (key == "speed")
+        {
+            ResourceItem *item = lightNode->item(RConfigSpeed);
+            if (item)
+            {
+                paramOk = true;
+                if (value.type() == QVariant::Double)
+                {
+                    const quint8 speed = value.toUInt(&ok);
+                    if (ok)
+                    {
+                        valueOk = true;
+                        change.addTargetValue(RConfigSpeed, speed);
+                        lightNode->setValue(RConfigSpeed, speed);
+                        DB_StoreSubDeviceItem(lightNode, item);
+                    }
+                }
+            }
+        }
 
         if (!paramOk)
         {
@@ -2181,6 +2227,14 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
         else if (!valueOk)
         {
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, path, QString("invalid value, %1, for parameter, %2").arg(value.toString()).arg(key)));
+        }
+        else if (!isMap)
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[path] = value;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
         }
     }
 
@@ -3058,7 +3112,7 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
             // FXIME: Dirty hack to send a network-wide broadcast to activate all sirens.
             task.req.dstAddress().setNwk(deCONZ::BroadcastAll);
             task.req.setDstAddressMode(deCONZ::ApsNwkAddress);
-            task.req.setTxOptions(0);
+            // task.req.setTxOptions(0);
             task.req.setDstEndpoint(0xFF);
             task.options = 0x17; // Warning mode 1 (burglar), Strobe, Very high sound
             task.duration = onTime > 0 ? onTime : 1;
@@ -3270,21 +3324,6 @@ int DeRestPluginPrivate::setLightAttributes(const ApiRequest &req, ApiResponse &
 
             Q_Q(DeRestPlugin);
             q->nodeUpdated(lightNode->address().ext(), QLatin1String("name"), name);
-
-            if (lightNode->modelId().startsWith(QLatin1String("FLS-NB"))) // sync names
-            {
-                for (Sensor &s : sensors)
-                {
-                    if (s.address().ext() == lightNode->address().ext() &&
-                        s.name() != lightNode->name())
-                    {
-                        updateSensorEtag(&s);
-                        s.setName(lightNode->name());
-                        s.setNeedSaveDatabase(true);
-                        queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
-                    }
-                }
-            }
 
             QVariantMap rspItem;
             QVariantMap rspItemState;
@@ -3669,212 +3708,6 @@ int DeRestPluginPrivate::removeAllGroups(const ApiRequest &req, ApiResponse &rsp
     return REQ_READY_SEND;
 }
 
-/*! GET /api/<apikey>/lights/<id>/connectivity
-    \return 0 - on success
-           -1 - on error
- */
-int DeRestPluginPrivate::getConnectivity(const ApiRequest &req, ApiResponse &rsp, bool alt)
-{
-    Connectivity newConn;
-    uint64_t coordinatorAddress = 0;
-    newConn.targets.clear();
-    std::list<quint8> rlqiListTemp = newConn.getRLQIList();
-    rlqiListTemp.clear();
-    newConn.setRLQIList(rlqiListTemp);
-    quint16 sumLQI = 0;
-    quint8 meanLQI = 0;
-
-    DBG_Assert(req.path.size() == 5);
-
-    if (req.path.size() != 5)
-    {
-        return REQ_NOT_HANDLED;
-    }
-
-    const QString &id = req.path[3];
-
-    //Rest LightNode
-    LightNode *lightNode = getLightNodeForId(id);
-
-    if (!lightNode)
-    {
-        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
-        rsp.httpStatus = HttpStatusNotFound;
-        return REQ_READY_SEND;
-    }
-
-    //deCONZ Node
-    uint n = 0;
-    const deCONZ::Node *node = 0;
-
-    while (apsCtrl->getNode(n, &node) == 0)
-    {
-        if (node->isCoordinator())
-        {
-            coordinatorAddress = node->address().ext();
-
-            //set start node
-            DeRestPluginPrivate::nodeVisited nv;
-            nv.node = node;
-            nv.visited = false;
-            newConn.start = nv;
-        }
-        else
-        {
-            //set target nodes
-            if (!(node->isZombie()))
-            {
-                DeRestPluginPrivate::nodeVisited nv;
-                nv.node = node;
-                nv.visited = false;
-                newConn.targets.push_back(nv);
-            }
-        }
-        n++;
-    }
-
-    //start route search
-    std::vector<DeRestPluginPrivate::nodeVisited> resultList;
-    std::vector<deCONZ::NodeNeighbor> neighborList;
-
-    for (uint r = 0; r < newConn.targets.size(); r++)
-    {
-        if (lightNode->address().ext() == newConn.targets[r].node->address().ext())
-        {
-            // first get neighbours of target node
-            // TODO: philips strip doesn't recognize fls as neighbours.
-            const std::vector<deCONZ::NodeNeighbor> &neighbors = newConn.targets[r].node->neighbors();
-
-            std::vector<deCONZ::NodeNeighbor>::const_iterator nb = neighbors.begin();
-            std::vector<deCONZ::NodeNeighbor>::const_iterator nb_end = neighbors.end();
-
-            DBG_Printf(DBG_INFO,"Node: %s\n",qPrintable(newConn.targets[r].node->address().toStringExt()));
-            for (; nb != nb_end; ++nb)
-            {
-                DBG_Printf(DBG_INFO,"neighbour: %s, LQI %u\n",qPrintable(nb->address().toStringExt()),nb->lqi());
-                neighborList.push_back(*nb);
-                sumLQI = sumLQI + (nb->lqi());
-                DBG_Printf(DBG_INFO,"sum: %u\n",sumLQI);
-            }
-
-            //-- first approach: start a search for all possible routes --//
-            if (!alt)
-            {
-                newConn.searchAllPaths(resultList, newConn.start, newConn.targets[r]);
-
-                // result RLQI list
-                rlqiListTemp = newConn.getRLQIList();
-                rlqiListTemp.sort();
-                newConn.setRLQIList(rlqiListTemp);
-
-                DBG_Printf(DBG_INFO,"gateway connectivity: %u\n",newConn.getRLQIList().back());
-                DBG_Printf(DBG_INFO,"number of routes: %u\n",newConn.getRLQIList().size());
-
-                resultList.clear();
-            }
-            else
-            //-- alternative approach: compute mean lqi of neighbors for each node --//
-            {
-                if (neighbors.size() == 0)
-                {
-                    meanLQI = 0;
-                }
-                else
-                {
-                    meanLQI = sumLQI / neighbors.size();
-                }
-                DBG_Printf(DBG_INFO,"sum: %u, neighbors: %i, mean LQI: %u\n",sumLQI,neighbors.size(),meanLQI);
-            }
-
-            break;
-        }
-    }
-    rsp.httpStatus = HttpStatusOk;
-
-    // Neighbours to Map
-
-    QVariantMap connectivityMap;
-    QVariantMap neighborsMap;
-    QVariantMap nbNode;
-    quint8 lqi1 = 0;
-    quint8 lqi2 = 0;
-
-    for (uint nl = 0; nl < neighborList.size(); nl++)
-    {
-        if (neighborList[nl].address().ext() != coordinatorAddress)
-        {
-            LightNode *nl_neighbor = getLightNodeForAddress(neighborList[nl].address());
-            if ((nl_neighbor != NULL) && (neighborList[nl].lqi() != 0) && nl_neighbor->isAvailable())
-            {
-                //lqi value from actual node to his neighbor
-                lqi1 = neighborList[nl].lqi();
-                //DBG_Printf(DBG_INFO, "LQI %s -> %s = %u\n",qPrintable(lightNode->address().toStringExt()),qPrintable(neighborList.at(nl).address().toStringExt()),lqi1);
-
-                //lqi value from the opposite direction
-                DeRestPluginPrivate::nodeVisited oppositeNode = newConn.getNodeWithAddress(neighborList[nl].address().ext());
-
-                for(uint y = 0; y < oppositeNode.node->neighbors().size(); y++)
-                {
-                    if(oppositeNode.node->neighbors()[y].address().ext() == lightNode->address().ext())
-                    {
-                        lqi2 = oppositeNode.node->neighbors()[y].lqi();
-                        //DBG_Printf(DBG_INFO, "LQI %s -> %s = %u\n",qPrintable(nodeXY.node->address().toStringExt()),qPrintable((nodeXY.node->neighbors().at(y).address().toStringExt())),lqi2);
-                        break;
-                    }
-                }
-
-                if (!alt)
-                {
-                    //take the lower lqi value
-                    //if (lqi1 < lqi2)
-                    //take lqi from current node if it is not 0
-                    if (lqi1 != 0)
-                    {
-                        nbNode["connectivity"] = lqi1;
-                    }
-                    //else if (lqi2 != 0)
-                    else
-                    {
-                        nbNode["connectivity"] = lqi2;
-                    }
-                }
-                else
-                {
-                    // alternative approach: take the lqi value of actual node
-                    nbNode["connectivity"] = lqi1;
-                }
-
-                nbNode["name"] = nl_neighbor->name();
-                nbNode["reachable"] = nl_neighbor->isAvailable();
-                neighborsMap[nl_neighbor->id()] = nbNode;
-            }
-        }
-    }
-
-    //connectivity to Map
-
-    connectivityMap["name"] = lightNode->name();
-    connectivityMap["reachable"] = lightNode->isAvailable();
-    connectivityMap["extAddress"] = lightNode->address().toStringExt();
-    if (!alt)
-    {
-        connectivityMap["connectivity"] = newConn.getRLQIList().back();
-    }
-    else
-    {
-        connectivityMap["connectivity"] = meanLQI;
-    }
-    connectivityMap["routesToGateway"] = (double)newConn.getRLQIList().size();
-    connectivityMap["neighbours"] = neighborsMap;
-
-    updateLightEtag(lightNode);
-    rsp.httpStatus = HttpStatusOk;
-    rsp.etag = lightNode->etag;
-    rsp.map = connectivityMap;
-
-    return REQ_READY_SEND;
-}
-
 void DeRestPluginPrivate::handleLightEvent(const Event &e)
 {
     DBG_Assert(e.resource() == RLights);
@@ -3943,6 +3776,15 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
 
                 const ResourceItemDescriptor &rid = item->descriptor();
 
+                if (item->needPushChange())
+                {
+                    // TODO make declarative
+                    if (strncmp(rid.suffix, "attr/", 5) == 0) { pushAttr = true; }
+                    if (strncmp(rid.suffix, "cap/", 4) == 0) { pushCap = true; }
+                    if (strncmp(rid.suffix, "config/", 7) == 0) { pushConfig = true; }
+                    if (strncmp(rid.suffix, "state/", 6) == 0) { pushState = true; }
+                }
+
                 if      (rid.suffix == RCapColorCapabilities) { icc = item; }
                 else if (rid.suffix == RCapColorXyBlueX) { ibluex = item; }
                 else if (rid.suffix == RCapColorXyBlueY) { ibluey = item; }
@@ -4001,15 +3843,19 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     else if (rid.suffix == RConfigBriMax) { configBri["max"] = item->toNumber(); }
                     else if (rid.suffix == RConfigBriMin) { configBri["min"] = item->toNumber(); }
                     else if (rid.suffix == RConfigBriOnLevel) { configBri["on_level"] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
+                    else if (rid.suffix == RConfigBriOnOffTransitiontime) { configBri["onoff_transitiontime"] = item->toNumber(); }
                     else if (rid.suffix == RConfigBriMin) { configBri["onoff_transition_time"] = item->toNumber(); }
                     else if (rid.suffix == RConfigBriStartup) { configBri["startup"] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
                     else if (rid.suffix == RConfigColorCtStartup) { configColorCt["startup"] = item->toNumber() == 0xFFFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
                     else if (rid.suffix == RConfigColorExecuteIfOff) { configColor["execute_if_off"] = item->toBool(); }
                     else if (rid.suffix == RConfigColorGradientReversed) { configColorGradient["reversed"] = item->toBool(); }
+                    else if (rid.suffix == RConfigLocked) { config["locked"] = item->toBool(); }
                     else if (rid.suffix == RConfigOnStartup) { configOn["startup"] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toBool(); }
-                    else if (rid.suffix == RStateBri) { state["bri"] = static_cast<double>(item->toNumber()); }
+                    else if (rid.suffix == RConfigReversed) { config["reversed"] = item->toBool(); }
+                    else if (rid.suffix == RConfigSpeed) { config["speed"] = item->toNumber(); }
+                    else if (rid.suffix == RStateBri) { state["bri"] = item->toNumber(); }
                     else if (rid.suffix == RStateColorMode) { state["colormode"] = item->toString(); }
-                    else if (rid.suffix == RStateCt) { state["ct"] = static_cast<double>(item->toNumber()); }
+                    else if (rid.suffix == RStateCt) { state["ct"] = item->toNumber(); }
                     else if (rid.suffix == RStateEffect) { state["effect"] = item->toString(); }
                     else if (rid.suffix == RStateGradient)
                     {
@@ -4021,12 +3867,12 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                             state["gradient"] = map;
                         }
                     }
-                    else if (rid.suffix == RStateHue) { state["hue"] = static_cast<double>(item->toNumber()); }
+                    else if (rid.suffix == RStateHue) { state["hue"] = item->toNumber(); }
                     else if (rid.suffix == RStateLift) { state["lift"] = item->toNumber(); }
                     else if (rid.suffix == RStateOn) { state["on"] = item->toBool(); }
                     else if (rid.suffix == RStateOpen) { state["open"] = item->toBool(); }
                     else if (rid.suffix == RStateReachable) { state["reachable"] = item->toBool(); }
-                    else if (rid.suffix == RStateSat) { state["sat"] = static_cast<double>(item->toNumber()); }
+                    else if (rid.suffix == RStateSat) { state["sat"] = item->toNumber(); }
                     else if (rid.suffix == RStateSpeed) { state["speed"] = item->toNumber(); }
                     else if (rid.suffix == RStateTilt) { state["tilt"] = item->toNumber(); }
                     else
@@ -4048,15 +3894,6 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                                 enqueueEvent(e);
                             }
                         }
-                    }
-
-                    if (item->needPushChange())
-                    {
-                        // TODO make declarative
-                        if (strncmp(rid.suffix, "attr/", 5) == 0) { pushAttr = true; }
-                        if (strncmp(rid.suffix, "cap/", 4) == 0) { pushCap = true; }
-                        if (strncmp(rid.suffix, "config/", 7) == 0) { pushConfig = true; }
-                        if (strncmp(rid.suffix, "state/", 6) == 0) { pushState = true; }
                     }
                     item->clearNeedPush();
                 }
@@ -4108,7 +3945,6 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     capabilitiesColorXy["blue"] = blue;
                     capabilitiesColorXy["green"] = green;
                     capabilitiesColorXy["red"] = red;
-                    pushCap = true;
                     ibluex->clearNeedPush();
                     ibluey->clearNeedPush();
                     igreenx->clearNeedPush();

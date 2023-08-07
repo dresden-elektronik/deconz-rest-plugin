@@ -35,9 +35,8 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion",                   
-          "refresh.interval": 86400,
-          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "name": "attr/swversion",
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
           "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
         {
@@ -49,7 +48,7 @@
         {
           "name": "config/battery",
           "awake": true,
-          "refresh.interval": 3600,
+          "refresh.interval": 3665,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -60,7 +59,8 @@
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl",
+            "eval": "Item.val = Attr.val / 2"
           },
           "default": 0
         },
@@ -112,10 +112,10 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion",                   
+          "name": "attr/swversion",
           "refresh.interval": 86400,
-          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}          
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
+          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
         {
           "name": "attr/type"
@@ -126,7 +126,7 @@
         {
           "name": "config/battery",
           "awake": true,
-          "refresh.interval": 3600,
+          "refresh.interval": 3665,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -172,9 +172,9 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 60,
+          "min": 3200,
           "max": 3600,
-          "change": "0x00000001"
+          "change": "0x00000002"
         }
       ]
     },

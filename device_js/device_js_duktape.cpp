@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2022-2023 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -21,17 +21,16 @@
 #include "resource.h"
 #include "utils/utils.h"
 
-// before v2.19.2-beta DBG_JS isn't defined, can be removed afterwards
-#ifndef DBG_JS
-  #define DBG_JS DBG_INFO_L2
-#endif
-
+#ifdef DECONZ_DEBUG_BUILD
 #if _MSC_VER
   #define U_ASSERT(c) if (!(c)) __debugbreak()
 #elif __GNUC__
   #define U_ASSERT(c) if (!(c)) __builtin_trap()
 #else
   #define U_ASSERT assert
+#endif
+#else // release build
+  #define U_ASSERT DBG_Assert
 #endif
 
 static DeviceJs *_djs = nullptr; // singleton
@@ -149,6 +148,7 @@ public:
     const deCONZ::ApsDataIndication *apsInd = nullptr;
     const deCONZ::ZclFrame *zclFrame = nullptr;
     const deCONZ::ZclAttribute *attr = nullptr;
+    int attrIndex = 0;
     std::vector<ResourceItem*> itemsSet;
     Resource *resource = nullptr;
     ResourceItem *ritem = nullptr;
@@ -500,6 +500,19 @@ static duk_ret_t DJS_GetAttributeId(duk_context *ctx)
     return 1;  /* one return value */
 }
 
+static duk_ret_t DJS_GetAttributeIndex(duk_context *ctx)
+{
+    DBG_Printf(DBG_JS, "%s\n", __FUNCTION__);
+
+    if (!_djsPriv->attr)
+    {
+        return duk_reference_error(ctx, "attribute not defined");
+    }
+
+    duk_push_int(ctx, _djsPriv->attrIndex);
+    return 1;  /* one return value */
+}
+
 static duk_ret_t DJS_GetAttributeDataType(duk_context *ctx)
 {
     DBG_Printf(DBG_JS, "%s\n", __FUNCTION__);
@@ -534,6 +547,13 @@ static void DJS_InitGlobalAttribute(duk_context *ctx)
     /* Attr.id */
     duk_push_string(ctx, "id");
     duk_push_c_function(ctx, DJS_GetAttributeId, 0 /*nargs*/);
+    duk_def_prop(ctx,
+             -3,
+             DUK_DEFPROP_HAVE_GETTER);
+
+    /* Attr.index */
+    duk_push_string(ctx, "index");
+    duk_push_c_function(ctx, DJS_GetAttributeIndex, 0 /*nargs*/);
     duk_def_prop(ctx,
              -3,
              DUK_DEFPROP_HAVE_GETTER);
@@ -801,7 +821,9 @@ static duk_ret_t DJS_SetItemVal(duk_context *ctx)
         }
         else
         {
-            U_ASSERT(0 && "unhandled value");
+            const char *str = duk_safe_to_string(ctx, 0);
+            DBG_Printf(DBG_JS, "%s: failed to set %s --> '%s' (unsupported)\n", __FUNCTION__, item->descriptor().suffix, str);
+            duk_pop(ctx); /* conversion result*/
         }
 
         if (!ok)
@@ -1139,7 +1161,7 @@ JsEvalResult DeviceJs::evaluate(const QString &expr)
         U_ASSERT(ret == 1);
     }
 
-    if (duk_peval_string(ctx, qPrintable(expr)) != 0)
+    if (duk_peval_string(ctx, expr.toUtf8().constData()) != 0)
     {
         d->errString = duk_safe_to_string(ctx, -1);
         return JsEvalResult::Error;
@@ -1207,7 +1229,7 @@ JsEvalResult DeviceJs::testCompile(const QString &expr)
     }
 
     duk_uint_t flags = 0;
-    if (duk_pcompile_string(ctx, flags, qPrintable(expr)) != 0)
+    if (duk_pcompile_string(ctx, flags, expr.toUtf8().constData()) != 0)
     {
         d->errString = duk_safe_to_string(ctx, -1);
     }
@@ -1239,8 +1261,9 @@ void DeviceJs::setZclFrame(const deCONZ::ZclFrame &zclFrame)
     d->zclFrame = &zclFrame;
 }
 
-void DeviceJs::setZclAttribute(const deCONZ::ZclAttribute &attr)
+void DeviceJs::setZclAttribute(int attrIndex, const deCONZ::ZclAttribute &attr)
 {
+    d->attrIndex = attrIndex;
     d->attr = &attr;
 }
 
@@ -1265,6 +1288,7 @@ void DeviceJs::reset()
     d->ritem = nullptr;
     d->resource = nullptr;
     d->attr = nullptr;
+    d->attrIndex = 0;
     d->zclFrame = nullptr;
     d->isReset = true;
     d->result = {};

@@ -1,0 +1,125 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": ["_TZE200_m9skfctm","_TZE200_vzekyi4c"],
+  "modelid": ["TS0601","TS0601"],
+  "vendor": "Tuya",
+  "product": "Photoelectric Smoke sensor",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_FIRE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0xef00"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "refresh.interval": 3600,
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 15,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 0
+        },
+        {
+          "name": "config/enrolled",
+          "public": false
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/pending"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/errorcode",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 11,
+            "eval": "Item.val = String(Attr.val);",
+            "fn": "tuya"
+          },
+          "default": "0"
+        },
+        {
+          "name": "state/fire",
+          "awake": true,
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 1,
+            "eval": "Item.val = (Attr.val == 0 ? true : false);",
+            "fn": "tuya"
+          },
+          "default": false
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/test",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 101,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 0
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0xEF00"
+    }
+  ]
+}
