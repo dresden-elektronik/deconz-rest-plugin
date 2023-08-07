@@ -384,6 +384,10 @@
           <attribute id="0x8020" name="Primary HW Version" type="ostring" access="r" required="m" mfcode="0x1015"></attribute>
           <attribute id="0x8030" name="Primary HW name" type="ostring" access="r" required="m" mfcode="0x1015"></attribute>
           <attribute id="0x8050" name="Primary SW Version 3rd Party" type="ostring" access="r" required="m" mfcode="0x1015"></attribute>
+          <attribute id="0x8100" name="LED Control" type="bmp8" default="0xff" access="rw" required="o" mfcode="0x1015">
+            <value name="0x00 - LED disabled, 0x01 - Enable periodic fault flashes" value="0"></value>
+            <value name="0x02 - Indicate motion detection" value="1"></value>
+          </attribute>
         </attribute-set>
         <attribute-set id="0xe000" description="Schneider specific" mfcode="0x105e">
           <attribute id="0xe001" name="Application FW Version" type="cstring" access="r" required="o" mfcode="0x105e"></attribute>
