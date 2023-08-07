@@ -6032,7 +6032,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         for (const deCONZ::ZclAttribute &attr : ci->attributes())
                         {
-                            if (attr.id() == 0x0001 && attr.lastRead() != static_cast<time_t>(-1)) // IAS Zone type
+                            if (attr.id() == 0x0001 && attr.lastRead() <= 0) // IAS Zone type
                             {
                                 // Might not work as intended, when IAS Zone Type hasn't been read.
                                 switch (attr.numericValue().u16) {
@@ -14299,7 +14299,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                             unavailBasicAttr.push_back(attr.id());
                             continue;
                         }
-                        else if (attr.lastRead() != static_cast<time_t>(-1) && attr.dataType() == deCONZ::ZclCharacterString && attr.toString().isEmpty())
+                        else if (attr.lastRead() <= 0 && attr.dataType() == deCONZ::ZclCharacterString && attr.toString().isEmpty())
                         {
                             // e.g. some devices return empty strings.
                             // Check read timestamp to make sure the attribute is read at least once.

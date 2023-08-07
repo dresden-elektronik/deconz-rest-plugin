@@ -502,7 +502,7 @@ void PollManager::pollTimerFired()
                             // discard attributes which are not be available
                             if (attrId == attr.id() && attr.isAvailable())
                             {
-                                if (attr.dataType_t() == deCONZ::ZclCharacterString && attr.toString().isEmpty() && attr.lastRead() != static_cast<time_t>(-1))
+                                if (attr.dataType_t() == deCONZ::ZclCharacterString && attr.toString().isEmpty() && attr.lastRead() <= 0)
                                 {
                                     continue; // skip empty string attributes which are available, read only once
                                 }
