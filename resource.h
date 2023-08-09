@@ -486,36 +486,95 @@ private:
     ResourceItem() = delete;
     bool setItemString(const QString &str);
 
-    /* New layout
+#if 0
+    struct test_layout {
+        ZCL_Param m_zclParam;
+        uint64_t m_lastSet;
+        uint64_t m_lastChanged;
+        uint64_t m_value;
+        uint32_t m_ddfItemHandle;
+        uint32_t m_refreshInterval;
+        uint16_t m_flags;
+        uint16_t m_ridHandle;
+        uint8_t m_parseFunIndex;
+        uint8_t m_extra[3];
+     };
+     static_assert(sizeof(test_layout) <= 64, "test layout");
+#endif
 
-        quint16 flags;
-        quint16 m_ridHandle;
-        quint32 m_ddfItemHandle;
-        qint32 m_lastSet; // ms since epoch - FIX_OSSET
-        qint32 m_lastChanged; // ...
-        qint64 num;
-        qint64 numPrevious;
-        ItemString istr;
+    /* New structure (currently ResourceItem size is 168 bytes!)
+       Note the order will be different to remove padding.
 
-        // . 40 bytes
+        0   U16    m_flags;
+        2   U16    m_ridHandle; // index in rItemDescriptors
+        4   U32    m_ddfItemHandle;
+        8   NanBox m_lastSet;     // 48-bit timestamp milliseconds since epoch
+        16  NanBox m_lastChanged; // if this is a static item the 64-bit can be used for other purposes
+                                  // e.g. storing a full 64-bit value (needs to be indicated in flags)
+        24  NanBox m_value;  // (64-bit) strings, atoms, 48-bit numbers, 48-bit timestamps, true, false, null, ...
+        32  U32    m_refreshInterval
+
+        // . 36 bytes
+
+        ..  [24] ZCL_Param
+        ..  U8  m_parseFunctionIndex
+
+        // . 61 bytes
+
+             - The struct fits in a 64-byte cache line, 115 bytes less than current implementation.
+             - 10.000 ResourceItems account for 640 KB
+             - Since the new layout doesn't contain any real pointers this also allows to easier forward
+               items to the database module via message passing to another thread.
+             - NanBox is a type safe 64-bit word (see: https://github.com/dresden-elektronik/deconz-lib/blob/main/deconz/nanbox.h)
      */
 
     ValueSource m_valueSource = SourceUnknown;
     bool m_isPublic = true;
     quint16 m_flags = 0; // bitmap of ResourceItem::ItemFlags
     qint64 m_num = 0;
-    qint64 m_numPrev = 0;
-    deCONZ::SteadyTimeRef m_lastZclReport;
 
+    /*
+     * TODO(mpi): m_numPrev needs to be refactored. The previous number is only used in rules
+     * engine to compare a change via ==, <= and >=. This value is transported via Event class.
+     * All we really need to keep rules engine happy is 2-bits to encode the logical change -1,0,1.
+     * The 2-bits can be put in the flags field.
+     */
+    qint64 m_numPrev = 0;
+    /*
+     * TODO(mpi): I think we can substitude this with m_lastSet, perhaps encode in flags that
+     * m_lastSet was caused by a ZCL report 1-bit vs. 8 bytes.
+     */
+    deCONZ::SteadyTimeRef m_lastZclReport;
+    /*
+     * TODO(mpi): Strings will be completely replaced by NaN boxed atoms in m_value. Atoms are kept in a
+     * global table and as the name says are only allocated once, e.g. "Ikea of Sweden" becomes just
+     * a integer index, comparison is very fast.
+     * https://github.com/dresden-elektronik/deconz-lib/blob/main/deconz/nanbox.h
+     * https://github.com/dresden-elektronik/deconz-lib/blob/main/deconz/atom.h
+     * https://github.com/dresden-elektronik/deconz-lib/blob/main/deconz/atom_table.h
+     */
     BufStringCacheHandle m_strHandle; // for strings which don't fit into \c m_istr
     ItemString m_istr; // internal embedded small string
     deCONZ::TimeSeconds m_refreshInterval;
     QString *m_str = nullptr;
     const ResourceItemDescriptor *m_rid = &rInvalidItemDescriptor;
     QDateTime m_lastSet;
+    /*
+     * TODO(mpi): This is included in the new struct but ultimately I think we should get rid of lastChanged
+     * and only mark if a change occured as flag. Most uses are lastChanged() == lastSet()
+     * There are also explicit items as state/lastupdated
+     */
     QDateTime m_lastChanged;
+    /*
+     * TODO(mpi): std::vector alone is 24-bytes, for most items it's empty.
+     * All ResourceItems will be allocated in one global array, we need a extra table for
+     * "rules involved" which can be mapped to respective ResourceItem.
+     */
     std::vector<int> m_rulesInvolved; // the rules a resource item is trigger
     ZCL_Param m_zclParam{};
+    /*
+     * TODO(mpi): m_parseFunction can be a 8-bit index in status parse functions array.
+     */
     ParseFunction_t m_parseFunction = nullptr;
     quint32 m_ddfItemHandle = 0; // invalid item handle
 };
