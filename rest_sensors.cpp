@@ -177,12 +177,6 @@ int DeRestPluginPrivate::getAllSensors(const ApiRequest &req, ApiResponse &rsp)
             continue;
         }
 
-        // ignore sensors without attached node
-        if (i->modelId().startsWith(QLatin1String("FLS-NB")) && !i->node())
-        {
-            continue;
-        }
-
         if (i->modelId().isEmpty())
         {
             continue;
@@ -875,16 +869,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigDuration) // Unsigned integer
                 {
-                    if (sensor->modelId().startsWith(QLatin1String("FLS-NB")))
-                    {
-                        DBG_Printf(DBG_INFO, "Force read of occupaction delay for sensor %s\n", qPrintable(sensor->address().toStringExt()));
-                        sensor->enableRead(READ_OCCUPANCY_CONFIG);
-                        sensor->setNextReadTime(READ_OCCUPANCY_CONFIG, queryTime.addSecs(1));
-                        queryTime = queryTime.addSecs(1);
-                        Q_Q(DeRestPlugin);
-                        q->startZclAttributeTimer(0);
-                    }
-                    else if (sensor->modelId() == QLatin1String("TRADFRI motion sensor"))
+                    if (sensor->modelId() == QLatin1String("TRADFRI motion sensor"))
                     {
                         if (data.uinteger < 1 || data.uinteger > 60)
                         {
@@ -950,6 +935,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 else if (rid.suffix == RConfigLat || rid.suffix == RConfigLong) // String
                 {
                     double coordinate = data.string.toDouble(&ok);
+                    Q_UNUSED(coordinate);
                     if (!ok || data.string.isEmpty())
                     {
                         rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
@@ -2400,7 +2386,7 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
                         val = val.toInt() + item2->toNumber();
                         if (rid.suffix == RStateHumidity)
                         {
-                            val = val < 0 ? 0 : val > 10000 ? 10000 : val;
+                            val = val.toInt() < 0 ? 0 : val.toInt() > 10000 ? 10000 : val;
                         }
                     }
                 }

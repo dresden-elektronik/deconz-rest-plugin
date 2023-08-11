@@ -401,7 +401,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                             item(RStateColorMode)->setValue(QVariant("ct")); // note due addItem() calls, pointer is different here
                         }
                     }
-                    [[clang::fallthrough]];
+                    // fall through
 
                     default:
                         break;

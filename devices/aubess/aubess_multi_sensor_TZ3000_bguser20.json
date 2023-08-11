@@ -59,7 +59,8 @@
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl",
+            "eval": "Item.val = Attr.val / 2"
           },
           "default": 0
         },

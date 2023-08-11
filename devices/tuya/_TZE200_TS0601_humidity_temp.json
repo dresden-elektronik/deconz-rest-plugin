@@ -1,7 +1,7 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["_TZE200_bjawzodf","_TZE200_nnrfa68v","_TZE200_znbl8dj5", "_TZE200_qoy0ekbd", "_TZE200_a8sdabtg", "_TZE200_whkgqxse","_TZE200_yjjdcqsq", "_TZE200_9yapgbuv", "_TZE200_utkemkbs"],
-  "modelid": ["TS0601","TS0601","TS0601", "TS0601", "TS0601", "TS0601", "TS0601", "TS0601", "TS0601"],
+  "manufacturername": ["_TZE200_nnrfa68v","_TZE200_znbl8dj5", "_TZE200_qoy0ekbd", "_TZE200_a8sdabtg", "_TZE200_whkgqxse","_TZE200_yjjdcqsq", "_TZE200_9yapgbuv", "_TZE200_utkemkbs"],
+  "modelid": ["TS0601","TS0601", "TS0601", "TS0601", "TS0601", "TS0601", "TS0601", "TS0601"],
   "vendor": "Tuya",
   "product": "Temperature Humidity Sensor TS0601",
   "sleeper": true,

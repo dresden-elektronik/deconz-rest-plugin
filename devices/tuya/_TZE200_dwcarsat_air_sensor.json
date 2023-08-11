@@ -100,31 +100,11 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/airqualityco2",
-          "read": {
-            "fn": "none"
-          },
-          "parse": {
-            "dpid": 22,
-            "eval": "Item.val = Attr.val;",
-            "fn": "tuya"
-          },
-          "default": 0
+          "name": "cap/measured_value/unit",
+          "static": "PPB"
         },
         {
-          "name": "state/airqualityformaldehyd",
-          "read": {
-            "fn": "none"
-          },
-          "parse": {
-            "dpid": 20,
-            "eval": "Item.val = Attr.val;",
-            "fn": "tuya"
-          },
-          "default": 0
-        },
-        {
-          "name": "state/airqualityppb",
+          "name": "state/measured_value",
           "read": {
             "fn": "none"
           },
@@ -137,18 +117,6 @@
         },
         {
           "name": "state/lastupdated"
-        },
-        {
-          "name": "state/pm2_5",
-          "read": {
-            "fn": "none"
-          },
-          "parse": {
-            "dpid": 2,
-            "eval": "Item.val = Attr.val;",
-            "fn": "tuya"
-          },
-          "default": 0
         }
       ]
     },
@@ -205,6 +173,177 @@
             "fn": "tuya"
           },
           "default": 0
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_FORMALDEHYDE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x042B"
+      ],
+      "items": [
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "cap/measured_value/unit",
+          "static": "PPM"
+        },
+        {
+          "name": "state/measured_value",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 20,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_CARBONDIOXIDE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x040D"
+      ],
+      "items": [
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "cap/measured_value/unit",
+          "static": "PPB"
+        },
+        {
+          "name": "state/measured_value",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 22,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_PARTICULATEMATTER_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x042A"
+      ],
+      "items": [
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "cap/measured_value/unit",
+          "static": "ug/m^3"
+        },
+        {
+          "name": "state/measured_value",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 2,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/lastupdated"
         }
       ]
     }

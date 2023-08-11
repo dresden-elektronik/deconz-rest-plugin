@@ -1492,7 +1492,7 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
         if (!val.isEmpty())
         {
             d->gwConfig["gwpassword"] = val;
-            d->gwAdminPasswordHash = val;
+            d->gwAdminPasswordHash = val.toStdString();
         }
     }
     else if (strcmp(colval[0], "uuid") == 0)
@@ -2894,29 +2894,6 @@ void DeRestPluginPrivate::loadLightNodeFromDb(LightNode *lightNode)
         }
     }
 
-    // check for old mac address only format
-    if (lightNode->id().isEmpty())
-    {
-        sql = QString("SELECT * FROM nodes WHERE mac='%1' COLLATE NOCASE AND state != 'deleted'").arg(lightNode->address().toStringExt());
-
-        DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
-        rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadLightNodeCallback, &cb, &errmsg);
-
-        if (rc != SQLITE_OK)
-        {
-            if (errmsg)
-            {
-                DBG_Printf(DBG_ERROR_L2, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
-                sqlite3_free(errmsg);
-            }
-        }
-
-        if (!lightNode->id().isEmpty())
-        {
-            lightNode->setNeedSaveDatabase(true);
-        }
-    }
-
     if (lightNode->needSaveDatabase())
     {
         queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
@@ -3998,13 +3975,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeInt16, RConfigExternalTemperatureSensor)->setValue(0);
                     sensor.addItem(DataTypeBool, RConfigExternalWindowOpen)->setValue(false);
                 }
-                else if (sensor.modelId() == QLatin1String("AC201")) // OWON AC201 Thermostat
-                {
-                    sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);
-                    sensor.addItem(DataTypeString, RConfigMode);
-                    sensor.addItem(DataTypeString, RConfigFanMode);
-                    sensor.addItem(DataTypeString, RConfigSwingMode);
-                }
                 else if (sensor.modelId() == QLatin1String("iTRV")) // Drayton Wiser Radiator Thermostat
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
@@ -4862,7 +4832,7 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["zigbeechannel"] = gwZigbeeChannel;
         gwConfig["group0"] = gwGroup0;
         gwConfig["gwusername"] = gwAdminUserName;
-        gwConfig["gwpassword"] = gwAdminPasswordHash;
+        gwConfig["gwpassword"] = QString::fromStdString(gwAdminPasswordHash);
         gwConfig["homebridge"] = gwHomebridge;
         gwConfig["homebridgeversion"] = gwHomebridgeVersion;
         gwConfig["homebridgeupdateversion"] = gwHomebridgeUpdateVersion;

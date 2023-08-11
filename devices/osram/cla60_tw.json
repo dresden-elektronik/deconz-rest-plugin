@@ -1,0 +1,166 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "OSRAM",
+  "modelid": "CLA60 TW OSRAM",
+  "product": "CLA60 TW OSRAM",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x03"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/bri/move_with_onoff",
+          "static": true
+        },
+        {
+          "name": "cap/color/capabilities",
+          "refresh.interval": 300,
+          "default": 16
+        },
+        {
+          "name": "cap/color/ct/max",
+          "refresh.interval": 300,
+          "read": {
+            "at": "0x400c",
+            "cl": "0x0300",
+            "ep": 0,
+            "fn": "zcl"
+          },
+          "default": 370
+        },
+        {
+          "name": "cap/color/ct/min",
+          "refresh.interval": 365,
+          "default": 153
+        },
+        {
+          "name": "cap/on/off_with_effect",
+          "static": true
+        },
+        {
+          "name": "state/alert",
+          "default": "none"
+        },
+        {
+          "name": "state/bri",
+          "refresh.interval": 365
+        },
+        {
+          "name": "state/colormode",
+          "refresh.interval": 365,
+          "default": "ct"
+        },
+        {
+          "name": "state/ct",
+          "refresh.interval": 365
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 365
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 3,
+      "dst.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 3,
+      "dst.ep": 1,
+      "cl": "0x0008",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x20",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 3,
+      "dst.ep": 1,
+      "cl": "0x0300",
+      "report": [
+        {
+          "at": "0x0007",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0003",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x0000000A"
+        },
+        {
+          "at": "0x0004",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x0000000A"
+        },
+        {
+          "at": "0x0008",
+          "dt": "0x30",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    }
+  ]
+}

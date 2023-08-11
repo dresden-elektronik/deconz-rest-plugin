@@ -69,9 +69,6 @@
  *    To leave calibration mode, clear bit #1 in the Mode attribute, e.g. write attribute 0x0017 as 0x00.
  */
 
-
-
-#include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "product_match.h"
 
@@ -646,10 +643,10 @@ void DeRestPluginPrivate::calibrateWindowCoveringNextStep()
     TaskItem task;
     copyTaskReq(calibrationTask, task);
 
-    DBG_Printf(DBG_INFO, "ubisys NextStep calibrationStep = %d, task=%s calibrationTask = %s \n",
+    DBG_Printf(DBG_INFO, "ubisys NextStep calibrationStep = %d, task=" FMT_MAC " calibrationTask = " FMT_MAC "\n",
                calibrationStep,
-               qPrintable(task.req.dstAddress().toStringExt()),
-               qPrintable(calibrationTask.req.dstAddress().toStringExt()));
+               (unsigned long long)task.req.dstAddress().ext(),
+               (unsigned long long)calibrationTask.req.dstAddress().ext());
 
     switch(calibrationStep)
     {

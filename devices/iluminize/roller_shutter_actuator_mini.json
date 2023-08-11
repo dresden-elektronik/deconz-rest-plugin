@@ -1,8 +1,9 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "$MF_PHILIPS",
-  "modelid": "H2L-ZBPH-RS",
-  "product": "H2L-ZBPH-RS",
+  "manufacturername": "iluminize",
+  "modelid": "5128.10",
+  "vendor": "iluminize",
+  "product": "Zigbee 3.0 roller shutter actuator",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -42,8 +43,36 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "config/mode",
+          "parse": {
+            "at": "0x0017",
+            "cl": "0x0102",
+            "ep": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl"
+          }
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "config/windowcoveringtype",
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0102",
+            "ep": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/bri",
+          "refresh.interval": 5
+        },
+        {
           "name": "state/lift",
-          "refresh.interval": 60,
+          "refresh.interval": 300,
           "default": 0
         },
         {
@@ -51,13 +80,18 @@
           "parse": {
             "at": "0x0008",
             "cl": "0x0102",
-            "ep": 0,
-            "eval": "Item.val = Attr.val < 100",
+            "ep": 1,
+            "eval": "Item.val = Attr.val === 100",
             "fn": "zcl"
           }
         },
         {
           "name": "state/reachable"
+        },
+        {
+          "name": "state/tilt",
+          "refresh.interval": 300,
+          "default": 0
         }
       ]
     }
@@ -66,17 +100,7 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0102",
-      "report": [
-        {
-          "at": "0x0008",
-          "dt": "0x20",
-          "min": 1,
-          "max": 100,
-          "change": "0x00000001"
-        }
-      ]
+      "cl": "0x0102"
     }
   ]
 }

@@ -1,0 +1,112 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "Eva",
+  "modelid": "Meter Reader",
+  "vendor": "Eva",
+  "product": "Powermeter",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_POWER_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0b04"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/current",
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/power",
+          "refresh.interval": 360,
+          "read": {
+            "at": "0x0304",
+            "cl": "0x0b04",
+            "ep": 0,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0304",
+            "cl": "0x0b04",
+            "ep": 0,
+            "eval": "if (Attr.val != -32768 && Attr.val != 32768) { Item.val = Attr.val; }"
+          }
+        },
+        {
+          "name": "state/voltage",
+          "refresh.interval": 360
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0B04",
+      "report": [
+        {
+          "at": "0x0505",
+          "dt": "0x21",
+          "min": 20,
+          "max": 300,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0508",
+          "dt": "0x21",
+          "min": 20,
+          "max": 300,
+          "change": "0x00000064"
+        },
+        {
+          "at": "0x050B",
+          "dt": "0x29",
+          "min": 20,
+          "max": 300,
+          "change": "0x00000001"
+        }
+      ]
+    }
+  ]
+}

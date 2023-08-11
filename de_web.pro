@@ -92,7 +92,7 @@ GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.22.01\\\"
+DEFINES += GW_SW_VERSION=\\\"2.23.00\\\"
 DEFINES += GW_SW_DATE=$$GIT_COMMIT_DATE
 DEFINES += GW_API_VERSION=\\\"1.16.0\\\"
 DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
@@ -118,9 +118,9 @@ HEADERS  = bindings.h \
            aps_controller_wrapper.h \
            backup.h \
            button_maps.h \
-           connectivity.h \
            colorspace.h \
            crypto/mmohash.h \
+           crypto/password.h \
            crypto/random.h \
            crypto/scrypt.h \
            database.h \
@@ -192,9 +192,9 @@ SOURCES  = air_quality.cpp \
            bindings.cpp \
            button_maps.cpp \
            change_channel.cpp \
-           connectivity.cpp \
            colorspace.cpp \
            crypto/mmohash.cpp \
+           crypto/password.cpp \
            crypto/random.cpp \
            crypto/scrypt.cpp \
            database.cpp \

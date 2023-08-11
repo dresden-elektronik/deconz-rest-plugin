@@ -207,6 +207,16 @@ static ZCL_Param getZclParam(const QVariantMap &param)
         result.hasCommandId = 0;
     }
 
+    if (param.contains(QLatin1String("fc"))) // optional
+    {
+        result.frameControl = (uint8_t)variantToUint(param["fc"], UINT8_MAX, &ok);
+        result.hasFrameControl = ok ? 1 : 0;
+    }
+    else
+    {
+        result.hasFrameControl = 0;
+    }
+
     const auto ignoreSeqno = QLatin1String("noseq");
     if (param.contains(ignoreSeqno))
     {
@@ -277,7 +287,7 @@ quint8 resolveAutoEndpoint(const Resource *r)
 
 /*! Evaluates an items Javascript expression for a received attribute.
  */
-bool evalZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, const deCONZ::ZclAttribute &attr, const QVariant &parseParameters)
+bool evalZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, int attrIndex, const deCONZ::ZclAttribute &attr, const QVariant &parseParameters)
 {
     bool ok = false;
     const auto &zclParam = item->zclParam();
@@ -304,7 +314,7 @@ bool evalZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndi
         engine.reset();
         engine.setResource(r);
         engine.setItem(item);
-        engine.setZclAttribute(attr);
+        engine.setZclAttribute(attrIndex, attr);
         engine.setZclFrame(zclFrame);
         engine.setApsIndication(ind);
 
@@ -591,6 +601,7 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
 
+    int attrIndex = -1;
     while (!stream.atEnd())
     {
         quint16 attrId;
@@ -598,6 +609,7 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
         quint8 dataType;
 
         stream >> attrId;
+        attrIndex++;
 
         if (zclFrame.commandId() == deCONZ::ZclReadAttributesResponseId)
         {
@@ -616,7 +628,7 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
             break;
         }
 
-        if (evalZclAttribute(r, item, ind, zclFrame, attr, parseParameters))
+        if (evalZclAttribute(r, item, ind, zclFrame, attrIndex, attr, parseParameters))
         {
             if (zclFrame.commandId() == deCONZ::ZclReportAttributesId)
             {
@@ -689,6 +701,7 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
 
     stream >> seq;
 
+    int attrIndex = 0;
     while (!stream.atEnd()) // a message can contain multiple datapoints
     {
         stream >> dpid;
@@ -750,12 +763,14 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
                 attr.setValue(quint64(num.u32));
             }
 
-            if (evalZclAttribute(r, item, ind, zclFrame, attr, parseParameters))
+            if (evalZclAttribute(r, item, ind, zclFrame, attrIndex, attr, parseParameters))
             {
                 item->setLastZclReport(deCONZ::steadyTimeRef().ref);
                 result = true;
             }
         }
+
+        attrIndex++;
 
         const char *rt = zclFrame.commandId() == TY_DATA_REPORT ? "REPORT" : "RESPONSE";
 
@@ -1215,7 +1230,8 @@ bool parseXiaomiSpecial(Resource *r, ResourceItem *item, const deCONZ::ApsDataIn
     Q_ASSERT(zclParam.attributeCount == 2); // attribute id + tag/idx
     const auto attr = parseXiaomiZclTag(zclParam.attributes[1], zclFrame);
 
-    if (evalZclAttribute(r, item, ind, zclFrame, attr, parseParameters))
+    int attrIndex = 0;
+    if (evalZclAttribute(r, item, ind, zclFrame, attrIndex, attr, parseParameters))
     {
         result = true;
     }
@@ -1796,15 +1812,25 @@ bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsC
 /*! A generic function to send a cluster-specific ZCL command.
     The \p cmdParameters is expected to contain one object (given in the device description file).
 
-    { "fn": "zcl:cmd", "ep": endpoint, "cl": clusterId, "mf": manufacturerCode, "cmd": commandId, "eval": expression }
+    { "fn": "zcl:cmd", "ep": endpoint, "cl": clusterId, "mf": manufacturerCode, "cmd": commandId, "fc": frameControl, "eval": expression }
 
     - endpoint: the destination endpoint, use 0 for auto endpoint (from the uniqueid)
     - clusterId: string hex value
     - manufacturerCode: (optional) string hex value
     - commandId: string hex value
+    - frameControl: (optional) string hex value, OR combined 8-bit bitmap to overwrite ZCL frame control
+
+          ZclFCProfileCommand          = 0x00,
+          ZclFCClusterCommand          = 0x01,
+          ZclFCManufacturerSpecific    = 0x04,
+          ZclFCDirectionServerToClient = 0x08,
+          ZclFCDirectionClientToServer = 0x00,
+          ZclFCEnableDefaultResponse   = 0x00,
+          ZclFCDisableDefaultResponse  = 0x10
+
     - expression: (optional) to transform the item value to the command payload as hex string value
 
-    Example: "read": {"fn": "zcl:cmd", "ep": "0x0b", "cl": "0x0000", "mf": "0x100b", "cmd": "0xc0",  "eval": "'002d00000040'"}
+    Example: "read": {"fn": "zcl:cmd", "ep": "0x0b", "cl": "0x0000", "mf": "0x100b", "cmd": "0xc0", "eval": "'002d00000040'"}
  */
 static DA_ReadResult sendZclCommand(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, const QVariant &cmdParameters)
 {

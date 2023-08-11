@@ -60,6 +60,23 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "config/battery",
+          "refresh.interval": 43265,
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2;",
+            "fn": "zcl"
+          },
+          "read": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "fn": "zcl"
+          }
+        },
+        {
           "name": "config/checkin",
           "public": false,
           "refresh.interval": 3600

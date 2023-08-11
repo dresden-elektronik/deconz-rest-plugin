@@ -148,70 +148,6 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/lastupdated"
-        },
-        {
-          "name": "state/power",
-          "refresh.interval": 365,
-          "read": {
-            "at": "0x050B",
-            "cl": "0x0b04",
-            "ep": 1,
-            "fn": "zcl"
-          },
-          "parse": {
-            "at": "0x050B",
-            "cl": "0x0b04",
-            "ep": 1,
-            "eval": "if (Attr.val != -32768) { Item.val = Attr.val; }"
-          },
-          "default": 0
-        }
-      ]
-    },
-    {
-      "type": "$TYPE_POWER_SENSOR",
-      "restapi": "/sensors",
-      "uuid": [
-        "$address.ext",
-        "0x03",
-        "0x0b04"
-      ],
-      "items": [
-        {
-          "name": "attr/id"
-        },
-        {
-          "name": "attr/lastannounced"
-        },
-        {
-          "name": "attr/lastseen"
-        },
-        {
-          "name": "attr/manufacturername"
-        },
-        {
-          "name": "attr/modelid"
-        },
-        {
-          "name": "attr/name"
-        },
-        {
-          "name": "attr/swversion"
-        },
-        {
-          "name": "attr/type"
-        },
-        {
-          "name": "attr/uniqueid"
-        },
-        {
-          "name": "config/on"
-        },
-        {
-          "name": "config/reachable"
-        },
-        {
           "name": "state/current",
           "refresh.interval": 365,
           "read": {
@@ -272,7 +208,7 @@
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
-        "0x04",
+        "0x03",
         "0x0b04"
       ],
       "items": [
@@ -596,13 +532,6 @@
         },
         {
           "at": "0x0A0F",
-          "dt": "0x21",
-          "min": 60,
-          "max": 300,
-          "change": "0x00000001"
-        },
-        {
-          "at": "0x050B",
           "dt": "0x21",
           "min": 60,
           "max": 300,

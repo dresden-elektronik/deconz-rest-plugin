@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2023 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -18,7 +18,6 @@
 #include "de_web_plugin_private.h"
 #include "device_descriptions.h"
 #include "json.h"
-#include "connectivity.h"
 #include "colorspace.h"
 #include "product_match.h"
 
@@ -74,16 +73,6 @@ int DeRestPluginPrivate::handleLightsApi(const ApiRequest &req, ApiResponse &rsp
     else if ((req.path.size() == 4) && (req.hdr.method() == "PUT" || req.hdr.method() == "PATCH"))
     {
         return setLightAttributes(req, rsp);
-    }
-    // GET /api/<apikey>/lights/<id>/connectivity
-    if ((req.path.size() == 5) && (req.hdr.method() == "GET") && (req.path[4] == "connectivity"))
-    {
-        return getConnectivity(req, rsp, false);
-    }
-    // GET /api/<apikey>/lights/<id>/connectivity
-    if ((req.path.size() == 5) && (req.hdr.method() == "GET") && (req.path[4] == "connectivity2"))
-    {
-        return getConnectivity(req, rsp, true);
     }
     // DELETE /api/<apikey>/lights/<id>
     else if ((req.path.size() == 4) && (req.hdr.method() == "DELETE"))
@@ -1610,7 +1599,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
     if (!taskRef.lightNode->stateChanges().empty())
     {
-        DBG_Printf(DBG_INFO, "emit event/tick: %s\n", qPrintable(taskRef.lightNode->address().toStringExt()));
+        DBG_Printf(DBG_INFO, "emit event/tick: " FMT_MAC "\n", (unsigned long long)taskRef.lightNode->address().ext());
         enqueueEvent({taskRef.lightNode->prefix(), REventTick, taskRef.lightNode->uniqueId(), taskRef.lightNode->address().ext()});
     }
 
@@ -3336,21 +3325,6 @@ int DeRestPluginPrivate::setLightAttributes(const ApiRequest &req, ApiResponse &
             Q_Q(DeRestPlugin);
             q->nodeUpdated(lightNode->address().ext(), QLatin1String("name"), name);
 
-            if (lightNode->modelId().startsWith(QLatin1String("FLS-NB"))) // sync names
-            {
-                for (Sensor &s : sensors)
-                {
-                    if (s.address().ext() == lightNode->address().ext() &&
-                        s.name() != lightNode->name())
-                    {
-                        updateSensorEtag(&s);
-                        s.setName(lightNode->name());
-                        s.setNeedSaveDatabase(true);
-                        queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
-                    }
-                }
-            }
-
             QVariantMap rspItem;
             QVariantMap rspItemState;
             rspItemState[QString("/lights/%1/name").arg(id)] = map["name"];
@@ -3730,212 +3704,6 @@ int DeRestPluginPrivate::removeAllGroups(const ApiRequest &req, ApiResponse &rsp
 
     rsp.httpStatus = HttpStatusOk;
     rsp.etag = lightNode->etag;
-
-    return REQ_READY_SEND;
-}
-
-/*! GET /api/<apikey>/lights/<id>/connectivity
-    \return 0 - on success
-           -1 - on error
- */
-int DeRestPluginPrivate::getConnectivity(const ApiRequest &req, ApiResponse &rsp, bool alt)
-{
-    Connectivity newConn;
-    uint64_t coordinatorAddress = 0;
-    newConn.targets.clear();
-    std::list<quint8> rlqiListTemp = newConn.getRLQIList();
-    rlqiListTemp.clear();
-    newConn.setRLQIList(rlqiListTemp);
-    quint16 sumLQI = 0;
-    quint8 meanLQI = 0;
-
-    DBG_Assert(req.path.size() == 5);
-
-    if (req.path.size() != 5)
-    {
-        return REQ_NOT_HANDLED;
-    }
-
-    const QString &id = req.path[3];
-
-    //Rest LightNode
-    LightNode *lightNode = getLightNodeForId(id);
-
-    if (!lightNode)
-    {
-        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
-        rsp.httpStatus = HttpStatusNotFound;
-        return REQ_READY_SEND;
-    }
-
-    //deCONZ Node
-    uint n = 0;
-    const deCONZ::Node *node = 0;
-
-    while (apsCtrl->getNode(n, &node) == 0)
-    {
-        if (node->isCoordinator())
-        {
-            coordinatorAddress = node->address().ext();
-
-            //set start node
-            DeRestPluginPrivate::nodeVisited nv;
-            nv.node = node;
-            nv.visited = false;
-            newConn.start = nv;
-        }
-        else
-        {
-            //set target nodes
-            if (!(node->isZombie()))
-            {
-                DeRestPluginPrivate::nodeVisited nv;
-                nv.node = node;
-                nv.visited = false;
-                newConn.targets.push_back(nv);
-            }
-        }
-        n++;
-    }
-
-    //start route search
-    std::vector<DeRestPluginPrivate::nodeVisited> resultList;
-    std::vector<deCONZ::NodeNeighbor> neighborList;
-
-    for (uint r = 0; r < newConn.targets.size(); r++)
-    {
-        if (lightNode->address().ext() == newConn.targets[r].node->address().ext())
-        {
-            // first get neighbours of target node
-            // TODO: philips strip doesn't recognize fls as neighbours.
-            const std::vector<deCONZ::NodeNeighbor> &neighbors = newConn.targets[r].node->neighbors();
-
-            std::vector<deCONZ::NodeNeighbor>::const_iterator nb = neighbors.begin();
-            std::vector<deCONZ::NodeNeighbor>::const_iterator nb_end = neighbors.end();
-
-            DBG_Printf(DBG_INFO,"Node: %s\n",qPrintable(newConn.targets[r].node->address().toStringExt()));
-            for (; nb != nb_end; ++nb)
-            {
-                DBG_Printf(DBG_INFO,"neighbour: %s, LQI %u\n",qPrintable(nb->address().toStringExt()),nb->lqi());
-                neighborList.push_back(*nb);
-                sumLQI = sumLQI + (nb->lqi());
-                DBG_Printf(DBG_INFO,"sum: %u\n",sumLQI);
-            }
-
-            //-- first approach: start a search for all possible routes --//
-            if (!alt)
-            {
-                newConn.searchAllPaths(resultList, newConn.start, newConn.targets[r]);
-
-                // result RLQI list
-                rlqiListTemp = newConn.getRLQIList();
-                rlqiListTemp.sort();
-                newConn.setRLQIList(rlqiListTemp);
-
-                DBG_Printf(DBG_INFO,"gateway connectivity: %u\n",newConn.getRLQIList().back());
-                DBG_Printf(DBG_INFO,"number of routes: %u\n",newConn.getRLQIList().size());
-
-                resultList.clear();
-            }
-            else
-            //-- alternative approach: compute mean lqi of neighbors for each node --//
-            {
-                if (neighbors.size() == 0)
-                {
-                    meanLQI = 0;
-                }
-                else
-                {
-                    meanLQI = sumLQI / neighbors.size();
-                }
-                DBG_Printf(DBG_INFO,"sum: %u, neighbors: %i, mean LQI: %u\n",sumLQI,neighbors.size(),meanLQI);
-            }
-
-            break;
-        }
-    }
-    rsp.httpStatus = HttpStatusOk;
-
-    // Neighbours to Map
-
-    QVariantMap connectivityMap;
-    QVariantMap neighborsMap;
-    QVariantMap nbNode;
-    quint8 lqi1 = 0;
-    quint8 lqi2 = 0;
-
-    for (uint nl = 0; nl < neighborList.size(); nl++)
-    {
-        if (neighborList[nl].address().ext() != coordinatorAddress)
-        {
-            LightNode *nl_neighbor = getLightNodeForAddress(neighborList[nl].address());
-            if ((nl_neighbor != NULL) && (neighborList[nl].lqi() != 0) && nl_neighbor->isAvailable())
-            {
-                //lqi value from actual node to his neighbor
-                lqi1 = neighborList[nl].lqi();
-                //DBG_Printf(DBG_INFO, "LQI %s -> %s = %u\n",qPrintable(lightNode->address().toStringExt()),qPrintable(neighborList.at(nl).address().toStringExt()),lqi1);
-
-                //lqi value from the opposite direction
-                DeRestPluginPrivate::nodeVisited oppositeNode = newConn.getNodeWithAddress(neighborList[nl].address().ext());
-
-                for(uint y = 0; y < oppositeNode.node->neighbors().size(); y++)
-                {
-                    if(oppositeNode.node->neighbors()[y].address().ext() == lightNode->address().ext())
-                    {
-                        lqi2 = oppositeNode.node->neighbors()[y].lqi();
-                        //DBG_Printf(DBG_INFO, "LQI %s -> %s = %u\n",qPrintable(nodeXY.node->address().toStringExt()),qPrintable((nodeXY.node->neighbors().at(y).address().toStringExt())),lqi2);
-                        break;
-                    }
-                }
-
-                if (!alt)
-                {
-                    //take the lower lqi value
-                    //if (lqi1 < lqi2)
-                    //take lqi from current node if it is not 0
-                    if (lqi1 != 0)
-                    {
-                        nbNode["connectivity"] = lqi1;
-                    }
-                    //else if (lqi2 != 0)
-                    else
-                    {
-                        nbNode["connectivity"] = lqi2;
-                    }
-                }
-                else
-                {
-                    // alternative approach: take the lqi value of actual node
-                    nbNode["connectivity"] = lqi1;
-                }
-
-                nbNode["name"] = nl_neighbor->name();
-                nbNode["reachable"] = nl_neighbor->isAvailable();
-                neighborsMap[nl_neighbor->id()] = nbNode;
-            }
-        }
-    }
-
-    //connectivity to Map
-
-    connectivityMap["name"] = lightNode->name();
-    connectivityMap["reachable"] = lightNode->isAvailable();
-    connectivityMap["extAddress"] = lightNode->address().toStringExt();
-    if (!alt)
-    {
-        connectivityMap["connectivity"] = newConn.getRLQIList().back();
-    }
-    else
-    {
-        connectivityMap["connectivity"] = meanLQI;
-    }
-    connectivityMap["routesToGateway"] = (double)newConn.getRLQIList().size();
-    connectivityMap["neighbours"] = neighborsMap;
-
-    updateLightEtag(lightNode);
-    rsp.httpStatus = HttpStatusOk;
-    rsp.etag = lightNode->etag;
-    rsp.map = connectivityMap;
 
     return REQ_READY_SEND;
 }

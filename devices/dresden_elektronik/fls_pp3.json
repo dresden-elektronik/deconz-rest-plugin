@@ -44,16 +44,37 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/colorcapabilities",
-          "refresh.interval": 84000
+          "name": "cap/color/capabilities"
         },
         {
-          "name": "config/ctmax",
-          "refresh.interval": 84000
+          "name": "cap/color/ct/max"
         },
         {
-          "name": "config/ctmin",
-          "refresh.interval": 84000
+          "name": "cap/color/ct/min"
+        },
+        {
+          "name": "cap/color/xy/blue_x",
+          "static": 0
+        },
+        {
+          "name": "cap/color/xy/blue_y",
+          "static": 0
+        },
+        {
+          "name": "cap/color/xy/green_x",
+          "static": 0
+        },
+        {
+          "name": "cap/color/xy/green_y",
+          "static": 65279
+        },
+        {
+          "name": "cap/color/xy/red_x",
+          "static": 65279
+        },
+        {
+          "name": "cap/color/xy/red_y",
+          "static": 0
         },
         {
           "name": "attr/powerup"
