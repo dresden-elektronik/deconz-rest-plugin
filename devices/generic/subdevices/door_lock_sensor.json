@@ -1,8 +1,8 @@
 {
     "schema": "subdevice1.schema.json",
-    "type": "$TYPE_DOOR_LOCK",
-    "name": "Door Lock",
-    "restapi": "/lights",
+    "type": "$TYPE_DOOR_LOCK_SENSOR",
+    "name": "ZHADoorLock",
+    "restapi": "/sensors",
     "order": 11,
     "uuid": ["$address.ext", "0x01", "0x0101"],
     "items": [
@@ -11,6 +11,7 @@
         "state/lockstate"
     ],
     "items_optional": [
+        "config/battery",
         "state/reachable"
     ]
 }
