@@ -728,6 +728,7 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
                 stream >> byte;
                 chain.append(byte);
             }
+            chain = chain.toHex()
             zclDataType = deCONZ::ZclCharacterString;
         }
             break;
@@ -791,7 +792,7 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
         if (zclDataType == deCONZ::ZclCharacterString)
         {
             DBG_Printf(DBG_INFO, "TY_DATA_%s: seq %u, dpid: 0x%02X, type: 0x%02X, length: %u, val: %s\n",
-                       rt, seq, dpid, dataType, dataLength, qPrintable(chain.toHex()));
+                       rt, seq, dpid, dataType, dataLength, qPrintable(chain));
         }
         else
         {
