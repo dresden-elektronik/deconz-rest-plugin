@@ -719,8 +719,9 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
 
         switch (dataType)
         {
-        case TuyaDataTypeRaw:
         case TuyaDataTypeString:
+            return result; // TODO implement?
+        case TuyaDataTypeRaw:
         {
             for (uint i = 0; i < dataLength; i++)
             {
