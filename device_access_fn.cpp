@@ -728,7 +728,7 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
                 stream >> byte;
                 chain.append(byte);
             }
-            chain = chain.toHex()
+            chain = chain.toHex();
             zclDataType = deCONZ::ZclCharacterString;
         }
             break;
