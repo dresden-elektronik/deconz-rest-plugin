@@ -171,7 +171,7 @@
           "default": 1
         },
         {
-          "name": "config/duration",
+          "name": "config/fadingtime",
           "description": "Fading time : target disapperance delay time in second (from 0 to 15000). Default 90s",
           "range": [0, 15000],
           "read": {
@@ -249,7 +249,7 @@
           "default": "10"
         },         
          {
-          "name": "state/angle",
+          "name": "state/targetdistance",
           "description": "Distance from detected target in cm (from 0 to 1000).",
           "read": {
             "fn": "none"
