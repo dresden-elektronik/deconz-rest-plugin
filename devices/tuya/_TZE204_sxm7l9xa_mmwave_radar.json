@@ -4,7 +4,7 @@
   "modelid":"TS0601",
   "product":"Tuya Human Presence Detector",
   "sleeper":false,
-  "status":"Silver",
+  "status":"Gold",
   "subdevices":[
     {
       "type":"$TYPE_LIGHT_LEVEL_SENSOR",
@@ -157,7 +157,7 @@
           "default":1
         },
         {
-          "name":"config/duration",
+          "name":"config/fadingtime",
           "description":"Fading time : target disapperance delay time in second (from 0 to 15000). Default 90s",
           "range":[
             0,
@@ -225,56 +225,23 @@
             "eval":"Item.val = String(Attr.val/100);",
             "fn":"tuya"
           },
-          "values":[
-            [
-              "\"1\"",
-              "1m"
-            ],
-            [
-              "\"2\"",
-              "2m"
-            ],
-            [
-              "\"3\"",
-              "3m"
-            ],
-            [
-              "\"4\"",
-              "4m"
-            ],
-            [
-              "\"5\"",
-              "5m"
-            ],
-            [
-              "\"6\"",
-              "6m"
-            ],
-            [
-              "\"7\"",
-              "7m"
-            ],
-            [
-              "\"8\"",
-              "8m"
-            ],
-            [
-              "\"9\"",
-              "9m"
-            ],
-            [
-              "\"10\"",
-              "10m"
-            ],
-            [
-              "\"0\"",
-              "Off"
-            ]
-          ],
+				"values": [
+						["\"1\"", "1m"],
+						["\"2\"", "2m"],
+						["\"3\"", "3m"],
+						["\"4\"", "4m"],
+						["\"5\"", "5m"],
+						["\"6\"", "6m"],
+						["\"7\"", "7m"],
+						["\"8\"", "8m"],
+						["\"9\"", "9m"],
+          	["\"10\"", "10m"],
+						["\"0\"", "Off"]
+					],
           "default":"10"
         },
         {
-          "name":"state/angle",
+          "name":"state/targetdistance",
           "description":"Distance from detected target in cm (from 0 to 1000).",
           "read":{
             "fn":"none"
