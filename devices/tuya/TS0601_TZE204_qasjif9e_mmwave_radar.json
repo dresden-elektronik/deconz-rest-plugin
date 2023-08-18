@@ -250,7 +250,6 @@
 				},
 				{
 					"name": "state/presence",
-					"refresh.interval": 5,
 					"read": {
 						"fn": "tuya"
 					},
