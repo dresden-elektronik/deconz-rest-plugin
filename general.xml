@@ -3966,7 +3966,7 @@ Note: It does not clear or delete previous weekly schedule programming configura
 	<attribute-set id="0x0200" description="DC Formatting">
 	  <attribute id="0x0200" name="DC Voltage Multiplier" type="u16" access="r" required="o" default="0x0001"></attribute>
 	  <attribute id="0x0201" name="DC Voltage Divisor" type="u16" access="r" required="o" default="0x0001"></attribute>
-          <attribute id="0x0202 je" name="DC Current Multiplier" type="u16" access="r" required="o" default="0x0001"></attribute>
+          <attribute id="0x0202" name="DC Current Multiplier" type="u16" access="r" required="o" default="0x0001"></attribute>
           <attribute id="0x0203" name="DC Current Divisor" type="u16" access="r" required="o" default="0x0001"></attribute>
 	  <attribute id="0x0204" name="DC Power Multiplier" type="u16" access="r" required="o" default="0x0001"></attribute>
 	  <attribute id="0x0205" name="DC Power Divisor" type="u16" access="r" required="o" default="0x0001"></attribute>
