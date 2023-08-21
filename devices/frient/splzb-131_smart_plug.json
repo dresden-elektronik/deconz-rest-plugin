@@ -1,8 +1,8 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["frient A/S", "frient A/S"],
-  "modelid": ["SPLZB-131", "SPLZB-134"],
-  "product": "SPLZB-131 and SPLZB-134 smart plug",
+  "manufacturername": ["frient A/S", "frient A/S", "frient A/S"],
+  "modelid": ["SPLZB-131", "SPLZB-134", "SPLZB-141"],
+  "product": "SPLZB-131, SPLZB-134 and SPLZB-141 smart plug",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
