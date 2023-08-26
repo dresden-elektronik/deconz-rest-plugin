@@ -5542,7 +5542,7 @@ Contactor > On/off=0003 - HP/HC=0004</description>
           <attribute id="0x00EA" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x00EB" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x00ED" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x00EE" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x00EE" name="Firmware" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x00F0" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x00F1" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x00F3" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
@@ -5596,7 +5596,7 @@ Contactor > On/off=0003 - HP/HC=0004</description>
           <attribute id="0x023B" name="Unknown" type="float" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x023E" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
         </attribute-set>
-        <attribute-set id="0x0271" description="Smart Radiator Thermostat E1">
+        <attribute-set id="0x0270" description="Smart Radiator Thermostat E1">
             <attribute id="0x0270" name="Calibrate" type="u8" mfcode="0x115f" access="rw" required="m"> 
                 <description>Write 1 to calibrate</description>
             </attribute>
@@ -5648,7 +5648,26 @@ Contactor > On/off=0003 - HP/HC=0004</description>
           <attribute id="0x040a" name="Battery" type="u8" mfcode="0x115f" access="r" required="m">
           </attribute>
         </attribute-set>
-        <attribute-set id="0x0500" description="Unknown">
+        <attribute-set id="0x0500" description="Aqara LED Strip T1">
+          <attribute id="0x0515" name="Min Dim Level (%)" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0516" name="Max Dim Level (%)" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0517" name="PowerOn OnOff" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>OnOff state on power on: 0: on, 1: previous, 2: off.</description>
+          </attribute>
+          <attribute id="0x051B" name="Segments" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>Number of 20cm segments.</description>
+          </attribute>
+          <attribute id="0x051C" name="Music Sync" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>Music Sync: 0: off, 1: on.</description>
+          </attribute>
+          <attribute id="0x051D" name="Music Sync Effect" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>Music Sync Effecy: 0: random, 1: breathing, 2: rainbow, 3: chasing.</description>
+          </attribute>
+          <attribute id="0x051E" name="Music Sync Sensitivity" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>Music Sync Sensitivity: 0: low, 2: high.</description>
+          </attribute>
+        </attribute-set>
+        <attribute-set id="0x0700" description="Unknown">
           <attribute id="0x0700" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x0701" name="Unknown" type="s8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x0702" name="Unknown" type="s8" mfcode="0x115f" access="rw" required="m"></attribute>
