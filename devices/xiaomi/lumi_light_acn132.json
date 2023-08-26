@@ -61,7 +61,7 @@
         {
           "name": "cap/color/capabilities",
           "read": {
-            "fn": "zcl", "ep": "0x01", "cl": "0x0300", "at": ["0x400a", "0x400b", "0x400c", "0x000f"]
+            "fn": "zcl:attr", "ep": "0x01", "cl": "0x0300", "at": ["0x400a", "0x400b", "0x400c", "0x000f"]
           },
           "refresh.interval": 86400
         },
@@ -101,7 +101,7 @@
         {
           "name": "config/bri/execute_if_off",
           "read": {
-            "fn": "zcl", "ep": "0x01", "cl": "0x0008", "at": ["0x000f", "0x0010", "0x0011", "0x4000"]
+            "fn": "zcl:attr", "ep": "0x01", "cl": "0x0008", "at": ["0x000f", "0x0010", "0x0011"]
           },
           "refresh.interval": 86400
         },
@@ -119,7 +119,15 @@
         },
         {
           "name": "config/on/startup",
-          "read": { "fn": "none" }
+          "parse": {
+            "fn": "zcl:attr", "ep": "0x01", "cl": "0xFCC0", "mf": "0x115F", "at": "0x0517",
+            "eval": "Item.val = [1, 255, 0][Attr.val]"
+          },
+          "read": { "fn": "zcl:attr", "ep": "0x01", "cl": "0xFCC0", "mf": "0x115F", "at": ["0x0517"] },
+          "write": {
+            "fn": "zcl:attr", "ep": "0x01", "cl": "0xFCC0", "mf": "0x115F", "at": "0x0517", "dt": "0x20",
+            "eval": "Item.val === 1 ? 0 : Item.val === 0 ? 2 : 1"
+          }
         },
         {
          "name": "state/alert"
@@ -135,11 +143,11 @@
         {
           "name": "state/colormode",
           "parse": {
-            "fn": "zcl", "ep": "0x01", "cl": "0x0300", "at": "0x4001",
+            "fn": "zcl:attr", "ep": "0x01", "cl": "0x0300", "at": "0x4001",
             "eval": "Item.val = ['hs', 'xy', 'ct', 'xy'][Attr.val]"
           },
           "read": {
-            "fn": "zcl", "ep": "0x01", "cl": "0x0300", "at": ["0x4001", "0x0003", "0x0004", "0x0007"]
+            "fn": "zcl:attr", "ep": "0x01", "cl": "0x0300", "at": ["0x4001", "0x0003", "0x0004", "0x0007"]
           },
           "refresh.interval": 365
         },
@@ -153,10 +161,6 @@
         },
         {
           "name": "state/ct",
-          "read": { "fn": "none" }
-        },
-        {
-          "name": "state/effect",
           "read": { "fn": "none" }
         },
         {
