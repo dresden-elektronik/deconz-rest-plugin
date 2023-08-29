@@ -8,14 +8,14 @@
     "items": [
         "config/on",
         "config/reachable",
-        "state/lastupdated"
+        "config/heatsetpoint",
+        "state/lastupdated",
+        "state/temperature"
     ],
     "items_optional": [
-        "config/heatsetpoint",
         "config/mode",
         "config/offset",
         "state/on",
-        "state/temperature",
         "state/valve"
     ]
 }
