@@ -382,7 +382,7 @@
       ]
     },
     {
-      "type": "ZHAAlarm",
+      "type": "$TYPE_ALARM_SENSOR",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
