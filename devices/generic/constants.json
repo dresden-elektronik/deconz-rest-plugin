@@ -50,6 +50,7 @@
         "$TYPE_SWITCH": "ZHASwitch",
         "$TYPE_TEMPERATURE_SENSOR": "ZHATemperature",
         "$TYPE_THERMOSTAT": "ZHAThermostat",
+        "$TYPE_TIME": "ZHATime",
         "$TYPE_VIBRATION_SENSOR": "ZHAVibration",
         "$TYPE_WARNING_DEVICE": "Warning device",
         "$TYPE_WATER_LEAK_SENSOR": "ZHAWater",
