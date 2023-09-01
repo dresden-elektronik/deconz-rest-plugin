@@ -102,7 +102,7 @@
         {
           "name": "attr/uniqueid"
         },
-		    {
+        {
           "name": "config/battery",
           "parse": {
             "dpid": 11,
@@ -113,7 +113,6 @@
         },
         {
           "name": "config/duration",
-          "description": "The duration the valve stays open.",
           "write": {
             "dpid": 5,
             "dt": "0x2b",
@@ -128,7 +127,6 @@
         },
         {
           "name": "config/locked",
-          "description": "Read: frost lock status. Write: frost lock reset.",
           "write": {
             "dpid": 109,
             "dt": "0x10",
@@ -143,6 +141,15 @@
           "default": 0
         },
         {
+          "name": "state/open",
+          "read": {"fn": "none"},
+          "parse": {
+            "dpid": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          }
+        },
+        {
           "name": "config/reachable"
         },
         {
@@ -150,7 +157,6 @@
         },
         {
           "name": "state/seconds_remaining",
-          "description": "The remaining time the valve is open in seconds.",
           "parse": {
             "dpid": 6,
             "eval": "Item.val = Attr.val * 60;",
