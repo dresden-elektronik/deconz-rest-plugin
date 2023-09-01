@@ -130,6 +130,9 @@
           "name": "cap/color/ct/min"
         },
         {
+          "name": "cap/color/effects"
+        },
+        {
           "name": "cap/color/gamut_type"
         },
         {
