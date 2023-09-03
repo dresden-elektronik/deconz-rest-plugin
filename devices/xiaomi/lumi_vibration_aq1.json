@@ -101,7 +101,7 @@
             "mf": "0x115F",
             "at": "0xFF0D"
           },
-          "refresh.interval": 600,
+          "refresh.interval": 3600,
           "write": {
             "fn": "zcl",
             "ep": 1,
@@ -109,8 +109,10 @@
             "mf": "0x115F",
             "at": "0xFF0D",
             "dt": "0x20",
-            "eval": "3 - Item.val"
-          },
+            "eval": "3 - Item.val",
+            "state.timeout": 2,
+            "change.timeout": 3600
+            },
           "values": [
             [
               0,
