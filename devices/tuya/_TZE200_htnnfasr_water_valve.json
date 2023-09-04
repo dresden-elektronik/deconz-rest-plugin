@@ -102,7 +102,7 @@
         {
           "name": "attr/uniqueid"
         },
-		    {
+        {
           "name": "config/battery",
           "parse": {
             "dpid": 11,
@@ -141,6 +141,15 @@
             "fn": "tuya"
           },
           "default": 0
+        },
+        {
+          "name": "state/open",
+          "read": {"fn": "none"},
+          "parse": {
+            "dpid": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          }
         },
         {
           "name": "config/reachable"
