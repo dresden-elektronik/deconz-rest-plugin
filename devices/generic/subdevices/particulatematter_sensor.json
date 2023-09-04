@@ -12,7 +12,7 @@
         "cap/measured_value/min",
         "cap/measured_value/max",
         "cap/measured_value/unit",
-        "cap/measured_value/dimension",
+        "cap/measured_value/substance",
         "state/lastupdated"
     ]
 }

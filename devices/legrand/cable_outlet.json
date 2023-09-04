@@ -128,7 +128,7 @@
       ]
     },
     {
-      "type": "Level control switch",
+      "type": "$TYPE_LEVEL_CONTROL_SWITCH",
       "restapi": "/lights",
       "uuid": [
         "$address.ext",

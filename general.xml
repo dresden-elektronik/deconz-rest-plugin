@@ -3975,7 +3975,7 @@ Note: It does not clear or delete previous weekly schedule programming configura
           <attribute id="0x0300" name="AC Frequency" type="u16" access="r" required="o" default="0xFFFF"></attribute>
 	  <attribute id="0x0301" name="AC Frequency Min" type="u16" access="r" required="o" default="0xFFFF"></attribute>
 	  <attribute id="0x0302" name="AC Frequency Max" type="u16" access="r" required="o" default="0xFFFF"></attribute>
-	  <attribute id="0x0300" name="Neutral current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+	  <attribute id="0x0303" name="Neutral current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
           <attribute id="0x0304" name="Total Active Power" type="s32" access="r" required="o"></attribute>
           <attribute id="0x0305" name="Total Reactive Power" type="s32" access="r" required="o"></attribute>
           <attribute id="0x0306" name="Total Apparent Power" type="u32" access="r" required="o"></attribute>
