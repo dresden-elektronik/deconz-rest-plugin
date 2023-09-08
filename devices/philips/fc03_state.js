@@ -46,13 +46,19 @@ if (attrid === 0x0002) {
             R.item('state/effect').val = 'fireplace'
             break
           case 0x8003:
-            R.item('state/effect').val = 'loop'
+            R.item('state/effect').val = 'prism'
             break
           case 0x8009:
             R.item('state/effect').val = 'sunrise'
             break
           case 0x800a:
             R.item('state/effect').val = 'sparkle'
+            break
+          case 0x800b:
+            R.item('state/effect').val = 'opal'
+            break
+          case 0x800c:
+            R.item('state/effect').val = 'glisten'
             break
           default:
             R.item('state/effect').val = '0x' + effect.toString(16)

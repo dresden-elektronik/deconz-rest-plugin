@@ -296,8 +296,8 @@
               "fireplace dynamic effect"
             ],
             [
-              "\"loop\"",
-              "colorloop dynamic effect"
+              "\"prism\"",
+              "prism dynamic effect"
             ],
             [
               "\"sunrise\"",
@@ -306,6 +306,14 @@
             [
               "\"sparkle\"",
               "sparkle dynamic effect"
+            ],
+            [
+              "\"opal\"",
+              "opal dynamic effect"
+            ],
+            [
+              "\"glisten\"",
+              "glisten dynamic effect"
             ]
           ],
           "parse": {

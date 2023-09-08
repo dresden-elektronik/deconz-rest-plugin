@@ -1,8 +1,8 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "_TZE204_sxm7l9xa",
+  "manufacturername": "_TZE204_qasjif9e",
   "modelid": "TS0601",
-  "product": "Tuya Human Presence Detector",
+  "product": "Tuya MmwRadar Mini human breathe sensor",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -29,6 +29,7 @@
         },
         {
           "name": "attr/swversion",
+          "refresh.interval": 86400,
           "read": {
             "at": "0x0001",
             "cl": "0x0000",
@@ -117,6 +118,7 @@
         },
         {
           "name": "attr/swversion",
+          "refresh.interval": 86400,
           "read": {
             "at": "0x0001",
             "cl": "0x0000",
@@ -144,17 +146,17 @@
             "fn": "none"
           },
           "write": {
-            "dpid": 110,
+            "dpid": 101,
             "dt": "0x2b",
             "eval": "Item.val;",
             "fn": "tuya"
           },
           "parse": {
-            "dpid": 110,
+            "dpid": 101,
             "eval": "Item.val = Attr.val;",
             "fn": "tuya"
           },
-          "default": 1
+          "default": 5
         },
         {
           "name": "config/fadingtime",
@@ -167,17 +169,17 @@
             "fn": "none"
           },
           "write": {
-            "dpid": 111,
+            "dpid": 102,
             "dt": "0x2b",
             "eval": "Item.val;",
             "fn": "tuya"
           },
           "parse": {
-            "dpid": 111,
+            "dpid": 102,
             "eval": "Item.val = Attr.val;",
             "fn": "tuya"
           },
-          "default": 90
+          "default": 25
         },
         {
           "name": "config/on"
@@ -196,13 +198,13 @@
             "fn": "none"
           },
           "write": {
-            "dpid": 106,
+            "dpid": 2,
             "dt": "0x2b",
             "eval": "Item.val;",
             "fn": "tuya"
           },
           "parse": {
-            "dpid": 106,
+            "dpid": 2,
             "eval": "Item.val = Attr.val;",
             "fn": "tuya"
           },
@@ -215,13 +217,13 @@
             "fn": "none"
           },
           "write": {
-            "dpid": 107,
+            "dpid": 4,
             "dt": "0x2b",
-            "eval": "Far = ['0','1','2','3','4','5','6','7','8','9','10']; Attr.val = Math.max(0,Far.indexOf(Item.val)*100);",
+            "eval": "Far = ['0','1','2','3','4','5','6','7','8','9']; Attr.val = Math.max(0,Far.indexOf(Item.val)*100);",
             "fn": "tuya"
           },
           "parse": {
-            "dpid": 107,
+            "dpid": 4,
             "eval": "Item.val = String(Attr.val/100);",
             "fn": "tuya"
           },
@@ -263,15 +265,11 @@
               "9m"
             ],
             [
-              "\"10\"",
-              "10m"
-            ],
-            [
               "\"0\"",
               "Off"
             ]
           ],
-          "default": "10"
+          "default": "6"
         },
         {
           "name": "state/targetdistance",
@@ -280,7 +278,7 @@
             "fn": "none"
           },
           "parse": {
-            "dpid": 109,
+            "dpid": 9,
             "eval": "Item.val = Attr.val;",
             "fn": "tuya"
           },
@@ -295,7 +293,7 @@
             "fn": "tuya"
           },
           "parse": {
-            "dpid": 105,
+            "dpid": 1,
             "eval": "Item.val = Attr.val;",
             "fn": "tuya"
           },

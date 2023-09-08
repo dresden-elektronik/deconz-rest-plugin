@@ -8,7 +8,7 @@
   "status": "Gold",
   "subdevices": [
     {
-      "type": "ZHADoorLock",
+      "type": "$TYPE_DOOR_LOCK_SENSOR",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
