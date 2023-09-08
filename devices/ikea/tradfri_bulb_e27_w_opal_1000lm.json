@@ -1,7 +1,11 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "$MF_IKEA",
-  "modelid": "TRADFRI bulb E27 W opal 1000lm",
+  "manufacturername": [
+    "$MF_IKEA"
+  ],
+  "modelid": [
+    "TRADFRI bulb E27 W opal 1000lm"
+  ],
   "product": "TRADFRI bulb E27 W opal 1000lm",
   "sleeper": false,
   "status": "Gold",
@@ -42,12 +46,28 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "cap/bri/move_with_onoff",
-          "static": true
+          "name": "cap/alert/trigger_effect"
         },
         {
-          "name": "cap/on/off_with_effect",
-          "static": true
+          "name": "cap/bri/move_with_onoff"
+        },
+        {
+          "name": "cap/on/off_with_effect"
+        },
+        {
+          "name": "config/bri/execute_if_off"
+        },
+        {
+          "name": "config/bri/on_level"
+        },
+        {
+          "name": "config/bri/onoff_transitiontime"
+        },
+        {
+          "name": "config/bri/startup"
+        },
+        {
+          "name": "config/on/startup"
         },
         {
           "name": "state/alert",
@@ -55,11 +75,11 @@
         },
         {
           "name": "state/bri",
-          "refresh.interval": 5
+          "refresh.interval": 305
         },
         {
           "name": "state/on",
-          "refresh.interval": 5
+          "refresh.interval": 305
         },
         {
           "name": "state/reachable"
@@ -92,7 +112,7 @@
           "at": "0x0000",
           "dt": "0x10",
           "min": 1,
-          "max": 1800
+          "max": 300
         }
       ]
     },
@@ -105,8 +125,8 @@
         {
           "at": "0x0000",
           "dt": "0x20",
-          "min": 5,
-          "max": 1800,
+          "min": 1,
+          "max": 300,
           "change": "0x00000001"
         }
       ]
