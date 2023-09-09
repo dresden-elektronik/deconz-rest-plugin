@@ -2311,8 +2311,6 @@ int DeRestPluginPrivate::deleteUser(const ApiRequest &req, ApiResponse &rsp)
             rsp.list.append(rspItem);
             rsp.httpStatus = HttpStatusOk;
 
-            updateEtag(gwConfigEtag);
-
             return REQ_READY_SEND;
         }
     }
