@@ -22,7 +22,6 @@ endif()
 if (NOT DECONZ_FULL_BUILD)
     # standalone build
     add_subdirectory(sqlite3)
-endif()
 
 #--- deCONZ library ---------------------------------------------------
 
@@ -39,6 +38,8 @@ FetchContent_GetProperties(deconzlib)
 if (NOT deconzlib_POPULATED)
     FetchContent_Populate(deconzlib)
     add_subdirectory(${deconzlib_SOURCE_DIR} ${deconzlib_BINARY_DIR})
+endif()
+
 endif()
 
 #----------------------------------------------------------------------
