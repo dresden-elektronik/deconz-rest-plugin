@@ -143,6 +143,9 @@
           "default": 0
         },
         {
+          "name": "config/on"
+        },
+        {
           "name": "state/open",
           "read": {"fn": "none"},
           "parse": {
