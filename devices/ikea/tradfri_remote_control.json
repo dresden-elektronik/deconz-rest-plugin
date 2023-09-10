@@ -64,19 +64,13 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 86400,
+          "awake": true,
           "parse": {
-            "at": "0x0021",
-            "cl": "0x0001",
+            "fn": "zcl:attr",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
-            "fn": "zcl"
-          },
-          "read": {
-            "at": "0x0021",
             "cl": "0x0001",
-            "ep": 1,
-            "fn": "zcl"
+            "at": "0x0021",
+            "eval": "Item.val = Attr.val"
           }
         },
         {
@@ -101,26 +95,6 @@
   ],
   "bindings": [
     {
-      "bind": "unicast",
-      "src.ep": 1,
-      "cl": "0x0001",
-      "report": [
-        {
-          "at": "0x0021",
-          "dt": "0x20",
-          "min": 300,
-          "max": 3600,
-          "change": "0x01"
-        }
-      ]
-    },
-    {
-      "bind": "groupcast",
-      "config.group": 0,
-      "src.ep": 1,
-      "cl": "0x0005"
-    },
-    {
       "bind": "groupcast",
       "config.group": 0,
       "src.ep": 1,
@@ -131,6 +105,26 @@
       "config.group": 0,
       "src.ep": 1,
       "cl": "0x0008"
+    },
+    {
+      "bind": "groupcast",
+      "config.group": 0,
+      "src.ep": 1,
+      "cl": "0x0005"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 300,
+          "max": 300,
+          "change": "0x01"
+        }
+      ]
     }
   ]
 }
