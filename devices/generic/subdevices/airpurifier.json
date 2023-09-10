@@ -9,8 +9,10 @@
         "config/mode",
         "config/on",
         "config/reachable",
-        "state/airquality",
         "state/lastupdated",
         "state/speed"
+    ],
+    "items_optional": [
+        "state/airquality"
     ]
 }
