@@ -20,7 +20,6 @@
         "$TYPE_PARTICULATEMATTER_SENSOR": "ZHAParticulateMatter",
         "$TYPE_ALARM_SENSOR": "ZHAAlarm",
         "$TYPE_BATTERY_SENSOR": "ZHABattery",
-        "$TYPE_COLOR_DIMMABLE_LIGHT": "Color dimmable light",
         "$TYPE_COLOR_LIGHT": "Color light",
         "$TYPE_COLOR_TEMPERATURE_LIGHT": "Color temperature light",
         "$TYPE_CONSUMPTION_SENSOR": "ZHAConsumption",
