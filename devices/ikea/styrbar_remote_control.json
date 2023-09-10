@@ -2,7 +2,7 @@
   "schema": "devcap1.schema.json",
   "manufacturername": "$MF_IKEA",
   "modelid": "Remote Control N2",
-  "product": "STYRBAR remote control",
+  "product": "STYRBAR remote control - E2002",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -59,6 +59,7 @@
         },
         {
           "name": "config/battery",
+          "awake": true,
           "parse": {
             "fn": "zcl:attr",
             "ep": 1,
@@ -75,7 +76,8 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/buttonevent"
+          "name": "state/buttonevent",
+          "awake": true
         },
         {
           "name": "state/lastupdated"
