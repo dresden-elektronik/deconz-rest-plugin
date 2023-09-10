@@ -60,7 +60,7 @@
         {
           "name": "config/battery",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0001",
             "at": "0x0021",
@@ -87,20 +87,6 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "cl": "0x0001",
-      "report": [
-        {
-          "at": "0x0021",
-          "dt": "0x20",
-          "min": 300,
-          "max": 2700,
-          "change": "0x00000001"
-        }
-      ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
       "cl": "0x0006"
     },
     {
@@ -112,6 +98,20 @@
       "bind": "unicast",
       "src.ep": 1,
       "cl": "0x0005"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 300,
+          "max": 300,
+          "change": "0x01"
+        }
+      ]
     }
   ]
 }
