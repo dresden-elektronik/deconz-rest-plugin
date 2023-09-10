@@ -119,11 +119,11 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 305
+          "refresh.interval": 360
         },
         {
           "name": "state/bri",
-          "refresh.interval": 305
+          "refresh.interval": 360
         },
         {
           "name": "state/colormode",
@@ -137,7 +137,7 @@
         },
         {
           "name": "state/ct",
-          "refresh.interval": 305
+          "refresh.interval": 360
         },
         {
           "name": "state/reachable"

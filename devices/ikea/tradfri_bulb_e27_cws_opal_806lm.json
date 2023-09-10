@@ -192,11 +192,11 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 305
+          "refresh.interval": 360
         },
         {
           "name": "state/bri",
-          "refresh.interval": 305
+          "refresh.interval": 360
         },
         {
           "name": "state/colormode",
@@ -235,7 +235,7 @@
               "0x0001"
             ]
           },
-          "refresh.interval": 305
+          "refresh.interval": 360
         },
         {
           "name": "state/x",
