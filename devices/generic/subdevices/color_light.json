@@ -1,17 +1,15 @@
 {
     "schema": "subdevice1.schema.json",
-    "type": "$TYPE_EXTENDED_COLOR_LIGHT",
-    "name": "Extended color light",
+    "type": "$TYPE_COLOR_LIGHT",
+    "name": "Color light",
     "restapi": "/lights",
     "order": 10,
     "uuid": ["$address.ext", "0x01"],
     "items": [
         "cap/color/capabilities",
-        "cap/color/ct/max",
-        "cap/color/ct/min",
         "state/alert",
+        "state/bri",
         "state/colormode",
-        "state/ct",
         "state/on",
         "state/reachable"
     ],
@@ -32,10 +30,6 @@
         "config/color/ct/startup",
         "config/color/execute_if_off",
         "config/on/startup",
-        "state/bri",
-        "state/effect",
-        "state/hue",
-        "state/sat",
         "state/x",
         "state/y"
     ]
