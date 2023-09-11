@@ -1,9 +1,11 @@
 {
   "schema": "devcap1.schema.json",
   "manufacturername": [
-    "$MF_AQARA"
+    "$MF_AQARA",
+    "$MF_LUMI"
   ],
   "modelid": [
+    "lumi.light.acn132",
     "lumi.light.acn132"
   ],
   "product": "Aqara LED Strip T1",
@@ -244,7 +246,7 @@
             "mf": "0x115F",
             "at": "0x051B",
             "dt": "0x20",
-            "eval": "Math.max(5, Math.min(Attr.val, 50))"
+            "eval": "Math.max(5, Math.min(Item.val, 50))"
           }
         },
         {
