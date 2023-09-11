@@ -281,11 +281,11 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 365
+          "refresh.interval": 360
         },
         {
           "name": "state/bri",
-          "refresh.interval": 365
+          "refresh.interval": 360
         },
         {
           "name": "state/colormode",
@@ -307,7 +307,7 @@
               "0x0007"
             ]
           },
-          "refresh.interval": 365
+          "refresh.interval": 360
         },
         {
           "name": "state/music_sync",
