@@ -16,6 +16,7 @@
         "$TYPE_AIR_PURIFIER": "ZHAAirPurifier",
         "$TYPE_AIR_QUALITY_SENSOR": "ZHAAirQuality",
         "$TYPE_CARBONDIOXIDE_SENSOR": "ZHACarbonDioxide",
+        "$TYPE_CARBONMONOXIDE_SENSOR": "ZHACarbonMonoxide",
         "$TYPE_FORMALDEHYDE_SENSOR": "ZHAFormaldehyde",
         "$TYPE_PARTICULATEMATTER_SENSOR": "ZHAParticulateMatter",
         "$TYPE_ALARM_SENSOR": "ZHAAlarm",
