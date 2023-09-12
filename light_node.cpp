@@ -424,6 +424,11 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                             {
                                 removeItem(RCapColorCapabilities);
                             }
+                            // else if (modelId() == QLatin1String("lumi.light.acn132"))
+                            else if (deviceId == DEV_ID_HA_COLOR_DIMMABLE_LIGHT && manufacturerCode() == 0 &&
+                                     manufacturer().isEmpty() && modelId().isEmpty())
+                            {
+                            }
                             else
                             {
                                 addItem(DataTypeString, RStateEffect)->setValue(RStateEffectValues[R_EFFECT_NONE]);
