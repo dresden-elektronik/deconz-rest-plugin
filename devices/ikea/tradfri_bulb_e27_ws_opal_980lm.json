@@ -1,13 +1,13 @@
 {
   "schema": "devcap1.schema.json",
   "manufacturername": "$MF_IKEA",
-  "modelid": "TRADFRI bulb E27 W opal 1000lm",
-  "product": "TRADFRI bulb E27 W opal 1000lm",
+  "modelid": "TRADFRI bulb E27 WS opal 980lm",
+  "product": "TRADFRI bulb E27 WS opal 980lm",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_DIMMABLE_LIGHT",
+      "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
       "restapi": "/lights",
       "uuid": [
         "$address.ext",
@@ -48,7 +48,31 @@
           "name": "cap/bri/move_with_onoff"
         },
         {
+          "name": "cap/color/capabilities",
+          "read": {
+            "fn": "zcl",
+            "ep": "0x01",
+            "cl": "0x0300",
+            "at": [
+              "0x400a",
+              "0x400b",
+              "0x400c",
+              "0x4010"
+            ]
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "cap/color/ct/max"
+        },
+        {
+          "name": "cap/color/ct/min"
+        },
+        {
           "name": "cap/on/off_with_effect"
+        },
+        {
+          "name": "cap/transition_block"
         },
         {
           "name": "config/bri/execute_if_off",
@@ -84,6 +108,9 @@
           }
         },
         {
+          "name": "config/color/execute_if_off"
+        },
+        {
           "name": "config/on/startup"
         },
         {
@@ -96,6 +123,20 @@
         },
         {
           "name": "state/bri",
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/colormode",
+          "values": [
+            [
+              "\"ct\"",
+              "color temperature"
+            ]
+          ],
+          "static": "ct"
+        },
+        {
+          "name": "state/ct",
           "refresh.interval": 360
         },
         {
@@ -131,6 +172,21 @@
           "min": 1,
           "max": 300,
           "change": "0x01"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0300",
+      "report": [
+        {
+          "at": "0x0007",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x0001"
         }
       ]
     }
