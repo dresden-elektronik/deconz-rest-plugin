@@ -103,6 +103,7 @@ extern const char *RAttrProductId;
 extern const char *RAttrProductName;
 extern const char *RAttrSwconfigid;
 extern const char *RAttrSwVersion;
+extern const char *RAttrSwVersionBis;
 extern const char *RAttrType;
 extern const char *RAttrUniqueId;
 
@@ -163,6 +164,7 @@ extern const char *RStateLowBattery;
 extern const char *RStateLux;
 extern const char *RStateMoisture;
 extern const char *RStateMountingModeActive;
+extern const char *RStateMusicSync;
 extern const char *RStateOn;
 extern const char *RStateOpen;
 extern const char *RStateOpenBis;
@@ -256,6 +258,7 @@ extern const char *RConfigClickMode;
 extern const char *RConfigColorCapabilities; // Deprecated
 extern const char *RConfigColorCtStartup;
 extern const char *RConfigColorExecuteIfOff;
+extern const char *RConfigColorGradientPixelCount;
 extern const char *RConfigColorGradientReversed;
 extern const char *RConfigColorXyStartupX;
 extern const char *RConfigColorXyStartupY;
