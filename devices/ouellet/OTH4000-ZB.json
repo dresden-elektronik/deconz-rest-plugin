@@ -57,7 +57,7 @@
         {
           "name": "config/externalsensortemp",
           "description": "External sensor temperature used as Outdoor temperature on display.",
-          "refresh.interval": 300,
+          "refresh.interval": 3660,
           "read": {
             "at": "0x0010",
             "cl": "0xff01",
@@ -177,7 +177,7 @@
         },
         {
           "name": "state/temperature",
-          "refresh.interval": 30,
+          "refresh.interval": 420,
           "read": {
             "at": "0x0000",
             "cl": "0x0201",
@@ -268,7 +268,7 @@
         },
         {
           "name": "state/current",
-          "refresh.interval": 10,
+          "refresh.interval": 360,
           "read": {
             "at": "0x0508",
             "cl": "0x0b04",
@@ -288,7 +288,7 @@
         },
         {
           "name": "state/power",
-          "refresh.interval": 10,
+          "refresh.interval": 360,
           "read": {
             "at": "0x050b",
             "cl": "0x0b04",
@@ -305,7 +305,7 @@
         },
         {
           "name": "state/voltage",
-          "refresh.interval": 30,
+          "refresh.interval": 360,
           "read": {
             "at": "0x0505",
             "cl": "0x0b04",
@@ -392,24 +392,6 @@
         },
         {
           "name": "state/lastupdated"
-        },
-        {
-          "name": "state/power",
-          "refresh.interval": 30,
-          "read": {
-            "at": "0x050b",
-            "cl": "0x0b04",
-            "ep": 1,
-            "fn": "zcl"
-          },
-          "parse": {
-            "at": "0x050B",
-            "cl": "0x0B04",
-            "ep": 1,
-            "eval": "if (Attr.val != -32768 && Attr.val != 32768) { Item.val = Attr.val; }",
-            "fn": "zcl"
-          },
-          "default": 0
         }
       ]
     },

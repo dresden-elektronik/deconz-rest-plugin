@@ -184,7 +184,7 @@
           "refresh.interval": 86400,
           "read": {
             "cl": "0xffac",
-            "cmd": "00",
+            "cmd": "0x00",
             "ep": 1,
             "eval": "''",
             "fc": 5,
@@ -201,7 +201,7 @@
           },
           "parse": {
             "cl": "0xffac",
-            "cmd": "00",
+            "cmd": "0x00",
             "ep": 1,
             "eval": "Item.val = (ZclFrame.at(1) << 8 | ZclFrame.at(0))",
             "fn": "zcl:cmd",
