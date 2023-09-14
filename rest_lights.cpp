@@ -319,6 +319,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (rid.suffix == RConfigBriStartup) { configBri["startup"] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
         else if (rid.suffix == RConfigColorCtStartup) { configColorCt["startup"] = item->toNumber() == 0xFFFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
         else if (rid.suffix == RConfigColorExecuteIfOff) { configColor["execute_if_off"] = item->toBool(); }
+        else if (rid.suffix == RConfigColorGradientPixelCount) { configColorGradient["pixel_count"] = item->toNumber(); }
         else if (rid.suffix == RConfigColorGradientReversed) { configColorGradient["reversed"] = item->toBool(); }
         else if (rid.suffix == RConfigColorXyStartupX) { isx = item; }
         else if (rid.suffix == RConfigColorXyStartupY) { isy = item; }
@@ -345,6 +346,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (rid.suffix == RStateLift) { state["lift"] = item->toNumber(); }
         else if (rid.suffix == RStateOn) { state["on"] = item->toBool(); }
         else if (rid.suffix == RStateOpen) { state["open"] = item->toBool(); }
+        else if (rid.suffix == RStateMusicSync) { state["music_sync"] = item->toBool(); }
         else if (rid.suffix == RStateReachable) { state["reachable"] = item->toBool(); }
         else if (rid.suffix == RStateSat) { state["sat"] = item->toNumber(); }
         else if (rid.suffix == RStateSpeed) { state["speed"] = item->toNumber(); }
@@ -647,6 +649,12 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     }
 
     Device *device = static_cast<Device*>(taskRef.lightNode->parentResource());
+    Resource *rsub = nullptr;
+    StateChange change(StateChange::StateCallFunction, SC_WriteZclAttribute, taskRef.lightNode->haEndpoint().endpoint());
+    if (device && device->managed())
+    {
+        rsub = DEV_GetSubDevice(device, nullptr, taskRef.lightNode->uniqueId());
+    }
     rsp.httpStatus = HttpStatusOk;
 
     if (!taskRef.lightNode->isAvailable())
@@ -753,6 +761,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     quint16 colorloopSpeed = 25;
     bool hasGradient = false;
     QVariantMap gradient;
+    bool hasMusicSync = false;
+    bool targetMusicSync = false;
     QString alert;
     bool hasSpeed = false;
     quint8 targetSpeed = 0;
@@ -904,6 +914,17 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             {
                 effect = effectList.indexOf(map[param].toString());
                 valueOk = effect >= 0;
+            }
+        }
+        else if (param == "music_sync" && taskRef.lightNode->item(RStateMusicSync))
+        {
+            paramOk = true;
+            hasCmd = true;
+            if (map[param].type() == QVariant::Bool)
+            {
+                valueOk = true;
+                hasMusicSync = true;
+                targetMusicSync = map[param].toBool();
             }
         }
         else if (param == "colorloopspeed" && taskRef.lightNode->item(RStateEffect))
@@ -1464,6 +1485,19 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
+    if (hasMusicSync)
+    {
+        change.addTargetValue(RStateMusicSync, targetMusicSync);
+        taskRef.lightNode->setValue(RStateMusicSync, targetMusicSync);
+        DB_StoreSubDeviceItem(taskRef.lightNode, taskRef.lightNode->item(RStateMusicSync));
+
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState[QString("/lights/%1/state/music_sync").arg(id)] = targetMusicSync;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+    }
+
     // state.alert
     if (!alert.isEmpty())
     {
@@ -1604,6 +1638,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     }
 
     rsp.etag = taskRef.lightNode->etag;
+    if (rsub)
+    {
+        rsub->addStateChange(change);
+    }
     processTasks();
     return REQ_READY_SEND;
 }
@@ -1965,7 +2003,27 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
                                 QString path2 = QString("%1/%2").arg(path1).arg(key);
                                 value = map2[key];
 
-                                if (key == "reversed")
+                                if (key == "pixel_count")
+                                {
+                                    ResourceItem *item = lightNode->item(RConfigColorGradientPixelCount);
+                                    if (item)
+                                    {
+                                        paramOk = true;
+                                        if (value.type() == QVariant::Double)
+                                        {
+                                            const quint8 pixelCount = value.toUInt(&ok);
+                                            if (ok)
+                                            {
+                                                valueOk = true;
+                                                change.addTargetValue(RConfigColorGradientPixelCount, pixelCount);
+                                                lightNode->setValue(RConfigColorGradientPixelCount, pixelCount);
+                                                DB_StoreSubDeviceItem(lightNode, item);
+                                            }
+                                        }
+                                    }
+
+                                }
+                                else if (key == "reversed")
                                 {
                                     ResourceItem *item = lightNode->item(RConfigColorGradientReversed);
                                     if (item)
@@ -3848,6 +3906,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     else if (rid.suffix == RConfigBriStartup) { configBri["startup"] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
                     else if (rid.suffix == RConfigColorCtStartup) { configColorCt["startup"] = item->toNumber() == 0xFFFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
                     else if (rid.suffix == RConfigColorExecuteIfOff) { configColor["execute_if_off"] = item->toBool(); }
+                    else if (rid.suffix == RConfigColorGradientPixelCount) { configColorGradient["pixel_count"] = item->toNumber(); }
                     else if (rid.suffix == RConfigColorGradientReversed) { configColorGradient["reversed"] = item->toBool(); }
                     else if (rid.suffix == RConfigLocked) { config["locked"] = item->toBool(); }
                     else if (rid.suffix == RConfigOnStartup) { configOn["startup"] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toBool(); }
@@ -3871,6 +3930,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     else if (rid.suffix == RStateLift) { state["lift"] = item->toNumber(); }
                     else if (rid.suffix == RStateOn) { state["on"] = item->toBool(); }
                     else if (rid.suffix == RStateOpen) { state["open"] = item->toBool(); }
+                    else if (rid.suffix == RStateMusicSync) { state["music_sync"] = item->toBool(); }
                     else if (rid.suffix == RStateReachable) { state["reachable"] = item->toBool(); }
                     else if (rid.suffix == RStateSat) { state["sat"] = item->toNumber(); }
                     else if (rid.suffix == RStateSpeed) { state["speed"] = item->toNumber(); }

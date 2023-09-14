@@ -186,6 +186,9 @@
         {
           "name": "state/on",
           "refresh.interval": 5
+        },
+        {
+          "name": "state/reachable"
         }
       ]
     }

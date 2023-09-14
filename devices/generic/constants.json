@@ -2,6 +2,7 @@
     "schema": "constants1.schema.json",
 
     "manufacturers" : {
+        "$MF_AQARA": "Aqara",
         "$MF_BOSCH": "Bosch",
         "$MF_IKEA": "IKEA of Sweden",
         "$MF_LUMI": "LUMI",
