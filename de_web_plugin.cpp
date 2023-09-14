@@ -702,6 +702,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     gwWebSocketNotifyAll = true;
     gwdisablePermitJoinAutoOff = false;
     gwLightLastSeenInterval = 60;
+    gwExposeCoordinatorAsLight = false;
 
     // preallocate memory to get consistent pointers
     nodes.reserve(300);
@@ -915,7 +916,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     connect(deviceTick, &DeviceTick::eventNotify, eventEmitter, &EventEmitter::enqueueEvent);
 
     const deCONZ::Node *node;
-    if (apsCtrl && apsCtrl->getNode(0, &node) == 0)
+    if (apsCtrl && (apsCtrl->getNode(0, &node) == 0) && gwExposeCoordinatorAsLight)
     {
         addLightNode(node);
     }
@@ -2501,6 +2502,10 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             {
                 continue;
             }
+            if (node->address().ext() == 0 && !gwExposeCoordinatorAsLight)
+            {
+                continue;
+            }
 
             lightNode2 = &l;
             break;
@@ -2778,7 +2783,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
                 case DEV_ID_CONFIGURATION_TOOL:
                     {
-                        if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL)
+                        if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL && gwExposeCoordinatorAsLight)
                         {
                             lightNode.setHaEndpoint(*i);
                         }
