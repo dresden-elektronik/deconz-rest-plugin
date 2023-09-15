@@ -3678,7 +3678,7 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
     Device *device = DEV_GetDevice(m_devices, sensor->address().ext());
     if (device && device->managed())
     {
-        return false;
+        return;
     }
 
     Group *group = nullptr;
