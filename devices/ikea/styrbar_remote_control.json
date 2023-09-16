@@ -49,6 +49,23 @@
           "name": "attr/name"
         },
         {
+          "name": "attr/productid",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x000A",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x000A"
+          },
+          "refresh.interval": 86400
+        },
+        {
           "name": "attr/swversion"
         },
         {
@@ -56,6 +73,9 @@
         },
         {
           "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/alert"
         },
         {
           "name": "config/battery",
@@ -67,7 +87,14 @@
             "at": "0x0021",
             "eval": "Item.val = Math.round(Attr.val / 2)"
           },
-          "default": 0
+          "default": 0,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021"
+          },
+          "refesh.interval": 360
         },
         {
           "name": "config/on"
