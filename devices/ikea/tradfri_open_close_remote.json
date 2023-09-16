@@ -73,6 +73,9 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "config/alert"
+        },
+        {
           "name": "config/battery",
           "awake": true,
           "parse": {
