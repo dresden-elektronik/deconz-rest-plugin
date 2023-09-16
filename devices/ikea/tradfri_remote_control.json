@@ -30,7 +30,11 @@
           "0x0005"
         ]
       },
-      "meta": {"group.endpoints": [1]},
+      "meta": {
+        "group.endpoints": [
+          1
+        ]
+      },
       "items": [
         {
           "name": "attr/id"

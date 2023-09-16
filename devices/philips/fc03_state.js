@@ -1,13 +1,12 @@
 /* global R, ZclFrame */
-/* eslint-disable no-var */
 
 const attrid = ZclFrame.at(1) << 8 | ZclFrame.at(0)
 if (attrid === 0x0002) {
   const status = ZclFrame.at(2)
   const dt = status === 0 ? ZclFrame.at(3) : status
-  var i = status === 0 ? 4 : 3
+  let i = status === 0 ? 4 : 3
   if (dt === 0x41) {
-    var len = ZclFrame.at(i)
+    let len = ZclFrame.at(i)
     i++
     if (len >= 2) {
       const mode = ZclFrame.at(i + 1) << 8 | ZclFrame.at(i)
@@ -97,7 +96,7 @@ if (attrid === 0x0002) {
           }
           const maxX = 0.7347
           const maxY = 0.8431
-          for (var n = 1; n <= nPoints; n++) {
+          for (let n = 1; n <= nPoints; n++) {
             const point = ZclFrame.at(i + 2) << 16 | ZclFrame.at(i + 1) << 8 | ZclFrame.at(i)
             const rawX = point & 0x000FFF
             const rawY = (point & 0xFFF000) >> 12

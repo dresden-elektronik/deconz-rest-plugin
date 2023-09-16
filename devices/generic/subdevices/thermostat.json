@@ -1,21 +1,25 @@
 {
-    "schema": "subdevice1.schema.json",
-    "type": "$TYPE_THERMOSTAT",
-    "name": "ZHAThermostat",
-    "restapi": "/sensors",
-    "order": 20,
-    "uuid": ["$address.ext", "0x01", "0x0201"],
-    "items": [
-        "config/on",
-        "config/reachable",
-        "config/heatsetpoint",
-        "state/lastupdated",
-        "state/temperature"
-    ],
-    "items_optional": [
-        "config/mode",
-        "config/offset",
-        "state/on",
-        "state/valve"
-    ]
+  "schema": "subdevice1.schema.json",
+  "type": "$TYPE_THERMOSTAT",
+  "name": "ZHAThermostat",
+  "restapi": "/sensors",
+  "order": 20,
+  "uuid": [
+    "$address.ext",
+    "0x01",
+    "0x0201"
+  ],
+  "items": [
+    "config/on",
+    "config/reachable",
+    "config/heatsetpoint",
+    "state/lastupdated",
+    "state/temperature"
+  ],
+  "items_optional": [
+    "config/mode",
+    "config/offset",
+    "state/on",
+    "state/valve"
+  ]
 }

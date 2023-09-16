@@ -1,19 +1,23 @@
 {
-    "schema": "subdevice1.schema.json",
-    "type": "$TYPE_LIGHT_LEVEL_SENSOR",
-    "name": "ZHALightLevel",
-    "restapi": "/sensors",
-    "order": 22,
-    "uuid": ["$address.ext", "0x01", "0x0400"],
-    "items": [
-        "config/on",
-        "config/reachable",
-        "config/tholddark",
-        "config/tholdoffset",
-        "state/dark",
-        "state/daylight",
-        "state/lightlevel",
-        "state/lux",
-        "state/lastupdated"
-    ]
+  "schema": "subdevice1.schema.json",
+  "type": "$TYPE_LIGHT_LEVEL_SENSOR",
+  "name": "ZHALightLevel",
+  "restapi": "/sensors",
+  "order": 22,
+  "uuid": [
+    "$address.ext",
+    "0x01",
+    "0x0400"
+  ],
+  "items": [
+    "config/on",
+    "config/reachable",
+    "config/tholddark",
+    "config/tholdoffset",
+    "state/dark",
+    "state/daylight",
+    "state/lightlevel",
+    "state/lux",
+    "state/lastupdated"
+  ]
 }

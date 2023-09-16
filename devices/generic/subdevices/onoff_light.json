@@ -1,16 +1,19 @@
 {
-    "schema": "subdevice1.schema.json",
-    "type": "$TYPE_ON_OFF_LIGHT",
-    "name": "On/Off light",
-    "restapi": "/lights",
-    "order": 11,
-    "uuid": ["$address.ext", "0x01"],
-    "items": [
-        "state/on",
-        "state/reachable"
-    ],
-    "items_optional": [
-        "config/on/startup",
-        "state/alert"
-    ]
+  "schema": "subdevice1.schema.json",
+  "type": "$TYPE_ON_OFF_LIGHT",
+  "name": "On/Off light",
+  "restapi": "/lights",
+  "order": 11,
+  "uuid": [
+    "$address.ext",
+    "0x01"
+  ],
+  "items": [
+    "state/on",
+    "state/reachable"
+  ],
+  "items_optional": [
+    "config/on/startup",
+    "state/alert"
+  ]
 }

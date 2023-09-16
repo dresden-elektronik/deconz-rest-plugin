@@ -1,11 +1,14 @@
 {
-    "schema": "subdevice1.schema.json",
-    "type": "$TYPE_RANGE_EXTENDER",
-    "name": "Range extender",
-    "restapi": "/lights",
-    "order": 11,
-    "uuid": ["$address.ext", "0x01"],
-    "items": [
-        "state/reachable"
-    ]
+  "schema": "subdevice1.schema.json",
+  "type": "$TYPE_RANGE_EXTENDER",
+  "name": "Range extender",
+  "restapi": "/lights",
+  "order": 11,
+  "uuid": [
+    "$address.ext",
+    "0x01"
+  ],
+  "items": [
+    "state/reachable"
+  ]
 }

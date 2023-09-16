@@ -1,10 +1,10 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "config/pulseconfiguration",
-	"datatype": "UInt16",
-	"access": "RW",
-	"public": true,
-	"description": "Pulse Configuration represents the number of pulses the meter outputs per unit.",
+  "schema": "resourceitem1.schema.json",
+  "id": "config/pulseconfiguration",
+  "datatype": "UInt16",
+  "access": "RW",
+  "public": true,
+  "description": "Pulse Configuration represents the number of pulses the meter outputs per unit.",
   "default": 0,
   "refresh.interval": 86400
 }
