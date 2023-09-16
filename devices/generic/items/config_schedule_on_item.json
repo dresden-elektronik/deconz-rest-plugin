@@ -1,11 +1,22 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "config/schedule_on",
-	"datatype": "Bool",
-	"access": "RW",
-	"public": true,
-	"description": "Determines if on-device schedules for setting the heatsetpoint are currently used or if the thermostat is operated manually.",
-	"parse": {"at": "0x0025", "cl": "0x0201", "ep": 0, "eval": "Item.val = Attr.val;", "fn": "zcl"},
-	"read": {"at": "0x0025", "cl": "0x0201", "ep": 0, "fn": "zcl"},
-	"default": false
+  "schema": "resourceitem1.schema.json",
+  "id": "config/schedule_on",
+  "datatype": "Bool",
+  "access": "RW",
+  "public": true,
+  "description": "Determines if on-device schedules for setting the heatsetpoint are currently used or if the thermostat is operated manually.",
+  "parse": {
+    "at": "0x0025",
+    "cl": "0x0201",
+    "ep": 0,
+    "eval": "Item.val = Attr.val;",
+    "fn": "zcl"
+  },
+  "read": {
+    "at": "0x0025",
+    "cl": "0x0201",
+    "ep": 0,
+    "fn": "zcl"
+  },
+  "default": false
 }

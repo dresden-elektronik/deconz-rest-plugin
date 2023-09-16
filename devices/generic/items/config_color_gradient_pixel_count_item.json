@@ -1,8 +1,8 @@
 {
-    "schema": "resourceitem1.schema.json",
-    "id": "config/color/gradient/pixel_count",
-    "datatype": "UInt8",
-    "access": "RW",
-    "public": true,
-    "description": "Number of pixels on Aqara LED Strip T1."
+  "schema": "resourceitem1.schema.json",
+  "id": "config/color/gradient/pixel_count",
+  "datatype": "UInt8",
+  "access": "RW",
+  "public": true,
+  "description": "Number of pixels on Aqara LED Strip T1."
 }

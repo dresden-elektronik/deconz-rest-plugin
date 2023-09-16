@@ -1,18 +1,22 @@
 {
-    "schema": "subdevice1.schema.json",
-    "type": "$TYPE_POWER_SENSOR",
-    "name": "ZHAPower",
-    "restapi": "/sensors",
-    "order": 21,
-    "uuid": ["$address.ext", "0x01", "0x0b04"],
-    "items": [
-        "config/on",
-        "config/reachable",
-        "state/lastupdated",
-        "state/power"
-    ],
-    "items_optional": [
-        "state/current",
-        "state/voltage"
-    ]
+  "schema": "subdevice1.schema.json",
+  "type": "$TYPE_POWER_SENSOR",
+  "name": "ZHAPower",
+  "restapi": "/sensors",
+  "order": 21,
+  "uuid": [
+    "$address.ext",
+    "0x01",
+    "0x0b04"
+  ],
+  "items": [
+    "config/on",
+    "config/reachable",
+    "state/lastupdated",
+    "state/power"
+  ],
+  "items_optional": [
+    "state/current",
+    "state/voltage"
+  ]
 }

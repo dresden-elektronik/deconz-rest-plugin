@@ -1,9 +1,11 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "state/tampered",
-	"datatype": "Bool",
-	"access": "R",
-	"public": true,
-	"description": "True when the device tampered alarm was triggered.",
-	"parse": {"fn": "ias:zonestatus"}
+  "schema": "resourceitem1.schema.json",
+  "id": "state/tampered",
+  "datatype": "Bool",
+  "access": "R",
+  "public": true,
+  "description": "True when the device tampered alarm was triggered.",
+  "parse": {
+    "fn": "ias:zonestatus"
+  }
 }

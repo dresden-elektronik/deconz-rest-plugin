@@ -1,10 +1,21 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "state/hue",
-	"datatype": "UInt16",
-	"access": "RW",
-	"public": true,
-	"description": "The current color hue.",
-	"parse": {"fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x4000", "eval": "Item.val = Attr.val"},
-	"read": {"fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x4000"}
+  "schema": "resourceitem1.schema.json",
+  "id": "state/hue",
+  "datatype": "UInt16",
+  "access": "RW",
+  "public": true,
+  "description": "The current color hue.",
+  "parse": {
+    "fn": "zcl",
+    "ep": 0,
+    "cl": "0x0300",
+    "at": "0x4000",
+    "eval": "Item.val = Attr.val"
+  },
+  "read": {
+    "fn": "zcl",
+    "ep": 0,
+    "cl": "0x0300",
+    "at": "0x4000"
+  }
 }

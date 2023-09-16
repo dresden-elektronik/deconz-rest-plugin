@@ -1,12 +1,26 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "state/battery",
-	"datatype": "UInt8",
-	"access": "R",
-	"public": true,
-	"range": [0, 100],
-	"description": "The current device battery level in range 0&ndash;100&nbsp;%.",
-	"parse": {"fn": "zcl", "ep": 0, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"},
-	"read": {"fn": "zcl", "ep": 0, "cl": "0x0001", "at": "0x0021"},
-	"refresh.interval": 3600
+  "schema": "resourceitem1.schema.json",
+  "id": "state/battery",
+  "datatype": "UInt8",
+  "access": "R",
+  "public": true,
+  "range": [
+    0,
+    100
+  ],
+  "description": "The current device battery level in range 0&ndash;100&nbsp;%.",
+  "parse": {
+    "fn": "zcl",
+    "ep": 0,
+    "cl": "0x0001",
+    "at": "0x0021",
+    "eval": "Item.val = Attr.val / 2"
+  },
+  "read": {
+    "fn": "zcl",
+    "ep": 0,
+    "cl": "0x0001",
+    "at": "0x0021"
+  },
+  "refresh.interval": 3600
 }

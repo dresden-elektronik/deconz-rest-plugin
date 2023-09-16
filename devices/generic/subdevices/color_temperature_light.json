@@ -1,31 +1,34 @@
 {
-    "schema": "subdevice1.schema.json",
-    "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
-    "name": "Color temperature light",
-    "restapi": "/lights",
-    "order": 11,
-    "uuid": ["$address.ext", "0x01"],
-    "items": [
-        "cap/color/capabilities",
-        "cap/color/ct/max",
-        "cap/color/ct/min",
-        "state/alert",
-        "state/bri",
-        "state/colormode",
-        "state/ct",
-        "state/on",
-        "state/reachable"
-    ],
-    "items_optional":[
-        "cap/alert/trigger_effect",
-        "cap/bri/move_with_onoff",
-        "cap/groups/not_supported",
-        "cap/on/off_with_effect",
-        "cap/transition_block",
-        "config/bri/execute_if_off",
-        "config/bri/startup",
-        "config/color/ct/startup",
-        "config/color/execute_if_off",
-        "config/on/startup"
-    ]
+  "schema": "subdevice1.schema.json",
+  "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
+  "name": "Color temperature light",
+  "restapi": "/lights",
+  "order": 11,
+  "uuid": [
+    "$address.ext",
+    "0x01"
+  ],
+  "items": [
+    "cap/color/capabilities",
+    "cap/color/ct/max",
+    "cap/color/ct/min",
+    "state/alert",
+    "state/bri",
+    "state/colormode",
+    "state/ct",
+    "state/on",
+    "state/reachable"
+  ],
+  "items_optional": [
+    "cap/alert/trigger_effect",
+    "cap/bri/move_with_onoff",
+    "cap/groups/not_supported",
+    "cap/on/off_with_effect",
+    "cap/transition_block",
+    "config/bri/execute_if_off",
+    "config/bri/startup",
+    "config/color/ct/startup",
+    "config/color/execute_if_off",
+    "config/on/startup"
+  ]
 }

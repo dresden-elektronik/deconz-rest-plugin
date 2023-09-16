@@ -1,21 +1,51 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "config/windowcoveringtype",
-	"datatype": "UInt8",
-	"access": "RW",
-	"public": true,
-	"description": "The window cover type.",
-	"default" : 0,
-	"values": [
-		[0, "Roller Shade"],
-		[1, "Roller Shade two motors"],
-		[2, "Roller Shade exterior"],
-		[3, "Roller Shade two motors ext"],
-		[4, "Drapery"],
-		[5, "Awning"],
-		[6, "Shutter"],
-		[7, "Tilt Blind Lift only"],
-		[8, "Tilt Blind lift & tilt"],
-		[9, "Projector Screen"]
-	]
+  "schema": "resourceitem1.schema.json",
+  "id": "config/windowcoveringtype",
+  "datatype": "UInt8",
+  "access": "RW",
+  "public": true,
+  "description": "The window cover type.",
+  "default": 0,
+  "values": [
+    [
+      0,
+      "Roller Shade"
+    ],
+    [
+      1,
+      "Roller Shade two motors"
+    ],
+    [
+      2,
+      "Roller Shade exterior"
+    ],
+    [
+      3,
+      "Roller Shade two motors ext"
+    ],
+    [
+      4,
+      "Drapery"
+    ],
+    [
+      5,
+      "Awning"
+    ],
+    [
+      6,
+      "Shutter"
+    ],
+    [
+      7,
+      "Tilt Blind Lift only"
+    ],
+    [
+      8,
+      "Tilt Blind lift & tilt"
+    ],
+    [
+      9,
+      "Projector Screen"
+    ]
+  ]
 }

@@ -1,12 +1,23 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "attr/swversion",
-	"datatype": "String",
-	"access": "R",
-	"public": true,
-	"implicit" : true,
-	"description": "Firmware version of the device.",
-	"parse": {"fn": "zcl", "ep": 255, "cl": "0x0000", "at": "0x4000", "eval": "Item.val = Attr.val"},
-	"read": {"fn": "zcl", "ep": 0, "cl": "0x0000", "at": "0x4000"},
-	"refresh.interval": 86400
+  "schema": "resourceitem1.schema.json",
+  "id": "attr/swversion",
+  "datatype": "String",
+  "access": "R",
+  "public": true,
+  "implicit": true,
+  "description": "Firmware version of the device.",
+  "parse": {
+    "fn": "zcl",
+    "ep": 255,
+    "cl": "0x0000",
+    "at": "0x4000",
+    "eval": "Item.val = Attr.val"
+  },
+  "read": {
+    "fn": "zcl",
+    "ep": 0,
+    "cl": "0x0000",
+    "at": "0x4000"
+  },
+  "refresh.interval": 86400
 }
