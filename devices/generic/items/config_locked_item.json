@@ -1,12 +1,30 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "config/locked",
-	"datatype": "Bool",
-	"access": "RW",
-	"public": true,
-	"description": "Locks or unlocks the device. This item has to be understood as child-lock.",
-	"parse": {"at": "0x0001", "cl": "0x0204", "ep": 0, "eval": "Item.val = Attr.val;", "fn": "zcl"},
-	"read": {"at": "0x0001", "cl": "0x0204", "ep": 0, "fn": "zcl"},
-	"write": {"at": "0x0001", "cl": "0x0204", "dt": "0x30", "ep": 0, "eval": "Item.val", "fn": "zcl"},
-	"default": false
+  "schema": "resourceitem1.schema.json",
+  "id": "config/locked",
+  "datatype": "Bool",
+  "access": "RW",
+  "public": true,
+  "description": "Locks or unlocks the device. This item has to be understood as child-lock.",
+  "parse": {
+    "at": "0x0001",
+    "cl": "0x0204",
+    "ep": 0,
+    "eval": "Item.val = Attr.val;",
+    "fn": "zcl"
+  },
+  "read": {
+    "at": "0x0001",
+    "cl": "0x0204",
+    "ep": 0,
+    "fn": "zcl"
+  },
+  "write": {
+    "at": "0x0001",
+    "cl": "0x0204",
+    "dt": "0x30",
+    "ep": 0,
+    "eval": "Item.val",
+    "fn": "zcl"
+  },
+  "default": false
 }

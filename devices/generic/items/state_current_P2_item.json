@@ -1,11 +1,21 @@
 {
-    "schema": "resourceitem1.schema.json",
-    "id": "state/current_P2",
-    "datatype": "UInt16",
-    "access": "RW",
-    "public": true,
-    "description": "The measured current on phase 2.",
-    "read": {"at": "0x0908", "cl": "0x0b04", "ep": 0, "fn": "zcl" },
-    "parse": {"at": "0x0908", "cl": "0x0b04", "ep": 0, "eval": "Item.val = Attr.val;"},
-    "refresh.interval": 300
+  "schema": "resourceitem1.schema.json",
+  "id": "state/current_P2",
+  "datatype": "UInt16",
+  "access": "RW",
+  "public": true,
+  "description": "The measured current on phase 2.",
+  "read": {
+    "at": "0x0908",
+    "cl": "0x0b04",
+    "ep": 0,
+    "fn": "zcl"
+  },
+  "parse": {
+    "at": "0x0908",
+    "cl": "0x0b04",
+    "ep": 0,
+    "eval": "Item.val = Attr.val;"
+  },
+  "refresh.interval": 300
 }

@@ -1,13 +1,34 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "config/heatsetpoint",
-	"datatype": "Int16",
-	"access": "RW",
-	"public": true,
-	"default": 0,
-	"description": "Target temperature of a thermostat.",
-	"parse": {"at": "0x0012", "cl": "0x0201", "ep": 0, "eval": "Item.val = Attr.val;", "fn": "zcl"},
-	"read": {"at": "0x0012", "cl": "0x0201", "ep": 0, "fn": "zcl"},
-	"write": {"at": "0x0012", "cl": "0x0201", "dt": "0x29", "ep": 0, "eval": "Item.val;", "fn": "zcl"},
-	"range": [500, 3200]
+  "schema": "resourceitem1.schema.json",
+  "id": "config/heatsetpoint",
+  "datatype": "Int16",
+  "access": "RW",
+  "public": true,
+  "default": 0,
+  "description": "Target temperature of a thermostat.",
+  "parse": {
+    "at": "0x0012",
+    "cl": "0x0201",
+    "ep": 0,
+    "eval": "Item.val = Attr.val;",
+    "fn": "zcl"
+  },
+  "read": {
+    "at": "0x0012",
+    "cl": "0x0201",
+    "ep": 0,
+    "fn": "zcl"
+  },
+  "write": {
+    "at": "0x0012",
+    "cl": "0x0201",
+    "dt": "0x29",
+    "ep": 0,
+    "eval": "Item.val;",
+    "fn": "zcl"
+  },
+  "range": [
+    500,
+    3200
+  ]
 }

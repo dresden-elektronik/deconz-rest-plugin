@@ -1,14 +1,17 @@
 {
-    "schema": "resourceitem1.schema.json",
-    "id": "config/ctmax",
-    "datatype": "UInt16",
-    "access": "R",
-    "public": true,
-    "description": "Deprecated. Maximum supported color temperature.",
-    "deprecated": "2022-11-11",
-    "default": "0xfeff",
-    "parse": {
-        "fn": "zcl", "ep": 0, "cl": "0x0300", "at": "0x400c",
-        "eval": "Item.val = Attr.val"
-    }
+  "schema": "resourceitem1.schema.json",
+  "id": "config/ctmax",
+  "datatype": "UInt16",
+  "access": "R",
+  "public": true,
+  "description": "Deprecated. Maximum supported color temperature.",
+  "deprecated": "2022-11-11",
+  "default": "0xfeff",
+  "parse": {
+    "fn": "zcl",
+    "ep": 0,
+    "cl": "0x0300",
+    "at": "0x400c",
+    "eval": "Item.val = Attr.val"
+  }
 }

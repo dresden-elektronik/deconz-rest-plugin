@@ -1,15 +1,19 @@
 {
-    "schema": "subdevice1.schema.json",
-    "type": "$TYPE_TEMPERATURE_SENSOR",
-    "name": "ZHATemperature",
-    "restapi": "/sensors",
-    "order": 23,
-    "uuid": ["$address.ext", "0x01", "0x0402"],
-    "items": [
-        "config/on",
-        "config/offset",
-        "config/reachable",
-        "state/temperature",
-        "state/lastupdated"
-    ]
+  "schema": "subdevice1.schema.json",
+  "type": "$TYPE_TEMPERATURE_SENSOR",
+  "name": "ZHATemperature",
+  "restapi": "/sensors",
+  "order": 23,
+  "uuid": [
+    "$address.ext",
+    "0x01",
+    "0x0402"
+  ],
+  "items": [
+    "config/on",
+    "config/offset",
+    "config/reachable",
+    "state/temperature",
+    "state/lastupdated"
+  ]
 }

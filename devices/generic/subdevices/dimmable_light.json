@@ -1,23 +1,26 @@
 {
-    "schema": "subdevice1.schema.json",
-    "type": "$TYPE_DIMMABLE_LIGHT",
-    "name": "Dimmable light",
-    "restapi": "/lights",
-    "order": 11,
-    "uuid": ["$address.ext", "0x01"],
-    "items": [
-        "state/alert",
-        "state/bri",
-        "state/on",
-        "state/reachable"
-    ],
-    "items_optional":[
-        "cap/alert/trigger_effect",
-        "cap/bri/move_with_onoff",
-        "cap/groups/not_supported",
-        "cap/on/off_with_effect",
-        "config/bri/execute_if_off",
-        "config/bri/startup",
-        "config/on/startup"
-    ]
+  "schema": "subdevice1.schema.json",
+  "type": "$TYPE_DIMMABLE_LIGHT",
+  "name": "Dimmable light",
+  "restapi": "/lights",
+  "order": 11,
+  "uuid": [
+    "$address.ext",
+    "0x01"
+  ],
+  "items": [
+    "state/alert",
+    "state/bri",
+    "state/on",
+    "state/reachable"
+  ],
+  "items_optional": [
+    "cap/alert/trigger_effect",
+    "cap/bri/move_with_onoff",
+    "cap/groups/not_supported",
+    "cap/on/off_with_effect",
+    "config/bri/execute_if_off",
+    "config/bri/startup",
+    "config/on/startup"
+  ]
 }

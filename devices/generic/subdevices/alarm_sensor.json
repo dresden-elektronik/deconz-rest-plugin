@@ -1,20 +1,24 @@
 {
-    "schema": "subdevice1.schema.json",
-    "type": "$TYPE_ALARM_SENSOR",
-    "name": "ZHAAlarm",
-    "restapi": "/sensors",
-    "order": 30,
-    "uuid": ["$address.ext", "0x01", "0x0500"],
-    "items": [
-        "config/on",
-        "config/reachable",
-        "state/alarm",
-        "state/lastupdated"
-    ],
-    "items_optional": [
-        "config/enrolled",
-        "config/pending",
-        "config/battery",
-        "state/lowbattery"
-    ]
+  "schema": "subdevice1.schema.json",
+  "type": "$TYPE_ALARM_SENSOR",
+  "name": "ZHAAlarm",
+  "restapi": "/sensors",
+  "order": 30,
+  "uuid": [
+    "$address.ext",
+    "0x01",
+    "0x0500"
+  ],
+  "items": [
+    "config/on",
+    "config/reachable",
+    "state/alarm",
+    "state/lastupdated"
+  ],
+  "items_optional": [
+    "config/enrolled",
+    "config/pending",
+    "config/battery",
+    "state/lowbattery"
+  ]
 }
