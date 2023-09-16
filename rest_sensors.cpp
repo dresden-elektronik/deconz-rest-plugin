@@ -2696,6 +2696,7 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
     const ResourceItem *ix = nullptr;
     const ResourceItem *iy = nullptr;
     QVariantList xy;
+    QVariantMap cap;
     QVariantMap config;
     const ResourceItem *ilcs = nullptr;
     const ResourceItem *ilca = nullptr;
@@ -2799,6 +2800,12 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
             {
                 state[key] = item->toVariant();
             }
+        }
+        else if (strncmp(rid.suffix, "cap/", 4) == 0)
+        {
+            const char *key = item->descriptor().suffix + 4;
+
+            cap[key] = item->toVariant();
         }
         else if (rid.suffix == RAttrLastAnnounced) { map["lastannounced"] = item->toString(); }
         else if (rid.suffix == RAttrLastSeen) { map["lastseen"] = item->toString(); }
@@ -2915,6 +2922,7 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
     }
     map[QLatin1String("state")] = state;
     map[QLatin1String("config")] = config;
+    if (!cap.isEmpty()) map[QLatin1String("capabilities")] = cap;
 
     return true;
 }
@@ -3169,6 +3177,52 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             if (!config.isEmpty())
             {
                 map[QLatin1String("config")] = config;
+                webSocketServer->broadcastTextMessage(Json::serialize(map));
+                updateSensorEtag(sensor);
+                plugin->saveDatabaseItems |= DB_SENSORS;
+                plugin->queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+            }
+        }
+    }
+    else if (strncmp(e.what(), "cap/", 4) == 0)
+    {
+        ResourceItem *item = sensor->item(e.what());
+        if (item && item->isPublic())
+        {
+            if (!(item->needPushSet() || item->needPushChange()))
+            {
+                return; // already pushed
+            }
+
+            QVariantMap map;
+            map[QLatin1String("t")] = QLatin1String("event");
+            map[QLatin1String("e")] = QLatin1String("changed");
+            map[QLatin1String("r")] = QLatin1String("sensors");
+            map[QLatin1String("id")] = e.id();
+            map[QLatin1String("uniqueid")] = sensor->uniqueId();
+
+            QVariantMap cap;
+
+            for (int i = 0; i < sensor->itemCount(); i++)
+            {
+                item = sensor->itemForIndex(i);
+                const ResourceItemDescriptor &rid = item->descriptor();
+
+                if (strncmp(rid.suffix, "cap/", 4) == 0)
+                {
+                    const char *key = item->descriptor().suffix + 4;
+
+                    if (gwWebSocketNotifyAll || item->needPushChange())
+                    {
+                        cap[key] = item->toVariant();
+                        item->clearNeedPush();
+                    }
+                }
+            }
+
+            if (!cap.isEmpty())
+            {
+                map["capabilities"] = cap;
                 webSocketServer->broadcastTextMessage(Json::serialize(map));
                 updateSensorEtag(sensor);
                 plugin->saveDatabaseItems |= DB_SENSORS;
