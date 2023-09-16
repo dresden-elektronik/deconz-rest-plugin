@@ -4836,8 +4836,8 @@ These devices can operate on either battery or mains power, and can have a wide 
   </domain>
 
   <domain name="Light Link" useZcl="true" description="The light link domain contains clusters and information that provides ZLL specific functions and attributes.">
-    <cluster id="0x1000" name="ZLL commissioning">
-      <description>Attributes and commands for ZLL commissioning.</description>
+    <cluster id="0x1000" name="Touchlink Commissioning">
+      <description>Attributes and commands for touchlink commissioning.</description>
       <server>
         <command id="0x41" dir="recv" name="Get group identifiers" required="m" response="0x41">
           <description>The get group identifiers request command is used to retrieve the actual group identifiers that the endpoint is using in its multicast communication in controlling different (remote) devices.</description>
