@@ -1,0 +1,23 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "cap/group",
+  "datatype": "String",
+  "access": "R",
+  "public": true,
+  "description": "Comma-seperated list of groups which a device controls.",
+  "parse": {
+    "fn": "zcl:cmd",
+    "ep": 1,
+    "cl": "0x1000",
+    "cmd": "0x41",
+    "script": "../generic/touchlink_commissioning_cluster/1000_get_group_identifiers.js"
+  },
+  "read": {
+    "fn": "zcl:cmd",
+    "ep": 1,
+    "cl": "0x1000",
+    "cmd": "0x41",
+    "eval": "'00'"
+  },
+  "refresh.interval": 86400
+}

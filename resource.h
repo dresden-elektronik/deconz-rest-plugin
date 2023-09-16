@@ -227,6 +227,7 @@ extern const char *RCapColorXyGreenX;
 extern const char *RCapColorXyGreenY;
 extern const char *RCapColorXyRedX;
 extern const char *RCapColorXyRedY;
+extern const char *RCapGroup;
 extern const char *RCapGroupsNotSupported;
 extern const char *RCapOnOffWithEffect;
 extern const char *RCapSleeper;

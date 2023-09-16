@@ -213,6 +213,7 @@ const char *RCapColorXyGreenX = "cap/color/xy/green_x";
 const char *RCapColorXyGreenY = "cap/color/xy/green_y";
 const char *RCapColorXyRedX = "cap/color/xy/red_x";
 const char *RCapColorXyRedY = "cap/color/xy/red_y";
+const char *RCapGroup = "cap/group";
 const char *RCapGroupsNotSupported = "cap/groups/not_supported";
 const char *RCapOnOffWithEffect = "cap/on/off_with_effect";
 const char *RCapSleeper = "cap/sleeper";
@@ -503,6 +504,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorXyGreenY));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorXyRedX));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorXyRedY));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RCapGroup));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RCapGroupsNotSupported));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RCapOnOffWithEffect));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RCapSleeper));
