@@ -1,12 +1,11 @@
 /* global Item, ZclFrame */
-/* eslint-disable no-var */
 
 const status = ZclFrame.at(1) << 8 | ZclFrame.at(0)
 const offset = ZclFrame.at(3) << 8 | ZclFrame.at(2)
 // const totalLength = ZclFrame.at(7) << 8 | ZclFrame.at(6)
 // const length = ZclFrame.at(10) // ostring length
-var o = 11 // start of ostring data bytes
-var s = ''
+let o = 11 // start of ostring data bytes
+let s = ''
 
 if (status === 0x0000) {
   if (offset === 0x0000) {
@@ -24,7 +23,7 @@ if (status === 0x0000) {
     }
   } else {
     if (ZclFrame.at(o++) === 0x42) { // T: productname
-      for (var l = ZclFrame.at(o++); l > 0; l--) {
+      for (let l = ZclFrame.at(o++); l > 0; l--) {
         s += String.fromCharCode(ZclFrame.at(o++))
       }
       Item.val = s
