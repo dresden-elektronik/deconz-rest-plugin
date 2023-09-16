@@ -5091,6 +5091,26 @@ These devices can operate on either battery or mains power, and can have a wide 
       </server>
     </cluster>
 
+    <cluster id="0xfc06" name="Hue Secure" mfcode="0x100b">
+      <description>Hue-specific cluster for Hue Secure Contact Sensor.</description>
+      <server>
+        <attribute id="0x0100" name="Contact" type="enum8" mfcode="0x100b" access="r" required="m">
+          <value name="Close" value="0"/>
+          <value name="Open" value="1"/>
+        </attribute>
+        <attribute id="0x0101" name="Last Contact Change" type="u32" mfcode="0x100b" access="r" required="m">
+          <description>The time in 0.1s since last change to the Contact state.</description>
+        </attribute>
+        <attribute id="0x0102" name="Tamper" type="enum8" mfcode="0x100b" access="r" required="m">
+          <value name="Battery Door Closed" value="0"/>
+          <value name="Battery Door Open" value="1"/>
+        </attribute>
+        <attribute id="0x0103" name="Last Tamper Change" type="u32" mfcode="0x100b" access="r" required="m">
+          <description>The time in 0.1s since last change to the Tamper state.</description>
+        </attribute>
+      </server>
+    </cluster>
+
     <!-- Sunricher C4 -->
     <cluster id="0xfc00" name="Device Setup" mfcode="0x1224">
       <description>Sunricher-specific cluster.</description>
