@@ -58,6 +58,9 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "cap/group"
+        },
+        {
           "name": "config/battery",
           "awake": true,
           "parse": {
