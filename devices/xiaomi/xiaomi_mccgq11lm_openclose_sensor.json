@@ -3,7 +3,7 @@
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.sensor_magnet.aq2",
   "vendor": "Xiaomi",
-  "product": "Aqara Door and Window Sensor MCCGQ11LM",
+  "product": "Aqara open/close sensor MCCGQ11LM",
   "sleeper": true,
   "status": "Gold",
   "md:known_issues": [
