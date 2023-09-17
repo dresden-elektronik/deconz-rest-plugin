@@ -10,7 +10,7 @@
   ],
   "product": "PRAKTLYSING/TREDANSEN cellular blind",
   "sleeper": false,
-  "status": "Gold",
+  "status": "Draft",
   "subdevices": [
     {
       "type": "$TYPE_WINDOW_COVERING_DEVICE",
