@@ -572,7 +572,7 @@
         },
         {
           "name": "cap/measured_value/substance",
-          "static": "tvoc"
+          "static": "tVOC"
         },
         {
           "name": "cap/measured_value/unit",
