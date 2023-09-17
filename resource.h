@@ -515,6 +515,8 @@ private:
     quint16 m_flags = 0; // bitmap of ResourceItem::ItemFlags
     qint64 m_num = 0;
     qint64 m_numPrev = 0;
+    double m_double = 0.0;
+    double m_doublePrev = 0.0;
     deCONZ::SteadyTimeRef m_lastZclReport;
 
     BufStringCacheHandle m_strHandle; // for strings which don't fit into \c m_istr
