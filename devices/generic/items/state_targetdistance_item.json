@@ -1,0 +1,9 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "state/targetdistance",
+  "description": "Distance from detected target",
+  "datatype": "Int16",
+  "access": "R",
+  "public": true,
+  "default": 0
+}

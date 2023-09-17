@@ -1,9 +1,12 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "state/vibrationstrength",
-	"datatype": "UInt16",
-	"access": "R",
-	"public": true,
-	"range": [0, 65535],
-	"description": "The strength of the detected vibration."
+  "schema": "resourceitem1.schema.json",
+  "id": "state/vibrationstrength",
+  "datatype": "UInt16",
+  "access": "R",
+  "public": true,
+  "range": [
+    0,
+    65535
+  ],
+  "description": "The strength of the detected vibration."
 }

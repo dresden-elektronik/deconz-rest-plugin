@@ -6763,7 +6763,7 @@ static int DB_LoadLegacyValueCallback(void *user, int ncols, char **colval , cha
 
     if (colval[0][0] == '{') // state and config json objects
     {
-        BufString<32> key; // config/offset -> offset
+        BufString<64> key; // config/offset -> offset
         for (size_t i = 0; i < result->column.size(); i++)
         {
             if (result->column.c_str()[i] == '/')
@@ -6822,7 +6822,7 @@ bool DB_LoadLegacySensorValue(DB_LegacyItem *litem)
 
     litem->value.clear();
 
-    BufString<32> column; // config/* -> config, state/* -> state
+    BufString<64> column; // config/* -> config, state/* -> state
     for (size_t i = 0; i < litem->column.size(); i++)
     {
         if (litem->column.c_str()[i] == '/')

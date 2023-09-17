@@ -1,12 +1,26 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "state/bri",
-	"datatype": "UInt8",
-	"access": "RW",
-	"public": true,
-	"range": [0, 254],
-	"description": "The current brightness.",
-	"parse": {"fn": "zcl", "ep": 0, "cl": "0x0008", "at": "0x0000", "eval": "Item.val = Attr.val"},
-	"read": {"fn": "zcl", "ep": 0, "cl": "0x0008", "at": "0x0000"},
-	"refresh.interval": 5
+  "schema": "resourceitem1.schema.json",
+  "id": "state/bri",
+  "datatype": "UInt8",
+  "access": "RW",
+  "public": true,
+  "range": [
+    0,
+    254
+  ],
+  "description": "The current brightness.",
+  "parse": {
+    "fn": "zcl",
+    "ep": 0,
+    "cl": "0x0008",
+    "at": "0x0000",
+    "eval": "Item.val = Attr.val"
+  },
+  "read": {
+    "fn": "zcl",
+    "ep": 0,
+    "cl": "0x0008",
+    "at": "0x0000"
+  },
+  "refresh.interval": 5
 }

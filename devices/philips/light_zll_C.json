@@ -130,6 +130,9 @@
           "name": "cap/color/ct/min"
         },
         {
+          "name": "cap/color/effects"
+        },
+        {
           "name": "cap/color/gamut_type"
         },
         {
@@ -221,7 +224,7 @@
             "ep": "0x0b",
             "cl": "0x0300",
             "at": "0x4001",
-            "eval": "if (Attr.val <= 3) Item.val = ['hs', 'xy', 'ct', 'xy'][Attr.val]"
+            "eval": "if (Item.val !== 'effect' && Attr.val <= 3) Item.val = ['hs', 'xy', 'ct', 'xy'][Attr.val]"
           },
           "read": {
             "fn": "zcl:attr",
@@ -238,6 +241,35 @@
         },
         {
           "name": "state/effect",
+          "values": [
+            [
+              "\"none\"",
+              "no effect is active"
+            ],
+            [
+              "\"colorloop\"",
+              "colorloop through hue values"
+            ],
+            [
+              "\"candle\"",
+              "candlelight dynamic effect"
+            ],
+            [
+              "\"fireplace\"",
+              "fireplace dynamic effect"
+            ],
+            [
+              "\"prism\"",
+              "prism dynamic effect"
+            ]
+          ],
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0x0300",
+            "at": "0x4002",
+            "eval": "if (Item.val === 'none' || Item.val === 'colorloop') Item.val = Attr.val ? 'colorloop' : 'none'"
+          },
           "read": {
             "fn": "none"
           }

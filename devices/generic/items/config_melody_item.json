@@ -4,6 +4,6 @@
   "datatype": "UInt8",
   "access": "RW",
   "public": true,
-  "default":0,
+  "default": 0,
   "description": "Melody or ringtone number"
 }

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 
-project(de_rest_plugin VERSION 2.23.00 LANGUAGES C;CXX)
+project(de_rest_plugin VERSION 2.24.00 LANGUAGES C;CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -22,7 +22,6 @@ endif()
 if (NOT DECONZ_FULL_BUILD)
     # standalone build
     add_subdirectory(sqlite3)
-endif()
 
 #--- deCONZ library ---------------------------------------------------
 
@@ -39,6 +38,8 @@ FetchContent_GetProperties(deconzlib)
 if (NOT deconzlib_POPULATED)
     FetchContent_Populate(deconzlib)
     add_subdirectory(${deconzlib_SOURCE_DIR} ${deconzlib_BINARY_DIR})
+endif()
+
 endif()
 
 #----------------------------------------------------------------------

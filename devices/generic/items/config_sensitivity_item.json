@@ -1,10 +1,13 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "config/sensitivity",
-	"datatype": "UInt8",
-	"access": "RW",
-	"public": true,
-	"range": [0, 255],
-	"description": "The sensor sensitivity.",
-	"default": 0
+  "schema": "resourceitem1.schema.json",
+  "id": "config/sensitivity",
+  "datatype": "UInt8",
+  "access": "RW",
+  "public": true,
+  "range": [
+    0,
+    255
+  ],
+  "description": "The sensor sensitivity.",
+  "default": 0
 }

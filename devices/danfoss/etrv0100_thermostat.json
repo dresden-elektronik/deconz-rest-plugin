@@ -335,7 +335,7 @@
       ]
     },
     {
-      "type": "ZHATime",
+      "type": "$TYPE_TIME",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",

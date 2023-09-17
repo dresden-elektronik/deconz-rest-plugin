@@ -1,9 +1,9 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "state/daylight",
-	"datatype": "Bool",
-	"access": "R",
-	"public": true,
-	"description": "True when <code class=\"api-attribute\">lightlevel</code> suits daylight according <code class=\"api-attribute\">tholddark</code> and <code class=\"api-attribute\">tholdoffset</code> configuration.",
-	"default": false
+  "schema": "resourceitem1.schema.json",
+  "id": "state/daylight",
+  "datatype": "Bool",
+  "access": "R",
+  "public": true,
+  "description": "True when <code class=\"api-attribute\">lightlevel</code> suits daylight according <code class=\"api-attribute\">tholddark</code> and <code class=\"api-attribute\">tholdoffset</code> configuration.",
+  "default": false
 }

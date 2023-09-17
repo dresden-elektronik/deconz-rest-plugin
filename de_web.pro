@@ -4,7 +4,7 @@ TARGET   = de_rest_plugin
 
 TARGET = $$qtLibraryTarget($$TARGET)
 
-DEFINES += DECONZ_DLLSPEC=Q_DECL_IMPORT
+DEFINES += USE_ULIB_SHARED=1
 
 # select Javascript engine
 #DEFINES += USE_QT_JS_ENGINE

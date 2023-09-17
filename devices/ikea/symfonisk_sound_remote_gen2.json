@@ -2,10 +2,9 @@
   "schema": "devcap1.schema.json",
   "manufacturername": "$MF_IKEA",
   "modelid": "SYMFONISK sound remote gen2",
-  "product": "SYMFONISK sound remote gen2",
+  "product": "SYMFONISK sound remote gen2 - E2123",
   "sleeper": true,
   "status": "Gold",
-  "path": "/devices/symfonisk_sound_remote_gen2.json",
   "subdevices": [
     {
       "type": "$TYPE_SWITCH",
@@ -49,6 +48,23 @@
           "name": "attr/name"
         },
         {
+          "name": "attr/productid",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x000A",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x000A"
+          },
+          "refresh.interval": 86400
+        },
+        {
           "name": "attr/swversion"
         },
         {
@@ -58,19 +74,26 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/alert",
-          "description": "The currently active alert."
+          "name": "config/alert"
         },
         {
           "name": "config/battery",
+          "awake": true,
           "parse": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "cppsrc": "power_configuration.cpp:193",
+            "fn": "zcl:attr",
             "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021",
             "eval": "Item.val = Math.round(Attr.val / 2)"
           },
-          "default": 0
+          "default": 0,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021"
+          },
+          "refresh.interval": 86400
         },
         {
           "name": "config/on"
@@ -80,7 +103,7 @@
         },
         {
           "name": "state/buttonevent",
-          "description": "The last received button event."
+          "awake": true
         },
         {
           "name": "state/lastupdated"
@@ -89,19 +112,6 @@
     }
   ],
   "bindings": [
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "cl": "0x0001",
-      "report": [
-        {
-          "at": "0x0021",
-          "dt": "0x20",
-          "min": 7200,
-          "max": 7200
-        }
-      ]
-    },
     {
       "bind": "unicast",
       "src.ep": 1,
@@ -126,6 +136,20 @@
       "bind": "unicast",
       "src.ep": 3,
       "cl": "0xFC80"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 300,
+          "max": 2700,
+          "change": "0x01"
+        }
+      ]
     }
   ]
 }

@@ -1,8 +1,8 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "config/externalsensortemp",
-	"datatype": "Int16",
-	"access": "RW",
-	"public": true,
-	"description": "The temperature measured by an external sensor, can be used for regulation or displayed on screen."
+  "schema": "resourceitem1.schema.json",
+  "id": "config/externalsensortemp",
+  "datatype": "Int16",
+  "access": "RW",
+  "public": true,
+  "description": "The temperature measured by an external sensor, can be used for regulation or displayed on screen."
 }
