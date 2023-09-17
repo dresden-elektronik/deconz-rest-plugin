@@ -65,6 +65,9 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "cap/groups/not_supported"
+        },
+        {
           "name": "state/alert",
           "default": "none"
         },
