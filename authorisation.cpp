@@ -10,14 +10,8 @@
 
 #include <QCryptographicHash>
 #include <QMessageAuthenticationCode>
+#include "crypto/password.h"
 #include "de_web_plugin_private.h"
-#ifdef Q_OS_UNIX
-  #include <unistd.h>
-#endif
-
-#ifdef Q_OS_UNIX
-    static const char *pwsalt = "$1$8282jdkmskwiu29291"; // $1$ for MD5
-#endif
 
 #define AUTH_KEEP_ALIVE 240
 
@@ -44,9 +38,9 @@ void DeRestPluginPrivate::initAuthentication()
     if (gwConfig.contains("gwusername") && gwConfig.contains("gwpassword"))
     {
         gwAdminUserName = gwConfig["gwusername"].toString();
-        gwAdminPasswordHash = gwConfig["gwpassword"].toString();
+        gwAdminPasswordHash = gwConfig["gwpassword"].toString().toStdString();
 
-        if (!gwAdminUserName.isEmpty() && !gwAdminPasswordHash.isEmpty())
+        if (!gwAdminUserName.isEmpty() && gwAdminPasswordHash.size() > 0)
         {
             ok = true;
         }
@@ -61,15 +55,15 @@ void DeRestPluginPrivate::initAuthentication()
         DBG_Printf(DBG_INFO, "create default username and password\n");
 
         // combine username:password
-        QString comb = QString("%1:%2").arg(gwAdminUserName).arg(gwAdminPasswordHash);
-        // create base64 encoded version as used in HTTP basic authentication
-        QString hash = comb.toLocal8Bit().toBase64();
+        QString comb = QString("%1:%2").arg(gwAdminUserName).arg(gwAdminPasswordHash.c_str());
 
-        gwAdminPasswordHash = encryptString(hash);
+        // create base64 encoded version as used in HTTP basic authentication
+        std::string hash = comb.toLocal8Bit().toBase64().toStdString();
+
+        gwAdminPasswordHash = CRYPTO_EncryptGatewayPassword(hash);
 
         queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
     }
-
 }
 
 /*! Use HTTP basic authentication or HMAC token to check if the request
@@ -84,14 +78,19 @@ bool DeRestPluginPrivate::allowedToCreateApikey(const ApiRequest &req, ApiRespon
 
         if ((ls.size() > 1) && ls[0] == "Basic")
         {
-            QString enc = encryptString(ls[1]);
+            std::string pwhash = ls[1].toStdString();
+            std::string enc = CRYPTO_EncryptGatewayPassword(pwhash);
 
             if (enc == gwAdminPasswordHash)
             {
                 return true;
             }
+            else if (pwhash == gwAdminPasswordHash)
+            {
+                return true; // on Windows plain hash was stored
+            }
 
-            DBG_Printf(DBG_INFO, "Invalid admin password hash: %s\n", qPrintable(enc));
+            DBG_Printf(DBG_INFO, "Invalid admin password hash\n");
         }
     }
 
@@ -230,28 +229,4 @@ void DeRestPluginPrivate::authorise(ApiRequest &req, ApiResponse &rsp)
     }
 #endif
 
-}
-
-/*! Encrypts a string with using crypt() MD5 + salt. (unix only)
-    \param str the input string
-    \return the encrypted string on success or the unchanged input string on fail
- */
-QString DeRestPluginPrivate::encryptString(const QString &str)
-{
-#ifdef Q_OS_UNIX
-        // further encrypt and salt the hash
-        const char *enc = crypt(str.toLocal8Bit().constData(), pwsalt);
-
-        if (enc)
-        {
-            return QString(enc);
-        }
-        else
-        {
-            DBG_Printf(DBG_ERROR, "crypt(): %s failed\n", qPrintable(str));
-            // fall through and return str
-        }
-
-#endif // Q_OS_UNIX
-        return str;
 }

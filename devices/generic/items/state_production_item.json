@@ -1,11 +1,21 @@
 {
-    "schema": "resourceitem1.schema.json",
-    "id": "state/production",
-    "datatype": "UInt64",
-    "access": "RW",
-    "public": true,
-    "description": "The measured production (in Wh).",
-    "read": {"at": "0x0001", "cl": "0x0702", "ep": 0, "fn": "zcl" },
-    "parse": {"at": "0x0001", "cl": "0x0702", "ep": 0, "eval": "Item.val = Attr.val"},
-    "refresh.interval": 300
+  "schema": "resourceitem1.schema.json",
+  "id": "state/production",
+  "datatype": "UInt64",
+  "access": "RW",
+  "public": true,
+  "description": "The measured production (in Wh).",
+  "read": {
+    "at": "0x0001",
+    "cl": "0x0702",
+    "ep": 0,
+    "fn": "zcl"
+  },
+  "parse": {
+    "at": "0x0001",
+    "cl": "0x0702",
+    "ep": 0,
+    "eval": "Item.val = Attr.val"
+  },
+  "refresh.interval": 300
 }

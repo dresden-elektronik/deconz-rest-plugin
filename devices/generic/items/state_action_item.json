@@ -1,19 +1,40 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "state/action",
-	"datatype": "String",
-	"access": "RW",
-	"public": true,
-	"managed": true,
-	"description": "The IAS arm action.",
-	"default": "disarmed",
-	"values": [
-		["\"disarmed\"", "disarmed not triggering alarm"],
-		["\"armed_stay\"", "trigger in stay mode"],
-		["\"armed_night\"", "trigger in night mode"],
-		["\"armed_away\"", "trigger in away mode"],
-		["\"invalid_code\"", "invalid code was entered"],
-		["\"not_ready\"", "alarm system not ready"],
-		["\"already_disarmed\"", "attempt to disarm was ignored"]
-	]
+  "schema": "resourceitem1.schema.json",
+  "id": "state/action",
+  "datatype": "String",
+  "access": "RW",
+  "public": true,
+  "managed": true,
+  "description": "The IAS arm action.",
+  "default": "disarmed",
+  "values": [
+    [
+      "\"disarmed\"",
+      "disarmed not triggering alarm"
+    ],
+    [
+      "\"armed_stay\"",
+      "trigger in stay mode"
+    ],
+    [
+      "\"armed_night\"",
+      "trigger in night mode"
+    ],
+    [
+      "\"armed_away\"",
+      "trigger in away mode"
+    ],
+    [
+      "\"invalid_code\"",
+      "invalid code was entered"
+    ],
+    [
+      "\"not_ready\"",
+      "alarm system not ready"
+    ],
+    [
+      "\"already_disarmed\"",
+      "attempt to disarm was ignored"
+    ]
+  ]
 }

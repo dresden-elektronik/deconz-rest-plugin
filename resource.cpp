@@ -74,6 +74,7 @@ const char *RAttrProductId = "attr/productid";
 const char *RAttrProductName = "attr/productname";
 const char *RAttrSwconfigid = "attr/swconfigid";
 const char *RAttrSwVersion = "attr/swversion";
+const char *RAttrSwVersionBis = "attr/swversion_bis";
 const char *RAttrType = "attr/type";
 const char *RAttrUniqueId = "attr/uniqueid";
 
@@ -134,6 +135,7 @@ const char *RStateLowBattery = "state/lowbattery";
 const char *RStateLux = "state/lux";
 const char *RStateMoisture = "state/moisture";
 const char *RStateMountingModeActive = "state/mountingmodeactive";
+const char *RStateMusicSync = "state/music_sync";
 const char *RStateOn = "state/on";
 const char *RStateOpen = "state/open";
 const char *RStateOpenBis = "state/open_bis";
@@ -211,6 +213,7 @@ const char *RCapColorXyGreenX = "cap/color/xy/green_x";
 const char *RCapColorXyGreenY = "cap/color/xy/green_y";
 const char *RCapColorXyRedX = "cap/color/xy/red_x";
 const char *RCapColorXyRedY = "cap/color/xy/red_y";
+const char *RCapGroup = "cap/group";
 const char *RCapGroupsNotSupported = "cap/groups/not_supported";
 const char *RCapOnOffWithEffect = "cap/on/off_with_effect";
 const char *RCapSleeper = "cap/sleeper";
@@ -242,6 +245,7 @@ const char *RConfigClickMode = "config/clickmode";
 const char *RConfigColorCapabilities = "config/colorcapabilities";
 const char *RConfigColorCtStartup = "config/color/ct/startup";
 const char *RConfigColorExecuteIfOff = "config/color/execute_if_off";
+const char *RConfigColorGradientPixelCount = "config/color/gradient/pixel_count";
 const char *RConfigColorGradientReversed = "config/color/gradient/reversed";
 const char *RConfigColorXyStartupX = "config/color/xy/startup_x";
 const char *RConfigColorXyStartupY = "config/color/xy/startup_y";
@@ -374,6 +378,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrProductName));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrSwconfigid));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrSwVersion));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrSwVersionBis));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrType));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrUniqueId));
 
@@ -409,7 +414,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RStateDeviceRunTime));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateEffect));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateErrorCode));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateEventDuration));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RStateEventDuration));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateExpectedEventDuration));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateExpectedRotation));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RStateFilterRunTime));
@@ -435,6 +440,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RStateLux));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateMoisture));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateMountingModeActive));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateMusicSync));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateOpen));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateOpenBis));
@@ -498,6 +504,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorXyGreenY));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorXyRedX));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorXyRedY));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RCapGroup));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RCapGroupsNotSupported));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RCapOnOffWithEffect));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RCapSleeper));
@@ -529,6 +536,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigColorCapabilities));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigColorCtStartup));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool,  QVariant::Bool, RConfigColorExecuteIfOff));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigColorGradientPixelCount, 5, 50));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool,  QVariant::Bool, RConfigColorGradientReversed));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigColorXyStartupX));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigColorXyStartupY));

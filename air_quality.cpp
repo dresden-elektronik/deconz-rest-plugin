@@ -1,4 +1,4 @@
-#include "de_web_plugin.h"
+#include <QDataStream>
 #include "de_web_plugin_private.h"
 #include "air_quality.h"
 
@@ -14,7 +14,7 @@ void DeRestPluginPrivate::handleAirQualityClusterIndication(const deCONZ::ApsDat
     Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint(), QLatin1String("ZHAAirQuality"));
     if (!sensor)
     {
-        DBG_Printf(DBG_INFO, "No air quality sensor found for 0x%016llX, endpoint: 0x%02X\n", ind.srcAddress().ext(), ind.srcEndpoint());
+        DBG_Printf(DBG_INFO, "No air quality sensor found for " FMT_MAC ", endpoint: 0x%02X\n", FMT_MAC_CAST(ind.srcAddress().ext()), ind.srcEndpoint());
         return;
     }
 

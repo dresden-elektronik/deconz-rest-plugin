@@ -1,12 +1,22 @@
 {
-    "schema": "resourceitem1.schema.json",
-    "id": "state/current",
-    "datatype": "UInt16",
-    "access": "RW",
-    "public": true,
-    "description": "The measured current (in mA).",
-    "read": {"at": "0x0508", "cl": "0x0b04", "ep": 0, "fn": "zcl" },
-    "parse": {"at": "0x0508", "cl": "0x0b04", "ep": 0, "eval": "if (Attr.val != 65535) { Item.val = Attr.val; }"},
-    "refresh.interval": 300,
-    "default": 0
+  "schema": "resourceitem1.schema.json",
+  "id": "state/current",
+  "datatype": "UInt16",
+  "access": "RW",
+  "public": true,
+  "description": "The measured current (in mA).",
+  "read": {
+    "at": "0x0508",
+    "cl": "0x0b04",
+    "ep": 0,
+    "fn": "zcl"
+  },
+  "parse": {
+    "at": "0x0508",
+    "cl": "0x0b04",
+    "ep": 0,
+    "eval": "if (Attr.val != 65535) { Item.val = Attr.val; }"
+  },
+  "refresh.interval": 300,
+  "default": 0
 }

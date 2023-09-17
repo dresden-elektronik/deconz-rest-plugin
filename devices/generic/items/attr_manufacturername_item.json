@@ -1,9 +1,9 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "attr/manufacturername",
-	"datatype": "String",
-	"access": "R",
-	"public": true,
-	"implicit" : true,
-	"description": "Manufacturer name of the device."
+  "schema": "resourceitem1.schema.json",
+  "id": "attr/manufacturername",
+  "datatype": "String",
+  "access": "R",
+  "public": true,
+  "implicit": true,
+  "description": "Manufacturer name of the device."
 }

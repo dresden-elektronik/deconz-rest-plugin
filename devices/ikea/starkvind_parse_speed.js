@@ -1,7 +1,10 @@
-const max = 50.0;
-let speed = Attr.val;
+/* global Attr, Item */
 
-speed = (speed <= max) ? speed : 0;
-speed = speed / max * 100.0;
+const max = 50.0
+let speed = Attr.val
 
-Item.val = speed;
+speed = (speed <= max) ? speed : 0
+speed = speed / max * 100.0
+
+/* eslint-disable no-unused-expressions */
+Item.val = speed

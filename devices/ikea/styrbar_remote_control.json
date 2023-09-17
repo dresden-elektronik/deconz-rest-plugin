@@ -2,7 +2,7 @@
   "schema": "devcap1.schema.json",
   "manufacturername": "$MF_IKEA",
   "modelid": "Remote Control N2",
-  "product": "STYRBAR remote control",
+  "product": "STYRBAR remote control - E2002",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -49,6 +49,23 @@
           "name": "attr/name"
         },
         {
+          "name": "attr/productid",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x000A",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x000A"
+          },
+          "refresh.interval": 86400
+        },
+        {
           "name": "attr/swversion"
         },
         {
@@ -58,15 +75,26 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "config/alert"
+        },
+        {
           "name": "config/battery",
+          "awake": true,
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0001",
             "at": "0x0021",
             "eval": "Item.val = Math.round(Attr.val / 2)"
           },
-          "default": 0
+          "default": 0,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021"
+          },
+          "refresh.interval": 86400
         },
         {
           "name": "config/on"
@@ -75,7 +103,8 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/buttonevent"
+          "name": "state/buttonevent",
+          "awake": true
         },
         {
           "name": "state/lastupdated"
@@ -84,20 +113,6 @@
     }
   ],
   "bindings": [
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "cl": "0x0001",
-      "report": [
-        {
-          "at": "0x0021",
-          "dt": "0x20",
-          "min": 300,
-          "max": 2700,
-          "change": "0x00000001"
-        }
-      ]
-    },
     {
       "bind": "unicast",
       "src.ep": 1,
@@ -112,6 +127,20 @@
       "bind": "unicast",
       "src.ep": 1,
       "cl": "0x0005"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 300,
+          "max": 2700,
+          "change": "0x01"
+        }
+      ]
     }
   ]
 }

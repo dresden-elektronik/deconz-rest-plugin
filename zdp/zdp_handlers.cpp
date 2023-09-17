@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2021-2023 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -8,7 +8,6 @@
  *
  */
 
-#include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "utils/utils.h"
 #include "zdp_handlers.h"
@@ -131,7 +130,7 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
                 updateEtag(gwConfigEtag);
             }
 
-            DBG_Printf(DBG_INFO, "DeviceAnnce of LightNode: %s Permit Join: %i\n", qPrintable(i->address().toStringExt()), gwPermitJoinDuration);
+            DBG_Printf(DBG_INFO, "DeviceAnnce of LightNode: " FMT_MAC " Permit Join: %i\n", (unsigned long long)i->address().ext(), gwPermitJoinDuration);
 
             // force reading attributes
             i->enableRead(READ_GROUPS | READ_SCENES);

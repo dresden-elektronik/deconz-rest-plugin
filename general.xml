@@ -384,6 +384,10 @@
           <attribute id="0x8020" name="Primary HW Version" type="ostring" access="r" required="m" mfcode="0x1015"></attribute>
           <attribute id="0x8030" name="Primary HW name" type="ostring" access="r" required="m" mfcode="0x1015"></attribute>
           <attribute id="0x8050" name="Primary SW Version 3rd Party" type="ostring" access="r" required="m" mfcode="0x1015"></attribute>
+          <attribute id="0x8100" name="LED Control" type="bmp8" default="0xff" access="rw" required="o" mfcode="0x1015">
+            <value name="0x00 - LED disabled, 0x01 - Enable periodic fault flashes" value="0"></value>
+            <value name="0x02 - Indicate motion detection" value="1"></value>
+          </attribute>
         </attribute-set>
         <attribute-set id="0xe000" description="Schneider specific" mfcode="0x105e">
           <attribute id="0xe001" name="Application FW Version" type="cstring" access="r" required="o" mfcode="0x105e"></attribute>
@@ -3971,7 +3975,7 @@ Note: It does not clear or delete previous weekly schedule programming configura
           <attribute id="0x0300" name="AC Frequency" type="u16" access="r" required="o" default="0xFFFF"></attribute>
 	  <attribute id="0x0301" name="AC Frequency Min" type="u16" access="r" required="o" default="0xFFFF"></attribute>
 	  <attribute id="0x0302" name="AC Frequency Max" type="u16" access="r" required="o" default="0xFFFF"></attribute>
-	  <attribute id="0x0300" name="Neutral current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
+	  <attribute id="0x0303" name="Neutral current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
           <attribute id="0x0304" name="Total Active Power" type="s32" access="r" required="o"></attribute>
           <attribute id="0x0305" name="Total Reactive Power" type="s32" access="r" required="o"></attribute>
           <attribute id="0x0306" name="Total Apparent Power" type="u32" access="r" required="o"></attribute>
@@ -4832,8 +4836,8 @@ These devices can operate on either battery or mains power, and can have a wide 
   </domain>
 
   <domain name="Light Link" useZcl="true" description="The light link domain contains clusters and information that provides ZLL specific functions and attributes.">
-    <cluster id="0x1000" name="ZLL commissioning">
-      <description>Attributes and commands for ZLL commissioning.</description>
+    <cluster id="0x1000" name="Touchlink Commissioning">
+      <description>Attributes and commands for touchlink commissioning.</description>
       <server>
         <command id="0x41" dir="recv" name="Get group identifiers" required="m" response="0x41">
           <description>The get group identifiers request command is used to retrieve the actual group identifiers that the endpoint is using in its multicast communication in controlling different (remote) devices.</description>
@@ -5084,6 +5088,26 @@ These devices can operate on either battery or mains power, and can have a wide 
             <attribute id="0x0005" type="s16" name="Duration / Rotation" required="m"/>
           </payload>
         </command>
+      </server>
+    </cluster>
+
+    <cluster id="0xfc06" name="Hue Secure" mfcode="0x100b">
+      <description>Hue-specific cluster for Hue Secure Contact Sensor.</description>
+      <server>
+        <attribute id="0x0100" name="Contact" type="enum8" mfcode="0x100b" access="r" required="m">
+          <value name="Close" value="0"/>
+          <value name="Open" value="1"/>
+        </attribute>
+        <attribute id="0x0101" name="Last Contact Change" type="u32" mfcode="0x100b" access="r" required="m">
+          <description>The time in 0.1s since last change to the Contact state.</description>
+        </attribute>
+        <attribute id="0x0102" name="Tamper" type="enum8" mfcode="0x100b" access="r" required="m">
+          <value name="Battery Door Closed" value="0"/>
+          <value name="Battery Door Open" value="1"/>
+        </attribute>
+        <attribute id="0x0103" name="Last Tamper Change" type="u32" mfcode="0x100b" access="r" required="m">
+          <description>The time in 0.1s since last change to the Tamper state.</description>
+        </attribute>
       </server>
     </cluster>
 
@@ -5538,7 +5562,7 @@ Contactor > On/off=0003 - HP/HC=0004</description>
           <attribute id="0x00EA" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x00EB" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x00ED" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x00EE" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x00EE" name="Firmware" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x00F0" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x00F1" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x00F3" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
@@ -5592,7 +5616,7 @@ Contactor > On/off=0003 - HP/HC=0004</description>
           <attribute id="0x023B" name="Unknown" type="float" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x023E" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
         </attribute-set>
-        <attribute-set id="0x0271" description="Smart Radiator Thermostat E1">
+        <attribute-set id="0x0270" description="Smart Radiator Thermostat E1">
             <attribute id="0x0270" name="Calibrate" type="u8" mfcode="0x115f" access="rw" required="m"> 
                 <description>Write 1 to calibrate</description>
             </attribute>
@@ -5644,7 +5668,26 @@ Contactor > On/off=0003 - HP/HC=0004</description>
           <attribute id="0x040a" name="Battery" type="u8" mfcode="0x115f" access="r" required="m">
           </attribute>
         </attribute-set>
-        <attribute-set id="0x0500" description="Unknown">
+        <attribute-set id="0x0500" description="Aqara LED Strip T1">
+          <attribute id="0x0515" name="Min Dim Level (%)" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0516" name="Max Dim Level (%)" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0517" name="PowerOn OnOff" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>OnOff state on power on: 0: on, 1: previous, 2: off.</description>
+          </attribute>
+          <attribute id="0x051B" name="Segments" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>Number of 20cm segments.</description>
+          </attribute>
+          <attribute id="0x051C" name="Music Sync" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>Music Sync: 0: off, 1: on.</description>
+          </attribute>
+          <attribute id="0x051D" name="Music Sync Effect" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>Music Sync Effecy: 0: random, 1: breathing, 2: rainbow, 3: chasing.</description>
+          </attribute>
+          <attribute id="0x051E" name="Music Sync Sensitivity" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>Music Sync Sensitivity: 0: low, 2: high.</description>
+          </attribute>
+        </attribute-set>
+        <attribute-set id="0x0700" description="Unknown">
           <attribute id="0x0700" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x0701" name="Unknown" type="s8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x0702" name="Unknown" type="s8" mfcode="0x115f" access="rw" required="m"></attribute>

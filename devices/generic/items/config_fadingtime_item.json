@@ -1,0 +1,9 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/fadingtime",
+  "datatype": "UInt16",
+  "access": "RW",
+  "public": true,
+  "description": "Target disapperance delay time in seconds",
+  "default": 0
+}

@@ -1,7 +1,7 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["_TZ3000_gbm10jnj", "_TZ3000_sj7jbgks", "_TZ3000_w8jwkczz", "_TZ3000_famkxci2", "_TZ3000_w3c7ouru"],
-  "modelid": ["TS0043", "TS0043", "TS0043", "TS0043", "TS0043"],
+  "manufacturername": ["_TZ3000_gbm10jnj", "_TZ3000_sj7jbgks", "_TZ3000_w8jwkczz", "_TZ3000_famkxci2", "_TZ3000_w3c7ouru", "_TZ3000_yw5tvzsk", "_TZ3000_pkeqinnt"],
+  "modelid": ["TS0043", "TS0043", "TS0043", "TS0043", "TS0043", "TS0043", "TS0043"],
   "product": "Tuya 3 gangs switch battery",
   "sleeper": false,
   "status": "Gold",
@@ -62,7 +62,7 @@
             "eval": "Item.val = Attr.val / 2"
           },
           "default": 0
-        },        
+        },
         {
           "name": "config/on"
         },
@@ -92,7 +92,7 @@
           "change": "0x00000001"
         }
       ]
-    },    
+    },
     {
       "bind": "unicast",
       "src.ep": 1,

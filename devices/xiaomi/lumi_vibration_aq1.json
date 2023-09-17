@@ -92,7 +92,7 @@
             "cl": "0x0000",
             "mf": "0x115F",
             "at": "0xFF0D",
-            "eval": "Item.val = 2 - Math.floor(Attr.val / 10)"
+            "eval": "Item.val = 3 - Attr.val"
           },
           "read": {
             "fn": "zcl",
@@ -101,7 +101,7 @@
             "mf": "0x115F",
             "at": "0xFF0D"
           },
-          "refresh.interval": 600,
+          "refresh.interval": 3600,
           "write": {
             "fn": "zcl",
             "ep": 1,
@@ -109,8 +109,10 @@
             "mf": "0x115F",
             "at": "0xFF0D",
             "dt": "0x20",
-            "eval": "10 * (2 - Item.val) + 1"
-          },
+            "eval": "3 - Item.val",
+            "state.timeout": 2,
+            "change.timeout": 3600
+            },
           "values": [
             [
               0,

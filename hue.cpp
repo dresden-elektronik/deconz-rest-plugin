@@ -16,9 +16,11 @@ struct code {
 code effects[] = {
     { 0x01, QLatin1String("candle") },
     { 0x02, QLatin1String("fireplace") },
-    { 0x03, QLatin1String("loop") },
+    { 0x03, QLatin1String("prism") },
     { 0x09, QLatin1String("sunrise") },
-    { 0x0a, QLatin1String("sparkle") }
+    { 0x0a, QLatin1String("sparkle") },
+    { 0x0b, QLatin1String("opal") },
+    { 0x0c, QLatin1String("glisten") }
 };
 
 quint8 effectNameToValue(QString &effectName)

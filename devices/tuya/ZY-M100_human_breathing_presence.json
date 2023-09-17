@@ -171,9 +171,12 @@
           "default": 1
         },
         {
-          "name": "config/duration",
+          "name": "config/fadingtime",
           "description": "Fading time : target disapperance delay time in second (from 0 to 15000). Default 90s",
-          "range": [0, 15000],
+          "range": [
+            0,
+            15000
+          ],
           "read": {
             "fn": "none"
           },
@@ -199,7 +202,10 @@
         {
           "name": "config/sensitivity",
           "description": "Radar sensitivity (from 1 to 9). Default 7",
-          "range": [1, 9],
+          "range": [
+            1,
+            9
+          ],
           "read": {
             "fn": "none"
           },
@@ -219,7 +225,7 @@
         {
           "name": "config/triggerdistance",
           "description": "Far detection sensitivity",
-         "read": {
+          "read": {
             "fn": "none"
           },
           "write": {
@@ -228,28 +234,61 @@
             "eval": "Far = ['0','1','2','3','4','5','6','7','8','9','10']; Attr.val = Math.max(0,Far.indexOf(Item.val)*100);",
             "fn": "tuya"
           },
-           "parse": {
+          "parse": {
             "dpid": 4,
             "eval": "Item.val = String(Attr.val/100);",
             "fn": "tuya"
           },
-         "values": [
-            ["\"1\"", "1m"],
-            ["\"2\"", "2m"],
-            ["\"3\"", "3m"], 
-            ["\"4\"", "4m"],
-            ["\"5\"", "5m"],
-            ["\"6\"", "6m"],
-            ["\"7\"", "7m"],
-            ["\"8\"", "8m"],
-            ["\"9\"", "9m"],
-            ["\"10\"", "10m"],
-            ["\"0\"", "Off"]
+          "values": [
+            [
+              "\"1\"",
+              "1m"
+            ],
+            [
+              "\"2\"",
+              "2m"
+            ],
+            [
+              "\"3\"",
+              "3m"
+            ],
+            [
+              "\"4\"",
+              "4m"
+            ],
+            [
+              "\"5\"",
+              "5m"
+            ],
+            [
+              "\"6\"",
+              "6m"
+            ],
+            [
+              "\"7\"",
+              "7m"
+            ],
+            [
+              "\"8\"",
+              "8m"
+            ],
+            [
+              "\"9\"",
+              "9m"
+            ],
+            [
+              "\"10\"",
+              "10m"
+            ],
+            [
+              "\"0\"",
+              "Off"
+            ]
           ],
           "default": "10"
-        },         
-         {
-          "name": "state/angle",
+        },
+        {
+          "name": "state/targetdistance",
           "description": "Distance from detected target in cm (from 0 to 1000).",
           "read": {
             "fn": "none"

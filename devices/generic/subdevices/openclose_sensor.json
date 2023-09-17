@@ -1,14 +1,18 @@
 {
-    "schema": "subdevice1.schema.json",
-    "type": "$TYPE_OPEN_CLOSE_SENSOR",
-    "name": "ZHAOpenClose",
-    "restapi": "/sensors",
-    "order": 20,
-    "uuid": ["$address.ext", "0x01", "0x0500"],
-    "items": [
-        "config/on",
-        "config/reachable",
-        "state/open",
-        "state/lastupdated"
-    ]
+  "schema": "subdevice1.schema.json",
+  "type": "$TYPE_OPEN_CLOSE_SENSOR",
+  "name": "ZHAOpenClose",
+  "restapi": "/sensors",
+  "order": 20,
+  "uuid": [
+    "$address.ext",
+    "0x01",
+    "0x0500"
+  ],
+  "items": [
+    "config/on",
+    "config/reachable",
+    "state/open",
+    "state/lastupdated"
+  ]
 }
