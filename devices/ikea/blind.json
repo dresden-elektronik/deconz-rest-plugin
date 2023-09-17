@@ -1,17 +1,16 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "$MF_IKEA",
+  "manufacturername": [
+    "$MF_IKEA",
+    "$MF_IKEA",
+    "$MF_IKEA",
+    "$MF_IKEA"
+  ],
   "modelid": [
     "FYRTUR block-out roller blind",
     "KADRILJ roller blind",
     "PRAKTLYSING cellular blind",
     "TREDANSEN block-out cellul blind"
-  ],
-  "vendor": [
-    "IKEA of Sweden",
-    "IKEA of Sweden",
-    "IKEA of Sweden",
-    "IKEA of Sweden"
   ],
   "sleeper": false,
   "status": "Gold",
@@ -67,6 +66,9 @@
         },
         {
           "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/groups/not_supported"
         },
         {
           "name": "state/lift"
