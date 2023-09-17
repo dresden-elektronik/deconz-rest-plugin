@@ -1190,11 +1190,30 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
             return true;
         }
     }
+    else if (m_rid->type == DataTypeReal)
+    {
+        bool ok = false;
+        double d = val.toDouble(&ok);
+
+        if (ok)
+        {
+            m_lastSet = now;
+            m_doublePrev = m_double;
+            m_flags |= FlagNeedPushSet;
+
+            if (m_double != d)
+            {
+                m_double = d;
+                m_lastChanged = m_lastSet;
+                m_flags |= FlagNeedPushChange;
+            }
+        }
+    }
     else
     {
         if (m_rid->type == DataTypeReal)
         {
-            DBG_Printf(DBG_ERROR, "todo handle DataTypeReal in %s", __FUNCTION__);
+            DBG_Printf(DBG_ERROR, "todo handle DataTypeReal in %s\n", __FUNCTION__);
         }
 
         bool ok = false;
@@ -1274,6 +1293,10 @@ QVariant ResourceItem::toVariant() const
     else if (m_rid->type == DataTypeTime)
     {
         return toString();
+    }
+    else if (m_rid->type == DataTypeReal)
+    {
+        return (double)m_double;
     }
     else
     {
