@@ -1207,7 +1207,6 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
                 m_lastChanged = m_lastSet;
                 m_flags |= FlagNeedPushChange;
             }
-            return true;
         }
     }
     else
