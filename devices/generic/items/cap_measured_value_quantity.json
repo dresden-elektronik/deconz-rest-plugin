@@ -1,8 +1,0 @@
-{
-  "schema": "resourceitem1.schema.json",
-  "id": "cap/measured_value/quantity",
-  "datatype": "String",
-  "access": "R",
-  "public": true,
-  "description": "Quantity of measured_value."
-}
