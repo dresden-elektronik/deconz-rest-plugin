@@ -112,7 +112,7 @@
         },
         {
           "name": "cap/measured_value/unit",
-          "static": "°C"
+          "static": "degC"
         },
         {
           "name": "config/offset",
@@ -404,7 +404,7 @@
         },
         {
           "name": "cap/measured_value/unit",
-          "static": "µg/m³"
+          "static": "ug/m^3"
         },
         {
           "name": "config/on"
