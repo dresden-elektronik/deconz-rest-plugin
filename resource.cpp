@@ -133,6 +133,7 @@ const char *RStateLocaltime = "state/localtime";
 const char *RStateLockState = "state/lockstate";
 const char *RStateLowBattery = "state/lowbattery";
 const char *RStateLux = "state/lux";
+const char *RStateMeasuredValue = "state/measured_value";
 const char *RStateMoisture = "state/moisture";
 const char *RStateMountingModeActive = "state/mountingmodeactive";
 const char *RStateMusicSync = "state/music_sync";
@@ -215,6 +216,11 @@ const char *RCapColorXyRedX = "cap/color/xy/red_x";
 const char *RCapColorXyRedY = "cap/color/xy/red_y";
 const char *RCapGroup = "cap/group";
 const char *RCapGroupsNotSupported = "cap/groups/not_supported";
+const char *RCapMeasuredValueMax = "cap/measured_value/max";
+const char *RCapMeasuredValueMin = "cap/measured_value/min";
+const char *RCapMeasuredValueQuantity = "cap/measured_value/quantity";
+const char *RCapMeasuredValueSubstance = "cap/measured_value/substance";
+const char *RCapMeasuredValueUnit = "cap/measured_value/unit";
 const char *RCapOnOffWithEffect = "cap/on/off_with_effect";
 const char *RCapSleeper = "cap/sleeper";
 const char *RCapTransitionBlock = "cap/transition_block";
@@ -438,6 +444,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateLockState));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateLowBattery));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RStateLux));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeReal, QVariant::Double, RStateMeasuredValue));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateMoisture));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateMountingModeActive));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateMusicSync));
@@ -506,6 +513,11 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorXyRedY));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RCapGroup));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RCapGroupsNotSupported));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeReal, QVariant::Double, RCapMeasuredValueMax));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeReal, QVariant::Double, RCapMeasuredValueMin));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RCapMeasuredValueQuantity));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RCapMeasuredValueSubstance));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RCapMeasuredValueUnit));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RCapOnOffWithEffect));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RCapSleeper));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RCapTransitionBlock));
@@ -1182,7 +1194,7 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
     {
         if (m_rid->type == DataTypeReal)
         {
-            DBG_Printf(DBG_ERROR, "todo handle DataTypeReal in %s", __FUNCTION__);
+            DBG_Printf(DBG_ERROR, "todo handle DataTypeReal in %s\n", __FUNCTION__);
         }
 
         bool ok = false;
