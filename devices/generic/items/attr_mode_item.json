@@ -1,8 +1,8 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "attr/mode",
-	"datatype": "UInt32",
-	"access": "RW",
-	"public": true,
-	"description": "Operational mode."
+  "schema": "resourceitem1.schema.json",
+  "id": "attr/mode",
+  "datatype": "UInt32",
+  "access": "RW",
+  "public": true,
+  "description": "Operational mode."
 }

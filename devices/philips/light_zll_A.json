@@ -1,0 +1,243 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": [
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_SIGNIFY",
+    "$MF_SIGNIFY",
+    "$MF_SIGNIFY",
+    "$MF_SIGNIFY",
+    "$MF_SIGNIFY",
+    "$MF_SIGNIFY",
+    "$MF_SIGNIFY",
+    "$MF_SIGNIFY",
+    "$MF_SIGNIFY"
+  ],
+  "modelid": [
+    "LST001",
+    "LLC010",
+    "LLC011",
+    "LLC012",
+    "LLC006",
+    "LLC005",
+    "LLC007",
+    "LLC014",
+    "LLC013",
+    "LST001",
+    "LLC010",
+    "LLC011",
+    "LLC012",
+    "LLC006",
+    "LLC005",
+    "LLC007",
+    "LLC014",
+    "LLC013"
+  ],
+  "product": "Hue color ambiance light",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_COLOR_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x0b"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0x0000",
+            "at": "0x0004",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0x0000",
+            "at": "0x0004"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "attr/modelid",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0x0000",
+            "at": "0x0005",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0x0000",
+            "at": "0x0005"
+          }
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/alert/trigger_effect"
+        },
+        {
+          "name": "cap/bri/min_dim_level"
+        },
+        {
+          "name": "cap/bri/move_with_onoff"
+        },
+        {
+          "name": "cap/color/capabilities"
+        },
+        {
+          "name": "cap/color/gamut_type"
+        },
+        {
+          "name": "cap/color/xy/blue_x"
+        },
+        {
+          "name": "cap/color/xy/blue_y"
+        },
+        {
+          "name": "cap/color/xy/green_x"
+        },
+        {
+          "name": "cap/color/xy/green_y"
+        },
+        {
+          "name": "cap/color/xy/red_x"
+        },
+        {
+          "name": "cap/color/xy/red_y"
+        },
+        {
+          "name": "cap/on/off_with_effect"
+        },
+        {
+          "name": "config/bri/startup"
+        },
+        {
+          "name": "config/color/xy/startup_x"
+        },
+        {
+          "name": "config/color/xy/startup_y"
+        },
+        {
+          "name": "config/on/startup"
+        },
+        {
+          "name": "state/alert"
+        },
+        {
+          "name": "state/on",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0xfc03",
+            "mf": "0x100b",
+            "at": "0x0002",
+            "script": "fc03_state.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0xfc03",
+            "mf": "0x100b",
+            "at": "0x0002"
+          },
+          "refresh.interval": 5
+        },
+        {
+          "name": "state/bri",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/x",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/y",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/colormode",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0x0300",
+            "at": "0x4001",
+            "eval": "if (Attr.val <= 3) Item.val = ['hs', 'xy', 'ct', 'xy'][Attr.val]"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0x0300",
+            "at": [
+              "0x4001",
+              "0x4002",
+              "0x4000",
+              "0x0001"
+            ]
+          },
+          "refresh.interval": 60
+        },
+        {
+          "name": "state/effect",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/hue",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/sat",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    }
+  ]
+}

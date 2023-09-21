@@ -1,7 +1,13 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "Danalock",
-  "modelid": "V3-BTZBE",
+  "manufacturername": [
+    "Danalock",
+    "Danalock"
+  ],
+  "modelid": [
+    "V3-BTZBE",
+    "V3-BTZB"
+  ],
   "product": "Danalock V3",
   "sleeper": true,
   "status": "Gold",
@@ -23,8 +29,19 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 84000,
-          "read": {"cl": "0x0000", "at": "0x0006", "ep": 1, "fn": "zcl"},
-          "parse": {"cl": "0x0000", "at": "0x0006", "ep": 1, "eval": "Item.val = Attr.val", "fn": "zcl"}
+          "read": {
+            "cl": "0x0000",
+            "at": "0x0006",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "cl": "0x0000",
+            "at": "0x0006",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl"
+          }
         },
         {
           "name": "config/pending",
@@ -43,37 +60,121 @@
         },
         {
           "name": "state/on",
-          "read": {"cl": "0x0101", "at": "0x0000", "ep": 1, "fn": "zcl"},
-          "parse": {"cl": "0x0101", "at": "0x0000", "ep": 1, "eval": "Item.val = (Attr.val === 1)", "fn": "zcl"},
+          "read": {
+            "cl": "0x0101",
+            "at": "0x0000",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "cl": "0x0101",
+            "at": "0x0000",
+            "ep": 1,
+            "eval": "Item.val = (Attr.val === 1)",
+            "fn": "zcl"
+          },
           "refresh.interval": 600,
           "awake": true
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_BATTERY_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0001"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x000a",
+        "endpoint": "0x01",
+        "in": [
+          "0x0001",
+          "0x0020",
+          "0x0101"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
         },
         {
           "name": "state/battery",
-          "refresh.interval": 3700,
-          "public": false,
-          "awake": true
+          "parse": {
+            "cl": "0x0001",
+            "at": "0x0021",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "cl": "0x0001",
+            "at": "0x0021"
+          },
+          "refresh.interval": 3665
+        },
+        {
+          "name": "state/lastupdated"
         }
       ]
     }
   ],
   "bindings": [
-      {
-          "bind": "unicast",
-          "src.ep": 1,
-          "cl": "0x0101",
-          "report": [ {"at": "0x0000", "dt": "0x30", "min": 1, "max": 300 } ]
-      },
-      {
-          "bind": "unicast",
-          "src.ep": 1,
-          "cl": "0x0020"
-      },
-      {
-          "bind": "unicast",
-          "src.ep": 1,
-          "cl": "0x0001",
-          "report": [ {"at": "0x0021", "dt": "0x20", "min": 600, "max": 3600, "change": "0x00" } ]
-      }
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0101",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x30",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0020"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 600,
+          "max": 3600,
+          "change": "0x00"
+        }
+      ]
+    }
   ]
 }

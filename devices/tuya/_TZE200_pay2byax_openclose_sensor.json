@@ -1,0 +1,71 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": ["_TZE200_pay2byax", "_TZE200_kltffuzl", "_TZE200_fwoorn8y"],
+  "modelid": ["TS0601", "TS0601", "TS0601"],
+  "product": "ZG-102Z or TM001-ZA or TM081 open/close sensor",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_OPEN_CLOSE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0xef00"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "parse": {"fn": "tuya", "dpid": 2, "eval" : "Item.val = Attr.val;" },
+          "read": {"fn": "none"},
+          "default": 0
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/open",
+          "parse": {"fn": "tuya", "dpid": 1, "eval": "Item.val = Attr.val;" },
+          "read": {"fn": "tuya"},
+          "default": false
+        }
+      ]
+    }
+  ]
+}

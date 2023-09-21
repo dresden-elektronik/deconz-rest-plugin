@@ -80,6 +80,7 @@
           "COLOR_CONTROL",
           "IAS_ZONE",
           "IAS_ACE",
+          "FC80",
           "XIAOMI",
           "ADUROLIGHT",
           "XIAOYAN"
@@ -104,7 +105,7 @@
       "enum": [ "MOVE_TO_LEVEL", "MOVE", "STEP", "STOP", "MOVE_TO_LEVEL_WITH_ON_OFF", "MOVE_WITH_ON_OFF", "STEP_WITH_ON_OFF", "STOP_WITH_ON_OFF" ]
     },
     "color-commands": {
-      "enum": [ "MOVE_HUE", "MOVE_TO_SATURATION", "MOVE_TO_COLOR", "MOVE_TO_COLOR_TEMPERATURE", "STOP_MOVE_STEP", "MOVE_COLOR_TEMPERATURE", "STEP_COLOR_TEMPERATURE" ]
+      "enum": [ "MOVE_HUE", "STEP_HUE", "MOVE_TO_SATURATION", "MOVE_TO_COLOR", "MOVE_TO_COLOR_TEMPERATURE", "STOP_MOVE_STEP", "MOVE_COLOR_TEMPERATURE", "STEP_COLOR_TEMPERATURE" ]
     },
     "window-covering-commands": {
       "enum": [ "OPEN", "CLOSE", "STOP", "GOTO_LIFT_PCT", "GOTO_TILT_PCT" ]
@@ -114,6 +115,9 @@
     },
     "multistate-input-commands": {
       "enum": [ "ATTRIBUTE_REPORT" ]
+    },
+    "fc80-commands": {
+      "enum": [ "COMMAND_1", "COMMAND_2", "COMMAND_3", "COMMAND_4", "COMMAND_6" ]
     },
     "xiaomi-commands": {
       "enum": [ "ATTRIBUTE_REPORT" ]
@@ -165,6 +169,7 @@
             { "$ref": "#/definitions/window-covering-commands" },
             { "$ref": "#/definitions/ias-commands" },
             { "$ref": "#/definitions/multistate-input-commands" },
+            { "$ref": "#/definitions/fc80-commands" },
             { "$ref": "#/definitions/xiaomi-commands" },
             { "$ref": "#/definitions/xiaoyan-commands" }
           ],

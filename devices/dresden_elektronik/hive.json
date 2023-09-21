@@ -1,0 +1,328 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "Phoscon",
+  "modelid": "Hive",
+  "product": "Hive",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_EXTENDED_COLOR_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/alert/trigger_effect"
+        },
+        {
+          "name": "cap/color/capabilities"
+        },
+        {
+          "name": "cap/color/ct/max"
+        },
+        {
+          "name": "cap/color/ct/min"
+        },
+        {
+          "name": "cap/color/xy/blue_x",
+          "static": 0
+        },
+        {
+          "name": "cap/color/xy/blue_y",
+          "static": 0
+        },
+        {
+          "name": "cap/color/xy/green_x",
+          "static": 0
+        },
+        {
+          "name": "cap/color/xy/green_y",
+          "static": 65279
+        },
+        {
+          "name": "cap/color/xy/red_x",
+          "static": 65279
+        },
+        {
+          "name": "cap/color/xy/red_y",
+          "static": 0
+        },
+        {
+          "name": "cap/on/off_with_effect"
+        },
+        {
+          "name": "config/bri/execute_if_off"
+        },
+        {
+          "name": "config/bri/startup"
+        },
+        {
+          "name": "config/color/ct/startup"
+        },
+        {
+          "name": "config/color/execute_if_off"
+        },
+        {
+          "name": "config/on/startup"
+        },
+        {
+          "name": "state/alert"
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 365
+        },
+        {
+          "name": "state/bri",
+          "refresh.interval": 365
+        },
+        {
+          "name": "state/x",
+          "read": {
+            "fn": "zcl",
+            "ep": "0x01",
+            "cl": "0x0300",
+            "at": [
+              "0x0000",
+              "0x0001",
+              "0x0003",
+              "0x0004",
+              "0x0007",
+              "0x0008"
+            ]
+          },
+          "refresh.interval": 365
+        },
+        {
+          "name": "state/y",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/ct",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/hue",
+          "parse": {
+            "fn": "zcl",
+            "ep": "0x01",
+            "cl": "0x0300",
+            "at": [
+              "0x0000",
+              "0x4000"
+            ],
+            "eval": "Item.val = (Attr.id === 0) ? Attr.val << 8 : Attr.val"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/sat",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/colormode",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/effect",
+          "public": false,
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_BATTERY_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0001"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/battery",
+          "refresh.interval": 365
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 60,
+          "max": 300,
+          "change": "0x01"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0008",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x20",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0300",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x20",
+          "min": 1,
+          "max": 300,
+          "change": "0x01"
+        },
+        {
+          "at": "0x0001",
+          "dt": "0x20",
+          "min": 1,
+          "max": 300,
+          "change": "0x01"
+        },
+        {
+          "at": "0x0003",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x0001"
+        },
+        {
+          "at": "0x0004",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x0001"
+        },
+        {
+          "at": "0x0007",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x0001"
+        },
+        {
+          "at": "0x0008",
+          "dt": "0x30",
+          "min": 1,
+          "max": 300
+        },
+        {
+          "at": "0x4000",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x0001"
+        }
+      ]
+    }
+  ]
+}

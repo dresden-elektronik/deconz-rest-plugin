@@ -1,0 +1,194 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": [
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_SIGNIFY",
+    "$MF_SIGNIFY"
+  ],
+  "modelid": [
+    "LWA001",
+    "LWE002",
+    "LWA001",
+    "LWE002"
+  ],
+  "product": "Hue white light",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_DIMMABLE_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x0b"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0x0000",
+            "at": "0x0004",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0x0000",
+            "at": "0x0004"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "attr/modelid",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0x0000",
+            "at": "0x0005",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0x0000",
+            "at": "0x0005"
+          }
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/productid"
+        },
+        {
+          "name": "attr/productname",
+          "parse": {
+            "fn": "zcl:cmd",
+            "ep": "0x0b",
+            "cl": "0x0000",
+            "mf": "0x100b",
+            "cmd": "0xc1",
+            "script": "0000_capabilities.js"
+          },
+          "read": {
+            "fn": "zcl:cmd",
+            "ep": "0x0b",
+            "cl": "0x0000",
+            "mf": "0x100b",
+            "cmd": "0xc0",
+            "eval": "'00' + (15 + R.item('attr/modelid').val.length + R.item('attr/manufacturername').val.length).toString(16) + '00000040'"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "attr/swconfigid"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/alert/trigger_effect"
+        },
+        {
+          "name": "cap/bri/min_dim_level"
+        },
+        {
+          "name": "cap/bri/move_with_onoff"
+        },
+        {
+          "name": "cap/on/off_with_effect"
+        },
+        {
+          "name": "config/bri/execute_if_off"
+        },
+        {
+          "name": "config/bri/startup"
+        },
+        {
+          "name": "config/on/startup"
+        },
+        {
+          "name": "state/alert"
+        },
+        {
+          "name": "state/on",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0xfc03",
+            "mf": "0x100b",
+            "at": "0x0002",
+            "script": "fc03_state.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0xfc03",
+            "mf": "0x100b",
+            "at": "0x0002"
+          },
+          "refresh.interval": 305
+        },
+        {
+          "name": "state/bri",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/effect",
+          "values": [
+            [
+              "\"none\"",
+              "no effect is active"
+            ],
+            [
+              "\"candle\"",
+              "candlelight dynamic effect"
+            ]
+          ],
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 11,
+      "cl": "0xfc03",
+      "report": [
+        {
+          "mf": "0x100b",
+          "at": "0x0002",
+          "dt": "0x41",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    }
+  ]
+}

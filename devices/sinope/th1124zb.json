@@ -4,7 +4,7 @@
   "modelid": "TH1124ZB",
   "product": "TH1124ZB",
   "sleeper": false,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_THERMOSTAT",
@@ -57,12 +57,41 @@
           "name": "config/heatsetpoint",
           "default": 0
         },
+	{
+          "name": "config/resetpresence",
+          "refresh.interval": 300,
+          "description": "Use it to address Occupancy specific attribute.\nfalse = Unoccupied\ntrue = Occupied",
+          "parse": {
+            "at": "0x0400",
+            "cl": "0x0201",
+            "ep": 1,
+            "mf": "0x119c",
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl"
+            },
+          "read": {
+            "at": "0x0400",
+            "cl": "0x0201",
+            "ep": 1,
+            "mf": "0x119c",
+            "fn": "zcl"
+            },
+          "write": {
+            "at": "0x0400",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl",
+            "dt": "0x30",
+            "mf": "0x119c",
+            "eval": "Item.val"
+            },
+          "default": true
+        },
         {
           "name": "config/mode"
         },
         {
-          "name": "config/offset",
-          "default": 0
+          "name": "config/offset"
         },
         {
           "name": "config/on"
@@ -71,13 +100,39 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/schedule",
-          "description": "On-device heating schedules."
+          "name": "config/schedule"
         },
         {
-          "name": "config/schedule_on",
-          "description": "Determines if on-device schedules for setting the heatsetpoint are currently used or if the thermostat is operated manually.",
-          "default": false
+          "name": "config/schedule_on"
+        },
+        {
+          "name": "config/unoccupiedheatsetpoint",
+          "refresh.interval": 300,
+          "read": {
+            "at": "0x0014",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl",
+            "mf": "0x119c"
+          },
+          "parse": {
+            "at": "0x0014",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl",
+            "mf": "0x119c"
+          },
+            "write": {
+	    "at": "0x0014",
+            "cl": "0x0201",
+            "dt": "0x29",
+            "ep": 1,
+            "eval": "Item.val",
+            "fn": "zcl",
+            "mf": "0x119c"
+          },
+          "default": 1800
         },
         {
           "name": "config/externalsensortemp",
@@ -112,7 +167,7 @@
         {
           "name": "config/ledindication",
           "description": "Use it for Backlight configuration.\nfalse = On demand\ntrue = Always ON",
-          "refresh.interval": 300,
+          "refresh.interval": 360,
           "read": {
             "at": "0x0402",
             "cl": "0x0201",
@@ -140,6 +195,33 @@
           "default": true
         },
         {
+          "name": "config/unoccupiedheatsetpoint",
+          "refresh.interval": 360,
+          "read": {
+            "at": "0x0014",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "write": {
+            "at": "0x0014",
+            "cl": "0x0201",
+            "dt": "0x29",
+            "ep": 1,
+            "eval": "Item.val",
+            "fn": "zcl",
+            "mf": "0x119c"
+          },
+          "parse": {
+            "at": "0x0014",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl"
+          },
+          "default": 17
+        },
+        {
           "name": "state/lastupdated"
         },
         {
@@ -148,6 +230,25 @@
         },
         {
           "name": "state/temperature",
+          "default": 0
+        },
+       {
+          "name": "state/valve",
+          "description": "PI Heating Demand. If below 10, then device is Idle, else device is Heating.",
+          "refresh.interval": 300,
+          "read": {
+            "at": "0x0008",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0008",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl"
+          },
           "default": 0
         }
       ]
@@ -205,7 +306,6 @@
         },
         {
           "name": "state/current",
-          "description": "The measured current (in A).",
           "refresh.interval": 300,
           "parse": {
             "at": "0x0508",

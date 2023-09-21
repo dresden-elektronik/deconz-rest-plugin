@@ -1,11 +1,18 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "state/lastset",
-	"datatype": "ISO 8601 timestamp",
-	"access": "R",
-	"public": true,
-	"description": "Timestamp when the time attribute was last set on the device.",
-	"parse": {"fn": "time"},
-	"read": {"at": "0x0008", "cl": "0x000A", "ep": 0, "fn": "zcl"},
-	"refresh.interval": 3600
+  "schema": "resourceitem1.schema.json",
+  "id": "state/lastset",
+  "datatype": "ISO 8601 timestamp",
+  "access": "R",
+  "public": true,
+  "description": "Timestamp when the time attribute was last set on the device.",
+  "parse": {
+    "fn": "time"
+  },
+  "read": {
+    "at": "0x0008",
+    "cl": "0x000A",
+    "ep": 0,
+    "fn": "zcl"
+  },
+  "refresh.interval": 3600
 }

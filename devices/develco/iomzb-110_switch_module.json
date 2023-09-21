@@ -1,0 +1,388 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "Develco Products A/S",
+  "modelid": "IOMZB-110",
+  "product": "IOMZB-110 switch module",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_ON_OFF_OUTPUT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x74"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 5
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_ON_OFF_OUTPUT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x75"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 5
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_SWITCH",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x70",
+        "0x000f"
+      ],
+      "items": [
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/buttonevent",
+          "awake": true,
+          "parse": {
+            "at": "0x0055",
+            "cl": "0x000f",
+            "ep": 112,
+            "eval": "Item.val = Attr.val > 0 ? 1003: 1001",
+            "fn": "zcl"
+          }
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_SWITCH",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x71",
+        "0x000f"
+      ],
+      "items": [
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/buttonevent",
+          "awake": true,
+          "parse": {
+            "at": "0x0055",
+            "cl": "0x000f",
+            "ep": 113,
+            "eval": "Item.val = Attr.val > 0 ? 1003: 1001",
+            "fn": "zcl"
+          }
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_SWITCH",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x72",
+        "0x000f"
+      ],
+      "items": [
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/buttonevent",
+          "awake": true,
+          "parse": {
+            "at": "0x0055",
+            "cl": "0x000f",
+            "ep": 114,
+            "eval": "Item.val = Attr.val > 0 ? 1003: 1001",
+            "fn": "zcl"
+          }
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_SWITCH",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x74",
+        "0x000f"
+      ],
+      "items": [
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/buttonevent",
+          "awake": true,
+          "parse": {
+            "at": "0x0055",
+            "cl": "0x000f",
+            "ep": 115,
+            "eval": "Item.val = Attr.val > 0 ? 1003: 1001",
+            "fn": "zcl"
+          }
+        }
+      ]
+    }
+  ],
+  "bindings": [
+      {
+      "bind": "unicast",
+      "src.ep": 112,
+      "cl": "0x000F",
+      "report": [
+        {
+          "at": "0x0055",
+          "dt": "0x10",
+          "min": 1,
+          "max": 3600
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 113,
+      "cl": "0x000F",
+      "report": [
+        {
+          "at": "0x0055",
+          "dt": "0x10",
+          "min": 1,
+          "max": 3600
+        }
+      ]
+    },
+      {
+      "bind": "unicast",
+      "src.ep": 114,
+      "cl": "0x000F",
+      "report": [
+        {
+          "at": "0x0055",
+          "dt": "0x10",
+          "min": 1,
+          "max": 3600
+        }
+      ]
+    },
+       {
+      "bind": "unicast",
+      "src.ep": 115,
+      "cl": "0x000F",
+      "report": [
+        {
+          "at": "0x0055",
+          "dt": "0x10",
+          "min": 1,
+          "max": 3600
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 116,
+      "dst.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 117,
+      "dst.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    }
+  ]
+}

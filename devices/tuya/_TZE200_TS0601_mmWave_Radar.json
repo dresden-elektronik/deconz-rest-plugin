@@ -1,0 +1,152 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": ["_TZE200_v6ossqfy","_TZE200_mx6u6l4y","_TZE200_0u3bj3rc"],
+  "modelid": ["TS0601","TS0601","TS0601"],
+  "product": "2.4GHz mmWave radar w/LED",
+  "sleeper": false,
+  "status": "Silver",
+    "subdevices": [
+    {
+      "type": "$TYPE_PRESENCE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0xef00"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl",
+            "script": "tuya_swversion.js"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/delay",
+          "description": "Shows the presence duration in minutes",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 101,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 1
+        },
+        {
+          "name": "config/duration",
+          "description": "Shows the duration of absence in minutes",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 102,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          }
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "config/ledindication",
+          "description": "Turn the onboard LED On or Off",
+          "read": {
+            "fn": "none"
+          },
+          "write": {
+            "dpid": 103,
+            "dt": "0x10",
+            "eval": "Item.val == 1 ? 1 : 0;",
+           "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 103,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 0
+        },
+        {
+          "name": "config/triggerdistance",
+          "description": "Far detection sensitivity in meter",
+          "read": {
+            "fn": "none"
+          },
+          "write": {
+            "dpid": 105,
+            "dt": "0x2b",
+            "eval": "Far = ['0.5','1','1.5','2','2.5','3','3.5','4','4.5','5']; Attr.val = Math.max(0,Far.indexOf(Item.val));",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 105,
+            "eval": "Item.val = String((Attr.val * 0.5)  + 0.5);",
+            "fn": "tuya"
+          }
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/presence",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": false
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0xEF00"
+    }
+  ]
+}

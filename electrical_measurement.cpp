@@ -89,7 +89,6 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                         modelId.startsWith(QLatin1String("SKHMP30")) ||                       // GS smart plug
                         modelId.startsWith(QLatin1String("ROB_200")) ||                       // ROBB Smarrt micro dimmer
                         modelId.startsWith(QLatin1String("Micro Smart Dimmer")) ||            // Sunricher Micro Smart Dimmer
-                        modelId.startsWith(QLatin1String("lumi.plug.maeu")) ||                // Xiaomi Aqara ZB3.0 smart plug
                         modelId == QLatin1String("RICI01") ||                                 // LifeControl Smart Plug
                         modelId.startsWith(QLatin1String("outlet")) ||                        // Samsung SmartThings IM6001-OTP/IM6001-OTP01
                         modelId == QLatin1String("3200-Sgb") ||                               // Samsung/Centralite smart outlet
@@ -196,9 +195,7 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                         modelId.startsWith(QLatin1String("Micro Smart Dimmer")) ||                // Sunricher Micro Smart Dimmer
                         modelId == QLatin1String("SMRZB-1") ||                                    // Develco smart cable
                         modelId == QLatin1String("PoP") ||                                        // Apex Smart Plug
-                        modelId == QLatin1String("TS011F") ||                                     // Tuya plugs
-                        modelId.startsWith(QLatin1String("S1-R")) ||                              // Ubisys S1-R
-                        modelId.startsWith(QLatin1String("D1")))                                  // Ubisys D1/D1-R
+                        modelId == QLatin1String("TS011F"))                                       // Tuya plugs
                     {
                         // already in mA
                         DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "if (Attr.val != 65535) { Item.val = Attr.val; } ");

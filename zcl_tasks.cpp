@@ -369,37 +369,6 @@ bool DeRestPluginPrivate::addTaskIncBrightness(TaskItem &task, int16_t bri)
 }
 
 /*!
- * Add a stop brightness task to the queue
- *
- * \param task - the task item
- * \return true - on success
- *         false - on error
- */
-bool DeRestPluginPrivate::addTaskStopBrightness(TaskItem &task)
-{
-    task.taskType = TaskStopLevel;
-    task.req.setClusterId(LEVEL_CLUSTER_ID);
-    task.req.setProfileId(HA_PROFILE_ID);
-
-    task.zclFrame.setSequenceNumber(zclSeq++);
-    task.zclFrame.setCommandId(0x03); // Stop
-
-    task.zclFrame.payload().clear();
-    task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
-                             deCONZ::ZclFCDirectionClientToServer |
-                             deCONZ::ZclFCDisableDefaultResponse);
-
-    { // ZCL frame
-        task.req.asdu().clear(); // cleanup old request data if there is any
-        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
-        stream.setByteOrder(QDataStream::LittleEndian);
-        task.zclFrame.writeToStream(stream);
-    }
-
-    return addTask(task);
-}
-
-/*!
  * Add a set color temperature task to the queue
  *
  * \param task - the task item
@@ -437,8 +406,8 @@ bool DeRestPluginPrivate::addTaskSetColorTemperature(TaskItem &task, uint16_t ct
 
     if (task.lightNode)
     {
-        ResourceItem *ctMin = task.lightNode->item(RConfigCtMin);
-        ResourceItem *ctMax = task.lightNode->item(RConfigCtMax);
+        ResourceItem *ctMin = task.lightNode->item(RCapColorCtMin);
+        ResourceItem *ctMax = task.lightNode->item(RCapColorCtMax);
 
         // keep ct in supported bounds
         if (ctMin && ctMax && ctMin->toNumber() > 0 && ctMax->toNumber() > 0)
@@ -453,7 +422,7 @@ bool DeRestPluginPrivate::addTaskSetColorTemperature(TaskItem &task, uint16_t ct
         }
 
         // If light does not support "ct" but does suport "xy", we can emulate the former:
-        ResourceItem *colorCaps = task.lightNode->item(RConfigColorCapabilities);
+        ResourceItem *colorCaps = task.lightNode->item(RCapColorCapabilities);
         bool supportsXy = colorCaps && colorCaps->toNumber() & 0x0008;
         bool supportsCt = colorCaps && colorCaps->toNumber() & 0x0010;
         bool useXy = supportsXy && !supportsCt;
@@ -1055,7 +1024,7 @@ bool DeRestPluginPrivate::addTaskWarning(TaskItem &task, uint8_t options, uint16
  */
 bool DeRestPluginPrivate::addTaskDoorLockUnlock(TaskItem &task, uint8_t cmd)
 {
-    task.taskType = TaskDoorUnlock;
+    task.taskType = TaskDoorLock;
 
     task.req.setClusterId(DOOR_LOCK_CLUSTER_ID);
     task.req.setProfileId(HA_PROFILE_ID);
@@ -1387,8 +1356,8 @@ bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint
                         {
                             quint16 x,y;
                             quint16 enhancedHue = 0;
-                            ResourceItem *ctMin = task.lightNode->item(RConfigCtMin);
-                            ResourceItem *ctMax = task.lightNode->item(RConfigCtMax);
+                            ResourceItem *ctMin = task.lightNode->item(RCapColorCtMin);
+                            ResourceItem *ctMax = task.lightNode->item(RCapColorCtMax);
 
                             if (task.lightNode->modelId().startsWith(QLatin1String("FLS-H")))
                             {

@@ -1,0 +1,223 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": ["Develco Products A/S", "frient A/S", "Develco"],
+  "modelid": ["ZHEMI101", "ZHEMI101", "ZHEMI101"],
+  "vendor": "Develco products",
+  "product": "External meter interface ZHEMI101",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_CONSUMPTION_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x02",
+        "0x0702"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0007",
+        "endpoint": "0x02",
+        "in": [
+          "0x0000",
+          "0x0702"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0x8000",
+            "cl": "0x0000",
+            "ep": 2,
+            "fn": "zcl",
+            "mf": "0x1015"
+          },
+          "parse": {
+            "at": "0x8000",
+            "cl": "0x0000",
+            "ep": 2,
+            "fn": "zcl",
+            "mf": "0x1015",
+            "script": "develco_firmware.js"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/interfacemode",
+          "parse": {
+            "at": "0x0302",
+            "cl": "0x0702",
+            "ep": 2,
+            "eval": "let v = [0x0000, 0x0001, 0x0002, 0x0100, 0x0101, 0x0102, 0x0103, 0x0104].indexOf(Attr.val); Item.val = v != -1 ? v + 1 : 0;",
+            "fn": "zcl",
+            "mf": "0x1015"
+          },
+          "read": {
+            "at": "0x0302",
+            "cl": "0x0702",
+            "ep": 2,
+            "fn": "zcl",
+            "mf": "0x1015"
+          },
+          "write": {
+            "at": "0x0302",
+            "cl": "0x0702",
+            "dt": "0x31",
+            "ep": 2,
+            "eval": "[0x0000, 0x0001, 0x0002, 0x0100, 0x0101, 0x0102, 0x0103, 0x0104][Item.val - 1];",
+            "fn": "zcl",
+            "mf": "0x1015"
+          },
+          "values": [
+            [1, "Pulse counting electricity - Unit kWh"],
+            [2, "Pulse counting gas - Unit m3"],
+            [3, "Pulse counting water - Unit m3"],
+            [4, "Kamstrup KMP protocol"],
+            [5, "Linky protocol"],
+            [6, "DLMS-COSEM - IEC62056-21 mod A"],
+            [7, "P1 dutch standard – DSMR 2.3 version"],
+            [8, "P1 dutch standard – DSMR 4.0 version"]
+          ]
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/pulseconfiguration",
+          "parse": {
+            "at": "0x0300",
+            "cl": "0x0702",
+            "ep": 2,
+            "eval": "Item.val = Attr.val",
+            "mf": "0x1015"
+          },
+          "read": {
+            "at": "0x0300",
+            "cl": "0x0702",
+            "ep": 2,
+            "fn": "zcl",
+            "mf": "0x1015"
+          },
+          "write": {
+            "at": "0x0300",
+            "cl": "0x0702",
+            "dt": "0x21",
+            "ep": 2,
+            "eval": "Item.val;",
+            "fn": "zcl",
+            "mf": "0x1015"
+          }
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/consumption",
+          "refresh.interval": 360,
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0702",
+            "ep": 2,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl"
+          }
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/lowbattery",
+          "refresh.interval": 3660,
+          "parse": {
+            "at": "0x0200",
+            "cl": "0x0702",
+            "ep": 2,
+            "eval": "Item.val = ((Attr.val >> 1) & 0x01) ? true : false",
+            "fn": "zcl",
+            "mf": "0x1015"
+          },
+          "read": {
+            "at": "0x0200",
+            "cl": "0x0702",
+            "ep": 2,
+            "fn": "zcl",
+            "mf": "0x1015"
+          }
+        },
+        {
+          "name": "state/power",
+          "refresh.interval": 360,
+          "parse": {
+            "at": "0x0400",
+            "cl": "0x0702",
+            "ep": 2,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl"
+          },
+          "read": {
+            "at": "0x0400",
+            "cl": "0x0702",
+            "ep": 2,
+            "fn": "zcl"
+          }
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 2,
+      "dst.ep": 1,
+      "cl": "0x0702",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x25",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0200",
+          "dt": "0x18",
+          "min": 1,
+          "max": 3600
+        },
+        {
+          "at": "0x0400",
+          "dt": "0x2A",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        }
+      ]
+    }
+  ]
+}

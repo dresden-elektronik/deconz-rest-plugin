@@ -1,16 +1,16 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "state/temperature",
-	"datatype": "Int16",
-	"access": "R",
-	"public": true,
-	"description": "The current temperature in °C &times; 100.",
-	"parse": {
-		"at": "0x0000",
-		"cl": "0x0402",
-		"ep": 0,
-		"eval": "Item.val = Attr.val + R.item('config/offset').val",
-		"fn": "zcl"
-	},
-	"default": 0
+  "schema": "resourceitem1.schema.json",
+  "id": "state/temperature",
+  "datatype": "Int16",
+  "access": "R",
+  "public": true,
+  "description": "The current temperature in °C &times; 100.",
+  "parse": {
+    "at": "0x0000",
+    "cl": "0x0402",
+    "ep": 0,
+    "eval": "Item.val = Attr.val + R.item('config/offset').val",
+    "fn": "zcl"
+  },
+  "default": 0
 }

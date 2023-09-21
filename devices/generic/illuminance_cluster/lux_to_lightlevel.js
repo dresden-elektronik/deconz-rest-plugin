@@ -1,7 +1,7 @@
 const tholddark = R.item('config/tholddark').val;
 const tholdoffset = R.item('config/tholdoffset').val;
 const lux = Attr.val;
-let ll = 0;
+var ll = 0;
 
 if (lux > 0 && lux < 0xffff) {
     ll = Math.round(10000 * Math.log10(lux) + 1);

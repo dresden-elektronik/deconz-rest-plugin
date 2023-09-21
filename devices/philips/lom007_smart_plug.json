@@ -1,0 +1,124 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": [
+    "$MF_PHILIPS",
+    "$MF_SIGNIFY"
+  ],
+  "modelid": [
+    "LOM007",
+    "LOM007"
+  ],
+  "product": "Hue smart plug",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x0b"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0x0000",
+            "at": "0x0004",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0x0000",
+            "at": "0x0004"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "attr/modelid",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0x0000",
+            "at": "0x0005",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0x0000",
+            "at": "0x0005"
+          }
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/productid"
+        },
+        {
+          "name": "attr/productname",
+          "parse": {
+            "fn": "zcl:cmd",
+            "ep": "0x0b",
+            "cl": "0x0000",
+            "mf": "0x100b",
+            "cmd": "0xc1",
+            "script": "0000_capabilities.js"
+          },
+          "read": {
+            "fn": "zcl:cmd",
+            "ep": "0x0b",
+            "cl": "0x0000",
+            "mf": "0x100b",
+            "cmd": "0xc0",
+            "eval": "'00' + (15 + R.item('attr/modelid').val.length + R.item('attr/manufacturername').val.length).toString(16) + '00000040'"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "attr/swconfigid"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/alert/trigger_effect"
+        },
+        {
+          "name": "cap/on/off_with_effect"
+        },
+        {
+          "name": "config/on/startup"
+        },
+        {
+          "name": "state/alert"
+        },
+        {
+          "name": "state/on"
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    }
+  ]
+}

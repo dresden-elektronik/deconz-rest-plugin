@@ -161,7 +161,7 @@
         },
         {
           "name": "state/current",
-          "refresh.interval": 300,
+          "refresh.interval": 30,
           "read": {
             "at": "0x0508",
             "cl": "0x0b04",
@@ -172,7 +172,7 @@
             "at": "0x0508",
             "cl": "0x0b04",
             "ep": 1,
-            "eval": "if (Attr.val != 65535) { Item.val = Attr.val; }"
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val / 100; }"
           }
         },
         {
@@ -180,7 +180,7 @@
         },
         {
           "name": "state/power",
-          "refresh.interval": 300,
+          "refresh.interval": 30,
           "read": {
             "at": "0x050b",
             "cl": "0x0b04",
@@ -196,7 +196,7 @@
         },
         {
           "name": "state/voltage",
-          "refresh.interval": 300,
+          "refresh.interval": 30,
           "read": {
             "at": "0x0505",
             "cl": "0x0b04",

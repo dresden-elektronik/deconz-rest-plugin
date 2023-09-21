@@ -35,19 +35,15 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 86400,
           "parse": {
-            "at": "0x0006",
-            "cl": "0x0000",
+            "at": "0x00f7",
             "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl"
+            "fn": "xiaomi:special",
+            "idx": "0x0d",
+            "script": "xiaomi_swversion.js"
           },
           "read": {
-            "at": "0x0006",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl"
+            "fn": "none"
           }
         },
         {
@@ -96,19 +92,15 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 86400,
           "parse": {
-            "at": "0x0006",
-            "cl": "0x0000",
+            "at": "0x00f7",
             "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl"
+            "fn": "xiaomi:special",
+            "idx": "0x0d",
+            "script": "xiaomi_swversion.js"
           },
           "read": {
-            "at": "0x0006",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl"
+            "fn": "none"
           }
         },
         {
@@ -167,19 +159,15 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 86400,
           "parse": {
-            "at": "0x0006",
-            "cl": "0x0000",
+            "at": "0x00f7",
             "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl"
+            "fn": "xiaomi:special",
+            "idx": "0x0d",
+            "script": "xiaomi_swversion.js"
           },
           "read": {
-            "at": "0x0006",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl"
+            "fn": "none"
           }
         },
         {
@@ -306,19 +294,15 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 86400,
           "parse": {
-            "at": "0x0006",
-            "cl": "0x0000",
+            "at": "0x00f7",
             "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl"
+            "fn": "xiaomi:special",
+            "idx": "0x0d",
+            "script": "xiaomi_swversion.js"
           },
           "read": {
-            "at": "0x0006",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl"
+            "fn": "none"
           }
         },
         {
@@ -392,19 +376,15 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 86400,
           "parse": {
-            "at": "0x0006",
-            "cl": "0x0000",
+            "at": "0x00f7",
             "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl"
+            "fn": "xiaomi:special",
+            "idx": "0x0d",
+            "script": "xiaomi_swversion.js"
           },
           "read": {
-            "at": "0x0006",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl"
+            "fn": "none"
           }
         },
         {

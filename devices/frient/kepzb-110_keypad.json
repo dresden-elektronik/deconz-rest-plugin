@@ -1,14 +1,14 @@
 {
    "schema":"devcap1.schema.json",
-   "manufacturername":"Develco Products A/S",
-   "modelid":"KEPZB-110",
-   "vendor": "Develco Products",
+   "manufacturername": ["Develco Products A/S", "frient A/S"],
    "product":"KEPZB-110 Keypad",
+   "vendor": "Develco Products",
+   "modelid": ["KEPZB-110", "KEPZB-110"],
    "sleeper":false,
    "status":"Bronze",
    "subdevices":[
       {
-         "type":"ZHAAncillaryControl",
+         "type":"$TYPE_ANCILLARY_CONTROL",
          "restapi":"/sensors",
          "uuid":[
             "$address.ext",
@@ -74,13 +74,16 @@
             },
             {
                "name":"state/action",
-               "public":false
+               "public":true
             },
             {
                "name":"state/lastupdated"
             },
             {
                "name":"state/lowbattery"
+            },
+            {
+              "name": "state/seconds_remaining"
             },
             {
                "name":"state/panel",
