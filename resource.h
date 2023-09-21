@@ -513,8 +513,17 @@ private:
     ValueSource m_valueSource = SourceUnknown;
     bool m_isPublic = true;
     quint16 m_flags = 0; // bitmap of ResourceItem::ItemFlags
-    qint64 m_num = 0;
-    qint64 m_numPrev = 0;
+    union
+    {
+        struct {
+            qint64 m_num = 0;
+            qint64 m_numPrev = 0;
+        };
+        struct {
+            double m_double;
+            double m_doublePrev;
+        };
+    };
     deCONZ::SteadyTimeRef m_lastZclReport;
 
     BufStringCacheHandle m_strHandle; // for strings which don't fit into \c m_istr
