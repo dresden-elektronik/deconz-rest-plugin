@@ -447,7 +447,7 @@
         },
         {
           "name": "cap/measured_value/unit",
-          "static": "°C"
+          "static": "degC"
         },
         {
           "name": "config/alert",
