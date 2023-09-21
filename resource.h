@@ -112,8 +112,8 @@ extern const char *RActionScene;
 extern const char *RStateAction;
 extern const char *RStateAirQuality;
 extern const char *RStateAirQualityBis;
-extern const char *RStateAirQualityPpb;
-extern const char *RStateAirQualityPpbBis;
+extern const char *RStateAirQualityPpb; // Deprecated
+extern const char *RStateAirQualityPpbBis; // Deprecated
 extern const char *RStateAlarm;
 extern const char *RStateAlert;
 extern const char *RStateAllOn;
@@ -162,6 +162,7 @@ extern const char *RStateLocaltime;
 extern const char *RStateLockState;
 extern const char *RStateLowBattery;
 extern const char *RStateLux;
+extern const char *RStateMeasuredValue;
 extern const char *RStateMoisture;
 extern const char *RStateMountingModeActive;
 extern const char *RStateMusicSync;
@@ -171,7 +172,7 @@ extern const char *RStateOpenBis;
 extern const char *RStateOrientationX;
 extern const char *RStateOrientationY;
 extern const char *RStateOrientationZ;
-extern const char *RStatePM2_5;
+extern const char *RStatePM2_5; // Deprecated
 extern const char *RStatePanel;
 extern const char *RStatePower;
 extern const char *RStatePresence;
@@ -229,6 +230,11 @@ extern const char *RCapColorXyRedX;
 extern const char *RCapColorXyRedY;
 extern const char *RCapGroup;
 extern const char *RCapGroupsNotSupported;
+extern const char *RCapMeasuredValueMax;
+extern const char *RCapMeasuredValueMin;
+extern const char *RCapMeasuredValueQuantity;
+extern const char *RCapMeasuredValueSubstance;
+extern const char *RCapMeasuredValueUnit;
 extern const char *RCapOnOffWithEffect;
 extern const char *RCapSleeper;
 extern const char *RCapTransitionBlock;
@@ -507,8 +513,17 @@ private:
     ValueSource m_valueSource = SourceUnknown;
     bool m_isPublic = true;
     quint16 m_flags = 0; // bitmap of ResourceItem::ItemFlags
-    qint64 m_num = 0;
-    qint64 m_numPrev = 0;
+    union
+    {
+        struct {
+            qint64 m_num = 0;
+            qint64 m_numPrev = 0;
+        };
+        struct {
+            double m_double;
+            double m_doublePrev;
+        };
+    };
     deCONZ::SteadyTimeRef m_lastZclReport;
 
     BufStringCacheHandle m_strHandle; // for strings which don't fit into \c m_istr
