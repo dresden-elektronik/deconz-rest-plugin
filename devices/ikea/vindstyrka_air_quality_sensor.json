@@ -400,7 +400,7 @@
         },
         {
           "name": "cap/measured_value/substance",
-          "static": "pm2.5"
+          "static": "PM2.5"
         },
         {
           "name": "cap/measured_value/unit",
@@ -576,7 +576,7 @@
         },
         {
           "name": "cap/measured_value/unit",
-          "static": "ppm"
+          "static": "ppb"
         },
         {
           "name": "config/on"
