@@ -542,6 +542,11 @@ void Sensor::jsonToConfig(const QString &json)
         map["lastchange_time"] = lct;
     }
 
+    if (map.contains("battery") && type().startsWith(QLatin1String("CLIP")))
+    {
+        addItem(DataTypeUInt8, RConfigBattery);
+    }
+
     QDateTime dt = QDateTime::currentDateTime().addSecs(-120);
 
     for (int i = 0; i < itemCount(); i++)
