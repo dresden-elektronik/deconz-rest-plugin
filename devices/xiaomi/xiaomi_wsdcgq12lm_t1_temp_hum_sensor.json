@@ -91,7 +91,7 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/temperature",
+          "name": "state/temperature"
         },
         {
           "name": "state/temperature_bis",
