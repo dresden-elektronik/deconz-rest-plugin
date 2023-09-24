@@ -413,7 +413,7 @@ void DDF_Editor::addSubDevice(const QString &name)
 
         std::sort(items.begin(), items.end(), [](const auto *a, const auto *b)
         {
-            return QLatin1String(a) < QLatin1String(b);
+            return strcmp(a, b) < 0;
         });
 
         for (const auto *suffix : items)
