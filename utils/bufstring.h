@@ -171,9 +171,9 @@ public:
 };
 
 template<size_t T, size_t U>
-constexpr bool operator<(const BufString<T> &lhs, const BufString<U> &rhs)
+inline bool operator<(const BufString<T> &lhs, const BufString<U> &rhs)
 {
-    return static_cast<QLatin1String>(lhs) < static_cast<QLatin1String>(rhs);
+    return strcmp(lhs.c_str(), rhs.c_str()) < 0;
 }
 
 template <size_t Size>
