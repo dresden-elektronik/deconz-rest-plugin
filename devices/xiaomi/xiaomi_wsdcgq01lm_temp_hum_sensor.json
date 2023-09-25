@@ -3,7 +3,7 @@
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.sensor_ht",
   "vendor": "Xiaomi",
-  "product": "Aqara temp./hum. sensor WSDCGQ01LM",
+  "product": "Aqara Temperature and Humidity Sensor WSDCGQ01LM",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

@@ -1,13 +1,19 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "$MF_IKEA",
-  "modelid": "TRADFRI control outlet",
-  "product": "TRADFRI control outlet",
+  "manufacturername": [
+    "$MF_IKEA",
+    "$MF_IKEA"
+  ],
+  "modelid": [
+    "TRADFRI Signal Repeater",
+    "TRADFRI signal repeater"
+  ],
+  "product": "TRADFRI Signal Repeater",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
+      "type": "$TYPE_RANGE_EXTENDER",
       "restapi": "/lights",
       "uuid": [
         "$address.ext",
@@ -59,31 +65,16 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "state/alert",
-          "default": "none"
+          "name": "cap/groups/not_supported"
         },
         {
-          "name": "state/on",
-          "refresh.interval": 5
+          "name": "state/alert",
+          "default": "none"
         },
         {
           "name": "state/reachable"
         }
       ]
-    }
-  ],
-  "bindings": [
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0000"
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0006"
     }
   ]
 }
