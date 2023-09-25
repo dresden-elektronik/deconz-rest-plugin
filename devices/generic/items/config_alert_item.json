@@ -5,6 +5,7 @@
   "access": "RW",
   "public": true,
   "description": "The currently active alert.",
+  "default": "none",
   "values": [
     [
       "\"none\"",
