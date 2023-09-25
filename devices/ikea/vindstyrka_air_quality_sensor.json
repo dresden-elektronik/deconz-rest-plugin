@@ -146,8 +146,7 @@
           "refresh.interval": 360
         },
         {
-          "name": "state/temperature",
-          "deprecated": "2023-09-17"
+          "name": "state/temperature"
         }
       ]
     },
