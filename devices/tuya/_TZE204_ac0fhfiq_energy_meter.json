@@ -147,13 +147,12 @@
         },
         {
           "name": "state/current",
-          "refresh.interval": 300,
           "read": {
             "fn": "none"
           },
           "parse": {
             "dpid": 6,
-            "eval": "Item.val = ((ZclFrame.at(11) << 16) | (ZclFrame.at(12) << 8) | ZclFrame.at(13)) / 1000;",
+            "eval": "Item.val = ((ZclFrame.at(8) << 16) | (ZclFrame.at(9) << 8) | ZclFrame.at(10)) / 1000;",
             "fn": "tuya"
           },
           "default": 0
