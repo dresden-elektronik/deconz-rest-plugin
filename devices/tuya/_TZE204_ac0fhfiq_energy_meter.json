@@ -153,7 +153,7 @@
           },
           "parse": {
             "dpid": 6,
-            "eval": "eval": "Item.val = ((ZclFrame.at(11) << 16) | (ZclFrame.at(12) << 8) | ZclFrame.at(13)) / 1000;",
+            "eval": "Item.val = ((ZclFrame.at(11) << 16) | (ZclFrame.at(12) << 8) | ZclFrame.at(13)) / 1000;",
             "fn": "tuya"
           },
           "default": 0
