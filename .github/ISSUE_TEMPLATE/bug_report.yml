@@ -68,7 +68,7 @@ body:
            - Host system: (Raspberry Pi / PC / NAS / MAC)
            - Running method: (Raspbian / Ubuntu / Home Assistent deCONZ Add-on / Marthoc Docker container / Windows / Virtual Machine)
            - Firmware version: (26xxyy00)
-           - deCONZ version: (2.xx.yy)
+           - deCONZ version (not Home assistant Addon version!): (2.xx.yy)
            - Device: (ConBee I / ConBee II / ConBee III / RaspBee I / RaspBee II)
            - Do you use an USB extension cable: (yes / no) -- only relevant for ConBee I/II/III
            - Is there any other USB or serial devices connected to the host system? If so: Which?
