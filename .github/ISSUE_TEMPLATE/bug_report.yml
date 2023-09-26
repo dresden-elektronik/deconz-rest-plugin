@@ -7,9 +7,8 @@ body:
       value: |
         ## Important notes
           - Use this issue template to report a bug within deCONZ or its REST-API.
-          - Anything that is not clearly a bug can implicate manual closure. For support we recommend the forum: https://forum.phoscon.de 
+          - Anything that is not clearly a bug can implicate manual closure (see [#5113](https://github.com/dresden-elektronik/deconz-rest-plugin/issues/5113)). For support or questions, we recommend the forum: https://forum.phoscon.de 
           - If you want to report a bug for the Phoscon App, please head over to: https://forum.phoscon.de
-          - Make sure not to remove any headers and fill the template completely. If you remove the headers, the issue will be auto-closed.
           - If you're unsure if the bug fits into this issue tracker, please ask for advise in our Discord chat: https://discord.gg/QFhTxqN
           - Please make sure sure you're running the latest version of deCONZ: https://github.com/dresden-elektronik/deconz-rest-plugin/releases
   - type: checkboxes
@@ -70,8 +69,8 @@ body:
            - Running method: (Raspbian / Ubuntu / Home Assistent deCONZ Add-on / Marthoc Docker container / Windows / Virtual Machine)
            - Firmware version: (26xxyy00)
            - deCONZ version: (2.xx.yy)
-           - Device: (ConBee I / ConBee II / RaspBee I / RaspBee II)
-           - Do you use an USB extension cable: (yes / no) -- only relevant for ConBee I/II
+           - Device: (ConBee I / ConBee II / ConBee III / RaspBee I / RaspBee II)
+           - Do you use an USB extension cable: (yes / no) -- only relevant for ConBee I/II/III
            - Is there any other USB or serial devices connected to the host system? If so: Which?
     validations:
       required: true
@@ -80,7 +79,7 @@ body:
       label: deCONZ Logs
       description: |
         Debug logs can help to investigate certain problems like device pairing and communication issues. Logging can be enabled on the command line as described in: https://github.com/dresden-elektronik/deconz-rest-plugin/wiki/deCONZ-debug-flags
-        Secondly, for versions above 2.05.87: In the deCONZ GUI: click Help > debug view. Output of APS,ZDP, ZCL and INFO can be handy.
+        Secondly, for versions above 2.05.87: In the deCONZ GUI: click Help > debug view. Output of ERROR, ERROR_L2, INFO and INFO_L2 can be handy. APS and APS_L2 can be very helpful, but is also very verbose.
     validations:
       required: false
   - type: textarea
