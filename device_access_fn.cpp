@@ -719,6 +719,12 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
         switch (dataType)
         {
         case TuyaDataTypeRaw:
+        {
+            // Not setting value because need to much ressource.
+            zclDataType = deCONZ::ZclCharacterString;
+        }
+        break;
+            
         case TuyaDataTypeString:
             return result; // TODO implement?
 
