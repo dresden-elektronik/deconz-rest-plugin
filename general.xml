@@ -2860,13 +2860,15 @@ Note: It does not clear or delete previous weekly schedule programming configura
           <attribute id="0x0003" mfcode="0x100b" name="Hue StartUp Current X" type="u16" access="rw" range="0x0000,0xffff" default="0xffff" required="o"></attribute>
           <attribute id="0x0004" mfcode="0x100b" name="Hue StartUp Current Y" type="u16" access="rw" range="0x0000,0xffff" default="0xffff" required="o"></attribute>
           -->
+          <!-- Haven't yet seen any lights supporting these
           <attribute id="0x0005" name="Drift Compensation" type="enum8" access="r" required="o">
             <value name="None" value="0x00"></value>
             <value name="Other / Unknown" value="0x01"></value>
             <value name="Temperature monitoring" value="0x02"></value>
             <value name="Optical luminance monitoring and feedback" value="0x03"></value>
-	  </attribute>
+	        </attribute>
           <attribute id="0x0006" name="Compensation Text" type="cstring" access="r" required="o"></attribute>
+          -->
           <attribute id="0x0007" name="Color Temperature Mireds" type="u16" access="r" range="0x0000,0xfeff" default="0" required="m"></attribute>
           <attribute id="0x0008" name="Color Mode" type="enum8" access="r" range="0x00,0x02" default="0x01" required="o">
             <value name="Current hue and current saturation" value="0x00"></value>
