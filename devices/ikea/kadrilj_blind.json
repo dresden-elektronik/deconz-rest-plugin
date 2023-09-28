@@ -5,7 +5,7 @@
   "manufacturername": "$MF_IKEA",
   "modelid": "KADRILJ roller blind",
   "product": "KADRILJ roller blind (E1752-140)",
-  "status": "Bronze",
+  "status": "Draft",
   "supportsMgmtBind": true,
   "sleeper": false,
   "subdevices": [
