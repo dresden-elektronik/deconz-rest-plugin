@@ -166,13 +166,13 @@
           }
         },
         {
-          "name": "cap/on/off_with_effect"
+          "name": "config/on/off_with_effect"
         },
         {
-          "name": "cap/bri/couple_ct"
+          "name": "config/bri/couple_ct"
         },
         {
-          "name": "cap/bri/execute_if_off"
+          "name": "config/bri/execute_if_off"
         },
         {
           "name": "config/bri/on_level",
