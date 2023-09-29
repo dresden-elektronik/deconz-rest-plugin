@@ -92,10 +92,10 @@
           "name": "cap/transition_block"
         },
         {
-          "name": "cap/bri/couple_ct"
+          "name": "config/bri/couple_ct"
         },
         {
-          "name": "cap/bri/execute_if_off"
+          "name": "config/bri/execute_if_off"
         },
         {
           "name": "config/bri/on_level",
