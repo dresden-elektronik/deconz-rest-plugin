@@ -35,14 +35,14 @@
         {
           "name": "attr/swversion",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0000",
             "at": "0x0001",
             "eval": "Item.val = '0.0.0_' + ('0000' + Attr.val.toString()).slice(-4)"
           },
           "read": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0000",
             "at": "0x0001"
@@ -58,14 +58,14 @@
         {
           "name": "state/lift",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0102",
             "at": "0x0008",
             "eval": "Item.val = 100 - Attr.val"
           },
           "read": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0102",
             "at": "0x0008"
@@ -75,7 +75,7 @@
         {
           "name": "state/open",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0102",
             "at": "0x0008",

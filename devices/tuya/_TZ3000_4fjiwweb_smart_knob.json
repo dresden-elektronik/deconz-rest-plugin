@@ -36,8 +36,8 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
         {
           "name": "attr/type"
@@ -75,14 +75,14 @@
         {
           "name": "state/on",
           "public": false,
-          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0006", "script": "_TZ3000_4fjiwweb_smart_knob_buttons.js"},
+          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0006", "script": "_TZ3000_4fjiwweb_smart_knob_buttons.js"},
           "read": {"fn": "none"},
           "awake": true
         },
         {
           "name": "state/bri",
           "public": false,
-          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0008", "script": "_TZ3000_4fjiwweb_smart_knob_buttons.js"},
+          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0008", "script": "_TZ3000_4fjiwweb_smart_knob_buttons.js"},
           "read": {"fn": "none"}
         }
       ]

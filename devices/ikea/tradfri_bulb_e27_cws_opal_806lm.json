@@ -64,7 +64,7 @@
         {
           "name": "cap/color/capabilities",
           "read": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0300",
             "at": [
@@ -94,7 +94,7 @@
         {
           "name": "cap/color/xy/blue_x",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0300",
             "at": "0x0019",
@@ -104,7 +104,7 @@
         {
           "name": "cap/color/xy/blue_y",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0300",
             "at": "0x001a",
@@ -114,7 +114,7 @@
         {
           "name": "cap/color/xy/green_x",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0300",
             "at": "0x0015",
@@ -124,7 +124,7 @@
         {
           "name": "cap/color/xy/green_y",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0300",
             "at": "0x0016",
@@ -134,14 +134,14 @@
         {
           "name": "cap/color/xy/red_x",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0300",
             "at": "0x0011",
             "eval": "Item.val = Attr.val"
           },
           "read": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0300",
             "at": [
@@ -158,7 +158,7 @@
         {
           "name": "cap/color/xy/red_y",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0300",
             "at": "0x0012",
@@ -171,7 +171,7 @@
         {
           "name": "config/bri/execute_if_off",
           "read": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0008",
             "at": [
@@ -232,14 +232,14 @@
             ]
           ],
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0300",
             "at": "0x4001",
             "eval": "Item.val = ['hs', 'xy', 'ct', 'xy'][Attr.val]"
           },
           "read": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0300",
             "at": [

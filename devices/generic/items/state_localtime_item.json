@@ -12,7 +12,7 @@
     "at": "0x0007",
     "cl": "0x000A",
     "ep": 0,
-    "fn": "zcl"
+    "fn": "zcl:attr"
   },
   "refresh.interval": 3600
 }

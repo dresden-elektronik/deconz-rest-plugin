@@ -9,7 +9,7 @@
     "at": "0x0908",
     "cl": "0x0b04",
     "ep": 0,
-    "fn": "zcl"
+    "fn": "zcl:attr"
   },
   "parse": {
     "at": "0x0908",

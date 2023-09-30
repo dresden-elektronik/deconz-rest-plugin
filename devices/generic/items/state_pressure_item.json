@@ -10,7 +10,7 @@
     "cl": "0x0403",
     "ep": 0,
     "eval": "Item.val = Attr.val + R.item('config/offset').val",
-    "fn": "zcl"
+    "fn": "zcl:attr"
   },
   "default": 0
 }

@@ -7,7 +7,7 @@
   "description": "Supported styles on Hue gradient light.",
   "default": "0x0001",
   "parse": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": "0x0b",
     "cl": "0xfc03",
     "mf": "0x100b",
@@ -15,7 +15,7 @@
     "eval": "Item.val = Attr.val"
   },
   "read": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": "0x0b",
     "cl": "0xfc03",
     "mf": "0x100b",

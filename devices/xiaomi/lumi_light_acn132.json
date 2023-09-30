@@ -49,7 +49,7 @@
             "eval": "Item.val = '0.0.0_' + ('0000' + ((Attr.val & 0xFF00) >> 8).toString() + (Attr.val & 0xFF).toString()).slice(-4)"
           },
           "read": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0xFCC0",
             "mf": "0x115F",
@@ -150,7 +150,7 @@
         {
           "name": "config/bri/max",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0xFCC0",
             "mf": "0x115F",
@@ -158,7 +158,7 @@
             "eval": "Item.val = Math.round(Attr.val * 2.54)"
           },
           "read": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0xFCC0",
             "mf": "0x115F",
@@ -169,7 +169,7 @@
           },
           "refresh.interval": 3600,
           "write": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0xFCC0",
             "mf": "0x115F",
@@ -181,7 +181,7 @@
         {
           "name": "config/bri/min",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0xFCC0",
             "mf": "0x115F",
@@ -192,7 +192,7 @@
             "fn": "none"
           },
           "write": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0xFCC0",
             "mf": "0x115F",
@@ -230,7 +230,7 @@
             "eval": "Item.val = Attr.val"
           },
           "read": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0xFCC0",
             "mf": "0x115F",
@@ -314,7 +314,7 @@
         {
           "name": "state/music_sync",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 0,
             "cl": "0xFCC0",
             "mf": "0x115F",
@@ -322,7 +322,7 @@
             "eval": "Item.val = Attr.val === 1"
           },
           "read": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 0,
             "cl": "0xFCC0",
             "mf": "0x115F",
@@ -332,7 +332,7 @@
           },
           "refresh.interval": 305,
           "write": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 0,
             "cl": "0xFCC0",
             "mf": "0x115F",
