@@ -49,7 +49,7 @@
                         "cl": "0x0102",
                         "ep": 5,
                         "eval": "Item.val = Attr.val == 255 ? 50 : (100 - Attr.val)",
-                        "fn": "zcl"
+                        "fn": "zcl:attr"
                     },
                     "awake": true,
                     "refresh.interval": 84000
@@ -61,7 +61,7 @@
                         "cl": "0x0102",
                         "ep": 5,
                         "eval": "Item.val = Attr.val != 0",
-                        "fn": "zcl"
+                        "fn": "zcl:attr"
                     },
                     "awake": true,
                     "refresh.interval": 84000
@@ -122,7 +122,7 @@
                         "at": "0xE000",
                         "cl": "0x0102",
                         "ep": 5,
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "mf": "0x105e"
                     },
                     "write": {
@@ -131,7 +131,7 @@
                         "dt": "0x21",
                         "ep": 5,
                         "eval": "Item.val",
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "mf": "0x105e"
                     },
                     "parse": {
@@ -139,7 +139,7 @@
                         "cl": "0x0102",
                         "ep": 5,
                         "eval": "Item.val = Attr.val",
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "mf": "0x105e"
                     },
                     "default": 120,
@@ -151,7 +151,7 @@
                         "at": "0x0000",
                         "cl": "0xff17",
                         "ep": 21,
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "mf": "0x105e"
                     },
                     "write": {
@@ -160,7 +160,7 @@
                         "dt": "0x30",
                         "ep": 21,
                         "eval": "Item.val ? 1 : 0",
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "mf": "0x105e"
                     },
                     "parse": {
@@ -168,7 +168,7 @@
                         "cl": "0xff17",
                         "ep": 21,
                         "eval": "Attr.val == 0 ? Item.val = false : Item.val = true",
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "mf": "0x105e"
                     },
                     "default": false,
@@ -181,7 +181,7 @@
                         "at": "0x0001",
                         "cl": "0xff17",
                         "ep": 21,
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "mf": "0x105e"
                     },
                     "write": {
@@ -190,7 +190,7 @@
                         "dt": "0x30",
                         "ep": 21,
                         "eval": "({ 'lift': 0, 'lift&tilt' : 1 }[Item.val]) + (R.item('config/locked').val === true ? 0 : 2)",
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "mf": "0x105e"
                     },
                     "parse": {
@@ -198,7 +198,7 @@
                         "cl": "0xff17",
                         "ep": 21,
                         "eval": "Item.val = Attr.val < 4 ? ({ 0: 'lift', 1: 'lift&tilt' }[Attr.val % 2]) : null;",
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "mf": "0x105e"
                     },
                     "default": "lift&tilt",
@@ -210,7 +210,7 @@
                         "at": "0x0001",
                         "cl": "0xff17",
                         "ep": 21,
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "mf": "0x105e"
                     },
                     "write": {
@@ -219,7 +219,7 @@
                         "dt": "0x30",
                         "ep": 21,
                         "eval": "({ true: 0, false : 2 }[Item.val]) + ({ 'lift': 0, 'lift&tilt' : 1 }[R.item('config/mode').val])",
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "mf": "0x105e"
                     },
                     "parse": {
@@ -227,7 +227,7 @@
                         "cl": "0xff17",
                         "ep": 21,
                         "eval": "Item.val = Attr.val == 0 || Attr.val == 1",
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "mf": "0x105e"
                     },
                     "default": false,

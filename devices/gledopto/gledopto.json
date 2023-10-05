@@ -93,14 +93,14 @@
                 {
                     "name": "state/colormode",
                     "parse": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": "0x0b",
                         "cl": "0x0300",
                         "at": "0x4001",
                         "eval": "if (Attr.val <= 3) Item.val = ['hs', 'xy', 'ct', 'xy'][Attr.val]"
                     },
                     "read": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": "0x0b",
                         "cl": "0x0300",
                         "at": [

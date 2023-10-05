@@ -14,13 +14,13 @@
     "cl": "0x0102",
     "ep": 0,
     "eval": "Item.val = Attr.val;",
-    "fn": "zcl"
+    "fn": "zcl:attr"
   },
   "read": {
     "at": "0x0009",
     "cl": "0x0102",
     "ep": 0,
-    "fn": "zcl"
+    "fn": "zcl:attr"
   },
   "refresh.interval": 300,
   "default": 0

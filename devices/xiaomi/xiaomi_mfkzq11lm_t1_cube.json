@@ -90,7 +90,7 @@
             "at": "0x0055",
             "cl": "0x000C",
             "ep": 3,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "script": "xiaomi_cube_rotation.js"
           }
         },
@@ -182,7 +182,7 @@
             "at": "0x0055",
             "cl": "0x0012",
             "ep": 2,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "script": "xiaomi_cube_gestures.js"
           }
         },

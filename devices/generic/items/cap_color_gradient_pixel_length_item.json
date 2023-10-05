@@ -6,7 +6,7 @@
   "public": true,
   "description": "Length (in 0.1 mm) of a pixel on Hue gradient light.",
   "parse": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": "0x0b",
     "cl": "0xfc03",
     "mf": "0x100b",

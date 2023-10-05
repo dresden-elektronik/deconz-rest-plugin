@@ -93,7 +93,7 @@
             "at": "0x0011",
             "cl": "0x0201",
             "ep": 0,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "write": {
             "at": "0x0011",
@@ -101,14 +101,14 @@
             "dt": "0x29",
             "ep": 0,
             "eval": "Item.val;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0011",
             "cl": "0x0201",
             "ep": 0,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": 0
         },
@@ -119,7 +119,7 @@
             "at": "0x0000",
             "cl": "0x0202",
             "ep": 0,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "write": {
             "at": "0x0000",
@@ -127,14 +127,14 @@
             "dt": "0x30",
             "ep": 0,
             "eval": "({ 'off': 0, 'low' : 1, 'medium' : 2, 'high' : 3, 'on' : 4, 'auto' : 5, 'smart' : 6 }[Item.val]);",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0000",
             "cl": "0x0202",
             "ep": 0,
             "eval": "Item.val = Attr.val < 7 ? ({ 0: 'off', 1: 'low', 2: 'medium', 3: 'high', 4: 'on', 5: 'auto', 6: 'smart' }[Attr.val]) : null;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": "auto"
         },
@@ -151,7 +151,7 @@
             "at": "0x001c",
             "cl": "0x0201",
             "ep": 0,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "write": {
             "at": "0x001c",
@@ -159,14 +159,14 @@
             "dt": "0x30",
             "ep": 0,
             "eval": "({ 'off': 0, 'auto' : 1, 'unknown' : 2, 'cool' : 3, 'heat' : 4, 'emergency heating' : 5, 'precooling' : 6, 'fan only' : 7, 'dry' : 8, 'sleep' : 9 }[Item.val]);",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x001c",
             "cl": "0x0201",
             "ep": 0,
             "eval": "Item.val = Attr.val < 10 ? ({ 0: 'off', 1: 'auto', 2: 'unknown', 3: 'cool', 4: 'heat', 5: 'emergency heating', 6: 'precooling', 7: 'fan only', 8: 'dry', 9: 'sleep' }[Attr.val]) : null;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": "auto"
         },
@@ -219,7 +219,7 @@
             "at": "0x0045",
             "cl": "0x0201",
             "ep": 0,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "write": {
             "at": "0x0045",
@@ -227,14 +227,14 @@
             "dt": "0x30",
             "ep": 0,
             "eval": "({ 'off': 0, 'fully closed' : 1, 'fully open' : 2, 'quarter open' : 3, 'half open' : 4, 'three quarters open' : 5 }[Item.val]);",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0045",
             "cl": "0x0201",
             "ep": 0,
             "eval": "Item.val = Attr.val < 6 ? ({ 0: 'off', 1: 'fully closed', 2: 'fully open', 3: 'quarter open', 4: 'half open', 5: 'three quarters open' }[Attr.val]) : null;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": "off"
         },

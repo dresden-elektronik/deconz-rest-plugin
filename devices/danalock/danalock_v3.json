@@ -33,14 +33,14 @@
             "cl": "0x0000",
             "at": "0x0006",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "cl": "0x0000",
             "at": "0x0006",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {
@@ -64,14 +64,14 @@
             "cl": "0x0101",
             "at": "0x0000",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "cl": "0x0101",
             "at": "0x0000",
             "ep": 1,
             "eval": "Item.val = (Attr.val === 1)",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "refresh.interval": 600,
           "awake": true

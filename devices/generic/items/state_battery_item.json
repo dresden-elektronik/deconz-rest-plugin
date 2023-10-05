@@ -10,14 +10,14 @@
   ],
   "description": "The current device battery level in range 0&ndash;100&nbsp;%.",
   "parse": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": 0,
     "cl": "0x0001",
     "at": "0x0021",
     "eval": "Item.val = Attr.val / 2"
   },
   "read": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": 0,
     "cl": "0x0001",
     "at": "0x0021"
