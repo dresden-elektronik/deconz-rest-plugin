@@ -50,14 +50,14 @@
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 2,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1015"
           },
           "parse": {
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 2,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1015",
             "script": "develco_firmware.js"
           }
@@ -75,14 +75,14 @@
             "cl": "0x0702",
             "ep": 2,
             "eval": "let v = [0x0000, 0x0001, 0x0002, 0x0100, 0x0101, 0x0102, 0x0103, 0x0104].indexOf(Attr.val); Item.val = v != -1 ? v + 1 : 0;",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1015"
           },
           "read": {
             "at": "0x0302",
             "cl": "0x0702",
             "ep": 2,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1015"
           },
           "write": {
@@ -91,7 +91,7 @@
             "dt": "0x31",
             "ep": 2,
             "eval": "[0x0000, 0x0001, 0x0002, 0x0100, 0x0101, 0x0102, 0x0103, 0x0104][Item.val - 1];",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1015"
           },
           "values": [
@@ -121,7 +121,7 @@
             "at": "0x0300",
             "cl": "0x0702",
             "ep": 2,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1015"
           },
           "write": {
@@ -130,7 +130,7 @@
             "dt": "0x21",
             "ep": 2,
             "eval": "Item.val;",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1015"
           }
         },
@@ -145,7 +145,7 @@
             "cl": "0x0702",
             "ep": 2,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {
@@ -159,14 +159,14 @@
             "cl": "0x0702",
             "ep": 2,
             "eval": "Item.val = ((Attr.val >> 1) & 0x01) ? true : false",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1015"
           },
           "read": {
             "at": "0x0200",
             "cl": "0x0702",
             "ep": 2,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1015"
           }
         },
@@ -178,13 +178,13 @@
             "cl": "0x0702",
             "ep": 2,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "read": {
             "at": "0x0400",
             "cl": "0x0702",
             "ep": 2,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         }
       ]

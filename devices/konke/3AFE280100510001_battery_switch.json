@@ -51,7 +51,7 @@
             "cl": "0x0001",
             "ep": 1,
             "eval": "const vmin = 20; const vmax = 30; var bat = Attr.val; if (bat > vmax) { bat = vmax; } else if (bat < vmin) { bat = vmin; } bat = ((bat - vmin) / (vmax - vmin)) * 100; if (bat > 100) { bat = 100; } else if (bat <= 0)  { bat = 1; } Item.val = bat;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {

@@ -89,13 +89,13 @@
             "at": "0x0008",
             "cl": "0x0300",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0008",
             "cl": "0x0300",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "script": "../generic/color_control_cluster/parse_color_mode.js"
           }
         },

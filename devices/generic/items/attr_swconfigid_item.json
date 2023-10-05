@@ -6,7 +6,7 @@
   "public": true,
   "description": "Software config identifier of the device.",
   "parse": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": "0x0b",
     "cl": "0x0000",
     "mf": "0x100b",
@@ -14,7 +14,7 @@
     "eval": "Item.val = ('00000000' + Attr.val.toString(16)).slice(-8).toUpperCase()"
   },
   "read": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": "0x0b",
     "cl": "0x0000",
     "mf": "0x100b",

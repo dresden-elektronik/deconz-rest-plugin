@@ -49,14 +49,14 @@
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
             "eval": "Item.val = Attr.val/2",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": 0
         },
@@ -66,14 +66,14 @@
             "at": "0x0000",
             "cl": "0x0101",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0000",
             "cl": "0x0101",
             "ep": 1,
             "eval": "Item.val = Attr.val ==1",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {
@@ -85,14 +85,14 @@
             "at": "0x0000",
             "cl": "0x0101",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0000",
             "cl": "0x0101",
             "ep": 1,
             "eval": "if (Attr.val == 0) { Item.val = 'not fully locked' } else if (Attr.val == 1) { Item.val = 'locked' } else if (Attr.val == 2) { Item.val = 'unlocked' } else { Item.val = 'undefined' }",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {
@@ -101,14 +101,14 @@
             "at": "0x0003",
             "cl": "0x0101",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0003",
             "cl": "0x0101",
             "ep": 1,
             "eval": "Item.val = Attr.val !=1",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         }
       ]

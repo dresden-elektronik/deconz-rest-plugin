@@ -109,7 +109,7 @@
         {
           "name": "state/x",
           "read": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0300",
             "at": [
@@ -138,7 +138,7 @@
         {
           "name": "state/hue",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0300",
             "at": [

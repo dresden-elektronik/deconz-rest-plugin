@@ -51,14 +51,14 @@
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 35,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1015"
           },
           "parse": {
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 35,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1015",
             "script": "develco_firmware.js"
           }
@@ -148,14 +148,14 @@
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 35,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1015"
           },
           "parse": {
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 35,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1015",
             "script": "develco_firmware.js"
           }
@@ -225,14 +225,14 @@
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 35,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1015"
           },
           "parse": {
             "at": "0x8000",
             "cl": "0x0000",
             "ep": 35,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1015",
             "script": "develco_firmware.js"
           }

@@ -73,14 +73,14 @@
             "at": "0x0000",
             "cl": "0x0402",
             "ep": 0,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0000",
             "cl": "0x0402",
             "ep": 0,
             "eval": "if (Attr.val < 32767) { Item.val =  Attr.val + R.item('config/offset').val; }",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": 0
         }

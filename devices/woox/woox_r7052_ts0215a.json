@@ -77,7 +77,7 @@
                   "cmd":"0x02",
                   "ep":1,
                   "eval":"Item.val = 1002",
-                  "fn":"zcl"
+                  "fn":"zcl:attr"
                }
             },
             {

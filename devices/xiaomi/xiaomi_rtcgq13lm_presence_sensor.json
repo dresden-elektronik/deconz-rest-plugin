@@ -86,14 +86,14 @@
             "cl": "0xFCC0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115F"
           },
           "read": {
             "at": "0x0102",
             "cl": "0xFCC0",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115F"
           },
           "write": {
@@ -103,7 +103,7 @@
             "dt": "0x20",
             "ep": 1,
             "eval": "Item.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115F",
             "state.timeout": 2
           },
@@ -125,14 +125,14 @@
             "cl": "0xFCC0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115F"
           },
           "read": {
             "at": "0x010C",
             "cl": "0xFCC0",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115F"
           },
           "write": {
@@ -142,7 +142,7 @@
             "dt": "0x20",
             "ep": 1,
             "eval": "Item.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115F",
             "state.timeout": 2
           },

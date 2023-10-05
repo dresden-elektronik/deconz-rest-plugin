@@ -6,14 +6,14 @@
   "public": true,
   "description": "The current color x coordinate.",
   "parse": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": 255,
     "cl": "0x0300",
     "at": "0x0003",
     "eval": "Item.val = Attr.val"
   },
   "read": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": 0,
     "cl": "0x0300",
     "at": [

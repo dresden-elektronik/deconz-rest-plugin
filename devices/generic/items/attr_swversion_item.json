@@ -7,14 +7,14 @@
   "implicit": true,
   "description": "Firmware version of the device.",
   "parse": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": 255,
     "cl": "0x0000",
     "at": "0x4000",
     "eval": "Item.val = Attr.val"
   },
   "read": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": 0,
     "cl": "0x0000",
     "at": "0x4000"

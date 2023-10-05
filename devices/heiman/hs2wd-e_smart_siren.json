@@ -46,14 +46,14 @@
             "at": "0x0006",
             "cl": "0x0000",
             "ep": 0,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0006",
             "cl": "0x0000",
             "ep": 255,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {
@@ -114,14 +114,14 @@
             "at": "0x0006",
             "cl": "0x0000",
             "ep": 0,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0006",
             "cl": "0x0000",
             "ep": 255,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {
@@ -154,7 +154,7 @@
             "cl": "0x0001",
             "ep": 1,
             "eval": "Item.val = Math.round(Attr.val / 2);",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {

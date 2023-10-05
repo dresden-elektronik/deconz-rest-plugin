@@ -38,13 +38,13 @@
             "at": "0x0001",
             "cl": "0x0000",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0001",
             "cl": "0x0000",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "script": "../tuya/tuya_swversion.js"
           }
         },
@@ -102,13 +102,13 @@
             "at": "0x0001",
             "cl": "0x0000",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0001",
             "cl": "0x0000",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "script": "../tuya/tuya_swversion.js"
           }
         },
