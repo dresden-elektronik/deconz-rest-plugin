@@ -7,7 +7,7 @@
   "description": "Color Y on device startup (power on).",
   "default": "0xffff",
   "parse": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": "0x0b",
     "cl": "0x0300",
     "mf": "0x100b",
@@ -15,7 +15,7 @@
     "eval": "Item.val = Attr.val"
   },
   "read": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": "0x0b",
     "cl": "0x0300",
     "mf": "0x100b",
@@ -23,7 +23,7 @@
   },
   "refresh.interval": 3600,
   "write": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": "0x0b",
     "cl": "0x0300",
     "mf": "0x100b",

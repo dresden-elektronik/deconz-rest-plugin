@@ -69,7 +69,7 @@
         },
         {
           "name": "state/open",
-          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0006", "at": "0x0000", "eval": "Item.val = Attr.val != 0"}
+          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0006", "at": "0x0000", "eval": "Item.val = Attr.val != 0"}
         }
       ]
     }

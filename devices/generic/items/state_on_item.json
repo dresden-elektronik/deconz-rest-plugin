@@ -6,14 +6,14 @@
   "public": true,
   "description": "True when device is on; false when off.",
   "parse": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": 0,
     "cl": "0x0006",
     "at": "0x0000",
     "eval": "Item.val = Attr.val"
   },
   "read": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": 0,
     "cl": "0x0006",
     "at": "0x0000"

@@ -6,7 +6,7 @@
   "public": true,
   "description": "Number of segments on Hue gradient light.",
   "parse": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": "0x0b",
     "cl": "0xfc03",
     "mf": "0x100b",

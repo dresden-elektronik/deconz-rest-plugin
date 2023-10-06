@@ -7,7 +7,7 @@
   "description": "X coordinate of green point of color gamut.",
   "default": 0,
   "parse": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": 0,
     "cl": "0x0300",
     "at": "0x0036",

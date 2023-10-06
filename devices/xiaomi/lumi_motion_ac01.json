@@ -70,7 +70,7 @@
         {
           "name": "config/devicemode",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0xFCC0",
             "mf": "0x115F",
@@ -82,7 +82,7 @@
           },
           "refresh.interval": 360,
           "write": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0xFCC0",
             "mf": "0x115F",
@@ -121,7 +121,7 @@
         {
           "name": "config/reportgrid",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0xFCC0",
             "mf": "0x115F",
@@ -129,14 +129,14 @@
             "eval": "Item.val = Attr.val !== 0"
           },
           "read": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0xFCC0",
             "mf": "0x115F",
             "at": "0x0155"
           },
           "write": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0xFCC0",
             "mf": "0x115F",
@@ -150,7 +150,7 @@
         {
           "name": "config/resetpresence",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0xFCC0",
             "at": "0x0143",
@@ -160,7 +160,7 @@
             "fn": "none"
           },
           "write": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0xFCC0",
             "at": "0x0157",
@@ -171,7 +171,7 @@
         {
           "name": "config/sensitivity",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0xFCC0",
             "at": "0x010C",
@@ -182,7 +182,7 @@
           },
           "refresh.interval": 60,
           "write": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0xFCC0",
             "mf": "0x115F",
@@ -233,7 +233,7 @@
         {
           "name": "config/triggerdistance",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0xFCC0",
             "mf": "0x115F",
@@ -244,7 +244,7 @@
             "fn": "none"
           },
           "write": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0xFCC0",
             "mf": "0x115F",
@@ -284,7 +284,7 @@
         {
           "name": "state/presence",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0xFCC0",
             "at": "0x0143",
@@ -297,7 +297,7 @@
         {
           "name": "state/presenceevent",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0xFCC0",
             "at": "0x0143",

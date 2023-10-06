@@ -104,7 +104,7 @@
             "at": "0xFF22",
             "cl": "0x0000",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115f"
           },
           "parse": {
@@ -112,7 +112,7 @@
             "cl": "0x0000",
             "ep": 1,
             "eval": "if (Attr.val == 0xFE) { Item.val = 'decoupled' } else if (Attr.val == 0x12) { Item.val = 'coupled' } else { Item.val = 'unknown' }",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115f"
           },
           "write": {
@@ -121,7 +121,7 @@
             "dt": "0x20",
             "ep": 1,
             "eval": "if (Item.val == 'decoupled') { 0xFE } else if (Item.val == 'coupled') { 0x12 } else { 'unknown' }",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115f"
           },
           "values": [

@@ -80,7 +80,7 @@
         {
           "name": "config/battery_bis",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0001",
             "at": "0x0020",
@@ -189,7 +189,7 @@
         {
           "name": "config/battery_bis",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0001",
             "at": "0x0020",
@@ -297,7 +297,7 @@
         {
           "name": "config/battery_bis",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0001",
             "at": "0x0020",
@@ -313,7 +313,7 @@
         {
           "name": "state/airqualityppb",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x000c",
             "at": "0x0055",
@@ -334,7 +334,7 @@
         {
           "name": "state/airquality",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0xFCC0",
             "mf": "0x115F",

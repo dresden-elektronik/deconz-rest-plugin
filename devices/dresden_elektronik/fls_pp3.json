@@ -29,7 +29,7 @@
         {
           "name": "attr/modelid",
           "static": "FLS-PP3",
-          "parse": {"fn": "zcl", "ep": 10, "cl": "0x0000", "at": "0x0005", "eval": "Item.val = Attr.val"}
+          "parse": {"fn": "zcl:attr", "ep": 10, "cl": "0x0000", "at": "0x0005", "eval": "Item.val = Attr.val"}
         },
         {
           "name": "attr/name"
@@ -94,13 +94,13 @@
             "at": "0x0008",
             "cl": "0x0300",
             "ep": 10,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0008",
             "cl": "0x0300",
             "ep": 10,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "script": "../generic/color_control_cluster/parse_color_mode.js"
           }
         },
@@ -158,7 +158,7 @@
         {
           "name": "attr/modelid",
           "static": "FLS-PP3 White",
-          "parse": {"fn": "zcl", "ep": 11, "cl": "0x0000", "at": "0x0005", "eval": "Item.val = Attr.val"}
+          "parse": {"fn": "zcl:attr", "ep": 11, "cl": "0x0000", "at": "0x0005", "eval": "Item.val = Attr.val"}
         },
         {
           "name": "attr/name"

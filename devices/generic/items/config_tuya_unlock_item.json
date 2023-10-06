@@ -7,14 +7,14 @@
   "description": "Tuya sequence to unlock some device.",
   "default": false,
   "parse": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": 1,
     "cl": "0x0000",
     "at": "0xfffe",
     "eval": "Item.val = (Attr.val != 0)"
   },
   "read": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": 1,
     "cl": "0x0000",
     "at": [

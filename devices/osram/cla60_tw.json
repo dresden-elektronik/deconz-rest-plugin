@@ -57,7 +57,7 @@
             "at": "0x400c",
             "cl": "0x0300",
             "ep": 0,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": 370
         },

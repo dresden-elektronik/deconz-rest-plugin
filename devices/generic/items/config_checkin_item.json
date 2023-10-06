@@ -11,20 +11,20 @@
   "default": 14400,
   "description": "Configures the check-in interval for the Poll Control cluster (1/4 seconds).",
   "parse": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": 0,
     "cl": "0x0020",
     "at": "0x0000",
     "eval": "Item.val = Attr.val"
   },
   "read": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": 0,
     "cl": "0x0020",
     "at": "0x0000"
   },
   "write": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": 0,
     "cl": "0x0020",
     "at": "0x0000",

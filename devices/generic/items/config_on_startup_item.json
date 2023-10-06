@@ -7,21 +7,21 @@
   "description": "On/Off state on device startup (power on).",
   "default": 255,
   "parse": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": 0,
     "cl": "0x0006",
     "at": "0x4003",
     "eval": "Item.val = Attr.val"
   },
   "read": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": 0,
     "cl": "0x0006",
     "at": "0x4003"
   },
   "refresh.interval": 3600,
   "write": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": 0,
     "cl": "0x0006",
     "at": "0x4003",
