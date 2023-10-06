@@ -4210,7 +4210,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
         }
 
-        if (extAddr != 0)
+        if (extAddr != 0 && endpoint != 0xFF)
         {
             const QString uid = generateUniqueId(extAddr, endpoint, clusterId);
 

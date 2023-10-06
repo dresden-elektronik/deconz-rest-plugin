@@ -2583,10 +2583,9 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         { }
         else if (node->nodeDescriptor().manufacturerCode() == VENDOR_NONE || (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER))
         {
+            // TODO(mpi): this needs to go in favor of DDF
             if (manufacturer.isEmpty())
             {
-                DBG_Printf(DBG_INFO_L2, "Tuya debug 7 : Missing manufacture name for 0x%016llx\n", node->address().ext());
-
                 //searching in DB
                 openDb();
                 manufacturer = loadDataForLightNodeFromDb(generateUniqueId(node->address().ext(),0,0));
@@ -2599,18 +2598,14 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                     if (sensor && !sensor->manufacturer().isEmpty())
                     {
                         manufacturer = sensor->manufacturer();
+                        lightNode.setNeedSaveDatabase(true);
                     }
                 }
 
-				if (manufacturer.isEmpty())
-				{
-					DBG_Printf(DBG_INFO_L2, "Tuya debug 7 : Missing manufacture name, till missing in DB.\n");
-				}
-            }
-            if (!manufacturer.isEmpty())
-            {
-                lightNode.setManufacturerName(manufacturer);
-                lightNode.setNeedSaveDatabase(true);
+                if (!manufacturer.isEmpty())
+                {
+                    lightNode.setManufacturerName(manufacturer);
+                }
             }
         }
 
@@ -15886,6 +15881,9 @@ void DeRestPlugin::appAboutToQuit()
         d->openDb();
         d->saveDb();
 
+        // TODO(mpi): Following is really heavy and already done previously
+        //            storing items needs to get more explicit with dirty flags
+#if 0
         for (const auto &dev : d->m_devices)
         {
             if (dev->managed())
@@ -15896,6 +15894,7 @@ void DeRestPlugin::appAboutToQuit()
                 }
             }
         }
+#endif
 
         d->ttlDataBaseConnection = 0;
         d->closeDb();
