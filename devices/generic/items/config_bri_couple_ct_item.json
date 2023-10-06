@@ -7,14 +7,14 @@
   "description": "Couple color temperature to brightness.",
   "default": true,
   "parse": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": 0,
     "cl": "0x0008",
     "at": "0x000F",
     "eval": "Item.val = (Attr.val & 0x02) !== 0"
   },
   "write": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": 0,
     "cl": "0x0008",
     "at": "0x000F",
