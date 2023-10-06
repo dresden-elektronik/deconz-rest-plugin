@@ -8,7 +8,7 @@
   "deprecated": "2022-11-11",
   "default": "0xfeff",
   "parse": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": 0,
     "cl": "0x0300",
     "at": "0x400c",

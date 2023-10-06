@@ -49,7 +49,7 @@
             "cl": "0x0102",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {
@@ -62,7 +62,7 @@
             "cl": "0x0102",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": 0
         },
@@ -82,7 +82,7 @@
             "cl": "0x0102",
             "ep": 1,
             "eval": "Item.val = Attr.val === 100",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {

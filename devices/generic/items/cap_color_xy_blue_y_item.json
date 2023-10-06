@@ -7,7 +7,7 @@
   "description": "Y coordinate of blue point of color gamut.",
   "default": 0,
   "parse": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": 0,
     "cl": "0x0300",
     "at": "0x003b",

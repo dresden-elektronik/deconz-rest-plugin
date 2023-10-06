@@ -50,13 +50,13 @@
             "at": "0x0006",
             "cl": "0x0000",
             "ep": 9,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0006",
             "cl": "0x0000",
             "ep": 9,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "eval": "Item.val = Attr.val;"
           }
         },

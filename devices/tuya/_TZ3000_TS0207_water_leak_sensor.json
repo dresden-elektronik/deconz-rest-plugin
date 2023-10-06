@@ -14,9 +14,13 @@
     "_TYZB01_sqmd19i1",
     "_TYZB01_o63ssaah",
     "_TZ3000_it1hm1cr",
-    "_TZ3000_upgcbody"
+    "_TZ3000_upgcbody",
+    "_TZ3000_k4ej3ww2",
+    "_TZ3000_awvmkayh"
   ],
   "modelid": [
+    "TS0207",
+    "TS0207",
     "TS0207",
     "TS0207",
     "TS0207",
@@ -81,14 +85,14 @@
         {
           "name": "attr/swversion",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0000",
             "at": "0x0001",
             "script": "tuya_swversion.js"
           },
           "read": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0000",
             "at": "0x0001"

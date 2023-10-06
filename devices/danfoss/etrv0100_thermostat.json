@@ -61,7 +61,7 @@
             "cl": "0x0001",
             "ep": 1,
             "eval": "Item.val = Attr.val / 2;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "read": {
             "fn": "none"
@@ -79,7 +79,7 @@
             "at": "0x4000",
             "cl": "0x0204",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           },
           "parse": {
@@ -87,7 +87,7 @@
             "cl": "0x0204",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           },
           "write": {
@@ -96,7 +96,7 @@
             "dt": "0x30",
             "ep": 1,
             "eval": "Item.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           },
           "default": false
@@ -108,7 +108,7 @@
             "at": "0x4015",
             "cl": "0x0201",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           },
           "parse": {
@@ -116,7 +116,7 @@
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           },
           "write": {
@@ -125,7 +125,7 @@
             "dt": "0x29",
             "ep": 1,
             "eval": "Item.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           },
           "values": [
@@ -140,7 +140,7 @@
             "at": "0x4003",
             "cl": "0x0201",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           },
           "parse": {
@@ -148,7 +148,7 @@
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           },
           "write": {
@@ -157,7 +157,7 @@
             "dt": "0x10",
             "ep": 1,
             "eval": "Item.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           },
           "default": false
@@ -177,7 +177,7 @@
             "at": "0x4013",
             "cl": "0x0201",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           },
           "parse": {
@@ -185,7 +185,7 @@
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           },
           "write": {
@@ -194,7 +194,7 @@
             "dt": "0x10",
             "ep": 1,
             "eval": "Item.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           },
           "default": false
@@ -206,7 +206,7 @@
             "at": "0x404B",
             "cl": "0x0201",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           },
           "parse": {
@@ -214,7 +214,7 @@
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val * 10;",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           },
           "write": {
@@ -223,7 +223,7 @@
             "dt": "0x28",
             "ep": 1,
             "eval": "Item.val / 10;",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           },
           "range": [-250, 250],
@@ -250,14 +250,14 @@
             "cl": "0x0B05",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           },
           "read": {
             "at": "0x4000",
             "cl": "0x0B05",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           }
         },
@@ -272,14 +272,14 @@
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           },
           "read": {
             "at": "0x4012",
             "cl": "0x0201",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           },
           "default": false
@@ -291,7 +291,7 @@
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val > 3;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "read": {
             "fn": "none"
@@ -305,7 +305,7 @@
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {
@@ -319,7 +319,7 @@
             "at": "0x4000",
             "cl": "0x0201",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246",
             "script": "danfoss_windowopen_state.js"
           },
@@ -327,7 +327,7 @@
             "at": "0x4000",
             "cl": "0x0201",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           },
           "default": "Quarantine"
@@ -386,7 +386,7 @@
             "cl": "0x0001",
             "ep": 1,
             "eval": "Item.val = Attr.val / 2;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "read": {
             "fn": "none"
