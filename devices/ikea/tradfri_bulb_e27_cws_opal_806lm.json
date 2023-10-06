@@ -183,7 +183,7 @@
         {
           "name": "config/bri/options",
           "read": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0008",
             "at": [
