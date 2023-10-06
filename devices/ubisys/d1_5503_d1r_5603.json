@@ -300,7 +300,7 @@
                 {
                     "name": "state/current",
                     "read": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": "0x04",
                         "cl": "0x0B04",
                         "at": [

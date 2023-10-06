@@ -70,7 +70,7 @@
         {
           "name": "config/bri/execute_if_off",
           "read": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0008",
             "at": [

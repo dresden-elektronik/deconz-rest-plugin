@@ -35,14 +35,14 @@
                 {
                     "name": "attr/swversion",
                     "parse": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": "0x01",
                         "cl": "0x0000",
                         "at": "0x0006",
                         "eval": "Item.val = Attr.val"
                     },
                     "read": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": "0x01",
                         "cl": "0x0000",
                         "at": "0x0006"
@@ -110,7 +110,7 @@
                 {
                     "name": "attr/swversion",
                     "parse": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": "0x01",
                         "cl": "0x0000",
                         "at": "0x0006",
@@ -133,7 +133,7 @@
                     "name": "state/consumption",
                     "description": "The measured consumption (in Wh).",
                     "parse": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": "0x01",
                         "cl": "0x0702",
                         "at": "0x0000",
@@ -185,7 +185,7 @@
                 {
                     "name": "attr/swversion",
                     "parse": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": "0x01",
                         "cl": "0x0000",
                         "at": "0x0006",
@@ -208,7 +208,7 @@
                     "name": "state/current",
                     "description": "The measured current (in mA).",
                     "parse": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": "0x01",
                         "cl": "0x0B04",
                         "at": "0x0508",
@@ -224,7 +224,7 @@
                     "name": "state/power",
                     "description": "The measured power (in W).",
                     "parse": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": "0x01",
                         "cl": "0x0B04",
                         "at": "0x050B",
@@ -237,7 +237,7 @@
                     "name": "state/voltage",
                     "description": "The measured voltage (in V).",
                     "parse": {
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "ep": "0x01",
                         "cl": "0x0B04",
                         "at": "0x0505",

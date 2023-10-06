@@ -10,14 +10,14 @@
   ],
   "description": "The current brightness.",
   "parse": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": 0,
     "cl": "0x0008",
     "at": "0x0000",
     "eval": "Item.val = Attr.val"
   },
   "read": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": 0,
     "cl": "0x0008",
     "at": "0x0000"

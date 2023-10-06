@@ -87,7 +87,7 @@
         {
           "name": "config/sensitivity",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0000",
             "mf": "0x115F",
@@ -95,7 +95,7 @@
             "eval": "Item.val = 3 - Attr.val"
           },
           "read": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0000",
             "mf": "0x115F",
@@ -103,7 +103,7 @@
           },
           "refresh.interval": 3600,
           "write": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0000",
             "mf": "0x115F",
@@ -150,7 +150,7 @@
         {
           "name": "state/orientation_x",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0101",
             "at": "0x0508",
@@ -166,7 +166,7 @@
         {
           "name": "state/tiltangle",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0101",
             "at": "0x0503",
@@ -176,7 +176,7 @@
         {
           "name": "state/vibration",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0101",
             "at": "0x0055",
@@ -186,7 +186,7 @@
         {
           "name": "state/vibrationstrength",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0101",
             "at": "0x0505",

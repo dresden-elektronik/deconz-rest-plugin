@@ -13,18 +13,18 @@ body:
           - Please make sure sure you're running the latest version of deCONZ: https://github.com/dresden-elektronik/deconz-rest-plugin/releases
   - type: checkboxes
     attributes:
-      label: I truly want to report a bug
+      label: Does the issue really belong here?
       description: |
-        I've read the important notes, am aware of [#5113](https://github.com/dresden-elektronik/deconz-rest-plugin/issues/5113) and confirm I'm not issuing a question.
+        I've read the important notes above, am aware of [#5113](https://github.com/dresden-elektronik/deconz-rest-plugin/issues/5113) and confirm I'm not issuing a question.
       options:
-      - label: I definitively want to report a bug
+      - label: I definitively want to report a bug within deCONZ or its REST-API
         required: true
   - type: checkboxes
     attributes:
       label: Is there already an existing issue for this?
       description: Please search this repository to see if an issue already exists for the bug you encountered.
       options:
-      - label: I have searched the existing issues
+      - label: I have searched the existing issues and there is none for the bug at hand
         required: true
   - type: textarea
     attributes:

@@ -76,7 +76,7 @@
         {
           "name": "state/open",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0102",
             "at": "0x0008",
@@ -172,11 +172,11 @@
           "name": "state/battery",
           "refresh.interval": 3660,
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0001",
             "at": "0x0021",
-            "eval": "Item.val = Attr.val"
+            "eval": "Item.val = Math.round(Attr.val/(R.item('attr/swversion').val.split('.')[0] >= 24 ? 2 : 1))"
           }
         },
         {

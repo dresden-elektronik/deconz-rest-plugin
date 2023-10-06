@@ -118,11 +118,11 @@
         		["\"xy\"", "CIE xy color space coordinates"]
         	],
           "parse": {
-            "fn": "zcl", "ep": "0x01", "cl": "0x0300", "at": "0x4001",
+            "fn": "zcl:attr", "ep": "0x01", "cl": "0x0300", "at": "0x4001",
             "eval": "if (Item.val !== 'effect') Item.val = ['hs', 'xy', 'ct', 'xy'][Attr.val]"
           },
           "read": {
-            "fn": "zcl", "ep": "0x01", "cl": "0x0300", "at": ["0x4001", "0x0007", "0x0003", "0x0004", "0x4002", "0x0000", "0x0001"]
+            "fn": "zcl:attr", "ep": "0x01", "cl": "0x0300", "at": ["0x4001", "0x0007", "0x0003", "0x0004", "0x4002", "0x0000", "0x0001"]
           },
           "refresh.interval": 365
         },
@@ -151,7 +151,7 @@
             ["\"nightlight", "nightlight special scene"]
           ],
           "parse": {
-            "fn": "zcl", "ep": "0x01", "cl": "0x0300", "at": "0x4002",
+            "fn": "zcl:attr", "ep": "0x01", "cl": "0x0300", "at": "0x4002",
             "eval": "if (Item.val === 'none' || Item.val === 'colorloop') Item.val = Attr.val ? 'colorloop' : 'none'"
           },
           "read": { "fn": "none" }
@@ -159,7 +159,7 @@
         {
           "name": "state/hue",
           "parse": {
-            "fn": "zcl", "ep": "0x01", "cl": "0x0300", "at": "0x0000",
+            "fn": "zcl:attr", "ep": "0x01", "cl": "0x0300", "at": "0x0000",
             "eval": "Item.val = Attr.val"
           },
           "read": { "fn": "none" }
