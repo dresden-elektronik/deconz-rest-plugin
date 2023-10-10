@@ -1,8 +1,8 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["_TZ3000_j1v25l17","_TZ3000_ynmowqk2"],
-  "modelid": ["TS011F","TS011F"],
-  "product": "HG08673 LIDL SilverCrest smart plug with monitoring (EU, FR)",
+  "manufacturername": ["_TZ3000_nkcobies","_TZ3000_j1v25l17","_TZ3000_ynmowqk2"],
+  "modelid": ["TS011F","TS011F","TS011F"],
+  "product": "HG08673 LIDL SilverCrest smart plug with monitoring (DK, EU, FR)",
   "sleeper": false,
   "status": "Silver",
   "subdevices": [

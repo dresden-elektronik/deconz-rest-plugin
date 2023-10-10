@@ -203,7 +203,7 @@
             "mf": "0x100b",
             "at": "0x0002"
           },
-          "refresh.interval": 305
+          "refresh.interval": 360
         },
         {
           "name": "state/bri",
