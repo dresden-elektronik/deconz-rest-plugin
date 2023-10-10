@@ -3,7 +3,7 @@
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.magnet.acn001",
   "vendor": "Xiaomi",
-  "product": "Aqara open/close sensor MCCGQ14LM",
+  "product": "Aqara E1 open/close sensor MCCGQ14LM",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -52,10 +52,12 @@
           "awake": true,
           "parse": {
             "at": "0x00f7",
+            "cl": "0xfcc0",
             "ep": 1,
+            "eval": "Item.val = '0.0.0_' + ('0000' + (Attr.val & 0xFF).toString()).slice(-4)",
             "fn": "xiaomi:special",
             "idx": "0x08",
-            "script": "xiaomi_swversion.js"
+            "mf": "0x115f"
           },
           "read": {
             "fn": "none"
@@ -70,7 +72,15 @@
         {
           "name": "config/battery",
           "awake": true,
-          "parse": {"fn": "xiaomi:special", "ep": 1, "at": "0xff01", "idx": "0x01", "script": "xiaomi_battery.js"}
+          "parse": {
+            "at": "0x00f7",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "fn": "xiaomi:special",
+            "idx": "0x01",
+            "mf": "0x115f",
+            "script": "xiaomi_battery.js"
+          }
         },
         {
           "name": "config/enrolled",
