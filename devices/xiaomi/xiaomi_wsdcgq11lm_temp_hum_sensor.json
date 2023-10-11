@@ -47,14 +47,14 @@
         {
           "name": "attr/swversion",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0000",
             "at": "0x0001",
             "eval": "Item.val = '0.0.0_' + ('0000' + Attr.val.toString()).slice(-4)"
           },
           "read": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0000",
             "at": "0x0001"
@@ -71,9 +71,11 @@
           "name": "config/battery",
           "awake": true,
           "parse": {
-            "fn": "xiaomi:special",
             "at": "0xFF01",
+            "ep": 1,
+            "fn": "xiaomi:special",
             "idx": "0x01",
+            "mf": "0x115F",
             "script": "xiaomi_battery.js"
           }
         },
@@ -92,21 +94,23 @@
         {
           "name": "state/temperature",
           "parse": {
-            "fn": "zcl",
-            "ep": 1,
             "at": "0x0000",
             "cl": "0x0402",
-            "eval": "if (Attr.val !== -10000) { Item.val = Attr.val + R.item('config/offset').val }"
+            "ep": 1,
+            "eval": "if (Attr.val !== -10000) { Item.val = Attr.val + R.item('config/offset').val }",
+            "fn": "zcl:attr"
           }
         },
         {
           "name": "state/temperature_bis",
           "awake": true,
           "parse": {
-            "fn": "xiaomi:special",
             "at": "0xFF01",
+            "ep": 1,
+            "eval": "if (Attr.val !== -10000) { R.item('state/temperature').val = Attr.val + R.item('config/offset').val }",
+            "fn": "xiaomi:special",
             "idx": "0x64",
-            "eval": "if (Attr.val !== -10000) { R.item('state/temperature').val = Attr.val + R.item('config/offset').val }"
+            "mf": "0x115F"
           }
         }
       ]
@@ -151,7 +155,7 @@
         {
           "name": "attr/swversion",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0000",
             "at": "0x0001",
@@ -171,9 +175,11 @@
           "name": "config/battery",
           "awake": true,
           "parse": {
-            "fn": "xiaomi:special",
             "at": "0xFF01",
+            "ep": 1,
+            "fn": "xiaomi:special",
             "idx": "0x01",
+            "mf": "0x115F",
             "script": "xiaomi_battery.js"
           }
         },
@@ -193,10 +199,12 @@
           "name": "state/humidity_bis",
           "awake": true,
           "parse": {
-            "fn": "xiaomi:special",
             "at": "0xFF01",
+            "ep": 1,
+            "eval": "R.item('state/humidity').val = Attr.val + R.item('config/offset').val",
+            "fn": "xiaomi:special",
             "idx": "0x65",
-            "eval": "R.item('state/humidity').val = Attr.val + R.item('config/offset').val"
+            "mf": "0x115F"
           }
         },
         {
@@ -244,7 +252,7 @@
         {
           "name": "attr/swversion",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0000",
             "at": "0x0001",
@@ -264,9 +272,11 @@
           "name": "config/battery",
           "awake": true,
           "parse": {
-            "fn": "xiaomi:special",
             "at": "0xFF01",
+            "ep": 1,
+            "fn": "xiaomi:special",
             "idx": "0x01",
+            "mf": "0x115F",
             "script": "xiaomi_battery.js"
           }
         },
@@ -289,10 +299,12 @@
           "name": "state/pressure_bis",
           "awake": true,
           "parse": {
-            "fn": "xiaomi:special",
             "at": "0xFF01",
+            "ep": 1,
+            "eval": "R.item('state/pressure').val = Math.round(Attr.val / 100) + R.item('config/offset').val",
+            "fn": "xiaomi:special",
             "idx": "0x66",
-            "eval": "R.item('state/pressure').val = Math.round(Attr.val / 100) + R.item('config/offset').val"
+            "mf": "0x115F"
           }
         }
       ]

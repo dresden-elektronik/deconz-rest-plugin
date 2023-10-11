@@ -56,7 +56,7 @@
         {
           "name": "config/reversed",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0xFCC0",
             "mf": "0x115F",
@@ -67,7 +67,7 @@
             "fn": "none"
           },
           "write": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0xFCC0",
             "mf": "0x115F",
@@ -79,7 +79,7 @@
         {
           "name": "config/speed",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0xFCC0",
             "mf": "0x115F",
@@ -90,7 +90,7 @@
             "fn": "none"
           },
           "write": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0xFCC0",
             "mf": "0x115F",
@@ -105,14 +105,14 @@
         {
           "name": "state/lift",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x000D",
             "at": "0x0055",
             "eval": "Item.val = 100 - Attr.val"
           },
           "read": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x000D",
             "at": "0x0055"
@@ -122,7 +122,7 @@
         {
           "name": "state/open",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x000D",
             "at": "0x0055",
@@ -140,7 +140,7 @@
           "deprecated": "2023-04-14",
           "description": "Deprecated in favour of config/speed.",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "cl": "0xFCC0",
             "at": "0x0408",
             "ep": 1,
@@ -238,7 +238,7 @@
         {
           "name": "state/battery",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0xFCC0",
             "mf": "0x115F",
@@ -246,7 +246,7 @@
             "eval": "Item.val = Attr.val"
           },
           "read": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0xFCC0",
             "mf": "0x115F",
@@ -262,7 +262,7 @@
         {
           "name": "state/charging",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0xFCC0",
             "mf": "0x115F",

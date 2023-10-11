@@ -56,7 +56,7 @@
             "at": "0x0508",
             "cl": "0x0b04",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0508",
@@ -76,7 +76,7 @@
             "at": "0x050F",
             "cl": "0x0b04",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x050F",
@@ -93,7 +93,7 @@
             "at": "0x0505",
             "cl": "0x0b04",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0505",
@@ -154,7 +154,7 @@
             "at": "0x0908",
             "cl": "0x0b04",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0908",
@@ -174,7 +174,7 @@
             "at": "0x090F",
             "cl": "0x0b04",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x090F",
@@ -191,7 +191,7 @@
             "at": "0x0905",
             "cl": "0x0b04",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0905",
@@ -252,7 +252,7 @@
             "at": "0x0a08",
             "cl": "0x0b04",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0a08",
@@ -272,7 +272,7 @@
             "at": "0x0A0F",
             "cl": "0x0b04",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0A0F",
@@ -289,7 +289,7 @@
             "at": "0x0a05",
             "cl": "0x0b04",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0a05",
@@ -350,7 +350,7 @@
             "at": "0x0100",
             "cl": "0x0702",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0100",
@@ -367,7 +367,7 @@
             "at": "0x0102",
             "cl": "0x0702",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0102",
@@ -383,7 +383,7 @@
             "at": "0x0306",
             "cl": "0x0b04",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0306",
@@ -447,14 +447,14 @@
             "at": "0x0005",
             "cl": "0xff66",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0005",
             "cl": "0xff66",
             "ep": 1,
             "eval": "Item.val = Attr.val > 0 ? true : false",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": false
         },

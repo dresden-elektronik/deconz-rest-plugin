@@ -85,7 +85,7 @@
             "ep": 1,
             "cl": "0x0001",
             "at": "0x0021",
-            "eval": "Item.val = Attr.val"
+            "eval": "Item.val = Math.round(Attr.val/(R.item('attr/swversion').val.split('.')[0] >= 24 ? 2 : 1))"
           },
           "default": 0,
           "read": {

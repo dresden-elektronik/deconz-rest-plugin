@@ -1,0 +1,91 @@
+name: Bug report
+description: Report a bug within deCONZ or its REST-API.
+labels: Bug report
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Important notes
+          - Use this issue template to report a bug within deCONZ or its REST-API.
+          - Anything that is not clearly a bug can implicate manual closure (see [#5113](https://github.com/dresden-elektronik/deconz-rest-plugin/issues/5113)). For support or questions, we recommend the forum: https://forum.phoscon.de 
+          - If you want to report a bug for the Phoscon App, please head over to: https://forum.phoscon.de
+          - If you're unsure if the bug fits into this issue tracker, please ask for advise in our Discord chat: https://discord.gg/QFhTxqN
+          - Please make sure sure you're running the latest version of deCONZ: https://github.com/dresden-elektronik/deconz-rest-plugin/releases
+  - type: checkboxes
+    attributes:
+      label: Does the issue really belong here?
+      description: |
+        I've read the important notes above, am aware of [#5113](https://github.com/dresden-elektronik/deconz-rest-plugin/issues/5113) and confirm I'm not issuing a question.
+      options:
+      - label: I definitively want to report a bug within deCONZ or its REST-API
+        required: true
+  - type: checkboxes
+    attributes:
+      label: Is there already an existing issue for this?
+      description: Please search this repository to see if an issue already exists for the bug you encountered.
+      options:
+      - label: I have searched the existing issues and there is none for the bug at hand
+        required: true
+  - type: textarea
+    attributes:
+      label: Describe the bug
+      description: |
+        Describe the issue you are experiencing here to communicate to the maintainers. Tell us what you were trying to do and what happened. Help us understand the issue by providing valuable context.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Steps to reproduce the behavior
+      description: |
+        If the problem is reproducable, list the steps here. If the problem can't be reproduced and is sporadic, please provide some details on how often and when the issue happens.
+      placeholder: |
+          1. Go to '...'
+          2. Click on '....'
+          3. Scroll down to '....'
+          4. Observed error
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Expected behavior
+      description: If applicable, describe what you expected to happen.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Screenshots
+      description: If applicable, add screenshots to help explain the problem.
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Environment
+      description: |
+        The deCONZ and firmware versions are found in:
+        - Phoscon App: Menu -> Settings -> Gateway, OR
+        - deCONZ GUI: Menu > Help > About deCONZ.
+      value: |
+           - Host system: (Raspberry Pi / PC / NAS / MAC)
+           - Running method: (Raspbian / Ubuntu / Home Assistent deCONZ Add-on / Marthoc Docker container / Windows / Virtual Machine)
+           - Firmware version: (26xxyy00)
+           - deCONZ version (not Home assistant Addon version!): (2.xx.yy)
+           - Device: (ConBee I / ConBee II / ConBee III / RaspBee I / RaspBee II)
+           - Do you use an USB extension cable: (yes / no) -- only relevant for ConBee I/II/III
+           - Is there any other USB or serial devices connected to the host system? If so: Which?
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: deCONZ Logs
+      description: |
+        Debug logs can help to investigate certain problems like device pairing and communication issues. Logging can be enabled on the command line as described in: https://github.com/dresden-elektronik/deconz-rest-plugin/wiki/deCONZ-debug-flags
+        Secondly, for versions above 2.05.87: In the deCONZ GUI: click Help > debug view. Output of ERROR, ERROR_L2, INFO and INFO_L2 can be handy. APS and APS_L2 can be very helpful, but is also very verbose.
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Additional context
+      description: |
+        If relevant, add any other context about the problem here, like network size, number of routers and end-devices and what kind of devices/brands are in the network.
+    validations:
+      required: false

@@ -2697,6 +2697,7 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
     const ResourceItem *iy = nullptr;
     QVariantList xy;
     QVariantMap cap;
+    QVariantMap measuredValue;
     QVariantMap config;
     const ResourceItem *ilcs = nullptr;
     const ResourceItem *ilca = nullptr;
@@ -2805,7 +2806,14 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
         {
             const char *key = item->descriptor().suffix + 4;
 
-            cap[key] = item->toVariant();
+            if (strncmp(key, "measured_value/", 15) == 0)
+            {
+                measuredValue[key + 15] = item->toVariant();
+            }
+            else
+            {
+                cap[key] = item->toVariant();
+            }
         }
         else if (rid.suffix == RAttrLastAnnounced) { map["lastannounced"] = item->toString(); }
         else if (rid.suffix == RAttrLastSeen) { map["lastseen"] = item->toString(); }
@@ -2923,6 +2931,7 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
     }
     map[QLatin1String("state")] = state;
     map[QLatin1String("config")] = config;
+    if (!measuredValue.isEmpty()) cap[QLatin1String("measured_value")] = measuredValue;
     if (!cap.isEmpty()) map[QLatin1String("capabilities")] = cap;
 
     return true;
@@ -3203,6 +3212,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             map[QLatin1String("uniqueid")] = sensor->uniqueId();
 
             QVariantMap cap;
+            QVariantMap measuredValue;
 
             for (int i = 0; i < sensor->itemCount(); i++)
             {
@@ -3215,15 +3225,26 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
 
                     if (gwWebSocketNotifyAll || item->needPushChange())
                     {
-                        cap[key] = item->toVariant();
+                        if (strncmp(key, "measured_value/", 15) == 0)
+                        {
+                            measuredValue[key + 15] = item->toVariant();
+                        }
+                        else
+                        {
+                            cap[key] = item->toVariant();
+                        }
                         item->clearNeedPush();
                     }
                 }
             }
 
+            if (!measuredValue.isEmpty())
+            {
+                cap[QLatin1String("measured_value")] = measuredValue;
+            }
             if (!cap.isEmpty())
             {
-                map["capabilities"] = cap;
+                map[QLatin1String("capabilities")] = cap;
                 webSocketServer->broadcastTextMessage(Json::serialize(map));
                 updateSensorEtag(sensor);
                 plugin->saveDatabaseItems |= DB_SENSORS;

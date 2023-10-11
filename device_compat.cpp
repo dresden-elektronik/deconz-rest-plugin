@@ -86,6 +86,7 @@ static Resource *DEV_InitSensorNodeFromDescription(Device *device, const DeviceD
         else
         {
             sensor.setId(QString::number(getFreeSensorId()));
+            sensor.setNeedSaveDatabase(true);
         }
     }
 
@@ -103,10 +104,10 @@ static Resource *DEV_InitSensorNodeFromDescription(Device *device, const DeviceD
                 friendlyName = friendlyName.mid(3);
             }
             sensor.setName(QString("%1 %2").arg(friendlyName, sensor.id()));
+            sensor.setNeedSaveDatabase(true);
         }
     }
 
-    sensor.setNeedSaveDatabase(true);
     sensor.rx();
 
     auto *r = DEV_AddResource(sensor);
@@ -192,6 +193,7 @@ static Resource *DEV_InitLightNodeFromDescription(Device *device, const DeviceDe
         else
         {
             lightNode.setId(QString::number(getFreeLightId()));
+            lightNode.setNeedSaveDatabase(true);
         }
     }
 
@@ -204,6 +206,7 @@ static Resource *DEV_InitLightNodeFromDescription(Device *device, const DeviceDe
         else
         {
             lightNode.setName(QString("%1 %2").arg(lightNode.type(), lightNode.id()));
+            lightNode.setNeedSaveDatabase(true);
         }
     }
 
@@ -242,7 +245,6 @@ static Resource *DEV_InitLightNodeFromDescription(Device *device, const DeviceDe
     lightNode.removeItem(RStateSat);
     lightNode.removeItem(RStateAlert);
 
-    lightNode.setNeedSaveDatabase(true);
     lightNode.rx();
 
     auto *r = DEV_AddResource(lightNode);

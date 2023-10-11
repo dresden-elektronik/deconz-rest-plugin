@@ -400,6 +400,48 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "cap/measured_value/max",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0402",
+            "at": "0x0002",
+            "eval": "Item.val = Attr.val / 100"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0402",
+            "at": [
+              "0x0001",
+              "0x0002"
+            ]
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "cap/measured_value/min",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0402",
+            "at": "0x0001",
+            "eval": "Item.val = Attr.val / 100"
+          }
+        },
+        {
+          "name": "cap/measured_value/quantity",
+          "static": "temperature"
+        },
+        {
+          "name": "cap/measured_value/substance",
+          "static": "air"
+        },
+        {
+          "name": "cap/measured_value/unit",
+          "static": "degC"
+        },
+        {
           "name": "config/alert",
           "default": "none"
         },
@@ -433,14 +475,25 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/temperature",
+          "name": "state/measured_value",
+          "awake": true,
           "parse": {
             "fn": "zcl:attr",
             "ep": 2,
             "cl": "0x0402",
             "at": "0x0000",
-            "eval": "Item.val = Attr.val + R.item('config/offset').val"
-          }
+            "eval": "Item.val = (Attr.val - R.item('config/offset').val) / 100"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0402",
+            "at": "0x0000"
+          },
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/temperature"
         }
       ]
     }

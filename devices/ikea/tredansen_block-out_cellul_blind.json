@@ -10,7 +10,7 @@
   ],
   "product": "PRAKTLYSING/TREDANSEN cellular blind",
   "sleeper": false,
-  "status": "Gold",
+  "status": "Draft",
   "subdevices": [
     {
       "type": "$TYPE_WINDOW_COVERING_DEVICE",
@@ -58,7 +58,7 @@
             "cl": "0x0102",
             "ep": 1,
             "eval": "Item.val = (254 * Attr.val) / 100;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "read": {
             "fn": "none"
@@ -74,7 +74,7 @@
             "at": "0x0008",
             "cl": "0x0102",
             "eval": "Item.val = Attr.val < 100",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "read": {
             "fn": "none"
@@ -86,7 +86,7 @@
             "at": "0x0008",
             "cl": "0x0102",
             "eval": "Item.val = Attr.val < 100",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "read": {
             "fn": "none"
@@ -150,7 +150,7 @@
             "cl": "0x0001",
             "ep": 0,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {

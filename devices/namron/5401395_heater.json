@@ -75,7 +75,7 @@
             "cl": "0x0204",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {

@@ -6,7 +6,7 @@
   "public": true,
   "description": "Supported effects for Hue lights.",
   "parse": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": "0x0b",
     "cl": "0xfc03",
     "mf": "0x100b",
@@ -14,7 +14,7 @@
     "eval": "Item.val = Attr.val"
   },
   "read": {
-    "fn": "zcl",
+    "fn": "zcl:attr",
     "ep": "0x0b",
     "cl": "0xfc03",
     "mf": "0x100b",

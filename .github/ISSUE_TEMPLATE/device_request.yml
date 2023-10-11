@@ -1,0 +1,110 @@
+name: Device Request
+description: Request a new device to be supported.
+labels: Device Request
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Important notes
+        - Please refer to https://github.com/dresden-elektronik/deconz-rest-plugin/wiki/Request-Device-Support for more elaborate information, how to read data from clusters and how it is supposed to look like.
+        - Before requesting a device, please make sure to search the open and closed issues for any requests in the past. Sometimes devices have been requested before but are not implemented yet due to various reasons, please contribute there. If there are no hits for your device, please proceed.
+        - If you're unsure whether device support was already requested, please ask for advise in our Discord chat: https://discord.gg/QFhTxqN
+        ## Device information
+  - type: checkboxes
+    attributes:
+      label: Is there already an existing issue for this?
+      description: Please search this repository to see if an issue already exists for the device you want to request support.
+      options:
+      - label: I have searched the existing issues and there is none for my device
+        required: true
+  - type: input
+    attributes:
+      label: Product name
+      description: The device name as shown on the product or package.
+      placeholder: ex. Dresden Elektronik FLS-PP lp ballast
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Manufacturer
+      description: As per deCONZ GUI Basic cluster.
+      placeholder: ex. dresden elektronik
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Model identifier
+      description: As per deCONZ GUI Basic cluster.
+      placeholder: ex. FLS-PP3
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: Device type to add
+      multiple: false
+      options:
+        - Light
+        - Lock
+        - Remote
+        - Sensor
+        - Siren
+        - Switch
+        - Thermostat
+        - Other
+  - type: markdown
+    attributes:
+      value: |
+        ## Screenshots
+        Screenshots help to identify the device and its capabilities. Please refer to: https://github.com/dresden-elektronik/deconz-rest-plugin/wiki/Request-Device-Support for examples of the required screenshots.
+        
+        Minimum required screenshots:
+        - Endpoints and clusters of the node
+        - Node Info panel
+        - Basic cluster
+        
+        In the Cluster Info panel press "read" button to retreive the values. Please note that at least "Manufacturer Name" and "Model Identifier" must be populated with data (therefore, must not be empty), otherwise that information will not be usable. For battery powered devices, after pressing read, it is required to wake-up the device by pressing a button or any other means of interaction. If available, add screenshots of other clusters as mentioned below or requested.
+        
+        Relevant clusters are: Simple Metering, Electrical Measurement, Power Configuration, Thermostat, etc. You can typically spare Identify, Alarms, Device Temperature, On/Off. Please ensure data has been read prior to taking any screenshots.
+  - type: textarea
+    attributes:
+      label: Node info
+      description: Please add the respective screenshot here
+      value:
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Endpoints and clusters
+      description: Please add the respective screenshot here
+      value:
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Basic
+      description: Please add the respective screenshot here
+      value:
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Further relevant clusters
+      description: Please add the respective screenshot here
+      value: |
+        ### Power Configuration
+
+        ### On/Off
+        
+        ### Level Control
+        
+        ### Color Control
+
+        ### Thermostat
+
+        ### Simple Metering
+
+        ### Electrical Measurement
+
+        ### Any other cluster of relevance/interest
+    validations:
+      required: false

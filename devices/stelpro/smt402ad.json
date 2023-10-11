@@ -52,14 +52,14 @@
             "at": "0x0001",
             "cl": "0x0000",
             "ep": 0,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0001",
             "cl": "0x0000",
             "ep": 255,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {
@@ -76,7 +76,7 @@
             "at": "0x4001",
             "cl": "0x0201",
             "ep": 25,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1185"
           },
           "write": {
@@ -85,7 +85,7 @@
             "dt": "0x29",
             "ep": 25,
             "eval": "Item.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1185"
           },
           "parse": {
@@ -93,7 +93,7 @@
             "cl": "0x0201",
             "ep": 25,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1185"
           },
           "default": 0
@@ -122,7 +122,7 @@
             "at": "0x0014",
             "cl": "0x0201",
             "ep": 25,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "write": {
             "at": "0x0014",
@@ -130,7 +130,7 @@
             "dt": "0x29",
             "ep": 25,
             "eval": "Item.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1185"
           },
           "parse": {
@@ -138,7 +138,7 @@
             "cl": "0x0201",
             "ep": 25,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": 17
         },
@@ -156,7 +156,7 @@
             "cl": "0x0201",
             "ep": 25,
             "eval": "Item.val = Attr.val + R.item('config/offset').val",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": 0
         },
@@ -168,14 +168,14 @@
             "at": "0x0008",
             "cl": "0x0201",
             "ep": 25,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0008",
             "cl": "0x0201",
             "ep": 25,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": 0
         }
@@ -226,14 +226,14 @@
             "at": "0x0001",
             "cl": "0x0000",
             "ep": 0,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0001",
             "cl": "0x0000",
             "ep": 255,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {
@@ -259,14 +259,14 @@
             "at": "0x0000",
             "cl": "0x0405",
             "ep": 25,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0000",
             "cl": "0x0405",
             "ep": 25,
             "eval": "Item.val = Attr.val + R.item('config/offset').val",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": 0
         },

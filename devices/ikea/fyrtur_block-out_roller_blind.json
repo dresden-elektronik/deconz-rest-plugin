@@ -5,7 +5,7 @@
   "vendor": "IKEA of Sweden",
   "product": "FYRTUR block-out roller blind",
   "sleeper": false,
-  "status": "Gold",
+  "status": "Draft",
   "subdevices": [
     {
       "type": "$TYPE_WINDOW_COVERING_DEVICE",
@@ -48,7 +48,7 @@
         {
           "name": "state/open",
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0102",
             "at": "0x0008",
@@ -125,7 +125,7 @@
           "name": "state/battery",
           "refresh.interval": 3700,
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0001",
             "at": "0x0021",
