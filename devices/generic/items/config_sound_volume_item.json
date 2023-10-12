@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/sound_volume",
+	"datatype": "UInt8",
+	"access": "RW",
+	"public": true,
+	"description": "Sets the device's sound volume."
+}

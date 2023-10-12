@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/switch3_icon",
+	"datatype": "UInt8",
+	"access": "RW",
+	"public": true,
+	"description": "Sets the switch no. 3 icon."
+}

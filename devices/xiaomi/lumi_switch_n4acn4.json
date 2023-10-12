@@ -1,0 +1,630 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "$MF_LUMI",
+  "modelid": "lumi.switch.n4acn4",
+  "product": "lumi.switch.n4acn4",
+  "sleeper": false,
+  "status": "Gold",
+  "path": "/devices/lumi.switch.n4acn4.json",
+  "subdevices": [
+    {
+      "type": "$TYPE_ON_OFF_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/alert",
+          "description": "The currently active alert effect.",
+          "default": "none"
+        },
+        {
+          "name": "state/on",
+          "description": "True when device is on; false when off.",
+          "refresh.interval": 86400
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_ON_OFF_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x02"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/alert",
+          "description": "The currently active alert effect.",
+          "default": "none"
+        },
+        {
+          "name": "state/on",
+          "description": "True when device is on; false when off.",
+          "refresh.interval": 86400
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_ON_OFF_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x03"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/alert",
+          "description": "The currently active alert effect.",
+          "default": "none"
+        },
+        {
+          "name": "state/on",
+          "description": "True when device is on; false when off.",
+          "refresh.interval": 86400
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "ZHAAqaraS1ScenePanelSwitch",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0xfcc0"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/auto_update_fw_enabled",
+          "description": "Sets whether auto firmware update is enabled or not.",
+          "parse": {
+            "at": "0x0227",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0227", "mf": "0x115f"},
+          "write": {
+            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0227", "dt": "0x10", "mf": "0x115f",
+            "eval": "Item.val"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/font_size",
+          "description": "Sets the font size of the texts on the LCD.",
+          "parse": {
+            "at": "0x0217",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0217", "mf": "0x115f"},
+          "write": {
+            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0217", "dt": "0x20", "mf": "0x115f",
+            "eval": "Item.val"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/gestures_enabled",
+          "description": "Sets whether gestures is enabled or not.",
+          "parse": {
+            "at": "0x023c",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x023c", "mf": "0x115f"},
+          "write": {
+            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x023c", "dt": "0x20", "mf": "0x115f",
+            "eval": "Item.val"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/homepage",
+          "description": "Sets which view is the home page screen.",
+          "parse": {
+            "at": "0x0219",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0219", "mf": "0x115f"},
+          "write": {
+            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0219", "dt": "0x20", "mf": "0x115f",
+            "eval": "Item.val"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/language",
+          "description": "Sets the device's displayed language.",
+          "parse": {
+            "at": "0x0210",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0210", "mf": "0x115f"},
+          "write": {
+            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0210", "dt": "0x20", "mf": "0x115f",
+            "eval": "Item.val"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/lcd_auto_brightness_enabled",
+          "description": "Sets whether the LCD's automatic brightness is enabled or not.",
+          "parse": {
+            "at": "0x0218",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0218", "mf": "0x115f"},
+          "write": {
+            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0218", "dt": "0x10", "mf": "0x115f",
+            "eval": "Item.val"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/lcd_brightness",
+          "description": "Sets the device's LCD brightness.",
+          "parse": {
+            "at": "0x0211",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0211", "mf": "0x115f"},
+          "write": {
+            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0211", "dt": "0x20", "mf": "0x115f",
+            "eval": "Item.val"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/screen_saver_enabled",
+          "description": "Sets whether the device's screen saver is enabled or not.",
+          "parse": {
+            "at": "0x0221",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0221", "mf": "0x115f"},
+          "write": {
+            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0221", "dt": "0x10", "mf": "0x115f",
+            "eval": "Item.val"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/screen_saver_style",
+          "description": "Sets the device's screen saver style.",
+          "parse": {
+            "at": "0x0214",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0214", "mf": "0x115f"},
+          "write": {
+            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0214", "dt": "0x20", "mf": "0x115f",
+            "eval": "Item.val"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/sound_volume",
+          "description": "Sets the device's sound volume.",
+          "parse": {
+            "at": "0x0212",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0212", "mf": "0x115f"},
+          "write": {
+            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0212", "dt": "0x20", "mf": "0x115f",
+            "eval": "Item.val"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/standby_enabled",
+          "description": "Sets whether the device's standby mode is enabled or not.",
+          "parse": {
+            "at": "0x0213",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0213", "mf": "0x115f"},
+          "write": {
+            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0213", "dt": "0x10", "mf": "0x115f",
+            "eval": "Item.val"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/standby_lcd_brightness",
+          "description": "Sets the device's LCD brightness in standby mode.",
+          "parse": {
+            "at": "0x0222",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0222", "mf": "0x115f"},
+          "write": {
+            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0222", "dt": "0x20", "mf": "0x115f",
+            "eval": "Item.val"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/standby_time",
+          "description": "Sets the time delay to start the device's standby mode.",
+          "parse": {
+            "at": "0x0216",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0216", "mf": "0x115f"},
+          "write": {
+            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0216", "dt": "0x23", "mf": "0x115f",
+            "eval": "Item.val"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/switch1_icon",
+          "description": "Sets the switch no. 1 icon.",
+          "parse": {
+            "at": "0x0223",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "script": "fcc0_022x_config.js",
+            "fn": "zcl:attr",
+            "mf": "0x115f"
+          },
+          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0223", "mf": "0x115f"},
+          "write": {
+            "fn": "zcl:cmd", "ep": 1, "cl": "0xfcc0", "cmd": "0x02", "fc": "0x14", "mf": "0x115f",
+            "eval": "const text = R.item('config/switch1_text').val; '230241' + (text.length + 1).toString(16).padStart(2, '0') + Item.val.toString(16).padStart(2, '0') + text.split('').map(function(c) { return ( c.charCodeAt(0).toString(16)).padStart(2, '0'); }).join('')"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/switch1_text",
+          "description": "Sets the switch no. 1 text.",
+          "parse": {
+            "at": "0x0223",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "script": "fcc0_022x_config.js",
+            "fn": "zcl:attr",
+            "mf": "0x115f"
+          },
+          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0223", "mf": "0x115f"},
+          "write": {
+            "fn": "zcl:cmd", "ep": 1, "cl": "0xfcc0", "cmd": "0x02", "fc": "0x14", "mf": "0x115f",
+            "eval": "'230241' + (Item.val.length + 1).toString(16).padStart(2, '0') + R.item('config/switch1_icon').val.toString(16).padStart(2, '0') + Item.val.split('').map(function(c) { return ( c.charCodeAt(0).toString(16)).padStart(2, '0'); }).join('')"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/switch2_icon",
+          "description": "Sets the switch no. 2 icon.",
+          "parse": {
+            "at": "0x0224",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "script": "fcc0_022x_config.js",
+            "fn": "zcl:attr",
+            "mf": "0x115f"
+          },
+          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0224", "mf": "0x115f"},
+          "write": {
+            "fn": "zcl:cmd", "ep": 1, "cl": "0xfcc0", "cmd": "0x02", "fc": "0x14", "mf": "0x115f",
+            "eval": "const text = R.item('config/switch2_text').val; '240241' + (text.length + 1).toString(16).padStart(2, '0') + Item.val.toString(16).padStart(2, '0') + text.split('').map(function(c) { return ( c.charCodeAt(0).toString(16)).padStart(2, '0'); }).join('')"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/switch2_text",
+          "description": "Sets the switch no. 2 text.",
+          "parse": {
+            "at": "0x0224",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "script": "fcc0_022x_config.js",
+            "fn": "zcl:attr",
+            "mf": "0x115f"
+          },
+          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0224", "mf": "0x115f"},
+          "write": {
+            "fn": "zcl:cmd", "ep": 1, "cl": "0xfcc0", "cmd": "0x02", "fc": "0x14", "mf": "0x115f",
+            "eval": "'240241' + (Item.val.length + 1).toString(16).padStart(2, '0') + R.item('config/switch2_icon').val.toString(16).padStart(2, '0') + Item.val.split('').map(function(c) { return ( c.charCodeAt(0).toString(16)).padStart(2, '0'); }).join('')"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/switch3_icon",
+          "description": "Sets the switch no. 3 icon.",
+          "parse": {
+            "at": "0x0225",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "script": "fcc0_022x_config.js",
+            "fn": "zcl:attr",
+            "mf": "0x115f"
+          },
+          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0225", "mf": "0x115f"},
+          "write": {
+            "fn": "zcl:cmd", "ep": 1, "cl": "0xfcc0", "cmd": "0x02", "fc": "0x14", "mf": "0x115f",
+            "eval": "const text = R.item('config/switch3_text').val; '250241' + (text.length + 1).toString(16).padStart(2, '0') + Item.val.toString(16).padStart(2, '0') + text.split('').map(function(c) { return ( c.charCodeAt(0).toString(16)).padStart(2, '0'); }).join('')"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/switch3_text",
+          "description": "Sets the switch no. 3 text.",
+          "parse": {
+            "at": "0x0225",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "script": "fcc0_022x_config.js",
+            "fn": "zcl:attr",
+            "mf": "0x115f"
+          },
+          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0225", "mf": "0x115f"},
+          "write": {
+            "fn": "zcl:cmd", "ep": 1, "cl": "0xfcc0", "cmd": "0x02", "fc": "0x14", "mf": "0x115f",
+            "eval": "'250241' + (Item.val.length + 1).toString(16).padStart(2, '0') + R.item('config/switch3_icon').val.toString(16).padStart(2, '0') + Item.val.split('').map(function(c) { return ( c.charCodeAt(0).toString(16)).padStart(2, '0'); }).join('')"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/switches_config",
+          "description": "Sets the device's switches configuration.",
+          "parse": {
+            "at": "0x022b",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x022b", "mf": "0x115f"},
+          "write": {
+            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x022b", "dt": "0x20", "mf": "0x115f",
+            "eval": "Item.val"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/theme",
+          "description": "Sets the device's GUI theme.",
+          "parse": {
+            "at": "0x0215",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl",
+            "mf": "0x115f"
+          },
+          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0215", "mf": "0x115f"},
+          "write": {
+            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0215", "dt": "0x20", "mf": "0x115f",
+            "eval": "Item.val"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 2,
+      "dst.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 3,
+      "dst.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    }
+  ]
+}

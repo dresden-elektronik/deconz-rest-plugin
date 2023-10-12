@@ -5558,8 +5558,10 @@ Contactor > On/off=0003 - HP/HC=0004</description>
           <attribute id="0x000C" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x000D" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x00E8" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x00E9" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x00EA" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x00E9" name="Mars-Tech Config" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>Mars-Tech Config: 1 - Normal, 2 - Control On/Off of a target, 3 - Momentary switch control</description>
+          </attribute>
+          <attribute id="0x00EA" name="Mars-Tech MAC Settings" type="ostring" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x00EB" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x00ED" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x00EE" name="Firmware" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
@@ -5613,6 +5615,50 @@ Contactor > On/off=0003 - HP/HC=0004</description>
           <attribute id="0x020C" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x020D" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x020E" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"></attribute>
+        </attribute-set>
+        <attribute-set id="0x020F" description="Aqara Scene Panel S1">
+          <attribute id="0x020F" name="Settings Password" type="ostring" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0210" name="Language" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>Language: 0 - Chinese, 1 - English</description>
+          </attribute>
+          <attribute id="0x0211" name="LCD Brightness" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0212" name="Beep Volume" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>Beep volume: 0 - Muted, 1 - Low, 2 - Medium, 3 - High</description>
+          </attribute>
+          <attribute id="0x0213" name="Standby Enabled" type="bool" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0214" name="Screen Saver Style" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>Screen saver style: 1 - Classic, 2 - Analog Clock</description>
+          </attribute>
+          <attribute id="0x0215" name="Theme" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>Theme: 0 - Classic, 1 - Concise</description>
+          </attribute>
+          <attribute id="0x0216" name="Standby Time (Seconds)" type="u32" mfcode="0x115f" access="rw" required="m">
+            <description>Standby time: in seconds. 65535 = Never (Notice you can set the standby enabled setting [0x0213] to off regardless of this)</description>
+          </attribute>
+          <attribute id="0x0217" name="Font Size" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>Font size: Only 3, 4 and 5 is available</description>
+          </attribute>
+          <attribute id="0x0218" name="LCD Auto Brightness Enabled" type="bool" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0219" name="Homepage" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>Homepage: 0 - Scene Page, 1 - Feel Page (Date, time and temperature), 2 - Thermostat, 3 - Switches</description>
+          </attribute>
+          <attribute id="0x0221" name="Screen Saver Enabled" type="bool" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0222" name="Standby LCD Brightness" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0223" name="Switch 1 Config" type="ostring" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0224" name="Switch 2 Config" type="ostring" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0225" name="Switch 3 Config" type="ostring" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0227" name="Auto Update Firmware" type="bool" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0228" name="Unknown" type="cstring" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x022A" name="Unknown (Switches Count?)" type="u8" mfcode="0x115f" access="r" required="m"></attribute>
+          <attribute id="0x022B" name="Switches Config" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>Switches config configures which switch is available on the switches screen: 0 - No Switches (No switches page shown), 1 - Switch no. 1, 2 - Switch no. 2, 3 - Switches no. 1 and 2, 4 - Switch no. 3, 5 - Switches no. 1 and 3, 6 - Switches no. 2 and 3, 7 - All Switches</description>
+          </attribute>
+          <attribute id="0x023C" name="Gestures Enabled" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>Gestures enabled: 0 - Off, 1 - On</description>
+          </attribute>
+          <attribute id="0x029E" name="Unknown" type="float" mfcode="0x115f" access="rw" required="m"></attribute>
+        </attribute-set>
+        <attribute-set id="0x023B" description="Unknown">
           <attribute id="0x023B" name="Unknown" type="float" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x023E" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
         </attribute-set>
@@ -5739,8 +5785,10 @@ Contactor > On/off=0003 - HP/HC=0004</description>
           <attribute id="0x000D" name="Unknown" type="u8" access="rw" required="m"></attribute>
           <attribute id="0x00E4" name="Unknown" type="u32" access="rw" required="m"></attribute>
           <attribute id="0x00E8" name="Unknown" type="bool" access="rw" required="m"></attribute>
-          <attribute id="0x00E9" name="Unknown" type="u8" access="rw" required="m"></attribute>
-          <attribute id="0x00EA" name="Unknown" type="ostring" access="rw" required="m"></attribute>
+          <attribute id="0x00E9" name="Mars-Tech Config" type="u8" access="rw" required="m">
+            <description>Mars-Tech Config: 1 - Normal, 2 - Control On/Off of a target, 3 - Momentary switch control</description>
+          </attribute>
+          <attribute id="0x00EA" name="Mars-Tech MAC Settings" type="ostring" access="rw" required="m"></attribute>
           <attribute id="0x00EB" name="Unknown" type="u16" access="rw" required="m"></attribute>
           <attribute id="0x00ED" name="Unknown" type="u32" access="rw" required="m"></attribute>
           <attribute id="0x00EE" name="Unknown" type="u32" access="rw" required="m"></attribute>

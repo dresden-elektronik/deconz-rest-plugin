@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/standby_enabled",
+	"datatype": "Bool",
+	"access": "RW",
+	"public": true,
+	"description": "Sets whether the device's standby mode is enabled or not."
+}

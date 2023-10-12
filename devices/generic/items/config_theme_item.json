@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/theme",
+	"datatype": "UInt8",
+	"access": "RW",
+	"public": true,
+	"description": "Sets the device's GUI theme."
+}

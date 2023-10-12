@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/switch2_text",
+	"datatype": "String",
+	"access": "RW",
+	"public": true,
+	"description": "Sets the switch no. 2 text."
+}

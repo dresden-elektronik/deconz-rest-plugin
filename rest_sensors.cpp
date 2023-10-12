@@ -2043,6 +2043,33 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                                    QString("parameter, %1, not available").arg(pi.key())));
                     }
                 }
+                else if (rid.suffix == RConfigSwitch1Text || rid.suffix == RConfigSwitch2Text || rid.suffix == RConfigSwitch3Text) // String
+                {
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.string);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
+                }
+                else if (rid.suffix == RConfigStandbyEnabled || rid.suffix == RConfigAutoUpdateFWEnabled || rid.suffix == RConfigLCDAutoBrightnessEnabled || rid.suffix == RConfigScreenSaverEnabled) // Boolean
+                {
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.boolean);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
+                }
+                else if (rid.suffix == RConfigSoundVolume || rid.suffix == RConfigFontSize || rid.suffix == RConfigGesturesEnabled || rid.suffix == RConfigHomepage || rid.suffix == RConfigLanguage || rid.suffix == RConfigLCDBrightness || rid.suffix == RConfigScreenSaverStyle || rid.suffix == RConfigStandbyLCDBrightness || rid.suffix == RConfigStandbyTime || rid.suffix == RConfigSwitch1Icon || rid.suffix == RConfigSwitch2Icon || rid.suffix == RConfigSwitch3Icon || rid.suffix == RConfigSwitchesConfig || rid.suffix == RConfigTheme) // Unsigned Integer
+                {
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.uinteger);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
+                }
 
                 if (updated)
                 {

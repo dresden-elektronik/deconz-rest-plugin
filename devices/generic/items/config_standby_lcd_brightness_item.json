@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/standby_lcd_brightness",
+	"datatype": "UInt8",
+	"access": "RW",
+	"public": true,
+	"description": "Sets the device's LCD brightness in standby mode."
+}

@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/auto_update_fw_enabled",
+	"datatype": "Bool",
+	"access": "RW",
+	"public": true,
+	"description": "Sets whether auto firmware update is enabled or not."
+}

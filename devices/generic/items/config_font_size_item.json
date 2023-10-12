@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/font_size",
+	"datatype": "UInt8",
+	"access": "RW",
+	"public": true,
+	"description": "Sets the font size of the texts on the LCD."
+}

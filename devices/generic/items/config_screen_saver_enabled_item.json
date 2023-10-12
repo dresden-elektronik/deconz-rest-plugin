@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/screen_saver_enabled",
+	"datatype": "Bool",
+	"access": "RW",
+	"public": true,
+	"description": "Sets whether the device's screen saver is enabled or not."
+}
