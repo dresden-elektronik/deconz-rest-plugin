@@ -534,36 +534,11 @@
         },
         {
           "name": "cap/measured_value/max",
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0xFC7E",
-            "mf": "0x117C",
-            "at": "0x0002",
-            "eval": "Item.val = Attr.val"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x042A",
-            "mf": "0x117C",
-            "at": [
-              "0x0001",
-              "0x0002"
-            ]
-          },
-          "refresh.interval": 86400
+          "static": 5500
         },
         {
           "name": "cap/measured_value/min",
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0xFC7E",
-            "mf": "0x117C",
-            "at": "0x0001",
-            "eval": "Item.val = Attr.val"
-          }
+          "static": 0
         },
         {
           "name": "cap/measured_value/quantity",
