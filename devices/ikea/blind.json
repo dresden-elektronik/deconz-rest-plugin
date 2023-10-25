@@ -71,6 +71,9 @@
           "name": "cap/groups/not_supported"
         },
         {
+          "name": "state/alert"
+        },
+        {
           "name": "state/lift"
         },
         {
@@ -161,6 +164,9 @@
         },
         {
           "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/alert"
         },
         {
           "name": "config/on"
