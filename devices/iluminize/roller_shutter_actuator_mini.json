@@ -81,7 +81,7 @@
             "at": "0x0008",
             "cl": "0x0102",
             "ep": 1,
-            "eval": "Item.val = Attr.val === 100",
+            "eval": "Item.val = Attr.val < 100",
             "fn": "zcl:attr"
           }
         },
