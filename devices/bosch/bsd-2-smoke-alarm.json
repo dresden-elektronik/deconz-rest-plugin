@@ -60,9 +60,8 @@
             "cl": "0x0001",
             "ep": 1,
             "eval": "Item.val = Attr.val / 2",
-            "fn": "zcl"
-          },
-          "default": 0
+            "fn": "zcl:attr"
+          }
         },
         {
           "name": "config/enrolled",
