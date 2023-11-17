@@ -114,7 +114,6 @@ bool BAK_ExportConfiguration(deCONZ::ApsController *apsCtrl)
         map["endpoint2"] = endpoint2;
         map["deconzVersion"] = QString(GW_SW_VERSION).replace(QChar('.'), "");
 
-#if DECONZ_LIB_VERSION >= 0x011002
         {
             quint32 frameCounter = apsCtrl->getParameter(deCONZ::ParamFrameCounter);
             if (frameCounter > 0)
@@ -122,7 +121,6 @@ bool BAK_ExportConfiguration(deCONZ::ApsController *apsCtrl)
                 map["frameCounter"] = frameCounter;
             }
         }
-#endif
 
         bool ok = true;
         QString saveString = Json::serialize(map, ok);
@@ -270,7 +268,7 @@ bool BAK_ExportConfiguration(deCONZ::ApsController *apsCtrl)
             args.append(path + "/deCONZ.tar");
             zipProcess.start(cmd, args);
 #endif
-#ifdef Q_OS_LINUX
+#ifdef Q_OS_UNIX
             args.append("-k");
             args.append("-f");
             args.append(path + "/deCONZ.tar");
@@ -348,7 +346,7 @@ bool BAK_ImportConfiguration(deCONZ::ApsController *apsCtrl)
         args.append("-o" + path);
         archProcess.start(cmd, args);
 #endif
-#ifdef Q_OS_LINUX
+#ifdef Q_OS_UNIX
         args.append("-df");
         args.append(path + "/deCONZ.tar.gz");
         archProcess.start("gzip", args);
@@ -371,7 +369,7 @@ bool BAK_ImportConfiguration(deCONZ::ApsController *apsCtrl)
         args.append("-o" + path);
         zipProcess.start(cmd, args);
 #endif
-#ifdef Q_OS_LINUX
+#ifdef Q_OS_UNIX
         args.append("-xf");
         args.append(path + "/deCONZ.tar");
         args.append("-C");
@@ -504,7 +502,6 @@ bool BAK_ImportConfiguration(deCONZ::ApsController *apsCtrl)
             apsCtrl->setParameter(deCONZ::ParamNetworkUpdateId, nwkUpdateId);
         }
 
-#if DECONZ_LIB_VERSION >= 0x011002
         {
             quint32 frameCounter = map["frameCounter"].toUInt(&ok);
             if (ok && frameCounter > 0)
@@ -512,7 +509,6 @@ bool BAK_ImportConfiguration(deCONZ::ApsController *apsCtrl)
                 apsCtrl->setParameter(deCONZ::ParamFrameCounter, frameCounter);
             }
         }
-#endif
 
         // HA endpoint
         QVariantMap endpoint1;
