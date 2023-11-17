@@ -23,7 +23,7 @@
 #include "json.h"
 #include "crypto/random.h"
 
-#define EXT_PROCESS_TIMEOUT 10000
+#define EXT_PROCESS_TIMEOUT 30000
 
 using TmpFiles = std::array<const char*, 3>;
 
@@ -236,7 +236,8 @@ bool BAK_ExportConfiguration(deCONZ::ApsController *apsCtrl)
         {
             logfilesDirectories += QLatin1String("homebridge-install-logfiles");
         }
-
+#endif
+#ifdef Q_OS_UNIX
         {
             QStringList args;
             args.append("-cf");
@@ -246,10 +247,11 @@ bool BAK_ExportConfiguration(deCONZ::ApsController *apsCtrl)
             args.append("deCONZ.conf");
             args.append("zll.db");
             args.append("session.default");
+#ifdef Q_OS_LINUX
             args.append(FirstFileName);
             args.append(SecondFileName);
             args.append(logfilesDirectories);
-
+#endif
             archProcess.start("tar", args);
         }
 #endif
