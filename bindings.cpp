@@ -1742,7 +1742,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.reportableChange8bit = 1;
         }
         else if (modelId == QLatin1String("HG06323") || // LIDL
-                 modelId == QLatin1String("lumi.sensor_magnet.agl02") || // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
                  modelId == QLatin1String("lumi.flood.agl02"))           // Xiaomi Aqara T1 water leak sensor SJCGQ12LM
         {
             rq.minInterval = 7200;
@@ -2765,7 +2764,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("RH3052")) ||
         // Xiaomi
         sensor->modelId().startsWith(QLatin1String("lumi.switch.b1naus01")) ||
-        sensor->modelId() == QLatin1String("lumi.sensor_magnet.agl02") ||
         sensor->modelId() == QLatin1String("lumi.motion.agl04") ||
         sensor->modelId() == QLatin1String("lumi.flood.agl02") ||
         sensor->modelId() == QLatin1String("lumi.switch.n0agl1") ||
