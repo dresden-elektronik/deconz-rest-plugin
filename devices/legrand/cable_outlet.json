@@ -53,6 +53,9 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "config/heatsetpoint"
+        }
+        {
           "name": "config/mode"
         },
         {
@@ -61,6 +64,9 @@
         {
           "name": "config/reachable"
         },
+        {
+          "name": "state/temperature"
+        }
         {
           "name": "state/lastupdated"
         }
