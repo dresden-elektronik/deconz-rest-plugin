@@ -79,7 +79,7 @@
             "ep": 1,
             "cl": "0x0102",
             "at": "0x0008",
-            "eval": "Item.val = Attr.val === 100"
+            "eval": "Item.val = Attr.val > 0"
           },
           "read": {
             "fn": "none"

@@ -1,9 +1,11 @@
 {
   "schema": "devcap1.schema.json",
   "manufacturername": [
-    "$MF_SIGNIFY"
+    "$MF_SIGNIFY",
+    "$MF_PHILIPS"
   ],
   "modelid": [
+    "LCX012",
     "LCX012"
   ],
   "product": "Hue Festavia",
