@@ -1,7 +1,7 @@
 {
    "schema":"devcap1.schema.json",
-   "manufacturername":"_TZ3000_0zrccfgx",
-   "modelid":"TS0215A",
+   "manufacturername":["_TZ3000_0zrccfgx", "_TZ3000_p6ju8myv"],
+   "modelid":["TS0215A", "TS0215A"],
    "vendor":"Woox",
    "product":"R7054 4 gang",
    "sleeper":true,
@@ -73,7 +73,8 @@
                "name":"state/lastupdated"
             },
             {
-               "name":"state/lowbattery"
+               "name": "state/lowbattery",
+               "default": false
             }
          ]
       }
