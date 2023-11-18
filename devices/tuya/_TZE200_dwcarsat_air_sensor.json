@@ -246,7 +246,7 @@
         },
         {
           "name": "cap/measured_value/unit",
-          "static": "ppb"
+          "static": "ppm"
         },
         {
           "name": "config/on"
