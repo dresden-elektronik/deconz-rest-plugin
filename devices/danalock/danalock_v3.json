@@ -53,7 +53,7 @@
         },
         {
           "name": "config/lock"
-        }
+        },
         {
           "name": "state/alert",
           "default": "none"
