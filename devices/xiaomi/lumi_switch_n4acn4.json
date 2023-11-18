@@ -201,12 +201,12 @@
             "cl": "0xfcc0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115f"
           },
-          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0227", "mf": "0x115f"},
+          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0227", "mf": "0x115f"},
           "write": {
-            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0227", "dt": "0x10", "mf": "0x115f",
+            "fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0227", "dt": "0x10", "mf": "0x115f",
             "eval": "Item.val"
           },
           "refresh.interval": 86400
@@ -219,12 +219,12 @@
             "cl": "0xfcc0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115f"
           },
-          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0217", "mf": "0x115f"},
+          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0217", "mf": "0x115f"},
           "write": {
-            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0217", "dt": "0x20", "mf": "0x115f",
+            "fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0217", "dt": "0x20", "mf": "0x115f",
             "eval": "Item.val"
           },
           "refresh.interval": 86400
@@ -237,12 +237,12 @@
             "cl": "0xfcc0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115f"
           },
-          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x023c", "mf": "0x115f"},
+          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x023c", "mf": "0x115f"},
           "write": {
-            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x023c", "dt": "0x20", "mf": "0x115f",
+            "fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x023c", "dt": "0x20", "mf": "0x115f",
             "eval": "Item.val"
           },
           "refresh.interval": 86400
@@ -255,12 +255,12 @@
             "cl": "0xfcc0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115f"
           },
-          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0219", "mf": "0x115f"},
+          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0219", "mf": "0x115f"},
           "write": {
-            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0219", "dt": "0x20", "mf": "0x115f",
+            "fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0219", "dt": "0x20", "mf": "0x115f",
             "eval": "Item.val"
           },
           "refresh.interval": 86400
@@ -273,12 +273,12 @@
             "cl": "0xfcc0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115f"
           },
-          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0210", "mf": "0x115f"},
+          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0210", "mf": "0x115f"},
           "write": {
-            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0210", "dt": "0x20", "mf": "0x115f",
+            "fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0210", "dt": "0x20", "mf": "0x115f",
             "eval": "Item.val"
           },
           "refresh.interval": 86400
@@ -291,12 +291,12 @@
             "cl": "0xfcc0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115f"
           },
-          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0218", "mf": "0x115f"},
+          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0218", "mf": "0x115f"},
           "write": {
-            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0218", "dt": "0x10", "mf": "0x115f",
+            "fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0218", "dt": "0x10", "mf": "0x115f",
             "eval": "Item.val"
           },
           "refresh.interval": 86400
@@ -309,12 +309,12 @@
             "cl": "0xfcc0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115f"
           },
-          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0211", "mf": "0x115f"},
+          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0211", "mf": "0x115f"},
           "write": {
-            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0211", "dt": "0x20", "mf": "0x115f",
+            "fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0211", "dt": "0x20", "mf": "0x115f",
             "eval": "Item.val"
           },
           "refresh.interval": 86400
@@ -327,12 +327,12 @@
             "cl": "0xfcc0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115f"
           },
-          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0221", "mf": "0x115f"},
+          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0221", "mf": "0x115f"},
           "write": {
-            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0221", "dt": "0x10", "mf": "0x115f",
+            "fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0221", "dt": "0x10", "mf": "0x115f",
             "eval": "Item.val"
           },
           "refresh.interval": 86400
@@ -345,12 +345,12 @@
             "cl": "0xfcc0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115f"
           },
-          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0214", "mf": "0x115f"},
+          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0214", "mf": "0x115f"},
           "write": {
-            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0214", "dt": "0x20", "mf": "0x115f",
+            "fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0214", "dt": "0x20", "mf": "0x115f",
             "eval": "Item.val"
           },
           "refresh.interval": 86400
@@ -363,12 +363,12 @@
             "cl": "0xfcc0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115f"
           },
-          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0212", "mf": "0x115f"},
+          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0212", "mf": "0x115f"},
           "write": {
-            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0212", "dt": "0x20", "mf": "0x115f",
+            "fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0212", "dt": "0x20", "mf": "0x115f",
             "eval": "Item.val"
           },
           "refresh.interval": 86400
@@ -381,12 +381,12 @@
             "cl": "0xfcc0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115f"
           },
-          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0213", "mf": "0x115f"},
+          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0213", "mf": "0x115f"},
           "write": {
-            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0213", "dt": "0x10", "mf": "0x115f",
+            "fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0213", "dt": "0x10", "mf": "0x115f",
             "eval": "Item.val"
           },
           "refresh.interval": 86400
@@ -399,12 +399,12 @@
             "cl": "0xfcc0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115f"
           },
-          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0222", "mf": "0x115f"},
+          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0222", "mf": "0x115f"},
           "write": {
-            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0222", "dt": "0x20", "mf": "0x115f",
+            "fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0222", "dt": "0x20", "mf": "0x115f",
             "eval": "Item.val"
           },
           "refresh.interval": 86400
@@ -417,12 +417,12 @@
             "cl": "0xfcc0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115f"
           },
-          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0216", "mf": "0x115f"},
+          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0216", "mf": "0x115f"},
           "write": {
-            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0216", "dt": "0x23", "mf": "0x115f",
+            "fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0216", "dt": "0x23", "mf": "0x115f",
             "eval": "Item.val"
           },
           "refresh.interval": 86400
@@ -435,12 +435,12 @@
             "cl": "0xfcc0",
             "ep": 1,
             "script": "fcc0_022x_config.js",
-            "fn": "zcl:attr",
+            "fn": "zcl:attr:attr",
             "mf": "0x115f"
           },
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0223", "mf": "0x115f"},
+          "read": {"fn": "zcl:attr:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0223", "mf": "0x115f"},
           "write": {
-            "fn": "zcl:cmd", "ep": 1, "cl": "0xfcc0", "cmd": "0x02", "fc": "0x14", "mf": "0x115f",
+            "fn": "zcl:attr:cmd", "ep": 1, "cl": "0xfcc0", "cmd": "0x02", "fc": "0x14", "mf": "0x115f",
             "eval": "const text = R.item('config/switch1_text').val; '230241' + (text.length + 1).toString(16).padStart(2, '0') + Item.val.toString(16).padStart(2, '0') + text.split('').map(function(c) { return ( c.charCodeAt(0).toString(16)).padStart(2, '0'); }).join('')"
           },
           "refresh.interval": 86400
@@ -453,12 +453,12 @@
             "cl": "0xfcc0",
             "ep": 1,
             "script": "fcc0_022x_config.js",
-            "fn": "zcl:attr",
+            "fn": "zcl:attr:attr",
             "mf": "0x115f"
           },
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0223", "mf": "0x115f"},
+          "read": {"fn": "zcl:attr:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0223", "mf": "0x115f"},
           "write": {
-            "fn": "zcl:cmd", "ep": 1, "cl": "0xfcc0", "cmd": "0x02", "fc": "0x14", "mf": "0x115f",
+            "fn": "zcl:attr:cmd", "ep": 1, "cl": "0xfcc0", "cmd": "0x02", "fc": "0x14", "mf": "0x115f",
             "eval": "'230241' + (Item.val.length + 1).toString(16).padStart(2, '0') + R.item('config/switch1_icon').val.toString(16).padStart(2, '0') + Item.val.split('').map(function(c) { return ( c.charCodeAt(0).toString(16)).padStart(2, '0'); }).join('')"
           },
           "refresh.interval": 86400
@@ -471,12 +471,12 @@
             "cl": "0xfcc0",
             "ep": 1,
             "script": "fcc0_022x_config.js",
-            "fn": "zcl:attr",
+            "fn": "zcl:attr:attr",
             "mf": "0x115f"
           },
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0224", "mf": "0x115f"},
+          "read": {"fn": "zcl:attr:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0224", "mf": "0x115f"},
           "write": {
-            "fn": "zcl:cmd", "ep": 1, "cl": "0xfcc0", "cmd": "0x02", "fc": "0x14", "mf": "0x115f",
+            "fn": "zcl:attr:cmd", "ep": 1, "cl": "0xfcc0", "cmd": "0x02", "fc": "0x14", "mf": "0x115f",
             "eval": "const text = R.item('config/switch2_text').val; '240241' + (text.length + 1).toString(16).padStart(2, '0') + Item.val.toString(16).padStart(2, '0') + text.split('').map(function(c) { return ( c.charCodeAt(0).toString(16)).padStart(2, '0'); }).join('')"
           },
           "refresh.interval": 86400
@@ -489,12 +489,12 @@
             "cl": "0xfcc0",
             "ep": 1,
             "script": "fcc0_022x_config.js",
-            "fn": "zcl:attr",
+            "fn": "zcl:attr:attr",
             "mf": "0x115f"
           },
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0224", "mf": "0x115f"},
+          "read": {"fn": "zcl:attr:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0224", "mf": "0x115f"},
           "write": {
-            "fn": "zcl:cmd", "ep": 1, "cl": "0xfcc0", "cmd": "0x02", "fc": "0x14", "mf": "0x115f",
+            "fn": "zcl:attr:cmd", "ep": 1, "cl": "0xfcc0", "cmd": "0x02", "fc": "0x14", "mf": "0x115f",
             "eval": "'240241' + (Item.val.length + 1).toString(16).padStart(2, '0') + R.item('config/switch2_icon').val.toString(16).padStart(2, '0') + Item.val.split('').map(function(c) { return ( c.charCodeAt(0).toString(16)).padStart(2, '0'); }).join('')"
           },
           "refresh.interval": 86400
@@ -507,12 +507,12 @@
             "cl": "0xfcc0",
             "ep": 1,
             "script": "fcc0_022x_config.js",
-            "fn": "zcl:attr",
+            "fn": "zcl:attr:attr",
             "mf": "0x115f"
           },
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0225", "mf": "0x115f"},
+          "read": {"fn": "zcl:attr:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0225", "mf": "0x115f"},
           "write": {
-            "fn": "zcl:cmd", "ep": 1, "cl": "0xfcc0", "cmd": "0x02", "fc": "0x14", "mf": "0x115f",
+            "fn": "zcl:attr:cmd", "ep": 1, "cl": "0xfcc0", "cmd": "0x02", "fc": "0x14", "mf": "0x115f",
             "eval": "const text = R.item('config/switch3_text').val; '250241' + (text.length + 1).toString(16).padStart(2, '0') + Item.val.toString(16).padStart(2, '0') + text.split('').map(function(c) { return ( c.charCodeAt(0).toString(16)).padStart(2, '0'); }).join('')"
           },
           "refresh.interval": 86400
@@ -525,12 +525,12 @@
             "cl": "0xfcc0",
             "ep": 1,
             "script": "fcc0_022x_config.js",
-            "fn": "zcl:attr",
+            "fn": "zcl:attr:attr",
             "mf": "0x115f"
           },
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0225", "mf": "0x115f"},
+          "read": {"fn": "zcl:attr:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0225", "mf": "0x115f"},
           "write": {
-            "fn": "zcl:cmd", "ep": 1, "cl": "0xfcc0", "cmd": "0x02", "fc": "0x14", "mf": "0x115f",
+            "fn": "zcl:attr:cmd", "ep": 1, "cl": "0xfcc0", "cmd": "0x02", "fc": "0x14", "mf": "0x115f",
             "eval": "'250241' + (Item.val.length + 1).toString(16).padStart(2, '0') + R.item('config/switch3_icon').val.toString(16).padStart(2, '0') + Item.val.split('').map(function(c) { return ( c.charCodeAt(0).toString(16)).padStart(2, '0'); }).join('')"
           },
           "refresh.interval": 86400
@@ -543,12 +543,12 @@
             "cl": "0xfcc0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115f"
           },
-          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x022b", "mf": "0x115f"},
+          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x022b", "mf": "0x115f"},
           "write": {
-            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x022b", "dt": "0x20", "mf": "0x115f",
+            "fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x022b", "dt": "0x20", "mf": "0x115f",
             "eval": "Item.val"
           },
           "refresh.interval": 86400
@@ -561,12 +561,12 @@
             "cl": "0xfcc0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115f"
           },
-          "read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0215", "mf": "0x115f"},
+          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0215", "mf": "0x115f"},
           "write": {
-            "fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0215", "dt": "0x20", "mf": "0x115f",
+            "fn": "zcl:attr", "ep": 1, "cl": "0xfcc0", "at": "0x0215", "dt": "0x20", "mf": "0x115f",
             "eval": "Item.val"
           },
           "refresh.interval": 86400

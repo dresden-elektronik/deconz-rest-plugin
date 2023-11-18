@@ -4,19 +4,5 @@
 	"datatype": "Bool",
 	"access": "RW",
 	"public": true,
-	"description": "Sets whether the LCD's automatic brightness is enabled or not.",
-	"parse": {
-		"at": "0x0218",
-		"cl": "0xfcc0",
-		"ep": 1,
-		"eval": "Item.val = Attr.val",
-		"fn": "zcl",
-		"mf": "0x115f"
-	},
-	"read": {"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0218", "mf": "0x115f"},
-	"write": {
-		"fn": "zcl", "ep": 1, "cl": "0xfcc0", "at": "0x0218", "dt": "0x10", "mf": "0x115f",
-		"eval": "Item.val"
-	},
-	"refresh.interval": 86400
+	"description": "Sets whether the LCD's automatic brightness is enabled or not."
 }
