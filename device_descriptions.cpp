@@ -208,6 +208,383 @@ DeviceDescriptions::DeviceDescriptions(QObject *parent) :
 
         d_ptr2->readFunctions.push_back(fn);
     }
+    
+    {  // Write function as shown in the DDF editor.
+        DDF_FunctionDescriptor fn;
+        fn.name = "zcl:attr";
+        fn.description = "Generic function to write ZCL attributes.";
+
+        DDF_FunctionDescriptor::Parameter param;
+
+        param.name = "Endpoint";
+        param.key = "ep";
+        param.description = "255 means any endpoint, 0 means auto selected from subdevice.";
+        param.dataType = DataTypeUInt8;
+        param.defaultValue = 0;
+        param.isOptional = 1;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Cluster ID";
+        param.key = "cl";
+        param.description = "As string hex value";
+        param.dataType = DataTypeUInt16;
+        param.defaultValue = 0;
+        param.isOptional = 0;
+        param.isHexString = 1;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Attribute ID";
+        param.key = "at";
+        param.description = "As string hex value";
+        param.dataType = DataTypeUInt16;
+        param.defaultValue = 0;
+        param.isOptional = 0;
+        param.isHexString = 1;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+        
+        param.name = "Datatype";
+        param.key = "dt";
+        param.description = "Datatype of the data to be written.";
+        param.dataType = DataTypeUInt8;
+        param.defaultValue = 0;
+        param.isOptional = 0;
+        param.isHexString = 1;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Manufacturer code";
+        param.key = "mf";
+        param.description = "As string hex value.";
+        param.dataType = DataTypeUInt16;
+        param.defaultValue = 0;
+        param.isOptional = 1;
+        param.isHexString = 1;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Javascript file";
+        param.key = "script";
+        param.description = "Relative path of a Javascript .js file.";
+        param.dataType = DataTypeString;
+        param.defaultValue = {};
+        param.isOptional = 1;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Expression";
+        param.key = "eval";
+        param.description = "Javascript expression to transform the raw value.";
+        param.dataType = DataTypeString;
+        param.defaultValue = QLatin1String("Item.val;");
+        param.isOptional = 1;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        d_ptr2->writeFunctions.push_back(fn);
+    }
+    
+    {
+        DDF_FunctionDescriptor fn;
+        fn.name = "zcl:cmd";
+        fn.description = "Generic function to parse ZCL commands.";
+
+        DDF_FunctionDescriptor::Parameter param;
+
+        param.name = "Endpoint";
+        param.key = "ep";
+        param.description = "255 means any endpoint, 0 means auto selected from subdevice.";
+        param.dataType = DataTypeUInt8;
+        param.defaultValue = 0;
+        param.isOptional = 1;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Cluster ID";
+        param.key = "cl";
+        param.description = "As string hex value.";
+        param.dataType = DataTypeUInt16;
+        param.defaultValue = 0;
+        param.isOptional = 0;
+        param.isHexString = 1;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Command ID";
+        param.key = "cmd";
+        param.description = "As string hex value.";
+        param.dataType = DataTypeUInt8;
+        param.defaultValue = 0;
+        param.isOptional = 0;
+        param.isHexString = 1;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Manufacturer code";
+        param.key = "mf";
+        param.description = "As string hex value.";
+        param.dataType = DataTypeUInt16;
+        param.defaultValue = 0;
+        param.isOptional = 1;
+        param.isHexString = 1;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Javascript file";
+        param.key = "script";
+        param.description = "Relative path of a Javascript .js file.";
+        param.dataType = DataTypeString;
+        param.defaultValue = {};
+        param.isOptional = 1;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Expression";
+        param.key = "eval";
+        param.description = "Javascript expression to transform the raw value.";
+        param.dataType = DataTypeString;
+        param.defaultValue = 0;
+        param.isOptional = 1;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        d_ptr2->parseFunctions.push_back(fn);
+    }
+    
+    {
+        DDF_FunctionDescriptor fn;
+        fn.name = "zcl:cmd";
+        fn.description = "Generic function to read ZCL commands.";
+
+        DDF_FunctionDescriptor::Parameter param;
+
+        param.name = "Endpoint";
+        param.key = "ep";
+        param.description = "255 means any endpoint, 0 means auto selected from subdevice.";
+        param.dataType = DataTypeUInt8;
+        param.defaultValue = 255;
+        param.isOptional = 0;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Cluster ID";
+        param.key = "cl";
+        param.description = "As string hex value.";
+        param.dataType = DataTypeUInt16;
+        param.defaultValue = 0;
+        param.isOptional = 0;
+        param.isHexString = 1;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Command ID";
+        param.key = "cmd";
+        param.description = "As string hex value.";
+        param.dataType = DataTypeUInt8;
+        param.defaultValue = 0;
+        param.isOptional = 0;
+        param.isHexString = 1;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Manufacturer code";
+        param.key = "mf";
+        param.description = "As string hex value.";
+        param.dataType = DataTypeUInt16;
+        param.defaultValue = 0;
+        param.isOptional = 1;
+        param.isHexString = 1;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+        
+        param.name = "Javascript file";
+        param.key = "script";
+        param.description = "Relative path of a Javascript .js file.";
+        param.dataType = DataTypeString;
+        param.defaultValue = {};
+        param.isOptional = 1;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Expression";
+        param.key = "eval";
+        param.description = "Javascript expression to transform the raw value.";
+        param.dataType = DataTypeString;
+        param.defaultValue = 0;
+        param.isOptional = 1;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        d_ptr2->readFunctions.push_back(fn);
+    }
+    
+    {
+        DDF_FunctionDescriptor fn;
+        fn.name = "zcl:cmd";
+        fn.description = "Generic function to send ZCL commands.";
+
+        DDF_FunctionDescriptor::Parameter param;
+
+        param.name = "Endpoint";
+        param.key = "ep";
+        param.description = "255 means any endpoint, 0 means auto selected from subdevice.";
+        param.dataType = DataTypeUInt8;
+        param.defaultValue = 0;
+        param.isOptional = 1;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Cluster ID";
+        param.key = "cl";
+        param.description = "As string hex value.";
+        param.dataType = DataTypeUInt16;
+        param.defaultValue = 0;
+        param.isOptional = 0;
+        param.isHexString = 1;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Command ID";
+        param.key = "cmd";
+        param.description = "As string hex value.";
+        param.dataType = DataTypeUInt8;
+        param.defaultValue = 0;
+        param.isOptional = 0;
+        param.isHexString = 1;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Manufacturer code";
+        param.key = "mf";
+        param.description = "As string hex value.";
+        param.dataType = DataTypeUInt16;
+        param.defaultValue = 0;
+        param.isOptional = 1;
+        param.isHexString = 1;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Javascript file";
+        param.key = "script";
+        param.description = "Relative path of a Javascript .js file.";
+        param.dataType = DataTypeString;
+        param.defaultValue = {};
+        param.isOptional = 1;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Expression";
+        param.key = "eval";
+        param.description = "Javascript expression to transform the raw value.";
+        param.dataType = DataTypeString;
+        param.defaultValue = 0;
+        param.isOptional = 1;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        d_ptr2->writeFunctions.push_back(fn);
+    }
+    
+    {
+        DDF_FunctionDescriptor fn;
+        fn.name = "tuya";
+        fn.description = "Generic function to parse Tuya data.";
+
+        DDF_FunctionDescriptor::Parameter param;
+
+        param.name = "Datapoint";
+        param.key = "dpid";
+        param.description = "1-255 the datapoint ID.";
+        param.dataType = DataTypeUInt8;
+        param.defaultValue = 0;
+        param.isOptional = 0;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Javascript file";
+        param.key = "script";
+        param.description = "Relative path of a Javascript .js file.";
+        param.dataType = DataTypeString;
+        param.defaultValue = {};
+        param.isOptional = 1;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Expression";
+        param.key = "eval";
+        param.description = "Javascript expression to transform the raw value.";
+        param.dataType = DataTypeString;
+        param.defaultValue = QLatin1String("Item.val = Attr.val");
+        param.isOptional = 1;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        d_ptr2->parseFunctions.push_back(fn);
+    }
+
+    {
+        DDF_FunctionDescriptor fn;
+        fn.name = "tuya";
+        fn.description = "Generic function to read all Tuya datapoints. It has no parameters.";
+        d_ptr2->readFunctions.push_back(fn);
+    }
+
+    {
+        DDF_FunctionDescriptor fn;
+        fn.name = "tuya";
+        fn.description = "Generic function to write Tuya data.";
+
+        DDF_FunctionDescriptor::Parameter param;
+
+        param.name = "Datapoint";
+        param.key = "dpid";
+        param.description = "1-255 the datapoint ID.";
+        param.dataType = DataTypeUInt8;
+        param.defaultValue = 0;
+        param.isOptional = 0;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+        
+        param.name = "Datatype";
+        param.key = "dt";
+        param.description = "Datatype of the data to be written.";
+        param.dataType = DataTypeUInt8;
+        param.defaultValue = 0;
+        param.isOptional = 0;
+        param.isHexString = 1;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        param.name = "Expression";
+        param.key = "eval";
+        param.description = "Javascript expression to transform the raw value.";
+        param.dataType = DataTypeString;
+        param.defaultValue = QLatin1String("Item.val;");
+        param.isOptional = 1;
+        param.isHexString = 0;
+        param.supportsArray = 0;
+        fn.parameters.push_back(param);
+
+        d_ptr2->writeFunctions.push_back(fn);
+    }
 
     {
         DDF_FunctionDescriptor fn;
@@ -325,123 +702,6 @@ DeviceDescriptions::DeviceDescriptions(QObject *parent) :
         fn.parameters.push_back(param);
 
         d_ptr2->parseFunctions.push_back(fn);
-    }
-
-    {
-        DDF_FunctionDescriptor fn;
-        fn.name = "tuya";
-        fn.description = "Generic function to read all Tuya datapoints. It has no parameters.";
-        d_ptr2->readFunctions.push_back(fn);
-    }
-
-    {
-        DDF_FunctionDescriptor fn;
-        fn.name = "tuya";
-        fn.description = "Generic function to parse Tuya data.";
-
-        DDF_FunctionDescriptor::Parameter param;
-
-        param.name = "Datapoint";
-        param.key = "dpid";
-        param.description = "1-255 the datapoint ID.";
-        param.dataType = DataTypeUInt8;
-        param.defaultValue = 0;
-        param.isOptional = 0;
-        param.isHexString = 0;
-        param.supportsArray = 0;
-        fn.parameters.push_back(param);
-
-        param.name = "Javascript file";
-        param.key = "script";
-        param.description = "Relative path of a Javascript .js file.";
-        param.dataType = DataTypeString;
-        param.defaultValue = {};
-        param.isOptional = 1;
-        param.isHexString = 0;
-        param.supportsArray = 0;
-        fn.parameters.push_back(param);
-
-        param.name = "Expression";
-        param.key = "eval";
-        param.description = "Javascript expression to transform the raw value.";
-        param.dataType = DataTypeString;
-        param.defaultValue = QLatin1String("Item.val = Attr.val");
-        param.isOptional = 1;
-        param.isHexString = 0;
-        param.supportsArray = 0;
-        fn.parameters.push_back(param);
-
-        d_ptr2->parseFunctions.push_back(fn);
-    }
-
-    {  // Write function as shown in the DDF editor.
-        DDF_FunctionDescriptor fn;
-        fn.name = "zcl:attr";
-        fn.description = "Generic function to write ZCL attributes.";
-
-        DDF_FunctionDescriptor::Parameter param;
-
-        param.name = "Endpoint";
-        param.key = "ep";
-        param.description = "255 means any endpoint, 0 means auto selected from subdevice.";
-        param.dataType = DataTypeUInt8;
-        param.defaultValue = 0;
-        param.isOptional = 1;
-        param.isHexString = 0;
-        param.supportsArray = 0;
-        fn.parameters.push_back(param);
-
-        param.name = "Cluster ID";
-        param.key = "cl";
-        param.description = "As string hex value";
-        param.dataType = DataTypeUInt16;
-        param.defaultValue = 0;
-        param.isOptional = 0;
-        param.isHexString = 1;
-        param.supportsArray = 0;
-        fn.parameters.push_back(param);
-
-        param.name = "Attribute ID";
-        param.key = "at";
-        param.description = "As string hex value";
-        param.dataType = DataTypeUInt16;
-        param.defaultValue = 0;
-        param.isOptional = 0;
-        param.isHexString = 1;
-        param.supportsArray = 0;
-        fn.parameters.push_back(param);
-
-        param.name = "Manufacturer code";
-        param.key = "mf";
-        param.description = "As string hex value.";
-        param.dataType = DataTypeUInt16;
-        param.defaultValue = 0;
-        param.isOptional = 1;
-        param.isHexString = 1;
-        param.supportsArray = 0;
-        fn.parameters.push_back(param);
-
-        param.name = "Javascript file";
-        param.key = "script";
-        param.description = "Relative path of a Javascript .js file.";
-        param.dataType = DataTypeString;
-        param.defaultValue = {};
-        param.isOptional = 1;
-        param.isHexString = 0;
-        param.supportsArray = 0;
-        fn.parameters.push_back(param);
-
-        param.name = "Expression";
-        param.key = "eval";
-        param.description = "Javascript expression to transform the raw value.";
-        param.dataType = DataTypeString;
-        param.defaultValue = QLatin1String("Item.val = Attr.val");
-        param.isOptional = 1;
-        param.isHexString = 0;
-        param.supportsArray = 0;
-        fn.parameters.push_back(param);
-
-        d_ptr2->writeFunctions.push_back(fn);
     }
 }
 
