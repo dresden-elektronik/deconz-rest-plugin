@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2023 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -13,6 +13,7 @@
 #include "device.h"
 #include "device_descriptions.h"
 #include "utils/utils.h"
+#include "zdp/zdp.h"
 
 #define MAX_ACTIVE_BINDING_TASKS 3
 
@@ -283,16 +284,6 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
     stream >> seqNo;
     stream >> status;
 
-    if (btReader)
-    {
-        DBG_Printf(DBG_ZDP, "MgmtBind_rsp id: %d %s seq: %u, status 0x%02X \n", btReader->apsReq.id(),
-                   qPrintable(node->address().toStringExt()), seqNo, status);
-    }
-    else
-    {
-        DBG_Printf(DBG_ZDP, "MgmtBind_rsp (no BTR) %s seq: %u, status 0x%02X \n", qPrintable(node->address().toStringExt()), seqNo, status);
-    }
-
     if (status != deCONZ::ZdpSuccess)
     {
         if (status == deCONZ::ZdpNotPermitted ||
@@ -300,7 +291,6 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
         {
             if (node->mgmtBindSupported())
             {
-                DBG_Printf(DBG_ZDP, "MgmtBind_req/rsp %s not supported, deactivate \n", qPrintable(node->address().toStringExt()));
                 node->setMgmtBindSupported(false);
             }
         }
@@ -346,7 +336,7 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
             btReader->state = BindingTableReader::StateFinished;
         }
 
-        enqueueEvent({RDevices, REventBindingTable, status, ind.srcAddress().ext()});
+        enqueueEvent({RDevices, REventBindingTable, status, ind.srcAddress().ext()}); // TODO(mpi): I think this event is obsolete and should be removed
     }
 
     while (listCount && !stream.atEnd())
@@ -368,18 +358,8 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
                 continue;
             }
 
-            if (std::find(bindingToRuleQueue.begin(), bindingToRuleQueue.end(), bnd) == bindingToRuleQueue.end())
-            {
-                DBG_Printf(DBG_ZDP, "add binding to check rule queue size: %d\n", static_cast<int>(bindingToRuleQueue.size()));
-                bindingToRuleQueue.push_back(bnd);
-            }
-            else
-            {
-                DBG_Printf(DBG_ZDP, "binding already in binding to rule queue\n");
-            }
-
-            std::list<BindingTask>::iterator i = bindingQueue.begin();
-            std::list<BindingTask>::iterator end = bindingQueue.end();
+            auto i = bindingQueue.begin();
+            auto end = bindingQueue.end();
 
             for (;i != end; ++i)
             {
@@ -434,11 +414,6 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
                 }
             }
         }
-    }
-
-    if (!bindingToRuleTimer->isActive() && !bindingToRuleQueue.empty())
-    {
-        bindingToRuleTimer->start();
     }
 }
 
@@ -677,7 +652,7 @@ bool DeRestPluginPrivate::sendBindRequest(BindingTask &bt)
     stream.setByteOrder(QDataStream::LittleEndian);
 
     // generate and remember a new ZDP transaction sequence number
-    bt.zdpSeqNum = (uint8_t)qrand();
+    bt.zdpSeqNum = ZDP_NextSequenceNumber();
 
     stream << bt.zdpSeqNum; // ZDP transaction sequence number
 
@@ -977,26 +952,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         if (sendConfigureReportingRequest(bt, {rq}))
         {
             processed++;
-        }
-
-        if (modelId.startsWith(QLatin1String("SML00"))) // Hue motion sensor
-        {
-            if (bt.restNode->getZclValue(bt.binding.clusterId, 0x0030, bt.binding.srcEndpoint).clusterId != bt.binding.clusterId)
-            {
-                bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.srcEndpoint, bt.binding.clusterId, 0x0030, dummy);
-            }
-            ConfigureReportingRequest rq2;
-            rq2.dataType = deCONZ::Zcl8BitUint;
-            rq2.attributeId = 0x0030;     // sensitivity
-            rq2.minInterval = 5;         // value used by Hue bridge
-            rq2.maxInterval = 7200;      // value used by Hue bridge
-            rq2.reportableChange8bit = 1;  // value used by Hue bridge
-            rq2.manufacturerCode = VENDOR_PHILIPS;
-
-            if (sendConfigureReportingRequest(bt, {rq2}))
-            {
-                processed++;
-            }
         }
 
         return processed > 0;
@@ -1365,44 +1320,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5});
         }
-        else if (modelId == QLatin1String("AC201")) // OWON AC201 Thermostat
-        {
-            rq.dataType = deCONZ::Zcl16BitInt;
-            rq.attributeId = 0x0000;         // Local Temperature
-            rq.minInterval = 1;
-            rq.maxInterval = 600;
-            rq.reportableChange16bit = 50;
-
-            ConfigureReportingRequest rq2;
-            rq2.dataType = deCONZ::Zcl16BitInt;
-            rq2.attributeId = 0x0011;        // Occupied cooling setpoint
-            rq2.minInterval = 1;
-            rq2.maxInterval = 600;
-            rq2.reportableChange16bit = 50;
-
-            ConfigureReportingRequest rq3;
-            rq3.dataType = deCONZ::Zcl16BitInt;
-            rq3.attributeId = 0x0012;        // Occupied heating setpoint
-            rq3.minInterval = 1;
-            rq3.maxInterval = 600;
-            rq3.reportableChange16bit = 50;
-
-            ConfigureReportingRequest rq4;
-            rq4.dataType = deCONZ::Zcl8BitEnum;
-            rq4.attributeId = 0x001C;        // Thermostat mode
-            rq4.minInterval = 1;
-            rq4.maxInterval = 600;
-            rq4.reportableChange8bit = 0xff;
-
-            ConfigureReportingRequest rq5;
-            rq5.dataType = deCONZ::Zcl8BitEnum;
-            rq5.attributeId = 0x0045;        // AC Louvers Position
-            rq5.minInterval = 1;
-            rq5.maxInterval = 600;
-            rq5.reportableChange8bit = 0xff;
-
-            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5});
-        }
         else if (modelId == QLatin1String("PR412C")) // OWON PCT502 Thermostat
         {
             rq.dataType = deCONZ::Zcl16BitInt;
@@ -1733,8 +1650,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     }
     else if (bt.binding.clusterId == FAN_CONTROL_CLUSTER_ID)
     {
-        if (modelId == QLatin1String("AC201") ||            // OWON AC201 Thermostat
-            modelId.startsWith(QLatin1String("3157100")))   // Centralite pearl
+        if (modelId.startsWith(QLatin1String("3157100")))   // Centralite pearl
         {
             rq.dataType = deCONZ::Zcl8BitEnum;
             rq.attributeId = 0x0000;        // Fan mode
@@ -1791,31 +1707,11 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         rq.dataType = deCONZ::Zcl8BitUint;
         rq.attributeId = 0x0021;   // battery percentage remaining
-        if (modelId.startsWith(QLatin1String("SML00")) || // Hue motion sensor
-            modelId.startsWith(QLatin1String("SPZB")))   // Eurotronic Spirit
+        if (modelId.startsWith(QLatin1String("SPZB")))   // Eurotronic Spirit
         {
             rq.minInterval = 7200;       // value used by Hue bridge
             rq.maxInterval = 7200;       // value used by Hue bridge
             rq.reportableChange8bit = 0; // value used by Hue bridge
-        }
-        else if (modelId.startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
-        {
-            rq.minInterval = 300;        // value used by Hue bridge
-            rq.maxInterval = 300;        // value used by Hue bridge
-            rq.reportableChange8bit = 0; // value used by Hue bridge
-        }
-        else if (modelId.startsWith(QLatin1String("ROM00")) || // Hue smart button
-                 modelId.startsWith(QLatin1String("RDM00")))   // Hue wall switch module
-        {
-            rq.minInterval = 900;        // value used by Hue bridge
-            rq.maxInterval = 900;        // value used by Hue bridge
-            rq.reportableChange8bit = 2; // value used by Hue bridge
-        }
-        else if (modelId.startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
-        {
-            rq.minInterval = 900;        // value used by Hue bridge
-            rq.maxInterval = 900;        // value used by Hue bridge
-            rq.reportableChange8bit = 4; // value used by Hue bridge
         }
         else if (modelId == QLatin1String("eT093WRO") || // POPP smart thermostat
                  modelId == QLatin1String("TRV001") ||   // Hive TRV
@@ -1846,7 +1742,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.reportableChange8bit = 1;
         }
         else if (modelId == QLatin1String("HG06323") || // LIDL
-                 modelId == QLatin1String("lumi.sensor_magnet.agl02") || // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
                  modelId == QLatin1String("lumi.flood.agl02"))           // Xiaomi Aqara T1 water leak sensor SJCGQ12LM
         {
             rq.minInterval = 7200;
@@ -1876,7 +1771,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                  modelId == QLatin1String("TS0202") || // Tuya sensor
                  modelId == QLatin1String("3AFE14010402000D") || // Konke presence sensor
                  modelId == QLatin1String("3AFE28010402000D") || // Konke presence sensor
-                 modelId == QLatin1String("lumi.airmonitor.acn01") ||      // Xiaomi Aqara TVOC Air Quality Monitor
                  modelId.startsWith(QLatin1String("GZ-PIR02")) ||          // Sercomm motion sensor
                  modelId.startsWith(QLatin1String("SZ-WTD02N_CAR")) ||     // Sercomm water sensor
                  modelId.startsWith(QLatin1String("3300")) ||          // Centralite contatc sensor
@@ -2043,7 +1937,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             modelId == QLatin1String("SZ-ESW01-AU") ||                 // Sercomm / Telstra smart plug
             modelId.startsWith(QLatin1String("ROB_200")) ||            // ROBB Smarrt micro dimmer
             modelId.startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
-            modelId.startsWith(QLatin1String("lumi.plug.maeu")) ||     // Xiaomi Aqara ZB3.0 smart plug
             modelId.startsWith(QLatin1String("lumi.switch.n0agl1")) || // Xiaomi Aqara Single Switch Module T1 (With Neutral)
             modelId.startsWith(QLatin1String("lumi.switch.b1naus01"))) // Xiaomi ZB3.0 Smart Wall Switch
         {
@@ -2224,7 +2117,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq4.maxInterval = 1800;
 
 //          TODO re activate. Don't disable for now until more testing is done.
-//            const ResourceItem *cap = lightNode ? lightNode->item(RConfigColorCapabilities) : nullptr;
+//            const ResourceItem *cap = lightNode ? lightNode->item(RCapColorCapabilities) : nullptr;
 
 //            if (cap && (cap->toNumber() & 0x0008) == 0) // doesn't support xy --> color temperature light
 //            {
@@ -2321,142 +2214,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         return sendConfigureReportingRequest(bt, {rq});
     }
-    else if (bt.binding.clusterId == BASIC_CLUSTER_ID && sensor)
-    {
-        if (modelId.startsWith(QLatin1String("RDM00"))) // Hue wall switch module
-        {
-            deCONZ::NumericUnion dummy;
-            dummy.u64 = 0;
-            // add device mode value if not already present
-            if (bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x0034, bt.binding.srcEndpoint).attributeId != 0x0034)
-            {
-                bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.srcEndpoint, BASIC_CLUSTER_ID, 0x0034, dummy);
-            }
-
-            NodeValue &val = bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x0034, bt.binding.srcEndpoint);
-
-            if (val.timestampLastReport.isValid() && (val.timestampLastReport.secsTo(now) < val.maxInterval * 1.5))
-            {
-                return false;
-            }
-
-            // already configured? wait for report ...
-            if (val.timestampLastConfigured.isValid() && (val.timestampLastConfigured.secsTo(now) < val.maxInterval * 1.5))
-            {
-                return false;
-            }
-
-            rq.dataType = deCONZ::Zcl8BitEnum;
-            rq.attributeId = 0x0034; // Device Mode
-            rq.minInterval = 0;   // value used by Hue bridge
-            rq.maxInterval = 7200;   // value used by Hue bridge
-            rq.manufacturerCode = VENDOR_PHILIPS;
-
-            return sendConfigureReportingRequest(bt, {rq});
-        }
-        else if (modelId.startsWith(QLatin1String("SML00")) && // Hue motion sensor
-                 sensor->type() == QLatin1String("ZHAPresence"))
-        {
-            deCONZ::NumericUnion dummy;
-            dummy.u64 = 0;
-            // add usertest value if not already present
-            if (bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x0032, bt.binding.srcEndpoint).attributeId != 0x0032)
-            {
-                bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.srcEndpoint, BASIC_CLUSTER_ID, 0x0032, dummy);
-            }
-            // ledindication value if not already present
-            if (bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x0033, bt.binding.srcEndpoint).attributeId != 0x0033)
-            {
-                bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.srcEndpoint, BASIC_CLUSTER_ID, 0x0033, dummy);
-            }
-
-            NodeValue &val = bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x0032, bt.binding.srcEndpoint);
-
-            if (val.timestampLastReport.isValid() && (val.timestampLastReport.secsTo(now) < val.maxInterval * 1.5))
-            {
-                return false;
-            }
-
-            // already configured? wait for report ...
-            if (val.timestampLastConfigured.isValid() && (val.timestampLastConfigured.secsTo(now) < val.maxInterval * 1.5))
-            {
-                return false;
-            }
-
-            rq.dataType = deCONZ::ZclBoolean;
-            rq.attributeId = 0x0032; // usertest
-            rq.minInterval = 5;   // value used by Hue bridge
-            rq.maxInterval = 7200;   // value used by Hue bridge
-            rq.manufacturerCode = VENDOR_PHILIPS;
-
-            ConfigureReportingRequest rq2;
-            rq2 = ConfigureReportingRequest();
-            rq2.dataType = deCONZ::ZclBoolean;
-            rq2.attributeId = 0x0033; // ledindication
-            rq2.minInterval = 5; // value used by Hue bridge
-            rq2.maxInterval = 7200; // value used by Hue bridge
-            rq2.manufacturerCode = VENDOR_PHILIPS;
-
-            return sendConfigureReportingRequest(bt, {rq, rq2});
-        }
-        else
-        {
-            return false;
-        }
-    }
-    else if (bt.binding.clusterId == VENDOR_CLUSTER_ID)
-    {
-        if (sensor && (modelId.startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
-                       modelId.startsWith(QLatin1String("ROM00")) || // Hue smart button
-                       modelId.startsWith(QLatin1String("RDM00")) || // Hue wall switch module
-                       modelId.startsWith(QLatin1String("Z3-1BRL")))) // Lutron Aurora Friends-of-Hue dimmer switch
-        {
-            deCONZ::NumericUnion val;
-            val.u64 = 0;
-
-            // mark button event binding as resolved
-            sensor->setZclValue(NodeValue::UpdateByZclReport, bt.binding.srcEndpoint, VENDOR_CLUSTER_ID, 0x0000, val);
-            NodeValue &val2 = bt.restNode->getZclValue(VENDOR_CLUSTER_ID, 0x0000, bt.binding.srcEndpoint);
-            if (val2.maxInterval == 0)
-            {
-                val2.maxInterval = 60 * 60 * 8; // prevent further check for 8 hours
-            }
-        }
-        else if (modelId == QLatin1String("de_spect")) // dresden elektronik spectral sensor
-        {
-            rq.dataType = deCONZ::Zcl8BitUint;
-            rq.attributeId = 0x0000; // sensor enabled
-            rq.minInterval = 1;
-            rq.maxInterval = 120;
-            rq.reportableChange8bit = 1;
-
-            ConfigureReportingRequest rq2;
-            rq2 = ConfigureReportingRequest();
-            rq2.dataType = deCONZ::Zcl16BitUint;
-            rq2.attributeId = 0x0001; // spectral x
-            rq2.minInterval = 1;
-            rq2.maxInterval = 300;
-            rq2.reportableChange16bit = 200;
-
-            ConfigureReportingRequest rq3;
-            rq3 = ConfigureReportingRequest();
-            rq3.dataType = deCONZ::Zcl16BitUint;
-            rq3.attributeId = 0x0002; // spectral x
-            rq3.minInterval = 1;
-            rq3.maxInterval = 300;
-            rq3.reportableChange16bit = 200;
-
-            ConfigureReportingRequest rq4;
-            rq4 = ConfigureReportingRequest();
-            rq4.dataType = deCONZ::Zcl16BitUint;
-            rq4.attributeId = 0x0003; // spectral x
-            rq4.minInterval = 1;
-            rq4.maxInterval = 300;
-            rq4.reportableChange16bit = 200;
-
-            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
-        }
-    }
 
     return false;
 }
@@ -2491,10 +2248,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
     if (gwReportingEnabled)
     {
         action = BindingTask::ActionBind;
-        if (lightNode->modelId().startsWith(QLatin1String("FLS-NB")))
-        {
-        }
-        else if (lightNode->manufacturer() == QLatin1String("OSRAM"))
+        if (lightNode->manufacturer() == QLatin1String("OSRAM"))
         {
         }
         else if (lightNode->manufacturer() == QLatin1String("LEDVANCE"))
@@ -2547,9 +2301,6 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         {
         }
         else if (lightNode->manufacturerCode() == VENDOR_STELPRO)
-        {
-        }
-        else if (lightNode->manufacturerCode() == VENDOR_OWON)
         {
         }
         else if (lightNode->manufacturerCode() == VENDOR_DATEK)
@@ -2827,8 +2578,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("3323")) ||
         sensor->modelId().startsWith(QLatin1String("3326-L")) ||
         sensor->modelId().startsWith(QLatin1String("3157100")) ||
-        // dresden elektronik
-        (sensor->manufacturer() == QLatin1String("dresden elektronik") && sensor->modelId() == QLatin1String("de_spect")) ||
         // GE
         (sensor->manufacturer() == QLatin1String("Jasco Products") && sensor->modelId() == QLatin1String("45856")) ||
         // NYCE
@@ -2836,13 +2585,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("3014") ||
         sensor->modelId() == QLatin1String("3041") ||
         sensor->modelId() == QLatin1String("3043") ||
-        // Philips
-        sensor->modelId().startsWith(QLatin1String("SML00")) ||
-        sensor->modelId().startsWith(QLatin1String("RWL02")) ||
-        sensor->modelId().startsWith(QLatin1String("ROM00")) ||
-        sensor->modelId().startsWith(QLatin1String("RDM00")) ||
-        // Lutron Aurora Friends-of-Hue dimmer switch
-        sensor->modelId().startsWith(QLatin1String("Z3-1BRL")) ||
         //Datek
         sensor->modelId().startsWith(QLatin1String("ID Lock 150")) ||
         // Yale
@@ -2851,14 +2593,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("YRD226/246 TSDB") ||
         sensor->modelId() == QLatin1String("YRD220/240 TSDB") ||
         sensor->modelId() == QLatin1String("easyCodeTouch_v1") ||
-        // ubisys
-        sensor->modelId().startsWith(QLatin1String("D1")) ||
-        sensor->modelId().startsWith(QLatin1String("S1-R")) ||
-        sensor->modelId().startsWith(QLatin1String("S2-R")) ||
         // IKEA
         sensor->modelId().startsWith(QLatin1String("TRADFRI")) ||
         sensor->modelId().startsWith(QLatin1String("Remote Control N2")) || // STYRBAR
-        sensor->modelId().startsWith(QLatin1String("FYRTUR")) ||
         sensor->modelId().startsWith(QLatin1String("KADRILJ")) ||
         sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
         // OSRAM
@@ -2915,8 +2652,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("3AFE14010402000D") ||
         sensor->modelId() == QLatin1String("3AFE220103020000") ||
         sensor->modelId() == QLatin1String("3AFE28010402000D") ||
-        // Nimbus
-        sensor->modelId().startsWith(QLatin1String("FLS-NB")) ||
         // Danalock support
         sensor->modelId().startsWith(QLatin1String("V3")) ||
         // Schlage support
@@ -2942,7 +2677,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("FLSZB-1")) ||   // water leak sensor
         sensor->modelId().startsWith(QLatin1String("MOSZB-1")) ||   // motion sensor
         sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
-        sensor->modelId() == QLatin1String("ZHEMI101") ||           // Wattle (Develco) External Meter Interface
         sensor->modelId().startsWith(QLatin1String("EMIZB-1")) ||   // EMI Norwegian HAN
         sensor->modelId().startsWith(QLatin1String("SMRZB-3")) ||   // Smart Relay DIN
         sensor->modelId().startsWith(QLatin1String("SMRZB-1")) ||   // Smart Cable
@@ -3029,11 +2763,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("RH3001")) ||
         sensor->modelId().startsWith(QLatin1String("RH3052")) ||
         // Xiaomi
-        sensor->modelId().startsWith(QLatin1String("lumi.plug.maeu01")) ||
-        sensor->modelId().startsWith(QLatin1String("lumi.sen_ill.mgl01")) ||
         sensor->modelId().startsWith(QLatin1String("lumi.switch.b1naus01")) ||
-        sensor->modelId() == QLatin1String("lumi.airmonitor.acn01") ||
-        sensor->modelId() == QLatin1String("lumi.sensor_magnet.agl02") ||
         sensor->modelId() == QLatin1String("lumi.motion.agl04") ||
         sensor->modelId() == QLatin1String("lumi.flood.agl02") ||
         sensor->modelId() == QLatin1String("lumi.switch.n0agl1") ||
@@ -3071,10 +2801,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("CCT593011_AS") ||
         sensor->modelId() == QLatin1String("CCT595011_AS") ||
         // Immax
-        sensor->modelId() == QLatin1String("Plug-230V-ZB3.0") ||
         sensor->modelId() == QLatin1String("4in1-Sensor-ZB3.0") ||
         sensor->modelId() == QLatin1String("DoorWindow-Sensor-ZB3.0") ||
-        sensor->modelId() == QLatin1String("Keyfob-ZB3.0") ||
         // Casa.IA
         sensor->modelId().startsWith(QLatin1String("CTHS317ET")) ||
         // Sercomm
@@ -3114,7 +2842,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Sage
         sensor->modelId() == QLatin1String("Bell") ||
         // Owon
-        sensor->modelId() == QLatin1String("AC201") ||
         sensor->modelId() == QLatin1String("PR412C") ||
         // D-Link
         sensor->modelId() == QLatin1String("DCH-B112") ||
@@ -3178,10 +2905,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
     // whitelist by Model ID
     if (gwReportingEnabled)
     {
-//        if (sensor->modelId().startsWith(QLatin1String("FLS-NB")))
-//        {
-//            // temporary disable, delete bindings and use read attributes
-//        }
         if (deviceSupported)
         {
             action = BindingTask::ActionBind;
@@ -3260,11 +2983,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         }
         else if (*i == POWER_CONFIGURATION_CLUSTER_ID)
         {
-            if (sensor->modelId().startsWith(QLatin1String("SML00")) && sensor->type() != QLatin1String("ZHAPresence"))
-            {
-                continue; // process only once
-            }
-
             if (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("multi") && sensor->type() != QLatin1String("ZHAOpenClose"))
             {
                 continue; // process only once
@@ -3284,9 +3002,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             {
                 val = sensor->getZclValue(*i, 0x0035); // battery alarm mask
             }
-            else if (sensor->modelId().startsWith(QLatin1String("AQSZB-1")) ||
-                     sensor->modelId().startsWith(QLatin1String("WISZB-1")) ||
-                     sensor->modelId().startsWith(QLatin1String("MOSZB-1")) ||
+            else if (sensor->modelId().startsWith(QLatin1String("MOSZB-1")) ||
                      sensor->modelId().startsWith(QLatin1String("FLSZB-1")) ||
                      sensor->modelId().startsWith(QLatin1String("HMSZB-1")) ||
                      sensor->modelId() == QLatin1String("MotionSensor51AU") ||
@@ -3356,20 +3072,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                 }
             }
         }
-        else if (*i == VENDOR_CLUSTER_ID)
-        {
-            if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
-                sensor->modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
-                sensor->modelId().startsWith(QLatin1String("RDM00")) || // Hue wall switch module
-                sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
-            {
-                val = sensor->getZclValue(*i, 0x0000); // button event
-            }
-            if (sensor->modelId() == QLatin1String("de_spect")) // dresden elektronik spectral sensor
-            {
-                val = sensor->getZclValue(*i, 0x0000, sensor->fingerPrint().endpoint); // sensor enabled per endpoint
-            }
-        }
         else if (*i == BOSCH_AIR_QUALITY_CLUSTER_ID && sensor->modelId() == QLatin1String("AIR"))
         {
             if (sensor->type() != QLatin1String("ZHAAirQuality"))
@@ -3377,45 +3079,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                 continue; // only bind once
             }
             val = sensor->getZclValue(*i, 0x4004, 0x02); // air quality
-        }
-        else if (*i == BASIC_CLUSTER_ID)
-        {
-            if (sensor->modelId().startsWith(QLatin1String("SML00")) && // Hue motion sensor
-                sensor->type() == QLatin1String("ZHAPresence"))
-            {
-                val = sensor->getZclValue(*i, 0x0032); // usertest
-                // val = sensor->getZclValue(*i, 0x0033); // ledindication
-
-                if (searchSensorsState != SearchSensorsActive &&
-                    idleTotalCounter < (IDLE_READ_LIMIT + (7200))) // wait for max reporting interval before fire bindings
-                {
-                    continue;
-                }
-
-                if (val.timestampLastConfigured.isValid() && val.timestampLastConfigured.secsTo(now) < (val.maxInterval * 1.5))
-                {
-                    continue;
-                }
-            }
-            else if (sensor->modelId().startsWith(QLatin1String("RDM00")))
-            {
-                val = sensor->getZclValue(*i, 0x0034); // devicemode
-
-                if (searchSensorsState != SearchSensorsActive &&
-                    idleTotalCounter < (IDLE_READ_LIMIT + (7200))) // wait for max reporting interval before fire bindings
-                {
-                    continue;
-                }
-
-                if (val.timestampLastConfigured.isValid() && val.timestampLastConfigured.secsTo(now) < (val.maxInterval * 1.5))
-                {
-                    continue;
-                }
-            }
-            else
-            {
-                continue;
-            }
         }
         else if (*i == METERING_CLUSTER_ID)
         {
@@ -3635,19 +3298,11 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     //quint8 srcEndpoint = sensor->fingerPrint().endpoint;
     std::vector<quint16> clusters;
 
-    if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
-        sensor->modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
-        sensor->modelId().startsWith(QLatin1String("ElkoDimmer")) || // Elko dimmer
+    if (sensor->modelId().startsWith(QLatin1String("ElkoDimmer")) || // Elko dimmer
         sensor->modelId().startsWith(QLatin1String("E1E-"))) // Sengled smart light switch
-
     {
         srcEndpoints.push_back(0x01);
         clusters.push_back(ONOFF_CLUSTER_ID);
-        clusters.push_back(LEVEL_CLUSTER_ID);
-    }
-    else if (sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora FoH dimmer switch
-    {
-        srcEndpoints.push_back(0x01);
         clusters.push_back(LEVEL_CLUSTER_ID);
     }
     // Busch-Jaeger
@@ -4018,6 +3673,12 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         return;
     }
 
+    Device *device = DEV_GetDevice(m_devices, sensor->address().ext());
+    if (device && device->managed())
+    {
+        return;
+    }
+
     Group *group = nullptr;
 
     {
@@ -4040,10 +3701,7 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         }
     }
 
-    if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
-        sensor->modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
-        sensor->modelId().startsWith(QLatin1String("Z3-1BRL")) || // Lutron Aurora FoH smart dimmer
-        sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
+    if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
         sensor->modelId().startsWith(QLatin1String("TRADFRI SHORTCUT Button")) ||
         sensor->modelId().startsWith(QLatin1String("Remote Control N2")) || // STYRBAR
         sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
@@ -4327,81 +3985,6 @@ void DeRestPluginPrivate::deleteGroupsWithDeviceMembership(const QString &id)
     }
 }
 
-/*! Check existing bindings on ubisys devices. */
-void DeRestPluginPrivate::processUbisysBinding(Sensor *sensor, const Binding &bnd)
-{
-    if (!sensor)
-    {
-        return;
-    }
-
-    ResourceItem *item = 0;
-
-    if (sensor->type() == QLatin1String("ZHASwitch") && bnd.dstAddrMode == deCONZ::ApsGroupAddress)
-    {
-        item = sensor->item(RConfigGroup);
-
-        DBG_Assert(item != 0);
-        if (!item)
-        {
-            return;
-        }
-
-        if (bnd.clusterId != ONOFF_CLUSTER_ID && bnd.clusterId != LEVEL_CLUSTER_ID)
-        {
-            return;
-        }
-
-        int pos = -1; // index in config.group: "1,4"
-
-        if (sensor->modelId().startsWith(QLatin1String("D1")))
-        {
-            DBG_Assert(sensor->fingerPrint().endpoint == 0x02);
-
-            if       (bnd.srcEndpoint == 0x02) { pos = 0; }
-            else if  (bnd.srcEndpoint == 0x03) { pos = 1; }
-
-        }
-        else if (sensor->modelId().startsWith(QLatin1String("S1-R")))
-        {
-            DBG_Assert(sensor->fingerPrint().endpoint == 0x02);
-
-            if       (bnd.srcEndpoint == 0x02) { pos = 0; }
-            else if  (bnd.srcEndpoint == 0x03) { pos = 1; } // S1-R only
-        }
-        else if (sensor->modelId().startsWith(QLatin1String("S2-R")))
-        {
-            DBG_Assert(sensor->fingerPrint().endpoint == 0x03);
-
-            if       (bnd.srcEndpoint == 0x03) { pos = 0; }
-            else if  (bnd.srcEndpoint == 0x04) { pos = 1; }
-        }
-        else
-        {
-            return;
-        }
-
-        // remove group bindings which aren't configured via 'config.group'
-        QString dstGroup = QString::number(bnd.dstAddress.group);
-        QStringList gids = item->toString().split(',', SKIP_EMPTY_PARTS);
-
-        if (!gids.contains(dstGroup) || (pos == -1) || (gids.size() < (pos + 1)) || gids[pos] != dstGroup)
-        {
-            DBG_Printf(DBG_INFO, "0x%016llx remove old group binding group: %u, cluster: 0x%04X\n", bnd.srcAddress, bnd.dstAddress.group, bnd.clusterId);
-
-            BindingTask bindingTask;
-            bindingTask.state = BindingTask::StateIdle;
-            bindingTask.action = BindingTask::ActionUnbind;
-            bindingTask.binding = bnd;
-            queueBindingTask(bindingTask);
-            if (!bindingTimer->isActive())
-            {
-                bindingTimer->start();
-            }
-        }
-    }
-}
-
 /*! Process binding related tasks queue every one second. */
 void DeRestPluginPrivate::bindingTimerFired()
 {
@@ -4537,466 +4120,6 @@ void DeRestPluginPrivate::bindingTimerFired()
     }
 }
 
-/*
-QString Binding::toString()
-{
-    //        QString dbg = QString("srcAddr: 0x%1 srcEp: %2 clusterId: %3")
-    //            .arg(i->srcAddress, 16, 16, QChar('0'))
-    //            .arg(i->srcEndpoint)
-    //            .arg(i->clusterId);
-
-    //        if (i->dstAddrMode == 0x01) // group address
-    //        {
-    //            dbg.append(QString(" dstGroup: 0x%1").arg(i->dstAddress.group, 2, 16, QChar('0')));
-    //        }
-    //        else if (i->dstAddrMode == 0x03) // ext address + dst endpoint
-    //        {
-    //            dbg.append(QString(" dstExt: 0x%1 dstEp: %2").arg(i->dstAddress.ext, 16, 16, QChar('0'))
-    //                                                         .arg(i->dstEndpoint));
-    //        }
-
-    //        DBG_Printf(DBG_INFO, "Binding %s\n", qPrintable(dbg));
-}
-*/
-
-/*! Process binding to rule conversion.
-    For bindings found via binding table query, check if there exists already
-    a rule representing it. If such a rule does not exist it will be created.
-*/
-void DeRestPluginPrivate::bindingToRuleTimerFired()
-{
-    if (bindingToRuleQueue.empty())
-    {
-        return;
-    }
-
-    Binding bnd = bindingToRuleQueue.front();
-    bindingToRuleQueue.pop_front();
-
-    if (!bindingToRuleQueue.empty())
-    {
-        bindingToRuleTimer->start();
-    }
-
-    if (!apsCtrl)
-    {
-        return;
-    }
-
-    int idx = 0;
-    bool found = false;
-    const deCONZ::Node *node = 0;
-    while (apsCtrl->getNode(idx, &node) == 0)
-    {
-        if (bnd.srcAddress == node->address().ext())
-        {
-            found = true;
-            break;
-        }
-        idx++;
-    }
-
-    // check if cluster does exist
-    if (found && node)
-    {
-        found = false;
-        for (const deCONZ::SimpleDescriptor &sd : node->simpleDescriptors())
-        {
-            if (sd.endpoint() != bnd.srcEndpoint)
-            {
-                continue;
-            }
-
-            for (const deCONZ::ZclCluster &cl : sd.inClusters())
-            {
-                if (cl.id() == bnd.clusterId)
-                {
-                    found = true;
-                    break;
-                }
-            }
-
-            for (const deCONZ::ZclCluster &cl : sd.outClusters())
-            {
-                if (cl.id() == ILLUMINANCE_MEASUREMENT_CLUSTER_ID && existDevicesWithVendorCodeForMacPrefix(node->address(), VENDOR_DDEL))
-                {
-                    continue; // ignore, binding only allowed for server cluster
-                }
-
-                if (cl.id() == bnd.clusterId)
-                {
-                    found = true;
-                    break;
-                }
-            }
-
-            if (found)
-            {
-                break;
-            }
-        }
-
-        if (!found)
-        {
-            DBG_Printf(DBG_INFO, "remove binding from 0x%016llX cluster 0x%04X due non existing cluster\n", bnd.srcAddress, bnd.clusterId);
-            BindingTask bindingTask;
-            bindingTask.state = BindingTask::StateIdle;
-            bindingTask.action = BindingTask::ActionUnbind;
-            bindingTask.binding = bnd;
-            queueBindingTask(bindingTask);
-            if (!bindingTimer->isActive())
-            {
-                bindingTimer->start();
-            }
-            return;
-        }
-    }
-
-    // binding table maintenance
-    // check if destination node exist and remove binding if not
-    if (bnd.dstAddrMode == deCONZ::ApsExtAddress)
-    {
-        idx = 0;
-        found = false;
-        node = nullptr;
-        while (apsCtrl->getNode(idx, &node) == 0)
-        {
-            if (bnd.dstAddress.ext == node->address().ext())
-            {
-                found = true;
-                break;
-            }
-            idx++;
-        }
-
-        if (!found)
-        {
-            DBG_Printf(DBG_INFO, "remove binding from 0x%016llX cluster 0x%04X to non existing node 0x%016llX\n", bnd.srcAddress, bnd.clusterId, bnd.dstAddress.ext);
-            BindingTask bindingTask;
-            bindingTask.state = BindingTask::StateIdle;
-            bindingTask.action = BindingTask::ActionUnbind;
-            bindingTask.binding = bnd;
-            queueBindingTask(bindingTask);
-            if (!bindingTimer->isActive())
-            {
-                bindingTimer->start();
-            }
-            return;
-        }
-    }
-
-
-    std::vector<Sensor>::iterator i = sensors.begin();
-    std::vector<Sensor>::iterator end = sensors.end();
-
-    Sensor *sensor = 0;
-
-    for (; i != end; ++i)
-    {
-        if (bnd.srcAddress != i->address().ext())
-        {
-            continue;
-        }
-
-        if (existDevicesWithVendorCodeForMacPrefix(bnd.srcAddress, VENDOR_UBISYS))
-        {
-            processUbisysBinding(&*i, bnd);
-            return;
-        }
-
-        if (!i->modelId().startsWith(QLatin1String("FLS-NB")))
-        {
-            continue;
-        }
-
-        if (bnd.srcEndpoint == i->fingerPrint().endpoint)
-        {
-            // match only valid sensors
-            switch (bnd.clusterId)
-            {
-            case ONOFF_CLUSTER_ID:
-            case LEVEL_CLUSTER_ID:
-            case SCENE_CLUSTER_ID:
-            {
-                if (i->type() == "ZHASwitch")
-                {
-                    sensor = &(*i);
-                }
-            }
-                break;
-
-            case ILLUMINANCE_MEASUREMENT_CLUSTER_ID:
-            {
-                if (i->type() == "ZHALightLevel")
-                {
-                    sensor = &(*i);
-                }
-            }
-                break;
-
-            case OCCUPANCY_SENSING_CLUSTER_ID:
-            {
-                if (i->type() == "ZHAPresence")
-                {
-                    sensor = &(*i);
-                }
-            }
-                break;
-
-            default:
-                break;
-            }
-        }
-
-        if (sensor)
-        {
-            break;
-        }
-    }
-
-    // only proceed if the sensor (binding source) is known
-    if (!sensor)
-    {
-//        deCONZ::Address addr;
-//        addr.setExt(bnd.srcAddress);
-//        DBG_Printf(DBG_INFO, "Binding to Rule unsupported sensor %s\n", qPrintable(addr.toStringExt()));
-        return;
-    }
-
-    Rule rule;
-    RuleCondition cond;
-    RuleAction action;
-
-    if (bnd.dstAddrMode == Binding::ExtendedAddressMode)
-    {
-        deCONZ::Address addr;
-        addr.setExt(bnd.dstAddress.ext);
-        LightNode *lightNode = getLightNodeForAddress(addr, bnd.dstEndpoint);
-
-        if (lightNode)
-        {
-            action.setAddress(QString("/lights/%1/state").arg(lightNode->id()));
-        }
-        else
-        {
-            DBG_Printf(DBG_INFO_L2, "Binding to Rule no LightNode found for dstAddress: %s\n",
-                       qPrintable(QString("0x%1").arg(bnd.dstAddress.ext, 16,16, QChar('0'))));
-            return;
-        }
-
-    }
-    else if (bnd.dstAddrMode == Binding::GroupAddressMode)
-    {
-        action.setAddress(QString("/groups/%1/action").arg(bnd.dstAddress.group));
-    }
-    else
-    {
-        DBG_Printf(DBG_INFO, "Binding to Rule unsupported dstAddrMode 0x%02X\n", bnd.dstAddrMode);
-        return;
-    }
-
-    action.setMethod("BIND");
-
-    QVariantMap body;
-    QString item;
-
-    if (bnd.clusterId == ONOFF_CLUSTER_ID)
-    {
-        body["on"] = true;
-        item = "buttonevent";
-    }
-    else if (bnd.clusterId == LEVEL_CLUSTER_ID)
-    {
-        body["bri"] = (double)1;
-        item = "buttonevent";
-    }
-    else if (bnd.clusterId == ILLUMINANCE_MEASUREMENT_CLUSTER_ID)
-    {
-        body["illum"] = QString("report");
-        item = "illuminance";
-    }
-    else if (bnd.clusterId == OCCUPANCY_SENSING_CLUSTER_ID)
-    {
-        body["occ"] = QString("report");
-        item = "presence";
-    }
-    else if (bnd.clusterId == SCENE_CLUSTER_ID)
-    {
-        body["scene"] = QString("S%1").arg(bnd.srcEndpoint);
-        item = "buttonevent";
-    }
-    else
-    {
-        return;
-    }
-
-    action.setBody(deCONZ::jsonStringFromMap(body));
-
-    cond.setAddress(QString("/sensors/%1/state/%2").arg(sensor->id()).arg(item));
-    cond.setOperator("eq");
-    cond.setValue(bnd.srcEndpoint);
-
-    // check if a rule for that binding already exists
-    bool foundRule = false;
-
-    std::vector<Rule>::const_iterator ri = rules.begin();
-    std::vector<Rule>::const_iterator rend = rules.end();
-
-    for (; !foundRule && (ri != rend); ++ri) // rule loop
-    {
-        std::vector<RuleCondition>::const_iterator ci = ri->conditions().begin();
-        std::vector<RuleCondition>::const_iterator cend = ri->conditions().end();
-        for (; !foundRule && (ci != cend); ++ci) // rule.conditions loop
-        {
-            // found matching condition
-            if ((ci->address()   == cond.address()) &&
-                (ci->ooperator() == cond.ooperator()) &&
-                (ci->value()     == cond.value()))
-            {
-                std::vector<RuleAction>::const_iterator ai = ri->actions().begin();
-                std::vector<RuleAction>::const_iterator aend = ri->actions().end();
-
-                for (; !foundRule && (ai != aend); ++ai) // rule.actions loop
-                {
-                    if ((ai->method() == action.method()) && (ai->address() == action.address()))
-                    {
-                        // search action body which covers the binding clusterId
-                        if (bnd.clusterId == ONOFF_CLUSTER_ID)
-                        {
-                            if (ai->body().contains("on"))
-                            {
-                                rule = *ri;
-                                foundRule = true;
-                            }
-                        }
-                        else if (bnd.clusterId == ILLUMINANCE_MEASUREMENT_CLUSTER_ID)
-                        {
-                            if (ai->body().contains("illum"))
-                            {
-                                rule = *ri;
-                                foundRule = true;
-                            }
-                        }
-                        else if (bnd.clusterId == OCCUPANCY_SENSING_CLUSTER_ID)
-                        {
-                            if (ai->body().contains("occ"))
-                            {
-                                rule = *ri;
-                                foundRule = true;
-                            }
-                        }
-                        else if (bnd.clusterId == LEVEL_CLUSTER_ID)
-                        {
-                            if (ai->body().contains("bri"))
-                            {
-                                rule = *ri;
-                                foundRule = true;
-                            }
-                        }
-                        else if (bnd.clusterId == SCENE_CLUSTER_ID)
-                        {
-                            if (ai->body().contains("scene"))
-                            {
-                                rule = *ri;
-                                foundRule = true;
-                            }
-                        }
-                        else
-                        {
-                            DBG_Printf(DBG_INFO, "Binding to Rule unhandled clusterId 0x%04X\n", bnd.clusterId);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    if (DBG_IsEnabled(DBG_INFO_L2))
-    {
-        DBG_Printf(DBG_INFO_L2, "cond.address: %s\n", qPrintable(cond.address()));
-        DBG_Printf(DBG_INFO_L2, "cond.value: %s\n", qPrintable(cond.value().toString()));
-        DBG_Printf(DBG_INFO_L2, "action.address: %s\n", qPrintable(action.address()));
-        DBG_Printf(DBG_INFO_L2, "action.body: %s\n", qPrintable(action.body()));
-    }
-
-    if (!foundRule)
-    {
-        if (sensor && sensor->item(RConfigOn)->toBool())
-        {
-            std::vector<RuleAction> actions;
-            std::vector<RuleCondition> conditions;
-
-            actions.push_back(action);
-            conditions.push_back(cond);
-
-            updateEtag(rule.etag);
-            rule.setOwner("deCONZ");
-            rule.setCreationtime(QDateTime::currentDateTimeUtc().toString("yyyy-MM-ddTHH:mm:ss"));
-            rule.setActions(actions);
-            rule.setConditions(conditions);
-
-            // create a new rule id // don't overwrite already existing rules
-            rule.setId("1");
-
-            bool ok;
-            do {
-                ok = true;
-                std::vector<Rule>::const_iterator i = rules.begin();
-                std::vector<Rule>::const_iterator end = rules.end();
-
-                for (; i != end; ++i)
-                {
-                    if (i->id() == rule.id())
-                    {
-                        rule.setId(QString::number(i->id().toInt() + 1));
-                        ok = false;
-                    }
-                }
-            } while (!ok);
-
-            rule.setName(QString("Rule %1").arg(rule.id()));
-            rules.push_back(rule);
-
-            queSaveDb(DB_RULES, DB_SHORT_SAVE_DELAY);
-
-            DBG_Printf(DBG_INFO, "Rule %s created from Binding\n", qPrintable(rule.id()));
-        }
-        else if (gwDeleteUnknownRules)
-        {
-
-            DBG_Printf(DBG_INFO, "Rule for Binding doesn't exists start unbind 0x%04X\n", bnd.clusterId);
-            BindingTask bt;
-            bt.state = BindingTask::StateIdle;
-            bt.restNode = sensor; // might be 0
-            bt.action = BindingTask::ActionUnbind;
-            bt.binding = bnd;
-            queueBindingTask(bt);
-        }
-    }
-    else
-    {
-        if (rule.state() == Rule::StateDeleted || rule.status() == "disabled")
-        {
-            DBG_Printf(DBG_INFO, "Rule for Binding already exists (inactive), start unbind 0x%04X\n", bnd.clusterId);
-            BindingTask bt;
-            bt.state = BindingTask::StateIdle;
-            bt.restNode = sensor; // might be 0
-            bt.action = BindingTask::ActionUnbind;
-            bt.binding = bnd;
-            queueBindingTask(bt);
-        }
-        else
-        {
-            DBG_Printf(DBG_INFO_L2, "Rule for Binding 0x%04X already exists\n", bnd.clusterId);
-        }
-    }
-
-    if (!bindingTimer->isActive())
-    {
-        bindingTimer->start();
-    }
-}
-
 /*! Process ongoing binding table queries.
 */
 void DeRestPluginPrivate::bindingTableReaderTimerFired()
@@ -5014,7 +4137,9 @@ void DeRestPluginPrivate::bindingTableReaderTimerFired()
             i->apsReq.setClusterId(ZDP_MGMT_BIND_REQ_CLID);
             i->apsReq.setDstEndpoint(ZDO_ENDPOINT);
             i->apsReq.setSrcEndpoint(ZDO_ENDPOINT);
+#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
             i->apsReq.setTxOptions(0);
+#endif
             i->apsReq.setRadius(0);
 
             QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);

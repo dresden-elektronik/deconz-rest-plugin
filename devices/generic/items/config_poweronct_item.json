@@ -1,8 +1,0 @@
-{
-	"schema": "resourceitem1.schema.json",
-	"id": "config/poweronct",
-	"datatype": "UInt16",
-	"access": "RW",
-	"public": true,
-	"description": "Ct value set when powered on."
-}

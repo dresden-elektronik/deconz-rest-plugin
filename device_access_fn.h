@@ -20,6 +20,8 @@ class ResourceItem;
 
 namespace deCONZ {
     class ApsController;
+    class ApsDataConfirm;
+    class ApsDataRequest;
     class ApsDataIndication;
     class ZclFrame;
 }
@@ -27,8 +29,10 @@ namespace deCONZ {
 struct DA_ReadResult
 {
     bool isEnqueued = false;
+    bool ignoreResponseSequenceNumber = false;
     quint8 apsReqId = 0;
     quint8 sequenceNumber = 0;
+    quint16 clusterId = 0;
 };
 
 typedef bool (*ParseFunction_t)(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, const QVariant &parseParameters);
@@ -40,5 +44,10 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
 ParseFunction_t DA_GetParseFunction(const QVariant &params);
 ReadFunction_t DA_GetReadFunction(const QVariant &params);
 WriteFunction_t DA_GetWriteFunction(const QVariant &params);
+
+unsigned DA_ApsUnconfirmedRequests();
+unsigned DA_ApsUnconfirmedRequestsForExtAddress(uint64_t extAddr);
+void DA_ApsRequestEnqueued(const deCONZ::ApsDataRequest &req);
+void DA_ApsRequestConfirmed(const deCONZ::ApsDataConfirm &conf);
 
 #endif // DEVICE_ACCESS_FN_H

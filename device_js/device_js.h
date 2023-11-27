@@ -54,6 +54,7 @@ namespace deCONZ
     Attr.id        -> attribute id (number, read only)
     Attr.dataType  -> attribute datatype (number, read only)
     Attr.val       -> attribute value (read only)
+    Attr.index     -> attribute index (read only), 0 based, tells which attribute in a frame is  currently processed
 
     ### under consideration (not implemented)
     R.parent --> get the parent resource object (Device)
@@ -93,20 +94,25 @@ public:
     DeviceJs();
     ~DeviceJs();
     JsEvalResult evaluate(const QString &expr);
+    JsEvalResult testCompile(const QString &expr);
     void setResource(Resource *r);
     void setResource(const Resource *r);
     void setApsIndication(const deCONZ::ApsDataIndication &ind);
     void setZclFrame(const deCONZ::ZclFrame &zclFrame);
-    void setZclAttribute(const deCONZ::ZclAttribute &attr);
+    void setZclAttribute(int attrIndex, const deCONZ::ZclAttribute &attr);
     void setItem(ResourceItem *item);
     void setItem(const ResourceItem *item);
     QVariant result();
     void reset();
+    void clearItemsSet();
     QString errorString() const;
     static DeviceJs *instance();
+    const std::vector<ResourceItem*> &itemsSet() const;
 
 private:
     std::unique_ptr<DeviceJsPrivate> d;
 };
+
+void DeviceJS_ResourceItemValueChanged(ResourceItem *item);
 
 #endif // DEVICEJS_H

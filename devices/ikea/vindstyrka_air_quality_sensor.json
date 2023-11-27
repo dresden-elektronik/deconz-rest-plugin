@@ -1,0 +1,703 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "$MF_IKEA",
+  "modelid": "VINDSTYRKA",
+  "product": "Vindstyrka Air Quality Sensor",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_TEMPERATURE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0402"
+      ],
+      "fingerprint": {
+        "endpoint": "0x01",
+        "profile": "0x0104",
+        "device": "0x0302",
+        "in": [
+          "0x0000",
+          "0x0003",
+          "0x0402"
+        ],
+        "out": [
+          "0x0019"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/productid",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x000A",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x000A"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/measured_value/max",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0402",
+            "at": "0x0002",
+            "eval": "Item.val = Attr.val / 100"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0402",
+            "at": [
+              "0x0001",
+              "0x0002"
+            ]
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "cap/measured_value/min",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0402",
+            "at": "0x0001",
+            "eval": "Item.val = Attr.val / 100"
+          }
+        },
+        {
+          "name": "cap/measured_value/quantity",
+          "static": "temperature"
+        },
+        {
+          "name": "cap/measured_value/substance",
+          "static": "air"
+        },
+        {
+          "name": "cap/measured_value/unit",
+          "static": "degC"
+        },
+        {
+          "name": "config/offset",
+          "default": 0
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/measured_value",
+          "awake": true,
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0402",
+            "at": "0x0000",
+            "eval": "Item.val = (Attr.val - R.item('config/offset').val) / 100"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0402",
+            "at": "0x0000"
+          },
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/temperature"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_HUMIDITY_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0405"
+      ],
+      "fingerprint": {
+        "endpoint": "0x01",
+        "profile": "0x0104",
+        "device": "0x0302",
+        "in": [
+          "0x0405"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/modelid",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/productid",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x000A",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/swversion",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/measured_value/max",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0405",
+            "at": "0x0002",
+            "eval": "Item.val = Attr.val / 100"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0405",
+            "at": [
+              "0x0001",
+              "0x0002"
+            ]
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "cap/measured_value/min",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0405",
+            "at": "0x0001",
+            "eval": "Item.val = Attr.val / 100"
+          }
+        },
+        {
+          "name": "cap/measured_value/quantity",
+          "static": "level"
+        },
+        {
+          "name": "cap/measured_value/substance",
+          "static": "relative humidity"
+        },
+        {
+          "name": "cap/measured_value/unit",
+          "static": "%"
+        },
+        {
+          "name": "config/offset",
+          "default": 0
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/humidity",
+          "deprecated": "2023-09-17"
+        },
+        {
+          "name": "state/measured_value",
+          "awake": true,
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0405",
+            "at": "0x0000",
+            "eval": "Item.val = (Attr.val - R.item('config/offset').val) / 100"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0405",
+            "at": "0x0000"
+          },
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_PARTICULATEMATTER_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x042A"
+      ],
+      "fingerprint": {
+        "endpoint": "0x01",
+        "profile": "0x0104",
+        "device": "0x0302",
+        "in": [
+          "0x042A"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/modelid",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/productid",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x000A",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/swversion",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/measured_value/max",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x042A",
+            "at": "0x0002",
+            "eval": "Item.val = Attr.val"
+          },
+          "default": 0,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x042A",
+            "at": [
+              "0x0001",
+              "0x0002"
+            ]
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "cap/measured_value/min",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x042A",
+            "at": "0x0001",
+            "eval": "Item.val = Attr.val"
+          },
+          "default": 0
+        },
+        {
+          "name": "cap/measured_value/quantity",
+          "static": "density"
+        },
+        {
+          "name": "cap/measured_value/substance",
+          "static": "PM2.5"
+        },
+        {
+          "name": "cap/measured_value/unit",
+          "static": "ug/m^3"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/measured_value",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x042A",
+            "at": "0x0000",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x042A",
+            "at": "0x0000"
+          },
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/pm2_5",
+          "deprecated": "2023-09-17",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x042A",
+            "at": "0x0000",
+            "eval": "Item.val = Attr.val"
+          }
+        },
+        {
+          "name": "state/airquality",
+          "parse": {
+            "fn": "numtostr",
+            "srcitem": "state/measured_value",
+            "op": "le",
+            "to": [
+              10,
+              "excellent",
+              20,
+              "good",
+              25,
+              "moderate",
+              50,
+              "poor",
+              75,
+              "unhealthy",
+              65535,
+              "out of scale"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_AIR_QUALITY_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0xfc7e"
+      ],
+      "fingerprint": {
+        "endpoint": "0x01",
+        "profile": "0x0104",
+        "device": "0x0302",
+        "in": [
+          "0xFC7E"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/modelid",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/productid",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x000A",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/swversion",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/measured_value/max",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFC7E",
+            "mf": "0x117C",
+            "at": "0x0002",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x042A",
+            "mf": "0x117C",
+            "at": [
+              "0x0001",
+              "0x0002"
+            ]
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "cap/measured_value/min",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFC7E",
+            "mf": "0x117C",
+            "at": "0x0001",
+            "eval": "Item.val = Attr.val"
+          }
+        },
+        {
+          "name": "cap/measured_value/quantity",
+          "static": "level"
+        },
+        {
+          "name": "cap/measured_value/substance",
+          "static": "tVOC"
+        },
+        {
+          "name": "cap/measured_value/unit",
+          "static": "ppb"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/measured_value",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFC7E",
+            "mf": "0x117C",
+            "at": "0x0000",
+            "eval": "Item.val = Attr.val"
+          },
+          "default": 0,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFC7E",
+            "mf": "0x117C",
+            "at": "0x0000"
+          },
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/airqualityppb",
+          "deprecated": "2023-09-17",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFC7E",
+            "mf": "0x117C",
+            "at": "0x0000",
+            "eval": "Item.val = Attr.val"
+          }
+        },
+        {
+          "name": "state/airquality",
+          "parse": {
+            "fn": "numtostr",
+            "srcitem": "state/measured_value",
+            "op": "le",
+            "to": [
+              65,
+              "excellent",
+              220,
+              "good",
+              660,
+              "moderate",
+              5000,
+              "unhealthy",
+              65535,
+              "out of scale"
+            ]
+          }
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0402",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x29",
+          "min": 1,
+          "max": 300,
+          "change": "0x0032"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0405",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x0032"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x042A",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x39",
+          "min": 1,
+          "max": 300,
+          "change": "0x3F800000"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0xFC7E",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x39",
+          "mf": "0x117C",
+          "min": 1,
+          "max": 300,
+          "change": "0x3F800000"
+        }
+      ]
+    }
+  ]
+}

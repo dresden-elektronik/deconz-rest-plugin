@@ -1,13 +1,7 @@
-const vmin = 2700;
-const vmax = 3000;
-let bat = Attr.val;
+/* global Attr, Item */
 
-if      (bat > vmax) { bat = vmax; }
-else if (bat < vmin) { bat = vmin; }
-
-bat = ((bat - vmin) /(vmax - vmin)) * 100;
-
-if      (bat > 100) { bat = 100; }
-else if (bat <= 0)  { bat = 1; } // ?
-
-Item.val = bat;
+const vmin = 2700
+const vmax = 3000
+const v = Math.max(vmin, Math.min(Attr.val, vmax))
+const bat = Math.round(((v - vmin) / (vmax - vmin)) * 100)
+Item.val = Math.max(0, Math.min(bat, 100))

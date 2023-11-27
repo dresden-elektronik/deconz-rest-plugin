@@ -86,6 +86,7 @@ static Resource *DEV_InitSensorNodeFromDescription(Device *device, const DeviceD
         else
         {
             sensor.setId(QString::number(getFreeSensorId()));
+            sensor.setNeedSaveDatabase(true);
         }
     }
 
@@ -103,10 +104,10 @@ static Resource *DEV_InitSensorNodeFromDescription(Device *device, const DeviceD
                 friendlyName = friendlyName.mid(3);
             }
             sensor.setName(QString("%1 %2").arg(friendlyName, sensor.id()));
+            sensor.setNeedSaveDatabase(true);
         }
     }
 
-    sensor.setNeedSaveDatabase(true);
     sensor.rx();
 
     auto *r = DEV_AddResource(sensor);
@@ -137,10 +138,41 @@ static Resource *DEV_InitLightNodeFromDescription(Device *device, const DeviceDe
         }
     }
 
+    // check if a sub-resource explicitly has static modelid / manufacturername (example.: FLS-PP3)
+    int thingsDone = 0;
+    for (const DeviceDescription::Item &ddfItem : sub.items)
+    {
+        if (ddfItem.descriptor.suffix == RAttrManufacturerName && ddfItem.isStatic)
+        {
+            lightNode.setManufacturerName(ddfItem.defaultValue.toString());
+            thingsDone++;
+        }
+        else if (ddfItem.descriptor.suffix == RAttrModelId && ddfItem.isStatic)
+        {
+            lightNode.setModelId(ddfItem.defaultValue.toString());
+            thingsDone++;
+        }
+
+        if (thingsDone == 2) // break out early if everything was done what could be done
+        {
+            break;
+        }
+    }
+
+    if (lightNode.modelId().isEmpty())
+    {
+        lightNode.setModelId(device->item(RAttrModelId)->toCString());
+    }
+
+    if (lightNode.manufacturer().isEmpty())
+    {
+        lightNode.setManufacturerName(device->item(RAttrManufacturerName)->toCString());
+    }
+
     lightNode.address().setExt(device->item(RAttrExtAddress)->toNumber());
     lightNode.address().setNwk(device->item(RAttrNwkAddress)->toNumber());
-    lightNode.setModelId(device->item(RAttrModelId)->toCString());
-    lightNode.setManufacturerName(device->item(RAttrManufacturerName)->toCString());
+
+
     lightNode.setManufacturerCode(device->node()->nodeDescriptor().manufacturerCode());
     lightNode.setNode(const_cast<deCONZ::Node*>(device->node())); // TODO this is evil
 
@@ -161,6 +193,7 @@ static Resource *DEV_InitLightNodeFromDescription(Device *device, const DeviceDe
         else
         {
             lightNode.setId(QString::number(getFreeLightId()));
+            lightNode.setNeedSaveDatabase(true);
         }
     }
 
@@ -173,6 +206,7 @@ static Resource *DEV_InitLightNodeFromDescription(Device *device, const DeviceDe
         else
         {
             lightNode.setName(QString("%1 %2").arg(lightNode.type(), lightNode.id()));
+            lightNode.setNeedSaveDatabase(true);
         }
     }
 
@@ -211,7 +245,6 @@ static Resource *DEV_InitLightNodeFromDescription(Device *device, const DeviceDe
     lightNode.removeItem(RStateSat);
     lightNode.removeItem(RStateAlert);
 
-    lightNode.setNeedSaveDatabase(true);
     lightNode.rx();
 
     auto *r = DEV_AddResource(lightNode);

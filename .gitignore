@@ -8,3 +8,7 @@ tests/build
 *.txt.user
 ui_ddf_editor.h
 ui_device_widget.h
+.vscode
+.devcontainer
+build*
+

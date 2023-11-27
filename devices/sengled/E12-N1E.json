@@ -8,7 +8,7 @@
   "status": "Bronze",
   "subdevices": [
     {
-      "type": "$TYPE_COLOR_DIMMABLE_LIGHT",
+      "type": "$TYPE_EXTENDED_COLOR_LIGHT",
       "restapi": "/lights",
       "uuid": [
         "$address.ext",
@@ -41,6 +41,40 @@
         },
         {
           "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/color/capabilities",
+          "static": 31
+        },
+        {
+          "name": "cap/color/ct/max"
+        },
+        {
+          "name": "cap/color/ct/min"
+        },
+        {
+          "name": "cap/color/xy/blue_x",
+          "static": 0
+        },
+        {
+          "name": "cap/color/xy/blue_y",
+          "static": 0
+        },
+        {
+          "name": "cap/color/xy/green_x",
+          "static": 0
+        },
+        {
+          "name": "cap/color/xy/green_y",
+          "static": 65279
+        },
+        {
+          "name": "cap/color/xy/red_x",
+          "static": 65279
+        },
+        {
+          "name": "cap/color/xy/red_y",
+          "static": 0
         },
         {
           "name": "state/alert",

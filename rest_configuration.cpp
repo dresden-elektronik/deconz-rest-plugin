@@ -27,7 +27,10 @@
 #include <time.h>
 #include <QProcess>
 #include "backup.h"
+#include "crypto/password.h"
+#include "crypto/random.h"
 #include "gateway.h"
+#include "utils/utils.h"
 #ifdef Q_OS_LINUX
   #include <unistd.h>
   #include <sys/time.h>
@@ -351,6 +354,10 @@ void DeRestPluginPrivate::initTimezone()
         item->setValue(QVariant());
         item = dl.addItem(DataTypeInt32, RStateStatus);
         item->setValue(QVariant());
+        item = dl.addItem(DataTypeString, RConfigLat);
+        item->setIsPublic(false);
+        item = dl.addItem(DataTypeString, RConfigLong);
+        item->setIsPublic(false);
 
         dl.removeItem(RConfigReachable);
         dl.removeItem(RAttrLastAnnounced);
@@ -908,10 +915,11 @@ int DeRestPluginPrivate::createUser(const ApiRequest &req, ApiResponse &rsp)
         if (!found)
         {
             // create a random key (used only if not provided)
+            unsigned char rnd[5];
+            CRYPTO_RandomBytes(&rnd[0], sizeof(rnd));
             for (int i = 0; i < 5; i++)
             {
-                quint8 rnd = qrand() & 0xFF;
-                QString frac = QString("%1").arg(rnd, 2, 16, QLatin1Char('0')).toUpper();
+                QString frac = QString("%1").arg(rnd[i], 2, 16, QLatin1Char('0')).toUpper();
                 auth.apikey.append(frac);
             }
         }
@@ -1608,13 +1616,8 @@ int DeRestPluginPrivate::getChallenge(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    qsrand(static_cast<uint>(time(nullptr)));
-    QByteArray challange;
-
-    for (int i = 0; i < 64; i++)
-    {
-        challange.append(QString::number(qrand()));
-    }
+    QByteArray challange(64, '\0');
+    CRYPTO_RandomBytes((unsigned char*)challange.data(), challange.size());
 
     gwLastChallenge = now;
     gwChallenge = QCryptographicHash::hash(challange, QCryptographicHash::Sha256).toHex();
@@ -2308,6 +2311,8 @@ int DeRestPluginPrivate::deleteUser(const ApiRequest &req, ApiResponse &rsp)
             rsp.list.append(rspItem);
             rsp.httpStatus = HttpStatusOk;
 
+            updateEtag(gwConfigEtag);
+
             return REQ_READY_SEND;
         }
     }
@@ -2678,22 +2683,25 @@ int DeRestPluginPrivate::changePassword(const ApiRequest &req, ApiResponse &rsp)
             return REQ_READY_SEND;
         }
 
-        QString enc = encryptString(oldhash);
+        std::string enc = CRYPTO_EncryptGatewayPassword(oldhash.toStdString());
 
         if (enc != gwAdminPasswordHash)
         {
-            rsp.httpStatus = HttpStatusUnauthorized;
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, "/config/password", QString("invalid value, %1 for parameter, oldhash").arg(oldhash)));
-            return REQ_READY_SEND;
+            if (oldhash.toStdString() != gwAdminPasswordHash) // on Windows plain hash was stored
+            {
+                rsp.httpStatus = HttpStatusUnauthorized;
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, "/config/password", QString("invalid value, %1 for parameter, oldhash").arg(oldhash)));
+                return REQ_READY_SEND;
+            }
         }
 
         // username and old hash are okay
         // take the new hash and salt it
-        enc = encryptString(newhash);
+        enc = CRYPTO_EncryptGatewayPassword(newhash.toStdString());
         gwAdminPasswordHash = enc;
         queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
 
-        DBG_Printf(DBG_INFO, "Updated password hash: %s\n", qPrintable(enc));
+        DBG_Printf(DBG_INFO, "Updated password hash\n");
 
         QVariantMap rspItem;
         QVariantMap rspItemState;
@@ -2983,7 +2991,7 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
         gwWifiLastUpdated = currentDateTime.toTime_t();
 
         updateEtag(gwConfigEtag);
-        queSaveDb(DB_CONFIG | DB_SYNC, DB_SHORT_SAVE_DELAY);
+        queSaveDb(DB_CONFIG | DB_SYNC, DB_FAST_SAVE_DELAY);
     }
 
     QVariantMap rspItem;
@@ -3761,47 +3769,58 @@ bool DeRestPluginPrivate::checkDaylightSensorConfiguration(Sensor *sensor, const
         return false;
     }
 
-    {   // TODO the following code is excecuted on every iteration and rather expensive
-
-        // check uniqueid
-        // note: might change if device is changed
-        ResourceItem *item = sensor->item(RAttrUniqueId);
-        QString uniqueid = gwBridgeId.toLower() + QLatin1String("-01");
-        // 00:21:2e:ff:ff:00:aa:bb-01
-        for (int i = 0; i < (7 * 3); i += 3)
-        {
-            uniqueid.insert(i + 2, ':');
-        }
-
-        if (!item || (item->toString() != uniqueid))
-        {
-            item = sensor->addItem(DataTypeString, RAttrUniqueId);
-            item->setValue(uniqueid);
-        }
-    }
-
     ResourceItem *configured = sensor->item(RConfigConfigured);
+    ResourceItem *ilat = sensor->item(RConfigLat);
+    ResourceItem *ilng = sensor->item(RConfigLong);
+
     DBG_Assert(configured != nullptr);
-    if (!configured || !configured->toBool())
+    DBG_Assert(ilat != nullptr);
+    DBG_Assert(ilng != nullptr);
+    if (!configured || !ilat || !ilng)
     {
         return false;
     }
 
-    ResourceItem *ilat = sensor->item(RConfigLat);
-    ResourceItem *ilng = sensor->item(RConfigLong);
+    bool ok;
+    static bool uidChecked = false;
+
+    // check uniqueid once per deCONZ start
+    if (!uidChecked && !gwBridgeId.isEmpty())
+    {
+        qulonglong extAddr = gwBridgeId.toULongLong(&ok, 16);
+        if (ok && extAddr != 0)
+        {
+            // 00:21:2e:ff:ff:00:aa:bb-01
+            // note: might change if device is changed
+            QString uniqueid = generateUniqueId(extAddr, 1, 0);
+            ResourceItem *item = sensor->item(RAttrUniqueId);
+
+            if (!item || (item->toString() != uniqueid))
+            {
+                item = sensor->addItem(DataTypeString, RAttrUniqueId);
+                item->setValue(uniqueid);
+                sensor->setNeedSaveDatabase(true);
+                queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+            }
+
+            uidChecked = true;
+        }
+    }
 
     bool ok1 = false;
     bool ok2 = false;
-    *lat = ilat ? ilat->toString().toDouble(&ok1) : nan("");
-    *lng = ilng ? ilng->toString().toDouble(&ok2) : nan("");
-    if (ok1 && ok2)
+    *lat = ilat->toString().toDouble(&ok1);
+    *lng = ilng->toString().toDouble(&ok2);
+    ok = ok1 && ok2;
+
+    if (ok != configured->toBool())
     {
-        return true;
+        configured->setValue(ok);
+        sensor->setNeedSaveDatabase(true);
+        queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
     }
 
-    DBG_Printf(DBG_INFO, "The daylight sensor seems to be configured with invalid values\n");
-    // TODO should configured be set to false?
-    return false;
+    return ok;
 }
 
 size_t DeRestPluginPrivate::calcDaylightOffsets(Sensor *daylightSensor, size_t iter)

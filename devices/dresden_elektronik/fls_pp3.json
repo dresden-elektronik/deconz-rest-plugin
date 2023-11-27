@@ -29,7 +29,7 @@
         {
           "name": "attr/modelid",
           "static": "FLS-PP3",
-          "parse": {"fn": "zcl", "ep": 10, "cl": "0x0000", "at": "0x0005", "eval": "Item.val = Attr.val"}
+          "parse": {"fn": "zcl:attr", "ep": 10, "cl": "0x0000", "at": "0x0005", "eval": "Item.val = Attr.val"}
         },
         {
           "name": "attr/name"
@@ -44,19 +44,40 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/colorcapabilities",
-          "refresh.interval": 84000
+          "name": "cap/color/capabilities"
         },
         {
-          "name": "config/ctmax",
-          "refresh.interval": 84000
+          "name": "cap/color/ct/max"
         },
         {
-          "name": "config/ctmin",
-          "refresh.interval": 84000
+          "name": "cap/color/ct/min"
         },
         {
-          "name": "config/powerup"
+          "name": "cap/color/xy/blue_x",
+          "static": 0
+        },
+        {
+          "name": "cap/color/xy/blue_y",
+          "static": 0
+        },
+        {
+          "name": "cap/color/xy/green_x",
+          "static": 0
+        },
+        {
+          "name": "cap/color/xy/green_y",
+          "static": 65279
+        },
+        {
+          "name": "cap/color/xy/red_x",
+          "static": 65279
+        },
+        {
+          "name": "cap/color/xy/red_y",
+          "static": 0
+        },
+        {
+          "name": "attr/powerup"
         },
         {
           "name": "state/alert",
@@ -73,13 +94,13 @@
             "at": "0x0008",
             "cl": "0x0300",
             "ep": 10,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0008",
             "cl": "0x0300",
             "ep": 10,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "script": "../generic/color_control_cluster/parse_color_mode.js"
           }
         },
@@ -137,7 +158,7 @@
         {
           "name": "attr/modelid",
           "static": "FLS-PP3 White",
-          "parse": {"fn": "zcl", "ep": 11, "cl": "0x0000", "at": "0x0005", "eval": "Item.val = Attr.val"}
+          "parse": {"fn": "zcl:attr", "ep": 11, "cl": "0x0000", "at": "0x0005", "eval": "Item.val = Attr.val"}
         },
         {
           "name": "attr/name"
@@ -152,7 +173,7 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/powerup"
+          "name": "attr/powerup"
         },
         {
           "name": "state/alert",
@@ -165,6 +186,9 @@
         {
           "name": "state/on",
           "refresh.interval": 5
+        },
+        {
+          "name": "state/reachable"
         }
       ]
     }

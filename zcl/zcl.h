@@ -23,7 +23,7 @@ namespace deCONZ
 
 struct ZCL_Param
 {
-    enum Constants { MaxAttributes = 4 };
+    enum Constants { MaxAttributes = 8 };
     std::array<uint16_t, MaxAttributes> attributes;
     uint16_t clusterId = 0;
     uint16_t manufacturerCode = 0;
@@ -32,10 +32,11 @@ struct ZCL_Param
     struct {
         uint8_t valid : 1;
         uint8_t hasCommandId : 1;
-        uint8_t attributeCount : 3;
-        uint8_t _pad0 : 3;
+        uint8_t attributeCount : 4;
+        uint8_t ignoreResponseSeq: 1;
+        uint8_t hasFrameControl : 1;
     };
-    uint8_t _pad1;
+    uint8_t frameControl = 0;
 };
 
 struct ZCL_Result
@@ -118,6 +119,8 @@ inline bool isValid(const ZCL_Param &param) { return param.valid != 0; }
 
 quint8 zclNextSequenceNumber();
 ZCL_Result ZCL_ReadAttributes(const ZCL_Param &param, quint64 extAddress, quint16 nwkAddress, deCONZ::ApsController *apsCtrl);
+ZCL_Result ZCL_WriteAttribute(const ZCL_Param &param, quint64 extAddress, quint16 nwkAddress, deCONZ::ApsController *apsCtrl, deCONZ::ZclAttribute *attribute);
+ZCL_Result ZCL_SendCommand(const ZCL_Param &param, quint64 extAddress, quint16 nwkAddress, deCONZ::ApsController *apsCtrl, std::vector<uint8_t> *payload);
 ZCL_Result ZCL_ReadReportConfiguration(const ZCL_ReadReportConfigurationParam &param, deCONZ::ApsController *apsCtrl);
 ZCL_Result ZCL_ConfigureReporting(const ZCL_ConfigureReportingParam &param, deCONZ::ApsController *apsCtrl);
 ZCL_ReadReportConfigurationRsp ZCL_ParseReadReportConfigurationRsp(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);

@@ -56,18 +56,18 @@
         {
           "name": "config/battery",
           "awake": true,
-          "refresh.interval": 3700,
+          "refresh.interval": 3665,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "eval": "Item.val = Attr.val / 2"
           }
         },
@@ -119,8 +119,8 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 3600,
-          "max": 43200,
+          "min": 3400,
+          "max": 3600,
           "change": "0x00000001"
         }
       ]

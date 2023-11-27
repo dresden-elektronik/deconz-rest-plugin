@@ -76,7 +76,7 @@ struct DB_ResourceItem
 
 struct DB_LegacyItem
 {
-    BufString<32> column;
+    BufString<64> column;
     BufString<64> uniqueId;
 
     BufString<128> value;

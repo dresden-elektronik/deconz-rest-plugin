@@ -46,7 +46,18 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "awake": true,
+          "parse": {
+            "at": "0x00f7",
+            "ep": 1,
+            "fn": "xiaomi:special",
+            "idx": "0x08",
+            "script": "xiaomi_swversion.js"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "attr/type"
@@ -70,27 +81,30 @@
           "refresh.interval": 3600,
           "awake": true,
           "parse": {
-            "at": "0xff07",
+            "at": "0x0102",
+            "cl": "0xFCC0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "xiaomi:special",
-            "idx": "0x69"
+            "fn": "zcl:attr",
+            "mf": "0x115F"
           },
           "read": {
             "at": "0x0102",
             "cl": "0xFCC0",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115F"
           },
           "write": {
             "at": "0x0102",
+            "change.timeout": 3600,
             "cl": "0xFCC0",
             "dt": "0x20",
             "ep": 1,
             "eval": "Item.val",
-            "fn": "zcl",
-            "mf": "0x115F"
+            "fn": "zcl:attr",
+            "mf": "0x115F",
+            "state.timeout": 2
           },
           "range": [1, 200],
           "default": 30
@@ -100,27 +114,30 @@
           "refresh.interval": 3600,
           "awake": true,
           "parse": {
-            "at": "0xff07",
+            "at": "0x0152",
+            "cl": "0xFCC0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "xiaomi:special",
-            "idx": "0x6b"
+            "fn": "zcl:attr",
+            "mf": "0x115F"
           },
           "read": {
             "at": "0x0152",
             "cl": "0xFCC0",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115F"
           },
           "write": {
             "at": "0x0152",
+            "change.timeout": 3600,
             "cl": "0xFCC0",
             "dt": "0x20",
             "ep": 1,
             "eval": "Item.val",
-            "fn": "zcl",
-            "mf": "0x115F"
+            "fn": "zcl:attr",
+            "mf": "0x115F",
+            "state.timeout": 2
           },
           "values": [
             [true, "Device flashes on presence"],
@@ -139,27 +156,30 @@
           "refresh.interval": 3600,
           "awake": true,
           "parse": {
-            "at": "0xff07",
+            "at": "0x010C",
+            "cl": "0xFCC0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "xiaomi:special",
-            "idx": "0x6a"
+            "fn": "zcl:attr",
+            "mf": "0x115F"
           },
           "read": {
             "at": "0x010C",
             "cl": "0xFCC0",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115F"
           },
           "write": {
             "at": "0x010C",
+            "change.timeout": 3600,
             "cl": "0xFCC0",
             "dt": "0x20",
             "ep": 1,
             "eval": "Item.val",
-            "fn": "zcl",
-            "mf": "0x115F"
+            "fn": "zcl:attr",
+            "mf": "0x115F",
+            "state.timeout": 2
           },
           "values": [
             [1, "Low"],
@@ -178,11 +198,11 @@
             "cl": "0xFCC0",
             "ep": 1,
             "eval": "Item.val = true",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115F"
           },
           "read": {
-            "fn": "None"
+            "fn": "none"
           }
         }
       ]
@@ -227,6 +247,14 @@
         },
         {
           "name": "attr/swversion",
+          "awake": true,
+          "parse": {
+            "at": "0x00f7",
+            "ep": 1,
+            "fn": "xiaomi:special",
+            "idx": "0x08",
+            "script": "xiaomi_swversion.js"
+          },
           "read": {
             "fn": "none"
           }
@@ -253,27 +281,30 @@
           "refresh.interval": 3600,
           "awake": true,
           "parse": {
-            "at": "0xff07",
+            "at": "0x0152",
+            "cl": "0xFCC0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "xiaomi:special",
-            "idx": "0x6b"
+            "fn": "zcl:attr",
+            "mf": "0x115F"
           },
           "read": {
             "at": "0x0152",
             "cl": "0xFCC0",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x115F"
           },
           "write": {
             "at": "0x0152",
+            "change.timeout": 3600,
             "cl": "0xFCC0",
             "dt": "0x20",
             "ep": 1,
             "eval": "Item.val",
-            "fn": "zcl",
-            "mf": "0x115F"
+            "fn": "zcl:attr",
+            "mf": "0x115F",
+            "state.timeout": 2
           },
           "values": [
             [true, "Device flashes on presence"],
@@ -293,7 +324,7 @@
         {
           "name": "config/tholdoffset"
         },
-         {
+        {
           "name": "state/dark"
         },
         {
@@ -315,7 +346,7 @@
             "script": "xiaomi_rtcgq14lm_lux_to_lightlevel.js"
           },
           "read": {
-            "fn": "None"
+            "fn": "none"
           }
         }
       ]

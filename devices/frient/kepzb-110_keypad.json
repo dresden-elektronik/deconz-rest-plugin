@@ -8,7 +8,7 @@
    "status":"Bronze",
    "subdevices":[
       {
-         "type":"ZHAAncillaryControl",
+         "type":"$TYPE_ANCILLARY_CONTROL",
          "restapi":"/sensors",
          "uuid":[
             "$address.ext",
@@ -74,13 +74,16 @@
             },
             {
                "name":"state/action",
-               "public":false
+               "public":true
             },
             {
                "name":"state/lastupdated"
             },
             {
                "name":"state/lowbattery"
+            },
+            {
+              "name": "state/seconds_remaining"
             },
             {
                "name":"state/panel",

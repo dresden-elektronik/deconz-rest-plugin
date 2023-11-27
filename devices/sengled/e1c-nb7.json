@@ -5,7 +5,6 @@
   "product": "E1C-NB7",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/sengled/e1c-nb7.json",
   "subdevices": [
     {
       "type": "$TYPE_SMART_PLUG",
@@ -47,8 +46,7 @@
           "default": "none"
         },
         {
-          "name": "state/on",
-          "refresh.interval": 5
+          "name": "state/on"
         },
         {
           "name": "state/reachable"
@@ -99,26 +97,92 @@
         },
         {
           "name": "state/consumption",
-          "refresh.interval": 300
+          "refresh.interval": 360,
+          "default": 0
         },
         {
           "name": "state/lastupdated"
         },
         {
           "name": "state/power",
-          "refresh.interval": 300,
+          "refresh.interval": 360,
           "read": {
             "at": "0x0400",
             "cl": "0x0702",
             "ep": 0,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0400",
             "cl": "0x0702",
             "ep": 0,
             "eval": "if (Attr.val != -32768) { Item.val = Attr.val / 10; }"
-          }
+          },
+          "default": 0
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_POWER_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0b04"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/power",
+          "refresh.interval": 360,
+          "read": {
+            "at": "0x0400",
+            "cl": "0x0702",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0400",
+            "cl": "0x0702",
+            "ep": 1,
+            "eval": "if (Attr.val != -32768) { Item.val = Attr.val / 10; }"
+          },
+          "default": 0
         }
       ]
     }

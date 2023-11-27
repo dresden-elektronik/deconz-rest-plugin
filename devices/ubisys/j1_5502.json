@@ -49,7 +49,7 @@
             "cl": "0x0102",
             "ep": 1,
             "eval": "Item.val = (254 * Attr.val) / 100;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "read": {
             "fn": "none"
@@ -65,7 +65,7 @@
             "cl": "0x0102",
             "ep": 1,
             "eval": "if (Attr.val == 100) { Item.val = true; } else { Item.val = false; }",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "read": {
             "fn": "none"
@@ -77,8 +77,8 @@
             "at": "0x0008",
             "cl": "0x0102",
             "ep": 1,
-            "eval": "if (Attr.val == 100) { Item.val = false; } else { Item.val = true; }",
-            "fn": "zcl"
+            "eval": "Item.val = Attr.val < 100",
+            "fn": "zcl:attr"
           },
           "read": {
             "fn": "none"
@@ -160,8 +160,7 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/windowcoveringtype",
-          "default" : 0
+          "name": "config/windowcoveringtype"
         },
         {
           "name": "state/buttonevent"
@@ -301,14 +300,14 @@
             "at": "0x0400",
             "cl": "0x0702",
             "ep": 3,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0400",
             "cl": "0x0702",
             "ep": 3,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         }
       ]
@@ -333,6 +332,12 @@
           "min": 1,
           "max": 300,
           "change": "0x00000001"
+        },
+        {
+          "at": "0x000A",
+          "dt": "0x18",
+          "min": 1,
+          "max": 600
         }
       ]
     },

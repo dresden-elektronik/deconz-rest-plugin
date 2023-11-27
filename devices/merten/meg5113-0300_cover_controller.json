@@ -52,7 +52,7 @@
             "cl": "0x0102",
             "ep": 5,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {
@@ -62,7 +62,7 @@
             "cl": "0x0102",
             "ep": 5,
             "eval": "if(Attr.val == 100) { Item.val = true; } else { Item.val = false; }",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {
@@ -71,8 +71,8 @@
             "at": "0x0008",
             "cl": "0x0102",
             "ep": 5,
-            "eval": "if(Attr.val == 100) { Item.val = false; } else { Item.val = true; }",
-            "fn": "zcl"
+            "eval": "Item.val = Attr.val < 100",
+            "fn": "zcl:attr"
           }
         },
         {
