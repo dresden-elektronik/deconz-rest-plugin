@@ -259,6 +259,7 @@ public:
     QSpinBox *readInterval = nullptr;
     DDF_Function readFunction;
     DDF_Function parseFunction;
+    DDF_Function writeFunction;
 
     DeviceDescription::Item editItem;
 };
@@ -380,6 +381,30 @@ DDF_ItemEditor::DDF_ItemEditor(QWidget *parent) :
         readLay->addRow(new QLabel(tr("Interval")), d->readInterval);
     }
 
+    // write function
+    {
+        DDF_Function &fn = d->writeFunction;
+        fn.paramChanged = &DDF_ItemEditor::writeParamChanged;
+
+        fn.widget = new FunctionWidget(scrollWidget);
+        scrollLay->addWidget(fn.widget);
+        auto *fnLay = new QVBoxLayout;
+        fn.widget->setLayout(fnLay);
+        connect(fn.widget, &FunctionWidget::droppedUrl, this, &DDF_ItemEditor::droppedUrl);
+
+        QLabel *writeLabel = new QLabel(tr("Write"), this);
+        writeLabel->setFont(boldFont);
+        fnLay->addWidget(writeLabel);
+        fn.functionComboBox = new QComboBox(fn.widget);
+        fn.functionComboBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
+        fn.functionComboBox->setMinimumWidth(160);
+        fnLay->addWidget(fn.functionComboBox);
+
+        fn.paramWidget = new QWidget(fn.widget);
+        fnLay->addWidget(fn.paramWidget);
+        fn.paramWidget->setLayout(new QFormLayout);
+    }
+
     scrollLay->addStretch();
 }
 
@@ -474,7 +499,7 @@ void DDF_ItemEditor::setupFunction(DDF_Function &fn, const DeviceDescription::It
         }
         else
         {
-            fnName = QLatin1String("zcl"); // default parse function
+            fnName = QLatin1String("zcl:attr"); // default parse function
         }
 
         fn.functionComboBox->setCurrentText(fnName);
@@ -489,7 +514,7 @@ void DDF_ItemEditor::setupFunction(DDF_Function &fn, const DeviceDescription::It
 
             for (const auto &param : descr.parameters)
             {
-                if (fnName == QLatin1String("zcl"))
+                if (fnName == QLatin1String("zcl") || fnName == QLatin1String("zcl:attr"))
                 {
                     if (param.key == QLatin1String("cl"))
                     {
@@ -580,8 +605,8 @@ void DDF_ItemEditor::setItem(const DeviceDescription::Item &item, DeviceDescript
     }
 
     setupFunction(d->parseFunction, item, item.parseParameters.toMap(), dd->getParseFunctions());
-
     setupFunction(d->readFunction, item, item.readParameters.toMap(), dd->getReadFunctions());
+    setupFunction(d->writeFunction, item, item.writeParameters.toMap(), dd->getWriteFunctions());
     d->state = StateEdit;
 
     if (item != d->editItem)
@@ -663,6 +688,40 @@ void DDF_ItemEditor::readParamChanged()
     emit itemChanged();
 }
 
+void DDF_ItemEditor::writeParamChanged()
+{
+    Q_ASSERT(d->dd);
+
+    DDF_Function &fn = d->writeFunction;
+    ItemLineEdit *edit = qobject_cast<ItemLineEdit*>(sender());
+
+    if (edit)
+    {
+        edit->updateValueInMap(fn.paramMap);
+    }
+
+    if (d->editItem.writeParameters != fn.paramMap)
+    {
+        d->editItem.writeParameters = fn.paramMap;
+        updateZclLabels(fn);
+    }
+
+    const auto &genItem = d->dd->getGenericItem(d->editItem.descriptor.suffix);
+
+    if (genItem.writeParameters == d->editItem.writeParameters)
+    {
+        d->editItem.isGenericWrite = 1;
+        d->editItem.isImplicit = genItem.isImplicit; // todo is implicit shouldn't be used here
+    }
+    else
+    {
+        d->editItem.isGenericWrite = 0;
+        d->editItem.isImplicit = 0;
+    }
+
+    emit itemChanged();
+}
+
 void DDF_ItemEditor::attributeChanged()
 {
     if (d->state != StateEdit)
@@ -738,11 +797,13 @@ void DDF_ItemEditor::attributeChanged()
         {
             d->parseFunction.widget->hide();
             d->readFunction.widget->hide();
+            d->writeFunction.widget->hide();
         }
         else
         {
             d->parseFunction.widget->show();
             d->readFunction.widget->show();
+            d->writeFunction.widget->show();
         }
 
         emit itemChanged();
@@ -770,6 +831,11 @@ void DDF_ItemEditor::functionChanged(const QString &text)
     {
         fn = &d->readFunction;
         fnParam = &d->editItem.readParameters;
+    }
+    else if (d->writeFunction.functionComboBox == combo)
+    {
+        fn = &d->writeFunction;
+        fnParam = &d->editItem.writeParameters;
     }
     else
     {
@@ -809,6 +875,10 @@ void DDF_ItemEditor::functionChanged(const QString &text)
         {
             setupFunction(d->readFunction, item, item.readParameters.toMap(), d->dd->getReadFunctions());
         }
+        else if (d->writeFunction.functionComboBox == combo)
+        {
+            setupFunction(d->writeFunction, item, item.writeParameters.toMap(), d->dd->getWriteFunctions());
+        }
     }
 }
 
@@ -829,6 +899,10 @@ void DDF_ItemEditor::droppedUrl(const QUrl &url)
         else if (sender() == d->readFunction.widget)
         {
             params = d->editItem.readParameters.toMap();
+        }
+        else if (sender() == d->writeFunction.widget)
+        {
+            params = d->editItem.writeParameters.toMap();
         }
 
         if (urlQuery.hasQueryItem("ep"))
@@ -874,6 +948,12 @@ void DDF_ItemEditor::droppedUrl(const QUrl &url)
             //d->editItem.readParameters = params;
             setupFunction(d->readFunction, d->editItem, params, d->dd->getReadFunctions());
             readParamChanged();
+        }
+        else if (sender() == d->writeFunction.widget)
+        {
+            //d->editItem.writeParameters = params;
+            setupFunction(d->writeFunction, d->editItem, params, d->dd->getWriteFunctions());
+            writeParamChanged();
         }
 
         //emit itemChanged();

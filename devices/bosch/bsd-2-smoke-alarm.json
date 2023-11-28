@@ -1,14 +1,14 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "$MF_LUMI",
-  "modelid": "lumi.magnet.acn001",
-  "vendor": "Xiaomi",
-  "product": "Aqara E1 open/close sensor MCCGQ14LM",
+  "manufacturername": "$MF_BOSCH",
+  "modelid": "RBSH-SD-ZB-EU",
+  "vendor": "Bosch",
+  "product": "Smoke Alarm II",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_OPEN_CLOSE_SENSOR",
+      "type": "$TYPE_FIRE_SENSOR",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
@@ -22,8 +22,7 @@
         "in": [
           "0x0000",
           "0x0001",
-          "0x0500",
-          "0xFCC0"
+          "0x0500"
         ]
       },
       "items": [
@@ -37,30 +36,16 @@
           "name": "attr/lastseen"
         },
         {
-          "name": "attr/manufacturername",
-          "awake": true
+          "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid",
-          "awake": true
+          "name": "attr/modelid"
         },
         {
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion",
-          "awake": true,
-          "parse": {
-            "at": "0x00f7",
-            "ep": 1,
-            "eval": "Item.val = '0.0.0_' + ('0000' + (Attr.val & 0xFF).toString()).slice(-4)",
-            "fn": "xiaomi:special",
-            "idx": "0x08",
-            "mf": "0x115f"
-          },
-          "read": {
-            "fn": "none"
-          }
+          "name": "attr/swversion"
         },
         {
           "name": "attr/type"
@@ -70,19 +55,17 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
           "parse": {
-            "at": "0x00f7",
+            "at": "0x0021",
+            "cl": "0x0001",
             "ep": 1,
-            "fn": "xiaomi:special",
-            "idx": "0x01",
-            "mf": "0x115f",
-            "script": "xiaomi_battery.js"
+            "eval": "Item.val = Attr.val / 2",
+            "fn": "zcl:attr"
           }
         },
         {
           "name": "config/enrolled",
-          "default": 1
+          "public": false
         },
         {
           "name": "config/on"
@@ -94,12 +77,41 @@
           "name": "config/reachable"
         },
         {
+          "name": "state/fire",
+          "awake": true
+        },
+        {
           "name": "state/lastupdated"
         },
         {
-          "name": "state/open"
+          "name": "state/lowbattery"
+        },
+        {
+          "name": "state/test",
+          "awake": true
         }
       ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 600,
+          "max": 43200,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0500"
     }
   ]
 }
