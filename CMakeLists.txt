@@ -17,6 +17,8 @@ find_package(Git REQUIRED)
 if (UNIX)
     include(FindPkgConfig)
     pkg_check_modules (OPENSSL openssl)
+else()
+    find_package(OpenSSL REQUIRED)
 endif()
 
 if (NOT DECONZ_FULL_BUILD)
@@ -277,7 +279,7 @@ target_compile_definitions(${PROJECT_NAME}
 
 if (OPENSSL_FOUND)
     target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_OPENSSL=1)
-    target_include_directories(${PROJECT_NAME} PRIVATE ${OPENSSL_INCLUDE_DIRS})
+    target_include_directories(${PROJECT_NAME} PRIVATE ${OPENSSL_INCLUDE_DIR})
 endif()
 
 if (Qt5Core_VERSION_STRING VERSION_LESS "5.15.0")
