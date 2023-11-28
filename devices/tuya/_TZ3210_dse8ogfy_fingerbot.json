@@ -100,7 +100,7 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/battery",
+          "name": "state/battery",
           "parse": {"fn": "tuya", "dpid": 105, "eval": "Item.val = Attr.val;" },
           "read": {"fn": "none"},
           "default": 0
