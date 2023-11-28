@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "ddfvalidate": false,
   "manufacturername": [
     "Danalock",
     "Danalock"
@@ -52,9 +53,6 @@
           "awake": true
         },
         {
-          "name": "config/lock"
-        },
-        {
           "name": "state/alert",
           "default": "none"
         },
@@ -78,12 +76,6 @@
           },
           "refresh.interval": 600,
           "awake": true
-        },
-        {
-          "name": "state/open"
-        },
-        {
-          "name": "state/lockstate"
         }
       ]
     },
