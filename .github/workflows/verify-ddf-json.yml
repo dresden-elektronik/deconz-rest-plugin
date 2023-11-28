@@ -18,11 +18,17 @@ on:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+    inputs:
+      noSkip:
+        description: Validate files with option ddfvalidate=false
+        required: true
+        default: false
+        type: boolean
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
+  # This workflow contains a single job called "validate"
+  validate:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
@@ -37,3 +43,4 @@ jobs:
           directory: devices
           generic: devices/generic
           search: '**/*.json'
+          no-skip: ${{ inputs.noSkip == true }}
