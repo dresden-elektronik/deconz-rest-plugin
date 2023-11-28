@@ -68,6 +68,9 @@
         },
         {
           "name": "state/lastupdated"
+        },
+        {
+          "name": "config/tuya_unlock"
         }
       ]
     }
