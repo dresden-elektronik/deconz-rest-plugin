@@ -1,6 +1,5 @@
 {
   "schema": "devcap1.schema.json",
-  "ddfvalidate": false,
   "manufacturername": "_TZE200_dwcarsat",
   "modelid": "TS0601",
   "vendor": "Tuya",
