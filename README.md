@@ -23,11 +23,11 @@ The Phoscon App is a browser based web application and supports lights, sensors 
 
 deCONZ beta releases are scheduled roughly once per week. After 2–3 betas a stable version is released and a new beta cycle begins. The stable release is usually published between 1st — 15th of the month.
 
-Current Beta: **v2.22.0-beta**  
-Current Stable: **v2.21.2**
+Current Beta: **v2.24.2-beta**  
+Current Stable: **v2.24.2**
 
-Next Beta: **v2.22.1-beta** Expected in May.
-Next Stable: **v2.22.x** Expected in May.
+Next Beta: **v2.25.0-beta** Expected in December.
+Next Stable: **v2.25.x** Expected in December.
 
 Installation
 ============
@@ -44,6 +44,7 @@ You find the instructions for your platform and device on the Phoscon website:
 * [RaspBee&nbsp;II](https://phoscon.de/raspbee2/install?ref=gh)
 * [ConBee](https://phoscon.de/conbee/install?ref=gh)
 * [ConBee&nbsp;II](https://phoscon.de/conbee2/install?ref=gh)
+* [ConBee&nbsp;III](https://phoscon.de/conbee3/install?ref=gh)
 
 **Important:** If you're updating from a previous version **always make sure to create an backup** in the Phoscon App and read the changelog first.
 
