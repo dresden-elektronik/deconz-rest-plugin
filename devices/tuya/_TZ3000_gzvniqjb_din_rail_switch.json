@@ -5,7 +5,7 @@
 	"product": "TO-Q-SY1-ZT",
 	"vendor": "TONGOU",
 	"sleeper": true,
-	"status": "Silver",
+	"status": "Gold",
 	"subdevices": [{
 		"type": "$TYPE_ON_OFF_OUTPUT",
 		"restapi": "/lights",
