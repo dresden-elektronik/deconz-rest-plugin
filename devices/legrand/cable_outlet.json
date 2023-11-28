@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "ddfvalidate": false,
   "manufacturername": "Legrand",
   "modelid": "Cable outlet",
   "product": "Cable outlet",
