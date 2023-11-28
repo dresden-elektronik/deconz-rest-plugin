@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "ddfvalidate": false,
   "manufacturername": "Legrand",
   "modelid": "Cable outlet",
   "product": "Cable outlet",
@@ -53,9 +54,6 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/heatsetpoint"
-        },
-        {
           "name": "config/mode"
         },
         {
@@ -63,9 +61,6 @@
         },
         {
           "name": "config/reachable"
-        },
-        {
-          "name": "state/temperature"
         },
         {
           "name": "state/lastupdated"
