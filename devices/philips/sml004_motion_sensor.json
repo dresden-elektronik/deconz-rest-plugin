@@ -496,7 +496,7 @@
             "ep": 2,
             "cl": "0x0402",
             "at": "0x0000",
-            "eval": "Item.val = (Attr.val - R.item('config/offset').val) / 100"
+            "eval": "Item.val = (Attr.val + R.item('config/offset').val) / 100"
           },
           "read": {
             "fn": "zcl:attr",
