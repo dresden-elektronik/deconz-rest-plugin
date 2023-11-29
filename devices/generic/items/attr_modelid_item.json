@@ -5,5 +5,12 @@
   "access": "R",
   "public": true,
   "implicit": true,
-  "description": "Model identifier of the device."
+  "description": "Model identifier of the device.",
+  "parse": {
+    "fn": "zcl:attr",
+    "ep": 255,
+    "cl": "0x0000",
+    "at": "0x0005",
+    "eval": "Item.val = Attr.val"
+  }
 }
