@@ -60,7 +60,8 @@
             "ep": "0x0b",
             "cl": "0x0000",
             "at": "0x0005"
-          }
+          },
+          "refresh.interval": 86400
         },
         {
           "name": "attr/name"
