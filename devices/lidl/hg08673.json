@@ -174,7 +174,7 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/consumption"
+          "name": "state/consumption",
           "refresh.interval": 420,
           "parse": {
             "at": "0x0000",
