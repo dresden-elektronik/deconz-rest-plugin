@@ -26,6 +26,11 @@
           "0x0B05"
         ]
       },
+      "meta": {
+        "values": {
+          "config/mode": {"off": 0, "heat": 1}
+        }
+      },
       "items": [
         {
           "name": "attr/id"
@@ -163,34 +168,6 @@
           "default": false
         },
         {
-          "name": "config/heatavailable",
-          "refresh.interval": 3660,
-          "read": {
-            "at": "0x4030",
-            "cl": "0x0201",
-            "ep": 1,
-            "fn": "zcl",
-            "mf": "0x1246"
-          },
-          "parse": {
-            "at": "0x4030",
-            "cl": "0x0201",
-            "ep": 1,
-            "eval": "Item.val = Attr.val;",
-            "fn": "zcl",
-            "mf": "0x1246"
-          },
-          "write": {
-            "at": "0x4030",
-            "cl": "0x0201",
-            "dt": "0x10",
-            "ep": 1,
-            "eval": "Item.val",
-            "fn": "zcl",
-            "mf": "0x1246"
-          }
-        },
-        {
           "name": "config/heatsetpoint",
           "refresh.interval": 3660
         },
@@ -201,7 +178,7 @@
             "at": "0x4032",
             "cl": "0x0201",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           },
           "parse": {
@@ -209,7 +186,7 @@
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           },
           "write": {
@@ -218,13 +195,42 @@
             "dt": "0x10",
             "ep": 1,
             "eval": "Item.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           }
         },
         {
           "name": "config/locked",
           "refresh.interval": 3660
+        },
+        {
+          "name": "config/mode",
+          "refresh.interval": 3660,
+          "read": {
+            "at": "0x4030",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "mf": "0x1246"
+          },
+          "parse": {
+            "at": "0x4030",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "if (Attr.val == 0) { Item.val = 'off' } else if (Attr.val == 1) { Item.val = 'heat' };",
+            "fn": "zcl:attr",
+            "mf": "0x1246"
+          },
+          "write": {
+            "at": "0x4030",
+            "cl": "0x0201",
+            "dt": "0x10",
+            "ep": 1,
+            "eval": "if (Item.val == 'off') { 0 } else if (Item.val == 'heat') { 1 };",
+            "fn": "zcl:attr",
+            "mf": "0x1246"
+          },
+          "default": "heat"
         },
         {
           "name": "config/mountingmode",
@@ -295,7 +301,7 @@
             "at": "0x4016",
             "cl": "0x0201",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           },
           "parse": {
@@ -303,7 +309,7 @@
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           },
           "write": {
@@ -312,7 +318,7 @@
             "dt": "0x10",
             "ep": 1,
             "eval": "Item.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           }
         },
@@ -333,7 +339,7 @@
             "at": "0x4051",
             "cl": "0x0201",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           },
           "parse": {
@@ -341,7 +347,7 @@
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           },
           "write": {
@@ -350,7 +356,7 @@
             "dt": "0x10",
             "ep": 1,
             "eval": "Item.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1246"
           }
         },

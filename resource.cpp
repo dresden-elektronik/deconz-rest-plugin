@@ -276,7 +276,6 @@ const char *RConfigFilterLifeTime = "config/filterlifetime";
 const char *RConfigGPDDeviceId = "config/gpd_device_id";
 const char *RConfigGPDKey = "config/gpd_key";
 const char *RConfigGroup = "config/group";
-const char *RConfigHeatAvailable = "config/heatavailable";
 const char *RConfigHeatSetpoint = "config/heatsetpoint";
 const char *RConfigHostFlags = "config/hostflags";
 const char *RConfigHumiMaxThreshold = "config/humiditymaxthreshold";
@@ -577,7 +576,6 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigGPDDeviceId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigGPDKey));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigGroup));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigHeatAvailable));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RConfigHeatSetpoint, 500, 3200));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RConfigUnoccupiedHeatSetpoint, 500, 3200));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RConfigHostFlags));

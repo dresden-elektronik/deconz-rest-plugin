@@ -290,7 +290,6 @@ extern const char *RConfigFilterLifeTime;
 extern const char *RConfigGPDDeviceId;
 extern const char *RConfigGPDKey;
 extern const char *RConfigGroup;
-extern const char *RConfigHeatAvailable;
 extern const char *RConfigHeatSetpoint;
 extern const char *RConfigHostFlags;
 extern const char *RConfigHumiMaxThreshold;
