@@ -18,7 +18,8 @@
       "meta": {
         "values": {
           "config/mode": {"off": 0, "auto": 1, "heat": 4}
-        }
+        },
+        "group.endpoints": [1]
       },
       "items": [
         {
@@ -60,6 +61,10 @@
           "read": {
             "fn": "none"
           }
+        },
+        {
+          "name": "config/group",
+          "default": "auto"
         },
         {
           "name": "config/heatsetpoint",
@@ -114,7 +119,7 @@
             "cl": "0x0201",
             "dt": "0x30",
             "ep": 1,
-            "eval": "Item.val / 100;",
+            "eval": "parseInt(Item.val / 100);",
             "fn": "zcl:attr",
             "mf": "0x10f2"
           },
@@ -128,6 +133,10 @@
         },
         {
           "name": "config/schedule"
+        },
+        {
+          "name": "config/schedule_on",
+          "static": true
         },
         {
           "name": "state/lastupdated"
@@ -155,6 +164,10 @@
             "eval": "Item.val = Attr.val;",
             "fn": "zcl:attr"
           }
+        },
+        {
+          "name": "state/utc",
+          "refresh.interval": 3660
         },
         {
           "name": "state/valve",
@@ -211,6 +224,12 @@
           "max": 3600
         }
       ]
+    },
+    {
+      "bind": "groupcast",
+      "config.group": 0,
+      "src.ep": 1,
+      "cl": "0x0201"
     }
   ]
 }
