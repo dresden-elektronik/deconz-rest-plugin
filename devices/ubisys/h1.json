@@ -63,6 +63,9 @@
           }
         },
         {
+          "name": "config/checkin"
+        },
+        {
           "name": "config/group",
           "default": "auto"
         },
@@ -139,6 +142,11 @@
           "static": true
         },
         {
+          "name": "config/unoccupiedheatsetpoint",
+          "refresh.interval": 3660,
+          "default": 1600
+        },
+        {
           "name": "state/lastupdated"
         },
         {
@@ -167,6 +175,7 @@
         },
         {
           "name": "state/utc",
+          "change.timeout": 30,
           "refresh.interval": 3660
         },
         {
@@ -212,6 +221,13 @@
         },
         {
           "at": "0x0012",
+          "dt": "0x29",
+          "min": 1,
+          "max": 3600,
+          "change": "0x00000064"
+        },
+        {
+          "at": "0x0014",
           "dt": "0x29",
           "min": 1,
           "max": 3600,
