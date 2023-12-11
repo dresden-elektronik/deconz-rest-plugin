@@ -43,7 +43,7 @@
             "ep": 1,
             "fn": "xiaomi:special",
             "idx": "0x08",
-            "script": "xiaomi_firmware.js"
+            "script": "xiaomi_swversion.js"
           },
           "read": {
             "fn": "none"
@@ -106,7 +106,7 @@
             "ep": 1,
             "fn": "xiaomi:special",
             "idx": "0x08",
-            "script": "xiaomi_firmware.js"
+            "script": "xiaomi_swversion.js"
           },
           "read": {
             "fn": "none"
@@ -214,7 +214,7 @@
             "ep": 1,
             "fn": "xiaomi:special",
             "idx": "0x08",
-            "script": "xiaomi_firmware.js"
+            "script": "xiaomi_swversion.js"
           },
           "read": {
             "fn": "none"
