@@ -8,7 +8,7 @@
   "status": "Gold",
   "subdevices": [
     {
-      "type": "ZHAWater",
+      "type": "$TYPE_WATER_LEAK_SENSOR",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
