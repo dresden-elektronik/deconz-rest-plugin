@@ -14,7 +14,6 @@
 #include <QTimerEvent>
 #include <QMetaObject>
 #include <array>
-#include <tuple>
 #include <deconz/dbg_trace.h>
 #include <deconz/node.h>
 #include "device.h"

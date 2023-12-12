@@ -1,5 +1,5 @@
  /*
- * Copyright (c) 2017-2020 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2023 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -31,9 +31,7 @@
 #include <QJsonArray>
 #include <QJsonValue>
 #include <QJsonParseError>
-#include <queue>
 #include <cmath>
-#include "air_quality.h"
 #include "alarm_system_device_table.h"
 #include "database.h"
 #include "device_ddf_init.h"
@@ -2899,6 +2897,23 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         if (ddf.isValid() && DDF_IsStatusEnabled(ddf.status))
         {
             DBG_Printf(DBG_INFO, "skip legacy loading %s / %s \n", qPrintable(lightNode.uniqueId()), qPrintable(lightNode.modelId()));
+
+            // To speed loading DDF up the first time after it was run as legacy before,
+            // assign manufacturer name and modelid to parent device. That way we don't have to wait until the
+            // data is queried again via Zigbee.
+            // Note: Due the deviceDescriptions->get(&lightNode); matching we can be sure the legacy strings aren't made up.
+            ResourceItem *item = device->item(RAttrManufacturerName);
+            if (item->toString().isEmpty())
+            {
+                item->setValue(lightNode.item(RAttrManufacturerName)->toString());
+            }
+
+            item = device->item(RAttrModelId);
+            if (item->toString().isEmpty())
+            {
+                item->setValue(lightNode.item(RAttrModelId)->toString());
+            }
+
             return;
         }
 
