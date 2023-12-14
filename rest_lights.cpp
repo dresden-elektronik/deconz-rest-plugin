@@ -2552,9 +2552,14 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             {
                 targetLiftZigBee = targetLift == 0 ? 100 : 0;
             }
-            else
+            else if (bStatus && nHex < 44)
             {
                 targetLiftZigBee = targetLift == 100 ? 100 : 0;
+            }
+            else
+            {
+                // New devices no need thoses previous hack
+                targetLiftZigBee = targetLift;
             }
         }
         else
