@@ -8,7 +8,7 @@
   "status": "Gold",
   "subdevices": [
     {
-      "type": "ZHACarbonMonoxide",
+      "type": "$TYPE_CARBONMONOXIDE_SENSOR",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",

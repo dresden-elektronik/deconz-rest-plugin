@@ -4,7 +4,7 @@
   "modelid": ["TS011F","TS011F","TS011F"],
   "product": "HG08673 LIDL SilverCrest smart plug with monitoring (DK, EU, FR)",
   "sleeper": false,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_SMART_PLUG",
@@ -174,7 +174,14 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/consumption"
+          "name": "state/consumption",
+          "refresh.interval": 420,
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0702",
+            "ep": 1,
+            "eval": "item.val = 10 * Attr.val"
+          }
         },
         {
           "name": "state/lastupdated"
