@@ -1,8 +1,14 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "$MF_IKEA",
-  "modelid": "TRADFRI bulb E27 CWS 806lm",
-  "product": "TRADFRI bulb E27 CWS 806lm",
+  "manufacturername": [
+    "$MF_IKEA",
+    "$MF_IKEA"
+  ],
+  "modelid": [
+    "TRADFRI bulb E27 CWS 806lm",
+    "TRADFRI bulb GU10 CWS 345lm"
+  ],
+  "product": "TRÅDFRI LED bulb E27 806lm color/white spectrum globe, TRÅDFRI LED bulb GU10 345lm color/white spectrum",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
