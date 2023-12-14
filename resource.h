@@ -302,6 +302,7 @@ extern const char *RConfigLastChangeSource;
 extern const char *RConfigLastChangeTime;
 extern const char *RConfigLat;
 extern const char *RConfigLedIndication;
+extern const char *RConfigLoadBalancing;
 extern const char *RConfigLocalTime;
 extern const char *RConfigLock;
 extern const char *RConfigLocked;
@@ -315,6 +316,7 @@ extern const char *RConfigOnStartup;
 extern const char *RConfigPending;
 extern const char *RConfigPreset;
 extern const char *RConfigPulseConfiguration;
+extern const char *RConfigRadiatorCovered;
 extern const char *RConfigReachable;
 extern const char *RConfigReportGrid;
 extern const char *RConfigResetPresence;
@@ -359,6 +361,7 @@ extern const char *RConfigUsertest;
 extern const char *RConfigVolume;
 extern const char *RConfigWindowCoveringType;
 extern const char *RConfigWindowOpen;
+extern const char *RConfigWindowOpenDetectionEnabled;
 
 #define R_ALERT_DEFAULT             QVariant(QLatin1String("none"))
 #define R_SENSITIVITY_MAX_DEFAULT   2
