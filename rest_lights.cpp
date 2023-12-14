@@ -310,6 +310,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (rid.suffix == RCapGroupsNotSupported) { groups = false; }
         else if (rid.suffix == RCapSleeper) { capabilities["sleeper"] = true; }
         else if (rid.suffix == RCapTransitionBlock) { capabilities["transition_block"] = true; }
+        else if (rid.suffix == RConfigBriCoupleCt) { configBri["couple_ct"] = item->toBool(); }
         else if (rid.suffix == RConfigBriExecuteIfOff) { configBri["execute_if_off"] = item->toBool(); }
         else if (rid.suffix == RConfigBriMax) { configBri["max"] = item->toNumber(); }
         else if (rid.suffix == RConfigBriMin) { configBri["min"] = item->toNumber(); }
@@ -1731,7 +1732,22 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
                     QString path1 = QString("%1/%2").arg(path).arg(key);
                     value = map1[key];
 
-                    if (key == "execute_if_off")
+                    if (key == "couple_ct")
+                    {
+                        ResourceItem *item = lightNode->item(RConfigBriCoupleCt);
+                        if (item)
+                        {
+                            paramOk = true;
+                            if (value.type() == QVariant::Bool)
+                            {
+                                valueOk = true;
+                                change.addTargetValue(RConfigBriCoupleCt, value.toBool());
+                                lightNode->setValue(RConfigBriCoupleCt, value.toBool());
+                                DB_StoreSubDeviceItem(lightNode, item);
+                            }
+                        }
+                    }
+                    else if (key == "execute_if_off")
                     {
                         ResourceItem *item = lightNode->item(RConfigBriExecuteIfOff);
                         if (item)
@@ -3902,6 +3918,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     else if (rid.suffix == RCapColorGradientStyles) { capabilitiesColorGradient["styles"] = getHueGradientStyleNames(item->toNumber()); }
                     else if (rid.suffix == RCapSleeper) { capabilities["sleeper"] = true; }
                     else if (rid.suffix == RCapTransitionBlock) { capabilities["transition_block"] = true; }
+                    else if (rid.suffix == RConfigBriCoupleCt) { configBri["couple_ct"] = item->toBool(); }
                     else if (rid.suffix == RConfigBriExecuteIfOff) { configBri["execute_if_off"] = item->toBool(); }
                     else if (rid.suffix == RConfigBriMax) { configBri["max"] = item->toNumber(); }
                     else if (rid.suffix == RConfigBriMin) { configBri["min"] = item->toNumber(); }
