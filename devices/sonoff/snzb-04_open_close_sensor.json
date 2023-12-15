@@ -1,46 +1,14 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": [
-    "_TZ3000_d16y6col",
-    "_TZ3000_ww9i3e0y",
-    "_TZ3000_qhozxs2b",
-    "_TZ3000_85czd6fy",
-    "_TZ3000_ocjlo4ea",
-    "_TZ3000_kyb656no",
-    "_TZ3000_fxvjhdyl",
-    "_TZ3000_eit7p838",
-    "_TZ3000_t6jriawg",
-    "_TYZB01_sqmd19i1",
-    "_TYZB01_o63ssaah",
-    "_TZ3000_it1hm1cr",
-    "_TZ3000_upgcbody",
-    "_TZ3000_k4ej3ww2",
-    "_TZ3000_awvmkayh"
-  ],
-  "modelid": [
-    "TS0207",
-    "TS0207",
-    "TS0207",
-    "TS0207",
-    "TS0207",
-    "TS0207",
-    "TS0207",
-    "TS0207",
-    "TS0207",
-    "TS0207",
-    "TS0207",
-    "TS0207",
-    "TS0207",
-    "TS0207",
-    "TS0207"
-  ],
-  "vendor": "Tuya",
-  "product": "Tuya water leak sensor",
+  "manufacturername": ["eWeLink", "zbeacon"],
+  "modelid": ["DS01", "DS01"],
+  "vendor": "SONOFF",
+  "product": "DS01 open/close sensor",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_WATER_LEAK_SENSOR",
+      "type": "$TYPE_OPEN_CLOSE_SENSOR",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
@@ -54,11 +22,7 @@
         "in": [
           "0x0000",
           "0x0001",
-          "0x0003",
           "0x0500"
-        ],
-        "out": [
-          "0x0019"
         ]
       },
       "items": [
@@ -82,19 +46,7 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0000",
-            "at": "0x0001",
-            "script": "tuya_swversion.js"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0000",
-            "at": "0x0001"
-          }
+          "refresh.interval": 86400
         },
         {
           "name": "attr/type"
@@ -104,18 +56,23 @@
         },
         {
           "name": "config/battery",
+          "awake": true,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
+            "eval": "Item.val = Attr.val / 2;",
+            "fn": "zcl:attr"
+          },
+          "read": {
+            "fn": "none"
           }
         },
         {
-          "name": "config/enrolled"
+          "name": "config/checkin"
         },
         {
-          "name": "config/checkin"
+          "name": "config/enrolled"
         },
         {
           "name": "config/on"
@@ -130,13 +87,12 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/lowbattery"
+          "name": "state/lowbattery",
+          "awake": true
         },
         {
-          "name": "state/tampered"
-        },
-        {
-          "name": "state/water"
+          "name": "state/open",
+          "awake": true
         }
       ]
     }
@@ -145,22 +101,20 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "dst.ep": 1,
       "cl": "0x0001",
       "report": [
         {
           "at": "0x0021",
           "dt": "0x20",
           "min": 3600,
-          "max": 14400,
-          "change": "0x00000001"
+          "max": 43200,
+          "change": "0x00000002"
         }
       ]
     },
     {
       "bind": "unicast",
       "src.ep": 1,
-      "dst.ep": 1,
       "cl": "0x0500"
     }
   ]

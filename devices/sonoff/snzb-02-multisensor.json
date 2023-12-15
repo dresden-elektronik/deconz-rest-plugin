@@ -1,7 +1,7 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["eWeLink","SONOFF"],
-  "modelid": ["TH01","SNZB-02D"],
+  "manufacturername": ["eWeLink","SONOFF","SONOFF"],
+  "modelid": ["TH01","SNZB-02D","SNZB-02P"],
   "vendor": "SONOFF",
   "product": "SNZB-02 multisensor",
   "sleeper": true,
