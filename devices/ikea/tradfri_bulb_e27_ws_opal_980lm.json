@@ -71,9 +71,9 @@
             "ep": "0x01",
             "cl": "0x0300",
             "at": [
-              "0x400a",
-              "0x400b",
-              "0x400c",
+              "0x400A",
+              "0x400B",
+              "0x400C",
               "0x4010"
             ]
           },
@@ -92,25 +92,31 @@
           "name": "cap/transition_block"
         },
         {
-          "name": "config/bri/execute_if_off",
-          "read": {
-            "fn": "zcl:attr",
-            "ep": "0x01",
-            "cl": "0x0008",
-            "at": [
-              "0x000f",
-              "0x0010",
-              "0x0011",
-              "0x4000"
-            ]
-          },
-          "refresh.interval": 3600
+          "name": "config/bri/couple_ct"
+        },
+        {
+          "name": "config/bri/execute_if_off"
         },
         {
           "name": "config/bri/on_level",
           "read": {
             "fn": "none"
           }
+        },
+        {
+          "name": "config/bri/options",
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0008",
+            "at": [
+              "0x000F",
+              "0x0010",
+              "0x0011",
+              "0x4000"
+            ]
+          },
+          "refresh.interval": 3600
         },
         {
           "name": "config/bri/onoff_transitiontime",
