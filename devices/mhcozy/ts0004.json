@@ -1,13 +1,7 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": [
-    "_TZ3000_u3oupgdy",
-    "MHCOZY"
-  ],
-  "modelid": [
-    "TS0004",
-    "ZG-005-RF"
-  ],
+  "manufacturername": "_TZ3000_u3oupgdy",
+  "modelid": "TS0004",
   "product": "MHCOZY 4-Channel Dry Contact Smart Wireless Zigbee Switch Relay Module",
   "sleeper": false,
   "status": "Gold",
@@ -30,15 +24,17 @@
           "name": "attr/lastseen"
         },
         {
-          "name": "attr/manufacturername",
-          "static": "MHCOZY"
+          "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid",
-          "static": "ZG-005-RF"
+          "name": "attr/modelid"
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "attr/productid",
+          "static": "ZG-005-RF"
         },
         {
           "name": "attr/swversion",
@@ -140,15 +136,17 @@
           "name": "attr/lastseen"
         },
         {
-          "name": "attr/manufacturername",
-          "static": "MHCOZY"
+          "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid",
-          "static": "ZG-005-RF"
+          "name": "attr/modelid"
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "attr/productid",
+          "static": "ZG-005-RF"
         },
         {
           "name": "attr/swversion",
@@ -221,15 +219,17 @@
           "name": "attr/lastseen"
         },
         {
-          "name": "attr/manufacturername",
-          "static": "MHCOZY"
+          "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid",
-          "static": "ZG-005-RF"
+          "name": "attr/modelid"
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "attr/productid",
+          "static": "ZG-005-RF"
         },
         {
           "name": "attr/swversion",
@@ -302,15 +302,17 @@
           "name": "attr/lastseen"
         },
         {
-          "name": "attr/manufacturername",
-          "static": "MHCOZY"
+          "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid",
-          "static": "ZG-005-RF"
+          "name": "attr/modelid"
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "attr/productid",
+          "static": "ZG-005-RF"
         },
         {
           "name": "attr/swversion",
