@@ -135,7 +135,15 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/schedule"
+          "name": "config/schedule",
+          "refresh.interval": 3660,
+          "read": {
+            "fn": "zcl:cmd",
+            "ep": "0x01",
+            "cl": "0x0201",
+            "cmd": "0x02",
+            "eval": "'7F01'"
+          }
         },
         {
           "name": "config/schedule_on",
