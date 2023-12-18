@@ -183,7 +183,6 @@
         },
         {
           "name": "state/utc",
-          "change.timeout": 30,
           "refresh.interval": 3660
         },
         {
