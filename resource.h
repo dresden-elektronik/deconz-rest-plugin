@@ -93,6 +93,7 @@ extern const char *RAttrLastAnnounced;
 extern const char *RAttrLastSeen;
 extern const char *RAttrLevelMin;
 extern const char *RAttrManufacturerName;
+extern const char *RAttrMode;
 extern const char *RAttrModelId;
 extern const char *RAttrName;
 extern const char *RAttrNwkAddress;

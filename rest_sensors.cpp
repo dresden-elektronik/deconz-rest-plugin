@@ -2748,6 +2748,11 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
             continue; // don't provide reachable for green power devices
         }
 
+        if (rid.suffix == RAttrMode)
+        {
+            continue; // handled later on
+        }
+
         if (strncmp(rid.suffix, "config/", 7) == 0)
         {
             const char *key = item->descriptor().suffix + 7;
