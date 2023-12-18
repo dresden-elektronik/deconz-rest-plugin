@@ -11095,7 +11095,7 @@ void DeRestPluginPrivate::foundScene(LightNode *lightNode, Group *group, uint8_t
     closeDb();
     if (scene.name.isEmpty())
     {
-        scene.name = tr("Scene %u").arg(sceneId);
+        scene.name = tr("Scene %1").arg(sceneId);
     }
     group->scenes.push_back(scene);
     updateGroupEtag(group);
@@ -13229,7 +13229,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(const deCONZ::ApsDataIndi
                 s.groupAddress = groupId;
                 s.id = sceneId;
                 s.externalMaster = true;
-                s.name = tr("Scene %u").arg(sceneId);
+                s.name = tr("Scene %1").arg(sceneId);
                 group->scenes.push_back(s);
                 updateGroupEtag(group);
                 queSaveDb(DB_SCENES, DB_SHORT_SAVE_DELAY);
