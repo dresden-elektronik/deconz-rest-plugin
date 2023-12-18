@@ -64,7 +64,7 @@
           "parse": {
             "cl": "0x0005",
             "cmd": "0x05",
-            "eval": "Item.val = (ZclFrame.at(0) + 18) * -1000 + 2"
+            "eval": "Item.val = ((ZclFrame.at(0) << 24 >> 24) + 18) * -1000 + 2"
           }
         },
         {
