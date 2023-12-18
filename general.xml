@@ -2318,7 +2318,29 @@ Note: It does not clear or delete previous weekly schedule programming configura
           <attribute id="0x0081" name="Unknown" type="s16" access="r" required="o"/>
           <attribute id="0x0082" name="Unknown (Heat Setpoint?)" type="s16" access="r" required="o"/>
         </attribute-set>
-     	<!-- Sinope manufacturer specific -->
+        <!-- ubisys manufacturer specific -->
+        <attribute-set id="0x0000" description="Ubisys specific" mfcode="0x10f2">
+          <attribute id="0x0000" name="Unknown" type="u16" access="rw" required="m" mfcode="0x10f2"></attribute>
+          <attribute id="0x0001" name="Unknown" type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0002" name="Unknown" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0003" name="Offset" type="s8" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0004" name="Unknown" type="s16" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0005" name="Vacation" type="bool" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0009" name="Unknown" type="u16" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x000a" name="Unknown" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x000b" name="Unknown" type="s8" access="r" required="m" mfcode="0x10f2"></attribute>
+          <attribute id="0x000c" name="Unknown" type="s8" access="r" required="m" mfcode="0x10f2"></attribute>
+          <attribute id="0x000d" name="Unknown" type="u8" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x000e" name="Unknown" type="u8" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x000f" name="Unknown" type="u8" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0010" name="Unknown" type="u8" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0011" name="Unknown" type="u8" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0012" name="Unknown" type="u8" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0013" name="Unknown" type="s16" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0014" name="Unknown" type="s8" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0015" name="Unknown" type="s16" access="rw" required="o" mfcode="0x10f2"></attribute>
+        </attribute-set>
+        <!-- Sinope manufacturer specific -->
         <attribute-set id="0x0400" description="Sinope specific" mfcode="0x119c">
           <attribute id="0x0400" name="Occupancy" type="enum8" access="rw" required="m" mfcode="0x119c">
               <value name="Unoccupied" value="0x00"></value>
