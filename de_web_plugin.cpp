@@ -195,8 +195,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "SPW35Z", tiMacPrefix }, // RT-RK OBLO SPW35ZD0 smart plug
     { VENDOR_NONE, "SWO-MOS1PA", tiMacPrefix }, // Swann One Motion Sensor
     { VENDOR_BITRON, "902010/32", emberMacPrefix }, // Bitron: thermostat
-    { VENDOR_DDEL, "Lighting Switch", deMacPrefix },
-    { VENDOR_DDEL, "Scene Switch", deMacPrefix },
     { VENDOR_IKEA, "TRADFRI remote control", silabs1MacPrefix },
     { VENDOR_IKEA, "TRADFRI remote control", silabsMacPrefix },
     { VENDOR_IKEA, "TRADFRI remote control", silabs2MacPrefix },
@@ -4500,47 +4498,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     {
         // DDF managed devices handle this in another place
     }
-    // DE Lighting Switch: probe for mode changes
-    else if (sensor->modelId() == QLatin1String("Lighting Switch") && ind.dstAddressMode() == deCONZ::ApsGroupAddress)
-    {
-        Sensor::SensorMode mode = sensor->mode();
-
-        if (ind.srcEndpoint() == 2 && mode != Sensor::ModeTwoGroups)
-        {
-            mode = Sensor::ModeTwoGroups;
-        }
-        else if (ind.clusterId() == SCENE_CLUSTER_ID && mode != Sensor::ModeScenes)
-        {
-            mode = Sensor::ModeScenes;
-        }
-        else if (ind.clusterId() == COLOR_CLUSTER_ID && mode != Sensor::ModeColorTemperature)
-        {
-            mode = Sensor::ModeColorTemperature;
-        }
-
-        Sensor *other = getSensorNodeForAddressAndEndpoint(sensor->address(), (sensor->fingerPrint().endpoint == 2) ? 1 : 2);
-
-        if (mode != sensor->mode())
-        {
-            sensor->setMode(mode);
-            updateSensorEtag(sensor);
-            sensor->setNeedSaveDatabase(true);
-            queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
-
-            // set changed mode for sensor endpoints 1 and 2
-            if (other)
-            {
-                other->setMode(mode);
-                other->setNeedSaveDatabase(true);
-                updateSensorEtag(other);
-            }
-        }
-
-        if (other && ind.srcEndpoint() == 2 && other->fingerPrint().endpoint == 1)
-        {   // forward button events 300x and 400x to first endpoint sensor
-            checkSensorButtonEvent(other, ind, zclFrame);
-        }
-    }
     // Busch-Jaeger
     else if (sensor->modelId() == QLatin1String("RM01") || sensor->modelId() == QLatin1String("RB01"))
     {
@@ -4661,11 +4618,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     }
     else if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
     {
-        if (sensor->mode() == Sensor::ModeTwoGroups) // only supported for DE Lighting Switch
-        {
-            sensor->setMode(Sensor::ModeScenes);
-            updateSensorEtag(sensor);
-        }
     }
     else if (sensor->modelId().endsWith(QLatin1String("86opcn01"))) // Aqara Opple
     {
@@ -4724,21 +4676,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         ResourceItem *item = sensor->addItem(DataTypeString, RConfigGroup);
 
         quint16 groupId = ind.dstAddress().group();
-
-        if (sensor->modelId() == QLatin1String("Lighting Switch"))
-        {
-            // adjust groupId for endpoints
-            // ep 1: <gid>
-            // ep 2: <gid> + 1
-            if (sensor->fingerPrint().endpoint == 2 && ind.srcEndpoint() == 1)
-            {
-                groupId++;
-            }
-            else if (sensor->fingerPrint().endpoint == 1 && ind.srcEndpoint() == 2)
-            {
-                groupId--;
-            }
-        }
 
         QStringList gids;
         const QString gid = QString::number(groupId);
@@ -7715,12 +7652,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL)
     {
-        sensorNode.setManufacturer("dresden elektronik");
-
-        if (modelId == QLatin1String("Lighting Switch"))
-        {
-            sensorNode.setMode(Sensor::ModeTwoGroups); // inital
-        }
     }
     else if ((node->nodeDescriptor().manufacturerCode() == VENDOR_OSRAM_STACK) || (node->nodeDescriptor().manufacturerCode() == VENDOR_OSRAM))
     {
@@ -16728,10 +16659,24 @@ void DEV_AllocateGroup(const Device *device, Resource *rsub, ResourceItem *item)
         if (groupList[i] != QLatin1String("auto") && groupList[i] != QLatin1String("null"))
         {
             // verify group exists
-            auto g = std::find_if(groups.begin(), groups.end(), [&](const Group &x)
-                                 { return x.state() == Group::StateNormal && x.id() == groupList[i]; });
+            auto g = std::find_if(groups.begin(), groups.end(), [&](const Group &x) {
+                const ResourceItem *itemUniqueId = x.item(RAttrUniqueId);
+                if (x.state() == Group::StateNormal)
+                {
+                    if (x.id() == groupList[i])
+                    {
+                        return true;
+                    }
 
-            if (g == groups.cend())
+                    if (itemUniqueId && itemUniqueId->toString() == gUniqueId)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            });
+
+            if (g == groups.end())
             {
                 bool ok;
                 uint gid = groupList[i].toUInt(&ok, 0);
