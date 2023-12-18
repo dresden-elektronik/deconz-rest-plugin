@@ -1,7 +1,0 @@
-{
-	"schema": "resourceitem1.schema.json",
-	"id": "state/direction",
-	"datatype": "String",
-	"access": "R",
-	"public": true
-}

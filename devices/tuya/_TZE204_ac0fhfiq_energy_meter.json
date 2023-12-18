@@ -158,14 +158,6 @@
           "default": 0
         },
         {
-          "name": "state/direction",
-          "parse": {
-            "dpid": 102,
-            "eval": "if (Attr.val == 0) { Item.val = 'consuming' } else { Item.val = 'producing' };",
-            "fn": "tuya"
-          }
-        },
-        {
           "name": "state/lastupdated"
         },
         {
