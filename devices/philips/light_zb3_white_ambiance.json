@@ -6,6 +6,8 @@
     "$MF_PHILIPS",
     "$MF_PHILIPS",
     "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_SIGNIFY",
     "$MF_SIGNIFY",
     "$MF_SIGNIFY",
     "$MF_SIGNIFY",
@@ -16,11 +18,13 @@
     "LTA001",
     "LTE002",
     "LTG002",
+    "LTV001",
     "LTV002",
     "915005997701",
     "LTA001",
     "LTE002",
     "LTG002",
+    "LTV001",
     "LTV002",
     "915005997701"
   ],
@@ -139,7 +143,13 @@
           "name": "cap/on/off_with_effect"
         },
         {
+          "name": "config/bri/couple_ct"
+        },
+        {
           "name": "config/bri/execute_if_off"
+        },
+        {
+          "name": "config/bri/options"
         },
         {
           "name": "config/bri/startup"

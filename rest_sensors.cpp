@@ -1848,6 +1848,33 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         updated = true;
                     }
                 }
+                else if (rid.suffix == RConfigWindowOpenDetectionEnabled) // Boolean
+                {
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.boolean);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
+                }
+                else if (rid.suffix == RConfigRadiatorCovered) // Boolean
+                {
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.boolean);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
+                }
+                else if (rid.suffix == RConfigLoadBalancing) // Boolean
+                {
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.boolean);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
+                }
                 else if (rid.suffix == RConfigSwingMode) // String
                 {
                     const auto match = matchKeyValue(data.string, RConfigSwingModeValues);
@@ -2719,6 +2746,11 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
             sensor->type().startsWith(QLatin1String("ZGP")))
         {
             continue; // don't provide reachable for green power devices
+        }
+
+        if (rid.suffix == RAttrMode)
+        {
+            continue; // handled later on
         }
 
         if (strncmp(rid.suffix, "config/", 7) == 0)
@@ -3918,308 +3950,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
         return;
     }
 
-    // check for dresden elektronik devices
-    if (existDevicesWithVendorCodeForMacPrefix(sc->address, VENDOR_DDEL))
-    {
-        if (sc->macCapabilities & deCONZ::MacDeviceIsFFD) // end-devices only
-            return;
-
-        if (ind.profileId() != HA_PROFILE_ID)
-            return;
-
-        SensorCommand cmd;
-        cmd.cluster = ind.clusterId();
-        cmd.endpoint = ind.srcEndpoint();
-        cmd.dstGroup = ind.dstAddress().group();
-        cmd.zclCommand = zclFrame.commandId();
-        cmd.zclCommandParameter = 0;
-
-        // filter
-        if (cmd.endpoint == 0x01 && cmd.cluster == ONOFF_CLUSTER_ID)
-        {
-            // on: Lighting and Scene Switch left button
-            DBG_Printf(DBG_INFO, "Lighting or Scene Switch left button\n");
-        }
-        else if (cmd.endpoint == 0x02 && cmd.cluster == ONOFF_CLUSTER_ID)
-        {
-            // on: Lighting Switch right button
-            DBG_Printf(DBG_INFO, "Lighting Switch right button\n");
-        }
-        else if (cmd.endpoint == 0x01 && cmd.cluster == SCENE_CLUSTER_ID && cmd.zclCommand == 0x05
-                 && zclFrame.payload().size() >= 3 && zclFrame.payload().at(2) == 0x04)
-        {
-            // recall scene: Scene Switch
-            cmd.zclCommandParameter = zclFrame.payload()[2]; // sceneId
-            DBG_Printf(DBG_INFO, "Scene Switch scene %u\n", cmd.zclCommandParameter);
-        }
-        else
-        {
-            return;
-        }
-
-        bool found = false;
-        for (size_t i = 0; i < sc->rxCommands.size(); i++)
-        {
-            if (sc->rxCommands[i] == cmd)
-            {
-                found = true;
-                break;
-            }
-        }
-
-        if (!found)
-        {
-            sc->rxCommands.push_back(cmd);
-        }
-
-        bool isLightingSwitch = false;
-        bool isSceneSwitch = false;
-        quint16 group1 = 0;
-        quint16 group2 = 0;
-
-        for (size_t i = 0; i < sc->rxCommands.size(); i++)
-        {
-            const SensorCommand &c = sc->rxCommands[i];
-            if (c.cluster == SCENE_CLUSTER_ID && c.zclCommandParameter == 0x04 && c.endpoint == 0x01)
-            {
-                group1 = c.dstGroup;
-                isSceneSwitch = true;
-                DBG_Printf(DBG_INFO, "Scene Switch group1 0x%04X\n", group1);
-                break;
-            }
-            else if (c.cluster == ONOFF_CLUSTER_ID && c.endpoint == 0x01)
-            {
-                group1 = c.dstGroup;
-            }
-            else if (c.cluster == ONOFF_CLUSTER_ID && c.endpoint == 0x02)
-            {
-                group2 = c.dstGroup;
-            }
-
-            if (!isSceneSwitch && group1 != 0 && group2 != 0)
-            {
-                if (group1 > group2)
-                {
-                    std::swap(group1, group2); // reorder
-                }
-                isLightingSwitch = true;
-                DBG_Printf(DBG_INFO, "Lighting Switch group1 0x%04X, group2 0x%04X\n", group1, group2);
-                break;
-            }
-        }
-
-        Sensor *s1 = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
-        Sensor *s2 = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x02);
-
-        if (isSceneSwitch || isLightingSwitch)
-        {
-            Sensor sensorNode;
-            SensorFingerprint &fp = sensorNode.fingerPrint();
-            fp.endpoint = 0x01;
-            fp.deviceId = DEV_ID_ZLL_COLOR_CONTROLLER;
-            fp.profileId = HA_PROFILE_ID;
-            fp.inClusters.push_back(BASIC_CLUSTER_ID);
-            fp.inClusters.push_back(COMMISSIONING_CLUSTER_ID);
-            fp.outClusters.push_back(ONOFF_CLUSTER_ID);
-            fp.outClusters.push_back(LEVEL_CLUSTER_ID);
-            fp.outClusters.push_back(SCENE_CLUSTER_ID);
-
-            sensorNode.setNode(0);
-            sensorNode.address() = sc->address;
-            sensorNode.setType(QLatin1String("ZHASwitch"));
-            sensorNode.fingerPrint() = fp;
-            sensorNode.setUniqueId(generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint, COMMISSIONING_CLUSTER_ID));
-            sensorNode.setManufacturer(QLatin1String("dresden elektronik"));
-
-            ResourceItem *item;
-            item = sensorNode.item(RConfigOn);
-            item->setValue(true);
-
-            item = sensorNode.item(RConfigReachable);
-            item->setValue(true);
-
-            sensorNode.addItem(DataTypeInt32, RStateButtonEvent);
-            sensorNode.updateStateTimestamp();
-
-            sensorNode.setNeedSaveDatabase(true);
-            updateSensorEtag(&sensorNode);
-
-            bool update = false;
-
-            if (!s1 && isSceneSwitch && searchSensorsState == SearchSensorsActive)
-            {
-                openDb();
-                sensorNode.setId(QString::number(getFreeSensorId()));
-                closeDb();
-                sensorNode.setMode(Sensor::ModeScenes);
-                sensorNode.setModelId(QLatin1String("Scene Switch"));
-                sensorNode.setName(QString("Scene Switch %1").arg(sensorNode.id()));
-                sensorNode.setNeedSaveDatabase(true);
-                sensors.push_back(sensorNode);
-                s1 = &sensors.back();
-                updateSensorEtag(s1);
-                update = true;
-                Event e(RSensors, REventAdded, sensorNode.id());
-                enqueueEvent(e);
-            }
-            else if (isLightingSwitch)
-            {
-                if (!s1 && searchSensorsState == SearchSensorsActive)
-                {
-                    openDb();
-                    sensorNode.setId(QString::number(getFreeSensorId()));
-                    closeDb();
-                    sensorNode.setMode(Sensor::ModeTwoGroups);
-                    sensorNode.setModelId(QLatin1String("Lighting Switch"));
-                    sensorNode.setName(QString("Lighting Switch %1").arg(sensorNode.id()));
-                    sensorNode.setNeedSaveDatabase(true);
-                    sensors.push_back(sensorNode);
-                    s1 = &sensors.back();
-                    updateSensorEtag(s1);
-                    update = true;
-                    Event e(RSensors, REventAdded, sensorNode.id());
-                    enqueueEvent(e);
-                }
-
-                if (!s2 && searchSensorsState == SearchSensorsActive)
-                {
-                    openDb();
-                    sensorNode.setId(QString::number(getFreeSensorId()));
-                    closeDb();
-                    sensorNode.setMode(Sensor::ModeTwoGroups);
-                    sensorNode.setName(QString("Lighting Switch %1").arg(sensorNode.id()));
-                    sensorNode.setNeedSaveDatabase(true);
-                    sensorNode.fingerPrint().endpoint = 0x02;
-                    sensorNode.setUniqueId(generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint, COMMISSIONING_CLUSTER_ID));
-                    sensors.push_back(sensorNode);
-                    s2 = &sensors.back();
-                    updateSensorEtag(s2);
-                    update = true;
-                    Event e(RSensors, REventAdded, sensorNode.id());
-                    enqueueEvent(e);
-                }
-            }
-
-            // check updated data
-            if (s1 && s1->modelId().isEmpty())
-            {
-                if      (isSceneSwitch)    { s1->setModelId(QLatin1String("Scene Switch")); }
-                else if (isLightingSwitch) { s1->setModelId(QLatin1String("Lighting Switch")); }
-                s1->setNeedSaveDatabase(true);
-                update = true;
-            }
-
-            if (s2 && s2->modelId().isEmpty())
-            {
-                if (isLightingSwitch) { s2->setModelId(QLatin1String("Lighting Switch")); }
-                s2->setNeedSaveDatabase(true);
-                update = true;
-            }
-
-            if (s1 && s1->manufacturer().isEmpty())
-            {
-                s1->setManufacturer(QLatin1String("dresden elektronik"));
-                s1->setNeedSaveDatabase(true);
-                update = true;
-            }
-
-            if (s2 && s2->manufacturer().isEmpty())
-            {
-                s2->setManufacturer(QLatin1String("dresden elektronik"));
-                s2->setNeedSaveDatabase(true);
-                update = true;
-            }
-
-            // create or update first group
-            Group *g = (s1 && group1 != 0) ? getGroupForId(group1) : 0;
-            if (!g && s1 && group1 != 0)
-            {
-                // delete older groups of this switch permanently
-                deleteOldGroupOfSwitch(s1, group1);
-
-                //create new switch group
-                Group group;
-                group.setAddress(group1);
-                group.addDeviceMembership(s1->id());
-                group.setName(QString("%1").arg(s1->name()));
-                updateGroupEtag(&group);
-                groups.push_back(group);
-                update = true;
-            }
-            else if (g && s1)
-            {
-                if (g->state() == Group::StateDeleted)
-                {
-                    g->setState(Group::StateNormal);
-                }
-
-                // check for changed device memberships
-                if (!g->m_deviceMemberships.empty())
-                {
-                    if (isLightingSwitch || isSceneSwitch) // only support one device member per group
-                    {
-                        if (g->m_deviceMemberships.size() > 1 || g->m_deviceMemberships.front() != s1->id())
-                        {
-                            g->m_deviceMemberships.clear();
-                        }
-                    }
-                }
-
-                if (g->addDeviceMembership(s1->id()))
-                {
-                    updateGroupEtag(g);
-                    update = true;
-                }
-            }
-
-            // create or update second group (if needed)
-            g = (s2 && group2 != 0) ? getGroupForId(group2) : 0;
-            if (!g && s2 && group2 != 0)
-            {
-                // delete older groups of this switch permanently
-                deleteOldGroupOfSwitch(s2, group2);
-
-                //create new switch group
-                Group group;
-                group.setAddress(group2);
-                group.addDeviceMembership(s2->id());
-                group.setName(QString("%1").arg(s2->name()));
-                updateGroupEtag(&group);
-                groups.push_back(group);
-            }
-            else if (g && s2)
-            {
-                if (g->state() == Group::StateDeleted)
-                {
-                    g->setState(Group::StateNormal);
-                }
-
-                // check for changed device memberships
-                if (!g->m_deviceMemberships.empty())
-                {
-                    if (isLightingSwitch || isSceneSwitch) // only support one device member per group
-                    {
-                        if (g->m_deviceMemberships.size() > 1 || g->m_deviceMemberships.front() != s2->id())
-                        {
-                            g->m_deviceMemberships.clear();
-                        }
-                    }
-                }
-
-                if (g->addDeviceMembership(s2->id()))
-                {
-                    updateGroupEtag(g);
-                    update = true;
-                }
-            }
-
-            if (update)
-            {
-                queSaveDb(DB_GROUPS | DB_SENSORS, DB_SHORT_SAVE_DELAY);
-            }
-        }
-    }
-    else if (existDevicesWithVendorCodeForMacPrefix(sc->address, VENDOR_IKEA))
+    if (existDevicesWithVendorCodeForMacPrefix(sc->address, VENDOR_IKEA))
     {
         if (sc->macCapabilities & deCONZ::MacDeviceIsFFD) // end-devices only
             return;
