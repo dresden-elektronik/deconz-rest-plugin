@@ -35,8 +35,8 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
         {
           "name": "attr/type"
@@ -84,8 +84,8 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
         {
           "name": "attr/type"
@@ -100,7 +100,7 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/battery",
+          "name": "state/battery",
           "parse": {"fn": "tuya", "dpid": 105, "eval": "Item.val = Attr.val;" },
           "read": {"fn": "none"},
           "default": 0

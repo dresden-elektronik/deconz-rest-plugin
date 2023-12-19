@@ -4,7 +4,7 @@
   "modelid": "LXN59-1S7LX1.0",
   "product": "Another Smart socket plug",
   "sleeper": false,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_SMART_PLUG",

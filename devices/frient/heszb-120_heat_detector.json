@@ -193,7 +193,7 @@
       ]
     },
     {
-      "type": "Warning device",
+      "type": "$TYPE_WARNING_DEVICE",
       "restapi": "/lights",
       "uuid": [
         "$address.ext",

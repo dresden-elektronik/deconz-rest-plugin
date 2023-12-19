@@ -27,8 +27,8 @@ struct ZCL_Param
     std::array<uint16_t, MaxAttributes> attributes;
     uint16_t clusterId = 0;
     uint16_t manufacturerCode = 0;
+    uint16_t commandId = 0;
     uint8_t endpoint = 0;
-    uint8_t commandId = 0;
     struct {
         uint8_t valid : 1;
         uint8_t hasCommandId : 1;

@@ -1,0 +1,24 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/bri/couple_ct",
+  "datatype": "Bool",
+  "access": "RW",
+  "public": true,
+  "description": "Couple color temperature to brightness.",
+  "default": true,
+  "parse": {
+    "fn": "zcl:attr",
+    "ep": 0,
+    "cl": "0x0008",
+    "at": "0x000F",
+    "eval": "Item.val = (Attr.val & 0x02) !== 0"
+  },
+  "write": {
+    "fn": "zcl:attr",
+    "ep": 0,
+    "cl": "0x0008",
+    "at": "0x000F",
+    "dt": "0x18",
+    "eval": "Item.val ? R.item('config/bri/options').val | 0x02 : R.item('config/bri/options').val & ~0x02"
+  }
+}
