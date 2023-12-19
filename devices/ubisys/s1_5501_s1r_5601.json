@@ -8,7 +8,7 @@
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
+      "type": "$TYPE_ON_OFF_OUTPUT",
       "restapi": "/lights",
       "uuid": [
         "$address.ext",
