@@ -81,24 +81,6 @@ void DeRestPluginPrivate::handleThermostatUiConfigurationClusterIndication(const
             }
                 break;
 
-            case THERM_UI_ATTRID_VIEWING_DIRECTION:
-            {
-                if (sensor->modelId() == QLatin1String("TRV001") || sensor->modelId() == QLatin1String("eT093WRO"))
-                {
-                    bool displayflipped = attr.numericValue().u8 > 0 ? true : false;
-                    item = sensor->item(RConfigDisplayFlipped);
-
-                    if (item && item->toBool() != displayflipped)
-                    {
-                        item->setValue(displayflipped);
-                        enqueueEvent(Event(RSensors, RConfigDisplayFlipped, sensor->id(), item));
-                        configUpdated = true;
-                    }
-                }
-                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID, attrId, attr.numericValue());
-            }
-                break;
-
             default:
                 break;
             }

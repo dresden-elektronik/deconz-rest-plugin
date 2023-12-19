@@ -451,7 +451,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_ALERTME, "SLR2b", computimeMacPrefix }, // Hive   Heating Receiver 2 channel second version
     { VENDOR_ALERTME, "SLT2", computimeMacPrefix }, // Hive thermostat
     { VENDOR_ALERTME, "SLT3", computimeMacPrefix }, // Hive thermostat
-    { VENDOR_DANFOSS, "TRV001", silabs2MacPrefix }, // Hive thermostat (From Danfoss)
     { VENDOR_SUNRICHER, "4512705", silabs2MacPrefix }, // Namron remote control
     { VENDOR_SUNRICHER, "4512726", silabs2MacPrefix }, // Namron rotary switch
     { VENDOR_SUNRICHER, "S57003", silabs2MacPrefix }, // SLC 4-ch remote controller
@@ -484,7 +483,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SCHNEIDER, "iTRV", silabs3MacPrefix }, // Drayton Wiser Radiator Thermostat
     { VENDOR_SCHNEIDER, "CCT593011_AS", emberMacPrefix }, // LK Wiser Temperature and Humidity Sensor
     { VENDOR_SCHNEIDER, "CCT595011_AS", emberMacPrefix }, // LK Wiser Motion Sensor
-    { VENDOR_DANFOSS, "eT093WRO", silabs5MacPrefix }, // POPP Smart Thermostat
     { VENDOR_DANFOSS, "0x8020", silabs6MacPrefix }, // Danfoss RT24V Display thermostat
     { VENDOR_DANFOSS, "0x8021", silabs6MacPrefix }, // Danfoss RT24V Display thermostat with floor sensor
     { VENDOR_DANFOSS, "0x8030", silabs6MacPrefix }, // Danfoss RTbattery Display thermostat
@@ -1311,10 +1309,6 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         case THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID:
             if (!DEV_TestStrict() && !devManaged) { handleThermostatUiConfigurationClusterIndication(ind, zclFrame); }
-            break;
-
-        case DIAGNOSTICS_CLUSTER_ID:
-            if (!DEV_TestStrict() && !devManaged) { handleDiagnosticsClusterIndication(ind, zclFrame); }
             break;
 
         case IDENTIFY_CLUSTER_ID:
@@ -6294,8 +6288,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 case TIME_CLUSTER_ID:
                 {
                     // Many Xiaomi devices advertise non-functional Time cluster, so better use whitelist.
-                    if (modelId == QLatin1String("Thermostat") || // eCozy
-                        modelId == QLatin1String("eT093WRO"))     // POPP smart thermostat
+                    if (modelId == QLatin1String("Thermostat")) // eCozy
                     {
                         fpTimeSensor.inClusters.push_back(ci->id());
                     }
@@ -7540,22 +7533,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                 sensorNode.addItem(DataTypeString, RConfigMode);
                 sensorNode.addItem(DataTypeString, RConfigFanMode);
-            }
-            else if (modelId == QLatin1String("TRV001") ||   // Hive TRV
-                     modelId == QLatin1String("eT093WRO"))   // POPP smart thermostat
-            {
-                sensorNode.addItem(DataTypeUInt8, RStateValve);
-                sensorNode.addItem(DataTypeString, RStateWindowOpen);
-                sensorNode.addItem(DataTypeBool, RStateMountingModeActive)->setValue(false);
-                sensorNode.addItem(DataTypeString, RStateErrorCode);
-                sensorNode.addItem(DataTypeBool, RConfigDisplayFlipped)->setValue(false);
-                sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
-                sensorNode.addItem(DataTypeBool, RConfigMountingMode)->setValue(false);
-                // Supported with Danfoss firmware version 1.08
-                sensorNode.addItem(DataTypeBool, RConfigScheduleOn)->setValue(false);
-                sensorNode.addItem(DataTypeString, RConfigSchedule);
-                sensorNode.addItem(DataTypeInt16, RConfigExternalTemperatureSensor)->setValue(0);
-                sensorNode.addItem(DataTypeBool, RConfigExternalWindowOpen)->setValue(false);
             }
             else if (modelId == QLatin1String("PR412C")) // OWON PCT502 Thermostat
             {
@@ -15583,10 +15560,8 @@ void DeRestPlugin::idleTimerFired()
                                 sensorNode->modelId().startsWith(QLatin1String("SLT3")) ||      // Hive Active Heating Thermostat
                                 sensorNode->modelId().startsWith(QLatin1String("SLR2")) ||      // Hive Active Heating Receiver 2 channel
                                 sensorNode->modelId().startsWith(QLatin1String("SLR1b")) ||     // Hive Active Heating Receiver 1 channel
-                                sensorNode->modelId().startsWith(QLatin1String("TRV001")) ||    // Hive TRV
                                 sensorNode->modelId().startsWith(QLatin1String("TH112")) ||     // Sinope devices
                                 sensorNode->modelId().startsWith(QLatin1String("TH1300ZB")) ||  // Sinope devices
-                                sensorNode->modelId().startsWith(QLatin1String("eT093WRO")) ||  // POPP smart thermostat
                                 sensorNode->modelId().startsWith(QLatin1String("0x8020")) ||    // Danfoss RT24V Display thermostat
                                 sensorNode->modelId().startsWith(QLatin1String("0x8021")) ||    // Danfoss RT24V Display thermostat with floor sensor
                                 sensorNode->modelId().startsWith(QLatin1String("0x8030")) ||    // Danfoss RTbattery Display thermostat
