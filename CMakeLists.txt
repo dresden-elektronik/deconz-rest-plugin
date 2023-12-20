@@ -162,7 +162,6 @@ add_library(${PROJECT_NAME} SHARED
     device_tick.cpp
     de_web_plugin.cpp
     de_web_widget.cpp
-    diagnostics.cpp
     discovery.cpp
     electrical_measurement.cpp
     event.cpp
