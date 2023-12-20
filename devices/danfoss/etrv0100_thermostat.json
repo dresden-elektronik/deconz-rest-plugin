@@ -169,7 +169,15 @@
         },
         {
           "name": "config/heatsetpoint",
-          "refresh.interval": 3660
+          "refresh.interval": 3660,
+          "write": {
+            "fn": "zcl:cmd",
+            "ep": "0x01",
+            "cl": "0x0201",
+            "cmd": "0x40",
+            "eval": "'01' + ('00' + Item.val.toString(16)).slice(-2) + ('00' + Item.val.toString(16)).slice(-4,-2);",
+            "mf": "0x1246"
+          }
         },
         {
           "name": "config/loadbalancing",
@@ -375,9 +383,9 @@
             "at": "0x4000",
             "cl": "0x0B05",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
             "fn": "zcl:attr",
-            "mf": "0x1246"
+            "mf": "0x1246",
+            "script": "danfoss_errorcode.js"
           },
           "read": {
             "at": "0x4000",
