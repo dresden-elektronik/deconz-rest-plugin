@@ -1042,11 +1042,6 @@ bool DeRestPluginPrivate::addTaskThermostatCmd(TaskItem &task, uint16_t mfrCode,
     {
         // no payload
     }
-    else if (cmd == 0x40) // Danfoss/Hive manufacturer command
-    {
-        stream << (qint8) 0x01;       // Large valve movement
-        stream << (qint16) setpoint;  // temperature
-    }
     else
     {
         return false;
