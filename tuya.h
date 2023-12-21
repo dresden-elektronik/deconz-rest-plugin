@@ -74,6 +74,7 @@
 
 #define DP_IDENTIFIER_THERMOSTAT_CALIBRATION_1 0x1B // Calibration offset used by Moes and Saswell
 #define DP_IDENTIFIER_THERMOSTAT_CALIBRATION_2 0x2C // Calibration offset used by others
+#define DP_IDENTIFIER_THERMOSTAT_CALIBRATION_3 0x69 // Calibration offset used by Moes Tuya BRT-100
 
 // Value for dp_identifier for covering
 //-----------------------------------

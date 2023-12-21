@@ -895,7 +895,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
 
                             ResourceItem *item = sensorNode->item(RConfigPreset);
 
-                            if (item && item->toString() != preset && preset == QLatin1String("boost"))
+                            if (item && item->toString() != preset) // check if preset will change
                             {
                                 // only change preset if it's not boosting or was boosting before
                                 if (preset == QLatin1String("boost") || item->toString() == QLatin1String("boost"))
@@ -1082,14 +1082,25 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         if (productId == "Tuya_THD BRT-100")
                         {
                             temp = temp * 10;
-                            
-                            //change the mode too ? only if temp <5°C change it to off
+
+                            // If temp <= 5°C change mode to off
                             ResourceItem *item = sensorNode->item(RConfigMode);
 
                             if (temp <= 500) {
                                 QString mode = QLatin1String("off");
                                 if (item && item->toString() != mode)
                                 {
+                                    item->setValue(mode);
+                                    enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                                }
+                            }
+                            // If temp >5°C and mode was off, change it back to heat
+                            else
+                            {
+                                QString mode = QLatin1String("off");
+                                if (item && item->toString() == mode)
+                                {
+                                    QString mode = QLatin1String("heat");
                                     item->setValue(mode);
                                     enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
                                 }
@@ -1276,6 +1287,20 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             {
                                 item->setValue(temp);
                                 Event e(RSensors, RConfigHeatSetpoint, sensorNode->id(), item);
+                                enqueueEvent(e);
+                                update = true;
+                            }
+                        }
+
+                        if (productId == "Tuya_THD BRT-100") // temperature calibration (offset in degree) for Moes Tuya BRT-100
+                        {
+                            qint16 offset = static_cast<qint16>(data & 0xFFFF) * 100;
+                            ResourceItem *item = sensorNode->item(RConfigOffset);
+
+                            if (item && item->toNumber() != offset)
+                            {
+                                item->setValue(offset);
+                                Event e(RSensors, RConfigOffset, sensorNode->id(), item);
                                 enqueueEvent(e);
                                 update = true;
                             }
