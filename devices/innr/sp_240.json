@@ -47,7 +47,7 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 5
+          "refresh.interval": 360
         },
         {
           "name": "state/reachable"
@@ -148,10 +148,18 @@
           "name": "config/reachable"
         },
         {
+          "name": "state/current",
+          "refresh.interval": 300
+        },
+        {
           "name": "state/lastupdated"
         },
         {
           "name": "state/power",
+          "refresh.interval": 300
+        },
+        {
+          "name": "state/voltage",
           "refresh.interval": 300
         }
       ]
@@ -171,22 +179,6 @@
           "max": 300
         }
       ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0008",
-      "report": [
-        {
-          "at": "0x0000",
-          "dt": "0x20",
-          "min": 1,
-          "max": 300,
-          "change": "0x00000001"
-        }
-      ]
     }
   ]
 }
-
