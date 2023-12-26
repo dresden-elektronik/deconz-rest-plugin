@@ -5,7 +5,6 @@
   "product": "SP 240",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/sp_240.json",
   "subdevices": [
     {
       "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
@@ -98,7 +97,7 @@
         },
         {
           "name": "state/consumption",
-          "refresh.interval": 300
+          "refresh.interval": 360
         },
         {
           "name": "state/lastupdated"
@@ -149,18 +148,18 @@
         },
         {
           "name": "state/current",
-          "refresh.interval": 300
+          "refresh.interval": 360
         },
         {
           "name": "state/lastupdated"
         },
         {
           "name": "state/power",
-          "refresh.interval": 300
+          "refresh.interval": 360
         },
         {
           "name": "state/voltage",
-          "refresh.interval": 300
+          "refresh.interval": 360
         }
       ]
     }
