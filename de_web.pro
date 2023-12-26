@@ -208,7 +208,6 @@ SOURCES  = air_quality.cpp \
            device_js/device_js_duktape.cpp \
            device_js/device_js_wrappers.cpp \
            device_js/duktape.c \
-           device_setup.cpp \
            device_tick.cpp \
            diagnostics.cpp \
            discovery.cpp \

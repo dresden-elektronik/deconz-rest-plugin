@@ -158,7 +158,6 @@ add_library(${PROJECT_NAME} SHARED
     device_js/device_js.cpp
     device_js/device_js_duktape.cpp
     device_js/device_js_wrappers.cpp
-    device_setup.cpp
     device_tick.cpp
     de_web_plugin.cpp
     de_web_widget.cpp
