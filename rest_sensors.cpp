@@ -1431,15 +1431,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                         }
                     }
-                    else if (sensor->modelId().startsWith(QLatin1String("S1")) ||
-                             sensor->modelId().startsWith(QLatin1String("S2")) ||
-                             sensor->modelId().startsWith(QLatin1String("J1")))
-                    {
-                        if (addTaskUbisysConfigureSwitch(task))
-                        {
-                            updated = true;
-                        }
-                    }
                     else if (sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
                     {
                         const auto match = matchKeyValue(data.string, RConfigModeValuesEurotronic);

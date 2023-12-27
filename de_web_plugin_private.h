@@ -1537,7 +1537,6 @@ public:
     bool addTaskWindowCovering(TaskItem &task, uint8_t cmdId, uint16_t pos, uint8_t pct);
     bool addTaskWindowCoveringSetAttr(TaskItem &task, uint16_t mfrCode, uint16_t attrId, uint8_t attrType, uint16_t attrValue);
     bool addTaskWindowCoveringCalibrate(TaskItem &task, int WindowCoveringType);
-    bool addTaskUbisysConfigureSwitch(TaskItem &taskRef);
     bool addTaskThermostatCmd(TaskItem &task, uint16_t mfrCode, uint8_t cmd, int16_t setpoint, uint8_t daysToReturn);
     bool addTaskThermostatGetSchedule(TaskItem &task);
     bool addTaskThermostatSetWeeklySchedule(TaskItem &task, quint8 weekdays, const QString &transitions);
