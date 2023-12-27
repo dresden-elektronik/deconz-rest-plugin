@@ -1368,48 +1368,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5});
         }
-        else if (modelId == QLatin1String("TRV001") ||   // Hive TRV
-                 modelId == QLatin1String("eT093WRO"))   // POPP smart thermostat
-        {
-            rq.dataType = deCONZ::Zcl16BitInt;
-            rq.attributeId = 0x0000;       // local temperature
-            rq.minInterval = 60;
-            rq.maxInterval = 3600;
-            rq.reportableChange16bit = 50;
-
-            ConfigureReportingRequest rq2;
-            rq2.dataType = deCONZ::Zcl8BitUint;
-            rq2.attributeId = 0x0008;        // Pi heating demand
-            rq2.minInterval = 60;
-            rq2.maxInterval = 43200;
-            rq2.reportableChange8bit = 1;
-
-            ConfigureReportingRequest rq3;
-            rq3.dataType = deCONZ::Zcl16BitInt;
-            rq3.attributeId = 0x0012;        // Occupied heating setpoint
-            rq3.minInterval = 1;
-            rq3.maxInterval = 43200;
-            rq3.reportableChange16bit = 1;
-
-            ConfigureReportingRequest rq4;
-            rq4.dataType = deCONZ::Zcl8BitEnum;
-            rq4.attributeId = 0x4000;        // eTRV Open Window detection
-            rq4.minInterval = 1;
-            rq4.maxInterval = 43200;
-            rq4.reportableChange8bit = 0xff;
-            rq4.manufacturerCode = VENDOR_DANFOSS;
-
-            ConfigureReportingRequest rq5;
-            rq5.dataType = deCONZ::ZclBoolean;
-            rq5.attributeId = 0x4012;        // Mounting mode active
-            rq5.minInterval = 1;
-            rq5.maxInterval = 43200;
-            rq5.reportableChange8bit = 0xff;
-            rq5.manufacturerCode = VENDOR_DANFOSS;
-
-            return sendConfigureReportingRequest(bt, {rq, rq2, rq3}) || // Use OR because of manuf. specific attributes
-                   sendConfigureReportingRequest(bt, {rq4, rq5});
-        }
         else if (sensor && (modelId == QLatin1String("0x8020") || // Danfoss RT24V Display thermostat
                             modelId == QLatin1String("0x8021") || // Danfoss RT24V Display thermostat with floor sensor
                             modelId == QLatin1String("0x8030") || // Danfoss RTbattery Display thermostat
@@ -1598,27 +1556,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     }
     else if (bt.binding.clusterId == THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID)
     {
-        if (modelId == QLatin1String("TRV001") ||   // Hive TRV
-            modelId == QLatin1String("eT093WRO"))   // POPP smart thermostat
-        {
-            rq.dataType = deCONZ::Zcl8BitEnum;
-            rq.attributeId = 0x0001;       // Keypad Lockout
-            rq.minInterval = 1;
-            rq.maxInterval = 43200;
-            rq.reportableChange8bit = 0xff;
-
-            ConfigureReportingRequest rq2;
-            rq2.dataType = deCONZ::Zcl8BitEnum;
-            rq2.attributeId = 0x4000;        // Viewing Direction
-            rq2.minInterval = 1;
-            rq2.maxInterval = 43200;
-            rq2.reportableChange8bit = 0xff;
-            rq2.manufacturerCode = VENDOR_DANFOSS;
-
-            return sendConfigureReportingRequest(bt, {rq}) || // Use OR because of manuf. specific attributes
-                   sendConfigureReportingRequest(bt, {rq2});
-        }
-        else if (modelId == QLatin1String("SORB") ||               // Stelpro Orleans Fan
+        if (modelId == QLatin1String("SORB") ||               // Stelpro Orleans Fan
                  modelId == QLatin1String("TH1300ZB") ||           // Sinope thermostat
                  modelId == QLatin1String("PR412C") ||             // Owon thermostat
                  modelId == QLatin1String("iTRV") ||               // Drayton Wiser Radiator Thermostat
@@ -1631,20 +1569,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 43200;
             rq.reportableChange8bit = 0xff;
 
-            return sendConfigureReportingRequest(bt, {rq});
-        }
-    }
-    else if (bt.binding.clusterId == DIAGNOSTICS_CLUSTER_ID)
-    {
-        if (modelId == QLatin1String("TRV001") ||   // Hive TRV
-            modelId == QLatin1String("eT093WRO"))   // POPP smart thermostat
-        {
-            rq.dataType = deCONZ::Zcl16BitBitMap;
-            rq.attributeId = 0x4000;        // SW error code
-            rq.minInterval = 1;
-            rq.maxInterval = 43200;
-            rq.reportableChange16bit = 0xffff;
-            rq.manufacturerCode = VENDOR_DANFOSS;
             return sendConfigureReportingRequest(bt, {rq});
         }
     }
@@ -1713,9 +1637,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 7200;       // value used by Hue bridge
             rq.reportableChange8bit = 0; // value used by Hue bridge
         }
-        else if (modelId == QLatin1String("eT093WRO") || // POPP smart thermostat
-                 modelId == QLatin1String("TRV001") ||   // Hive TRV
-                 modelId == QLatin1String("0x8020") ||   // Danfoss RT24V Display thermostat
+        else if (modelId == QLatin1String("0x8020") ||   // Danfoss RT24V Display thermostat
                  modelId == QLatin1String("0x8021") ||   // Danfoss RT24V Display thermostat with floor sensor
                  modelId == QLatin1String("0x8030") ||   // Danfoss RTbattery Display thermostat
                  modelId == QLatin1String("0x8031") ||   // Danfoss RTbattery Display thermostat with infrared
@@ -2784,7 +2706,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("SLR1b") ||
         sensor->modelId() == QLatin1String("SLT2") ||
         sensor->modelId() == QLatin1String("SLT3") ||
-        sensor->modelId() == QLatin1String("TRV001") ||
         // Sengled
         sensor->modelId().startsWith(QLatin1String("E13-")) ||
         sensor->modelId().startsWith(QLatin1String("E1D-")) ||
@@ -2862,8 +2783,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("0x8031") ||
         sensor->modelId() == QLatin1String("0x8034") ||
         sensor->modelId() == QLatin1String("0x8035") ||
-        // POPP
-        sensor->modelId() == QLatin1String("eT093WRO") ||
         // Swann
         sensor->modelId() == QLatin1String("SWO-MOS1PA") ||
         // LIDL
@@ -3104,18 +3023,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         else if (*i == THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID)
         {
             val = sensor->getZclValue(*i, 0x0001); // Keypad lockout
-        }
-        else if (*i == DIAGNOSTICS_CLUSTER_ID)
-        {
-            if (sensor->modelId() == QLatin1String("TRV001") ||   // Hive TRV
-                sensor->modelId() == QLatin1String("eT093WRO"))   // POPP smart thermostat
-            {
-                val = sensor->getZclValue(*i, 0x4000); // SW error code
-            }
-            else
-            {
-                continue;
-            }
         }
         else if (*i == SAMJIN_CLUSTER_ID)
         {
