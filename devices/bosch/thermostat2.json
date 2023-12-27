@@ -111,6 +111,35 @@
           "default": false
         },
         {
+          "name": "config/externalsensortemp",
+          "refresh.interval": 360,
+          "read": {
+            "at": "0x4040",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "mf": "0x1209"
+          },
+          "parse": {
+            "at": "0x4040",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl:attr",
+            "mf": "0x1209"
+          },
+          "write": {
+            "at": "0x4040",
+            "cl": "0x0201",
+            "dt": "0x29",
+            "ep": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl:attr",
+            "mf": "0x1209"
+          },
+          "default": 0
+        },
+        {
           "name": "config/externalwindowopen",
           "refresh.interval": 3660,
           "read": {
@@ -209,7 +238,15 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/schedule"
+          "name": "config/schedule",
+          "refresh.interval": 3660,
+          "read": {
+            "fn": "zcl:cmd",
+            "ep": "0x01",
+            "cl": "0x0201",
+            "cmd": "0x02",
+            "eval": "'7F01'"
+          }
         },
         {
           "name": "config/schedule_on",
