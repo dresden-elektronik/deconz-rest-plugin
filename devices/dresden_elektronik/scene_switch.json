@@ -135,6 +135,48 @@
         },
         {
           "name": "state/lastupdated"
+        },
+        {
+          "name": "state/on",
+          "public": false,
+          "parse": {
+            "fn": "zcl:cmd",
+            "ep": 1,
+            "cl": "0x0006",
+            "cmd": "any",
+            "script": "scene_switch_on.js"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/bri",
+          "public": false,
+          "parse": {
+            "fn": "zcl:cmd",
+            "ep": 1,
+            "cl": "0x0008",
+            "cmd": "any",
+            "script": "scene_switch_bri.js"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/sat",
+          "public": false,
+          "parse": {
+            "fn": "zcl:cmd",
+            "ep": 1,
+            "cl": "0x0005",
+            "cmd": "any",
+            "script": "scene_switch_scenes.js"
+          },
+          "read": {
+            "fn": "none"
+          }
         }
       ]
     }
