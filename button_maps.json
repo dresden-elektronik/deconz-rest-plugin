@@ -1581,7 +1581,7 @@
         "sonoffOnOffMap": {
             "vendor": "Sonoff",
             "doc": "Switch SNZB-01",
-            "modelids": ["WB01", "WB-01"],
+            "modelids": ["WB01", "WB-01", "SNZB-01P"],
             "map": [
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "double"],
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "long"],
