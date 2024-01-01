@@ -98,6 +98,7 @@ Hardware requirements
 * [RaspBee&nbsp;II](https://phoscon.de/raspbee2?ref=gh) Zigbee shield for Raspberry Pi
 * [ConBee](https://phoscon.de/conbee?ref=gh) USB dongle for Raspberry Pi and PC
 * [ConBee&nbsp;II](https://phoscon.de/conbee2?ref=gh) USB dongle for Raspberry Pi and PC
+* [ConBee&nbsp;III](https://phoscon.de/conbee3?ref=gh) USB dongle for Raspberry Pi and PC
 
 3rd party libraries
 -------------------
