@@ -2356,7 +2356,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, node->address().ext());
     Q_ASSERT(device);
 
-    if (false && permitJoinFlag)
+    if ((node->nodeDescriptor().manufacturerCode() != VENDOR_PROFALUX) && permitJoinFlag)
     {
         // during pairing only proceed when device code has finished query Basic Cluster
         if (device->item(RAttrManufacturerName)->toString().isEmpty() ||
