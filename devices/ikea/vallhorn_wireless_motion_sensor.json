@@ -158,7 +158,7 @@
         },
         {
           "name": "attr/productname",
-          "static": "Hue light sensor"
+          "static": "Vallhorn light sensor"
         },
         {
           "name": "attr/swversion",
