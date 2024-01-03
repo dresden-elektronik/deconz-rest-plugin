@@ -25,6 +25,7 @@
           "0x0406"
         ],
         "out": [
+          "0x0406"
         ]
       },
       "items": [
@@ -113,6 +114,31 @@
         },
         {
           "name": "state/lastupdated"
+        },
+        {
+          "name": "config/delay",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0406",
+            "at": "0x0010",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0406",
+            "at": "0x0010"
+          },
+          "write": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0406",
+            "at": "0x0010",
+            "dt": "0x21",
+            "eval": "Item.val"
+          },
+          "refresh.interval": 86400
         },
         {
           "name": "state/presence",
