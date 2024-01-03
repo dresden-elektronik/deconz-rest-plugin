@@ -138,6 +138,32 @@
           "refresh.interval": 86400
         },
         {
+          "name": "config/OUdelay",
+          "default": 0,
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0406",
+            "at": "0x0011",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0406",
+            "at": "0x0011"
+          },
+          "write": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0406",
+            "at": "0x0011",
+            "dt": "0x21",
+            "eval": "Item.val"
+          },
+          "refresh.interval": 86400
+        },
+        {
           "name": "state/presence",
           "parse": {
             "fn": "zcl:attr",
