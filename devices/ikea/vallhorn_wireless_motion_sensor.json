@@ -96,10 +96,6 @@
           "refresh.interval": 86400
         },
         {
-          "name": "config/duration",
-          "default": 60
-        },
-        {
           "name": "config/group",
           "default": "auto"
         },
@@ -117,6 +113,7 @@
         },
         {
           "name": "config/delay",
+          "default": 20,
           "parse": {
             "fn": "zcl:attr",
             "ep": 2,
