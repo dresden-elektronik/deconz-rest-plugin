@@ -3,7 +3,7 @@
   "manufacturername": "$MF_IKEA",
   "modelid": "VALLHORN Wireless Motion Sensor",
   "product": "VALLHORN Wireless Motion Sensor",
-  "sleeper": false,
+  "sleeper": true,
   "status": "Gold",
   "path": "/devices/vallhorn_wireless_motion_sensor.json",
   "subdevices": [
