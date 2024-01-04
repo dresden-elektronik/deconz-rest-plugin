@@ -17,6 +17,7 @@
       ],
       "fingerprint": {
         "profile": "0x0104",
+        "device": "0x0107",
         "endpoint": "0x02",
         "in": [
           "0x0000",
@@ -105,9 +106,6 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/dark"
-        },
-        {
           "name": "state/lastupdated"
         },
         {
@@ -186,6 +184,7 @@
       "fingerprint": {
         "endpoint": "0x02",
         "profile": "0x0104",
+        "device": "0x0106",
         "in": [
           "0x0400"
         ]
@@ -208,10 +207,7 @@
           "static": "Vallhorn light sensor"
         },
         {
-          "name": "attr/swversion",
-          "read": {
-            "fn": "none"
-          }
+          "name": "attr/swversion"
         },
         {
           "name": "attr/type"
@@ -288,14 +284,6 @@
           "dt": "0x18",
           "min": 1,
           "max": 300
-        },
-        {
-          "mf": "0x100b",
-          "at": "0x0030",
-          "dt": "0x20",
-          "min": 5,
-          "max": 7200,
-          "change": "0x01"
         }
       ]
     },
@@ -310,27 +298,6 @@
           "min": 300,
           "max": 2700,
           "change": "0x01"
-        }
-      ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 2,
-      "cl": "0x0000",
-      "report": [
-        {
-          "mf": "0x100b",
-          "at": "0x0032",
-          "dt": "0x10",
-          "min": 5,
-          "max": 7200
-        },
-        {
-          "mf": "0x100b",
-          "at": "0x0033",
-          "dt": "0x10",
-          "min": 5,
-          "max": 7200
         }
       ]
     }
