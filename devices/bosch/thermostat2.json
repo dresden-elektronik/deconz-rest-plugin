@@ -3,7 +3,7 @@
   "manufacturername": "BOSCH",
   "modelid": "RBSH-TRV0-ZB-EU",
   "vendor": "Bosch",
-  "product": "Thermostat II",
+  "product": "Thermostat II BTH-RA",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -102,7 +102,7 @@
           "write": {
             "at": "0x400B",
             "cl": "0x0204",
-            "dt": "0x30",
+            "dt": "0x20",
             "ep": 1,
             "eval": "Item.val",
             "fn": "zcl:attr",
@@ -133,7 +133,7 @@
             "cl": "0x0201",
             "dt": "0x29",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val",
             "fn": "zcl:attr",
             "mf": "0x1209"
           },
