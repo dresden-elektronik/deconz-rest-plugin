@@ -48,6 +48,10 @@
           "name": "attr/name"
         },
         {
+          "name": "attr/productname",
+          "static": "Vallhorn light sensor"
+        },
+        {
           "name": "attr/productid",
           "parse": {
             "fn": "zcl:attr",
