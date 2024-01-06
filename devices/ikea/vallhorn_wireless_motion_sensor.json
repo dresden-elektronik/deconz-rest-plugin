@@ -267,6 +267,20 @@
     },
     {
       "bind": "unicast",
+      "src.ep": 2,
+      "cl": "0x0400",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x21",
+          "min": 5,
+          "max": 300,
+          "change": "0x07d0"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
       "src.ep": 1,
       "cl": "0x0001",
       "report": [
