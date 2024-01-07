@@ -5,7 +5,6 @@
   "product": "Plug 01",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/plug_01.json",
   "subdevices": [
     {
       "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
