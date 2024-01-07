@@ -48,6 +48,7 @@
     "$MF_SIGNIFY",
     "$MF_SIGNIFY",
     "$MF_SIGNIFY",
+    "$MF_SIGNIFY",
     "$MF_SIGNIFY"
   ],
   "modelid": [
@@ -81,6 +82,7 @@
     "LCE002",
     "LCG002",
     "LCL003",
+    "LCL006",
     "LCU001",
     "1746447P7",
     "5063130P7",
