@@ -58,9 +58,10 @@
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
+            "eval": "Item.val = Attr.val / 2",
+            "fn": "zcl:attr"
           },
-          "default": 0
+          "refresh.interval": 86400
         },
         {
           "name": "config/on"
