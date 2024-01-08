@@ -42,12 +42,11 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "state/alert",
-          "default": "none"
+          "name": "state/alert"
         },
         {
           "name": "state/on",
-          "refresh.interval": 5
+          "refresh.interval": 360
         },
         {
           "name": "state/reachable"
