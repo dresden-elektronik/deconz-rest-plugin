@@ -3,7 +3,7 @@
   "manufacturername": "MiaMiaoCe",
   "modelid": "MHO-C401N",
   "vendor": "Xiaomi",
-  "product": "MHO-C401N",
+  "product": "Temperature/humidity sensor with display MHO-C401N",
   "sleeper": false,
   "status": "Gold",  
   "subdevices": [
@@ -51,13 +51,10 @@
             "cl": "0x0001",
             "eval": "Item.val = Attr.val / 2",
             "fn": "zcl:attr"
-          },
-          "default": 0
+          }
         },
         {
-          "name": "config/offset",
-          "description": "Relative offset to the main measured value.",
-          "default": 0
+          "name": "config/offset"
         },
         {
           "name": "config/on"
@@ -70,8 +67,7 @@
         },
         {
           "name": "state/temperature",
-          "awake": true,
-          "default": 0
+          "awake": true
         }
       ]
     },
@@ -119,13 +115,10 @@
             "cl": "0x0001",
             "eval": "Item.val = Attr.val / 2",
             "fn": "zcl:attr"
-          },
-          "default": 0
+          }
         },
         {
-          "name": "config/offset",
-          "description": "Relative offset to the main measured value.",
-          "default": 0
+          "name": "config/offset"
         },
         {
           "name": "config/on"
@@ -135,8 +128,7 @@
         },
         {
           "name": "state/humidity",
-          "awake": true,
-          "default": 0
+          "awake": true
         },
         {
           "name": "state/lastupdated"
