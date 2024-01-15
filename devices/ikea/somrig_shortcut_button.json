@@ -73,6 +73,18 @@
     {
       "bind": "unicast",
       "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0xFC80"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 2,
+      "dst.ep": 1,
+      "cl": "0xFC80"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
       "cl": "0x0001",
       "report": [
         {
@@ -83,18 +95,6 @@
           "change": "0x00000002"
         }
       ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0xFC80"
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 2,
-      "dst.ep": 1,
-      "cl": "0xFC80"
     }
   ]
 }
